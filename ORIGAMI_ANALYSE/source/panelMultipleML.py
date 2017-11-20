@@ -326,10 +326,15 @@ class topPanel(wx.Panel):
         if evt != None:
             evt.Skip()
              
-    def OnSortByColumn(self, column):
+    def OnSortByColumn(self, column, overrideReverse=False):
         """
         Sort data in peaklist based on pressed column
         """
+        
+        # Override reverse
+        if overrideReverse:
+            self.reverse = True
+        
         # Check if it should be reversed
         if self.lastColumn == None:
             self.lastColumn = column
@@ -358,17 +363,15 @@ class topPanel(wx.Panel):
                 else:
                     tempRow.append(item.GetText())
             tempData.append(tempRow)
-        
-        # Sort data  
-        tempData.sort(key = itemgetter(column), reverse=self.reverse)
+
+        # Sort data (always by document + another variable
+        tempData.sort(key = itemgetter(2, column), reverse=self.reverse)
         # Clear table and reinsert data
         self.filelist.DeleteAllItems()
         for row in range(rows):
             self.filelist.Append(tempData[row])
         
         # Now insert it into the document
-#         document = self.getCurrentDocument()
-#         if document == None: return
         for row in range(rows):
             itemName = self.filelist.GetItem(itemId=row, 
                                              col=self.config.multipleMLColNames['filename']).GetText()
@@ -378,6 +381,7 @@ class topPanel(wx.Panel):
                                                    col=self.config.multipleMLColNames['energy']).GetText())
             
             self.presenter.documentsDict[docName].multipleMassSpectrum[itemName]['trap'] = trapCV
+
 
     def getCurrentDocument(self, docNameOnly=False):
         """

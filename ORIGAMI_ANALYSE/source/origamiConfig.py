@@ -1,4 +1,20 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------
+#    Copyright (C) 2017 Lukasz G. Migas <lukasz.migas@manchester.ac.uk>
+# 
+#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+#	 Cite : 10.1016/j.ijms.2017.08.014
+#
+#    This program is free software. Feel free to redistribute it and/or 
+#    modify it under the condition you cite and credit the authors whenever 
+#    appropriate. 
+#    The program is distributed in the hope that it will be useful but is 
+#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
+# -------------------------------------------------------------------------
+
 import os
 import numpy as np
 import matplotlib.cm as cm
@@ -132,7 +148,6 @@ class document():
         self.plot2Dtype = 'contour' # contour/imshow
         self.visible = True
     
-    
 class OrigamiConfig:
     
     def __init__(self):
@@ -140,7 +155,7 @@ class OrigamiConfig:
         Initilize config
         """
         
-        self.version = "1.0.4"
+        self.version = "1.0.5"
         self.links = {'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
                       'github' : 'https://github.com/lukasz-migas/ORIGAMI',
                       'cite' : 'https://doi.org/10.1016/j.ijms.2017.08.014',
@@ -501,7 +516,9 @@ class OrigamiConfig:
 #===============================================================================
 # # Interactive parameters 
 #===============================================================================
-
+        
+        self.saveInteractiveOverride = True
+        
         self.figHeight = 600
         self.figWidth = 600
         self.figHeight1D = 300
@@ -513,12 +530,31 @@ class OrigamiConfig:
         self.defNumColumns = ''
         self.linkXYaxes = True
         self.hoverVline = True
+        self.colorbarInteractive = False
         
         self.toolsLocation = 'right'
         self.activeDrag = 'Box Zoom'
         self.activeWheel = 'None'
         self.activeInspect = 'Hover'
+        
+        # Colorbar
         self.colorbarInteractive = False
+        self.colorbarPrecision = 1
+        self.colorbarLabelOffset = 15
+        self.colorbarUseScientific = False
+        self.colorbarLocation = 'right'
+        self.colorbarOrientation = 'vertical'
+        self.colorbarInteractiveX = 20
+        self.colorbarInteractiveY = 0
+        self.colorbarWidthInteractive = 25
+        self.colorbarPaddingInteractive = 25
+        
+        self.outlineWidthInteractive = 2
+        self.outlineAlphaInteractive = 1
+        self.minBorderRightInteractive = 60
+        self.minBorderLeftInteractive = 60
+        self.minBorderTopInteractive = 20
+        self.minBorderBottomInteractive = 60
         
         self.titleFontSizeVal = 16
         self.titleFontWeightInteractive = False
@@ -875,7 +911,6 @@ class OrigamiConfig:
         buff += '    <param name="activeDrag" value="%s" type="unicode" />\n' % (str(self.activeDrag))
         buff += '    <param name="activeWheel" value="%s" type="unicode" />\n' % (str(self.activeWheel))
         buff += '    <param name="activeInspect" value="%s" type="unicode" />\n' % (str(self.activeInspect))
-        buff += '    <param name="colorbarInteractive" value="%s" type="bool" />\n' % (bool(self.colorbarInteractive))
         buff += '    <param name="titleFontSizeVal" value="%d" type="int" />\n' % (int(self.titleFontSizeVal))
         buff += '    <param name="titleFontWeightInteractive" value="%s" type="bool" />\n' % (bool(self.titleFontWeightInteractive))
         buff += '    <param name="labelFontSizeVal" value="%d" type="int" />\n' % (int(self.labelFontSizeVal))
@@ -886,6 +921,22 @@ class OrigamiConfig:
         buff += '    <param name="notationColor" value="%s" type="color" />\n' % (str(self.notationColor))
         buff += '    <param name="notationBackgroundColor" value="%s" type="color" />\n' % (str(self.notationBackgroundColor))
         buff += '    <param name="openInteractiveOnSave" value="%s" type="bool" />\n' % (bool(self.openInteractiveOnSave))
+        buff += '    <param name="colorbarInteractive" value="%s" type="bool" />\n' % (bool(self.colorbarInteractive))
+        buff += '    <param name="colorbarUseScientific" value="%s" type="bool" />\n' % (bool(self.colorbarUseScientific))
+        buff += '    <param name="colorbarLabelOffset" value="%d" type="int" />\n' % (int(self.colorbarLabelOffset))
+        buff += '    <param name="colorbarPrecision" value="%d" type="int" />\n' % (int(self.colorbarPrecision))
+        buff += '    <param name="colorbarInteractiveX" value="%d" type="int" />\n' % (int(self.colorbarInteractiveX))
+        buff += '    <param name="colorbarInteractiveY" value="%d" type="int" />\n' % (int(self.colorbarInteractiveY))
+        buff += '    <param name="colorbarWidthInteractive" value="%d" type="int" />\n' % (int(self.colorbarWidthInteractive))
+        buff += '    <param name="colorbarPaddingInteractive" value="%d" type="int" />\n' % (int(self.colorbarPaddingInteractive))
+        buff += '    <param name="colorbarLocation" value="%s" type="unicode" />\n' % (str(self.colorbarLocation))
+        buff += '    <param name="colorbarOrientation" value="%s" type="unicode" />\n' % (str(self.colorbarOrientation))
+        buff += '    <param name="outlineAlphaInteractive" value="%.1f" type="float" />\n' % (float(self.outlineAlphaInteractive))
+        buff += '    <param name="outlineWidthInteractive" value="%.1f" type="float" />\n' % (float(self.outlineWidthInteractive))
+        buff += '    <param name="minBorderRightInteractive" value="%d" type="int" />\n' % (int(self.minBorderRightInteractive))
+        buff += '    <param name="minBorderLeftInteractive" value="%d" type="int" />\n' % (int(self.minBorderLeftInteractive))
+        buff += '    <param name="minBorderTopInteractive" value="%d" type="int" />\n' % (int(self.minBorderTopInteractive))
+        buff += '    <param name="minBorderBottomInteractive" value="%d" type="int" />\n' % (int(self.minBorderBottomInteractive))
         buff += '  </interactiveGUIparams>\n\n'
 
             
@@ -1185,7 +1236,6 @@ class OrigamiConfig:
         # Return value
         return value
         
-    
 class IconContainer:
     def __init__(self):
         
@@ -2039,7 +2089,6 @@ class IconContainer:
         
         # TOOLBAR
         self.iconsLib['bgrToolbar'] = self.getBgrToolbarBitmap()
-        
         
         
         

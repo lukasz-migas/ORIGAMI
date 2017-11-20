@@ -128,9 +128,7 @@ class documentsTree(wx.TreeCtrl):
         Function to either allow or disallow quick plotting selection of datasets
         """
         
-        self.config.quickDisplay = self.presenter.view.panelControls.quickDisplayCheck.GetValue()
-        print(self.config.quickDisplay)
-        
+        self.config.quickDisplay = self.presenter.view.panelControls.quickDisplayCheck.GetValue()      
         
         if self.config.quickDisplay:
             self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChangePlot, id=wx.ID_ANY)
@@ -138,13 +136,7 @@ class documentsTree(wx.TreeCtrl):
         else:
             self.Unbind(wx.EVT_TREE_SEL_CHANGED, id=wx.ID_ANY)
             print('Quick display is OFF')
-        
-        
-#         if self.config.quickDisplay == False:
-#             self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChangePlot, id=wx.ID_ANY)
-#         elif self.config.quickDisplay == True:
-#             self.Unbind(wx.EVT_TREE_SEL_CHANGED, id=wx.ID_ANY)
-        
+                
         if evt != None:
             evt.Skip()
                              

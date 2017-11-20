@@ -21,16 +21,17 @@ import wx.lib.mixins.listctrl as listmix
 import wx.lib.scrolledpanel
 from ids import *
 from wx import ID_ANY
-from toolbox import str2int, isempty, str2num
+from toolbox import str2int, isempty, str2num, int2float
 import numpy as np
 from origamiStyles import *
-# from origamiConfig import IconContainer as icons
 from os import getcwd
 from operator import itemgetter
 import dialogs as dialogs
 
 from bokeh.plotting import figure, show, save, ColumnDataSource, Column, gridplot
-from bokeh.models import HoverTool, LinearColorMapper, Label, ColorBar
+from bokeh.models import (HoverTool, LinearColorMapper, Label, ColorBar, 
+                          AdaptiveTicker, LogColorMapper, LogTicker,
+                          BasicTickFormatter)
 from bokeh.layouts import column, widgetbox, layout, row, gridplot
 from bokeh.models.widgets import Panel, Tabs, Div
 from bokeh import events
@@ -58,6 +59,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.currentPath = self.presenter.currentPath
         
         self.currentItem = None
+        self.loading = False
         self.listOfPlots = []
         self.SetBackgroundColour(wx.WHITE)
         
@@ -326,7 +328,9 @@ class dlgOutputInteractive(wx.MiniFrame):
         order_label = makeStaticText(self.htmlView, u"Order")
         self.order_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1))
         
-
+        colorbar_label = makeStaticText(self.htmlView, u"Colorbar")
+        self.colorbarCheck = wx.CheckBox(self.htmlView, -1 ,u'', (15, 30))
+        self.colorbarCheck.SetValue(self.config.colorbarInteractive)
         
         page_label = makeStaticText(self.htmlView, u"Assign page")
         self.pageLayoutSelect_htmlView = wx.ComboBox(self.htmlView, -1, choices=[], value="None", style=wx.CB_READONLY)
@@ -364,7 +368,8 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.comboCmapSelect.Bind(wx.EVT_COMBOBOX, self.onChangeColour, id=ID_changeColormapInteractive)        
         self.pageLayoutSelect_htmlView.Bind(wx.EVT_COMBOBOX, self.onChangePageForItem)
         self.plotTypeToolsSelect_htmlView.Bind(wx.EVT_COMBOBOX, self.onChangeToolsForItem)
-        
+#         self.colorbarCheck.Bind(wx.EVT_CHECKBOX, self.onChangeSettings)
+        self.colorbarCheck.Bind(wx.EVT_CHECKBOX, self.onAnnotateItems)
         
         # Disable all elements when nothing is selected
         itemList = [self.itemName_value, self.itemHeader_value, self.itemFootnote_value,
@@ -402,6 +407,9 @@ class dlgOutputInteractive(wx.MiniFrame):
         grid.Add(ymax_label, (n,14), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.ymax_value, (n,15), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
         n = n+1
+        grid.Add(colorbar_label, (n,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.colorbarCheck, (n,1), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        n = n+1
         grid.Add(tools_label, (n,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.plotTypeToolsSelect_htmlView, (n,1), wx.GBSpan(1,2), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         n = n+1
@@ -428,19 +436,22 @@ class dlgOutputInteractive(wx.MiniFrame):
         toolsSizer = self.makeInteractiveToolsSubPanel()
         plot1Dsizer = self.make1DplotSubPanel()
         overlaySizer = self.makeOverLaySubPanel()
+        colorbarSizer = self.makeColorbarSubPanel()
+        plotSettingsSizer = self.makePlotSettingsSubPanel()
 
         mainGrid = wx.GridBagSizer(2,2)
         # x = 1
-        mainGrid.Add(toolsSizer, (0,0), wx.GBSpan(6,1), flag=wx.EXPAND)
-        mainGrid.Add(plot1Dsizer, (6,0), wx.GBSpan(1,1), flag=wx.EXPAND)
+        mainGrid.Add(toolsSizer, (0,0), wx.GBSpan(5,1), flag=wx.EXPAND)
+        mainGrid.Add(plot1Dsizer, (5,0), wx.GBSpan(1,1), flag=wx.EXPAND)
+        mainGrid.Add(overlaySizer, (6,0), wx.GBSpan(1,1), flag=wx.EXPAND)
         # x = 2 
         mainGrid.Add(fontSizer, (0,1), wx.GBSpan(2,1), flag=wx.EXPAND)
         mainGrid.Add(imageSizer, (2,1), wx.GBSpan(2,1), flag=wx.EXPAND)
-        mainGrid.Add(overlaySizer, (4,1), wx.GBSpan(1,1), flag=wx.EXPAND)
+        mainGrid.Add(plotSettingsSizer, (4,1), wx.GBSpan(4,1), flag=wx.EXPAND)
         # x = 3
         mainGrid.Add(pageLayoutSizer, (0,2), wx.GBSpan(2,1), flag=wx.EXPAND)
         mainGrid.Add(rmsdSizer, (2,2), wx.GBSpan(2,1), flag=wx.EXPAND)
-        
+        mainGrid.Add(colorbarSizer, (4,2), wx.GBSpan(2,1), flag=wx.EXPAND)
         
         
         viewSizer.Add(mainGrid, 0, wx.EXPAND, 5)
@@ -525,7 +536,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.figHeight1D_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
         self.figWidth1D_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
 
-        gridFigure = wx.GridBagSizer(2,10)
+        gridFigure = wx.GridBagSizer(2,2)
         n = 0
         gridFigure.Add(figHeight1D_label, (n,0))
         gridFigure.Add(self.figHeight1D_value, (n,1))
@@ -536,6 +547,77 @@ class dlgOutputInteractive(wx.MiniFrame):
         gridFigure.Add(self.figHeight_value, (n,1))
         gridFigure.Add(figWidth_label, (n,2))
         gridFigure.Add(self.figWidth_value, (n,3))
+        figSizer.Add(gridFigure, 0, wx.EXPAND|wx.ALL, 2)
+        return figSizer
+    
+    def makePlotSettingsSubPanel(self):
+        imageBox = makeStaticBox(self.propertiesView, "Plot properties", (270,-1), wx.BLUE)
+        figSizer = wx.StaticBoxSizer(imageBox, wx.HORIZONTAL)
+
+        borderRight_label = makeStaticText(self.propertiesView, u"Border \nright")
+        self.minBorderRightInteractive = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.minBorderRightInteractive),min=0, max=100,
+                                                   initial=float(self.config.minBorderRightInteractive), 
+                                                   inc=5, size=(50,-1))
+        self.minBorderRightInteractive.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
+        
+        borderLeft_label = makeStaticText(self.propertiesView, u"Border \nleft")
+        self.minBorderLeftInteractive = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.minBorderLeftInteractive),min=0, max=100,
+                                                   initial=float(self.config.minBorderLeftInteractive), inc=5, size=(50,-1))
+        self.minBorderLeftInteractive.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
+
+        borderTop_label = makeStaticText(self.propertiesView, u"Border \ntop")
+        self.minBorderTopInteractive = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.minBorderTopInteractive),min=0, max=100,
+                                                   initial=float(self.config.minBorderTopInteractive), inc=5, size=(50,-1))
+        self.minBorderTopInteractive.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))        
+        
+        borderBottom_label = makeStaticText(self.propertiesView, u"Border \nbottom")
+        self.minBorderBottomInteractive = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.minBorderBottomInteractive),min=0, max=100,
+                                                   initial=float(self.config.minBorderBottomInteractive), inc=5, size=(50,-1))
+        self.minBorderBottomInteractive.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
+        
+        outlineWidth_label = makeStaticText(self.propertiesView, u"Outline \nwidth")
+        self.outlineWidthInteractive = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.outlineWidthInteractive),min=0, max=5,
+                                                   initial=self.config.outlineWidthInteractive, inc=0.5, size=(50,-1))
+        self.outlineWidthInteractive.SetToolTip(wx.ToolTip("Plot outline line thickness"))
+        
+        outlineTransparency_label = makeStaticText(self.propertiesView, u"Outline \nalpha")
+        self.outlineAlphaInteractive = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.outlineAlphaInteractive),min=0, max=1,
+                                                   initial=self.config.outlineAlphaInteractive, inc=0.05, size=(50,-1))
+        self.outlineAlphaInteractive.SetToolTip(wx.ToolTip("Plot outline line transparency value"))
+        
+        # bind
+        self.minBorderRightInteractive.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.minBorderLeftInteractive.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.minBorderTopInteractive.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.minBorderBottomInteractive.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.outlineWidthInteractive.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.outlineAlphaInteractive.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+
+
+        gridFigure = wx.GridBagSizer(5,2)
+        n = 0
+        gridFigure.Add(borderRight_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(borderLeft_label, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(borderTop_label, (n,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(borderBottom_label, (n,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        n = n+1
+        gridFigure.Add(self.minBorderRightInteractive, (n,0))
+        gridFigure.Add(self.minBorderLeftInteractive, (n,1))
+        gridFigure.Add(self.minBorderTopInteractive, (n,2))
+        gridFigure.Add(self.minBorderBottomInteractive, (n,3))
+        n = n+1
+        gridFigure.Add(outlineWidth_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(outlineTransparency_label, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        n = n+1
+        gridFigure.Add(self.outlineWidthInteractive, (n,0))
+        gridFigure.Add(self.outlineAlphaInteractive, (n,1))
+        
         figSizer.Add(gridFigure, 0, wx.EXPAND|wx.ALL, 2)
         return figSizer
     
@@ -777,7 +859,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         # bind
         self.hoverVlineCheck.Bind(wx.EVT_CHECKBOX, self.onChangeSettings)   
 
-        gridFigure = wx.GridBagSizer(2,10)
+        gridFigure = wx.GridBagSizer(2,2)
         n = 0
         gridFigure.Add(self.hoverVlineCheck, (n,0))
         
@@ -801,23 +883,107 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.layout_combo.Bind(wx.EVT_COMBOBOX, self.onChangeSettings)
         self.XYaxisLinkCheck.Bind(wx.EVT_CHECKBOX, self.onChangeSettings) 
         
-        gridFigure = wx.GridBagSizer(2,10)
+        gridFigure = wx.GridBagSizer(2,2)
         n = 0
-        gridFigure.Add(layout_label, (n,0))
-        gridFigure.Add(self.layout_combo, (n,1))
-        gridFigure.Add(self.XYaxisLinkCheck, (n,2))
-        n = n+1
-        
+        gridFigure.Add(layout_label, (n,0), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.layout_combo, (n,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.XYaxisLinkCheck, (n,2), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         
         figSizer.Add(gridFigure, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+        return figSizer
+    
+    def makeColorbarSubPanel(self):
+        mainBox = makeStaticBox(self.propertiesView, "Colorbar properties", (270,-1), wx.BLUE)
+        figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
+#          
+        precision_label = makeStaticText(self.propertiesView, u"Precision")
+        self.colorbarPrecision = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.colorbarPrecision),min=0, max=5,
+                                                   initial=self.config.colorbarPrecision, inc=1, size=(50,-1))
+        self.colorbarPrecision.SetToolTip(wx.ToolTip("Number of decimal places in the colorbar tickers"))
         
+        self.colorbarUseScientific = wx.CheckBox(self.propertiesView, -1 ,u'Scientific\nnotation', (15, 30))
+        self.colorbarUseScientific.SetValue(self.config.colorbarUseScientific)
+        self.colorbarUseScientific.SetToolTip(wx.ToolTip("Enable/disable scientific notation of colorbar tickers"))
+        
+        labelOffset_label = makeStaticText(self.propertiesView, u"Label\noffset")
+        self.colorbarLabelOffset = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.colorbarLabelOffset),min=0, max=100,
+                                                   initial=self.config.colorbarLabelOffset, inc=5, size=(50,-1))
+        self.colorbarLabelOffset.SetToolTip(wx.ToolTip("Distance between the colorbar and labels"))
+        
+        
+        location_label = makeStaticText(self.propertiesView, u"Position")
+        self.colorbarLocation = wx.ComboBox(self.propertiesView, -1, 
+                                            choices=['left', 'right', 'above', 'below'],
+                                            value=self.config.colorbarLocation, style=wx.CB_READONLY)
+        self.colorbarLocation.SetToolTip(wx.ToolTip("Colorbar position next to the plot. The colorbar orientation changes automatically"))
+        
+        offsetX_label = makeStaticText(self.propertiesView, u"Offset X")
+        self.colorbarInteractiveX = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.colorbarInteractiveX),min=0, max=100,
+                                                   initial=self.config.colorbarInteractiveX, inc=5, size=(50,-1))
+        self.colorbarInteractiveX.SetToolTip(wx.ToolTip("Colorbar position offset in the X axis. Adjust if colorbar is too close or too far away from the plot"))
+        
+        offsetY_label = makeStaticText(self.propertiesView, u"Offset Y")
+        self.colorbarInteractiveY = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.colorbarInteractiveY),min=0, max=100,
+                                                   initial=self.config.colorbarInteractiveY, inc=5, size=(50,-1))
+        self.colorbarInteractiveY.SetToolTip(wx.ToolTip("Colorbar position offset in the Y axis. Adjust if colorbar is too close or too far away from the plot"))
+
+        padding_label = makeStaticText(self.propertiesView, u"Pad")
+        self.colorbarPadding = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.colorbarPaddingInteractive),min=0, max=100,
+                                                   initial=self.config.colorbarPaddingInteractive, inc=5, size=(50,-1))
+        self.colorbarPadding.SetToolTip(wx.ToolTip(""))
+
+        margin_label = makeStaticText(self.propertiesView, u"Width")
+        self.colorbarWidth = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY, 
+                                                   value=str(self.config.colorbarWidthInteractive), min=0, max=100,
+                                                   initial=self.config.colorbarWidthInteractive, inc=5, size=(50,-1))
+        self.colorbarWidth.SetToolTip(wx.ToolTip(""))
+        
+        
+        # bind 
+        self.colorbarPrecision.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.colorbarUseScientific.Bind(wx.EVT_CHECKBOX, self.onChangeSettings)
+        self.colorbarLocation.Bind(wx.EVT_COMBOBOX, self.onChangeSettings) 
+        self.colorbarInteractiveX.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.colorbarInteractiveY.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.colorbarPadding.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.colorbarWidth.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        self.colorbarLabelOffset.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+        
+        gridFigure = wx.GridBagSizer(2,2)
+        n = 0
+        gridFigure.Add(precision_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(self.colorbarPrecision, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.colorbarUseScientific, (n,2), wx.GBSpan(1,2), flag=wx.ALIGN_CENTER_VERTICAL)
+        n = n+1
+        gridFigure.Add(labelOffset_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(self.colorbarLabelOffset, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        n = n+1
+        gridFigure.Add(location_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(offsetX_label, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(offsetY_label, (n,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(padding_label, (n,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        gridFigure.Add(margin_label, (n,4), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        n = n+1
+        gridFigure.Add(self.colorbarLocation, (n,0), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.colorbarInteractiveX, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.colorbarInteractiveY, (n,2), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.colorbarPadding, (n,3), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.colorbarWidth, (n,4), flag=wx.ALIGN_CENTER_VERTICAL)
+        
+        figSizer.Add(gridFigure, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+          
         return figSizer
     
     def makeDlgButtons(self):
         mainSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, ""), wx.VERTICAL)
         
         pathBtn = wx.Button(self, -1, "Set Path", size=(80,-1))
-        saveBtn = wx.Button(self, -1, "Save", size=(80,-1))
+        saveBtn = wx.Button(self, -1, "Export HTML", size=(80,-1))
         cancelBtn = wx.Button(self, -1, "Cancel", size=(80,-1))
         openHTMLWebBtn = wx.Button(self, ID_helpHTMLEditor, "HTML Editor", size=(80,-1))
         openHTMLWebBtn.SetToolTip(wx.ToolTip("Opens a web-based HTML editor"))
@@ -1000,7 +1166,31 @@ class dlgOutputInteractive(wx.MiniFrame):
         
         # Tools
         self.config.toolsLocation = self.location_combo.GetValue()
-         
+        
+        # Colorbar
+        self.config.colorbarPrecision = str2int(self.colorbarPrecision.GetValue())
+        self.config.colorbarUseScientific = self.colorbarUseScientific.GetValue()        
+        self.config.colorbarInteractiveX = str2int(self.colorbarInteractiveX.GetValue())
+        self.config.colorbarInteractiveY = str2int(self.colorbarInteractiveY.GetValue())
+        self.config.colorbarLocation = self.colorbarLocation.GetStringSelection()
+        if self.config.colorbarLocation in ('right', 'left'): 
+            self.config.colorbarOrientation = 'vertical'
+        else: 
+            self.config.colorbarOrientation = 'horizontal'
+        
+        self.config.colorbarPaddingInteractive = str2int(self.colorbarPadding.GetValue())
+        self.config.colorbarWidthInteractive = str2int(self.colorbarWidth.GetValue())
+        
+        self.config.colorbarLabelOffset = str2int(self.colorbarLabelOffset.GetValue())
+
+        # Plot parameters
+        self.config.outlineWidthInteractive = str2num(self.outlineWidthInteractive.GetValue())
+        self.config.outlineAlphaInteractive = str2num(self.outlineAlphaInteractive.GetValue())
+        self.config.minBorderRightInteractive = str2int(self.minBorderRightInteractive.GetValue())
+        self.config.minBorderLeftInteractive = str2int(self.minBorderLeftInteractive.GetValue())
+        self.config.minBorderTopInteractive = str2int(self.minBorderTopInteractive.GetValue())
+        self.config.minBorderBottomInteractive = str2int(self.minBorderBottomInteractive.GetValue())
+
         if evt != None:
             evt.Skip() 
          
@@ -1183,6 +1373,9 @@ class dlgOutputInteractive(wx.MiniFrame):
 
         if 'cmap' in dictionary: pass
         else: dictionary['cmap'] = ''
+        
+        if 'colorbar' in dictionary: pass
+        else: dictionary['colorbar'] = False
 
         if 'page' in dictionary: 
             # If it has page information in dictionary, add it to the config object
@@ -1482,12 +1675,16 @@ class dlgOutputInteractive(wx.MiniFrame):
         # Disable all elements when nothing is selected
         itemList = [self.itemName_value, self.itemHeader_value, self.itemFootnote_value,
                     self.order_value, self.pageLayoutSelect_htmlView, 
-                    self.plotTypeToolsSelect_htmlView
+                    self.plotTypeToolsSelect_htmlView, self.colorbarCheck
                     ]
         
         for item in itemList:
             item.Enable()
         
+        # When selecting new item, it automatically updates each field in the GUI,
+        # however, as it does that, it also updates the data dictionary. By enabling
+        # loading mode, only the GUI is updated and nothing else.
+        self.loading = True
         self.currentItem = evt.m_itemIndex
         name = self.itemsList.GetItem(self.currentItem,0).GetText()
         key = self.itemsList.GetItem(self.currentItem,1).GetText()
@@ -1523,7 +1720,8 @@ class dlgOutputInteractive(wx.MiniFrame):
         order = docData['order']
         page = docData['page']['name']
         tool = docData['tools']['name']
-                     
+        colorbar = docData['colorbar']
+
         # Update item editor
         self.itemName_value.SetValue(title)
         self.itemHeader_value.SetValue(header)
@@ -1531,7 +1729,8 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.order_value.SetValue(order)
         self.pageLayoutSelect_htmlView.SetStringSelection(page)
         self.plotTypeToolsSelect_htmlView.SetStringSelection(tool)
-        
+        self.colorbarCheck.SetValue(colorbar)
+
         if any(key in method for method in ["MS", "RT", "1D", "RT, Combined", 'MS, Multiple', 'DT-IMS']):
             color = (eval(color))
             self.colorBtn.SetBackgroundColour(tuple([np.int(color[0]*255),
@@ -1540,25 +1739,35 @@ class dlgOutputInteractive(wx.MiniFrame):
             self.colorBtn.Enable()
             self.comboCmapSelect.Disable()
             self.layout_combo.Disable()
+            self.colorbarCheck.Disable()
             self.pageLayoutSelect_htmlView.Enable()
-        elif any(key in method for method in ["2D", "Statistical","2D, Combined","2D, Processed"]):
+            self.plotTypeToolsSelect_htmlView.Enable()
+        elif (any(key in method for method in ["2D", "Statistical", "2D, Combined", "2D, Processed"]) or
+              (key == 'Overlay' and overlayMethod[0] in ('RMSD','RMSF'))): 
             self.comboCmapSelect.SetValue(color)
             self.comboCmapSelect.Enable()
             self.colorBtn.Disable()
             self.layout_combo.Disable()
             self.pageLayoutSelect_htmlView.Enable()
+            self.colorbarCheck.Enable()
+            self.plotTypeToolsSelect_htmlView.Enable()
         elif key == 'Overlay' and (overlayMethod[0] == 'Mask' or overlayMethod[0] == 'Transparent'):
             self.layout_combo.Enable()
             self.comboCmapSelect.Disable()
             self.colorBtn.Disable()
-#             self.pageLayoutSelect_htmlView.SetStringSelection('None')
             self.pageLayoutSelect_htmlView.Disable()
+            self.colorbarCheck.Enable()
+            self.plotTypeToolsSelect_htmlView.Enable()
         else:
             self.comboCmapSelect.Enable()
             self.colorBtn.Enable()
             self.layout_combo.Disable()
+            self.colorbarCheck.Disable()
             self.pageLayoutSelect_htmlView.Enable()
-         
+            self.plotTypeToolsSelect_htmlView.Enable()
+            
+        self.loading = False
+                
     def getItemData(self, name, key, innerKey):
         # Determine which document was selected
         document = self.documentsDict[name]
@@ -1685,7 +1894,6 @@ class dlgOutputInteractive(wx.MiniFrame):
         tools = self.getToolSet(preset=tool)
         toolSet = {'name':tool, 'tools':tools} # dictionary object
         
-
         if any(key in method for method in ["MS", "RT", "1D", "RT, Combined", 'MS, Multiple']):
             color = (eval(color))
                 
@@ -1693,12 +1901,14 @@ class dlgOutputInteractive(wx.MiniFrame):
         header = self.itemHeader_value.GetValue()
         footnote = self.itemFootnote_value.GetValue()
         orderNum = self.order_value.GetValue()
-        
+        colorbar = self.colorbarCheck.GetValue()
+ 
         if key == 'Overlay':
             overlayMethod = innerKey.split('__')
             if overlayMethod[0] == 'Mask' or overlayMethod[0] == 'Transparent':
                 pageData = self.config.pageDict['None']
         
+        if self.loading: return
         
         # Retrieve and add data to dictionary
         document = self.documentsDict[name]
@@ -1714,18 +1924,6 @@ class dlgOutputInteractive(wx.MiniFrame):
         if key == '1D' and innerKey == '': document.DT = self.addHTMLtagsToDictionary(document.DT, 
                                                                              title, header, footnote, orderNum, color, pageData, toolSet)
         
-        if key == '2D' and innerKey == '': document.IMS2D = self.addHTMLtagsToDictionary(document.IMS2D, 
-                                                                             title, header, footnote, orderNum, color, pageData, toolSet)
-        
-        if key == '2D, Processed' and innerKey == '': document.IMS2Dprocess = self.addHTMLtagsToDictionary(document.IMS2Dprocess, 
-                                                                             title, header, footnote, orderNum, color, pageData, toolSet)
-        
-        if key == '2D, Processed' and innerKey == '': document.IMS2Dprocess = self.addHTMLtagsToDictionary(document.multipleMassSpectrum, 
-                                                                             title, header, footnote, orderNum, color, pageData, toolSet)
-        
-        if key == '2D' and innerKey != '': document.IMS2Dions[innerKey] = self.addHTMLtagsToDictionary(document.IMS2Dions[innerKey], 
-                                                                             title, header, footnote, orderNum, color, pageData, toolSet)
-        
         if key == 'MS, Multiple' and innerKey != '': document.multipleMassSpectrum[innerKey] = self.addHTMLtagsToDictionary(document.multipleMassSpectrum[innerKey], 
                                                                                                 title, header, footnote, orderNum, color, pageData, toolSet)
         
@@ -1735,17 +1933,29 @@ class dlgOutputInteractive(wx.MiniFrame):
         if key == 'RT, Combined' and innerKey != '': document.IMSRTCombIons[innerKey] = self.addHTMLtagsToDictionary(document.IMSRTCombIons[innerKey], 
                                                                              title, header, footnote, orderNum, color, pageData, toolSet)
         
+        if key == '2D' and innerKey == '': document.IMS2D = self.addHTMLtagsToDictionary(document.IMS2D, 
+                                                                             title, header, footnote, orderNum, color, pageData, toolSet, colorbar)
+        
+        if key == '2D, Processed' and innerKey == '': document.IMS2Dprocess = self.addHTMLtagsToDictionary(document.IMS2Dprocess, 
+                                                                             title, header, footnote, orderNum, color, pageData, toolSet, colorbar)
+        
+        if key == '2D, Processed' and innerKey == '': document.IMS2Dprocess = self.addHTMLtagsToDictionary(document.multipleMassSpectrum, 
+                                                                             title, header, footnote, orderNum, color, pageData, toolSet, colorbar)
+        
+        if key == '2D' and innerKey != '': document.IMS2Dions[innerKey] = self.addHTMLtagsToDictionary(document.IMS2Dions[innerKey], 
+                                                                             title, header, footnote, orderNum, color, pageData, toolSet, colorbar)
+        
         if key == '2D, Combined' and innerKey != '': document.IMS2DCombIons[innerKey] = self.addHTMLtagsToDictionary(document.IMS2DCombIons[innerKey], 
-                                                                             title, header, footnote, orderNum, color, pageData, toolSet)
+                                                                             title, header, footnote, orderNum, color, pageData, toolSet, colorbar)
         
         if key == '2D, Processed' and innerKey != '': document.IMS2DionsProcess[innerKey] = self.addHTMLtagsToDictionary(document.IMS2DionsProcess[innerKey], 
-                                                                             title, header, footnote, orderNum, color, pageData, toolSet)
+                                                                             title, header, footnote, orderNum, color, pageData, toolSet, colorbar)
         
         if key == 'Overlay' and innerKey != '': document.IMS2DoverlayData[innerKey] = self.addHTMLtagsToDictionary(document.IMS2DoverlayData[innerKey], 
-                                                                             title, header, footnote, orderNum, color, pageData, toolSet)
+                                                                             title, header, footnote, orderNum, color, pageData, toolSet, colorbar)
         
         if key == 'Statistical' and innerKey != '': document.IMS2DstatsData[innerKey] = self.addHTMLtagsToDictionary(document.IMS2DstatsData[innerKey], 
-                                                                             title, header, footnote, orderNum, color, pageData, toolSet)
+                                                                             title, header, footnote, orderNum, color, pageData, toolSet, colorbar)
 
 
         # Set new text for labels
@@ -1767,7 +1977,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.presenter.documentsDict[document.title] = document
         
     def addHTMLtagsToDictionary(self, dictionary, title, header, footnote, 
-                                orderNumber, color, page, toolSet):
+                                orderNumber, color, page, toolSet, colorbar=False):
         """
         Helper function to add title,header,footnote data
         to dictionary
@@ -1779,12 +1989,13 @@ class dlgOutputInteractive(wx.MiniFrame):
         dictionary['cmap'] = color
         dictionary['page'] = page
         dictionary['tools'] = toolSet
+        dictionary['colorbar'] = colorbar
         
         return dictionary 
                                    
     def prepareDataForInteractivePlots(self, data=None, type=None, subtype=None, title=None,
                                        xlabelIn=None, ylabelIn=None, linkXYAxes=False,
-                                       layout='Rows'):
+                                       layout='Rows', addColorbar=None):
         """
         Prepare data to be in an appropriate format
         """
@@ -1829,9 +2040,9 @@ class dlgOutputInteractive(wx.MiniFrame):
                     # Add only tools
                     TOOLS = data['tools']['tools']['tools']
             elif self.hover_check.GetValue():  
-                print('generic tools')
                 TOOLS = [hoverTool,self.tools]
             else: TOOLS = self.tools
+            
             bokehPlot = figure(x_range=(min(xvals), max(xvals)), 
                                y_range=(min(yvals), max(yvals)),
                                tools=TOOLS,
@@ -1840,13 +2051,14 @@ class dlgOutputInteractive(wx.MiniFrame):
                                plot_width=self.config.figWidth1D, 
                                plot_height=(self.config.figHeight1D), 
                                toolbar_location=self.config.toolsLocation)
+            
             cmap = tuple([np.int(cmap[0]*255), 
                           np.int(cmap[1]*255),
                           np.int(cmap[2]*255)])
             bokehPlot.line(xvals, yvals, line_color=cmap)
             # Add border 
-            bokehPlot.outline_line_width = 2
-            bokehPlot.outline_line_alpha = 1
+            bokehPlot.outline_line_width = self.config.outlineWidthInteractive
+            bokehPlot.outline_line_alpha = self.config.outlineAlphaInteractive
             bokehPlot.outline_line_color = "black"
             # X-axis
             bokehPlot.xaxis.axis_label = xlabelIn
@@ -1865,6 +2077,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                                                                                dataType='plot',
                                                                                                plotType='2D',
                                                                                                compact=False)
+     
             colormap = cm.get_cmap(cmap) # choose any matplotlib colormap here
             bokehpalette = [colors.rgb2hex(m) for m in colormap(np.arange(colormap.N))]
             hoverTool = HoverTool(tooltips = [(xlabel, '$x{0}'),
@@ -1883,6 +2096,24 @@ class dlgOutputInteractive(wx.MiniFrame):
                     TOOLS = data['tools']['tools']['tools']
             elif self.hover_check.GetValue():  TOOLS = [hoverTool,self.tools]
             else: TOOLS = self.tools
+            
+            colorbar, colorMapper = None, None
+            if addColorbar:
+                colorMapper = LinearColorMapper(palette=bokehpalette, 
+                                                 low=np.min(zvals), 
+                                                 high=np.max(zvals))
+                colorbar = ColorBar(color_mapper = colorMapper, 
+                                    ticker=AdaptiveTicker(),
+                                    label_standoff = self.config.colorbarLabelOffset,
+                                    border_line_color = None, 
+                                    location = (self.config.colorbarInteractiveX,
+                                                self.config.colorbarInteractiveY),
+                                    formatter=BasicTickFormatter(precision=self.config.colorbarPrecision, 
+                                                                 use_scientific=self.config.colorbarUseScientific),
+                                    orientation=self.config.colorbarOrientation,
+                                    width=self.config.colorbarWidthInteractive,
+                                    padding=self.config.colorbarPaddingInteractive)
+            
             bokehPlot = figure(x_range=(min(xvals), max(xvals)), 
                                y_range=(min(yvals), max(yvals)),
                                tools=TOOLS, 
@@ -1900,14 +2131,17 @@ class dlgOutputInteractive(wx.MiniFrame):
             bokehPlot.quad(top=max(yvals), bottom=min(yvals), 
                            left=min(xvals), right=max(xvals), 
                            alpha=0)
+            if addColorbar:
+                bokehPlot.add_layout(colorbar, self.config.colorbarLocation)
+                
             # Add border 
-            bokehPlot.outline_line_width = 2
-            bokehPlot.outline_line_alpha = 1
+            bokehPlot.outline_line_width = self.config.outlineWidthInteractive
+            bokehPlot.outline_line_alpha = self.config.outlineAlphaInteractive  
             bokehPlot.outline_line_color = "black"
-            bokehPlot.min_border_right = 60
-            bokehPlot.min_border_left = 60
-            bokehPlot.min_border_top = 20
-            bokehPlot.min_border_bottom = 60
+            bokehPlot.min_border_right = self.config.minBorderRightInteractive
+            bokehPlot.min_border_left = self.config.minBorderLeftInteractive
+            bokehPlot.min_border_top = self.config.minBorderTopInteractive
+            bokehPlot.min_border_bottom = self.config.minBorderBottomInteractive
             # X-axis
             bokehPlot.xaxis.axis_label = xlabel
             bokehPlot.xaxis.axis_label_text_font_size = self.labelFontSize
@@ -1987,13 +2221,13 @@ class dlgOutputInteractive(wx.MiniFrame):
                                color='colors')
                 
                 # Add border 
-                bokehPlot.outline_line_width = 2
-                bokehPlot.outline_line_alpha = 1
+                bokehPlot.outline_line_width = self.config.outlineWidthInteractive
+                bokehPlot.outline_line_alpha = self.config.outlineAlphaInteractive  
                 bokehPlot.outline_line_color = "black"
-                bokehPlot.min_border_right = 60
-                bokehPlot.min_border_left = 60
-                bokehPlot.min_border_top = 20
-                bokehPlot.min_border_bottom = 60
+                bokehPlot.min_border_right = self.config.minBorderRightInteractive
+                bokehPlot.min_border_left = self.config.minBorderLeftInteractive
+                bokehPlot.min_border_top = self.config.minBorderTopInteractive
+                bokehPlot.min_border_bottom = self.config.minBorderBottomInteractive
                 # X-axis
                 bokehPlot.xaxis.axis_label_text_font_size = self.labelFontSize
                 bokehPlot.xaxis.axis_label_text_font_style = self.labelFontWeightInteractive
@@ -2021,6 +2255,23 @@ class dlgOutputInteractive(wx.MiniFrame):
                 hoverTool = HoverTool(tooltips = [(xlabel, '$x{0}'),
                                                   (ylabel, '$y{0}')],
                                      point_policy = 'follow_mouse')
+                colorbar, colorMapper = None, None
+                if addColorbar:
+                    colorMapper = LinearColorMapper(palette=bokehpalette, 
+                                                     low=np.min(zvals), 
+                                                     high=np.max(zvals))
+                    colorbar = ColorBar(color_mapper = colorMapper, 
+                                        ticker=AdaptiveTicker(),
+                                        label_standoff = self.config.colorbarLabelOffset,
+                                        border_line_color = None, 
+                                        location = (self.config.colorbarInteractiveX,
+                                                    self.config.colorbarInteractiveY),
+                                        formatter=BasicTickFormatter(precision=self.config.colorbarPrecision, 
+                                                                     use_scientific=self.config.colorbarUseScientific),
+                                        orientation=self.config.colorbarOrientation,
+                                        width=self.config.colorbarWidthInteractive,
+                                        padding=self.config.colorbarPaddingInteractive)
+                
                 # Add tools
                 if len(data['tools']) > 0:
                     # Enable current active tools
@@ -2069,15 +2320,17 @@ class dlgOutputInteractive(wx.MiniFrame):
                                  background_fill_color=backgroundColor, 
                                  background_fill_alpha=1.0)
                 bokehPlot.add_layout(rmsdAnnot)
+                if addColorbar:
+                    bokehPlot.add_layout(colorbar, self.config.colorbarLocation)
                 
                 # Add border 
-                bokehPlot.outline_line_width = 2
-                bokehPlot.outline_line_alpha = 1
+                bokehPlot.outline_line_width = self.config.outlineWidthInteractive
+                bokehPlot.outline_line_alpha = self.config.outlineAlphaInteractive  
                 bokehPlot.outline_line_color = "black"
-                bokehPlot.min_border_right = 60
-                bokehPlot.min_border_left = 60
-                bokehPlot.min_border_top = 20
-                bokehPlot.min_border_bottom = 60
+                bokehPlot.min_border_right = self.config.minBorderRightInteractive
+                bokehPlot.min_border_left = self.config.minBorderLeftInteractive
+                bokehPlot.min_border_top = self.config.minBorderTopInteractive
+                bokehPlot.min_border_bottom = self.config.minBorderBottomInteractive
                 # X-axis
                 bokehPlot.xaxis.axis_label = xlabel
                 bokehPlot.xaxis.axis_label_text_font_size = self.labelFontSize
@@ -2133,8 +2386,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                               np.int(color[2]*255)])
                 bokehPlotRMSF.line(xvals, yvalsRMSF, line_color=color)
                 # Add border 
-                bokehPlotRMSF.outline_line_width = 2
-                bokehPlotRMSF.outline_line_alpha = 1
+                bokehPlot.outline_line_width = self.config.outlineWidthInteractive
+                bokehPlot.outline_line_alpha = self.config.outlineAlphaInteractive
                 bokehPlotRMSF.outline_line_color = "black"
                 # Y-axis
                 bokehPlotRMSF.yaxis.axis_label = ylabelRMSF
@@ -2150,6 +2403,23 @@ class dlgOutputInteractive(wx.MiniFrame):
                 hoverTool = HoverTool(tooltips = [(xlabelRMSD, '$x{0}'),
                                                   (ylabelRMSD, '$y{0}')],
                                      point_policy = 'follow_mouse')
+                colorbar, colorMapper = None, None
+                if addColorbar:
+                    colorMapper = LinearColorMapper(palette=bokehpalette, 
+                                                     low=np.min(zvals), 
+                                                     high=np.max(zvals))
+                    colorbar = ColorBar(color_mapper = colorMapper, 
+                                        ticker=AdaptiveTicker(),
+                                        label_standoff = self.config.colorbarLabelOffset,
+                                        border_line_color = None, 
+                                        location = (self.config.colorbarInteractiveX,
+                                                    self.config.colorbarInteractiveY),
+                                        formatter=BasicTickFormatter(precision=self.config.colorbarPrecision, 
+                                                                     use_scientific=self.config.colorbarUseScientific),
+                                        orientation=self.config.colorbarOrientation,
+                                        width=self.config.colorbarWidthInteractive,
+                                        padding=self.config.colorbarPaddingInteractive)    
+            
                 # Add tools
                 if len(data['tools']) > 0:
                     # Enable current active tools
@@ -2209,15 +2479,17 @@ class dlgOutputInteractive(wx.MiniFrame):
                                  background_fill_color=backgroundColor, 
                                  background_fill_alpha=1.0)
                 bokehPlotRMSD.add_layout(rmsdAnnot)
+                if addColorbar:
+                    bokehPlotRMSD.add_layout(colorbar, self.config.colorbarLocation)
                 
                 # Add border 
-                bokehPlotRMSD.outline_line_width = 2
-                bokehPlotRMSD.outline_line_alpha = 1
-                bokehPlotRMSD.outline_line_color = "black"
-                bokehPlotRMSD.min_border_right = 60
-                bokehPlotRMSD.min_border_left = 60
-                bokehPlotRMSD.min_border_top = 20
-                bokehPlotRMSD.min_border_bottom = 60
+                bokehPlot.outline_line_width = self.config.outlineWidthInteractive
+                bokehPlot.outline_line_alpha = self.config.outlineAlphaInteractive  
+                bokehPlot.outline_line_color = "black"
+                bokehPlot.min_border_right = self.config.minBorderRightInteractive
+                bokehPlot.min_border_left = self.config.minBorderLeftInteractive
+                bokehPlot.min_border_top = self.config.minBorderTopInteractive
+                bokehPlot.min_border_bottom = self.config.minBorderBottomInteractive
                 # X-axis
                 bokehPlotRMSD.xaxis.axis_label = xlabelRMSD
                 bokehPlotRMSD.xaxis.axis_label_text_font_size = self.labelFontSize
@@ -2322,13 +2594,13 @@ class dlgOutputInteractive(wx.MiniFrame):
                            alpha=0)
             
             for plot in [leftPlot, rightPlot]:
-                plot.outline_line_width = 2
-                plot.outline_line_alpha = 1
+                plot.outline_line_width = self.config.outlineWidthInteractive
+                plot.outline_line_alpha = self.config.outlineAlphaInteractive  
                 plot.outline_line_color = "black"
-                plot.min_border_right = 60
-                plot.min_border_left = 60
-                plot.min_border_top = 20
-                plot.min_border_bottom = 60
+                plot.min_border_right = self.config.minBorderRightInteractive
+                plot.min_border_left = self.config.minBorderLeftInteractive
+                plot.min_border_top = self.config.minBorderTopInteractive
+                plot.min_border_bottom = self.config.minBorderBottomInteractive
             
             if layout=='Rows':
                 for plot in [leftPlot, rightPlot]:
@@ -2404,7 +2676,8 @@ class dlgOutputInteractive(wx.MiniFrame):
         
         for item in xrange(self.itemsList.GetItemCount()):
             if self.itemsList.IsChecked(index=item):
-                self.onAnnotateItems(evt=None, itemID=item)
+                # Disabled in v1.0.5 as it was always overriding title, header and other information = should have known better...
+#                 self.onAnnotateItems(evt=None, itemID=item)
                 name = self.itemsList.GetItem(item,0).GetText()
                 key = self.itemsList.GetItem(item,1).GetText()
                 innerKey = self.itemsList.GetItem(item,2).GetText()
@@ -2414,6 +2687,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                 header = data['header']
                 footnote = data['footnote']
                 page = data['page']
+                colorbar = data['colorbar']
+                
                 # Check that the page names agree. If they don't, the table page
                 # name takes priority as it has been pre-emptively added to the
                 # plotDict dictionary
@@ -2451,7 +2726,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                 elif key =='2D' or key == '2D, Combined' or key == '2D, Processed':
                     bokehPlot = self.prepareDataForInteractivePlots(data=data, 
                                                                     type='2D', 
-                                                                    title=title)
+                                                                    title=title,
+                                                                    addColorbar=colorbar)
                      
                 elif key == 'RT':
                     bokehPlot = self.prepareDataForInteractivePlots(data=data, 
@@ -2477,11 +2753,13 @@ class dlgOutputInteractive(wx.MiniFrame):
                         bokehPlot = self.prepareDataForInteractivePlots(data=data, 
                                                                         type='RMSF', 
                                                                         linkXYAxes=self.config.linkXYaxes,
-                                                                        title=title)
+                                                                        title=title,
+                                                                        addColorbar=colorbar)
                     elif overlayMethod[0] == 'RMSD': 
                         bokehPlot = self.prepareDataForInteractivePlots(data=data, 
                                                                         type='RMSD', 
-                                                                        title=title)
+                                                                        title=title,
+                                                                        addColorbar=colorbar)
                     elif overlayMethod[0] == '1D' or overlayMethod[0] == 'RT':
                         msg = "Cannot export '%s - %s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (overlayMethod[0], key, innerKey)
                         dialogs.dlgBox(exceptionTitle='Not supported yet', 
@@ -2497,7 +2775,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                         overlayMethod[0] == 'Standard Deviation'):
                         bokehPlot = self.prepareDataForInteractivePlots(data=data, 
                                                                         type='2D', 
-                                                                        title=title)
+                                                                        title=title,
+                                                                        addColorbar=colorbar)
                     elif overlayMethod[0] == 'RMSD Matrix': 
                         bokehPlot = self.prepareDataForInteractivePlots(data=data, 
                                                                         type='Matrix', 
@@ -2597,7 +2876,11 @@ class dlgOutputInteractive(wx.MiniFrame):
         """
          
         fileType = "HTML file|*.html"
-        dlg =  wx.FileDialog(self, "Save interactive document to file...", "", "", fileType,
+        if self.config.saveInteractiveOverride:
+            dlg =  wx.FileDialog(self, "Save interactive document to file...", "", "", fileType,
+                                wx.FD_SAVE)
+        else:
+            dlg =  wx.FileDialog(self, "Save interactive document to file...", "", "", fileType,
                                 wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         dlg.SetFilename('Interactive Output')
         if dlg.ShowModal() == wx.ID_OK:

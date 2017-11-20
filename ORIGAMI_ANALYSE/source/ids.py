@@ -7,6 +7,8 @@ ID_quit = ID_EXIT
 ID_about = ID_ABOUT
 ID_quickDisplayDocument = NewId()
 
+ID_helpGuideLocal = NewId()
+
 ID_saveAllDocuments = NewId()
 ID_selectCalibrant = NewId()
 ID_selectProtein = NewId()

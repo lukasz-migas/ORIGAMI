@@ -1,4 +1,20 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
+
+# -------------------------------------------------------------------------
+#    Copyright (C) 2017 Lukasz G. Migas <lukasz.migas@manchester.ac.uk>
+# 
+#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+#	 Cite : 10.1016/j.ijms.2017.08.014
+#
+#    This program is free software. Feel free to redistribute it and/or 
+#    modify it under the condition you cite and credit the authors whenever 
+#    appropriate. 
+#    The program is distributed in the hope that it will be useful but is 
+#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
+# -------------------------------------------------------------------------
+
 # Import libraries
 import wx.py as py
 import wx
@@ -110,6 +126,7 @@ class ORIGAMI(object):
         # Load protein/CCS database
         self.onImportCCSDatabase(evt=None, onStart=True)
         self.onCheckVersion(evt=None)
+        
         # Log all events to 
         if self.logging == True:
             sys.stdin = self.view.panelPlots.log
@@ -381,14 +398,19 @@ class ORIGAMI(object):
         # Setup thread
         if action == 'loadOrigami':
             th = threading.Thread(target=self.onLoadOrigamiDataThreaded, args=(args,evt))
+            
         elif action == 'saveFigs':
             target, path, kwargs = args
             th = threading.Thread(target=target.saveFigure2, args=(path,), kwargs=kwargs) 
+            
         elif action == 'extractIons':
             th = threading.Thread(target=self.onExtract2DimsOverMZrangeMultipleThreaded, args=(evt,)) 
         
         # Start thread
-        th.start()
+        try:
+            th.start()
+        except:
+            print('exception')
             
     def onOrigamiRawDirectory(self, evt):
         self.config.ciuMode = 'ORIGAMI'
@@ -798,9 +820,16 @@ class ORIGAMI(object):
             # Check if manual dataset
             elif self.docs.dataType == 'Type: MANUAL':
                 # Shortcut to the file list
-                nameList = self.view.panelMML.topP.filelist # List with MassLynx file information 
+                nameList = self.view.panelMML.topP.filelist # List with MassLynx file information
+                # Sort data regardless of what user did  
+                self.view.panelMML.topP.OnSortByColumn(column=1, overrideReverse=True)
                 tempDict = {}
                 for item in xrange(nameList.GetItemCount()):
+                    # Determine whether the title of the document matches the title of the item in the table
+                    # if it does not, skip the row
+                    docValue = nameList.GetItem(item,2).GetText()
+                    if docValue != self.docs.title: continue
+                    
                     nameValue = nameList.GetItem(item,0).GetText()
                     pathValue = self.docs.multipleMassSpectrum[nameValue]['path']
     
@@ -834,8 +863,11 @@ class ORIGAMI(object):
                 counter = 0 # needed to start off
                 xlabelsActual = []
                 for item in xrange(nameList.GetItemCount()):
+                    # Determine whether the title of the document matches the title of the item in the table
+                    # if it does not, skip the row
+                    docValue = nameList.GetItem(item,2).GetText()
+                    if docValue != self.docs.title: continue
                     key = nameList.GetItem(item,0).GetText()
-#                     print(key, self.docs.multipleMassSpectrum[key]['trap'])
                     if counter == 0:
                         tempArray = tempDict[key][0]
                         xLabelLow = self.docs.multipleMassSpectrum[key]['trap'] # first iteration so first value
@@ -5154,7 +5186,8 @@ class ORIGAMI(object):
                                                        xlabel=xlabel, labelsY=yvals,
                                                        interpolation=self.config.interpolation,
                                                        ylabel=ylabel, title="",
-                                                       cmap=cmap, cmapNorm=cmapNorm,
+                                                       cmap=cmap, 
+                                                       cmapNorm=cmapNorm,
                                                        colorbar=self.config.colorbar,
                                                        axesSize=self.config.plotSizes['2D'],
                                                        plotName='2D')
@@ -6333,6 +6366,14 @@ class ORIGAMI(object):
         except:
             print('Could not check version number')
 
+    def onOpenUserGuide(self, evt):
+        """ 
+        Opens PDF viewer
+        """
+        try:
+            os.startfile('UserGuide_ANALYSE.pdf')
+        except:
+            return
         
         
 if __name__ == '__main__':

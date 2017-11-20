@@ -296,7 +296,8 @@ class MyFrame(wx.Frame):
 #         menuHelp.Append(ID_RESET_ORIGAMI, 'Reinitilise ORIGAMI')
         menuHelp.Append(ID_RESET_PLOT_ZOOM, 'Reset Zoom Tool\tF12')
         menuHelp.AppendSeparator()
-        menuHelp.Append(ID_helpGuide, 'User Guide... (web)\tF1')
+        menuHelp.Append(ID_helpGuide, 'Open User Guide... (web)\tF1')
+        menuHelp.Append(ID_helpGuideLocal, 'Open User Guide... (local)\tF2')
         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_helpYoutube,
                                          text='Check out video guides... ', 
                                          bitmap=self.icons.iconsLib['youtube16']))
@@ -317,6 +318,7 @@ class MyFrame(wx.Frame):
         # HELP MENU
         self.Bind(wx.EVT_MENU, self.onHelpAbout, id=ID_SHOW_ABOUT)
         self.Bind(wx.EVT_MENU, self.presenter.onLibraryLink, id=ID_helpGuide)
+        self.Bind(wx.EVT_MENU, self.presenter.onOpenUserGuide, id=ID_helpGuideLocal)
         self.Bind(wx.EVT_MENU, self.presenter.onLibraryLink, id=ID_helpCite)
         self.Bind(wx.EVT_MENU, self.presenter.onLibraryLink, id=ID_helpYoutube)
         self.Bind(wx.EVT_MENU, self.presenter.onLibraryLink, id=ID_helpNewVersion)

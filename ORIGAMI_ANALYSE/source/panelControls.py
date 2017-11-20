@@ -25,6 +25,7 @@ from toolbox import *
 from wx import EVT_BUTTON, ID_ANY
 from ast import literal_eval
 import sys
+from dialogs import dlgBox
 
 # import wx.lib.agw.foldpanelbar as fpb
 import wx.lib.scrolledpanel
@@ -1209,6 +1210,7 @@ class panelControls ( wx.Panel ):
 		self.quickDisplayCheck.Bind(wx.EVT_CHECKBOX, self.onUpdateDocumentTree)
 		self.quickDisplayCheck.Bind(wx.EVT_CHECKBOX, self.parent.panelDocuments.topP.documents.onNotUseQuickDisplay)
 		self.threadingCheck.Bind(wx.EVT_CHECKBOX, self.exportToConfig)
+		self.threadingCheck.Bind(wx.EVT_CHECKBOX, self.onEnableDisableThreading)
 		self.loggingCheck.Bind(wx.EVT_CHECKBOX, self.exportToConfig)
 		self.loggingCheck.Bind(wx.EVT_CHECKBOX, self.onEnableDisableLogging)
 		
@@ -1949,7 +1951,6 @@ class panelControls ( wx.Panel ):
 		self.binMSfromRT.SetValue(self.config.binMSfromRT)
 		self.loggingCheck.SetValue(self.config.logging)
 		self.threadingCheck.SetValue(self.config.threading)
-# 		self.quickDisplayCheck.SetValue(self.config.quickDisplay)
 		self.normalizeTgl.SetValue(self.config.normalize)
 		self.colorbarTgl.SetValue(self.config.colorbar)
 		self.colorbarWidth_value.SetValue(self.config.colorbarWidth)
@@ -1972,7 +1973,7 @@ class panelControls ( wx.Panel ):
 		self.onEnableDisableLogging(evt=None)
 # 		self.onUpdateDocumentTree()
 		self.parent.panelDocuments.topP.documents.onNotUseQuickDisplay(evt=None)
-		
+		self.onEnableDisableThreading(evt=None)
 		
 		self.importEvent = False
 		self.notebookSettings_paneML.Layout()
@@ -2144,7 +2145,7 @@ class panelControls ( wx.Panel ):
 	def onEnableDisableLogging(self, evt):
 		
 		self.config.logging = self.loggingCheck.GetValue()
-		if self.config.logging == True:
+		if self.config.logging:
 			sys.stdin = self.parent.panelPlots.log
 			sys.stdout = self.parent.panelPlots.log
 			sys.stderr = self.parent.panelPlots.log
@@ -2154,6 +2155,20 @@ class panelControls ( wx.Panel ):
 			sys.stdin = self.config.stdin
 			sys.stdout = self.config.stdout
 			sys.stderr = self.config.stderr
+		
+		if evt != None:
+			evt.Skip()
+			
+	def onEnableDisableThreading(self, evt):
+		
+		self.config.threading = self.threadingCheck.GetValue()
+		if self.config.threading:
+			print('Multi-threading was enabled')
+			dlgBox(exceptionTitle="Warning", 
+				exceptionMsg="Multi-threading is only an experimental feature for now! It might occasionally crash ORIGAMI, in which case you will lose your processed data!", 
+				type="Warning")
+		else:
+			print('Multi-threading was disabled')
 		
 		if evt != None:
 			evt.Skip()
