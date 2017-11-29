@@ -155,11 +155,9 @@ class panelControls ( wx.Panel ):
 		self.smoothMSCheck.Bind(wx.EVT_CHECKBOX, self.exportToConfig)
 		self.smooth1D_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.exportToConfig)
 
-		
 		self.binDataCheck.Bind(wx.EVT_CHECKBOX, self.exportToConfig)
-		self.binMSfromRT.Bind(wx.EVT_CHECKBOX, self.exportToConfig)
-		
-		
+		self.binMSfromRT.Bind(wx.EVT_CHECKBOX, self.exportToConfig)		
+
 		self.iMarkerSize.Bind(wx.EVT_TEXT, self.exportToConfig)
 		self.annotTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.exportToConfig)
 		self.comboMarkerChoice.Bind(wx.EVT_COMBOBOX, self.exportToConfig)
@@ -587,12 +585,12 @@ class panelControls ( wx.Panel ):
 
 		midCmap_label = makeStaticText(self.notebookSettings_paneML, u"Mid %")
 		self.midCmap_value = wx.SpinCtrlDouble(self.notebookSettings_paneML, wx.ID_ANY, 
-											   value=str(self.config.midCmap),min=0, max=500,
+											   value=str(self.config.midCmap),min=0, max=100,
                                                initial=0, inc=0.5, size=(60,-1))
 		
 		maxCmap_label = makeStaticText(self.notebookSettings_paneML, u"Max %")
 		self.maxCmap_value = wx.SpinCtrlDouble(self.notebookSettings_paneML, wx.ID_ANY, 
-											   value=str(self.config.maxCmap),min=0, max=500,
+											   value=str(self.config.maxCmap),min=0, max=100,
                                                initial=0, inc=0.5, size=(60,-1))
 
 		itemPlotType_label = wx.StaticText(self.notebookSettings_paneML, wx.ID_ANY,

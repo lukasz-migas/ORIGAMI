@@ -40,10 +40,10 @@ import re
 
 # needed to avoid annoying warnings to be printed on console
 import warnings
-warnings.filterwarnings("ignore",category=DeprecationWarning)
-warnings.filterwarnings("ignore",category=RuntimeWarning)
-warnings.filterwarnings("ignore",category=UserWarning)
-warnings.filterwarnings("ignore",category=FutureWarning)
+# warnings.filterwarnings("ignore",category=DeprecationWarning)
+# warnings.filterwarnings("ignore",category=RuntimeWarning)
+# warnings.filterwarnings("ignore",category=UserWarning)
+# warnings.filterwarnings("ignore",category=FutureWarning)
 
 # Import libraries used for Interactive Plots
 from bokeh.plotting import figure, show, save, ColumnDataSource, Column 

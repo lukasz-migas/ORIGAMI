@@ -468,7 +468,6 @@ class MyFrame(wx.Frame):
                                  shortHelpString="Open project file")
         self.mainToolbar.AddTool(ID_saveDocument, self.icons.iconsLib['saveDoc'], 
                                  shortHelpString="Save project file")
-        
         self.mainToolbar.AddSeparator()
         self.mainToolbar.AddTool(ID_openORIGAMIRawFile, self.icons.iconsLib['folderOrigami'], 
                                  shortHelpString="Open ORIGAMI MassLynx file")

@@ -38,6 +38,7 @@ import pickle
 
 
 def checkVersion(link=None):
+
     # Search website for all versions
     vers = []
     for line in urllib2.urlopen(link):
