@@ -42,8 +42,8 @@ Some **ORIGAMI<sup>ANALYSE</sup>** features:
 - PB Research Group - Testing 😄
 - Other users - bug reports 🐛
 ---
-**Bug reports**<p>
-If you encounter any errors or problems, would like to ask request new features or just have a chat about ORIGAMI or other MS and IM-MS topics, please contact Lukasz Migas (lukasz.migas@manchester.ac.uk).
+**New features and bug reports**<p>
+If you encounter any [errors or problems](https://goo.gl/forms/4BlqjcpvF2vpqJ2z2), would like to ask [request new features](https://goo.gl/forms/W1ZHTVTK8Zks2VZV2) or just have a chat about ORIGAMI or other MS and IM-MS topics, please contact Lukasz Migas (lukasz.migas@manchester.ac.uk).
 
 ---
 **Citation**<p>
