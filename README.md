@@ -43,7 +43,7 @@ Some **ORIGAMI<sup>ANALYSE</sup>** features:
 - Other users - bug reports 🐛
 ---
 **New features and bug reports**<p>
-If you encounter any [errors or problems](https://goo.gl/forms/4BlqjcpvF2vpqJ2z2), would like to ask [request new features](https://goo.gl/forms/W1ZHTVTK8Zks2VZV2) or just have a chat about ORIGAMI or other MS and IM-MS topics, please contact Lukasz Migas (lukasz.migas@manchester.ac.uk).
+If you encounter any [errors or problems](https://goo.gl/forms/8vk1a7JGNyoN4QdD2), would like to ask [request new features](https://goo.gl/forms/esL6ry9St6WCyPY42) or just have a chat about ORIGAMI or other MS and IM-MS topics, please contact Lukasz Migas (lukasz.migas@manchester.ac.uk).
 
 ---
 **Citation**<p>
