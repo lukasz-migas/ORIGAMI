@@ -32,8 +32,14 @@
 </ul>
 <p>&nbsp;</p>
 <p><strong>Example images:</strong></p>
-<p>![Main window](https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.0/main_window.png)</p>
-<p>&nbsp;</p>
+<p>Updated main window</p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.0/main_window.png" alt="Main window" width="600" height="340" /></p>
+<p>RGB Overlay</p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.0/overlay_rgb_plot.png" alt="Overlay RGB" width="600" height="340" /></p>
+<p>Overlay mobiligram</p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.0/overlay_1d_plot.png" alt="Overlay 1D" width="600" height="340" /></p>
+<p>Compare mass spectra</p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.0/compare_mass_spectra.png" alt="Compare mass spectra" width="600" height="340" /></p>
 <p><strong>ORIGAMI-MS:</strong></p>
 <p>There have been no changes to ORIGAMI<sup>MS</sup>, so please download it from release 1.0.1.</p>
 <p><strong>Video tutorials:</strong></p>
