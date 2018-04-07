@@ -16,16 +16,15 @@
 # -------------------------------------------------------------------------
 
 
-import wx
-from origamiStyles import *
 from ids import *
-import wx.lib.mixins.listctrl as listmix
-from wx import ID_ANY
-import dialogs as dialogs
-from toolbox import isempty, str2num, str2int, isnumber
 from numpy import arange, round
-import itertools
 from operator import itemgetter
+from styles import validator, layout
+from toolbox import str2num, str2int, isnumber
+import dialogs as dialogs
+import itertools
+import wx
+import wx.lib.mixins.listctrl as listmix
 
 
 class panelCCScalibration(wx.Panel):

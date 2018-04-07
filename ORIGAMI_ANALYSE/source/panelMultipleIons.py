@@ -16,38 +16,39 @@
 # -------------------------------------------------------------------------
 
 import wx
-from origamiStyles import *
 from ids import *
 import wx.lib.mixins.listctrl as listmix
-from wx import ID_ANY
 import dialogs as dialogs
-from toolbox import isempty, str2num, str2int, saveAsText
+from dialogs import panelModifyIonSettings, panelAsk
+from toolbox import (isempty, str2num, str2int, saveAsText, convertRGB1to255, 
+                     convertRGB255to1, randomIntegerGenerator, removeListDuplicates)
+from ast import literal_eval
 from operator import itemgetter
 from numpy import arange, vstack, insert
 import csv
-import itertools
 from matplotlib import style
-from origamiStyles import makeCheckbox
-
+from styles import gauge, makeMenuItem
 
 class panelMultipleIons ( wx.Panel ):
     
-    def __init__( self, parent, config, icons, presenter ):
+    def __init__( self, parent, config, icons, helpInfo, presenter ):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, 
                             size = wx.Size( 300,400 ), style = wx.TAB_TRAVERSAL )
 
         self.parent = parent
         self.config = config  
+        self.help = helpInfo
         self.presenter = presenter
         self.currentItem = None
         self.icons = icons
                
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        self.topP = topPanel(self, self.config, self.icons,  self.presenter)
+        self.topP = topPanel(self, self.config, self.icons, self.help, self.presenter)
         sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
         self.SetSizer(sizer)
   #       
+
 class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
     """ListCtrl"""
      
@@ -56,22 +57,25 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         listmix.CheckListCtrlMixin.__init__(self)
         
 class topPanel(wx.Panel):
-    def __init__(self, parent, config, icons, presenter):
+    def __init__(self, parent, config, icons, helpInfo, presenter):
         wx.Panel.__init__(self, parent=parent)
         
         self.config = config
+        self.help = helpInfo
         self.presenter = presenter # wx.App
         self.icons = icons
         self.listOfSelected = []
         self.allChecked = True
         self.override = self.config.overrideCombine
         
+        self.editItemDlg = None
         self.onSelectingItem = True
         
         self.docs = None
         self.reverse = False
         self.lastColumn = None
         self.currentItem = None
+        self.ask_value = None
         
         self.flag = False # flag to either show or hide annotation panel
         
@@ -79,22 +83,40 @@ class topPanel(wx.Panel):
         self.process = False
         
         self.makeGUI()
-        self.onChangeOrigamiMethod(evt=None)
         
+        # add a couple of accelerators
+        accelerators = [
+            (wx.ACCEL_NORMAL, ord('E'), ID_ionPanel_editItem),
+            (wx.ACCEL_NORMAL, ord('O'), ID_overrideCombinedMenu),
+            (wx.ACCEL_NORMAL, ord('I'), ID_useInternalParamsCombinedMenu),
+            (wx.ACCEL_NORMAL, ord('P'), ID_useProcessedCombinedMenu),
+            (wx.ACCEL_NORMAL, ord('B'), ID_combinedCV_binMSCombinedMenu),
+            (wx.ACCEL_NORMAL, ord('H'), ID_highlightRectAllIons),
+            (wx.ACCEL_NORMAL, ord('X'), ID_checkAllItems_Ions),
+            (wx.ACCEL_NORMAL, ord('C'), ID_ionPanel_assignColor),
+            (wx.ACCEL_NORMAL, ord('Z'), ID_showMSplotIon)
+            ]
+        self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
+        
+        wx.EVT_MENU(self, ID_ionPanel_editItem, self.OnOpenEditor)
+        wx.EVT_MENU(self, ID_overrideCombinedMenu, self.setupMenus)
+        wx.EVT_MENU(self, ID_useInternalParamsCombinedMenu, self.setupMenus)
+        wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.setupMenus)
+        wx.EVT_MENU(self, ID_combinedCV_binMSCombinedMenu, self.setupMenus)
+        wx.EVT_MENU(self, ID_highlightRectAllIons, self.presenter.onShowExtractedIons)
+        wx.EVT_MENU(self, ID_checkAllItems_Ions, self.OnCheckAllItems)
+        wx.EVT_MENU(self, ID_ionPanel_assignColor, self.OnAssignColor)
+        wx.EVT_MENU(self, ID_showMSplotIon, self.OnListGetIMMS)
+                
     def makeGUI(self):
         """ Make panel GUI """
          # make toolbar
         toolbar = self.makeToolbar()
         self.makeListCtrl()
-        self.makeOrigamiSubPanel = self.makeOrigamiSubPanel() 
         
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(toolbar, 0, wx.EXPAND, 0)
         self.mainSizer.Add(self.peaklist, 1, wx.EXPAND, 0)
-        self.mainSizer.Add(self.makeOrigamiSubPanel, 0, wx.EXPAND)
-        
-        if self.flag:
-            self.mainSizer.Show(2)
         
         # fit layout
         self.mainSizer.Fit(self)
@@ -103,21 +125,22 @@ class topPanel(wx.Panel):
     def makeToolbar(self):
         
         # Make bindings
-        self.Bind(wx.EVT_TOOL, self.onAddTool, id=ID_addIonsMenu)        
+        self.Bind(wx.EVT_TOOL, self.onAddTool, id=ID_addIonsMenu)  
         self.Bind(wx.EVT_TOOL, self.onRemoveTool, id=ID_removeIonsMenu)
         self.Bind(wx.EVT_TOOL, self.onExtractTool, id=ID_extractIonsMenu)
         self.Bind(wx.EVT_TOOL, self.onProcessTool, id=ID_processIonsMenu)
         self.Bind(wx.EVT_TOOL, self.onSaveTool, id=ID_saveIonsMenu)
         self.Bind(wx.EVT_TOOL, self.onAnnotateTool, id=ID_showIonsMenu)
         self.Bind(wx.EVT_TOOL, self.onOverlayTool, id=ID_overlayIonsMenu)
-        
         self.Bind(wx.EVT_TOOL, self.OnCheckAllItems, id=ID_checkAllItems_Ions)
+        self.Bind(wx.EVT_COMBOBOX, self.onUpdateOverlayMethod, id=ID_selectOverlayMethod)
+        self.Bind(wx.EVT_TOOL, self.onTableTool, id=ID_ionPanel_guiMenuTool)
         
         # Create toolbar for the table
         toolbar = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.TB_DOCKABLE, id = wx.ID_ANY) 
         toolbar.SetToolBitmapSize((16, 16)) 
         toolbar.AddTool(ID_checkAllItems_Ions, self.icons.iconsLib['check16'] , 
-                              shortHelpString="Check all items")
+                        shortHelpString="Check all items\tX")
         toolbar.AddSeparator()
         toolbar.AddTool(ID_addIonsMenu, self.icons.iconsLib['add16'], 
                               shortHelpString="Add...") 
@@ -137,6 +160,9 @@ class topPanel(wx.Panel):
         toolbar.AddControl(self.combo)
         toolbar.AddTool(ID_saveIonsMenu, self.icons.iconsLib['save16'], 
                              shortHelpString="Save...")
+        toolbar.AddSeparator()
+        toolbar.AddTool(ID_ionPanel_guiMenuTool, self.icons.iconsLib['setting16'], 
+                             shortHelpString="Table settings...")
 
         toolbar.Realize()     
         
@@ -144,463 +170,142 @@ class topPanel(wx.Panel):
               
     def makeListCtrl(self):
 
+        self.peaklist = ListCtrl(self, style=wx.LC_REPORT|wx.LC_VRULES)
+        for item in self.config._peakListSettings:
+            order = item['order']
+            name = item['name']
+            if item['show']: 
+                width = item['width']
+            else: 
+                width = 0
+            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
 
-        self.peaklist = ListCtrl(self, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0,u'Start m/z', width=70)
-        self.peaklist.InsertColumn(1,u'End m/z', width=60)
-        self.peaklist.InsertColumn(2,u'z', width=40)
-        self.peaklist.InsertColumn(3,u'Colormap', width=60)
-        self.peaklist.InsertColumn(4,u'\N{GREEK SMALL LETTER ALPHA}', width=40)
-        self.peaklist.InsertColumn(5,u'File', width=50)
-        self.peaklist.InsertColumn(6,u'Method', width=80)
-        self.peaklist.InsertColumn(7,u'%', width=70)
-        self.peaklist.InsertColumn(8,u'Label', width=50)
-
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
-        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
-        self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
+        self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
+        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.onItemActivated)
+        self.peaklist.Bind(wx.EVT_LIST_KEY_DOWN, self.onItemSelected)
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
                 
-    def makeOrigamiSubPanel(self):
-        mainSizer = wx.StaticBoxSizer(wx.StaticBox(self, -1, "Annotations", size=(200,200)), wx.VERTICAL)
+    def onItemActivated(self, evt):
+        """Create annotation for activated peak."""
         
-        TEXT_SIZE = 262
-        TEXT_SIZE_SMALL = 45
-        TEXT_SIZE_SMALL_LEFT = 100
-        BTN_SIZE = 60
-        
-        file_label = wx.StaticText(self, -1, "File:")
-        self.file_value = wx.TextCtrl(self, -1, "", size=(TEXT_SIZE, -1))
-        self.file_value.Disable()
-        file_label.SetFont(wx.SMALL_FONT)
-        self.file_value.SetFont(wx.SMALL_FONT)
-        
-        ion_label = wx.StaticText(self, -1, "Ion:")
-        self.ion_value = wx.TextCtrl(self, -1, "", size=(TEXT_SIZE_SMALL_LEFT, -1), 
-                                     validator=validator('float'))
-        ion_label.SetFont(wx.SMALL_FONT)
-        self.ion_value.SetFont(wx.SMALL_FONT)
-        self.ion_value.Disable()
-        
-        charge_label = wx.StaticText(self, -1, "Charge")
-        self.charge_value = wx.TextCtrl(self, -1, "", size=(TEXT_SIZE_SMALL, -1), 
-                                        style=wx.TE_PROCESS_ENTER)
-        charge_label.SetFont(wx.SMALL_FONT)
-        self.charge_value.SetFont(wx.SMALL_FONT)
-        
-        startScan_label = wx.StaticText(self, -1, "Start scan")
-        self.startScan_value = wx.TextCtrl(self, -1, "", size=(TEXT_SIZE_SMALL, -1))
-        startScan_label.SetFont(wx.SMALL_FONT)
-        self.startScan_value.SetFont(wx.SMALL_FONT)
-         
-        spv_label = wx.StaticText(self, -1, "SPV:")
-        self.spv_value = wx.TextCtrl(self, -1, "", 
-                                     size=(TEXT_SIZE_SMALL, -1), validator=validator('int'))
-        spv_label.SetFont(wx.SMALL_FONT)
-        self.spv_value.SetFont(wx.SMALL_FONT)
-         
-        startV_label = wx.StaticText(self, -1, "Start V:")
-        self.startV_value = wx.TextCtrl(self, -1, "", 
-                                        size=(TEXT_SIZE_SMALL, -1), validator=validator('float'))
-        startV_label.SetFont(wx.SMALL_FONT)
-        self.startV_value.SetFont(wx.SMALL_FONT)
-         
-        endV_label = wx.StaticText(self, -1, "End V:")
-        self.endV_value = wx.TextCtrl(self, -1, "", 
-                                      size=(TEXT_SIZE_SMALL, -1), validator=validator('float'))
-        endV_label.SetFont(wx.SMALL_FONT)
-        self.endV_value.SetFont(wx.SMALL_FONT)
-         
-        stepV_label = wx.StaticText(self, -1, u"Step V:")
-        self.stepV_value = wx.TextCtrl(self, ID_calibration_changeTD, "", 
-                                       size=(TEXT_SIZE_SMALL, -1), validator=validator('float'))
-        stepV_label.SetFont(wx.SMALL_FONT)
-        self.stepV_value.SetFont(wx.SMALL_FONT)
-        
-        boltzman_label = wx.StaticText(self, -1, "Boltzmann \nOffset:")
-        self.boltzman_value = wx.TextCtrl(self, -1, "", 
-                                     size=(TEXT_SIZE_SMALL, -1), validator=validator('float'))
-        boltzman_label.SetFont(wx.SMALL_FONT)
-        self.boltzman_value.SetFont(wx.SMALL_FONT)
-         
-        expPerc_label = wx.StaticText(self, -1, "Exp %:")
-        self.expPerc_value = wx.TextCtrl(self, -1, "", 
-                                        size=(TEXT_SIZE_SMALL, -1), validator=validator('float'))
-        expPerc_label.SetFont(wx.SMALL_FONT)
-        self.expPerc_value.SetFont(wx.SMALL_FONT)
-         
-        expIncr_label = wx.StaticText(self, -1, "Exp \nincrement:")
-        self.expIncr_value = wx.TextCtrl(self, -1, "", 
-                                      size=(TEXT_SIZE_SMALL, -1), validator=validator('float'))
-        expIncr_label.SetFont(wx.SMALL_FONT)
-        self.expIncr_value.SetFont(wx.SMALL_FONT)
-        
-        transMask_label = wx.StaticText(self, -1, u"\N{GREEK SMALL LETTER ALPHA}/Mask:")
-        self.transMask_value = wx.TextCtrl(self, -1, "", 
-                                      size=(TEXT_SIZE_SMALL, -1), validator=validator('float'))
-        expIncr_label.SetFont(wx.SMALL_FONT)
-        self.expIncr_value.SetFont(wx.SMALL_FONT)
-        
-        label_label = wx.StaticText(self, -1, "Label:")
-        self.label_value = wx.TextCtrl(self, -1, "", 
-                                      size=(TEXT_SIZE, -1))
-        expIncr_label.SetFont(wx.SMALL_FONT)
-        self.expIncr_value.SetFont(wx.SMALL_FONT)
-         
-        acqMethod_label = wx.StaticText(self, -1, u"Method:")
-        self.acqMethod_value = wx.ComboBox(self, -1, value= "Linear",
-                                     choices=["Linear", "Exponential", "Fitted",
-                                              "User-defined", "Manual"], 
-                                     style=wx.CB_READONLY)
-        
-        colormap_label = wx.StaticText(self, -1, u"Colormap:")
-        self.colormap_value = wx.ComboBox(self, -1, value=self.config.currentCmap,
-                                     choices=self.config.cmaps2, 
-                                     style=wx.CB_READONLY)
-
-        self.restrictCmaps = makeCheckbox(self, u"")
-        self.restrictCmaps.SetToolTip(makeTooltip(text="Restrict the selection of colormaps to much narrower range."))
-        self.restrictCmaps.SetValue(False)
-        
-        
-        self.applyBtn = wx.Button( self, ID_changeParams_multiIon, u"Apply", wx.DefaultPosition, 
-                                   wx.Size( BTN_SIZE,-1 ), 0 )
-        self.recalculateBtn = wx.Button( self, ID_recalculateORIGAMI, u"Recalculate", wx.DefaultPosition, 
-                                   wx.Size( 70,-1 ), 0 )
-        self.recalculateBtn.Hide()
-        self.replotBtn = wx.Button( self, ID_ANY, u"Plot", wx.DefaultPosition, 
-                                   wx.Size( BTN_SIZE,-1 ), 0 )
-        self.replotBtn.Hide()
-        
-        self.recalculateBtn.Disable()
-        
-        self.applyBtn.Bind(wx.EVT_BUTTON, self.onAnnotateItems)
-        self.recalculateBtn.Bind(wx.EVT_BUTTON, 
-                                 self.onRecalculateCombinedORIGAMI, 
-                                 id=ID_recalculateORIGAMI)
-        
-        
-        self.charge_value.Bind(wx.EVT_TEXT_ENTER, self.onAnnotateItems)
-        self.transMask_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
-        self.label_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
-        self.acqMethod_value.Bind(wx.EVT_COMBOBOX, self.onChangeOrigamiMethod)
-        self.restrictCmaps.Bind(wx.EVT_CHECKBOX, self.onRestrictCmaps)
-        
-        
-        grid = wx.GridBagSizer(2, 2)
-        grid.Add(file_label, (0,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.file_value, (0,1), wx.GBSpan(1,5), flag=wx.ALIGN_LEFT)
-         
-        grid.Add(ion_label, (1,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.ion_value, (1,1), wx.GBSpan(1,2), flag=wx.ALIGN_LEFT)
-          
-        grid.Add(acqMethod_label, (1,3), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.acqMethod_value, (1,4), wx.GBSpan(1,2), flag=wx.ALIGN_LEFT|wx.EXPAND)
-
-        grid.Add(charge_label, (2,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.charge_value, (2,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-
-        grid.Add(startScan_label, (2,2), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.startScan_value, (2,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-
-        grid.Add(spv_label, (2,4), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.spv_value, (2,5), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-  
-        grid.Add(startV_label, (3,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.startV_value, (3,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-          
-        grid.Add(endV_label, (3,2), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.endV_value, (3,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-          
-        grid.Add(stepV_label, (3,4), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.stepV_value, (3,5), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-        
-        grid.Add(boltzman_label, (4,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.boltzman_value, (4,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-          
-        grid.Add(expIncr_label, (4,2), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.expIncr_value, (4,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-        
-        grid.Add(expPerc_label, (4,4), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.expPerc_value, (4,5), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-
-        grid.Add(transMask_label, (5,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.transMask_value, (5,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-        
-        grid.Add(colormap_label, (5,2), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.colormap_value, (5,3), wx.GBSpan(1,2), flag=wx.ALIGN_LEFT|wx.EXPAND)
-        grid.Add(self.restrictCmaps, (5,5), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-        
-        grid.Add(label_label, (6,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.label_value, (6,1), wx.GBSpan(1,5), flag=wx.ALIGN_LEFT)
-        
-        grid.Add(self.applyBtn, (7,0), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT)
-        grid.Add(self.replotBtn, (7,1), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT)
-        grid.Add(self.recalculateBtn, (7,2), wx.GBSpan(1,2), flag=wx.ALIGN_LEFT)
-        
-        mainSizer.Add(grid, 0, wx.EXPAND|wx.ALIGN_CENTER|wx.ALL, 2)
-        
-        return mainSizer
-        
-    def onChangeOrigamiMethod(self, evt):
-        
-        if self.acqMethod_value.GetValue() == "Linear":
-            enableList  = [self.spv_value, self.startV_value, self.endV_value,
-                           self.stepV_value, self.startScan_value]
-            disableList = [self.expIncr_value, self.expPerc_value, self.boltzman_value]
-        elif self.acqMethod_value.GetValue() == "Exponential":
-            enableList  = [self.spv_value, self.startV_value, self.endV_value,
-                           self.stepV_value, self.expIncr_value, self.expPerc_value,
-                           self.startScan_value]
-            disableList = [self.boltzman_value]
-        elif self.acqMethod_value.GetValue() == "Fitted":
-            enableList  = [self.spv_value, self.startV_value, self.endV_value,
-                           self.stepV_value, self.boltzman_value,
-                           self.startScan_value]
-            disableList = [self.expPerc_value, self.expIncr_value]
-        elif self.acqMethod_value.GetValue() == "User-defined":
-            enableList  = [self.startScan_value]
-            disableList = [self.expPerc_value, self.expIncr_value, self.spv_value, self.startV_value, self.endV_value,
-                           self.stepV_value, self.boltzman_value]
-        elif self.acqMethod_value.GetValue() == "Manual":
-            enableList  = []
-            disableList =  [self.startScan_value, self.spv_value,
-                            self.startV_value, self.endV_value,
-                            self.stepV_value, self.boltzman_value,
-                            self.expIncr_value, self.expPerc_value]
+        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
+        if self.currentItem != -1:
+            if not self.editItemDlg:
+                self.OnOpenEditor(evt=None)
+            else:
+                self.editItemDlg.onUpdateGUI(self.OnGetItemInformation(self.currentItem))
+                
+    def onItemSelected(self, evt):
+        keyCode = evt.GetKeyCode()
+        if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
+            self.currentItem = evt.m_itemIndex
+        else:
+            self.currentItem = evt.m_itemIndex
             
-        for item in enableList:
-            item.Enable()
-        for item in disableList:
-            item.Disable()
-        
         if evt != None:
             evt.Skip()
+    # ----
+          
+    def onStatusHelp(self, evt):
+        evtID = evt.GetId()
         
-    def onItemSelected(self, evt):
-
-        self.onSelectingItem = True
-        self.currentItem = evt.m_itemIndex
-        filename = self.peaklist.GetItem(self.currentItem,self.config.peaklistColNames['filename']).GetText()
-        mzStart = self.peaklist.GetItem(self.currentItem,self.config.peaklistColNames['start']).GetText()
-        mzEnd = self.peaklist.GetItem(self.currentItem,self.config.peaklistColNames['end']).GetText()
-        charge = self.peaklist.GetItem(self.currentItem,self.config.peaklistColNames['charge']).GetText()
-        transparency = self.peaklist.GetItem(self.currentItem,self.config.peaklistColNames['alpha']).GetText()
-        colormap = self.peaklist.GetItem(self.currentItem,self.config.peaklistColNames['color']).GetText()
-        method = self.peaklist.GetItem(self.currentItem,self.config.peaklistColNames['method']).GetText()
-        label = self.peaklist.GetItem(self.currentItem,self.config.peaklistColNames['label']).GetText()
-               
+        print('help')
         
-        rangeName = ''.join([str(mzStart),'-',str(mzEnd)])
-        try:
-            self.docs = self.presenter.documentsDict[filename]
-        except KeyError:
-            return
-        
-        # Check whether the ion has combined ions
-        parameters = None
-        if self.docs.gotCombinedExtractedIons:
-            try: 
-                parameters = self.docs.IMS2DCombIons[rangeName].get('parameters', None)
-            except KeyError: 
-                parameters = None
-                pass
+        if evtID == ID_addManyIonsCSV:
+            print('list')
             
-        if method == 'Manual':
-            self.acqMethod_value.SetStringSelection(method)
-            
-        if parameters != None:
-            method = parameters.get('method', None)
-            if method != None:
-                try:
-                    self.acqMethod_value.SetStringSelection(method)
-                except TypeError: 
-                    print('method', method)
-                    pass
+        if evt != None:
+            evt.Skip()
                 
-            firstVoltage = parameters.get('firstVoltage', None)
-            scansPerVoltage = parameters.get('spv', None)
-            startVoltage = parameters.get('startV', None)
-            endVoltage = parameters.get('endV', None)
-            stepVoltage = parameters.get('stepV', None)
-            expIncrement = parameters.get('expIncrement', None)
-            expPercent = parameters.get('expPercent', None)
-            dx = parameters.get('dx', None)
-            
-            self.startScan_value.SetValue(str(firstVoltage))
-            self.spv_value.SetValue(str(scansPerVoltage))
-            self.startV_value.SetValue(str(startVoltage))
-            self.endV_value.SetValue(str(endVoltage))
-            self.stepV_value.SetValue(str(stepVoltage))
-            self.boltzman_value.SetValue(str(dx))
-            self.expIncr_value.SetValue(str(expIncrement))
-            self.expPerc_value.SetValue(str(expPercent))            
-            self.recalculateBtn.Enable()
-        else: 
-            self.recalculateBtn.Disable()
-
-
-        # Make sure values are not None
-        if charge == None: charge =''            
-        if label == None: label =''
-        if transparency == None: transparency =''
+    def OnRightClickMenu(self, evt):
         
-        self.file_value.SetValue(filename)
-        self.ion_value.SetValue(rangeName)
-        self.charge_value.SetValue(str(charge))
-        self.label_value.SetValue(str(label))
+        # Menu events
+        self.Bind(wx.EVT_MENU, self.OnListGetIMMS, id=ID_showMSplotIon)
+        self.Bind(wx.EVT_MENU, self.OnListGetIMMS, id=ID_get1DplotIon)
+        self.Bind(wx.EVT_MENU, self.OnListGetIMMS, id=ID_get2DplotIon)
+        self.Bind(wx.EVT_MENU, self.OnListGetIMMS, id=ID_get2DplotIonWithProcss)
+        self.Bind(wx.EVT_MENU, self.OnOpenEditor, id=ID_ionPanel_editItem)
+        self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_ionPanel_assignColor)
+        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedIonPopup)
         
-        self.colormap_value.SetStringSelection(colormap)
-        self.transMask_value.SetValue(str(transparency))
-        
-        self.onSelectingItem = False
-        
-        # Enable/disable boxes
-        enableList, disableList = [], []
-        if self.acqMethod_value.GetValue() == "Linear":
-            enableList  = [self.spv_value, self.startV_value, self.endV_value,
-                           self.stepV_value, self.startScan_value]
-            disableList = [self.expIncr_value, self.expPerc_value, self.boltzman_value]
-        elif self.acqMethod_value.GetValue() == "Exponential":
-            enableList  = [self.spv_value, self.startV_value, self.endV_value,
-                           self.stepV_value, self.expIncr_value, self.expPerc_value]
-            disableList = [self.boltzman_value]
-        elif self.acqMethod_value.GetValue() == "Fitted":
-            enableList  = [self.spv_value, self.startV_value, self.endV_value,
-                           self.stepV_value, self.boltzman_value, self.startScan_value]
-            disableList = [self.expPerc_value, self.expIncr_value]
-        elif self.acqMethod_value.GetValue() == "User-defined":
-            enableList  = [self.startScan_value]
-            disableList = [self.expPerc_value, self.expIncr_value, self.spv_value, self.startV_value, self.endV_value,
-                           self.stepV_value, self.boltzman_value]
-        elif (self.docs.dataType == 'Type: ORIGAMI' or 
-              self.acqMethod_value.GetValue() == 'None' or
-              self.acqMethod_value.GetValue() == 'Manual'):
-            enableList  = []
-            disableList = [self.expPerc_value, self.expIncr_value, self.spv_value, self.startV_value, self.endV_value,
-                           self.stepV_value, self.boltzman_value, self.startScan_value]
-            
-            
-        for item in enableList:
-            item.Enable()
-        for item in disableList:
-            item.Disable()
-            try: item.SetValue('')
-            except: pass
-        
-    def onAnnotateItems(self, evt):
-        
-        if self.onSelectingItem: return
-        filename = self.file_value.GetValue()
-        rangeName = self.ion_value.GetValue()
-        
-        method = self.acqMethod_value.GetValue()
-        
-        firstVoltage = str2int(self.startScan_value.GetValue())
-        scansPerVoltage = str2int(self.spv_value.GetValue())
-        startVoltage = str2num(self.startV_value.GetValue())
-        endVoltage = str2num(self.endV_value.GetValue())
-        stepVoltage = str2num(self.stepV_value.GetValue())
-        dx = str2num(self.boltzman_value.GetValue())
-        expIncrement = str2num(self.expIncr_value.GetValue())
-        expPercent = str2num(self.expPerc_value.GetValue())
-        charge = str2int(self.charge_value.GetValue())
-        colormap = self.colormap_value.GetStringSelection()
-        transparency = str2num(self.transMask_value.GetValue())
-        label = self.label_value.GetValue()
-        
-        
-        print(charge)
-        
-        if self.docs == None: return
-        
-        # Add to dictionary
-        if self.docs.gotCombinedExtractedIons:
-            try: self.docs.IMS2DCombIons[rangeName]
-            except KeyError: return
-            if self.docs.IMS2DCombIons[rangeName] and self.docs.dataType == 'Type: ORIGAMI':
-                self.docs.IMS2DCombIons[rangeName]['parameters']['firstVoltage'] = firstVoltage
-                self.docs.IMS2DCombIons[rangeName]['parameters']['spv'] = scansPerVoltage
-                self.docs.IMS2DCombIons[rangeName]['parameters']['startV'] = startVoltage
-                self.docs.IMS2DCombIons[rangeName]['parameters']['endV'] = endVoltage
-                self.docs.IMS2DCombIons[rangeName]['parameters']['stepV'] = stepVoltage
-                self.docs.IMS2DCombIons[rangeName]['parameters']['expIncrement'] = expIncrement
-                self.docs.IMS2DCombIons[rangeName]['parameters']['expPercent'] = expPercent
-                self.docs.IMS2DCombIons[rangeName]['parameters']['dx'] = dx
-                self.docs.IMS2DCombIons[rangeName]['parameters']['method'] = method
-                
-        # Update general keys 
-        try:
-            if self.docs.IMS2Dions[rangeName]:
-                self.docs.IMS2Dions[rangeName]['charge'] = charge
-                self.docs.IMS2Dions[rangeName]['cmap'] = colormap
-                self.docs.IMS2Dions[rangeName]['label'] = label
-                self.docs.IMS2Dions[rangeName]['alpha'] = transparency
-        except KeyError: 
-            pass
-        try:
-            if self.docs.IMS2DCombIons[rangeName]:
-                self.docs.IMS2DCombIons[rangeName]['charge'] = charge
-                self.docs.IMS2DCombIons[rangeName]['cmap'] = colormap
-                self.docs.IMS2DCombIons[rangeName]['label'] = label
-                self.docs.IMS2DCombIons[rangeName]['alpha'] = transparency
-        except KeyError: 
-            pass
-        try:
-            if self.docs.IMS2DionsProcess[rangeName]:
-                self.docs.IMS2DionsProcess[rangeName]['charge'] = charge
-                self.docs.IMS2DionsProcess[rangeName]['cmap'] = colormap
-                self.docs.IMS2DionsProcess[rangeName]['label'] = label
-                self.docs.IMS2DionsProcess[rangeName]['alpha'] = transparency
-        except KeyError: 
-            pass
-        
-        
-        # Update list
-        self.peaklist.SetStringItem(index=self.currentItem, col=self.config.peaklistColNames['charge'], 
-                                         label=str(charge))
-        self.peaklist.SetStringItem(index=self.currentItem, col=self.config.peaklistColNames['color'], 
-                                         label=colormap)
-        self.peaklist.SetStringItem(index=self.currentItem, col=self.config.peaklistColNames['alpha'], 
-                                         label=str(transparency))
-        self.peaklist.SetStringItem(index=self.currentItem, col=self.config.peaklistColNames['label'], 
-                                         label=label)
-
-        self.presenter.documentsDict[filename] = self.docs
-        
-    def onAnnotateTool(self, evt):
-#         self.Bind(wx.EVT_MENU, self.presenter.onCalibrantRawDirectory, id=ID_addOneIon)
-#         self.Bind(wx.EVT_MENU, self., id=ID_addManyIonsCSV)
-       
-        self.Bind(wx.EVT_MENU, self.presenter.onShowExtractedIons, id=ID_highlightRectAllIons)
-        self.Bind(wx.EVT_MENU, self.onAssignChargeStates, id=ID_assignChargeStateIons)
-        self.Bind(wx.EVT_MENU, self.onAssignChargeStates, id=ID_assignAlphaMaskIons)
-        
-        
+        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
         menu = wx.Menu()
-        menu.Append(ID_assignChargeStateIons, "Assign charge state to selected ions")
-        menu.Append(ID_assignAlphaMaskIons, "Assign mask/transparency value to selected ions")
-        menu.Append(ID_highlightRectAllIons, "Highlight extracted items on MS plot")
-        
-#         menu.Append(ID_assignCmapIons, "Assign charge state to selected ions")
-        
-#         menu.Append(ID_ANY, "Annotate peaks")
-#         menu.Append(ID_showAllIons, "Show all peaks for current document")
-#         menu.Append(ID_showSelectedIons, "Show selected peaks for current document")
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_showMSplotIon,
+                                     text='Zoom in on the ion\tZ', 
+                                     bitmap=self.icons.iconsLib['zoom_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_get1DplotIon,
+                                     text='Show mobiligram', 
+                                     bitmap=self.icons.iconsLib['chromatogram_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_get2DplotIon,
+                                     text='Show heatmap', 
+                                     bitmap=self.icons.iconsLib['heatmap_16']))
+        menu.Append(ID_get2DplotIonWithProcss, "Process and show heatmap")
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_assignColor,
+                                     text='Assign new color\tC', 
+                                     bitmap=self.icons.iconsLib['color_panel_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_editItem,
+                                     text='Edit ion information\tE', 
+                                     bitmap=self.icons.iconsLib['info16']))
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeSelectedIonPopup,
+                                     text='Remove item', 
+                                     bitmap=self.icons.iconsLib['bin16']))
+#         self.menu.Append(ID_ANY, "Save to .csv file...")
+#         self.menu.Append(ID_ANY, 'Save figure as .png (selected ion)')
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
+                 
+    def onAnnotateTool(self, evt):
+        self.Bind(wx.EVT_MENU, self.presenter.onShowExtractedIons, id=ID_highlightRectAllIons)
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignChargeStateIons)
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignAlphaIons)
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaskIons)
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMinThresholdIons)
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaxThresholdIons)
         
+        menu = wx.Menu()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_highlightRectAllIons,
+                                     text='Highlight extracted items on MS plot\tH', 
+                                     bitmap=self.icons.iconsLib['highlight_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignChargeStateIons,
+                                     text='Assign charge state to selected ions', 
+                                     bitmap=self.icons.iconsLib['assign_charge_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignAlphaIons,
+                                     text='Assign transparency value to selected ions', 
+                                     bitmap=self.icons.iconsLib['transparency_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaskIons,
+                                     text='Assign mask value to selected ions', 
+                                     bitmap=self.icons.iconsLib['mask_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMinThresholdIons,
+                                     text='Assign minimum threshold to selected ions', 
+                                     bitmap=self.icons.iconsLib['min_threshold_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaxThresholdIons,
+                                     text='Assign maximum threshold to selected ions', 
+                                     bitmap=self.icons.iconsLib['max_threshold_16']))
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
     def onAddTool(self, evt):
         
         self.Bind(wx.EVT_MENU, self.presenter.onOpenPeakListCSV, id=ID_addManyIonsCSV)
         self.Bind(wx.EVT_MENU, self.onDuplicateIons, id=ID_duplicateIons)
         self.Bind(wx.EVT_MENU, self.presenter.onAddBlankDocument, id=ID_addNewOverlayDoc)
+        
+        self.Bind(wx.EVT_MENU_HIGHLIGHT, self.onStatusHelp, id=ID_addManyIonsCSV)
        
         menu = wx.Menu()
-        menu.Append(ID_addManyIonsCSV, "Add list of ions (.csv/.txt)\tCtrl+L", 
-                    help='Format: m/z, window size, charge')
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_addManyIonsCSV,
+                                     text='Add list of ions (.csv/.txt)\tCtrl+L', 
+                                     bitmap=self.icons.iconsLib['filelist_16'],
+                                     help_text='Format: m/z, window size, charge'))
         menu.AppendSeparator()
-        menu.Append(ID_addNewOverlayDoc, "Add new comparison document\tAlt+D")
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_addNewOverlayDoc,
+                                     text='Add new comparison document\tAlt+D', 
+                                     bitmap=self.icons.iconsLib['new_document_16']))
 #         menu.AppendSeparator()
 #         menu.Append(ID_duplicateIons, "Duplicate selected items to another document")
         self.PopupMenu(menu)
@@ -632,12 +337,19 @@ class topPanel(wx.Panel):
                   id=ID_overlayMZfromList1D)
         self.Bind(wx.EVT_TOOL, self.presenter.onOverlayMultipleIons1D,
                   id=ID_overlayMZfromListRT)
-        
+        self.Bind(wx.EVT_MENU, self.setupMenus, id=ID_useProcessedCombinedMenu)
         
         menu = wx.Menu()
-        menu.Append(ID_overlayMZfromList1D, "Overlay 1D (selected)")
-        menu.Append(ID_overlayMZfromListRT, "Overlay RT (selected)")
-        menu.Append(ID_overlayMZfromList, "Overlay 2D (selected)\tAlt+Q")
+        menu.Append(ID_overlayMZfromList1D, "Overlay mobiligrams (selected)")
+        menu.Append(ID_overlayMZfromListRT, "Overlay chromatograms (selected)")
+        menu.AppendSeparator()
+        self.useProcessed_check = menu.AppendCheckItem(ID_useProcessedCombinedMenu, "Use processed data (when available)\tP",
+                                                       help="When checked, processed data is used in the overlay (2D) plots.")
+        self.useProcessed_check.Check(self.config.overlay_usedProcessed)
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_overlayMZfromList,
+                                     text='Overlay heatmaps (selected)\tAlt+Q', 
+                                     bitmap=self.icons.iconsLib['heatmap_grid_16']))
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -650,7 +362,9 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.onRemoveDuplicates, id=ID_removeDuplicatesTable)
         
         menu = wx.Menu()
-        menu.Append(ID_clearTableIons, "Clear table")
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearTableIons,
+                                     text='Clear table', 
+                                     bitmap=self.icons.iconsLib['clear_16']))
         menu.AppendSeparator()
         menu.Append(ID_removeDuplicatesTable, "Remove duplicates")
         menu.Append(ID_removeSelectedIon, "Remove selected ions")
@@ -668,122 +382,33 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.presenter.onProcessMultipleIonsIons, id=ID_processAllIons)
         self.Bind(wx.EVT_MENU, self.presenter.onExtractMSforEachCollVoltage, id=ID_extractMSforCVs)
         
-        self.Bind(wx.EVT_MENU, self.overrideCombine, id=ID_overrideCombinedMenu)
-        self.Bind(wx.EVT_MENU, self.overrideCombine, id=ID_useInternalParamsCombinedMenu)
+        self.Bind(wx.EVT_MENU, self.setupMenus, id=ID_overrideCombinedMenu)
+        self.Bind(wx.EVT_MENU, self.setupMenus, id=ID_useInternalParamsCombinedMenu)
+        self.Bind(wx.EVT_MENU, self.setupMenus, id=ID_combinedCV_binMSCombinedMenu)
         
         menu = wx.Menu()
         menu.Append(ID_processSelectedIons, "Process selected ions")
         menu.Append(ID_processAllIons, "Process all ions")
         menu.AppendSeparator()
-        self.override_check = menu.AppendCheckItem(ID_overrideCombinedMenu, "Override", 
-                                                   help="Override already combined items with new settings")
-        self.override_check.Check(self.override)
-        self.useInternalParams_check = menu.AppendCheckItem(ID_useInternalParamsCombinedMenu, "Use internal parameters", 
-                                                            help="When combining CVs, use ORIGAMI parameters pre-set for each item")
-        self.useInternalParams_check.Check(self.useInternalParams)
-        
+        self.override_check = menu.AppendCheckItem(ID_overrideCombinedMenu, "Overwrite results\tO",
+                                                   help="When checked, any previous results for the selected item(s) will be overwritten based on the current parameters.")
+        self.override_check.Check(self.config.overrideCombine)
+        self.useInternalParams_check = menu.AppendCheckItem(ID_useInternalParamsCombinedMenu, "Use internal parameters\tI", 
+                                                            help="When checked, collision voltage scans will be combined based on parameters present in the ORIGAMI document.")
+        self.useInternalParams_check.Check(self.config.useInternalParamsCombine)
         menu.Append(ID_combineCEscansSelectedIons, "Combine CVs for selected ions (ORIGAMI)")
         menu.Append(ID_combineCEscans, "Combine CVs for all ions (ORIGAMI)\tAlt+C")
         menu.AppendSeparator()
-        menu.Append(ID_extractMSforCVs, "Extract MS for each CV (ORIGAMI)")
+        self.binCombinedCV_MS_check = menu.AppendCheckItem(ID_combinedCV_binMSCombinedMenu, "Bin mass spectra during extraction\tB", 
+                                                            help="")
+        self.binCombinedCV_MS_check.Check(self.config.binCVdata)
+        menu.Append(ID_extractMSforCVs, "Extract mass spectra for each collision voltage (ORIGAMI)")
 
 
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
         
-    def onRestrictCmaps(self, evt):
-        """
-        The cmap list will be restricted to more limited selection
-        """
-
-        currentCmap = self.colormap_value.GetValue()
-        narrowList = self.config.narrowCmapList
-        narrowList.append(self.colormap_value.GetValue())
-        
-        if self.restrictCmaps.GetValue():
-            self.colormap_value.Clear()
-            for item in narrowList:
-                self.colormap_value.Append(item)
-            self.colormap_value.SetStringSelection(currentCmap)
-        else:
-            self.colormap_value.Clear()
-            for item in self.config.cmaps2:
-                self.colormap_value.Append(item)
-            self.colormap_value.SetStringSelection(currentCmap)
-             
-    def overrideCombine(self, evt):
-        """ Check/uncheck menu item """
-        
-        if evt.GetId() == ID_overrideCombinedMenu:
-            if self.override:
-                self.override = False
-                self.override_check.Check(False)
-                self.config.overrideCombine = False
-            else: 
-                self.override = True
-                self.override_check.Check(True)
-                self.config.overrideCombine = True
-            
-        if evt.GetId() == ID_useInternalParamsCombinedMenu:
-            if self.useInternalParams:
-                self.useInternalParams = False
-                self.useInternalParams_check.Check(False)
-                self.config.useInternalParamsCombine = False
-            else: 
-                self.useInternalParams = True
-                self.useInternalParams_check.Check(True)
-                self.config.useInternalParamsCombine = True    
-        
-        if evt.GetId() == ID_processSaveMenu:
-            if self.process:
-                self.process = False
-                self.processSave_check.Check(False)
-            else: 
-                self.process = True
-                self.processSave_check.Check(True)
-
-    def onAssignChargeStates(self, evt):
-        """ Iterate over list to assign charge state """
-        
-        rows = self.peaklist.GetItemCount()
-        if rows == 0: return
-        
-        if evt.GetId() == ID_assignChargeStateIons:
-            value = dialogs.dlgAsk('Assign charge state to selected items.',
-                                    defaultValue="")
-            keyword = 'charge'
-            if value == '' or value == 'None': return
-            else:
-                value = str2int(value)
-
-        elif evt.GetId() == ID_assignAlphaMaskIons:
-            value = dialogs.dlgAsk('Assign transparency or mask value to selected items. Typical values: Mask = 0.25 | Transparency = 0.5',
-                                    defaultValue="")
-            keyword = 'alpha'
-
-            
-        for row in range(rows):
-            if self.peaklist.IsChecked(index=row):
-                filename = self.peaklist.GetItem(row, self.config.peaklistColNames['filename']).GetText()
-                
-                document = self.presenter.documentsDict[filename]
-                selectedText = self.getCurrentIon(index=row, evt=None)
-                self.peaklist.SetStringItem(index=row,
-                                            col=self.config.peaklistColNames[keyword], 
-                                            label=str(value))
-                
-                if selectedText in document.IMS2Dions:
-                    document.IMS2Dions[selectedText][keyword] = value
-                if selectedText in document.IMS2DCombIons:
-                    document.IMS2DCombIons[selectedText][keyword] = value
-                if selectedText in document.IMS2DionsProcess:
-                    document.IMS2DionsProcess[selectedText][keyword] = value
-                if selectedText in document.IMSRTCombIons:
-                    document.IMSRTCombIons[selectedText][keyword] = value
-                
-                self.presenter.documentsDict[document.title] = document
-
     def onSaveTool(self, evt):
         self.Bind(wx.EVT_MENU, self.OnSaveSelectedPeakList, id=ID_saveSelectIonListCSV)
         self.Bind(wx.EVT_MENU, self.OnSavePeakList, id=ID_saveIonListCSV)
@@ -793,7 +418,7 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportSelectedAsCSV_ion)
         self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportAllAsCSV_ion)
         
-        self.Bind(wx.EVT_MENU, self.overrideCombine, id=ID_processSaveMenu)
+        self.Bind(wx.EVT_MENU, self.setupMenus, id=ID_processSaveMenu)
         
         saveImageLabel = ''.join(['Save all figures (.', self.config.imageFormat,')'])
         saveSelectedImageLabel = ''.join(['Save selected figure (.', self.config.imageFormat,')'])
@@ -818,6 +443,243 @@ class topPanel(wx.Panel):
         menu.Destroy()
         self.SetFocus()
         
+    def onTableTool(self, evt):
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_startMS)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_endMS)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_color)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_colormap)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_charge)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_intensity)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_document)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_alpha)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_mask)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_document)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_label)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_method)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_hideAll)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_restoreAll)
+        
+
+        menu = wx.Menu()
+        n = 0
+        self.table_start = menu.AppendCheckItem(ID_ionPanel_table_startMS, 'Table: Minimum m/z')
+        self.table_start.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_end = menu.AppendCheckItem(ID_ionPanel_table_endMS, 'Table: Maximum m/z')
+        self.table_end.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_charge = menu.AppendCheckItem(ID_ionPanel_table_charge, 'Table: Charge')
+        self.table_charge.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_intensity = menu.AppendCheckItem(ID_ionPanel_table_intensity, 'Table: Intensity')
+        self.table_intensity.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_color = menu.AppendCheckItem(ID_ionPanel_table_color, 'Table: Color')
+        self.table_color.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_colormap = menu.AppendCheckItem(ID_ionPanel_table_colormap, 'Table: Colormap')
+        self.table_colormap.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_alpha = menu.AppendCheckItem(ID_ionPanel_table_alpha, 'Table: Transparency')
+        self.table_alpha.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_mask = menu.AppendCheckItem(ID_ionPanel_table_mask, 'Table: Mask')
+        self.table_mask.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_label = menu.AppendCheckItem(ID_ionPanel_table_label, 'Table: Label')
+        self.table_label.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_method = menu.AppendCheckItem(ID_ionPanel_table_method, 'Table: Method')
+        self.table_method.Check(self.config._peakListSettings[n]['show'])
+        n = n + 1
+        self.table_document = menu.AppendCheckItem(ID_ionPanel_table_document, 'Table: Document')
+        self.table_document.Check(self.config._peakListSettings[n]['show'])
+        menu.AppendSeparator()
+        self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_table_hideAll,
+                                     text='Table: Hide all', 
+                                     bitmap=self.icons.iconsLib['hide_table_16']))
+        self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_table_restoreAll,
+                                     text='Table: Restore all', 
+                                     bitmap=self.icons.iconsLib['show_table_16']))
+        
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+        
+    def onUpdateTable(self, evt):
+        evtID = evt.GetId()
+        
+        # check which event was triggered
+        if evtID == ID_ionPanel_table_startMS:
+            col_index = self.config.peaklistColNames['start']
+        elif evtID == ID_ionPanel_table_endMS:
+            col_index = self.config.peaklistColNames['end']
+        elif evtID == ID_ionPanel_table_charge:
+            col_index = self.config.peaklistColNames['charge']
+        elif evtID == ID_ionPanel_table_intensity:
+            col_index = self.config.peaklistColNames['intensity']
+        elif evtID == ID_ionPanel_table_color:
+            col_index = self.config.peaklistColNames['color']
+        elif evtID == ID_ionPanel_table_colormap:
+            col_index = self.config.peaklistColNames['colormap']
+        elif evtID == ID_ionPanel_table_alpha:
+            col_index = self.config.peaklistColNames['alpha']
+        elif evtID == ID_ionPanel_table_mask:
+            col_index = self.config.peaklistColNames['mask']
+        elif evtID == ID_ionPanel_table_label:
+            col_index = self.config.peaklistColNames['label']
+        elif evtID == ID_ionPanel_table_method:
+            col_index = self.config.peaklistColNames['method']
+        elif evtID == ID_ionPanel_table_document:
+            col_index = self.config.peaklistColNames['filename']
+        elif evtID == ID_ionPanel_table_restoreAll:
+            for i in range(len(self.config._peakListSettings)):
+                self.config._peakListSettings[i]['show'] = True
+                col_width = self.config._peakListSettings[i]['width']
+                self.peaklist.SetColumnWidth(i, col_width)
+            return
+        elif evtID == ID_ionPanel_table_hideAll:
+            for i in range(len(self.config._peakListSettings)):
+                self.config._peakListSettings[i]['show'] = False
+                col_width = 0
+                self.peaklist.SetColumnWidth(i, col_width)
+            return 
+        
+        # check values
+        col_check = not self.config._peakListSettings[col_index]['show']
+        self.config._peakListSettings[col_index]['show'] = col_check
+        if col_check: col_width = self.config._peakListSettings[col_index]['width']
+        else: col_width = 0
+        # set new column width
+        self.peaklist.SetColumnWidth(col_index, col_width)
+        
+    def OnCheckAllItems(self, evt, check=True, override=False):
+        """
+        Check/uncheck all items in the list
+        ===
+        Parameters:
+        check : boolean, sets items to specified state
+        override : boolean, skips settings self.allChecked value
+        """
+        rows = self.peaklist.GetItemCount()
+        
+        if not override: 
+            if self.allChecked:
+                self.allChecked = False
+                check = True
+            else:
+                self.allChecked = True
+                check = False 
+            
+        if rows > 0:
+            for row in range(rows):
+                self.peaklist.CheckItem(row, check=check)
+           
+    def setupMenus(self, evt):
+        """ Check/uncheck menu item """
+        
+        evtID = evt.GetId()
+        
+        # check which event was triggered
+        if evtID == ID_overrideCombinedMenu:
+            check_value = not self.config.overrideCombine
+            self.config.overrideCombine = check_value
+            args = ("Peak list panel: 'Override' combined IM-MS data was switched to %s" % self.config.overrideCombine, 4)
+            self.presenter.onThreading(evt, args, action='updateStatusbar')
+            
+        if evtID == ID_useInternalParamsCombinedMenu:
+            check_value = not self.config.useInternalParamsCombine
+            self.config.useInternalParamsCombine = check_value
+            args = ("Peak list panel: 'Use internal parameters' was switched to  %s" % self.config.useInternalParamsCombine, 4)
+            self.presenter.onThreading(evt, args, action='updateStatusbar')
+            
+        if evtID == ID_processSaveMenu:
+            check_value = not self.process
+            self.process = check_value
+            args = ("Override was switched to %s" % self.override, 4)
+            self.presenter.onThreading(evt, args, action='updateStatusbar')
+            
+        if evtID == ID_useProcessedCombinedMenu:
+            check_value = not self.config.overlay_usedProcessed
+            self.config.overlay_usedProcessed = check_value
+            args = ("Peak list panel: Using processing data was switched to %s" % self.config.overlay_usedProcessed, 4)
+            self.presenter.onThreading(evt, args, action='updateStatusbar')
+            
+        if evtID == ID_combinedCV_binMSCombinedMenu:
+            check_value = not self.config.binCVdata
+            self.config.binCVdata = check_value
+            args = ("Binning mass spectra from ORIGAMI files was switched to %s" % self.config.binCVdata, 4)
+            self.presenter.onThreading(evt, args, action='updateStatusbar')
+            
+    def onUpdateOverlayMethod(self, evt):
+        self.config.overlayMethod = self.combo.GetStringSelection()
+        
+        if evt != None:
+            evt.Skip()
+    
+    def onChangeParameter(self, evt):
+        """ Iterate over list to assign charge state """
+        
+        rows = self.peaklist.GetItemCount()
+        if rows == 0: return
+        
+
+        
+        if evt.GetId() == ID_assignChargeStateIons:
+            ask_kwargs = {'static_text':'Assign charge state to selected items.',
+                          'value_text':"", 
+                          'validator':'integer',
+                          'keyword':'charge'}
+        elif evt.GetId() == ID_assignAlphaIons:
+            ask_kwargs = {'static_text':'Assign new transparency value to selected items \nTypical transparency values: 0.5\nRange 0-1',
+                          'value_text':0.5, 
+                          'validator':'float',
+                          'keyword':'alpha'}
+        elif evt.GetId() == ID_assignMaskIons:
+            ask_kwargs = {'static_text':'Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1',
+                          'value_text':0.25, 
+                          'validator':'float',
+                          'keyword':'mask'}
+        elif evt.GetId() == ID_assignMinThresholdIons:
+            ask_kwargs = {'static_text':'Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1',
+                          'value_text':0.0, 
+                          'validator':'float',
+                          'keyword':'min_threshold'}
+        elif evt.GetId() == ID_assignMaxThresholdIons:
+            ask_kwargs = {'static_text':'Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1',
+                          'value_text':1.0, 
+                          'validator':'float',
+                          'keyword':'max_threshold'}
+
+            
+        ask = panelAsk(self, self.presenter, **ask_kwargs)
+        if ask.ShowModal() == wx.ID_OK: 
+            pass
+        
+        if self.ask_value == None: 
+            return
+        
+        for row in range(rows):
+            if self.peaklist.IsChecked(index=row):                
+                filename = self.peaklist.GetItem(row, self.config.peaklistColNames['filename']).GetText()
+                selectedText = self.getCurrentIon(index=row, evt=None)
+                document = self.presenter.documentsDict[filename]
+                if not ask_kwargs['keyword'] in ['min_threshold', 'max_threshold']:
+                    self.peaklist.SetStringItem(index=row, 
+                                                col=self.config.peaklistColNames[ask_kwargs['keyword']], 
+                                                label=str(self.ask_value))
+                
+                if selectedText in document.IMS2Dions:
+                    document.IMS2Dions[selectedText][ask_kwargs['keyword']] = self.ask_value
+                if selectedText in document.IMS2DCombIons:
+                    document.IMS2DCombIons[selectedText][ask_kwargs['keyword']] = self.ask_value
+                if selectedText in document.IMS2DionsProcess:
+                    document.IMS2DionsProcess[selectedText][ask_kwargs['keyword']] = self.ask_value
+                if selectedText in document.IMSRTCombIons:
+                    document.IMSRTCombIons[selectedText][ask_kwargs['keyword']] = self.ask_value
+                # update document
+                self.presenter.documentsDict[document.title] = document
+
     def onSaveAsData(self, evt):
         count = self.peaklist.GetItemCount()
         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
@@ -883,54 +745,6 @@ class topPanel(wx.Panel):
         # Uncheck item
         self.peaklist.CheckItem(self.currentItem, check=False)
 
-    def OnCheckAllItems(self, evt, check=True, override=False):
-        """
-        Check/uncheck all items in the list
-        ===
-        Parameters:
-        check : boolean, sets items to specified state
-        override : boolean, skips settings self.allChecked value
-        """
-        rows = self.peaklist.GetItemCount()
-        
-        if not override: 
-            if self.allChecked:
-                self.allChecked = False
-                check = True
-            else:
-                self.allChecked = True
-                check = False 
-            
-        if rows > 0:
-            for row in range(rows):
-                self.peaklist.CheckItem(row, check=check)
-                
-        if evt != None:
-            evt.Skip()
-        
-    def OnRightClickMenu(self, evt):
- 
-        self.Bind(wx.EVT_MENU, self.OnListGetIMMS, id=ID_showMSplotIon)
-        self.Bind(wx.EVT_MENU, self.OnListGetIMMS, id=ID_get1DplotIon)
-        self.Bind(wx.EVT_MENU, self.OnListGetIMMS, id=ID_get2DplotIon)
-        self.Bind(wx.EVT_MENU, self.OnListGetIMMS, id=ID_get2DplotIonWithProcss)
-
-        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedIonPopup)
-        
-        self.currentItem, flags = self.peaklist.HitTest(evt.GetPosition())
-        self.menu = wx.Menu()
-        self.menu.Append(ID_showMSplotIon, "Zoom in on the ion")
-        self.menu.Append(ID_get1DplotIon, "Show 1D IM-MS plot")
-        self.menu.Append(ID_get2DplotIon, "Show 2D IM-MS plot")
-        self.menu.Append(ID_get2DplotIonWithProcss, "Process and show 2D IM-MS plot")
-        self.menu.AppendSeparator()
-#         self.menu.Append(ID_ANY, "Save to .csv file...")
-#         self.menu.Append(ID_ANY, 'Save figure as .png (selected ion)')
-        self.menu.Append(ID_removeSelectedIonPopup, "Remove item")
-        self.PopupMenu(self.menu)
-        self.menu.Destroy()
-        self.SetFocus()
-        
     def onCheckForDuplicates(self, mzStart=None, mzEnd=None):
         """
         Check whether the value being added is already present in the table
@@ -989,24 +803,27 @@ class topPanel(wx.Panel):
                 else:
                     tempRow.append(item.GetText())
             tempRow.append(self.peaklist.IsChecked(index=row))
+            tempRow.append(self.peaklist.GetItemTextColour(row))
             tempData.append(tempRow)
             
-       
         # Sort data  
         tempData.sort(key = itemgetter(column), reverse=self.reverse)
         # Clear table
         self.peaklist.DeleteAllItems()
         
-        checkData = []
+        checkData, rgbData = [], []
         for check in tempData:
+            rgbData.append(check[-1])
+            del check[-1]
             checkData.append(check[-1])
             del check[-1]
-        
+
         # Reinstate data
         rowList = arange(len(tempData))
-        for row, check in zip(rowList,checkData):
+        for row, check, rgb in zip(rowList, checkData, rgbData):
             self.peaklist.Append(tempData[row])
             self.peaklist.CheckItem(row, check)
+            self.peaklist.SetItemTextColour(row, rgb)
             
     def onRemoveDuplicates(self, evt, limitCols=False):
         """
@@ -1024,7 +841,7 @@ class topPanel(wx.Panel):
             for col in range(columns):
                 item = self.peaklist.GetItem(itemId=row, col=col)
                 #  We want to make sure certain columns are numbers
-                if col==0 or col==1 or col==7:
+                if col in [0, 1, 3, 6, 7]:
                     itemData = str2num(item.GetText())
                     if itemData == None: itemData = 0
                     tempRow.append(itemData)
@@ -1034,16 +851,33 @@ class topPanel(wx.Panel):
                     tempRow.append(itemData)
                 else:
                     tempRow.append(item.GetText())
+            tempRow.append(self.peaklist.IsChecked(index=row))
+            tempRow.append(self.peaklist.GetItemTextColour(row))
             tempData.append(tempRow)
-        
+
         # Remove duplicates
-        tempData = self.presenter.removeDuplicates(input=tempData, 
-                                                   columnsIn=self.config.peaklistColNames.keys(),
-                                                   limitedCols=['start','end','filename'])     
+        tempData = removeListDuplicates(input=tempData,
+                                        columnsIn=['start', 'end', 'charge', 'intensity', 
+                                        'color', 'colormap', 'alpha', 'mask', 
+                                        'label', 'method', 'filename', 'check', 'rgb'],
+                                        limitedCols=['start','end','filename'])     
         rows = len(tempData)
+        # Clear table
         self.peaklist.DeleteAllItems()
-        for row in range(rows):
+        
+        checkData, rgbData = [], []
+        for check in tempData:
+            rgbData.append(check[-1])
+            del check[-1]
+            checkData.append(check[-1])
+            del check[-1]
+        
+        # Reinstate data
+        rowList = arange(len(tempData))
+        for row, check, rgb in zip(rowList, checkData, rgbData):
             self.peaklist.Append(tempData[row])
+            self.peaklist.CheckItem(row, check)
+            self.peaklist.SetItemTextColour(row, rgb)
             
         if evt is None: return
         else:
@@ -1053,10 +887,13 @@ class topPanel(wx.Panel):
         """
         This function extracts 2D array and plots it in 2D/3D
         """
-        mzStart = self.peaklist.GetItem(self.currentItem,0).GetText()
-        mzEnd = self.peaklist.GetItem(self.currentItem,1).GetText()
-        rangeName = ''.join([str(mzStart),'-',str(mzEnd)])
-        selectedItem = self.peaklist.GetItem(self.currentItem,5).GetText() # check filename
+        itemInfo = self.OnGetItemInformation(self.currentItem)
+        mzStart = itemInfo['mzStart']
+        mzEnd = itemInfo['mzEnd']
+        intensity = itemInfo['intensity']
+        selectedItem = itemInfo['document']
+        rangeName = itemInfo['ionName']
+
         # Check if data was extracted
         if selectedItem == '':
             dialogs.dlgBox(exceptionTitle='Extract data first', 
@@ -1070,12 +907,12 @@ class topPanel(wx.Panel):
         data, zvals, xvals, xlabel, yvals, ylabel = None, None, None, None, None, None
         # Check whether its ORIGAMI or MANUAL data type
         if currentDocument.dataType == 'Type: ORIGAMI':
-            if currentDocument.gotCombinedExtractedIons == True:
+            if currentDocument.gotCombinedExtractedIons:
                 data = currentDocument.IMS2DCombIons
-            elif currentDocument.gotExtractedIons == True:
+            elif currentDocument.gotExtractedIons:
                 data = currentDocument.IMS2Dions
         elif currentDocument.dataType == 'Type: MANUAL':
-            if currentDocument.gotCombinedExtractedIons == True:
+            if currentDocument.gotCombinedExtractedIons:
                 data = currentDocument.IMS2DCombIons
         else: return
         
@@ -1098,31 +935,31 @@ class topPanel(wx.Panel):
             """
             if selectedItem != self.presenter.currentDoc: 
                 print('This ion belongs to different document')
-            startX = str2num(self.peaklist.GetItem(self.currentItem,0).GetText())-10
-            endX = str2num(self.peaklist.GetItem(self.currentItem,1).GetText())+10
+            startX = str2num(mzStart)-self.config.zoomWindowX
+            endX = str2num(mzEnd)+self.config.zoomWindowX
             try:
-                endY = str2num(self.peaklist.GetItem(self.currentItem,7).GetText())/100
-            except TypeError: endY = 1.001
+                endY = str2num(intensity)/100
+            except TypeError: 
+                endY = 1.001
             if endY == 0: endY = 1.001
             self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MS'])
             self.presenter.onZoomMS(startX=startX,endX=endX, endY=endY)
         else:
             # Unpack data
             zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data[rangeName],
-                                                                                     dataType='plot',compact=False)
+                                                                                               dataType='plot',compact=False)
             
             # Warning in case  there is missing data
             if isempty(xvals) or isempty(yvals) or xvals is "" or yvals is "":
-                msg1 = "Missing x- and/or y-axis labels. Cannot continue!"
-                msg2 = "Add x- and/or y-axis labels to each file before continuing!"
-                msg = '\n'.join([msg1,msg2])
+                msg = "Missing x/y-axis labels. Cannot continue! \nAdd x/y-axis labels to each file before continuing."
+                print(msg)
                 dialogs.dlgBox(exceptionTitle='Missing data', 
                                exceptionMsg= msg,
                                type="Error")
                 return
             # Process data
             if evt.GetId() == ID_get2DplotIonWithProcss:
-                zvals = self.presenter.process2Ddata(zvals=zvals)
+                zvals = self.presenter.process2Ddata(zvals=zvals, return_data=True)
             # Plot data
             self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
             self.presenter.onPlot2DIMS2(zvals, xvals, yvals, xlabel, ylabel, cmap)
@@ -1220,7 +1057,7 @@ class topPanel(wx.Panel):
         else:
         # Ask if you are sure to delete it!
             dlg = dialogs.dlgBox(exceptionTitle='Are you sure?', 
-                                 exceptionMsg= "Are you sure you would like to delete ALL text documents?",
+                                 exceptionMsg= "Are you sure you would like to delete ALL ions?",
                                  type="Question")
             if dlg == wx.ID_NO:
                 print('Cancelled operation')
@@ -1280,7 +1117,7 @@ class topPanel(wx.Panel):
         if saveDlg.ShowModal() == wx.ID_CANCEL: return
         else:
             filepath = saveDlg.GetPath()
-            print(filepath)
+#             print(filepath)
 
         # Iterate over row and columns to get data
         for row in range(rows):
@@ -1370,7 +1207,7 @@ class topPanel(wx.Panel):
         # Change panel and plot 
         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MS'])
          
-        self.presenter.onPlotMS2(msX, msY, color, style, xlimits=xlimits)
+        self.presenter.onPlotMS2(msX, msY, xlimits=xlimits)
         if count == 0: return
         ymin = 0
         height = 1.0
@@ -1413,6 +1250,271 @@ class topPanel(wx.Panel):
         # If found nothing, return nothing
         return None
         
+    def OnGetItemInformation(self, itemID, return_list=False):
+        
+        # get item information
+        information = {'mzStart':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['start']).GetText()),
+                       'mzEnd':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['end']).GetText()),
+                       'intensity':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['intensity']).GetText()),
+                       'charge':str2int(self.peaklist.GetItem(itemID, self.config.peaklistColNames['charge']).GetText()),
+                       'color':self.peaklist.GetItemTextColour(item=itemID),
+                       'colormap':self.peaklist.GetItem(itemID, self.config.peaklistColNames['colormap']).GetText(),
+                       'alpha':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['alpha']).GetText()),
+                       'mask':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['mask']).GetText()),
+                       'document':self.peaklist.GetItem(itemID, self.config.peaklistColNames['filename']).GetText(),
+                       'method':self.peaklist.GetItem(itemID, self.config.peaklistColNames['method']).GetText(),
+                       'label':self.peaklist.GetItem(itemID, self.config.peaklistColNames['label']).GetText(),
+                       'select':self.peaklist.IsChecked(itemID),
+                       'id':itemID}
+        information['ionName'] = "%s-%s" % (information['mzStart'], information['mzEnd']) 
+        
+        try:
+            self.docs = self.presenter.documentsDict[self.peaklist.GetItem(itemID, self.config.peaklistColNames['filename']).GetText()]
+        except KeyError:
+            pass
+        # check whether the ion has any previous information
+        min_threshold, max_threshold = 0, 1
+        
+        if information['ionName'] in self.docs.IMS2Dions:
+            min_threshold = self.docs.IMS2Dions[information['ionName']].get('min_threshold', 0)
+            max_threshold = self.docs.IMS2Dions[information['ionName']].get('max_threshold', 1)
+        
+        information['min_threshold'] = min_threshold
+        information['max_threshold'] = max_threshold
+        
+        # Check whether the ion has combined ions
+        parameters = None
+        if hasattr(self.docs, 'gotCombinedExtractedIons'):
+            try:
+                parameters = self.docs.IMS2DCombIons[information['ionName']].get('parameters', None)
+            except KeyError: 
+                pass
+        information['parameters'] = parameters
+        
+        if return_list:
+            mzStart = information['mzStart']
+            mzEnd = information['mzEnd']
+            charge = information['charge']
+            color = information['color']
+            colormap = information['colormap']
+            alpha = information['alpha']
+            mask = information['mask']
+            label = information['label']
+            document = information['document']
+            ionName = information['ionName']
+            min_threshold = information['min_threshold']
+            max_threshold = information['max_threshold']
+            return mzStart, mzEnd, charge, color, colormap, alpha, mask, label, document, ionName, min_threshold, max_threshold
+
+        return information
+    # ----
+    
+    def OnGetValue(self, value_type='color'):
+        information = self.OnGetItemInformation(self.currentItem)
+        
+        if value_type == 'mzStart':
+            return information['mzStart']
+        elif value_type == 'mzEnd':
+            return information['mzEnd']
+        elif value_type == 'color':
+            return information['color']
+        elif value_type == 'charge':
+            return information['charge']
+        elif value_type == 'colormap':
+            return information['colormap']
+        elif value_type == 'intensity':
+            return information['intensity']
+        elif value_type == 'mask':
+            return information['mask']
+        elif value_type == 'method':
+            return information['method']
+        elif value_type == 'document':
+            return information['document']
+        elif value_type == 'label':
+            return information['label']
+        elif value_type == 'ionName':
+            return information['ionName']
+    # ----
+    def OnSetValue(self, value=None, value_type=None):
+        itemID = self.peaklist.GetItemCount()-1
+        
+        if value_type == 'mzStart':
+            self.peaklist.SetStringItem(itemID, 0, str(value_type))
+        elif value_type == 'mzEnd':
+            self.peaklist.SetStringItem(itemID, 1, str(value_type))
+        elif value_type == 'charge':
+            self.peaklist.SetStringItem(itemID, 2, str(value_type))
+        elif value_type == 'intensity':
+            self.peaklist.SetStringItem(itemID, 3, str(value_type))
+        elif value_type == 'color_text':
+            self.peaklist.SetItemTextColour(itemID, value)
+            self.peaklist.SetStringItem(itemID, 4, str(value))
+        elif value_type == 'colormap':
+            self.peaklist.SetStringItem(itemID, 5, str(value_type))
+        elif value_type == 'alpha':
+            self.peaklist.SetStringItem(itemID, 6, str(value_type))
+        elif value_type == 'mask':
+            self.peaklist.SetStringItem(itemID, 7, str(value_type))
+        elif value_type == 'label':
+            self.peaklist.SetStringItem(itemID, 8, str(value_type))
+        elif value_type == 'method':
+            self.peaklist.SetStringItem(itemID, 9, str(value_type))
+        elif value_type == 'document':
+            self.peaklist.SetStringItem(itemID, 10, str(value_type))
+    # ----
+    def OnOpenEditor(self, evt):
+        
+        if evt == None: 
+            evtID = ID_ionPanel_editItem
+        else:
+            evtID = evt.GetId()
+
+        rows = self.peaklist.GetItemCount() - 1
+        if evtID == ID_ionPanel_editItem:
+            if self.currentItem  < 0:
+                print('Please select item in the table first.')
+                return
+            dlg_kwargs = self.OnGetItemInformation(self.currentItem)
+            
+            self.editItemDlg = panelModifyIonSettings(self,
+                                                      self.presenter, 
+                                                      self.config,
+                                                      **dlg_kwargs)
+            self.editItemDlg.Centre()
+            self.editItemDlg.Show()
+        elif evtID == ID_ionPanel_edit_selected:
+            while rows >= 0:
+                if self.peaklist.IsChecked(rows):
+                    information = self.OnGetItemInformation(rows)
+                    
+                    dlg_kwargs = {'select': self.peaklist.IsChecked(rows),
+                                  'color': information['color'],
+                                  'title': information['ionName'],
+                                  'min_threshold': information['min_threshold'],
+                                  'max_threshold': information['max_threshold'],
+                                  'label': information['label'],
+                                  'id':rows
+                                  }
+                    
+                    self.editItemDlg = panelModifyIonSettings(self, 
+                                                              self.presenter, 
+                                                              self.config,
+                                                              **dlg_kwargs)
+                    self.editItemDlg.Show()
+                rows -= 1
+        elif evtID == ID_ionPanel_edit_all:
+            for row in range(rows):
+                information = self.OnGetItemInformation(row)
+                 
+                dlg_kwargs = {'select': self.peaklist.IsChecked(row),
+                              'color': information['color'],
+                              'title': information['ionName'],
+                              'min_threshold': information['min_threshold'],
+                              'max_threshold': information['max_threshold'],
+                              'label': information['label'],
+                              'id':row
+                              }
+                 
+                self.editItemDlg = panelModifyIonSettings(self, 
+                                                          self.presenter, 
+                                                          self.config,
+                                                          **dlg_kwargs)
+                self.editItemDlg.Show()
+    # ----
+    def OnAssignColor(self, evt, itemID=None, give_value=False):
+        """
+        @param itemID (int): value for item in table
+        @param give_value (bool): should/not return color
+        """ 
+        
+        if itemID != None:
+            self.currentItem = itemID
+            
+        # Restore custom colors
+        custom = wx.ColourData()
+        for key in self.config.customColors:
+            custom.SetCustomColour(key, self.config.customColors[key])
+        dlg = wx.ColourDialog(self, custom)
+        dlg.Centre()
+        dlg.GetColourData().SetChooseFull(True)
+        
+        # Show dialog and get new colour
+        if dlg.ShowModal() == wx.ID_OK:
+            data = dlg.GetColourData()
+            newColour = list(data.GetColour().Get())
+            dlg.Destroy()
+            # Assign color
+            self.peaklist.SetStringItem(self.currentItem, 
+                                        self.config.peaklistColNames['color'], 
+                                        str(convertRGB255to1(newColour)))
+            self.peaklist.SetItemTextColour(self.currentItem, newColour)
+            # Retrieve custom colors
+            for i in xrange(15): 
+                self.config.customColors[i] = data.GetCustomColour(i)
+            
+            # update document
+            self.onUpdateDocument(evt=None)
+            
+            if give_value:
+                return newColour
+        else:
+            try:
+                newColour = convertRGB1to255(literal_eval(self.OnGetValue(value_type='color')), 3)
+            except:
+                newColour = self.config.customColors[randomIntegerGenerator(0, 15)]
+            # Assign color
+            self.peaklist.SetStringItem(self.currentItem, 
+                                        self.config.peaklistColNames['color'], 
+                                        str(convertRGB255to1(newColour)))
+            self.peaklist.SetItemTextColour(self.currentItem, newColour)
+            if give_value:
+                return newColour
+    # ----
+    def onUpdateDocument(self, evt, itemInfo=None):
+        
+        # get item info
+        if itemInfo == None:
+            itemInfo = self.OnGetItemInformation(self.currentItem)
+        
+        # get item
+        document = self.presenter.documentsDict[itemInfo['document']]
+        
+        processed_name = "{} (processed)".format(itemInfo['ionName'])
+        keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold',
+                    'max_threshold', 'charge']
+        if itemInfo['ionName'] in document.IMS2Dions:
+            for keyword in keywords:
+                if keyword == 'colormap': keyword_name = 'cmap'
+                else: keyword_name = keyword
+                document.IMS2Dions[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
+                try: document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
+                except: pass  
+        if itemInfo['ionName'] in document.IMS2DCombIons:
+            for keyword in keywords:
+                if keyword == 'colormap': keyword_name = 'cmap'
+                else: keyword_name = keyword
+                document.IMS2DCombIons[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
+                try: document.IMS2DCombIons[processed_name][keyword_name] = itemInfo[keyword]
+                except: pass  
+        if itemInfo['ionName'] in document.IMS2DionsProcess:
+            for keyword in keywords:
+                if keyword == 'colormap': keyword_name = 'cmap'
+                else: keyword_name = keyword
+                document.IMS2DionsProcess[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
+                try: document.IMS2DionsProcess[processed_name][keyword_name] = itemInfo[keyword]
+                except: pass  
+        if itemInfo['ionName'] in document.IMSRTCombIons:
+            for keyword in keywords:
+                if keyword == 'colormap': keyword_name = 'cmap'
+                else: keyword_name = keyword
+                document.IMSRTCombIons[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
+                try: document.IMSRTCombIons[processed_name][keyword_name] = itemInfo[keyword]
+                except: pass  
+        
+        # Update file list
+        self.presenter.OnUpdateDocument(document, 'no_refresh')
+        
+
 class panelExportData(wx.MiniFrame):
     """
     Export data from table
@@ -1429,7 +1531,6 @@ class panelExportData(wx.MiniFrame):
         # make gui items
         self.makeGUI()
         wx.EVT_CLOSE(self, self.onClose)
-
 
     def makeGUI(self):
                
@@ -1555,7 +1656,6 @@ class panelExportData(wx.MiniFrame):
                                 wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            print(path)
             dlg.Destroy()
         else:
             dlg.Destroy()
@@ -1685,9 +1785,6 @@ class panelDuplicateIons(wx.MiniFrame):
         # Which from and to which
         docFrom = self.documentListFrom_choice.GetStringSelection()
         docTo = self.documentListTo_choice.GetStringSelection()
-        
-        print(rows, duplicateWhich, docFrom, docTo)
-
 
         tempData = []
         if duplicateWhich == 'all':
@@ -1718,7 +1815,7 @@ class panelDuplicateIons(wx.MiniFrame):
                 tempRow.append("")
                 tempRow.append(docTo)
                 tempData.append(tempRow)
-        print(tempData)
+#         print(tempData)
         
         # Add to table
         for row in tempData:

@@ -16,14 +16,11 @@
 # -------------------------------------------------------------------------
 
 import wx
-import os
 from toolbox import *
-from wx import ID_ANY
 from ids import *
-from numpy import arange
 import re
 
-from origamiStyles import bgrPanel, layout, makeCheckbox
+from styles import bgrPanel, layout, makeCheckbox
 
 class panelDocumentInfo(wx.MiniFrame):
     """Document info tools."""
@@ -199,7 +196,7 @@ class panelDocumentInfo(wx.MiniFrame):
         
         # Bind
         applyBtn.Bind(wx.EVT_BUTTON, self.onApply)
-        self.plotBtn.Bind(wx.EVT_BUTTON, self.parent.onShowPlot)
+        self.plotBtn.Bind(wx.EVT_BUTTON, self.onReplot)
         cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
         
         return panel
@@ -414,7 +411,6 @@ class panelDocumentInfo(wx.MiniFrame):
         self.tofCorrFactor_check.SetValue(False)
         self.tofCorrFactor_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
         
-        
         headerInfo_label = wx.StaticText(panel, -1, u"Header information:")
         self.headerInfo_value = wx.TextCtrl(panel, -1, "", size=(180, 100),style=wx.TE_WORDWRAP|wx.TE_MULTILINE )
         self.headerInfo_value.SetValue(self.document.fileInformation.get('SampleDescription',"None"))
@@ -484,23 +480,23 @@ class panelDocumentInfo(wx.MiniFrame):
             self.plot2Dtitle = ''.join(['Plot (2D) Summary: ', 'Global'])
             plotType = 'Raw'
             data = self.document.IMS2D
-        elif self.itemType == '2D drift time':
+        elif self.itemType == 'Drift time (2D)':
             plotType = 'Raw'
             self.plot2Dtitle = ''.join(['Plot (2D) Summary: ', 'Global'])
             data = self.document.IMS2D
-        elif self.itemType == 'Processed 2D IM-MS':
+        elif self.itemType == 'Drift time (2D, processed)':
             plotType = 'Processed'
             self.plot2Dtitle = ''.join(['Plot (2D) Summary: ', 'Global'])
             data = self.document.IMS2Dprocess
-        elif self.itemType == 'Extracted 2D IM-MS (multiple ions)' and self.extractData != None:
+        elif self.itemType == 'Drift time(2D, EIC)' and self.extractData != None:
             plotType = 'Raw'
             self.plot2Dtitle = ''.join(['Plot (2D) Summary: ', self.extractData])
             data = self.document.IMS2Dions[self.extractData]
-        elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)' and self.extractData != None:
+        elif self.itemType == 'Drift time(2D, combined voltages, EIC)' and self.extractData != None:
             plotType = 'Processed'
             self.plot2Dtitle = ''.join(['Plot (2D) Summary: ', self.extractData])
             data = self.document.IMS2DCombIons[self.extractData]
-        elif self.itemType == 'Processed 2D IM-MS (multiple ions)' and self.extractData != None:
+        elif self.itemType == 'Drift time(2D, processed, EIC)' and self.extractData != None:
             plotType = 'Combined'
             self.plot2Dtitle = ''.join(['Plot (2D) Summary: ', self.extractData])
             data = self.document.IMS2DionsProcess[self.extractData]
@@ -510,6 +506,7 @@ class panelDocumentInfo(wx.MiniFrame):
             data = self.document.IMS2DcompData[self.extractData]
         else: 
             self.plot2Dtitle = ''.join(['Plot (2D) Summary: ', 'Global'])
+            plotType = 'Raw'
             data = self.document.IMS2D
             
         
@@ -808,28 +805,26 @@ class panelDocumentInfo(wx.MiniFrame):
         
 
 # --- 
-        if (hasattr(self, 'restoreDefaultX_check') and 
-            hasattr(self, 'restoreDefaultY_check') and 
-            hasattr(self, 'labelsX_check') and 
-            hasattr(self, 'labelsY_check')):
+        if (hasattr(self, 'restoreDefaultX_check') and hasattr(self, 'restoreDefaultY_check') and 
+            hasattr(self, 'labelsX_check') and hasattr(self, 'labelsY_check')):
 
             # Determine which dataset is used
             if self.itemType == None: 
                 data = self.document.IMS2D
-            elif self.itemType == '2D drift time':
+            elif self.itemType == 'Drift time (2D)':
                 data = self.document.IMS2D
-            elif self.itemType == 'Processed 2D IM-MS':
+            elif self.itemType == 'Drift time (2D, processed)':
                 data = self.document.IMS2Dprocess
-            elif self.itemType == 'Extracted 2D IM-MS (multiple ions)' and self.extractData != None:
+            elif self.itemType == 'Drift time (2D, EIC)' and self.extractData != None:
                 data = self.document.IMS2Dions[self.extractData]
-            elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)' and self.extractData != None:
+            elif self.itemType == 'Drift time (2D, combined voltages, EIC)' and self.extractData != None:
                 data = self.document.IMS2DCombIons[self.extractData]
-            elif self.itemType == 'Processed 2D IM-MS (multiple ions)' and self.extractData != None:
+            elif self.itemType == 'Drift time (2D, processed, EIC)' and self.extractData != None:
                 data = self.document.IMS2DionsProcess[self.extractData]
             elif self.itemType == 'Input data' and self.extractData != None:
                 data = self.document.IMS2DcompData[self.extractData]
             else: 
-                data = self.document.IMS2D
+                data = {}
 
             # Add default values
             if 'defaultX' not in data:
@@ -864,50 +859,47 @@ class panelDocumentInfo(wx.MiniFrame):
             oldXLabel = data['xlabels']
             data['xlabels'] = self.labelsX_value.GetStringSelection()
             if not self.labelsX_check.GetValue():
-                newXvals= self.presenter.onChangeAxes2D(data['xvals'], 
-                                              oldXLabel,
-                                              self.labelsX_value.GetStringSelection(), 
-                                              charge=self.charge_value.GetValue(),
-                                              defaults=data['defaultX'])
+                newXvals= self.presenter.onChangeAxes2D(data['xvals'], oldXLabel,
+                                                        self.labelsX_value.GetStringSelection(), 
+                                                        charge=self.charge_value.GetValue(),
+                                                        defaults=data['defaultX'])
                 data['xvals'] = newXvals
                  
             oldYLabel = data['ylabels']
             data['ylabels'] = self.labelsY_value.GetStringSelection()
             if not self.labelsY_check.GetValue():
-                newYvals= self.presenter.onChangeAxes2D(data['yvals'], 
-                                              oldYLabel, 
-                                              self.labelsY_value.GetStringSelection(),
-                                              pusherFreq=self.pusherFreq_value.GetValue(),
-                                              defaults=data['defaultY'])
+                newYvals= self.presenter.onChangeAxes2D(data['yvals'], oldYLabel, 
+                                                        self.labelsY_value.GetStringSelection(),
+                                                        pusherFreq=self.pusherFreq_value.GetValue(),
+                                                        defaults=data['defaultY'])
                 data['yvals'] = newYvals
-                    
+                       
             # Update other parameters
             data['mw'] = str2num(self.molWeight_value.GetValue())
+            
             # Replace data in the dictionary
             if self.itemType == None: 
                 self.document.IMS2D = data
-            elif self.itemType == '2D drift time':
+            elif self.itemType == 'Drift time (2D)':
                 self.document.IMS2D = data
-            elif self.itemType == 'Processed 2D IM-MS':
+            elif self.itemType == 'Drift time (2D, processed)':
                 self.document.IMS2Dprocess = data
-            elif self.itemType == 'Extracted 2D IM-MS (multiple ions)' and self.extractData != None:
+            elif self.itemType == 'Drift time (2D, EIC)' and self.extractData != None:
                 self.document.IMS2Dions[self.extractData] = data
-            elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)' and self.extractData != None:
+            elif self.itemType == 'Drift time (2D, combined voltages, EIC)' and self.extractData != None:
                 self.document.IMS2DCombIons[self.extractData] = data
-            elif self.itemType == 'Processed 2D IM-MS (multiple ions)' and self.extractData != None:
+            elif self.itemType == 'Drift time (2D, processed, EIC)' and self.extractData != None:
                 self.document.IMS2DionsProcess[self.extractData] = data
             else: 
                 self.document.IMS2D = data
                 
-            # Since charge state is inherent to the m/z range, it needs to be
-            # changed iteratively for each dataset
-            
+            # Since charge state is inherent to the m/z range, it needs to be changed iteratively for each dataset
             if self.itemType == None: pass
-            elif any(self.itemType in type for type in ['Extracted 2D IM-MS (multiple ions)',
-                                                        'Combined CV 2D IM-MS (multiple ions)',
-                                                        'Processed 2D IM-MS (multiple ions)',
-                                                        'Extracted 1D IM-MS (multiple ions)',
-                                                        'Combined CV 2D IM-MS (multiple ions)']):
+            elif any(self.itemType in itemType for itemType in ['Drift time (2D, EIC)',
+                                                                'Combined CV 2D IM-MS (multiple ions)',
+                                                                'Drift time (2D, processed, EIC)',
+                                                                'Drift time (1D, EIC)',
+                                                                'Drift time (2D, combined voltages, EIC)']):
                 if self.extractData in self.document.IMS2Dions:
                     self.document.IMS2Dions[self.extractData]['charge'] = str2int(self.charge_value.GetValue())
                 if self.extractData in self.document.IMS2DCombIons:
@@ -1012,5 +1004,9 @@ class panelDocumentInfo(wx.MiniFrame):
             path = dlg.GetPath()
             self.path_value.SetValue(path)
             
-
+    def onReplot(self, evt):
+        
+        self.onApply(evt=None)
+        self.parent.onShowPlot(evt=None)
+    
     

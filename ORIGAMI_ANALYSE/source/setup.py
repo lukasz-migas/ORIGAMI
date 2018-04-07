@@ -18,6 +18,7 @@
 import sys
 import zipfile
 from distutils.core import setup
+from distutils.dir_util import copy_tree
 import py2exe
 import matplotlib
 from matplotlib.figure import Figure
@@ -31,9 +32,17 @@ import bokeh.core
 import bokeh.events
 import scipy, scipy.stats
 from shutil import copy
+import wx
+#import pyface
+#import tvtk
+#import mayavi
+#import vtk
+# 
+# from traits.etsconfig.api import ETSConfig
+# ETSConfig.toolkit = 'wx'
 
 sys.setrecursionlimit(5000)
-version = '1.0.5'
+version = '1.1.0'
 
 # Compile program using:
 # python compileScript.py py2exe
@@ -51,20 +60,29 @@ def numpy_dll_paths_fix():
 
 numpy_dll_paths_fix()
 
+
 current_dir = os.path.dirname(os.path.realpath(__file__))
-dist_dir = os.path.join(current_dir, "ORIGAMI_ANALYSE_v1.0.5")
+dist_dir = os.path.join(current_dir, "ORIGAMI_ANALYSE_v1.1.0")
+
+# def copyPackage (pkg, name, dist) :
+#     p = os.path.join (dist, name)
+#     copy_tree (pkg.__path__[0], p)
+
+
+#copyPackage (tvtk, "tvtk", dist_dir)
+#copyPackage (mayavi, "mayavi", dist_dir)
+#copyPackage (pyface, "pyface", dist_dir)
+#copyPackage (vtk, "vtk", dist_dir)
 
 
 # py2exe options
 py2exe_options = dict(
     compressed = True,
     optimize = 1,
-    excludes = ["Tkconstants","Tkinter","tcl","Qt","PyQt4", 
+    excludes = ["tcl","Qt","PyQt4", 
                 "pywin", "pywin.debugger", "pywin.debugger.dbgcon",
                 "pywin.dialogs", "pywin.dialogs.list","h5py","babel",
                 "pdb", '_ssl','Qt5','nbconvert','IPython',
-				#'scipy.sparse.linalg.eigen.arpack',
-				#'scipy.sparse.linalg.dsolve',
 				],
     includes = ["matplotlib.backends.backend_qt5agg", "PyQt5", 
                 "scipy.sparse.csgraph._validation", 
@@ -77,25 +95,34 @@ py2exe_options = dict(
                 "scipy.special._ufuncs",
 				"scipy.stats", 
                 "email.mime.*", 
+                'scipy._lib.messagestream',
 				"jinja2",
-                "bokeh.core", "bokeh.events"],
-    packages = ["wx.lib.pubsub", "pkg_resources"],
+                "bokeh.core", "bokeh.events",
+                "matplotlib.backends.backend_tkagg",
+                "Tkinter", "Tkconstants",
+                #"traits", "traits.*"
+                ],
+    packages = ["wx.lib.pubsub", "pkg_resources"],#, "traits", "mayavi", "tvtk", "vtk"],
     dll_excludes=['msvcr71.dll','hdf5.dll'],
     dist_dir = dist_dir,
+    bundle_files = 3,
+    xref = False
     )
 
 
 
 # main setup
 setup(name = "ORIGAMI",
-      version = '1.0.5',
+      version = '1.1.0',
       description = "ORIGAMI - A Software Suite for Activated Ion Mobility Mass Spectrometry ",
       author = "Lukasz G. Migas",
+      contact = "lukasz.migas@manchester.ac.uk",
       url = 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
       windows = [{ "script": "ORIGAMI.py",
-                   "icon_resources": [(1, "icon_old.ico")]}],
+                   "icon_resources": [(1, "icon.ico")]}],
       console = [{ "script": "ORIGAMI.py"}],
 	  data_files=matplotlib.get_py2exe_datafiles(),
+      zipfile='lib/library.zip',
       options = dict(py2exe = py2exe_options),
       )
     
@@ -114,9 +141,19 @@ for file in filelist:
 	print(file)
 	copy(file, savePath)
 	
+# Copy additional folders
+dirlist = [ 'licences'] #, 'mpl-data']
+for directory in dirlist:
+	try:
+		saveDir = path.path(''.join([dist_dir,'\\', directory]))
+		copy_tree(directory, saveDir)
+	except:
+		print('skip')
+		pass
+
 # Add bokeh/core/_templates files to the library.zip file
 bokeh_path = sys.modules['bokeh.core'].__path__[0]
-zipfile_path = os.path.join(dist_dir, "library.zip")
+zipfile_path = os.path.join(dist_dir, "lib\library.zip")
 z = zipfile.ZipFile(zipfile_path, 'a')
 for dirpath,dirs,files in os.walk(os.path.join(bokeh_path, '_templates')):
   for f in files:

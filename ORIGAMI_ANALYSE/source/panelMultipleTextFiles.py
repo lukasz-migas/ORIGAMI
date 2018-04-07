@@ -16,17 +16,16 @@
 # -------------------------------------------------------------------------
 
 import wx
-from origamiStyles import *
-# import origamiIcons as icons
 from ids import *
 import wx.lib.mixins.listctrl  as  listmix
-from wx.lib.agw import ultimatelistctrl as ULC
 import dialogs as dialogs
-from toolbox import isempty, str2num
+from dialogs import panelModifyTextSettings, panelAsk
+from toolbox import (isempty, str2num, str2int, removeListDuplicates, convertRGB1to255,
+                     convertRGB255to1, literal_eval, randomIntegerGenerator)
 from operator import itemgetter
-import itertools
+# import itertools
 from numpy import arange
-
+from styles import makeMenuItem
 
 class panelMultipleTextFiles ( wx.Panel ):
     
@@ -48,26 +47,15 @@ class panelMultipleTextFiles ( wx.Panel ):
 
     def __del__( self ):
          pass
-     
         
-class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixin):
+class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
     """
     Editable list
     """
     def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0): 
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.TextEditMixin.__init__(self)
         listmix.CheckListCtrlMixin.__init__(self)
-        
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
-
-    def OnBeginLabelEdit(self, event):
-        if event.m_col == 0 or event.m_col == 6 or event.m_col==7:
-            event.Veto()
-        else:
-            event.Skip()
-
         
 class topPanel(wx.Panel):
     def __init__(self, parent, icons, presenter, config):
@@ -76,61 +64,179 @@ class topPanel(wx.Panel):
         self.presenter = presenter # wx.App
         self.config = config
         self.icons = icons
-        self.makeToolbar()
-        self.makeListCtrl()
         self.allChecked = True
         self.reverse = False
         self.lastColumn = None
         self.listOfSelected = []
+                
+        self.editItemDlg = None
+                
+        self.makeGUI()
+                
+        # add a couple of accelerators
+        accelerators = [
+            (wx.ACCEL_NORMAL, ord('X'), ID_checkAllItems_Text),
+            (wx.ACCEL_NORMAL, ord('C'), ID_textPanel_assignColor),
+            (wx.ACCEL_NORMAL, ord('E'), ID_textPanel_editItem),
+            (wx.ACCEL_NORMAL, ord('P'), ID_useProcessedCombinedMenu),
+            (wx.ACCEL_NORMAL, ord('H'), ID_get2DplotText),
+            ]
+        self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
+                
+        wx.EVT_MENU(self, ID_textPanel_editItem, self.OnOpenEditor)
+        wx.EVT_MENU(self, ID_checkAllItems_Text, self.OnCheckAllItems)
+        wx.EVT_MENU(self, ID_textPanel_assignColor, self.OnAssignColor)
+        wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.setupMenus)
+        wx.EVT_MENU(self, ID_get2DplotText, self.OnListGet2DIMMS)
+        
+    def makeGUI(self):
+        """ Make panel GUI """
+         # make toolbar
+        toolbar = self.makeToolbar()
+        self.makeListCtrl()
+        
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.mainSizer.Add(toolbar, 0, wx.EXPAND, 0)
+        self.mainSizer.Add(self.filelist, 1, wx.EXPAND, 0)
+        
+        # fit layout
+        self.mainSizer.Fit(self)
+        self.SetSizer(self.mainSizer)
         
     def makeListCtrl(self):
-        mainSizer = wx.BoxSizer( wx.VERTICAL )
-        self.filelist = EditableListCtrl(self, style=wx.LC_REPORT)
-        self.filelist.InsertColumn(0, u'File name', width=80)
-        self.filelist.InsertColumn(1, u'Start CE', width=50)
-        self.filelist.InsertColumn(2, u'End CE', width=45)
-        self.filelist.InsertColumn(3, u'Colormap', width=80)
-        self.filelist.InsertColumn(4, u'\N{GREEK SMALL LETTER ALPHA}', width=40)
-        self.filelist.InsertColumn(5, u'Label', width=50)
-        self.filelist.InsertColumn(6, u'Shape', width=80)
-        self.filelist.InsertColumn(7, u'Tag', width=50)
 
-        mainSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
-        mainSizer.Add(self.filelist, 1, wx.EXPAND | wx.ALL, 5)
-        self.SetSizer( mainSizer )
+        self.filelist = EditableListCtrl(self, style=wx.LC_REPORT|wx.LC_VRULES)
+
+        for item in self.config._textlistSettings:
+            order = item['order']
+            name = item['name']
+            if item['show']: 
+                width = item['width']
+            else: 
+                width = 0
+            self.filelist.InsertColumn(order, name, width=width, 
+                                       format=wx.LIST_FORMAT_CENTER)
         
-        self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
-        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
+        self.filelist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
+        self.filelist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
+        self.filelist.Bind(wx.EVT_LEFT_DCLICK, self.onItemActivated)
+        self.filelist.Bind(wx.EVT_LIST_KEY_DOWN, self.onItemSelected)
+        self.filelist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         
+    def onItemActivated(self, evt):
+        self.currentItem, __ = self.filelist.HitTest(evt.GetPosition())
+        if self.currentItem != -1:
+            if not self.editItemDlg:
+                self.OnOpenEditor(evt=None)
+            else:
+                self.editItemDlg.onUpdateGUI(self.OnGetItemInformation(self.currentItem))
+
+    def onItemSelected(self, evt):
+        keyCode = evt.GetKeyCode()
+        if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
+            self.currentItem = evt.m_itemIndex
+        else:
+            self.currentItem = evt.m_itemIndex
+
+        if evt != None:
+            evt.Skip()
+            
     def makeToolbar(self):
         
         # Make bindings
         self.Bind(wx.EVT_TOOL, self.onAddItems, id=ID_addTextFilesToList)
+        self.Bind(wx.EVT_TOOL, self.onAnnotateTool, id=ID_annotateTextFilesMenu)
         self.Bind(wx.EVT_TOOL, self.onRemoveItems, id=ID_removeTextFilesMenu)
         self.Bind(wx.EVT_TOOL, self.onProcessItems, id=ID_processTextFilesMenu)
         self.Bind(wx.EVT_TOOL, self.OnCheckAllItems, id=ID_checkAllItems_Text)
+        self.Bind(wx.EVT_COMBOBOX, self.onUpdateOverlayMethod, id=ID_textSelectOverlayMethod)
+        self.Bind(wx.EVT_TOOL, self.onTableTool, id=ID_textPanel_guiMenuTool)
+        self.Bind(wx.EVT_TOOL, self.onOverlayTool, id=ID_overlayTextFilesMenu)
         
         
         # Create toolbar for the table        
-        self.toolbar = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.TB_DOCKABLE, id = wx.ID_ANY) 
-        self.toolbar.SetToolBitmapSize((16, 16))
-        self.toolbar.AddTool(ID_checkAllItems_Text, self.icons.iconsLib['check16'] , 
-                              shortHelpString="Check all items") 
-        self.toolbar.AddTool(ID_addTextFilesToList, self.icons.iconsLib['add16'] , 
-                              shortHelpString="Add...") 
-        self.toolbar.AddTool(ID_removeTextFilesMenu, self.icons.iconsLib['remove16'], 
-                             shortHelpString="Remove...")
-        self.toolbar.AddTool(ID_processTextFilesMenu, self.icons.iconsLib['process16'], 
-                             shortHelpString="Process...")
-        self.toolbar.AddTool(ID_overlayTextFromList, self.icons.iconsLib['overlay16'], 
-                             shortHelpString="Overlay currently selected ions\tAlt+W")
-        self.combo = wx.ComboBox(self.toolbar, ID_textSelectOverlayMethod, value= "Mask",
+        toolbar = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.TB_DOCKABLE, id = wx.ID_ANY) 
+        toolbar.SetToolBitmapSize((16, 16))
+        toolbar.AddTool(ID_checkAllItems_Text, self.icons.iconsLib['check16'] , 
+                        shortHelpString="Check all items") 
+        toolbar.AddTool(ID_addTextFilesToList, self.icons.iconsLib['add16'] , 
+                        shortHelpString="Add...") 
+        toolbar.AddTool(ID_removeTextFilesMenu, self.icons.iconsLib['remove16'], 
+                        shortHelpString="Remove...")
+        toolbar.AddTool(ID_annotateTextFilesMenu, self.icons.iconsLib['annotate16'],
+                        shortHelpString="Annotate...")
+        toolbar.AddTool(ID_processTextFilesMenu, self.icons.iconsLib['process16'], 
+                        shortHelpString="Process...")
+        toolbar.AddTool(ID_overlayTextFilesMenu, self.icons.iconsLib['overlay16'], 
+                        shortHelpString="Overlay currently selected ions\tAlt+W")
+        self.combo = wx.ComboBox(toolbar, ID_textSelectOverlayMethod, value= "Mask",
                                  choices=self.config.overlayChoices,
                                  style=wx.CB_READONLY, size=(110,-1))
-        self.toolbar.AddControl(self.combo)
-        self.toolbar.AddSeparator()
-
-        self.toolbar.Realize()     
+        toolbar.AddControl(self.combo)
+        toolbar.AddSeparator()
+        toolbar.AddTool(ID_textPanel_guiMenuTool, self.icons.iconsLib['setting16'], 
+                             shortHelpString="Table settings...")
+        toolbar.Realize()
+        
+        return toolbar
+        
+    def OnRightClickMenu(self, evt): 
+        
+        # Make bindings
+        self.Bind(wx.EVT_MENU, self.OnListGet2DIMMS, id=ID_get2DplotText)
+        self.Bind(wx.EVT_MENU, self.OnListGet2DIMMS, id=ID_get2DplotTextWithProcss)
+        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeFileFromListPopup)
+        self.Bind(wx.EVT_MENU, self.OnOpenEditor, id=ID_textPanel_editItem)
+        self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_textPanel_assignColor)
+        
+        self.currentItem, __ = self.filelist.HitTest(evt.GetPosition())
+        menu = wx.Menu()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_get2DplotText,
+                                     text='Show heatmap\tH', 
+                                     bitmap=self.icons.iconsLib['heatmap_16']))
+        menu.Append(ID_get2DplotTextWithProcss, "Process and show heatmap")
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_assignColor,
+                                     text='Assign new color\tC', 
+                                     bitmap=self.icons.iconsLib['color_panel_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_editItem,
+                                     text='Edit file information\tE', 
+                                     bitmap=self.icons.iconsLib['info16']))
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeFileFromListPopup,
+                                     text='Remove item', 
+                                     bitmap=self.icons.iconsLib['bin16']))
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+        
+    def onAnnotateTool(self, evt):
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignChargeStateText)
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignAlphaText)
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaskText)
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMinThresholdText)
+        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaxThresholdText)
+        
+        menu = wx.Menu()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignChargeStateText,
+                                     text='Assign charge state to selected ions', 
+                                     bitmap=self.icons.iconsLib['assign_charge_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignAlphaText,
+                                     text='Assign transparency value to selected ions', 
+                                     bitmap=self.icons.iconsLib['transparency_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaskText,
+                                     text='Assign mask value to selected ions', 
+                                     bitmap=self.icons.iconsLib['mask_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMinThresholdText,
+                                     text='Assign minimum threshold to selected ions', 
+                                     bitmap=self.icons.iconsLib['min_threshold_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaxThresholdText,
+                                     text='Assign maximum threshold to selected ions', 
+                                     bitmap=self.icons.iconsLib['max_threshold_16']))
+        
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
         
     def onAddItems(self, evt):
         
@@ -139,7 +245,9 @@ class topPanel(wx.Panel):
         menu = wx.Menu()
         menu.Append(ID_openTextFiles, "Add files\tCtrl+W")
         menu.AppendSeparator()
-        menu.Append(ID_addNewOverlayDoc, "Add new document\tAlt+D")
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_addNewOverlayDoc,
+                                     text='Add new comparison document\tAlt+D', 
+                                     bitmap=self.icons.iconsLib['new_document_16']))
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -152,7 +260,9 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_clearTableText)
         
         menu = wx.Menu()
-        menu.Append(ID_clearTableText, "Clear table")
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearTableText,
+                                     text='Clear table', 
+                                     bitmap=self.icons.iconsLib['clear_16']))
         menu.AppendSeparator()
         menu.Append(ID_removeSelectedFilesFromList, "Remove selected files")
         menu.Append(ID_removeAllFilesFromList, "Remove all files")
@@ -171,23 +281,197 @@ class topPanel(wx.Panel):
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
+        
+    def onOverlayTool(self, evt):
 
-    def OnRightClickMenu(self, evt): 
+        self.Bind(wx.EVT_TOOL, self.presenter.onOverlayMultipleIons1D, id=ID_overlayTextfromList1D)
+        self.Bind(wx.EVT_TOOL, self.presenter.onOverlayMultipleIons1D, id=ID_overlayTextfromListRT)
+        self.Bind(wx.EVT_TOOL, self.presenter.onOverlayMultipleIons, id=ID_overlayTextFromList)
+        self.Bind(wx.EVT_MENU, self.setupMenus, id=ID_useProcessedCombinedMenu)
         
-        # Make bindings
-        self.Bind(wx.EVT_MENU, self.OnListGet2DIMMS, id=ID_get2DplotText)
-        self.Bind(wx.EVT_MENU, self.OnListGet2DIMMS, id=ID_get2DplotTextWithProcss)
-        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeFileFromListPopup)
-        
-        self.currentItem, flags = self.filelist.HitTest(evt.GetPosition())
         menu = wx.Menu()
-        menu.Append(ID_get2DplotText, "Show 2D IM-MS plot")
-        menu.Append(ID_get2DplotTextWithProcss, "Process and show 2D IM-MS plot")
+        menu.Append(ID_overlayTextfromList1D, "Overlay mobiligrams (selected)")
+        menu.Append(ID_overlayTextfromListRT, "Overlay chromatograms (selected)")
         menu.AppendSeparator()
-        menu.Append(ID_removeFileFromListPopup, "Remove item")
+        self.useProcessed_check = menu.AppendCheckItem(ID_useProcessedCombinedMenu, "Use processed data (when available)\tP",
+                                                       help="When checked, processed data is used in the overlay (2D) plots.")
+        self.useProcessed_check.Check(self.config.overlay_usedProcessed)
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_overlayTextFromList,
+                                     text='Overlay heatmaps (selected)\tAlt+W', 
+                                     bitmap=self.icons.iconsLib['heatmap_grid_16']))
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
+        
+    def onTableTool(self, evt):
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_startCE)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_endCE)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_charge)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_color)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_colormap)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_alpha)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_mask)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_document)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_label)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_shape)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_hideAll)
+        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_textPanel_table_restoreAll)
+        
+
+        menu = wx.Menu()
+        n = 0
+        self.table_start = menu.AppendCheckItem(ID_textPanel_table_startCE, 'Table: Minimum energy')
+        self.table_start.Check(self.config._textlistSettings[n]['show'])
+        n = n + 1
+        self.table_end = menu.AppendCheckItem(ID_textPanel_table_endCE, 'Table: Maximum energy')
+        self.table_end.Check(self.config._textlistSettings[n]['show'])
+        n = n + 1
+        self.table_color = menu.AppendCheckItem(ID_textPanel_table_charge, 'Table: Charge')
+        self.table_color.Check(self.config._textlistSettings[n]['show'])
+        n = n + 1
+        self.table_color = menu.AppendCheckItem(ID_textPanel_table_color, 'Table: Color')
+        self.table_color.Check(self.config._textlistSettings[n]['show'])
+        n = n + 1
+        self.table_colormap = menu.AppendCheckItem(ID_textPanel_table_colormap, 'Table: Colormap')
+        self.table_colormap.Check(self.config._textlistSettings[n]['show'])
+        n = n + 1
+        self.table_alpha = menu.AppendCheckItem(ID_textPanel_table_alpha, 'Table: Transparency')
+        self.table_alpha.Check(self.config._textlistSettings[n]['show'])
+        n = n + 1
+        self.table_mask = menu.AppendCheckItem(ID_textPanel_table_mask, 'Table: Mask')
+        self.table_mask.Check(self.config._textlistSettings[n]['show'])
+        n = n + 1
+        self.table_label = menu.AppendCheckItem(ID_textPanel_table_label, 'Table: Label')
+        self.table_label.Check(self.config._textlistSettings[n]['show'])
+        n = n + 1
+        self.table_shape = menu.AppendCheckItem(ID_textPanel_table_shape, 'Table: Shape')
+        self.table_shape.Check(self.config._textlistSettings[n]['show'])
+        n = n + 1
+        self.table_filename = menu.AppendCheckItem(ID_textPanel_table_document, 'Table: Filename')
+        self.table_filename.Check(self.config._textlistSettings[n]['show'])
+        menu.AppendSeparator()
+        self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_table_hideAll,
+                                     text='Table: Hide all', 
+                                     bitmap=self.icons.iconsLib['hide_table_16']))
+        self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_table_restoreAll,
+                                     text='Table: Restore all', 
+                                     bitmap=self.icons.iconsLib['show_table_16']))
+        
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+        
+    def onUpdateTable(self, evt):
+        evtID = evt.GetId()
+        
+        # check which event was triggered
+        if evtID == ID_textPanel_table_startCE:
+            col_index = self.config.textlistColNames['start']
+        elif evtID == ID_textPanel_table_endCE:
+            col_index = self.config.textlistColNames['end']
+        elif evtID == ID_textPanel_table_charge:
+            col_index = self.config.textlistColNames['charge']
+        elif evtID == ID_textPanel_table_color:
+            col_index = self.config.textlistColNames['color']
+        elif evtID == ID_textPanel_table_colormap:
+            col_index = self.config.textlistColNames['colormap']
+        elif evtID == ID_textPanel_table_alpha:
+            col_index = self.config.textlistColNames['alpha']
+        elif evtID == ID_textPanel_table_mask:
+            col_index = self.config.textlistColNames['mask']
+        elif evtID == ID_textPanel_table_label:
+            col_index = self.config.textlistColNames['label']
+        elif evtID == ID_textPanel_table_shape:
+            col_index = self.config.textlistColNames['shape']
+        elif evtID == ID_textPanel_table_document:
+            col_index = self.config.textlistColNames['filename']
+        elif evtID == ID_textPanel_table_restoreAll:
+            for i in range(len(self.config._textlistSettings)):
+                self.config._textlistSettings[i]['show'] = True
+                col_width = self.config._textlistSettings[i]['width']
+                self.filelist.SetColumnWidth(i, col_width)
+            return
+        elif evtID == ID_textPanel_table_hideAll:
+            for i in range(len(self.config._textlistSettings)):
+                self.config._textlistSettings[i]['show'] = False
+                col_width = 0
+                self.filelist.SetColumnWidth(i, col_width)
+            return 
+        
+        # check values
+        col_check = not self.config._textlistSettings[col_index]['show']
+        self.config._textlistSettings[col_index]['show'] = col_check
+        if col_check: col_width = self.config._textlistSettings[col_index]['width']
+        else: col_width = 0
+        # set new column width
+        self.filelist.SetColumnWidth(col_index, col_width)
+        
+    def onChangeParameter(self, evt):
+        """ Iterate over list to assign charge state """
+        
+        rows = self.filelist.GetItemCount()
+        if rows == 0: return
+        
+        if evt.GetId() == ID_assignChargeStateText:
+            ask_kwargs = {'static_text':'Assign charge state to selected items.',
+                          'value_text':"", 
+                          'validator':'integer',
+                          'keyword':'charge'}
+        elif evt.GetId() == ID_assignAlphaText:
+            ask_kwargs = {'static_text':'Assign new transparency value to selected items \nTypical transparency values: 0.5\nRange 0-1',
+                          'value_text':0.5, 
+                          'validator':'float',
+                          'keyword':'alpha'}
+        elif evt.GetId() == ID_assignMaskText:
+            ask_kwargs = {'static_text':'Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1',
+                          'value_text':0.25, 
+                          'validator':'float',
+                          'keyword':'mask'}
+        elif evt.GetId() == ID_assignMinThresholdText:
+            ask_kwargs = {'static_text':'Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1',
+                          'value_text':0.0, 
+                          'validator':'float',
+                          'keyword':'min_threshold'}
+        elif evt.GetId() == ID_assignMaxThresholdText:
+            ask_kwargs = {'static_text':'Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1',
+                          'value_text':1.0, 
+                          'validator':'float',
+                          'keyword':'max_threshold'}
+
+        ask = panelAsk(self, self.presenter, **ask_kwargs)
+        if ask.ShowModal() == wx.ID_OK: 
+            pass
+        
+        if self.ask_value == None: 
+            return
+        
+        for row in range(rows):
+            if self.filelist.IsChecked(index=row):                
+                filename = self.filelist.GetItem(row, self.config.textlistColNames['filename']).GetText()
+                document = self.presenter.documentsDict[filename]
+                if not ask_kwargs['keyword'] in ['min_threshold', 'max_threshold']:
+                    self.filelist.SetStringItem(index=row, 
+                                                col=self.config.textlistColNames[ask_kwargs['keyword']], 
+                                                label=str(self.ask_value))
+                if document.got2DIMS:
+                    document.IMS2D[ask_kwargs['keyword']] = self.ask_value
+                if document.got2Dprocess:
+                    document.IMS2Dprocess[ask_kwargs['keyword']] = self.ask_value
+
+                # update document
+                self.presenter.documentsDict[document.title] = document
+        
+    def setupMenus(self, evt):
+        """ Check/uncheck menu item """
+        
+        evtID = evt.GetId()
+            
+        if evtID == ID_useProcessedCombinedMenu:
+            check_value = not self.config.overlay_usedProcessed
+            self.config.overlay_usedProcessed = check_value
+            args = ("Peak list panel: Using processing data was switched to %s" % self.config.overlay_usedProcessed, 4)
+            self.presenter.onThreading(evt, args, action='updateStatusbar')
         
     def OnCheckAllItems(self, evt, check=True, override=False):
         """
@@ -210,30 +494,25 @@ class topPanel(wx.Panel):
         if rows > 0:
             for row in range(rows):
                 self.filelist.CheckItem(row, check=check)
-                
-        if evt != None:
-            evt.Skip()
-        
+    
     def OnListGet2DIMMS(self, evt):
         """
         This function extracts 2D array and plots it in 2D/3D
         """
         
-        selectedItem = self.filelist.GetItem(self.currentItem,
-                                             self.config.textlistColNames['filename']).GetText()
-        tag = self.filelist.GetItem(self.currentItem,
-                                    self.config.textlistColNames['tag']).GetText()
-#         self.filelist.SetItemBackgroundColour(item=self.currentItem, col=wx.RED)
+        itemInfo = self.OnGetItemInformation(self.currentItem)
+        
+        selectedItem = itemInfo['document']
+        
         currentDocument = self.presenter.documentsDict[selectedItem]
         
-        if currentDocument.dataType == 'Type: Comparison':
-            data = currentDocument.IMS2DcompData[tag]
-        else:
-            data = currentDocument.IMS2D
+        # get data
+        data = currentDocument.IMS2D
             
         # Extract 2D data from the document
         zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
-                                                                                           dataType='plot',compact=False)
+                                                                                           dataType='plot',
+                                                                                           compact=False)
         
         if isempty(xvals) or isempty(yvals) or xvals is "" or yvals is "":
             msg1 = "Missing x- and/or y-axis labels. Cannot continue!"
@@ -246,7 +525,7 @@ class topPanel(wx.Panel):
         
         # Process data
         if evt.GetId() == ID_get2DplotTextWithProcss:
-            zvals = self.presenter.process2Ddata(zvals=zvals)
+            zvals = self.presenter.process2Ddata(zvals=zvals, return_data=True)
         else: pass 
         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
         self.presenter.onPlot2DIMS2(zvals, xvals, yvals, xlabel, ylabel, cmap)
@@ -264,8 +543,8 @@ class topPanel(wx.Panel):
             currentItems = self.filelist.GetItemCount()-1
             while (currentItems >= 0):
                 if self.filelist.IsChecked(index=currentItems) == True:
-                    selectedItem = self.filelist.GetItem(currentItems,0).GetText()
-                    print('TEXT:', selectedItem)
+                    selectedItem = self.filelist.GetItem(currentItems, 
+                                                         self.config.textlistColNames['filename']).GetText()
                     # Delete selected document from dictionary + table        
                     try:
                         outcome = self.presenter.view.panelDocuments.topP.documents.removeDocument(deleteItem=selectedItem, evt=None)
@@ -283,7 +562,7 @@ class topPanel(wx.Panel):
                 else:
                     currentItems-=1
         elif evt.GetId() == ID_removeFileFromListPopup:
-            selectedItem = self.filelist.GetItem(self.currentItem,0).GetText()
+            selectedItem = self.filelist.GetItem(self.currentItem, self.config.textlistColNames['filename']).GetText()
             
             # Delete selected document from dictionary + table        
             try:
@@ -308,8 +587,8 @@ class topPanel(wx.Panel):
             else:
                 currentItems = self.filelist.GetItemCount()-1
                 while (currentItems >= 0):
-                    selectedItem = self.filelist.GetItem(currentItems,0).GetText()
-                    print('TEXT:', selectedItem)
+                    selectedItem = self.filelist.GetItem(currentItems, self.config.textlistColNames['filename']).GetText()
+                    print(selectedItem)
                     # Delete selected document from dictionary + table        
                     try:
                         outcome = self.presenter.view.panelDocuments.topP.documents.removeDocument(deleteItem=selectedItem, evt=None)
@@ -327,9 +606,10 @@ class topPanel(wx.Panel):
     def onCheckDuplicates(self, fileName=None):
         currentItems = self.filelist.GetItemCount()-1
         while (currentItems >= 0):
-            fileInTable = self.filelist.GetItem(currentItems,0).GetText()
+            fileInTable = self.filelist.GetItem(currentItems,
+                                                self.config.textlistColNames['filename']).GetText()
             if fileInTable == fileName:
-                print('File '+ fileInTable + ' already in table - skipping')
+                print('File '+ fileInTable + ' already in the table')
                 currentItems = 0
                 return True
             else:
@@ -351,20 +631,43 @@ class topPanel(wx.Panel):
             for col in range(columns):
                 item = self.filelist.GetItem(itemId=row, col=col)
                 #  We want to make sure certain columns are numbers
-                if col==1 or col==2 or col==4:
+                if col in [0, 1, 5, 6]: 
                     itemData = str2num(item.GetText())
+                    if itemData == None: itemData = 0
+                    tempRow.append(itemData)
+                elif col == 2:
+                    itemData = str2int(item.GetText())
                     if itemData == None: itemData = 0
                     tempRow.append(itemData)
                 else:
                     tempRow.append(item.GetText())
+            tempRow.append(self.filelist.IsChecked(index=row))
+            tempRow.append(self.filelist.GetItemTextColour(row))
             tempData.append(tempRow)
-        tempData.sort()
-        tempData = list(item for item,_ in itertools.groupby(tempData))
+            
+        # Remove duplicates
+        tempData = removeListDuplicates(input=tempData,
+                                        columnsIn=['start', 'end', 'charge', 
+                                        'color', 'colormap', 'alpha', 'mask', 
+                                        'label', 'shape', 'filename', 'check', 'rgb'],
+                                        limitedCols=['filename'])     
         rows = len(tempData)
-        self.filelist.DeleteAllItems()
-        print('Removing duplicates')
-        for row in range(rows):
+        # Clear table
+        self.peaklist.DeleteAllItems()
+
+        checkData, rgbData = [], []
+        for check in tempData:
+            rgbData.append(check[-1])
+            del check[-1]
+            checkData.append(check[-1])
+            del check[-1]
+            
+        # Reinstate data
+        rowList = arange(len(tempData))
+        for row, check, rgb in zip(rowList, checkData, rgbData):
             self.filelist.Append(tempData[row])
+            self.filelist.CheckItem(row, check)
+            self.filelist.SetItemTextColour(row, rgb)
             
         if evt is None: return
         else:
@@ -404,35 +707,274 @@ class topPanel(wx.Panel):
         
         columns = self.filelist.GetColumnCount()
         rows = self.filelist.GetItemCount()
+        
         tempData = []
         # Iterate over row and columns to get data
         for row in range(rows):
             tempRow = []
             for col in range(columns):
                 item = self.filelist.GetItem(itemId=row, col=col)
-                #  We want to make sure the first 3 columns are numbers
-                if col==1 or col==2 or col==4:
+                #  We want to make sure certain columns are numbers
+                if (col==self.config.textlistColNames['start'] or 
+                    col==self.config.textlistColNames['end'] or 
+                    col==self.config.textlistColNames['alpha'] or 
+                    col==self.config.textlistColNames['mask']):
                     itemData = str2num(item.GetText())
+                    if itemData == None: itemData = 0
+                    tempRow.append(itemData)
+                elif col==self.config.textlistColNames['charge']:
+                    itemData = str2int(item.GetText())
                     if itemData == None: itemData = 0
                     tempRow.append(itemData)
                 else:
                     tempRow.append(item.GetText())
             tempRow.append(self.filelist.IsChecked(index=row))
+            tempRow.append(self.filelist.GetItemTextColour(row))
             tempData.append(tempRow)
             
-        
         # Sort data  
         tempData.sort(key = itemgetter(column), reverse=self.reverse)
-        # Clear table and reinsert data
+        # Clear table
         self.filelist.DeleteAllItems()
         
-        checkData = []
+        checkData, rgbData = [], []
         for check in tempData:
+            rgbData.append(check[-1])
+            del check[-1]
             checkData.append(check[-1])
             del check[-1]
-            
+
         # Reinstate data
         rowList = arange(len(tempData))
-        for row, check in zip(rowList,checkData):
+        for row, check, rgb in zip(rowList, checkData, rgbData):
             self.filelist.Append(tempData[row])
             self.filelist.CheckItem(row, check)
+            self.filelist.SetItemTextColour(row, rgb)
+
+    def onUpdateOverlayMethod(self, evt):
+        self.config.overlayMethod = self.combo.GetStringSelection()
+
+        if evt != None:
+            evt.Skip()
+            
+    def OnGetItemInformation(self, itemID, return_list=False):
+        
+        # get item information
+        information = {'minCE':str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['start']).GetText()),
+                       'maxCE':str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['end']).GetText()),
+                       'charge':str2int(self.filelist.GetItem(itemID, self.config.textlistColNames['charge']).GetText()),
+                       'color':self.filelist.GetItemTextColour(item=itemID),
+                       'colormap':self.filelist.GetItem(itemID, self.config.textlistColNames['colormap']).GetText(),
+                       'alpha':str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['alpha']).GetText()),
+                       'mask':str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['mask']).GetText()),
+                       'label':self.filelist.GetItem(itemID, self.config.textlistColNames['label']).GetText(),
+                       'shape':self.filelist.GetItem(itemID, self.config.textlistColNames['shape']).GetText(),
+                       'document':self.filelist.GetItem(itemID, self.config.textlistColNames['filename']).GetText(),
+                       'select':self.filelist.IsChecked(itemID),
+                       'id':itemID}
+
+        try:
+            self.docs = self.presenter.documentsDict[self.filelist.GetItem(itemID, self.config.textlistColNames['filename']).GetText()]
+        except KeyError:
+            pass
+        # check whether the ion has any previous information
+        min_threshold, max_threshold = 0, 1
+        
+        if self.docs.IMS2D:
+            min_threshold = self.docs.IMS2D.get('min_threshold', 0)
+            max_threshold = self.docs.IMS2D.get('max_threshold', 1)
+        information['min_threshold'] = min_threshold
+        information['max_threshold'] = max_threshold
+                
+        if return_list:
+            minCE = information['minCE']
+            maxCE = information['maxCE']
+            charge = information['charge']
+            color = information['color']
+            colormap = information['colormap']
+            alpha = information['alpha']
+            mask = information['mask']
+            shape = information['shape']
+            label = information['label']
+            document = information['document']
+            min_threshold = information['min_threshold']
+            max_threshold = information['max_threshold']
+            return minCE, maxCE, charge, color, colormap, alpha, mask, shape, label, document, min_threshold, max_threshold
+
+        return information
+    # ----
+    
+    def OnGetValue(self, value_type='color'):
+        information = self.OnGetItemInformation(self.currentItem)
+        
+        if value_type == 'minCE':
+            return information['minCE']
+        elif value_type == 'maxCE':
+            return information['maxCE']
+        elif value_type == 'color':
+            return information['color']
+        elif value_type == 'charge':
+            return information['charge']
+        elif value_type == 'colormap':
+            return information['colormap']
+        elif value_type == 'intensity':
+            return information['intensity']
+        elif value_type == 'mask':
+            return information['mask']
+        elif value_type == 'label':
+            return information['label']
+        elif value_type == 'shape':
+            return information['shape']
+        elif value_type == 'document':
+            return information['document']
+    # ----
+    def OnAssignColor(self, evt, itemID=None, give_value=False):
+        """
+        @param itemID (int): value for item in table
+        @param give_value (bool): should/not return color
+        """ 
+        
+        if itemID != None:
+            self.currentItem = itemID
+            
+        # Restore custom colors
+        custom = wx.ColourData()
+        for key in self.config.customColors:
+            custom.SetCustomColour(key, self.config.customColors[key])
+        dlg = wx.ColourDialog(self, custom)
+        dlg.Centre()
+        dlg.GetColourData().SetChooseFull(True)
+        
+        # Show dialog and get new colour
+        if dlg.ShowModal() == wx.ID_OK:
+            data = dlg.GetColourData()
+            newColour = list(data.GetColour().Get())
+            dlg.Destroy()
+            # Assign color
+            self.filelist.SetStringItem(self.currentItem, 
+                                        self.config.textlistColNames['color'], 
+                                        str(convertRGB255to1(newColour)))
+            self.filelist.SetItemTextColour(self.currentItem, newColour)
+            # Retrieve custom colors
+            for i in xrange(15): 
+                self.config.customColors[i] = data.GetCustomColour(i)
+            
+            # update document
+            self.onUpdateDocument(evt=None)
+            
+            if give_value:
+                return newColour
+        else:
+            try:
+                newColour = convertRGB1to255(literal_eval(self.OnGetValue(value_type='color')), 3)
+            except:
+                newColour = self.config.customColors[randomIntegerGenerator(0, 15)]
+            # Assign color
+            self.filelist.SetStringItem(self.currentItem, self.config.textlistColNames['color'],
+                                        str(convertRGB255to1(newColour)))
+            self.filelist.SetItemTextColour(self.currentItem, newColour)
+            if give_value:
+                return newColour
+
+    def onUpdateDocument(self, evt, itemInfo=None):
+        
+        # get item info
+        if itemInfo == None:
+            itemInfo = self.OnGetItemInformation(self.currentItem)
+        
+        # get item
+        document = self.presenter.documentsDict[itemInfo['document']]
+        
+        keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold',
+                    'max_threshold', 'charge']
+        for keyword in keywords:
+            if document.got2DIMS:
+                document.IMS2D[keyword] = itemInfo[keyword]
+            if document.got2Dprocess:
+                document.IMS2Dprocess[keyword] = itemInfo[keyword]
+            
+        # Update file list
+        self.presenter.OnUpdateDocument(document, 'no_refresh')
+            
+    def OnOpenEditor(self, evt):
+        
+        if evt == None: 
+            evtID = ID_textPanel_editItem
+        else:
+            evtID = evt.GetId()
+
+        rows = self.filelist.GetItemCount() - 1
+        if evtID == ID_textPanel_editItem:
+            if self.currentItem  < 0:
+                print('Please select item in the table first.')
+                return
+            dlg_kwargs = self.OnGetItemInformation(self.currentItem)
+            
+            self.editItemDlg = panelModifyTextSettings(self,
+                                                       self.presenter, 
+                                                       self.config,
+                                                       **dlg_kwargs)
+            self.editItemDlg.Centre()
+            self.editItemDlg.Show()
+        elif evtID == ID_textPanel_edit_selected:
+            while rows >= 0:
+                if self.filelist.IsChecked(rows):
+                    information = self.OnGetItemInformation(rows)
+                    
+                    dlg_kwargs = {'select': self.filelist.IsChecked(rows),
+                                  'color': information['color'],
+                                  'title': information['document'],
+                                  'min_threshold': information['min_threshold'],
+                                  'max_threshold': information['max_threshold'],
+                                  'label': information['label'],
+                                  'id':rows
+                                  }
+                    
+                    self.editItemDlg = panelModifyTextSettings(self, 
+                                                               self.presenter, 
+                                                               self.config,
+                                                               **dlg_kwargs)
+                    self.editItemDlg.Show()
+                rows -= 1
+        elif evtID == ID_ionPanel_edit_all:
+            for row in range(rows):
+                information = self.OnGetItemInformation(row)
+                 
+                dlg_kwargs = {'select': self.filelist.IsChecked(row),
+                              'color': information['color'],
+                              'title': information['document'],
+                              'min_threshold': information['min_threshold'],
+                              'max_threshold': information['max_threshold'],
+                              'label': information['label'],
+                              'id':row
+                              }
+                 
+                self.editItemDlg = panelModifyTextSettings(self, 
+                                                           self.presenter, 
+                                                           self.config,
+                                                           **dlg_kwargs)
+                self.editItemDlg.Show()   
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            

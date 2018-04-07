@@ -428,6 +428,14 @@ def sumMSdata(ydict=None):
         msOut.append(ydict[key][1])
     # Sum into one Y-axis list
     msSum = np.sum(msOut, axis=0)
+    
+#     msYsum = []
+#     for key in ydict:
+#         msYsum.append(ydict[key][1])
+#     # Sum data
+#     msYsummed = [sum(i) for i in zip(*msYsum)]
+#     return ydict[key][0], msYsummed
+
     return ydict[key][0], msSum
      
 def sumMSdata2RT(ydict=None):
@@ -449,9 +457,54 @@ def abline(x_vals, slope, intercept):
     y_vals = intercept + slope * x_vals
     return x_vals, y_vals
      
-     
-     
-     
+def smooth_1D(data=None, smoothMode='Gaussian', **kwargs):
+    """
+    This function uses Gaussian filter to smooth 1D data
+    """
+    if smoothMode == 'Gaussian':
+        sigma = kwargs.pop('sigma')
+        if data is None or len(data) == 0:
+            return None
+        if sigma < 0: 
+            sigma=1
+        # Smooth array
+        try:
+            dataOut = gaussian_filter(data, sigma=sigma, order=0)
+        except (ValueError, TypeError, MemoryError), error:
+            return data
+        return dataOut
+    
+    elif smoothMode == 'Savitzky-Golay':
+        polyOrder = kwargs.pop('polyOrder')
+        windowSize = kwargs.pop('windowSize')
+        # Check if input data is there
+        if data is None or len(data) == 0:
+            return None
+#         # Check whether polynomial order is of correct size
+#         if (polyOrder<=0):
+#             polyOrder=2   
+#         # Check whether window size is of correct size
+#         if windowSize is None:
+#             windowSize = polyOrder+1
+#         elif windowSize<= polyOrder:
+#             windowSize=polyOrder+1
+#         else:
+#             windowSize=windowSize+1
+
+        try:
+            dataOut = savgol_filter(data, polyorder=polyOrder, 
+                                    window_length=windowSize, 
+                                    axis=0)
+        except (ValueError, TypeError, MemoryError), error:
+            print(error)
+#             pub.sendMessage('errorUpdate', dataOut=["%s" % error, 4])
+            return data
+        # Remove values below zero
+        dataOut[dataOut < 0] = 0 # Remove any values that are below 0
+        return dataOut
+    else:
+        return data
+ 
      
      
      

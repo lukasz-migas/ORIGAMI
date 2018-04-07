@@ -1,7 +1,7 @@
 # List of functions used to load data into ORIGAMI
 
 import os.path
-from subprocess import call,Popen
+from subprocess import call, Popen, CREATE_NEW_CONSOLE
 import numpy as np
 from sklearn.preprocessing import normalize
 import time
@@ -9,17 +9,11 @@ from _codecs import encode
 from toolbox import *
 from analysisFcns import binMSdata
 import pandas as pd
-
+from _codecs import encode
 from ctypes import *
 
 # Load C library
 mlLib = cdll.LoadLibrary("MassLynxRaw.dll")
-
-# TO DO:
-# - enable running of multiple instances of Driftscope extraction. 
-#   Popen sends the command and can instantly execute another command. 
-#   It might be beneficial to run multiple together to save time!
-
 
 ### EXTRACT FUNCTIONS ####
 # ========================================
@@ -53,7 +47,7 @@ def rawOpen1DRTdata(path=None, fileName=None, inputFile='output.1dDT', norm=None
 	
 def rawOpenRTdata(path=None, fileName=None, inputFile='output.1dRT', norm=None,
 	fileNameLocation=None):
-	tstart = time.clock()
+	
 	if (path==None and fileNameLocation==None):
 		outName='/'.join([fileName,inputFile])
 	elif (path!=None and fileName!=None ):
@@ -69,8 +63,6 @@ def rawOpenRTdata(path=None, fileName=None, inputFile='output.1dRT', norm=None,
 	rtDataReshape = rtDataClean.reshape((nScans,2), order='C')
 	rtData1D = rtDataReshape[:,1]
 
-	tend = time.clock()
-# 	print('Loaded 1D IM-MS in: %.2gs' % (tend-tstart))
 	if (norm==True):
 		rtData1DNorm = rtData1D.astype(np.float64)/max(rtData1D)
 		return rtData1D,rtData1DNorm
@@ -122,7 +114,6 @@ def rawOpen2DIMSdata(path=None, fileName=None, inputFile='output.2dRTDT', norm=N
 	
 def rawOpenMSdata(path=None, fileName=None, inputFile='output.1dMZ', norm=True,
 	fileNameLocation=None):
-	tstart = time.clock()
 	if (path==None and fileNameLocation==None):
 		outName='/'.join([fileName,inputFile])
 	elif (path!=None and fileName!=None ):
@@ -132,7 +123,6 @@ def rawOpenMSdata(path=None, fileName=None, inputFile='output.1dMZ', norm=True,
 	else:
 		outName=fileNameLocation
 	
-	print(outName)
 	f = open(outName, "r") 
 	# Load data into array
 	msData = np.fromfile(f, dtype=np.float32)
@@ -152,12 +142,11 @@ def rawOpenMSdata(path=None, fileName=None, inputFile='output.1dMZ', norm=True,
 			print('Removed issue in the MS file')
 		except IndexError: pass
 	# Normalize MS data
-	if (norm==True):
+	if norm:
 		msY = msY/max(msY)
 	else:
 		msY = msY
-	tend = time.clock()
-# 	print('Loaded MS in: %.2gs' % (tend-tstart))
+
 	return msX, msY
 	# ------------ #
 
@@ -206,7 +195,6 @@ def textOpenIRData(path=None, fileName=None, norm=None, fileNameLocation=None):
 	return zvals, xvals, yvals
 
 def textOpen2DIMSdata(path=None, fileName=None, norm=None, fileNameLocation=None):
-	tstart = time.clock()
 
 	outName = fileNameLocation.encode('ascii', 'replace')
 	# Determine what file type it is
@@ -224,24 +212,23 @@ def textOpen2DIMSdata(path=None, fileName=None, norm=None, fileNameLocation=None
 	imsDataText = zvals[:,1::]
 	# Get yvalues
 	YaxisLabels = zvals[:,0]
-
 	# Get xvalues
 	xvals = df.columns.tolist()
 
 	XaxisLabels = map(float, xvals[1::])
 	
 	print('Labels size: %s x %s. Array size: %s x %s') % (len(XaxisLabels), len(YaxisLabels),
-													 len(imsDataText[0,:]), len(imsDataText[:,0]))
+														len(imsDataText[0,:]), len(imsDataText[:,0]))
 
-	tend = time.clock()
 	if (norm==True):
 		imsDataTextNorm = normalize(imsDataText,axis=0, norm='max') # Norm to 1 
 		return imsDataText, imsDataTextNorm, XaxisLabels, YaxisLabels
 	else:
 		return imsDataText, XaxisLabels, YaxisLabels	
 
-def rawExtractMSdata(path=None, driftscopeLocation='C:\DriftScope\lib', bin=1, 
-					fileName=None, rtStart=0, rtEnd=999.0, fileNameLocation = None):
+def rawExtractMSdata(path=None, driftscopeLocation='C:\DriftScope\lib', bin=10000,
+					fileName=None, rtStart=0, rtEnd=999.0, dtStart=1, dtEnd=200,
+					mzStart=0, mzEnd=99999, fileNameLocation = None):
 	# TO DO: 
 	# - enable selection of RT region for extracting MS for each collision voltage
 	# Create input file
@@ -256,20 +243,21 @@ def rawExtractMSdata(path=None, driftscopeLocation='C:\DriftScope\lib', bin=1,
 		msRangeFileLocation='/'.join([fileNameLocation,msRangeFile])
 		
 	fileID = open(msRangeFileLocation,'w')
-	fileID.write("0 99999 %s\n%s %s 1\n1.0 200 1" % (str(bin), str(rtStart), str(rtEnd)))
+	fileID.write("%s %s %s\n%s %s 1\n%s %s 1" % (mzStart, mzEnd, bin, rtStart, rtEnd, dtStart, dtEnd))
 		
 	fileID.close()
 	# Create command for execution
 	cmd = ''.join([driftscopeLocation,'\imextract.exe -d "', fileNameLocation, '" -f 1 -o "', fileNameLocation, '\output.1dMZ" -t mobilicube -p "', msRangeFileLocation, '"'])
 	# Extract command
-	#extractMS = Popen(cmd)
-	extractMS = call(cmd)
-	
+	extractIMS = Popen(cmd, shell=True, creationflags=CREATE_NEW_CONSOLE)
+	while extractIMS.poll() is None:
+		pass
 	return None
 	# ------------ #
 	
 def rawExtract2DIMSdata(path=None, driftscopeLocation='C:\DriftScope\lib', fileName=None,
-					 mzStart=None, mzEnd=None, fileNameLocation = None):
+					 	mzStart=None, mzEnd=None, rtStart=0.0, rtEnd=999.0, 
+					 	fileNameLocation = None):
 	# Create input file
 	msRangeFile='CIUrange.2dRTDT.inp'
 	if (path==None and fileNameLocation==None):
@@ -286,17 +274,16 @@ def rawExtract2DIMSdata(path=None, driftscopeLocation='C:\DriftScope\lib', fileN
 	if (not(mzStart) or not(mzEnd)):
 		fileID.write('0 99999 1\n0.0 999.0 5000\n1.0 200 200') 
 	else:
-		fileID.write("%s %s 1\n0.0 999.0 5000\n1 200 200" % (str(mzStart), str(mzEnd)))
+		fileID.write("%s %s 1\n%s %s 5000\n1 200 200" % (mzStart, mzEnd, rtStart, rtEnd))
 	
 	fileID.close()
 	# Create command for execution
 	cmd = ''.join([driftscopeLocation,'\imextract.exe -d "', fileNameLocation, '" -f 1 -o "', 
 				fileNameLocation, '\output.2dRTDT" -t mobilicube -b 1 -scans 0 -p "', 
 				msRangeFileLocation, '"'])
-	#extractIMS = Popen(cmd)
-	extractIMS = call(cmd)
-	# Remove input file
-	#os.remove(msRangeFile)
+	extractIMS = Popen(cmd, shell=True, creationflags=CREATE_NEW_CONSOLE)
+	while extractIMS.poll() is None:
+		pass
 	
 	return None
 	# ------------ #
@@ -321,8 +308,10 @@ def rawExtract1DIMSdataOverRT(path=None, driftscopeLocation='C:\DriftScope\lib',
 	fileID.close()
 	# Create command for execution
 	cmd = ''.join([driftscopeLocation,'\imextract.exe -d "', fileNameLocation, '" -f 1 -o "', fileNameLocation, '\output.1dDT" -t mobilicube -p "', msRangeFileLocation, '"'])
-	#extractIMS = Popen(cmd)
-	extractIMS = call(cmd)
+	extractIMS = Popen(cmd, shell=True, creationflags=CREATE_NEW_CONSOLE)
+	while extractIMS.poll() is None:
+		pass
+	
 	return None
 	# ------------ #
 	
@@ -346,8 +335,10 @@ def rawExtract1DIMSdata(path=None, driftscopeLocation='C:\DriftScope\lib', fileN
 	fileID.close()
 	# Create command for execution
 	cmd = ''.join([driftscopeLocation,'\imextract.exe -d "', fileNameLocation, '" -f 1 -o "', fileNameLocation, '\output.1dDT" -t mobilicube -p "', msRangeFileLocation, '"'])
-	#extractIMS = Popen(cmd)
-	extractIMS = call(cmd)
+	extractIMS = Popen(cmd, shell=True, creationflags=CREATE_NEW_CONSOLE)
+	while extractIMS.poll() is None:
+		pass
+
 	return None
 	# ------------ #
 	
@@ -361,7 +352,6 @@ def rawExtractRTdata(path=None, driftscopeLocation='C:\DriftScope\lib', fileName
 	if (path==None and fileNameLocation==None):
 		msRangeFileLocation='/'.join([fileName,msRangeFile])
 	elif (path!=None and fileName!=None ):
-		print('here')
 		msRangeFileLocation='/'.join([path,fileName,msRangeFile])
 		fileNameLocation = '/'.join([path,fileName])
 	else:
@@ -376,10 +366,43 @@ def rawExtractRTdata(path=None, driftscopeLocation='C:\DriftScope\lib', fileName
 	cmd = ''.join([driftscopeLocation,'\imextract.exe -d "', fileNameLocation, '" -f 1 -o "',
 				 fileNameLocation, '\output.1dRT" -t mobilicube -p "', msRangeFileLocation, '"'])
 	
-	#extractIMS = Popen(cmd)
-	extractIMS = call(cmd)
+	extractIMS = Popen(cmd, shell=True, creationflags=CREATE_NEW_CONSOLE)
+	while extractIMS.poll() is None:
+		pass
+	
 	return None
 	# ------------ #
+
+def rawExtractDTdata(path=None, driftscopeLocation='C:\DriftScope\lib', fileName='None', 
+					 mzStart=1, mzEnd=99999, rtStart=0.0, rtEnd=999, dtStart=1, dtEnd=200, 
+					 fileNameLocation=None):
+	"""
+	Extract the retention time for specified (or not) mass range
+	"""
+	# Create input file
+	msRangeFile='CIUrange.1dRT.inp'
+	if (path==None and fileNameLocation==None):
+		msRangeFileLocation='/'.join([fileName,msRangeFile])
+	elif (path!=None and fileName!=None ):
+		msRangeFileLocation='/'.join([path,fileName,msRangeFile])
+		fileNameLocation = '/'.join([path,fileName])
+	else:
+		fileNameLocation=fileNameLocation
+		msRangeFileLocation='/'.join([fileNameLocation,msRangeFile])
+	
+	fileID = open(msRangeFileLocation,'w')
+	fileID.write("%s %s 1\n%s %s 5000\n%s %s 1" % (mzStart, mzEnd, rtStart, rtEnd, dtStart, dtEnd))
+
+	fileID.close()
+	# Create command for execution
+	cmd = ''.join([driftscopeLocation,'\imextract.exe -d "', fileNameLocation, '" -f 1 -o "',
+				 fileNameLocation, '\output.1dMZ" -t mobilicube -p "', msRangeFileLocation, '"'])
+	print(cmd)
+	extractIMS = Popen(cmd, shell=True, creationflags=CREATE_NEW_CONSOLE)
+	while extractIMS.poll() is None:
+		pass
+	
+	return None
  	
 def rawExtractMZDTdata(path=None, driftscopeLocation='C:\DriftScope\lib', fileName=None,
                        mzStart=0, mzEnd=99999, nPoints=5000, dtStart=1, dtEnd=200,
@@ -401,9 +424,11 @@ def rawExtractMZDTdata(path=None, driftscopeLocation='C:\DriftScope\lib', fileNa
     fileID.close()
     # Create command for execution
     cmd = ''.join([driftscopeLocation,'\imextract.exe -d "', fileNameLocation, '" -f 1 -o "', fileNameLocation, '\output.2dDTMZ" -t mobilicube -p "', msRangeFileLocation, '"'])
-    extractIMS = call(cmd)
-
-    return None
+    
+    extractIMS = Popen(cmd, shell=True, creationflags=CREATE_NEW_CONSOLE)
+    while extractIMS.poll() is None:
+		pass
+ 
     # ------------ #
     
 # def rawExtractMZRTdata(path=None, driftscopeLocation='C:\DriftScope\lib', fileName=None,
@@ -441,13 +466,12 @@ def extractMSdata(filename=None,startScan=0, endScan=-1, function=1,
     @param binData: boolean, determines if data should be binned or not
     """
     tstart = time.clock()
-    flag = False
     # Create pointer to the file
     filePointer = mlLib.newCMassLynxRawReader(filename)
     # Setup scan reader
     dataPointer = mlLib.newCMassLynxRawScanReader(filePointer)
     # Extract number of scans available from the file
-    nScans = mlLib.getScansInFunction(dataPointer,1)
+    nScans = mlLib.getScansInFunction(dataPointer, function)
     # Initilise pointers to data
     xpoint = c_float() 
     ypoint = c_float()
@@ -466,14 +490,14 @@ def extractMSdata(filename=None,startScan=0, endScan=-1, function=1,
     msRange = np.arange(startScan, endScan)+1
     # First extract data
     for scan in msRange:
-        nPoints = mlLib.getScanSize(dataPointer, 1, scan)
+        nPoints = mlLib.getScanSize(dataPointer, function, scan)
         # Read XY coordinates
         mlLib.getXYCoordinates(filePointer,function, scan, byref(xpoint), byref(ypoint))
         # Prepare pointers
         mzP = (c_float * nPoints)()
         mzI = (c_float * nPoints)()
         # Read spectrum
-        mlLib.readSpectrum(dataPointer, 1, scan, byref(mzP), byref(mzI))
+        mlLib.readSpectrum(dataPointer, function, scan, byref(mzP), byref(mzI))
         # Extract data from pointer and assign it to list
         msX = np.ndarray((nPoints, ), 'f', mzP, order='C')    
         msY = np.ndarray((nPoints, ), 'f', mzI, order='C') 
@@ -499,10 +523,66 @@ def importCCSDatabase(filename=None):
 	
 
 	return df
+		
+def sumClassMSdata(data):
+    # Retrieve MS data
+    ydata = []
+    # Iterate over the whole dictionary to retrieve y-axis data
+    for idx in range(len(data)):
+        ydata.append(data[idx]['yvals'])
+    # Sum y-axis data
+    msY = np.sum(ydata, axis=0)
+    
+    return msY
+
+def subtractMS(msY_1, msY_2):
+
+    # Subtract values
+    out_1 = msY_1 - msY_2
+    out_2 = msY_1 - msY_2
+    
+    # Return all positive/negative values as two lists
+    out_1[out_1 < 0] = 0
+    out_2[out_2 > 0] = 0
+
+    return out_1, out_2
+ 	
+def normalize1D(inputData = None, mode='Maximum'):
+    # Normalize data to maximum intensity of 1
+    
+    if mode == 'Maximum':
+        normData = np.divide(inputData.astype(np.float64), np.max(inputData))
+    elif mode == 'tic':
+        normData = np.divide(inputData.astype(np.float64), np.sum(inputData))
+        normData = np.divide(normData.astype(np.float64), np.max(normData))
+
+    return normData
+# ------------ #
 			
-			
-			
-			
+def threshold2D(inputData=None, min_threshold=0.0, max_threshold=1.0):  
+    
+    # Check min_threshold is larger than max_threshold
+    if min_threshold > max_threshold:
+        print("Minimum threshold is larger than the maximum. Values were reversed.")
+        min_threshold, max_threshold = max_threshold, min_threshold
+    
+    # Check if they are the same
+    if min_threshold == max_threshold:
+        print("Minimum and maximum thresholds are the same.")
+        return inputData
+    
+    # Find maximum value in the array
+    data_max = np.max(inputData)
+    min_threshold = min_threshold  * data_max
+    max_threshold = max_threshold  * data_max
+    
+    # Adjust minimum threshold
+    inputData[inputData <= min_threshold] = 0
+    
+    # Adjust maximum threshold
+    inputData[inputData >= max_threshold] = data_max
+    
+    return inputData
 			
 			
 			

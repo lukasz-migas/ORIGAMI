@@ -19,7 +19,8 @@
 import wx
 
 # load modules
-from ids import *
+from ids import (ID_helpCite, ID_helpGitHub, ID_helpReportBugs, ID_helpNewFeatures,
+                 ID_helpHomepage)
 
 class panelAbout(wx.MiniFrame):
     """About panel."""
@@ -46,27 +47,31 @@ class panelAbout(wx.MiniFrame):
         
     def makeGUI(self):
         """Make panel gui."""
-        
+        BOLD_FONT = wx.Font(11, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        NORMAL_FONT = wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         # make elements
         panel = wx.Panel(self, -1)
         
         image = wx.StaticBitmap(panel, -1, self.icons.getLogo)
         
         title = wx.StaticText(panel, -1, "ORIGAMI")
-        title.SetFont(wx.Font(10, wx.FONTFAMILY_SWISS, 
-                              wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD))
+        title.SetFont(BOLD_FONT)
         
         versionLabel = 'Version %s' % self.config.version
         version = wx.StaticText(panel, -1, versionLabel, style=wx.ALIGN_CENTRE)
-        version.SetFont(wx.SMALL_FONT)
+        version.SetFont(wx.NORMAL_FONT)
         
-        copyright = wx.StaticText(panel, -1, "(c) 2017 Lukasz G. Migas")
-        copyright.SetFont(wx.SMALL_FONT)
+        about_msg = 'If you encounter any problems, have questions or would like to send some feedback,\n' + \
+                    '            please contact Lukasz Migas at lukasz.migas@manchester.ac.uk.'
         
-        message = wx.StaticText(panel, -1, 'If you encounter any problems, have questions or would like to send some feedback, please contact Lukasz Migas at lukasz.migas@manchester.ac.uk.')
+        message = wx.StaticText(panel, -1, about_msg)
         message.SetFont(wx.SMALL_FONT)
+        
         university = wx.StaticText(panel, -1, "University of Manchester")
         university.SetFont(wx.SMALL_FONT)
+        
+        copyright = wx.StaticText(panel, -1, "(c) 2017 Lukasz G. Migas")
+        copyright.SetFont(NORMAL_FONT)
         
         homepageBtn = wx.Button(panel, ID_helpHomepage, "Homepage", size=(150, -1))
         homepageBtn.Bind(wx.EVT_BUTTON, self.presenter.onLibraryLink)
@@ -76,6 +81,23 @@ class panelAbout(wx.MiniFrame):
         
         citeBtn = wx.Button(panel, ID_helpCite, "How to Cite", size=(150, -1))
         citeBtn.Bind(wx.EVT_BUTTON, self.presenter.onLibraryLink)
+        
+        newFeaturesBtn = wx.Button(panel, ID_helpNewFeatures, "Request New Features", size=(150, -1))
+        newFeaturesBtn.Bind(wx.EVT_BUTTON, self.presenter.onLibraryLink)
+        
+        reportBugBtn = wx.Button(panel, ID_helpReportBugs, "Report Bugs", size=(150, -1))
+        reportBugBtn.Bind(wx.EVT_BUTTON, self.presenter.onLibraryLink)
+        
+        btn_grid = wx.GridBagSizer(2, 2)
+        y = 0
+        btn_grid.Add(homepageBtn, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        btn_grid.Add(githubBtn, (y,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        btn_grid.Add(citeBtn, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        
+        btn2_grid = wx.GridBagSizer(2, 2)
+        y = 0
+        btn2_grid.Add(newFeaturesBtn, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
+        btn2_grid.Add(reportBugBtn, (y,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
         
         # pack element
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -89,12 +111,11 @@ class panelAbout(wx.MiniFrame):
         sizer.Add(university, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
         sizer.AddSpacer(10)
         sizer.Add(copyright, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
-        sizer.AddSpacer(20)
-        sizer.Add(homepageBtn, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
         sizer.AddSpacer(10)
-        sizer.Add(githubBtn, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
+        sizer.Add(btn2_grid, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
         sizer.AddSpacer(10)
-        sizer.Add(citeBtn, 0, wx.CENTER|wx.LEFT|wx.RIGHT|wx.BOTTOM, 20)
+        sizer.Add(btn_grid, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
+        sizer.AddSpacer(10)
         
         sizer.Fit(panel)
         return sizer

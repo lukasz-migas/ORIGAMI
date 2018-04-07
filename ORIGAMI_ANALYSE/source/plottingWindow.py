@@ -17,16 +17,22 @@
 
 # IMPORT LIBS
 import wx
-from matplotlib import interactive
+import matplotlib
+matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 from ZoomBox import ZoomBox, GetXValues
-import NoZoomSpan
 from wx.lib.pubsub import pub
 import matplotlib.patches as patches
-from matplotlib.patches import Rectangle
 from numpy import amax, divide
+from mpl_toolkits.mplot3d import Axes3D
 
+from os.path import join, splitext, basename
+
+try:
+    from dialogs import dlgBox
+except:
+    pass
 
 class plottingWindow(wx.Window):
     def __init__(self, *args, **kwargs):
@@ -53,28 +59,56 @@ class plottingWindow(wx.Window):
         # Create a resizer
         self.Bind(wx.EVT_SIZE, self.sizeHandler)
         self.resize = 1
-    
         self.canvas.mpl_connect('motion_notify_event', self.onMotion)
+        self.canvas.mpl_connect('pick_event', self.onPick)
 
         # Prepare for zoom
         self.zoom = None
         self.zoomtype = "box"
+        
+    def onPick(self, evt):
+        pass
+        # to be used to improve 3D plot
+#         print(dir(evt.artist.get_xdata))
+#         print('pick')
+    
+    def _generatePlotParameters(self):
+        plot_parameters = {'grid_show':self.config._plots_grid_show,
+                           'grid_color':self.config._plots_grid_color,
+                           'grid_line_width':self.config._plots_grid_line_width,
+                           'extract_color':self.config._plots_extract_color,
+                           'extract_line_width':self.config._plots_extract_line_width,
+                           'extract_crossover_sensitivity_1D':self.config._plots_extract_crossover_1D,
+                           'extract_crossover_sensitivity_2D':self.config._plots_extract_crossover_2D,
+                           'zoom_color_vertical':self.config._plots_zoom_vertical_color,
+                           'zoom_color_horizontal':self.config._plots_zoom_horizontal_color,
+                           'zoom_color_box':self.config._plots_zoom_box_color,
+                           'zoom_line_width':self.config._plots_zoom_line_width,
+                           'zoom_crossover_sensitivity':self.config._plots_zoom_crossover
+                           }
+        return plot_parameters
        
     def setupGetXAxies(self, plots):
         self.getxaxis =  GetXValues(plots)
        
-    def setup_zoom(self, plots, zoom, data_lims=None, plotName=None):
+    def setup_zoom(self, plots, zoom, data_lims=None, plotName=None,
+                   plotParameters=None):
+        if plotParameters == None:
+            plotParameters = self._generatePlotParameters()
+        
         if zoom == 'box':
             self.zoom = ZoomBox(plots, None, drawtype='box',
                                 useblit=True, button=1,
                                 onmove_callback=None, 
                                 rectprops=dict(alpha=0.2, facecolor='yellow'),
-                                spancoords='data',
-                                data_lims=data_lims,
-                                plotName = plotName)
-                  
+                                spancoords='data', data_lims=data_lims,
+                                plotName = plotName,
+                                plotParameters = plotParameters)
         self.onRebootZoomKeys(evt=None)
-                  
+                        
+    def update_extents(self, extents):
+        ZoomBox.update_extents(self.zoom, extents)
+                         
     def onRebootZoomKeys(self, evt):
         """
         Reboot 'stuck' keys
@@ -123,7 +157,7 @@ class plottingWindow(wx.Window):
             divider = divider *increment
         
         expo = len(str(divider)) - len(str(divider).rstrip('0'))
-
+        
         return divider, expo
    
     def repaint(self):
@@ -140,6 +174,15 @@ class plottingWindow(wx.Window):
         :return:
         """
         self.figure.clear()
+        try:
+            self.cax = None
+        except:
+            pass
+        
+        try:
+            self.plotMS = None
+        except:
+            pass
         self.repaint()
             
     def sizeHandler(self, *args, **kwargs):
@@ -161,10 +204,17 @@ class plottingWindow(wx.Window):
         Saves figures in specified location. 
         Transparency and DPI taken from config file
         """
+        # check if plot exists
+        if not hasattr(self, 'plotMS'): 
+            print('Cannot save a plot that does not exist')
+            return 
+    
         # Get resize parameter
-        resizeName = kwargs.pop('resize', None)
+        resizeName = kwargs.get('resize', None)
+        resizeSize = None
         
-        resizeSize = self.config.plotResize.get(resizeName, None)
+        if resizeName != None:
+            resizeSize = self.config._plotSettings[resizeName]['resize_size']
         
         if resizeSize != None:
             dpi = wx.ScreenDC().GetPPI() 
@@ -175,7 +225,7 @@ class plottingWindow(wx.Window):
             self.canvas.draw()
             # Get old and new plot sizes
             oldAxesSize = self.plotMS.get_position()
-            newAxesSize = self.config.savePlotSizes[resizeName]
+            newAxesSize = self.config._plotSettings[resizeName]['save_size']
             try:
                 self.plotMS.set_position(newAxesSize)
             except RuntimeError:
@@ -184,7 +234,45 @@ class plottingWindow(wx.Window):
             self.repaint()
         
         # Save figure
-        self.figure.savefig(path, **kwargs)
+        try:
+            self.figure.savefig(path, **kwargs)
+        except IOError:
+            # reset axes size
+            if resizeSize != None:
+                self.plotMS.set_position(oldAxesSize)
+                self.sizeHandler()
+            # warn user
+            from dialogs import dlgBox
+            dlgBox(exceptionTitle='Warning', 
+                   exceptionMsg= "Cannot save file: %s as it appears to be currently open or the folder doesn't exist" % path,
+                   type="Error")
+            # get file extension
+            fname, delimiter_txt = splitext(path)
+            try: bname = basename(fname)
+            except: bname = ""
+             
+            fileType = "Image file (%s)|*%s" % (delimiter_txt, delimiter_txt)
+            dlg =  wx.FileDialog(None, "Save as...",
+                                 "", "", fileType, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg.SetFilename(bname)
+             
+            if dlg.ShowModal() == wx.ID_OK:
+                fname, __ = splitext(dlg.GetPath())
+                path = join(fname + delimiter_txt)
+                
+                # reset axes, again
+                if resizeSize != None:
+                    self.canvas.SetSize(figsizeNarrowPix)
+                    self.canvas.draw()
+                    try:
+                        self.plotMS.set_position(newAxesSize)
+                    except RuntimeError:
+                        self.plotMS.set_position(oldAxesSize)
+                    self.repaint()
+                
+                try:
+                    self.figure.savefig(path, **kwargs)
+                except: pass
         
         # Reset previous view
         if resizeSize != None:
@@ -200,7 +288,7 @@ class plottingWindow(wx.Window):
             ydivider, expo = self.testXYmaxValsUpdated(values=yval)
             if expo > 1:
                 yvals = divide(yval, float(ydivider))
-            
+        
         self.plotMS.plot(xval, yval, color=color, marker=marker, 
                          linestyle='None', markersize=size)
         
@@ -213,13 +301,13 @@ class plottingWindow(wx.Window):
         if weight:weight='bold'
         else: weight='regular'
         
-        self.plotMS.text(x=xval, y=yval, 
-                         s=text, 
-                         fontsize=fontsize,
-                         rotation=rotation,
-                         weight=weight, 
-                         fontdict=None,
-                         color=color)
+        self.text = self.plotMS.text(x=xval, y=yval, 
+                                     s=text, 
+                                     fontsize=fontsize,
+                                     rotation=rotation,
+                                     weight=weight, 
+                                     fontdict=None,
+                                     color=color)
         
     def addRectangle(self, x, y, width, height, color='green',
                      alpha=0.5, linewidth=0):
@@ -248,26 +336,27 @@ class plottingWindow(wx.Window):
         self.plotMS.axis([startX, endX, y1, y2])
         
     def onZoomRMSF(self, startX, endX):
-        
         x1, x2, y1, y2 = self.plotRMSF.axis()
         self.plotRMSF.axis([startX, endX, y1, y2])
         
     def onGetXYvals(self, axes='both'):
         xvals = self.plotMS.get_xlim()
         yvals = self.plotMS.get_ylim()
-        if axes=='both':
+        if axes=='both': 
             return xvals, yvals
         elif axes=='x':
             return xvals
         elif axes=='y':
             return yvals
         
-# 	def colorbar(mappable):
-#         # http://joseph-long.com/writing/colorbars/
-#         # TODO : this needs a lot of work! currently not implemented
-#         self.plotMS = mappable.axes
-#         fig = self.plotMS.figure
-#         divider = make_axes_locatable(ax)
-#         cax = divider.append_axes("right", size="5%", pad=0.05)
-#         return fig.colorbar(mappable, cax=cax)
-        
+    def getPlotName(self):
+        plotName = self.plot_name
+        return plotName
+    
+    def getAxesSize(self):
+        axesSize = self._axes
+        return axesSize
+    
+    
+    
+    

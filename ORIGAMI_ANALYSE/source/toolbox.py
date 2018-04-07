@@ -19,7 +19,6 @@
 from __future__ import division, print_function
 from __builtin__ import str
 import os
-import zipfile
 from numpy import savetxt, asarray
 import wx
 import numpy as np
@@ -28,14 +27,86 @@ from itertools import *
 from datetime import datetime
 import re
 from distutils.version import LooseVersion
-
 from matplotlib.colors import LogNorm, Normalize
 import urllib2 
+import cPickle as pickle
+from collections import OrderedDict
+from ast import literal_eval
+from random import randint
+import random, string
+import pandas as pd
+import time
 
 
-import origamiStyles
-import pickle
+def determineFontColor(rgb, rgb_mode=2):
+    """
+    This function determines the luminance of background and determines the 
+    'best' font color based on that value
+    
+    --- LINKS ---
+    https://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color
+    https://stackoverflow.com/questions/1855884/determine-font-color-based-on-background-color
+    
+    """
+    if rgb_mode == 1:
+        a = 1 - (rgb[0] * 0.2126 + 
+                 rgb[1] * 0.7152 + 
+                 rgb[2] * 0.0722)/255
+    elif rgb_mode == 2:
+        a = 1 - (rgb[0] * 0.299 + 
+                 rgb[1] * 0.587 + 
+                 rgb[2] * 0.114)/255
+    elif rgb_mode == 3:
+        a = 1 - (np.sqrt(rgb[0]) * 0.299 + 
+                 np.sqrt(rgb[1]) * 0.587 + 
+                 np.sqrt(rgb[2]) * 0.114)/255
+    if a < 0.5:
+        return "black"
+    else:
+        return "white"
 
+
+def dir_extra(dirlist, keywords="get"):
+    """
+    Quickly filter through keywords in dir list
+    -----
+    Usage:
+        print(dir_extra(dir(line), 'set'))
+    """
+    # convert string to list
+    if type(keywords) == str:
+        keywords = [keywords]
+        
+    dirlist_out = []
+    for item in dirlist:
+        for keyword in keywords:
+            if keyword in item:
+                dirlist_out.append(item)
+        
+    return dirlist_out
+
+def timeit(method):
+
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        
+        print("It took %2.4f seconds" % (te-ts))
+        return result
+
+    return timed
+
+def randomIntegerGenerator(min_int, max_int):
+    return randint(min_int, max_int)
+
+def randomStringGenerator(size=5, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for x in range(size))
+
+def merge_two_dicts(dict_1, dict_2):
+    combined_dict = dict_1.copy()   # start with x's keys and values
+    combined_dict.update(dict_2)    # modifies z with y's keys and values & returns None
+    return combined_dict
 
 def checkVersion(link=None):
 
@@ -312,14 +383,7 @@ def detectPeaks(x, mph=None, mpd=1, threshold=0, edge='rising',
                 idel[i] = 0  # Keep current peak
         # remove the small peaks and sort back the indices by their occurrence
         ind = np.sort(ind[~idel])
-
-    if show:
-        if indnan.size:
-            x[indnan] = np.nan
-        if valley:
-            x = -x
-        _plot(x, mph, mpd, threshold, edge, valley, ax, ind)
-
+        
     return ind
 
 def removeDuplicates(values):
@@ -331,6 +395,14 @@ def removeDuplicates(values):
         if value not in seen:
             output.append(value)
             seen.add(value)
+    return output
+    
+def removeListDuplicates(input, columnsIn=None, limitedCols=None):
+    """ remove duplicates from list based on columns """
+    
+    df = pd.DataFrame(input, columns=columnsIn)
+    df.drop_duplicates(subset=limitedCols, inplace=True)
+    output = df.values.tolist()
     return output
 
 def detectPeaks1D(data, window=10, threshold=0, mzRange=None):
@@ -347,6 +419,7 @@ def detectPeaks1D(data, window=10, threshold=0, mzRange=None):
     ---
     Original author: Michael Marty, UniDec
     """
+    
     peaks = []
     if mzRange!=None:
         mzStart = np.argmin(np.abs(mz[:,0] - mzRange[0]))
@@ -440,6 +513,149 @@ def getTime():
 def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
     return array[idx], idx
+
+def convertRGB255to1(rgbList, decimals=3):
+    rgbList = list([np.round((np.float(rgbList[0])/255),decimals),
+                    np.round((np.float(rgbList[1])/255),decimals),
+                    np.round((np.float(rgbList[2])/255),decimals)])
+    return rgbList
+
+def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
+    if not as_integer:
+        rgbList = list([np.round((np.float(rgbList[0])*255),decimals),
+                        np.round((np.float(rgbList[1])*255),decimals),
+                        np.round((np.float(rgbList[2])*255),decimals)])
+    else:
+        rgbList = list([int((np.float(rgbList[0])*255)),
+                        int((np.float(rgbList[1])*255)),
+                        int((np.float(rgbList[2])*255))])
+    
+    if not as_tuple:
+        return rgbList
+    else:
+        return tuple(rgbList)
+
+def find_limits(xvals, yvals):
+    xouts, youts = [], []
+    
+    # Iterate over dictionary to find minimum values for each key
+    for key in xvals:
+        xouts.append(np.min(xvals[key]))
+        xouts.append(np.min(xvals[key]))
+        youts.append(np.min(yvals[key]))
+        youts.append(np.min(yvals[key]))
+    
+    return xouts, youts
+
+def sort_dictionary(dictionary, key='key'):
+    """
+    Sort OrderedDict based on key value
+    """
+    if key != 'key':
+        return OrderedDict(sorted(dictionary.iteritems(), key=lambda x: x[1][key]))
+    else:
+        return OrderedDict(sorted(dictionary.items(), key=lambda x: x[0]))
+    
+def make_rgb(x, color):
+    """
+    Convert array to specific color
+    """
+    # Get size of the input array
+    y_size, x_size = x.shape
+    
+    # Create an empty 3D array
+    rgb = np.zeros([y_size, x_size, 3], dtype='d')
+    
+    # Make sure color is an rgb format and not string format
+    try: 
+        color = literal_eval(color)
+    except: 
+        color = color
+    
+    # Check color range is 0-1
+    if np.max(color) > 1.0:
+        color = remap_values(color, 0, 1, type_format='float')
+    
+    # Represent as color range
+    r_color, g_color, b_color = color
+    
+    # Red channel
+    if r_color > 0: 
+        r_rgb = remap_values(x, 0, r_color, type_format='float')
+    else:
+        r_rgb = np.zeros_like(x)
+        
+    # Green channel 
+    if g_color > 0: 
+        g_rgb = remap_values(x, 0, g_color, type_format='float')
+    else:
+        g_rgb = np.zeros_like(x)
+        
+    # Blue channel
+    if b_color > 0: 
+        b_rgb = remap_values(x, 0, b_color, type_format='float')
+    else:
+        b_rgb = np.zeros_like(x)
+    
+    # Add to 3D array
+    rgb[:, :, 0] = r_rgb
+    rgb[:, :, 1] = g_rgb
+    rgb[:, :, 2] = b_rgb
+    
+    return rgb
+  
+def remap_values( x, nMin, nMax,  oMin=None, oMax=None, type_format='int'):
+    
+    if oMin == None:
+        oMin = np.min(x)
+    if oMax == None:
+        oMax = np.max(x)
+    
+    #range check
+    if oMin == oMax:
+        print("Warning: Zero input range")
+        return None
+
+    if nMin == nMax:
+        print("Warning: Zero input range")
+        return None
+    
+    # Check that values are of correct type
+    if type_format == 'float':
+        nMin = float(nMin)
+        nMax = float(nMax)
+
+    #check reversed input range
+    reverseInput = False
+    oldMin = min( oMin, oMax )
+    oldMax = max( oMin, oMax )
+    if not oldMin == oMin:
+        reverseInput = True
+
+    #check reversed output range
+    reverseOutput = False   
+    newMin = min( nMin, nMax )
+    newMax = max( nMin, nMax )
+    if not newMin == nMin :
+        reverseOutput = True
+
+    portion = (x-oldMin)*(newMax-newMin)/(oldMax-oldMin)
+    if reverseInput:
+        portion = (oldMax-x)*(newMax-newMin)/(oldMax-oldMin)
+
+    result = portion + newMin
+    if reverseOutput:
+        result = newMax - portion
+        
+    if type_format == 'int':
+        return result.astype(int)
+    elif type_format == 'float':
+        return result.astype(float)
+    else:
+        return result   
+
+def combine_rgb(data_list):
+    return np.sum(data_list, axis=0)
 
 class MidpointNormalize(Normalize):
     """

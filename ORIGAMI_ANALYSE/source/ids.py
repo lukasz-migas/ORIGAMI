@@ -7,6 +7,169 @@ ID_quit = ID_EXIT
 ID_about = ID_ABOUT
 ID_quickDisplayDocument = NewId()
 
+# Logging window
+ID_log_clear_window = NewId()
+ID_log_save_log = NewId()
+ID_log_go_to_directory = NewId()
+
+# Recent documents
+ID_documentRecent0 = NewId()
+ID_documentRecent1 = NewId()
+ID_documentRecent2 = NewId()
+ID_documentRecent3 = NewId()
+ID_documentRecent4 = NewId()
+ID_documentRecent5 = NewId()
+ID_documentRecent6 = NewId()
+ID_documentRecent7 = NewId()
+ID_documentRecent8 = NewId()
+ID_documentRecent9 = NewId()
+
+# File menu
+ID_fileMenu_openRecent = NewId()
+ID_fileMenu_clearRecent = NewId()
+
+# Plots
+ID_plots_resetZoom = NewId()
+ID_plots_showCursorGrid = NewId()
+
+# Interactive settings
+ID_interactivePanel_guiMenuTool = NewId()
+
+ID_interactivePanel_table_document = NewId()
+ID_interactivePanel_table_type = NewId()
+ID_interactivePanel_table_file = NewId()
+ID_interactivePanel_table_title = NewId()
+ID_interactivePanel_table_header = NewId()
+ID_interactivePanel_table_footnote = NewId()
+ID_interactivePanel_table_colormap = NewId()
+ID_interactivePanel_table_page = NewId()
+ID_interactivePanel_table_tools = NewId()
+ID_interactivePanel_table_order = NewId()
+ID_interactivePanel_table_hideAll = NewId()
+ID_interactivePanel_table_restoreAll = NewId()
+
+
+# Export settings
+ID_importExportSettings_image = NewId()
+ID_importExportSettings_file = NewId()
+ID_importExportSettings_peaklist = NewId()
+
+# Extra settings
+ID_extraSettings_rmsd = NewId()
+ID_extraSettings_waterfall = NewId() 
+ID_extraSettings_colorbar = NewId()
+ID_extraSettings_legend = NewId()
+ID_extraSettings_plot1D = NewId()
+ID_extraSettings_plot2D = NewId()
+ID_extraSettings_plot3D = NewId()
+ID_extraSettings_general = NewId()
+
+ID_extraSettings_lineColor_1D = NewId()
+ID_extraSettings_shadeUnderColor_1D = NewId()
+ID_extraSettings_markerColor_1D = NewId()
+ID_extraSettings_edgeMarkerColor_1D = NewId()
+ID_extraSettings_markerColor_3D = NewId()
+ID_extraSettings_edgeMarkerColor_3D = NewId()
+ID_extraSettings_labelColor_rmsd = NewId()
+ID_extraSettings_lineColor_rmsd = NewId()
+ID_extraSettings_underlineColor_rmsd = NewId()
+ID_extraSettings_lineColour_waterfall = NewId()
+ID_extraSettings_zoomCursorColor = NewId()
+ID_extraSettings_extractColor = NewId()
+ID_extraSettings_horizontalColor = NewId()
+ID_extraSettings_verticalColor = NewId()
+ID_extraSettings_boxColor = NewId()
+
+ID_extraSettings_instantPlot = NewId()
+ID_extraSettings_multiThreading = NewId()
+ID_extraSettings_logging = NewId()
+
+# Sequence analysis
+ID_sequence_openGUI = NewId()
+
+# Process settings
+ID_processSettings_MS = NewId()
+ID_processSettings_2D = NewId()
+ID_processSettings_ORIGAMI = NewId()
+ID_processSettings_FindPeaks = NewId()
+ID_processSettings_ExtractData = NewId()
+
+ID_processSettings_replotMS = NewId()
+ID_processSettings_processMS = NewId()
+ID_processSettings_replot2D = NewId()
+ID_processSettings_process2D = NewId()
+
+# Ion panel
+ID_ionPanel_guiMenuTool = NewId()
+ID_ionPanel_assignColor = NewId()
+ID_ionPanel_editItem = NewId()
+ID_ionPanel_edit_selected = NewId()
+ID_ionPanel_edit_all = NewId()
+ID_ionPanel_table_startMS = NewId()
+ID_ionPanel_table_endMS = NewId()
+ID_ionPanel_table_charge = NewId()
+ID_ionPanel_table_intensity = NewId()
+ID_ionPanel_table_color = NewId()
+ID_ionPanel_table_colormap = NewId()
+ID_ionPanel_table_alpha = NewId()
+ID_ionPanel_table_mask = NewId()
+ID_ionPanel_table_label = NewId()
+ID_ionPanel_table_method = NewId()
+ID_ionPanel_table_document = NewId()
+ID_ionPanel_table_hideAll = NewId()
+ID_ionPanel_table_restoreAll = NewId()
+
+# Plot panel
+ID_plotPanel_binMS = NewId()
+
+# Text panel
+ID_textPanel_guiMenuTool = NewId()
+ID_textPanel_assignColor = NewId()
+ID_textPanel_editItem = NewId()
+ID_textPanel_edit_selected = NewId()
+ID_textPanel_edit_all = NewId()
+
+ID_textPanel_table_startCE = NewId()
+ID_textPanel_table_endCE = NewId()
+ID_textPanel_table_charge = NewId()
+ID_textPanel_table_color = NewId()
+ID_textPanel_table_colormap = NewId()
+ID_textPanel_table_alpha = NewId()
+ID_textPanel_table_mask = NewId()
+ID_textPanel_table_label = NewId()
+ID_textPanel_table_shape = NewId()
+ID_textPanel_table_document = NewId()
+ID_textPanel_table_hideAll = NewId()
+ID_textPanel_table_restoreAll = NewId()
+
+# Document tree
+ID_docTree_compareMS = NewId()
+ID_docTree_processMS = NewId()
+ID_docTree_process2D = NewId()
+ID_docTree_extractDTMS = NewId()
+
+ID_saveData_csv = NewId()
+ID_saveData_pickle = NewId()
+ID_saveData_excel = NewId()
+ID_saveData_hdf = NewId()
+
+# Menu
+ID_window_all = NewId()
+ID_window_documentList = NewId()
+ID_window_controls = NewId()
+ID_window_ccsList = NewId()
+ID_window_ionList = NewId()
+ID_window_multipleMLList = NewId()
+ID_window_textList = NewId()
+ID_window_multiFieldList = NewId()
+
+# Toolbar
+ID_toolbar_top = NewId()
+ID_toolbar_bottom = NewId()
+ID_toolbar_left = NewId()
+ID_toolbar_right = NewId()
+
+
 ID_helpGuideLocal = NewId()
 
 ID_saveAllDocuments = NewId()
@@ -15,11 +178,18 @@ ID_selectProtein = NewId()
 ID_renameItem = NewId()
 ID_windowMinimize = NewId()
 ID_windowMaximize = NewId()
+ID_windowFullscreen = NewId()
 ID_assignChargeStateIons = NewId()
-ID_assignAlphaMaskIons = NewId()
+ID_assignAlphaIons = NewId()
+ID_assignMaskIons = NewId()
+ID_assignMinThresholdIons = NewId()
+ID_assignMaxThresholdIons = NewId()
+
+
 ID_clearPlot_MZDT = NewId()
 ID_saveMZDTImage = NewId()
 ID_assignToolsSelected_HTML = NewId()
+ID_assignColormapSelected_HTML = NewId()
 
 ID_openMassLynxFile = NewId()
 
@@ -53,9 +223,14 @@ ID_saveAsImageDocument = NewId()
 
 ID_saveDataCSVDocument1D = NewId()
 ID_clearTableText = NewId()
+ID_assignChargeStateText = NewId()
+ID_assignAlphaText = NewId()
+ID_assignMaskText = NewId()
+ID_assignMinThresholdText = NewId()
+ID_assignMaxThresholdText = NewId()
+
 ID_saveRMSDmatrixImage = NewId()
-
-
+ID_annotateTextFilesMenu = NewId()
 
 # INTERACTIVE
 ID_changeColorInteractive = NewId()
@@ -73,6 +248,8 @@ ID_smooth1DdataMS = NewId()
 ID_smooth1DdataRT = NewId()
 ID_smooth1Ddata1DT = NewId()
 ID_useInternalParamsCombinedMenu = NewId()
+ID_useProcessedCombinedMenu = NewId()
+ID_combinedCV_binMSCombinedMenu = NewId()
 ID_clearAllPlots = NewId()
 ID_clearPlot_MS = NewId()
 ID_clearPlot_RT = NewId()
@@ -132,7 +309,6 @@ ID_addIonsMenu = NewId()
 ID_addOneIon = NewId()
 ID_addManyIonsCSV = NewId()
 
-ID_RESET_PLOT_ZOOM = NewId()
 ID_removeDocument = NewId()
 ID_removeAllDocuments = NewId()
 ID_removeIonsMenu = NewId()
@@ -165,6 +341,7 @@ ID_getSelectedDocument = NewId()
 ID_removeSelectedFile = NewId()
 ID_removeSelectedFilePopup = NewId()
 ID_removeAllFiles = NewId()
+ID_addFilesMenu = NewId()
 ID_removeFilesMenu = NewId()
 
 ID_save1DAllFiles = NewId()
@@ -198,7 +375,9 @@ ID_goToDirectory = NewId()
 # Styles
 ID_xlabel2Dscans = NewId()
 ID_xlabel2DcolVolt = NewId()
+ID_xlabel2DactVolt = NewId()
 ID_xlabel2DlabFrame = NewId()
+ID_xlabel2DactlabFrame = NewId()
 ID_xlabel2DmassToCharge = NewId()
 ID_xlabel2Dmz = NewId()
 ID_xlabel2Dwavenumber = NewId()
@@ -206,12 +385,19 @@ ID_xlabel2Drestore = NewId()
 
 ID_ylabel2Dbins = NewId()
 ID_ylabel2Dms = NewId()
+ID_ylabel2Dms_arrival = NewId()
 ID_ylabel2Dccs = NewId()
 ID_ylabel2Drestore = NewId()
 
 ID_ylabel1Dbins = NewId()
 ID_ylabel1Dms = NewId()
+ID_ylabel1Dms_arrival = NewId()
 ID_ylabel1Dccs = NewId()
+
+ID_ylabelDTMSbins = NewId()
+ID_ylabelDTMSms = NewId()
+ID_ylabelDTMSms_arrival = NewId()
+ID_ylabelDTMSrestore = NewId()
 
 
 #===============================================================================
@@ -270,6 +456,7 @@ ID_saveRMSFImageDoc = NewId()
 ID_saveOverlayImageDoc = NewId()
 ID_saveWaterfallImageDoc = NewId()
 ID_saveRMSDmatrixImageDoc = NewId()
+ID_saveMZDTImageDoc = NewId()
 
 #===============================================================================
 # # Save Bokeh
@@ -343,7 +530,10 @@ ID_removeAllFilesFromList = NewId()
 ID_removeTextFilesMenu = NewId()
 ID_processTextFilesMenu = NewId()
 ID_processAllTextFiles = NewId()
+ID_overlayTextFilesMenu = NewId()
 ID_saveFileList = NewId()
+ID_overlayTextfromList1D = NewId()
+ID_overlayTextfromListRT = NewId()
 #===============================================================================
 # # Right panel context menu (multiple text files)
 #===============================================================================
@@ -362,6 +552,8 @@ ID_helpNewVersion = NewId()
 ID_helpYoutube = NewId()
 ID_helpGuide = NewId()
 ID_helpHTMLEditor = NewId()
+ID_helpNewFeatures = NewId()
+ID_helpReportBugs = NewId()
 
 ID_assignPage_HTML = NewId()
 ID_assignPageSelected_HTML = NewId()
@@ -389,6 +581,7 @@ ID_exportSeletedAsImage_ion = NewId()
 # # Right panel toolbar (multiple MassLynx files)
 #===============================================================================
 ID_openMassLynxFiles = NewId()
+ID_addNewMassLynxFilesDoc = NewId()
 ID_openMassLynxFilesAsMultiple = NewId()
 ID_openMultipleORIGAMIRawFiles = NewId()
 ID_addMassLynxFilesToList = NewId()

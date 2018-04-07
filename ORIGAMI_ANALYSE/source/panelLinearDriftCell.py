@@ -16,12 +16,11 @@
 # -------------------------------------------------------------------------
 
 import wx
-from origamiStyles import *
+# from styles import *
 from ids import *
 import wx.lib.mixins.listctrl as listmix
-from wx import ID_ANY
 import dialogs as dialogs
-from toolbox import isempty, str2num, str2int
+from toolbox import  str2num, str2int
 from operator import itemgetter
 import itertools
 
@@ -130,7 +129,7 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedPopupDT_RT)
         
         # Capture which item was clicked
-        self.currentItem, flags = self.peaklist.HitTest(evt.GetPosition())
+        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
         self.menu = wx.Menu()
         self.menu.Append(ID_removeSelectedPopupDT_RT, "Remove item")
         self.PopupMenu(self.menu)
@@ -368,7 +367,7 @@ class bottomPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedPopupDT)
         
         # Capture which item was clicked
-        self.currentItem, flags = self.peaklist.HitTest(evt.GetPosition())
+        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
         self.menu = wx.Menu()
         self.menu.Append(ID_removeSelectedPopupDT, "Remove item")
         self.PopupMenu(self.menu)
@@ -455,6 +454,7 @@ class bottomPanel(wx.Panel):
         rows = len(tempData)
         self.peaklist.DeleteAllItems()
         print('Removing duplicates')
+        
         for row in range(rows):
             self.peaklist.Append(tempData[row])
             

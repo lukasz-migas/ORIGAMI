@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# -------------------------------------------------------------------------
+# ------------------------------------------------------------------------
 #    Copyright (C) 2017 Lukasz G. Migas <lukasz.migas@manchester.ac.uk>
 # 
 #	 GitHub : https://github.com/lukasz-migas/ORIGAMI
@@ -21,6 +21,7 @@ from wx.lib.pubsub import pub
 
 import numpy as np
 import wx
+from compiler.pycodegen import EXCEPT
 
 def GetMaxes(axes, xmin=None, xmax=None):
     yvals = []
@@ -121,13 +122,11 @@ def GetMaxes(axes, xmin=None, xmax=None):
         out = axes.dataLim.bounds
     return out
 
-
 def ResetVisible(axes):
     for line in axes.lines:
         line.set_clip_on(True)
     for t in axes.texts:
         t.set_visible(True)
-
 
 def GetStart(axes):
     outputs = np.array([GetMaxes(axis) for axis in axes])
@@ -144,6 +143,76 @@ def GetStart(axes):
     out = [xmin, ymin, xmax, ymax]
     return out
 
+def getMaxFromRange(data, start, end):
+    """
+    Find and return a narrow data range
+    """
+    # find values closest to the start/end
+    start = np.argmin(np.abs(data[:,0] - start))
+    end = np.argmin(np.abs(data[:,0] - end))
+
+    # ensure start/end are in correct order
+    if start > end: end, start = start, end
+    # narrow down the search
+    data = data[start:end,:]
+    # find maximum
+    try: 
+        ymax = np.amax(data[:,1])
+    except ValueError:
+#         print('Could not find maximum')
+        ymax = 1
+    return ymax
+
+def xy_range_divider(values=None):
+    """ 
+    Function to check whether x/y axis labels do not need formatting
+    """
+    baseDiv = 10
+    increment = 10
+    divider = baseDiv
+    multiplier = 1
+    
+    itemShape = values.shape
+    # find maximum
+    if len(itemShape) > 1:
+        maxValue = np.amax(values)
+    elif len(itemShape) == 1:
+        maxValue = np.max(values)
+    else:
+        maxValue = values
+    
+    # calculate division value
+    dValue = maxValue / divider
+    while 10 <= dValue <= 1:
+        divider = divider * increment
+        dValue = maxValue / divider
+
+    mValue = maxValue * multiplier
+    while mValue <= 1 and not mValue >= 0.1:
+        multiplier = multiplier * increment
+        mValue = maxValue * multiplier
+
+    
+    if divider == baseDiv:
+        expo = - len(str(multiplier)) - len(str(multiplier).rstrip('0'))
+        return multiplier, expo
+    else:
+        expo = len(str(divider)) - len(str(divider).rstrip('0'))
+        return divider, expo
+    
+def str2num(string):
+    try:
+        val = float(string)
+        return val
+    except (ValueError, TypeError):
+        return None
+    
+def num2str(val):
+    try:
+        string = str(val)
+        return string
+    except (ValueError, TypeError):
+        return None
 
 class GetXValues:
     def __init__(self, axes):
@@ -173,17 +242,11 @@ class ZoomBox:
     Main class to enable zoom in 1D, 2D and 3D plots
     """
 
-    def __init__(self, axes, onselect, drawtype='box',
-                 minspanx=None, 
-                 minspany=None,
-                 useblit=False,
-                 lineprops=None,
-                 rectprops=None,
-                 onmove_callback=None,
-                 spancoords='data',
-                 button=None,
-                 data_lims=None,
-                 plotName = None):
+    def __init__(self, axes, onselect, drawtype='box', minspanx=None, 
+                 minspany=None, useblit=False, lineprops=None,
+                 rectprops=None, onmove_callback=None, spancoords='data',
+                 button=None, data_lims=None, plotName = None,
+                 plotParameters=None):
 
         """
         Create a selector in axes.  When a selection is made, clear
@@ -223,8 +286,10 @@ class ZoomBox:
          2 = center mouse button (scroll wheel)
          3 = right mouse button
         """
+        if plotParameters == None: self.plot_parameters = {}
+        else: self.plot_parameters = plotParameters
         
-        self.crossoverpercent = 0.03
+        self.crossoverpercent = self.plot_parameters['zoom_crossover_sensitivity']
         self.wheelStepSize = 3
         self.axes = None
         self.canvas = None
@@ -238,10 +303,15 @@ class ZoomBox:
         
         self.insideAxes = True
         self.insideFigure = True
-        self.exitLocs = None
+        self.exitLoc = None
         self.span = None
         self.lastXY = []
+        self.current_ymax = None
 
+        
+        # setup some parameters
+        self.show_cursor_cross = self.plot_parameters['grid_show']
+        
         self.onselect = onselect
         self.onmove_callback = onmove_callback
 
@@ -249,10 +319,8 @@ class ZoomBox:
         self.minspanx = minspanx
         self.minspany = minspany
 
-        if button is None or isinstance(button, list):
-            self.validButtons = button
-        elif isinstance(button, int):
-            self.validButtons = [button]
+        if button is None or isinstance(button, list): self.validButtons = button
+        elif isinstance(button, int): self.validButtons = [button]
 
         assert (spancoords in ('data', 'pixels'))
 
@@ -262,10 +330,8 @@ class ZoomBox:
 
         self.new_axes(axes, rectprops)
         
-        if data_lims is None:
-            self.data_lims = GetStart(self.axes)
-        else:
-            self.data_lims = data_lims
+        if data_lims is None: self.data_lims = GetStart(self.axes)
+        else: self.data_lims = data_lims
             
         xmin, ymin, xmax, ymax = self.data_lims
         if xmin > xmax: xmin, xmax = xmax, xmin
@@ -276,13 +342,22 @@ class ZoomBox:
         for axes in self.axes:
             axes.set_xlim(xmin, xmax)
             axes.set_ylim(ymin, ymax)
-
+            
+       
+        # listener to change plot parameters     
+        pub.subscribe(self.onUpdateParameters, 'plot_parameters')
+            
+    def update_extents(self, data_lims=None):
+        if data_lims is None: 
+            self.data_lims = GetStart(self.axes)
+        else: 
+            self.data_lims = data_lims
+            
     def new_axes(self, axes, rectprops=None):
         self.axes = axes
         if self.canvas is not axes[0].figure.canvas:
             for cid in self.cids:
                 self.canvas.mpl_disconnect(cid)
-                print('disconnected')
             self.canvas = axes[0].figure.canvas
             
             self.cids.append(self.canvas.mpl_connect('button_press_event', self.press))
@@ -297,14 +372,12 @@ class ZoomBox:
             # new 
             self.cids.append(self.canvas.mpl_connect('axes_enter_event', self.onEnterAxes))
             self.cids.append(self.canvas.mpl_connect('axes_leave_event', self.onLeaveAxes))
-            
             self.cids.append(self.canvas.mpl_connect('scroll_event', self.onWheelEvent))
             
-
         if rectprops is None:
-            rectprops = dict(facecolor='white',
+            rectprops = dict(facecolor='white', 
                              edgecolor='black',
-                             alpha=0.5,
+                             alpha=0.5, 
                              fill=False)
         self.rectprops = rectprops
 
@@ -315,51 +388,118 @@ class ZoomBox:
         self.wheel = False
         self.keyPress = False
         self.addToTable = False
+        self.buttonDown = False
     
         for axes in self.axes:
             self.to_draw.append(Rectangle((0, 0), 0, 1, visible=False, **self.rectprops))
+            
+        self.show_cursor_cross = self.plot_parameters['grid_show']
+#         if self.show_cursor_cross:
+        lineprops = {}
+        if self.useblit:
+            lineprops['animated'] = True
+        lineprops['color'] = self.plot_parameters['grid_color']
+        lineprops['linewidth'] = self.plot_parameters['grid_line_width']
+
+        for axes in self.axes:
+            self.horz_line = axes.axhline(axes.get_ybound()[0], visible=False, **lineprops)
+            self.vert_line = axes.axvline(axes.get_xbound()[0], visible=False, **lineprops)
 
         for axes, to_draw in zip(self.axes, self.to_draw):
             axes.add_patch(to_draw)
 
+    def onUpdateParameters(self, plot_parameters):
+        self.plot_parameters = plot_parameters
+        
+        lineprops = {}
+        lineprops['color'] = self.plot_parameters['grid_color']
+        lineprops['linewidth'] = self.plot_parameters['grid_line_width']
+        
+        if self.show_cursor_cross:
+            try:
+                self.horz_line.set_visible(False)
+            except AttributeError:
+                for axes in self.axes:
+                    self.horz_line = axes.axhline(axes.get_ybound()[0], visible=False, **lineprops)
+                    
+            try:
+                self.vert_line.set_visible(False)
+            except AttributeError:
+                for axes in self.axes:
+                    self.vert_line = axes.axvline(axes.get_xbound()[0], visible=False, **lineprops)
+
+            self.horz_line.set_color(self.plot_parameters['grid_color'])
+            self.horz_line.set_linewidth(self.plot_parameters['grid_line_width'])
+            self.vert_line.set_color(self.plot_parameters['grid_color'])
+            self.vert_line.set_linewidth(self.plot_parameters['grid_line_width'])
+        
+#         if self.show_cursor_cross:
+#             try:
+#                 self.horz_line.set_visible(False)
+#                 self.horz_line.set_color(self.plot_parameters['grid_color'])
+#                 self.horz_line.set_linewidth(self.plot_parameters['grid_line_width'])
+#             except AttributeError:
+#                 for axes in self.axes:
+#                     self.horz_line = axes.axhline(axes.get_ybound()[0], visible=False, **lineprops)
+#                     
+#             try:
+#                 self.vert_line.set_visible(False)
+#                 self.vert_line.set_color(self.plot_parameters['grid_color'])
+#                 self.vert_line.set_linewidth(self.plot_parameters['grid_line_width'])
+#             except AttributeError:
+#                 for axes in self.axes:
+#                     self.vert_line = axes.axvline(axes.get_xbound()[0], visible=False, **lineprops)
+        
+        
+        self.show_cursor_cross = self.plot_parameters['grid_show']
+        self.crossoverpercent = self.plot_parameters['zoom_crossover_sensitivity']
+
     def onEnterAxes(self, evt=None):
         self.insideAxes = True
-        self.exitLocs = None
-        
+ 
     def onLeaveAxes(self, evt=None):
         self.insideAxes = False
+        for axes in self.axes:
+            xmin, xmax = axes.get_xlim()
+            ymin, ymax = axes.get_ylim()
+        x_diff = xmax - xmin
+        y_diff = ymax - ymin        
+
+        x_left = ((xmax - evt.xdata) / x_diff)
+        x_right = ((evt.xdata - xmin) / x_diff)
+        y_bottom = ((ymax - evt.ydata) / y_diff)
+        y_top = ((evt.ydata - ymin) / y_diff)
         
-#         for axes in self.axes:
-#             x0, x1 = axes.get_xlim()
-#             y0, y1 = axes.get_ylim()
-#             
-#         print('lastloc', self.lastXY, len(self.lastXY))
-#         x0, x1 = axes.get_xlim()
-#         y0, y1 = axes.get_ylim()
-#         
-#         
-#         
-#         xminPerc = np.abs(x0 - self.lastXY[0])
-#         xmaxPerc = np.abs(x1 - self.lastXY[1])
-#         
-#         print(xminPerc, xmaxPerc)
-        
-        
-#         # Check where user exited
-#         xmin, ymin, xmax, ymax = self.data_lims
-        
-#         if np.abs(xmin - evt.xdata) > xmax/2:
-#             horzLoc = 'right'
-#         else: 
-#             horzLoc = 'left'
-#             
-#         if np.abs(ymin - evt.ydata) > ymax/2: 
-#             vertLoc = 'top'
-#         else: 
-#             vertLoc = 'bottom'
-        horzLoc, vertLoc = None, None
-        self.exitLocs = [horzLoc, vertLoc]
-      
+        max_value = np.max([x_right, x_left, y_bottom, y_top])
+                 
+        if len(self.lastXY) != 0:
+            if x_right == max_value:
+                self.exitLoc = 'right'
+                self.lastXY[1] = xmax
+            elif x_left == max_value:
+                self.exitLoc = 'left'
+                self.lastXY[0] = xmin
+            elif y_bottom == max_value:
+                self.exitLoc = 'bottom'
+                self.lastXY[2] = ymin
+            elif y_top == max_value:
+                self.exitLoc = 'top'
+                self.lastXY[3] = ymax
+            
+        # find ymax for specific x axis range
+        if not self.plotName in ['2D', 'RMSD', 'RMSF', 'Matrix']: 
+            try:
+                for axes in self.axes:
+                    xmin, xmax = axes.get_xlim()
+                    # use first line only
+                    line = axes.lines[0]            
+                    xlist = line.get_xdata()
+                    ylist = line.get_ydata()
+                    xylist = np.rot90(np.array([xlist, ylist]))
+                    self.current_ymax = getMaxFromRange(xylist, xmin, xmax)
+            except:
+                pass
+                                
     def onWheelEvent(self, evt):
         
         # Ignore wheel if trying to measure     
@@ -368,7 +508,7 @@ class ZoomBox:
 
         # Update cursor
         pub.sendMessage('currentMode', dataOut=[self.shiftKey, self.ctrlKey, self.altKey, 
-                                                self.addToTable, True])
+                                                self.addToTable, True, self.buttonDown])
         # The actual work
         for axes in self.axes:
             x0, x1 = axes.get_xlim()
@@ -378,7 +518,7 @@ class ZoomBox:
             
             # Shift causes Y-axis zoom
             if not wx.GetKeyState(wx.WXK_SHIFT):
-                stepSize = evt.step * ((x1 - x0)/100)
+                stepSize = evt.step * ((x1 - x0)/50)
                 newXmin = x0-stepSize
                 newXmax = x1+stepSize
                 # Check if the X-values are off the data lims
@@ -388,11 +528,11 @@ class ZoomBox:
             
             elif wx.GetKeyState(wx.WXK_SHIFT):
                 # Check if its 1D plot 
-                if self.plotName == '1D' or self.plotName == 'CalibrationDT':
+                if self.plotName in ['1D', 'CalibrationDT', 'MS']:
                     stepSize = evt.step * ((y1 - y0)/25)
                     axes.set_ylim((0, y1+stepSize))
                 elif self.plotName != '1D':
-                    stepSize = evt.step * ((y1 - y0)/100)
+                    stepSize = evt.step * ((y1 - y0)/50)
                     newYmin = y0-stepSize
                     newYmax = y1+stepSize
                     # Check if the Y-values are off the data lims
@@ -419,32 +559,51 @@ class ZoomBox:
     
     def onKeyState(self, evt):
         
-        if wx.GetKeyState(wx.WXK_CONTROL): 
-            self.ctrlKey = True
-            if self.plotName == '1D' or self.plotName == 'MS':
-                self.crossoverpercent = 0.05
+        # check keys
+        self.ctrlKey = wx.GetKeyState(wx.WXK_CONTROL)
+        self.altKey = wx.GetKeyState(wx.WXK_ALT)
+        self.shiftKey = wx.GetKeyState(wx.WXK_SHIFT)
+
+        if self.ctrlKey:
+            if self.plotName in ['1D', 'MS']:
+                self.crossoverpercent = self.plot_parameters['extract_crossover_sensitivity_1D']
             else:
-                self.crossoverpercent = 0.02
+                self.crossoverpercent = self.plot_parameters['extract_crossover_sensitivity_2D']
         else: 
-            self.ctrlKey = False
             self.addToTable = False
-            self.crossoverpercent = 0.03
-
-        if wx.GetKeyState(wx.WXK_ALT): self.altKey = True
-        else: self.altKey = False
-
-        
-        if wx.GetKeyState(wx.WXK_SHIFT): 
-            self.shiftKey = True
-        else: 
-            self.shiftKey = False
+            self.crossoverpercent = self.plot_parameters['zoom_crossover_sensitivity']
         
         if any((self.ctrlKey, self.shiftKey, self.altKey)): self.keyPress = True
         else: self.keyPress = False
                 
         pub.sendMessage('currentMode', dataOut=[self.shiftKey, self.ctrlKey, self.altKey, 
-                                                self.addToTable, self.wheel])
-                
+                                                self.addToTable, self.wheel, self.buttonDown])
+      
+    def onChangeLabels(self):
+        # get labels
+        for axes in self.axes:
+            xlabel = axes.get_xlabel()
+            xticks = axes.get_xticklabels()
+            ylabel = axes.get_ylabel()
+            yticks = axes.get_yticklabels()
+            
+        yvals = []
+        ypositions = []
+        for ytick in yticks:
+            yvals.append(str2num(ytick.get_text()))
+            ypositions.append(ytick.get_position())
+#             print(ytick.get_text(), ytick.get_position())
+    
+        yvals = np.asarray(yvals)
+        yscaler, expo = xy_range_divider(values=yvals)
+        print(yscaler, expo)
+        print(yvals*yscaler)
+        
+        for axes in self.axes:
+            axes.set_yticklabels(yvals*yscaler)
+            
+        self.canvas.draw()
+              
     def update_background(self, evt):
         'force an update of the background'
         if self.useblit:
@@ -452,6 +611,7 @@ class ZoomBox:
 
     def ignore(self, evt):
         'return True if event should be ignored'
+        
         # If ZoomBox is not active :
         if not self.active:
             return True
@@ -484,20 +644,52 @@ class ZoomBox:
 
     def press(self, evt):
         'on button press event'
+        
+        if not self.insideAxes:
+            if evt.dblclick and not self.shiftKey:
+                self.reset_axes(axis_pos=self.exitLoc)
+            elif evt.dblclick and self.shiftKey and self.exitLoc in ['left', 'right']:
+                if self.current_ymax == None: 
+                    return
+                for axes in self.axes:
+                    axes.set_ylim(0, self.current_ymax)
+                self.canvas.draw()
+                return
+        
         # Is the correct button pressed within the correct axes?
         if self.ignore(evt): return
-        
+
         self.buttonDown = True
 
         pub.sendMessage('startX', startX=evt.xdata)
         self.startX = evt.xdata
         
-        # make the drawed box/line visible get the click-coordinates,
-        # button, ...
+        # make the drawed box/line visible get the click-coordinates, button, ...
         for to_draw in self.to_draw:
             to_draw.set_visible(self.visible)
+            
         self.eventpress = evt
+        
         return False
+    
+    def reset_axes(self, axis_pos):
+        xmin, ymin, xmax, ymax = self.data_lims 
+        if xmin > xmax: xmin, xmax = xmax, xmin
+        if ymin > ymax: ymin, ymax = ymax, ymin
+        # assure that x and y values are not equal
+        if xmin == xmax: xmax = xmin * 1.0001
+        if ymin == ymax: ymax = ymin * 1.0001
+
+        # Register a click if zoomout was not necessary
+        for axes in self.axes:
+            if axis_pos in ['left', 'right']:
+                axes.set_ylim(ymin, ymax)
+            elif axis_pos in ['top', 'bottom']:
+                axes.set_xlim(xmin, xmax)
+                if self.plotName == 'RMSF':
+                    pub.sendMessage('changedZoom', xmin=xmin, xmax=xmax)
+            ResetVisible(axes)
+            self.canvas.draw()
 
     def release(self, evt):
         'on button release event'
@@ -519,10 +711,6 @@ class ZoomBox:
 
         # left-click + ctrl OR double left click reset axes
         if self.eventpress.dblclick:
-#         (self.eventpress.xdata == evt.xdata and 
-#             self.eventpress.ydata == evt.ydata and 
-#             wx.GetKeyState(wx.WXK_CONTROL) or 
-#             self.eventpress.dblclick):
              
             xmin, ymin, xmax, ymax = self.data_lims 
             if xmin > xmax: xmin, xmax = xmax, xmin
@@ -553,7 +741,7 @@ class ZoomBox:
             
             if self.plotName == 'RMSF':
                 pub.sendMessage('changedZoom', xmin=xmin, xmax=xmax)
-                
+                        
             self.canvas.draw()
             return
         
@@ -573,8 +761,7 @@ class ZoomBox:
             xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
             xmax, ymax = self.eventrelease.xdata, self.eventrelease.ydata
             
-            # A dirty way to prevent users from trying to extract data from 
-            # the wrong places
+            # A dirty way to prevent users from trying to extract data from the wrong places
             if self.plotName == 'MSDT' and (self.eventpress.xdata != evt.xdata and
                                             self.eventpress.ydata != evt.ydata):
                 pub.sendMessage('add2tableMSDT', dataOut = [xmin, xmax, ymin, ymax])
@@ -604,48 +791,45 @@ class ZoomBox:
         #       the last values
         try:
             y0, y1 = evt.inaxes.get_ylim()
-        except Exception, e:
-            horz, vert = self.exitLocs
-            if vert == 'bottom': y0 = 0
-            else: y0 = self.lastXY[2]
-            
-            y1 =  self.lastXY[3]
-#             y0, y1 = self.data_lims[1], self.data_lims[3]
+        except Exception, __:
+            for axes in self.axes:
+                y0, y1 = axes.get_ylim()
             
         # new
         try:
             x0, x1 = evt.inaxes.get_xlim()
-        except Exception, e:
-            horz, vert = self.exitLocs
-            if horz == 'left': x0 = self.data_lims[0]
-            else: x0 = self.lastXY[0]
-            if horz == 'right': x1 = self.data_lims[2]
-            else: x1 =  self.lastXY[1]
+        except Exception, __:
+            for axes in self.axes:
+                x0, x1 = axes.get_xlim()
 
-#             x0, x1 = self.data_lims[0], self.data_lims[2]
-        
-        if ymin == None: ymin = self.data_lims[1]
-        if xmin == None: xmin = self.data_lims[0]
-                        
+        if ymin == None: 
+            ymin = self.data_lims[1]
+        if xmin == None: 
+            xmin = self.data_lims[0]
+          
+        if not self.insideAxes:
+            if self.exitLoc == 'left':
+                xmin = self.lastXY[0]
+            elif self.exitLoc == 'right':
+                xmax = self.lastXY[1]
+            elif self.exitLoc == 'bottom':
+                ymin = self.lastXY[2]
+            elif self.exitLoc == 'top':
+                ymax = self.lastXY[3]
+                   
         # Check if crossover is large enough
         if ymax - ymin < (y1 - y0) * self.crossoverpercent:
             ymax = y1
             ymin = y0
-            spanflag = 1
         elif xmax - xmin < (x1 - x0) * self.crossoverpercent:
             xmax = x1
             xmin = x0
-            spanflag = 2
-        else:
-            spanflag = 0
-        
+
         spanx = xmax - xmin
         spany = ymax - ymin
         xproblems = self.minspanx is not None and spanx < self.minspanx
         yproblems = self.minspany is not None and spany < self.minspany
-        if (xproblems or yproblems): # or 
-#             (xmax - xmin) < 0.001 or 
-#             (ymax - ymin) < 0.001):
+        if (xproblems or yproblems): 
             """Box too small"""  
             # check if shown distance (if it exists) is
             print('Distance too small')
@@ -655,18 +839,14 @@ class ZoomBox:
         # If addToTable is true, we wont zoom but will show span/box
         if not self.addToTable:
             for axes in self.axes:
-                # Box zoom = spanflag = 0
-#                 if spanflag == 0 or 
+                # Box zoom
                 if self.span == 'box':
                     axes.set_xlim((xmin, xmax))
-                    axes.set_ylim((ymin, ymax+0.001))
-#                 elif spanflag == 1 or 
+                    axes.set_ylim((ymin, ymax))
                 elif self.span == 'horizontal':
                     axes.set_xlim((xmin, xmax))
-                # y axis zoom = spanflag = 2
-#                 elif spanflag == 2 or 
                 elif self.span == 'vertical':
-                    axes.set_ylim((ymin, ymax+0.001))
+                    axes.set_ylim((ymin, ymax))
 
 
         if self.plotName == 'RMSF':
@@ -698,6 +878,7 @@ class ZoomBox:
         # Reset zoom
         if self.addToTable:
             self.addToTable = False
+
             
         return False
 
@@ -708,76 +889,60 @@ class ZoomBox:
                 self.canvas.restore_region(self.background)
             for axes, to_draw in zip(self.axes, self.to_draw):
                 axes.draw_artist(to_draw)
+                
+            if self.show_cursor_cross:
+                try:
+                    for axes in self.axes:
+                        axes.draw_artist(self.horz_line)
+                        axes.draw_artist(self.vert_line)
+                except:
+                    pass
             self.canvas.blit(self.canvas.figure.bbox)
         else:
             self.canvas.draw_idle()
         return False
 
     def OnMotion(self, evt):
+        
         pub.sendMessage('newxy', xpos=evt.xdata, ypos=evt.ydata)
                 
-        'on motion notify event if box/line is wanted'        
+        'on motion notify event if box/line is wanted'
         
         if self.eventpress is None or self.ignore(evt): 
             return
-                
-        
-#         if not self.insideAxes:
-#             for axes in self.axes:
-#                 y0, y1 = axes.get_ylim()
-#                 x0, x1 = axes.get_xlim()
-#                    
-#             # xmin, ymin, xmax, ymax = self.data_lims
-#             horz, vert = self.exitLocs
-#                
-#             if self.span == 'horizontal' or self.span == None or self.span == 'box':
-#                 if horz == 'left': 
-#                     x = x0
-#                 elif horz == 'right':
-#                     x = x1
-#             else:
-#                 if horz == 'left': 
-#                     x = x0
-#                 elif horz == 'right':
-#                     x = x1
-#                 
-#    
-#             if self.span == 'vertical' or self.span == None or self.span == 'box':
-#                 if vert == 'top':
-#                     y = y1
-#                 elif vert == 'bottom':
-#                     y = y0
-#             else:
-#                 if vert == 'top':
-#                     y = y1
-#                 elif vert == 'bottom':
-#                     y = y0
-#             
-#         else:
 
         # actual position (with button still pressed)
         x, y = evt.xdata, evt.ydata 
+
+        if self.show_cursor_cross and (x is not None and y is not None):
+            try:
+                for axes in self.axes:
+                    self.horz_line.set_ydata((y, y))
+                    self.horz_line.set_visible(True)
+                    self.vert_line.set_xdata((x, x))
+                    self.vert_line.set_visible(True)
+            except:
+                pass
  
-        
         self.prev = x, y
-                
+        
         minx, maxx = self.eventpress.xdata, x  # click-x and actual mouse-x
         miny, maxy = self.eventpress.ydata, y  # click-y and actual mouse-y
-         
-#         print(minx, maxx, miny, maxy)
-#         
+
         if minx > maxx: minx, maxx = maxx, minx  # get them in the right order
         if miny > maxy: miny, maxy = maxy, miny
-        
+         
         if self.insideAxes:
-            self.lastXY = [minx, maxx, miny, maxy]         
-
+            self.lastXY = [minx, maxx, miny, maxy]
+        else:
+            minx, maxx, miny, maxy = self.lastXY
+        
         # Checks whether values are not empty (or are float)
         if not isinstance(minx, float) or not isinstance(maxx, float):
             return
         if not isinstance(miny, float) or not isinstance(maxy, float): 
             return
-        
+
         # Changes from a yellow box to a colored line
         for axes in self.axes:
             y0, y1 = axes.get_ylim()
@@ -795,13 +960,13 @@ class ZoomBox:
             maxy = avg
             for to_draw in self.to_draw:
                 if wx.GetKeyState(wx.WXK_CONTROL):
-                    to_draw.set_edgecolor('g')
-                    to_draw.set_linewidth(4)                
+                    to_draw.set_edgecolor(self.plot_parameters['extract_color'])
+                    to_draw.set_linewidth(self.plot_parameters['extract_line_width'])                
                     to_draw.set_alpha(0.9)
                     to_draw.set_linestyle('-')
                 else:
-                    to_draw.set_edgecolor('m')
-                    to_draw.set_linewidth(2.5)                
+                    to_draw.set_edgecolor(self.plot_parameters['zoom_color_horizontal'])
+                    to_draw.set_linewidth(self.plot_parameters['zoom_line_width'])                
                     to_draw.set_alpha(0.9)
                     to_draw.set_linestyle('-')
         # Y-axis line
@@ -815,8 +980,8 @@ class ZoomBox:
             minx = avg
             maxx = avg
             for to_draw in self.to_draw:
-                to_draw.set_edgecolor('b')
-                to_draw.set_linewidth(2.5)                
+                to_draw.set_edgecolor(self.plot_parameters['zoom_color_vertical'])
+                to_draw.set_linewidth(self.plot_parameters['zoom_line_width'])                
                 to_draw.set_alpha(0.9)
                 to_draw.set_linestyle('-')
         # box
@@ -824,15 +989,15 @@ class ZoomBox:
             self.span='box'
             for to_draw in self.to_draw:
                 if wx.GetKeyState(wx.WXK_CONTROL):
-                    to_draw.set_edgecolor('g')
-                    to_draw.set_facecolor('g')
-                    to_draw.set_linewidth(2.5)  
+                    to_draw.set_edgecolor(self.plot_parameters['extract_color'])
+                    to_draw.set_facecolor(self.plot_parameters['extract_color'])
+                    to_draw.set_linewidth(self.plot_parameters['extract_line_width'])  
                     to_draw.set_alpha(0.4)
                     to_draw.set_linestyle('--')
                 else:
-                    to_draw.set_edgecolor('k')
-                    to_draw.set_facecolor('y')
-                    to_draw.set_linewidth(2.5)  
+                    to_draw.set_edgecolor(self.plot_parameters['zoom_color_box'])
+                    to_draw.set_facecolor(self.plot_parameters['zoom_color_box'])
+                    to_draw.set_linewidth(self.plot_parameters['zoom_line_width']) 
                     to_draw.set_alpha(0.2)
                     to_draw.set_linestyle('-')
         

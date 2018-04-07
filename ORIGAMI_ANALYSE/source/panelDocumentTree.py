@@ -15,24 +15,21 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
 
-import wx
-import wx.lib.mixins.listctrl as listmix
-from collections import OrderedDict
-from operator import itemgetter
-from wx import ID_ANY
-import numpy as np
-import pandas as pd
-from _collections import defaultdict
-import re
 
-from origamiStyles import *
-from analysisFcns import normalizeMS
+# from origamiConfig import IconContainer as icons
+from dialogs import panelRenameItem, panelCompareMS
 from ids import *
 from panelInformation import panelDocumentInfo
-from origamiConfig import IconContainer as icons
-from toolbox import str2num, num2str, saveAsText
+from toolbox import str2num, saveAsText
+from wx import ID_ANY
 import dialogs as dialogs
-from dialogs import panelRenameItem
+import numpy as np
+import pandas as pd
+import re
+import wx
+import time
+from massLynxFcns import normalize1D, subtractMS
+from styles import makeMenuItem
 
 
 
@@ -74,6 +71,9 @@ class documentsTree(wx.TreeCtrl):
         self.presenter = presenter
         self.icons = icons
         self.config = config
+        
+        self.itemType = None
+        self.extractData = None
         self.itemData = None
         self.currentDocument = None
         self.indent = None
@@ -95,6 +95,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.enableCurrentDocument, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.enableCurrentDocument, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_ITEM_MENU, self.OnRightClickMenu, id=wx.ID_ANY)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
         
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.enableCurrentDocument, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onItemSelection, id=wx.ID_ANY)
@@ -108,8 +109,7 @@ class documentsTree(wx.TreeCtrl):
         # Intended use: deleting and selecting items
         # get key
         key = evt.GetKeyCode()
-        keyEvt = evt.GetKeyEvent()
-        
+
         # Delete item/document
         if key == 127:
             item = self.GetSelection()
@@ -122,20 +122,84 @@ class documentsTree(wx.TreeCtrl):
                 self.removeDocument(evt=ID_removeDocument)
             else:
                 self.onDeleteItem(evt=None)
+        elif key == 80:
+            if self.itemType in ['Drift time (2D)', 'Drift time (2D, processed)']:
+                self.onProcess2D(evt=None)
+            elif (self.itemType in ['Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)', 
+                                    'Drift time (2D, processed, EIC)', 'Input data', 'Statistical'] and
+                  self.extractData not in  ['Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)', 
+                                            'Drift time (2D, processed, EIC)', 'Input data', 'Statistical']):
+                self.onProcess2D(evt=None)
+            elif (self.itemType in ['Mass Spectrum', 'Mass Spectrum (processed)', 'Mass Spectra'] and
+                  self.extractData != 'Mass Spectra'):
+                self.onProcessMS(evt=None)
+        
+    def OnDoubleClick(self, evt):
+        
+        tstart = time.clock()
+        # Get selected item
+        item = self.GetSelection()
+        self.currentItem = item
+        # Get the current text value for selected item
+        itemType = self.GetItemText(item)
+        if itemType == 'Current documents':
+            menu = wx.Menu()
+            menu.Append(ID_saveAllDocuments, 'Save all documents')
+            menu.Append(ID_removeAllDocuments, 'Delete all documents')
+            self.PopupMenu(menu) 
+            menu.Destroy()
+            self.SetFocus()
+            return
+        # Get indent level for selected item
+        self.indent = self.getItemIndent(item)
+        if self.indent > 1:
+            extract = item # Specific Ion/file name
+            item = self.getParentItem(item,2) # Item type
+            itemType = self.GetItemText(item)
+        else:
+            extract = None
+        
+        # Get the ion/file name from deeper indent
+        if extract == None: 
+            self.extractData = None
+            self.extractParent = None
+        else: 
+            self.extractParent = self.GetItemText(self.GetItemParent(extract))
+            self.extractData = self.GetItemText(extract)
+        
+        if self.itemType == 'Mass Spectra' and self.extractData == 'Mass Spectra':
+            self.onCompareMS(evt=None)
+        elif self.itemType in ['Mass Spectrum', 'Mass Spectrum (processed)', 'Mass Spectra']:
+            self.onShowPlot(evt=ID_showPlotDocument)
+        elif self.itemType in ['Chromatogram', 'Chromatograms (EIC)']:
+            self.onShowPlot(evt=None)
+        elif self.itemType == 'Chromatograms (combined voltages, EIC)':
+            self.onShowPlot(evt=None)
+        elif self.itemType in ['Drift time (1D)', 'Drift time (1D, EIC, DT-IMS)', 'Drift time (1D, EIC)']:
+            self.onShowPlot(evt=None)
+        elif self.itemType in ['Drift time (2D)', 'Drift time (2D, processed)', 'Drift time (2D, EIC)',
+                               'Drift time (2D, combined voltages, EIC)', 'Drift time (2D, processed, EIC)',
+                               'Input data', 'Statistical', 'Overlay', 'DT/MS']:
+            self.onShowPlot(evt=None)
+        elif self.itemType == 'Sample information':
+            self.onShowSampleInfo(evt=None)
+        elif self.indent == 1:
+            self.onOpenDocInfo(evt=None)
+            
+        tend = time.clock()
+        print('It took: %s seconds.' % str(np.round((tend-tstart),4)))
         
     def onNotUseQuickDisplay(self, evt):
         """ 
         Function to either allow or disallow quick plotting selection of datasets
         """
-        
-        self.config.quickDisplay = self.presenter.view.panelControls.quickDisplayCheck.GetValue()      
-        
+
         if self.config.quickDisplay:
             self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChangePlot, id=wx.ID_ANY)
-            print('Quick display is ON')
+#             print('Quick display is ON')
         else:
             self.Unbind(wx.EVT_TREE_SEL_CHANGED, id=wx.ID_ANY)
-            print('Quick display is OFF')
+#             print('Quick display is OFF')
                 
         if evt != None:
             evt.Skip()
@@ -171,18 +235,18 @@ class documentsTree(wx.TreeCtrl):
             return
         
         # Get data
-        if self.itemType == '2D drift time':
+        if self.itemType == 'Drift time (2D)':
             data = self.itemData.IMS2D
-        elif self.itemType == 'Processed 2D IM-MS':
+        elif self.itemType == 'Drift time (2D, processed)':
             data = self.itemData.IMS2Dprocess
-        elif self.itemType == 'Extracted 2D IM-MS (multiple ions)':
-            if self.extractData == 'Extracted 2D IM-MS (multiple ions)': return
+        elif self.itemType == 'Drift time (2D, EIC)':
+            if self.extractData == 'Drift time (2D, EIC)': return
             data = self.itemData.IMS2Dions[self.extractData]
-        elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)':
-            if self.extractData == 'Combined CV 2D IM-MS (multiple ions)': return
+        elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
+            if self.extractData == 'Drift time (2D, combined voltages, EIC)': return
             data = self.itemData.IMS2DCombIons[self.extractData]
-        elif self.itemType == 'Processed 2D IM-MS (multiple ions)':
-            if self.extractData == 'Processed 2D IM-MS (multiple ions)': return
+        elif self.itemType == 'Drift time (2D, processed, EIC)':
+            if self.extractData == 'Drift time (2D, processed, EIC)': return
             data = self.itemData.IMS2DionsProcess[self.extractData]
         elif self.itemType == 'Input data':
             if self.extractData == 'Input data': return
@@ -190,12 +254,16 @@ class documentsTree(wx.TreeCtrl):
         elif self.itemType == 'Statistical':
             if self.extractData == 'Statistical': return
             data = self.itemData.IMS2DstatsData[self.extractData]
-        elif self.itemType == 'Combined CV RT IM-MS (multiple ions)':
-            if self.extractData == 'Combined CV RT IM-MS (multiple ions)': return
+        elif self.itemType == 'Chromatograms (combined voltages, EIC)':
+            if self.extractData == 'Chromatograms (combined voltages, EIC)': return
             data = self.itemData.IMSRTCombIons[self.extractData]
-        elif self.itemType == 'Extracted 1D IM-MS (multiple ions)':
-            if self.extractData == 'Extracted 1D IM-MS (multiple ions)': return
+        elif self.itemType == 'Drift time (1D, EIC, DT-IMS)':
+            if self.extractData == 'Drift time (1D, EIC, DT-IMS)': return
             data = self.itemData.IMS1DdriftTimes[self.extractData]
+        elif self.itemType == 'Drift time (1D, EIC)':
+            if self.extractData == 'Drift time (1D, EIC)': return
+            data = self.itemData.multipleDT[self.extractData]
+
 
         
         # Retrieve dataType
@@ -214,43 +282,49 @@ class documentsTree(wx.TreeCtrl):
         """
         
         # Select dataset
-        if self.itemType == '2D drift time':
+        if self.itemType == 'Drift time (2D)':
             data = self.itemData.IMS2D
-        elif self.itemType == 'Processed 2D IM-MS':
+        elif self.itemType == 'Drift time (2D, processed)':
             data = self.itemData.IMS2Dprocess
-        elif self.itemType == 'Extracted 2D IM-MS (multiple ions)':
-            if self.extractData == 'Extracted 2D IM-MS (multiple ions)': return None, None
+        elif self.itemType == 'Drift time (2D, EIC)':
+            if self.extractData == 'Drift time (2D, EIC)': return None, None
             data = self.itemData.IMS2Dions[self.extractData]
-        elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)':
-            if self.extractData == 'Combined CV 2D IM-MS (multiple ions)': return None, None
+        elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
+            if self.extractData == 'Drift time (2D, combined voltages, EIC)': return None, None
             data = self.itemData.IMS2DCombIons[self.extractData]
-        elif self.itemType == 'Processed 2D IM-MS (multiple ions)':
-            if self.extractData == 'Processed 2D IM-MS (multiple ions)': return None, None
+        elif self.itemType == 'Drift time (2D, processed, EIC)':
+            if self.extractData == 'Drift time (2D, processed, EIC)': return None, None
             data = self.itemData.IMS2DionsProcess[self.extractData]
         elif self.itemType == 'Input data':
             if self.extractData == 'Input data': return None, None
             data = self.itemData.IMS2DcompData[self.extractData]
         
         # Get labels
-        xlabel, ylabel = data['xlabels'], data['ylabels']
+        try:
+            xlabel, ylabel = data['xlabels'], data['ylabels']
         
-        if xlabel == 'Scans': idX = ID_xlabel2Dscans
-        elif xlabel == 'Collision Voltage (V)': idX = ID_xlabel2DcolVolt
-        elif xlabel == 'Lab Frame Energy (eV)': idX = ID_xlabel2DlabFrame
-        elif xlabel == 'Mass-to-charge (Da)': idX = ID_xlabel2DmassToCharge
-        elif xlabel == 'm/z (Da)': idX = ID_xlabel2Dmz
-        elif xlabel == u'Wavenumber (cm⁻¹)': idX = ID_xlabel2Dwavenumber
-        else: idX = ID_xlabel2Dscans
+            if xlabel == 'Scans': idX = ID_xlabel2Dscans
+            elif xlabel == 'Collision Voltage (V)': idX = ID_xlabel2DcolVolt
+            elif xlabel == 'Activation Voltage (V)': idX = ID_xlabel2DactVolt
+            elif xlabel == 'Lab Frame Energy (eV)': idX = ID_xlabel2DlabFrame
+            elif xlabel == 'Activation Energy (eV)': idX = ID_xlabel2DactlabFrame
+            elif xlabel == 'Mass-to-charge (Da)': idX = ID_xlabel2DmassToCharge
+            elif xlabel == 'm/z (Da)': idX = ID_xlabel2Dmz
+            elif xlabel == u'Wavenumber (cm⁻¹)': idX = ID_xlabel2Dwavenumber
+            else: idX = ID_xlabel2Dscans
+                
+            if ylabel == 'Drift time (bins)': idY = ID_ylabel2Dbins
+            elif ylabel == 'Drift time (ms)': idY = ID_ylabel2Dms
+            elif ylabel == 'Arrival time (ms)': idY = ID_ylabel2Dms_arrival
+            elif ylabel == u'Collision Cross Section (Å²)': idY = ID_ylabel2Dccs
+            else:  idY = ID_ylabel2Dbins
             
-        if ylabel == 'Drift time (bins)': idY = ID_ylabel2Dbins
-        elif ylabel == 'Drift time (ms)': idY = ID_ylabel2Dms
-        elif ylabel == u'Collision Cross Section (Å²)': idY = ID_ylabel2Dccs
-        else:  idY = ID_ylabel2Dbins
-        
-        return idX, idY
+            return idX, idY 
+        except:
+            return None, None
         
     def checkCurrentXYlabels1D(self):
-        if self.itemType == '1D drift time':
+        if self.itemType == 'Drift time (1D)':
             data = self.itemData.DT
             
         # Get labels
@@ -258,11 +332,26 @@ class documentsTree(wx.TreeCtrl):
         
         if xlabel == 'Drift time (bins)': idX = ID_ylabel1Dbins
         elif xlabel == 'Drift time (ms)': idX = ID_ylabel1Dms
+        elif xlabel == 'Arrival time (ms)': idX = ID_ylabel1Dms_arrival
         elif xlabel == u'Collision Cross Section (Å²)': idX = ID_ylabel1Dccs
         else:  idX = ID_ylabel2Dbins
         
         return idX
+    
+    def checkCurrentXYlabelsMSDT(self):
+        if self.itemType == 'DT/MS':
+            data = self.itemData.DTMZ
+            
+        # Get labels
+        ylabel = data['ylabels']
         
+        if ylabel == 'Drift time (bins)': idX = ID_ylabelDTMSbins
+        elif ylabel == 'Drift time (ms)': idX = ID_ylabelDTMSms
+        elif ylabel == 'Arrival time (ms)': idX = ID_ylabelDTMSms_arrival
+        else:  idX = ID_ylabelDTMSbins
+        
+        return idX
+    
     def checkCurrentDataType(self):
         """
         This function checks what sort of dataset it is
@@ -333,14 +422,14 @@ class documentsTree(wx.TreeCtrl):
 
         currentDoc = self.itemData.title
         document = self.presenter.documentsDict[currentDoc]
-        
+   
         # Check what is going to be deleted
         # MS
         if self.itemType == 'Mass Spectrum':
             del self.presenter.documentsDict[currentDoc].massSpectrum
             self.presenter.documentsDict[currentDoc].gotMS = False
             
-        if self.itemType == 'Smoothed Mass Spectrum':
+        if self.itemType == 'Mass Spectrum (processed)':
             self.presenter.documentsDict[currentDoc].smoothMS = {}
 
         elif self.itemType == 'Mass Spectra':
@@ -353,17 +442,17 @@ class documentsTree(wx.TreeCtrl):
                     self.presenter.documentsDict[currentDoc].gotMultipleMS = False
                     
         # MS/DT
-        if self.itemType == 'MS vs DT':
+        if self.itemType == 'DT/MS':
             del self.presenter.documentsDict[currentDoc].DTMZ
             self.presenter.documentsDict[currentDoc].gotDTMZ = False
                             
         # DT
-        elif self.itemType == '1D drift time':
+        elif self.itemType == 'Drift time (1D)':
             del self.presenter.documentsDict[currentDoc].DT
             self.presenter.documentsDict[currentDoc].got1DT = False
             
-        elif self.itemType == 'Extracted 1D IM-MS (multiple ions)':
-            if self.extractData == 'Extracted 1D IM-MS (multiple ions)':
+        elif self.itemType == 'Drift time (1D, EIC, DT-IMS)':
+            if self.extractData == 'Drift time (1D, EIC, DT-IMS)':
                 self.presenter.documentsDict[currentDoc].IMS1DdriftTimes = {}
                 self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
             else:
@@ -371,31 +460,49 @@ class documentsTree(wx.TreeCtrl):
                 if len(self.presenter.documentsDict[currentDoc].IMS1DdriftTimes) == 0: 
                     self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
         
+        elif self.itemType == 'Drift time (1D, EIC)':
+            if self.extractData == 'Drift time (1D, EIC)':
+                self.presenter.documentsDict[currentDoc].multipleDT = {}
+                self.presenter.documentsDict[currentDoc].gotMultipleDT = False
+            else:
+                del self.presenter.documentsDict[currentDoc].multipleDT[self.extractData]
+                if len(self.presenter.documentsDict[currentDoc].multipleDT) == 0: 
+                    self.presenter.documentsDict[currentDoc].gotMultipleDT = False
+        
         # RT
-        elif self.itemType == 'Retention Time':
+        elif self.itemType == 'Chromatogram':
             del self.presenter.documentsDict[currentDoc].RT
             self.presenter.documentsDict[currentDoc].got1RT = False
             
-        elif self.itemType == 'Combined CV RT IM-MS (multiple ions)':
-            if self.extractData == 'Combined CV RT IM-MS (multiple ions)':
+        elif self.itemType == 'Chromatograms (combined voltages, EIC)':
+            if self.extractData == 'Chromatograms (combined voltages, EIC)':
                 self.presenter.documentsDict[currentDoc].IMSRTCombIons = {}
                 self.presenter.documentsDict[currentDoc].gotCombinedExtractedIonsRT = False
             else:
                 del self.presenter.documentsDict[currentDoc].IMSRTCombIons[self.extractData]
                 if len(self.presenter.documentsDict[currentDoc].IMSRTCombIons) == 0: 
                     self.presenter.documentsDict[currentDoc].gotCombinedExtractedIonsRT = False
+                    
+        elif self.itemType == 'Chromatograms (EIC)':
+            if self.extractData == 'Chromatograms (EIC)':
+                self.presenter.documentsDict[currentDoc].multipleRT = {}
+                self.presenter.documentsDict[currentDoc].gotMultipleRT = False
+            else:
+                del self.presenter.documentsDict[currentDoc].multipleRT[self.extractData]
+                if len(self.presenter.documentsDict[currentDoc].multipleRT) == 0: 
+                    self.presenter.documentsDict[currentDoc].gotMultipleRT = False
             
         # 2D
-        elif self.itemType == '2D drift time':
+        elif self.itemType == 'Drift time (2D)':
             self.presenter.documentsDict[currentDoc].IMS2D = {}
             self.presenter.documentsDict[currentDoc].got2DIMS = False
             
-        elif self.itemType == 'Processed 2D IM-MS':
+        elif self.itemType == 'Drift time (2D, processed)':
             self.presenter.documentsDict[currentDoc].IMS2Dprocess = {}
             self.presenter.documentsDict[currentDoc].got2Dprocess = False
             
-        elif self.itemType == 'Extracted 2D IM-MS (multiple ions)':
-            if self.extractData == 'Extracted 2D IM-MS (multiple ions)':
+        elif self.itemType == 'Drift time (2D, EIC)':
+            if self.extractData == 'Drift time (2D, EIC)':
                 self.presenter.documentsDict[currentDoc].IMS2Dions = {}
                 self.presenter.documentsDict[currentDoc].gotExtractedIons = False
             else:
@@ -403,8 +510,8 @@ class documentsTree(wx.TreeCtrl):
                 if len(self.presenter.documentsDict[currentDoc].IMS2Dions) == 0: 
                     self.presenter.documentsDict[currentDoc].gotExtractedIons = False
                 
-        elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)':
-            if self.extractData == 'Combined CV 2D IM-MS (multiple ions)':
+        elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
+            if self.extractData == 'Drift time (2D, combined voltages, EIC)':
                 self.presenter.documentsDict[currentDoc].IMS2DCombIons = {}
                 self.presenter.documentsDict[currentDoc].gotCombinedExtractedIons = False
             else:
@@ -412,8 +519,8 @@ class documentsTree(wx.TreeCtrl):
                 if len(self.presenter.documentsDict[currentDoc].IMS2DCombIons) == 0: 
                     self.presenter.documentsDict[currentDoc].gotCombinedExtractedIons = False
                 
-        elif self.itemType == 'Processed 2D IM-MS (multiple ions)': 
-            if self.extractData == 'Processed 2D IM-MS (multiple ions)':
+        elif self.itemType == 'Drift time (2D, processed, EIC)': 
+            if self.extractData == 'Drift time (2D, processed, EIC)':
                 self.presenter.documentsDict[currentDoc].IMS2DionsProcess = {}
                 self.presenter.documentsDict[currentDoc].got2DprocessIons = False
             else:
@@ -473,6 +580,8 @@ class documentsTree(wx.TreeCtrl):
         # Update documents tree
         self.addDocument(docData = document)
         
+        # Expand item
+        
     def onDeleteAllDocuments(self, evt):
         """ Alternative function to delete documents """
         
@@ -489,6 +598,17 @@ class documentsTree(wx.TreeCtrl):
             parent = self.getParentItem(item,0)
             self.DeleteChildren(parent)
             self.presenter.onClearAllPlots()
+            # clear all tables
+            try:
+                self.presenter.view.panelMultipleIons.topP.peaklist.ClearAll()
+                self.presenter.view.panelMultipleText.topP.filelist.ClearAll()
+                self.presenter.view.panelMML.topP.filelist.ClearAll()
+                self.presenter.view.panelLinearDT.topP.peaklist.ClearAll()
+                self.presenter.view.panelLinearDT.bottomP.peaklist.ClearAll()
+                self.presenter.view.panelCCS.topP.peaklist.ClearAll()
+                self.presenter.view.panelCCS.bottomP.peaklist.ClearAll()
+            except:
+                pass
           
     def onItemSelection(self, evt):
         # Get selected item
@@ -560,9 +680,16 @@ class documentsTree(wx.TreeCtrl):
         # Get the ion/file name from deeper indent
         if extract == None: 
             self.extractData = None
-            pass
-        else:
+            self.extractParent = None
+        else: 
+            self.extractParent = self.GetItemText(self.GetItemParent(extract))
             self.extractData = self.GetItemText(extract)
+            
+        # split
+        try:
+            self.splitText = re.split('-|,|:|__', self.extractData)
+        except:
+            self.splitText = []
             
         # Check item
         if not item:
@@ -572,6 +699,10 @@ class documentsTree(wx.TreeCtrl):
         self.itemData = self.GetPyData(parent)
         self.itemType = itemType
         
+        print('item: %s | extractParent: %s | extract: %s | indent: %s' % (self.itemType, self.extractParent, 
+                                                                           self.extractData, self.indent)) 
+
+        
         # Check current data types
         self.checkCurrentDataType()
         
@@ -579,7 +710,9 @@ class documentsTree(wx.TreeCtrl):
         xlabel2DMenu = wx.Menu()
         xlabel2DMenu.Append(ID_xlabel2Dscans, 'Scans', "",wx.ITEM_RADIO)
         xlabel2DMenu.Append(ID_xlabel2DcolVolt, 'Collision Voltage (V)',"",wx.ITEM_RADIO)
+        xlabel2DMenu.Append(ID_xlabel2DactVolt, 'Activation Energy (V)',"",wx.ITEM_RADIO)
         xlabel2DMenu.Append(ID_xlabel2DlabFrame, 'Lab Frame Energy (eV)',"",wx.ITEM_RADIO)
+        xlabel2DMenu.Append(ID_xlabel2DactlabFrame, 'Activation Energy (eV)',"",wx.ITEM_RADIO)
         xlabel2DMenu.Append(ID_xlabel2DmassToCharge, 'Mass-to-charge (Da)',"",wx.ITEM_RADIO)
         xlabel2DMenu.Append(ID_xlabel2Dmz, 'm/z (Da)',"",wx.ITEM_RADIO)
         xlabel2DMenu.Append(ID_xlabel2Dwavenumber, u'Wavenumber (cm⁻¹)',"",wx.ITEM_RADIO)
@@ -590,31 +723,34 @@ class documentsTree(wx.TreeCtrl):
         ylabel2DMenu = wx.Menu()
         ylabel2DMenu.Append(ID_ylabel2Dbins, 'Drift time (bins)',"",wx.ITEM_RADIO)
         ylabel2DMenu.Append(ID_ylabel2Dms, 'Drift time (ms)',"",wx.ITEM_RADIO)
+        ylabel2DMenu.Append(ID_ylabel2Dms_arrival, 'Arrival time (ms)',"",wx.ITEM_RADIO)
         ylabel2DMenu.Append(ID_ylabel2Dccs, u'Collision Cross Section (Å²)',"",wx.ITEM_RADIO)
         ylabel2DMenu.AppendSeparator()
         ylabel2DMenu.Append(ID_ylabel2Drestore, 'Restore default', "")
-            
+        
         # Check xy axis labels
-        if any(self.itemType in itemType for itemType in ['2D drift time',
-                                                          'Processed 2D IM-MS',
-                                                          'Extracted 2D IM-MS (multiple ions)',
-                                                          'Combined CV 2D IM-MS (multiple ions)',
-                                                          'Processed 2D IM-MS (multiple ions)',
+        if any(self.itemType in itemType for itemType in ['Drift time (2D)', 'Drift time (2D, processed)',
+                                                          'Drift time (2D, EIC)',
+                                                          'Drift time (2D, combined voltages, EIC)',
+                                                          'Drift time (2D, processed, EIC)',
                                                           'Input data']):
             # Check if right click was performed on a header of a sub-tree
-            if any(self.extractData in itemType for itemType in ['Extracted 2D IM-MS (multiple ions)',
-                                                                 'Combined CV 2D IM-MS (multiple ions)',
-                                                                 'Processed 2D IM-MS (multiple ions)',
+            if any(self.extractData in itemType for itemType in ['Drift time (2D, EIC)',
+                                                                 'Drift time (2D, combined voltages, EIC)',
+                                                                 'Drift time (2D, processed, EIC)',
                                                                  'Input data']):
                 pass
                 
             # Check what is the current label for this particular dataset
             try:
                 idX, idY = self.checkCurrentXYlabels()
-            except UnboundLocalError: return
+            except UnboundLocalError: 
+                return
             if idX == ID_xlabel2Dscans: xlabel2DMenu.Check(ID_xlabel2Dscans, True)
             elif idX == ID_xlabel2DcolVolt: xlabel2DMenu.Check(ID_xlabel2DcolVolt, True)
+            elif idX == ID_xlabel2DactVolt: xlabel2DMenu.Check(ID_xlabel2DactVolt, True)
             elif idX == ID_xlabel2DlabFrame: xlabel2DMenu.Check(ID_xlabel2DlabFrame, True)
+            elif idX == ID_xlabel2DactlabFrame: xlabel2DMenu.Check(ID_xlabel2DactlabFrame, True)
             elif idX == ID_xlabel2DmassToCharge: xlabel2DMenu.Check(ID_xlabel2DmassToCharge, True)
             elif idX == ID_xlabel2Dmz: xlabel2DMenu.Check(ID_xlabel2Dmz, True)
             elif idX == ID_xlabel2Dwavenumber: xlabel2DMenu.Check(ID_xlabel2Dwavenumber, True)
@@ -622,6 +758,7 @@ class documentsTree(wx.TreeCtrl):
 
             if idY == ID_ylabel2Dbins: ylabel2DMenu.Check(ID_ylabel2Dbins, True)
             elif idY == ID_ylabel2Dms: ylabel2DMenu.Check(ID_ylabel2Dms, True)
+            elif idY == ID_ylabel2Dms_arrival: ylabel2DMenu.Check(ID_ylabel2Dms_arrival, True)
             elif idY == ID_ylabel2Dccs: ylabel2DMenu.Check(ID_ylabel2Dccs, True)
             else: ylabel2DMenu.Check(ID_ylabel2Dbins, True)
 
@@ -629,25 +766,42 @@ class documentsTree(wx.TreeCtrl):
         xlabel1DMenu = wx.Menu()
         xlabel1DMenu.Append(ID_ylabel1Dbins, 'Drift time (bins)',"",wx.ITEM_RADIO)
         xlabel1DMenu.Append(ID_ylabel1Dms, 'Drift time (ms)',"",wx.ITEM_RADIO)
+        xlabel1DMenu.Append(ID_ylabel1Dms_arrival, 'Arrival time (ms)',"",wx.ITEM_RADIO)
         xlabel1DMenu.Append(ID_ylabel1Dccs, u'Collision Cross Section (Å²)',"",wx.ITEM_RADIO)
         
-        if self.itemType == '1D drift time':
+        if self.itemType == 'Drift time (1D)':
             try: idX = self.checkCurrentXYlabels1D()
             except UnboundLocalError: return
             
             if idX == ID_ylabel1Dbins: xlabel1DMenu.Check(ID_ylabel1Dbins, True)
             elif idX == ID_ylabel1Dms: xlabel1DMenu.Check(ID_ylabel1Dms, True)
+            elif idX == ID_ylabel1Dms: ID_ylabel1Dms_arrival.Check(ID_ylabel1Dms_arrival, True)
             elif idX == ID_ylabel1Dccs: xlabel1DMenu.Check(ID_ylabel1Dccs, True)
             else: xlabel1DMenu.Check(ID_ylabel1Dbins, True)
                 
+        
+        # change y-axis label (DT/MS)
+        ylabelDTMSMenu = wx.Menu()
+        ylabelDTMSMenu.Append(ID_ylabelDTMSbins, 'Drift time (bins)',"",wx.ITEM_RADIO)
+        ylabelDTMSMenu.Append(ID_ylabelDTMSms, 'Drift time (ms)',"",wx.ITEM_RADIO)
+        ylabelDTMSMenu.Append(ID_ylabelDTMSms_arrival, 'Arrival time (ms)',"",wx.ITEM_RADIO)
+        ylabelDTMSMenu.AppendSeparator()
+        ylabelDTMSMenu.Append(ID_ylabelDTMSrestore, 'Restore default', "")
+        
+        if self.itemType == 'DT/MS':
+            try: idX = self.checkCurrentXYlabelsMSDT()
+            except UnboundLocalError: return
             
+            if idX == ID_ylabelDTMSbins: ylabelDTMSMenu.Check(ID_ylabelDTMSbins, True)
+            elif idX == ID_ylabelDTMSms: ylabelDTMSMenu.Check(ID_ylabelDTMSms, True)
+            elif idX == ID_ylabelDTMSms_arrival: ylabelDTMSMenu.Check(ID_ylabelDTMSms_arrival, True)
+            else: xlabel1DMenu.Check(ID_ylabelDTMSbins, True)
+        
         
         # Save as interactive Bokeh figures
         bokehSaveMenu = wx.Menu()
-        bokehSaveMenu.Append(ID_save2DhtmlDocumentImage, 
-                             'Save and open figure as interactive .html (image)')
-        bokehSaveMenu.Append(ID_save2DhtmlDocumentHeatmap, 
-                             'Save and open figure as interactive .html (heatmap)')
+        bokehSaveMenu.Append(ID_save2DhtmlDocumentImage, 'Save and open figure as interactive .html (image)')
+        bokehSaveMenu.Append(ID_save2DhtmlDocumentHeatmap, 'Save and open figure as interactive .html (heatmap)')
 
     # Bind events
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotDocument)
@@ -667,8 +821,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onSaveHTML, id=ID_save2DhtmlDocumentImage)
         self.Bind(wx.EVT_MENU, self.onSaveHTML, id=ID_save2DhtmlDocumentHeatmap)
         self.Bind(wx.EVT_MENU, self.onRenameItem, id=ID_renameItem)
-        self.Bind(wx.EVT_MENU, self.presenter.saveCCScalibrationToPickle, 
-                  id=ID_saveDataCCSCalibrantDocument)
+        self.Bind(wx.EVT_MENU, self.presenter.saveCCScalibrationToPickle, id=ID_saveDataCCSCalibrantDocument)
 #         self.Bind(wx.EVT_MENU, self.onAddToCCSTable, id=ID_add2CCStable1DDocument)
         self.Bind(wx.EVT_MENU, self.onAddToCCSTable, id=ID_add2CCStable2DDocument)
         self.Bind(wx.EVT_MENU, self.presenter.onSaveDocument, id=ID_saveDocument)
@@ -677,16 +830,27 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.mainParent.openSaveAsDlg, id=ID_saveAsInteractive)
         self.Bind(wx.EVT_MENU, self.presenter.restoreComparisonToList, id=ID_restoreComparisonData)
         
-
+        self.Bind(wx.EVT_MENU, self.onCompareMS, id=ID_docTree_compareMS)
+        self.Bind(wx.EVT_MENU, self.onProcessMS, id=ID_docTree_processMS)
+        self.Bind(wx.EVT_MENU, self.onProcess2D, id=ID_docTree_process2D)
+        self.Bind(wx.EVT_MENU, self.presenter.onReExtractDTMS, id=ID_docTree_extractDTMS)
+        
         # Change axis labels
-        for xID in [ID_xlabel2Dscans, ID_xlabel2DcolVolt, ID_xlabel2DlabFrame, ID_xlabel2DmassToCharge,
+        for xID in [ID_xlabel2Dscans, ID_xlabel2DcolVolt, ID_xlabel2DactVolt,
+                    ID_xlabel2DlabFrame, ID_xlabel2DactlabFrame,ID_xlabel2DmassToCharge, 
                     ID_xlabel2Dmz, ID_xlabel2Dwavenumber, ID_xlabel2Drestore]:
             self.Bind(wx.EVT_MENU, self.presenter.onUpdateXYaxisLabels, id=xID)
             
-        for yID in [ID_ylabel2Dbins, ID_ylabel2Dms, ID_ylabel2Dccs, ID_ylabel2Drestore]:
+        for yID in [ID_ylabel2Dbins, ID_ylabel2Dms, ID_ylabel2Dms_arrival,
+                    ID_ylabel2Dccs, ID_ylabel2Drestore]:
             self.Bind(wx.EVT_MENU, self.presenter.onUpdateXYaxisLabels, id=yID)
         # 1D
-        for yID in [ID_ylabel1Dbins, ID_ylabel1Dms, ID_ylabel1Dccs]:
+        for yID in [ID_ylabel1Dbins, ID_ylabel1Dms, ID_ylabel1Dms_arrival,
+                    ID_ylabel1Dccs]:
+            self.Bind(wx.EVT_MENU, self.presenter.onUpdateXYaxisLabels, id=yID)
+        # DT/MS
+        for yID in [ID_ylabelDTMSbins, ID_ylabelDTMSms, ID_ylabelDTMSms_arrival, 
+                    ID_ylabelDTMSrestore]:
             self.Bind(wx.EVT_MENU, self.presenter.onUpdateXYaxisLabels, id=yID)
         
         # Remove document
@@ -707,6 +871,19 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveWaterfallImageDoc)
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveRMSDmatrixImageDoc)
         
+        
+        self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_csv)
+        self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_pickle)
+        self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_excel)
+        self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_hdf)
+        
+        # save dataframe
+        saveDFSubMenu = wx.Menu()
+        saveDFSubMenu.Append(ID_saveData_csv, 'Save to .csv file')
+        saveDFSubMenu.Append(ID_saveData_pickle, 'Save to .pickle file')
+        saveDFSubMenu.Append(ID_saveData_hdf, 'Save to .hdf file (slow)')
+        saveDFSubMenu.Append(ID_saveData_excel, 'Save to .excel file (v. slow)')
+        
         saveImageLabel = ''.join(['Save figure (', self.config.imageFormat,')'])
         saveImageLabelAll = ''.join(['Save figures (', self.config.imageFormat,')'])
         saveCSVLabel = ''.join(['Save data (',  self.config.saveExtension, ')\tAlt+V'])
@@ -716,158 +893,267 @@ class documentsTree(wx.TreeCtrl):
         # Get label
         if self.extractData != None:
             try:
-                plotLabel = self.extractData.split('__')
+                plotLabel = self.extractData.split(':')
             except AttributeError: pass 
         
         menu = wx.Menu()
         # Mass spectra
         if (itemType == 'Mass Spectrum' or 
             itemType == 'Mass Spectra' or 
-            itemType == 'Smoothed Mass Spectrum'):
-            if self.itemType == 'Mass Spectrum' or itemType == 'Smoothed Mass Spectrum':
-                menu.Append(ID_showPlotDocument, 'Show MS\tAlt+S')
+            itemType == 'Mass Spectrum (processed)'):
+            if self.itemType == 'Mass Spectrum' or itemType == 'Mass Spectrum (processed)':
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                             text='Show mass spectrum\tAlt+S', 
+                                             bitmap=self.icons.iconsLib['mass_spectrum_16']))
+                menu.AppendSeparator()                
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_processMS,
+                                             text='Process...\tP', 
+                                             bitmap=self.icons.iconsLib['process_ms_16']))
                 menu.AppendSeparator()
-                menu.Append(ID_getNewColour, 'Change colour...')
-                menu.Append(ID_smooth1DdataMS, 'Smooth MS')
-                menu.AppendSeparator()
-                menu.Append(ID_saveMSImageDoc, saveImageLabel)
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveMSImageDoc,
+                                         text=saveImageLabel, 
+                                         bitmap=self.icons.iconsLib['file_png_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument,
+                                         text=saveCSVLabel, 
+                                         bitmap=self.icons.iconsLib['file_csv_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
             else:
-                if self.extractData != 'Mass Spectra':
-                    menu.Append(ID_showPlotDocument, 'Show MS\tAlt+S')
+                if self.extractData == 'Mass Spectra':
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_compareMS,
+                                                 text='Compare mass spectra...', 
+                                                 bitmap=self.icons.iconsLib['compare_mass_spectra_16']))
+                    menu.AppendMenu(wx.ID_ANY, 'Save to file...', saveDFSubMenu)
+                elif self.extractData != 'Mass Spectra':
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                                 text='Show mass spectrum\tAlt+S', 
+                                                 bitmap=self.icons.iconsLib['mass_spectrum_16']))
                     menu.AppendSeparator()
-                    menu.Append(ID_saveMSImageDoc, saveImageLabel)
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_processMS,
+                                                 text='Process...\tP', 
+                                                 bitmap=self.icons.iconsLib['process_ms_16']))
+                    menu.AppendSeparator()
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveMSImageDoc,
+                                             text=saveImageLabel, 
+                                             bitmap=self.icons.iconsLib['file_png_16']))
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument,
+                                             text=saveCSVLabel, 
+                                             bitmap=self.icons.iconsLib['file_csv_16']))
+                    
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
         # Sample information
         elif itemType == 'Sample information':
             menu.Append(ID_showSampleInfo, 'Show sample information')
-        # Retention time
-        elif itemType == 'Retention Time':
-            menu.Append(ID_showPlotDocument, 'Show RT plot\tAlt+S')
+        # Chromatogram
+        elif itemType in ['Chromatogram', 'Chromatograms (EIC)']:
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                         text='Show chromatogram\tAlt+S', 
+                                         bitmap=self.icons.iconsLib['chromatogram_16']))
             menu.AppendSeparator()
-            menu.Append(ID_getNewColour, 'Change colour...')
-            menu.Append(ID_saveRTImageDoc, saveImageLabel)
-            menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-            menu.Append(ID_removeItemDocument, 'Delete item')
-        # 1D drift time
-        elif itemType == '1D drift time':
-            menu.Append(ID_showPlotDocument, 'Show 1D IM-MS plot\tAlt+S')
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveRTImageDoc,
+                                     text=saveImageLabel, 
+                                     bitmap=self.icons.iconsLib['file_png_16']))
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument,
+                                     text=saveCSVLabel, 
+                                     bitmap=self.icons.iconsLib['file_csv_16']))
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                         text='Delete item\tDelete', 
+                                         bitmap=self.icons.iconsLib['clear_16']))
+        # Drift time (1D)
+        elif itemType == 'Drift time (1D)':
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                         text='Show mobiligram\tAlt+S', 
+                                         bitmap=self.icons.iconsLib['mobiligram_16']))
             menu.AppendSeparator()
-            menu.Append(ID_getNewColour, 'Change colour...')
             menu.AppendMenu(ID_ANY, 'Change x-axis to...', xlabel1DMenu)
-            menu.Append(ID_save1DImageDoc, saveImageLabel)
-            menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-            menu.Append(ID_removeItemDocument, 'Delete item')
-        # 2D drift time   
-        elif any(itemType in type for type in ['2D drift time', 
-                                               'Processed 2D IM-MS',
-                                               'Extracted 2D IM-MS (multiple ions)',
-                                               'Combined CV 2D IM-MS (multiple ions)',
-                                               'Processed 2D IM-MS (multiple ions)',
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_save1DImageDoc,
+                                     text=saveImageLabel, 
+                                     bitmap=self.icons.iconsLib['file_png_16']))
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument,
+                                     text=saveCSVLabel, 
+                                     bitmap=self.icons.iconsLib['file_csv_16']))
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                         text='Delete item\tDelete', 
+                                         bitmap=self.icons.iconsLib['clear_16']))
+        # Drift time (2D)   
+        elif any(itemType in type for type in ['Drift time (2D)', 
+                                               'Drift time (2D, processed)',
+                                               'Drift time (2D, EIC)',
+                                               'Drift time (2D, combined voltages, EIC)',
+                                               'Drift time (2D, processed, EIC)',
                                                ]):
             # Only if clicked on an item and not header
-            if (self.itemType == '2D drift time'
-                or self.itemType == 'Processed 2D IM-MS'
-                or (self.itemType == 'Extracted 2D IM-MS (multiple ions)' and self.extractData != self.itemType)
-                or (self.itemType == 'Combined CV 2D IM-MS (multiple ions)' and self.extractData != self.itemType)
-                or (self.itemType == 'Processed 2D IM-MS (multiple ions)' and self.extractData != self.itemType)
+            if (self.itemType in ['Drift time (2D)', 'Drift time (2D, processed)']
+                or (self.itemType == 'Drift time (2D, EIC)' and self.extractData != self.itemType)
+                or (self.itemType == 'Drift time (2D, combined voltages, EIC)' and self.extractData != self.itemType)
+                or (self.itemType == 'Drift time (2D, processed, EIC)' and self.extractData != self.itemType)
                 ):
-                menu.Append(ID_showPlotDocument, 'Show\tAlt+S')
-                menu.Append(ID_process2DDocument, 'Process and plot\tAlt+P')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                             text='Show heatmap\tAlt+S', 
+                                             bitmap=self.icons.iconsLib['heatmap_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_process2D,
+                                             text='Process...\tP', 
+                                             bitmap=self.icons.iconsLib['process_2d_16']))
                 menu.AppendSeparator()
-                menu.Append(ID_assignChargeState, 'Assign a charge state...\tAlt+Z')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignChargeState,
+                                         text='Assign a charge state...\tAlt+Z', 
+                                         bitmap=self.icons.iconsLib['assign_charge_16']))
                 menu.AppendMenu(ID_ANY, 'Set X-axis label as...', xlabel2DMenu)
                 menu.AppendMenu(ID_ANY, 'Set Y-axis label as...', ylabel2DMenu)
+                
                 menu.Append(ID_add2CCStable2DDocument, 'Add to CCS calibration window')
                 menu.AppendSeparator()
-                menu.Append(ID_save2DImageDoc, saveImageLabel)
-                menu.AppendMenu(ID_ANY, 'Save as interactive .html...', bokehSaveMenu)
-                menu.Append(ID_saveDataCSVDocument1D, saveCSVLabel1D)
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel2D)         
-                menu.Append(ID_removeItemDocument, 'Delete item')
-#                 menu.AppendSeparator()
-#                 menu.Append(ID_renameItem, 'Rename\tAlt+R')
-                if not any(itemType in type for type in ['2D drift time', 
-                                                         'Processed 2D IM-MS']): 
-                           menu.Prepend(ID_showPlot1DDocument, 'Show 1D IM-MS plot')
-                           menu.Prepend(ID_showPlotRTDocument, 'Show RT plot')
-                           menu.Prepend(ID_showPlotMSDocument, "Zoom in on the ion\tAlt+X")
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_save2DImageDoc,
+                                         text=saveImageLabel, 
+                                         bitmap=self.icons.iconsLib['file_png_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument1D,
+                                         text=saveCSVLabel1D, 
+                                         bitmap=self.icons.iconsLib['file_csv_16']))         
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument,
+                                         text=saveCSVLabel2D, 
+                                         bitmap=self.icons.iconsLib['file_csv_16']))                
+#                 menu.AppendMenu(ID_ANY, 'Save as interactive .html...', bokehSaveMenu)         
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
+                if not any(itemType in type for type in ['Drift time (2D)', 
+                                                         'Drift time (2D, processed)']):
+                    menu.PrependItem(makeMenuItem(parent=menu, id=ID_showPlot1DDocument,
+                                              text='Show mobiligram', 
+                                              bitmap=self.icons.iconsLib['mobiligram_16']))
+                    menu.PrependItem(makeMenuItem(parent=menu, id=ID_showPlotRTDocument,
+                                              text='Show chromatogram', 
+                                              bitmap=self.icons.iconsLib['chromatogram_16']))
+                    menu.PrependItem(makeMenuItem(parent=menu, id=ID_showPlotMSDocument,
+                                              text='Highlight ion in mass spectrum\tAlt+X', 
+                                              bitmap=self.icons.iconsLib['zoom_16']))
             # Only if clicked on a header
             else:
-                menu.Append(ID_saveImageDocument, saveImageLabelAll)
-                menu.Append(ID_saveDataCSVDocument1D, saveCSVLabel1D)
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel2D)
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveImageDocument,
+                                         text=saveImageLabelAll, 
+                                         bitmap=self.icons.iconsLib['file_png_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument1D,
+                                         text=saveCSVLabel1D, 
+                                         bitmap=self.icons.iconsLib['file_csv_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument,
+                                         text=saveCSVLabel2D, 
+                                         bitmap=self.icons.iconsLib['file_csv_16']))          
                 menu.Append(ID_add2CCStable2DDocument, 'Add to CCS calibration window')
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
         # Input data
         elif self.itemType == 'Input data':
             if (self.itemType == 'Input data' and self.extractData != self.itemType):
-                menu.Append(ID_showPlotDocument, 'Show 2D IM-MS plot\tAlt+S')
-                menu.Append(ID_process2DDocument, 'Process and plot 2D IM-MS\tAlt+P')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                             text='Show heatmap\tAlt+S', 
+                                             bitmap=self.icons.iconsLib['heatmap_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_process2D,
+                                             text='Process...\tP', 
+                                             bitmap=self.icons.iconsLib['process_2d_16']))
                 menu.AppendSeparator()
                 menu.AppendMenu(ID_ANY, 'Set X-axis label as...', xlabel2DMenu)
                 menu.AppendMenu(ID_ANY, 'Set Y-axis label as...', ylabel2DMenu)
-                menu.Append(ID_save2DImageDoc, saveImageLabel)
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                menu.AppendItem(makeMenuItem(parent=menu, id=saveImageLabel,
+                                         text=ID_save2DImageDoc, 
+                                         bitmap=self.icons.iconsLib['file_png_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=saveCSVLabel,
+                                         text=ID_saveDataCSVDocument, 
+                                         bitmap=self.icons.iconsLib['file_csv_16']))     
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
             # Only if clicked on a header
             else:
-#                 menu.AppendSeparator()
-#                 menu.Append(ID_restoreComparisonData, "Restore to table")
-                menu.Append(ID_saveImageDocument, saveImageLabelAll)
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveImageDocument,
+                                         text=saveImageLabelAll, 
+                                         bitmap=self.icons.iconsLib['file_png_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument,
+                                         text=saveCSVLabel, 
+                                         bitmap=self.icons.iconsLib['file_csv_16']))     
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
         # Statistical method
         elif self.itemType == 'Statistical':
             # Only if clicked on an item and not header
             if self.extractData != self.itemType:
-                menu.Append(ID_showPlotDocument, 'Show\tAlt+S')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                             text='Show heatmap\tAlt+S', 
+                                             bitmap=self.icons.iconsLib['heatmap_16']))
                 menu.AppendSeparator()
-                if plotLabel[0] == 'RMSF': menu.Append(ID_saveRMSFImageDoc, saveImageLabel)
-                elif plotLabel[0] == 'RMSD Matrix': menu.Append(ID_saveRMSDmatrixImageDoc, saveImageLabel)
-                else: menu.Append(ID_save2DImageDoc, saveImageLabel)
+                if plotLabel[0] == 'RMSF': 
+                    menu.Append(ID_saveRMSFImageDoc, saveImageLabel)
+                elif plotLabel[0] == 'RMSD Matrix': 
+                    menu.Append(ID_saveRMSDmatrixImageDoc, saveImageLabel)
+                else: 
+                    menu.Append(ID_save2DImageDoc, saveImageLabel)
                 menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
                 menu.AppendSeparator()
                 menu.Append(ID_renameItem, 'Rename\tAlt+R')
             # Only if on a header
             else:
-                menu.Append(ID_saveImageDocument, saveImageLabelAll)
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)   
-                menu.Append(ID_removeItemDocument, 'Delete item')         
-        # 1D drift time (batch) 
-        elif itemType == 'Extracted 1D IM-MS (multiple ions)':
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveImageDocument,
+                                         text=saveImageLabelAll, 
+                                         bitmap=self.icons.iconsLib['file_png_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDataCSVDocument,
+                                         text=saveCSVLabel, 
+                                         bitmap=self.icons.iconsLib['file_csv_16']))   
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
+        # Drift time (1D) (batch) 
+        elif itemType in ['Drift time (1D, EIC, DT-IMS)', 'Drift time (1D, EIC)'] :
             # Only if clicked on an item and not header
-            if not self.extractData ==  'Extracted 1D IM-MS (multiple ions)':
-                menu.Append(ID_showPlotMSDocument, "Zoom in on the ion\tAlt+X")
-                menu.Append(ID_showPlotDocument, 'Show 1D IM-MS plot (selected ion)\tAlt+S')
+            if (not self.extractData ==  'Drift time (1D, EIC, DT-IMS)' and 
+                itemType != 'Drift time (1D, EIC)'):
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotMSDocument,
+                                             text='Highlight ion in mass spectrum\tAlt+X', 
+                                             bitmap=self.icons.iconsLib['zoom_16']))
+            if not self.extractData ==  'Drift time (1D, EIC, DT-IMS)':
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                             text='Show mobiligram (EIC)\tAlt+S', 
+                                             bitmap=self.icons.iconsLib['mobiligram_16']))       
                 menu.AppendSeparator()
                 menu.Append(ID_assignChargeState, 'Assign a charge state...\tAlt+Z')
                 menu.AppendSeparator()
                 menu.Append(ID_save1DImageDoc, saveImageLabel)
                 menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
             # Only if on a header
             else:
                 menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-                menu.Append(ID_removeItemDocument, 'Delete item')
-        elif itemType == 'Combined CV RT IM-MS (multiple ions)':
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
+        elif itemType == 'Chromatograms (combined voltages, EIC)':
             # Only if clicked on an item and not header
-            if not self.extractData ==  'Combined CV RT IM-MS (multiple ions)':
-                menu.Append(ID_showPlotDocument, 'Show RT plot\tAlt+S')
+            if not self.extractData ==  'Chromatograms (combined voltages, EIC)':
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                             text='Show chromatogram\tAlt+S', 
+                                             bitmap=self.icons.iconsLib['chromatogram_16']))
                 menu.AppendSeparator()
-                menu.Append(ID_getNewColour, 'Change colour...')
                 menu.Append(ID_assignChargeState, 'Assign a charge state...\tAlt+Z')
                 menu.AppendSeparator()
                 menu.Append(ID_saveRTImageDoc, saveImageLabel)
                 menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['bin16']))
             # Only if on a header
             else:
                 menu.Append(ID_saveDataCSVDocument, saveCSVLabel)    
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
         elif itemType == 'Calibration Parameters':
             menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
             menu.Append(ID_saveDataCCSCalibrantDocument, "Save CCS calibration to file")
@@ -875,44 +1161,202 @@ class documentsTree(wx.TreeCtrl):
         elif (itemType == 'Calibration peaks' or
               itemType == 'Calibrants'):
             if self.itemType != self.extractData:
-                menu.Append(ID_showPlotDocument, 'Show 1D IM-MS plot\tAlt+S')
+                menu.Append(ID_showPlotDocument, 'Show \tAlt+S')
                 menu.AppendSeparator()
-                menu.Append(ID_removeItemDocument, 'Delete item')
-        elif (itemType == 'Overlay'):
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))        
+        elif itemType == 'Overlay':
             if self.itemType != self.extractData:
-                menu.Append(ID_showPlotDocument, 'Show\tAlt+S')
+                if self.splitText[0] not in ['1D', 'RT']:
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                                 text='Show heatmap\tAlt+S', 
+                                                 bitmap=self.icons.iconsLib['overlay_2D_16']))
+                else: menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                                 text='Show\tAlt+S', bitmap=None))
                 # Depending which plot is being saved, different event ID is used
-                if plotLabel[0] == 'RMSF': menu.Append(ID_saveRMSFImageDoc, saveImageLabel)
-                elif plotLabel[0] == '1D': menu.Append(ID_save1DImageDoc, saveImageLabel)
-                elif plotLabel[0] == 'RT': menu.Append(ID_saveRTImageDoc, saveImageLabel)
-                elif plotLabel[0] == 'Mask' or plotLabel[0] == 'Transparent': 
+                if self.splitText[0] == 'RMSF': menu.Append(ID_saveRMSFImageDoc, saveImageLabel)
+                elif self.splitText[0] == '1D': menu.Append(ID_save1DImageDoc, saveImageLabel)
+                elif self.splitText[0] == 'RT': menu.Append(ID_saveRTImageDoc, saveImageLabel)
+                elif self.splitText[0] == 'Mask' or plotLabel[0] == 'Transparent': 
                     menu.Append(ID_saveOverlayImageDoc, saveImageLabel)
                 else: menu.Append(ID_save2DImageDoc, saveImageLabel)
-                menu.Append(ID_removeItemDocument, 'Delete item')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
                 menu.AppendSeparator()
                 menu.Append(ID_renameItem, 'Rename\tAlt+R')
             # Header only
             else:
                 menu.AppendSeparator()
                 menu.Append(ID_saveImageDocument, saveImageLabelAll)
-                menu.Append(ID_removeItemDocument, 'Delete item')
-        elif (itemType == 'MS vs DT'):
-            menu.Append(ID_showPlotDocument, 'Show\tAlt+S')
-            menu.Append(ID_process2DDocument, 'Process and plot\tAlt+P')
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
+                                             text='Delete item\tDelete', 
+                                             bitmap=self.icons.iconsLib['clear_16']))
+        elif (itemType == 'DT/MS'):
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                         text='Show heatmap\tAlt+S', 
+                                         bitmap=self.icons.iconsLib['heatmap_16']))
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_process2D,
+                                         text='Process...\tP', bitmap=self.icons.iconsLib['process_2d_16']))
+#             menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_extractDTMS,
+#                                          text='Re-extract data', bitmap=None))
+            
+            menu.AppendSeparator()
+            menu.AppendMenu(ID_ANY, 'Set Y-axis label as...', ylabelDTMSMenu)
             menu.AppendSeparator()
             menu.Append(ID_saveMZDTImage, saveImageLabel)
             menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
  
+        if self.indent not in [0, 1]:
+            menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_openDocInfo,
+                                     text='Notes, Information, Labels...\tCtrl+I', 
+                                     bitmap=self.icons.iconsLib['info16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_goToDirectory,
+                                     text='Go to folder...\tCtrl+G', 
+                                     bitmap=self.icons.iconsLib['folder_path_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveAsInteractive,
+                                     text='Open interactive output panel...\tShift+Z', 
+                                     bitmap=self.icons.iconsLib['bokehLogo_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveDocument,
+                                     text='Save document to file\tCtrl+P', 
+                                     bitmap=self.icons.iconsLib['pickle_16']))
         menu.AppendSeparator()
-        menu.Append(ID_openDocInfo, 'Notes, Information, Labels...\tCtrl+I')
-        menu.Append(ID_goToDirectory, 'Go to folder...\tCtrl+G')
-        menu.Append(ID_saveDocument, 'Save document to file\tCtrl+P')
-        menu.Append(ID_saveAsInteractive, 'Open interactive output panel... \tShift+Z')
-        menu.AppendSeparator()
-        menu.Append(ID_removeDocument, 'Delete document')
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeDocument,
+                                     text='Delete document\tDelete', 
+                                     bitmap=self.icons.iconsLib['bin16']))
         self.PopupMenu(menu) 
         menu.Destroy()
         self.SetFocus()
+   
+    def onCompareMS(self, evt):
+        if self.currentItem == None: 
+            return
+
+        if self.indent == 2:
+            data = self.itemData.multipleMassSpectrum
+            if len(data.keys()) < 2: 
+                print('You must have more than two mass spectra to compare MS')
+                return 
+            
+            self.selectComponentsDlg = panelCompareMS(self.parent, 
+                                                      self.presenter, 
+                                                      self.config, 
+                                                      self.icons,
+                                                      data.keys())
+            self.selectComponentsDlg.Show()
+            
+    def onProcess2D(self, evt):
+        if self.itemType in ['Drift time (2D)','Drift time (2D, processed)']:
+            dataset = self.itemType
+            ionName = ""
+        elif self.itemType in ['Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
+                               'Drift time (2D, processed, EIC)','Input data',
+                               'Statistical'] and self.indent > 2:
+            dataset = self.itemType
+            ionName = self.extractData
+        elif self.itemType == "DT/MS":
+            dataset = self.itemType
+            ionName = ""
+#         elif self.itemType in ['Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
+#                                'Drift time (2D, processed, EIC)','Input data',
+#                                'Statistical'] and self.indent == 2:
+#             dataset = self.itemType
+#             ionName = 'all'
+            
+        # create processing kwargs
+        pKwargs = {'document_2D':self.itemData.title, 
+                   'dataset_2D':dataset, 
+                   'ionName_2D':ionName,
+                   'update_mode':'2D'}
+        # call function
+        self.presenter.view.onProcessParameters(evt=ID_processSettings_2D,
+                                                **pKwargs)
+            
+    def onProcessMS(self, evt):
+        
+        pKwargs = {'document_MS':self.itemData.title,
+                   'dataset_MS':self.extractData,
+                   'ionName_MS':"",
+                   'update_mode':'MS'}
+        # call function
+        self.presenter.view.onProcessParameters(evt=ID_processSettings_MS,
+                                                **pKwargs)
+         
+    def onProcess(self, evt=None):
+        if self.itemData == None:
+            return
+        
+        if self.itemType == 'Mass Spectrum': pass
+        elif any(self.itemType in itemType for itemType in ['Drift time (2D)', 'Drift time (2D, processed)',
+                                                            'Drift time (2D, EIC)',
+                                                            'Drift time (2D, combined voltages, EIC)',
+                                                            'Drift time (2D, processed, EIC)',
+                                                            'Input data', 'Statistical']):
+            self.presenter.process2Ddata2()
+            self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+
+        elif self.itemType == 'DT/MS':
+            self.presenter.process2Ddata2(mode='MSDT')
+            self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
+            
+    def updateComparisonMS(self, evt):
+        
+        # get data
+        data = self.itemData.multipleMassSpectrum
+        
+        if len(self.config.compare_massSpectrum) < 2: 
+            return 
+        try:
+            msX = data[self.config.compare_massSpectrum[0]]['xvals']
+            msY_1 = data[self.config.compare_massSpectrum[0]]['yvals']
+            msY_2 = data[self.config.compare_massSpectrum[1]]['yvals']
+        except KeyError:
+            dialogs.dlgBox(exceptionTitle="Incorrect data", 
+                           exceptionMsg= "Could not find requested dataset. Try resellecting the document in the Documents Panel or opening this dialog again.",
+                           type="Error")
+            return
+        
+        
+        if len(msX) != len(msY_1) or  len(msX) != len(msY_2) or len(msY_1) != len(msY_2):
+            msg = "Mass spectra are not of the same size. X-axis: %s Y-axis (1): %s | Y-axis (2): %s" % (len(msX), len(msY_1), len(msY_2))
+            args = (msg, 4, 5)            
+            self.presenter.onThreading(None, args, action='updateStatusbar')
+            dialogs.dlgBox(exceptionTitle="Incorrect size", 
+                           exceptionMsg= msg,
+                           type="Error")
+            return
+    
+        # Pre-process
+        if self.config.compare_massSpectrumParams['preprocess']:
+            msY_1 = self.presenter.processMSdata(msY=msY_1, return_data=True)
+            msY_2 = self.presenter.processMSdata(msY=msY_2, return_data=True)
+                
+        # Normalize 1D data
+        if self.config.compare_massSpectrumParams['normalize']:
+            msY_1 = normalize1D(inputData=msY_1)
+            msY_2 = normalize1D(inputData=msY_2)
+        
+        if self.config.compare_massSpectrumParams['subtract']:
+            # If normalizing, there should be no issues in signal intensity
+            if self.config.compare_massSpectrumParams['normalize']:
+                self.config.compare_massSpectrumParams['subtract'] = False
+                msY_1, msY_2 = subtractMS(msY_1, msY_2)
+                self.presenter.plot_compareMS(msX=msX, 
+                                              msY_1=msY_1, 
+                                              msY_2=msY_2, 
+                                              xlimits=None)
+            # Sometimes, it is necessary to plot the MS as ordinary 1 color plots
+            else:
+                msY = msY_1 - msY_2
+                self.presenter.plot_compareMS(msX=msX, msY=msY, 
+                                              msY_1=msY_1, msY_2=msY_2)
+        else:        
+            self.presenter.plot_compareMS(msX=msX,
+                                          msY_1=msY_1, 
+                                          msY_2=msY_2, 
+                                          xlimits=None)
    
     def onShow_and_SavePlot(self, evt):
         """
@@ -931,21 +1375,21 @@ class documentsTree(wx.TreeCtrl):
             return
         
         if self.itemType == 'Statistical' and self.extractData != 'Statistical': 
-            splitter = '__'
+            splitter = ':'
             pass
         elif self.itemType == 'Overlay' and self.extractData != 'Overlay': 
-            splitter = '__'
+            splitter = ':'
             pass
-#         elif (self.itemType == 'Extracted 2D IM-MS (multiple ions)' and 
-#               self.extractData != 'Extracted 2D IM-MS (multiple ions)'): 
+#         elif (self.itemType == 'Drift time (2D, EIC)' and 
+#               self.extractData != 'Drift time (2D, EIC)'): 
 #             pass
         else: return
         
         self.oldName = self.extractData
         self.newName = None
-        name = self.extractData.split('__')
+        name = self.extractData.split(':')
             
-        self.renameNote = ''.join(['The new label will be prepended with the "', name[0], '__" label'])
+        self.renameNote = ''.join(['The new label will be prepended with the "', name[0], ': " label'])
         
         self.renameDlg = panelRenameItem(self, self.presenter, self.title)
         self.renameDlg.ShowModal()
@@ -956,7 +1400,7 @@ class documentsTree(wx.TreeCtrl):
             print('Incorrect name')
         else:
             # Actual new name, prepended
-            self.newName = ''.join([name[0],'__',self.newName])
+            self.newName = ''.join([name[0],':',self.newName])
             if self.itemType == 'Statistical':
                 # Change document tree
                 docItem = self.getItemByData(self.presenter.documentsDict[self.title].IMS2DstatsData[self.extractData])
@@ -974,7 +1418,7 @@ class documentsTree(wx.TreeCtrl):
                 self.presenter.documentsDict[self.title].IMS2DoverlayData[self.newName] = self.presenter.documentsDict[self.title].IMS2DoverlayData.pop(self.extractData)
                 self.Expand(docItem)
                 
-#             elif self.itemType == 'Extracted 2D IM-MS (multiple ions)':
+#             elif self.itemType == 'Drift time (2D, EIC)':
 #                 # Change document tree
 #                 docItem = self.getItemByData(self.presenter.documentsDict[self.title].IMS2Dions[self.extractData])
 #                 parent = self.GetItemParent(docItem)
@@ -991,38 +1435,29 @@ class documentsTree(wx.TreeCtrl):
         Go to selected directory
         '''
         self.presenter.openDirectory()
-    
-    def onProcess(self, evt=None):
-        if self.itemData == None:
-            return
-        
-        if self.itemType == 'Mass Spectrum': pass
-        elif any(self.itemType in itemType for itemType in ['2D drift time',
-                                                            'Processed 2D IM-MS',
-                                                            'Extracted 2D IM-MS (multiple ions)',
-                                                            'Combined CV 2D IM-MS (multiple ions)',
-                                                            'Processed 2D IM-MS (multiple ions)',
-                                                            'Input data', 
-                                                            'Statistical']):
-            self.presenter.process2Ddata2()
-            self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
-
-        elif self.itemType == 'MS vs DT':
-            self.presenter.process2Ddata2(mode='MSDT')
-            self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
-                        
-    def onShowPlot(self, evt=None):
+         
+    def onShowPlot(self, evt, data_type=None):
         """ This will send data, plot and change window"""
         if self.itemData == None:
             return
         
+        if not evt and data_type:
+            pass
+        elif isinstance(evt, int):
+            evtID = evt
+        elif evt == None:
+            evtID = None
+        else:
+            evtID = evt.GetId()
+            
         self.presenter.currentDoc = self.itemData.title
+
         #=======================================================================
         #  MASS SPECTRUM
         #=======================================================================
-        if any(self.itemType in itemType for itemType in ['Mass Spectrum',
+        if any(self.itemType in itemType for itemType in ['Mass Spectrum', 
                                                           'Mass Spectra',
-                                                          'Smoothed Mass Spectrum']):
+                                                          'Mass Spectrum (processed)']):
             # Select dataset
             if self.extractData == 'Mass Spectra': return
             data = self.GetPyData(self.currentItem)
@@ -1030,31 +1465,34 @@ class documentsTree(wx.TreeCtrl):
                 msX = data['xvals']
                 msY = data['yvals']
             except TypeError: return
-            
+
             try: xlimits = data['xlimits']
             except KeyError: 
-                xlimits = [self.itemData.parameters['startMS'], self.itemData.parameters['endMS']]
-            color = self.itemData.lineColour
-            style = self.itemData.style
+                xlimits = [self.itemData.parameters['startMS'], 
+                           self.itemData.parameters['endMS']]
+            # plot
             if self.itemData.dataType != 'Type: CALIBRANT':
-                self.presenter.onPlotMS2(msX, msY, color, style, xlimits=xlimits)
+                self.presenter.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits)
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MS'])
             else:
-                self.presenter.onPlotMSDTCalibration(msX=msX, msY=msY, color=color, xlimits=xlimits,
-                                                     plotType='MS')
+                self.presenter.onPlotMSDTCalibration(msX=msX, msY=msY, xlimits=xlimits, plotType='MS')
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Calibration'])
         #=======================================================================
         # 1D IM-MS
         #=======================================================================
-        elif any(self.itemType in itemType for itemType in ['1D drift time',
-                                                            'Extracted 1D IM-MS (multiple ions)',
+        elif any(self.itemType in itemType for itemType in ['Drift time (1D)',
+                                                            'Drift time (1D, EIC, DT-IMS)',
+                                                            'Drift time (1D, EIC)',
                                                             'Calibration peaks',
                                                             'Calibrants']):
-            if self.itemType == '1D drift time':
+            if self.itemType == 'Drift time (1D)':
                 data = self.itemData.DT
-            elif self.itemType == 'Extracted 1D IM-MS (multiple ions)':
-                if self.extractData == 'Extracted 1D IM-MS (multiple ions)': return
+            elif self.itemType == 'Drift time (1D, EIC, DT-IMS)':
+                if self.extractData == 'Drift time (1D, EIC, DT-IMS)': return
                 data = self.itemData.IMS1DdriftTimes[self.extractData]
+            elif self.itemType == 'Drift time (1D, EIC)':
+                if self.extractData == 'Drift time (1D, EIC)': return
+                data = self.itemData.multipleDT[self.extractData]
             elif self.itemType == 'Calibration peaks':
                 if self.extractData == 'Calibration peaks': return
                 data = self.itemData.calibration[self.extractData]
@@ -1064,12 +1502,9 @@ class documentsTree(wx.TreeCtrl):
             
             # Check to see if we should zoom-in on MS peak
             # triggered when clicked on the 1D plot but asking for the MS
-            if evt == None: pass
-            elif evt.GetId() == ID_showPlotMSDocument and self.itemType == 'Extracted 1D IM-MS (multiple ions)': 
+            if evtID == ID_showPlotMSDocument and self.itemType == 'Drift time (1D, EIC, DT-IMS)': 
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MS'])
-#                 out = self.extractData.split('-')
-#                 print(out)
-                out = re.split('-| |,|', self.extractData)
+                out = re.split('-|,|', self.extractData)
                 startX = str2num(out[0])-self.config.zoomWindowX
                 endX = str2num(out[1])+self.config.zoomWindowX
                 endY = 1.02
@@ -1079,7 +1514,8 @@ class documentsTree(wx.TreeCtrl):
                     endY = ((self.config.zoomWindowY + data['xylimits'][2])/100)
                 except KeyError: pass
                 self.presenter.onZoomMS(startX=startX,endX=endX, endY=endY)
-                return            
+                return
+            # extract x/y axis values
             dtX = data['xvals']
             dtY = data['yvals']
             if len(dtY) >= 1:
@@ -1090,7 +1526,7 @@ class documentsTree(wx.TreeCtrl):
             color = self.itemData.lineColour
             style = self.itemData.style
             if self.itemData.dataType != 'Type: CALIBRANT':
-                self.presenter.onPlot1DIMS2(dtX, dtY, xlabel, color, style)
+                self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, color, style)
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['1D'])
             else:
                 self.presenter.onPlotMSDTCalibration(dtX=dtX, dtY=dtY, color=color,
@@ -1103,100 +1539,90 @@ class documentsTree(wx.TreeCtrl):
                                            plot='CalibrationDT')
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Calibration'])
         #=======================================================================
-        #  RETENTION TIME
+        #  Chromatogram
         #=======================================================================
-        elif any(self.itemType in itemType for itemType in ['Retention Time',
-                                                            'Combined CV RT IM-MS (multiple ions)']):
+        elif any(self.itemType in itemType for itemType in ['Chromatogram',
+                                                            'Chromatograms (EIC)',
+                                                            'Chromatograms (combined voltages, EIC)']):
             # Select dataset
-            if self.itemType == 'Retention Time':
-                data = self.itemData.RT
-            elif self.itemType == 'Combined CV RT IM-MS (multiple ions)':
-                if self.extractData == 'Combined CV RT IM-MS (multiple ions)': return
-                data = self.itemData.IMSRTCombIons[self.extractData]
-            # Unpack data    
+            if self.itemType == 'Chromatogram':
+                data = self.GetPyData(self.currentItem)
+            elif self.itemType == 'Chromatograms (combined voltages, EIC)':
+                if self.extractData == 'Chromatograms (combined voltages, EIC)': return
+                data = self.GetPyData(self.currentItem)
+            elif self.itemType == 'Chromatograms (EIC)':
+                if self.extractData == 'Chromatograms (EIC)': return
+                data = self.GetPyData(self.currentItem)
+            # Unpack data
             rtX = data['xvals']
             rtY = data['yvals']
             xlabel = data['xlabels']
-            color = self.itemData.lineColour
-            style = self.itemData.style
             # Change panel and plot 
-            self.presenter.onPlotRT2(rtX, rtY, xlabel, color, style)
+            self.presenter.view.panelPlots.on_plot_RT(rtX, rtY, xlabel)
             self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['RT'])
         #=======================================================================
         #  2D IM-MS
         #=======================================================================
-        elif any(self.itemType in itemType for itemType in ['2D drift time',
-                                                            'Processed 2D IM-MS',
-                                                            'Extracted 2D IM-MS (multiple ions)',
-                                                            'Combined CV 2D IM-MS (multiple ions)',
-                                                            'Processed 2D IM-MS (multiple ions)',
+        elif any(self.itemType in itemType for itemType in ['Drift time (2D)', 
+                                                            'Drift time (2D, processed)',
+                                                            'Drift time (2D, EIC)',
+                                                            'Drift time (2D, combined voltages, EIC)',
+                                                            'Drift time (2D, processed, EIC)',
                                                             'Input data']):
-            # Select dataset
-            if self.itemType == '2D drift time':
-                data = self.itemData.IMS2D
-            elif self.itemType == 'Processed 2D IM-MS':
-                data = self.itemData.IMS2Dprocess
-            elif self.itemType == 'Extracted 2D IM-MS (multiple ions)':
-                if self.extractData == 'Extracted 2D IM-MS (multiple ions)': return
-                data = self.itemData.IMS2Dions[self.extractData]
-            elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)':
-                if self.extractData == 'Combined CV 2D IM-MS (multiple ions)': return
-                data = self.itemData.IMS2DCombIons[self.extractData]
-            elif self.itemType == 'Processed 2D IM-MS (multiple ions)':
-                if self.extractData == 'Processed 2D IM-MS (multiple ions)': return
-                data = self.itemData.IMS2DionsProcess[self.extractData]
+            # check appropriate data is selected
+            if self.itemType == 'Drift time (2D, EIC)':
+                if self.extractData == 'Drift time (2D, EIC)': return
+            elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
+                if self.extractData == 'Drift time (2D, combined voltages, EIC)': return
+            elif self.itemType == 'Drift time (2D, processed, EIC)':
+                if self.extractData == 'Drift time (2D, processed, EIC)': return
             elif self.itemType == 'Input data':
                 if self.extractData == 'Input data': return
-                data = self.itemData.IMS2DcompData[self.extractData]
             elif self.itemType == 'Statistical':
                 if self.extractData == 'Statistical': return
-                data = self.itemData.IMS2DstatsData[self.extractData]
+            elif self.itemType in ['Drift time (2D)', 
+                                   'Drift time (2D, processed)']: pass
             else:
                 msg = 'No data found'
                 self.presenter.view.SetStatusText(msg, 3)
                 return
-            if evt == None: pass
-            elif evt.GetId() == ID_showPlotMSDocument:
-                out = self.extractData.split('-')
+            
+            # get data for selected item
+            data = self.GetPyData(self.currentItem)
+            if evtID == ID_showPlotMSDocument:
+                out = re.split('-|,| ', self.extractData)
                 try:
-                    startX = str2num(out[0])-10
-                    endX = str2num(out[1])+10
+                    startX = str2num(out[0])-self.config.zoomWindowX
+                    endX = str2num(out[1])+self.config.zoomWindowX
                 except TypeError:
                     return          
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MS'])
                 endY = 1.05
                 try:
-                    startX = (data['xylimits'][0]-10)
-                    endX = (data['xylimits'][1]+10)
+                    startX = (data['xylimits'][0]-self.config.zoomWindowX)
+                    endX = (data['xylimits'][1]+self.config.zoomWindowX)
                     endY = (data['xylimits'][2]/100)
                 except KeyError: pass
                 self.presenter.onZoomMS(startX=startX,endX=endX, endY=endY)
                 return
-            elif evt.GetId() == ID_showPlot1DDocument: 
-                xvals = data['yvals'] # normally this would be the y-axis
-                yvals = data['yvals1D']
-                xlabels = data['ylabels'] # data was rotated so using ylabel for xlabel
-                lineColour = self.itemData.lineColour
-                style = self.itemData.style
-                self.presenter.onPlot1DIMS2(xvals, yvals, xlabels, lineColour, style)
+            elif evtID == ID_showPlot1DDocument: 
+                self.presenter.onPlot1DIMS2(data['yvals'], # normally this would be the y-axis
+                                            data['yvals1D'], 
+                                            data['ylabels']) # data was rotated so using ylabel for xlabel
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['1D'])
                 return
-            elif evt.GetId() == ID_showPlotRTDocument: 
-                xvals = data['xvals']
-                yvals = data['yvalsRT']
-                xlabels = data['xlabels']
-                lineColour = self.itemData.lineColour
-                style = self.itemData.style
-                self.presenter.onPlotRT2(xvals, yvals, xlabels, lineColour, style)
+            elif evtID == ID_showPlotRTDocument: 
+                self.presenter.onPlotRT2(data['xvals'], 
+                                         data['yvalsRT'], 
+                                         data['xlabels'])
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['RT'])
                 return
             else: pass
             # Unpack data
-            dataOut = self.presenter.get2DdataFromDictionary(dictionary=data,
-                                                             dataType='plot',
-                                                             compact=True)
+            if len(data) == 0: return
+            dataOut = self.presenter.get2DdataFromDictionary(dictionary=data, dataType='plot', compact=True)
             # Change panel and plot data
-            self.presenter.plot2Ddata2(data=dataOut)
+            self.presenter.view.panelPlots.on_plot_2D_data(data=dataOut)
             self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
         #=======================================================================
         #  OVERLAY PLOTS
@@ -1204,10 +1630,10 @@ class documentsTree(wx.TreeCtrl):
         elif self.itemType == 'Overlay':
             if self.extractData == 'Overlay': return
             # Determine type
-            out = self.extractData.split('__')
+            out = re.split('-|,|__|:', self.extractData)
             data = self.itemData.IMS2DoverlayData[self.extractData]
             if (out[0] == 'Mask'  or out[0] == 'Transparent'):                
-                zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, xvals, yvals, xlabels, ylabels = self.presenter.getOverlayDataFromDictionary(dictionary=data,
+                zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, __, __, xvals, yvals, xlabels, ylabels = self.presenter.getOverlayDataFromDictionary(dictionary=data,
                                                                                                                                            dataType='plot',
                                                                                                                                            compact=False)
                 if out[0] == 'Mask': 
@@ -1231,40 +1657,49 @@ class documentsTree(wx.TreeCtrl):
                 zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                                                               plotType='RMSF',
                                                                                                                               compact=True)
-                self.presenter.onPlotRMSDF(yvalsRMSF=yvalsRMSF, 
-                                           zvals=zvals, 
-                                           xvals=xvals, 
-                                           yvals=yvals, 
-                                           xlabelRMSD=xlabelRMSD, 
-                                           ylabelRMSD=ylabelRMSD,
-                                           ylabelRMSF=ylabelRMSF,
-                                           color=color, 
-                                           cmap=cmap, 
-                                           plotType="RMSD")
+                self.presenter.view.panelPlots.on_plot_RMSDF(yvalsRMSF=yvalsRMSF, 
+                                                             zvals=zvals, 
+                                                             xvals=xvals, 
+                                                             yvals=yvals, 
+                                                             xlabelRMSD=xlabelRMSD, 
+                                                             ylabelRMSD=ylabelRMSD,
+                                                             ylabelRMSF=ylabelRMSF,
+                                                             color=color, 
+                                                             cmap=cmap, 
+                                                             plotType="RMSD")
                 # Add RMSD label
-                rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xvals,
-                                                                            ylist=yvals)
+                rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xvals, ylist=yvals)
                 if rmsdXpos != None and rmsdYpos != None:
                     self.presenter.addTextRMSD(rmsdXpos,rmsdYpos, rmsdLabel, 0, plot='RMSF')
                     
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['RMSF'])
+            
+            elif out[0] == 'RGB':
+                data = self.GetPyData(self.currentItem)
+                rgb_plot, xAxisLabels, xlabel, yAxisLabels, ylabel, __ = \
+                self.presenter.get2DdataFromDictionary(dictionary=data, plotType='2D', compact=False)
+                legend_text = data['legend_text']
+                
+                self.presenter.plot2D_rgb(rgb_plot, xAxisLabels, yAxisLabels, xlabel,
+                                          ylabel, legend_text, evt=None)
+                self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
                 
             elif out[0] == 'RMSD': 
                 zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, rmsdLabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
-                                                                                                                plotType='RMSD',
-                                                                                                                compact=True)
-                self.presenter.onPlot2DIMS2(zvals, xaxisLabels, yaxisLabels, xlabel, ylabel, 
-                                  cmap, plotType="RMSD")
+                                                                                                                          plotType='RMSD',
+                                                                                                                          compact=True)
+                self.presenter.view.panelPlots.on_plot_RMSD(zvals, xaxisLabels, yaxisLabels, xlabel, ylabel, 
+                                                             cmap, plotType="RMSD")
                 self.presenter.onPlot3DIMS(zvals=zvals, labelsX=xaxisLabels, labelsY=yaxisLabels, 
-                                 xlabel=xlabel, ylabel=ylabel, zlabel='Intensity', 
-                                 cmap=cmap)
+                                           xlabel=xlabel, ylabel=ylabel, zlabel='Intensity', 
+                                           cmap=cmap)
                 # Add RMSD label
                 rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xaxisLabels,
                                                                             ylist=yaxisLabels)
                 if rmsdXpos != None and rmsdYpos != None:
                     self.presenter.addTextRMSD(rmsdXpos,rmsdYpos, rmsdLabel, 0, plot='RMSD')
                     
-                self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+                self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['RMSF'])
             # Overlayed 1D data
             elif out[0] == '1D' or out[0] == 'RT': 
                 xvals, yvals, xlabels, colors, labels, xlimits = self.presenter.get2DdataFromDictionary(dictionary=data,
@@ -1283,7 +1718,7 @@ class documentsTree(wx.TreeCtrl):
         elif self.itemType == 'Statistical':
             if self.extractData == 'Statistical': 
                 return
-            out = self.extractData.split('__')
+            out = self.extractData.split(':')
             data = self.itemData.IMS2DstatsData[self.extractData]
             # Variance, Mean, Std Dev are of the same format
             if (out[0] == 'Variance' 
@@ -1301,24 +1736,67 @@ class documentsTree(wx.TreeCtrl):
                 zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                plotType='Matrix',
                                                                                compact=False)
-                self.presenter.onPlotRMSDmatrix(zvals=zvals, xylabels=yxlabels,cmap=cmap)
+                self.presenter.view.panelPlots.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap)
                 self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Comparison'])
-        elif self.itemType == 'MS vs DT':
+        elif self.itemType == 'DT/MS' or evtID in [ID_ylabelDTMSbins, ID_ylabelDTMSms, ID_ylabelDTMSrestore]:
             data = self.GetPyData(self.currentItem)
-            zvals = data['zvals']
-            xvals = data['xvals']
-            yvals = data['yvals']
-            xlabels = data['xlabels']
-            ylabels = data['ylabels']
-            cmap = data['cmap']
-            self.presenter.onPlotMZDT(zvals,xvals,yvals,xlabels,ylabels,
-                                       cmap)
+            self.presenter.onPlotMZDT(data['zvals'], data['xvals'], data['yvals'], 
+                                      data['xlabels'], data['ylabels'])
             self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
-        else: return
+        else: 
+            return
+
+    def onSaveDF(self, evt):
         
-#         if evt != None:
-#             evt.Skip()
-   
+        print('Saving dataframe...')
+        tstart = time.time()
+        
+        if self.itemType == 'Mass Spectra' and self.extractData == 'Mass Spectra':
+            dataframe = self.itemData.massSpectraSave
+            if len(self.itemData.massSpectraSave) == 0:
+                msFilenames = ["m/z"]
+                for i, key in enumerate(self.itemData.multipleMassSpectrum):
+                    msY = self.itemData.multipleMassSpectrum[key]['yvals']
+                    if self.config.normalizeMultipleMS:
+                        msY = msY/max(msY)
+                    msFilenames.append(key)
+                    if i == 0:
+                        tempArray = msY
+                    else:
+                        tempArray = np.concatenate((tempArray, msY), axis=0)
+                try:
+                    # Form pandas dataframe
+                    msX = self.itemData.multipleMassSpectrum[key]['xvals']
+                    combMSOut = np.concatenate((msX, tempArray), axis=0)
+                    combMSOut = combMSOut.reshape((len(msY), int(i+2)), order='F') 
+                    dataframe = pd.DataFrame(data=combMSOut, columns=msFilenames)
+                except: self.presenter.view.SetStatusText('Mass spectra are not of the same size. Please export each item separately', 3)
+            try:
+                # Save data
+                if evt.GetId() == ID_saveData_csv:
+                    filename = self.presenter.getImageFilename(defaultValue='MS_multiple', withPath=True, extension=self.config.saveExtension)
+                    if filename is None: return
+                    dataframe.to_csv(path_or_buf=filename, 
+                                     sep=self.config.saveDelimiter,
+                                     header=True, index=True)
+                elif evt.GetId() == ID_saveData_pickle:
+                    filename = self.presenter.getImageFilename(defaultValue='MS_multiple', withPath=True, extension='.pickle')
+                    if filename is None: return
+                    dataframe.to_pickle(path=filename, protocol=2)
+                elif evt.GetId() == ID_saveData_excel:
+                    filename = self.presenter.getImageFilename(defaultValue='MS_multiple', withPath=True, extension='.xlsx')
+                    if filename is None: return
+                    dataframe.to_excel(excel_writer=filename, sheet_name='data')
+                elif evt.GetId() == ID_saveData_hdf:
+                    filename = self.presenter.getImageFilename(defaultValue='MS_multiple', withPath=True, extension='.h5')
+                    if filename is None: return
+                    dataframe.to_hdf(path_or_buf=filename, key='data')
+                
+                print('Dataframe was saved in %s. It took: %s s.' % (filename, str(np.round(time.time()-tstart, 4))))
+            except AttributeError:
+                args = ("This document does not have correctly formatted MS data. Please export each item separately", 4) 
+                self.presenter.onThreading(None, args, action='updateStatusbar')
+
     def onSaveCSV(self, evt):
         """
         This function extracts the 1D or 2D data and saves it in a CSV format
@@ -1328,20 +1806,19 @@ class documentsTree(wx.TreeCtrl):
         
         saveFileName = None
         # Save MS - single
-        if (self.itemType == 'Mass Spectrum' or self.itemType == 'Smoothed Mass Spectrum' or
-            self.itemType == 'Mass Spectra' and self.extractData != self.itemType):
+        if (self.itemType == 'Mass Spectrum' or self.itemType == 'Mass Spectrum (processed)' or
+            self.itemType == 'Mass Spectra' and self. extractData != self.itemType):
             # Default name
             defaultValue = 'MSout'
             # Saves MS to file. Automatically removes values with 0s from the array
             # Get data
             if self.itemType == 'Mass Spectrum':
                 data = self.itemData.massSpectrum
-            elif self.itemType == 'Smoothed Mass Spectrum':
+            elif self.itemType == 'Mass Spectrum (processed)':
                 data = self.itemData.smoothMS
             elif self.itemType == 'Mass Spectra' and self.extractData != self.itemType:
                 data = self.itemData.multipleMassSpectrum[self.extractData]
                 defaultValue = ''.join(['MS_',self.extractData])
-#                 defaultValue = defaultValue.replace(" ", "")
                 defaultValue = defaultValue.replace(":", "")
                 
 
@@ -1373,24 +1850,11 @@ class documentsTree(wx.TreeCtrl):
 #             if evt.GetId() == ID_saveDataCSVDocument:
                 saveFileName = self.presenter.getImageFilename(defaultValue='MSout_multiple',
                                                                withPath=True)
-                if saveFileName is None: return
-#                 if saveFileName =='' or saveFileName == None: 
-#                     saveFileName = 'MSout_multiple'
-                    
-#             fileType = "Text file|*%s" % self.config.saveExtension
-#             saveFileName = 'MSout_multiple'
-#             dlg =  wx.FileDialog(self.presenter.view, "Save data to file...", "", "", fileType,
-#                                     wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-#             defaultFilename = self.itemData.title.split(".")
-#             dlg.SetFilename(defaultFilename[0])
-# #             filename = ''.join([self.itemData.path, '\\', saveFileName, self.config.saveExtension])
-#             if dlg.ShowModal() == wx.ID_OK:
-#                 filename = dlg.GetPath()
+                if saveFileName is None: return     
                 df = self.itemData.massSpectraSave
                 if len(self.itemData.massSpectraSave) == 0:
                     msFilenames = ["m/z"]
                     for i, key in enumerate(self.itemData.multipleMassSpectrum):
-                        norm = True
                         msY = self.itemData.multipleMassSpectrum[key]['yvals']
                         if self.config.normalizeMultipleMS:
                             msY = msY/max(msY)
@@ -1406,7 +1870,6 @@ class documentsTree(wx.TreeCtrl):
                         combMSOut = combMSOut.reshape((len(msY), int(i+2)), order='F') 
                         df = pd.DataFrame(data=combMSOut, columns=msFilenames)
                     except: self.presenter.view.SetStatusText('Mass spectra are not of the same size. Please export each item separately', 3)
-                
                 try:
                     df.to_csv(path_or_buf=saveFileName, sep=self.config.saveDelimiter, index=False)
                 except AttributeError:
@@ -1426,7 +1889,7 @@ class documentsTree(wx.TreeCtrl):
             df.to_csv(path_or_buf=filename, sep=self.config.saveDelimiter)
             
         # Save RT - single
-        elif self.itemType == 'Retention Time':
+        elif self.itemType == 'Chromatogram':
             if evt.GetId() == ID_saveDataCSVDocument:
                 saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, 
                                                                defaultValue='RTout')
@@ -1445,7 +1908,7 @@ class documentsTree(wx.TreeCtrl):
                        header=self.config.saveDelimiter.join([xlabel,'Intensity']))
             
         # Save 1D - single
-        elif self.itemType == '1D drift time':
+        elif self.itemType == 'Drift time (1D)':
             if evt.GetId() == ID_saveDataCSVDocument:
                 saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, 
                                                                defaultValue='DT_1Dout')
@@ -1463,14 +1926,14 @@ class documentsTree(wx.TreeCtrl):
                        header=self.config.saveDelimiter.join([ylabel,'Intensity']))
             
         # Save RT (combined voltages) - batch + single
-        elif self.itemType == 'Combined CV RT IM-MS (multiple ions)':
+        elif self.itemType == 'Chromatograms (combined voltages, EIC)':
             if evt.GetId() == ID_saveDataCSVDocument:
                 saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, 
                                                                defaultValue='RTout_')
                 if saveFileName =='' or saveFileName == None: 
                     saveFileName = 'RTout_'
             # Batch mode
-            if self.extractData == 'Combined CV RT IM-MS (multiple ions)':
+            if self.extractData == 'Chromatograms (combined voltages, EIC)':
                 for key in self.itemData.IMSRTCombIons:
                     filename = ''.join([self.itemData.path,'\\', saveFileName,key, self.config.saveExtension])
                     rtX = self.itemData.IMSRTCombIons[key]['xvals']
@@ -1494,14 +1957,14 @@ class documentsTree(wx.TreeCtrl):
                            header=self.config.saveDelimiter.join([xlabel,'Intensity']))     
                    
         # Save 1D - batch + single
-        elif self.itemType == 'Extracted 1D IM-MS (multiple ions)':
+        elif self.itemType == 'Drift time (1D, EIC, DT-IMS)':
             if evt.GetId() == ID_saveDataCSVDocument:
                 saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, 
                                                                defaultValue='DT_1D_')
                 if saveFileName =='' or saveFileName == None: 
                     saveFileName = 'DT_1D_'
             # Batch mode
-            if self.extractData == 'Extracted 1D IM-MS (multiple ions)': 
+            if self.extractData == 'Drift time (1D, EIC, DT-IMS)': 
                 for key in self.itemData.IMS1DdriftTimes:
                     if self.itemData.dataType == 'Type: MANUAL':
                         name = re.split(', File: |.raw', key)
@@ -1555,7 +2018,7 @@ class documentsTree(wx.TreeCtrl):
                                         self.config.saveExtension])
                     zvals = self.itemData.IMS1DdriftTimes[self.extractData]['yvals']
                     yvals = self.itemData.IMS1DdriftTimes[self.extractData]['xvals']
-                    xvals = np.asarray(self.itemData.IMS1DdriftTimes[self.extractData]['driftVoltage'])                
+                    xvals = np.asarray(self.itemData.IMS1DdriftTimes[self.extractData].get('driftVoltage', " "))   
                     # Y-axis labels need a value for [0,0]
                     yvals = np.insert(yvals, 0, 0) # array, index, value
                     # Combine x-axis with data
@@ -1566,8 +2029,8 @@ class documentsTree(wx.TreeCtrl):
                                format='%.2f',
                                delimiter=self.config.saveDelimiter,
                                header="")
-                
-        elif self.itemType == 'MS vs DT':
+        # Save DT/MS
+        elif self.itemType == 'DT/MS':
             data = self.GetPyData(self.currentItem)
             zvals = data['zvals']
             xvals = data['xvals']
@@ -1593,17 +2056,16 @@ class documentsTree(wx.TreeCtrl):
                            header="")                
 
         # Save 1D/2D - batch + single
-        elif any(self.itemType in itemType for itemType in ['2D drift time',
-                                                            'Processed 2D IM-MS',
-                                                            'Extracted 2D IM-MS (multiple ions)',
-                                                            'Combined CV 2D IM-MS (multiple ions)',
-                                                            'Processed 2D IM-MS (multiple ions)',
+        elif any(self.itemType in itemType for itemType in ['Drift time (2D)',
+                                                            'Drift time (2D, processed)',
+                                                            'Drift time (2D, EIC)',
+                                                            'Drift time (2D, combined voltages, EIC)',
+                                                            'Drift time (2D, processed, EIC)',
                                                             'Input data', 
                                                             'Statistical']):
-            
             # Select dataset
-            if self.itemType == '2D drift time' or self.itemType == 'Processed 2D IM-MS':
-                if self.itemType == '2D drift time':
+            if self.itemType in ['Drift time (2D)', 'Drift time (2D, processed)']:
+                if self.itemType == 'Drift time (2D)':
                     data = self.itemData.IMS2D
                     if evt.GetId() != ID_saveDataCSVDocument1D:
                         saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, 
@@ -1613,8 +2075,9 @@ class documentsTree(wx.TreeCtrl):
                             
                     filename = ''.join([self.itemData.path, '\\', saveFileName, self.config.saveExtension])
                     
-                elif self.itemType == 'Processed 2D IM-MS':
-                    data = self.itemData.IMS2D
+                elif self.itemType == 'Drift time (2D, processed)':
+                
+                    data = self.itemData.IMS2Dprocess
                     if evt.GetId() != ID_saveDataCSVDocument1D:
                         saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, 
                                                                        defaultValue='DT_2D_raw')
@@ -1626,7 +2089,7 @@ class documentsTree(wx.TreeCtrl):
                 # Save 2D
                 if evt.GetId() == ID_saveDataCSVDocument:
                     # Prepare data for saving
-                    zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
+                    zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                                        dataType='plot',
                                                                                                        compact=False)
                     # Y-axis labels need a value for [0,0]
@@ -1642,7 +2105,7 @@ class documentsTree(wx.TreeCtrl):
                                header="")     
                 # Save 1D
                 elif evt.GetId() == ID_saveDataCSVDocument1D:
-                    if self.itemType == '2D drift time':
+                    if self.itemType == 'Drift time (2D)':
                         if evt.GetId() == ID_saveDataCSVDocument1D:
                             saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, 
                                                                            defaultValue='DT_1D_raw')
@@ -1650,7 +2113,7 @@ class documentsTree(wx.TreeCtrl):
                             saveFileName = 'DT_1D_raw'
                         filename = ''.join([self.itemData.path, '\\', saveFileName, self.config.saveExtension])
                         
-                    elif self.itemType == 'Processed 2D IM-MS':
+                    elif self.itemType == 'Drift time (2D, processed)':
                         if evt.GetId() == ID_saveDataCSVDocument1D:
                             saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, 
                                                                            defaultValue='DT_1D_pro')
@@ -1674,21 +2137,21 @@ class documentsTree(wx.TreeCtrl):
                                header=self.config.saveDelimiter.join([ylabel,', Intensity']))
                     
             # Save 1D/2D - single + batch
-            elif any(self.itemType in itemType for itemType in ['Extracted 2D IM-MS (multiple ions)',
-                                                                'Combined CV 2D IM-MS (multiple ions)',
-                                                                'Processed 2D IM-MS (multiple ions)',
+            elif any(self.itemType in itemType for itemType in ['Drift time (2D, EIC)',
+                                                                'Drift time (2D, combined voltages, EIC)',
+                                                                'Drift time (2D, processed, EIC)',
                                                                 'Input data', 'Statistical']):
                 # Save 1D/2D - batch
-                if any(self.extractData in extractData for extractData in ['Extracted 2D IM-MS (multiple ions)',
-                                                                           'Combined CV 2D IM-MS (multiple ions)',
-                                                                           'Processed 2D IM-MS (multiple ions)',
+                if any(self.extractData in extractData for extractData in ['Drift time (2D, EIC)',
+                                                                           'Drift time (2D, combined voltages, EIC)',
+                                                                           'Drift time (2D, processed, EIC)',
                                                                            'Input data', 'Statistical']):
                     
-                    if self.itemType == 'Extracted 2D IM-MS (multiple ions)':
+                    if self.itemType == 'Drift time (2D, EIC)':
                         data = self.itemData.IMS2Dions
-                    elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)':
+                    elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
                         data = self.itemData.IMS2DCombIons
-                    elif self.itemType == 'Processed 2D IM-MS (multiple ions)':
+                    elif self.itemType == 'Drift time (2D, processed, EIC)':
                         data = self.itemData.IMS2DionsProcess
                     elif self.itemType == 'Input data':
                         data = self.itemData.IMS2DcompData
@@ -1707,7 +2170,7 @@ class documentsTree(wx.TreeCtrl):
                         for key in data:
                             filename = ''.join([self.itemData.path,'\\', saveFileName, key, self.config.saveExtension])
                             # Prepare data for saving
-                            zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data[key],
+                            zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(dictionary=data[key],
                                                                                                                dataType='plot',compact=False)
                             # Y-axis labels need a value for [0,0]
                             yvals = np.insert(yvals, 0, 0) # array, index, value
@@ -1750,18 +2213,18 @@ class documentsTree(wx.TreeCtrl):
                     
                 # Save 1D/2D - single
                 else:
-                    if self.itemType == 'Extracted 2D IM-MS (multiple ions)':
+                    if self.itemType == 'Drift time (2D, EIC)':
                         data = self.itemData.IMS2Dions
-                    elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)':
+                    elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
                         data = self.itemData.IMS2DCombIons
-                    elif self.itemType == 'Processed 2D IM-MS (multiple ions)':
+                    elif self.itemType == 'Drift time (2D, processed, EIC)':
                         data = self.itemData.IMS2DionsProcess
                     elif self.itemType == 'Input data':
                         data = self.itemData.IMS2DcompData
                     elif self.itemType == 'Statistical':
                         data = self.itemData.IMS2DstatsData
                     # Save RMSD matrix
-                    out = self.extractData.split('__')
+                    out = self.extractData.split(':')
                     if out[0] == 'RMSD Matrix':
                         if evt.GetId() == ID_saveDataCSVDocument:
                             saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, 
@@ -1773,7 +2236,7 @@ class documentsTree(wx.TreeCtrl):
                         # so data is reshuffled to pandas dataframe and then saved
                         # in a standard .csv format
                         filename = ''.join([self.itemData.path,'\\', saveFileName, self.extractData, self.config.saveExtension])
-                        zvals, xylabels, cmap = self.presenter.get2DdataFromDictionary(dictionary=data[self.extractData],
+                        zvals, xylabels, __ = self.presenter.get2DdataFromDictionary(dictionary=data[self.extractData],
                                                                                        plotType='Matrix',compact=False)
                         saveData = pd.DataFrame(data=zvals, index=xylabels, columns=xylabels)
                         saveData.to_csv(path_or_buf=filename, 
@@ -1791,7 +2254,7 @@ class documentsTree(wx.TreeCtrl):
                             
                         filename = ''.join([self.itemData.path,'\\', saveFileName, self.extractData, self.config.saveExtension])
                         
-                        zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data[self.extractData],
+                        zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(dictionary=data[self.extractData],
                                                                                                            dataType='plot',compact=False)
                         # Y-axis labels need a value for [0,0]
                         yvals = np.insert(yvals, 0, 0) # array, index, value
@@ -1828,23 +2291,24 @@ class documentsTree(wx.TreeCtrl):
                                    format='%.4f',
                                    delimiter=self.config.saveDelimiter,
                                    header=self.config.saveDelimiter.join([ylabel,', Intensity']))
-        else: return
+        else: 
+            return
         
     def onSaveImage(self, evt):
         """
         This function saves the image to file
         """
         
-        if any(self.extractData in extractData for extractData in ['Extracted 2D IM-MS (multiple ions)',
-                                                                   'Combined CV 2D IM-MS (multiple ions)',
-                                                                   'Processed 2D IM-MS (multiple ions)',
+        if any(self.extractData in extractData for extractData in ['Drift time (2D, EIC)',
+                                                                   'Drift time (2D, combined voltages, EIC)',
+                                                                   'Drift time (2D, processed, EIC)',
                                                                    'Input data']):
             
-            if self.itemType == 'Extracted 2D IM-MS (multiple ions)':
+            if self.itemType == 'Drift time (2D, EIC)':
                 data = self.itemData.IMS2Dions
-            elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)':
+            elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
                 data = self.itemData.IMS2DCombIons
-            elif self.itemType == 'Processed 2D IM-MS (multiple ions)':
+            elif self.itemType == 'Drift time (2D, processed, EIC)':
                 data = self.itemData.IMS2DionsProcess
             elif self.itemType == 'Input data':
                 data = self.itemData.IMS2DcompData
@@ -1866,14 +2330,13 @@ class documentsTree(wx.TreeCtrl):
                 # Change panel and plot data
                 self.presenter.plot2Ddata2(data=dataOut)
                 self.presenter.save2DIMSImage(path=filename)
-                print(''.join(["Saved: ", filename, self.config.imageFormat]))
         elif self.extractData == 'Mass Spectra':
             pass
         elif self.extractData == 'Overlay':
             # Get data
             data = self.itemData.IMS2DoverlayData
             for key in data:
-                out = key.split('__')
+                out = key.split(':')
                 if evt.GetId() == ID_saveImageDocument:
                     saveFileName = self.presenter.getImageFilename(prefix=True, csv=False, 
                                                                    defaultValue=''.join(['Overlay',"_",key]))
@@ -1944,7 +2407,6 @@ class documentsTree(wx.TreeCtrl):
                         
                     self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
                     self.presenter.save2DIMSImage(path=filename)
-                print(''.join(["Saved: ", filename, self.config.imageFormat]))
                 
         elif self.extractData == 'Statistical':
             data = self.itemData.IMS2DstatsData
@@ -1961,7 +2423,7 @@ class documentsTree(wx.TreeCtrl):
                 filename = ''.join([self.itemData.path, "\\", saveFileName,'.']) # extension is added later 
                 
                 # Variance, Mean, Std Dev are of the same format
-                keyName = key.split('__')
+                keyName = key.split(':')
                 if (keyName[0] == 'Variance' or keyName[0] == 'Mean' or keyName[0] == 'Standard Deviation'): 
                     # Unpack data
                     dataOut = self.presenter.get2DdataFromDictionary(dictionary=data[key],
@@ -1979,10 +2441,9 @@ class documentsTree(wx.TreeCtrl):
                     self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Comparison'])
                     self.presenter.saveMatrixImage(path=filename)
                 else:
-                    print('Could not complete the task')
+                    self.presenter.onThreading(None, ("Could not complete the task", 4), 
+                                               action='updateStatusbar')
                     return
-                    
-                print(''.join(["Saved: ", filename, self.config.imageFormat]))
                 
     def onAddToCCSTable(self, evt):
         """
@@ -1991,35 +2452,35 @@ class documentsTree(wx.TreeCtrl):
         if self.itemData == None:
             return
         
-        label, format, batchMode = None, None, False
-        if self.itemType == 'Extracted 2D IM-MS (multiple ions)':
-            if self.extractData != 'Extracted 2D IM-MS (multiple ions)':
+        label, item_format, batchMode = None, None, False
+        if self.itemType == 'Drift time (2D, EIC)':
+            if self.extractData != 'Drift time (2D, EIC)':
                 data = self.itemData.IMS2Dions[self.extractData]
             else:
                 data = self.itemData.IMS2Dions
                 batchMode = True
-            format = '2D, extracted'
-        elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)':
-            if self.extractData != 'Combined CV 2D IM-MS (multiple ions)':
+            item_format = '2D, extracted'
+        elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
+            if self.extractData != 'Drift time (2D, combined voltages, EIC)':
                 data = self.itemData.IMS2DCombIons[self.extractData]
             else:
                 data = self.itemData.IMS2DCombIons
                 batchMode = True
-            format = '2D, combined'
-        elif self.itemType == 'Processed 2D IM-MS (multiple ions)':
-            if self.extractData != 'Processed 2D IM-MS (multiple ions)':
+            item_format = '2D, combined'
+        elif self.itemType == 'Drift time (2D, processed, EIC)':
+            if self.extractData != 'Drift time (2D, processed, EIC)':
                 data = self.itemData.IMS2DionsProcess[self.extractData]
             else:
                 data = self.itemData.IMS2DionsProcess
                 batchMode = True
-            format = '2D, processed'
+            item_format = '2D, processed'
         elif self.itemType == 'Input data':
             if self.extractData != 'Input data':
                 data = self.itemData.IMS2DcompData[self.extractData]
             else:
                 data = self.itemData.IMS2DcompData
                 batchMode = True
-            format = '2D'
+            item_format = '2D'
         else: 
             return
         
@@ -2037,7 +2498,7 @@ class documentsTree(wx.TreeCtrl):
             self.itemData.moleculeDetails.get('molWeight', None)
             
             self.presenter.OnAddDataToCCSTable(filename=self.itemData.title,
-                                               format=format, mzStart=mzStart,
+                                               format=item_format, mzStart=mzStart,
                                                mzEnd=mzEnd, mzCentre=mzCentre,
                                                charge=charge, protein=protein)
         else:
@@ -2053,7 +2514,7 @@ class documentsTree(wx.TreeCtrl):
                 self.itemData.moleculeDetails.get('molWeight', None)
                 
                 self.presenter.OnAddDataToCCSTable(filename=self.itemData.title,
-                                                   format=format, mzStart=mzStart,
+                                                   format=item_format, mzStart=mzStart,
                                                    mzEnd=mzEnd, mzCentre=mzCentre,
                                                    charge=charge, protein=protein)
         
@@ -2061,20 +2522,20 @@ class documentsTree(wx.TreeCtrl):
         
         label = None
         # Select dataset
-        if self.itemType == '2D drift time':
+        if self.itemType == 'Drift time (2D)':
             data = self.itemData.IMS2D
-        elif self.itemType == 'Processed 2D IM-MS':
+        elif self.itemType == 'Drift time (2D, processed)':
             data = self.itemData.IMS2D
-        elif self.itemType == 'Extracted 2D IM-MS (multiple ions)':
-            if self.extractData == 'Extracted 2D IM-MS (multiple ions)': return
+        elif self.itemType == 'Drift time (2D, EIC)':
+            if self.extractData == 'Drift time (2D, EIC)': return
             data = self.itemData.IMS2Dions[self.extractData]
             label = self.extractData
-        elif self.itemType == 'Combined CV 2D IM-MS (multiple ions)':
-            if self.extractData == 'Combined CV 2D IM-MS (multiple ions)': return
+        elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
+            if self.extractData == 'Drift time (2D, combined voltages, EIC)': return
             data = self.itemData.IMS2DCombIons[self.extractData]
             label = self.extractData
-        elif self.itemType == 'Processed 2D IM-MS (multiple ions)':
-            if self.extractData == 'Processed 2D IM-MS (multiple ions)': return
+        elif self.itemType == 'Drift time (2D, processed, EIC)':
+            if self.extractData == 'Drift time (2D, processed, EIC)': return
             data = self.itemData.IMS2DionsProcess[self.extractData]
             label = self.extractData
         else:
@@ -2101,16 +2562,16 @@ class documentsTree(wx.TreeCtrl):
         document = self.presenter.documentsDict[self.presenter.currentDoc]
         
  
-        if self.indent == 2 and any(self.itemType in itemType for itemType in ['2D drift time', 
-                                                                               'Processed 2D IM-MS']):
+        if self.indent == 2 and any(self.itemType in itemType for itemType in ['Drift time (2D)', 
+                                                                               'Drift time (2D, processed)']):
             kwargs = {'currentTool':'plot2D', 
                       'itemType':self.itemType,
                       'extractData':None}
             self.panelInfo = panelDocumentInfo(self, self.presenter, self.config, self.icons, 
                                                document, **kwargs)
-        elif self.indent == 3 and any(self.itemType in itemType for itemType in ['Extracted 2D IM-MS (multiple ions)',
-                                                                                 'Combined CV 2D IM-MS (multiple ions)',
-                                                                                 'Processed 2D IM-MS (multiple ions)',
+        elif self.indent == 3 and any(self.itemType in itemType for itemType in ['Drift time (2D, EIC)',
+                                                                                 'Drift time (2D, combined voltages, EIC)',
+                                                                                 'Drift time (2D, processed, EIC)',
                                                                                  'Input data']):
             kwargs = {'currentTool':'plot2D', 
                       'itemType':self.itemType,
@@ -2152,7 +2613,7 @@ class documentsTree(wx.TreeCtrl):
         self.currentDocument = docItem
         self.title = title
         self.SetPyData(docItem, docData)
-            
+
         # Add annotations
         if hasattr(docData, 'dataType'):
             annotsItem = self.AppendItem(docItem, docData.dataType)
@@ -2172,154 +2633,131 @@ class documentsTree(wx.TreeCtrl):
             self.SetPyData(annotsItem, docData.massSpectrum)
             self.SetItemImage(annotsItem, 1, wx.TreeItemIcon_Normal)
         if bool(docData.smoothMS):
-            annotsItem = self.AppendItem(docItem, 'Smoothed Mass Spectrum')
+            annotsItem = self.AppendItem(docItem, 'Mass Spectrum (processed)')
             self.SetPyData(annotsItem, docData.smoothMS)
             self.SetItemImage(annotsItem, 1, wx.TreeItemIcon_Normal)
-        if docData.got1RT == True:
-            annotsItem = self.AppendItem(docItem, 'Retention Time')
-            self.SetPyData(annotsItem, docData.RT)
-            self.SetItemImage(annotsItem, 3, wx.TreeItemIcon_Normal)
-        if docData.got1DT == True:
-            annotsItem  = self.AppendItem(docItem, '1D drift time')
-            self.SetPyData(annotsItem, docData.DT)
-            self.SetItemImage(annotsItem, 2, wx.TreeItemIcon_Normal)
-        if docData.got2DIMS == True:
-            annotsItem = self.AppendItem(docItem, '2D drift time')
-            self.SetPyData(annotsItem, docData.IMS2D)
-            self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
-        if docData.got2Dprocess == True:
-            annotsItem =  self.AppendItem(docItem, 'Processed 2D IM-MS')
-            self.SetPyData(annotsItem, docData.IMS2Dprocess)
-            self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
-        if docData.gotExtractedIons == True:
-            docIonItem = self.AppendItem(docItem, 'Extracted 2D IM-MS (multiple ions)')
-            self.SetItemImage(docIonItem, 15, wx.TreeItemIcon_Normal)
-            # Dictionary with extracted IMS data
-            for annotData in docData.IMS2Dions:
-                # First value is the extracted X-range
-                annotsItem =  self.AppendItem(docIonItem, annotData)
-                self.SetPyData(annotsItem, docData.IMS2Dions[annotData])
-                self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
-        if docData.gotExtractedDriftTimes == True:
-            docIonItem = self.AppendItem(docItem, 'Extracted 1D IM-MS (multiple ions)')
-            self.SetItemImage(docIonItem, 11, wx.TreeItemIcon_Normal)
-            # Dictionary with extracted IMS data
-            for annotData in docData.IMS1DdriftTimes:
-                # First value is the extracted X-range
-                annotsItem =  self.AppendItem(docIonItem, annotData)
-                self.SetPyData(annotsItem, docData.IMS1DdriftTimes[annotData])
-                self.SetItemImage(annotsItem, 11, wx.TreeItemIcon_Normal)
-        # Check if we have combined ions 1D
-        if docData.gotCombinedExtractedIonsRT == True:
-            docIonItem = self.AppendItem(docItem, 'Combined CV RT IM-MS (multiple ions)')
-            self.SetItemImage(docIonItem, 12, wx.TreeItemIcon_Normal)
-            # Dictionary with extracted IMS data
-            for annotData in docData.IMSRTCombIons:
-                # First value is the extracted X-range
-                annotsItem =  self.AppendItem(docIonItem, annotData)
-                self.SetPyData(annotsItem, docData.IMSRTCombIons[annotData])
-                self.SetItemImage(annotsItem, 12, wx.TreeItemIcon_Normal)
-        # Check if we have combined ions 2D
-        if docData.gotCombinedExtractedIons == True:
-            docIonItem = self.AppendItem(docItem, 'Combined CV 2D IM-MS (multiple ions)')
-            self.SetItemImage(docIonItem, 15, wx.TreeItemIcon_Normal)
-            # Dictionary with combined IMS data
-            for annotData in docData.IMS2DCombIons:
-                # First value is the extracted X-range
-                annotsItem =  self.AppendItem(docIonItem, annotData)
-                self.SetPyData(annotsItem, docData.IMS2DCombIons[annotData])
-                self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
-        # Check if we have processed ions
-        if docData.got2DprocessIons == True:
-            docIonItem = self.AppendItem(docItem, 'Processed 2D IM-MS (multiple ions)')
-            self.SetItemImage(docIonItem, 15, wx.TreeItemIcon_Normal)
-            # Dictionary with extracted IMS data
-            for annotData in docData.IMS2DionsProcess:
-                # First value is the extracted X-range
-                annotsItem =  self.AppendItem(docIonItem, annotData)
-                self.SetPyData(annotsItem, docData.IMS2DionsProcess[annotData])
-                self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
-        # Check if we have calibration data
-        if docData.gotCalibration == True:
-            docIonItem = self.AppendItem(docItem, 'Calibration peaks')
-            self.SetItemImage(docIonItem, 10, wx.TreeItemIcon_Normal)
-            # Dictionary with extracted IMS data
-            for annotData in docData.calibration:
-                # First value is the extracted X-range
-                annotsItem =  self.AppendItem(docIonItem, annotData)
-                self.SetPyData(annotsItem, docData.calibration[annotData])
-                self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
-        # Check if we have calibration dataframe
-        if docData.gotCalibrationDataset == True:
-            docIonItem = self.AppendItem(docItem, 'Calibrants')
-            self.SetItemImage(docIonItem, 16, wx.TreeItemIcon_Normal)
-            # Dictionary with extracted IMS data
-            for annotData in docData.calibrationDataset:
-                # First value is the extracted X-range
-                annotsItem =  self.AppendItem(docIonItem, annotData)
-                self.SetPyData(annotsItem, docData.calibrationDataset[annotData])
-                self.SetItemImage(annotsItem, 13, wx.TreeItemIcon_Normal)
-        # Check if we have calibration parameters
-        if docData.gotCalibrationParameters == True:
-            annotsItem =  self.AppendItem(docItem, 'Calibration Parameters')
-            self.SetPyData(annotsItem, docData.calibrationParameters)
-            self.SetItemImage(annotsItem, 5, wx.TreeItemIcon_Normal)
-        # Check if we have multiple MassLynx files
         if docData.gotMultipleMS == True:
             docIonItem =  self.AppendItem(docItem, 'Mass Spectra')
             self.SetItemImage(docIonItem, 1, wx.TreeItemIcon_Normal)
-            # Before we add this to the Tree, we ought to sore it as this dictionary is
-            # unsorted
-            # Dictionary with extracted IMS data
             for annotData in docData.multipleMassSpectrum:
-                # First value is the extracted X-range
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.multipleMassSpectrum[annotData])
                 self.SetItemImage(annotsItem, 1, wx.TreeItemIcon_Normal)
-                
-        # Check if we have overlay input data
+        if docData.got1RT == True:
+            annotsItem = self.AppendItem(docItem, 'Chromatogram')
+            self.SetPyData(annotsItem, docData.RT)
+            self.SetItemImage(annotsItem, 3, wx.TreeItemIcon_Normal)
+        if hasattr(docData, 'gotMultipleRT'):
+            if docData.gotMultipleRT == True:
+                docIonItem = self.AppendItem(docItem, 'Chromatograms (EIC)')
+                self.SetItemImage(docIonItem, 12, wx.TreeItemIcon_Normal)
+                for annotData, __ in sorted(docData.multipleRT.items()):
+                    annotsItem =  self.AppendItem(docIonItem, annotData)
+                    self.SetPyData(annotsItem, docData.multipleRT[annotData])
+                    self.SetItemImage(annotsItem, 12, wx.TreeItemIcon_Normal)
+        if docData.got1DT == True:
+            annotsItem  = self.AppendItem(docItem, 'Drift time (1D)')
+            self.SetPyData(annotsItem, docData.DT)
+            self.SetItemImage(annotsItem, 2, wx.TreeItemIcon_Normal)
+        if hasattr(docData, 'gotMultipleDT'):
+            if docData.gotMultipleDT == True:
+                docIonItem = self.AppendItem(docItem, 'Drift time (1D, EIC)')
+                self.SetItemImage(docIonItem, 12, wx.TreeItemIcon_Normal)
+                for annotData, __ in sorted(docData.multipleDT.items()):
+                    annotsItem =  self.AppendItem(docIonItem, annotData)
+                    self.SetPyData(annotsItem, docData.multipleDT[annotData])
+                    self.SetItemImage(annotsItem, 12, wx.TreeItemIcon_Normal)
+        if docData.gotExtractedDriftTimes == True:
+            docIonItem = self.AppendItem(docItem, 'Drift time (1D, EIC, DT-IMS)')
+            self.SetItemImage(docIonItem, 11, wx.TreeItemIcon_Normal)
+            for annotData, __ in sorted(docData.IMS1DdriftTimes.items()):
+                annotsItem =  self.AppendItem(docIonItem, annotData)
+                self.SetPyData(annotsItem, docData.IMS1DdriftTimes[annotData])
+                self.SetItemImage(annotsItem, 11, wx.TreeItemIcon_Normal)
+        if docData.got2DIMS == True:
+            annotsItem = self.AppendItem(docItem, 'Drift time (2D)')
+            self.SetPyData(annotsItem, docData.IMS2D)
+            self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
+        if docData.got2Dprocess == True:
+            annotsItem =  self.AppendItem(docItem, 'Drift time (2D, processed)')
+            self.SetPyData(annotsItem, docData.IMS2Dprocess)
+            self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
+        if docData.gotExtractedIons == True:
+            docIonItem = self.AppendItem(docItem, 'Drift time (2D, EIC)')
+            self.SetItemImage(docIonItem, 15, wx.TreeItemIcon_Normal)
+            for annotData, __ in sorted(docData.IMS2Dions.items()):
+                annotsItem =  self.AppendItem(docIonItem, annotData)
+                self.SetPyData(annotsItem, docData.IMS2Dions[annotData])
+                self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
+        if docData.gotCombinedExtractedIons == True:
+            docIonItem = self.AppendItem(docItem, 'Drift time (2D, combined voltages, EIC)')
+            self.SetItemImage(docIonItem, 15, wx.TreeItemIcon_Normal)
+            for annotData, __ in sorted(docData.IMS2DCombIons.items()):
+                annotsItem =  self.AppendItem(docIonItem, annotData)
+                self.SetPyData(annotsItem, docData.IMS2DCombIons[annotData])
+                self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
+        if docData.gotCombinedExtractedIonsRT == True:
+            docIonItem = self.AppendItem(docItem, 'Chromatograms (combined voltages, EIC)')
+            self.SetItemImage(docIonItem, 12, wx.TreeItemIcon_Normal)
+            for annotData, __ in sorted(docData.IMSRTCombIons.items()):
+                annotsItem =  self.AppendItem(docIonItem, annotData)
+                self.SetPyData(annotsItem, docData.IMSRTCombIons[annotData])
+                self.SetItemImage(annotsItem, 12, wx.TreeItemIcon_Normal)
+        if docData.got2DprocessIons == True:
+            docIonItem = self.AppendItem(docItem, 'Drift time (2D, processed, EIC)')
+            self.SetItemImage(docIonItem, 15, wx.TreeItemIcon_Normal)
+            for annotData, __ in sorted(docData.IMS2DionsProcess.items()):
+                annotsItem =  self.AppendItem(docIonItem, annotData)
+                self.SetPyData(annotsItem, docData.IMS2DionsProcess[annotData])
+                self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
+        if docData.gotCalibration == True:
+            docIonItem = self.AppendItem(docItem, 'Calibration peaks')
+            self.SetItemImage(docIonItem, 10, wx.TreeItemIcon_Normal)
+            for annotData, __ in sorted(docData.calibration.items()):
+                annotsItem =  self.AppendItem(docIonItem, annotData)
+                self.SetPyData(annotsItem, docData.calibration[annotData])
+                self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
+        if docData.gotCalibrationDataset == True:
+            docIonItem = self.AppendItem(docItem, 'Calibrants')
+            self.SetItemImage(docIonItem, 16, wx.TreeItemIcon_Normal)
+            for annotData in docData.calibrationDataset:
+                annotsItem =  self.AppendItem(docIonItem, annotData)
+                self.SetPyData(annotsItem, docData.calibrationDataset[annotData])
+                self.SetItemImage(annotsItem, 13, wx.TreeItemIcon_Normal)
+        if docData.gotCalibrationParameters == True:
+            annotsItem =  self.AppendItem(docItem, 'Calibration parameters')
+            self.SetPyData(annotsItem, docData.calibrationParameters)
+            self.SetItemImage(annotsItem, 5, wx.TreeItemIcon_Normal)                
         if docData.gotComparisonData == True:
             docIonItem =  self.AppendItem(docItem, 'Input data')
             self.SetItemImage(docIonItem, 8, wx.TreeItemIcon_Normal)
-            # Dictionary with extracted IMS data
-            for annotData in docData.IMS2DcompData:
-                # First value is the extracted X-range
+            for annotData, __ in sorted(docData.IMS2DcompData.items()):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DcompData[annotData])
                 self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
-
-        # Check if we have overlay data
         if docData.gotOverlay == True:
             docIonItem =  self.AppendItem(docItem, 'Overlay')
             self.SetItemImage(docIonItem, 8, wx.TreeItemIcon_Normal)
-            # Dictionary with extracted IMS data
-            for annotData in docData.IMS2DoverlayData:
-                # First value is the extracted X-range
+            for annotData, __ in sorted(docData.IMS2DoverlayData.items()):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DoverlayData[annotData])
                 self.SetItemImage(annotsItem, 17, wx.TreeItemIcon_Normal)
-                
-        # Check if we have overlay data
         if docData.gotStatsData == True:
             docIonItem =  self.AppendItem(docItem, 'Statistical')
             self.SetItemImage(docIonItem, 8, wx.TreeItemIcon_Normal)
-            # Dictionary with extracted IMS data
-            for annotData in docData.IMS2DstatsData:
-                # First value is the extracted X-range
+            for annotData, __ in sorted(docData.IMS2DstatsData.items()):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DstatsData[annotData])
                 self.SetItemImage(annotsItem, 17, wx.TreeItemIcon_Normal)
-                
-        # For compatibility reasons, new attributes are checked with the hasattr function
         if hasattr(docData, "DTMZ"):
             if docData.gotDTMZ:
-                annotsItem =  self.AppendItem(docItem, 'MS vs DT')
+                annotsItem =  self.AppendItem(docItem, 'DT/MS')
                 self.SetPyData(annotsItem, docData.DTMZ)
                 self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
 
         # Recursively check currently selected document
-        self.enableCurrentDocument(loadingData=True, expandAll=expandAll,
-                                   evt=None)
+        self.enableCurrentDocument(loadingData=True, expandAll=expandAll, evt=None)
+        
         # If expandItem is not empty, the Tree will expand specified item
         if expandItem != None:
             # Change document tree
@@ -2343,8 +2781,9 @@ class documentsTree(wx.TreeCtrl):
         except AttributeError:
             evtID = None
             
-        if evtID == ID_removeDocument or evtID == None:
-            item, cookie = self.GetFirstChild(self.GetRootItem())
+        if evtID == ID_removeDocument or (evtID == None and deleteItem == ""):
+            __, cookie = self.GetFirstChild(self.GetRootItem())
+            
             dlg = dialogs.dlgBox(exceptionTitle='Are you sure?', 
                                  exceptionMsg= ''.join(["Are you sure you would like to delete: ", 
                                                         self.itemData.title,"?"]),
@@ -2360,7 +2799,7 @@ class documentsTree(wx.TreeCtrl):
                 self.presenter.onClearAllPlots()
                 self.presenter.currentDoc = None            
                 
-        if deleteItem=='': return
+        if deleteItem == '': return
         
         # Delete item from the list
         if self.ItemHasChildren(root):
@@ -2460,12 +2899,10 @@ class documentsTree(wx.TreeCtrl):
             try:
                 text = self.GetItemText(item)
                 if text != 'Current documents':
-                    self.mainParent.SetTitle(" - ".join(["ORIGAMI", 
-                                                         self.config.version, 
-                                                         text]))
+                    self.presenter.currentDoc = text
+                    self.mainParent.SetTitle("ORIGAMI - %s - %s (%s)" % (self.config.version, text, self.itemData.dataType)) 
             except:
-                self.mainParent.SetTitle(" - ".join(["ORIGAMI",
-                                                  self.config.version,]))
+                self.mainParent.SetTitle(" - ".join(["ORIGAMI", self.config.version]))
                 
             # In case we also interested in selected item
             if getSelected:
@@ -2495,6 +2932,8 @@ class documentsTree(wx.TreeCtrl):
             if title == docTitle:
                 self.SetItemBold(firstchild, True)
                 self.presenter.currentDoc = docTitle
+                
+        self.itemData = self.presenter.documentsDict[docTitle]        
       
     def getItemIndent(self, item):
         # Check item first
@@ -2552,8 +2991,157 @@ class documentsTree(wx.TreeCtrl):
         # no such item found
         return False
     
+#     def updateDocument(self, document, itemType='all'):
+#         
+#         if itemType in ['all', 'mass_spectra']:
+#             if document.gotMultipleMS:
+#                 docIonItem =  self.AppendItem(document, 'Mass Spectra')
+#                 self.SetItemImage(docIonItem, 1, wx.TreeItemIcon_Normal)
+#                 for annotData in document.multipleMassSpectrum:
+#                     annotsItem =  self.AppendItem(docIonItem, annotData)
+#                     self.SetPyData(annotsItem, document.multipleMassSpectrum[annotData])
+#                     self.SetItemImage(annotsItem, 1, wx.TreeItemIcon_Normal)
+#         
+#         if hasattr(docData, 'dataType'):
+#             annotsItem = self.AppendItem(docItem, docData.dataType)
+#             self.SetItemImage(annotsItem, 14, wx.TreeItemIcon_Normal)
+#             self.SetPyData(annotsItem, docData.dataType)
+#         if hasattr(docData, 'fileFormat'):
+#             annotsItem = self.AppendItem(docItem, docData.fileFormat)
+#             self.SetItemImage(annotsItem, 14, wx.TreeItemIcon_Normal)
+#             self.SetPyData(annotsItem, docData.fileFormat)
+#         if hasattr(docData, 'fileInformation'):
+#             if docData.fileInformation != None:
+#                 annotsItem = self.AppendItem(docItem, 'Sample information')
+#                 self.SetPyData(annotsItem, docData.fileInformation)
+#                 self.SetItemImage(annotsItem, 14, wx.TreeItemIcon_Normal)
+#         if docData.gotMS == True:
+#             annotsItem = self.AppendItem(docItem, 'Mass Spectrum')
+#             self.SetPyData(annotsItem, docData.massSpectrum)
+#             self.SetItemImage(annotsItem, 1, wx.TreeItemIcon_Normal)
+#         if bool(docData.smoothMS):
+#             annotsItem = self.AppendItem(docItem, 'Mass Spectrum (processed)')
+#             self.SetPyData(annotsItem, docData.smoothMS)
+#             self.SetItemImage(annotsItem, 1, wx.TreeItemIcon_Normal)
+#         if docData.gotMultipleMS == True:
+#             docIonItem =  self.AppendItem(docItem, 'Mass Spectra')
+#             self.SetItemImage(docIonItem, 1, wx.TreeItemIcon_Normal)
+#             for annotData in docData.multipleMassSpectrum:
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.multipleMassSpectrum[annotData])
+#                 self.SetItemImage(annotsItem, 1, wx.TreeItemIcon_Normal)
+#         if docData.got1RT == True:
+#             annotsItem = self.AppendItem(docItem, 'Chromatogram')
+#             self.SetPyData(annotsItem, docData.RT)
+#             self.SetItemImage(annotsItem, 3, wx.TreeItemIcon_Normal)
+#         if hasattr(docData, 'gotMultipleRT'):
+#             if docData.gotMultipleRT == True:
+#                 docIonItem = self.AppendItem(docItem, 'Chromatograms (EIC)')
+#                 self.SetItemImage(docIonItem, 12, wx.TreeItemIcon_Normal)
+#                 for annotData, __ in sorted(docData.multipleRT.items()):
+#                     annotsItem =  self.AppendItem(docIonItem, annotData)
+#                     self.SetPyData(annotsItem, docData.multipleRT[annotData])
+#                     self.SetItemImage(annotsItem, 12, wx.TreeItemIcon_Normal)
+#         if docData.got1DT == True:
+#             annotsItem  = self.AppendItem(docItem, 'Drift time (1D)')
+#             self.SetPyData(annotsItem, docData.DT)
+#             self.SetItemImage(annotsItem, 2, wx.TreeItemIcon_Normal)
+#         if hasattr(docData, 'gotMultipleDT'):
+#             if docData.gotMultipleDT == True:
+#                 docIonItem = self.AppendItem(docItem, 'Drift time (1D, EIC)')
+#                 self.SetItemImage(docIonItem, 12, wx.TreeItemIcon_Normal)
+#                 for annotData, __ in sorted(docData.multipleDT.items()):
+#                     annotsItem =  self.AppendItem(docIonItem, annotData)
+#                     self.SetPyData(annotsItem, docData.multipleDT[annotData])
+#                     self.SetItemImage(annotsItem, 12, wx.TreeItemIcon_Normal)
+#         if docData.gotExtractedDriftTimes == True:
+#             docIonItem = self.AppendItem(docItem, 'Drift time (1D, EIC, DT-IMS)')
+#             self.SetItemImage(docIonItem, 11, wx.TreeItemIcon_Normal)
+#             for annotData, __ in sorted(docData.IMS1DdriftTimes.items()):
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.IMS1DdriftTimes[annotData])
+#                 self.SetItemImage(annotsItem, 11, wx.TreeItemIcon_Normal)
+#         if docData.got2DIMS == True:
+#             annotsItem = self.AppendItem(docItem, 'Drift time (2D)')
+#             self.SetPyData(annotsItem, docData.IMS2D)
+#             self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
+#         if docData.got2Dprocess == True:
+#             annotsItem =  self.AppendItem(docItem, 'Drift time (2D, processed)')
+#             self.SetPyData(annotsItem, docData.IMS2Dprocess)
+#             self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
+#         if docData.gotExtractedIons == True:
+#             docIonItem = self.AppendItem(docItem, 'Drift time (2D, EIC)')
+#             self.SetItemImage(docIonItem, 15, wx.TreeItemIcon_Normal)
+#             for annotData, __ in sorted(docData.IMS2Dions.items()):
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.IMS2Dions[annotData])
+#                 self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
+#         if docData.gotCombinedExtractedIons == True:
+#             docIonItem = self.AppendItem(docItem, 'Drift time (2D, combined voltages, EIC)')
+#             self.SetItemImage(docIonItem, 15, wx.TreeItemIcon_Normal)
+#             for annotData, __ in sorted(docData.IMS2DCombIons.items()):
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.IMS2DCombIons[annotData])
+#                 self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
+#         if docData.gotCombinedExtractedIonsRT == True:
+#             docIonItem = self.AppendItem(docItem, 'Chromatograms (combined voltages, EIC)')
+#             self.SetItemImage(docIonItem, 12, wx.TreeItemIcon_Normal)
+#             for annotData, __ in sorted(docData.IMSRTCombIons.items()):
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.IMSRTCombIons[annotData])
+#                 self.SetItemImage(annotsItem, 12, wx.TreeItemIcon_Normal)
+#         if docData.got2DprocessIons == True:
+#             docIonItem = self.AppendItem(docItem, 'Drift time (2D, processed, EIC)')
+#             self.SetItemImage(docIonItem, 15, wx.TreeItemIcon_Normal)
+#             for annotData, __ in sorted(docData.IMS2DionsProcess.items()):
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.IMS2DionsProcess[annotData])
+#                 self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
+#         if docData.gotCalibration == True:
+#             docIonItem = self.AppendItem(docItem, 'Calibration peaks')
+#             self.SetItemImage(docIonItem, 10, wx.TreeItemIcon_Normal)
+#             for annotData, __ in sorted(docData.calibration.items()):
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.calibration[annotData])
+#                 self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
+#         if docData.gotCalibrationDataset == True:
+#             docIonItem = self.AppendItem(docItem, 'Calibrants')
+#             self.SetItemImage(docIonItem, 16, wx.TreeItemIcon_Normal)
+#             for annotData in docData.calibrationDataset:
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.calibrationDataset[annotData])
+#                 self.SetItemImage(annotsItem, 13, wx.TreeItemIcon_Normal)
+#         if docData.gotCalibrationParameters == True:
+#             annotsItem =  self.AppendItem(docItem, 'Calibration parameters')
+#             self.SetPyData(annotsItem, docData.calibrationParameters)
+#             self.SetItemImage(annotsItem, 5, wx.TreeItemIcon_Normal)                
+#         if docData.gotComparisonData == True:
+#             docIonItem =  self.AppendItem(docItem, 'Input data')
+#             self.SetItemImage(docIonItem, 8, wx.TreeItemIcon_Normal)
+#             for annotData, __ in sorted(docData.IMS2DcompData.items()):
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.IMS2DcompData[annotData])
+#                 self.SetItemImage(annotsItem, 15, wx.TreeItemIcon_Normal)
+#         if docData.gotOverlay == True:
+#             docIonItem =  self.AppendItem(docItem, 'Overlay')
+#             self.SetItemImage(docIonItem, 8, wx.TreeItemIcon_Normal)
+#             for annotData, __ in sorted(docData.IMS2DoverlayData.items()):
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.IMS2DoverlayData[annotData])
+#                 self.SetItemImage(annotsItem, 17, wx.TreeItemIcon_Normal)
+#         if docData.gotStatsData == True:
+#             docIonItem =  self.AppendItem(docItem, 'Statistical')
+#             self.SetItemImage(docIonItem, 8, wx.TreeItemIcon_Normal)
+#             for annotData, __ in sorted(docData.IMS2DstatsData.items()):
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.IMS2DstatsData[annotData])
+#                 self.SetItemImage(annotsItem, 17, wx.TreeItemIcon_Normal)
+#         if hasattr(docData, "DTMZ"):
+#             if docData.gotDTMZ:
+#                 annotsItem =  self.AppendItem(docItem, 'DT/MS')
+#                 self.SetPyData(annotsItem, docData.DTMZ)
+#                 self.SetItemImage(annotsItem, 6, wx.TreeItemIcon_Normal)
 
-        
 class topPanel(wx.Panel):
     def __init__(self, parent, mainParent,icons, presenter, config):
         wx.Panel.__init__(self, parent=parent)
@@ -2567,13 +3155,15 @@ class topPanel(wx.Panel):
         self.panelSizer = wx.BoxSizer( wx.VERTICAL )
         self.panelSizer.Add(self.documents, 1, wx.EXPAND, 0)
 
-        self.SetSizer( self.panelSizer )
+        self.SetSizer(self.panelSizer)
 
     def makeTreeCtrl(self):
-        self.documents = documentsTree(self, self.mainParent, 
+        self.documents = documentsTree(self, 
+                                       self.mainParent, 
                                        self.presenter, 
                                        self.icons, 
-                                       self.config, -1, size=(250, -1))
+                                       self.config, -1, 
+                                       size=(250, -1))
         
         
         

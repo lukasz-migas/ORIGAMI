@@ -16,16 +16,14 @@
 # -------------------------------------------------------------------------
 
 import wx
-from origamiStyles import *
-from analysisFcns import normalizeMS
+from styles import makeTooltip, makeMenuItem
 from ids import *
 import wx.lib.mixins.listctrl  as  listmix
 import dialogs as dialogs
-from collections import OrderedDict
-from toolbox import str2num, num2str
+from toolbox import str2num, str2int, removeListDuplicates
 from operator import itemgetter
 from wx import ID_ANY
-import numpy as np
+from numpy import arange
 
 """
 Panel to load and combine multiple ML files
@@ -62,9 +60,15 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrl
         listmix.TextEditMixin.__init__(self)
         listmix.CheckListCtrlMixin.__init__(self)
 
+        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
 
-            
-        
+    def OnBeginLabelEdit(self, event):
+        # Block any attempts to change columns 0 and 1
+        if event.m_col == 0 or event.m_col == 2:
+            event.Veto()
+        else:
+            event.Skip()
+
 class topPanel(wx.Panel):
     def __init__(self, parent, icons,  presenter, config):
         wx.Panel.__init__(self, parent=parent)
@@ -85,13 +89,19 @@ class topPanel(wx.Panel):
         self.reverse = False
         self.lastColumn = None
 
-
     def makeListCtrl(self):
-        # Create toolbar for the table
+        
+        # init table
         self.filelist = EditableListCtrl(self, style=wx.LC_REPORT)
-        self.filelist.InsertColumn(0,u'File name', width=220)
-        self.filelist.InsertColumn(1,u'Energy', width=50)
-        self.filelist.InsertColumn(2,u'Document', width=80)
+        for item in self.config._multipleFilesSettings:
+            order = item['order']
+            name = item['name']
+            if item['show']: 
+                width = item['width']
+            else: 
+                width = 0
+            self.filelist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
+
         filelistTooltip = makeTooltip(delay=3000, reshow=3000, 
                                       text="""List of files and their respective energy values. This panel is relatively universal and can be used for aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.""")
         self.filelist.SetToolTip(filelistTooltip)
@@ -101,9 +111,10 @@ class topPanel(wx.Panel):
 
     def makeToolbar(self):
         
+        self.Bind(wx.EVT_TOOL, self.onAddTool, id=ID_addFilesMenu)
         self.Bind(wx.EVT_TOOL, self.onRemoveTool, id=ID_removeFilesMenu)
 #         self.Bind(wx.EVT_TOOL, self.onSaveTool, id=ID_saveFilesMenu)
-        self.Bind(wx.EVT_TOOL, self.onProcessTool, id=ID_processFilesMenu)
+#         self.Bind(wx.EVT_TOOL, self.onProcessTool, id=ID_processFilesMenu)
         self.Bind(wx.EVT_TOOL, self.OnCheckAllItems, id=ID_checkAllItems_MML)
 
         self.Bind(wx.EVT_TOOL, self.presenter.onOpenMultipleMLFiles, id=ID_openMassLynxFiles)
@@ -112,17 +123,31 @@ class topPanel(wx.Panel):
         self.toolbar.SetToolBitmapSize((16, 16)) 
         self.toolbar.AddTool(ID_checkAllItems_MML, self.icons.iconsLib['check16'] , 
                               shortHelpString="Check all items")
-        self.toolbar.AddTool(ID_openMassLynxFiles, self.icons.iconsLib['add16'] , 
-                              shortHelpString="Add files...") 
+        self.toolbar.AddTool(ID_addFilesMenu, self.icons.iconsLib['add16'],
+                             shortHelpString="Add files...") 
         self.toolbar.AddTool(ID_removeFilesMenu, self.icons.iconsLib['remove16'], 
                              shortHelpString="Remove...")
-        self.toolbar.AddTool(ID_processFilesMenu, self.icons.iconsLib['process16'], 
-                             shortHelpString="Process...")
+#         self.toolbar.AddTool(ID_processFilesMenu, self.icons.iconsLib['process16'], 
+#                              shortHelpString="Process...")
 #         self.toolbar.AddTool(ID_saveFilesMenu, self.icons.iconsLib['save16'], 
 #                              shortHelpString="Save...")
         self.toolbar.AddSeparator()
         self.toolbar.Realize()   
-                      
+            
+    def onAddTool(self, evt):
+        
+        self.Bind(wx.EVT_TOOL, self.presenter.onOpenMultipleMLFiles, id=ID_openMassLynxFiles)
+        self.Bind(wx.EVT_TOOL, self.presenter.onOpenMultipleMLFiles, id=ID_addNewMassLynxFilesDoc)
+        
+        menu = wx.Menu()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_addNewMassLynxFilesDoc,
+                                     text='Add files to new document', 
+                                     bitmap=self.icons.iconsLib['new_document_16']))
+        menu.Append(ID_openMassLynxFiles, "Add files to current document")
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()        
+          
     def onRemoveTool(self, evt):
         # Make bindings
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedFile)
@@ -130,7 +155,9 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_clearTableMML)
         
         menu = wx.Menu()
-        menu.Append(ID_clearTableMML, "Clear table")
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearTableMML,
+                                     text='Clear table', 
+                                     bitmap=self.icons.iconsLib['clear_16']))
         menu.AppendSeparator()
         menu.Append(ID_removeSelectedFile, "Remove selected file")
         menu.Append(ID_removeAllFiles, "Remove all files")
@@ -147,24 +174,24 @@ class topPanel(wx.Panel):
 #         menu.Destroy()
 #         self.SetFocus()
 
-    def onProcessTool(self, evt):
-        # Make bindings
-        self.Bind(wx.EVT_MENU, self.presenter.reBinMSdata, id=ID_reBinMSmanual)
-#         self.Bind(wx.EVT_MENU, self.OnListConvertAxis, id=ID_convertSelectedAxisFiles)
-#         self.Bind(wx.EVT_MENU, self.OnListConvertAxis, id=ID_convertAllAxisFiles)
-#         self.Bind(wx.EVT_MENU, self.presenter.onCombineMultipleMLFiles, id=ID_combineMassLynxFiles)
-        
-        menu = wx.Menu()
-        menu.Append(ID_reBinMSmanual, "Re-bin MS of list of MassLynx files")
+#     def onProcessTool(self, evt):
+#         # Make bindings
+#         self.Bind(wx.EVT_MENU, self.presenter.reBinMSdata, id=ID_reBinMSmanual)
+# #         self.Bind(wx.EVT_MENU, self.OnListConvertAxis, id=ID_convertSelectedAxisFiles)
+# #         self.Bind(wx.EVT_MENU, self.OnListConvertAxis, id=ID_convertAllAxisFiles)
+# #         self.Bind(wx.EVT_MENU, self.presenter.onCombineMultipleMLFiles, id=ID_combineMassLynxFiles)
+#         
+#         menu = wx.Menu()
+#         menu.Append(ID_reBinMSmanual, "Re-bin MS of list of MassLynx files")
 #         menu.Append(ID_convertSelectedAxisFiles, "Convert 1D/2D IM-MS from bins to ms (selected)")
 #         if self.currentXlabels == 'ms':
 #             menu.Append(ID_convertAllAxisFiles, "Convert 1D/2D IM-MS from ms to bins (all)")
 #         else:
 #             menu.Append(ID_convertAllAxisFiles, "Convert 1D/2D IM-MS from bins to ms (all)")
 #         menu.Append(ID_combineMassLynxFiles, "Combine 1D DT to form 2D matrix (ascending energy)")
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
+#         self.PopupMenu(menu)
+#         menu.Destroy()
+#         self.SetFocus()
         
     def OnRightClickMenu(self, evt):
         
@@ -173,27 +200,23 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedFilePopup)
         
         self.Bind(wx.EVT_MENU, self.OnListGetMS, id=ID_getCombinedMassSpectrum)
-#         self.Bind(wx.EVT_MENU, self.OnListConvertAxis, id=ID_convertAxisFilesPopup)
         
         
         # Capture which item was clicked
         self.currentItem, flags = self.filelist.HitTest(evt.GetPosition())
         # Create popup menu
         menu = wx.Menu()
-        menu.Append(ID_getMassSpectrum, "Show mass spectrum (selected item)")
-        menu.Append(ID_get1DmobilitySpectrum, "Show 1D IM-MS (selected item)")
-#         menu.Append(ID_convertAxisFilesPopup, "Convert 1D/2D IM-MS to drift time (ms)")
-        menu.Append(ID_getCombinedMassSpectrum, "Show mass spectrum (all items)")
-#         menu.Append(ID_ANY, "Show 2D IM-MS (all items)")
-#         menu.AppendSeparator()
-# #         menu.Append(ID_ANY, "Fill Energy column")
-#         menu.AppendSeparator()
-#         menu.Append(ID_ANY, "Save mass spectrum to .csv file")
-#         menu.Append(ID_ANY, "Save 1D IM-MS to .csv file")
-#         menu.Append(ID_ANY, "Save 2D IM-MS to .csv file")
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_getMassSpectrum,
+                                     text='Show mass spectrum', 
+                                     bitmap=self.icons.iconsLib['mass_spectrum_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_get1DmobilitySpectrum,
+                                     text='Show mobiligram', 
+                                     bitmap=self.icons.iconsLib['mobiligram_16']))
+        menu.Append(ID_getCombinedMassSpectrum, "Show mass spectrum (average)")
         menu.AppendSeparator()
-        menu.Append(ID_removeSelectedFilePopup, "Remove from the list")
-                    
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeSelectedFilePopup,
+                                     text='Remove item', 
+                                     bitmap=self.icons.iconsLib['bin16']))
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -261,11 +284,14 @@ class topPanel(wx.Panel):
         Function to plot selected MS in the mainWindow
         """
         
-        document = self.getCurrentDocument()
-        if document == None: return
+        title = self.filelist.GetItem(self.currentItem, self.config.multipleMLColNames['document']).GetText()
+        document = self.presenter.documentsDict[title]
+#         document = self.getCurrentDocument()
+        if document == None: 
+            return
         
         if evt.GetId() == ID_getMassSpectrum:
-            itemName = self.filelist.GetItem(self.currentItem,0).GetText()
+            itemName = self.filelist.GetItem(self.currentItem,self.config.multipleMLColNames['filename']).GetText()
             try:
                 msX = document.multipleMassSpectrum[itemName]['xvals']
                 msY = document.multipleMassSpectrum[itemName]['yvals']
@@ -279,14 +305,16 @@ class topPanel(wx.Panel):
         
         # Plot data
         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MS'])
-        self.presenter.onPlotMS2(msX, msY, document.lineColour,
-                                 document.style, xlimits=xlimits)
+        self.presenter.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, full_repaint=True)
         
     def OnListGet1DT(self, evt):
         """
         Function to plot selected 1DT in the mainWindow
         """
-        document = self.getCurrentDocument()
+        title = self.filelist.GetItem(self.currentItem, self.config.multipleMLColNames['document']).GetText()
+        document = self.presenter.documentsDict[title]
+        
+#         document = self.getCurrentDocument()
         if document == None: return
         itemName = self.filelist.GetItem(self.currentItem,0).GetText()
         dtX = document.multipleMassSpectrum[itemName]['ims1DX']
@@ -294,9 +322,7 @@ class topPanel(wx.Panel):
         xlabel = document.multipleMassSpectrum[itemName]['xlabel']
         
         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['1D'])
-        self.presenter.onPlot1DIMS2(dtX, dtY, xlabel, 
-                                    document.lineColour, 
-                                    document.style)
+        self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, full_repaint=True)
             
     def OnGetColumnClick(self, evt):
         self.OnSortByColumn(column=evt.GetColumn())
@@ -328,7 +354,7 @@ class topPanel(wx.Panel):
              
     def OnSortByColumn(self, column, overrideReverse=False):
         """
-        Sort data in peaklist based on pressed column
+        Sort data in filelist based on pressed column
         """
         
         # Override reverse
@@ -381,7 +407,6 @@ class topPanel(wx.Panel):
                                                    col=self.config.multipleMLColNames['energy']).GetText())
             
             self.presenter.documentsDict[docName].multipleMassSpectrum[itemName]['trap'] = trapCV
-
 
     def getCurrentDocument(self, docNameOnly=False):
         """
@@ -482,4 +507,59 @@ class topPanel(wx.Panel):
             self.presenter.view.SetStatusText(msg, 3)
             return
         self.filelist.DeleteAllItems()
+        
+    def onRemoveDuplicates(self, evt, limitCols=False):
+        """
+        This function removes duplicates from the list
+        Its not very efficient!
+        """
+        
+        columns = self.filelist.GetColumnCount()
+        rows = self.filelist.GetItemCount()
+
+        tempData = []
+        # Iterate over row and columns to get data
+        for row in range(rows):
+            tempRow = []
+            for col in range(columns):
+                item = self.filelist.GetItem(itemId=row, col=col)
+                
+                #  We want to make sure certain columns are numbers
+                if col in [1]:
+                    itemData = str2num(item.GetText())
+                    if itemData == None: itemData = 0
+                    tempRow.append(itemData)
+                else:
+                    tempRow.append(item.GetText())
+            tempRow.append(self.filelist.IsChecked(index=row))
+            tempRow.append(self.filelist.GetItemTextColour(row))
+            tempData.append(tempRow)
+        
+        # Remove duplicates
+        tempData = removeListDuplicates(input=tempData,
+                                        columnsIn=['filename', 'energy', 'document', 'check', 'rgb'],
+                                        limitedCols=['filename', 'document'])     
+        rows = len(tempData)
+        # Clear table
+        self.filelist.DeleteAllItems()
+        
+        checkData, rgbData = [], []
+        for check in tempData:
+            rgbData.append(check[-1])
+            del check[-1]
+            checkData.append(check[-1])
+            del check[-1]
+        
+        # Reinstate data
+        rowList = arange(len(tempData))
+        for row, check, rgb in zip(rowList, checkData, rgbData):
+            self.filelist.Append(tempData[row])
+            self.filelist.CheckItem(row, check)
+            self.filelist.SetItemTextColour(row, rgb)
+            
+        if evt is None: return
+        else:
+            evt.Skip()
+           
+        
         
