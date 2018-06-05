@@ -1,4 +1,3 @@
-
 <h2><strong>What changed in ORIGAMI<sup>ANALYSE&nbsp;</sup>:</strong></h2>
 <p><strong>Note</strong>&nbsp;</p>
 <p>This is a major update, predominantly focusing on adding support for deconvolution of mass spectra using UniDec and introducing several new plotting options while also improving the Interactive Output documents.</p>
@@ -59,9 +58,11 @@
 <li>The CCS panel is quite clunky and not intuitive - needs a revamp!</li>
 <li>When zooming-in and the mouse cursor goes outside of the plot axes, the zoom tools get locked-up - kind of annoying</li>
 </ul>
-<p>&nbsp;</p>
+<p><strong>Preview Interactive documents</strong></p>
+<p><a href="http://htmlpreview.github.io/?https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/p27FL_UniDec.html">Analysis of p27-FL IDP protein using UniDec deconvolution engine</a></p>
+<p><a href="http://htmlpreview.github.io/?https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/prt_interactive_grid.html">Visualisation of multiple 2D datasets simultaneously</a></p>
 <p><strong>Example images:</strong></p>
-<p>&nbsp;</p>
+<p>&nbsp;Unidec in ORIGAMI</p>
 <p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/origami_unidec.gif" alt="UniDec GIF" width="600" height="340" /></p>
 <p>Grid (2-&gt;1) overlay method</p>
 <p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/origami_grid2to1.png" alt="Grid (2-&gt;1)" width="600" height="340" /></p>
