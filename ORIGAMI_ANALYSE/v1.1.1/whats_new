@@ -67,9 +67,11 @@
 <p>Grid (2-&gt;1) overlay method</p>
 <p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/origami_grid2to1.png" alt="Grid (2-&gt;1)" width="600" height="340" /></p>
 <p>Grid (n x n) overlay method</p>
-<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/origami_gridNxN.png" alt="Grid (n x n)" width="600" height="340" /></p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/origami_grid_zoom.gif" alt="Grid (n x n)" width="600" height="340" /></p>
 <p>MS waterfall method</p>
 <p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/origami_MS_waterfall.png" alt="MS Waterfall" width="600" height="340" /></p>
+<p>MS comparison view</p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/origami_mass_spec_compare.gif" alt="MS comparison viewer" width="600" height="340" /></p>
 <p><strong>ORIGAMI-MS:</strong></p>
 <p>There have been no changes to ORIGAMI<sup>MS</sup>, so please download it from release 1.0.1.</p>
 <p><strong>Video tutorials:</strong></p>
