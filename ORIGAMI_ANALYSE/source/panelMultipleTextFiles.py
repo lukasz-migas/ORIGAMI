@@ -23,9 +23,9 @@ from dialogs import panelModifyTextSettings, panelAsk
 from toolbox import (isempty, str2num, str2int, removeListDuplicates, convertRGB1to255,
                      convertRGB255to1, literal_eval, randomIntegerGenerator)
 from operator import itemgetter
-# import itertools
 from numpy import arange
 from styles import makeMenuItem
+import re
 
 class panelMultipleTextFiles ( wx.Panel ):
     
@@ -216,6 +216,9 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaskText)
         self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMinThresholdText)
         self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaxThresholdText)
+        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_textPanel_changeColorBatch_palette)
+        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_textPanel_changeColorBatch_colormap)
+        self.Bind(wx.EVT_MENU, self.onChangeColormap, id=ID_textPanel_changeColormapBatch)
         
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignChargeStateText,
@@ -233,6 +236,16 @@ class topPanel(wx.Panel):
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaxThresholdText,
                                      text='Assign maximum threshold to selected ions', 
                                      bitmap=self.icons.iconsLib['max_threshold_16']))
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_changeColormapBatch,
+                                     text='Randomize colormap for selected items', 
+                                     bitmap=self.icons.iconsLib['blank_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_changeColorBatch_palette,
+                                     text='Colour selected items using color palette', 
+                                     bitmap=self.icons.iconsLib['blank_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_changeColorBatch_colormap,
+                                     text='Colour selected items using colormap', 
+                                     bitmap=self.icons.iconsLib['blank_16']))
         
         self.PopupMenu(menu)
         menu.Destroy()
@@ -258,11 +271,13 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeAllFilesFromList)
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedFilesFromList)
         self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_clearTableText)
+        self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_clearSelectedText)
         
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearTableText,
                                      text='Clear table', 
                                      bitmap=self.icons.iconsLib['clear_16']))
+        menu.Append(ID_clearSelectedText, "Clear selected")
         menu.AppendSeparator()
         menu.Append(ID_removeSelectedFilesFromList, "Remove selected files")
         menu.Append(ID_removeAllFilesFromList, "Remove all files")
@@ -361,6 +376,52 @@ class topPanel(wx.Panel):
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
+        
+    def onChangeColormap(self, evt):
+        # get number of checked items
+        check_count = 0
+        for row in range(self.filelist.GetItemCount()):
+            if self.filelist.IsChecked(index=row):
+                check_count += 1 
+        
+        if check_count > len(self.config.narrowCmapList):
+            colormaps = self.config.narrowCmapList
+        else:
+            colormaps = self.config.narrowCmapList + self.config.cmaps2
+        
+        for row in range(self.filelist.GetItemCount()):
+            if self.filelist.IsChecked(index=row):
+                self.currentItem = row
+                colormap = colormaps[row]
+                self.filelist.SetStringItem(row, 
+                                            self.config.textlistColNames['colormap'], 
+                                            str(colormap))
+                
+                # update document
+                try:
+                    self.onUpdateDocument(evt=None)
+                except TypeError:
+                    print("Please select item")
+        
+    def onChangeColorBatch(self, evt):
+        # get number of checked items
+        check_count = 0
+        for row in range(self.filelist.GetItemCount()):
+            if self.filelist.IsChecked(index=row):
+                check_count += 1 
+                
+        if evt.GetId() == ID_textPanel_changeColorBatch_palette:
+            colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=check_count, return_colors=True)
+        else:
+            colors = self.presenter.view.panelPlots.onGetColormapList(n_colors=check_count)
+            
+        for row in range(self.filelist.GetItemCount()):
+            self.currentItem = row
+            if self.filelist.IsChecked(index=row):
+                color = colors[row]
+                self.filelist.SetItemBackgroundColour(row, convertRGB1to255(color))
+                
+            self.onUpdateDocument(evt=None)
         
     def onUpdateTable(self, evt):
         evtID = evt.GetId()
@@ -501,13 +562,24 @@ class topPanel(wx.Panel):
         """
         
         itemInfo = self.OnGetItemInformation(self.currentItem)
-        
-        selectedItem = itemInfo['document']
-        
-        currentDocument = self.presenter.documentsDict[selectedItem]
-        
-        # get data
-        data = currentDocument.IMS2D
+        print(re.split(': ', itemInfo['document']))
+        try:
+            selectedItem = itemInfo['document']
+            currentDocument = self.presenter.documentsDict[selectedItem]
+            
+            
+            # get data
+            data = currentDocument.IMS2D
+        except:
+            document_title, ion_title = re.split(': ', itemInfo['document'])
+            document = self.presenter.documentsDict[document_title]
+            try:
+                data = document.IMS2DcompData[ion_title]
+            except KeyError:
+                try:
+                    data = document.IMS2Dions[ion_title]
+                except:
+                    return
             
         # Extract 2D data from the document
         zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
@@ -525,7 +597,7 @@ class topPanel(wx.Panel):
         
         # Process data
         if evt.GetId() == ID_get2DplotTextWithProcss:
-            zvals = self.presenter.process2Ddata(zvals=zvals, return_data=True)
+            zvals = self.presenter.process2Ddata(zvals=zvals.copy(), return_data=True)
         else: pass 
         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
         self.presenter.onPlot2DIMS2(zvals, xvals, yvals, xlabel, ylabel, cmap)
@@ -642,7 +714,7 @@ class topPanel(wx.Panel):
                 else:
                     tempRow.append(item.GetText())
             tempRow.append(self.filelist.IsChecked(index=row))
-            tempRow.append(self.filelist.GetItemTextColour(row))
+            tempRow.append(self.filelist.GetItemBackgroundColour(row))
             tempData.append(tempRow)
             
         # Remove duplicates
@@ -653,7 +725,7 @@ class topPanel(wx.Panel):
                                         limitedCols=['filename'])     
         rows = len(tempData)
         # Clear table
-        self.peaklist.DeleteAllItems()
+        self.filelist.DeleteAllItems()
 
         checkData, rgbData = [], []
         for check in tempData:
@@ -667,7 +739,7 @@ class topPanel(wx.Panel):
         for row, check, rgb in zip(rowList, checkData, rgbData):
             self.filelist.Append(tempData[row])
             self.filelist.CheckItem(row, check)
-            self.filelist.SetItemTextColour(row, rgb)
+            self.filelist.SetItemBackgroundColour(row, rgb)
             
         if evt is None: return
         else:
@@ -678,13 +750,22 @@ class topPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = dialogs.dlgBox(exceptionTitle='Are you sure?', 
-                             exceptionMsg= "Are you sure you would like to clear the table??",
-                             type="Question")
-        if dlg == wx.ID_NO:
-            print('Cancelled operation')
-            return
-        self.filelist.DeleteAllItems()
+        evtID = evt.GetId()
+
+        if evtID == ID_clearSelectedText:
+            row = self.filelist.GetItemCount() - 1
+            while (row >= 0):
+                if self.filelist.IsChecked(index=row):
+                    self.filelist.DeleteItem(row)
+                row-=1
+        else:
+            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?', 
+                                 exceptionMsg= "Are you sure you would like to clear the table??",
+                                 type="Question")
+            if dlg == wx.ID_NO:
+                print('Cancelled operation')
+                return
+            self.filelist.DeleteAllItems()
         
     def OnGetColumnClick(self, evt):
         self.OnSortByColumn(column=evt.GetColumn())
@@ -729,7 +810,7 @@ class topPanel(wx.Panel):
                 else:
                     tempRow.append(item.GetText())
             tempRow.append(self.filelist.IsChecked(index=row))
-            tempRow.append(self.filelist.GetItemTextColour(row))
+            tempRow.append(self.filelist.GetItemBackgroundColour(row))
             tempData.append(tempRow)
             
         # Sort data  
@@ -749,7 +830,7 @@ class topPanel(wx.Panel):
         for row, check, rgb in zip(rowList, checkData, rgbData):
             self.filelist.Append(tempData[row])
             self.filelist.CheckItem(row, check)
-            self.filelist.SetItemTextColour(row, rgb)
+            self.filelist.SetItemBackgroundColour(row, rgb)
 
     def onUpdateOverlayMethod(self, evt):
         self.config.overlayMethod = self.combo.GetStringSelection()
@@ -763,7 +844,7 @@ class topPanel(wx.Panel):
         information = {'minCE':str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['start']).GetText()),
                        'maxCE':str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['end']).GetText()),
                        'charge':str2int(self.filelist.GetItem(itemID, self.config.textlistColNames['charge']).GetText()),
-                       'color':self.filelist.GetItemTextColour(item=itemID),
+                       'color':self.filelist.GetItemBackgroundColour(item=itemID),
                        'colormap':self.filelist.GetItem(itemID, self.config.textlistColNames['colormap']).GetText(),
                        'alpha':str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['alpha']).GetText()),
                        'mask':str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['mask']).GetText()),
@@ -774,15 +855,23 @@ class topPanel(wx.Panel):
                        'id':itemID}
 
         try:
+            flag_error = False
             self.docs = self.presenter.documentsDict[self.filelist.GetItem(itemID, self.config.textlistColNames['filename']).GetText()]
         except KeyError:
-            pass
+            flag_error = True
+            document_title, ion_title = re.split(': ', information['document'])
+            document = self.presenter.documentsDict[document_title]
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
         
-        if self.docs.IMS2D:
-            min_threshold = self.docs.IMS2D.get('min_threshold', 0)
-            max_threshold = self.docs.IMS2D.get('max_threshold', 1)
+        if not flag_error:
+            if self.docs.IMS2D:
+                min_threshold = self.docs.IMS2D.get('min_threshold', 0)
+                max_threshold = self.docs.IMS2D.get('max_threshold', 1)
+            else:
+                min_threshold = self.docs.IMS2DcompData[ion_title].get('min_threshold', 0)
+                max_threshold = self.docs.IMS2DcompData[ion_title].get('max_threshold', 0)
+                
         information['min_threshold'] = min_threshold
         information['max_threshold'] = max_threshold
                 
@@ -836,7 +925,7 @@ class topPanel(wx.Panel):
         
         if itemID != None:
             self.currentItem = itemID
-            
+                    
         # Restore custom colors
         custom = wx.ColourData()
         for key in self.config.customColors:
@@ -854,7 +943,7 @@ class topPanel(wx.Panel):
             self.filelist.SetStringItem(self.currentItem, 
                                         self.config.textlistColNames['color'], 
                                         str(convertRGB255to1(newColour)))
-            self.filelist.SetItemTextColour(self.currentItem, newColour)
+            self.filelist.SetItemBackgroundColour(self.currentItem, newColour)
             # Retrieve custom colors
             for i in xrange(15): 
                 self.config.customColors[i] = data.GetCustomColour(i)
@@ -872,7 +961,7 @@ class topPanel(wx.Panel):
             # Assign color
             self.filelist.SetStringItem(self.currentItem, self.config.textlistColNames['color'],
                                         str(convertRGB255to1(newColour)))
-            self.filelist.SetItemTextColour(self.currentItem, newColour)
+            self.filelist.SetItemBackgroundColour(self.currentItem, newColour)
             if give_value:
                 return newColour
 
@@ -881,20 +970,34 @@ class topPanel(wx.Panel):
         # get item info
         if itemInfo == None:
             itemInfo = self.OnGetItemInformation(self.currentItem)
+
+
+        keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold',
+                    'max_threshold', 'charge', 'cmap']
         
         # get item
-        document = self.presenter.documentsDict[itemInfo['document']]
+        try:
+            document = self.presenter.documentsDict[itemInfo['document']]
+            for keyword in keywords:
+                if keyword == "cmap": keyword_name = "colormap"
+                else: keyword_name = keyword
+                if document.got2DIMS:
+                    document.IMS2D[keyword] = itemInfo[keyword_name]
+                if document.got2Dprocess:
+                    document.IMS2Dprocess[keyword] = itemInfo[keyword_name]
+        except:
+            document_title, ion_title = re.split(': ', itemInfo['document'])
+            document = self.presenter.documentsDict[document_title]
+            for keyword in keywords:
+                if keyword == "cmap": keyword_name = "colormap"
+                else: keyword_name = keyword
+                if ion_title in document.IMS2DcompData:
+                    document.IMS2DcompData[ion_title][keyword] = itemInfo[keyword_name]
+                else:
+                    document.IMS2Dions[ion_title][keyword] = itemInfo[keyword_name]
         
-        keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold',
-                    'max_threshold', 'charge']
-        for keyword in keywords:
-            if document.got2DIMS:
-                document.IMS2D[keyword] = itemInfo[keyword]
-            if document.got2Dprocess:
-                document.IMS2Dprocess[keyword] = itemInfo[keyword]
-            
         # Update file list
-        self.presenter.OnUpdateDocument(document, 'no_refresh')
+        self.presenter.OnUpdateDocument(document, 'document')
             
     def OnOpenEditor(self, evt):
         
@@ -955,6 +1058,22 @@ class topPanel(wx.Panel):
                                                            **dlg_kwargs)
                 self.editItemDlg.Show()   
             
+    def onClearItems(self, document):
+        """
+        @param document: title of the document to be removed from the list
+        """
+        row = self.filelist.GetItemCount() - 1
+        while (row >= 0):
+            info = self.OnGetItemInformation(itemID=row)
+            if info['document'] == document:
+                self.filelist.DeleteItem(row)
+                row-=1
+            elif document in info['document'] :
+                self.filelist.DeleteItem(row)
+                row-=1
+            else:
+                row-=1
+        
             
             
             

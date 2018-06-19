@@ -37,6 +37,12 @@ import random, string
 import pandas as pd
 import time
 
+def mlen(listitem, get_longest=False):
+    
+    for i, item in enumerate(listitem):
+        print("Item {} has length {}".format(i, len(item)))
+        
+    
 
 def determineFontColor(rgb, rgb_mode=2):
     """
@@ -64,7 +70,6 @@ def determineFontColor(rgb, rgb_mode=2):
         return "black"
     else:
         return "white"
-
 
 def dir_extra(dirlist, keywords="get"):
     """
@@ -97,6 +102,12 @@ def timeit(method):
 
     return timed
 
+def randomColorGenerator():
+    r = lambda: random.randint(0,255)
+    color = (r(),r(),r())
+    color = convertRGB255to1(color)
+    return color
+
 def randomIntegerGenerator(min_int, max_int):
     return randint(min_int, max_int)
 
@@ -108,36 +119,53 @@ def merge_two_dicts(dict_1, dict_2):
     combined_dict.update(dict_2)    # modifies z with y's keys and values & returns None
     return combined_dict
 
-def checkVersion(link=None):
-
-    # Search website for all versions
-    vers = []
-    for line in urllib2.urlopen(link):
-        if 'Update to ORIGAMI-ANALYSE (' in line:
-            vers.append(line)
-            break
-    if len(vers) == 0: return None
-    # Split the latest one to get newest version
-    split = re.split(' |<', vers[0])
-    webVersion = None
-    for row in split:
-        if '(' in row:
-            webVersion = row.strip("()")
-            break
+def checkVersion(link=None, get_webpage=False):
     
-    return webVersion
+    if not get_webpage:
+        # Search website for all versions
+        vers = []
+        for line in urllib2.urlopen(link):
+            if 'Update to ORIGAMI-ANALYSE (' in line:
+                vers.append(line)
+                break
+        if len(vers) == 0: return None
+        # Split the latest one to get newest version
+        split = re.split(' |<', vers[0])
+        webVersion = None
+        for row in split:
+            if '(' in row:
+                webVersion = row.strip("()")
+                break
+        return webVersion
+    else:
+        webpage = urllib2.urlopen("https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md")
+        return webpage.read()
     
 def compareVersions(newVersion, oldVersion):
     return LooseVersion(newVersion) > LooseVersion(oldVersion)
+
+def cleanup_document(document):
+    
+    if 'temporary_unidec' in document.massSpectrum:
+        del document.massSpectrum['temporary_unidec']
+        
+    for spectrum in document.multipleMassSpectrum:
+        if 'temporary_unidec' in document.multipleMassSpectrum[spectrum]:
+            del document.multipleMassSpectrum[spectrum]['temporary_unidec']
+    
+    return document
 
 def saveObject(filename=None, saveFile=None):
     """ 
     Simple tool to save objects/dictionaries
     """
-#     saveFileName = filename+'/classificationData.pickle' 
-    print(''.join(['Saved data in: ', filename]))
+    tstart = time.clock()
+    print(''.join(['Saving data...']))
     with open(filename, 'wb') as handle:
+        saveFile = cleanup_document(saveFile)
         pickle.dump(saveFile, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    tend = time.clock()
+    print("Saved document in: {}. It took {:.4f} seconds.".format(filename, (tend-tstart)))
         
 def openObject(filename=None):
     """
@@ -148,7 +176,7 @@ def openObject(filename=None):
             try:
                 return pickle.load(f)
             except Exception, e:
-                return [None, e]
+                return None
     else:
         with open(filename + '.pickle', 'rb') as f:
             return pickle.load(f)
@@ -515,9 +543,9 @@ def find_nearest(array,value):
     return array[idx], idx
 
 def convertRGB255to1(rgbList, decimals=3):
-    rgbList = list([np.round((np.float(rgbList[0])/255),decimals),
-                    np.round((np.float(rgbList[1])/255),decimals),
-                    np.round((np.float(rgbList[2])/255),decimals)])
+    rgbList = list([round((np.float(rgbList[0])/255),decimals),
+                    round((np.float(rgbList[1])/255),decimals),
+                    round((np.float(rgbList[2])/255),decimals)])
     return rgbList
 
 def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
@@ -526,14 +554,32 @@ def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
                         np.round((np.float(rgbList[1])*255),decimals),
                         np.round((np.float(rgbList[2])*255),decimals)])
     else:
-        rgbList = list([int((np.float(rgbList[0])*255)),
-                        int((np.float(rgbList[1])*255)),
-                        int((np.float(rgbList[2])*255))])
+        try:
+            rgbList = list([int((np.float(rgbList[0])*255)),
+                            int((np.float(rgbList[1])*255)),
+                            int((np.float(rgbList[2])*255))])
+        except ValueError:
+            rgbList = eval(rgbList)
+            rgbList = list([int((np.float(rgbList[0])*255)),
+                            int((np.float(rgbList[1])*255)),
+                            int((np.float(rgbList[2])*255))])
     
     if not as_tuple:
         return rgbList
     else:
         return tuple(rgbList)
+
+def convertRGB1toHEX(rgbList):
+
+        return '#{:02x}{:02x}{:02x}'.format(int((np.float(rgbList[0])*255)),
+                                            int((np.float(rgbList[1])*255)),
+                                            int((np.float(rgbList[2])*255)))
+
+def convertRGB255toHEX(rgbList):
+
+        return '#{:02x}{:02x}{:02x}'.format(int((np.float(rgbList[0]))),
+                                            int((np.float(rgbList[1]))),
+                                            int((np.float(rgbList[2]))))
 
 def find_limits(xvals, yvals):
     xouts, youts = [], []
@@ -541,9 +587,21 @@ def find_limits(xvals, yvals):
     # Iterate over dictionary to find minimum values for each key
     for key in xvals:
         xouts.append(np.min(xvals[key]))
-        xouts.append(np.min(xvals[key]))
+        xouts.append(np.max(xvals[key]))
         youts.append(np.min(yvals[key]))
-        youts.append(np.min(yvals[key]))
+        youts.append(np.max(yvals[key]))
+    
+    return xouts, youts
+
+def find_limits_list(xvals, yvals):
+    xouts, youts = [], []
+    
+    # Iterate over dictionary to find minimum values for each key
+    for i in xrange(len(xvals)):
+        xouts.append(np.min(xvals[i]))
+        xouts.append(np.max(xvals[i]))
+        youts.append(np.min(yvals[i]))
+        youts.append(np.max(yvals[i]))
     
     return xouts, youts
 

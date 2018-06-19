@@ -17,6 +17,7 @@
 
 # Import libraries
 import wx
+# print(wx.version())
 import numpy as np
 import os
 import sys
@@ -51,7 +52,6 @@ import matplotlib.cm as cm
 import bokeh.core.templates
 import webbrowser
 
-
 # Import ORIGAMI libraries
 import mainWindow as mainWindow
 from config import OrigamiConfig as config
@@ -62,7 +62,8 @@ import massLynxFcns as ml
 import analysisFcns as af
 from toolbox import *
 import dialogs as dialogs
-from dialogs import panelSelectDocument, panelCalibrantDB
+from dialogs import panelSelectDocument, panelCalibrantDB, panelHTMLViewer, panelNotifyNewVersion
+import unidec
 
     
 class ORIGAMI(object):
@@ -102,7 +103,7 @@ class ORIGAMI(object):
         self.icons = icons()
         self.docs = documents()
         self.help = help()
-        
+
         # Load configuration file
         self.onImportConfig(evt=None, onStart=True)
         
@@ -124,9 +125,11 @@ class ORIGAMI(object):
             
         # Set current working directory    
         self.config.cwd = os.getcwd()
+        self.config.unidec_path = os.path.join(os.getcwd(), "unidec_bin\UniDec.exe")
         
-        # Set current plot style
+        # Setup plot style
         self.view.panelPlots.onChangePlotStyle(evt=None)
+        self.view.panelPlots.onChangePalette(evt=None)
         self.view.updateRecentFiles()
 
         self.logging = self.config.logging
@@ -134,12 +137,15 @@ class ORIGAMI(object):
         
         # Load protein/CCS database
         self.onImportCCSDatabase(evt=None, onStart=True)
-        self.onCheckVersion(evt=None)
         
         gc.enable()
-        
         # Setup logging
         self.view.onEnableDisableLogging(evt=None)
+        
+        # add binding to UniDec engine
+#         try:
+        self.config.unidec_engine = unidec.UniDec()
+        self.onCheckVersion()
         
 #         for file_path in [
 # #                         'Z:\###_PhD1_###\RebeccaBeveridge - P27 CdkCyclin Fdc1\p27_data_January2018\SynaptG2\LM_15012017_P27K56_2.pickle'
@@ -148,12 +154,6 @@ class ORIGAMI(object):
 #                           ]:
 #             self.onOpenDocument(evt=None, file_path = file_path)
         
-        # Log all events to 
-#         if self.logging == True:
-#             sys.stdin = self.view.panelPlots.log
-#             sys.stdout = self.view.panelPlots.log
-#             sys.stderr = self.view.panelPlots.log
-
     def makeVariables(self):
         """
         Pre-set variables
@@ -164,7 +164,6 @@ class ORIGAMI(object):
         self.currentDoc = None
         self.currentCalibrationParams = []
         self.currentPath = None
-        
 # ---
         
     def onMSDirectory(self, e=None):
@@ -199,6 +198,7 @@ class ORIGAMI(object):
             __, idName = os.path.split(dlg.GetPath())
             idName = (''.join([idName])).encode('ascii', 'replace')   
             
+            self.docs = documents()
             self.docs.title = idName
             self.currentDoc = idName # Currently plotted document
             self.docs.path = dlg.GetPath()
@@ -222,6 +222,119 @@ class ORIGAMI(object):
             self.OnUpdateDocument(self.docs, 'document')
         dlg.Destroy()
         return None
+
+    def onMSTextFile(self, e=None, path=None):
+
+        if path is None:
+            wildcard = "Text file (*.txt, *.csv, *.tab)| *.txt;*.csv;*.tab"
+            dlg = wx.FileDialog(self.view, "Choose MS text file...",
+                                wildcard = wildcard,
+                                style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR | wx.FD_MULTIPLE)
+                
+            if dlg.ShowModal() == wx.ID_OK:
+                pathlist = dlg.GetPaths()
+                for path in pathlist:
+                    print "You chose %s" % path
+    #             dlg.Destroy()
+                    if path is not None:
+                        self.onMSTextFileFcn(path=path)
+            dlg.Destroy()
+        else:
+            self.onMSTextFileFcn(path=path)
+
+    def onMSTextFileFcn(self, path=None, e=None, return_data=False):
+           # Update statusbar      
+           self.view.SetStatusText(path, number = 4)
+           
+           # Extract MS file
+           msDataX, msDataY, dirname, extension = ml.textOpenMSData(path=path)
+           xlimits = [np.min(msDataX), np.max(msDataX)]
+           if return_data:
+               return msDataX, msDataY, dirname, xlimits
+           # Add data to document 
+           __, idName = os.path.split(path)
+           idName = (''.join([idName])).encode('ascii', 'replace')   
+           
+           document = documents()
+           document.title = idName
+           self.currentDoc = idName # Currently plotted document
+           document.path = dirname
+           document.userParameters = self.config.userParameters
+           document.userParameters['date'] = getTime()
+           document.dataType = 'Type: MS'
+           document.fileFormat = 'Format: Text ({})'.format(extension)
+           document.gotMS = True
+           document.massSpectrum = {'xvals':msDataX, 
+                                     'yvals':msDataY,
+                                     'xlabels':'m/z (Da)',
+                                     'xlimits':xlimits}
+
+           # Plot 
+           self.onPlotMS2(msDataX, msDataY, xlimits=xlimits)
+
+           # Update document
+           self.view.updateRecentFiles(path={'file_type':'Text_MS', 
+                                             'file_path':path})
+           self.OnUpdateDocument(document, 'document')
+
+    def onMSFromClipboard(self, evt):
+        """
+        Get spectrum (n x 2) from clipboard
+        """
+        try:
+            wx.TheClipboard.Open()
+            textObj = wx.TextDataObject()
+            wx.TheClipboard.GetData(textObj)
+            wx.TheClipboard.Close()
+            text = textObj.GetText()
+            text = text.splitlines()
+            data = []
+            for t in text:
+                line = t.split()
+                if len(line) == 2:
+                    try:
+                        mz = float(line[0])
+                        intensity = float(line[1])
+                        data.append([mz, intensity])
+                    except (ValueError, TypeError): pass
+            data = np.array(data)
+            msDataX = data[:, 0]
+            msDataY = data[:, 1]
+            xlimits = [np.min(msDataX), np.max(msDataX)]
+           
+           # Add data to document 
+            dlg =  wx.FileDialog(self.view, "Please select a name for the comparison document", 
+                                 "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg.CentreOnParent()
+            if dlg.ShowModal() == wx.ID_OK:
+                path = dlg.GetPath()
+                __, idName = os.path.split(path)
+                idName = (''.join([idName])).encode('ascii', 'replace')   
+                
+                document = documents()
+                document.title = idName
+                self.currentDoc = idName # Currently plotted document
+                document.path = os.path.dirname(path)
+                document.userParameters = self.config.userParameters
+                document.userParameters['date'] = getTime()
+                document.dataType = 'Type: MS'
+                document.fileFormat = 'Format: Text ({})'.format("Clipboard")
+                document.gotMS = True
+                document.massSpectrum = {'xvals':msDataX, 
+                                         'yvals':msDataY,
+                                         'xlabels':'m/z (Da)',
+                                         'xlimits':xlimits}
+                
+                # Plot 
+                self.onPlotMS2(msDataX, msDataY, xlimits=xlimits)
+                
+                # Update document
+                self.view.updateRecentFiles(path={'file_type':'Text_MS', 
+                                                  'file_path':path})
+                self.OnUpdateDocument(document, 'document')
+        except:
+            print("Failed to get spectrum from the clipboard")
+            return
     
     def onOpenMS(self, e=None):
         """ open MS file (without IMS) """
@@ -246,12 +359,17 @@ class ORIGAMI(object):
             parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
             xlimits = [parameters['startMS'],parameters['endMS']]
             # Extract MS data
+            kwargs = {'auto_range':self.config.ms_auto_range,
+                      'mz_min':xlimits[0], 'mz_max':xlimits[1],
+                      'linearization_mode':self.config.ms_linearization_mode}
             msDict = ml.extractMSdata(filename=str(dlg.GetPath()), 
                                       function=1, 
                                       binData=self.config.import_binOnImport, 
                                       mzStart=self.config.ms_mzStart, 
                                       mzEnd=self.config.ms_mzEnd, 
-                                      binsize=self.config.ms_mzBinSize)
+                                      binsize=self.config.ms_mzBinSize,
+#                                       binData=
+                                      **kwargs)
              
             # Sum MS data
             msX, msY = af.sumMSdata(ydict=msDict)
@@ -428,8 +546,8 @@ class ORIGAMI(object):
             print('exception')
             
     def onOrigamiRawDirectory(self, evt):
-        self.config.ciuMode = 'ORIGAMI'
-        self.config.extractMode = 'singleIon'
+        # self.config.ciuMode = 'ORIGAMI'
+        # self.config.extractMode = 'singleIon'
          
         # Reset arrays
         dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
@@ -459,16 +577,12 @@ class ORIGAMI(object):
         # Assign datatype. Have to do it here otherwise the evt value is incorrect for some unknown reason!
         if evtID == ID_openORIGAMIRawFile: 
             dataType = 'Type: ORIGAMI'
-            self.config.ciuMode = 'ORIGAMI'
         elif evtID == ID_openMassLynxRawFile: 
             dataType = 'Type: MassLynx'
-            self.config.ciuMode = 'ORIGAMI'
         elif evtID == ID_openIRRawFile: 
             dataType = 'Type: Infrared'
-            self.config.ciuMode = 'Infrared'
         else: 
             dataType = 'Type: ORIGAMI'
-            self.config.ciuMode = 'ORIGAMI'    
         
         if mode != None: dataType = mode
         
@@ -490,58 +604,81 @@ class ORIGAMI(object):
         oriParameters = self.config.importOrigamiConfFile(path=path)
 #         self.view.panelControls.onPopulateOrigamiVars(parameters=oriParameters)
         
-        # Mass spectra
         ml.rawExtractMSdata(fileNameLocation=path, 
                             driftscopeLocation=self.config.driftscopePath)
-        msDataX, msDataY = ml.rawOpenMSdata(path=path)
-        self.onThreading(None, ("Extracted mass spectrum", 4), action='updateStatusbar')
+        
         xlimits = [parameters['startMS'], parameters['endMS']]
-        
-        # RT
-        ml.rawExtractRTdata(fileNameLocation=path, 
-                            driftscopeLocation=self.config.driftscopePath)
-        rtDataY,rtDataYnorm = ml.rawOpenRTdata(path=path, 
-                                               norm=True)   
-        self.onThreading(None, ("Extracted chromatogram", 4), action='updateStatusbar')
-        xvalsRT = np.arange(1,len(rtDataY)+1)
-        
-        # DT
-        ml.rawExtract1DIMSdata(fileNameLocation=path, 
-                               driftscopeLocation=self.config.driftscopePath)
-        imsData1D =  ml.rawOpen1DRTdata(path=path,
-                                                norm=self.config.normalize)
-        self.onThreading(None, ("Extracted mobiligram", 4), action='updateStatusbar')
-        xvalsDT = np.arange(1,len(imsData1D)+1)
-        
-        # 2D
-        ml.rawExtract2DIMSdata(fileNameLocation=path,
-                               driftscopeLocation=self.config.driftscopePath)
-        imsData2D = ml.rawOpen2DIMSdata(path=path, norm=False)
-        self.onThreading(None, ("Extracted heatmap", 4), action='updateStatusbar')
-        xlabels = 1+np.arange(len(imsData2D[1,:]))
-        ylabels = 1+np.arange(len(imsData2D[:,1]))
-        
-        # Plot MZ vs DT
-        if self.config.showMZDT:
-            # m/z spacing, default is 1 Da
-            nPoints = int((parameters['endMS'] - parameters['startMS'])/self.config.ms_dtmsBinSize)
-            # Extract and load data
-            ml.rawExtractMZDTdata(fileNameLocation=path,
-                                   driftscopeLocation=self.config.driftscopePath,
-                                   mzStart=parameters['startMS'],
-                                   mzEnd=parameters['endMS'],
-                                   nPoints=nPoints)
+        try:
+            msDataX, msDataY = ml.rawOpenMSdata(path=path)
+            self.onThreading(None, ("Extracted mass spectrum", 4), action='updateStatusbar')
+        except IOError:
+            # Failed to open document because it does not have IM-MS data
+            dataType = 'Type: MS'
+            evtID = None
+            # Extract MS data
+            kwargs = {'auto_range':self.config.ms_auto_range,
+                      'mz_min':xlimits[0], 'mz_max':xlimits[1],
+                      'linearization_mode':self.config.ms_linearization_mode}
+            msDict = ml.extractMSdata(filename=str(path), function=1, 
+                                      binData=self.config.import_binOnImport, 
+                                      mzStart=self.config.ms_mzStart, 
+                                      mzEnd=self.config.ms_mzEnd, 
+                                      binsize=self.config.ms_mzBinSize,
+                                      **kwargs)
+             
+            # Sum MS data
+            msDataX, msDataY = af.sumMSdata(ydict=msDict)
             
-            imsDataMZDT = ml.rawOpenMZDTdata(path=path, norm=False)
-            # Get x/y axis 
-            xlabelsMZDT = np.linspace(parameters['startMS']-self.config.ms_dtmsBinSize,
-                                      parameters['endMS']+self.config.ms_dtmsBinSize, 
-                                      nPoints, endpoint=True)
-            ylabelsMZDT = 1+np.arange(len(imsDataMZDT[:,1]))
+            # Sum MS to get RT data
+            rtDataY, rtDataYnorm = af.sumMSdata2RT(ydict=msDict)
+            xvalsRT = np.arange(1,len(rtDataY)+1)
+        
+        if dataType != 'Type: MS':
+            # RT
+            ml.rawExtractRTdata(fileNameLocation=path, 
+                                driftscopeLocation=self.config.driftscopePath)
+            rtDataY,rtDataYnorm = ml.rawOpenRTdata(path=path, 
+                                                   norm=True)   
+            self.onThreading(None, ("Extracted chromatogram", 4), action='updateStatusbar')
+            xvalsRT = np.arange(1,len(rtDataY)+1)
             
-            # Plot
-            self.onPlotMZDT(imsDataMZDT, xlabelsMZDT, ylabelsMZDT,
-                            'm/z', 'Drift time (bins)')
+            # DT
+            ml.rawExtract1DIMSdata(fileNameLocation=path, 
+                                   driftscopeLocation=self.config.driftscopePath)
+            imsData1D =  ml.rawOpen1DRTdata(path=path,
+                                                    norm=self.config.normalize)
+            self.onThreading(None, ("Extracted mobiligram", 4), action='updateStatusbar')
+            xvalsDT = np.arange(1,len(imsData1D)+1)
+            
+            # 2D
+            ml.rawExtract2DIMSdata(fileNameLocation=path,
+                                   driftscopeLocation=self.config.driftscopePath)
+            imsData2D = ml.rawOpen2DIMSdata(path=path, norm=False)
+            self.onThreading(None, ("Extracted heatmap", 4), action='updateStatusbar')
+            xlabels = 1+np.arange(len(imsData2D[1,:]))
+            ylabels = 1+np.arange(len(imsData2D[:,1]))
+            
+            # Plot MZ vs DT
+            if self.config.showMZDT:
+                # m/z spacing, default is 1 Da
+                nPoints = int((parameters['endMS'] - parameters['startMS'])/self.config.ms_dtmsBinSize)
+                # Extract and load data
+                ml.rawExtractMZDTdata(fileNameLocation=path,
+                                       driftscopeLocation=self.config.driftscopePath,
+                                       mzStart=parameters['startMS'],
+                                       mzEnd=parameters['endMS'],
+                                       nPoints=nPoints)
+                
+                imsDataMZDT = ml.rawOpenMZDTdata(path=path, norm=False)
+                # Get x/y axis 
+                xlabelsMZDT = np.linspace(parameters['startMS']-self.config.ms_dtmsBinSize,
+                                          parameters['endMS']+self.config.ms_dtmsBinSize, 
+                                          nPoints, endpoint=True)
+                ylabelsMZDT = 1+np.arange(len(imsDataMZDT[:,1]))
+                
+                # Plot
+                self.onPlotMZDT(imsDataMZDT, xlabelsMZDT, ylabelsMZDT,
+                                'm/z', 'Drift time (bins)')
         
         
         # Update status bar with MS range
@@ -567,7 +704,9 @@ class ORIGAMI(object):
         
         # add mass spectrum data
         self.docs.gotMS = True
-        self.docs.massSpectrum = {'xvals':msDataX, 'yvals':msDataY, 'xlabels':'m/z (Da)',
+        self.docs.massSpectrum = {'xvals':msDataX, 
+                                  'yvals':msDataY, 
+                                  'xlabels':'m/z (Da)',
                                   'xlimits':xlimits}
         self.onPlotMS2(msDataX, msDataY, xlimits=xlimits)
         
@@ -576,27 +715,28 @@ class ORIGAMI(object):
         self.docs.RT = {'xvals':xvalsRT, 'yvals':rtDataYnorm, 'xlabels':'Scans'}
         self.onPlotRT2(xvalsRT, rtDataYnorm, 'Scans')
         
-        # add mobiligram data
-        self.docs.got1DT = True
-        self.docs.DT = {'xvals':xvalsDT, 'yvals':imsData1D,
-                        'xlabels':'Drift time (bins)', 'ylabels':'Intensity'}
-        self.onPlot1DIMS2(xvalsDT, imsData1D, 'Drift time (bins)')
-        
-        # add 2D mobiligram data
-        self.docs.got2DIMS = True
-        self.docs.IMS2D = {'zvals':imsData2D, 'xvals':xlabels,
-                           'xlabels':'Scans', 'yvals':ylabels,
-                           'yvals1D':imsData1D, 'ylabels':'Drift time (bins)',
-                           'cmap':self.config.currentCmap, 'charge':1}
-        self.plot2Ddata2(data=[imsData2D,xlabels,'Scans', ylabels, 'Drift time (bins)'])
-        
-        # add DT/MS data
-        if self.config.showMZDT:
-            self.docs.gotDTMZ = True
-            self.docs.DTMZ = {'zvals':imsDataMZDT, 'xvals':xlabelsMZDT,
-                              'yvals':ylabelsMZDT, 'xlabels':'m/z',
-                              'ylabels':'Drift time (bins)',
-                              'cmap':self.config.currentCmap}        
+        if dataType != 'Type: MS':
+            # add mobiligram data
+            self.docs.got1DT = True
+            self.docs.DT = {'xvals':xvalsDT, 'yvals':imsData1D,
+                            'xlabels':'Drift time (bins)', 'ylabels':'Intensity'}
+            self.onPlot1DIMS2(xvalsDT, imsData1D, 'Drift time (bins)')
+            
+            # add 2D mobiligram data
+            self.docs.got2DIMS = True
+            self.docs.IMS2D = {'zvals':imsData2D, 'xvals':xlabels,
+                               'xlabels':'Scans', 'yvals':ylabels,
+                               'yvals1D':imsData1D, 'ylabels':'Drift time (bins)',
+                               'cmap':self.config.currentCmap, 'charge':1}
+            self.plot2Ddata2(data=[imsData2D,xlabels,'Scans', ylabels, 'Drift time (bins)'])
+            
+            # add DT/MS data
+            if self.config.showMZDT:
+                self.docs.gotDTMZ = True
+                self.docs.DTMZ = {'zvals':imsDataMZDT, 'xvals':xlabelsMZDT,
+                                  'yvals':ylabelsMZDT, 'xlabels':'m/z',
+                                  'ylabels':'Drift time (bins)',
+                                  'cmap':self.config.currentCmap} 
         
         if evtID == ID_openORIGAMIRawFile:
             self.view.updateRecentFiles(path={'file_type':'ORIGAMI', 'file_path':path}) 
@@ -604,6 +744,8 @@ class ORIGAMI(object):
             self.view.updateRecentFiles(path={'file_type':'MassLynx', 'file_path':path})
         elif evtID == ID_openIRRawFile: 
             self.view.updateRecentFiles(path={'file_type':'Infrared', 'file_path':path})
+        else:
+            self.view.updateRecentFiles(path={'file_type':'MassLynx', 'file_path':path})
         
         # Update document
         self.OnUpdateDocument(self.docs, 'document')
@@ -757,8 +899,8 @@ class ORIGAMI(object):
         dlg.Destroy()
    
     def onLinearDTirectory(self, e=None):
-        self.config.ciuMode = 'LinearDT'
-        self.config.extractMode = 'singleIon'
+        # self.config.ciuMode = 'LinearDT'
+        # self.config.extractMode = 'singleIon'
 
         # Reset arrays
         imsData2D = np.array([])
@@ -797,8 +939,8 @@ class ORIGAMI(object):
             ylabels = 1+np.arange(len(imsData2D[:,1]))
             
             # Update status bar with MS range
-            self.view.SetStatusText("%s-%s", 1) % (str(parameters['startMS']), str(parameters['endMS']))
-            self.view.SetStatusText("MSMS: %s", 2) % str(parameters['setMS'])
+            self.view.SetStatusText("{}-{}".format(parameters.get('startMS', ""), parameters.get('endMS', "")), 1)
+            self.view.SetStatusText("MSMS: {}".format(parameters.get('setMS',"")), 2)
             
             tend= time.clock()
             self.view.SetStatusText('Total time to open file: %.2gs' % (tend-tstart), 3)
@@ -1125,8 +1267,8 @@ class ORIGAMI(object):
                              self.config.overlay_defaultMask,
                              self.config.overlay_defaultAlpha, "",
                              imsData2D.shape, idName])
-            tempList.SetItemTextColour(tempList.GetItemCount()-1,
-                                       convertRGB1to255(color))
+            tempList.SetItemBackgroundColour(tempList.GetItemCount()-1,
+                                             convertRGB1to255(color))
         
         # Plots
         self.plot2Ddata2(data=[imsData2D, xAxisLabels,
@@ -1170,7 +1312,7 @@ class ORIGAMI(object):
         
         wildcard = "Text files with axis labels (*.txt, *.csv)| *.txt;*.csv"
         dlg = wx.FileDialog(self.view, "Choose a text file. Make sure files contain x- and y-axis labels!",
-                            wildcard = wildcard ,style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
+                            wildcard = wildcard , style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
             pathlist = dlg.GetPaths()
             filenames = dlg.GetFilenames()
@@ -1194,8 +1336,8 @@ class ORIGAMI(object):
                                      self.config.overlay_defaultMask,
                                      self.config.overlay_defaultAlpha, "",
                                      imsData2D.shape, filename])
-                    tempList.SetItemTextColour(tempList.GetItemCount()-1,
-                                               convertRGB1to255(color))
+                    tempList.SetItemBackgroundColour(tempList.GetItemCount()-1,
+                                                     convertRGB1to255(color))
                     msg = "Missing x/y-axis labels for %s! Consider adding x/y-axis to your file to obtain full functionality." % (filename)
                     dialogs.dlgBox(exceptionTitle='Missing data', 
                                    exceptionMsg= msg,
@@ -1207,7 +1349,7 @@ class ORIGAMI(object):
                                      self.config.overlay_defaultMask,
                                      self.config.overlay_defaultAlpha, "",
                                      imsData2D.shape, filename])
-                    tempList.SetItemTextColour(tempList.GetItemCount()-1,
+                    tempList.SetItemBackgroundColour(tempList.GetItemCount()-1,
                                                convertRGB1to255(color))
                     
                 # Set XY limits
@@ -1253,7 +1395,7 @@ class ORIGAMI(object):
         else:
             event = 'all'
         
-        self.config.extractMode = 'multipleIons'
+        # self.config.extractMode = 'multipleIons'
         tempList = self.view.panelMultipleIons.topP.peaklist # shortcut
         for row in range(tempList.GetItemCount()):
             # Extract ion name
@@ -1388,7 +1530,7 @@ class ORIGAMI(object):
                     imsData1D =  ml.rawOpen1DRTdata(path=pathValue, norm=self.config.normalize)
                     # Get height of the peak
                     ms = self.docs.massSpectrum
-                    ms = np.flipud(np.rot90(np.array([ms['xvals'], ms['yvals']])))
+                    ms = np.transpose([ms['xvals'], ms['yvals']]) 
                     mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
                     tempList.SetStringItem(index=row, 
                                            col=self.config.peaklistColNames['intensity'], 
@@ -1566,48 +1708,65 @@ class ORIGAMI(object):
     def onExtractMSforRTrange(self, startScan=None, endScan=None, evt=None):
         """ Function to extract MS data for specified RT region """
         
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
-        if self.currentDoc == 'Current documents': return
-        self.docs = self.documentsDict[self.currentDoc]
+        document_title = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        if document_title == 'Current documents': return
+        document = self.documentsDict[document_title]
         
         try:
-            scantime = self.docs.parameters['scanTime']
+            scantime = document.parameters['scanTime']
         except: 
             scantime = None
             
         itemName = "Scans: %s-%s" % (startScan, endScan)
         
+        xlimits = [document.parameters['startMS'], document.parameters['endMS']]
         if not self.config.ms_enable_in_RT and scantime != None:
             rtStart = round(startScan*(scantime/60),2)
             rtEnd = round(endScan*(scantime/60),2)
             # Mass spectra
-            ml.rawExtractMSdata(fileNameLocation=str(self.docs.path), 
-                                driftscopeLocation=self.config.driftscopePath,
-                                rtStart=rtStart, rtEnd=rtEnd)
-            msX, msY = ml.rawOpenMSdata(path=str(self.docs.path))
-            xlimits = [self.docs.parameters['startMS'], self.docs.parameters['endMS']]
+            try:
+                ml.rawExtractMSdata(fileNameLocation=str(document.path), 
+                                    driftscopeLocation=self.config.driftscopePath,
+                                    rtStart=rtStart, rtEnd=rtEnd)
+                msX, msY = ml.rawOpenMSdata(path=str(document.path))
+            except IOError:
+                kwargs = {'auto_range':self.config.ms_auto_range,
+                          'mz_min':xlimits[0], 'mz_max':xlimits[1],
+                          'linearization_mode':self.config.ms_linearization_mode}
+                msDict = ml.extractMSdata(filename=str(document.path), 
+                                          startScan=startScan, endScan=endScan, 
+                                          function=1, binData=True, 
+                                          mzStart=self.config.ms_mzStart, 
+                                          mzEnd=self.config.ms_mzEnd, 
+                                          binsize=self.config.ms_mzBinSize,
+                                          **kwargs)
         else:
-            msDict = ml.extractMSdata(filename=str(self.docs.path), 
+            kwargs = {'auto_range':self.config.ms_auto_range,
+                      'mz_min':xlimits[0], 'mz_max':xlimits[1],
+                      'linearization_mode':self.config.ms_linearization_mode}
+            msDict = ml.extractMSdata(filename=str(document.path), 
                                       startScan=startScan, endScan=endScan, 
                                       function=1, binData=True, 
                                       mzStart=self.config.ms_mzStart, 
                                       mzEnd=self.config.ms_mzEnd, 
-                                      binsize=self.config.ms_mzBinSize)
+                                      binsize=self.config.ms_mzBinSize,
+                                      **kwargs)
             
             msX, msY = af.sumMSdata(ydict=msDict)
-            xlimits = [self.config.ms_mzStart, self.config.ms_mzEnd]
+            xlimits = [np.min(msX), np.max(msX)]
                                                                             
         # Add data to dictionary
-        self.docs.gotMultipleMS = True
-        self.docs.multipleMassSpectrum[itemName] = {'xvals':msX, 
+        document.gotMultipleMS = True
+        document.multipleMassSpectrum[itemName] = {'xvals':msX, 
                                                     'yvals':msY,
                                                     'range':[startScan,endScan],
                                                     'xlabels':'m/z (Da)',
                                                     'xlimits':xlimits}
-        self.documentsDict[self.docs.title] = self.docs
-        self.view.panelDocuments.topP.documents.addDocument(docData = self.docs, 
-                                                            expandItem=self.documentsDict[self.docs.title].multipleMassSpectrum[itemName])   
-
+#         self.documentsDict[self.docs.title] = self.docs
+#         self.view.panelDocuments.topP.documents.addDocument(docData = self.docs, 
+#                                                             expandItem=self.documentsDict[self.docs.title].multipleMassSpectrum[itemName])   
+#         
+        self.OnUpdateDocument(document, 'mass_spectra', expant_item_title=itemName)
         # Plot MS
         self.onPlotMS2(msX, msY, xlimits)
         # Set status
@@ -1615,7 +1774,7 @@ class ORIGAMI(object):
         self.view.SetStatusText(msg, 3)
                 
     def onCombineCEvoltagesMultiple(self, evt):
-        self.config.extractMode = 'multipleIons'
+        # self.config.extractMode = 'multipleIons'
         
         # Get event ID
         if evt != None:
@@ -1883,16 +2042,16 @@ class ORIGAMI(object):
         CV, binned and then summed together. These are then stored in the 
         document dictionary
         """
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
-        if self.currentDoc == 'Current documents': return
-        self.docs = self.documentsDict[self.currentDoc]
+        document_title = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        if document_title == 'Current documents': return
+        document = self.documentsDict[document_title]
         
         # Make sure the document is of correct type. 
-        if not self.docs.dataType == 'Type: ORIGAMI': 
+        if not document.dataType == 'Type: ORIGAMI': 
             self.view.SetStatusText('Please select correct document type - ORIGAMI', 3)
             return
         # Check that the user combined scans already
-        if not self.docs.gotCombinedExtractedIons: 
+        if not document.gotCombinedExtractedIons: 
             self.view.SetStatusText('Please combine collision voltages first', 3)
             return
         # Check that appropriate values were filled in
@@ -1907,32 +2066,37 @@ class ORIGAMI(object):
             scantime = None
         
         # Do actual work
-        splitlist = self.docs.combineIonsList
-        msList = []
+        splitlist = document.combineIonsList
+#         msList = []
         msFilenames = ["m/z"]
-        self.docs.gotMultipleMS = True
+        document.gotMultipleMS = True
+        
+        xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+        kwargs = {'auto_range':self.config.ms_auto_range,
+                  'mz_min':xlimits[0], 'mz_max':xlimits[1],
+                  'linearization_mode':self.config.ms_linearization_mode}
+        
         for counter, item in enumerate(splitlist):
             itemName = "Scans: %s-%s | CV: %s V" % (item[0], item[1], item[2])
             if self.config.binCVdata or scantime == None:
-#                 print('binning')
-                msDict = ml.extractMSdata(filename=str(self.docs.path), startScan=item[0], 
+                msDict = ml.extractMSdata(filename=str(document.path), startScan=item[0], 
                                           endScan=item[1], function=1, binData=True, 
                                           mzStart=self.config.ms_mzStart, 
                                           mzEnd=self.config.ms_mzEnd, 
-                                          binsize=self.config.ms_mzBinSize)
+                                          binsize=self.config.ms_mzBinSize,
+                                          **kwargs)
                 msX, msY = af.sumMSdata(ydict=msDict)
                 xlimits = [self.config.ms_mzStart, self.config.ms_mzEnd]   
             elif not self.config.binCVdata and scantime != None:
-#                 print('extract')
                 # Mass spectra
-                ml.rawExtractMSdata(fileNameLocation=str(self.docs.path), 
+                ml.rawExtractMSdata(fileNameLocation=str(document.path), 
                                     driftscopeLocation=self.config.driftscopePath,
                                     rtStart=round(item[0]*(scantime/60),2), 
                                     rtEnd=round(item[1]*(scantime/60),2))
-                msX, msY = ml.rawOpenMSdata(path=str(self.docs.path))
-                xlimits = [self.docs.parameters['startMS'], self.docs.parameters['endMS']]
+                msX, msY = ml.rawOpenMSdata(path=str(document.path))
+                xlimits = [document.parameters['startMS'], document.parameters['endMS']]
             # Add data to document
-            self.docs.multipleMassSpectrum[itemName] = {'trap':item[2],
+            document.multipleMassSpectrum[itemName] = {'trap':item[2],
                                                         'xvals':msX,
                                                         'yvals':msY,
                                                         'xlabels':'m/z (Da)',
@@ -1947,15 +2111,15 @@ class ORIGAMI(object):
         combMSOut = combMSOut.reshape((len(msY), int(counter+2)), order='F') 
    
         msSaveData = pd.DataFrame(data=combMSOut, columns=msFilenames)
-        self.docs.gotMSSaveData = True
-        self.docs.massSpectraSave = msSaveData # pandas dataframe that can be exported as csv
+        document.gotMSSaveData = True
+        document.massSpectraSave = msSaveData # pandas dataframe that can be exported as csv
         
 
         # Update document
-        self.OnUpdateDocument(self.docs, 'mass_spectra')    
+        self.OnUpdateDocument(document, 'mass_spectra')    
 
     def onExtract2DimsOverMZrange(self, e):
-        self.config.extractMode = 'singleIon'
+        # self.config.extractMode = 'singleIon'
         self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
         if self.currentDoc == 'Current documents': return
         self.docs = self.documentsDict[self.currentDoc]
@@ -2019,6 +2183,48 @@ class ORIGAMI(object):
             
         # Update document
         self.OnUpdateDocument(self.docs, 'ions')    
+
+    def get_overlay_document(self):
+        try:
+            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        except: return
+        if self.currentDoc == "Current documents": return
+        
+        # Check if current document is a comparison document
+        # If so, it will be used 
+        if self.documentsDict[self.currentDoc].dataType == 'Type: Comparison':
+            document = self.documentsDict[self.currentDoc]
+            self.view.SetStatusText('Using document: ' + document.title.encode('ascii', 'replace'), 3)
+        else:
+            docList = self.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
+            if len(docList) == 0:
+                print('Did not find appropriate document.')
+                dlg =  wx.FileDialog(self.view, "Please select a name for the comparison document", 
+                                     "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                if dlg.ShowModal() == wx.ID_OK:
+                    path, idName = os.path.split(dlg.GetPath()) 
+                else: return
+                # Create document
+                document = documents() 
+                document.title = idName
+                document.path = path
+                document.userParameters = self.config.userParameters
+                document.userParameters['date'] = getTime()
+                document.dataType = 'Type: Comparison'
+                document.fileFormat = 'Format: ORIGAMI'
+            else:
+                self.selectDocDlg = panelSelectDocument(self.view, self, docList)
+                if self.selectDocDlg.ShowModal() == wx.ID_OK: 
+                    pass
+                
+                # Check that document exists
+                if self.currentDoc == None: 
+                    self.view.SetStatusText('Please select comparison document', 3)
+                    return
+                document = self.documentsDict[self.currentDoc]
+                self.view.SetStatusText('Using document: ' + document.title.encode('ascii', 'replace'), 3)
+        
+        return document
     
     def onOverlayMultipleIons1D(self, evt):
         """ 
@@ -2143,34 +2349,56 @@ class ORIGAMI(object):
                     label, filename, min_threshold, max_threshold \
                      = self.view.panelMultipleText.topP.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
-                    document = self.documentsDict[filename]
-                    label = label
+                    try:
+                        document = self.documentsDict[filename]
+                        comparison_flag = False
+                        selectedItem = filename
+                        itemName = "file=%s" % filename
+                    except:
+                        comparison_flag = True
+                        filename, ion_name = re.split(': ', filename)
+                        document = self.documentsDict[filename]
+                        selectedItem = ion_name
+                        itemName = "file=%s" % ion_name
+
                     color = convertRGB255to1(color)
-                    selectedItem = filename
-                    itemName = "file=%s" % filename
+                    
                     
                     # Text dataset
-                    try:
-                        data = document.IMS2D
-                    except:
-                        self.view.SetStatusText('No data for selected file', 3)
-                        continue
+                    if comparison_flag:
+                        try:
+                            data = document.IMS2DcompData[ion_name]
+                        except:
+                            data = document.IMS2Dions[ion_name]
+                    else:
+                        try:
+                            data = document.IMS2D
+                        except:
+                            self.view.SetStatusText('No data for selected file', 3)
+                            continue
                             
                     # Add new label
-                    if idName == "": idName = itemName
+                    if idName == "": 
+                        idName = itemName
                     else: idName = "%s, %s" % (idName, itemName)
                               
                     # Add depending which event was triggered
                     if evt.GetId() == ID_overlayTextfromList1D:
                         xvals = data['yvals'] # normally this would be the y-axis
-                        yvals = data['yvals1D']
+                        try:
+                            yvals = data['yvals1D']
+                        except KeyError:
+                            yvals = np.sum(data['zvals'], axis=1).T
                         yvals = af.smooth1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
                         yvals = af.normalizeMS(inputData=yvals)
                         xlabels = data['ylabels'] # data was rotated so using ylabel for xlabel
                         
                     elif evt.GetId() == ID_overlayTextfromListRT:
                         xvals = data['xvals']
-                        yvals = data['yvalsRT']
+                        try:
+                            yvals = data['yvalsRT']
+                        except KeyError:
+                            yvals = np.sum(data['zvals'], axis=0)
                         yvals = af.smooth1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
                         yvals = af.normalizeMS(inputData=yvals)
                         xlabels = data['xlabels']
@@ -2188,6 +2416,13 @@ class ORIGAMI(object):
             idName = "1D: %s" % idName
         elif evt.GetId() in [ID_overlayMZfromListRT, ID_overlayTextfromListRT]:
             idName = "RT: %s" % idName
+        
+        # remove unnecessary file extensions from filename
+        if len(idName) > 511:
+            print("Filename is too long. Reducing...")
+            idName = idName.replace(".csv","").replace(".txt","").replace(".raw","").replace(".d","")
+            idName = idName[:500]
+        
         # Determine x-axis limits for the zoom function
         xlimits = [min(xvals), max(xvals)]
         # Add data to dictionary
@@ -2289,7 +2524,8 @@ class ORIGAMI(object):
                         compList.append(key)
                 else:
                     compDict, compList = {}, []
-
+                    
+        comparisonFlag = False
         # Get data for the dataset
         for row in range(tempList.GetItemCount()):
             if tempList.IsChecked(index=row):
@@ -2364,84 +2600,107 @@ class ORIGAMI(object):
                     label, filename, min_threshold, max_threshold \
                      = self.view.panelMultipleText.topP.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
-                    document = self.documentsDict[filename]
-                    
-                    # Text dataset
-                    if self.config.overlay_usedProcessed:
-                        if document.got2Dprocess:
-                            try: 
-                                tempData = document.IMS2Dprocess
-                            except: 
+                    try:
+                        document = self.documentsDict[filename]
+                        
+                        if self.config.overlay_usedProcessed:
+                            if document.got2Dprocess:
+                                try: 
+                                    tempData = document.IMS2Dprocess
+                                except: 
+                                    tempData = document.IMS2D
+                            else:
                                 tempData = document.IMS2D
                         else:
-                            tempData = document.IMS2D
-                    else:
+                            try:
+                                tempData = document.IMS2D
+                            except:
+                                self.view.SetStatusText('No data for selected file', 3)
+                                continue
+                        
+                        zvals = tempData['zvals']
+                        xaxisLabels = tempData['xvals']
+                        xlabel = tempData['xlabels']
+                        yaxisLabels = tempData['yvals']
+                        ylabel = tempData['ylabels']
+                        ionName = filename
+                        # Populate x-axis labels
+                        if type(xaxisLabels) is list: pass
+                        elif xaxisLabels is "": 
+                            startX = tempList.GetItem(itemId=row, 
+                                                      col=self.config.textlistColNames['startX']).GetText()
+                            endX = tempList.GetItem(itemId=row, 
+                                                    col=self.config.textlistColNames['endX']).GetText()
+                            stepsX = len(zvals[0])
+                            if startX == "" or endX == "": pass
+                            else:
+                                xaxisLabels = self.onPopulateXaxisTextLabels(startVal=str2num(startX), 
+                                                                             endVal=str2num(endX), 
+                                                                             shapeVal=stepsX)
+                                document.IMS2D['xvals'] = xaxisLabels
+
+                        if not comparisonFlag: 
+                            selectedItemUnique = "file:%s" % filename
+                    # only triggered when using data from comparison document
+                    except:
                         try:
-                            tempData = document.IMS2D
+                            comparisonFlag = True
+                            dpcument_filename, selectedItemUnique = re.split(': ', filename)
+                            document = self.documentsDict[dpcument_filename]
+                            tempData = document.IMS2DcompData[selectedItemUnique]
+                            # unpack data
+                            zvals = tempData['zvals']
+                            ionName = tempData['ion_name']
+                            xaxisLabels = tempData['xvals']
+                            yaxisLabels = tempData['yvals']
+                            ylabel = tempData['ylabels']
+                            xlabel = tempData['xlabels']
+                        # triggered when using data from interactive document
                         except:
-                            self.view.SetStatusText('No data for selected file', 3)
-                            continue
-
-                    zvals = tempData['zvals']
-                    xaxisLabels = tempData['xvals']
-                    xlabel = tempData['xlabels']
-                    yaxisLabels = tempData['yvals']
-                    ylabel = tempData['ylabels']
-                    ionName = filename
-                    # Populate x-axis labels
-                    if type(xaxisLabels) is list: pass
-                    elif xaxisLabels is "": 
-                        startX = tempList.GetItem(itemId=row, 
-                                                  col=self.config.textlistColNames['startX']).GetText()
-                        endX = tempList.GetItem(itemId=row, 
-                                                col=self.config.textlistColNames['endX']).GetText()
-                        stepsX = len(zvals[0])
-                        if startX == "" or endX == "": pass
-                        else:
-                            xaxisLabels = self.onPopulateXaxisTextLabels(startVal=str2num(startX), 
-                                                                         endVal=str2num(endX), 
-                                                                         shapeVal=stepsX)
-                            document.IMS2D['xvals'] = xaxisLabels
-
-                    # Get current colormap + alpha/mask value
-                    colormap = tempList.GetItem(itemId=row, 
-                                                col=self.config.textlistColNames['colormap']).GetText()
-                    alpha = tempList.GetItem(itemId=row, 
-                                                 col=self.config.textlistColNames['alpha']).GetText()
-                    label = tempList.GetItem(itemId=row, 
-                                             col=self.config.textlistColNames['label']).GetText()
-                    if not comparisonFlag: 
-                        selectedItemUnique = "file:%s" % filename
-                if label == '' or label == None:
-                    label = ""
-                compList.insert(0, selectedItemUnique)
-                # Check if exists. We need to extract labels (header...) 
-                checkExist = compDict.get(selectedItemUnique, None)
-                if checkExist is not None: 
-                    title = compDict[selectedItemUnique].get('header', "")
-                    header = compDict[selectedItemUnique].get('header', "")
-                    footnote = compDict[selectedItemUnique].get('footnote', "")
-                else: 
-                    title, header, footnote = "", "", ""
-                compDict[selectedItemUnique] = {'zvals':zvals, 
-                                                'ion_name':ionName,
-                                                'cmap':colormap,
-                                                'color':color,
-                                                'alpha':str2num(alpha),
-                                                'mask':str2num(mask),
-                                                'xvals':xaxisLabels, 
-                                                'xlabels':xlabel, 
-                                                'yvals':yaxisLabels,
-                                                'charge':charge,
-                                                'min_threshold':min_threshold, 
-                                                'max_threshold':max_threshold,
-                                                'ylabels':ylabel,
-                                                'index':row,
-                                                'shape':zvals.shape,
-                                                'label':label,
-                                                'title':title,
-                                                'header':header,
-                                                'footnote':footnote}
+                            comparisonFlag = False
+                            dpcument_filename, selectedItemUnique = re.split(': ', filename)
+                            document = self.documentsDict[dpcument_filename]
+                            tempData = document.IMS2Dions[selectedItemUnique]
+                            # unpack data
+                            zvals = tempData['zvals']
+                            ionName = filename
+                            xaxisLabels = tempData['xvals']
+                            yaxisLabels = tempData['yvals']
+                            ylabel = tempData['ylabels']
+                            xlabel = tempData['xlabels']
+                
+                if not comparisonFlag:
+                    if label == '' or label == None: label = ""
+                    compList.insert(0, selectedItemUnique)
+                    # Check if exists. We need to extract labels (header...) 
+                    checkExist = compDict.get(selectedItemUnique, None)
+                    if checkExist is not None: 
+                        title = compDict[selectedItemUnique].get('header', "")
+                        header = compDict[selectedItemUnique].get('header', "")
+                        footnote = compDict[selectedItemUnique].get('footnote', "")
+                    else: 
+                        title, header, footnote = "", "", ""
+                    compDict[selectedItemUnique] = {'zvals':zvals, 
+                                                    'ion_name':ionName,
+                                                    'cmap':colormap,
+                                                    'color':color,
+                                                    'alpha':str2num(alpha),
+                                                    'mask':str2num(mask),
+                                                    'xvals':xaxisLabels, 
+                                                    'xlabels':xlabel, 
+                                                    'yvals':yaxisLabels,
+                                                    'charge':charge,
+                                                    'min_threshold':min_threshold, 
+                                                    'max_threshold':max_threshold,
+                                                    'ylabels':ylabel,
+                                                    'index':row,
+                                                    'shape':zvals.shape,
+                                                    'label':label,
+                                                    'title':title,
+                                                    'header':header,
+                                                    'footnote':footnote}
+                else:
+                    compDict[selectedItemUnique] = tempData
 
         # Check whether the user selected at least two files (and no more than 2 for certain functions)
         if tempAccumulator < 2:
@@ -2458,7 +2717,7 @@ class ORIGAMI(object):
         name2 = compList[1]
         print("Comparing ions: %s and %s" % (name1, name2))
         # Check if text files are of identical size
-        if zvalsIon1plot.shape != zvalsIon2plot.shape: 
+        if (zvalsIon1plot.shape != zvalsIon2plot.shape): 
             msg = "Comparing ions: %s and %s. These files are NOT of identical shape!" % (name1, name2)
             dialogs.dlgBox(exceptionTitle='Error', exceptionMsg= msg, type="Error")
             return
@@ -2517,7 +2776,109 @@ class ORIGAMI(object):
             maskIon2=str2num(compDict[compList[1]]['mask'])       
 
         # Various comparison plots
-        if self.config.overlayMethod in ["Transparent", "Mask", "RMSD", "RMSF"]:
+        if self.config.overlayMethod == 'Grid (2->1)':
+            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Overlay'])
+            
+            pRMSD, tempArray = af.computeRMSD(inputData1=zvalsIon1plot,
+                                              inputData2=zvalsIon2plot)
+            rmsdLabel = u"RMSD: %2.2f" % pRMSD 
+            self.view.SetStatusText("RMSD: %2.2f" % pRMSD, 3)
+                
+            self.setXYlimitsRMSD2D(xaxisLabels, yaxisLabels)
+            self.view.panelPlots.on_plot_grid(zvalsIon1plot, zvalsIon2plot, tempArray, xaxisLabels, 
+                                              yaxisLabels, xlabel, ylabel, cmapIon1, cmapIon2)
+            
+#             # Add RMSD label
+            rmsdXpos, rmsdYpos = self.onCalculateRMSDposition(xlist=xaxisLabels, ylist=yaxisLabels)
+            if rmsdXpos != None and rmsdYpos != None:
+                self.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot='Grid')
+                
+            # Add data to the dictionary (overlay data)
+            idName = '%s, %s' % (compList[0], compList[1])
+            idName = "%s: %s" % (self.config.overlayMethod, idName)
+            self.docs.gotOverlay = True
+            # Add to the name to includ the method
+            # Check if exists. We need to extract labels (header...) 
+            checkExist = self.docs.IMS2DoverlayData.get(idName, None)
+            if checkExist is not None: 
+                title = self.docs.IMS2DoverlayData[idName].get('header', "")
+                header = self.docs.IMS2DoverlayData[idName].get('header', "")
+                footnote = self.docs.IMS2DoverlayData[idName].get('footnote', "")
+            else: 
+                title, header, footnote = "", "", ""
+            
+
+            self.docs.IMS2DoverlayData[idName] = {'zvals_1':zvalsIon1plot,
+                                                  'zvals_2':zvalsIon2plot, 
+                                                  'zvals_cum':tempArray,  
+                                                  'cmap_1':cmapIon1,
+                                                  'cmap_2':cmapIon2,
+                                                  'xvals':xaxisLabels, 
+                                                  'xlabels':xlabel,
+                                                  'yvals':yaxisLabels,
+                                                  'ylabels':ylabel,
+                                                  'rmsdLabel':rmsdLabel,
+                                                  'title':title,
+                                                  'header':header,
+                                                  'footnote':footnote}
+        elif self.config.overlayMethod == "Grid (n x n)":            
+            zvals_list, cmap_list, title_list, idName = [], [], [], ""
+            for row in range(tempAccumulator):
+                key = compList[row]
+                zvals_list.append(compDict[key]['zvals'])
+                cmap_list.append(compDict[key]['cmap'])
+                title_list.append(compDict[key]['label'])
+                
+                # Add new label
+                if idName == "": idName = compList[row]
+                else: idName = "%s, %s" % (idName, compList[row])
+                
+            n_grid = len(zvals_list)
+            if n_grid in [2]: n_rows, n_cols = 1, 2 
+            elif n_grid in [3, 4]: n_rows, n_cols = 2, 2 
+            elif n_grid in [5, 6]: n_rows, n_cols = 2, 3
+            elif n_grid in [7, 8, 9]: n_rows, n_cols = 3, 3
+            elif n_grid in [10, 11, 12]: n_rows, n_cols = 3, 4
+            elif n_grid in [13, 14, 15, 16]: n_rows, n_cols = 4, 4
+            else: 
+                dialogs.dlgBox(exceptionTitle='Error', 
+                               exceptionMsg= "Cannot plot grid larger than 4 x 4. You have selected".format(n_grid), 
+                               type="Error", exceptionPrint=True)
+                return
+            
+            checkExist = compDict.get(selectedItemUnique, None)
+            if checkExist is not None: 
+                title = compDict[selectedItemUnique].get('header', "")
+                header = compDict[selectedItemUnique].get('header', "")
+                footnote = compDict[selectedItemUnique].get('footnote', "")
+            else: 
+                title, header, footnote = "", "", ""
+            idName = "%s: %s" % (self.config.overlayMethod, idName)
+            # remove unnecessary file extensions from filename
+            if len(idName) > 511:
+                print("Filename is too long. Reducing...")
+                idName = idName.replace(".csv","").replace(".txt","").replace(".raw","").replace(".d","")
+                idName = idName[:500]
+                    
+            self.view.panelPlots.on_plot_n_grid(zvals_list, cmap_list, 
+                                                title_list, xaxisLabels, 
+                                                yaxisLabels, xlabel, ylabel)
+            self.docs.gotOverlay = True
+            self.docs.IMS2DoverlayData[idName] = {'zvals_list':zvals_list,
+                                                  'cmap_list':cmap_list,
+                                                  'title_list':title_list,
+                                                  'plot_parameters':{'n_grid':n_grid, 
+                                                                     'n_rows':n_rows, 
+                                                                     'n_cols':n_cols},
+                                                  'xvals':xaxisLabels, 
+                                                  'xlabels':xlabel,
+                                                  'yvals':yaxisLabels,
+                                                  'ylabels':ylabel,
+                                                  'title':title,
+                                                  'header':header,
+                                                  'footnote':footnote}
+                
+        elif self.config.overlayMethod in ["Transparent", "Mask", "RMSD", "RMSF"]:
 
             # Check how many items were selected 
             if tempAccumulator > 2:
@@ -2825,6 +3186,11 @@ class ORIGAMI(object):
             else: 
                 title, header, footnote = "", "", ""
             idName = "%s: %s" % (self.config.overlayMethod, idName)
+            # remove unnecessary file extensions from filename
+            if len(idName) > 511:
+                print("Filename is too long. Reducing...")
+                idName = idName.replace(".csv","").replace(".txt","").replace(".raw","").replace(".d","")
+                idName = idName[:500]
 
             self.docs.IMS2DoverlayData[idName] = {'zvals':rgb_plot, 
                                                   'xvals':xaxisLabels, 
@@ -3120,7 +3486,7 @@ class ORIGAMI(object):
       
     def onOpenMultipleOrigamiFiles(self, evt):
         
-        self.config.ciuMode = 'ORIGAMI'
+        # self.config.ciuMode = 'ORIGAMI'
         wildcard = "Open MassLynx files (*.raw)| ;*.raw"
         
         if self.config.lastDir == None or not os.path.isdir(self.config.lastDir):
@@ -3147,72 +3513,38 @@ class ORIGAMI(object):
                     self.config.lastDir = path
                     self.onLoadOrigamiDataThreaded(path, evt=evt, mode='Type: ORIGAMI')
       
-    def onOpenMultipleMLFiles(self, evt):
+    def onOpenMultipleMLFiles(self, evt, pathlist=[]):
         # http://stackoverflow.com/questions/1252481/sort-dictionary-by-another-dictionary
         # http://stackoverflow.com/questions/22520739/python-sort-a-dict-by-values-producing-a-list-how-to-sort-this-from-largest-to
         
-        evtID = evt.GetId()
+        if isinstance(evt, int):
+            evtID = evt
+        else:
+            evtID = evt.GetId()
         
         self.config.ciuMode = 'MANUAL'
         wildcard = "Open MassLynx files (*.raw)| ;*.raw"
         tempList = self.view.panelMML.topP.filelist
         
-        if self.config.lastDir == None or not os.path.isdir(self.config.lastDir):
-            self.config.lastDir = os.getcwd()
-            
         tstart = time.clock()
-        dlg = MDD.MultiDirDialog(self.view, title="Choose MassLynx files to open:", 
-                                 defaultPath = self.config.lastDir, 
-                                 agwStyle=MDD.DD_MULTIPLE|MDD.DD_DIR_MUST_EXIST)
+        if len(pathlist) > 0:
+            dlg = None
+        else:
+            if self.config.lastDir == None or not os.path.isdir(self.config.lastDir):
+                self.config.lastDir = os.getcwd()
+                
+            dlg = MDD.MultiDirDialog(self.view, title="Choose MassLynx files to open:", 
+                                     defaultPath = self.config.lastDir, 
+                                     agwStyle=MDD.DD_MULTIPLE|MDD.DD_DIR_MUST_EXIST)
         
-        if dlg.ShowModal() == wx.ID_OK:
-            pathlist = dlg.GetPaths()
+            if dlg.ShowModal() == wx.ID_OK:
+                pathlist = dlg.GetPaths()
             
-            if evtID == ID_openMassLynxFiles:
-                # Check if current document is a comparison document
-                # If so, it will be used
-                docList = self.checkIfAnyDocumentsAreOfType(type='Type: MANUAL')
-                if len(docList) == 0:
-                    dlg =  wx.FileDialog(self.view, "Please select a name for the document", 
-                                         "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-                    if dlg.ShowModal() == wx.ID_OK:
-                        path, idName = os.path.split(dlg.GetPath()) 
-                    else: return
-                    # Create document
-                    self.docs = documents() 
-                    self.docs.title = idName
-                    self.docs.path = path
-                    self.docs.userParameters = self.config.userParameters
-                    self.docs.userParameters['date'] = getTime()
-                elif self.documentsDict[self.currentDoc].dataType == 'Type: MANUAL':
-                    self.docs = self.documentsDict[self.currentDoc]
-                    self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
-                else:
-                    if len(docList) == 0:
-                        print('Did not find appropriate document.')
-                        dlg =  wx.FileDialog(self.view, "Please select a name for the document", 
-                                             "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-                        if dlg.ShowModal() == wx.ID_OK:
-                            path, idName = os.path.split(dlg.GetPath()) 
-                        else: return
-                        # Create document
-                        self.docs = documents() 
-                        self.docs.title = idName
-                        self.docs.path = path
-                        self.docs.userParameters = self.config.userParameters
-                        self.docs.userParameters['date'] = getTime()
-                    else:
-                        self.selectDocDlg = panelSelectDocument(self.view, self, docList)
-                        if self.selectDocDlg.ShowModal() == wx.ID_OK: 
-                            pass
-                        
-                        # Check that document exists
-                        if self.currentDoc == None: 
-                            self.view.SetStatusText('Please select a document', 3)
-                            return
-                        self.docs = self.documentsDict[self.currentDoc]
-                        self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
-            else:
+        if evtID == ID_openMassLynxFiles:
+            # Check if current document is a comparison document
+            # If so, it will be used
+            docList = self.checkIfAnyDocumentsAreOfType(type='Type: MANUAL')
+            if len(docList) == 0:
                 dlg =  wx.FileDialog(self.view, "Please select a name for the document", 
                                      "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                 if dlg.ShowModal() == wx.ID_OK:
@@ -3224,112 +3556,172 @@ class ORIGAMI(object):
                 self.docs.path = path
                 self.docs.userParameters = self.config.userParameters
                 self.docs.userParameters['date'] = getTime()
-            
-            
-            for file in pathlist:
-                path = self.checkIfRawFile(file)
-                if path is None: pass
+            elif self.currentDoc is not None:
+                document = self.documentsDict.get(self.currentDoc, None)
+                if document is not None:
+                    if document.dataType == 'Type: MANUAL':
+                        self.docs = self.documentsDict[self.currentDoc]
+                        self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
+            else:
+                if len(docList) == 0:
+                    print('Did not find appropriate document.')
+                    dlg =  wx.FileDialog(self.view, "Please select a name for the document", 
+                                         "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                    if dlg.ShowModal() == wx.ID_OK:
+                        path, idName = os.path.split(dlg.GetPath()) 
+                    else: return
+                    # Create document
+                    self.docs = documents() 
+                    self.docs.title = idName
+                    self.docs.path = path
+                    self.docs.userParameters = self.config.userParameters
+                    self.docs.userParameters['date'] = getTime()
                 else:
+                    self.selectDocDlg = panelSelectDocument(self.view, self, docList)
+                    if self.selectDocDlg.ShowModal() == wx.ID_OK: 
+                        pass
+                    
+                    # Check that document exists
+                    if self.currentDoc == None: 
+                        self.view.SetStatusText('Please select a document', 3)
+                        return
+                    self.docs = self.documentsDict[self.currentDoc]
+                    self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
+        else:
+            dlg =  wx.FileDialog(self.view, "Please select a name for the document", 
+                                 "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            if dlg.ShowModal() == wx.ID_OK:
+                path, idName = os.path.split(dlg.GetPath()) 
+            else: return
+            # Create document
+            self.docs = documents() 
+            self.docs.title = idName
+            self.docs.path = path
+            self.docs.userParameters = self.config.userParameters
+            self.docs.userParameters['date'] = getTime()
+        
+        for i, file in enumerate(pathlist):
+            path = self.checkIfRawFile(file)
+            if path is None: 
+                continue
+            else:
+                try:
                     pathSplit = path.encode('ascii', 'replace').split(':)')
                     start = pathSplit[0].split('(')
                     start = start[-1]
                     path = ''.join([start,':',pathSplit[1]])
-                    temp, rawfile = os.path.split(path)
-                    # Update lastDir with current path
-                    self.config.lastDir = path
-                    parameters = self.config.importMassLynxInfFile(path=path, manual=True)
-                    xlimits = [parameters['startMS'],parameters['endMS']]
-                    ml.rawExtractMSdata(fileNameLocation=path, 
-                                        driftscopeLocation=self.config.driftscopePath)
-                    msDataX, msDataY = ml.rawOpenMSdata(path=path)
-                    ml.rawExtract1DIMSdata(fileNameLocation=path, 
-                                           driftscopeLocation=self.config.driftscopePath)
-                    imsData1D =  ml.rawOpen1DRTdata(path=path, norm=self.config.normalize)
-                    xvalsDT = np.arange(1,len(imsData1D)+1)
-                    tempList.Append([rawfile, str(parameters['trapCE']), self.docs.title])
-                    self.docs.gotMultipleMS = True
-                    self.docs.multipleMassSpectrum[rawfile] = {'trap':parameters['trapCE'],
-                                                               'xvals':msDataX, 'yvals':msDataY,
-                                                               'ims1D':imsData1D, 'ims1DX':xvalsDT,
-                                                               'xlabel':'Drift time (bins)',
-                                                               'xlabels':'m/z (Da)', 'path': path,
-                                                               'parameters':parameters,
-                                                               'xlimits':xlimits}
-            # Sum all mass spectra into one
-            counter = 0
-            # Bin MS data
-            if self.config.binOnLoad:
-                binsize = self.config.binMSbinsize
-                msBinList = np.arange(parameters['startMS'], parameters['endMS']+binsize, binsize)
-                msCentre = msBinList[:-1]+(binsize/2)
-                msDataX = msCentre
-            else: pass
-            
-            msFilenames = ["m/z"]
-            for key in self.docs.multipleMassSpectrum:
-                msFilenames.append(key)
-                if counter == 0:
-                    if self.config.binOnLoad:
-                        tempArray = af.binMSdata(x=self.docs.multipleMassSpectrum[key]['xvals'],
-                                                 y=self.docs.multipleMassSpectrum[key]['yvals'],
-                                                 bins=msBinList)
-                    else:
-                        tempArray = self.docs.multipleMassSpectrum[key]['yvals']
-                    counter = counter+1
-                    msList = tempArray
+                except IndexError:
+                    path = path
+                temp, rawfile = os.path.split(path)
+                # Update lastDir with current path
+                self.config.lastDir = path
+                parameters = self.config.importMassLynxInfFile(path=path, manual=True)
+                xlimits = [parameters['startMS'],parameters['endMS']]
+                ml.rawExtractMSdata(fileNameLocation=path, 
+                                    driftscopeLocation=self.config.driftscopePath)
+                msDataX, msDataY = ml.rawOpenMSdata(path=path)
+                ml.rawExtract1DIMSdata(fileNameLocation=path, 
+                                       driftscopeLocation=self.config.driftscopePath)
+                imsData1D =  ml.rawOpen1DRTdata(path=path, norm=self.config.normalize)
+                xvalsDT = np.arange(1,len(imsData1D)+1)
+                if i <= 15:
+                    color = convertRGB255to1(self.config.customColors[i])
                 else:
-                    if self.config.binOnLoad:
-                        msList = af.binMSdata(x=self.docs.multipleMassSpectrum[key]['xvals'],
-                                              y=self.docs.multipleMassSpectrum[key]['yvals'],
-                                              bins=msBinList)
-                    else:
-                        msList = self.docs.multipleMassSpectrum[key]['yvals']
-                    tempArray = np.concatenate((tempArray, msList), axis=0)
-                    counter = counter+1
-            
-            # Reshape the list 
-            combMS = tempArray.reshape((len(msList), int(counter)), order='F') 
-            
-            # Sum y-axis data
-            msDataY = np.sum(combMS, axis=1)
-            msDataY = af.normalizeMS(inputData = msDataY)
-            xlimits = [parameters['startMS'],parameters['endMS']]
-            
-            # Form pandas dataframe
-            combMSOut = np.concatenate((msDataX, tempArray), axis=0)
-            combMSOut = combMSOut.reshape((len(msList), int(counter+1)), order='F') 
-            
-            msSaveData = pd.DataFrame(data=combMSOut, columns=msFilenames)
-             
-            # Update status bar with MS range
-            self.view.SetStatusText("%s-%s" % (parameters['startMS'], parameters['endMS']), 1) 
-            self.view.SetStatusText("MSMS: %s" % parameters['setMS'], 2) 
-              
-            # Add info to document 
-            self.docs.parameters = parameters
-            self.docs.dataType = 'Type: MANUAL'
-            self.docs.fileFormat = 'Format: MassLynx (.raw)'
-            
-            # Add data
-            self.docs.gotMSSaveData = True
-            self.docs.massSpectraSave = msSaveData # pandas dataframe that can be exported as csv
-            self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals':msDataX, 'yvals':msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
-            self.documentsDict[self.docs.title] = self.docs
-            self.view.panelDocuments.topP.documents.addDocument(docData = self.docs)
-            
-            # Plot 
-            self.onPlotMS2(msDataX, msDataY, xlimits=xlimits)
-            # Show panel
-            self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
-            tempList = self.view.panelMML.topP.filelist
-            # Removing duplicates
-            self.view.panelMML.topP.onRemoveDuplicates(evt=None)
-            
-        else:
-            self.view.SetStatusText('Please select some files', 3)    
-            return  
-        dlg.Destroy() 
+                    color = randomColorGenerator()
+                tempList.Append([rawfile, 
+                                 str(parameters['trapCE']), 
+                                 self.docs.title,
+                                 os.path.splitext(rawfile)[0]]) # name as initial label
+                tempList.SetItemBackgroundColour(tempList.GetItemCount()-1,
+                                                 convertRGB1to255(color))
+                
+                self.docs.gotMultipleMS = True
+                self.docs.multipleMassSpectrum[rawfile] = {'trap':parameters['trapCE'],
+                                                           'xvals':msDataX, 'yvals':msDataY,
+                                                           'ims1D':imsData1D, 'ims1DX':xvalsDT,
+                                                           'xlabel':'Drift time (bins)',
+                                                           'xlabels':'m/z (Da)', 
+                                                           'path': path, 'color':color,
+                                                           'parameters':parameters,
+                                                           'xlimits':xlimits}
+        # Sum all mass spectra into one
+        counter = 0
+        # Bin MS data
+        if self.config.binOnLoad:
+            binsize = self.config.binMSbinsize
+            msBinList = np.arange(parameters['startMS'], parameters['endMS']+binsize, binsize)
+            msCentre = msBinList[:-1]+(binsize/2)
+            msDataX = msCentre
+        else: pass
+        
+        msFilenames = ["m/z"]
+        for key in self.docs.multipleMassSpectrum:
+            msFilenames.append(key)
+            if counter == 0:
+                if self.config.binOnLoad:
+                    tempArray = af.binMSdata(x=self.docs.multipleMassSpectrum[key]['xvals'],
+                                             y=self.docs.multipleMassSpectrum[key]['yvals'],
+                                             bins=msBinList)
+                else:
+                    tempArray = self.docs.multipleMassSpectrum[key]['yvals']
+                counter = counter+1
+                msList = tempArray
+            else:
+                if self.config.binOnLoad:
+                    msList = af.binMSdata(x=self.docs.multipleMassSpectrum[key]['xvals'],
+                                          y=self.docs.multipleMassSpectrum[key]['yvals'],
+                                          bins=msBinList)
+                else:
+                    msList = self.docs.multipleMassSpectrum[key]['yvals']
+                tempArray = np.concatenate((tempArray, msList), axis=0)
+                counter = counter+1
+        
+        # Reshape the list 
+        combMS = tempArray.reshape((len(msList), int(counter)), order='F') 
+        
+        # Sum y-axis data
+        msDataY = np.sum(combMS, axis=1)
+        msDataY = af.normalizeMS(inputData = msDataY)
+        xlimits = [parameters['startMS'],parameters['endMS']]
+        
+        # Form pandas dataframe
+        combMSOut = np.concatenate((msDataX, tempArray), axis=0)
+        combMSOut = combMSOut.reshape((len(msList), int(counter+1)), order='F') 
+        
+        msSaveData = pd.DataFrame(data=combMSOut, columns=msFilenames)
+         
+        # Update status bar with MS range
+        self.view.SetStatusText("%s-%s" % (parameters['startMS'], parameters['endMS']), 1) 
+        self.view.SetStatusText("MSMS: %s" % parameters['setMS'], 2) 
+          
+        # Add info to document 
+        self.docs.parameters = parameters
+        self.docs.dataType = 'Type: MANUAL'
+        self.docs.fileFormat = 'Format: MassLynx (.raw)'
+        
+        # Add data
+        self.docs.gotMSSaveData = True
+        self.docs.massSpectraSave = msSaveData # pandas dataframe that can be exported as csv
+        self.docs.gotMS = True
+        self.docs.massSpectrum = {'xvals':msDataX, 'yvals':msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
+        self.documentsDict[self.docs.title] = self.docs
+        self.view.panelDocuments.topP.documents.addDocument(docData = self.docs)
+        
+        # Plot 
+        self.onPlotMS2(msDataX, msDataY, xlimits=xlimits)
+        # Show panel
+        self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
+        tempList = self.view.panelMML.topP.filelist
+        # Removing duplicates
+        self.view.panelMML.topP.onRemoveDuplicates(evt=None)
+        
+#     else:
+#         self.view.SetStatusText('Please select some files', 3)    
+#         return  
+#         
+#         try: dlg.Destroy()
+#         except: pass 
+        
         tend = time.clock()        
         self.view.SetStatusText('Total time to extract %d files was: %.3gs' % (len(pathlist),tend-tstart), 3)
 
@@ -3404,7 +3796,7 @@ class ORIGAMI(object):
             dataPlot = self.view.panelPlots.plot1
             pageID = self.config.panelNames['MS']
             markerPlot = 'MS'
-            listLinks = self.config.driftTopColNames
+            listLinks = self.config.driftBottomColNames
         elif self.docs.dataType == 'Type: CALIBRANT':
             tempList = self.view.panelCCS.topP.peaklist
             dtTempList = self.view.panelCCS.bottomP.peaklist
@@ -3540,7 +3932,7 @@ class ORIGAMI(object):
                                 if self.docs.dataType == 'Type: ORIGAMI' or self.docs.dataType == 'Type: MANUAL':
                                     filename = tempList.GetItem(item,self.config.peaklistColNames['filename']).GetText()
                                 elif self.docs.dataType == 'Type: Multifield Linear DT':
-                                    filename = tempList.GetItem(item,self.config.driftTopColNames['filename']).GetText()
+                                    filename = tempList.GetItem(item,self.config.driftBottomColNames['filename']).GetText()
                                 elif self.docs.dataType == 'Type: CALIBRANT':
                                     filename = tempList.GetItem(item,self.config.ccsTopColNames['filename']).GetText()
                             
@@ -3606,7 +3998,7 @@ class ORIGAMI(object):
                                 tempList.Append([xmin, xmax, charge,intensity,color,
                                                  colormap,self.config.overlay_defaultAlpha,
                                                  self.config.overlay_defaultMask, "", "", self.currentDoc])
-                                tempList.SetItemTextColour(tempList.GetItemCount()-1, 
+                                tempList.SetItemBackgroundColour(tempList.GetItemCount()-1, 
                                                            convertRGB1to255(color))
                             # Removing duplicates
                             self.view.panelMultipleIons.topP.onRemoveDuplicates(evt=None)
@@ -3903,8 +4295,10 @@ class ORIGAMI(object):
         elif selectedItemParentText == 'Input data' and selectedText != None:
             data = self.document.IMS2DcompData[selectedText]
         # 1D data
-        elif selectedText == '1D drift time':
+        elif selectedText == 'Drift time (1D)':
             data = self.document.DT
+        elif selectedItemParentText == 'Drift time (1D, EIC)' and selectedText != None:
+            data = self.document.multipleDT[selectedText]
         elif selectedText == 'DT/MS':
             data = self.document.DTMZ
         else: 
@@ -4035,8 +4429,10 @@ class ORIGAMI(object):
         elif selectedItemParentText == 'Input data' and selectedText != None:
             self.document.IMS2DcompData[selectedText] = data
         # 1D data
-        elif selectedText == '1D drift time':
+        elif selectedText == 'Drift time (1D)':
             self.document.DT = data
+        elif selectedItemParentText == 'Drift time (1D, EIC)' and selectedText != None:
+            self.document.multipleDT[selectedText] = data
         # DT/MS
         elif selectedText == 'DT/MS':
             self.document.DTMZ = data
@@ -4948,31 +5344,35 @@ class ORIGAMI(object):
         if evt.GetId() == ID_processAllTextFiles:
             self.view.panelMultipleText.topP.OnCheckAllItems(evt=None, override=True)
         
-        tempList = self.view.panelMultipleText.topP.filelist        
-        for row in xrange(tempList.GetItemCount()):
-            itemInfo = self.view.panelMultipleText.topP.OnGetItemInformation(itemID=row)
-            if itemInfo['select']:
-                self.docs = self.documentsDict[itemInfo['document']]
-                imsData2D = self.process2Ddata(zvals=self.docs.IMS2D['zvals'].copy(), 
-                                               return_data=True)
-                self.docs.got2Dprocess = True
-                self.docs.IMS2Dprocess = {'zvals':imsData2D,
-                                          'xvals':self.docs.IMS2D['xvals'],
-                                          'xlabels':self.docs.IMS2D['xlabels'],
-                                          'yvals':self.docs.IMS2D['yvals'],
-                                          'ylabels':self.docs.IMS2D['ylabels'],
-                                          'cmap':itemInfo['colormap'],
-                                          'label':itemInfo['label'],
-                                          'charge':itemInfo['charge'],
-                                          'alpha':itemInfo['alpha'],
-                                          'mask':itemInfo['mask'], 
-                                          'color':itemInfo['color'], 
-                                          'min_threshold':itemInfo['min_threshold'],
-                                          'max_threshold':itemInfo['max_threshold']}
-            
-                # Update file list
-                self.OnUpdateDocument(self.docs, 'document')
-            else: pass
+        tempList = self.view.panelMultipleText.topP.filelist
+        try:
+            for row in xrange(tempList.GetItemCount()):
+                itemInfo = self.view.panelMultipleText.topP.OnGetItemInformation(itemID=row)
+                if itemInfo['select']:
+                    self.docs = self.documentsDict[itemInfo['document']]
+                    imsData2D = self.process2Ddata(zvals=self.docs.IMS2D['zvals'].copy(), 
+                                                   return_data=True)
+                    self.docs.got2Dprocess = True
+                    self.docs.IMS2Dprocess = {'zvals':imsData2D,
+                                              'xvals':self.docs.IMS2D['xvals'],
+                                              'xlabels':self.docs.IMS2D['xlabels'],
+                                              'yvals':self.docs.IMS2D['yvals'],
+                                              'ylabels':self.docs.IMS2D['ylabels'],
+                                              'cmap':itemInfo['colormap'],
+                                              'label':itemInfo['label'],
+                                              'charge':itemInfo['charge'],
+                                              'alpha':itemInfo['alpha'],
+                                              'mask':itemInfo['mask'], 
+                                              'color':itemInfo['color'], 
+                                              'min_threshold':itemInfo['min_threshold'],
+                                              'max_threshold':itemInfo['max_threshold']}
+                
+                    # Update file list
+                    self.OnUpdateDocument(self.docs, 'document')
+                else: pass
+        except: 
+            print("Cannot process selected items. These belong to Comparison document")
+            return
             
         if evt.GetId() == ID_processAllTextFiles:
             self.view.panelMultipleText.topP.OnCheckAllItems(evt=None, check=False, override=True)
@@ -5106,8 +5506,7 @@ class ORIGAMI(object):
             mw = dictionary.get('mw', None)
             mzCentre = dictionary.get('xcentre', None)
             
-            if cmap == '' or cmap is None: cmap = 'viridis'
-            
+#             if cmap == '' or cmap is None: cmap = 'viridis'
             if dataType == 'all':
                 if compact:
                     data = zvals, xvals, xlabels, yvals, ylabels, cmap, charge
@@ -5128,7 +5527,8 @@ class ORIGAMI(object):
             yvals = dictionary['yvals']
             try: 
                 cmap = dictionary['cmap']
-            except KeyError: cmap= [0,0,0]
+            except KeyError: 
+                cmap = [0,0,0]
             
             try: xlimits = dictionary['xlimits']
             except KeyError: 
@@ -5197,7 +5597,7 @@ class ORIGAMI(object):
             xlabels = dictionary['xlabel']
             colors = dictionary['colors']
             labels = dictionary['labels']
-            xlimits = dictionary['xlimits']
+            xlimits = dictionary.get('xlimits', None)
             return xvals, yvals, xlabels, colors, labels, xlimits
              
     def getOverlayDataFromDictionary(self, dictionary=None, dataType='plot', compact=False):
@@ -5280,9 +5680,10 @@ class ORIGAMI(object):
                 if self.config.waterfall:
                     self.onPlotWaterfall(yvals=xvals, xvals=yvals, zvals=zvals, 
                                          xlabel=xlabel, ylabel=ylabel)         
-                self.onPlot3DIMS(zvals=zvals, labelsX=xvals, labelsY=yvals, 
-                                 xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+                self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals, 
+                                                xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
+                if not self.config.waterfall:
+                    self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
             elif replot_type == 'DT/MS':
                 self.onPlotMZDT(zvals, xvals, yvals, xlabel, ylabel, override=False)
                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
@@ -5440,7 +5841,8 @@ class ORIGAMI(object):
                 dataset = ionName.split(" (")[0]
             new_dataset = "%s (processed)" % ionName
         
-        if dataset == "Drift time (2D)": 
+        if dataset == "Drift time (2D)":
+            self.docs.got2Dprocess = True
             self.docs.IMS2Dprocess = self.docs.IMS2D.copy()
             self.docs.IMS2Dprocess['zvals'] = zvals
             self.docs.IMS2Dprocess['process_parameters'] = params
@@ -5490,8 +5892,8 @@ class ORIGAMI(object):
         # Update file list
         self.OnUpdateDocument(self.docs, 'document')
 
-    def processMSdata(self, replot=False, msY=None, return_data=False, return_all=False, 
-                      evt=None):
+    def processMSdata(self, replot=False, msX=None, msY=None, return_data=False, 
+                      return_all=False, evt=None):
         # new in 1.1.0
         if replot:
             msX, msY, xlimits = self._get_replot_data('MS')
@@ -5503,27 +5905,42 @@ class ORIGAMI(object):
         if self.config.processParamsWindow_on_off:
             self.view.panelProcessData.onSetupValues(evt=None)
         
-        # Smooth data
-        kwargs = {'sigma':self.config.ms_smooth_sigma,
-                  'polyOrder':self.config.ms_smooth_polynomial,
-                  'windowSize':self.config.ms_smooth_window}
+        if self.config.ms_process_linearize and msX is not None:
+            kwargs = {'auto_range':self.config.ms_auto_range,
+                      'mz_min':self.config.ms_mzStart, 
+                      'mz_max':self.config.ms_mzEnd, 
+                      'mz_bin':self.config.ms_mzBinSize,
+                      'linearization_mode':self.config.ms_linearization_mode}
+            msX, msY = ml.linearize_data(msX, msY, **kwargs)
         
-        msY = af.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **kwargs)
-        # Threshold data
-        msY = af.removeNoise(inputData=msY, threshold=self.config.ms_threshold)
-        # Normalize data        
-        if self.config.ms_normalize:
-            msY = ml.normalize1D(inputData=np.asarray(msY), 
-                                 mode=self.config.ms_normalize_mode)
+        if self.config.ms_process_smooth:
+            # Smooth data
+            kwargs = {'sigma':self.config.ms_smooth_sigma,
+                      'polyOrder':self.config.ms_smooth_polynomial,
+                      'windowSize':self.config.ms_smooth_window}
+            msY = af.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **kwargs)
+        
+        if self.config.ms_process_threshold:
+            # Threshold data
+            msY = af.removeNoise(inputData=msY, threshold=self.config.ms_threshold)
+            
+        if self.config.ms_process_normalize:
+            # Normalize data        
+            if self.config.ms_normalize:
+                msY = ml.normalize1D(inputData=np.asarray(msY), 
+                                     mode=self.config.ms_normalize_mode)
             
         if replot: 
             # Plot data
             kwargsMS = {}
-            self.onPlotMS2(msX=msX, msY=msY,
-                           override=False, **kwargsMS)
+            self.view.panelPlots.on_plot_MS(msX=msX, msY=msY,
+                                            override=False, **kwargsMS)
                       
         if return_data:
-            return msY
+            if msX is not None:
+                return msX, msY
+            else:
+                return msY
     
         if return_all:
             parameters = {'smooth_mode':self.config.ms_smooth_mode,
@@ -5531,7 +5948,7 @@ class ORIGAMI(object):
                           'polyOrder':self.config.ms_smooth_polynomial,
                           'windowSize':self.config.ms_smooth_window,
                           'threshold':self.config.ms_threshold}
-            return msY, parameters
+            return msX, msY, parameters
          
     def process_MS(self, document=None, dataset=None):
         
@@ -5554,25 +5971,32 @@ class ORIGAMI(object):
         msX = data['xvals']
         msY = data['yvals']
         xlimits = data['xlimits']
-        msY, params = self.processMSdata(msY=msY, return_all=True)
+        annotations = data.get('annotations', {})
+        title = data.get('header', "")
+        header = data.get('header', "")
+        footnote = data.get('footnote', "")
+        msX, msY, params = self.processMSdata(msX=msX, msY=msY, return_all=True)
+        
+        ms_data = {'xvals':msX, 'yvals':msY, 
+                   'xlabels':'m/z (Da)',
+                   'parameters':params,
+                   'annotations':annotations, 'title':title, 
+                   'header':header, 'footnote':footnote,  
+                   'xlimits':xlimits}
         
         # add data to dictionary
         if dataset == 'Mass Spectrum':
             self.docs.gotSmoothMS = True
-            self.docs.smoothMS = {'xvals':msX, 'yvals':msY, 
-                                  'parameters':params, 'xlimits':xlimits}
+            self.docs.smoothMS = ms_data
         else:
             # strip any processed string from the title
             if "(processed)" in dataset:
                 dataset = dataset.split(" (")[0]
             new_dataset = "%s (processed)" % dataset
-            self.docs.multipleMassSpectrum[new_dataset] = {'xvals':msX, 
-                                                           'yvals':msY,
-                                                           'process_parameters':params, 
-                                                           'xlimits':xlimits}
+            self.docs.multipleMassSpectrum[new_dataset] = ms_data
 
         # Plot processed MS
-        self.onPlotMS2(msX, msY, xlimits=xlimits)
+        self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits)
         # Append to list
         self.documentsDict[self.currentDoc] = self.docs
         # Update documents tree
@@ -5905,11 +6329,11 @@ class ORIGAMI(object):
             resize_plot = self.view.panelPlots.plotWaterfallIMS
         elif plotName == 'RMSD':
             resize_plot = self.view.panelPlots.plotRMSF
-        elif plotName == 'Comparison':
+        elif plotName in ['Comparison', 'Matrix']:
             resize_plot = self.view.panelPlots.plotCompare
         elif plotName == 'DT/MS':
             resize_plot = self.view.panelPlots.plotMZDT
-        elif plotName == 'Overlay':
+        elif plotName in ['Overlay', 'Overlay (Grid)']:
             resize_plot = self.view.panelPlots.plotOverlay
         elif plotName == 'Calibration (MS)':
             resize_plot = self.view.panelPlots.topPlotMS
@@ -5917,11 +6341,31 @@ class ORIGAMI(object):
             resize_plot = self.view.panelPlots.bottomPlot1DT
         elif plotName == '3D':
             resize_plot = self.view.panelPlots.plot3D
-            
+        elif plotName == 'UniDec (MS)':
+            resize_plot = self.view.panelPlots.plotUnidec_MS
+        elif plotName == 'UniDec (MW)':
+            resize_plot = self.view.panelPlots.plotUnidec_mwDistribution
+        elif plotName == 'UniDec (m/z vs Charge)':
+            resize_plot = self.view.panelPlots.plotUnidec_mzGrid
+        elif plotName == 'UniDec (Isolated MS)':
+            resize_plot = self.view.panelPlots.plotUnidec_individualPeaks
+        elif plotName == 'UniDec (MW vs Charge)':
+            resize_plot = self.view.panelPlots.plotUnidec_mwVsZ
+        elif plotName == 'UniDec (Barplot)':
+            resize_plot = self.view.panelPlots.plotUnidec_barChart
+        elif plotName == 'UniDec (Charge Distribution)':
+            resize_plot = self.view.panelPlots.plotUnidec_chargeDistribution            
         # apply new size
         try:
+            if resize_plot.lock_plot_from_updating: 
+                msg = "This plot is locked and you cannot use global setting updated. \n" + \
+                      "Please right-click in the plot area and select Customise plot..." + \
+                      " to adjust plot settings."
+                print(msg)
+                return
             resize_plot.plot_update_axes(axes_sizes)
-            resize_plot.repaint()    
+            resize_plot.repaint()
+            resize_plot._axes = axes_sizes
         except AttributeError: 
             pass
     
@@ -6279,9 +6723,9 @@ class ORIGAMI(object):
         self.onPlot2DIMS2(zvals, xvals, yvals, xlabel, ylabel, cmapNorm=cmapNorm)
         if self.config.waterfall:
             self.onPlotWaterfall(yvals=xvals, xvals=yvals, zvals=zvals, 
-                                 xlabel=xlabel, ylabel=ylabel)  
-        self.onPlot3DIMS(zvals=zvals, labelsX=xvals, labelsY=yvals, 
-                         xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
+                                 xlabel=xlabel, ylabel=ylabel)
+        self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals, 
+                                             xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
        
     def onPlotMZDT(self, zvals=None, xvals=None, yvals=None, xlabel=None, ylabel=None, 
                    cmap=None, cmapNorm=None, plotType=None,  override=True, replot=False, e=None):
@@ -6418,8 +6862,7 @@ class ORIGAMI(object):
     def onPlotWaterfall(self, xvals, yvals, zvals, xlabel, ylabel,e=None):
 
         # Check if cmap should be overwritten
-        if self.config.useCurrentCmap:
-            cmap = self.config.currentCmap
+        cmap = self.config.currentCmap
         
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         waterfall_kwargs = self._buildPlotParameters(plotType='waterfall')
@@ -6514,6 +6957,13 @@ class ORIGAMI(object):
                                                   fontsize=self.config.rmsd_fontSize,
                                                   weight=self.config.rmsd_fontWeight)
             self.view.panelPlots.plotRMSF.repaint()
+        elif plot == 'Grid':
+            self.view.panelPlots.plotOverlay.addText(x,y, text, rotation,
+                                                     color=self.config.rmsd_color,
+                                                     fontsize=self.config.rmsd_fontSize,
+                                                     weight=self.config.rmsd_fontWeight,
+                                                     plot=plot)
+            self.view.panelPlots.plotOverlay.repaint()
         
     def onAddMarker1D(self, xval=None, yval=None, color='r', marker='o'):
         """ 
@@ -6591,6 +7041,17 @@ class ORIGAMI(object):
                           'scatter_size':self.config.markerSize_1D,
                           'scatter_shape':self.config.markerShape_1D,
                           'scatter_alpha':self.config.markerTransparency_1D,
+                          'legend':self.config.legend,
+                          'legend_transparency':self.config.legendAlpha,
+                          'legend_position':self.config.legendPosition,
+                          'legend_num_columns':self.config.legendColumns,
+                          'legend_font_size':self.config.legendFontSize,
+                          'legend_frame_on':self.config.legendFrame,
+                          'legend_fancy_box':self.config.legendFancyBox,
+                          'legend_marker_first':self.config.legendMarkerFirst,
+                          'legend_marker_size':self.config.legendMarkerSize,
+                          'legend_num_markers':self.config.legendNumberMarkers,
+                          'legend_line_width':self.config.legendLineWidth,
                           'legend_patch_transparency':self.config.legendPatchAlpha,
                           'label_pad':self.config.labelPad_1D}     
         elif plotType == '2D':  
@@ -6635,6 +7096,9 @@ class ORIGAMI(object):
                           'spines_top':self.config.spines_top_2D,
                           'spines_bottom':self.config.spines_bottom_2D,
                           'colormap':self.config.currentCmap,
+                          'colormap_min':self.config.minCmap,
+                          'colormap_mid':self.config.midCmap,
+                          'colormap_max':self.config.maxCmap,
                           }
         elif plotType == '3D':  
             plt_kwargs = {'label_pad':self.config.labelPad_3D,
@@ -6692,9 +7156,22 @@ class ORIGAMI(object):
                           'line_style':self.config.waterfall_lineStyle,
                           'reverse':self.config.waterfall_reverse,
                           'use_colormap': self.config.waterfall_useColormap,
-                          'line_color':self.config.waterfall_color
+                          'line_color':self.config.waterfall_color,
+                          'legend':self.config.legend,
+                          'legend_transparency':self.config.legendAlpha,
+                          'legend_position':self.config.legendPosition,
+                          'legend_num_columns':self.config.legendColumns,
+                          'legend_font_size':self.config.legendFontSize,
+                          'legend_frame_on':self.config.legendFrame,
+                          'legend_fancy_box':self.config.legendFancyBox,
+                          'legend_marker_first':self.config.legendMarkerFirst,
+                          'legend_marker_size':self.config.legendMarkerSize,
+                          'legend_num_markers':self.config.legendNumberMarkers,
+                          'legend_line_width':self.config.legendLineWidth,
+                          'legend_patch_transparency':self.config.legendPatchAlpha,
                 }
-            
+        
+        plt_kwargs['frame_width'] = 1.0
         # return kwargs
         return plt_kwargs
         
@@ -6763,7 +7240,7 @@ class ORIGAMI(object):
         elif plot == 'Matrix' or eventID == ID_clearPlot_Matrix:
             self.view.panelPlots.plotCompare.clearPlot()
             self.view.panelPlots.plotCompare.repaint()
-        elif plot == 'Waterall' or eventID == ID_clearPlot_Watefall:
+        elif plot == 'Waterall' or eventID == ID_clearPlot_Waterfall:
             self.view.panelPlots.plotWaterfallIMS.clearPlot()
             self.view.panelPlots.plotWaterfallIMS.repaint()
         elif plot == 'Calibration' or eventID == ID_clearPlot_Calibration:
@@ -6799,7 +7276,11 @@ class ORIGAMI(object):
                     self.view.panelPlots.plotCompare, self.view.panelPlots.plot2D, 
                     self.view.panelPlots.plot3D, self.view.panelPlots.plotOverlay,
                     self.view.panelPlots.plotWaterfallIMS, self.view.panelPlots.topPlotMS, 
-                    self.view.panelPlots.bottomPlot1DT, self.view.panelPlots.plotMZDT]
+                    self.view.panelPlots.bottomPlot1DT, self.view.panelPlots.plotMZDT,
+                    self.view.panelPlots.plotUnidec_MS, self.view.panelPlots.plotUnidec_mzGrid,
+                    self.view.panelPlots.plotUnidec_mwDistribution, self.view.panelPlots.plotUnidec_mwVsZ, 
+                    self.view.panelPlots.plotUnidec_individualPeaks, self.view.panelPlots.plotUnidec_barChart,
+                    self.view.panelPlots.plotUnidec_chargeDistribution]
         
         for plot in plotList:
             plot.clearPlot()
@@ -6812,289 +7293,289 @@ class ORIGAMI(object):
 # SAVE IMAGES
 #===============================================================================
 
-    def saveImages2(self, evt, path=None):
-        """ Save figure depending on the event ID """
-        
-        tstart = time.clock()
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat,
-                  'compression':"zlib",
-                  'resize': None}
-        
-        path, __ = self.getCurrentDocumentPath()
-        if path == None: 
-            args = ("Could not find path", 4) 
-            self.presenter.onThreading(None, args, action='updateStatusbar')
-            return
-        
-        # Select default name + link to the plot
-        if evt.GetId() in [ID_saveMSImage, ID_saveMSImageDoc]:
-            defaultName = self.config._plotSettings['MS']['default_name']
-            resizeName ="MS"
-            plotWindow = self.view.panelPlots.plot1
-            
-        elif evt.GetId() in [ID_saveRTImage, ID_saveRTImageDoc]:
-            defaultName = self.config._plotSettings['RT']['default_name']
-            resizeName = "RT"
-            plotWindow = self.view.panelPlots.plotRT
-            
-        elif evt.GetId() in [ID_save1DImage, ID_save1DImageDoc]:
-            defaultName = self.config._plotSettings['DT']['default_name']
-            resizeName = "DT"
-            plotWindow = self.view.panelPlots.plot1D
-            
-        elif evt.GetId() in [ID_save2DImage, ID_save2DImageDoc]:
-            defaultName = self.config._plotSettings['2D']['default_name']
-            resizeName = "2D"
-            plotWindow = self.view.panelPlots.plot2D
-            
-        elif evt.GetId() in [ID_save3DImage, ID_save3DImageDoc]:
-            defaultName = self.config._plotSettings['3D']['default_name']
-            resizeName = "3D"
-            plotWindow = self.view.panelPlots.plot3D
-            
-        elif evt.GetId() in [ID_saveWaterfallImage, ID_saveWaterfallImageDoc]:
-            defaultName = self.config._plotSettings['Waterfall']['default_name']
-            resizeName = "Waterfall"
-            plotWindow = self.view.panelPlots.plotWaterfallIMS
-            
-        elif evt.GetId() in [ID_saveRMSDImage, ID_saveRMSDImageDoc, 
-                             ID_saveRMSFImage, ID_saveRMSFImageDoc]:
-            plotWindow = self.view.panelPlots.plotRMSF
-            defaultName = self.config._plotSettings['RMSD']['default_name']
-            resizeName = plotWindow.getPlotName()
-            
-        elif evt.GetId() in [ID_saveOverlayImage, ID_saveOverlayImageDoc]:
-            plotWindow = self.view.panelPlots.plotOverlay
-            defaultName = plotWindow.getPlotName()
-            resizeName = "Overlay"
-            
-        elif evt.GetId() in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc]:
-            defaultName = self.config._plotSettings['Matrix']['default_name']
-            resizeName = "Matrix"
-            plotWindow = self.view.panelPlots.plotCompare
-            
-        elif evt.GetId() in [ID_saveMZDTImage, ID_saveMZDTImageDoc]:
-            defaultName = self.config._plotSettings['DT/MS']['default_name']
-            resizeName = "DT/MS"
-            plotWindow = self.view.panelPlots.plotMZDT
+#     def saveImages2(self, evt, path=None):
+#         """ Save figure depending on the event ID """
+#         print("Saving image. Please wait...")
+#         tstart = time.clock()
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat,
+#                   'compression':"zlib",
+#                   'resize': None}
+#         
+#         path, __ = self.getCurrentDocumentPath()
+#         if path == None: 
+#             args = ("Could not find path", 4) 
+#             self.presenter.onThreading(None, args, action='updateStatusbar')
+#             return
+#         
+#         # Select default name + link to the plot
+#         if evt.GetId() in [ID_saveMSImage, ID_saveMSImageDoc]:
+#             defaultName = self.config._plotSettings['MS']['default_name']
+#             resizeName ="MS"
+#             plotWindow = self.view.panelPlots.plot1
+#             
+#         elif evt.GetId() in [ID_saveRTImage, ID_saveRTImageDoc]:
+#             defaultName = self.config._plotSettings['RT']['default_name']
+#             resizeName = "RT"
+#             plotWindow = self.view.panelPlots.plotRT
+#             
+#         elif evt.GetId() in [ID_save1DImage, ID_save1DImageDoc]:
+#             defaultName = self.config._plotSettings['DT']['default_name']
+#             resizeName = "DT"
+#             plotWindow = self.view.panelPlots.plot1D
+#             
+#         elif evt.GetId() in [ID_save2DImage, ID_save2DImageDoc]:
+#             plotWindow = self.view.panelPlots.plot2D
+#             defaultName = self.config._plotSettings['2D']['default_name']
+#             resizeName = "2D"
+#             
+#         elif evt.GetId() in [ID_save3DImage, ID_save3DImageDoc]:
+#             defaultName = self.config._plotSettings['3D']['default_name']
+#             resizeName = "3D"
+#             plotWindow = self.view.panelPlots.plot3D
+#             
+#         elif evt.GetId() in [ID_saveWaterfallImage, ID_saveWaterfallImageDoc]:
+#             defaultName = self.config._plotSettings['Waterfall']['default_name']
+#             resizeName = "Waterfall"
+#             plotWindow = self.view.panelPlots.plotWaterfallIMS
+#             
+#         elif evt.GetId() in [ID_saveRMSDImage, ID_saveRMSDImageDoc, 
+#                              ID_saveRMSFImage, ID_saveRMSFImageDoc]:
+#             plotWindow = self.view.panelPlots.plotRMSF
+#             defaultName = self.config._plotSettings['RMSD']['default_name']
+#             resizeName = plotWindow.getPlotName()
+#             
+#         elif evt.GetId() in [ID_saveOverlayImage, ID_saveOverlayImageDoc]:
+#             plotWindow = self.view.panelPlots.plotOverlay
+#             defaultName = plotWindow.getPlotName()
+#             resizeName = "Overlay"
+#             
+#         elif evt.GetId() in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc]:
+#             defaultName = self.config._plotSettings['Matrix']['default_name']
+#             resizeName = "Matrix"
+#             plotWindow = self.view.panelPlots.plotCompare
+#             
+#         elif evt.GetId() in [ID_saveMZDTImage, ID_saveMZDTImageDoc]:
+#             defaultName = self.config._plotSettings['DT/MS']['default_name']
+#             resizeName = "DT/MS"
+#             plotWindow = self.view.panelPlots.plotMZDT
+# 
+#         # Setup filename
+#         dlg =  wx.FileDialog(self.view, "Please select a name for the file", 
+#                              "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+#         dlg.CentreOnParent()
+#         dlg.SetFilename(defaultName)
+#         if dlg.ShowModal() == wx.ID_OK:
+#             filename = dlg.GetPath()
+#         
+#             if self.config.resize:
+#                 kwargs['resize'] = resizeName
+#             
+#             
+#             filename = os.path.join(filename + "." + self.config.imageFormat)
+#     #         if not self.config.threading:
+#             plotWindow.saveFigure2(path=filename, **kwargs)
+#     #         else: 
+#     #             args = [plotWindow, filename, kwargs]
+#     #             self.onThreading(evt, args, action='saveFigs')
+#     
+#             tend = time.clock()
+#             args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),4))), 4) 
+#             self.onThreading(evt, args, action='updateStatusbar')  
 
-        # Setup filename
-        saveFileName = self.getImageFilename(prefix=True, csv=False, 
-                                             defaultValue=defaultName)
-        if saveFileName =='' or saveFileName == None: 
-            saveFileName = defaultName
-        elif saveFileName is False:
-            print("Figure saving was cancelled")
-            return
-            
-        if self.config.resize:
-            kwargs['resize'] = resizeName
-            
-        filename = ''.join([path, "\\", saveFileName, '.', self.config.imageFormat])
-        if not self.config.threading:
-            plotWindow.saveFigure2(path=filename, **kwargs)
-        else: 
-            args = [plotWindow, filename, kwargs]
-            self.onThreading(evt, args, action='saveFigs')
-
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),4))), 4) 
-        self.onThreading(evt, args, action='updateStatusbar')  
-
-    def saveMSImage(self, event=None, path=None):
-        tstart = time.clock()
-        if path==None:
-            path, title = self.getCurrentDocumentPath()
-            path = ''.join([path, '\MS.'])
-            
-        if path == None: return
-        # Add extension
-        path = ''.join([path, self.config.imageFormat])
-        
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat}
-        
-        self.view.panelPlots.plot1.saveFigure2(path=path, **kwargs)
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
-        self.onThreading(event, args, action='updateStatusbar')
-
-    def saveRTImage(self, event=None, path=None):
-    
-        tstart = time.clock()
-        if path==None:
-            path, title = self.getCurrentDocumentPath()
-            path = ''.join([path, '\RT.'])
-            
-        if path == None: return
-        # Add extension
-        path = ''.join([path, self.config.imageFormat])
-        
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat}
-        
-        self.view.panelPlots.plotRT.saveFigure2(path=path, **kwargs)
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
-        self.onThreading(event, args, action='updateStatusbar')
-        
-    def save1DIMSImage(self, event=None, path=None):
-
-        
-        tstart = time.clock()
-        if path==None:
-            path, title = self.getCurrentDocumentPath()
-            path = ''.join([path, '\IMS1D.'])
-            
-        if path == None: return
-        # Add extension
-        path = ''.join([path, self.config.imageFormat])
-        
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat}
-        
-        self.view.panelPlots.plot1D.saveFigure2(path=path, **kwargs)
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
-        self.onThreading(event, args, action='updateStatusbar')
-
-    def save2DIMSImage(self, event=None, path=None):
-        
-        tstart = time.clock()
-        if path==None:
-            path, title = self.getCurrentDocumentPath()
-            path = ''.join([path, '\IMS2D.'])
-            
-        if path == None: return
-        # Add extension
-        path = ''.join([path, self.config.imageFormat])
-        
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat}
-        
-        self.view.panelPlots.plot2D.saveFigure2(path=path, **kwargs)
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
-        self.onThreading(event, args, action='updateStatusbar')
-
-    def save3DIMSImage(self, event=None, path=None):
-
-       
-        tstart = time.clock()
-        if path==None:
-            path, title = self.getCurrentDocumentPath()
-            path = ''.join([path, '\IMS3D.'])
-            
-        if path == None: return
-        
-        # Add extension
-        path = ''.join([path, self.config.imageFormat])
-        
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat}
-        
-        self.view.panelPlots.plot3D.saveFigure2(path=path, **kwargs)
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
-        self.onThreading(event, args, action='updateStatusbar')
-
-    def saveWaterfallImage(self, event=None, path=None):
-
-        tstart = time.clock()
-        if path==None:
-            path, title = self.getCurrentDocumentPath()
-            path = ''.join([path, '\Waterfall.'])
-            
-        if path == None: return
-        
-        # Add extension
-        path = ''.join([path, self.config.imageFormat])
-
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat}
-        
-        self.view.panelPlots.plotWaterfallIMS.saveFigure2(path=path, **kwargs)
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
-        self.onThreading(event, args, action='updateStatusbar')
-        
-    def saveMatrixImage(self, event=None, path=None):
-       
-        tstart = time.clock()
-        if path==None:
-            path, title = self.getCurrentDocumentPath()
-            path = ''.join([path, '\RMSDmatrix.'])
-            
-        if path == None: return
-        # Add extension
-        path = ''.join([path, self.config.imageFormat])
-        
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat}
-        
-        self.view.panelPlots.plotCompare.saveFigure2(path=path, **kwargs)
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
-        self.onThreading(event, args, action='updateStatusbar')
-    
-    def saveRMSDImage(self, event=None, path=None):
-        
-        tstart = time.clock()
-        if path==None:
-            path, title = self.getCurrentDocumentPath()
-            path = ''.join([path, '\RMSD.'])
-            
-        if path == None: return
-        # Add extension
-        path = ''.join([path, self.config.imageFormat])
-        
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat}
-        
-        self.view.panelPlots.plotRMSF.saveFigure2(path=path, **kwargs)
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
-        self.onThreading(event, args, action='updateStatusbar')
-
-    def saveRMSFImage(self, event=None, path=None):
-
-        tstart = time.clock()
-        if path==None:
-            path, title = self.getCurrentDocumentPath()
-            path = ''.join([path, '\RMSF.'])
-            
-        if path == None: return
-        # Add extension
-        path = ''.join([path, self.config.imageFormat])
-        
-        # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi, 
-                  'format':self.config.imageFormat}
-        
-        self.view.panelPlots.plotRMSF.saveFigure2(path=path, **kwargs)
-        tend = time.clock()
-        args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
-        self.onThreading(event, args, action='updateStatusbar')
+#     def saveMSImage(self, event=None, path=None):
+#         tstart = time.clock()
+#         if path==None:
+#             path, title = self.getCurrentDocumentPath()
+#             path = ''.join([path, '\MS.'])
+#             
+#         if path == None: return
+#         # Add extension
+#         path = ''.join([path, self.config.imageFormat])
+#         
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat}
+#         
+#         self.view.panelPlots.plot1.saveFigure2(path=path, **kwargs)
+#         tend = time.clock()
+#         args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
+#         self.onThreading(event, args, action='updateStatusbar')
+# 
+#     def saveRTImage(self, event=None, path=None):
+#     
+#         tstart = time.clock()
+#         if path==None:
+#             path, title = self.getCurrentDocumentPath()
+#             path = ''.join([path, '\RT.'])
+#             
+#         if path == None: return
+#         # Add extension
+#         path = ''.join([path, self.config.imageFormat])
+#         
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat}
+#         
+#         self.view.panelPlots.plotRT.saveFigure2(path=path, **kwargs)
+#         tend = time.clock()
+#         args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
+#         self.onThreading(event, args, action='updateStatusbar')
+#         
+#     def save1DIMSImage(self, event=None, path=None):
+# 
+#         
+#         tstart = time.clock()
+#         if path==None:
+#             path, title = self.getCurrentDocumentPath()
+#             path = ''.join([path, '\IMS1D.'])
+#             
+#         if path == None: return
+#         # Add extension
+#         path = ''.join([path, self.config.imageFormat])
+#         
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat}
+#         
+#         self.view.panelPlots.plot1D.saveFigure2(path=path, **kwargs)
+#         tend = time.clock()
+#         args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
+#         self.onThreading(event, args, action='updateStatusbar')
+# 
+#     def save2DIMSImage(self, event=None, path=None):
+#         
+#         tstart = time.clock()
+#         if path==None:
+#             path, title = self.getCurrentDocumentPath()
+#             path = ''.join([path, '\IMS2D.'])
+#             
+#         if path == None: return
+#         # Add extension
+#         path = ''.join([path, self.config.imageFormat])
+#         
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat}
+#         
+#         self.view.panelPlots.plot2D.saveFigure2(path=path, **kwargs)
+#         tend = time.clock()
+#         args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
+#         self.onThreading(event, args, action='updateStatusbar')
+# 
+#     def save3DIMSImage(self, event=None, path=None):
+# 
+#        
+#         tstart = time.clock()
+#         if path==None:
+#             path, title = self.getCurrentDocumentPath()
+#             path = ''.join([path, '\IMS3D.'])
+#             
+#         if path == None: return
+#         
+#         # Add extension
+#         path = ''.join([path, self.config.imageFormat])
+#         
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat}
+#         
+#         self.view.panelPlots.plot3D.saveFigure2(path=path, **kwargs)
+#         tend = time.clock()
+#         args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
+#         self.onThreading(event, args, action='updateStatusbar')
+# 
+#     def saveWaterfallImage(self, event=None, path=None):
+# 
+#         tstart = time.clock()
+#         if path==None:
+#             path, title = self.getCurrentDocumentPath()
+#             path = ''.join([path, '\Waterfall.'])
+#             
+#         if path == None: return
+#         
+#         # Add extension
+#         path = ''.join([path, self.config.imageFormat])
+# 
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat}
+#         
+#         self.view.panelPlots.plotWaterfallIMS.saveFigure2(path=path, **kwargs)
+#         tend = time.clock()
+#         args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
+#         self.onThreading(event, args, action='updateStatusbar')
+#         
+#     def saveMatrixImage(self, event=None, path=None):
+#        
+#         tstart = time.clock()
+#         if path==None:
+#             path, title = self.getCurrentDocumentPath()
+#             path = ''.join([path, '\RMSDmatrix.'])
+#             
+#         if path == None: return
+#         # Add extension
+#         path = ''.join([path, self.config.imageFormat])
+#         
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat}
+#         
+#         self.view.panelPlots.plotCompare.saveFigure2(path=path, **kwargs)
+#         tend = time.clock()
+#         args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
+#         self.onThreading(event, args, action='updateStatusbar')
+#     
+#     def saveRMSDImage(self, event=None, path=None):
+#         
+#         tstart = time.clock()
+#         if path==None:
+#             path, title = self.getCurrentDocumentPath()
+#             path = ''.join([path, '\RMSD.'])
+#             
+#         if path == None: return
+#         # Add extension
+#         path = ''.join([path, self.config.imageFormat])
+#         
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat}
+#         
+#         self.view.panelPlots.plotRMSF.saveFigure2(path=path, **kwargs)
+#         tend = time.clock()
+#         args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
+#         self.onThreading(event, args, action='updateStatusbar')
+# 
+#     def saveRMSFImage(self, event=None, path=None):
+# 
+#         tstart = time.clock()
+#         if path==None:
+#             path, title = self.getCurrentDocumentPath()
+#             path = ''.join([path, '\RMSF.'])
+#             
+#         if path == None: return
+#         # Add extension
+#         path = ''.join([path, self.config.imageFormat])
+#         
+#         # Build kwargs
+#         kwargs = {"transparent":self.config.transparent,
+#                   "dpi":self.config.dpi, 
+#                   'format':self.config.imageFormat}
+#         
+#         self.view.panelPlots.plotRMSF.saveFigure2(path=path, **kwargs)
+#         tend = time.clock()
+#         args = ("Saved figure to %s. It took %s s." % (path, str(np.round((tend-tstart),2))), 4) 
+#         self.onThreading(event, args, action='updateStatusbar')
 
     def onImportConfig(self, evt, onStart=False):
         """
@@ -7102,9 +7583,10 @@ class ORIGAMI(object):
         """
         if not onStart:
             if evt.GetId() == ID_openConfig:
-                self.config.loadConfigXML(path='configOut.xml', evt=None)
+                config_path = os.path.join(self.config.cwd, 'configOut.xml')
+                print("Imported configuration file: {}".format(config_path))
+                self.config.loadConfigXML(path=config_path, evt=None)
                 self.view.updateRecentFiles()
-                print('Loaded configuration file')
                 return
             elif evt.GetId() == ID_openAsConfig:
                 dlg = wx.FileDialog(self.view, "Open Configuration File", wildcard = "*.xml" ,
@@ -7205,9 +7687,13 @@ class ORIGAMI(object):
         This function saves whole document to a pickled directory
         """
         fileType = "ORIGAMI Document File|*.pickle"
-        
+        if isinstance(evt, int):
+            evtID = evt
+        else: 
+            evtID = evt.GetId()
+            
         # Save single document
-        if evt.GetId() == ID_saveDocument:
+        if  evtID == ID_saveDocument:
             self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
             if self.currentDoc == 'Current documents': return
             document = self.documentsDict[self.currentDoc]
@@ -7216,18 +7702,24 @@ class ORIGAMI(object):
                                     wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             defaultFilename = document.title.split(".")
             dlg.SetFilename(defaultFilename[0])
-            
+                        
             if dlg.ShowModal() == wx.ID_OK:
                 saveFileName = dlg.GetPath()          
                 # Save
                 saveObject(filename=saveFileName, saveFile=document)
-            else: return
+                self.view.updateRecentFiles(path={'file_type':'pickle',
+                                                  'file_path': saveFileName})
+                
+            else: 
+                return
+        
         # Save multiple documents
-        elif evt.GetId() == ID_saveAllDocuments:
+        elif evtID == ID_saveAllDocuments:
             for document in self.documentsDict:
                 dlg =  wx.FileDialog(self.view, "Save document to file...", "", "", fileType,
                                         wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                 defaultFilename = self.documentsDict[document].title.split(".")
+                print("Saving {}".format(defaultFilename[0]))
                 dlg.SetFilename(defaultFilename[0])
                 
                 if dlg.ShowModal() == wx.ID_OK:
@@ -7235,6 +7727,9 @@ class ORIGAMI(object):
                     # Save
                     saveObject(filename=saveFileName, 
                                saveFile=self.documentsDict[document])
+                    
+                    self.view.updateRecentFiles(path={'file_type':'pickle',
+                                                      'file_path': saveFileName})
                 else: continue
           
     def onOpenDocument(self, evt, file_path=None):
@@ -7254,7 +7749,11 @@ class ORIGAMI(object):
                 filenames = dlg.GetFilenames()
                 for (file_path, file_name) in zip(pathlist, filenames):
                     tstart = time.clock()
-                    self.loadDocumentData(document=openObject(filename=file_path))
+                    document = openObject(filename=file_path)
+                    if document is None:
+                        print("Could not load {}".format(file_path))
+                        continue
+                    self.loadDocumentData(document=document)
                     tend = time.clock()
                     print(''.join(['Opened ', file_name,". It took: ", num2str(tend-tstart), ' seconds.']))
                     
@@ -7284,22 +7783,6 @@ class ORIGAMI(object):
         if document != None:
             idName = document.title
             self.documentsDict[idName] = document
-             
-            # Restore various plots into the program
-            if document.dataType == 'Type: ORIGAMI':
-                self.config.ciuMode = 'ORIGAMI'
-            elif document.dataType == 'Type: MANUAL':
-                self.config.ciuMode = 'MANUAL'
-            elif document.dataType == 'Type: Multifield Linear DT':
-                self.config.ciuMode = 'LinearDT'
-            elif document.dataType == 'Type: Infrared':
-                self.config.ciuMode = 'Infrared'
-            
-            if any([document.gotExtractedIons, document.got2DprocessIons, 
-                   document.gotCombinedExtractedIonsRT, document.gotCombinedExtractedIons]):
-                self.config.extractMode = 'multipleIons'
-            else:
-                self.config.extractMode = 'singleIon'
              
             if document.gotMS:
                 self.onThreading(None, ("Loaded mass spectra", 4), action='updateStatusbar')
@@ -7341,7 +7824,9 @@ class ORIGAMI(object):
                 self.plot2Ddata2(data=dataOut)
             
             # Restore ion list
-            if self.config.extractMode == 'multipleIons':
+            if (any([document.gotExtractedIons, document.got2DprocessIons, 
+                    document.gotCombinedExtractedIonsRT, document.gotCombinedExtractedIons])
+                and document.dataType != 'Type: Interactive'):
                 tempList = self.view.panelMultipleIons.topP.peaklist
                 if len(document.IMS2DCombIons) > 0:
                     dataset = document.IMS2DCombIons
@@ -7357,11 +7842,9 @@ class ORIGAMI(object):
                         alpha = dataset[key].get('alpha', 0.5)
                         mask = dataset[key].get('mask', 0.25)
                         cmap = dataset[key].get('cmap', self.config.currentCmap)
-                        if cmap in [0, "0"]:
-                            cmap = self.config.currentCmap
                         color = dataset[key].get('color', (0, 0, 0))
-                        if isinstance(color, wx.Colour):
-                            color = convertRGB255to1(color)
+                        if isinstance(color, wx.Colour): color = convertRGB255to1(color)
+                        elif np.sum(color) > 4: color = convertRGB255to1(color)
                         xylimits = dataset[key].get('xylimits', "")
                         if xylimits != None:
                             xylimits = xylimits[2]
@@ -7377,19 +7860,38 @@ class ORIGAMI(object):
                         tempList.Append([out[0], out[1], charge, str(xylimits),
                                          color, cmap, str(alpha), str(mask),
                                          str(label),method, document.title])
-                        tempList.SetItemTextColour(tempList.GetItemCount()-1, convertRGB1to255(color))
+                        tempList.SetItemBackgroundColour(tempList.GetItemCount()-1, convertRGB1to255(color))
             
                     # Update aui manager
                     self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
                 self.view.panelMultipleIons.topP.onRemoveDuplicates(evt=None, limitCols=False)
                  
             # Restore file list
-            if self.config.ciuMode == 'MANUAL':
+            # if self.config.ciuMode == 'MANUAL':
+            if document.dataType == 'Type: MANUAL':
                 tempList = self.view.panelMML.topP.filelist
-                for key in document.multipleMassSpectrum:
+                count = tempList.GetItemCount() + len(document.multipleMassSpectrum)
+                colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=count+1, return_colors=True)
+                for i, key in enumerate(document.multipleMassSpectrum):
                     energy = document.multipleMassSpectrum[key]['trap']
+                    if 'color' in document.multipleMassSpectrum[key]:
+                        color = document.multipleMassSpectrum[key]['color']
+                    else:
+                        try: color = colors[count+1]
+                        except: color = randomColorGenerator()
+                        document.multipleMassSpectrum[key]['color'] = color
+                    
+                    if 'label' in document.multipleMassSpectrum[key]: 
+                        label = document.multipleMassSpectrum[key]['label']
+                    else:
+                        label = os.path.splitext(key)[0]
+                        document.multipleMassSpectrum[key]['label'] = label
+
                     tempList.Append([key,energy,document.title])
-                     
+                    tempList.SetItemBackgroundColour(tempList.GetItemCount()-1,
+                                                     convertRGB1to255(color))
+                
+                self.view.panelMML.topP.onRemoveDuplicates(evt=None, limitCols=False)
                 # Update aui manager
                 self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
                  
@@ -7425,7 +7927,8 @@ class ORIGAMI(object):
                 self.view.onPaneOnOff(evt=ID_window_ccsList, check=True)        
                  
             # Restore ion list 
-            if self.config.ciuMode == 'LinearDT':
+            if document.dataType == 'Type: Multifield Linear DT':
+            # if self.config.ciuMode == 'LinearDT':
                 rtList = self.view.panelLinearDT.topP.peaklist # List with MassLynx file information 
                 mzList = self.view.panelLinearDT.bottomP.peaklist # List with m/z information
                 for key in document.IMS1DdriftTimes:
@@ -7435,15 +7938,23 @@ class ORIGAMI(object):
                     mzStart = mzVals[0]
                     mzEnd = mzVals[1]
                     mzYmax = mzVals[2]
-                    charge = document.IMS1DdriftTimes[key]['charge']
+                    charge = str2int(document.IMS1DdriftTimes[key]['charge'])
                     for row in range(len(retTimes)):
-                        rtStart = retTimes[row][0]
-                        rtEnd  = retTimes[row][1]
-                        rtDiff = rtEnd-rtStart
+                        rtStart = str2int(retTimes[row][0])
+                        rtEnd  = str2int(retTimes[row][1])
+                        rtDiff = str2int(rtEnd-rtStart)
                         driftVoltage = driftVoltages[row]
-                        rtList.Append([str(rtStart), str(rtEnd), str(rtDiff), str(driftVoltage), document.title])
+                        rtList.Append([str2int(rtStart), 
+                                       str2int(rtEnd), 
+                                       str2int(rtDiff), 
+                                       str(driftVoltage), 
+                                       document.title])
                     self.view.panelLinearDT.topP.onRemoveDuplicates(evt=None)
-                    mzList.Append([str(mzStart), str(mzEnd), str(mzYmax), str(charge), document.title])
+                    mzList.Append([str(mzStart), 
+                                   str(mzEnd),
+                                   str(mzYmax), 
+                                   str(charge), 
+                                   document.title])
                 self.view.panelLinearDT.bottomP.onRemoveDuplicates(evt=None)
             
                 self.view.onPaneOnOff(evt=ID_window_multiFieldList, check=True)
@@ -7455,7 +7966,7 @@ class ORIGAMI(object):
         self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
         self.docs = self.documentsDict[self.currentDoc]
                    
-    def OnUpdateDocument(self, document, expand_item='document'):
+    def OnUpdateDocument(self, document, expand_item='document', expant_item_title=None):
         self.documentsDict[document.title] = document
         self.currentDoc = document.title
         
@@ -7463,8 +7974,12 @@ class ORIGAMI(object):
             self.view.panelDocuments.topP.documents.addDocument(docData=document, 
                                                                 expandItem=document)
         elif expand_item == 'ions':
-            self.view.panelDocuments.topP.documents.addDocument(docData=document, 
-                                                                expandItem=document.IMS2Dions)
+            if expant_item_title is None:
+                self.view.panelDocuments.topP.documents.addDocument(docData=document, 
+                                                                    expandItem=document.IMS2Dions)
+            else:
+                self.view.panelDocuments.topP.documents.addDocument(docData=document, 
+                                                                    expandItem=document.IMS2Dions[expant_item_title])
         elif expand_item == 'combined_ions':
             self.view.panelDocuments.topP.documents.addDocument(docData=document, 
                                                                 expandItem=document.IMS2DCombIons)
@@ -7472,14 +7987,33 @@ class ORIGAMI(object):
             self.view.panelDocuments.topP.documents.addDocument(docData=document, 
                                                                 expandItem=document.IMS2DcompData)
         elif expand_item == 'mass_spectra':
-            self.view.panelDocuments.topP.documents.addDocument(docData=document, 
-                                                                expandItem=document.multipleMassSpectrum) 
+            if expant_item_title is None:
+                self.view.panelDocuments.topP.documents.addDocument(docData=document, 
+                                                                    expandItem=document.multipleMassSpectrum) 
+            else:
+                self.view.panelDocuments.topP.documents.addDocument(docData=document, 
+                                                                    expandItem=document.multipleMassSpectrum[expant_item_title])
+                
+        elif expand_item == 'overlay':
+            if expant_item_title is None:
+                self.view.panelDocuments.topP.documents.addDocument(docData=document, 
+                                                                    expandItem=document.IMS2DoverlayData) 
+            else:
+                self.view.panelDocuments.topP.documents.addDocument(docData=document, 
+                                                                    expandItem=document.IMS2DoverlayData[expant_item_title])
+                
         elif expand_item == 'no_refresh':
             pass
                 
     def onAddBlankDocument(self, evt):
+        """
+        Adds blank document of specific type
+        
+        @param evt: wxPython event
+        @return: None
+        """
 
-        dlg =  wx.FileDialog(self.view, "Please select a name and path for the dataset", 
+        dlg =  wx.FileDialog(self.view, "Please add name and select path for the document", 
                              "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             itemPath, idName = os.path.split(dlg.GetPath()) 
@@ -7490,26 +8024,34 @@ class ORIGAMI(object):
         else:
             evtID = evt.GetId()
         
-        self.docs = documents()              
-        self.docs.title = idName
-        self.docs.path = itemPath
+        document = documents()              
+        document.title = idName
+        document.path = itemPath
         self.currentDoc = idName
-        self.docs.userParameters = self.config.userParameters
-        self.docs.userParameters['date'] = getTime()
+        document.userParameters = self.config.userParameters
+        document.userParameters['date'] = getTime()
         # Add method specific parameters
         if evtID == ID_addNewOverlayDoc:
-            self.docs.dataType = 'Type: Comparison'
-            self.docs.fileFormat = 'Format: ORIGAMI'
+            document.dataType = 'Type: Comparison'
+            document.fileFormat = 'Format: ORIGAMI'
                 
         elif evtID == ID_addNewCalibrationDoc:
-            self.docs.dataType = 'Type: CALIBRANT'
-            self.docs.fileFormat = 'Format: DataFrame'
+            document.dataType = 'Type: CALIBRANT'
+            document.fileFormat = 'Format: DataFrame'
+        
+        if evtID == ID_addNewInteractiveDoc:
+            document.dataType = 'Type: Interactive'
+            document.fileFormat = 'Format: ORIGAMI'        
 
-        self.documentsDict[idName] = self.docs
-        self.view.panelDocuments.topP.documents.addDocument(docData = self.docs)
+        self.OnUpdateDocument(document, 'document')
                  
     def onLibraryLink(self, evt):
         """Open selected webpage."""
+        
+        if isinstance(evt, int):
+            evtID = evt
+        else:
+            evtID = evt.GetId()
         
         # set link
         links = {ID_helpHomepage : 'home',
@@ -7522,7 +8064,7 @@ class ORIGAMI(object):
                  ID_helpNewFeatures: 'newFeatures',
                  ID_helpReportBugs: 'reportBugs'}
         
-        link = self.config.links[links[evt.GetId()]]
+        link = self.config.links[links[evtID]]
         
         # open webpage
         try: 
@@ -7538,7 +8080,7 @@ class ORIGAMI(object):
         output = df.values.tolist()
         return output
 
-    def onCheckVersion(self, evt):
+    def onCheckVersion(self, evt=None):
         """ 
         Simple function to check whether this is the newest version available
         """
@@ -7549,10 +8091,12 @@ class ORIGAMI(object):
             if not update:
                 print('You are using the most up to date version %s.' % (self.config.version))
             else:
-                message = "Version %s is now available for download.\nYou are currently using version %s." % (newVersion, self.config.version)
-                dialogs.dlgBox(exceptionTitle='New version available online.', 
-                exceptionMsg= message,
-                type="Info")
+                webpage = checkVersion(get_webpage=True)
+                wx.Bell()
+                message = "Version {} is now available for download.\nYou are currently using version {}.".format(newVersion, self.config.version)
+                print(message)
+                msgDialog = panelNotifyNewVersion(self.view, self, webpage)
+                msgDialog.ShowModal()
         except:
             print('Could not check version number')
 
@@ -7564,6 +8108,43 @@ class ORIGAMI(object):
             os.startfile('UserGuide_ANALYSE.pdf')
         except:
             return
+        
+    def openHTMLViewer(self, evt):
+        from help import HTMLHelp as htmlPages
+        htmlPages = htmlPages()
+        evtID = evt.GetId()
+        if evtID == ID_help_UniDecInfo:
+            kwargs = htmlPages.page_UniDec_info
+            
+        elif evtID == ID_help_page_dataLoading:
+            kwargs = htmlPages.page_data_loading_info
+            
+        elif evtID == ID_help_page_UniDec:
+            kwargs = htmlPages.page_deconvolution_info
+            
+        elif evtID == ID_help_page_ORIGAMI:
+            kwargs = htmlPages.page_origami_info
+            
+        elif evtID == ID_help_page_overlay:
+            kwargs = htmlPages.page_overlay_info
+            
+        elif evtID == ID_help_page_multipleFiles:
+            kwargs = htmlPages.page_multiple_files_info
+            
+        elif evtID == ID_help_page_linearDT:
+            kwargs = htmlPages.page_linear_dt_info
+            
+        elif evtID == ID_help_page_CCScalibration:
+            kwargs = htmlPages.page_ccs_calibration_info
+            
+        elif evtID == ID_help_page_dataExtraction:
+            kwargs = htmlPages.page_data_extraction_info
+            
+        elif evtID == ID_help_page_Interactive:
+            kwargs = htmlPages.page_interactive_output_info
+
+        htmlViewer = panelHTMLViewer(self.view, self.config, **kwargs)
+        htmlViewer.Show()
         
         
 if __name__ == '__main__':

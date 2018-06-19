@@ -126,10 +126,10 @@ class topPanel(wx.Panel):
 
         self.peaklist = ListCtrl(self, style=wx.LC_REPORT)
 
-        self.peaklist.InsertColumn(0,u'File', width=80)
-        self.peaklist.InsertColumn(1,u'Start m/z', width=55)
-        self.peaklist.InsertColumn(2,u'End m/z', width=55)
-        self.peaklist.InsertColumn(3,u'Protein', width=60)
+        self.peaklist.InsertColumn(0,u'file', width=80)
+        self.peaklist.InsertColumn(1,u'min m/z', width=55)
+        self.peaklist.InsertColumn(2,u'max m/z', width=55)
+        self.peaklist.InsertColumn(3,u'protein', width=60)
         self.peaklist.InsertColumn(4,u'z', width=30)
         self.peaklist.InsertColumn(5,u'Ω', width=40)
         self.peaklist.InsertColumn(6,u'tD', width=50)
@@ -305,7 +305,7 @@ class topPanel(wx.Panel):
         grid.Add(self.selectBtn, (y,4), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT)
         y = 2
         grid.Add(gas_label, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.gas_value, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT)
+        grid.Add(self.gas_value, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT|wx.EXPAND)
         grid.Add(ion_label, (y,2), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.ion_value, (y,3), wx.GBSpan(1,1), flag=wx.ALIGN_RIGHT)
         y = 3
@@ -1043,13 +1043,13 @@ class bottomPanel(wx.Panel):
     def makeListCtrl(self):
         mainSizer = wx.BoxSizer( wx.VERTICAL )
         self.peaklist = ListCtrl(self, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0,u'File', width=50)
-        self.peaklist.InsertColumn(1,u'Start m/z ', width=55)
-        self.peaklist.InsertColumn(2,u'End m/z ', width=55)
+        self.peaklist.InsertColumn(0,u'file', width=50)
+        self.peaklist.InsertColumn(1,u'min m/z ', width=55)
+        self.peaklist.InsertColumn(2,u'max m/z ', width=55)
         self.peaklist.InsertColumn(3,u'm/z', width=45)
-        self.peaklist.InsertColumn(4,u'Protein', width=60)
+        self.peaklist.InsertColumn(4,u'protein', width=60)
         self.peaklist.InsertColumn(5,u'z',width=30)
-        self.peaklist.InsertColumn(6,u'Format',width=80)
+        self.peaklist.InsertColumn(6,u'format',width=80)
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.disableTopAnnotation)

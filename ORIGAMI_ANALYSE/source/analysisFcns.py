@@ -25,8 +25,10 @@ from toolbox import *
 from operator import itemgetter
 from itertools import *
 from dialogs import dlgBox
-
-
+import math
+from bisect import bisect_left
+from scipy.interpolate import interp1d
+from numpy.core.numerictypes import _maxvals
  
 def combineIRdata(inputData=None, threshold=2000, noiseLevel=500, sigma=0.5):
     # TODO: This function needs work - Got to acquire more data to test it properly
@@ -407,10 +409,11 @@ def computeStdDev(inputData = None):
     output = np.std(inputData, axis=0)
     return output
  
-def binMSdata(x=None, y=None, bins=None):
+def binMSdata(x=None, y=None, bins=None, binmode="Bin"):
     """Bin data"""
     # Bin data using numpy histogram function
-    msYbin, edges = np.histogram(x, bins=bins, weights=y)
+    if binmode == "Bin":
+        msYbin, edges = np.histogram(x, bins=bins, weights=y)
     return msYbin
      
 def sumMSdata(ydict=None):
@@ -505,6 +508,166 @@ def smooth_1D(data=None, smoothMode='Gaussian', **kwargs):
     else:
         return data
  
+def nearest(array, target):
+    """
+    In an sorted array, quickly find the position of the element closest to the target.
+    :param array: Array
+    :param target: Value
+    :return: np.argmin(np.abs(array - target))
+    """
+    i = bisect_left(array, target)
+    if i <= 0:
+        return 0
+    elif i >= len(array) - 1:
+        return len(array) - 1
+    if np.abs(array[i] - target) > np.abs(array[i - 1] - target):
+        i -= 1
+    return i
+ 
+def get_linearization_range(mzStart, mzEnd, binsize, mode):
+    if mode in ["Linear m/z", "Linear interpolation"]:
+        msList = np.arange(mzStart, mzEnd, binsize)
+    else:
+        msList = nonlinear_axis(mzStart, mzEnd, mzStart / binsize)
+        
+    return msList
+ 
+def linearize(data, binsize, mode, input_list=[]):
+    if len(input_list) == 0:
+        length = len(data)
+        firstpoint = math.ceil(data[0, 0] / binsize) * binsize
+        lastpoint = math.floor(data[length - 1, 0] / binsize) * binsize
+        
+        if mode in ["Linear m/z", "Linear interpolation"]:
+    #     if mode in [0, 3]:
+            intx = np.arange(firstpoint, lastpoint, binsize)
+        else:
+            intx = nonlinear_axis(firstpoint, lastpoint, firstpoint / binsize)
+    else:
+        intx = input_list
+    
+    if mode in ["Linear m/z", "Linear resolution"]:
+#     if mode < 2:
+        newdat = lintegrate(data, intx)
+    else:
+        newdat = linterpolate(data, intx)
+        
+    # unpact to x and y list
+    xvals = newdat[:, 0]
+    yvals = newdat[:, 1]
+    
+    return xvals, yvals
+
+def nonlinear_axis(start, end, res):
+    """
+    Creates a nonlinear axis with the m/z values spaced with a defined and constant resolution.
+    :param start: Minimum m/z value
+    :param end: Maximum m/z value
+    :param res: Resolution of the axis ( m / delta m)
+    :return: One dimensional array of the nonlinear axis.
+    """
+    axis = []
+    i = start
+    axis.append(i)
+    i += i / float(res)
+    while i < end:
+        axis.append(i)
+        i += i / float(res)
+    return np.array(axis)
+     
+def linear_interpolation(x1, x2, x):
+    """
+    :param x1:
+    :param x2:
+    :param x:
+    :return: float(x - x1) / float(x2 - x1)
+    """
+    return float(x - x1) / float(x2 - x1)
+
+def lintegrate(data, intx):
+    """
+    Linearize x-axis by integration.
+
+    Each intensity value in the old data gets proportionally added into the new x-axis.
+
+    The total sum of the intensity values should be constant.
+    :param data: Data array
+    :param intx: New x-axis for data
+    :return: Integration of intensity from original data onto the new x-axis.
+        Same shape as the old data but new length.
+    """
+    length = len(data)
+    inty = np.zeros_like(intx)
+    for i in range(0, length):
+        if intx[0] < data[i, 0] < intx[len(intx) - 1]:
+            index = nearest(intx, data[i, 0])
+            if intx[index] == data[i, 0]:
+                inty[index] += data[i, 1]
+            if intx[index] < data[i, 0] and index < length - 1:
+                index2 = index + 1
+                interpos = linear_interpolation(intx[index], intx[index2], data[i, 0])
+                inty[index] += (1 - interpos) * data[i, 1]
+                inty[index2] += interpos * data[i, 1]
+            if intx[index] > data[i, 0] and index > 0:
+                index2 = index - 1
+                interpos = linear_interpolation(intx[index], intx[index2], data[i, 0])
+                inty[index] += (1 - interpos) * data[i, 1]
+                inty[index2] += interpos * data[i, 1]
+    newdat = np.column_stack((intx, inty))
+    return newdat
+
+def interpolate(x_short, y_short, x_long):
+     
+    fcn = interp1d(x_short, y_short, fill_value=0, bounds_error=False)
+    new_y_long = fcn(x_long)
+    return  x_long, new_y_long
+
+def linterpolate(data, intx):
+    """
+    Linearize x-axis by interpolation.
+ 
+    The new x-axis is interpolated on the old data and the corresponding intensities and picked out.
+ 
+    :param data: Data array
+    :param intx: New x-axis
+    :return: Interpolation of intensity from original data onto the new x-axis.
+        Same shape as the old data but new length.
+    """
+    f = interp1d(data[:, 0], data[:, 1], fill_value=0, bounds_error=False)
+    inty = f(intx)
+    return np.column_stack((intx, inty))
+     
+def nonlinearize(data, num_compressed):
+    """
+    Compress the data in a simple and nonlinear way.
+    :param data: Data array (N x 2)
+    :param num_compressed:
+    :return:
+    """
+    if num_compressed == 0:
+        return data
+    else:
+        num_compressed = int(num_compressed)
+        return np.array([np.mean(data[index:index + num_compressed], axis=0) for index in
+                         xrange(0, len(data), num_compressed)])
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
+     
      
      
      

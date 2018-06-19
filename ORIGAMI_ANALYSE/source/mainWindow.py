@@ -5,7 +5,6 @@
 
 # Load modules
 from __future__ import division
-# from panelControls import panelControls  
 from panelPlot import panelPlot
 from panelMultipleIons import panelMultipleIons
 from panelMultipleTextFiles import panelMultipleTextFiles
@@ -18,13 +17,15 @@ from panelExtraParameters import panelParametersEdit
 from panelProcess import panelProcessData
 import dialogs
 from panelOutput import dlgOutputInteractive as panelInteractive
-from dialogs import panelExportSettings, panelSequenceAnalysis
+from dialogs import panelExportSettings, panelSequenceAnalysis, panelNotifyOpenDocuments
+from panelLog import panelLog
 
 # Load libraries
 import wx
 import os
 import wx.aui
 import psutil
+import numpy as np
 from numpy import ceil, floor, int, rot90, array, flipud, absolute, round
 from numpy import max as np_max
 import sys
@@ -33,8 +34,9 @@ from ids import *
 from wx.lib.pubsub import pub 
 from wx import ID_SAVE, ID_ANY
 from toolbox import findPeakMax, getNarrow1Ddata, randomIntegerGenerator,\
-    convertRGB255to1, convertRGB1to255
+    convertRGB255to1, convertRGB1to255, detectPeaks1D
 from styles import makeMenuItem
+from massLynxFcns import _checkTextFile
 
 
 class MyFrame(wx.Frame):
@@ -57,6 +59,9 @@ class MyFrame(wx.Frame):
         self.plot_scale = {}
         
         self._fullscreen = False
+        
+        file_drop_target = DragAndDrop(self)
+        self.SetDropTarget(file_drop_target)
         
         icon = wx.EmptyIcon()
         icon.CopyFromBitmap(self.icons.iconsLib['origamiLogoDark16'])
@@ -87,7 +92,8 @@ class MyFrame(wx.Frame):
         self.panelMML = panelMML(self, self.config, self.icons, self.presenter) # List of ML files
         self.panelLinearDT = panelLinearDriftCell(self, self.config, self.icons, self.presenter)
         self.panelCCS = panelCCScalibration(self, self.config, self.icons, self.presenter) # calibration panel
-
+        self.panelLog = panelLog(self, self.config, self.icons)
+        
         # Toolbar
         self.makeToolbar()
         if self.config._windowSettings['Toolbar']['orientation'] == 'top':
@@ -164,6 +170,17 @@ class MyFrame(wx.Frame):
                           .Gripper(self.config._windowSettings['CCS calibration']['gripper'])
                           )
         
+        self._mgr.AddPane(self.panelLog,  wx.aui.AuiPaneInfo().Bottom()
+                          .Caption(self.config._windowSettings['Log']['title'])
+                          .MinSize((320,-1)).GripperTop()
+                          .BottomDockable(True).TopDockable(True)
+                          .Show(self.config._windowSettings['Log']['show'])
+                          .CloseButton(self.config._windowSettings['Log']['close_button'])
+                          .CaptionVisible(self.config._windowSettings['Log']['caption'])
+                          .Gripper(self.config._windowSettings['Log']['gripper'])
+                          .Float()
+                          )
+        
                 
         # Setup listeners
         pub.subscribe(self.OnMotion, 'newxy')
@@ -193,28 +210,26 @@ class MyFrame(wx.Frame):
         self._onToggleOnStart()
           
     def _onUpdateWindowSettings(self):
-#         self.config._windowSettings['Controls']['id'] = ID_window_controls
         self.config._windowSettings['Documents']['id'] = ID_window_documentList
         self.config._windowSettings['Peak list']['id'] = ID_window_ionList
         self.config._windowSettings['CCS calibration']['id'] = ID_window_ccsList
         self.config._windowSettings['Linear Drift Cell']['id'] = ID_window_multiFieldList
         self.config._windowSettings['Text files']['id'] = ID_window_textList
         self.config._windowSettings['Multiple files']['id'] = ID_window_multipleMLList
-        
+        self.config._windowSettings['Log']['id'] = ID_window_logWindow
         return None
     
     def _onToggleOnStart(self):
         panelDict = {'Documents':ID_window_documentList,
-#                      'Controls':ID_window_controls, 
                      'Multiple files':ID_window_multipleMLList,
                      'Peak list':ID_window_ionList, 
                      'Text files':ID_window_textList,
                      'CCS calibration':ID_window_ccsList, 
-                     'Linear Drift Cell':ID_window_multiFieldList}
+                     'Linear Drift Cell':ID_window_multiFieldList,
+                     'Log':ID_window_logWindow}
         
         for panel in [self.panelDocuments, 
-#                       self.panelControls, 
-                      self.panelMML,
+                      self.panelMML, self.panelLog,
                       self.panelMultipleIons, self.panelMultipleText,
                       self.panelCCS, self.panelLinearDT]:
             if self._mgr.GetPane(panel).IsShown():
@@ -223,11 +238,13 @@ class MyFrame(wx.Frame):
     def _onUpdatePlotData(self, plot_type=None):
         if plot_type == '2D':
             _data = self.presenter._get_replot_data(data_format='2D')
-            yshape, xshape = _data[0].shape
-            _yscale = yshape/np_max(_data[2])
-            _xscale = xshape/np_max(_data[1])
-            self.plot_data['2D'] = _data[0]
-            self.plot_scale['2D'] = [_yscale, _xscale]
+            try:
+                yshape, xshape = _data[0].shape
+                _yscale = yshape/np_max(_data[2])
+                _xscale = xshape/np_max(_data[1])
+                self.plot_data['2D'] = _data[0]
+                self.plot_scale['2D'] = [_yscale, _xscale]
+            except: pass
         elif plot_type == 'DT/MS':
             _data = self.presenter._get_replot_data(data_format='DT/MS')
             yshape, xshape = _data[0].shape
@@ -339,15 +356,15 @@ class MyFrame(wx.Frame):
                                          bitmap=self.icons.iconsLib['open_project_16']))
         menuFile.AppendSeparator()
         menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openORIGAMIRawFile,
-                                         text='Open ORIGAMI MassLynx (.raw) file \tCtrl+R', 
+                                         text='Open ORIGAMI MassLynx (.raw) file [CIU]\tCtrl+R', 
                                          bitmap=self.icons.iconsLib['open_origami_16']))
         
         menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openMultipleORIGAMIRawFiles,
-                                         text='Open multiple ORIGAMI MassLynx (.raw) files\tCtrl+Shift+Q', 
+                                         text='Open multiple ORIGAMI MassLynx (.raw) files [CIU]\tCtrl+Shift+Q', 
                                          bitmap=self.icons.iconsLib['open_origamiMany_16']))
-        
+        menuFile.AppendSeparator()
         menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openMassLynxFiles,
-                                         text='Open multiple MassLynx (.raw) files\tCtrl+Shift+R', 
+                                         text='Open multiple MassLynx (.raw) files [CIU]\tCtrl+Shift+R', 
                                          bitmap=self.icons.iconsLib['open_masslynxMany_16']))
         
         menuFile.Append(ID_addCCScalibrantFile, 'Open Calibration MassLynx (.raw) file\tCtrl+C')
@@ -355,14 +372,26 @@ class MyFrame(wx.Frame):
         menuFile.Append(ID_openMassLynxFile, 'Open MassLynx (no IM-MS, .raw) file\tCtrl+Shift+M')
         menuFile.AppendMenu(ID_ANY, 'Open MassLynx...', openBinaryMenu)
         menuFile.AppendSeparator()
-        
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_addNewOverlayDoc,
+                                         text='Create blank COMPARISON document [CIU]', 
+                                         bitmap=self.icons.iconsLib['new_document_16']))
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_addNewInteractiveDoc,
+                                         text='Create blank INTERACTIVE document', 
+                                         bitmap=self.icons.iconsLib['bokehLogo_16']))
+        menuFile.AppendSeparator()
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openMStxtFile,
+                                         text='Open MS Text file', 
+                                         bitmap=None))
         menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openIMStxtFile,
-                                         text='Open IM-MS Text file\tCtrl+T', 
+                                         text='Open IM-MS Text file [CIU]\tCtrl+T', 
                                          bitmap=self.icons.iconsLib['open_text_16']))
-        
         menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openTextFilesMenu,
-                                         text='Open multiple IM-MS text files\tCtrl+Shift+T', 
+                                         text='Open multiple IM-MS text files [CIU]\tCtrl+Shift+T', 
                                          bitmap=self.icons.iconsLib['open_textMany_16']))
+        menuFile.AppendSeparator()
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_getSpectrumFromClipboard,
+                                         text='Grab MS spectrum from clipboard\tCtrl+V', 
+                                         bitmap=self.icons.iconsLib['filelist_16']))
         menuFile.AppendSeparator()
         menuFile.AppendMenu(ID_fileMenu_openRecent, "Open Recent", self.menuRecent)
         menuFile.AppendSeparator()
@@ -396,6 +425,10 @@ class MyFrame(wx.Frame):
                                             text='Settings: Peak &fitting\tShift+5', 
                                             bitmap=self.icons.iconsLib['process_fit_16']))
 
+        menuProcess.AppendItem(makeMenuItem(parent=menuProcess, id=ID_processSettings_UniDec,
+                                            text='Settings: &UniDec\tShift+6', 
+                                            bitmap=self.icons.iconsLib['process_unidec_16']))
+        
         self.mainMenubar.Append(menuProcess, '&Process')
         
         # PLOT 
@@ -451,6 +484,7 @@ class MyFrame(wx.Frame):
         self.multipleMLTable = menuView.Append(ID_window_multipleMLList, 'Panel: Multiple files\tCtrl+5', kind=wx.ITEM_CHECK)
         self.multifieldTable = menuView.Append(ID_window_multiFieldList, 'Panel: Linear DT-IMS\tCtrl+6', kind=wx.ITEM_CHECK)
         self.ccsTable = menuView.Append(ID_window_ccsList, 'Panel: CCS calibration\tCtrl+7', kind=wx.ITEM_CHECK)
+        self.window_logWindow = menuView.Append(ID_window_logWindow, 'Panel: Log\tCtrl+8', kind=wx.ITEM_CHECK)
         menuView.AppendSeparator()
         menuView.Append(ID_window_all, 'Panel: Restore &all')
         menuView.AppendSeparator()
@@ -515,8 +549,56 @@ class MyFrame(wx.Frame):
                                            bitmap=self.icons.iconsLib['driftscope_16']))
         self.mainMenubar.Append(menuConfig, '&Libraries')
         
+        
+        otherSoftwareMenu = wx.Menu()
+        otherSoftwareMenu.AppendItem(makeMenuItem(parent=otherSoftwareMenu, id=ID_help_UniDecInfo,
+                                                  text='About UniDec engine...', 
+                                                  bitmap=self.icons.iconsLib['process_unidec_16']))
+#         otherSoftwareMenu.Append(ID_open1DIMSFile, 'About CIDER...')
+        
+        helpPagesMenu = wx.Menu()
+        helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_dataLoading,
+                                              text='Learn more: Loading data', 
+                                              bitmap=self.icons.iconsLib['open16']))
+        
+        helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_dataExtraction,
+                                              text='Learn more: Data extraction', 
+                                              bitmap=self.icons.iconsLib['extract16']))
+        
+        helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_UniDec,
+                                              text='Learn more: MS deconvolution using UniDec', 
+                                              bitmap=self.icons.iconsLib['process_unidec_16']))
+        
+        helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_ORIGAMI,
+                                              text='Learn more: ORIGAMI-MS (Automated CIU)', 
+                                              bitmap=self.icons.iconsLib['origamiLogoDark16']))
+        
+        helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_multipleFiles,
+                                              text='Learn more: Multiple files (Manual CIU)', 
+                                              bitmap=self.icons.iconsLib['panel_mll__16']))
+        
+        helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_overlay,
+                                              text='Learn more: Overlay documents', 
+                                              bitmap=self.icons.iconsLib['overlay16']))
+        
+#         helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_linearDT,
+#                                               text='Learn more: Linear Drift-time analysis', 
+#                                               bitmap=self.icons.iconsLib['panel_dt_16']))
+#         
+#         helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_CCScalibration,
+#                                               text='Learn more: CCS calibration', 
+#                                               bitmap=self.icons.iconsLib['panel_ccs_16']))
+        
+        helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_Interactive,
+                                              text='Learn more: Interactive output', 
+                                              bitmap=self.icons.iconsLib['bokehLogo_16']))
+        
+
+        
         # HELP MENU
         menuHelp = wx.Menu()
+        menuHelp.AppendMenu(ID_ANY, 'Help pages...', helpPagesMenu)
+        menuHelp.AppendSeparator()
         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_helpGuide,
                                          text='Open User Guide... (web)\tF1', 
                                          bitmap=self.icons.iconsLib['web_access_16']))
@@ -524,15 +606,17 @@ class MyFrame(wx.Frame):
                                          text='Open User Guide... (local)\tF2', 
                                          bitmap=self.icons.iconsLib['file_pdf']))
         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_helpYoutube,
-                                         text='Check out video guides... ', 
+                                         text='Check out video guides... (web)', 
                                          bitmap=self.icons.iconsLib['youtube16'],
                                          help_text=self.help.link_youtube))
         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_helpNewVersion,
-                                         text='Check for updates...', 
+                                         text='Check for updates... (web)', 
                                          bitmap=self.icons.iconsLib['github16']))
         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_helpCite,
-                                         text='Paper to cite...', 
+                                         text='Paper to cite... (web)', 
                                          bitmap=self.icons.iconsLib['cite_16']))
+        menuHelp.AppendSeparator()
+        menuHelp.AppendMenu(ID_ANY, 'About other software...', otherSoftwareMenu)
         menuHelp.AppendSeparator()
         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_helpNewFeatures,
                                          text='Request new features... (web)', 
@@ -541,6 +625,9 @@ class MyFrame(wx.Frame):
                                          text='Report bugs... (web)', 
                                          bitmap=self.icons.iconsLib['bug_16']))
         menuHelp.AppendSeparator()
+#         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_CHECK_VERSION,
+#                                          text='Check version...', 
+#                                          bitmap=self.icons.iconsLib['blank_16']))
         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_SHOW_ABOUT,
                                          text='About ORIGAMI\tCtrl+Shift+A', 
                                          bitmap=self.icons.iconsLib['origamiLogoDark16']))
@@ -554,6 +641,7 @@ class MyFrame(wx.Frame):
         # Bind functions to menu
         # HELP MENU
         self.Bind(wx.EVT_MENU, self.onHelpAbout, id=ID_SHOW_ABOUT)
+        self.Bind(wx.EVT_MENU, self.presenter.onCheckVersion, id=ID_CHECK_VERSION)
         self.Bind(wx.EVT_MENU, self.presenter.onLibraryLink, id=ID_helpGuide)
         self.Bind(wx.EVT_MENU, self.presenter.onOpenUserGuide, id=ID_helpGuideLocal)
         self.Bind(wx.EVT_MENU, self.presenter.onLibraryLink, id=ID_helpCite)
@@ -561,7 +649,18 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.presenter.onLibraryLink, id=ID_helpNewVersion)
         self.Bind(wx.EVT_MENU, self.presenter.onLibraryLink, id=ID_helpReportBugs)
         self.Bind(wx.EVT_MENU, self.presenter.onLibraryLink, id=ID_helpNewFeatures)
-        self.Bind(wx.EVT_MENU, self.presenter.onRebootWindow, id=ID_RESET_ORIGAMI) 
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_UniDecInfo)
+        self.Bind(wx.EVT_MENU, self.presenter.onRebootWindow, id=ID_RESET_ORIGAMI)
+        
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_page_dataLoading)
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_page_UniDec)
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_page_ORIGAMI)
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_page_overlay)
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_page_multipleFiles)
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_page_linearDT)
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_page_CCScalibration)
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_page_dataExtraction)
+        self.Bind(wx.EVT_MENU, self.presenter.openHTMLViewer, id=ID_help_page_Interactive)
         
         # FILE MENU
         self.Bind(wx.EVT_MENU, self.presenter.onOrigamiRawDirectory, id=ID_openORIGAMIRawFile) 
@@ -581,13 +680,18 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.presenter.onSaveDocument, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.presenter.onIRTextFile, id=ID_openIRTextile)
         self.Bind(wx.EVT_MENU, self.presenter.onOpenMS, id=ID_openMassLynxFile)
+        self.Bind(wx.EVT_MENU, self.presenter.onAddBlankDocument, id=ID_addNewInteractiveDoc)
+        self.Bind(wx.EVT_MENU, self.presenter.onMSTextFile, id=ID_openMStxtFile)
+        self.Bind(wx.EVT_MENU, self.presenter.onMSFromClipboard, id=ID_getSpectrumFromClipboard)
+        
         
         # PROCESS MENU
         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ExtractData) 
         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ORIGAMI) 
         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_FindPeaks) 
         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_MS) 
-        self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_2D) 
+        self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_2D)
+        self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_UniDec)  
         
         # PLOT
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_plot1D)
@@ -602,18 +706,18 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.updatePlots, id=ID_plots_showCursorGrid)    
         
         # OUTPUT
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_saveOverlayImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_saveMSImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_saveMZDTImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_saveRTImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_save1DImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_save2DImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_save3DImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_saveWaterfallImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_saveRMSDImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_saveRMSFImage)
-        self.Bind(wx.EVT_MENU, self.presenter.saveImages2,id=ID_saveRMSDmatrixImage)
-        self.Bind(wx.EVT_MENU, self.saveFigures, id=ID_saveAllImages)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveOverlayImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveMSImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveMZDTImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveRTImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_save1DImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_save2DImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_save3DImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveWaterfallImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveRMSDImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveRMSFImage)
+        self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveRMSDmatrixImage)
+        # self.Bind(wx.EVT_MENU, self.saveFigures, id=ID_saveAllImages)
         self.Bind(wx.EVT_MENU, self.openSaveAsDlg, id=ID_saveAsInteractive)
                 
         # UTILITIES
@@ -632,7 +736,6 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onExportParameters, id=ID_importExportSettings_file)
         
         # VIEW MENU
-        
         self.Bind(wx.EVT_MENU, self.onPaneOnOff, id=ID_window_all)
         self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.documentsPage)
         self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.mzTable)
@@ -640,6 +743,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.textTable)
         self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.multipleMLTable)
         self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.ccsTable)
+        self.Bind(wx.EVT_MENU, self.onPaneOnOff, id=ID_window_logWindow)
         self.Bind(wx.EVT_MENU, self.onWindowMaximize, id=ID_windowMaximize)
         self.Bind(wx.EVT_MENU, self.onWindowIconize, id=ID_windowMinimize)
         self.Bind(wx.EVT_MENU, self.onWindowFullscreen, id=ID_windowFullscreen)
@@ -825,12 +929,12 @@ class MyFrame(wx.Frame):
             self.mainToolbar_horizontal.AddTool(ID_openTextFiles, self.icons.iconsLib['open_textMany_16'], shortHelpString="Open multiple text files")
             self.mainToolbar_horizontal.AddSeparator()
             self.mainToolbar_horizontal.AddCheckTool(ID_window_documentList, self.icons.iconsLib['panel_doc_16'], shortHelp="Enable/Disable documents panel")
-#             self.mainToolbar_horizontal.AddCheckTool(ID_window_controls, self.icons.iconsLib['panel_params_16'], shortHelp="Enable/Disable settings panel")
             self.mainToolbar_horizontal.AddCheckTool(ID_window_ionList, self.icons.iconsLib['panel_ion_16'], shortHelp="Enable/Disable multi ion panel")
             self.mainToolbar_horizontal.AddCheckTool(ID_window_textList, self.icons.iconsLib['panel_text_16'], shortHelp="Enable/Disable multi text panel")
             self.mainToolbar_horizontal.AddCheckTool(ID_window_multipleMLList, self.icons.iconsLib['panel_mll__16'], shortHelp="Enable/Disable multi MassLynx panel")
             self.mainToolbar_horizontal.AddCheckTool(ID_window_multiFieldList, self.icons.iconsLib['panel_dt_16'], shortHelp="Enable/Disable linear DT panel")
             self.mainToolbar_horizontal.AddCheckTool(ID_window_ccsList, self.icons.iconsLib['panel_ccs_16'], shortHelp="Enable/Disable CCS calibration panel")
+            self.mainToolbar_horizontal.AddCheckTool(ID_window_logWindow, self.icons.iconsLib['panel_log_16'], shortHelp="Enable/Disable Log panel")
             self.mainToolbar_horizontal.AddSeparator()
             self.mainToolbar_horizontal.AddTool(ID_extraSettings_plot1D, self.icons.iconsLib['panel_plot1D_16'], shortHelpString="Settings: Plot 1D panel")
             self.mainToolbar_horizontal.AddTool(ID_extraSettings_plot2D, self.icons.iconsLib['panel_plot2D_16'], shortHelpString="Settings: Plot 2D panel")
@@ -846,6 +950,8 @@ class MyFrame(wx.Frame):
             self.mainToolbar_horizontal.AddTool(ID_processSettings_MS, self.icons.iconsLib['process_ms_16'], shortHelpString="Settings: &Process mass spectra\tShift+3")
             self.mainToolbar_horizontal.AddTool(ID_processSettings_2D, self.icons.iconsLib['process_2d_16'], shortHelpString="Settings: Process &2D heatmaps\tShift+4")
             self.mainToolbar_horizontal.AddTool(ID_processSettings_FindPeaks, self.icons.iconsLib['process_fit_16'], shortHelpString="Settings: Peak &fitting\tShift+5")
+            self.mainToolbar_horizontal.AddTool(ID_processSettings_UniDec, self.icons.iconsLib['process_unidec_16'], shortHelpString="Settings: &UniDec\tShift+6")
+            ID_processSettings_UniDec
             self.mainToolbar_horizontal.AddSeparator()
             self.mainToolbar_horizontal.AddTool(ID_saveAsInteractive, self.icons.iconsLib['bokehLogo_16'], shortHelpString="Open interactive output panel")
             self.mainToolbar_horizontal.Realize()
@@ -864,12 +970,12 @@ class MyFrame(wx.Frame):
             self.mainToolbar_vertical.AddTool(ID_openTextFiles, self.icons.iconsLib['open_textMany_16'], shortHelpString="Open multiple text files")
             self.mainToolbar_vertical.AddSeparator()
             self.mainToolbar_vertical.AddCheckTool(ID_window_documentList, self.icons.iconsLib['panel_doc_16'], shortHelp="Enable/Disable documents panel")
-#             self.mainToolbar_vertical.AddCheckTool(ID_window_controls, self.icons.iconsLib['panel_params_16'], shortHelp="Enable/Disable settings panel")
             self.mainToolbar_vertical.AddCheckTool(ID_window_ionList, self.icons.iconsLib['panel_ion_16'], shortHelp="Enable/Disable multi ion panel")
             self.mainToolbar_vertical.AddCheckTool(ID_window_textList, self.icons.iconsLib['panel_text_16'], shortHelp="Enable/Disable multi text panel")
             self.mainToolbar_vertical.AddCheckTool(ID_window_multipleMLList, self.icons.iconsLib['panel_mll__16'], shortHelp="Enable/Disable multi MassLynx panel")
             self.mainToolbar_vertical.AddCheckTool(ID_window_multiFieldList, self.icons.iconsLib['panel_dt_16'], shortHelp="Enable/Disable linear DT panel")
             self.mainToolbar_vertical.AddCheckTool(ID_window_ccsList, self.icons.iconsLib['panel_ccs_16'], shortHelp="Enable/Disable CCS calibration panel")
+            self.mainToolbar_vertical.AddCheckTool(ID_window_logWindow, self.icons.iconsLib['panel_log_16'], shortHelp="Enable/Disable Log panel")
             self.mainToolbar_vertical.AddSeparator()
             self.mainToolbar_vertical.AddTool(ID_extraSettings_plot1D, self.icons.iconsLib['panel_plot1D_16'], shortHelpString="Settings: Plot 1D panel")
             self.mainToolbar_vertical.AddTool(ID_extraSettings_plot2D, self.icons.iconsLib['panel_plot2D_16'], shortHelpString="Settings: Plot 2D panel")
@@ -885,6 +991,7 @@ class MyFrame(wx.Frame):
             self.mainToolbar_vertical.AddTool(ID_processSettings_MS, self.icons.iconsLib['process_ms_16'], shortHelpString="Settings: &Process mass spectra\tShift+3")
             self.mainToolbar_vertical.AddTool(ID_processSettings_2D, self.icons.iconsLib['process_2d_16'], shortHelpString="Settings: Process &2D heatmaps\tShift+4")
             self.mainToolbar_vertical.AddTool(ID_processSettings_FindPeaks, self.icons.iconsLib['process_fit_16'], shortHelpString="Settings: Peak &fitting\tShift+5")
+            self.mainToolbar_vertical.AddTool(ID_processSettings_UniDec, self.icons.iconsLib['process_unidec_16'], shortHelpString="Settings: &UniDec\tShift+6")
             self.mainToolbar_vertical.AddSeparator()
             self.mainToolbar_vertical.AddTool(ID_saveAsInteractive, self.icons.iconsLib['bokehLogo_16'], shortHelpString="Open interactive output panel")
             self.mainToolbar_vertical.Realize()
@@ -1017,15 +1124,6 @@ class MyFrame(wx.Frame):
                     self.config._windowSettings['Documents']['show'] = False
                 self.documentsPage.Check(self.config._windowSettings['Documents']['show'])
                 self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Documents']['show'])
-#             elif evtID == ID_window_controls:
-#                 if not self.panelControls.IsShown():
-#                     self._mgr.GetPane(self.panelControls).Show()
-#                     self.config._windowSettings['Controls']['show'] = True
-#                 else:
-#                     self._mgr.GetPane(self.panelControls).Hide()
-#                     self.config._windowSettings['Controls']['show'] = False
-#                 self.settingsPage.Check(self.config._windowSettings['Controls']['show'])
-#                 self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Controls']['show'])
             elif evtID == ID_window_ccsList:
                 if not self.panelCCS.IsShown() or check:
                     self._mgr.GetPane(self.panelCCS).Show()
@@ -1071,7 +1169,17 @@ class MyFrame(wx.Frame):
                     self.config._windowSettings['Linear Drift Cell']['show'] = False
                 self.multifieldTable.Check(self.config._windowSettings['Linear Drift Cell']['show'])
                 self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Linear Drift Cell']['show'])
-
+            elif evtID == ID_window_logWindow:
+                if not self.panelLog.IsShown():
+                    self.panelLog.Show()
+                    self._mgr.GetPane(self.panelLog).Show()
+                    self.config._windowSettings['Log']['show'] = True
+                else:
+                    self._mgr.GetPane(self.panelLog).Hide()
+                    self.panelLog.Hide()
+                    self.config._windowSettings['Log']['show'] = False
+                self.window_logWindow.Check(self.config._windowSettings['Log']['show'])
+                self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Log']['show'])
             elif evtID == ID_window_all:
                 for key in self.config._windowSettings:
                     self.config._windowSettings[key]['show'] = True
@@ -1086,21 +1194,21 @@ class MyFrame(wx.Frame):
                     self._mgr.GetPane(panel).Show()
                     
                 self.documentsPage.Check(self.config._windowSettings['Documents']['show']) 
-#                 self.settingsPage.Check(self.config._windowSettings['Controls']['show'])
                 self.mzTable.Check(self.config._windowSettings['Peak list']['show'])  
                 self.ccsTable.Check(self.config._windowSettings['CCS calibration']['show'])
                 self.multifieldTable.Check(self.config._windowSettings['Linear Drift Cell']['show'])
                 self.textTable.Check(self.config._windowSettings['Text files']['show'])
                 self.multipleMLTable.Check(self.config._windowSettings['Multiple files']['show'])
+                self.window_logWindow.Check(self.config._windowSettings['Log']['show'])
         # Checking at start of program
         else:
             if not self.panelDocuments.IsShown(): self.config._windowSettings['Documents']['show'] = False
-#             if not self.panelControls.IsShown(): self.config._windowSettings['Controls']['show'] = False
             if not self.panelMML.IsShown(): self.config._windowSettings['Multiple files']['show'] = False
             if not self.panelMultipleIons.IsShown(): self.config._windowSettings['Peak list']['show'] = False
             if not self.panelCCS.IsShown(): self.config._windowSettings['CCS calibration']['show'] = False
             if not self.panelLinearDT.IsShown(): self.config._windowSettings['Linear Drift Cell']['show'] = False
             if not self.panelMultipleText.IsShown(): self.config._windowSettings['Text files']['show'] = False
+            if not self.panelLog.IsShown(): self.config._windowSettings['Log']['show'] = False   
             
             self.documentsPage.Check(self.config._windowSettings['Documents']['show']) 
 #             self.settingsPage.Check(self.config._windowSettings['Controls']['show'])
@@ -1109,6 +1217,7 @@ class MyFrame(wx.Frame):
             self.multifieldTable.Check(self.config._windowSettings['Linear Drift Cell']['show'])
             self.textTable.Check(self.config._windowSettings['Text files']['show'])
             self.multipleMLTable.Check(self.config._windowSettings['Multiple files']['show'])
+            self.window_logWindow.Check(self.config._windowSettings['Log']['show'])
         
         self._mgr.Update()
         
@@ -1145,7 +1254,8 @@ class MyFrame(wx.Frame):
                      'Peak list':ID_window_ionList, 
                      'Text files':ID_window_textList,
                      'CCS calibration':ID_window_ccsList, 
-                     'Linear Drift Cell':ID_window_multiFieldList}
+                     'Linear Drift Cell':ID_window_multiFieldList,
+                     'Log':ID_window_logWindow}
         return panelDict[panel]
                 
     def OnClose(self, event):
@@ -1153,11 +1263,14 @@ class MyFrame(wx.Frame):
         if len(self.presenter.documentsDict) > 0:
             if len(self.presenter.documentsDict) == 1: verb_form = "is"
             else: verb_form = "are"
-            msg = "There %s %s document(s) open.\n" % (verb_form, len(self.presenter.documentsDict)) + \
-                  "Are you sure you want to continue?"
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?', 
-                                 exceptionMsg= msg,
-                                 type="Question")
+            message = "There {} {} document(s) open.\n".format(verb_form, len(self.presenter.documentsDict)) + \
+                     "Are you sure you want to continue?"
+            msgDialog = panelNotifyOpenDocuments(self, self.presenter, message)
+            dlg = msgDialog.ShowModal()
+                  
+#             dlg = dialogs.dlgBox(exceptionTitle='Are you sure?', 
+#                                  exceptionMsg= msg,
+#                                  type="Question")
             if dlg == wx.ID_NO:
                 print('Cancelled operation')
                 return
@@ -1206,14 +1319,13 @@ class MyFrame(wx.Frame):
         self.startX = startX
         pass
         
-    def OnMotion(self, xpos, ypos):
+    def OnMotion(self, xpos, ypos, plotname):
         """
         Triggered by pubsub from plot windows. Reports text in Status Bar.
         :param xpos: x position fed from event
         :param ypos: y position fed from event
         :return: None
         """
-
         if xpos is not None and ypos is not None:
             # If measuring distance, additional fields are used to help user 
             # make observations
@@ -1247,8 +1359,8 @@ class MyFrame(wx.Frame):
                             xIdx = int(xpos*self.plot_scale['DT/MS'][1])-1
                             int_value = self.plot_data['DT/MS'][yIdx, xIdx]
                         except:
-                            int_value = ""
-                        self.SetStatusText("m/z=%.2f dt=%.2f int=%.2f" % (xpos, ypos, int_value), number=0)
+                            int_value = 0.
+                        self.SetStatusText("m/z={:.2f} dt={:.2f} int={:.2f}".format(xpos, ypos, int_value), number=0)
                     else:
                         self.SetStatusText("m/z=%.2f dt=%.2f" % (xpos, ypos), number=0)
                 elif self.panelPlots.currentPage in ['RT']:
@@ -1269,6 +1381,10 @@ class MyFrame(wx.Frame):
                             self.SetStatusText("x=%.2f dt=%.2f" % (xpos, ypos), number=0)
                     except:
                         self.SetStatusText("x=%.2f dt=%.2f" % (xpos, ypos), number=0)
+                elif plotname == "zGrid":
+                    self.SetStatusText("x=%.2f charge=%.0f" % (xpos, ypos), number=0)
+                elif plotname == "mwDistribution":
+                    self.SetStatusText("MW=%.2f intensity=%.2f" % (xpos, ypos), number=0)
                 else:
                     self.SetStatusText("x=%.2f y=%.2f" % (xpos, ypos), number=0)
                     
@@ -1319,10 +1435,23 @@ class MyFrame(wx.Frame):
         self.currentPage = self.panelPlots.mainBook.GetPageText(self.panelPlots.mainBook.GetSelection())
         self.SetStatusText("", number=4)
         
-        if self.currentPage == '1D':
-            if currentDoc == "": currentDoc = self.presenter.currentDoc
+        # get current document
+        if currentDoc == "": currentDoc = self.presenter.currentDoc
+            
+        currentDocument = self.presenter.view.panelDocuments.topP.documents.enableCurrentDocument()
+        if currentDocument == "Current documents":
+            return
+        
+        document = self.presenter.documentsDict[currentDocument]
+        
+        if self.currentPage in ['RT', 'MS', '1D', '2D'] and document.dataType == 'Type: Interactive':
+            args = ("Cannot extract data from Interactive document", 4)
+            self.presenter.onThreading(None, args, action='updateStatusbar')
+            return
+        elif self.currentPage == '1D':
             if xvalsMin == None or xvalsMax == None: 
-                self.SetStatusText('Your extraction range was outside the window. Please try again',3)
+                args = ('Your extraction range was outside the window. Please try again', 4)
+                self.presenter.onThreading(None, args, action='updateStatusbar')
                 return
             dtStart = ceil(xvalsMin).astype(int)
             dtEnd = floor(xvalsMax).astype(int)
@@ -1331,13 +1460,13 @@ class MyFrame(wx.Frame):
             
             self.presenter.onExtractMSforDTrange(dtStart=dtStart, dtEnd=dtEnd)
             
-        if self.currentPage == "MS" or currentView == "MS":
-            if currentDoc == "": currentDoc = self.presenter.currentDoc
+        elif self.currentPage == "MS" or currentView == "MS":
             if xvalsMin == None or xvalsMax == None: 
                 self.SetStatusText('Your extraction range was outside the window. Please try again',3)
                 return
             mzStart = round(xvalsMin,2)
             mzEnd = round(xvalsMax,2)
+            
             mzYMax = round(yvalsMax*100,1)
             # Check that values are in correct order
             if mzEnd < mzStart: mzEnd, mzStart = mzStart, mzEnd
@@ -1347,13 +1476,28 @@ class MyFrame(wx.Frame):
                 return
             # Get MS data for specified region and extract Y-axis maximum
             ms = self.presenter.documentsDict[currentDoc].massSpectrum
-            ms = flipud(rot90(array([ms['xvals'], ms['yvals']])))
+#             ms = flipud(rot90(array([ms['xvals'], ms['yvals']])))
+            ms = np.transpose([ms['xvals'], ms['yvals']])
             mzYMax = self.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
 
+            # predict charge state
+            mzNarrow = getNarrow1Ddata(data=ms, mzRange=(mzStart, mzEnd))
+            highResPeaks = detectPeaks1D(data=mzNarrow, 
+                                         window=self.config.fit_highRes_window, 
+                                         threshold=self.config.fit_highRes_threshold)
+            peakDiffs = np.diff(highResPeaks[:,0])
+            peakStd = np.std(peakDiffs)
+            if len(peakDiffs) > 0 and peakStd <= 0.05: 
+                charge = int(np.round(1/np.round(np.average(peakDiffs),4),0))
+                print("Predicted charge state:{} | Standard deviation: {}".format(charge, peakStd))
+            else:
+                print("Failed to predict charge state. Standard deviation: {}".format(peakStd))
+                charge = ""
+                
             color = convertRGB255to1(self.config.customColors[randomIntegerGenerator(0,15)])
-            if (self.config.ciuMode == 'ORIGAMI' or 
-                self.config.ciuMode == 'MANUAL' or
-                self.config.ciuMode == 'Infrared'):
+            if (document.dataType == 'Type: ORIGAMI' or 
+                document.dataType == 'Type: MANUAL' or 
+                document.dataType == 'Type: Infrared'):
                 self.onPaneOnOff(evt=ID_window_ionList, check=True)
                 # Check if value already present
                 outcome = self.panelMultipleIons.topP.onCheckForDuplicates(mzStart=str(mzStart), 
@@ -1363,19 +1507,18 @@ class MyFrame(wx.Frame):
                     if currentView == "MS":
                         return outcome
                     return
-                self.panelMultipleIons.topP.peaklist.Append([mzStart,mzEnd, "", mzYMax, color,
+                self.panelMultipleIons.topP.peaklist.Append([mzStart,mzEnd, charge, mzYMax, color,
                                                              self.config.overlay_cmaps[randomIntegerGenerator(0,5)],
                                                              self.config.overlay_defaultMask,
                                                              self.config.overlay_defaultAlpha, 
                                                              "", "", currentDoc])
-                self.panelMultipleIons.topP.peaklist.SetItemTextColour(self.panelMultipleIons.topP.peaklist.GetItemCount()-1, 
-                                                                       convertRGB1to255(color))
+                self.panelMultipleIons.topP.peaklist.SetItemBackgroundColour(self.panelMultipleIons.topP.peaklist.GetItemCount()-1, 
+                                                                             convertRGB1to255(color))
                 if self.config.showRectanges:
                     self.presenter.addRectMS(mzStart, 0, (mzEnd-mzStart), 1.0, color=color, 
                                    alpha=(self.config.markerTransparency_1D),
                                    repaint=True)
-                
-            elif self.config.ciuMode == 'LinearDT':
+            elif document.dataType == 'Type: Multifield Linear DT':
                 self._mgr.GetPane(self.panelLinearDT).Show()
                 self.multifieldTable.Check(True)
                 self._mgr.Update()
@@ -1393,8 +1536,6 @@ class MyFrame(wx.Frame):
                                              repaint=True)
                 
         if self.currentPage == "Calibration":
-            currentDocument = self.presenter.view.panelDocuments.topP.documents.enableCurrentDocument()
-            document = self.presenter.documentsDict[currentDocument]
             # Check whether the current document is of correct type!
             if (document.fileFormat != 'Format: MassLynx (.raw)' or document.dataType != 'Type: CALIBRANT'): 
                 print('Please select the correct document file in document window!')
@@ -1430,7 +1571,7 @@ class MyFrame(wx.Frame):
                                    repaint=True, plot='CalibrationMS')
             
                 
-        elif self.currentPage == "RT" and self.config.ciuMode == 'LinearDT':
+        elif self.currentPage == "RT" and document.dataType == 'Type: Multifield Linear DT': 
             self._mgr.GetPane(self.panelLinearDT).Show()
             self.multifieldTable.Check(True)
             self._mgr.Update()
@@ -1452,7 +1593,7 @@ class MyFrame(wx.Frame):
                            color=self.config.annotColor, 
                            alpha=(self.config.annotTransparency/100),
                            repaint=True)
-        elif self.currentPage == 'RT' and self.config.ciuMode != 'LinearDT':
+        elif self.currentPage == 'RT' and document.dataType != 'Type: Multifield Linear DT': 
             # Get values
             if xvalsMin == None or xvalsMax == None:
                 self.SetStatusText("Extraction range was from outside of the plot area. Try again", number=4)
@@ -1525,6 +1666,8 @@ class MyFrame(wx.Frame):
             kwargs = {'window':'ORIGAMI'}
         elif evtID == ID_processSettings_FindPeaks: 
             kwargs = {'window':'Peak fitting'}
+        elif evtID == ID_processSettings_UniDec: 
+            kwargs = {'window':'UniDec'}
             
         kwargs['processKwargs'] = pKwargs
           
@@ -1652,10 +1795,10 @@ class MyFrame(wx.Frame):
         """Open recent document."""
         
         # get index
-        indexes = {ID_documentRecent0:0, ID_documentRecent1:1, ID_documentRecent2:2, ID_documentRecent3:3, 
-                   ID_documentRecent4:4, ID_documentRecent5:5, ID_documentRecent6:6, ID_documentRecent7:7,
-                   ID_documentRecent8:8, ID_documentRecent9:9, 
-                   }
+        indexes = {ID_documentRecent0:0, ID_documentRecent1:1, ID_documentRecent2:2, 
+                   ID_documentRecent3:3, ID_documentRecent4:4, ID_documentRecent5:5, 
+                   ID_documentRecent6:6, ID_documentRecent7:7, ID_documentRecent8:8, 
+                   ID_documentRecent9:9}
         
         # get file information
         documentID = indexes[evt.GetId()]
@@ -1666,14 +1809,29 @@ class MyFrame(wx.Frame):
         if file_type == 'pickle':
             self.presenter.onOpenDocument(file_path=file_path, evt=None)
         elif file_type == 'MassLynx':
-            self.presenter.onMassLynxFileFcn(path=file_path, evt=ID_openMassLynxRawFile)
+            self.presenter.onLoadOrigamiDataThreaded(path=file_path, evt=ID_openMassLynxRawFile)
         elif file_type == 'ORIGAMI':
             self.presenter.onLoadOrigamiDataThreaded(path=file_path, evt=ID_openORIGAMIRawFile)
         elif file_type == 'Infrared':
             self.presenter.onLoadOrigamiDataThreaded(path=file_path, evt=ID_openIRRawFile)
         elif file_type == 'Text':
             self.presenter.on2DTextFile(path=file_path, e=ID_openIMStxtFile)
-            
+        elif file_type == 'Text_MS':
+            self.presenter.onMSTextFileFcn(path=file_path)
+    
+    def onOpenFile_DnD(self, file_path, file_extension):
+        # open file
+        if file_extension in ['.pickle', '.pkl']:
+            self.presenter.onOpenDocument(file_path=file_path, evt=None)
+        elif file_extension == '.raw':
+            self.presenter.onLoadOrigamiDataThreaded(path=file_path, evt=ID_openORIGAMIRawFile)
+        elif file_extension in ['.txt', '.csv', '.tab']:
+            file_format = _checkTextFile(path=file_path)
+            if file_format == "2D":
+                self.presenter.on2DTextFile(path=file_path, e=ID_openIMStxtFile)
+            else:
+                self.presenter.onMSTextFile(path=file_path, e=ID_openIMStxtFile)
+    
     def updateStatusbar(self, msg, position, delay=3, modify_msg=True):
         """
         Out of thread statusbar display
@@ -1730,9 +1888,12 @@ class MyFrame(wx.Frame):
                 print('\nGenerated log filename: %s' % self.config.loggingFile_path)
         
         if self.config.logging:
-            sys.stdin = self.panelPlots.log
-            sys.stdout = self.panelPlots.log
-            sys.stderr = self.panelPlots.log
+            sys.stdin = self.panelLog.log
+            sys.stdout = self.panelLog.log
+            sys.stderr = self.panelLog.log
+#             sys.stdin = self.panelPlots.log
+#             sys.stdout = self.panelPlots.log
+#             sys.stderr = self.panelPlots.log
         else:
             sys.stdin = self.config.stdin
             sys.stdout = self.config.stdout
@@ -1752,7 +1913,34 @@ class MyFrame(wx.Frame):
         if evt != None:
             evt.Skip()
 
+class DragAndDrop(wx.FileDropTarget):
+    
+    #----------------------------------------------------------------------
+    def __init__(self, window):
+        """Constructor"""
+        wx.FileDropTarget.__init__(self)
+        self.window = window
 
+    #----------------------------------------------------------------------
+    
+    def OnDropFiles(self, x, y, filenames):
+        """
+        When files are dropped, write where they were dropped and then
+        the file paths themselves
+        """
+        for filename in filenames:
+            print("Opening {} file...".format(filename))
+            __, file_extension = os.path.splitext(filename)
+            if file_extension in ['.raw', '.pickle', '.pkl', '.txt', '.csv', '.tab']:
+                try:
+                    self.window.onOpenFile_DnD(filename, file_extension)
+                except:
+                    print("Failed to open {}".format(filename))
+                    continue
+            else:
+                print("Dropped file is not supported")
+                continue
+        
 
 
 

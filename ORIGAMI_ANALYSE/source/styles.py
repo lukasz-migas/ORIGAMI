@@ -77,11 +77,12 @@ def makeStaticBox(parent, title, size, color, id=-1):
     
     return staticBox
 
-def makeToggleBtn(parent, text, colorOff):
+def makeToggleBtn(parent, text, colorOff, name="other", size=(TGL_SIZE, -1)):
     toggleBtn = wx.ToggleButton(parent, wx.ID_ANY,
                                 text, wx.DefaultPosition, 
-                                wx.Size( TGL_SIZE,-1 ),
-                                style=wx.ALIGN_CENTER_VERTICAL)
+                                size,
+                                style=wx.ALIGN_CENTER_VERTICAL,
+                                name=name)
     font = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD)
     toggleBtn.SetFont(font)
     toggleBtn.SetForegroundColour(colorOff)
@@ -105,8 +106,8 @@ def makeSlider(parent, value, minValue, maxValue):
                        maxValue=maxValue, size=(140, -1), style=SLIDER_STYLE)
     return slider
 
-def makeCheckbox(parent, text, style=wx.ALIGN_LEFT, ID=-1):
-    checkbox = wx.CheckBox(parent, ID, text, (3, 3), style=style)
+def makeCheckbox(parent, text, style=wx.ALIGN_LEFT, ID=-1, name=""):
+    checkbox = wx.CheckBox(parent, ID, text, (3, 3), style=style, name=name)
     return checkbox
     
 def makeTooltip(text=None, delay=500, reshow=500, autopop=3000):

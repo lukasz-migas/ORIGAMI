@@ -4,6 +4,7 @@ from toolbox import *
 from ids import *
 from styles import layout, makeCheckbox, makeToggleBtn, makeSuperTip, makeStaticBox
 from help import OrigamiHelp as help
+from wx.combo import BitmapComboBox
 
 class panelParametersEdit(wx.MiniFrame):
     """Extra settings panel."""
@@ -20,10 +21,10 @@ class panelParametersEdit(wx.MiniFrame):
         
         self.importEvent = False
         self.currentPage = None
-        self.windowSizes = {'Plot 1D':(446,647), 'Plot 2D':(446,540),
-                            'Plot 3D':(446,550), 'Colorbar':(446,248),
+        self.windowSizes = {'Plot 1D':(446,675), 'Plot 2D':(446,540),
+                            'Plot 3D':(446,535), 'Colorbar':(446,248),
                             'Legend':(446,378), 'RMSD':(446,540),
-                            'Waterfall':(446,282), 'General':(475, 570)}
+                            'Waterfall':(446,282), 'General':(510, 640)}
 
         # make gui items
         self.makeGUI()
@@ -70,10 +71,10 @@ class panelParametersEdit(wx.MiniFrame):
          
     def onPageChanged(self, evt):
 
-        self.windowSizes = {'Plot 1D':(446,675), 'Plot 2D':(446,540),
-                            'Plot 3D':(446,535), 'Colorbar':(446,248),
-                            'Legend':(446,378), 'RMSD':(446,540),
-                            'Waterfall':(446,282), 'General':(510, 595)}
+#         self.windowSizes = {'Plot 1D':(446,675), 'Plot 2D':(446,540),
+#                             'Plot 3D':(446,535), 'Colorbar':(446,248),
+#                             'Legend':(446,378), 'RMSD':(446,540),
+#                             'Waterfall':(446,282), 'General':(510, 640)}
 
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
         self.SetSize(self.windowSizes[self.currentPage])
@@ -169,7 +170,7 @@ class panelParametersEdit(wx.MiniFrame):
         
         plotName_label = wx.StaticText(panel, -1, "Plot name:")
         self.general_plotName_value = wx.Choice(panel, -1, 
-                                                choices=self.config.availablePlotsList,
+                                                choices=sorted(self.config._plotSettings.keys()),
                                                 size=(-1, -1))
         self.general_plotName_value.SetSelection(0)
         self.general_plotName_value.Bind(wx.EVT_CHOICE, self.onSetupPlotSizes)
@@ -204,7 +205,22 @@ class panelParametersEdit(wx.MiniFrame):
                                                     size=(60, -1))
         self.general_height_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightAxes)
+
+        plotSize_window_inch_label= wx.StaticText(panel, -1, "Plot size (inch)")
+        width_window_inch_label = wx.StaticText(panel, -1, "Width")
+        self.general_width_window_inch_value = wx.SpinCtrlDouble(panel, -1, value=str(0), 
+                                                    min=0.0, max=20, initial=0, inc=.5,
+                                                    size=(60, -1))
+        self.general_width_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+#         __general_width_tip = makeSuperTip(width_label, **self.help.general_widthPlot_inch)
         
+        height_window_inch_label = wx.StaticText(panel, -1, "Height")
+        self.general_height_window_inch_value = wx.SpinCtrlDouble(panel, -1, value=str(0), 
+                                                    min=0.0, max=20, initial=0, inc=.5,
+                                                    size=(60, -1))
+        self.general_height_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+#         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightPlot_inch)
+
 ########
         export_staticBox = makeStaticBox(panel, "Export parameters", size=(-1, -1), color=wx.BLACK)
         export_staticBox.SetSize((-1,-1))
@@ -245,14 +261,14 @@ class panelParametersEdit(wx.MiniFrame):
         self.general_width_inch_value = wx.SpinCtrlDouble(panel, -1, value=str(0), 
                                                     min=0.0, max=20, initial=0, inc=2,
                                                     size=(60, -1))
-        self.general_width_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.general_width_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
         __general_width_tip = makeSuperTip(width_label, **self.help.general_widthPlot_inch)
         
         height_inch_label = wx.StaticText(panel, -1, "Height")
         self.general_height_inch_value = wx.SpinCtrlDouble(panel, -1, value=str(0), 
                                                     min=0.0, max=20, initial=0, inc=2,
                                                     size=(60, -1))
-        self.general_height_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.general_height_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightPlot_inch)
 
 ########
@@ -266,6 +282,30 @@ class panelParametersEdit(wx.MiniFrame):
                                              size=(-1, -1))
         self.general_style_value.SetStringSelection(self.config.currentStyle)
         self.general_style_value.Bind(wx.EVT_CHOICE, self.onChangePlotStyle)
+        
+        palette_label = wx.StaticText(panel, -1, "Color palette:")
+        self.general_palette_value = BitmapComboBox(panel, -1, choices=[],
+                                                    size=(160, -1), style=wx.CB_READONLY)
+        
+        # add choices
+        self.general_palette_value.Append("HLS", bitmap=self.icons.iconsLib['cmap_hls'])
+        self.general_palette_value.Append("HUSL", bitmap=self.icons.iconsLib['cmap_husl'])
+        self.general_palette_value.Append("Cubehelix", bitmap=self.icons.iconsLib['cmap_cubehelix'])
+        self.general_palette_value.Append("Spectral", bitmap=self.icons.iconsLib['cmap_spectral'])
+        self.general_palette_value.Append("Viridis", bitmap=self.icons.iconsLib['cmap_viridis'])
+        self.general_palette_value.Append("Rainbow", bitmap=self.icons.iconsLib['cmap_rainbow'])
+        self.general_palette_value.Append("Inferno", bitmap=self.icons.iconsLib['cmap_inferno'])
+        
+        self.general_palette_value.Append("Cool", bitmap=self.icons.iconsLib['cmap_cool'])
+        self.general_palette_value.Append("Gray", bitmap=self.icons.iconsLib['cmap_gray'])
+        self.general_palette_value.Append("RdPu", bitmap=self.icons.iconsLib['cmap_rdpu'])
+        self.general_palette_value.Append("Tab20b", bitmap=self.icons.iconsLib['cmap_tab20b'])
+        self.general_palette_value.Append("Tab20c", bitmap=self.icons.iconsLib['cmap_tab20c'])
+#         self.general_palette_value.Append("Modern UI 1", bitmap=self.icons.iconsLib['cmap_modern1'])
+#         self.general_palette_value.Append("Modern UI 2", bitmap=self.icons.iconsLib['cmap_modern2'])
+        
+        self.general_palette_value.SetStringSelection(self.config.currentPalette)
+        self.general_palette_value.Bind(wx.EVT_COMBOBOX, self.onChangePalette)
         
 ########
         CTRL_SIZE = 60
@@ -396,6 +436,13 @@ class panelParametersEdit(wx.MiniFrame):
         axes_grid.Add(self.general_bottom_value, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
         axes_grid.Add(self.general_width_value, (y,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
         axes_grid.Add(self.general_height_value, (y,4), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
+        y = y+1
+        axes_grid.Add(width_window_inch_label, (y,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
+        axes_grid.Add(height_window_inch_label, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
+        y = y+1
+        axes_grid.Add(plotSize_window_inch_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        axes_grid.Add(self.general_width_window_inch_value, (y,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
+        axes_grid.Add(self.general_height_window_inch_value, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
         axes_box_sizer.Add(axes_grid, 0, wx.EXPAND, 10)
         
         export_grid = wx.GridBagSizer(2, 2)
@@ -423,6 +470,8 @@ class panelParametersEdit(wx.MiniFrame):
         y = 0
         style_grid.Add(style_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         style_grid.Add(self.general_style_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
+        style_grid.Add(palette_label, (y,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        style_grid.Add(self.general_palette_value, (y,4), wx.GBSpan(1,2), flag=wx.EXPAND)
         style_box_sizer.Add(style_grid, 0, wx.EXPAND, 10)
         
         plot_grid = wx.GridBagSizer(2, 2)
@@ -443,7 +492,7 @@ class panelParametersEdit(wx.MiniFrame):
         plot_grid.Add(zoom_extract_crossover_1D_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         plot_grid.Add(self.zoom_extract_crossover1D_value, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
         plot_grid.Add(zoom_extract_crossover_2D_label, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_extract_crossover2D_value, (y,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
+        plot_grid.Add(self.zoom_extract_crossover2D_value, (y,3), wx.GBSpan(1,2), flag=wx.ALIGN_LEFT)
         y = y+1
         plot_grid.Add(zoom_zoom_width_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         plot_grid.Add(self.zoom_zoom_lineWidth_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND)
@@ -544,12 +593,14 @@ class panelParametersEdit(wx.MiniFrame):
         rmsf_staticBox.SetSize((-1,-1))
         rmsf_box_sizer = wx.StaticBoxSizer(rmsf_staticBox, wx.HORIZONTAL)
 
+
         rmsd_lineWidth_label = wx.StaticText(panel, -1, "Line width:")
         self.rmsd_lineWidth_value = wx.SpinCtrlDouble(panel, -1, 
                                                       value=str(self.config.lineWidth_1D*10), 
                                                       min=1, max=100, initial=self.config.rmsd_lineWidth*10, 
-                                                      inc=5, size=(90, -1))
+                                                      inc=5, size=(90, -1), name="rmsf")
         self.rmsd_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.rmsd_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
         
         rmsd_lineColor_label = wx.StaticText(panel, -1, "Line color:")
         self.rmsd_colorLineBtn = wx.Button(panel, ID_extraSettings_lineColor_rmsd,
@@ -557,20 +608,23 @@ class panelParametersEdit(wx.MiniFrame):
                                            wx.Size( 26, 26 ), 0 )
         self.rmsd_colorLineBtn.SetBackgroundColour(convertRGB1to255(self.config.rmsd_lineColour))
         self.rmsd_colorLineBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
+#         self.rmsd_colorLineBtn.Bind(wx.EVT_BUTTON, self.onUpdate2D)
         
         rmsd_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
         self.rmsd_lineStyle_value= wx.Choice(panel, -1, 
                                              choices=self.config.lineStylesList,
-                                             size=(-1, -1))
+                                             size=(-1, -1), name="rmsf")
         self.rmsd_lineStyle_value.SetStringSelection(self.config.rmsd_lineStyle)
-        self.rmsd_lineStyle_value.Bind(wx.EVT_CHOICE, self.onApply)        
+        self.rmsd_lineStyle_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.rmsd_lineStyle_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)  
         
         rmsd_lineHatch_label = wx.StaticText(panel, -1, "Underline hatch:")
         self.rmsd_lineHatch_value= wx.Choice(panel, -1, 
                                                choices=self.config.lineHatchDict.keys(),
-                                               size=(-1, -1))
+                                               size=(-1, -1), name="rmsf")
         self.rmsd_lineHatch_value.SetStringSelection(self.config.lineHatchDict.keys()[self.config.lineHatchDict.values().index(self.config.rmsd_lineHatch)])
         self.rmsd_lineHatch_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.rmsd_lineHatch_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)  
         
         rmsd_underlineColor_label = wx.StaticText(panel, -1, "Underline color:")
         self.rmsd_undercolorLineBtn = wx.Button(panel, ID_extraSettings_underlineColor_rmsd,
@@ -583,15 +637,17 @@ class panelParametersEdit(wx.MiniFrame):
         self.rmsd_alpha_value = wx.SpinCtrlDouble(panel, -1, 
                                                   value=str(self.config.rmsd_underlineTransparency*100), 
                                                   min=0, max=100, initial=self.config.rmsd_underlineTransparency*100, 
-                                                  inc=5, size=(90, -1))
+                                                  inc=5, size=(90, -1), name="rmsf")
         self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)  
         
         rmsd_hspace_label = wx.StaticText(panel, -1, "Vertical spacing:")
         self.rmsd_hspace_value = wx.SpinCtrlDouble(panel, -1, 
                                                   value=str(self.config.rmsd_hspace), 
                                                   min=0, max=1, initial=self.config.rmsd_hspace, 
-                                                  inc=0.05, size=(90, -1))
+                                                  inc=0.05, size=(90, -1), name="rmsf")
         self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)  
         
         rmsd_matrix_staticBox = makeStaticBox(panel, "RMSD Matrix", size=(-1, -1), color=wx.BLACK)
         rmsd_matrix_staticBox.SetSize((-1,-1))
@@ -714,8 +770,9 @@ class panelParametersEdit(wx.MiniFrame):
         self.waterfall_increment_value = wx.SpinCtrlDouble(panel, -1, 
                                                         value=str(self.config.waterfall_increment), 
                                                         min=0.0, max=1, initial=0, inc=0.05,
-                                                        size=(90, -1))
+                                                        size=(90, -1), name="data")
         self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
         
         waterfall_reverse_label = wx.StaticText(panel, -1, "Reverse plot:")
         self.waterfall_reverse_check = makeCheckbox(panel, u"")
@@ -725,13 +782,13 @@ class panelParametersEdit(wx.MiniFrame):
         waterfall_lineWidth_label = wx.StaticText(panel, -1, "Line width:")
         self.waterfall_lineWidth_value = wx.SpinCtrlDouble(panel, -1, 
                                                            value=str(self.config.waterfall_lineWidth), 
-                                                           min=1, max=100, initial=self.config.waterfall_lineWidth, 
-                                                           inc=5, size=(90, -1))
+                                                           min=1, max=10, initial=self.config.waterfall_lineWidth, 
+                                                           inc=1, size=(90, -1), name="style")
         self.waterfall_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         self.waterfall_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
         
         waterfall_useColormap_label = wx.StaticText(panel, -1, "Use colormap:")
-        self.waterfall_useColormap_check = makeCheckbox(panel, u"")
+        self.waterfall_useColormap_check = makeCheckbox(panel, u"", name="color")
         self.waterfall_useColormap_check.SetValue(self.config.waterfall_useColormap)
         self.waterfall_useColormap_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.waterfall_useColormap_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_waterfall)
@@ -739,14 +796,14 @@ class panelParametersEdit(wx.MiniFrame):
         
         waterfall_lineColor_label = wx.StaticText(panel, -1, "Line color:")
         self.waterfall_colorLineBtn = wx.Button(panel, ID_extraSettings_lineColour_waterfall,
-                                             u"", wx.DefaultPosition, 
-                                             wx.Size( 26, 26 ), 0 )
+                                                u"", wx.DefaultPosition, 
+                                                wx.Size( 26, 26 ), 0, name="color")
         self.waterfall_colorLineBtn.SetBackgroundColour(convertRGB1to255(self.config.waterfall_color))
         self.waterfall_colorLineBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
         
         waterfall_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
         self.waterfall_lineStyle_value= wx.Choice(panel, -1, choices=self.config.lineStylesList,
-                                                  size=(-1, -1))
+                                                  size=(-1, -1), name="style")
         self.waterfall_lineStyle_value.SetStringSelection(self.config.waterfall_lineStyle)
         self.waterfall_lineStyle_value.Bind(wx.EVT_CHOICE, self.onApply)
         self.waterfall_lineStyle_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
@@ -800,48 +857,50 @@ class panelParametersEdit(wx.MiniFrame):
     
         # make elements
         cbar_colorbarTgl_label = wx.StaticText(panel, -1, "Colorbar:")
-        self.colorbarTgl = makeToggleBtn(panel, 'Off', wx.RED)
+        self.colorbarTgl = makeToggleBtn(panel, 'Off', wx.RED, name="colorbar")
         self.colorbarTgl.SetValue(self.config.colorbar)
         self.colorbarTgl.Bind(wx.EVT_TOGGLEBUTTON, self.onEnableDisableFeatures_colorbar)
-        self.colorbarTgl.Bind(wx.EVT_TOGGLEBUTTON, self.onReplot2D)
+        self.colorbarTgl.Bind(wx.EVT_TOGGLEBUTTON, self.onUpdate2D)
         
         cbar_position_label = wx.StaticText(panel, -1, "Position:")
         self.colorbarPosition_value= wx.Choice(panel, -1, 
                                    choices=self.config.colorbarChoices,
-                                   size=(-1, -1))
+                                   size=(-1, -1), name="colorbar")
         self.colorbarPosition_value.SetStringSelection(self.config.colorbarPosition)
         self.colorbarPosition_value.Bind(wx.EVT_CHOICE, self.onApply)
-        self.colorbarPosition_value.Bind(wx.EVT_CHOICE, self.onReplot2D)
+        self.colorbarPosition_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
         
         cbar_pad_label = wx.StaticText(panel, -1, "Distance:")
         self.colorbarPad_value = wx.SpinCtrlDouble(panel, -1, 
                                                value=str(self.config.colorbarPad), 
                                                min=0.0, max=2, initial=0, inc=0.05,
-                                               size=(90, -1))
+                                               size=(90, -1), name="colorbar")
         self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
-        self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onReplot2D)
+        self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
                 
         cbar_width_label = wx.StaticText(panel, -1, "Width:")
         self.colorbarWidth_value = wx.SpinCtrlDouble(panel, -1, 
                                            value=str(self.config.colorbarWidth), 
                                            min=0.0, max=10, initial=0, inc=0.5, 
-                                           size=(90, -1))
+                                           size=(90, -1), name="colorbar")
         self.colorbarWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
-        self.colorbarWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onReplot2D)
+        self.colorbarWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
         
         cbar_fontsize = wx.StaticText(panel, -1, "Label font size:")
-        self.colorbarFontsize_value = wx.TextCtrl(panel, -1, "", size=(90, -1))
-        self.colorbarFontsize_value.SetValue(str(self.config.colorbarLabelSize))
-        self.colorbarFontsize_value.Bind(wx.EVT_TEXT, self.onApply_2D)
-        self.colorbarFontsize_value.Bind(wx.EVT_TEXT, self.onReplot2D)
+        self.colorbarFontsize_value = wx.SpinCtrlDouble(panel, -1, 
+                                                        value=str(self.config.colorbarLabelSize), 
+                                                        min=0, max=32, initial=0, inc=2, 
+                                                        size=(90, -1), name="colorbar")
+        self.colorbarFontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
+        self.colorbarFontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
-        # Replot button
-        self.plotColorbarBtn = wx.Button(panel, wx.ID_ANY,
-                                         u"Plot", wx.DefaultPosition, 
-                                         wx.Size( -1, -1 ), 0)
-        self.plotColorbarBtn.Bind(wx.EVT_BUTTON, self.onReplot2D)
+#         # Replot button
+#         self.plotColorbarBtn = wx.Button(panel, wx.ID_ANY,
+#                                          u"Plot", wx.DefaultPosition, 
+#                                          wx.Size( -1, -1 ), 0)
+#         self.plotColorbarBtn.Bind(wx.EVT_BUTTON, self.onReplot2D)
 
         grid = wx.GridBagSizer(2, 2)
         y = 0
@@ -861,8 +920,8 @@ class panelParametersEdit(wx.MiniFrame):
         grid.Add(self.colorbarFontsize_value, (y,1), flag=wx.EXPAND)
         y = y+1
         grid.Add(horizontal_line, (y,0), wx.GBSpan(1,3), flag=wx.EXPAND)
-        y = y+1
-        grid.Add(self.plotColorbarBtn, (y,1), flag=wx.ALIGN_CENTER_VERTICAL)
+#         y = y+1
+#         grid.Add(self.plotColorbarBtn, (y,1), flag=wx.ALIGN_CENTER_VERTICAL)
         
         # pack elements
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -1373,7 +1432,7 @@ class panelParametersEdit(wx.MiniFrame):
         plot2D_colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.plot2D_colormap_value= wx.Choice(panel, -1, 
                                    choices=self.config.cmaps2,
-                                   size=(-1, -1))
+                                   size=(-1, -1), name="color")
         self.plot2D_colormap_value.SetStringSelection(self.config.currentCmap)
         self.plot2D_colormap_value.Bind(wx.EVT_CHOICE, self.onApply_2D)
         self.plot2D_colormap_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
@@ -1402,21 +1461,21 @@ class panelParametersEdit(wx.MiniFrame):
         plot2D_min_label = wx.StaticText(panel, -1, "Min %:")
         self.plot2D_min_value = wx.SpinCtrlDouble(panel, -1, 
                                                value=str(self.config.minCmap),min=0, max=100,
-                                               initial=0, inc=5, size=(50, -1))
+                                               initial=0, inc=5, size=(50, -1), name="normalization")
         self.plot2D_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
         self.plot2D_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
         
-        plot2D_mid_label = wx.StaticText(panel, -1, "Min %:")
+        plot2D_mid_label = wx.StaticText(panel, -1, "Mid %:")
         self.plot2D_mid_value = wx.SpinCtrlDouble(panel, -1, 
                                                value=str(self.config.midCmap),min=0, max=100,
-                                               initial=0, inc=5, size=(50, -1))
+                                               initial=0, inc=5, size=(50, -1), name="normalization")
         self.plot2D_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
         self.plot2D_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
         
-        plot2D_max_label = wx.StaticText(panel, -1, "Min %:")
+        plot2D_max_label = wx.StaticText(panel, -1, "Max %:")
         self.plot2D_max_value = wx.SpinCtrlDouble(panel, -1, 
                                                value=str(self.config.maxCmap),min=0, max=100,
-                                               initial=0, inc=5, size=(90, -1))
+                                               initial=0, inc=5, size=(90, -1), name="normalization")
         self.plot2D_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
         self.plot2D_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
          
@@ -2046,16 +2105,77 @@ class panelParametersEdit(wx.MiniFrame):
         plotValues = [self.general_left_value.GetValue(), self.general_bottom_value.GetValue(),
                       self.general_width_value.GetValue(), self.general_height_value.GetValue()] 
         self.config._plotSettings[plotName]['axes_size'] = plotValues
+        
         plotSizes = [self.general_width_inch_value.GetValue(),
                      self.general_height_inch_value.GetValue()]
         self.config._plotSettings[plotName]['resize_size'] = plotSizes
         
+        plotSizes = [self.general_width_window_inch_value.GetValue(),
+                     self.general_height_window_inch_value.GetValue()]
+        self.config._plotSettings[plotName]['gui_size'] = plotSizes
+        
         # fire events
         self.presenter.plot_update_axes(plotName=plotName)
-
+        
+        self.plot_update_size(plotName=plotName)
+        
         if evt != None:
             evt.Skip()
 
+    def plot_update_size(self, plotName=None):
+        dpi = wx.ScreenDC().GetPPI()
+        resizeSize = self.config._plotSettings[plotName]['gui_size']
+        figsizeNarrowPix = (int(resizeSize[0]*dpi[0]), int(resizeSize[1]*dpi[1]))
+        
+        if plotName == 'MS':
+            resize_plot = self.presenter.view.panelPlots.plot1
+        elif plotName == 'MS (compare)':
+            resize_plot = self.presenter.view.panelPlots.plot1
+        elif plotName == 'RT':
+            resize_plot = self.presenter.view.panelPlots.plotRT
+        elif plotName == 'DT':
+            resize_plot = self.presenter.view.panelPlots.plot1D
+        elif plotName == '2D':
+            resize_plot = self.presenter.view.panelPlots.plot2D
+        elif plotName == 'Waterfall':
+            resize_plot = self.presenter.view.panelPlots.plotWaterfallIMS
+        elif plotName == 'RMSD':
+            resize_plot = self.presenter.view.panelPlots.plotRMSF
+        elif plotName in ['Comparison', 'Matrix']:
+            resize_plot = self.presenter.view.panelPlots.plotCompare
+        elif plotName == 'DT/MS':
+            resize_plot = self.presenter.view.panelPlots.plotMZDT
+        elif plotName in ['Overlay', 'Overlay (Grid)']:
+            resize_plot = self.presenter.view.panelPlots.plotOverlay
+        elif plotName == 'Calibration (MS)':
+            resize_plot = self.presenter.view.panelPlots.topPlotMS
+        elif plotName == 'Calibration (DT)':
+            resize_plot = self.presenter.view.panelPlots.bottomPlot1DT
+        elif plotName == '3D':
+            resize_plot = self.presenter.view.panelPlots.plot3D
+        elif plotName == 'UniDec (MS)':
+            resize_plot = self.presenter.view.panelPlots.plotUnidec_MS
+        elif plotName == 'UniDec (MW)':
+            resize_plot = self.presenter.view.panelPlots.plotUnidec_mwDistribution
+        elif plotName == 'UniDec (m/z vs Charge)':
+            resize_plot = self.presenter.view.panelPlots.plotUnidec_mzGrid
+        elif plotName == 'UniDec (Isolated MS)':
+            resize_plot = self.presenter.view.panelPlots.plotUnidec_individualPeaks
+        elif plotName == 'UniDec (MW vs Charge)':
+            resize_plot = self.presenter.view.panelPlots.plotUnidec_mwVsZ
+        elif plotName == 'UniDec (Barplot)':
+            resize_plot = self.presenter.view.panelPlots.plotUnidec_barChart
+        elif plotName == 'UniDec (Charge Distribution)':
+            resize_plot = self.presenter.view.panelPlots.plotUnidec_chargeDistribution            
+
+        if resize_plot.lock_plot_from_updating: 
+            msg = "This plot is locked and you cannot use global setting updated. \n" + \
+                  "Please right-click in the plot area and select Customise plot..." + \
+                  " to adjust plot settings."
+            print(msg)
+            return
+        resize_plot.SetSize(figsizeNarrowPix)
+    
     def onApply_zoom(self, evt):
         # plots
         self.config._plots_grid_show = self.zoom_grid_check.GetValue()
@@ -2125,7 +2245,7 @@ class panelParametersEdit(wx.MiniFrame):
         
         # Restore custom colors
         custom = wx.ColourData()
-        for key in range(15): #key in self.config.customColors:
+        for key in range(len(self.config.customColors)): #key in self.config.customColors:
             custom.SetCustomColour(key, self.config.customColors[key])
         dlg = wx.ColourDialog(self, custom)
         dlg.GetColourData().SetChooseFull(True)
@@ -2197,7 +2317,7 @@ class panelParametersEdit(wx.MiniFrame):
         elif evtID == ID_extraSettings_lineColour_waterfall:
             self.config.waterfall_color = convertRGB255to1(newColour)
             self.waterfall_colorLineBtn.SetBackgroundColour(newColour)
-            self.onUpdate2D(None)
+            self.onUpdate2D(evt)
             
         elif evtID == ID_extraSettings_shadeUnderColor_1D:
             self.config.lineShadeUnderColour_1D = convertRGB255to1(newColour)
@@ -2248,13 +2368,13 @@ class panelParametersEdit(wx.MiniFrame):
         
         self.onApply_1D(None)
         if self.parent.panelPlots.window_plot1D == 'MS':
-            self.presenter.plot_1D_update(plotName="MS")
+            self.parent.panelPlots.plot_1D_update(plotName="MS")
             
         elif self.parent.panelPlots.window_plot1D == 'RT':
-            self.presenter.plot_1D_update(plotName="RT")
+            self.parent.panelPlots.plot_1D_update(plotName="RT")
             
         elif self.parent.panelPlots.window_plot1D == '1D':
-            self.presenter.plot_1D_update(plotName="1D")
+            self.parent.panelPlots.plot_1D_update(plotName="1D")
             
         if evt != None:
             evt.Skip()
@@ -2262,17 +2382,40 @@ class panelParametersEdit(wx.MiniFrame):
     def onUpdate2D(self, evt):
         
         self.onApply_2D(None)
+        try: source = evt.GetEventObject().GetName()
+        except: source = "all"
+        
         if self.parent.panelPlots.window_plot2D == '2D':
-            self.presenter.plot_2D_update(plotName="2D")
+            if source == "colorbar":
+                self.parent.panelPlots.plot_colorbar_update()
+            elif source == 'normalization':
+                self.parent.panelPlots.plot_normalization_update()
+            else:
+                self.parent.panelPlots.plot_2D_update(plotName="2D")
+        elif self.parent.panelPlots.window_plot2D == 'RMSF':
+            if source == "colorbar":
+                self.parent.panelPlots.plot_colorbar_update()
+            elif source == "rmsf":
+                self.parent.panelPlots.plot_1D_update(plotName="RMSF")
+        elif self.parent.panelPlots.window_plot2D == 'Comparison':
+            self.parent.panelPlots.plot_colorbar_update()
             
         elif self.parent.panelPlots.window_plot2D == 'DT/MS':
-            self.presenter.plot_2D_update(plotName="DT/MS")
+            self.parent.panelPlots.plot_2D_update(plotName="DT/MS")
             
+        elif self.parent.panelPlots.window_plot2D == 'UniDec':
+            if source == "colorbar":
+                self.parent.panelPlots.plot_colorbar_update()
+            elif source == 'normalization':
+                self.parent.panelPlots.plot_normalization_update()
+            else:
+                self.parent.panelPlots.plot_2D_update(plotName="UniDec")
         elif self.parent.panelPlots.window_plot2D == 'Waterfall':
+            try: source = evt.GetEventObject().GetName()
+            except: source = "color"
             self.onApply(None)
-            self.parent.panelPlots.plot_1D_waterfall_update()
-            
-            
+            self.parent.panelPlots.plot_1D_waterfall_update(which=source)
+        
         if evt != None:
             evt.Skip()
             
@@ -2302,7 +2445,6 @@ class panelParametersEdit(wx.MiniFrame):
     
     def onReplot2D(self, evt):
         self.onApply_2D(None)
-        
         if self.parent.panelPlots.window_plot2D == '2D':
             self.parent.panelPlots.on_plot_2D(replot=True)
             
@@ -2522,6 +2664,13 @@ class panelParametersEdit(wx.MiniFrame):
         for i, item in enumerate([self.general_width_inch_value, 
                                   self.general_height_inch_value]):
             item.SetValue(plotSizes[i])
+
+        plotSizes = plotValues['gui_size']
+        for i, item in enumerate([self.general_width_window_inch_value, 
+                                  self.general_height_window_inch_value]):
+            item.SetValue(plotSizes[i])
+
+            
         
         if evt != None:
             evt.Skip()
@@ -2530,6 +2679,13 @@ class panelParametersEdit(wx.MiniFrame):
         self.config.currentStyle = self.general_style_value.GetStringSelection()
         self.presenter.view.panelPlots.onChangePlotStyle(evt=None)
         
+        if evt != None:
+            evt.Skip()
+
+    def onChangePalette(self, evt):
+        self.config.currentPalette = self.general_palette_value.GetStringSelection()
+        self.presenter.view.panelPlots.onChangePalette(evt=None)  
+
         if evt != None:
             evt.Skip()
         

@@ -18,10 +18,9 @@
 from matplotlib.patches import Rectangle
 from wx.lib.pubsub import setupkwargs
 from wx.lib.pubsub import pub
-
+from toolbox import dir_extra
 import numpy as np
 import wx
-from compiler.pycodegen import EXCEPT
 
 def GetMaxes(axes, xmin=None, xmax=None):
     yvals = []
@@ -246,7 +245,7 @@ class ZoomBox:
                  minspany=None, useblit=False, lineprops=None,
                  rectprops=None, onmove_callback=None, spancoords='data',
                  button=None, data_lims=None, plotName = None,
-                 plotParameters=None):
+                 plotParameters=None, allowWheel=True):
 
         """
         Create a selector in axes.  When a selection is made, clear
@@ -307,7 +306,9 @@ class ZoomBox:
         self.span = None
         self.lastXY = []
         self.current_ymax = None
+        self.allowWheel = allowWheel
 
+        self.mark_annotation = False
         
         # setup some parameters
         self.show_cursor_cross = self.plot_parameters['grid_show']
@@ -352,6 +353,9 @@ class ZoomBox:
             self.data_lims = GetStart(self.axes)
         else: 
             self.data_lims = data_lims
+            
+    def update_mark_state(self, state):
+        self.mark_annotation = state
             
     def new_axes(self, axes, rectprops=None):
         self.axes = axes
@@ -509,39 +513,41 @@ class ZoomBox:
         # Update cursor
         pub.sendMessage('currentMode', dataOut=[self.shiftKey, self.ctrlKey, self.altKey, 
                                                 self.addToTable, True, self.buttonDown])
-        # The actual work
-        for axes in self.axes:
-            x0, x1 = axes.get_xlim()
-            y0, y1 = axes.get_ylim()
-            
-            xmin, ymin, xmax, ymax = self.data_lims 
-            
-            # Shift causes Y-axis zoom
-            if not wx.GetKeyState(wx.WXK_SHIFT):
-                stepSize = evt.step * ((x1 - x0)/50)
-                newXmin = x0-stepSize
-                newXmax = x1+stepSize
-                # Check if the X-values are off the data lims
-                if newXmin < xmin: newXmin = xmin
-                if newXmax > xmax: newXmax = xmax
-                axes.set_xlim((newXmin, newXmax))
-            
-            elif wx.GetKeyState(wx.WXK_SHIFT):
-                # Check if its 1D plot 
-                if self.plotName in ['1D', 'CalibrationDT', 'MS']:
-                    stepSize = evt.step * ((y1 - y0)/25)
-                    axes.set_ylim((0, y1+stepSize))
-                elif self.plotName != '1D':
-                    stepSize = evt.step * ((y1 - y0)/50)
-                    newYmin = y0-stepSize
-                    newYmax = y1+stepSize
-                    # Check if the Y-values are off the data lims
-                    if newYmin < ymin: newYmin = ymin
-                    if newYmax > ymax: newYmax = ymax
-                    
-                    axes.set_ylim((newYmin, newYmax))
-            
-        self.canvas.draw()
+        
+        if self.allowWheel:
+            # The actual work
+            for axes in self.axes:
+                x0, x1 = axes.get_xlim()
+                y0, y1 = axes.get_ylim()
+                
+                xmin, ymin, xmax, ymax = self.data_lims 
+                
+                # Shift causes Y-axis zoom
+                if not wx.GetKeyState(wx.WXK_SHIFT):
+                    stepSize = evt.step * ((x1 - x0)/50)
+                    newXmin = x0-stepSize
+                    newXmax = x1+stepSize
+                    # Check if the X-values are off the data lims
+                    if newXmin < xmin: newXmin = xmin
+                    if newXmax > xmax: newXmax = xmax
+                    axes.set_xlim((newXmin, newXmax))
+                
+                elif wx.GetKeyState(wx.WXK_SHIFT):
+                    # Check if its 1D plot 
+                    if self.plotName in ['1D', 'CalibrationDT', 'MS']:
+                        stepSize = evt.step * ((y1 - y0)/25)
+                        axes.set_ylim((0, y1+stepSize))
+                    elif self.plotName != '1D':
+                        stepSize = evt.step * ((y1 - y0)/50)
+                        newYmin = y0-stepSize
+                        newYmax = y1+stepSize
+                        # Check if the Y-values are off the data lims
+                        if newYmin < ymin: newYmin = ymin
+                        if newYmax > ymax: newYmax = ymax
+                        
+                        axes.set_ylim((newYmin, newYmax))
+                
+            self.canvas.draw()
   
     def onRebootKeyState(self, evt):
         """
@@ -575,7 +581,7 @@ class ZoomBox:
         
         if any((self.ctrlKey, self.shiftKey, self.altKey)): self.keyPress = True
         else: self.keyPress = False
-                
+            
         pub.sendMessage('currentMode', dataOut=[self.shiftKey, self.ctrlKey, self.altKey, 
                                                 self.addToTable, self.wheel, self.buttonDown])
       
@@ -762,11 +768,14 @@ class ZoomBox:
             xmax, ymax = self.eventrelease.xdata, self.eventrelease.ydata
             
             # A dirty way to prevent users from trying to extract data from the wrong places
-            if self.plotName == 'MSDT' and (self.eventpress.xdata != evt.xdata and
-                                            self.eventpress.ydata != evt.ydata):
-                pub.sendMessage('add2tableMSDT', dataOut = [xmin, xmax, ymin, ymax])
-            elif self.plotName != 'CalibrationDT' and self.eventpress.xdata != evt.xdata:
-                pub.sendMessage('add2table', xvalsMin=xmin, xvalsMax=xmax, yvalsMax=ymax)
+            if not self.mark_annotation:
+                if self.plotName == 'MSDT' and (self.eventpress.xdata != evt.xdata and
+                                                self.eventpress.ydata != evt.ydata):
+                    pub.sendMessage('add2tableMSDT', dataOut = [xmin, xmax, ymin, ymax])
+                elif self.plotName != 'CalibrationDT' and self.eventpress.xdata != evt.xdata:
+                    pub.sendMessage('add2table', xvalsMin=xmin, xvalsMax=xmax, yvalsMax=ymax)
+            else:
+                pub.sendMessage('mark_annotation', xvalsMin=xmin, xvalsMax=xmax)
 
 
         if self.spancoords == 'data':
@@ -904,7 +913,7 @@ class ZoomBox:
 
     def OnMotion(self, evt):
         
-        pub.sendMessage('newxy', xpos=evt.xdata, ypos=evt.ydata)
+        pub.sendMessage('newxy', xpos=evt.xdata, ypos=evt.ydata, plotname=self.plotName)
                 
         'on motion notify event if box/line is wanted'
         

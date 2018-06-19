@@ -59,12 +59,12 @@ class plottingWindow(wx.Window):
         # Create a resizer
         self.Bind(wx.EVT_SIZE, self.sizeHandler)
         self.resize = 1
-        self.canvas.mpl_connect('motion_notify_event', self.onMotion)
         self.canvas.mpl_connect('pick_event', self.onPick)
 
         # Prepare for zoom
         self.zoom = None
         self.zoomtype = "box"
+        self.plotName = None
         
     def onPick(self, evt):
         pass
@@ -92,7 +92,7 @@ class plottingWindow(wx.Window):
         self.getxaxis =  GetXValues(plots)
        
     def setup_zoom(self, plots, zoom, data_lims=None, plotName=None,
-                   plotParameters=None):
+                   plotParameters=None, allowWheel=True):
         if plotParameters == None:
             plotParameters = self._generatePlotParameters()
         
@@ -102,12 +102,15 @@ class plottingWindow(wx.Window):
                                 onmove_callback=None, 
                                 rectprops=dict(alpha=0.2, facecolor='yellow'),
                                 spancoords='data', data_lims=data_lims,
-                                plotName = plotName,
+                                plotName = plotName, allowWheel=allowWheel,
                                 plotParameters = plotParameters)
         self.onRebootZoomKeys(evt=None)
                         
     def update_extents(self, extents):
         ZoomBox.update_extents(self.zoom, extents)
+        
+    def _on_mark_annotation(self, state):
+        ZoomBox.update_mark_state(self.zoom, state)
                          
     def onRebootZoomKeys(self, evt):
         """
@@ -117,14 +120,48 @@ class plottingWindow(wx.Window):
         if self.zoom != None:
             ZoomBox.onRebootKeyState(self.zoom, evt=None)
         
-    def onMotion(self, evt):
+#     def onMotion(self, evt):
+#         """
+#         Triggered by pubsub from plot windows. Reports text in Status Bar.
+#         :param xpos: x position fed from event
+#         :param ypos: y position fed from event
+#         :return: None
+#         """
+#         pub.sendMessage('newxy', xpos=evt.xdata, ypos=evt.ydata, plotname=self.plotName)
+        
+    def kda_test(self, xvals):
         """
-        Triggered by pubsub from plot windows. Reports text in Status Bar.
-        :param xpos: x position fed from event
-        :param ypos: y position fed from event
+        Adapted from Unidec/PlottingWindow.py
+        
+        Test whether the axis should be normalized to convert mass units from Da to kDa.
+        Will use kDa if: xvals[int(len(xvals) / 2)] > 100000 or xvals[len(xvals) - 1] > 1000000
+
+        If kDa is used, self.kda=True and self.kdnorm=1000. Otherwise, self.kda=False and self.kdnorm=1.
+        :param xvals: mass axis
         :return: None
         """
-        pub.sendMessage('newxy', xpos=evt.xdata, ypos=evt.ydata)
+        try:
+            if xvals[int(len(xvals) / 2)] > 100000 or xvals[len(xvals) - 1] > 1000000:
+                kdnorm = 1000.
+                xlabel = "Mass (kDa)"
+                kda = True
+            elif amax(xvals) > 10000:
+                kdnorm = 1000.
+                xlabel = "Mass (kDa)"
+                kda = True
+            else:
+                xlabel = "Mass (Da)"
+                kda = False
+                kdnorm = 1.
+        except (TypeError, ValueError):
+            xlabel = "Mass (Da)"
+            kdnorm = 1.
+            kda = False
+            
+        # convert x-axis
+        xvals = xvals / kdnorm
+        
+        return xvals, xlabel, kda
         
     def testXYmaxVals(self,values=None):
         """ 
@@ -174,18 +211,35 @@ class plottingWindow(wx.Window):
         :return:
         """
         self.figure.clear()
-        try:
-            self.cax = None
-        except:
-            pass
         
-        try:
-            self.plotMS = None
-        except:
-            pass
+        try: self.cax = None
+        except: pass
+        
+        try: self.plotMS = None
+        except: pass
+        
+        try: self.plot2D_upper = None
+        except: pass
+        
+        try: self.plot2D_lower = None
+        except: pass
+        
+        try: self.plot2D_side = None
+        except: pass
+        
+        try: self.plotRMSF = None
+        except: pass
+        
+#         self.lock_plot_from_updating = False
+        
         self.repaint()
             
     def sizeHandler(self, *args, **kwargs):
+        
+        if self.lock_plot_from_updating:
+            self.SetBackgroundColour(wx.WHITE)
+            return
+
         if self.resize == 1:
             self.canvas.SetSize(self.GetSize())
             
@@ -213,10 +267,13 @@ class plottingWindow(wx.Window):
         resizeName = kwargs.get('resize', None)
         resizeSize = None
         
-        if resizeName != None:
+        if resizeName is not None:
             resizeSize = self.config._plotSettings[resizeName]['resize_size']
         
-        if resizeSize != None:
+        if not hasattr(self.plotMS, "get_position"):
+            resizeSize = None
+        
+        if resizeSize is not None and not self.lock_plot_from_updating:
             dpi = wx.ScreenDC().GetPPI() 
             # Calculate new size
             figsizeNarrowPix = (int(resizeSize[0]*dpi[0]), int(resizeSize[1]*dpi[1]))
@@ -238,7 +295,7 @@ class plottingWindow(wx.Window):
             self.figure.savefig(path, **kwargs)
         except IOError:
             # reset axes size
-            if resizeSize != None:
+            if resizeSize is not None and not self.lock_plot_from_updating:
                 self.plotMS.set_position(oldAxesSize)
                 self.sizeHandler()
             # warn user
@@ -261,7 +318,7 @@ class plottingWindow(wx.Window):
                 path = join(fname + delimiter_txt)
                 
                 # reset axes, again
-                if resizeSize != None:
+                if resizeSize is not None and not self.lock_plot_from_updating:
                     self.canvas.SetSize(figsizeNarrowPix)
                     self.canvas.draw()
                     try:
@@ -275,12 +332,12 @@ class plottingWindow(wx.Window):
                 except: pass
         
         # Reset previous view
-        if resizeSize != None:
+        if resizeSize is not None and not self.lock_plot_from_updating:
             self.plotMS.set_position(oldAxesSize)
             self.sizeHandler()
 
     def onAddMarker(self, xval=None, yval=None, marker='s', color='r', size=5,
-                    testMax='none'):
+                    testMax='none', label="", as_line=True):
         """ 
         This function adds a marker to 1D plot
         """
@@ -288,12 +345,18 @@ class plottingWindow(wx.Window):
             ydivider, expo = self.testXYmaxValsUpdated(values=yval)
             if expo > 1:
                 yvals = divide(yval, float(ydivider))
-        
-        self.plotMS.plot(xval, yval, color=color, marker=marker, 
-                         linestyle='None', markersize=size)
-        
+                
+        if as_line:
+            self.plotMS.plot(xval, yval, color=color, marker=marker, 
+                             linestyle='None', markersize=size,
+                             markeredgecolor="k", label=label)
+        else:
+            self.plotMS.scatter(xval, yval, color=color, marker=marker, 
+                                s=size, edgecolor="k", label=label,
+                                alpha=1.0)
+
     def addText(self, xval=None, yval=None, text=None, rotation=90, color="k",
-                fontsize=16,weight=True):
+                fontsize=16,weight=True, plot=None):
         """
         This function annotates the MS peak
         """
@@ -301,13 +364,22 @@ class plottingWindow(wx.Window):
         if weight:weight='bold'
         else: weight='regular'
         
-        self.text = self.plotMS.text(x=xval, y=yval, 
-                                     s=text, 
-                                     fontsize=fontsize,
-                                     rotation=rotation,
-                                     weight=weight, 
-                                     fontdict=None,
-                                     color=color)
+        if plot is None:
+            self.text = self.plotMS.text(x=xval, y=yval, 
+                                         s=text, 
+                                         fontsize=fontsize,
+                                         rotation=rotation,
+                                         weight=weight, 
+                                         fontdict=None,
+                                         color=color)
+        elif plot == 'Grid':
+            self.text = self.plot2D_side.text(x=xval, y=yval, 
+                                              s=text, 
+                                              fontsize=fontsize,
+                                              rotation=rotation,
+                                              weight=weight, 
+                                              fontdict=None,
+                                              color=color)
         
     def addRectangle(self, x, y, width, height, color='green',
                      alpha=0.5, linewidth=0):

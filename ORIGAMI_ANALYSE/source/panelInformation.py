@@ -335,6 +335,7 @@ class panelDocumentInfo(wx.MiniFrame):
                                                             'Type: Multifield Linear DT',
                                                             'Type: CALIBRANT', 
                                                             'Type: Comparison',
+                                                            'Type: Interactive',
                                                             'Other'],
                                          size=(180, -1))
         
@@ -348,6 +349,8 @@ class panelDocumentInfo(wx.MiniFrame):
             self.docType_choice.SetStringSelection('Type: CALIBRANT')
         elif self.document.dataType == 'Type: Comparison':
             self.docType_choice.SetStringSelection('Type: Comparison')
+        elif self.document.dataType == 'Type: Interactive':
+            self.docType_choice.SetStringSelection('Type: Interactive')
         else:
             self.docType_choice.SetStringSelection('Other')
             

@@ -50,7 +50,6 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrl
     """
     Editable list
     """
-    # TODO Add checkbox to the first column - useful for selecting ions to plot?
     def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=0): 
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
@@ -111,11 +110,11 @@ class topPanel(wx.Panel):
     def makeListCtrl(self):
         mainSizer = wx.BoxSizer( wx.VERTICAL )
         self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0,u'Start RT', width=70)
-        self.peaklist.InsertColumn(1,u'End RT', width=60)
-        self.peaklist.InsertColumn(2,u'# Scans', width=60)
-        self.peaklist.InsertColumn(3,u'DV (V)', width=60)
-        self.peaklist.InsertColumn(4,u'File', width=60)
+        self.peaklist.InsertColumn(0,u'min RT', width=70)
+        self.peaklist.InsertColumn(1,u'max RT', width=60)
+        self.peaklist.InsertColumn(2,u'# scans', width=60)
+        self.peaklist.InsertColumn(3,u'dv (V)', width=60)
+        self.peaklist.InsertColumn(4,u'file', width=60)
 
         mainSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
         mainSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
@@ -309,6 +308,39 @@ class topPanel(wx.Panel):
         else:
             evt.Skip()
         
+    def OnGetItemInformation(self, itemID, return_list=False):
+        # get item information
+        information = {'start':str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames['start']).GetText()),
+                       'end':str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames['end']).GetText()),
+                       'scans':str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames['end']).GetText()),
+                       'drift_voltage':str2num(self.peaklist.GetItem(itemID, self.config.driftTopColNames['drift_voltage']).GetText()),
+                       'document':self.peaklist.GetItem(itemID, self.config.driftTopColNames['filename']).GetText()
+                       }
+           
+        if return_list:
+            start = information['start']
+            end = information['end']
+            scans = information['scans']
+            drift_voltage = information['drift_voltage']
+            document = information['document']
+            return start, end, scans, drift_voltage, document
+            
+        return information
+        
+    def onClearItems(self, document):
+        """
+        @param document: title of the document to be removed from the list
+        """
+        row = self.peaklist.GetItemCount() - 1
+        while (row >= 0):
+            info = self.OnGetItemInformation(itemID=row)
+            print(info)
+            if info['document'] == document:
+                self.peaklist.DeleteItem(row)
+                row-=1
+            else:
+                row-=1
+        
 class bottomPanel(wx.Panel):
     """
     Panel for ion list
@@ -349,11 +381,11 @@ class bottomPanel(wx.Panel):
         
         mainSizer = wx.BoxSizer( wx.VERTICAL )
         self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0,u'Start m/z', width=70)
-        self.peaklist.InsertColumn(1,u'End m/z', width=60)
-        self.peaklist.InsertColumn(2,u'%', width=40)
+        self.peaklist.InsertColumn(0,u'min m/z', width=70)
+        self.peaklist.InsertColumn(1,u'max m/z', width=60)
+        self.peaklist.InsertColumn(2,u'% int', width=40)
         self.peaklist.InsertColumn(3,u'z', width=40)
-        self.peaklist.InsertColumn(4,u'File', width=40)
+        self.peaklist.InsertColumn(4,u'file', width=40)
          
         mainSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
         mainSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
@@ -650,6 +682,36 @@ class bottomPanel(wx.Panel):
                                          alpha=(self.config.annotTransparency/100),
                                          repaint=False)
 
-
-
+    def OnGetItemInformation(self, itemID, return_list=False):
+        # get item information
+        information = {'start':str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames['start']).GetText()),
+                       'end':str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames['end']).GetText()),
+                       'intensity':str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames['intensity']).GetText()),
+                       'charge':str2int(self.peaklist.GetItem(itemID, self.config.driftBottomColNames['charge']).GetText()),
+                       'document':self.peaklist.GetItem(itemID, self.config.driftBottomColNames['filename']).GetText()
+                       }
+           
+        if return_list:
+            start = information['start']
+            end = information['end']
+            intensity = information['intensity']
+            charge = information['charge']
+            document = information['document']
+            return start, end, intensity, charge, document
+            
+        return information
+        
+    def onClearItems(self, document):
+        """
+        @param document: title of the document to be removed from the list
+        """
+        row = self.peaklist.GetItemCount() - 1
+        while (row >= 0):
+            info = self.OnGetItemInformation(itemID=row)
+            print(info)
+            if info['document'] == document:
+                self.peaklist.DeleteItem(row)
+                row-=1
+            else:
+                row-=1
 

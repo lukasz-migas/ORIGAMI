@@ -14,6 +14,8 @@
 #    provided WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
+# Generate icon: convert logo.png -define icon:auto-resize=128,64,48,32,16 logo.ico
+
 
 import sys
 import zipfile
@@ -42,7 +44,7 @@ import wx
 # ETSConfig.toolkit = 'wx'
 
 sys.setrecursionlimit(5000)
-version = '1.1.0'
+version = '1.1.1'
 
 # Compile program using:
 # python compileScript.py py2exe
@@ -62,7 +64,7 @@ numpy_dll_paths_fix()
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
-dist_dir = os.path.join(current_dir, "ORIGAMI_ANALYSE_v1.1.0")
+dist_dir = os.path.join(current_dir, "ORIGAMI_ANALYSE_v1.1.1")
 
 # def copyPackage (pkg, name, dist) :
 #     p = os.path.join (dist, name)
@@ -85,6 +87,7 @@ py2exe_options = dict(
                 "pdb", '_ssl','Qt5','nbconvert','IPython',
 				],
     includes = ["matplotlib.backends.backend_qt5agg", "PyQt5", 
+   				"urllib2",
                 "scipy.sparse.csgraph._validation", 
 				"scipy.linalg.cython_blas",
                 "scipy.linalg.*","scipy.integrate", 
@@ -113,7 +116,7 @@ py2exe_options = dict(
 
 # main setup
 setup(name = "ORIGAMI",
-      version = '1.1.0',
+      version = '1.1.1',
       description = "ORIGAMI - A Software Suite for Activated Ion Mobility Mass Spectrometry ",
       author = "Lukasz G. Migas",
       contact = "lukasz.migas@manchester.ac.uk",
@@ -142,7 +145,7 @@ for file in filelist:
 	copy(file, savePath)
 	
 # Copy additional folders
-dirlist = [ 'licences'] #, 'mpl-data']
+dirlist = [ 'licences', 'unidec_bin', 'images'] #, 'mpl-data']
 for directory in dirlist:
 	try:
 		saveDir = path.path(''.join([dist_dir,'\\', directory]))

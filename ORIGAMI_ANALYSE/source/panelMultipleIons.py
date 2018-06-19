@@ -141,7 +141,6 @@ class topPanel(wx.Panel):
         toolbar.SetToolBitmapSize((16, 16)) 
         toolbar.AddTool(ID_checkAllItems_Ions, self.icons.iconsLib['check16'] , 
                         shortHelpString="Check all items\tX")
-        toolbar.AddSeparator()
         toolbar.AddTool(ID_addIonsMenu, self.icons.iconsLib['add16'], 
                               shortHelpString="Add...") 
         toolbar.AddTool(ID_removeIonsMenu, self.icons.iconsLib['remove16'],
@@ -156,11 +155,10 @@ class topPanel(wx.Panel):
                              shortHelpString="Overlay currently selected ions")
         self.combo = wx.ComboBox(toolbar, ID_selectOverlayMethod, value= "Transparent",
                                  choices=self.config.overlayChoices,
-                                 style=wx.CB_READONLY)
+                                 style=wx.CB_READONLY, size=(100, -1))
         toolbar.AddControl(self.combo)
         toolbar.AddTool(ID_saveIonsMenu, self.icons.iconsLib['save16'], 
                              shortHelpString="Save...")
-        toolbar.AddSeparator()
         toolbar.AddTool(ID_ionPanel_guiMenuTool, self.icons.iconsLib['setting16'], 
                              shortHelpString="Table settings...")
 
@@ -206,6 +204,19 @@ class topPanel(wx.Panel):
         if evt != None:
             evt.Skip()
     # ----
+    def onRenameItem(self, old_name, new_name, item_type="Document"):
+        for row in range(self.peaklist.GetItemCount()):
+            itemInfo = self.OnGetItemInformation(itemID=row)
+            if item_type == "document":
+                if itemInfo['document'] == old_name:
+                    self.peaklist.SetStringItem(index=row,
+                                                col=self.config.peaklistColNames['filename'],
+                                                label=new_name)
+#             elif item_type == "filename":
+#                 if itemInfo['filename'] == old_name:
+#                     self.peaklist.SetStringItem(index=row,
+#                                                 col=self.config.peaklistColNames['filename'],
+#                                                 label=new_name)
           
     def onStatusHelp(self, evt):
         evtID = evt.GetId()
@@ -265,6 +276,9 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaskIons)
         self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMinThresholdIons)
         self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaxThresholdIons)
+        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_ionPanel_changeColorBatch_palette)
+        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_ionPanel_changeColorBatch_colormap)
+        self.Bind(wx.EVT_MENU, self.onChangeColormap, id=ID_ionPanel_changeColormapBatch)
         
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_highlightRectAllIons,
@@ -285,6 +299,17 @@ class topPanel(wx.Panel):
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaxThresholdIons,
                                      text='Assign maximum threshold to selected ions', 
                                      bitmap=self.icons.iconsLib['max_threshold_16']))
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_changeColormapBatch,
+                                     text='Randomize colormap for selected items', 
+                                     bitmap=self.icons.iconsLib['blank_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_changeColorBatch_palette,
+                                     text='Colour selected items using color palette', 
+                                     bitmap=self.icons.iconsLib['blank_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_changeColorBatch_colormap,
+                                     text='Colour selected items using colormap', 
+                                     bitmap=self.icons.iconsLib['blank_16']))
+        
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -359,12 +384,14 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedIon)
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeAllIons)
         self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_clearTableIons)
+        self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_clearSelectedIons)
         self.Bind(wx.EVT_MENU, self.onRemoveDuplicates, id=ID_removeDuplicatesTable)
         
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearTableIons,
                                      text='Clear table', 
                                      bitmap=self.icons.iconsLib['clear_16']))
+        menu.Append(ID_clearSelectedIons, "Clear selected")
         menu.AppendSeparator()
         menu.Append(ID_removeDuplicatesTable, "Remove duplicates")
         menu.Append(ID_removeSelectedIon, "Remove selected ions")
@@ -803,7 +830,7 @@ class topPanel(wx.Panel):
                 else:
                     tempRow.append(item.GetText())
             tempRow.append(self.peaklist.IsChecked(index=row))
-            tempRow.append(self.peaklist.GetItemTextColour(row))
+            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
             tempData.append(tempRow)
             
         # Sort data  
@@ -823,7 +850,7 @@ class topPanel(wx.Panel):
         for row, check, rgb in zip(rowList, checkData, rgbData):
             self.peaklist.Append(tempData[row])
             self.peaklist.CheckItem(row, check)
-            self.peaklist.SetItemTextColour(row, rgb)
+            self.peaklist.SetItemBackgroundColour(row, rgb)
             
     def onRemoveDuplicates(self, evt, limitCols=False):
         """
@@ -852,7 +879,7 @@ class topPanel(wx.Panel):
                 else:
                     tempRow.append(item.GetText())
             tempRow.append(self.peaklist.IsChecked(index=row))
-            tempRow.append(self.peaklist.GetItemTextColour(row))
+            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
             tempData.append(tempRow)
 
         # Remove duplicates
@@ -877,7 +904,7 @@ class topPanel(wx.Panel):
         for row, check, rgb in zip(rowList, checkData, rgbData):
             self.peaklist.Append(tempData[row])
             self.peaklist.CheckItem(row, check)
-            self.peaklist.SetItemTextColour(row, rgb)
+            self.peaklist.SetItemBackgroundColour(row, rgb)
             
         if evt is None: return
         else:
@@ -1019,7 +1046,6 @@ class topPanel(wx.Panel):
                 else:
                     currentItems-=1
         elif evt.GetId() == ID_removeSelectedIonPopup:
-            
             selectedItem = self.peaklist.GetItem(self.currentItem,5).GetText()
             mzStart = self.peaklist.GetItem(self.currentItem,0).GetText()
             mzEnd = self.peaklist.GetItem(self.currentItem,1).GetText()
@@ -1063,7 +1089,6 @@ class topPanel(wx.Panel):
                 print('Cancelled operation')
                 return
             else:
-#                 for textID in range(self.peaklist.GetItemCount()):
                 currentItems = self.peaklist.GetItemCount()-1
                 while (currentItems >= 0):
                     selectedItem = self.peaklist.GetItem(currentItems,5).GetText()
@@ -1156,15 +1181,24 @@ class topPanel(wx.Panel):
         """
         This function clears the table without deleting any items from the document tree
         """
-        # Ask if you want to delete all items
-        dlg = dialogs.dlgBox(exceptionTitle='Are you sure?', 
-                             exceptionMsg= "Are you sure you would like to clear the table??",
-                             type="Question")
-        if dlg == wx.ID_NO:
-            msg = 'Cancelled operation'
-            self.presenter.view.SetStatusText(msg, 3)
-            return
-        self.peaklist.DeleteAllItems()
+        evtID = evt.GetId()
+        
+        if evtID == ID_clearSelectedIons:
+            row = self.peaklist.GetItemCount() - 1
+            while (row >= 0):
+                if self.peaklist.IsChecked(index=row):
+                    self.peaklist.DeleteItem(row)
+                row-=1
+        else:
+            # Ask if you want to delete all items
+            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?', 
+                                 exceptionMsg= "Are you sure you would like to clear the table??",
+                                 type="Question")
+            if dlg == wx.ID_NO:
+                msg = 'Cancelled operation'
+                self.presenter.view.SetStatusText(msg, 3)
+                return
+            self.peaklist.DeleteAllItems()
         
     def onDuplicateIons(self, evt):
         
@@ -1257,7 +1291,7 @@ class topPanel(wx.Panel):
                        'mzEnd':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['end']).GetText()),
                        'intensity':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['intensity']).GetText()),
                        'charge':str2int(self.peaklist.GetItem(itemID, self.config.peaklistColNames['charge']).GetText()),
-                       'color':self.peaklist.GetItemTextColour(item=itemID),
+                       'color':self.peaklist.GetItemBackgroundColour(item=itemID),
                        'colormap':self.peaklist.GetItem(itemID, self.config.peaklistColNames['colormap']).GetText(),
                        'alpha':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['alpha']).GetText()),
                        'mask':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['mask']).GetText()),
@@ -1274,10 +1308,11 @@ class topPanel(wx.Panel):
             pass
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
-        
-        if information['ionName'] in self.docs.IMS2Dions:
-            min_threshold = self.docs.IMS2Dions[information['ionName']].get('min_threshold', 0)
-            max_threshold = self.docs.IMS2Dions[information['ionName']].get('max_threshold', 1)
+        try:
+            if information['ionName'] in self.docs.IMS2Dions:
+                min_threshold = self.docs.IMS2Dions[information['ionName']].get('min_threshold', 0)
+                max_threshold = self.docs.IMS2Dions[information['ionName']].get('max_threshold', 1)
+        except AttributeError: pass
         
         information['min_threshold'] = min_threshold
         information['max_threshold'] = max_threshold
@@ -1347,7 +1382,7 @@ class topPanel(wx.Panel):
         elif value_type == 'intensity':
             self.peaklist.SetStringItem(itemID, 3, str(value_type))
         elif value_type == 'color_text':
-            self.peaklist.SetItemTextColour(itemID, value)
+            self.peaklist.SetItemBackgroundColour(itemID, value)
             self.peaklist.SetStringItem(itemID, 4, str(value))
         elif value_type == 'colormap':
             self.peaklist.SetStringItem(itemID, 5, str(value_type))
@@ -1447,7 +1482,7 @@ class topPanel(wx.Panel):
             self.peaklist.SetStringItem(self.currentItem, 
                                         self.config.peaklistColNames['color'], 
                                         str(convertRGB255to1(newColour)))
-            self.peaklist.SetItemTextColour(self.currentItem, newColour)
+            self.peaklist.SetItemBackgroundColour(self.currentItem, newColour)
             # Retrieve custom colors
             for i in xrange(15): 
                 self.config.customColors[i] = data.GetCustomColour(i)
@@ -1466,9 +1501,62 @@ class topPanel(wx.Panel):
             self.peaklist.SetStringItem(self.currentItem, 
                                         self.config.peaklistColNames['color'], 
                                         str(convertRGB255to1(newColour)))
-            self.peaklist.SetItemTextColour(self.currentItem, newColour)
+            self.peaklist.SetItemBackgroundColour(self.currentItem, newColour)
             if give_value:
                 return newColour
+    # ----
+    def onChangeColormap(self, evt):
+        # get number of checked items
+        check_count = 0
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
+                check_count += 1 
+        
+        if check_count > len(self.config.narrowCmapList):
+            colormaps = self.config.narrowCmapList
+        else:
+            colormaps = self.config.narrowCmapList + self.config.cmaps2
+        
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
+                self.currentItem = row
+                colormap = colormaps[row]
+                self.peaklist.SetStringItem(row, 
+                                            self.config.peaklistColNames['colormap'], 
+                                            str(colormap))
+                
+                # update document
+                try:
+                    self.onUpdateDocument(evt=None)
+                except TypeError:
+                    print("Please select item")
+        
+    def onChangeColorBatch(self, evt):
+        # get number of checked items
+        check_count = 0
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
+                check_count += 1 
+                
+        if evt.GetId() == ID_ionPanel_changeColorBatch_palette:
+            colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=check_count, return_colors=True)
+        else:
+            colors = self.presenter.view.panelPlots.onGetColormapList(n_colors=check_count)
+        
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
+                self.currentItem = row
+                color = colors[row]
+                self.peaklist.SetStringItem(row, 
+                                            self.config.peaklistColNames['color'], 
+                                            str(color))
+                self.peaklist.SetItemBackgroundColour(row, convertRGB1to255(color))
+                
+            # update document
+            try:
+                self.onUpdateDocument(evt=None)
+            except TypeError:
+                print("Please select item")
     # ----
     def onUpdateDocument(self, evt, itemInfo=None):
         
@@ -1512,9 +1600,21 @@ class topPanel(wx.Panel):
                 except: pass  
         
         # Update file list
-        self.presenter.OnUpdateDocument(document, 'no_refresh')
-        
+        self.presenter.OnUpdateDocument(document, 'document')
 
+    def onClearItems(self, document):
+        """
+        @param document: title of the document to be removed from the list
+        """
+        row = self.peaklist.GetItemCount() - 1
+        while (row >= 0):
+            info = self.OnGetItemInformation(itemID=row)
+            if info['document'] == document:
+                self.peaklist.DeleteItem(row)
+                row-=1
+            else:
+                row-=1
+        
 class panelExportData(wx.MiniFrame):
     """
     Export data from table
