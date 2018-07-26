@@ -5,7 +5,7 @@
 <p><strong>Disclaimer:</strong></p>
 <p>This is only an experimental feature and might not work perfectly! I've tried to implement all tags into various plotting functions but it is likely I forgot. I know for a fact that specifying xlimits/ylimits might not work everywhere.</p>
 <hr />
-<p>Since version 1.1.2 it is possible to load a number of data formats that are not mass spectrometry related, for instance, molecular dynamics results, machine learning, HDX, cross-linking and many others that comply with the data format requirements.A bit like in OriginPro or Excel, data can be loaded from a comma-delimited file that has been appropriately labeled with some of the allowed tags. The list of tags is found below and you also have a look online <strong>here </strong>to see some example files for datasets previously published by myself or members of the Barran group. The file must have metadata (found at the top of the file) and plot data (below the metadata).</p>
+<p>Since version 1.1.2 it is possible to load a number of data formats that are not mass spectrometry related, for instance, molecular dynamics results, machine learning, HDX, cross-linking and many others that comply with the data format requirements.A bit like in OriginPro or Excel, data can be loaded from a comma-delimited file that has been appropriately labeled with some of the allowed tags. The list of tags is found below and you also have a look online <strong><a href="https://github.com/lukasz-migas/ORIGAMI/tree/master/ORIGAMI_ANALYSE/other_datasets">here</a> </strong>to see some example files for datasets previously published by myself or members of the Barran group. The file must have metadata (found at the top of the file) and plot data (below the metadata).</p>
 <h4>Allowed tags in the metadata section:</h4>
 <p><strong>title</strong> = dataset title</p>
 <p><strong>plot_type</strong> = type of plot ORIGAMI should display. Allowed types: <em>line, </em><em>multi-line</em>, <em>scatter</em>, <em>vertical-bar, horizontal-bar, grid-line, waterfall</em></p>
@@ -26,7 +26,7 @@
 <p><strong>axis_color</strong> = columns with colors for each item in the x/y-axis. Color must be in HEX representation (i.e. #000000). Only used for scatter plot types.</p>
 <p><strong>axis_y_min </strong>= columns associated with x-axis data. Only used for vertical/horizontalbar plot types.</p>
 <p><strong>axis_y_max </strong>= columns associated with x-axis data. Only used for vertical/horizontalbar plot types.</p>
-<p><strong>axis_label </strong>= columns associated with x/y-axis data. Used in hover tooltip. Can add hover tooltip labels using the <strong>hover_labels</strong>. </p>
+<p><strong>axis_label </strong>= columns associated with x/y-axis data. Used in hover tooltip. Can add hover tooltip labels using the <strong>hover_labels</strong>.</p>
 <p><strong>axis_note </strong>= columns associated with x/y-axis data.</p>
 <p>Requirements on per=plot basis:</p>
 <p><em>line </em>- should only have two columns with labels <strong>axis_x</strong>, <strong>axis_y</strong></p>
