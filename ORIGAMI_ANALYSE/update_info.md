@@ -47,20 +47,6 @@
 <li>Fixed issues with the waterfall plots.</li>
 <li>Fixed an issue which occurs when the size of the screen is not optimal. I've tested the software on screens with severan screen dimensions (1980x1080, 1680x1050, 1600x900, 1366x768, 1280x102 and 1280x800) and its looks pretty good.&nbsp; I would recommend using a decent sized screen for using ORIGAMI.</li>
 </ul>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-<p><strong>Waterfall overlay:</strong></p>
-<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/waterfall_overlay_plot.png" alt="" width="561" height="549" /></p>
-<p><strong>Violin:</strong></p>
-<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/violin_plot.png" width="892" height="755" /></p>
-<p><strong>Scatter:</strong></p>
-<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/scatter_plot.png" width="774" height="531" /></p>
-<p><strong>Bar plot</strong></p>
-<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/vertical_bar_plot.png" width="886" height="692" /></p>
-<p><strong>Waterfall plot with JavaScript widgets</strong></p>
-<p><strong><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/html_waterfall.png" width="1148" height="518" /></strong></p>
-<p>Annotations panel</p>
-<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/panel_annotations_only.png" alt="" width="577" height="500" /></p>
 <p><strong>Planned features:</strong></p>
 <ul style="list-style-type: square;">
 <li>Interactive panel:
