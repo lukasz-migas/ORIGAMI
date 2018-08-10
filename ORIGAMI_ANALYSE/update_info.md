@@ -1,81 +1,99 @@
 <h2><strong>What changed in ORIGAMI<sup>ANALYSE&nbsp;</sup>:</strong></h2>
 <p><strong>Note</strong>&nbsp;</p>
-<p>This is a major update, predominantly focusing on adding support for deconvolution of mass spectra using UniDec and introducing several new plotting options while also improving the Interactive Output documents.</p>
-<p><strong>New in v1.1.1:</strong></p>
+<p>This was meant to be a mini-update but it has spaned over several weeks and includes a fairly significant revamp of the <strong>Interactive output panel</strong> (with loads new features), addition of <strong>many</strong> new plot types, cleaner interface (in some places), bug fixes and more.</p>
+<p>I have changed the way I compile ORIGAMI (switched from obsolete py2exe to pyinstaller) which increased the size of the directry (~2x) and made it less organised but it should result in better support. Overall, you should see similar performance and not notice the change.</p>
+<p><strong>New in v1.1.2:</strong></p>
 <ul>
-<li>Added support for UniDec deconvolution in ORIGAMI. <br />
+<li>Added several new plotting methods:
 <ul>
-<li>You can easily load MS and deconvolute using the well-established UniDec's Bayesian deconvolution algorithm</li>
-<li>ORIGAMI generates nearly identical plots to those of UniDec</li>
-<li>All deconvolution results can be exported in a HTML format</li>
-<li>The results obtained in ORIGAMI are identical to those of UniDec</li>
-<li>All results can be saved in text format for viewing elsewhere</li>
-<li>If you use this feature, please ensure to cite UniDec in your research!</li>
+<li>Waterfall overlay</li>
+<li>Violin</li>
+<li>Scatter</li>
+<li>Bar plot</li>
 </ul>
 </li>
-<li>Can now export RGB plots in Interactive Format</li>
-<li>Added overlay method (Waterfall) for mass spectra, exportable in HTML format
+<li>The document type (Type: Interactive) now supports addition of "Other..." data type. This is fairly versatile and can include any of the following: <em>line, multi-line, scatter, vertical-bar, horizontal-bar, grid-line, waterfall, grid-line and grid-scatter </em>and is mostly aimed at enabling exporting of more complex (and not necessarily MS related datasets) in an interactive format. To take advantage of its full potential I made a repository where you can see example files, but it basically requires specification of some meta-data (i.e. title, x/y-axis labels etc) and addition of data. You can learn more about it by going to <strong>Menu -&gt; Help -&gt; Help pages -&gt; Learn more: Other datasets (shortcut F1+9)</strong>. Check out the example files <a href="https://github.com/lukasz-migas/ORIGAMI/tree/master/ORIGAMI_ANALYSE/other_datasets">here</a>. I've also included a couple example files in folder 'example_files/other_data'. </li>
+<li>Added new "Annotation" panel that enables you add annotations to mass spectra (i.e. charge state, protein name, any description). To enable it, plot the mass spectrum and right-click in the Documents Tree and select -&gt; Add/Show annotations (shown below). You can learn more about it going to <strong>Menu -&gt; Help pages -&gt; Learn more: Annotating mass spectra (shortcut F1+8)</strong></li>
+<li>Added a proper version checker that will check whether new version of ORIGAMI is available online at each start of the program.</li>
+<li>General changes to the Interactive Output panel:
 <ul>
-<li>Enables comparison of multiple mass spectra (from same or different files)</li>
-<li>Comparison of UniDec results</li>
-<li>First you have to add mass spectra to the <strong>Multiple files</strong> panel (right-click on the Mass Spectra heading in the Documents panel and select <strong>Add spectra to multiple files panel</strong>)</li>
+<li>Tried to reorganise several components to make it look less cluttered.</li>
+<li>Added several new parameters that you can change</li>
+<li>All generated plots can now benefit from using 'custom JavaScript' widgets and events. Events are currently limited to 'double-click in plot area will zoom-out' whereas widgets are much more versatile and include addition of buttons, sliders, toggles, radio buttons and few others. These can control the size of the labels, level of zoom, transparency or position of legend and many others. These are enabled by default and can be turned off in the <strong>Interactive Panel -&gt; Annotations -&gt; Add custom JS events/scripts when available</strong>. Addition of custom JS events/widgets slows down generation of interactive plots as these have to be compiled to JS. <strong>Note</strong>: First time you try this you will most likely be greeted with an error message. Follow the instructions there to solve it.</li>
+<li>Expanded the list of available plots.</li>
+<li>Interactive plots can be exprted in multi-threaded mode now, enabling you to do other tasks while they are being exported. <strong>Note: </strong>If you close the output window, the export process will stop.</li>
 </ul>
 </li>
-<li>Added two new overlay methods (Grid (2-&gt;1) and Grid (n x n)), both are exportable in HTML format<br />
+<li>Overlay plots will not be added to overlay document by default. You first must toggle "Add overlay plots to document" in the menus of individual overlay panels.</li>
+</ul>
+<p><strong>Improvements in v1.1.2:</strong></p>
 <ul>
-<li>The Grid (2-&gt;1) method allows viewing RMSD plot alongside its individual components</li>
-<li>The Grid (n x n) allows viewing up to 16 species simultaneously</li>
+<li>Loads of small improvements in the Interactive output pane</li>
+<li>Improved and extended list of available labels</li>
+<li>Reorganised the <strong>Plot parameters panel </strong></li>
+<li>Some of the <strong>plot parameter</strong> options will take an immediate effected without the need to replot the data. Some will not!</li>
+<li>General improvements to the Peak fitting/finding in the <strong>Processing panel</strong>.</li>
+<li>General improvements to the Mass spectrum processing the <strong>Processing panel</strong>.</li>
+<li>Usually at start of the program, ORIGAMI looks for Driftscope on your PC. If it doesn't find it, it usually notifies you of it. You can disable this behaviour now.</li>
+<li>Configuration files are not saved automatically. You can disable this by going to <strong>Plot settings -&gt; Extra -&gt; Auto-save settings</strong> to off.</li>
+<li>Added two new color palettes (cividis - colorblind friendly and winter)</li>
+<li>Rearranged the UniDec panel and improved error messges.</li>
+<li>Added label position optimisation (can be disabled if you don't like the results).</li>
 </ul>
-</li>
-<li>Added Drag'n'Drop support for multiple data types
-<ul>
-<li>.raw files will be assumed to in an ORIGAMI format (it is compatible will all data processing tools)</li>
-<li>.raw files dropped in the Multiple Files panel will be added to currently opened MANUAL document, if none present it will create a new one</li>
-<li>.txt/.csv/.tab files are also supported. ORIGAMI will perform a test to see if its in a 2D IM-MS or MS format</li>
-</ul>
-</li>
-<li>Added visualisation of MS using a waterfall-like plot
-<ul>
-<li>Right-click on Mass Spectra in the document window --&gt; Select Show mass spectra (waterfall). You can change waterfall settings in the Waterfall settings panel</li>
-<li>By default it will try to sort files based on energy, if not available it will sort it by name</li>
-</ul>
-</li>
-<li>Added</li>
-<li>Added color palette option in the Settings -&gt; General panel</li>
-<li>Added new document type (INTERACTIVE) which allows loading of MS, RT, DT and 2D datasets independent of the vendor (text format of course!). All of these can be exported in a HTML format
-<ul>
-<li>To add data to <strong>INTERACTIVE</strong> document, right-click on the document in the Documents panel and select one of&nbsp;<strong>Add ...</strong> options </li>
-<li>If you would like to compare mass spectra, right-click on the item (Mass Spectra) and select option <strong>Add spectra to multiple files panel</strong>.</li>
-<li>If you would like to compare 2D heatmaps, right-click on the item (Drift time (2D, EIC) and select option <strong>Add to text file table</strong></li>
-</ul>
-</li>
-</ul>
-<p><strong>Improvements in v1.1.1:</strong></p>
-<ul>
-<li>Interactive documents will now contain a watermark</li>
-<li>Small improvements to the hover tool in the HTML viewer</li>
-<li>small twaks to the 1D plots</li>
-<li>Fixed an issue with the waterfall plots (incorrect ordering of the plot lines)</li>
-<li>When extracting peaks in the MS window, ORIGAMI will try to determine the charge state automatically by examining the isotopic pattern</li>
-<li>Binning is no longer the default method of linearizing data. Added multiple other methods that are better at that (some are quite slow)</li>
-<li>Significant improvements to the way images and text output is saved</li>
-</ul>
-<p>&nbsp;<strong>Fixes in v1.1.1:</strong></p>
+<p>&nbsp;<strong>Fixes in v1.1.2:</strong></p>
 <ul>
 <li>Many fixes that should improve the general usability and reliability of the analysis software</li>
-<li>Minor problems when analysing multiple MassLynx files simultaneously</li>
-<li>A couple of small issues when loading Linear DT files</li>
-<li>Removed a bug that broke ORIGAMI when you tried removing all documents from the Documents panel</li>
+<li>Fixed an issue where the colorbar wasn't displaying correct values</li>
+<li>Fixed issues with the waterfall plots.</li>
+<li>Fixed an issue which occurs when the size of the screen is not optimal. I've tested the software on screens with severan screen dimensions (1980x1080, 1680x1050, 1600x900, 1366x768, 1280x102 and 1280x800) and its looks pretty good.&nbsp; I would recommend using a decent sized screen for using ORIGAMI.</li>
 </ul>
-<p>&nbsp;<strong>Known issues:</strong></p>
-<ul>
-<li>The DT-IMS panel still lacks a lot of functions</li>
-<li>The CCS panel is quite clunky and not intuitive - needs a revamp!</li>
-<li>When zooming-in and the mouse cursor goes outside of the plot axes, the zoom tools get locked-up - kind of annoying</li>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>Waterfall overlay:</strong></p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/waterfall_overlay_plot.png" alt="" width="561" height="549" /></p>
+<p><strong>Violin:</strong></p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/violin_plot.png" width="892" height="755" /></p>
+<p><strong>Scatter:</strong></p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/scatter_plot.png" width="774" height="531" /></p>
+<p><strong>Bar plot</strong></p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/vertical_bar_plot.png" width="886" height="692" /></p>
+<p><strong>Waterfall plot with JavaScript widgets</strong></p>
+<p><strong><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/html_waterfall.png" width="1148" height="518" /></strong></p>
+<p>Annotations panel</p>
+<p><img src="https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.2/panel_annotations_only.png" alt="" width="577" height="500" /></p>
+<p><strong>Planned features:</strong></p>
+<ul style="list-style-type: square;">
+<li>Interactive panel:
+<ul style="list-style-type: square;">
+<li>I don't like the current positiong of various settings and how they are actively enabled/disable upon selection in the list. I intend to add a separate window where when you double-click on an item it will open and you will only see relevant settings.</li>
+<li>Widgets are awesome but still require a lot of work. A couple of really cool widgets I intend to add are toggles for colorblind mode, data selection dropdowns, comparison tools etc</li>
+<li>I would like to add a number of neat plots, including circos-style plot for XL-MS, HDX-style grid plots etc</li>
 </ul>
-<p><strong>Preview Interactive documents</strong></p>
-<p><a href="http://htmlpreview.github.io/?https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/p27FL_UniDec.html">Analysis of p27-FL IDP protein using UniDec deconvolution engine</a></p>
-<p><a href="http://htmlpreview.github.io/?https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/v1.1.1/prt_interactive_grid.html">Visualisation of multiple 2D datasets simultaneously</a></p>
+</li>
+<li>Plots:
+<ul style="list-style-type: square;">
+<li>I have a couple of ideas for new plot types, especially for RMSD-type plots</li>
+</ul>
+</li>
+<li>Main program:
+<ul style="list-style-type: square;">
+<li>Speed-up certain operations</li>
+<li>Improve GUI</li>
+<li>Add support for other vendor files. I intend to use <em>multiplierz </em>+ other open-source libraries</li>
+</ul>
+</li>
+<li>Help pages:
+<ul style="list-style-type: square;">
+<li>Improve the text + add more examples</li>
+</ul>
+</li>
+<li>Videos:
+<ul style="list-style-type: square;">
+<li>Record a couple of videos showing various features + usage</li>
+</ul>
+</li>
+</ul>
+<p>&nbsp;</p>
 <p><strong>ORIGAMI-MS:</strong></p>
 <p>There have been no changes to ORIGAMI<sup>MS</sup>, so please download it from release 1.0.1.</p>
 <p><strong>Video tutorials:</strong></p>
@@ -85,8 +103,7 @@
 <p><strong>Mailing list</strong></p>
 <p>If you would like to be added to a ORIGAMI mailing list where you will be notified of new releases, please contact <a href="mailto:lukasz.migas@manchester.ac.uk">lukasz.migas@manchester.ac.uk</a>.&nbsp;</p>
 <p><strong>How to update</strong></p>
-<p>Since the whole package was revamped, the only way to update ORIGAMI is to download the ORIGAMI_ANALYSE_v1.1.1.zip file, unpack it somewhere on your PC and it should work out of the box. :)</p>
-<p>As you might notice, the size of the directory increased quite a bit, it is about 500 Mb when unpacked.</p>
-<p>&nbsp;</p>
+<p>Since the whole package was revamped, the only way to update ORIGAMI is to download the ORIGAMI_ANALYSE_v1.1.2.zip file, unpack it somewhere on your PC and it should work out of the box. :)</p>
+<p>As you might notice, the size of the directory increased quite a bit, it is about 1 Gb when unpacked.</p>
 <p>Many thanks,</p>
 <p>Lukasz</p>
