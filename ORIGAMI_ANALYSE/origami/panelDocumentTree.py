@@ -21,7 +21,6 @@
 # TODO: Add converter of MS from m/z to m/z (Da) to m/z (kDa)
 # TODO: Fix on_enable_document
 
-
 import wx, gc, os, re, time
 import numpy as np
 import pandas as pd
@@ -2178,6 +2177,7 @@ class documentsTree(wx.TreeCtrl):
                                          bitmap=self.icons.iconsLib['mobiligram_16']))
             menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, 'Change x-axis to...', xlabel1DMenu)
+            menu.AppendSeparator()
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_save1DImageDoc,
                                      text=saveImageLabel, 
                                      bitmap=self.icons.iconsLib['file_png_16']))
@@ -2188,12 +2188,9 @@ class documentsTree(wx.TreeCtrl):
                                          text='Delete item\tDelete', 
                                          bitmap=self.icons.iconsLib['clear_16']))
         # Drift time (2D)   
-        elif any(itemType in type for type in ['Drift time (2D)', 
-                                               'Drift time (2D, processed)',
-                                               'Drift time (2D, EIC)',
-                                               'Drift time (2D, combined voltages, EIC)',
-                                               'Drift time (2D, processed, EIC)',
-                                               ]):
+        elif itemType in ['Drift time (2D)', 'Drift time (2D, processed)', 
+                          'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
+                          'Drift time (2D, processed, EIC)']:
             # Only if clicked on an item and not header
             if (self.itemType in ['Drift time (2D)', 'Drift time (2D, processed)']
                 or (self.itemType == 'Drift time (2D, EIC)' and self.extractData != self.itemType)
