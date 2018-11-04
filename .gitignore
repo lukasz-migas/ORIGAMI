@@ -1,0 +1,13 @@
+*.pyc
+*.pylintrc
+*.project
+*.pydevproject
+list_of_tests.xlsx
+WhatsNew.txt
+configOut.xml
+.idea/
+.settings/
+build/
+dist/
+logs/
+temporary_data/
