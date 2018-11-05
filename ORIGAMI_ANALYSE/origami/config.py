@@ -27,6 +27,7 @@ from matplotlib.pyplot import colormaps
 from ast import literal_eval
 
 import dialogs as dialogs
+from toolbox import (str2num, str2int, str2bool)
 
 class OrigamiConfig:
     
