@@ -1,0 +1,606 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Please refrain from changing the parameter names - this will break things! -->
+<origamiConfig version="1.0">
+
+  <presets>
+    <!-- User-specific parameters -->
+    <param name="operator" value="Lukasz G. Migas" type="unicode" />
+    <param name="contact" value="lukasz.migas@manchester.ac.uk" type="unicode" />
+    <param name="institution" value="University of Manchester" type="unicode" />
+    <param name="instrument" value="SynaptG2" type="unicode" />
+  </presets>
+
+  <recent>
+  </recent>
+
+  <presets_gui>
+    <param name="logging" value="False" type="bool" />
+    <param name="threading" value="True" type="bool" />
+    <param name="autoSaveSettings" value="True" type="bool" />
+    <param name="debug" value="True" type="bool" />
+    <param name="quickDisplay" value="False" type="bool" />
+    <param name="loadCCSAtStart" value="True" type="bool" />
+    <param name="checkForDriftscopeAtStart" value="True" type="bool" />
+    <param name="overrideCombine" value="True" type="bool" />
+    <param name="useInternalParamsCombine" value="False" type="bool" />
+    <param name="overlay_usedProcessed" value="True" type="bool" />
+  </presets_gui>
+
+  <presets_gui_plotSizes>
+    <param name="2D" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="8.00" height_gui="8.00" default_name="IMS2D" type="float" />
+    <param name="3D" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="12.00" height_gui="8.00" default_name="IMS3D" type="float" />
+    <param name="Calibration (DT)" left_axes="0.10" bottom_axes="0.15" width_axes="0.80" height_axes="0.70" left_save="0.10" bottom_save="0.15" width_save="0.80" height_save="0.70" width_resize="10.00" height_resize="4.00" width_gui="6.00" height_gui="6.00" default_name="calibration_DT" type="float" />
+    <param name="Calibration (MS)" left_axes="0.10" bottom_axes="0.15" width_axes="0.80" height_axes="0.70" left_save="0.10" bottom_save="0.20" width_save="0.80" height_save="0.70" width_resize="10.00" height_resize="4.00" width_gui="10.00" height_gui="4.00" default_name="calibration_MS" type="float" />
+    <param name="Comparison" left_axes="0.20" bottom_axes="0.20" width_axes="0.60" height_axes="0.60" left_save="0.20" bottom_save="0.20" width_save="0.60" height_save="0.60" width_resize="10.00" height_resize="10.00" width_gui="8.00" height_gui="8.00" default_name="comparison" type="float" />
+    <param name="DT" left_axes="0.10" bottom_axes="0.20" width_axes="0.80" height_axes="0.75" left_save="0.10" bottom_save="0.15" width_save="0.85" height_save="0.80" width_resize="10.00" height_resize="4.00" width_gui="10.00" height_gui="4.00" default_name="IMS1D" type="float" />
+    <param name="DT/MS" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="8.00" height_gui="8.00" default_name="DTMS" type="float" />
+    <param name="MS" left_axes="0.10" bottom_axes="0.50" width_axes="0.85" height_axes="0.45" left_save="0.10" bottom_save="0.15" width_save="0.85" height_save="0.80" width_resize="10.00" height_resize="4.00" width_gui="10.00" height_gui="6.00" default_name="MS" type="float" />
+    <param name="MS (DT/RT)" left_axes="0.10" bottom_axes="0.20" width_axes="0.80" height_axes="0.75" left_save="0.10" bottom_save="0.15" width_save="0.85" height_save="0.80" width_resize="10.00" height_resize="4.00" width_gui="10.00" height_gui="4.00" default_name="MS" type="float" />
+    <param name="MS (compare)" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="8.00" height_gui="8.00" default_name="MS_compare" type="float" />
+    <param name="Matrix" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="8.00" height_gui="8.00" default_name="matrix" type="float" />
+    <param name="Other (Barplot)" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="other_barplot" type="float" />
+    <param name="Other (Grid-1D)" left_axes="0.15" bottom_axes="0.10" width_axes="0.75" height_axes="0.85" left_save="0.15" bottom_save="0.10" width_save="0.75" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="other_grid1D" type="float" />
+    <param name="Other (Line)" left_axes="0.15" bottom_axes="0.45" width_axes="0.75" height_axes="0.50" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="4.00" width_gui="10.00" height_gui="6.00" default_name="other_line" type="float" />
+    <param name="Other (Multi-line)" left_axes="0.15" bottom_axes="0.20" width_axes="0.70" height_axes="0.70" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="6.00" width_gui="6.00" height_gui="3.00" default_name="other_multiline" type="float" />
+    <param name="Other (Scatter)" left_axes="0.15" bottom_axes="0.15" width_axes="0.75" height_axes="0.80" left_save="0.15" bottom_save="0.15" width_save="0.75" height_save="0.80" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="other_scatter" type="float" />
+    <param name="Other (Waterfall)" left_axes="0.10" bottom_axes="0.15" width_axes="0.80" height_axes="0.80" left_save="0.10" bottom_save="0.15" width_save="0.80" height_save="0.80" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="other_waterfall" type="float" />
+    <param name="Overlay" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="8.00" height_gui="8.00" default_name="overlay" type="float" />
+    <param name="Overlay (Grid)" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="8.00" height_gui="8.00" default_name="overlay" type="float" />
+    <param name="RMSD" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="10.00" height_gui="4.00" default_name="RMSD" type="float" />
+    <param name="RMSF" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="10.00" height_gui="4.00" default_name="RMSF" type="float" />
+    <param name="RT" left_axes="0.10" bottom_axes="0.20" width_axes="0.80" height_axes="0.75" left_save="0.10" bottom_save="0.15" width_save="0.85" height_save="0.80" width_resize="10.00" height_resize="4.00" width_gui="10.00" height_gui="4.00" default_name="RT" type="float" />
+    <param name="UniDec (Barplot)" left_axes="0.15" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="6.00" width_gui="6.00" height_gui="6.00" default_name="unidec_barplot" type="float" />
+    <param name="UniDec (Charge Distribution)" left_axes="0.15" bottom_axes="0.10" width_axes="0.70" height_axes="0.75" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="6.00" width_gui="6.00" height_gui="3.00" default_name="unidec_chargeDist" type="float" />
+    <param name="UniDec (Isolated MS)" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="6.00" width_gui="6.00" height_gui="6.00" default_name="unidec_isolated_MS" type="float" />
+    <param name="UniDec (MS)" left_axes="0.10" bottom_axes="0.20" width_axes="0.80" height_axes="0.70" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="6.00" width_gui="6.00" height_gui="3.00" default_name="unidec_MS" type="float" />
+    <param name="UniDec (MW vs Charge)" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="unidec_grid_MWvZ" type="float" />
+    <param name="UniDec (MW)" left_axes="0.10" bottom_axes="0.20" width_axes="0.80" height_axes="0.70" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="6.00" width_gui="6.00" height_gui="3.00" default_name="unidec_MW" type="float" />
+    <param name="UniDec (m/z vs Charge)" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="unidec_grid_MZvZ" type="float" />
+    <param name="Violin" left_axes="0.15" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.80" width_resize="10.00" height_resize="10.00" width_gui="10.00" height_gui="4.00" default_name="Violin" type="float" />
+    <param name="Waterfall" left_axes="0.05" bottom_axes="0.10" width_axes="0.90" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.80" width_resize="10.00" height_resize="10.00" width_gui="10.00" height_gui="4.00" default_name="Waterfall" type="float" />
+  </presets_gui_plotSizes>
+
+  <presets_gui_peaklistPanel>
+    <param name="min m/z" order="0" width="65" show="True" type="mixed" />
+    <param name="max m/z" order="1" width="65" show="True" type="mixed" />
+    <param name="z" order="2" width="25" show="True" type="mixed" />
+    <param name="% int" order="3" width="60" show="True" type="mixed" />
+    <param name="color" order="4" width="60" show="True" type="mixed" />
+    <param name="colormap" order="5" width="70" show="True" type="mixed" />
+    <param name="α" order="6" width="35" show="True" type="mixed" />
+    <param name="mask" order="7" width="40" show="True" type="mixed" />
+    <param name="label" order="8" width="50" show="True" type="mixed" />
+    <param name="method" order="9" width="80" show="True" type="mixed" />
+    <param name="file" order="10" width="100" show="True" type="mixed" />
+  </presets_gui_peaklistPanel>
+
+  <presets_gui_textPanel>
+    <param name="min CE" order="0" width="65" show="True" type="mixed" />
+    <param name="max CE" order="1" width="65" show="True" type="mixed" />
+    <param name="z" order="2" width="25" show="True" type="mixed" />
+    <param name="color" order="3" width="60" show="True" type="mixed" />
+    <param name="colormap" order="4" width="70" show="True" type="mixed" />
+    <param name="α" order="5" width="35" show="True" type="mixed" />
+    <param name="mask" order="6" width="40" show="True" type="mixed" />
+    <param name="label" order="7" width="50" show="True" type="mixed" />
+    <param name="shape" order="8" width="70" show="True" type="mixed" />
+    <param name="file" order="9" width="100" show="True" type="mixed" />
+  </presets_gui_textPanel>
+
+  <presets_gui_multipleFilesPanel>
+    <param name="filename" order="0" width="200" show="True" type="mixed" />
+    <param name="variable" order="1" width="50" show="True" type="mixed" />
+    <param name="document" order="2" width="80" show="True" type="mixed" />
+    <param name="label" order="3" width="100" show="True" type="mixed" />
+  </presets_gui_multipleFilesPanel>
+
+  <presets_gui_interactivePanel>
+    <param name="" order="0" width="25" show="True" type="mixed" />
+    <param name="document" order="1" width="150" show="True" type="mixed" />
+    <param name="type" order="2" width="90" show="True" type="mixed" />
+    <param name="file/ion/item" order="3" width="150" show="True" type="mixed" />
+    <param name="title" order="4" width="40" show="True" type="mixed" />
+    <param name="header" order="5" width="40" show="True" type="mixed" />
+    <param name="footnote" order="6" width="40" show="True" type="mixed" />
+    <param name="color/colormap" order="7" width="75" show="True" type="mixed" />
+    <param name="page" order="8" width="50" show="True" type="mixed" />
+    <param name="tools" order="9" width="50" show="True" type="mixed" />
+    <param name="#" order="10" width="30" show="True" type="mixed" />
+  </presets_gui_interactivePanel>
+
+  <presets_gui_aui_settings>
+    <param title="CCS calibration" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Documents" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Import/Export parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
+    <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
+    <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
+    <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
+    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Toolbar" gripper="True" orientation="top" close_button="False" left_position="False" top_position="True" left_dockable="True" right_dockable="True" top_dockable="True" bottom_dockable="True" show="True" type="mixed" />
+  </presets_gui_aui_settings>
+
+  <plot_presets_zoom>
+    <param name="_plots_grid_show" value="False" type="bool" />
+    <param name="_plots_grid_color" value="[0, 0, 0]" type="color" />
+    <param name="_plots_grid_line_width" value="1.00" type="float" />
+    <param name="_plots_extract_color" value="[1, 0, 0.2]" type="color" />
+    <param name="_plots_extract_line_width" value="4.00" type="float" />
+    <param name="_plots_extract_crossover_1D" value="0.10" type="float" />
+    <param name="_plots_extract_crossover_2D" value="0.02" type="float" />
+    <param name="_plots_zoom_vertical_color" value="[0.5, 0.0, 0]" type="color" />
+    <param name="_plots_zoom_horizontal_color" value="[0.5, 0.0, 0]" type="color" />
+    <param name="_plots_zoom_box_color" value="[0.5, 0.0, 0]" type="color" />
+    <param name="_plots_zoom_line_width" value="2.00" type="float" />
+    <param name="_plots_zoom_crossover" value="0.05" type="float" />
+  </plot_presets_zoom>
+
+  <plot_presets_annotations>
+    <param name="annotation_charge_std_dev" value="0.05" type="float" />
+    <param name="annotation_arrow_line_width" value="0.25" type="float" />
+    <param name="annotation_arrow_line_style" value="dashdot" type="unicode" choices="['Linear', 'Exponential', 'Boltzmann', 'User-defined', 'Manual']" />
+    <param name="annotation_label_horz" value="center" type="unicode" choices="['center', 'right', 'left']" />
+    <param name="annotation_label_vert" value="center" type="unicode" choices="['center', 'top', 'bottom']" />
+    <param name="annotation_label_font_size" value="small" type="unicode" choices="['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']" />
+    <param name="annotation_label_font_weight" value="normal" type="unicode" choices="['ultralight', 'light', 'normal', 'regular', 'medium', 'bold', 'heavy']" />
+  </plot_presets_annotations>
+
+  <custom_colors>
+    <param name="color_0" value="(219, 94, 86, 255)" type="color" />
+    <param name="color_1" value="(219, 144, 86, 255)" type="color" />
+    <param name="color_2" value="(219, 194, 86, 255)" type="color" />
+    <param name="color_3" value="(194, 219, 86, 255)" type="color" />
+    <param name="color_4" value="(145, 219, 86, 255)" type="color" />
+    <param name="color_5" value="(95, 219, 86, 255)" type="color" />
+    <param name="color_6" value="(86, 219, 127, 255)" type="color" />
+    <param name="color_7" value="(86, 219, 177, 255)" type="color" />
+    <param name="color_8" value="(86, 211, 219, 255)" type="color" />
+    <param name="color_9" value="(86, 161, 219, 255)" type="color" />
+    <param name="color_10" value="(86, 111, 219, 255)" type="color" />
+    <param name="color_11" value="(111, 86, 219, 255)" type="color" />
+    <param name="color_12" value="(160, 86, 219, 255)" type="color" />
+    <param name="color_13" value="(210, 86, 219, 255)" type="color" />
+    <param name="color_14" value="(219, 86, 178, 255)" type="color" />
+    <param name="color_15" value="[219.30000000000001, 86.700000000000003, 128.46899999999999]" type="color" />
+  </custom_colors>
+
+  <process_presets_overlay>
+    <param name="overlay_defaultMask" value="0.40" type="float" />
+    <param name="overlay_defaultAlpha" value="0.50" type="float" />
+    <param name="overlay_smooth1DRT" value="1.00" type="float" />
+  </process_presets_overlay>
+
+  <process_presets_extract>
+    <param name="extract_massSpectra" value="False" type="bool" />
+    <param name="extract_chromatograms" value="False" type="bool" />
+    <param name="extract_driftTime1D" value="False" type="bool" />
+    <param name="extract_driftTime2D" value="False" type="bool" />
+    <param name="extract_mzStart" value="0.00" type="float" />
+    <param name="extract_mzEnd" value="0.00" type="float" />
+    <param name="extract_rtStart" value="0.00" type="float" />
+    <param name="extract_rtEnd" value="999.00" type="float" />
+    <param name="extract_dtStart" value="1.00" type="float" />
+    <param name="extract_dtEnd" value="200.00" type="float" />
+  </process_presets_extract>
+
+  <process_presets_origami>
+    <param name="origami_acquisition" value="Linear" type="unicode" choices="['Linear', 'Exponential', 'Boltzmann', 'User-defined', 'Manual']" />
+    <param name="origami_startScan" value="6" type="int" />
+    <param name="origami_spv" value="3" type="int" />
+    <param name="origami_startVoltage" value="4.00" type="float" />
+    <param name="origami_endVoltage" value="200.00" type="float" />
+    <param name="origami_stepVoltage" value="2.00" type="float" />
+    <param name="origami_boltzmannOffset" value="0.00" type="float" />
+    <param name="origami_exponentialPercentage" value="0.00" type="float" />
+    <param name="origami_exponentialIncrement" value="0.00" type="float" />
+  </process_presets_origami>
+
+  <process_presets_unidec>
+    <!-- Pre-processing parameters -->
+    <param name="unidec_mzStart" value="500" type="float" />
+    <param name="unidec_mzEnd" value="8000.00" type="float" />
+    <param name="unidec_mzBinSize" value="0.10" type="float" />
+    <param name="unidec_gaussianFilter" value="0.00" type="float" />
+    <param name="unidec_accelerationV" value="0.00" type="float" />
+    <param name="unidec_linearization" value="Linear m/z" type="unicode" choices="[u'Linear resolution', u'Nonlinear', u'Linear interpolation', u'Linear resolution interpolation', u'Linear m/z']" />
+    <!-- UniDec engine parameters -->
+    <param name="unidec_zStart" value="5" type="int" />
+    <param name="unidec_zEnd" value="30" type="int" />
+    <param name="unidec_mwStart" value="5000.00" type="float" />
+    <param name="unidec_mwEnd" value="30000.00" type="float" />
+    <param name="unidec_mwFrequency" value="1.00" type="float" />
+    <param name="unidec_peakWidth" value="2.53" type="float" />
+    <param name="unidec_peakFunction" value="Lorentzian" type="unicode" choices="['Split G/L', 'Gaussian', 'Lorentzian']" />
+    <!-- Peak picking parameters -->
+    <param name="unidec_peakDetectionWidth" value="5.00" type="float" />
+    <param name="unidec_peakDetectionThreshold" value="0.01" type="float" />
+    <param name="unidec_peakNormalization" value="None" type="unicode" choices="['Max', 'None', 'Total']" />
+    <param name="unidec_lineSeparation" value="0.05" type="float" />
+    <!-- Plotting parameters -->
+    <param name="unidec_plot_panel_view" value="Tabbed view" type="unicode" />
+    <param name="unidec_maxShown_individualLines" value="50" type="int" />
+    <param name="unidec_plot_fit_lineColor" value="(1.0, 0.0, 0.0)" type="color" />
+    <param name="unidec_plot_MW_showMarkers" value="True" type="bool" />
+    <param name="unidec_plot_MW_markerSize" value="50" type="int" />
+    <param name="unidec_plot_isolatedMS_markerSize" value="50" type="int" />
+    <param name="unidec_plot_bar_markerSize" value="50" type="int" />
+    <param name="unidec_plot_bar_width" value="1.00" type="float" />
+    <param name="unidec_plot_bar_alpha" value="1.00" type="float" />
+    <param name="unidec_plot_bar_edge_color" value="(0.0, 0.0, 0.0)" type="color" />
+    <param name="unidec_plot_bar_sameAsFill" value="False" type="bool" />
+    <param name="unidec_plot_bar_lineWidth" value="2" type="int" />
+    <param name="unidec_plot_contour_levels" value="25" type="int" />
+    <param name="unidec_plot_color_scheme" value="Colormap" type="unicode" choices="['Color scheme', 'Colormap']" />
+    <param name="unidec_plot_colormap" value="viridis" type="unicode" />
+    <param name="unidec_plot_palette" value="HLS" type="unicode" />
+  </process_presets_unidec>
+
+  <process_presets_fitting>
+    <param name="fit_type" value="MS" type="unicode" choices="['MS', 'RT', 'MS + RT']" />
+    <param name="fit_highlight" value="True" type="bool" />
+    <param name="fit_addPeaks" value="True" type="bool" />
+    <param name="fit_xaxis_limit" value="False" type="bool" />
+    <param name="fit_highRes_isotopicFit" value="False" type="bool" />
+    <param name="fit_smoothPeaks" value="True" type="bool" />
+    <param name="fit_highRes" value="False" type="bool" />
+    <param name="fit_window" value="500" type="int" />
+    <param name="fit_threshold" value="0.10" type="float" />
+    <param name="fit_width" value="1.00" type="float" />
+    <param name="fit_asymmetric_ratio" value="0.60" type="float" />
+    <param name="fit_highRes_window" value="10" type="int" />
+    <param name="fit_smooth_sigma" value="1.00" type="float" />
+    <param name="fit_highRes_threshold" value="0.00" type="float" />
+    <param name="fit_highRes_width" value="1.00" type="float" />
+  </process_presets_fitting>
+
+  <process_presets_binning>
+    <param name="ms_enable_in_RT" value="False" type="bool" />
+    <param name="ms_enable_in_MML_start" value="True" type="bool" />
+    <param name="ms_mzStart" value="150.00" type="float" />
+    <param name="ms_mzEnd" value="3598.62" type="float" />
+    <param name="ms_mzBinSize" value="0.02" type="float" />
+    <param name="ms_dtmsBinSize" value="1.00" type="float" />
+    <param name="ms_linearization_mode" value="Linear interpolation" type="unicode" choices="['Linear m/z', 'Linear resolution', 'Nonlinear', 'Linear interpolation', 'Linear resolution interpolation', 'Binning']" />
+    <param name="ms_auto_range" value="False" type="bool" />
+    <param name="ms_process_crop" value="True" type="bool" />
+    <param name="ms_process_linearize" value="True" type="bool" />
+    <param name="ms_process_smooth" value="True" type="bool" />
+    <param name="ms_process_threshold" value="True" type="bool" />
+    <param name="ms_process_normalize" value="True" type="bool" />
+  </process_presets_binning>
+
+  <process_presets_ms>
+    <param name="ms_normalize" value="True" type="bool" />
+    <param name="ms_normalize_mode" value="Maximum" type="unicode" choices="['Maximum']" />
+    <param name="ms_smooth_mode" value="Gaussian" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
+    <param name="ms_smooth_polynomial" value="1" type="int" />
+    <param name="ms_smooth_window" value="3" type="int" />
+    <param name="ms_smooth_sigma" value="10.00" type="float" />
+    <param name="ms_threshold" value="0.00" type="float" />
+  </process_presets_ms>
+
+  <process_compare_mass_spectra>
+    <param name="lineColour_MS1" value="[0.859, 0.369, 0.337]" type="color" />
+    <param name="lineStyle_MS1" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
+    <param name="lineTransparency_MS1" value="1.00" type="float" />
+    <param name="lineColour_MS2" value="[0.0, 0.0, 0.0]" type="color" />
+    <param name="lineStyle_MS2" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
+    <param name="lineTransparency_MS2" value="1.00" type="float" />
+  </process_compare_mass_spectra>
+
+  <process_presets_plot2D>
+    <param name="plot2D_normalize" value="True" type="bool" />
+    <param name="plot2D_normalize_mode" value="Logarithmic" type="unicode" choices="['Maximum', 'Logarithmic', 'Natural log', 'Square root', 'Least Abs Deviation', 'Least Squares']" />
+    <param name="plot2D_smooth_mode" value="None" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
+    <param name="plot2D_smooth_polynomial" value="1" type="int" />
+    <param name="plot2D_smooth_window" value="3" type="int" />
+    <param name="plot2D_smooth_sigma" value="1.00" type="float" />
+    <param name="plot2D_threshold" value="0.00" type="float" />
+  </process_presets_plot2D>
+
+  <plot_presets_rmsd>
+    <param name="rmsd_position" value="bottom left" type="unicode" choices="['bottom left', 'bottom right', 'top left', 'top right', 'none', 'other']" />
+    <param name="rmsd_fontSize" value="10.00" type="float" />
+    <param name="rmsd_fontWeight" value="True" type="bool" />
+    <param name="rmsd_color" value="(1, 1, 1)" type="color" />
+    <param name="rmsd_rotation_X" value="45.00" type="float" />
+    <param name="rmsd_rotation_Y" value="0.00" type="float" />
+    <param name="rmsd_lineColour" value="(0, 0, 0)" type="color" />
+    <param name="rmsd_lineTransparency" value="0.40" type="float" />
+    <param name="rmsd_underlineColor" value="(0, 0, 0)" type="color" />
+    <param name="rmsd_underlineTransparency" value="0.40" type="float" />
+    <param name="rmsd_lineWidth" value="1.00" type="float" />
+    <param name="rmsd_lineStyle" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
+    <param name="rmsd_lineHatch" value=" " type="unicode" choices="['', '/', ' |', '|', '-', '+', 'X', 'o', 'O', '.', '*']" />
+    <param name="rmsd_hspace" value="0.10" type="float" />
+  </plot_presets_rmsd>
+
+  <plot_presets_waterfall>
+    <param name="waterfall" value="False" type="bool" />
+    <param name="waterfallOffset" value="0.00" type="float" />
+    <param name="waterfall_increment" value="1.15" type="float" />
+    <param name="waterfall_reverse" value="False" type="bool" />
+    <param name="waterfall_lineWidth" value="2.00" type="float" />
+    <param name="waterfall_lineStyle" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
+    <param name="waterfall_color" value="[0, 0, 0]" type="color" />
+    <param name="waterfall_useColormap" value="True" type="bool" />
+    <param name="waterfall_normalize" value="True" type="bool" />
+    <param name="waterfall_label_format" value="Float" type="unicode" choices="['String', 'Float', 'Integer']" />
+    <param name="waterfall_color_value" value="Colormap" type="unicode" choices="['Same color', 'Colormap', 'Color palette', 'Random']" />
+    <param name="waterfall_add_labels" value="True" type="bool" />
+    <param name="waterfall_shade_under" value="True" type="bool" />
+    <param name="waterfall_shade_under_transparency" value="1.00" type="float" />
+    <param name="waterfall_shade_under_nlimit" value="50" type="int" />
+    <param name="waterfall_labels_frequency" value="5.00" type="float" />
+    <param name="waterfall_labels_x_offset" value="0.00" type="float" />
+    <param name="waterfall_labels_y_offset" value="0.10" type="float" />
+    <param name="waterfall_label_fontSize" value="12.00" type="float" />
+    <param name="waterfall_label_fontWeight" value="True" type="bool" />
+  </plot_presets_waterfall>
+
+  <plot_presets_violin>
+    <param name="violin_normalize" value="True" type="bool" />
+    <param name="violin_orientation" value="vertical" type="unicode" choices="['vertical', 'horizontal']" />
+    <param name="violin_label_format" value="Float" type="unicode" choices="['String', 'Float', 'Integer']" />
+    <param name="violin_color_value" value="Colormap" type="unicode" choices="['Same color', 'Colormap', 'Color palette', 'Random']" />
+    <param name="violin_line_sameAsShade" value="False" type="bool" />
+    <param name="violin_shade_under_transparency" value="1.00" type="float" />
+    <param name="violin_nlimit" value="100" type="int" />
+    <param name="violin_labels_frequency" value="10.00" type="float" />
+    <param name="violin_min_percentage" value="0.10" type="float" />
+    <param name="violin_spacing" value="0.50" type="float" />
+    <param name="violin_lineWidth" value="2.00" type="float" />
+    <param name="violin_lineStyle" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
+  </plot_presets_violin>
+
+  <plot_presets_bar>
+    <param name="bar_sameAsFill" value="True" type="bool" />
+    <param name="bar_width" value="0.10" type="float" />
+    <param name="bar_alpha" value="1.00" type="float" />
+    <param name="bar_lineWidth" value="1.00" type="float" />
+    <param name="bar_edge_color" value="(0.0, 0.0, 0.0)" type="color" />
+  </plot_presets_bar>
+
+  <plot_presets_legend>
+    <param name="legend" value="True" type="bool" />
+    <param name="legendFancyBox" value="True" type="bool" />
+    <param name="legendMarkerFirst" value="True" type="bool" />
+    <param name="legendFrame" value="True" type="bool" />
+    <param name="legendPosition" value="best" type="unicode" choices="['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center']" />
+    <param name="legendFontSize" value="small" type="unicode" choices="['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']" />
+    <param name="legendColumns" value="1" type="int" />
+    <param name="legendNumberMarkers" value="1" type="int" />
+    <param name="legendMarkerSize" value="1.00" type="float" />
+    <param name="legendAlpha" value="0.60" type="float" />
+    <param name="legendLineWidth" value="4.00" type="float" />
+  </plot_presets_legend>
+
+  <plot_presets_colorbar>
+    <param name="colorbar" value="False" type="bool" />
+    <param name="colorbarPosition" value="right" type="unicode" choices="['left', 'right', 'top', 'bottom']" />
+    <param name="colorbarMinPoints" value="5" type="int" />
+    <param name="colorbarWidth" value="2.00" type="float" />
+    <param name="colorbarPad" value="0.03" type="float" />
+    <param name="colorbarLabelSize" value="12.00" type="float" />
+  </plot_presets_colorbar>
+
+  <plot_presets_plot_1D>
+    <param name="lineColour_1D" value="(0, 0, 0)" type="color" />
+    <param name="lineWidth_1D" value="1.00" type="float" />
+    <param name="lineStyle_1D" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
+    <param name="markerColor_1D" value="(0, 0, 1)" type="color" />
+    <param name="markerTransparency_1D" value="1.00" type="float" />
+    <param name="markerSize_1D" value="35.00" type="float" />
+    <param name="markerShape_1D" value="o" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
+    <param name="markerShapeTXT_1D" value="circle" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
+    <param name="axisOnOff_1D" value="True" type="bool" />
+    <param name="annotationFontWeight_1D" value="False" type="bool" />
+    <param name="annotationFontSize_1D" value="10.00" type="float" />
+    <param name="tickFontWeight_1D" value="False" type="bool" />
+    <param name="tickFontSize_1D" value="16.00" type="float" />
+    <param name="labelFontWeight_1D" value="False" type="bool" />
+    <param name="labelFontSize_1D" value="16.00" type="float" />
+    <param name="titleFontWeight_1D" value="False" type="bool" />
+    <param name="titleFontSize_1D" value="18.00" type="float" />
+    <param name="spines_left_1D" value="True" type="bool" />
+    <param name="spines_right_1D" value="True" type="bool" />
+    <param name="spines_top_1D" value="True" type="bool" />
+    <param name="spines_bottom_1D" value="True" type="bool" />
+    <param name="ticks_left_1D" value="True" type="bool" />
+    <param name="ticks_right_1D" value="False" type="bool" />
+    <param name="ticks_top_1D" value="False" type="bool" />
+    <param name="ticks_bottom_1D" value="True" type="bool" />
+    <param name="tickLabels_left_1D" value="True" type="bool" />
+    <param name="tickLabels_right_1D" value="False" type="bool" />
+    <param name="tickLabels_top_1D" value="False" type="bool" />
+    <param name="tickLabels_bottom_1D" value="True" type="bool" />
+  </plot_presets_plot_1D>
+
+  <plot_presets_plot_2D>
+    <param name="interpolation" value="None" type="unicode" choices="['None', 'nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']" />
+    <param name="plotType" value="Image" type="unicode" choices="['Image', 'Contour']" />
+    <param name="currentCmap" value="ocean_r" type="unicode" choices="[u'Accent', u'Accent_r', u'Blues', u'Blues_r', u'BrBG', u'BrBG_r', u'BuGn', u'BuGn_r', u'BuPu', u'BuPu_r', u'CMRmap', u'CMRmap_r', u'Dark2', u'Dark2_r', u'GnBu', u'GnBu_r', u'Greens', u'Greens_r', u'Greys', u'Greys_r', u'OrRd', u'OrRd_r', u'Oranges', u'Oranges_r', u'PRGn', u'PRGn_r', u'Paired', u'Paired_r', u'Pastel1', u'Pastel1_r', u'Pastel2', u'Pastel2_r', u'PiYG', u'PiYG_r', u'PuBu', u'PuBuGn', u'PuBuGn_r', u'PuBu_r', u'PuOr', u'PuOr_r', u'PuRd', u'PuRd_r', u'Purples', u'Purples_r', u'RdBu', u'RdBu_r', u'RdGy', u'RdGy_r', u'RdPu', u'RdPu_r', u'RdYlBu', u'RdYlBu_r', u'RdYlGn', u'RdYlGn_r', u'Reds', u'Reds_r', u'Set1', u'Set1_r', u'Set2', u'Set2_r', u'Set3', u'Set3_r', u'Spectral', u'Spectral_r', u'Wistia', u'Wistia_r', u'YlGn', u'YlGnBu', u'YlGnBu_r', u'YlGn_r', u'YlOrBr', u'YlOrBr_r', u'YlOrRd', u'YlOrRd_r', u'afmhot', u'afmhot_r', u'autumn', u'autumn_r', u'binary', u'binary_r', u'bone', u'bone_r', u'brg', u'brg_r', u'bwr', u'bwr_r', 'cividis', 'cividis_r', u'cool', u'cool_r', u'coolwarm', u'coolwarm_r', u'copper', u'copper_r', u'cubehelix', u'cubehelix_r', u'flag', u'flag_r', u'gist_earth', u'gist_earth_r', u'gist_gray', u'gist_gray_r', u'gist_heat', u'gist_heat_r', u'gist_ncar', u'gist_ncar_r', u'gist_rainbow', u'gist_rainbow_r', u'gist_stern', u'gist_stern_r', u'gist_yarg', u'gist_yarg_r', u'gnuplot', u'gnuplot2', u'gnuplot2_r', u'gnuplot_r', u'gray', u'gray_r', u'hot', u'hot_r', u'hsv', u'hsv_r', 'icefire', 'icefire_r', 'inferno', 'inferno_r', u'jet', u'jet_r', 'magma', 'magma_r', 'mako', 'mako_r', u'nipy_spectral', u'nipy_spectral_r', u'ocean', u'ocean_r', u'pink', u'pink_r', 'plasma', 'plasma_r', u'prism', u'prism_r', u'rainbow', u'rainbow_r', 'rocket', 'rocket_r', u'seismic', u'seismic_r', u'spring', u'spring_r', u'summer', u'summer_r', u'tab10', u'tab10_r', u'tab20', u'tab20_r', u'tab20b', u'tab20b_r', u'tab20c', u'tab20c_r', u'terrain', u'terrain_r', 'viridis', 'viridis_r', 'vlag', 'vlag_r', u'winter', u'winter_r']" />
+    <param name="useCurrentCmap" value="False" type="bool" />
+    <param name="minCmap" value="0.00" type="float" />
+    <param name="midCmap" value="50.00" type="float" />
+    <param name="maxCmap" value="100.00" type="float" />
+    <param name="labelPad_2D" value="5.00" type="float" />
+    <param name="axisOnOff_2D" value="True" type="bool" />
+    <param name="annotationFontWeight_2D" value="False" type="bool" />
+    <param name="annotationFontSize_2D" value="8.00" type="float" />
+    <param name="tickFontWeight_2D" value="False" type="bool" />
+    <param name="tickFontSize_2D" value="12.00" type="float" />
+    <param name="labelFontWeight_2D" value="False" type="bool" />
+    <param name="labelFontSize_2D" value="14.00" type="float" />
+    <param name="titleFontWeight_2D" value="False" type="bool" />
+    <param name="titleFontSize_2D" value="16.00" type="float" />
+    <param name="spines_left_2D" value="True" type="bool" />
+    <param name="spines_right_2D" value="True" type="bool" />
+    <param name="spines_top_2D" value="True" type="bool" />
+    <param name="spines_bottom_2D" value="True" type="bool" />
+    <param name="ticks_left_2D" value="True" type="bool" />
+    <param name="ticks_right_2D" value="False" type="bool" />
+    <param name="ticks_top_2D" value="False" type="bool" />
+    <param name="ticks_bottom_2D" value="True" type="bool" />
+    <param name="tickLabels_left_2D" value="True" type="bool" />
+    <param name="tickLabels_right_2D" value="False" type="bool" />
+    <param name="tickLabels_top_2D" value="False" type="bool" />
+    <param name="tickLabels_bottom_2D" value="True" type="bool" />
+  </plot_presets_plot_2D>
+
+  <plot_presets_plot_3D>
+    <param name="showGrids_3D" value="False" type="bool" />
+    <param name="shade_3D" value="True" type="bool" />
+    <param name="ticks_3D" value="True" type="bool" />
+    <param name="spines_3D" value="True" type="bool" />
+    <param name="labels_3D" value="True" type="bool" />
+    <param name="labelPad_3D" value="20.00" type="float" />
+    <param name="markerEdgeUseSame_3D" value="True" type="bool" />
+    <param name="markerColor_3D" value="(0, 0, 1)" type="color" />
+    <param name="markerTransparency_3D" value="0.70" type="float" />
+    <param name="markerSize_3D" value="50.00" type="float" />
+    <param name="markerShape_3D" value="o" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
+    <param name="markerShapeTXT_3D" value="circle" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
+    <param name="markerEdgeColor_3D" value="(0, 0, 1)" type="color" />
+    <param name="annotationFontWeight_3D" value="False" type="bool" />
+    <param name="annotationFontSize_3D" value="8.00" type="float" />
+    <param name="tickFontWeight_3D" value="False" type="bool" />
+    <param name="tickFontSize_3D" value="12.00" type="float" />
+    <param name="labelFontWeight_3D" value="False" type="bool" />
+    <param name="labelFontSize_3D" value="14.00" type="float" />
+    <param name="titleFontWeight_3D" value="False" type="bool" />
+    <param name="titleFontSize_3D" value="16.00" type="float" />
+  </plot_presets_plot_3D>
+
+  <exportParams>
+    <param name="dpi" value="100" type="int" />
+    <param name="imageWidthInch" value="8" type="int" />
+    <param name="imageHeightInch" value="8" type="int" />
+    <param name="transparent" value="True" type="bool" />
+    <param name="colorbar" value="False" type="bool" />
+    <param name="imageFormat" value="png" type="unicode" choices="['png', 'svg', 'svgz', 'ps', 'raw', 'eps', 'jpeg', 'tiff', 'pdf']" />
+    <param name="saveDelimiterTXT" value="comma" type="unicode" choices="['comma', 'tab', 'space']" />
+    <param name="normalizeMultipleMS" value="True" type="bool" />
+  </exportParams>
+
+  <presets_interactive_toolsets>
+    <!-- wheelType_choices="['Wheel Zoom XY', 'Wheel Zoom X', 'Wheel Zoom Y']" -->
+    <!-- activeDrag_choices="['Box Zoom', 'Box Zoom X', 'Box Zoom Y', 'Pan', 'Pan X', 'Pan Y', 'auto', 'None']" -->
+    <!-- activeWheel_choices="['Wheel Zoom XY', 'Wheel Zoom X', 'Wheel Zoom Y', 'auto', 'None']" -->
+    <!-- activeInspect_choices="['Hover', 'Crosshair', 'auto', 'None']" -->
+    <param name="1D" hover="True" save="True" pan="True" boxzoom="True" boxzoom_horizontal="True" boxzoom_vertical="False" crosshair="False" reset="True" wheel="True" wheelType="Wheel Zoom X" activeDrag="Box Zoom" activeWheel="None" activeInspect="Hover" type="mixed" />
+    <param name="2D" hover="True" save="True" pan="True" boxzoom="True" boxzoom_horizontal="False" boxzoom_vertical="False" crosshair="True" reset="True" wheel="True" wheelType="Wheel Zoom X" activeDrag="Box Zoom" activeWheel="None" activeInspect="Hover" type="mixed" />
+    <param name="All" hover="True" save="True" pan="True" boxzoom="True" boxzoom_horizontal="True" boxzoom_vertical="True" crosshair="True" reset="True" wheel="True" wheelType="Wheel Zoom XY" activeDrag="Box Zoom" activeWheel="None" activeInspect="Hover" type="mixed" />
+    <param name="Overlay" hover="True" save="True" pan="True" boxzoom="True" boxzoom_horizontal="False" boxzoom_vertical="False" crosshair="True" reset="True" wheel="False" wheelType="Wheel Zoom X" activeDrag="Box Zoom" activeWheel="None" activeInspect="Hover" type="mixed" />
+  </presets_interactive_toolsets>
+
+  <presets_interactive_pageLayouts>
+    <!-- layout_choices="['Individual', 'Columns', 'Rows', 'Grid']" -->
+    <param page_name="Columns" name="Columns" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="None" name="None" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Rows" name="Rows" layout="Rows" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+  </presets_interactive_pageLayouts>
+
+  <presets_interactive_gui>
+    <!-- GENERAL PARAMETERS -->
+    <param name="interactive_override_defaults" value="True" type="bool" />
+    <param name="openInteractiveOnSave" value="True" type="bool" />
+    <!-- JAVA SCRIPT PARAMETERS -->
+    <param name="interactive_custom_scripts" value="False" type="bool" />
+    <param name="interactive_custom_events" value="False" type="bool" />
+    <param name="interactive_custom_position" value="right"  choices="['left', 'right', 'below', 'above']" type="unicode" />
+    <!-- FRAME PARAMETERS -->
+    <param name="figHeight" value="600" type="int" />
+    <param name="figWidth" value="600" type="int" />
+    <param name="figHeight1D" value="300" type="int" />
+    <param name="figWidth1D" value="800" type="int" />
+    <param name="interactive_outline_alpha" value="1.0" type="float" />
+    <param name="interactive_outline_width" value="2.0" type="float" />
+    <param name="interactive_border_min_right" value="20" type="int" />
+    <param name="interactive_border_min_left" value="20" type="int" />
+    <param name="interactive_border_min_top" value="20" type="int" />
+    <param name="interactive_border_min_bottom" value="20" type="int" />
+    <param name="layoutModeDoc" value="Individual" type="unicode" />
+    <param name="interactive_grid_line" value="False" type="bool" />
+    <param name="interactive_background_color" value="(1.0, 1.0, 1.0)" type="color" />
+    <param name="interactive_grid_line_color" value="(1.0, 1.0, 1.0)" type="color" />
+    <!-- TOOLS PARAMETERS -->
+    <param name="toolsLocation" value="right" type="unicode" />
+    <param name="activeDrag" value="Box Zoom" type="unicode" />
+    <param name="activeWheel" value="None" type="unicode" />
+    <param name="activeInspect" value="Hover" type="unicode" />
+    <!-- OVERLAY PARAMETERS -->
+    <param name="plotLayoutOverlay" value="Rows" type="unicode" />
+    <param name="linkXYaxes" value="True" type="bool" />
+    <!-- FONT PARAMETERS -->
+    <param name="interactive_title_fontSize" value="16" type="int" />
+    <param name="interactive_title_weight" value="False" type="bool" />
+    <param name="interactive_label_fontSize" value="14" type="int" />
+    <param name="interactive_label_weight" value="False" type="bool" />
+    <param name="interactive_tick_fontSize" value="12" type="int" />
+    <param name="interactive_annotation_fontSize" value="12" type="int" />
+    <param name="interactive_annotation_weight" value="False" type="bool" />
+    <param name="interactive_annotation_color" value="(0, 0, 0)" type="color" />
+    <param name="interactive_annotation_background_color" value="(1, 1, 1)" type="color" />
+    <!-- COLORBAR PARAMETERS -->
+    <param name="interactive_colorbar" value="False" type="bool" />
+    <param name="interactive_colorbar_useScientific" value="False" type="bool" />
+    <param name="interactive_colorbar_label_offset" value="15" type="int" />
+    <param name="interactive_colorbar_precision" value="1" type="int" />
+    <param name="interactive_colorbar_offset_x" value="20" type="int" />
+    <param name="interactive_colorbar_offset_y" value="0" type="int" />
+    <param name="interactive_colorbar_width" value="25" type="int" />
+    <param name="interactive_colorbar_padding" value="25" type="int" />
+    <param name="interactive_colorbar_location" value="right"  choices="['left', 'above', 'right', 'below']" type="unicode" />
+    <param name="interactive_colorbar_orientation" value="vertical" type="unicode" />
+    <!-- TICK PARAMETERS -->
+    <param name="interactive_tick_precision" value="1" type="int" />
+    <param name="interactive_tick_useScientific" value="True" type="bool" />
+    <!-- LEGEND PARAMETERS -->
+    <param name="interactive_legend" value="True" type="bool" />
+    <param name="interactive_legend_click_policy" value="hide"  choices="['hide', 'mute']" type="unicode" />
+    <param name="interactive_legend_location" value="top_left"  choices="['top_left', 'top_center', 'top_right', 'center_right', 'bottom_right', 'bottom_center', 'bottom_left', 'center_left', 'center', 'other']" type="unicode" />
+    <param name="interactive_legend_orientation" value="vertical"  choices="['vertical', 'horizontal']" type="unicode" />
+    <param name="interactive_legend_mute_alpha" value="0.20" type="float" />
+    <param name="interactive_legend_background_alpha" value="0.50" type="float" />
+    <param name="interactive_legend_font_size" value="10.00" type="float" />
+    <!-- LINE PARAMETERS -->
+    <param name="hoverVline" value="True" type="bool" />
+    <param name="interactive_line_style" value="solid"  choices="['solid', 'dashed', 'dotted', 'dotdash', 'dashdot']" type="unicode" />
+    <param name="interactive_line_width" value="2.00" type="float" />
+    <param name="interactive_line_alpha" value="1.00" type="float" />
+    <!-- ANNOTATION PARAMETERS -->
+    <param name="interactive_ms_annotations" value="True" type="bool" />
+    <param name="interactive_ms_annotations_color" value="(0.18, 0.8, 0.44)" type="color" />
+    <param name="interactive_ms_annotations_line_color" value="(0, 0, 0)" type="color" />
+    <param name="interactive_ms_annotations_transparency" value="0.30" type="float" />
+    <!-- LINEARIZE PARAMETERS -->
+    <param name="interactive_ms_linearize" value="True" type="bool" />
+    <param name="interactive_ms_binSize" value="0.10" type="float" />
+    <!-- BAR PARAMETERS -->
+    <param name="interactive_bar_sameAsFill" value="True" type="bool" />
+    <param name="interactive_bar_width" value="0.10" type="float" />
+    <param name="interactive_bar_alpha" value="1.00" type="float" />
+    <param name="interactive_bar_lineWidth" value="1.00" type="float" />
+    <param name="interactive_bar_edge_color" value="(0.0, 0.0, 0.0)" type="color" />
+    <!-- SCATTER PARAMETERS -->
+    <param name="interactive_scatter_sameAsFill" value="True" type="bool" />
+    <param name="interactive_scatter_size" value="10" type="int" />
+    <param name="interactive_scatter_alpha" value="1.00" type="float" />
+    <param name="interactive_scatter_edge_color" value="(0.0, 0.0, 0.0)" type="color" />
+    <param name="interactive_scatter_marker" value="circle"  choices="['circle', 'square', 'triangle', 'circle_cross', 'square_cross', 'diamond', 'circle_x', 'square_x', 'inverted_triangle', 'cross', 'x', 'asterisk']" type="unicode" />
+    <!-- ANNOTATIONS PARAMETERS -->
+    <param name="interactive_ms_annotations_fontWeight" value="True" type="bool" />
+    <param name="interactive_ms_annotations_highlight" value="False" type="bool" />
+    <param name="interactive_ms_annotations_labels" value="True" type="bool" />
+    <param name="interactive_ms_annotations_offsetX" value="5.00" type="float" />
+    <param name="interactive_ms_annotations_offsetY" value="5.00" type="float" />
+    <param name="interactive_ms_annotations_fontSize" value="10.00" type="float" />
+    <param name="interactive_ms_annotations_rotation" value="90.00" type="float" />
+    <param name="interactive_ms_annotations_label_color" value="(0.0, 0.0, 0.0)" type="color" />
+  </presets_interactive_gui>
+
+</origamiConfig>
