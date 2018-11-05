@@ -148,7 +148,7 @@ class ORIGAMI(object):
         
         gc.enable()
         # Setup logging
-        self.view.onEnableDisableLogging(evt=None)
+        self.view.onEnableDisableLogging(evt=None, show_msg=False)
         
         # add binding to UniDec engine
         self.config.unidec_engine = unidec.UniDec()

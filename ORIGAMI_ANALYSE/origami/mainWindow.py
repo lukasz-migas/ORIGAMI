@@ -2160,13 +2160,14 @@ class MyFrame(wx.Frame):
         if evt != None:
             evt.Skip()
         
-    def onEnableDisableLogging(self, evt):
+    def onEnableDisableLogging(self, evt, show_msg=True):
         
         self.config.logging = False
-        msg = "Logging to file was temporarily disabled as there is a persistent bug that prevents it correct operation. Apologies, LM"
-        dialogs.dlgBox(exceptionTitle="Error",
-                       exceptionMsg=msg, 
-                       type="Error")
+        if show_msg:
+            msg = "Logging to file was temporarily disabled as there is a persistent bug that prevents it correct operation. Apologies, LM"
+            dialogs.dlgBox(exceptionTitle="Error",
+                           exceptionMsg=msg, 
+                           type="Error")
         return
           
         
