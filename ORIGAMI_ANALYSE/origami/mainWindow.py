@@ -2162,6 +2162,15 @@ class MyFrame(wx.Frame):
         
     def onEnableDisableLogging(self, evt):
         
+        self.config.logging = False
+        msg = "Logging to file was temporarily disabled as there is a persistent bug that prevents it correct operation. Apologies, LM"
+        dialogs.dlgBox(exceptionTitle="Error",
+                       exceptionMsg=msg, 
+                       type="Error")
+        return
+          
+        
+        
         log_directory = os.path.join(self.config.cwd, "logs")
         if not os.path.exists(log_directory):
             print("Directory logs did not exist - created a new one in %s" % log_directory)
@@ -2173,6 +2182,10 @@ class MyFrame(wx.Frame):
             self.config.loggingFile_path = os.path.join(log_directory, file_path)
             if self.config.logging:
                 print('\nGenerated log filename: %s' % self.config.loggingFile_path)
+        
+        
+
+    
         
         if self.config.logging:
             sys.stdin = self.panelLog.log

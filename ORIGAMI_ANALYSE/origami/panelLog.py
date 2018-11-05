@@ -20,7 +20,7 @@
 import wx, os
 from styles import makeMenuItem
 from ids import (ID_log_save_log, ID_log_go_to_directory, 
-                         ID_log_clear_window, ID_extraSettings_logging)
+                 ID_log_clear_window, ID_extraSettings_logging)
 
 # import threading
 
@@ -71,15 +71,15 @@ class panelLog(wx.Panel):
         if self.logFile is None:
             return
             
-        try:
-#             savefile = open(self.config.loggingFile_path,'w')
-            try: 
-                self.logFile.write(self.log.GetValue())
-            except: 
-                pass
-#             savefile.close()
-        except:
-            pass
+#         try:
+# #             savefile = open(self.config.loggingFile_path,'w')
+#             try: 
+#                 self.logFile.write(self.log.GetValue())
+#             except: 
+#                 pass
+# #             savefile.close()
+#         except:
+#             pass
   
     def clearLogData(self, evt):
         self.log.SetValue("")

@@ -1,11 +1,12 @@
 <h2><strong>What changed in ORIGAMI<sup>ANALYSE</sup>:</strong></h2>
 <h3><strong>Note</strong>&nbsp;</h3>
-<p>Again, this was meant to be a small-ish update but turned into a fairly significant revamp of ORIGAMI. Because of this, I have upgraded it to version 1.2.0.</p>
+<p>Again, this was meant to be a small-ish update but turned into a fairly significant revamp of ORIGAMI. Because of this, I have upgraded it to version 1.2.0.3.</p>
 <h3><strong>General:</strong></h3>
 <p><strong>[IMPROVED]:</strong> The underlying codebase of ORIGAMI has been improved to make it more readable and more responsive</p>
 <p><strong>[IMPROVED]:</strong> Item font color will be automatically adjusted to ensure best contrast from the background color in various lists in the GUI</p>
 <p><strong>[CHANGED]</strong>: Modification of the table elements is now available by Right-clicking on the column name</p>
-<h3><strong>Tandem MS [NEW]:</strong></h3>
+<p><strong>[CHANGED]</strong>: Logging of events was temporarily disabled as it appears to be causing some issues. I haven't been able to figure out why it crashes the program (yet).</p>
+<p><strong>Tandem MS [NEW]:</strong></p>
 <p><strong>[NEW]:</strong> Added support to load .mgf and .mzIdentML file formats to visualise tandem mass spectrometry results. Menu -&gt; Open open-source files... to load .mgf files. You can then annotate the tandem MS with peptide fragments. See Figure 1 for example.</p>
 <h3><strong>Interactive panel:</strong></h3>
 <p><strong>[NEW]: </strong>Started adding support for individual modification of parameters for interactive plots (double-clicking on an item in the list)</p>
@@ -39,6 +40,7 @@
 <p><strong>[IMPROVED]:</strong> Wheel-zoom in the X-dimensions has been improved (works like on maps now)</p>
 <h3><strong>Data extraction:</strong></h3>
 <p><strong>[NEW]:</strong> You can now extract mass spectra from the '2D' panel. Hold CTRL on your keyboard and drag the mouse in the plot area. Only works when standard plot is shown (e.g. Drift time (bins) vs Scans/Time)</p>
+<p><strong>[IMPROVED]:</strong> All data extraction will be carried out in a temporary_data folder (found in the ORIGAMI directory). This <strong>should</strong> fix any issues where data was being extracted from network drives and should keep your HDDs a little bit tidier. All files will be deleted at the end of the session.</p>
 <p><strong>[IMPROVED]:</strong> Data extraction in the DT, RT, DT/MS panels now takes into account the plot labels/units.</p>
 <p><strong>[IMPROVED]:</strong> Extracted mass spectra extracted in the DT and RT windows will be now shown in an area beneath the extraction plot (for convenience)</p>
 <h3><strong>MS annotations:</strong></h3>
@@ -49,16 +51,16 @@
 <p><strong><strong>[NEW]</strong>:</strong> Plots can now be customised using settings editor. (Settings: UniDec -&gt; Customise plots...)</p>
 <p><strong><strong>[NEW]</strong>:</strong> You can switch between tabbed view where each plot is in a separate tab OR continuous view where all plots are available on the same page (Customise plots... -&gt; Panel view)</p>
 <p><strong>[IMPROVED]:</strong> Deconvolution is now done in a multi-threaded mode. Should stop program from hanging</p>
+<p><strong>[IMPROVED]:</strong> All deconvolution results will be now stored in a temporary_data folder (found in ORIGAMI directory). This should keep your HDDs a little bit tidier. All files will be deleted at the end of the session.</p>
 <h3><strong>MS comparison:</strong></h3>
 <p><strong><strong>[NEW]</strong>: </strong>You can now assign your own label to the plot.</p>
 <p><strong>[IMPROVED]:</strong> You can now compare ALL available mass spectra and not just those that were hidden under 'Mass Spectra' tag. (This includes: Mass Spectra, Mass Spectrum, Mass Spectrum (processed)). To open comparison panel: Menu -&gt; View -&gt; Open MS comparison panel...)</p>
 <h3><strong>Peak detection:</strong></h3>
 <p><strong>[IMPROVED]:</strong> Works in multi-threaded mode. Should stop program from hanging.</p>
-<p>&nbsp;</p>
 <p><strong>Mailing list</strong></p>
 <p>If you would like to be added to a ORIGAMI mailing list where you will be notified of new releases, please contact <a href="mailto:lukasz.migas@manchester.ac.uk">lukasz.migas@manchester.ac.uk</a>.&nbsp;</p>
 <p><strong>How to update</strong></p>
-<p>Since the whole package was revamped, the only way to update ORIGAMI is to download the ORIGAMI_ANALYSE_v1.2.0.zip file, unpack it somewhere on your PC and it should work out of the box. :)</p>
+<p>Since the whole package was revamped, the only way to update ORIGAMI is to download the ORIGAMI_ANALYSE_v1.2.0.3.zip file, unpack it somewhere on your PC and it should work out of the box. :)</p>
 <p>As you might notice, the size of the directory increased quite a bit, it is about 1 Gb when unpacked.</p>
 <p>Many thanks,</p>
 <p>Lukasz</p>

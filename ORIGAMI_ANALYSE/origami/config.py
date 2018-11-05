@@ -17,21 +17,16 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import wx, os, glob, platform
+import glob, platform
 import numpy as np
-import matplotlib.cm as cm
-from matplotlib.pyplot import colormaps
-import wx.lib.mixins.listctrl  as listmix
-import os.path
-from ast import literal_eval
+# import matplotlib.cm as cm
 import xml.dom.minidom, xml.parsers.expat
+import os.path
+from collections import OrderedDict
+from matplotlib.pyplot import colormaps
+from ast import literal_eval
 
 import dialogs as dialogs
-from toolbox import *
-# import cmocean.cm as cmocean
-
-__author__ = 'lukasz.g.migas'
-           
 
 class OrigamiConfig:
     
@@ -43,7 +38,7 @@ class OrigamiConfig:
         self._processID = None
         self.loggingFile_path = None
         
-        self.version = "1.2.0"
+        self.version = "1.2.0.3"
         self.unidec_engine = None
         self.links = {'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
                       'github' : 'https://github.com/lukasz-migas/ORIGAMI',

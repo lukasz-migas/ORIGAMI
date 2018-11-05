@@ -1153,10 +1153,10 @@ class topPanel(wx.Panel):
                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
                     except KeyError: pass
                     self.peaklist.DeleteItem(currentItems)
-                    # update document
-                    try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
-                    except KeyError: pass
                 currentItems-=1
+            # update document
+            try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
+            except KeyError: pass
                     
         elif evt.GetId() == ID_ionPanel_delete_rightClick:
             itemInfo = self.OnGetItemInformation(itemID=self.currentItem)
@@ -1207,33 +1207,39 @@ class topPanel(wx.Panel):
                 while (currentItems >= 0):
                     itemInfo = self.OnGetItemInformation(itemID=currentItems)
                     msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
-                    self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
+                    if not self.config.logging:
+                        self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
                         if len(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys()) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
-                    except KeyError: pass
+                    except KeyError: 
+                        pass
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
                         if len(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys()) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
-                    except KeyError: pass
+                    except KeyError: 
+                        pass
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
                         if len(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys()) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
-                    except KeyError: pass
+                    except KeyError: 
+                        pass
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
                         if len(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys()) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
-                    except KeyError: pass
-                    self.peaklist.DeleteItem(currentItems)
-                    # update document
-                    try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
-                    except KeyError: pass
+                    except KeyError: 
+                        pass
                     self.peaklist.DeleteItem(currentItems)
                     currentItems-=1
+                    
+                # update document
+                try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
+                except KeyError: pass
+                    
                     
         self.on_replot_patch_on_MS(evt=None)
             

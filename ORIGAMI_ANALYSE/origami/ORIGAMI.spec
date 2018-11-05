@@ -36,6 +36,7 @@ block_cipher = None
 # run command
 # pyinstaller ORIGAMI.spec -y --clean
 
+# Set version number
 version = "1.2.0.3"
 
 current_dir = os.getcwd()
@@ -114,18 +115,14 @@ coll = COLLECT(exe,
                upx=True,
                name=dist_dir)
 
+# Give information about build time
+print("Build ORIGAMI in {} seconds".format(time.clock()-tstart))
 
 # Copy additional files
-filelist = [
-'icon.ico', 
-'MassLynxRaw.dll', 
-'UserGuide_ANALYSE.pdf', 
-'calibrantDB.csv', 
-'calibrantDB.xlsx',
-'cacert.pem',
-'node-v8.11.3-x64.msi',
-'node-v8.11.3-x86.msi'
-]
+filelist = ['icon.ico', 'MassLynxRaw.dll', 'UserGuide_ANALYSE.pdf', 'calibrantDB.csv',
+            'calibrantDB.xlsx', 'cacert.pem', 'node-v8.11.3-x64.msi', 'node-v8.11.3-x86.msi']
+
+tstart = time.clock()
 savePath = path.path(''.join([dist_dir,'\\']))
 for file in filelist:
   try:
@@ -149,5 +146,4 @@ for directory in dirlist:
     print('Skipped directory: {}'.format(directory))
     pass
 
-tend = time.clock()
-print("Build ORIGAMI in {} seconds".format(tend-tstart))
+print("Copied files in {} seconds".format(time.clock()-tstart))
