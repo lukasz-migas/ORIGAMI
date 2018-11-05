@@ -129,10 +129,10 @@ filelist = [
 savePath = path.path(''.join([dist_dir,'\\']))
 for file in filelist:
   try:
-      print("Copied {}".format(file))
       copy(file, savePath)
+      print("Copied file: {}".format(file))
   except:
-    print("Skipped {}".format(file))
+    print("Skipped file: {}".format(file))
   
 # Copy additional folders
 dirlist = ['licences', 'unidec_bin', 'images', 'example_files'
@@ -144,8 +144,9 @@ for directory in dirlist:
   try:
     saveDir = path.path(''.join([dist_dir,'\\', directory]))
     copy_tree(directory, saveDir)
+    print("Copied directory: {}".format(directory))
   except:
-    print('Skipped {}'.format(saveDir))
+    print('Skipped directory: {}'.format(directory))
     pass
 
 tend = time.clock()

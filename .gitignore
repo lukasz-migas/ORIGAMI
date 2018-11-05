@@ -2,6 +2,7 @@
 *.pylintrc
 *.project
 *.pydevproject
+*msi
 list_of_tests.xlsx
 WhatsNew.txt
 .idea/
