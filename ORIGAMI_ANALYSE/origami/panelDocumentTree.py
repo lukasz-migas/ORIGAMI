@@ -1247,7 +1247,7 @@ class documentsTree(wx.TreeCtrl):
         
         document = self.presenter.documentsDict[document]
         item = False
-        
+        docItem = False
         if dataset == "Mass Spectrum":
             item = self.getItemByData(document.massSpectrum)
             document.massSpectrum['annotations'] = annotations
@@ -1267,7 +1267,7 @@ class documentsTree(wx.TreeCtrl):
         
         if item is not False and not set_data_only:
             self.append_annotation(item, annotation_data)
-            self.presenter.OnUpdateDocument(document, 'no_refresh') 
+            self.presenter.OnUpdateDocument(document, 'no_refresh')
         else: 
             try: docItem = self.getItemByData(document)
             except: docItem = False

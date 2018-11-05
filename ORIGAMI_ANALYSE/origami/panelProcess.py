@@ -575,9 +575,9 @@ class panelProcessData(wx.MiniFrame):
 
         self.unidec_isolateCharges_Btn = wx.Button(panel, ID_processSettings_isolateZUniDec, "Isolate", size=(-1, 22))
         self.unidec_isolateCharges_Btn.Bind(wx.EVT_BUTTON, self.onRunUnidecThreaded)
-        
-        self.unidec_addToAnnotations_Btn = wx.Button(panel, wx.ID_ANY, "Add to annotations", size=(-1, 22))
-        self.unidec_addToAnnotations_Btn.Bind(wx.EVT_BUTTON, self.onAddToAnnotations)
+#         
+#         self.unidec_addToAnnotations_Btn = wx.Button(panel, wx.ID_ANY, "Add to annotations", size=(-1, 22))
+#         self.unidec_addToAnnotations_Btn.Bind(wx.EVT_BUTTON, self.onAddToAnnotations)
         
         # pack elements
         plotting_grid = wx.GridBagSizer(2, 2)
@@ -597,8 +597,8 @@ class panelProcessData(wx.MiniFrame):
         plotting_grid.Add(unidec_charges_offset_label, (n,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         plotting_grid.Add(self.unidec_charges_offset_value, (n,1), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         plotting_grid.Add(self.unidec_isolateCharges_Btn, (n,2), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        n = n + 1
-        plotting_grid.Add(self.unidec_addToAnnotations_Btn, (n,1), wx.GBSpan(1,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+#         n = n + 1
+#         plotting_grid.Add(self.unidec_addToAnnotations_Btn, (n,1), wx.GBSpan(1,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         plot_box_sizer.Add(plotting_grid, 0, wx.EXPAND, 10)
         
         other_staticBox = makeStaticBox(panel, "Other settings", size=(-1, -1), color=wx.BLACK)
