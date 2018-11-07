@@ -1994,7 +1994,7 @@ class plots(plottingWindow):
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
-
+        
         if xlimits is None:
             xvals_limit, __ = find_limits_list(xvals, yvals)
             xlimits = (np.min(xvals_limit), np.max(xvals_limit))

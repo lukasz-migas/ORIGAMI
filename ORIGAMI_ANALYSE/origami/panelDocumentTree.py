@@ -815,6 +815,7 @@ class documentsTree(wx.TreeCtrl):
             colors = self.presenter.view.panelPlots.onChangePalette(None, 
                                                                     n_colors=len(yvals), 
                                                                     return_colors=True)
+        
         if len(labels) != len(yvals):
             labels = [""] * len(yvals)
         
@@ -830,18 +831,29 @@ class documentsTree(wx.TreeCtrl):
         
         title = "{}: {}".format(_plot_types[plot_type], title)
         other_data = {"plot_type":plot_type, 
-                      "xvals":xvals, "yvals":yvals, "zvals":zvals,
-                      "xvalsErr":xvalsErr, "yvalsErr":yvalsErr,
-                      "yvals_min":axis_y_min, "yvals_max":axis_y_max,
-                      "itemColors":itemColors, "itemLabels":itemLabels,
-                      "xlabel":x_label, "ylabel":y_label,
-                      "xlimits":xlimits, "ylimits":ylimits,
-                      "xlabels":x_labels, "ylabels":y_labels,
+                      "xvals":xvals, 
+                      "yvals":yvals, 
+                      "zvals":zvals,
+                      "xvalsErr":xvalsErr, 
+                      "yvalsErr":yvalsErr,
+                      "yvals_min":axis_y_min, 
+                      "yvals_max":axis_y_max,
+                      "itemColors":itemColors, 
+                      "itemLabels":itemLabels,
+                      "xlabel":x_label, 
+                      "ylabel":y_label,
+                      "xlimits":xlimits, 
+                      "ylimits":ylimits,
+                      "xlabels":x_labels, 
+                      "ylabels":y_labels,
                       "hover_labels":hover_labels,
-                      "x_unit":x_unit, "y_unit":y_unit,
-                      "colors":colors, "labels":labels,
+                      "x_unit":x_unit, 
+                      "y_unit":y_unit,
+                      "colors":colors, 
+                      "labels":labels,
                       "column_types":column_types, 
-                      "column_order":order, "path":fname,
+                      "column_order":order, 
+                      "path":fname,
                       "plot_modifiers":plot_modifiers}
         
         return title, other_data
@@ -3603,7 +3615,7 @@ class documentsTree(wx.TreeCtrl):
         defaultValue, save_kwargs = None, {}
         if self.itemType in "Other data":
             if self.extractData == "Other data": return
-            data = self.GetPyData(self.currentItem)
+            data = deepcopy(self.GetPyData(self.currentItem))
             plot_type = data['plot_type']
             if plot_type in ["scatter", "waterfall", "line", "multi-line", "grid-scatter",
                              "grid-line", "vertical-bar", "horizontal-bar"]:
@@ -3614,7 +3626,7 @@ class documentsTree(wx.TreeCtrl):
                 xvals = data['xvals']
                 yvals = data['yvals']
                 zvals = data['zvals']
-    
+                
                 kwargs = {"plot_modifiers": data["plot_modifiers"],
                           "item_colors": data["itemColors"],
                           "item_labels": data["itemLabels"],
