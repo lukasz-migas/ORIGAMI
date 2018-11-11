@@ -11,6 +11,11 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27C_paper\p27-C-paper_figures.pickle" format="pickle" />
+    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27-C-paper_figures.pickle" format="pickle" />
+    <path value="Z:\###_PhD1_###\p27_Bex_Data\Cdk2-cyclinA-p27-p27C_withDeconvolution.pickle" format="pickle" />
+    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27C_paper\p27C-with_updated_violins.pickle" format="pickle" />
+    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27C_with_new_violin.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -349,10 +354,10 @@
     <param name="violin_line_sameAsShade" value="False" type="bool" />
     <param name="violin_shade_under_transparency" value="1.00" type="float" />
     <param name="violin_nlimit" value="100" type="int" />
-    <param name="violin_labels_frequency" value="10.00" type="float" />
-    <param name="violin_min_percentage" value="0.10" type="float" />
+    <param name="violin_labels_frequency" value="1.00" type="float" />
+    <param name="violin_min_percentage" value="0.01" type="float" />
     <param name="violin_spacing" value="0.50" type="float" />
-    <param name="violin_lineWidth" value="2.00" type="float" />
+    <param name="violin_lineWidth" value="3.00" type="float" />
     <param name="violin_lineStyle" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
   </plot_presets_violin>
 
@@ -366,14 +371,14 @@
 
   <plot_presets_legend>
     <param name="legend" value="True" type="bool" />
-    <param name="legendFancyBox" value="True" type="bool" />
+    <param name="legendFancyBox" value="False" type="bool" />
     <param name="legendMarkerFirst" value="True" type="bool" />
-    <param name="legendFrame" value="True" type="bool" />
-    <param name="legendPosition" value="best" type="unicode" choices="['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center']" />
-    <param name="legendFontSize" value="small" type="unicode" choices="['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']" />
-    <param name="legendColumns" value="1" type="int" />
+    <param name="legendFrame" value="False" type="bool" />
+    <param name="legendPosition" value="upper right" type="unicode" choices="['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center']" />
+    <param name="legendFontSize" value="large" type="unicode" choices="['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']" />
+    <param name="legendColumns" value="2" type="int" />
     <param name="legendNumberMarkers" value="1" type="int" />
-    <param name="legendMarkerSize" value="1.00" type="float" />
+    <param name="legendMarkerSize" value="3.00" type="float" />
     <param name="legendAlpha" value="0.60" type="float" />
     <param name="legendLineWidth" value="4.00" type="float" />
   </plot_presets_legend>
@@ -389,7 +394,7 @@
 
   <plot_presets_plot_1D>
     <param name="lineColour_1D" value="(0, 0, 0)" type="color" />
-    <param name="lineWidth_1D" value="1.00" type="float" />
+    <param name="lineWidth_1D" value="3.00" type="float" />
     <param name="lineStyle_1D" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
     <param name="markerColor_1D" value="(0, 0, 1)" type="color" />
     <param name="markerTransparency_1D" value="1.00" type="float" />
@@ -416,7 +421,7 @@
     <param name="tickLabels_left_1D" value="True" type="bool" />
     <param name="tickLabels_right_1D" value="False" type="bool" />
     <param name="tickLabels_top_1D" value="False" type="bool" />
-    <param name="tickLabels_bottom_1D" value="True" type="bool" />
+    <param name="tickLabels_bottom_1D" value="False" type="bool" />
   </plot_presets_plot_1D>
 
   <plot_presets_plot_2D>
@@ -481,7 +486,7 @@
     <param name="imageHeightInch" value="8" type="int" />
     <param name="transparent" value="True" type="bool" />
     <param name="colorbar" value="False" type="bool" />
-    <param name="imageFormat" value="png" type="unicode" choices="['png', 'svg', 'svgz', 'ps', 'raw', 'eps', 'jpeg', 'tiff', 'pdf']" />
+    <param name="imageFormat" value="svg" type="unicode" choices="['png', 'svg', 'svgz', 'ps', 'raw', 'eps', 'jpeg', 'tiff', 'pdf']" />
     <param name="saveDelimiterTXT" value="comma" type="unicode" choices="['comma', 'tab', 'space']" />
     <param name="normalizeMultipleMS" value="True" type="bool" />
   </exportParams>
@@ -500,6 +505,11 @@
   <presets_interactive_pageLayouts>
     <!-- layout_choices="['Individual', 'Columns', 'Rows', 'Grid']" -->
     <param page_name="Columns" name="Columns" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure 1b" name="Figure 1b" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure 4" name="Figure 4" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure S1 (a, c, e)" name="Figure S1 (a, c, e)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure S1 (b, d, f)" name="Figure S1 (b, d, f)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure S3" name="Figure S3" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="None" name="None" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Rows" name="Rows" layout="Rows" rows="None" columns="None" grid_share_tools="True" type="mixed" />
   </presets_interactive_pageLayouts>
@@ -509,8 +519,8 @@
     <param name="interactive_override_defaults" value="True" type="bool" />
     <param name="openInteractiveOnSave" value="True" type="bool" />
     <!-- JAVA SCRIPT PARAMETERS -->
-    <param name="interactive_custom_scripts" value="False" type="bool" />
-    <param name="interactive_custom_events" value="False" type="bool" />
+    <param name="interactive_custom_scripts" value="True" type="bool" />
+    <param name="interactive_custom_events" value="True" type="bool" />
     <param name="interactive_custom_position" value="right"  choices="['left', 'right', 'below', 'above']" type="unicode" />
     <!-- FRAME PARAMETERS -->
     <param name="figHeight" value="600" type="int" />
@@ -518,12 +528,12 @@
     <param name="figHeight1D" value="300" type="int" />
     <param name="figWidth1D" value="800" type="int" />
     <param name="interactive_outline_alpha" value="1.0" type="float" />
-    <param name="interactive_outline_width" value="2.0" type="float" />
+    <param name="interactive_outline_width" value="3.0" type="float" />
     <param name="interactive_border_min_right" value="20" type="int" />
     <param name="interactive_border_min_left" value="20" type="int" />
     <param name="interactive_border_min_top" value="20" type="int" />
     <param name="interactive_border_min_bottom" value="20" type="int" />
-    <param name="layoutModeDoc" value="Individual" type="unicode" />
+    <param name="layoutModeDoc" value="Columns" type="unicode" />
     <param name="interactive_grid_line" value="False" type="bool" />
     <param name="interactive_background_color" value="(1.0, 1.0, 1.0)" type="color" />
     <param name="interactive_grid_line_color" value="(1.0, 1.0, 1.0)" type="color" />
@@ -536,7 +546,7 @@
     <param name="plotLayoutOverlay" value="Rows" type="unicode" />
     <param name="linkXYaxes" value="True" type="bool" />
     <!-- FONT PARAMETERS -->
-    <param name="interactive_title_fontSize" value="16" type="int" />
+    <param name="interactive_title_fontSize" value="12" type="int" />
     <param name="interactive_title_weight" value="False" type="bool" />
     <param name="interactive_label_fontSize" value="14" type="int" />
     <param name="interactive_label_weight" value="False" type="bool" />
@@ -565,7 +575,7 @@
     <param name="interactive_legend_location" value="top_left"  choices="['top_left', 'top_center', 'top_right', 'center_right', 'bottom_right', 'bottom_center', 'bottom_left', 'center_left', 'center', 'other']" type="unicode" />
     <param name="interactive_legend_orientation" value="vertical"  choices="['vertical', 'horizontal']" type="unicode" />
     <param name="interactive_legend_mute_alpha" value="0.20" type="float" />
-    <param name="interactive_legend_background_alpha" value="0.50" type="float" />
+    <param name="interactive_legend_background_alpha" value="1.00" type="float" />
     <param name="interactive_legend_font_size" value="10.00" type="float" />
     <!-- LINE PARAMETERS -->
     <param name="hoverVline" value="True" type="bool" />
@@ -596,10 +606,10 @@
     <param name="interactive_ms_annotations_fontWeight" value="True" type="bool" />
     <param name="interactive_ms_annotations_highlight" value="False" type="bool" />
     <param name="interactive_ms_annotations_labels" value="True" type="bool" />
-    <param name="interactive_ms_annotations_offsetX" value="5.00" type="float" />
+    <param name="interactive_ms_annotations_offsetX" value="0.00" type="float" />
     <param name="interactive_ms_annotations_offsetY" value="5.00" type="float" />
-    <param name="interactive_ms_annotations_fontSize" value="10.00" type="float" />
-    <param name="interactive_ms_annotations_rotation" value="90.00" type="float" />
+    <param name="interactive_ms_annotations_fontSize" value="12.00" type="float" />
+    <param name="interactive_ms_annotations_rotation" value="0.00" type="float" />
     <param name="interactive_ms_annotations_label_color" value="(0.0, 0.0, 0.0)" type="color" />
   </presets_interactive_gui>
 

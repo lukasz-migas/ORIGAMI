@@ -90,7 +90,6 @@ class documentsTree(wx.TreeCtrl):
         self.extractParent = None
         self.extractGrandparent = None
         
-        
         self.itemData = None
         self.currentDocument = None
         self.annotateDlg = None
@@ -161,6 +160,7 @@ class documentsTree(wx.TreeCtrl):
         # Get selected item
         item = self.GetSelection()
         self.currentItem = item
+        
         # Get the current text value for selected item
         itemType = self.GetItemText(item)
         if itemType == 'Current documents':
@@ -175,6 +175,7 @@ class documentsTree(wx.TreeCtrl):
             menu.Destroy()
             self.SetFocus()
             return
+        
         # Get indent level for selected item
         self.indent = self.getItemIndent(item)
         if self.indent > 1:
@@ -1179,10 +1180,6 @@ class documentsTree(wx.TreeCtrl):
             self.extractData = self.GetItemText(extract)
             self.extractGrandparent = self.GetItemText(self.GetItemParent(self.GetItemParent(extract)))
             
-            
-
-            
-            
         # Check item
         if not item:
             return      
@@ -1538,11 +1535,8 @@ class documentsTree(wx.TreeCtrl):
             self.currentData = None
         
         if self.config.debug:
-            msg = "Item: {} | extract: {} | extract parent: {} | extract grandparent: {} | indent: {}".format(self.itemType, 
-                                                                                                             self.extractData,
-                                                                                                             self.extractParent,
-                                                                                                             self.extractGrandparent, 
-                                                                                                             self.indent)
+            msg = "Item: {} | extract: {} | extract parent: {} | extract grandparent: {} | indent: {}".format(
+                self.itemType, self.extractData, self.extractParent, self.extractGrandparent, self.indent)
             print(msg)
 
         # load data
@@ -3270,9 +3264,14 @@ class documentsTree(wx.TreeCtrl):
                 self.Expand(docItem)
                 
                 # check if item is in other panels
-                try: self.presenter.view.panelMML.topP.onRenameItem(current_name, new_name, item_type="document")
+                # TODO: implement for other panels
+                try: self.presenter.view.panelMML.topP.onRenameItem(current_name, 
+                                                                    new_name, 
+                                                                    item_type="document")
                 except: pass
-                try: self.presenter.view.panelMultipleIons.topP.onRenameItem(current_name, new_name, item_type="document")
+                try: self.presenter.view.panelMultipleIons.topP.onRenameItem(current_name, 
+                                                                             new_name, 
+                                                                             item_type="document")
                 except: pass
 #                 try: self.presenter.view.panelMultipleText.topP.onClearItems(title)
 #                 except: pass
@@ -5055,7 +5054,7 @@ class documentsTree(wx.TreeCtrl):
                 else:
                     deleteItem = self.itemData.title
                     
-            # Clear all plots
+            # Clear all plotsf
             if self.presenter.currentDoc == deleteItem:
                 self.presenter.onClearAllPlots()
                 self.presenter.currentDoc = None            
@@ -5186,7 +5185,9 @@ class documentsTree(wx.TreeCtrl):
 #                     try: self.setCurrentDocument(text)
 #                     except: pass
                     self.presenter.currentDoc = text
-                    self.mainParent.SetTitle("ORIGAMI - v{} - {} ({})".format(self.config.version, text, self.itemData.dataType)) 
+                    self.mainParent.SetTitle("ORIGAMI - v{} - {} ({})".format(self.config.version, 
+                                                                              text, 
+                                                                              self.itemData.dataType)) 
             except:
                 self.mainParent.SetTitle("ORIGAMI - v{}".format(self.config.version))
                 
