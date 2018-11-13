@@ -226,7 +226,6 @@ class panelParametersEdit(wx.Panel):
         self.plot1D_topTickLabels_check.GetValue(self.config.tickLabels_top_1D)
         self.plot1D_bottomTickLabels_check.GetValue(self.config.tickLabels_bottom_1D)
         
-              
     def makePanelGeneral(self, panel):
         PANEL_SPACE_MAIN = 2
         axisParameters_staticBox = makeStaticBox(panel, "Axis parameters", 
@@ -1927,158 +1926,13 @@ class panelParametersEdit(wx.Panel):
         self.plot2D_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
         self.plot2D_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
          
-         
-#         axisParameters_staticBox = makeStaticBox(panel, "Axis parameters", 
-#                                                  size=(-1, -1), color=wx.BLACK)
-#         axisParameters_staticBox.SetSize((-1,-1))
-#         axis_box_sizer = wx.StaticBoxSizer(axisParameters_staticBox, wx.HORIZONTAL)         
-# 
-#         self.plot2D_annotationFontWeight_check = makeCheckbox(panel, u"Bold")
-#         self.plot2D_annotationFontWeight_check.SetValue(self.config.annotationFontWeight_2D)
-#         self.plot2D_annotationFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_annotationFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#         
-#         plot2D_axisOnOff_label = wx.StaticText(panel, -1, "Show frame:")
-#         self.plot2D_axisOnOff_check = makeCheckbox(panel, u"")
-#         self.plot2D_axisOnOff_check.SetValue(self.config.axisOnOff_2D)
-#         self.plot2D_axisOnOff_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_axisOnOff_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_2D)
-#         self.plot2D_axisOnOff_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-# 
-#         plot2D_spines_label = wx.StaticText(panel, -1, "Line:")
-#         self.plot2D_leftSpines_check = makeCheckbox(panel, u"Left")
-#         self.plot2D_leftSpines_check.SetValue(self.config.spines_left_2D)
-#         self.plot2D_leftSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_leftSpines_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         self.plot2D_rightSpines_check = makeCheckbox(panel, u"Right")
-#         self.plot2D_rightSpines_check.SetValue(self.config.spines_right_2D)
-#         self.plot2D_rightSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_rightSpines_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         self.plot2D_topSpines_check = makeCheckbox(panel, u"Top")
-#         self.plot2D_topSpines_check.SetValue(self.config.spines_top_2D)
-#         self.plot2D_topSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_topSpines_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         self.plot2D_bottomSpines_check = makeCheckbox(panel, u"Bottom")
-#         self.plot2D_bottomSpines_check.SetValue(self.config.spines_bottom_2D)
-#         self.plot2D_bottomSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_bottomSpines_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         plot2D_ticks_label = wx.StaticText(panel, -1, "Ticks:")
-#         self.plot2D_leftTicks_check = makeCheckbox(panel, u"Left")
-#         self.plot2D_leftTicks_check.SetValue(self.config.ticks_left_2D)
-#         self.plot2D_leftTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_leftTicks_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         self.plot2D_rightTicks_check = makeCheckbox(panel, u"Right")
-#         self.plot2D_rightTicks_check.SetValue(self.config.ticks_right_2D)
-#         self.plot2D_rightTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_rightTicks_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         self.plot2D_topTicks_check = makeCheckbox(panel, u"Top")
-#         self.plot2D_topTicks_check.SetValue(self.config.ticks_top_2D)
-#         self.plot2D_topTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_topTicks_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         self.plot2D_bottomTicks_check = makeCheckbox(panel, u"Bottom")
-#         self.plot2D_bottomTicks_check.SetValue(self.config.ticks_bottom_2D)
-#         self.plot2D_bottomTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_bottomTicks_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         plot2D_tickLabels_label = wx.StaticText(panel, -1, "Tick labels:")
-#         self.plot2D_leftTickLabels_check = makeCheckbox(panel, u"Left")
-#         self.plot2D_leftTickLabels_check.SetValue(self.config.tickLabels_left_2D)
-#         self.plot2D_leftTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_leftTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         self.plot2D_rightTickLabels_check = makeCheckbox(panel, u"Right")
-#         self.plot2D_rightTickLabels_check.SetValue(self.config.tickLabels_right_2D)
-#         self.plot2D_rightTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_rightTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         self.plot2D_topTickLabels_check = makeCheckbox(panel, u"Top")
-#         self.plot2D_topTickLabels_check.SetValue(self.config.tickLabels_top_2D)
-#         self.plot2D_topTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_topTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         self.plot2D_bottomTickLabels_check = makeCheckbox(panel, u"Bottom")
-#         self.plot2D_bottomTickLabels_check.SetValue(self.config.tickLabels_bottom_2D)
-#         self.plot2D_bottomTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_bottomTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-         
-#         fontParameters_staticBox = makeStaticBox(panel, "Font parameters", 
-#                                                  size=(-1, -1), color=wx.BLACK)
-#         fontParameters_staticBox.SetSize((-1,-1))
-#         font_box_sizer = wx.StaticBoxSizer(fontParameters_staticBox, wx.HORIZONTAL)     
-#          
-#         plot2D_padding_label = wx.StaticText(panel, -1, "Label pad:")
-#         self.plot2D_padding_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.labelPad_2D), 
-#                                                min=1, max=100, initial=self.config.labelPad_2D, 
-#                                                inc=5, size=(90, -1))
-#         self.plot2D_padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
-#         self.plot2D_padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
-#          
-#         plot2D_titleFontSize_label = wx.StaticText(panel, -1, "Title font size:")
-#         self.plot2D_titleFontSize_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.titleFontSize_2D), 
-#                                                min=0, max=32, initial=self.config.titleFontSize_2D, 
-#                                                inc=1, size=(90, -1))
-#         self.plot2D_titleFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
-#         self.plot2D_titleFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
-#  
-#         self.plot2D_titleFontWeight_check = makeCheckbox(panel, u"Bold")
-#         self.plot2D_titleFontWeight_check.SetValue(self.config.titleFontWeight_2D)
-#         self.plot2D_titleFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_titleFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         plot2D_labelFontSize_label = wx.StaticText(panel, -1, "Label font size:")
-#         self.plot2D_labelFontSize_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.labelFontSize_2D), 
-#                                                min=0, max=32, initial=self.config.labelFontSize_2D, 
-#                                                inc=1, size=(90, -1))
-#         self.plot2D_labelFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
-#         self.plot2D_labelFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
-#  
-#         self.plot2D_labelFontWeight_check = makeCheckbox(panel, u"Bold")
-#         self.plot2D_labelFontWeight_check.SetValue(self.config.labelFontWeight_2D)
-#         self.plot2D_labelFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_labelFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         plot2D_tickFontSize_label = wx.StaticText(panel, -1, "Tick font size:")
-#         self.plot2D_tickFontSize_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.tickFontSize_2D), 
-#                                                min=0, max=32, initial=self.config.tickFontSize_2D, 
-#                                                inc=1, size=(90, -1))
-#         self.plot2D_tickFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
-#         self.plot2D_tickFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
-#          
-#         self.plot2D_tickFontWeight_check = makeCheckbox(panel, u"Bold")
-#         self.plot2D_tickFontWeight_check.SetValue(self.config.tickFontWeight_2D)
-#         self.plot2D_tickFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
-#         self.plot2D_tickFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-#          
-#         plot2D_annotationFontSize_label = wx.StaticText(panel, -1, "Annotation font size:")
-#         self.plot2D_annotationFontSize_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.annotationFontSize_2D), 
-#                                                min=0, max=32, initial=self.config.annotationFontSize_2D, 
-#                                                inc=1, size=(90, -1))
-#         self.plot2D_annotationFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
-#         self.plot2D_annotationFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
-         
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
          
         # Replot button
-        self.update2DBtn = wx.Button( panel, wx.ID_ANY,
-                                      u"Update", wx.DefaultPosition, 
-                                      wx.Size( -1, -1 ), 0 )
+        self.update2DBtn = wx.Button(panel, wx.ID_ANY, u"Update")
         self.update2DBtn.Bind(wx.EVT_BUTTON, self.onUpdate2D)
         
-        self.plot2DBtn = wx.Button( panel, wx.ID_ANY,
-                                    u"Replot", wx.DefaultPosition, 
-                                    wx.Size( -1, -1 ), 0 )
+        self.plot2DBtn = wx.Button(panel, wx.ID_ANY, u"Replot")
         self.plot2DBtn.Bind(wx.EVT_BUTTON, self.onReplot2D)
  
         plot2D_grid = wx.GridBagSizer(2, 2)
@@ -2102,62 +1956,10 @@ class panelParametersEdit(wx.Panel):
         plot2D_grid.Add(plot2D_max_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         plot2D_grid.Add(self.plot2D_max_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
         plot2D_box_sizer.Add(plot2D_grid, 0, wx.EXPAND, 10)
-        
-#         # axes parameters
-#         axis_grid = wx.GridBagSizer(2, 2)
-#         y = 0
-#         axis_grid.Add(plot2D_axisOnOff_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         axis_grid.Add(self.plot2D_axisOnOff_check, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND)
-#         y = y+1 
-#         axis_grid.Add(plot2D_spines_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         axis_grid.Add(self.plot2D_leftSpines_check, (y,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_grid.Add(self.plot2D_rightSpines_check, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_grid.Add(self.plot2D_topSpines_check, (y,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_grid.Add(self.plot2D_bottomSpines_check, (y,4), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         y = y+1
-#         axis_grid.Add(plot2D_ticks_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         axis_grid.Add(self.plot2D_leftTicks_check, (y,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_grid.Add(self.plot2D_rightTicks_check, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_grid.Add(self.plot2D_topTicks_check, (y,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_grid.Add(self.plot2D_bottomTicks_check, (y,4), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         y = y+1
-#         axis_grid.Add(plot2D_tickLabels_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         axis_grid.Add(self.plot2D_leftTickLabels_check, (y,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_grid.Add(self.plot2D_rightTickLabels_check, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_grid.Add(self.plot2D_topTickLabels_check, (y,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_grid.Add(self.plot2D_bottomTickLabels_check, (y,4), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER)
-#         axis_box_sizer.Add(axis_grid, 0, wx.EXPAND, 10)
-#         
-#         # font parameters
-#         font_grid = wx.GridBagSizer(2, 2)
-#         y = 0
-#         font_grid.Add(plot2D_padding_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot2D_padding_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         y = y+1
-#         font_grid.Add(plot2D_titleFontSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot2D_titleFontSize_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         font_grid.Add(self.plot2D_titleFontWeight_check, (y,3), wx.GBSpan(1,1), flag=wx.EXPAND)
-#         y = y+1
-#         font_grid.Add(plot2D_labelFontSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot2D_labelFontSize_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         font_grid.Add(self.plot2D_labelFontWeight_check, (y,3), wx.GBSpan(1,1), flag=wx.EXPAND)
-#         y = y+1
-#         font_grid.Add(plot2D_tickFontSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot2D_tickFontSize_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         font_grid.Add(self.plot2D_tickFontWeight_check, (y,3), wx.GBSpan(1,1), flag=wx.EXPAND)
-#         y = y+1
-#         font_grid.Add(plot2D_annotationFontSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot2D_annotationFontSize_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         font_grid.Add(self.plot2D_annotationFontWeight_check, (y,3), wx.GBSpan(1,1), flag=wx.EXPAND)
-#         font_box_sizer.Add(font_grid, 0, wx.EXPAND, 10)
-        
+            
         grid = wx.GridBagSizer(2, 2)
         y = 0
         grid.Add(plot2D_box_sizer, (y,0), wx.GBSpan(1,8), flag=wx.EXPAND)
-#         y = y+1
-#         grid.Add(axis_box_sizer, (y,0), wx.GBSpan(1,8), flag=wx.EXPAND)
-#         y = y+1
-#         grid.Add(font_box_sizer, (y,0), wx.GBSpan(1,8), flag=wx.EXPAND)
         y = y+1
         grid.Add(horizontal_line, (y,0), wx.GBSpan(1,8), flag=wx.EXPAND)
         y = y+1
@@ -2272,70 +2074,6 @@ class panelParametersEdit(wx.Panel):
         self.plot3D_labelsOnOff_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
         self.plot3D_labelsOnOff_check.Bind(wx.EVT_CHECKBOX, self.onUpdate3D)
         
-#         fontParameters_staticBox = makeStaticBox(panel, "Font parameters", 
-#                                                  size=(-1, -1), color=wx.BLACK)
-#         fontParameters_staticBox.SetSize((-1,-1))
-#         font_box_sizer = wx.StaticBoxSizer(fontParameters_staticBox, wx.HORIZONTAL) 
-#         
-#         plot3D_padding_label = wx.StaticText(panel, -1, "Label pad:")
-#         self.plot3D_padding_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.labelPad_3D), 
-#                                                min=1, max=100, initial=self.config.labelPad_3D, 
-#                                                inc=5, size=(90, -1))
-#         self.plot3D_padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
-#          
-#         plot3D_titleFontSize_label = wx.StaticText(panel, -1, "Title font size:")
-#         self.plot3D_titleFontSize_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.titleFontSize_3D), 
-#                                                min=0, max=32, initial=self.config.titleFontSize_3D, 
-#                                                inc=1, size=(90, -1))
-#         self.plot3D_titleFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
-#         self.plot3D_titleFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate3D)
-#  
-#         self.plot3D_titleFontWeight_check = makeCheckbox(panel, u"Bold")
-#         self.plot3D_titleFontWeight_check.SetValue(self.config.titleFontWeight_3D)
-#         self.plot3D_titleFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
-#          
-#         plot3D_labelFontSize_label = wx.StaticText(panel, -1, "Label font size:")
-#         self.plot3D_labelFontSize_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.labelFontSize_3D), 
-#                                                min=0, max=32, initial=self.config.labelFontSize_3D, 
-#                                                inc=1, size=(90, -1))
-#         self.plot3D_labelFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
-#         self.plot3D_labelFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate3D)
-#  
-#         self.plot3D_labelFontWeight_check = makeCheckbox(panel, u"Bold")
-#         self.plot3D_labelFontWeight_check.SetValue(self.config.labelFontWeight_3D)
-#         self.plot3D_labelFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
-#         self.plot3D_labelFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate3D)
-#          
-#         plot3D_tickFontSize_label = wx.StaticText(panel, -1, "Tick font size:")
-#         self.plot3D_tickFontSize_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.tickFontSize_3D), 
-#                                                min=0, max=32, initial=self.config.tickFontSize_3D, 
-#                                                inc=1, size=(90, -1))
-#         self.plot3D_tickFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
-#         self.plot3D_tickFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate3D)
-#          
-#         self.plot3D_tickFontWeight_check = makeCheckbox(panel, u"Bold")
-#         self.plot3D_tickFontWeight_check.SetValue(self.config.tickFontWeight_3D)
-#         self.plot3D_tickFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
-#         self.plot3D_tickFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate3D)
-#          
-#         plot3D_annotationFontSize_label = wx.StaticText(panel, -1, "Annotation font size:")
-#         self.plot3D_annotationFontSize_value = wx.SpinCtrlDouble(panel, -1, 
-#                                                value=str(self.config.annotationFontSize_3D), 
-#                                                min=0, max=32, initial=self.config.annotationFontSize_3D, 
-#                                                inc=1, size=(90, -1))
-#         self.plot3D_annotationFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
-#         self.plot3D_annotationFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate3D)
-#          
-#         self.plot3D_annotationFontWeight_check = makeCheckbox(panel, u"Bold")
-#         self.plot3D_annotationFontWeight_check.SetValue(self.config.annotationFontWeight_3D)
-#         self.plot3D_annotationFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
-#         self.plot3D_annotationFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate3D)
-
-
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
          
         # Replot button
@@ -2391,29 +2129,6 @@ class panelParametersEdit(wx.Panel):
         axis_grid.Add(self.plot3D_labelsOnOff_check, (y,3), wx.GBSpan(1,1), flag=wx.EXPAND)
         axis_box_sizer.Add(axis_grid, 0, wx.EXPAND, 10)
         
-#         # font grid
-#         font_grid = wx.GridBagSizer(2, 2)
-#         y = 0
-#         font_grid.Add(plot3D_padding_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot3D_padding_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         y = y+1
-#         font_grid.Add(plot3D_titleFontSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot3D_titleFontSize_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         font_grid.Add(self.plot3D_titleFontWeight_check, (y,3), wx.GBSpan(1,), flag=wx.EXPAND)
-#         y = y+1
-#         font_grid.Add(plot3D_labelFontSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot3D_labelFontSize_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         font_grid.Add(self.plot3D_labelFontWeight_check, (y,3), wx.GBSpan(1,1), flag=wx.EXPAND)
-#         y = y+1
-#         font_grid.Add(plot3D_tickFontSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot3D_tickFontSize_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         font_grid.Add(self.plot3D_tickFontWeight_check, (y,3), wx.GBSpan(1,1), flag=wx.EXPAND)
-#         y = y+1
-#         font_grid.Add(plot3D_annotationFontSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-#         font_grid.Add(self.plot3D_annotationFontSize_value, (y,1), wx.GBSpan(1,2), flag=wx.EXPAND)
-#         font_grid.Add(self.plot3D_annotationFontWeight_check, (y,3), wx.GBSpan(1,), flag=wx.EXPAND)
-#         font_box_sizer.Add(font_grid, 0, wx.EXPAND, 10)
-        
         grid = wx.GridBagSizer(2, 2)
         y = 0
         grid.Add(plot3D_box_sizer, (y,0), wx.GBSpan(1,8), flag=wx.EXPAND)
@@ -2421,8 +2136,6 @@ class panelParametersEdit(wx.Panel):
         grid.Add(scatter3D_box_sizer, (y,0), wx.GBSpan(1,8), flag=wx.EXPAND)
         y = y+1
         grid.Add(axis_box_sizer, (y,0), wx.GBSpan(1,8), flag=wx.EXPAND)
-#         y = y+1
-#         grid.Add(font_box_sizer, (y,0), wx.GBSpan(1,8), flag=wx.EXPAND)
         y = y+1
         grid.Add(horizontal_line, (y,0), wx.GBSpan(1,8), flag=wx.EXPAND)
         y = y+1

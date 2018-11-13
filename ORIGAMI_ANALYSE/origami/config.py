@@ -1770,7 +1770,6 @@ class OrigamiConfig:
         buff += '    <param name="waterfall_lineStyle" value="%s" type="unicode" choices="%s" />\n' % (self.waterfall_lineStyle, self.lineStylesList)
         buff += '    <param name="waterfall_color" value="%s" type="color" />\n' % (str(self.waterfall_color))
         buff += '    <param name="waterfall_useColormap" value="%s" type="bool" />\n' % (bool(self.waterfall_useColormap))
-        
         buff += '    <param name="waterfall_normalize" value="%s" type="bool" />\n' % (bool(self.waterfall_normalize))
         buff += '    <param name="waterfall_label_format" value="%s" type="unicode" choices="%s" />\n' % (self.waterfall_label_format, self.waterfall_label_format_choices)
         buff += '    <param name="waterfall_color_value" value="%s" type="unicode" choices="%s" />\n' % (self.waterfall_color_value, self.waterfall_color_choices)
@@ -1840,6 +1839,8 @@ class OrigamiConfig:
         buff += '  <plot_presets_plot_1D>\n'
         buff += '    <param name="lineColour_1D" value="%s" type="color" />\n' % (str(self.lineColour_1D))
         buff += '    <param name="lineWidth_1D" value="%.2f" type="float" />\n' % (float(self.lineWidth_1D))
+        buff += '    <param name="frameWidth_1D" value="%d" type="float" />\n' % (float(self.frameWidth_1D))
+        buff += '    <param name="labelPad_1D" value="%d" type="float" />\n' % (float(self.labelPad_1D))
         buff += '    <param name="lineStyle_1D" value="%s" type="unicode" choices="%s" />\n' % (self.lineStyle_1D, self.lineStylesList)
         buff += '    <param name="markerColor_1D" value="%s" type="color" />\n' % (str(self.markerColor_1D))
         buff += '    <param name="markerTransparency_1D" value="%.2f" type="float" />\n' % (float(self.markerTransparency_1D))

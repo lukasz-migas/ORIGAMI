@@ -121,7 +121,7 @@
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
-    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
+    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="True" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
@@ -154,22 +154,22 @@
   </plot_presets_annotations>
 
   <custom_colors>
-    <param name="color_0" value="[219.30000000000001, 94.656000000000006, 86.700000000000003]" type="color" />
-    <param name="color_1" value="[219.30000000000001, 144.381, 86.700000000000003]" type="color" />
-    <param name="color_2" value="[219.30000000000001, 194.10599999999999, 86.700000000000003]" type="color" />
-    <param name="color_3" value="[194.76900000000001, 219.30000000000001, 86.700000000000003]" type="color" />
-    <param name="color_4" value="[145.04400000000001, 219.30000000000001, 86.700000000000003]" type="color" />
-    <param name="color_5" value="[95.319000000000003, 219.30000000000001, 86.700000000000003]" type="color" />
-    <param name="color_6" value="[86.700000000000003, 219.30000000000001, 127.806]" type="color" />
-    <param name="color_7" value="[86.700000000000003, 219.30000000000001, 177.53100000000001]" type="color" />
-    <param name="color_8" value="[86.700000000000003, 211.34399999999999, 219.30000000000001]" type="color" />
-    <param name="color_9" value="[86.700000000000003, 161.619, 219.30000000000001]" type="color" />
-    <param name="color_10" value="[86.700000000000003, 111.89400000000001, 219.30000000000001]" type="color" />
-    <param name="color_11" value="[111.23099999999999, 86.700000000000003, 219.30000000000001]" type="color" />
-    <param name="color_12" value="[160.95599999999999, 86.700000000000003, 219.30000000000001]" type="color" />
-    <param name="color_13" value="[210.68100000000001, 86.700000000000003, 219.30000000000001]" type="color" />
-    <param name="color_14" value="[219.30000000000001, 86.700000000000003, 178.19399999999999]" type="color" />
-    <param name="color_15" value="[219.30000000000001, 86.700000000000003, 128.46899999999999]" type="color" />
+    <param name="color_0" value="[219.3, 94.656, 86.7]" type="color" />
+    <param name="color_1" value="[219.3, 144.381, 86.7]" type="color" />
+    <param name="color_2" value="[219.3, 194.106, 86.7]" type="color" />
+    <param name="color_3" value="[194.769, 219.3, 86.7]" type="color" />
+    <param name="color_4" value="[145.044, 219.3, 86.7]" type="color" />
+    <param name="color_5" value="[95.319, 219.3, 86.7]" type="color" />
+    <param name="color_6" value="[86.7, 219.3, 127.806]" type="color" />
+    <param name="color_7" value="[86.7, 219.3, 177.531]" type="color" />
+    <param name="color_8" value="[86.7, 211.344, 219.3]" type="color" />
+    <param name="color_9" value="[86.7, 161.619, 219.3]" type="color" />
+    <param name="color_10" value="[86.7, 111.894, 219.3]" type="color" />
+    <param name="color_11" value="[111.231, 86.7, 219.3]" type="color" />
+    <param name="color_12" value="[160.956, 86.7, 219.3]" type="color" />
+    <param name="color_13" value="[210.681, 86.7, 219.3]" type="color" />
+    <param name="color_14" value="[219.3, 86.7, 178.194]" type="color" />
+    <param name="color_15" value="[219.3, 86.7, 128.469]" type="color" />
   </custom_colors>
 
   <process_presets_overlay>
@@ -395,6 +395,8 @@
   <plot_presets_plot_1D>
     <param name="lineColour_1D" value="(0, 0, 0)" type="color" />
     <param name="lineWidth_1D" value="3.00" type="float" />
+    <param name="frameWidth_1D" value="1" type="float" />
+    <param name="labelPad_1D" value="5" type="float" />
     <param name="lineStyle_1D" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
     <param name="markerColor_1D" value="(0, 0, 1)" type="color" />
     <param name="markerTransparency_1D" value="1.00" type="float" />

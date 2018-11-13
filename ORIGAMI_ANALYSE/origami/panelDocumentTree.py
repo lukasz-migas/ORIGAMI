@@ -416,7 +416,6 @@ class documentsTree(wx.TreeCtrl):
         
         return idX
         
-         
     def on_check_xylabels_2D(self): # checkCurrentXYlabels
         """
         This function checks what is the current X/Y-axis label
