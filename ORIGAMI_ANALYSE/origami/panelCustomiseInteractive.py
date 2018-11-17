@@ -878,7 +878,15 @@ class panelCustomiseInteractive(wx.MiniFrame):
             
         self.kwargs['frame_properties']['ticks_yaxis'] = self.frame_ticks_yaxis_check.GetValue()
         if self.kwargs['frame_properties']['ticks_yaxis']: 
+            self.kwargs['frame_properties']['ticks_yaxis_color'] = "#000000"
+        else: 
+            self.kwargs['frame_properties']['ticks_yaxis_color'] = None
+
         self.kwargs['frame_properties']['tick_labels_xaxis'] = self.frame_tick_labels_xaxis_check.GetValue()
+        if self.kwargs['frame_properties']['tick_labels_xaxis']: 
+            self.kwargs['frame_properties']['tick_labels_xaxis_fontsize'] = self.kwargs['frame_properties']['tick_fontsize']
+        else: 
+            self.kwargs['frame_properties']['tick_labels_xaxis_fontsize'] = 0
         
         self.kwargs['frame_properties']['tick_labels_yaxis'] = self.frame_tick_labels_yaxis_check.GetValue()
         if self.kwargs['frame_properties']['tick_labels_yaxis']: 
