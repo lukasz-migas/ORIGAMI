@@ -39,7 +39,7 @@ class OrigamiConfig:
         self._processID = None
         self.loggingFile_path = None
         
-        self.version = "1.2.0.3"
+        self.version = "1.2.0.4"
         self.unidec_engine = None
         self.links = {'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
                       'github' : 'https://github.com/lukasz-migas/ORIGAMI',
@@ -62,6 +62,11 @@ class OrigamiConfig:
         self.configFile_name = 'configOut.xml'
         self.checkForDriftscopeAtStart = True
         self.driftscopePath = "C:\DriftScope\lib"
+        
+        self.import_duplicate_action = "merge"
+        self.import_duplicate_ask = False
+        
+        
         
         self.watermark = '<p><span style="color: #808080;">This document was generated using ORIGAMI (v. {}) which is an Open-Source software for the analysis of MS and IM-MS datasets. If you would like more information, have a look <a href="https://doi.org/10.1016/j.ijms.2017.08.014">here</a> and to download it for free, have a look <a href="https://github.com/lukasz-migas/ORIGAMI/releases">here</a>.</span></p>'.format(self.version)
         # Populate GUI
@@ -462,6 +467,7 @@ class OrigamiConfig:
         self.vertical_alignment_list = ['center', 'top', 'bottom']
         self.label_fontsize_list = ["xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large"]
         self.label_fontweight_list = ["ultralight", "light", "normal", "regular", "medium", "bold", "heavy"]
+        self.label_font_orientation_list = ['horizontal', 'vertical']
         
         # Annotation
         self.annotation_charge_std_dev = 0.05
@@ -471,6 +477,7 @@ class OrigamiConfig:
         self.annotation_label_vert = "center"
         self.annotation_label_font_size = "small"
         self.annotation_label_font_weight = "normal"
+        self.annotation_label_font_orientation = "horizontal"
 
 
         # UniDec
@@ -1500,6 +1507,8 @@ class OrigamiConfig:
         buff += '    <param name="overrideCombine" value="%s" type="bool" />\n' % (bool(self.overrideCombine))
         buff += '    <param name="useInternalParamsCombine" value="%s" type="bool" />\n' % (bool(self.useInternalParamsCombine))
         buff += '    <param name="overlay_usedProcessed" value="%s" type="bool" />\n' % (bool(self.overlay_usedProcessed))
+        buff += '    <param name="import_duplicate_action" value="%s" type="unicode" choices="%s" />\n' % (self.import_duplicate_action, ["override", "merge", "duplicate"])
+        buff += '    <param name="import_duplicate_ask" value="%s" type="bool" />\n' % (bool(self.import_duplicate_ask))
         buff += '  </presets_gui>\n\n'
         
         # Plot sizes in GUI

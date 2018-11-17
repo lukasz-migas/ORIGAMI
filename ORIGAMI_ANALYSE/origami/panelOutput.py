@@ -26,11 +26,6 @@
 # violin = hv.Violin(np.random.randn(100), vdims='Value')
 # plot = renderer.get_plot(violin).state # need to grab the figure instance
 
-# TODO: fix issue when using the CustomJS functions. Currently py2exe does not allow
-# execution of custom code. Need to change several lines in the source code
-# have a look here for hints: https://stackoverflow.com/questions/49619412/using-pyinstaller-with-bokeh-and-customjs
-
-
 # load libs
 from __future__ import division, unicode_literals
 import wx, re, webbrowser, time, threading
@@ -74,6 +69,7 @@ from processing.spectra import linearize_data, crop_1D_data, normalize_1D
 # hv.extension('bokeh')
 
 import warnings
+from _pytest.mark import param
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore",category=DeprecationWarning)
 warnings.filterwarnings("ignore",category=RuntimeWarning)
@@ -129,7 +125,8 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.lastColumn = None
         self.filtered = False
         self.listOfSelected = []
-
+        self._item_style_ = {}
+        
         self.makeGUI()
         self.populateTable()
         self.onChangeSettings(evt=None)
@@ -141,13 +138,177 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.CenterOnParent()
         self.Layout()
         self.SetFocus()
-        print("Startup took {:.3f} seconds".format(time.time()-tstart))
+        
+        print("Startup of interactive panel took {:.3f} seconds".format(time.time()-tstart))
         # bind
         wx.EVT_CLOSE(self, self.onClose)
         wx.EVT_SPLITTER_DCLICK(self, wx.ID_ANY, self._onSash)
         self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
         self.itemsList.Bind(wx.EVT_LEFT_DCLICK, self.onCustomiseItem)
         self.itemsList.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.onColumnRightClickMenu)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickMenu)
+        
+    def OnRightClickMenu(self, evt):
+        
+        self.Bind(wx.EVT_MENU, self.onCustomiseItem, id=ID_interactivePanel_customise_item)
+        
+        self.Bind(wx.EVT_MENU, self.on_copy_style, id=ID_interactivePanel_copy_all)
+        self.Bind(wx.EVT_MENU, self.on_copy_style, id=ID_interactivePanel_copy_frame)
+        self.Bind(wx.EVT_MENU, self.on_copy_style, id=ID_interactivePanel_copy_legend)
+        self.Bind(wx.EVT_MENU, self.on_copy_style, id=ID_interactivePanel_copy_widgets)
+        self.Bind(wx.EVT_MENU, self.on_copy_style, id=ID_interactivePanel_copy_plot)
+        self.Bind(wx.EVT_MENU, self.on_copy_style, id=ID_interactivePanel_copy_figure)
+        
+        self.Bind(wx.EVT_MENU, self.on_apply_style, id=ID_interactivePanel_apply_all)
+        self.Bind(wx.EVT_MENU, self.on_apply_style, id=ID_interactivePanel_apply_frame)
+        self.Bind(wx.EVT_MENU, self.on_apply_style, id=ID_interactivePanel_apply_legend)
+        self.Bind(wx.EVT_MENU, self.on_apply_style, id=ID_interactivePanel_apply_widgets) 
+        self.Bind(wx.EVT_MENU, self.on_apply_style, id=ID_interactivePanel_apply_plot)
+        self.Bind(wx.EVT_MENU, self.on_apply_style, id=ID_interactivePanel_apply_figure) 
+        
+        
+        copy_style_menu = wx.Menu()
+        copy_style_menu.Append(ID_interactivePanel_copy_plot, 'Copy: Plot parameters (x/y-limits)')
+        copy_style_menu.Append(ID_interactivePanel_copy_figure, 'Copy: Figure parameters (figure size)')
+        copy_style_menu.Append(ID_interactivePanel_copy_frame, 'Copy: Frame parameters (ticks, labels, fontsize...)')
+        copy_style_menu.Append(ID_interactivePanel_copy_legend, 'Copy: Legend parameters')
+        copy_style_menu.Append(ID_interactivePanel_copy_widgets, 'Copy: Widget parameters')
+        
+        apply_style_menu = wx.Menu()
+        apply_style_menu.Append(ID_interactivePanel_apply_plot, 'Apply: Plot parameters (x/y-limits)')
+        apply_style_menu.Append(ID_interactivePanel_apply_figure, 'Apply: Figure parameters (figure size)')
+        apply_style_menu.Append(ID_interactivePanel_apply_frame, 'Apply: Frame parameters (ticks, labels, fontsize...)')
+        apply_style_menu.Append(ID_interactivePanel_apply_legend, 'Apply: Legend parameters')
+        apply_style_menu.Append(ID_interactivePanel_apply_widgets, 'Apply: Widget parameters')
+        
+        
+        
+        menu = wx.Menu()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_customise_item,
+                                     text='Customise plot...', 
+                                     bitmap=self.icons.iconsLib['change_xlabels_16']))
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_copy_all,
+                                     text='Copy style (all)', 
+                                     bitmap=None))
+        menu.AppendMenu(wx.ID_ANY, 'Copy style...', copy_style_menu)
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_all,
+                                     text='Apply style (all)', 
+                                     bitmap=None))
+        menu.AppendMenu(wx.ID_ANY, 'Apply style...', apply_style_menu)
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+        
+    def on_copy_style(self, evt):
+        # clear previous style
+        self._item_style_ = dict()
+        
+        # retrieve item information
+        name, key, innerKey = self._getItemDetails()
+        data = self.getItemData(name, key, innerKey)
+        style_data = deepcopy(data.get("interactive_params", {}))
+        
+        self._item_style_.update(document_title=name, item_type=key, item_title=innerKey)
+
+        evtID = evt.GetId()
+        # get styles
+        if evtID == ID_interactivePanel_copy_all:
+            frame_properties = style_data.get("frame_properties", {})
+            legend_properties = style_data.get("legend_properties", {})
+            widgets = style_data.get("widgets", {})
+            plot_height = style_data.get("plot_height", self.config.figHeight)
+            plot_width = style_data.get("plot_width", self.config.figWidth)
+            xlimits = style_data.get("xlimits", [])
+            ylimits = style_data.get("ylimits", [])
+            self._item_style_.update(frame_properties=frame_properties, 
+                                     legend_properties=legend_properties,
+                                     widgets=widgets,
+                                     plot_height=plot_height, plot_width=plot_width,
+                                     xlimits=xlimits, ylimits=ylimits)
+            _copied_msg = "all"
+        elif evtID == ID_interactivePanel_copy_frame:
+            frame_properties = style_data.get("frame_properties", {})
+            self._item_style_.update(frame_properties=frame_properties)
+            _copied_msg = "frame"
+        elif evtID == ID_interactivePanel_copy_legend:
+            legend_properties = style_data.get("legend_properties", {})
+            self._item_style_.update(legend_properties=legend_properties)
+            _copied_msg = "legend"
+        elif evtID == ID_interactivePanel_copy_widgets:
+            widgets = style_data.get("widgets", {})
+            self._item_style_.update(widgets=widgets)
+            _copied_msg = "widgets"
+        elif evtID == ID_interactivePanel_copy_figure:
+            plot_height = style_data.get("plot_height", self.config.figHeight)
+            plot_width = style_data.get("plot_width", self.config.figWidth)
+            self._item_style_.update(plot_height=plot_height, plot_width=plot_width)
+            _copied_msg = "figure size"
+        elif evtID == ID_interactivePanel_copy_plot:
+            xlimits = style_data.get("xlimits", [])
+            ylimits = style_data.get("ylimits", [])
+            self._item_style_.update(xlimits=xlimits, ylimits=ylimits)
+            _copied_msg = "plot limits"
+
+        print("Copied [{}] parameters from: {} - {} - {}".format(_copied_msg, name, key, innerKey))
+        
+    def on_apply_style(self, evt):
+        name, key, innerKey = self._getItemDetails()
+        data = self.getItemData(name, key, innerKey)
+        style_data = deepcopy(data.get("interactive_params", {}))
+        
+        if len(self._item_style_) == 0:
+            return
+        
+        evtID = evt.GetId()
+        if evtID == ID_interactivePanel_apply_all:
+            if "frame_properties" in self._item_style_:
+                style_data['frame_properties'] = self._item_style_['frame_properties']
+            if "legend_properties" in self._item_style_:
+                style_data['legend_properties'] = self._item_style_['legend_properties']
+            if "widgets" in self._item_style_:
+                style_data['widgets'] = self._item_style_['widgets']
+            if "plot_height" in self._item_style_:
+                style_data['plot_height'] = self._item_style_['plot_height']
+            if "plot_width" in self._item_style_:
+                style_data['plot_width'] = self._item_style_['plot_width']
+            if "xlimits" in self._item_style_:
+                style_data['xlimits'] = self._item_style_['xlimits']
+            if "ylimits" in self._item_style_:
+                style_data['ylimits'] = self._item_style_['ylimits']   
+            _copied_msg = "all"
+        elif evtID == ID_interactivePanel_apply_frame:
+            if "frame_properties" in self._item_style_:
+                style_data['frame_properties'] = self._item_style_['frame_properties']
+            _copied_msg = "frame"
+        elif evtID == ID_interactivePanel_apply_frame:
+            if "legend_properties" in self._item_style_:
+                style_data['legend_properties'] = self._item_style_['legend_properties']        
+            _copied_msg = "legend"
+        elif evtID == ID_interactivePanel_apply_widgets:
+            if "widgets" in self._item_style_:
+                style_data['widgets'] = self._item_style_['widgets']
+            _copied_msg = "widgets"
+        elif evtID == ID_interactivePanel_apply_figure:
+            if "plot_height" in self._item_style_:
+                style_data['plot_height'] = self._item_style_['plot_height']
+            if "plot_width" in self._item_style_:
+                style_data['plot_width'] = self._item_style_['plot_width']
+            _copied_msg = "figure size"
+        elif evtID == ID_interactivePanel_apply_plot:
+            if "xlimits" in self._item_style_:
+                style_data['xlimits'] = self._item_style_['xlimits']
+            if "ylimits" in self._item_style_:
+                style_data['ylimits'] = self._item_style_['ylimits']      
+            _copied_msg = "plot limits"          
+
+        self.onUpdateItemParameters(name, key, innerKey, style_data)
+
+        print("Applied [{}] parameters from {} - {} - {} to {} - {} - {}".format(
+            _copied_msg, self._item_style_['document_title'], 
+            self._item_style_['item_type'], self._item_style_['item_title'], 
+            name, key, innerKey))
         
     def _onSash(self, evt):
         evt.Veto()
@@ -172,10 +333,6 @@ class dlgOutputInteractive(wx.MiniFrame):
 #         print(keyCode)
         if keyCode == 344: # F5
             self.onUpdateList()
-#         if keyCode == wx.WXK_ESCAPE: # key = esc
-#             self.onClose(evt=None)
-#         if keyCode == 83: # key = S
-#             self.onItemCheck(evt=None)
 
         if evt != None: 
             evt.Skip()
@@ -221,6 +378,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         @param innerKey: name of dataset    (str)
         @param parameters: updated parameters    (dict)
         """
+        
         document = self.documentsDict[name]
         
         if key == 'MS' and innerKey == '': 
@@ -467,8 +625,8 @@ class dlgOutputInteractive(wx.MiniFrame):
         """Make list for items."""
 
         # init table
-        itemsList = EditableListCtrl(panel, size=(750, -1), 
-                                     style=wx.LC_REPORT | wx.LC_VRULES)
+        itemsList = ListCtrl(panel, size=(750, -1),
+                             style=wx.LC_REPORT | wx.LC_VRULES)
         itemsList.SetFont(wx.SMALL_FONT)
 
         for item in self.config._interactiveSettings:
@@ -754,10 +912,6 @@ class dlgOutputInteractive(wx.MiniFrame):
         html_grid.Add(self.itemFootnote_value, (n,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL)
         html_box_sizer.Add(html_grid, 0, wx.EXPAND, 0)
 
-        self.html_override = makeCheckbox(self.htmlView, u"Use individual settings of each item in the table")
-        self.html_override.SetValue(self.config.interactive_override_defaults)
-        self.html_override.Bind(wx.EVT_CHECKBOX, self.onChangeSettings)
-
         # general subpanel
         general_staticBox = makeStaticBox(self.htmlView, "General settings", size=(-1, -1), color=wx.BLACK)
         general_staticBox.SetSize((-1,-1))
@@ -794,6 +948,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         plot1D_staticBox = makeStaticBox(self.htmlView, "Plot (1D) settings", size=(-1, -1), color=wx.BLACK)
         plot1D_staticBox.SetSize((-1,-1))
         plot1D_box_sizer = wx.StaticBoxSizer(plot1D_staticBox, wx.HORIZONTAL)
+
 
         plot1D_line_color_label = wx.StaticText(self.htmlView, -1, "Line color:")
         self.colorBtn = wx.Button( self.htmlView, ID_changeColorInteractive,
@@ -1062,54 +1217,54 @@ class dlgOutputInteractive(wx.MiniFrame):
         overlay_grid.Add(self.html_overlay_linkXY, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND)
         overlay_box_sizer.Add(overlay_grid, 0, wx.EXPAND, 10)
 
-        # plot waterfall subpanel
-        figsize_staticBox = makeStaticBox(self.htmlView, "Figure/axes settings", size=(-1, -1), color=wx.BLACK)
-        figsize_staticBox.SetSize((-1,-1))
-        figsize_box_sizer = wx.StaticBoxSizer(figsize_staticBox, wx.HORIZONTAL)
-        
-        figsize_height_label = makeStaticText(self.htmlView, u"Height:")
-        self.figsize_height_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('intPos'))
-        self.figsize_height_value.SetValue(str(self.config.figHeight1D))
-        self.figsize_height_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
-        
-        figsize_width_label = makeStaticText(self.htmlView, u"Width:")
-        self.figsize_width_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('intPos'))
-        self.figsize_width_value.SetValue(str(self.config.figWidth1D))
-        self.figsize_width_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
-
-        axes_xmin_label = makeStaticText(self.htmlView, u"X min:")
-        self.axes_xmin_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('float'))
-        self.axes_xmin_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
-        
-        axes_xmax_label = makeStaticText(self.htmlView, u"X max:")
-        self.axes_xmax_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('float'))
-        self.axes_xmax_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
-        
-        axes_ymin_label = makeStaticText(self.htmlView, u"Y min:")
-        self.axes_ymin_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('float'))
-        self.axes_ymin_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
-        
-        axes_ymax_label = makeStaticText(self.htmlView, u"Y max:")
-        self.axes_ymax_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('float'))
-        self.axes_ymax_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
-        
-        figsize_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        figsize_grid.Add(figsize_height_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        figsize_grid.Add(self.figsize_height_value, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-        figsize_grid.Add(figsize_width_label, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        figsize_grid.Add(self.figsize_width_value, (y,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-        y = y + 1
-        figsize_grid.Add(axes_xmin_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        figsize_grid.Add(self.axes_xmin_value, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-        figsize_grid.Add(axes_xmax_label, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        figsize_grid.Add(self.axes_xmax_value, (y,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-        y = y + 1
-        figsize_grid.Add(axes_ymin_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        figsize_grid.Add(self.axes_ymin_value, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-        figsize_grid.Add(axes_ymax_label, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        figsize_grid.Add(self.axes_ymax_value, (y,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-        figsize_box_sizer.Add(figsize_grid, 0, wx.EXPAND, 10)
+#         # plot waterfall subpanel
+#         figsize_staticBox = makeStaticBox(self.htmlView, "Figure/axes settings", size=(-1, -1), color=wx.BLACK)
+#         figsize_staticBox.SetSize((-1,-1))
+#         figsize_box_sizer = wx.StaticBoxSizer(figsize_staticBox, wx.HORIZONTAL)
+#         
+#         figsize_height_label = makeStaticText(self.htmlView, u"Height:")
+#         self.figsize_height_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('intPos'))
+#         self.figsize_height_value.SetValue(str(self.config.figHeight1D))
+#         self.figsize_height_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
+#         
+#         figsize_width_label = makeStaticText(self.htmlView, u"Width:")
+#         self.figsize_width_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('intPos'))
+#         self.figsize_width_value.SetValue(str(self.config.figWidth1D))
+#         self.figsize_width_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
+# 
+#         axes_xmin_label = makeStaticText(self.htmlView, u"X min:")
+#         self.axes_xmin_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('float'))
+#         self.axes_xmin_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
+#         
+#         axes_xmax_label = makeStaticText(self.htmlView, u"X max:")
+#         self.axes_xmax_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('float'))
+#         self.axes_xmax_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
+#         
+#         axes_ymin_label = makeStaticText(self.htmlView, u"Y min:")
+#         self.axes_ymin_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('float'))
+#         self.axes_ymin_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
+#         
+#         axes_ymax_label = makeStaticText(self.htmlView, u"Y max:")
+#         self.axes_ymax_value = wx.TextCtrl(self.htmlView, -1, "", size=(50, -1), validator=validator('float'))
+#         self.axes_ymax_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
+#         
+#         figsize_grid = wx.GridBagSizer(2, 2)
+#         y = 0
+#         figsize_grid.Add(figsize_height_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+#         figsize_grid.Add(self.figsize_height_value, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
+#         figsize_grid.Add(figsize_width_label, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+#         figsize_grid.Add(self.figsize_width_value, (y,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
+#         y = y + 1
+#         figsize_grid.Add(axes_xmin_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+#         figsize_grid.Add(self.axes_xmin_value, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
+#         figsize_grid.Add(axes_xmax_label, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+#         figsize_grid.Add(self.axes_xmax_value, (y,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
+#         y = y + 1
+#         figsize_grid.Add(axes_ymin_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+#         figsize_grid.Add(self.axes_ymin_value, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
+#         figsize_grid.Add(axes_ymax_label, (y,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+#         figsize_grid.Add(self.axes_ymax_value, (y,3), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
+#         figsize_box_sizer.Add(figsize_grid, 0, wx.EXPAND, 10)
 #
         # Disable all elements when nothing is selected
         itemList = [self.itemName_value, self.itemHeader_value, self.itemFootnote_value,
@@ -1117,12 +1272,14 @@ class dlgOutputInteractive(wx.MiniFrame):
                     self.plotTypeToolsSelect_htmlView, self.html_overlay_colormap_1, self.html_overlay_colormap_2,
                     self.html_overlay_layout, self.html_overlay_linkXY, self.colorbarCheck,
                     self.html_plot1D_line_alpha, self.html_plot1D_line_width, self.html_plot1D_hoverLinkX,
-                    self.html_overlay_legend, self.grid_label_check, self.grid_label_size_value,
-                    self.grid_label_weight, self.interactive_grid_colorBtn, self.html_plot1D_line_style,
-                    self.grid_ypos_value, self.grid_xpos_value, self.waterfall_increment_value,
+                    self.html_overlay_legend, 
+#                     self.grid_label_check, self.grid_label_size_value,
+#                     self.grid_label_weight, self.interactive_grid_colorBtn, self.html_plot1D_line_style,
+#                     self.grid_ypos_value, self.grid_xpos_value, 
+                    self.waterfall_increment_value,
                     self.binSize_value, self.showAnnotationsCheck, self.linearizeCheck,
-                    self.figsize_height_value, self.figsize_width_value,
-                    self.axes_xmin_value, self.axes_xmax_value, self.axes_ymin_value, self.axes_ymax_value, 
+#                     self.figsize_height_value, self.figsize_width_value,
+#                     self.axes_xmin_value, self.axes_xmax_value, self.axes_ymin_value, self.axes_ymax_value, 
                     self.overlay_shade_check, self.overlay_shade_transparency_value,
                     self.waterfall_shade_check, self.waterfall_shade_transparency_value
                     ]
@@ -1143,7 +1300,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         sizer_col_3 = wx.BoxSizer(wx.VERTICAL)
         sizer_col_3.Add(plot2D_box_sizer, 0, wx.EXPAND, 0)
         sizer_col_3.Add(ms_box_sizer, 0, wx.EXPAND, 0)
-        sizer_col_3.Add(figsize_box_sizer, 0, wx.EXPAND, 0)
+#         sizer_col_3.Add(figsize_box_sizer, 0, wx.EXPAND, 0)
 
         sizer_row_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_row_2.Add(sizer_col_1, 0, wx.EXPAND, 0)
@@ -1152,7 +1309,6 @@ class dlgOutputInteractive(wx.MiniFrame):
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(html_box_sizer, 0, wx.EXPAND, 0)
-        mainSizer.Add(self.html_override, 0, wx.EXPAND, 0)
         mainSizer.Add(sizer_row_2, 0, wx.EXPAND, 0)
         mainSizer.Fit(self.htmlView)
         self.htmlView.SetSizer(mainSizer)
@@ -1211,11 +1367,11 @@ class dlgOutputInteractive(wx.MiniFrame):
         viewSizer = wx.BoxSizer(wx.HORIZONTAL)
 
         fontSizer = self.makeFontSubPanel()
-        imageSizer = self.makeImageSubPanel()
+#         imageSizer = self.makeImageSubPanel()
         toolsSizer = self.makeInteractiveToolsSubPanel()
         plot1Dsizer = self.make1DplotSubPanel()
         overlaySizer = self.makeOverLaySubPanel()
-        plotSettingsSizer = self.makePlotSettingsSubPanel()
+#         plotSettingsSizer = self.makePlotSettingsSubPanel()
         markerSizer = self.makeScatterSubPanel()
         barSizer = self.makeBarSubPanel()
 
@@ -1223,10 +1379,10 @@ class dlgOutputInteractive(wx.MiniFrame):
         # Add to grid sizer
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(toolsSizer, 0, wx.EXPAND, 0)
-        sizer_left.Add(plotSettingsSizer, 0, wx.EXPAND, 0)
+#         sizer_left.Add(plotSettingsSizer, 0, wx.EXPAND, 0)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
-        sizer_right.Add(imageSizer, 0, wx.EXPAND, 0)
+#         sizer_right.Add(imageSizer, 0, wx.EXPAND, 0)
         sizer_right.Add(fontSizer, 0, wx.EXPAND, 0)
         sizer_right.Add(plot1Dsizer, 0, wx.EXPAND, 0)
         sizer_right.Add(overlaySizer, 0, wx.EXPAND, 0)
@@ -1250,7 +1406,7 @@ class dlgOutputInteractive(wx.MiniFrame):
 
         rmsdSizer = self.makeRMSDSubPanel()
         colorbarSizer = self.makeColorbarSubPanel()
-        legendSettingsSizer = self.makeLegendSubPanel()
+#         legendSettingsSizer = self.makeLegendSubPanel()
         annotSettingsSizer = self.makeAnnotationSubPanel()
         customJSSizer = self.makeCustomJSSubPanel()
         
@@ -1261,7 +1417,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         sizer_left.Add(annotSettingsSizer, 0, wx.EXPAND, 0)
  
         sizer_right = wx.BoxSizer(wx.VERTICAL)
-        sizer_right.Add(legendSettingsSizer, 0, wx.EXPAND, 0)
+#         sizer_right.Add(legendSettingsSizer, 0, wx.EXPAND, 0)
         sizer_right.Add(customJSSizer, 0, wx.EXPAND, 0)
         
 
@@ -1328,142 +1484,142 @@ class dlgOutputInteractive(wx.MiniFrame):
         mainSizer.Add(grid, 0, wx.EXPAND|wx.ALL, 2)
         return mainSizer
 
-    def makeImageSubPanel(self):
-        imageBox = makeStaticBox(self.propertiesView, "Image properties", (230,-1), wx.BLACK)
-        figSizer = wx.StaticBoxSizer(imageBox, wx.HORIZONTAL)
+#     def makeImageSubPanel(self):
+#         imageBox = makeStaticBox(self.propertiesView, "Image properties", (230,-1), wx.BLACK)
+#         figSizer = wx.StaticBoxSizer(imageBox, wx.HORIZONTAL)
+# 
+#         figHeight1D_label = makeStaticText(self.propertiesView, u"Height (1D)")
+#         self.figHeight1D_value = wx.TextCtrl(self.propertiesView, -1, "", size=(50, -1))
+#         self.figHeight1D_value.SetValue(str(self.config.figHeight1D))
+#         self.figHeight1D_value.SetToolTip(wx.ToolTip("Set figure height (pixels)"))
+# 
+#         figWidth1D_label = makeStaticText(self.propertiesView, u"Width (1D)")
+#         self.figWidth1D_value = wx.TextCtrl(self.propertiesView, -1, "", size=(50, -1))
+#         self.figWidth1D_value.SetValue(str(self.config.figWidth1D))
+#         self.figWidth1D_value.SetToolTip(wx.ToolTip("Set figure width (pixels)"))
+# 
+#         figHeight_label = makeStaticText(self.propertiesView, u"Height (2D)")
+#         self.figHeight_value = wx.TextCtrl(self.propertiesView, -1, "", size=(50, -1))
+#         self.figHeight_value.SetValue(str(self.config.figHeight))
+#         self.figHeight_value.SetToolTip(wx.ToolTip("Set figure height (pixels)"))
+# 
+#         figWidth_label = makeStaticText(self.propertiesView, u"Width (2D)")
+#         self.figWidth_value = wx.TextCtrl(self.propertiesView, -1, "", size=(50, -1))
+#         self.figWidth_value.SetValue(str(self.config.figWidth))
+#         self.figWidth_value.SetToolTip(wx.ToolTip("Set figure width (pixels)"))
+# 
+#         # bind
+#         self.figHeight_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
+#         self.figWidth_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
+#         self.figHeight1D_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
+#         self.figWidth1D_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
+# 
+#         gridFigure = wx.GridBagSizer(2,2)
+#         n = 0
+#         gridFigure.Add(figHeight1D_label, (n,0))
+#         gridFigure.Add(self.figHeight1D_value, (n,1))
+#         gridFigure.Add(figWidth1D_label, (n,2))
+#         gridFigure.Add(self.figWidth1D_value, (n,3))
+#         n = n+1
+#         gridFigure.Add(figHeight_label, (n,0))
+#         gridFigure.Add(self.figHeight_value, (n,1))
+#         gridFigure.Add(figWidth_label, (n,2))
+#         gridFigure.Add(self.figWidth_value, (n,3))
+#         figSizer.Add(gridFigure, 0, wx.EXPAND|wx.ALL, 2)
+#         return figSizer
 
-        figHeight1D_label = makeStaticText(self.propertiesView, u"Height (1D)")
-        self.figHeight1D_value = wx.TextCtrl(self.propertiesView, -1, "", size=(50, -1))
-        self.figHeight1D_value.SetValue(str(self.config.figHeight1D))
-        self.figHeight1D_value.SetToolTip(wx.ToolTip("Set figure height (pixels)"))
-
-        figWidth1D_label = makeStaticText(self.propertiesView, u"Width (1D)")
-        self.figWidth1D_value = wx.TextCtrl(self.propertiesView, -1, "", size=(50, -1))
-        self.figWidth1D_value.SetValue(str(self.config.figWidth1D))
-        self.figWidth1D_value.SetToolTip(wx.ToolTip("Set figure width (pixels)"))
-
-        figHeight_label = makeStaticText(self.propertiesView, u"Height (2D)")
-        self.figHeight_value = wx.TextCtrl(self.propertiesView, -1, "", size=(50, -1))
-        self.figHeight_value.SetValue(str(self.config.figHeight))
-        self.figHeight_value.SetToolTip(wx.ToolTip("Set figure height (pixels)"))
-
-        figWidth_label = makeStaticText(self.propertiesView, u"Width (2D)")
-        self.figWidth_value = wx.TextCtrl(self.propertiesView, -1, "", size=(50, -1))
-        self.figWidth_value.SetValue(str(self.config.figWidth))
-        self.figWidth_value.SetToolTip(wx.ToolTip("Set figure width (pixels)"))
-
-        # bind
-        self.figHeight_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
-        self.figWidth_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
-        self.figHeight1D_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
-        self.figWidth1D_value.Bind(wx.EVT_TEXT, self.onChangeSettings)
-
-        gridFigure = wx.GridBagSizer(2,2)
-        n = 0
-        gridFigure.Add(figHeight1D_label, (n,0))
-        gridFigure.Add(self.figHeight1D_value, (n,1))
-        gridFigure.Add(figWidth1D_label, (n,2))
-        gridFigure.Add(self.figWidth1D_value, (n,3))
-        n = n+1
-        gridFigure.Add(figHeight_label, (n,0))
-        gridFigure.Add(self.figHeight_value, (n,1))
-        gridFigure.Add(figWidth_label, (n,2))
-        gridFigure.Add(self.figWidth_value, (n,3))
-        figSizer.Add(gridFigure, 0, wx.EXPAND|wx.ALL, 2)
-        return figSizer
-
-    def makePlotSettingsSubPanel(self):
-        imageBox = makeStaticBox(self.propertiesView, "Frame properties", (210,-1), wx.BLACK)
-        figSizer = wx.StaticBoxSizer(imageBox, wx.HORIZONTAL)
-
-        borderRight_label = makeStaticText(self.propertiesView, u"Border\nright")
-        self.interactive_border_min_right = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
-                                                   value=str(self.config.interactive_border_min_right),min=0, max=100,
-                                                   initial=int(self.config.interactive_border_min_right),
-                                                   inc=5, size=(50,-1))
-        self.interactive_border_min_right.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
-
-        borderLeft_label = makeStaticText(self.propertiesView, u"Border\nleft")
-        self.interactive_border_min_left = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
-                                                   value=str(self.config.interactive_border_min_left),min=0, max=100,
-                                                   initial=int(self.config.interactive_border_min_left), inc=5, size=(50,-1))
-        self.interactive_border_min_left.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
-
-        borderTop_label = makeStaticText(self.propertiesView, u"Border\ntop")
-        self.interactive_border_min_top = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
-                                                   value=str(self.config.interactive_border_min_top),min=0, max=100,
-                                                   initial=int(self.config.interactive_border_min_top), inc=5, size=(50,-1))
-        self.interactive_border_min_top.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
-
-        borderBottom_label = makeStaticText(self.propertiesView, u"Border\nbottom")
-        self.interactive_border_min_bottom = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
-                                                   value=str(self.config.interactive_border_min_bottom),min=0, max=100,
-                                                   initial=int(self.config.interactive_border_min_bottom), inc=5, size=(50,-1))
-        self.interactive_border_min_bottom.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
-
-        outlineWidth_label = makeStaticText(self.propertiesView, u"Outline\nwidth")
-        self.interactive_outline_width = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
-                                                   value=str(self.config.interactive_outline_width),min=0, max=5,
-                                                   initial=self.config.interactive_outline_width, inc=0.5, size=(50,-1))
-        self.interactive_outline_width.SetToolTip(wx.ToolTip("Plot outline line thickness"))
-
-        outlineTransparency_label = makeStaticText(self.propertiesView, u"Outline\nalpha")
-        self.interactive_outline_alpha = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
-                                                   value=str(self.config.interactive_outline_alpha),min=0, max=1,
-                                                   initial=self.config.interactive_outline_alpha, inc=0.05, size=(50,-1))
-        self.interactive_outline_alpha.SetToolTip(wx.ToolTip("Plot outline line transparency value"))
-        
-        background_color_label= makeStaticText(self.propertiesView, u"Background\ncolor")
-        self.interactive_background_colorBtn = wx.Button( self.propertiesView, ID_changeColorBackgroundInteractive,
-                                           u"", wx.DefaultPosition, wx.Size( 26, 26 ), 0 )
-        self.interactive_background_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_background_color))
-        
-        self.interactive_grid_line = wx.CheckBox(self.propertiesView, -1 ,'Add', (15, 30))
-        self.interactive_grid_line.SetValue(self.config.interactive_grid_line)
-
-        grid_line_color_label= makeStaticText(self.propertiesView, u"Grid lines")
-        self.interactive_grid_line_colorBtn = wx.Button( self.propertiesView, ID_changeColorGridLineInteractive,
-                                           u"", wx.DefaultPosition, wx.Size( 26, 26 ), 0 )
-        self.interactive_grid_line_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_grid_line_color))
-
-        # bind
-        self.interactive_border_min_right.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
-        self.interactive_border_min_left.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
-        self.interactive_border_min_top.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
-        self.interactive_border_min_bottom.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
-        self.interactive_outline_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
-        self.interactive_outline_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
-        self.interactive_grid_line.Bind(wx.EVT_CHECKBOX, self.onChangeSettings)
-        self.interactive_background_colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_changeColorBackgroundInteractive)
-        self.interactive_grid_line_colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_changeColorGridLineInteractive)
-
-        gridFigure = wx.GridBagSizer(5,2)
-        n = 0
-        gridFigure.Add(borderRight_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-        gridFigure.Add(borderLeft_label, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-        gridFigure.Add(borderTop_label, (n,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-        gridFigure.Add(borderBottom_label, (n,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-        n = n+1
-        gridFigure.Add(self.interactive_border_min_right, (n,0))
-        gridFigure.Add(self.interactive_border_min_left, (n,1))
-        gridFigure.Add(self.interactive_border_min_top, (n,2))
-        gridFigure.Add(self.interactive_border_min_bottom, (n,3))
-        n = n+1
-        gridFigure.Add(outlineWidth_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-        gridFigure.Add(outlineTransparency_label, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-        gridFigure.Add(background_color_label, (n,2), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
-        n = n+1
-        gridFigure.Add(self.interactive_outline_width, (n,0))
-        gridFigure.Add(self.interactive_outline_alpha, (n,1))
-        gridFigure.Add(self.interactive_background_colorBtn, (n,2), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
-        n = n+1
-        gridFigure.Add(grid_line_color_label, (n,0), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-        n = n+1
-        gridFigure.Add(self.interactive_grid_line, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-        gridFigure.Add(self.interactive_grid_line_colorBtn, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-
-        figSizer.Add(gridFigure, 0, wx.EXPAND|wx.ALL, 2)
-        return figSizer
+#     def makePlotSettingsSubPanel(self):
+#         imageBox = makeStaticBox(self.propertiesView, "Frame properties", (210,-1), wx.BLACK)
+#         figSizer = wx.StaticBoxSizer(imageBox, wx.HORIZONTAL)
+# 
+#         borderRight_label = makeStaticText(self.propertiesView, u"Border\nright")
+#         self.interactive_border_min_right = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
+#                                                    value=str(self.config.interactive_border_min_right),min=0, max=100,
+#                                                    initial=int(self.config.interactive_border_min_right),
+#                                                    inc=5, size=(50,-1))
+#         self.interactive_border_min_right.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
+# 
+#         borderLeft_label = makeStaticText(self.propertiesView, u"Border\nleft")
+#         self.interactive_border_min_left = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
+#                                                    value=str(self.config.interactive_border_min_left),min=0, max=100,
+#                                                    initial=int(self.config.interactive_border_min_left), inc=5, size=(50,-1))
+#         self.interactive_border_min_left.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
+# 
+#         borderTop_label = makeStaticText(self.propertiesView, u"Border\ntop")
+#         self.interactive_border_min_top = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
+#                                                    value=str(self.config.interactive_border_min_top),min=0, max=100,
+#                                                    initial=int(self.config.interactive_border_min_top), inc=5, size=(50,-1))
+#         self.interactive_border_min_top.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
+# 
+#         borderBottom_label = makeStaticText(self.propertiesView, u"Border\nbottom")
+#         self.interactive_border_min_bottom = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
+#                                                    value=str(self.config.interactive_border_min_bottom),min=0, max=100,
+#                                                    initial=int(self.config.interactive_border_min_bottom), inc=5, size=(50,-1))
+#         self.interactive_border_min_bottom.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
+# 
+#         outlineWidth_label = makeStaticText(self.propertiesView, u"Outline\nwidth")
+#         self.interactive_outline_width = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
+#                                                    value=str(self.config.interactive_outline_width),min=0, max=5,
+#                                                    initial=self.config.interactive_outline_width, inc=0.5, size=(50,-1))
+#         self.interactive_outline_width.SetToolTip(wx.ToolTip("Plot outline line thickness"))
+# 
+#         outlineTransparency_label = makeStaticText(self.propertiesView, u"Outline\nalpha")
+#         self.interactive_outline_alpha = wx.SpinCtrlDouble(self.propertiesView, wx.ID_ANY,
+#                                                    value=str(self.config.interactive_outline_alpha),min=0, max=1,
+#                                                    initial=self.config.interactive_outline_alpha, inc=0.05, size=(50,-1))
+#         self.interactive_outline_alpha.SetToolTip(wx.ToolTip("Plot outline line transparency value"))
+#         
+#         background_color_label= makeStaticText(self.propertiesView, u"Background\ncolor")
+#         self.interactive_background_colorBtn = wx.Button( self.propertiesView, ID_changeColorBackgroundInteractive,
+#                                            u"", wx.DefaultPosition, wx.Size( 26, 26 ), 0 )
+#         self.interactive_background_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_background_color))
+#         
+#         self.interactive_grid_line = wx.CheckBox(self.propertiesView, -1 ,'Add', (15, 30))
+#         self.interactive_grid_line.SetValue(self.config.interactive_grid_line)
+# 
+#         grid_line_color_label= makeStaticText(self.propertiesView, u"Grid lines")
+#         self.interactive_grid_line_colorBtn = wx.Button( self.propertiesView, ID_changeColorGridLineInteractive,
+#                                            u"", wx.DefaultPosition, wx.Size( 26, 26 ), 0 )
+#         self.interactive_grid_line_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_grid_line_color))
+# 
+#         # bind
+#         self.interactive_border_min_right.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+#         self.interactive_border_min_left.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+#         self.interactive_border_min_top.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+#         self.interactive_border_min_bottom.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+#         self.interactive_outline_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+#         self.interactive_outline_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+#         self.interactive_grid_line.Bind(wx.EVT_CHECKBOX, self.onChangeSettings)
+#         self.interactive_background_colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_changeColorBackgroundInteractive)
+#         self.interactive_grid_line_colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_changeColorGridLineInteractive)
+# 
+#         gridFigure = wx.GridBagSizer(5,2)
+#         n = 0
+#         gridFigure.Add(borderRight_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+#         gridFigure.Add(borderLeft_label, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+#         gridFigure.Add(borderTop_label, (n,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+#         gridFigure.Add(borderBottom_label, (n,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+#         n = n+1
+#         gridFigure.Add(self.interactive_border_min_right, (n,0))
+#         gridFigure.Add(self.interactive_border_min_left, (n,1))
+#         gridFigure.Add(self.interactive_border_min_top, (n,2))
+#         gridFigure.Add(self.interactive_border_min_bottom, (n,3))
+#         n = n+1
+#         gridFigure.Add(outlineWidth_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+#         gridFigure.Add(outlineTransparency_label, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+#         gridFigure.Add(background_color_label, (n,2), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
+#         n = n+1
+#         gridFigure.Add(self.interactive_outline_width, (n,0))
+#         gridFigure.Add(self.interactive_outline_alpha, (n,1))
+#         gridFigure.Add(self.interactive_background_colorBtn, (n,2), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
+#         n = n+1
+#         gridFigure.Add(grid_line_color_label, (n,0), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+#         n = n+1
+#         gridFigure.Add(self.interactive_grid_line, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+#         gridFigure.Add(self.interactive_grid_line_colorBtn, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+# 
+#         figSizer.Add(gridFigure, 0, wx.EXPAND|wx.ALL, 2)
+#         return figSizer
 
     def makeRMSDSubPanel(self):
         rmsdBox = makeStaticBox(self.annotationView, "RMSD label properties", (200,-1), wx.BLACK)
@@ -2017,78 +2173,78 @@ class dlgOutputInteractive(wx.MiniFrame):
 
         return figSizer
 
-    def makeLegendSubPanel(self):
-        mainBox = makeStaticBox(self.annotationView, "Legend properties", (210,-1), wx.BLACK)
-        figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
-
-        legend_label = makeStaticText(self.annotationView, u"Legend:")
-        self.legend_legend = wx.CheckBox(self.annotationView, -1 ,u'', (15, 30))
-        self.legend_legend.SetValue(self.config.interactive_legend)
-        self.legend_legend.Bind(wx.EVT_CHECKBOX, self.onChangeSettings)
-
-        position_label = makeStaticText(self.annotationView, u"Position")
-        self.legend_position = wx.ComboBox(self.annotationView, -1,
-                                           choices=self.config.interactive_legend_location_choices,
-                                           value=self.config.interactive_legend_location, style=wx.CB_READONLY)
-        self.legend_position.Bind(wx.EVT_COMBOBOX, self.onChangeSettings)
-
-        orientation_label = makeStaticText(self.annotationView, u"Orientation")
-        self.legend_orientation = wx.ComboBox(self.annotationView, -1,
-                                               choices=self.config.interactive_legend_orientation_choices,
-                                               value=self.config.interactive_legend_orientation, style=wx.CB_READONLY)
-        self.legend_orientation.Bind(wx.EVT_COMBOBOX, self.onChangeSettings)
-
-        legendAlpha_label = makeStaticText(self.annotationView, u"Legend transparency")
-        self.legend_transparency = wx.SpinCtrlDouble(self.annotationView, wx.ID_ANY,
-                                                     value=str(self.config.interactive_legend_background_alpha),min=0, max=1,
-                                                     initial=self.config.interactive_legend_background_alpha, inc=0.1, size=(50,-1))
-        self.legend_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
-
-        fontSize_label = makeStaticText(self.annotationView, u"Font size")
-        self.legend_fontSize = wx.SpinCtrlDouble(self.annotationView, wx.ID_ANY,
-                                                 value=str(self.config.interactive_legend_font_size),min=0, max=32,
-                                                 initial=self.config.interactive_legend_font_size, inc=2, size=(50,-1))
-        self.legend_fontSize.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
-
-        action_label = makeStaticText(self.annotationView, u"Action")
-        self.legend_click_policy = wx.ComboBox(self.annotationView, -1,
-                                               choices=self.config.interactive_legend_click_policy_choices,
-                                               value=self.config.interactive_legend_click_policy, style=wx.CB_READONLY)
-        self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onChangeSettings)
-        self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onEnableDisableItems)
-
-        muteAlpha_label = makeStaticText(self.annotationView, u"Line transparency")
-        self.legend_mute_transparency = wx.SpinCtrlDouble(self.annotationView, wx.ID_ANY,
-                                                   value=str(self.config.interactive_legend_mute_alpha),min=0, max=1,
-                                                   initial=self.config.interactive_legend_mute_alpha, inc=0.1, size=(50,-1))
-        self.legend_mute_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
-
-
-        gridFigure = wx.GridBagSizer(2,2)
-        n = 0
-        gridFigure.Add(legend_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_legend, (n,1), flag=wx.EXPAND)
-        n = n + 1
-        gridFigure.Add(position_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_position, (n,1), flag=wx.EXPAND)
-        n = n + 1
-        gridFigure.Add(orientation_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_orientation, (n,1), flag=wx.EXPAND)
-        n = n + 1
-        gridFigure.Add(fontSize_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_fontSize, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        gridFigure.Add(legendAlpha_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_transparency, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        gridFigure.Add(action_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_click_policy, (n,1), flag=wx.EXPAND)
-        n = n + 1
-        gridFigure.Add(muteAlpha_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_mute_transparency, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
-
-        figSizer.Add(gridFigure, 0, wx.ALIGN_CENTER|wx.ALL, 5)
-        return figSizer
+#     def makeLegendSubPanel(self):
+#         mainBox = makeStaticBox(self.annotationView, "Legend properties", (210,-1), wx.BLACK)
+#         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
+# 
+#         legend_label = makeStaticText(self.annotationView, u"Legend:")
+#         self.legend_legend = wx.CheckBox(self.annotationView, -1 ,u'', (15, 30))
+#         self.legend_legend.SetValue(self.config.interactive_legend)
+#         self.legend_legend.Bind(wx.EVT_CHECKBOX, self.onChangeSettings)
+# 
+#         position_label = makeStaticText(self.annotationView, u"Position")
+#         self.legend_position = wx.ComboBox(self.annotationView, -1,
+#                                            choices=self.config.interactive_legend_location_choices,
+#                                            value=self.config.interactive_legend_location, style=wx.CB_READONLY)
+#         self.legend_position.Bind(wx.EVT_COMBOBOX, self.onChangeSettings)
+# 
+#         orientation_label = makeStaticText(self.annotationView, u"Orientation")
+#         self.legend_orientation = wx.ComboBox(self.annotationView, -1,
+#                                                choices=self.config.interactive_legend_orientation_choices,
+#                                                value=self.config.interactive_legend_orientation, style=wx.CB_READONLY)
+#         self.legend_orientation.Bind(wx.EVT_COMBOBOX, self.onChangeSettings)
+# 
+#         legendAlpha_label = makeStaticText(self.annotationView, u"Legend transparency")
+#         self.legend_transparency = wx.SpinCtrlDouble(self.annotationView, wx.ID_ANY,
+#                                                      value=str(self.config.interactive_legend_background_alpha),min=0, max=1,
+#                                                      initial=self.config.interactive_legend_background_alpha, inc=0.1, size=(50,-1))
+#         self.legend_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+# 
+#         fontSize_label = makeStaticText(self.annotationView, u"Font size")
+#         self.legend_fontSize = wx.SpinCtrlDouble(self.annotationView, wx.ID_ANY,
+#                                                  value=str(self.config.interactive_legend_font_size),min=0, max=32,
+#                                                  initial=self.config.interactive_legend_font_size, inc=2, size=(50,-1))
+#         self.legend_fontSize.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+# 
+#         action_label = makeStaticText(self.annotationView, u"Action")
+#         self.legend_click_policy = wx.ComboBox(self.annotationView, -1,
+#                                                choices=self.config.interactive_legend_click_policy_choices,
+#                                                value=self.config.interactive_legend_click_policy, style=wx.CB_READONLY)
+#         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onChangeSettings)
+#         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onEnableDisableItems)
+# 
+#         muteAlpha_label = makeStaticText(self.annotationView, u"Line transparency")
+#         self.legend_mute_transparency = wx.SpinCtrlDouble(self.annotationView, wx.ID_ANY,
+#                                                    value=str(self.config.interactive_legend_mute_alpha),min=0, max=1,
+#                                                    initial=self.config.interactive_legend_mute_alpha, inc=0.1, size=(50,-1))
+#         self.legend_mute_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.onChangeSettings)
+# 
+# 
+#         gridFigure = wx.GridBagSizer(2,2)
+#         n = 0
+#         gridFigure.Add(legend_label, (n,0), flag=wx.ALIGN_LEFT)
+#         gridFigure.Add(self.legend_legend, (n,1), flag=wx.EXPAND)
+#         n = n + 1
+#         gridFigure.Add(position_label, (n,0), flag=wx.ALIGN_LEFT)
+#         gridFigure.Add(self.legend_position, (n,1), flag=wx.EXPAND)
+#         n = n + 1
+#         gridFigure.Add(orientation_label, (n,0), flag=wx.ALIGN_LEFT)
+#         gridFigure.Add(self.legend_orientation, (n,1), flag=wx.EXPAND)
+#         n = n + 1
+#         gridFigure.Add(fontSize_label, (n,0), flag=wx.ALIGN_LEFT)
+#         gridFigure.Add(self.legend_fontSize, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+#         n = n + 1
+#         gridFigure.Add(legendAlpha_label, (n,0), flag=wx.ALIGN_LEFT)
+#         gridFigure.Add(self.legend_transparency, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+#         n = n + 1
+#         gridFigure.Add(action_label, (n,0), flag=wx.ALIGN_LEFT)
+#         gridFigure.Add(self.legend_click_policy, (n,1), flag=wx.EXPAND)
+#         n = n + 1
+#         gridFigure.Add(muteAlpha_label, (n,0), flag=wx.ALIGN_LEFT)
+#         gridFigure.Add(self.legend_mute_transparency, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+# 
+#         figSizer.Add(gridFigure, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+#         return figSizer
 
     def onColumnRightClickMenu(self, evt):
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_document)
@@ -2108,7 +2264,7 @@ class dlgOutputInteractive(wx.MiniFrame):
 
 
         menu = wx.Menu()
-        n = 0
+        n = 1
         self.table_start = menu.AppendCheckItem(ID_interactivePanel_table_document, 'Table: Document')
         self.table_start.Check(self.config._interactiveSettings[n]['show'])
         n = n + 1
@@ -2242,9 +2398,9 @@ class dlgOutputInteractive(wx.MiniFrame):
         if self.config.interactive_colorbar_useScientific: self.interactive_colorbar_precision.Disable()
         else: self.interactive_colorbar_precision.Enable()
 
-        self.config.interactive_legend_click_policy = self.legend_click_policy.GetStringSelection()
-        if self.config.interactive_legend_click_policy == 'mute': self.legend_mute_transparency.Enable()
-        else: self.legend_mute_transparency.Disable()
+#         self.config.interactive_legend_click_policy = self.legend_click_policy.GetStringSelection()
+#         if self.config.interactive_legend_click_policy == 'mute': self.legend_mute_transparency.Enable()
+#         else: self.legend_mute_transparency.Disable()
 
         if self.linearizeCheck.GetValue() and self.linearizeCheck.IsEnabled(): self.binSize_value.Enable()
         else: self.binSize_value.Disable()
@@ -2266,7 +2422,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.pageLayoutSelect_toolbar.Clear()
         
         # Append new list
-        sorted_page_list = sorted(self.config.pageDict.keys())
+        sorted_page_list = natsorted(self.config.pageDict.keys())
         self.pageLayoutSelect_htmlView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_propView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_toolbar.AppendItems(sorted_page_list)
@@ -2413,7 +2569,6 @@ class dlgOutputInteractive(wx.MiniFrame):
         Update figure settings
         """
         
-        self.config.interactive_override_defaults = self.html_override.GetValue()
         self.config.interactive_custom_events = self.custom_js_events.GetValue()
         self.config.interactive_custom_scripts = self.custom_js_scripts.GetValue()
 
@@ -2439,10 +2594,10 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.config.interactive_ms_annotations_fontWeight = self.annot_fontWeight_value.GetValue()
         
         # Figure size
-        self.config.figHeight = str2int(self.figHeight_value.GetValue())
-        self.config.figWidth = str2int(self.figWidth_value.GetValue())
-        self.config.figHeight1D = str2int(self.figHeight1D_value.GetValue())
-        self.config.figWidth1D = str2int(self.figWidth1D_value.GetValue())
+#         self.config.figHeight = str2int(self.figHeight_value.GetValue())
+#         self.config.figWidth = str2int(self.figWidth_value.GetValue())
+#         self.config.figHeight1D = str2int(self.figHeight1D_value.GetValue())
+#         self.config.figWidth1D = str2int(self.figWidth1D_value.GetValue())
 
         # Figure format
         self.config.layoutModeDoc = self.layoutDoc_combo.GetValue()
@@ -2487,23 +2642,23 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.config.interactive_colorbar_width = str2int(self.colorbarWidth.GetValue())
         self.config.interactive_colorbar_label_offset = str2int(self.interactive_colorbar_label_offset.GetValue())
 
-        # Plot parameters
-        self.config.interactive_outline_width = str2num(self.interactive_outline_width.GetValue())
-        self.config.interactive_outline_alpha = str2num(self.interactive_outline_alpha.GetValue())
-        self.config.interactive_border_min_right = str2int(self.interactive_border_min_right.GetValue())
-        self.config.interactive_border_min_left = str2int(self.interactive_border_min_left.GetValue())
-        self.config.interactive_border_min_top = str2int(self.interactive_border_min_top.GetValue())
-        self.config.interactive_border_min_bottom = str2int(self.interactive_border_min_bottom.GetValue())
-        self.config.interactive_grid_line = self.interactive_grid_line.GetValue()
+#         # Plot parameters
+#         self.config.interactive_outline_width = str2num(self.interactive_outline_width.GetValue())
+#         self.config.interactive_outline_alpha = str2num(self.interactive_outline_alpha.GetValue())
+#         self.config.interactive_border_min_right = str2int(self.interactive_border_min_right.GetValue())
+#         self.config.interactive_border_min_left = str2int(self.interactive_border_min_left.GetValue())
+#         self.config.interactive_border_min_top = str2int(self.interactive_border_min_top.GetValue())
+#         self.config.interactive_border_min_bottom = str2int(self.interactive_border_min_bottom.GetValue())
+#         self.config.interactive_grid_line = self.interactive_grid_line.GetValue()
 
         # legend
-        self.config.interactive_legend = self.legend_legend.GetValue()
-        self.config.interactive_legend_location = self.legend_position.GetStringSelection()
-        self.config.interactive_legend_click_policy = self.legend_click_policy.GetStringSelection()
-        self.config.interactive_legend_orientation = self.legend_orientation.GetStringSelection()
-        self.config.interactive_legend_font_size = self.legend_fontSize.GetValue()
-        self.config.interactive_legend_background_alpha = self.legend_transparency.GetValue()
-        self.config.interactive_legend_mute_alpha = self.legend_mute_transparency.GetValue()
+#         self.config.interactive_legend = self.legend_legend.GetValue()
+#         self.config.interactive_legend_location = self.legend_position.GetStringSelection()
+#         self.config.interactive_legend_click_policy = self.legend_click_policy.GetStringSelection()
+#         self.config.interactive_legend_orientation = self.legend_orientation.GetStringSelection()
+#         self.config.interactive_legend_font_size = self.legend_fontSize.GetValue()
+#         self.config.interactive_legend_background_alpha = self.legend_transparency.GetValue()
+#         self.config.interactive_legend_mute_alpha = self.legend_mute_transparency.GetValue()
 
         # line parameters
         self.config.interactive_line_width = self.line_width.GetValue()
@@ -2993,7 +3148,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         try: del self.config.pageDict[u'']
         except KeyError: pass
 
-        sorted_page_list = sorted(self.config.pageDict.keys())
+        sorted_page_list = natsorted(self.config.pageDict.keys())
         self.pageLayoutSelect_htmlView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_propView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_toolbar.AppendItems(sorted_page_list)
@@ -3008,7 +3163,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.plotTypeToolsSelect_propView.Clear()
         self.plotTypeToolsSelect_toolbar.Clear()
 
-        sorted_tools_list = sorted(self.config.interactiveToolsOnOff.keys())
+        sorted_tools_list = natsorted(self.config.interactiveToolsOnOff.keys())
         self.plotTypeToolsSelect_htmlView.AppendItems(sorted_tools_list)
         self.plotTypeToolsSelect_propView.AppendItems(sorted_tools_list)
         self.plotTypeToolsSelect_toolbar.AppendItems(sorted_tools_list)
@@ -3137,19 +3292,19 @@ class dlgOutputInteractive(wx.MiniFrame):
             self.waterfall_shade_transparency_value.SetValue(str(interactive_params.get("waterfall_shade_transparency", 0.25)))
             self.overlay_shade_check.SetValue(interactive_params.get("overlay_1D_shade_under", False))
             self.overlay_shade_transparency_value.SetValue(str(interactive_params.get("overlay_1D_shade_transparency", 0.25)))
-            self.figsize_height_value.SetValue(str(interactive_params.get("plot_height", self.config.figHeight)))
-            self.figsize_width_value.SetValue(str(interactive_params.get("plot_width", self.config.figWidth)))
+#             self.figsize_height_value.SetValue(str(interactive_params.get("plot_height", self.config.figHeight)))
+#             self.figsize_width_value.SetValue(str(interactive_params.get("plot_width", self.config.figWidth)))
             self.html_overlay_legend.SetValue(interactive_params.get('legend', False))
-            xlimits = interactive_params.get("xlimits", ["", ""])
-            if xlimits[0] == None: xlimits[0] = ""
-            if xlimits[1] == None: xlimits[1] = ""
-            self.axes_xmin_value.SetValue(num2str(xlimits[0], ""))
-            self.axes_xmax_value.SetValue(num2str(xlimits[1], ""))
-            ylimits = interactive_params.get("ylimits", ["", ""])
-            if ylimits[0] == None: ylimits[0] = ""
-            if ylimits[1] == None: ylimits[1] = ""
-            self.axes_ymin_value.SetValue(num2str(ylimits[0], ""))
-            self.axes_ymax_value.SetValue(num2str(ylimits[1], ""))
+#             xlimits = interactive_params.get("xlimits", ["", ""])
+#             if xlimits[0] == None: xlimits[0] = ""
+#             if xlimits[1] == None: xlimits[1] = ""
+#             self.axes_xmin_value.SetValue(num2str(xlimits[0], ""))
+#             self.axes_xmax_value.SetValue(num2str(xlimits[1], ""))
+#             ylimits = interactive_params.get("ylimits", ["", ""])
+#             if ylimits[0] == None: ylimits[0] = ""
+#             if ylimits[1] == None: ylimits[1] = ""
+#             self.axes_ymin_value.SetValue(num2str(ylimits[0], ""))
+#             self.axes_ymax_value.SetValue(num2str(ylimits[1], ""))
         except:
             self.loading = False
             
@@ -3162,8 +3317,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                        self.grid_label_weight, self.interactive_grid_colorBtn, self.html_plot1D_line_style,
                        self.grid_ypos_value, self.grid_xpos_value, self.waterfall_increment_value,
                        self.binSize_value, self.showAnnotationsCheck, self.linearizeCheck,
-                       self.figsize_height_value, self.figsize_width_value,
-                       self.axes_xmin_value, self.axes_xmax_value, self.axes_ymin_value, self.axes_ymax_value, 
+#                        self.figsize_height_value, self.figsize_width_value,
+#                        self.axes_xmin_value, self.axes_xmax_value, self.axes_ymin_value, self.axes_ymax_value, 
                        self.overlay_shade_check, self.overlay_shade_transparency_value,
                        self.waterfall_shade_check, self.waterfall_shade_transparency_value
                        ]
@@ -3262,9 +3417,9 @@ class dlgOutputInteractive(wx.MiniFrame):
 
         # append those that are always enabled
         enableList = enableList + [self.itemName_value, self.itemHeader_value, self.itemFootnote_value,
-                                   self.figsize_height_value, self.figsize_width_value,
-                                   self.axes_xmin_value, self.axes_xmax_value,
-                                   self.axes_ymin_value, self.axes_ymax_value,
+#                                    self.figsize_height_value, self.figsize_width_value,
+#                                    self.axes_xmin_value, self.axes_xmax_value,
+#                                    self.axes_ymin_value, self.axes_ymax_value,
                                    self.order_value]
         
         for item in disableList: item.Disable()
@@ -3445,13 +3600,6 @@ class dlgOutputInteractive(wx.MiniFrame):
                 elif evt.GetId() == ID_interactivePanel_color_barEdge:
                     self.bar_edgeColorBtn.SetBackgroundColour(newColour)
                     self.config.interactive_bar_edge_color = newColour255
-                elif evt.GetId() == ID_changeColorBackgroundInteractive:
-                    self.interactive_background_colorBtn.SetBackgroundColour(newColour)
-                    self.config.interactive_background_color = newColour255
-                elif evt.GetId() == ID_changeColorGridLineInteractive:
-                    self.interactive_grid_line_colorBtn.SetBackgroundColour(newColour)
-                    self.config.interactive_grid_line_color = newColour255
-                    
                     
                 self.onAnnotateItems(evt=None)
                 dlg.Destroy()
@@ -3643,10 +3791,10 @@ class dlgOutputInteractive(wx.MiniFrame):
                               'linearize_spectra':self.linearizeCheck.GetValue(),
                               'show_annotations':self.showAnnotationsCheck.GetValue(),
                               'bin_size':str2num(self.binSize_value.GetValue()),
-                              'plot_height':str2int(self.figsize_height_value.GetValue()),
-                              'plot_width':str2int(self.figsize_width_value.GetValue()),
-                              'xlimits':[str2num(self.axes_xmin_value.GetValue()), str2num(self.axes_xmax_value.GetValue())],
-                              'ylimits':[str2num(self.axes_ymin_value.GetValue()), str2num(self.axes_ymax_value.GetValue())],
+#                               'plot_height':str2int(self.figsize_height_value.GetValue()),
+#                               'plot_width':str2int(self.figsize_width_value.GetValue()),
+#                               'xlimits':[str2num(self.axes_xmin_value.GetValue()), str2num(self.axes_xmax_value.GetValue())],
+#                               'ylimits':[str2num(self.axes_ymin_value.GetValue()), str2num(self.axes_ymax_value.GetValue())],
                               'waterfall_increment':str2num(self.waterfall_increment_value.GetValue()),
                               'waterfall_shade_under':self.waterfall_shade_check.GetValue(),
                               'waterfall_shade_transparency':str2num(self.waterfall_shade_transparency_value.GetValue()),
@@ -3691,7 +3839,6 @@ class dlgOutputInteractive(wx.MiniFrame):
                                      col=self.config.interactiveColNames['page'], label=page)
         self.itemsList.SetStringItem(index=self.currentItem,
                                      col=self.config.interactiveColNames['tools'], label=tool)
-        
         
     def addHTMLtagsToDictionary(self, dictionary, colorbar=False, **kwargs):
         """
@@ -3955,7 +4102,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                 figure.change.emit();
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                if data.get("interactive_params", {}).get("legend_properties", {}).get("legend_orientation", self.config.interactive_legend_orientation) == "vertical": 
+                if data.get("interactive_params", {}).get("legend_properties", {}).get(
+                    "legend_orientation", self.config.interactive_legend_orientation) == "vertical": 
                     active_mode = 0
                 else: 
                     active_mode = 1 
@@ -3978,7 +4126,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
                 slider = Slider(start=0, end=1, step=0.1, 
-                                value=data.get("interactive_params", {}).get("legend_properties", {}).get("legend_background_alpha", self.config.interactive_legend_background_alpha), 
+                                value=data.get("interactive_params", {}).get("legend_properties", {}).get(
+                                    "legend_background_alpha", self.config.interactive_legend_background_alpha), 
                                 callback=callback, title="Legend transparency",
                                 width=widget_width)
                 callback.args = {'slider': slider, 'legend':legend, 'figure':bokehPlot}
@@ -3998,7 +4147,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
                 slider = Slider(start=0, end=1, step=0.1, 
-                                value=data.get("interactive_params", {}).get("legend_properties", {}).get("legend_background_alpha", self.config.interactive_legend_background_alpha), 
+                                value=data.get("interactive_params", {}).get("legend_properties", {}).get(
+                                    "legend_background_alpha", self.config.interactive_legend_background_alpha), 
                                 callback=callback, title="Legend transparency",
                                 width=widget_width)
                 callback.args = {'slider': slider, 'legends':legends, 'figures':figures}
@@ -4345,7 +4495,6 @@ class dlgOutputInteractive(wx.MiniFrame):
 #             )
 #         plot.add_layout(legend, side)
 
-    
     def _prepare_annotations(self, data, yvals, y_offset=0):
         annot_xmin_list, annot_xmax_list, annot_ymin_list, annot_ymax_list, color_list = [], [], [], [], []
         __, ylimits = find_limits_all(yvals, yvals)
@@ -4429,6 +4578,255 @@ class dlgOutputInteractive(wx.MiniFrame):
                 
         return quad_source, label_source, arrow_source
 
+    def _buildPlotParameters(self, data):
+        # get parameters
+        interactive_params = data.get('interactive_params', {})
+
+        if len(interactive_params) == 0:
+            hover_vline = self.config.hoverVline
+            line_width = self.config.interactive_line_width
+            line_alpha = self.config.interactive_line_alpha
+            line_style = self.config.interactive_line_style
+            overlay_layout = self.config.plotLayoutOverlay
+            overlay_linkXY = self.config.linkXYaxes
+            legend = self.config.interactive_legend
+            addColorbar = self.config.interactive_colorbar
+            title_label = False
+            xpos = self.config.interactive_grid_xpos
+            ypos = self.config.interactive_grid_ypos
+            waterfall_increment = self.config.interactive_waterfall_increment
+            linearize_spectra = self.config.interactive_ms_linearize
+            show_annotations = self.config.interactive_ms_annotations
+            bin_size = self.config.interactive_ms_binSize
+            waterfall_shade = False
+            waterfall_shade_transparency = 0.25
+            overlay_shade = False
+            overlay_shade_transparency = 0.25
+            plot_width = self.config.figWidth
+            plot_height = self.config.figHeight
+            _xlimits_ = None
+            _ylimits_ = None
+        else:
+            hover_vline = interactive_params['line_linkXaxis']
+            line_width = interactive_params['line_width']
+            line_alpha = interactive_params['line_alpha']
+            line_style = interactive_params['line_style']
+            overlay_layout = interactive_params['overlay_layout']
+            overlay_linkXY = interactive_params['overlay_linkXY']
+            legend = interactive_params['legend']
+            addColorbar = interactive_params['colorbar']
+            title_label = interactive_params.get('title_label', "")
+            xpos = interactive_params.get('grid_xpos', self.config.interactive_grid_xpos)
+            ypos = interactive_params.get('grid_ypos', self.config.interactive_grid_ypos)
+            waterfall_increment = interactive_params.get('waterfall_increment', self.config.interactive_waterfall_increment)
+            waterfall_shade = interactive_params.get('waterfall_shade_under', False)
+            waterfall_shade_transparency = interactive_params.get('waterfall_shade_transparency', 0.25)
+            overlay_shade = interactive_params.get('overlay_1D_shade_under', False)
+            overlay_shade_transparency = interactive_params.get('overlay_1D_shade_transparency',  0.25)
+            linearize_spectra = interactive_params.get('linearize_spectra', self.config.interactive_ms_linearize)
+            show_annotations = interactive_params.get('show_annotations', self.config.interactive_ms_annotations)
+            bin_size = interactive_params.get('bin_size', self.config.interactive_ms_binSize)
+            plot_width = interactive_params.get("plot_width", self.config.figWidth)
+            plot_height = interactive_params.get("plot_height", self.config.figHeight)
+            _xlimits_ = interactive_params.get("xlimits", None)
+            _ylimits_ = interactive_params.get("ylimits", None)
+            
+        # Check if we should lock the hoverline
+        if hover_vline: hoverMode='vline'
+        else: hoverMode='mouse'
+        
+        plt_kwargs = {'hover_mode':hoverMode, 
+                      'line_width':line_width,
+                      'line_alpha':line_alpha, 
+                      'line_style':line_style,
+                      'overlay_layout':overlay_layout, 
+                      'overlay_linkXY':overlay_linkXY,
+                      'add_legend':legend, 
+                      'add_colorbar':addColorbar,
+                      'title_label':title_label,
+                      'xpos':xpos, 'ypos':ypos,
+                      'waterfall_increment':waterfall_increment,
+                      'linearize_spectra':linearize_spectra,
+                      'show_annotations':show_annotations,
+                      'bin_size':bin_size,
+                      'waterfall_shade':waterfall_shade,
+                      'waterfall_shade_transparency':waterfall_shade_transparency,
+                      'overlay_shade':overlay_shade,
+                      'overlay_shade_transparency':overlay_shade_transparency,
+                      'plot_width':plot_width,
+                      'plot_height':plot_height,
+                      '_xlimits_':_xlimits_,
+                      '_ylimits_':_ylimits_,
+                      }
+        
+        return plt_kwargs
+        
+    def _setupPlotParameters(self, bokehPlot, data={}, plot_type="1D", **kwargs):
+
+        if "xlimits" in kwargs:
+            bokehPlot.x_range.start = kwargs['xlimits'][0]
+            bokehPlot.x_range.end = kwargs['xlimits'][1]
+            
+        if "ylimits" in kwargs:
+            bokehPlot.y_range.start = kwargs['ylimits'][0]
+            bokehPlot.y_range.end = kwargs['ylimits'][1]
+            
+        # common
+        bokehPlot.title.text_font_size = self._fontSizeConverter(self.config.interactive_title_fontSize)
+        bokehPlot.title.text_font_style = self._fontWeightConverter(self.config.interactive_title_weight)
+        
+        if data.get("interactive_params", {}).get("frame_properties", {}).get(
+            "gridline", self.config.interactive_grid_line):
+            bokehPlot.grid.grid_line_color = convertRGB1toHEX(
+                data.get("interactive_params", {}).get("frame_properties", {}).get(
+                    "gridline_color", self.config.interactive_grid_line_color))
+            
+        bokehPlot.background_fill_color = convertRGB1toHEX(
+            data.get("interactive_params", {}).get("frame_properties", {}).get(
+                    "background_color", self.config.interactive_background_color))
+        
+        set_common_parameters = []
+        if plot_type == "1D":
+            set_common_parameters = ['label', 'frame', 'border']
+            
+        elif plot_type == "Scatter":
+            set_common_parameters = ['legend', 'label', 'frame', 'border']
+            
+        elif plot_type == "Waterfall":
+            set_common_parameters = ['legend', 'label', 'frame', 'border']
+            
+        elif plot_type == "Waterfall_overlay":
+            set_common_parameters = ['legend', 'label', 'frame', 'border']
+
+        elif plot_type == "Overlay_1D":
+            set_common_parameters = ['legend', 'label', 'frame', 'border']
+
+        elif plot_type == "2D":
+            set_common_parameters = ['label', 'frame', 'border']
+
+        elif plot_type == "Matrix":
+            # X-axis
+            bokehPlot.xaxis.major_label_orientation = np.pi/3
+            # Y-axis
+            bokehPlot.grid.grid_line_color = None
+            bokehPlot.axis.axis_line_color = None
+            bokehPlot.axis.major_tick_line_color = None
+            
+            set_common_parameters = ['label', 'frame', 'border']
+
+        elif plot_type == "RMSF":
+            # Add border
+            bokehPlot.outline_line_width = self.config.interactive_outline_width
+            bokehPlot.outline_line_alpha = self.config.interactive_outline_alpha
+            bokehPlot.outline_line_color = "black"
+            # Y-axis
+            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
+            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
+            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
+
+
+        for param in set_common_parameters:
+            if param == "label":
+                # set label parameters
+                bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(
+                    data.get("interactive_params", {}).get("frame_properties", {}).get(
+                        "label_xaxis_fontsize", self.config.interactive_label_fontSize))
+                bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(
+                    data.get("interactive_params", {}).get("frame_properties", {}).get(
+                        "label_fontweight", self.config.interactive_label_weight))
+                
+                bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(
+                    data.get("interactive_params", {}).get("frame_properties", {}).get(
+                        "label_yaxis_fontsize", self.config.interactive_label_fontSize))
+                bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(
+                    data.get("interactive_params", {}).get("frame_properties", {}).get(
+                        "label_fontweight", self.config.interactive_label_weight))
+                
+            if param in ["frame", "ticks"]:
+                # set tick parameters
+                bokehPlot.xaxis.major_tick_line_color = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "ticks_xaxis_color", "#000000")
+                bokehPlot.xaxis.minor_tick_line_color = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "ticks_xaxis_color", "#000000")
+                bokehPlot.yaxis.major_tick_line_color = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "ticks_yaxis_color", "#000000")
+                bokehPlot.yaxis.minor_tick_line_color = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "ticks_yaxis_color", "#000000")
+                bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(
+                    data.get("interactive_params", {}).get("frame_properties", {}).get(
+                        "tick_labels_xaxis_fontsize", self.config.interactive_tick_fontSize))
+                bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(
+                    data.get("interactive_params", {}).get("frame_properties", {}).get(
+                        "tick_labels_yaxis_fontsize", self.config.interactive_tick_fontSize))
+                
+            if param in ["legend"]:
+                bokehPlot.legend.location = data.get(
+                    "interactive_params", {}).get("legend_properties", {}).get(
+                        "legend_location", self.config.interactive_legend_location)
+                bokehPlot.legend.click_policy = data.get(
+                    "interactive_params", {}).get("legend_properties", {}).get(
+                        "legend_click_policy", self.config.interactive_legend_click_policy)
+                bokehPlot.legend.background_fill_alpha = data.get(
+                    "interactive_params", {}).get("legend_properties", {}).get(
+                        "legend_background_alpha", self.config.interactive_legend_background_alpha)
+                bokehPlot.legend.border_line_alpha = data.get(
+                    "interactive_params", {}).get("legend_properties", {}).get(
+                        "legend_background_alpha", self.config.interactive_legend_background_alpha)
+                bokehPlot.legend.label_text_font_size = self._fontSizeConverter(data.get(
+                    "interactive_params", {}).get("legend_font_size", {}).get(
+                        "legend_location", self.config.interactive_legend_font_size))
+                bokehPlot.legend.orientation = data.get(
+                    "interactive_params", {}).get("legend_properties", {}).get(
+                        "legend_orientation", self.config.interactive_legend_orientation)
+                bokehPlot.legend.border_line_width = 0
+                
+
+            if param in ["border"]:
+                # add outline
+                bokehPlot.outline_line_width = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "outline_width", self.config.interactive_outline_width)
+                    
+                bokehPlot.outline_line_alpha = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "outline_width", self.config.interactive_outline_alpha)
+
+                bokehPlot.outline_line_color = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "outline_color", "#000000")
+                # add borders
+                bokehPlot.min_border_right = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "border_left", self.config.interactive_border_min_right)
+                bokehPlot.min_border_left = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "border_right", self.config.interactive_border_min_left) 
+                bokehPlot.min_border_top = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "border_top", self.config.interactive_border_min_top)
+                bokehPlot.min_border_bottom = data.get(
+                    "interactive_params", {}).get("frame_properties", {}).get(
+                        "border_bottom", self.config.interactive_border_min_bottom)
+                    
+                if kwargs.get("tight_layout", False):
+                    bokehPlot.min_border_right = 10
+                    bokehPlot.min_border_left = 10
+                    bokehPlot.min_border_top = 10
+                    bokehPlot.min_border_bottom = 10
+
+        # add custom javascript
+        if self.config.interactive_custom_events:
+#             try: 
+#                 
+            bokehPlot = self.add_custom_js_events(bokehPlot, js_type=["double_tap_unzoom"], **kwargs) 
+#             except: pass
+        return bokehPlot
+
+        
     def _add_plot_1D(self, data, **bkh_kwargs):
         """
         """
@@ -4487,7 +4885,7 @@ class dlgOutputInteractive(wx.MiniFrame):
          
         # crop 1D data
         if plt_kwargs['_xlimits_'] is not None and bkh_kwargs['plot_type'] != "Other 1D":
-            try:
+            try: 
                 kwargs = {'min':xlimits[0], 'max':xlimits[1]}
                 xvals, yvals = crop_1D_data(xvals, yvals, **kwargs)
             except: pass
@@ -4544,7 +4942,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         # setup common plot parameters
 #         print(dir(hoverTool.tooltips))
         js_kwargs = dict(xlimits=xlimits, ylimits=ylimits, hover=hoverTool)
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", **js_kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **js_kwargs)
         
         labels=None
         if "annotations" in data and len(data["annotations"]) > 0 and plt_kwargs['show_annotations']:
@@ -4659,7 +5057,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                 line_alpha=plt_kwargs['line_alpha'],
                                 name="plot")
         
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D")
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data)
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
     def _add_plot_overlay_1D(self, data, **bkh_kwargs):
@@ -5020,7 +5418,7 @@ class dlgOutputInteractive(wx.MiniFrame):
 
         # setup common parameters
 #         kwargs = {'tight_layout':True}
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="2D")
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="2D", data=data)
         
 #         # REMOVE !!!
 #         bokehPlot.xaxis.major_label_text_color = None
@@ -5102,7 +5500,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
 
-        self._setupPlotParameters(bokehPlot, plot_type="2D")
+        self._setupPlotParameters(bokehPlot, plot_type="2D", data=data)
         
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
    
@@ -5182,7 +5580,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         if plt_kwargs["add_colorbar"]:
             bokehPlot = self._add_colorbar(bokehPlot, zvals, colorMapper, False)
         
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Matrix")
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Matrix", data=data)
    
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
     
@@ -5227,7 +5625,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="2D")
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="2D", data=data)
    
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
     
@@ -5260,7 +5658,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                            line_alpha=plt_kwargs['line_alpha'],
                            line_dash=plt_kwargs['line_style'])
         bokehPlotRMSF.yaxis.axis_label = ylabelRMSF
-        bokehPlotRMSF = self._setupPlotParameters(bokehPlotRMSF, plot_type="RMSF")
+        bokehPlotRMSF = self._setupPlotParameters(bokehPlotRMSF, plot_type="RMSF", data=data)
 
         z_data = dict(image=[zvals], x=[min(xvals)], y=[min(yvals)],
                       dw=[max(xvals)-min(xvals)],
@@ -5305,7 +5703,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         
         bokehPlotRMSD.xaxis.axis_label = xlabelRMSD
         bokehPlotRMSD.yaxis.axis_label = ylabelRMSD
-        bokehPlotRMSD = self._setupPlotParameters(bokehPlotRMSD, plot_type="2D")
+        bokehPlotRMSD = self._setupPlotParameters(bokehPlotRMSD, plot_type="2D", data=data)
         
         bokehPlot =  gridplot([[bokehPlotRMSF], [bokehPlotRMSD]], merge_tools=False)
    
@@ -5324,9 +5722,8 @@ class dlgOutputInteractive(wx.MiniFrame):
             zvals1 = zvals1.filled(0)
             zvals2 = zvals2.filled(0)
 
-        if self.config.interactive_override_defaults:
-            cmapIon1 = plt_kwargs.get('overlay_color_1', cmapIon1)
-            cmapIon2 = plt_kwargs.get('overlay_color_2', cmapIon2)
+        cmapIon1 = plt_kwargs.get('overlay_color_1', cmapIon1)
+        cmapIon2 = plt_kwargs.get('overlay_color_2', cmapIon2)
 
         colorMapper1, bokehpalette1 = self._convert_cmap_to_colormapper(cmapIon1, zvals=zvals1, return_palette=True)
         hoverTool1 = HoverTool(tooltips = [(xlabel, '$x{0.00}'),
@@ -5606,7 +6003,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         bokehPlot.yaxis.axis_label = ylabel
 
         # setup common parameters
-        self._setupPlotParameters(bokehPlot, plot_type="2D")
+        self._setupPlotParameters(bokehPlot, plot_type="2D", data=data)
         
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -5652,7 +6049,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         # setup labels
         bokehPlot.yaxis.axis_label = ylabel
         # setup common parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D")
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data)
         if self.config.interactive_custom_scripts:
             js_type, js_code = [], {}
             
@@ -5836,7 +6233,7 @@ class dlgOutputInteractive(wx.MiniFrame):
 
         # setup common parameters
         js_kwargs = dict(xlimits=xlimits, ylimits=ylimits)
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Waterfall", **js_kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Waterfall", data=data, **js_kwargs)
         plot_mods = {}
         if self.config.interactive_custom_scripts and bkh_kwargs['page_layout'] in ["Individual", "Columns"]:
             _cvd_colors = self.presenter.view.panelPlots.onChangePalette(None, cmap=self.config.interactive_cvd_cmap, 
@@ -5983,7 +6380,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         
         # setup common parameters
         js_kwargs = dict(xlimits=xlimits, ylimits=ylimits)
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Waterfall_overlay", **js_kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Waterfall_overlay", data=data, **js_kwargs)
         if self.config.interactive_custom_scripts:
             # get cvd colors
             js_type, js_code = [], {}
@@ -6077,9 +6474,9 @@ class dlgOutputInteractive(wx.MiniFrame):
         right.yaxis.axis_label = ylabel
 
         kwargs = {'tight_layout':True}
-        top_left = self._setupPlotParameters(top_left, plot_type="2D", **kwargs)
-        bottom_left = self._setupPlotParameters(bottom_left, plot_type="2D", **kwargs)
-        right = self._setupPlotParameters(right, plot_type="2D", **kwargs)
+        top_left = self._setupPlotParameters(top_left, plot_type="2D", data=data, **kwargs)
+        bottom_left = self._setupPlotParameters(bottom_left, plot_type="2D", data=data, **kwargs)
+        right = self._setupPlotParameters(right, plot_type="2D", data=data, **kwargs)
 
         left_column = column(top_left, bottom_left)
         bokehPlot =  gridplot([[left_column, right]], sizing_mode="fixed")
@@ -6166,7 +6563,7 @@ class dlgOutputInteractive(wx.MiniFrame):
 
 
             kwargs = {'tight_layout':True}
-            plot = self._setupPlotParameters(plot, plot_type="2D", **kwargs)
+            plot = self._setupPlotParameters(plot, plot_type="2D", data=data, **kwargs)
             plot_list.append(plot)
 
             bokehPlot =  gridplot(plot_list, ncols=plot_parameters['n_cols'], merge_tools=False)
@@ -6307,7 +6704,7 @@ class dlgOutputInteractive(wx.MiniFrame):
             plot.yaxis.axis_label = ylabel
 
             kwargs = {'tight_layout':True}
-            plot = self._setupPlotParameters(plot, plot_type="2D", **kwargs)
+            plot = self._setupPlotParameters(plot, plot_type="2D", data=data, **kwargs)
             plot_list.append(plot)
             
         plt_kwargs['plot_width'] = plot_size_x * n_cols
@@ -6400,7 +6797,7 @@ class dlgOutputInteractive(wx.MiniFrame):
             plot.yaxis.axis_label = ylabel
 
             kwargs = {'tight_layout':True}
-            plot = self._setupPlotParameters(plot, plot_type="2D", **kwargs)
+            plot = self._setupPlotParameters(plot, plot_type="2D", data=data, **kwargs)
             plot_list.append(plot)
             
         plt_kwargs['plot_width'] = plot_size_x * n_cols
@@ -6529,7 +6926,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         
         kwargs = {"bar_type":type, "ylimits":ylimits}
         # setup common plot parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", **kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **kwargs)
          
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
     
@@ -6598,93 +6995,6 @@ class dlgOutputInteractive(wx.MiniFrame):
         bokehPlot.add_layout(titleAnnot)
         return bokehPlot
 
-    def _buildPlotParameters(self, data):
-        # get parameters
-        if self.config.interactive_override_defaults:
-            interactive_params = data.get('interactive_params', {})
-        else:
-            interactive_params = {}
-
-        if len(interactive_params) == 0:
-            hover_vline = self.config.hoverVline
-            line_width = self.config.interactive_line_width
-            line_alpha = self.config.interactive_line_alpha
-            line_style = self.config.interactive_line_style
-            overlay_layout = self.config.plotLayoutOverlay
-            overlay_linkXY = self.config.linkXYaxes
-            legend = self.config.interactive_legend
-            addColorbar = self.config.interactive_colorbar
-            title_label = False
-            xpos = self.config.interactive_grid_xpos
-            ypos = self.config.interactive_grid_ypos
-            waterfall_increment = self.config.interactive_waterfall_increment
-            linearize_spectra = self.config.interactive_ms_linearize
-            show_annotations = self.config.interactive_ms_annotations
-            bin_size = self.config.interactive_ms_binSize
-            waterfall_shade = False
-            waterfall_shade_transparency = 0.25
-            overlay_shade = False
-            overlay_shade_transparency = 0.25
-            plot_width = self.config.figWidth
-            plot_height = self.config.figHeight
-            _xlimits_ = None
-            _ylimits_ = None
-        else:
-            hover_vline = interactive_params['line_linkXaxis']
-            line_width = interactive_params['line_width']
-            line_alpha = interactive_params['line_alpha']
-            line_style = interactive_params['line_style']
-            overlay_layout = interactive_params['overlay_layout']
-            overlay_linkXY = interactive_params['overlay_linkXY']
-            legend = interactive_params['legend']
-            addColorbar = interactive_params['colorbar']
-            title_label = interactive_params.get('title_label', "")
-            xpos = interactive_params.get('grid_xpos', self.config.interactive_grid_xpos)
-            ypos = interactive_params.get('grid_ypos', self.config.interactive_grid_ypos)
-            waterfall_increment = interactive_params.get('waterfall_increment', self.config.interactive_waterfall_increment)
-            waterfall_shade = interactive_params.get('waterfall_shade_under', False)
-            waterfall_shade_transparency = interactive_params.get('waterfall_shade_transparency', 0.25)
-            overlay_shade = interactive_params.get('overlay_1D_shade_under', False)
-            overlay_shade_transparency = interactive_params.get('overlay_1D_shade_transparency',  0.25)
-            linearize_spectra = interactive_params.get('linearize_spectra', self.config.interactive_ms_linearize)
-            show_annotations = interactive_params.get('show_annotations', self.config.interactive_ms_annotations)
-            bin_size = interactive_params.get('bin_size', self.config.interactive_ms_binSize)
-            plot_width = interactive_params.get("plot_width", self.config.figWidth)
-            plot_height = interactive_params.get("plot_height", self.config.figHeight)
-            _xlimits_ = interactive_params.get("xlimits", None)
-            _ylimits_ = interactive_params.get("ylimits", None)
-            
-            
-        # Check if we should lock the hoverline
-        if hover_vline: hoverMode='vline'
-        else: hoverMode='mouse'
-        
-        plt_kwargs = {'hover_mode':hoverMode, 
-                      'line_width':line_width,
-                      'line_alpha':line_alpha, 
-                      'line_style':line_style,
-                      'overlay_layout':overlay_layout, 
-                      'overlay_linkXY':overlay_linkXY,
-                      'add_legend':legend, 
-                      'add_colorbar':addColorbar,
-                      'title_label':title_label,
-                      'xpos':xpos, 'ypos':ypos,
-                      'waterfall_increment':waterfall_increment,
-                      'linearize_spectra':linearize_spectra,
-                      'show_annotations':show_annotations,
-                      'bin_size':bin_size,
-                      'waterfall_shade':waterfall_shade,
-                      'waterfall_shade_transparency':waterfall_shade_transparency,
-                      'overlay_shade':overlay_shade,
-                      'overlay_shade_transparency':overlay_shade_transparency,
-                      'plot_width':plot_width,
-                      'plot_height':plot_height,
-                      '_xlimits_':_xlimits_,
-                      '_ylimits_':_ylimits_,
-                      }
-        
-        return plt_kwargs
-        
     def onGenerateHTML(self, evt):
         """
         Generate plots for HTML output
@@ -6993,7 +7303,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         
         outList = []
         # Generate layout
-        for pageKey in sorted(plotDict.keys()):
+        for pageKey in natsorted(plotDict.keys()):
             width = np.max(widgetDict[pageKey]["plot_width"])
             
             if add_watermark:
@@ -7246,7 +7556,6 @@ class dlgOutputInteractive(wx.MiniFrame):
             self.itemsList.SetItemBackgroundColour(row, bg_rgb)
             self.itemsList.SetItemTextColour(row, fg_color)
 
-
     def OnShowOneDataType(self, filter='Show all'):
         """
         Function to only show select type of figure to be plotted
@@ -7272,6 +7581,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                     for col in range(columns):
                         item = self.itemsList.GetItem(itemId=row, col=col)
                         tempRow.append(item.GetText())
+                    tempRow.append(self.itemsList.IsChecked(index=row))
                     tempRow.append(self.itemsList.GetItemBackgroundColour(row))
                     tempRow.append(self.itemsList.GetItemTextColour(row))
                     tempData.append(tempRow)
@@ -7280,10 +7590,10 @@ class dlgOutputInteractive(wx.MiniFrame):
                         for col in range(columns):
                             item = self.itemsList.GetItem(itemId=row, col=col)
                             tempRow.append(item.GetText())
+                        tempRow.append(self.itemsList.IsChecked(index=row))
                         tempRow.append(self.itemsList.GetItemBackgroundColour(row))
                         tempRow.append(self.itemsList.GetItemTextColour(row))
                         tempData.append(tempRow)
-                        
                 else:
                     pass
 
@@ -7301,7 +7611,7 @@ class dlgOutputInteractive(wx.MiniFrame):
             self.itemsList.DeleteAllItems()
             for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
                 self.itemsList.Append(tempData[row])
-                self.itemsList.CheckItem(row, check=True)
+                self.itemsList.CheckItem(row, check=check)
                 self.itemsList.SetItemBackgroundColour(row, bg_rgb)
                 self.itemsList.SetItemTextColour(row, fg_color)
                 
@@ -7459,10 +7769,14 @@ class dlgOutputInteractive(wx.MiniFrame):
         return name, key, innerKey
 
     def _check_limits(self, old_limits, new_limits):
-        
+        """
+        Check extent lists to ensure values are not bonkers
+        """
         if new_limits is not None:
-            if new_limits[0] in [None, "None", ""]: new_limits[0] = old_limits[0]
-            if new_limits[1] in [None, "None", ""]: new_limits[1] = old_limits[1]
+            if new_limits[0] in [None, "None", ""] or new_limits[0] >= old_limits[1]:
+                new_limits[0] = old_limits[0]
+            if new_limits[1] in [None, "None", ""] or new_limits[1] <= old_limits[0]: 
+                new_limits[1] = old_limits[1]
             old_limits = new_limits
             
         return old_limits  
@@ -7513,216 +7827,6 @@ class dlgOutputInteractive(wx.MiniFrame):
 
         orderNum = self.itemsList.GetItem(self.currentItem, self.config.interactiveColNames['order']).GetText()
         self.order_value.SetValue(orderNum)
-
-    def _setupPlotParameters(self, bokehPlot, data={}, plot_type="1D", **kwargs):
-
-        if "xlimits" in kwargs:
-            bokehPlot.x_range.start = kwargs['xlimits'][0]
-            bokehPlot.x_range.end = kwargs['xlimits'][1]
-            
-        if "ylimits" in kwargs:
-            bokehPlot.y_range.start = kwargs['ylimits'][0]
-            bokehPlot.y_range.end = kwargs['ylimits'][1]
-            
-        # common
-        bokehPlot.title.text_font_size = self._fontSizeConverter(self.config.interactive_title_fontSize)
-        bokehPlot.title.text_font_style = self._fontWeightConverter(self.config.interactive_title_weight)
-        
-        if self.config.interactive_grid_line:
-            bokehPlot.grid.grid_line_color = convertRGB1toHEX(self.config.interactive_grid_line_color)
-            
-        bokehPlot.background_fill_color = convertRGB1toHEX(self.config.interactive_background_color)
-        
-        
-        if plot_type == "1D":
-            # Add border
-            bokehPlot.outline_line_width = self.config.interactive_outline_width
-            bokehPlot.outline_line_alpha = self.config.interactive_outline_alpha
-            bokehPlot.outline_line_color = "black"
-            # X-axis
-            bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            # Y-axis
-            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            # add borders
-            bokehPlot.min_border_right = self.config.interactive_border_min_right
-            bokehPlot.min_border_left = self.config.interactive_border_min_left
-            bokehPlot.min_border_top = self.config.interactive_border_min_top
-            bokehPlot.min_border_bottom = self.config.interactive_border_min_bottom
-            
-        elif plot_type == "Scatter":
-            # Interactive legend
-            bokehPlot.legend.location = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_location", self.config.interactive_legend_location)
-            bokehPlot.legend.click_policy = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_click_policy", self.config.interactive_legend_click_policy)
-            bokehPlot.legend.background_fill_alpha = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_background_alpha", self.config.interactive_legend_background_alpha)
-            bokehPlot.legend.label_text_font_size = self._fontSizeConverter(data.get("interactive_params", {}).get("legend_font_size", {}).get("legend_location", self.config.interactive_legend_font_size))
-            bokehPlot.legend.orientation = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_orientation", self.config.interactive_legend_orientation)
-            bokehPlot.legend.border_line_width = 0
-            bokehPlot.legend.border_line_alpha = 0
-            # Add border
-            bokehPlot.outline_line_width = self.config.interactive_outline_width
-            bokehPlot.outline_line_alpha = self.config.interactive_outline_alpha
-            bokehPlot.outline_line_color = "black"
-            # X-axis
-            bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            # Y-axis
-            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            # add borders
-            bokehPlot.min_border_right = self.config.interactive_border_min_right
-            bokehPlot.min_border_left = self.config.interactive_border_min_left
-            bokehPlot.min_border_top = self.config.interactive_border_min_top
-            bokehPlot.min_border_bottom = self.config.interactive_border_min_bottom
-            
-        elif plot_type == "Waterfall":
-            # Interactive legend
-            bokehPlot.legend.location = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_location", self.config.interactive_legend_location)
-            bokehPlot.legend.click_policy = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_click_policy", self.config.interactive_legend_click_policy)
-            bokehPlot.legend.background_fill_alpha = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_background_alpha", self.config.interactive_legend_background_alpha)
-            bokehPlot.legend.label_text_font_size = self._fontSizeConverter(data.get("interactive_params", {}).get("legend_font_size", {}).get("legend_location", self.config.interactive_legend_font_size))
-            bokehPlot.legend.orientation = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_orientation", self.config.interactive_legend_orientation)
-            bokehPlot.legend.border_line_width = 0
-            bokehPlot.legend.border_line_alpha = 0
-            # Add border
-            bokehPlot.outline_line_width = self.config.interactive_outline_width
-            bokehPlot.outline_line_alpha = self.config.interactive_outline_alpha
-            bokehPlot.outline_line_color = "black"
-            # X-axis
-            bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            # Y-axis
-            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            # add borders
-            bokehPlot.min_border_right = self.config.interactive_border_min_right
-            bokehPlot.min_border_left = self.config.interactive_border_min_left
-            bokehPlot.min_border_top = self.config.interactive_border_min_top
-            bokehPlot.min_border_bottom = self.config.interactive_border_min_bottom
-            
-        elif plot_type == "Waterfall_overlay":
-            # Interactive legend
-            bokehPlot.legend.location = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_location", self.config.interactive_legend_location)
-            bokehPlot.legend.background_fill_alpha = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_background_alpha", self.config.interactive_legend_background_alpha)
-            bokehPlot.legend.label_text_font_size = self._fontSizeConverter(data.get("interactive_params", {}).get("legend_properties", {}).get("legend_font_size", self.config.interactive_legend_font_size))
-            bokehPlot.legend.orientation = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_orientation", self.config.interactive_legend_orientation)
-            bokehPlot.legend.border_line_width = 0
-            bokehPlot.legend.border_line_alpha = 0
-            # Add border
-            bokehPlot.outline_line_width = self.config.interactive_outline_width
-            bokehPlot.outline_line_alpha = self.config.interactive_outline_alpha
-            bokehPlot.outline_line_color = "black"
-            # X-axis
-            bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            # Y-axis
-            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            # add borders
-            bokehPlot.min_border_right = self.config.interactive_border_min_right
-            bokehPlot.min_border_left = self.config.interactive_border_min_left
-            bokehPlot.min_border_top = self.config.interactive_border_min_top
-            bokehPlot.min_border_bottom = self.config.interactive_border_min_bottom
-
-        elif plot_type == "Overlay_1D":
-            # Interactive legend
-            bokehPlot.legend.location = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_location", self.config.interactive_legend_location)
-            bokehPlot.legend.click_policy = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_click_policy", self.config.interactive_legend_click_policy)
-            bokehPlot.legend.background_fill_alpha = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_background_alpha", self.config.interactive_legend_background_alpha)
-            bokehPlot.legend.label_text_font_size = self._fontSizeConverter(data.get("interactive_params", {}).get("legend_properties", {}).get("legend_font_size", self.config.interactive_legend_font_size))
-            bokehPlot.legend.orientation = data.get("interactive_params", {}).get("legend_properties", {}).get("legend_orientation", self.config.interactive_legend_orientation)
-            bokehPlot.legend.border_line_width = 0
-            bokehPlot.legend.border_line_alpha = 0
-            # Add border
-            bokehPlot.outline_line_width = self.config.interactive_outline_width
-            bokehPlot.outline_line_alpha = self.config.interactive_outline_alpha
-            bokehPlot.outline_line_color = "black"
-            # X-axis
-            bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            # Y-axis
-            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            # add borders
-            bokehPlot.min_border_right = self.config.interactive_border_min_right
-            bokehPlot.min_border_left = self.config.interactive_border_min_left
-            bokehPlot.min_border_top = self.config.interactive_border_min_top
-            bokehPlot.min_border_bottom = self.config.interactive_border_min_bottom
-
-        elif plot_type == "2D":
-            # Add border
-            bokehPlot.outline_line_width = self.config.interactive_outline_width
-            bokehPlot.outline_line_alpha = self.config.interactive_outline_alpha
-            bokehPlot.outline_line_color = "black"
-            bokehPlot.min_border_right = self.config.interactive_border_min_right
-            bokehPlot.min_border_left = self.config.interactive_border_min_left
-            bokehPlot.min_border_top = self.config.interactive_border_min_top
-            bokehPlot.min_border_bottom = self.config.interactive_border_min_bottom
-            # X-axis
-            bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            # Y-axis
-            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-
-            if kwargs.get("tight_layout", False):
-                bokehPlot.min_border_right = 10
-                bokehPlot.min_border_left = 10
-                bokehPlot.min_border_top = 10
-                bokehPlot.min_border_bottom = 10
-
-        elif plot_type == "Matrix":
-            # Add border
-            bokehPlot.outline_line_width = self.config.interactive_outline_width
-            bokehPlot.outline_line_alpha = self.config.interactive_outline_alpha
-            bokehPlot.outline_line_color = "black"
-            bokehPlot.min_border_right = self.config.interactive_border_min_right
-            bokehPlot.min_border_left = self.config.interactive_border_min_left
-            bokehPlot.min_border_top = self.config.interactive_border_min_top
-            bokehPlot.min_border_bottom = self.config.interactive_border_min_bottom
-            # X-axis
-            bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.xaxis.major_label_orientation = np.pi/3
-            # Y-axis
-            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-            bokehPlot.grid.grid_line_color = None
-            bokehPlot.axis.axis_line_color = None
-            bokehPlot.axis.major_tick_line_color = None
-
-        elif plot_type == "RMSF":
-            # Add border
-            bokehPlot.outline_line_width = self.config.interactive_outline_width
-            bokehPlot.outline_line_alpha = self.config.interactive_outline_alpha
-            bokehPlot.outline_line_color = "black"
-            # Y-axis
-            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
-
-        # add custom javascript
-        if self.config.interactive_custom_events:
-#             try: 
-#                 
-            bokehPlot = self.add_custom_js_events(bokehPlot, js_type=["double_tap_unzoom"], **kwargs) 
-#             except: pass
-        return bokehPlot
 
     def _kda_test(self, xvals):
         """
@@ -7881,22 +7985,29 @@ class dlgOutputInteractive(wx.MiniFrame):
 #         else:
 #             return rgb3
 
-class EditableListCtrl(wx.ListCtrl,
-                        listmix.TextEditMixin,
-                       listmix.CheckListCtrlMixin):
+class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
     """ListCtrl"""
-
+     
     def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT):
         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
-        listmix.TextEditMixin.__init__(self)
         listmix.CheckListCtrlMixin.__init__(self)
 
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
-
-    def OnBeginLabelEdit(self, event):
-        event.Veto()
-#         if event.m_col in [3, 9]:
-#             event.Skip()
-#         else:
-#             event.Veto()
-#
+# class EditableListCtrl(wx.ListCtrl,
+#                         listmix.TextEditMixin,
+#                        listmix.CheckListCtrlMixin):
+#     """ListCtrl"""
+# 
+#     def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT):
+#         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
+#         listmix.TextEditMixin.__init__(self)
+#         listmix.CheckListCtrlMixin.__init__(self)
+# 
+#         self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
+# 
+#     def OnBeginLabelEdit(self, event):
+#         event.Veto()
+# #         if event.m_col in [3, 9]:
+# #             event.Skip()
+# #         else:
+# #             event.Veto()
+# #
