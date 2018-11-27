@@ -11,11 +11,16 @@
   </presets>
 
   <recent>
-    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27C_paper\p27-C-paper_figures.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\ORIGAMI_ConA_z20.pickle" format="pickle" />
     <path value="Z:\###_PhD1_###\p27_Bex_Data\p27-C-paper_figures.pickle" format="pickle" />
-    <path value="Z:\###_PhD1_###\p27_Bex_Data\Cdk2-cyclinA-p27-p27C_withDeconvolution.pickle" format="pickle" />
-    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27C_paper\p27C-with_updated_violins.pickle" format="pickle" />
-    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27C_with_new_violin.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\aa.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="MassLynx" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1_overlay_document.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1 with MD.pickle" format="pickle" />
+    <path value="C:\Users\LukaszMigas\Downloads\interactive_doc.pickle" format="pickle" />
+    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27C_paper\p27-C-paper_figures.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -29,6 +34,8 @@
     <param name="overrideCombine" value="True" type="bool" />
     <param name="useInternalParamsCombine" value="False" type="bool" />
     <param name="overlay_usedProcessed" value="True" type="bool" />
+    <param name="import_duplicate_action" value="merge" type="unicode" choices="['override', 'merge', 'duplicate']" />
+    <param name="import_duplicate_ask" value="True" type="bool" />
   </presets_gui>
 
   <presets_gui_plotSizes>
@@ -109,8 +116,7 @@
     <param name="footnote" order="6" width="40" show="True" type="mixed" />
     <param name="color/colormap" order="7" width="75" show="True" type="mixed" />
     <param name="page" order="8" width="50" show="True" type="mixed" />
-    <param name="tools" order="9" width="50" show="True" type="mixed" />
-    <param name="#" order="10" width="30" show="True" type="mixed" />
+    <param name="#" order="9" width="30" show="True" type="mixed" />
   </presets_gui_interactivePanel>
 
   <presets_gui_aui_settings>
@@ -119,12 +125,12 @@
     <param title="Import/Export parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
-    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="True" type="mixed" />
+    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
-    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Toolbar" gripper="True" orientation="top" close_button="False" left_position="False" top_position="True" left_dockable="True" right_dockable="True" top_dockable="True" bottom_dockable="True" show="True" type="mixed" />
   </presets_gui_aui_settings>
 
@@ -149,7 +155,7 @@
     <param name="annotation_arrow_line_style" value="dashdot" type="unicode" choices="['Linear', 'Exponential', 'Boltzmann', 'User-defined', 'Manual']" />
     <param name="annotation_label_horz" value="center" type="unicode" choices="['center', 'right', 'left']" />
     <param name="annotation_label_vert" value="center" type="unicode" choices="['center', 'top', 'bottom']" />
-    <param name="annotation_label_font_size" value="small" type="unicode" choices="['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']" />
+    <param name="annotation_label_font_size" value="medium" type="unicode" choices="['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']" />
     <param name="annotation_label_font_weight" value="normal" type="unicode" choices="['ultralight', 'light', 'normal', 'regular', 'medium', 'bold', 'heavy']" />
   </plot_presets_annotations>
 
@@ -214,14 +220,14 @@
     <!-- UniDec engine parameters -->
     <param name="unidec_zStart" value="5" type="int" />
     <param name="unidec_zEnd" value="30" type="int" />
-    <param name="unidec_mwStart" value="5000.00" type="float" />
-    <param name="unidec_mwEnd" value="30000.00" type="float" />
-    <param name="unidec_mwFrequency" value="1.00" type="float" />
+    <param name="unidec_mwStart" value="140000.00" type="float" />
+    <param name="unidec_mwEnd" value="150000.00" type="float" />
+    <param name="unidec_mwFrequency" value="100.00" type="float" />
     <param name="unidec_peakWidth" value="2.53" type="float" />
     <param name="unidec_peakFunction" value="Lorentzian" type="unicode" choices="['Split G/L', 'Gaussian', 'Lorentzian']" />
     <!-- Peak picking parameters -->
-    <param name="unidec_peakDetectionWidth" value="5.00" type="float" />
-    <param name="unidec_peakDetectionThreshold" value="0.01" type="float" />
+    <param name="unidec_peakDetectionWidth" value="100.00" type="float" />
+    <param name="unidec_peakDetectionThreshold" value="0.50" type="float" />
     <param name="unidec_peakNormalization" value="None" type="unicode" choices="['Max', 'None', 'Total']" />
     <param name="unidec_lineSeparation" value="0.05" type="float" />
     <!-- Plotting parameters -->
@@ -266,14 +272,14 @@
     <param name="ms_enable_in_MML_start" value="True" type="bool" />
     <param name="ms_mzStart" value="150.00" type="float" />
     <param name="ms_mzEnd" value="3598.62" type="float" />
-    <param name="ms_mzBinSize" value="0.02" type="float" />
+    <param name="ms_mzBinSize" value="0.50" type="float" />
     <param name="ms_dtmsBinSize" value="1.00" type="float" />
     <param name="ms_linearization_mode" value="Linear interpolation" type="unicode" choices="['Linear m/z', 'Linear resolution', 'Nonlinear', 'Linear interpolation', 'Linear resolution interpolation', 'Binning']" />
-    <param name="ms_auto_range" value="False" type="bool" />
-    <param name="ms_process_crop" value="True" type="bool" />
+    <param name="ms_auto_range" value="True" type="bool" />
+    <param name="ms_process_crop" value="False" type="bool" />
     <param name="ms_process_linearize" value="True" type="bool" />
-    <param name="ms_process_smooth" value="True" type="bool" />
-    <param name="ms_process_threshold" value="True" type="bool" />
+    <param name="ms_process_smooth" value="False" type="bool" />
+    <param name="ms_process_threshold" value="False" type="bool" />
     <param name="ms_process_normalize" value="True" type="bool" />
   </process_presets_binning>
 
@@ -313,9 +319,9 @@
     <param name="rmsd_color" value="(1, 1, 1)" type="color" />
     <param name="rmsd_rotation_X" value="45.00" type="float" />
     <param name="rmsd_rotation_Y" value="0.00" type="float" />
-    <param name="rmsd_lineColour" value="(0, 0, 0)" type="color" />
+    <param name="rmsd_lineColour" value="[1.0, 0.0, 0.0]" type="color" />
     <param name="rmsd_lineTransparency" value="0.40" type="float" />
-    <param name="rmsd_underlineColor" value="(0, 0, 0)" type="color" />
+    <param name="rmsd_underlineColor" value="[0.502, 0.251, 0.0]" type="color" />
     <param name="rmsd_underlineTransparency" value="0.40" type="float" />
     <param name="rmsd_lineWidth" value="1.00" type="float" />
     <param name="rmsd_lineStyle" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
@@ -393,8 +399,8 @@
   </plot_presets_colorbar>
 
   <plot_presets_plot_1D>
-    <param name="lineColour_1D" value="(0, 0, 0)" type="color" />
-    <param name="lineWidth_1D" value="3.00" type="float" />
+    <param name="lineColour_1D" value="[0.0, 0.0, 0.0]" type="color" />
+    <param name="lineWidth_1D" value="1.00" type="float" />
     <param name="frameWidth_1D" value="1" type="float" />
     <param name="labelPad_1D" value="5" type="float" />
     <param name="lineStyle_1D" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
@@ -423,7 +429,7 @@
     <param name="tickLabels_left_1D" value="True" type="bool" />
     <param name="tickLabels_right_1D" value="False" type="bool" />
     <param name="tickLabels_top_1D" value="False" type="bool" />
-    <param name="tickLabels_bottom_1D" value="False" type="bool" />
+    <param name="tickLabels_bottom_1D" value="True" type="bool" />
   </plot_presets_plot_1D>
 
   <plot_presets_plot_2D>
@@ -507,6 +513,7 @@
   <presets_interactive_pageLayouts>
     <!-- layout_choices="['Individual', 'Columns', 'Rows', 'Grid']" -->
     <param page_name="Columns" name="Columns" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure 1" name="Figure 1" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 1b" name="Figure 1b" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 4" name="Figure 4" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure S1 (a, c, e)" name="Figure S1 (a, c, e)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
@@ -521,8 +528,8 @@
     <param name="interactive_override_defaults" value="True" type="bool" />
     <param name="openInteractiveOnSave" value="True" type="bool" />
     <!-- JAVA SCRIPT PARAMETERS -->
-    <param name="interactive_custom_scripts" value="True" type="bool" />
-    <param name="interactive_custom_events" value="True" type="bool" />
+    <param name="interactive_custom_scripts" value="False" type="bool" />
+    <param name="interactive_custom_events" value="False" type="bool" />
     <param name="interactive_custom_position" value="right"  choices="['left', 'right', 'below', 'above']" type="unicode" />
     <!-- FRAME PARAMETERS -->
     <param name="figHeight" value="600" type="int" />
@@ -552,7 +559,7 @@
     <param name="interactive_title_weight" value="False" type="bool" />
     <param name="interactive_label_fontSize" value="14" type="int" />
     <param name="interactive_label_weight" value="False" type="bool" />
-    <param name="interactive_tick_fontSize" value="12" type="int" />
+    <param name="interactive_tick_fontSize" value="11" type="int" />
     <param name="interactive_annotation_fontSize" value="12" type="int" />
     <param name="interactive_annotation_weight" value="False" type="bool" />
     <param name="interactive_annotation_color" value="(0, 0, 0)" type="color" />
@@ -574,7 +581,7 @@
     <!-- LEGEND PARAMETERS -->
     <param name="interactive_legend" value="True" type="bool" />
     <param name="interactive_legend_click_policy" value="hide"  choices="['hide', 'mute']" type="unicode" />
-    <param name="interactive_legend_location" value="top_left"  choices="['top_left', 'top_center', 'top_right', 'center_right', 'bottom_right', 'bottom_center', 'bottom_left', 'center_left', 'center', 'other']" type="unicode" />
+    <param name="interactive_legend_location" value="top_left"  choices="['top_left', 'top_center', 'top_right', 'center_right', 'bottom_right', 'bottom_center', 'bottom_left', 'center_left', 'center']" type="unicode" />
     <param name="interactive_legend_orientation" value="vertical"  choices="['vertical', 'horizontal']" type="unicode" />
     <param name="interactive_legend_mute_alpha" value="0.20" type="float" />
     <param name="interactive_legend_background_alpha" value="1.00" type="float" />

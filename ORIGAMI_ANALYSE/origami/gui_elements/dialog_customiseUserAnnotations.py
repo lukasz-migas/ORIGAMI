@@ -87,6 +87,13 @@ class panelCustomiseParameters(wx.Dialog):
         
         hz_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
+        label_fontOrientation_label = wx.StaticText(panel, -1, "Font orientation:")
+        self.label_fontOrientation_value= wx.Choice(panel, -1, 
+                                   choices=self.config.label_font_orientation_list,
+                                   size=(-1, -1))
+        self.label_fontOrientation_value.SetStringSelection(self.config.annotation_label_font_orientation)
+        self.label_fontOrientation_value.Bind(wx.EVT_CHOICE, self.onApply)
+        
         label_fontSize_label = wx.StaticText(panel, -1, "Font size:")
         self.label_fontSize_value= wx.Choice(panel, -1, 
                                    choices=self.config.label_fontsize_list,
@@ -145,7 +152,9 @@ class panelCustomiseParameters(wx.Dialog):
                                                      inc=1, 
                                                      size=(-1, -1))
         self.highlight_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
-
+#         
+#         self.applyBtn = wx.Button(panel, wx.ID_ANY, "Apply", size=(-1, 22))
+#         self.closeBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
         
         
         # pack elements
@@ -163,6 +172,9 @@ class panelCustomiseParameters(wx.Dialog):
         grid.Add(self.arrow_line_style_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
         grid.Add(hz_line_2, (y,0), wx.GBSpan(1,2), flag=wx.EXPAND)
+        y = y+1
+        grid.Add(label_fontOrientation_label, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.label_fontOrientation_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
         grid.Add(label_fontSize_label, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.label_fontSize_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
@@ -188,6 +200,9 @@ class panelCustomiseParameters(wx.Dialog):
         y = y+1
         grid.Add(highlight_width, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.highlight_width_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+#         y = y+1
+#         grid.Add(self.applyBtn, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
+#         grid.Add(self.closeBtn, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
         mainSizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout
@@ -204,6 +219,7 @@ class panelCustomiseParameters(wx.Dialog):
         self.config.annotation_label_font_weight = self.label_fontWeight_value.GetStringSelection()
         self.config.annotation_label_vert = self.label_vert_alignment_value.GetStringSelection()
         self.config.annotation_label_horz = self.label_horz_alignment_value.GetStringSelection()
+        self.config.annotation_label_font_orientation = self.label_fontOrientation_value.GetStringSelection()
     
         self.parent.zoom_y_buffer_multiplier = self.zoom_y_buffer_value.GetValue()
         self.parent.highlight_alpha = self.highlight_alpha_value.GetValue()
