@@ -167,6 +167,10 @@ class panelCustomiseInteractive(wx.MiniFrame):
         
         return allowed_window
             
+    def onUpdateDocument(self):
+        self.parent.onUpdateItemParameters(
+            self.document_title, self.item_type, self.item_title, self.kwargs)
+            
     def makeGUI(self):
         
         allowed_windows = self._check_allowed_windows()
@@ -228,17 +232,6 @@ class panelCustomiseInteractive(wx.MiniFrame):
             self.settings_widgets = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
                                               wx.DefaultSize, wx.TAB_TRAVERSAL|wx.NB_MULTILINE)
             self.mainBook.AddPage(self.makeWidgetsPanel(self.settings_widgets), u"Widgets", False)
-        
-    def makeAboutPanel(self, panel):
-        
-        # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        
-        # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
-        
-        return panel
     
     def makeGeneralPanel(self, panel):
         
@@ -552,8 +545,9 @@ class panelCustomiseInteractive(wx.MiniFrame):
         plot_scatter_shape_choice = makeStaticText(panel, u"Marker shape:")
         self.plot_scatter_shape_choice = wx.ComboBox(
             panel, -1, choices=self.config.interactive_scatter_marker_choices,
-            value=self.kwargs.get("plot_properties", {}).get("scatter_shape", self.config.interactive_scatter_marker), 
             style=wx.CB_READONLY)
+        self.plot_scatter_shape_choice.SetStringSelection(
+            self.kwargs.get("plot_properties", {}).get("scatter_shape", self.config.interactive_scatter_marker))
         self.plot_scatter_shape_choice.Bind(wx.EVT_COMBOBOX, self.onApply_plots)
         
         plot_scatter_size_value = makeStaticText(panel, u"Marker size:")
@@ -806,6 +800,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
     def makePlotPanel_plot2D(self, panel):
         
         colormap_label = makeStaticText(panel, u"Colormap:")
+        print(self.kwargs.get("plot_properties", {}).get("colormap", self.config.currentCmap))
         self.plot_colormap_choice = wx.ComboBox(
             panel, -1, choices=self.config.cmaps2,
             value=self.kwargs.get("plot_properties", {}).get("colormap", self.config.currentCmap), 
@@ -1129,6 +1124,13 @@ class panelCustomiseInteractive(wx.MiniFrame):
         return rmsd_box_sizer
         
     def makeOverlayPanel_rmsd_matrix(self, panel):
+        
+        rmsd_matrix_colormap = makeStaticText(panel, u"Colormap:")
+        self.rmsd_matrix_colormap = wx.ComboBox(
+            panel, -1, style=wx.CB_READONLY, choices=self.config.cmaps2,
+            value=self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_colormap", "coolwarm"))
+        self.rmsd_matrix_colormap.Bind(wx.EVT_COMBOBOX, self.onApply_overlay)
+        
         annotation_fontSize_label = makeStaticText(panel, u"Font size:")
         self.rmsd_matrix_fontSize_value = wx.SpinCtrlDouble(
             panel, wx.ID_ANY, min=0, max=32, inc=2, size=(50,-1),
@@ -1145,8 +1147,13 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.rmsd_matrix_fontColor_colorBtn = wx.Button(
             panel, wx.ID_ANY, u"",  size=wx.Size(26, 26), name="rmsd_matrix_label_color")
         self.rmsd_matrix_fontColor_colorBtn.SetBackgroundColour(convertRGB1to255(
-            self.kwargs.get("overlay_properties", {}).get("label_color", self.config.interactive_ms_annotations_label_color)))
+            self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_label_color", self.config.interactive_ms_annotations_label_color)))
         self.rmsd_matrix_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.onApply_color)
+        
+        self.rmsd_matrix_auto_fontColor_value = makeCheckbox(panel, u"Auto-determine\nlabel color")
+        self.rmsd_matrix_auto_fontColor_value.SetValue(
+            self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_auto_label_color", False))
+        self.rmsd_matrix_auto_fontColor_value.Bind(wx.EVT_CHECKBOX, self.onApply_overlay)
         
         annotation_xpos_label = makeStaticText(panel, u"Position offset X:")
         self.rmsd_matrix_xpos_value = wx.SpinCtrlDouble(
@@ -1175,12 +1182,16 @@ class panelCustomiseInteractive(wx.MiniFrame):
         rmsd_matrix_box_sizer = wx.StaticBoxSizer(rmsd_matrix_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
         n = 0
+        grid.Add(rmsd_matrix_colormap, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        grid.Add(self.rmsd_matrix_colormap, (n,1), (1,2), flag=wx.ALIGN_CENTER_VERTICAL)
+        n = n + 1
         grid.Add(annotation_fontSize_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
         grid.Add(self.rmsd_matrix_fontSize_value, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.rmsd_matrix_fontWeight_value, (n,2), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
         grid.Add(annotation_fontColor_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
         grid.Add(self.rmsd_matrix_fontColor_colorBtn, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.rmsd_matrix_auto_fontColor_value, (n,2), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
         grid.Add(annotation_xpos_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
         grid.Add(self.rmsd_matrix_xpos_value, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
@@ -2120,6 +2131,21 @@ class panelCustomiseInteractive(wx.MiniFrame):
         
         self.onUpdateDocument()
         
+    def onCheck_tools(self, evt):
+        itemList = [self.tools_hover_check, self.tools_save_check,
+                    self.tools_reset_check, self.tools_pan_xy_check,
+                    self.tools_boxzoom_xy_check, self.tools_wheel_check
+                    ]
+        disableList = [self.tools_crosshair_check, self.tools_pan_x_check,
+                       self.tools_pan_y_check, self.tools_boxzoom_x_check,
+                       self.tools_boxzoom_y_check]
+        
+        for item in itemList: item.SetValue(True)
+        for item in disableList: item.SetValue(False)
+        self.tools_wheel_choice.SetStringSelection("Wheel zoom (both)")
+        
+        self.onApply_tools(None)
+        
     def onApply_widgets(self, evt):
         if self._loading_: return
         
@@ -2148,6 +2174,24 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.kwargs['widgets']['processing_normalization'] = self.widgets_processing_normalization.GetValue()
         
         self.onUpdateDocument()
+    
+    def onCheck_widgets(self, evt):
+        itemList = [self.widgets_labels_show, self.widgets_labels_font_size, 
+                    self.widgets_labels_rotate, self.widgets_labels_offset_x,
+                    self.widgets_labels_offset_y, self.widgets_general_zoom_1D, 
+                    self.widgets_general_hover_mode, self.widgets_color_colorblind,
+                    self.widgets_color_colormap, self.widgets_legend_show,
+                    self.widgets_legend_orientation, self.widgets_legend_position, 
+                    self.widgets_legend_transparency, self.widgets_labels_show,
+                    self.widgets_scatter_size, self.widgets_scatter_transparency, 
+                    self.widgets_processing_normalization]
+        
+        if self.widgets_check_all_widgets.GetValue():
+            for item in itemList: item.SetValue(True)
+        else:
+            for item in itemList: item.SetValue(False)
+            
+        self.onApply_widgets(None)
         
     def onApply_colorbar(self, evt):
         if self._loading_: return
@@ -2352,6 +2396,10 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.kwargs['overlay_properties']['rmsd_matrix_label_fontsize'] = self.rmsd_matrix_fontSize_value.GetValue()
         self.kwargs['overlay_properties']['rmsd_matrix_label_fontweight'] = self.rmsd_matrix_fontWeight_value.GetValue()
         self.kwargs['overlay_properties']['rmsd_matrix_xaxis_rotation'] = self.rmsd_matrix_xaxis_rotation_value.GetValue()
+        self.kwargs['overlay_properties']['rmsd_matrix_colormap'] = self.rmsd_matrix_colormap.GetStringSelection()
+        self.kwargs['overlay_properties']['rmsd_matrix_auto_label_color'] = self.rmsd_matrix_auto_fontColor_value.GetValue()
+        
+        
         
         # multi-line
         self.kwargs['overlay_properties']['multiline_shade_under'] = self.multiline_shade_under_value.GetValue()
@@ -2431,39 +2479,8 @@ class panelCustomiseInteractive(wx.MiniFrame):
         
         self.onUpdateDocument()
     
-    def onCheck_widgets(self, evt):
-        itemList = [self.widgets_labels_show, self.widgets_labels_font_size, 
-                    self.widgets_labels_rotate, self.widgets_labels_offset_x,
-                    self.widgets_labels_offset_y, self.widgets_general_zoom_1D, 
-                    self.widgets_general_hover_mode, self.widgets_color_colorblind,
-                    self.widgets_color_colormap, self.widgets_legend_show,
-                    self.widgets_legend_orientation, self.widgets_legend_position, 
-                    self.widgets_legend_transparency, self.widgets_labels_show,
-                    self.widgets_scatter_size, self.widgets_scatter_transparency, 
-                    self.widgets_processing_normalization]
-        
-        if self.widgets_check_all_widgets.GetValue():
-            for item in itemList: item.SetValue(True)
-        else:
-            for item in itemList: item.SetValue(False)
-            
-        self.onApply_widgets(None)
-        
-    def onCheck_tools(self, evt):
-        itemList = [self.tools_hover_check, self.tools_save_check,
-                    self.tools_reset_check, self.tools_pan_xy_check,
-                    self.tools_boxzoom_xy_check, self.tools_wheel_check
-                    ]
-        disableList = [self.tools_crosshair_check, self.tools_pan_x_check,
-                       self.tools_pan_y_check, self.tools_boxzoom_x_check,
-                       self.tools_boxzoom_y_check]
-        
-        for item in itemList: item.SetValue(True)
-        for item in disableList: item.SetValue(False)
-        self.tools_wheel_choice.SetStringSelection("Wheel zoom (both)")
-        
-        self.onApply_tools(None)
-            
+
+
     def onEnableDisable_widgets(self, evt):
         itemList = [self.widgets_labels_show, self.widgets_labels_font_size, 
                     self.widgets_labels_rotate, self.widgets_labels_offset_x,
@@ -2485,21 +2502,3 @@ class panelCustomiseInteractive(wx.MiniFrame):
     def onEnableDisable_legend(self, evt):
         pass
     
-    def onUpdateDocument(self):
-        self.parent.onUpdateItemParameters(self.document_title, 
-                                           self.item_type,
-                                           self.item_title, 
-                                           self.kwargs)
-           
-        
-        
-        
-        
-        
-        
-        
-        
-        
-                
-            
-        

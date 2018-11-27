@@ -1039,6 +1039,7 @@ class OrigamiConfig:
         self.interactive_override_defaults = True
         self.openInteractiveOnSave = True
         self.interactive_add_offline_support = False
+        self.interactive_sort_before_saving = True # new in v1.2.1
         
         # Colorbar
         self.interactive_colorbar = False

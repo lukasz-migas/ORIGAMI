@@ -11,8 +11,9 @@
   </presets>
 
   <recent>
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\aa.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\ORIGAMI_ConA_z20.pickle" format="pickle" />
+    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27-C-paper_figures.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\aa.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="MassLynx" />
@@ -20,7 +21,6 @@
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1 with MD.pickle" format="pickle" />
     <path value="C:\Users\LukaszMigas\Downloads\interactive_doc.pickle" format="pickle" />
     <path value="Z:\###_PhD1_###\p27_Bex_Data\p27C_paper\p27-C-paper_figures.pickle" format="pickle" />
-    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27-C-paper_figures.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -130,7 +130,7 @@
     <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
-    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Toolbar" gripper="True" orientation="top" close_button="False" left_position="False" top_position="True" left_dockable="True" right_dockable="True" top_dockable="True" bottom_dockable="True" show="True" type="mixed" />
   </presets_gui_aui_settings>
 
@@ -160,21 +160,21 @@
   </plot_presets_annotations>
 
   <custom_colors>
-    <param name="color_0" value="(219, 94, 86, 255)" type="color" />
-    <param name="color_1" value="(219, 144, 86, 255)" type="color" />
-    <param name="color_2" value="(219, 194, 86, 255)" type="color" />
-    <param name="color_3" value="(194, 219, 86, 255)" type="color" />
-    <param name="color_4" value="(145, 219, 86, 255)" type="color" />
-    <param name="color_5" value="(95, 219, 86, 255)" type="color" />
-    <param name="color_6" value="(86, 219, 127, 255)" type="color" />
-    <param name="color_7" value="(86, 219, 177, 255)" type="color" />
-    <param name="color_8" value="(86, 211, 219, 255)" type="color" />
-    <param name="color_9" value="(86, 161, 219, 255)" type="color" />
-    <param name="color_10" value="(86, 111, 219, 255)" type="color" />
-    <param name="color_11" value="(111, 86, 219, 255)" type="color" />
-    <param name="color_12" value="(160, 86, 219, 255)" type="color" />
-    <param name="color_13" value="(210, 86, 219, 255)" type="color" />
-    <param name="color_14" value="(219, 86, 178, 255)" type="color" />
+    <param name="color_0" value="[219.3, 94.656, 86.7]" type="color" />
+    <param name="color_1" value="[219.3, 144.381, 86.7]" type="color" />
+    <param name="color_2" value="[219.3, 194.106, 86.7]" type="color" />
+    <param name="color_3" value="[194.769, 219.3, 86.7]" type="color" />
+    <param name="color_4" value="[145.044, 219.3, 86.7]" type="color" />
+    <param name="color_5" value="[95.319, 219.3, 86.7]" type="color" />
+    <param name="color_6" value="[86.7, 219.3, 127.806]" type="color" />
+    <param name="color_7" value="[86.7, 219.3, 177.531]" type="color" />
+    <param name="color_8" value="[86.7, 211.344, 219.3]" type="color" />
+    <param name="color_9" value="[86.7, 161.619, 219.3]" type="color" />
+    <param name="color_10" value="[86.7, 111.894, 219.3]" type="color" />
+    <param name="color_11" value="[111.231, 86.7, 219.3]" type="color" />
+    <param name="color_12" value="[160.956, 86.7, 219.3]" type="color" />
+    <param name="color_13" value="[210.681, 86.7, 219.3]" type="color" />
+    <param name="color_14" value="[219.3, 86.7, 178.194]" type="color" />
     <param name="color_15" value="[219.3, 86.7, 128.469]" type="color" />
   </custom_colors>
 
@@ -514,6 +514,11 @@
     <!-- layout_choices="['Individual', 'Columns', 'Rows', 'Grid']" -->
     <param page_name="Columns" name="Columns" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 1" name="Figure 1" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure 1b" name="Figure 1b" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure 4" name="Figure 4" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure S1 (a, c, e)" name="Figure S1 (a, c, e)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure S1 (b, d, f)" name="Figure S1 (b, d, f)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure S3" name="Figure S3" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="None" name="None" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Rows" name="Rows" layout="Rows" rows="None" columns="None" grid_share_tools="True" type="mixed" />
   </presets_interactive_pageLayouts>
