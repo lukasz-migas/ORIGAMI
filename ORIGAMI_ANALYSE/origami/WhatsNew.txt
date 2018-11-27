@@ -53,6 +53,9 @@
     = combine multiple areas
     
 # v1.2.0.4 / v1.2.1
+# TODO: change testkDa from 10,000 to user-defined value. Also change the num of d.p 
+        in the statusbar updater
+
 Document tree:
 - [fix] Fixed type: spectrun -> spectrum (grr)
 - [fix] When loading mzml/mgf files, the individual scans will no longer 
@@ -78,7 +81,12 @@ Interactive panel:
 = [fix] fixed sorting in the list (especilaly when using the 'Show selected' option)
   Lists are sorted using 'natural sorting' from now on, meaning they should be more
   logically sorted.
-= [fix] fixed the show/hide table elements when you right-click on the table headers    
+= [fix] fixed the show/hide table elements when you right-click on the table headers
+= [improvement] Colorbars:
+    = added loads of new settings users can control
+    = better behaviour when adding colorbars to plots
+= [change] removed tools/toolset from ORIGAMI - the new system of copy/apply
+  style should work much better
 
 
 ###########################################

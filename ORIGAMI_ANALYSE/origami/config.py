@@ -266,12 +266,14 @@ class OrigamiConfig:
                                      {'name':'footnote', 'order':6, 'width':40, 'show':True},
                                      {'name':'color/colormap', 'order':7, 'width':75, 'show':True},
                                      {'name':'page', 'order':8, 'width':50, 'show':True},
-                                     {'name':'tools', 'order':9, 'width':50, 'show':True},
-                                     {'name':'#', 'order':10, 'width':30, 'show':True},
+#                                      {'name':'tools', 'order':9, 'width':50, 'show':True},
+                                     {'name':'#', 'order':9, 'width':30, 'show':True},
                                      ]
         self.interactiveColNames = {'check':0, 'document':1, 'type':2,'file':3,'title':4,
                                      'header':5,'footnote':6,'color':7,'colormap':7,
-                                     'page':8,'tools':9,'order':10}
+                                     'page':8,
+#                                      'tools':9,
+                                     'order':9}
         
         self.ccsTopColNames = {'filename':0, 'start':1,'end':2,
                                'protein':3, 'charge':4,'ccs':5,'tD':6,
@@ -1035,19 +1037,27 @@ class OrigamiConfig:
         
         # Other
         self.interactive_override_defaults = True
-        
+        self.openInteractiveOnSave = True
+        self.interactive_add_offline_support = False
         
         # Colorbar
         self.interactive_colorbar = False
         self.interactive_colorbar_precision = 1
-        self.interactive_colorbar_label_offset = 15
+        self.interactive_colorbar_label_offset = 2
         self.interactive_colorbar_useScientific = False
         self.interactive_colorbar_location = 'right'
         self.interactive_colorbar_orientation = 'vertical'
-        self.interactive_colorbar_offset_x = 20
+        self.interactive_colorbar_offset_x = 5
         self.interactive_colorbar_offset_y = 0
-        self.interactive_colorbar_width = 25
-        self.interactive_colorbar_padding = 25
+        self.interactive_colorbar_width = 15
+        self.interactive_colorbar_padding = 10
+        self.interactive_colorbar_edge_color = (0., 0., 0.) # new in v1.2.1
+        self.interactive_colorbar_edge_width = 2 # new in v1.2.1
+        self.interactive_colorbar_modify_ticks = False # new in v1.2.1
+        self.interactive_colorbar_label_fontSize = 16 # new in v1.2.1
+        self.interactive_colorbar_label_weight = False # new in v1.2.1
+        self.interactive_colorbar_title_fontSize = 16 # new in v1.2.1
+        self.interactive_colorbar_title_weight = False # new in v1.2.1
         
         # Frame
         self.interactive_outline_width = 2
@@ -1081,7 +1091,9 @@ class OrigamiConfig:
         self.interactive_grid_ypos = 10
         
         # Waterfall
-        self.interactive_waterfall_increment = 0.05
+        self.interactive_waterfall_increment = 0.05 
+        self.interactive_waterfall_shade_under = False # new in v1.2.1
+        self.interactive_waterfall_shade_alpha = 0.25 # new in v1.2.1
         
         # Mass spectra
         self.interactive_ms_annotations = True
@@ -1110,9 +1122,9 @@ class OrigamiConfig:
         self.interactive_legend_click_policy = 'hide'
         self.interactive_legend_location_choices = ["top_left", "top_center", "top_right", "center_right",
                                                     "bottom_right", "bottom_center", "bottom_left", "center_left", 
-                                                    "center", "other"]
+                                                    "center"]#, "other"]
         self.interactive_legend_location = 'top_left'
-        self.interactive_legend_mute_alpha = 0.2
+        self.interactive_legend_mute_alpha = 0.25
         self.interactive_legend_background_alpha = 0.5
         self.interactive_legend_orientation_choices = ['vertical', 'horizontal']
         self.interactive_legend_orientation = 'vertical'
@@ -1123,8 +1135,9 @@ class OrigamiConfig:
         self.interactive_line_style = 'solid'
         self.interactive_line_width = 2
         self.interactive_line_alpha = 1
-        self.openInteractiveOnSave = True
-        self.interactive_add_offline_support = False
+        self.interactive_line_shade_under = False # new in v1.2.1
+        self.interactive_line_shade_alpha = 0.25 # new in v1.2.1
+        self.interactive_line_color = (0., 0., 0.) # new in v1.2.1
         
         # Scatter
         self.interactive_scatter_size = 10 
@@ -1137,7 +1150,7 @@ class OrigamiConfig:
         self.interactive_scatter_marker = "circle"
         self.interactive_scatter_sameAsFill = True
         self.interactive_scatter_edge_color = (0., 0., 0.)
-        
+        self.interactive_scatter_lineWidth = 1. # new in v1.2.1
         
         # bar
         self.interactive_bar_width = 0.1
