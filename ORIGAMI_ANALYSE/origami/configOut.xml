@@ -11,16 +11,16 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text" format="Text" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\ORIGAMI_ConA_z20.pickle" format="pickle" />
     <path value="Z:\###_PhD1_###\p27_Bex_Data\p27-C-paper_figures.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\aa.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="MassLynx" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1_overlay_document.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1 with MD.pickle" format="pickle" />
     <path value="C:\Users\LukaszMigas\Downloads\interactive_doc.pickle" format="pickle" />
-    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27C_paper\p27-C-paper_figures.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -268,7 +268,7 @@
   </process_presets_fitting>
 
   <process_presets_binning>
-    <param name="ms_enable_in_RT" value="False" type="bool" />
+    <param name="ms_enable_in_RT" value="True" type="bool" />
     <param name="ms_enable_in_MML_start" value="True" type="bool" />
     <param name="ms_mzStart" value="150.00" type="float" />
     <param name="ms_mzEnd" value="3598.62" type="float" />
@@ -401,8 +401,8 @@
   <plot_presets_plot_1D>
     <param name="lineColour_1D" value="[0.0, 0.0, 0.0]" type="color" />
     <param name="lineWidth_1D" value="1.00" type="float" />
-    <param name="frameWidth_1D" value="1" type="float" />
-    <param name="labelPad_1D" value="5" type="float" />
+    <param name="frameWidth_1D" value="2" type="float" />
+    <param name="labelPad_1D" value="0" type="float" />
     <param name="lineStyle_1D" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
     <param name="markerColor_1D" value="(0, 0, 1)" type="color" />
     <param name="markerTransparency_1D" value="1.00" type="float" />
@@ -411,13 +411,13 @@
     <param name="markerShapeTXT_1D" value="circle" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
     <param name="axisOnOff_1D" value="True" type="bool" />
     <param name="annotationFontWeight_1D" value="False" type="bool" />
-    <param name="annotationFontSize_1D" value="10.00" type="float" />
+    <param name="annotationFontSize_1D" value="8.00" type="float" />
     <param name="tickFontWeight_1D" value="False" type="bool" />
-    <param name="tickFontSize_1D" value="16.00" type="float" />
+    <param name="tickFontSize_1D" value="18.00" type="float" />
     <param name="labelFontWeight_1D" value="False" type="bool" />
-    <param name="labelFontSize_1D" value="16.00" type="float" />
+    <param name="labelFontSize_1D" value="20.00" type="float" />
     <param name="titleFontWeight_1D" value="False" type="bool" />
-    <param name="titleFontSize_1D" value="18.00" type="float" />
+    <param name="titleFontSize_1D" value="24.00" type="float" />
     <param name="spines_left_1D" value="True" type="bool" />
     <param name="spines_right_1D" value="True" type="bool" />
     <param name="spines_top_1D" value="True" type="bool" />
