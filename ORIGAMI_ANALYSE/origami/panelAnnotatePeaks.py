@@ -200,7 +200,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
         self.colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
 
         label_format = wx.StaticText(panel, -1, u"format:")
-        self.label_format = wx.ComboBox(panel, -1, choices=["None", "simple", "M+nH", "2M+nH", "3M+nH", "4M+nH"], 
+        self.label_format = wx.ComboBox(panel, -1, choices=["None", "charge-only", "superscript", "M+nH", "2M+nH", "3M+nH", "4M+nH"], 
                                         value="None", style=wx.CB_READONLY, size=(-1, -1))
 
         intensity_label = wx.StaticText(panel, -1, u"intensity (y, ion):")
@@ -821,8 +821,9 @@ class panelAnnotatePeaks(wx.MiniFrame):
             self.add_arrow_to_peak.SetValue(False)
             self.position_x_value.Disable()
             self.position_y_value.Disable()
-            
         except: pass
+        
+        self.addBtn.SetFocus()
    
     def onMarkOnSpectrum(self, evt):
         marking_state = self.markTgl.GetValue()
@@ -1013,9 +1014,9 @@ class panelAnnotatePeaks(wx.MiniFrame):
                 kwargs = {'rotation':'horizontal'}
             elif evtID == ID_annotPanel_show_label: 
                 show_label = _replace_labels(label)
-                kwargs = {'rotation':'vertical'}
+                kwargs = {'rotation':'horizontal'}
             elif evtID == ID_annotPanel_show_mzAndIntensity:
-                show_label = "{}, {}\nz={}".format(round(label_x_position, 4), label_y_position, charge)
+                show_label = "{:.2f}, {}\nz={}".format(label_x_position, label_y_position, charge)
                 kwargs = {'rotation':'horizontal'}
                 
             if show_label == "": return
@@ -1128,12 +1129,16 @@ class panelAnnotatePeaks(wx.MiniFrame):
             
         return False, -1
       
-    def _convert_str_to_unicode(self, s, return_type="simple"):
+    def _convert_str_to_unicode(self, s, return_type="superscript"):
+        
         if "+" not in s and "-" not in s:
             s = "+{}".format(s)
+        
         if return_type == "None":
             return ""
-        elif return_type == "simple":
+        elif return_type == "charge-only":
+            return s
+        elif return_type == "superscript":
             unicode_string = u''.join(dict(zip(u"+-0123456789", u"⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹")).get(c, c) for c in s)
             return unicode_string
         elif return_type == "M+nH":
@@ -1161,7 +1166,12 @@ class panelAnnotatePeaks(wx.MiniFrame):
                       'arrow_line_style':self.config.annotation_arrow_line_style}
         elif plotType == "label":
             kwargs = {'horizontalalignment':self.config.annotation_label_horz,
-                      'verticalalignment':self.config.annotation_label_vert}
+                      'verticalalignment':self.config.annotation_label_vert,
+                      'fontweight':self.config.annotation_label_font_weight,
+                      'fontsize':self.config.annotation_label_font_size,
+                      'rotation':self.config.annotation_label_font_orientation
+                      
+                      }
         
         return kwargs
              

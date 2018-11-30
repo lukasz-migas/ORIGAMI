@@ -232,6 +232,16 @@ class plottingWindow(wx.Window):
         # clear labels
         try: self.text = []
         except: pass
+        try: self.lines = []
+        except: pass
+        try: self.patch = []
+        except: pass
+        try: self.markers = []
+        except: pass
+        try: self.arrows = []
+        except: pass
+        try: self.temporary = []
+        except: pass
         
         self.rotate = 0
         
@@ -254,7 +264,6 @@ class plottingWindow(wx.Window):
         try: self.plotRMSF = None
         except: pass
         
-#         self.lock_plot_from_updating = False
         
         self.repaint()
             

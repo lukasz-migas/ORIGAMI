@@ -556,69 +556,6 @@ class topPanel(wx.Panel):
         menu.Destroy()
         self.SetFocus()
         
-#     def onTableTool(self, evt):
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_startMS)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_endMS)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_color)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_colormap)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_charge)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_intensity)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_document)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_alpha)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_mask)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_document)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_label)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_method)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_hideAll)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_restoreAll)
-#         
-# 
-#         menu = wx.Menu()
-#         n = 0
-#         self.table_start = menu.AppendCheckItem(ID_ionPanel_table_startMS, 'Table: Minimum m/z')
-#         self.table_start.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_end = menu.AppendCheckItem(ID_ionPanel_table_endMS, 'Table: Maximum m/z')
-#         self.table_end.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_charge = menu.AppendCheckItem(ID_ionPanel_table_charge, 'Table: Charge')
-#         self.table_charge.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_intensity = menu.AppendCheckItem(ID_ionPanel_table_intensity, 'Table: Intensity')
-#         self.table_intensity.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_color = menu.AppendCheckItem(ID_ionPanel_table_color, 'Table: Color')
-#         self.table_color.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_colormap = menu.AppendCheckItem(ID_ionPanel_table_colormap, 'Table: Colormap')
-#         self.table_colormap.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_alpha = menu.AppendCheckItem(ID_ionPanel_table_alpha, 'Table: Transparency')
-#         self.table_alpha.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_mask = menu.AppendCheckItem(ID_ionPanel_table_mask, 'Table: Mask')
-#         self.table_mask.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_label = menu.AppendCheckItem(ID_ionPanel_table_label, 'Table: Label')
-#         self.table_label.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_method = menu.AppendCheckItem(ID_ionPanel_table_method, 'Table: Method')
-#         self.table_method.Check(self.config._peakListSettings[n]['show'])
-#         n = n + 1
-#         self.table_document = menu.AppendCheckItem(ID_ionPanel_table_document, 'Table: Document')
-#         self.table_document.Check(self.config._peakListSettings[n]['show'])
-#         menu.AppendSeparator()
-#         self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_table_hideAll,
-#                                      text='Table: Hide all', 
-#                                      bitmap=self.icons.iconsLib['hide_table_16']))
-#         self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_table_restoreAll,
-#                                      text='Table: Restore all', 
-#                                      bitmap=self.icons.iconsLib['show_table_16']))
-#         
-#         self.PopupMenu(menu)
-#         menu.Destroy()
-#         self.SetFocus()
-    
     def onCheckTool(self, evt):
         """ Check/uncheck menu item """
         

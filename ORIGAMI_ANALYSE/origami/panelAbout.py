@@ -55,19 +55,16 @@ class panelAbout(wx.MiniFrame):
         panel = wx.Panel(self, -1)
         
         image = wx.StaticBitmap(panel, -1, self.icons.getLogo)
-        
-        title = wx.StaticText(panel, -1, "ORIGAMI")
-        title.SetFont(BOLD_FONT)
-        
+
         versionLabel = 'Version %s' % self.config.version
         version = wx.StaticText(panel, -1, versionLabel, style=wx.ALIGN_CENTRE)
         version.SetFont(wx.NORMAL_FONT)
         
-        about_msg = '      If you encounter any problems, have questions or would like to send some feedback,\n' + \
-                    'please contact Lukasz Migas at lukasz.migas@manchester.ac.uk or lukas.migas@yahoo.com'
+        about_msg = 'If you encounter any problems, have questions or would like to send some feedback,\n' + \
+                    '       please me at lukasz.migas@manchester.ac.uk or lukas.migas@yahoo.com'
         
         message = wx.StaticText(panel, -1, about_msg)
-        message.SetFont(wx.SMALL_FONT)
+        message.SetFont(wx.NORMAL_FONT)
         
         university = wx.StaticText(panel, -1, "University of Manchester")
         university.SetFont(wx.SMALL_FONT)
@@ -103,20 +100,18 @@ class panelAbout(wx.MiniFrame):
         
         # pack element
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(image, 0, wx.CENTER|wx.ALL, 20)
-        sizer.Add(title, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
+        sizer.Add(image, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
+        sizer.Add(version, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
         sizer.AddSpacer(10)
-        sizer.Add(version, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
+        sizer.Add(message, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
         sizer.AddSpacer(10)
-        sizer.Add(message, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
+        sizer.Add(university, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
         sizer.AddSpacer(10)
-        sizer.Add(university, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
+        sizer.Add(copyright, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
         sizer.AddSpacer(10)
-        sizer.Add(copyright, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
+        sizer.Add(btn2_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
         sizer.AddSpacer(10)
-        sizer.Add(btn2_grid, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
-        sizer.AddSpacer(10)
-        sizer.Add(btn_grid, 0, wx.CENTER|wx.LEFT|wx.RIGHT, 20)
+        sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
         sizer.AddSpacer(10)
         
         sizer.Fit(panel)

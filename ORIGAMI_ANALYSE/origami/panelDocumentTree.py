@@ -29,6 +29,7 @@ from copy import deepcopy
 from natsort import natsorted
 
 from dialogs import panelRenameItem, panelSelectDataset
+from gui_elements.dialog_askOverride import dialogAskOverride
 from panelAnnotatePeaks import panelAnnotatePeaks
 from panelCompareMS import panelCompareMS
 from panelInformation import panelDocumentInfo
@@ -89,7 +90,6 @@ class documentsTree(wx.TreeCtrl):
         self.extractData = None
         self.extractParent = None
         self.extractGrandparent = None
-        
         
         self.itemData = None
         self.currentDocument = None
@@ -161,6 +161,7 @@ class documentsTree(wx.TreeCtrl):
         # Get selected item
         item = self.GetSelection()
         self.currentItem = item
+        
         # Get the current text value for selected item
         itemType = self.GetItemText(item)
         if itemType == 'Current documents':
@@ -175,6 +176,7 @@ class documentsTree(wx.TreeCtrl):
             menu.Destroy()
             self.SetFocus()
             return
+        
         # Get indent level for selected item
         self.indent = self.getItemIndent(item)
         if self.indent > 1:
@@ -415,7 +417,6 @@ class documentsTree(wx.TreeCtrl):
         
         return idX
         
-         
     def on_check_xylabels_2D(self): # checkCurrentXYlabels
         """
         This function checks what is the current X/Y-axis label
@@ -520,9 +521,17 @@ class documentsTree(wx.TreeCtrl):
                             'xlimits':xlimits, 'file_path':path}
                     
                     if fname in document.multipleMassSpectrum:
-                        old_data = document.multipleMassSpectrum[fname]
-                        data = merge_two_dicts(old_data, data)
-                        
+                        if not self.config.import_duplicate_ask:
+                            msg = "{} already exists in the document. What would you like to do about it?".format(fname)
+                            dlg = dialogAskOverride(self, self.config, msg)
+                            dlg.ShowModal()
+                        if self.config.import_duplicate_action == "merge":
+                            # retrieve and merge
+                            old_data = document.multipleMassSpectrum[fname]
+                            data = merge_two_dicts(old_data, data)
+                        elif self.config.import_duplicate_action == "duplicate":
+                            title = "{} (2)".format(fname)
+                            
                     document.multipleMassSpectrum[fname] = data
                     
                 elif evtID == ID_docTree_add_RT_to_interactive:
@@ -532,8 +541,16 @@ class documentsTree(wx.TreeCtrl):
                             'ylabels':'Intensity', 'xlimits':xlimits, 'file_path':path}
                     
                     if fname in document.multipleRT:
-                        old_data = document.multipleRT[fname]
-                        data = merge_two_dicts(old_data, data)
+                        if not self.config.import_duplicate_ask:
+                            msg = "{} already exists in the document. What would you like to do about it?".format(fname)
+                            dlg = dialogAskOverride(self, self.config, msg)
+                            dlg.ShowModal()
+                        if self.config.import_duplicate_action == "merge":
+                            # retrieve and merge
+                            old_data = document.multipleRT[fname]
+                            data = merge_two_dicts(old_data, data)
+                        elif self.config.import_duplicate_action == "duplicate":
+                            title = "{} (2)".format(fname)
                         
                     document.multipleRT[fname] = data
 
@@ -543,8 +560,16 @@ class documentsTree(wx.TreeCtrl):
                             'ylabels':'Intensity', 'xlimits':xlimits, 'file_path':path}
                     
                     if fname in document.multipleDT:
-                        old_data = document.multipleDT[fname]
-                        data = merge_two_dicts(old_data, data)
+                        if not self.config.import_duplicate_ask:
+                            msg = "{} already exists in the document. What would you like to do about it?".format(fname)
+                            dlg = dialogAskOverride(self, self.config, msg)
+                            dlg.ShowModal()
+                        if self.config.import_duplicate_action == "merge":
+                            # retrieve and merge
+                            old_data = document.multipleDT[fname]
+                            data = merge_two_dicts(old_data, data)
+                        elif self.config.import_duplicate_action == "duplicate":
+                            title = "{} (2)".format(fname)
                         
                     document.multipleDT[fname] = data
                     
@@ -562,8 +587,17 @@ class documentsTree(wx.TreeCtrl):
                             'alpha':self.config.overlay_defaultAlpha,
                             'min_threshold':0, 'max_threshold':1, 'color':color}
                     if fname in document.IMS2Dions:
-                        old_data = document.IMS2Dions[fname]
-                        data = merge_two_dicts(old_data, data)
+                        if not self.config.import_duplicate_ask:
+                            msg = "{} already exists in the document. What would you like to do about it?".format(fname)
+                            dlg = dialogAskOverride(self, self.config, msg)
+                            dlg.ShowModal()
+                        if self.config.import_duplicate_action == "merge":
+                            # retrieve and merge
+                            old_data = document.IMS2Dions[fname]
+                            data = merge_two_dicts(old_data, data)
+                        elif self.config.import_duplicate_action == "duplicate":
+                            title = "{} (2)".format(fname)
+
                     document.IMS2Dions[fname] = data
                     
                 elif evtID == ID_docTree_add_other_to_interactive:
@@ -572,9 +606,17 @@ class documentsTree(wx.TreeCtrl):
                         if title is None or data is None: 
                             return
                         if title in document.other_data:
-                            # retrieve and merge
-                            old_data = document.other_data[title]
-                            data = merge_two_dicts(old_data, data)
+                            if not self.config.import_duplicate_ask:
+                                msg = "{} already exists in the document. What would you like to do about it?".format(title)
+                                dlg = dialogAskOverride(self, self.config, msg)
+                                dlg.ShowModal()
+                            
+                            if self.config.import_duplicate_action == "merge":
+                                # retrieve and merge
+                                old_data = document.other_data[title]
+                                data = merge_two_dicts(old_data, data)
+                            elif self.config.import_duplicate_action == "duplicate":
+                                title = "{} (2)".format(title)
                              
                         document.other_data[title] = data
                     except Exception, e:
@@ -582,6 +624,7 @@ class documentsTree(wx.TreeCtrl):
                         self.presenter.onThreading(None, 
                                                    ("Failed to load data for: {}".format(path), 4, 5), 
                                                    action='updateStatusbar')
+                        
                 elif evtID == ID_docTree_add_matrix_to_interactive:
                     df = pd.read_csv(fname, sep='\t|,', engine='python', header=None)
                     labels = list(df.iloc[:,0].dropna())
@@ -592,9 +635,17 @@ class documentsTree(wx.TreeCtrl):
                             'cmap':self.config.currentCmap, 'matrixLabels':labels,
                             "path":fname, "plot_modifiers":{}}
                     if title in document.other_data:
-                        # retrieve and merge
-                        old_data = document.other_data[title]
-                        data = merge_two_dicts(old_data, data)
+                        if not self.config.import_duplicate_ask:
+                            msg = "{} already exists in the document. What would you like to do about it?".format(title)
+                            dlg = dialogAskOverride(self, self.config, msg)
+                            dlg.ShowModal()
+                        
+                        if self.config.import_duplicate_action == "merge":
+                            # retrieve and merge
+                            old_data = document.other_data[title]
+                            data = merge_two_dicts(old_data, data)
+                        elif self.config.import_duplicate_action == "duplicate":
+                            title = "{} (2)".format(title)
                          
                     document.other_data[title] = data
 
@@ -815,6 +866,7 @@ class documentsTree(wx.TreeCtrl):
             colors = self.presenter.view.panelPlots.onChangePalette(None, 
                                                                     n_colors=len(yvals), 
                                                                     return_colors=True)
+        
         if len(labels) != len(yvals):
             labels = [""] * len(yvals)
         
@@ -830,18 +882,29 @@ class documentsTree(wx.TreeCtrl):
         
         title = "{}: {}".format(_plot_types[plot_type], title)
         other_data = {"plot_type":plot_type, 
-                      "xvals":xvals, "yvals":yvals, "zvals":zvals,
-                      "xvalsErr":xvalsErr, "yvalsErr":yvalsErr,
-                      "yvals_min":axis_y_min, "yvals_max":axis_y_max,
-                      "itemColors":itemColors, "itemLabels":itemLabels,
-                      "xlabel":x_label, "ylabel":y_label,
-                      "xlimits":xlimits, "ylimits":ylimits,
-                      "xlabels":x_labels, "ylabels":y_labels,
+                      "xvals":xvals, 
+                      "yvals":yvals, 
+                      "zvals":zvals,
+                      "xvalsErr":xvalsErr, 
+                      "yvalsErr":yvalsErr,
+                      "yvals_min":axis_y_min, 
+                      "yvals_max":axis_y_max,
+                      "itemColors":itemColors, 
+                      "itemLabels":itemLabels,
+                      "xlabel":x_label, 
+                      "ylabel":y_label,
+                      "xlimits":xlimits, 
+                      "ylimits":ylimits,
+                      "xlabels":x_labels, 
+                      "ylabels":y_labels,
                       "hover_labels":hover_labels,
-                      "x_unit":x_unit, "y_unit":y_unit,
-                      "colors":colors, "labels":labels,
+                      "x_unit":x_unit, 
+                      "y_unit":y_unit,
+                      "colors":colors, 
+                      "labels":labels,
                       "column_types":column_types, 
-                      "column_order":order, "path":fname,
+                      "column_order":order, 
+                      "path":fname,
                       "plot_modifiers":plot_modifiers}
         
         return title, other_data
@@ -1166,10 +1229,6 @@ class documentsTree(wx.TreeCtrl):
             self.extractParent = self.GetItemText(self.GetItemParent(extract))
             self.extractData = self.GetItemText(extract)
             self.extractGrandparent = self.GetItemText(self.GetItemParent(self.GetItemParent(extract)))
-            
-            
-
-            
             
         # Check item
         if not item:
@@ -1526,16 +1585,13 @@ class documentsTree(wx.TreeCtrl):
             self.currentData = None
         
         if self.config.debug:
-            msg = "Item: {} | extract: {} | extract parent: {} | extract grandparent: {} | indent: {}".format(self.itemType, 
-                                                                                                             self.extractData,
-                                                                                                             self.extractParent,
-                                                                                                             self.extractGrandparent, 
-                                                                                                             self.indent)
+            msg = "Item: {} | extract: {} | extract parent: {} | extract grandparent: {} | indent: {}".format(
+                self.itemType, self.extractData, self.extractParent, self.extractGrandparent, self.indent)
             print(msg)
 
         # load data
         loadDataMenu = wx.Menu()
-        loadDataMenu.Append(ID_docTree_add_MS_to_interactive, 'Import mass spectrun')
+        loadDataMenu.Append(ID_docTree_add_MS_to_interactive, 'Import mass spectrum')
         loadDataMenu.Append(ID_docTree_add_RT_to_interactive, 'Import chromatogram')
         loadDataMenu.Append(ID_docTree_add_DT_to_interactive, 'Import mobiligram')
         loadDataMenu.Append(ID_docTree_add_2DT_to_interactive, 'Import heatmap')
@@ -3258,9 +3314,14 @@ class documentsTree(wx.TreeCtrl):
                 self.Expand(docItem)
                 
                 # check if item is in other panels
-                try: self.presenter.view.panelMML.topP.onRenameItem(current_name, new_name, item_type="document")
+                # TODO: implement for other panels
+                try: self.presenter.view.panelMML.topP.onRenameItem(current_name, 
+                                                                    new_name, 
+                                                                    item_type="document")
                 except: pass
-                try: self.presenter.view.panelMultipleIons.topP.onRenameItem(current_name, new_name, item_type="document")
+                try: self.presenter.view.panelMultipleIons.topP.onRenameItem(current_name, 
+                                                                             new_name, 
+                                                                             item_type="document")
                 except: pass
 #                 try: self.presenter.view.panelMultipleText.topP.onClearItems(title)
 #                 except: pass
@@ -3603,7 +3664,7 @@ class documentsTree(wx.TreeCtrl):
         defaultValue, save_kwargs = None, {}
         if self.itemType in "Other data":
             if self.extractData == "Other data": return
-            data = self.GetPyData(self.currentItem)
+            data = deepcopy(self.GetPyData(self.currentItem))
             plot_type = data['plot_type']
             if plot_type in ["scatter", "waterfall", "line", "multi-line", "grid-scatter",
                              "grid-line", "vertical-bar", "horizontal-bar"]:
@@ -3614,7 +3675,7 @@ class documentsTree(wx.TreeCtrl):
                 xvals = data['xvals']
                 yvals = data['yvals']
                 zvals = data['zvals']
-    
+                
                 kwargs = {"plot_modifiers": data["plot_modifiers"],
                           "item_colors": data["itemColors"],
                           "item_labels": data["itemLabels"],
@@ -4862,10 +4923,11 @@ class documentsTree(wx.TreeCtrl):
         if len(docData.tandem_spectra) > 0:
             docIonItem =  self.AppendItem(docItem, 'Tandem Mass Spectra')
             self.SetItemImage(docIonItem, self.bulets_dict["mass_spec"], wx.TreeItemIcon_Normal)
-            for annotData in docData.tandem_spectra:
-                annotsItem =  self.AppendItem(docIonItem, annotData)
-                self.SetPyData(annotsItem, docData.tandem_spectra[annotData])
-                self.SetItemImage(annotsItem, self.bulets_dict["mass_spec_on"], wx.TreeItemIcon_Normal)
+            self.SetPyData(docIonItem, docData.tandem_spectra)
+#             for annotData in docData.tandem_spectra:
+#                 annotsItem =  self.AppendItem(docIonItem, annotData)
+#                 self.SetPyData(annotsItem, docData.tandem_spectra[annotData])
+#                 self.SetItemImage(annotsItem, self.bulets_dict["mass_spec_on"], wx.TreeItemIcon_Normal)
                         
         if docData.got1RT == True:
             annotsItem = self.AppendItem(docItem, 'Chromatogram')
@@ -5043,7 +5105,7 @@ class documentsTree(wx.TreeCtrl):
                 else:
                     deleteItem = self.itemData.title
                     
-            # Clear all plots
+            # Clear all plotsf
             if self.presenter.currentDoc == deleteItem:
                 self.presenter.onClearAllPlots()
                 self.presenter.currentDoc = None            
@@ -5174,7 +5236,9 @@ class documentsTree(wx.TreeCtrl):
 #                     try: self.setCurrentDocument(text)
 #                     except: pass
                     self.presenter.currentDoc = text
-                    self.mainParent.SetTitle("ORIGAMI - v{} - {} ({})".format(self.config.version, text, self.itemData.dataType)) 
+                    self.mainParent.SetTitle("ORIGAMI - v{} - {} ({})".format(self.config.version, 
+                                                                              text, 
+                                                                              self.itemData.dataType)) 
             except:
                 self.mainParent.SetTitle("ORIGAMI - v{}".format(self.config.version))
                 

@@ -446,9 +446,9 @@ class HTMLHelp:
         <p><strong>Extracted using Extraction panel</strong></p>
         <p>The extraction panel (accessible via shortcut <strong>SHIFT+1</strong>) allows extraction MS, RT, 1D and 2D data from any allowed file (i.e. Waters .raw). In the panel you can specify m/z, chromatographic and drift-time range and specify which you would like to use as base for extraction. See <strong>Figure 2</strong> for more details.</p>
         <p><strong>Figure 1. Peak list panel</strong></p>
-        <p><strong><img src="images/panel_ions.png" alt="" width="676" height="320" /></strong></p>
+        <p><strong><img src="images/panel_peaklist.png" alt="" width="676" height="320" /></strong></p>
         <p><strong>Figure 2. Extraction panel</strong></p>
-        <p><strong><img src="images/panel_extraction_tool.png" width="470" height="390" /></strong></p>
+        <p><strong><img src="images/panel_process_data_extraction.png" width="470" height="390" /></strong></p>
         """.strip()
         self.page_data_extraction_info = {'msg':msg, 
                                           'title':"Learn about: Extracting data", 
@@ -458,7 +458,7 @@ class HTMLHelp:
         <p><strong>About UniDec</strong></p>
         <p>UniDec is a Bayesian deconvolution algorithm used with MS and IM-MS datasets. You can find out more about UniDec <a href="https://pubs.acs.org/doi/abs/10.1021/acs.analchem.5b00140">here</a>.</p>
         <p><strong>Settings panel</strong></p>
-        <p><img src="images/panel_process_unidec.png" width="400" height="785" /></p>
+        <p><img src="images/panel_process_unidec.png" width="740" height="474" /></p>
         <p><strong>How to use</strong></p>
         <ol>
         <p><strong>Interactive document with UniDec results</strong></p>
@@ -473,7 +473,7 @@ class HTMLHelp:
         <li>You can easily annotate peaks in the spectrum by selecting molecular weight in the Plotting section. Once selected, click on the <strong><strong>Label charges</strong></strong></li>
         </ol>
         <p><strong>UniDec results in ORIGAMI<br /></strong></p>
-        <p><img src="/images/unidec_results.png" width="1149" height="845" /></p>
+        <p><img src="/images/unidec_continuous_results.png" width="1149" height="845" /></p>
         <p>&nbsp;</p>
         <p>&nbsp;</p>
         """.strip()
@@ -522,17 +522,17 @@ class HTMLHelp:
         <p><strong>Figure 1. Multiple files panel</strong></p>
         <p>&nbsp;<img src="images/panel_multiple_files.png" alt="" width="385" height="207" /></p>
         <p><strong>Figure 2. Right-click menu in Multiple files panel</strong></p>
-        <p>&nbsp;<img src="images/panel_multiple_files_right_click_menu.png" alt="" width="250" height="101" /></p>
+        <p>&nbsp;<img src="images/panel_multiple_files_right_click_menu.png" alt="" width="273" height="132" /></p>
         <p><strong>Figure 3. Spectrum and ion list</strong></p>
         <p><img src="images/panel_spectrum_peak_list.png" alt="" width="745" height="193" /></p>
         <p><strong>Figure 4. Extraction of data</strong></p>
-        <p><img src="images/panel_ions_extract_data.png" alt="" width="677" height="266" /></p>
+        <p><img src="images/panel_peaklist_extract_menu.png" alt="" width="230" height="101" /></p>
         <p><strong>Figure 5. Document view</strong></p>
-        <p><img src="images/panel_document_with_data.png" alt="" width="318" height="925" /></p>
+        <p><img src="images/panel_document_tree.png" alt="" width="250" height="597" /></p>
         <p><strong>Figure 6. MS comparison panel</strong></p>
         <p><img src="images/panel_spectrum_compareMS.png" alt="" width="1137" height="371" /></p>
         <p><strong>Figure 7. Mass spectrum waterfall</strong></p>
-        <p><strong><img src="images/mass_spectrum_waterfall.png" alt="" width="426" height="359" /></strong></p>
+        <p><strong><img src="images/plot_mass_spectrum_waterfall.png" alt="" width="426" height="359" /></strong></p>
         <p><strong>Figure 8. Overlay examples</strong></p>
         <p><strong><img src="images/multiple_export_overlay.png" alt="" width="601" height="941" /></strong></p>       
         """.strip()
@@ -569,19 +569,19 @@ class HTMLHelp:
         </ol>
         <p><strong>Using the toolbar</strong></p>
         <p>As you might have noticed, the toolbar section of this panel is very busy! This is to make your life a little easier and quicker to quickly apply common settings (i.e. toolset or page selection). In the toolbar you can also filter table based on either document, data type or both criteria.</p>
-        <p><img src="images/interactive_toolbar.png" alt="" width="759" height="70" /></p>
+        <p><img src="images/panel_interactive_toolbar.png" alt="" width="715" height="44" /></p>
         <p><strong>Selecting tools</strong></p>
         <p>You would have noticed there is a column named <strong>tools</strong> which keeps the selected toolset for each item. A toolset is basically a collection of available tools (zooming, panning, mouse wheel support, resizing etc) and can be modified in the <strong>Properties tab</strong> in the Interactive editor window. You can create new toolsets by clicking on the <strong>+ </strong>button in the <strong>Interactive tools section</strong> and selecting a number of tools you would like to include. That toolset will then appear in the various combo-boxes which allow you to select it for specified items</p>
         <p><strong>Selecting page</strong></p>
         <p>Again, there is a column called <strong>page</strong> which controls which page the selected item will be exported on. If you see page named <strong>None</strong> it indicates that each plot with that designation will have a new tab created for it. If you see one named <strong>Columns</strong>, those selected items will appear in a column format and <strong>Rows</strong> will means items appear next to each other. Once again, you can create your new pages which can hold as few or as many items simultaneously. To do so, in the Properties -&gt;Page layout click on the <strong>+</strong> button and create new page. You can then select what layout you would like it to have.</p>
         <p><strong>Figure 1. Peaklist window<br /></strong></p>
-        <p><img src="images/panel_interactive_list.png" width="765" height="817" /></p>
+        <p><img src="images/panel_interactive_list.png" width="718" height="375" /></p>
         <p><strong>Figure 2. HTML annotation window</strong></p>
-        <p><strong><img src="images/panel_interactive_html.png" width="663" height="816" /></strong></p>
+        <p><strong><img src="images/panel_interactive_html.png" width="642" height="522" /></strong></p>
         <p><strong>Figure 3. Parameters window<br /></strong></p>
-        <p><img src="images/panel_interactive_properties.png" width="663" height="819" /></p>
+        <p><img src="images/panel_interactive_default_settings.png" width="651" height="625" /></p>
         <p><strong>Figure 4. Example output</strong></p>
-        <p><img src="images/interactive_html_example.png" alt="" width="802" height="870" /></p>
+        <p><img src="images/html_example.png" alt="" width="802" height="870" /></p>
         <p><strong>Figure 5. With added widgets</strong></p>
         <p><strong><img src="images/html_waterfall.png" alt="" width="1148" height="518" /></strong></p>
         <p><strong>Figure 6. Scatter plot</strong></p>
@@ -617,7 +617,7 @@ class HTMLHelp:
         <li>Zoom-in on the &lsquo;reporter&rsquo; region in the retention time plot. The first value after the break is the start scan. In this case, the start scan is 7 (<em>e</em>. the first collision voltage in your experiment was applied on the 7<sup>th</sup> scan).</li>
         </ol>
         <p><strong>Figure 1. Chromatogram window with ORIGAMI-MS reporter region</strong></p>
-        <p><img src="images/origami_chromatogram.png" alt="" width="1179" height="635" /></p>
+        <p><img src="images/plot_origami_chromatogram.png" alt="" width="1179" height="635" /></p>
         <p><strong>How to determine ORIGAMI parameters</strong></p>
         <p>There are only two ways you can figure out your parameters:</p>
         <ul>
@@ -636,9 +636,9 @@ class HTMLHelp:
         <li>Now, you should see appropriate data in the document panel</li>
         </ol>
         <p><strong>Figure 2. Processing panel where you enter ORIGAMI-MS parameters</strong></p>
-        <p><img src="images/origami_process_panel.png" alt="" width="412" height="366" /></p>
+        <p><img src="images/panel_process_origami.png" alt="" width="412" height="366" /></p>
         <p><strong>Figure 3.</strong> <strong> Toolbar menu for combing collision voltages</strong></p>
-        <p><strong><img src="images/origami_combine_menu.png" alt="" width="423" height="200" /></strong></p>
+        <p><strong><img src="images/panel_peaklist_combine_menu.png" alt="" width="423" height="200" /></strong></p>
         <p><strong>How to process ions</strong></p>
         <p class="ORIGAMIstyle2" style="text-align: justify;"><span style="font-weight: normal; text-decoration: none; text-underline: none;">In some cases, it might be necessary to process single or multiple ions at once, in order to either improve their aIM-MS map or compare to one another. Processing can involve thresholding (noise removal), smoothing and/or normalisation. </span></p>
         <ol>
@@ -658,13 +658,13 @@ class HTMLHelp:
         <li><strong>Scans: n-n+SPV | CV: value V</strong></li>
         </ol>
         <p><strong>Figure 6. Document view of the mass spectra list</strong></p>
-        <p><strong><img src="images/origami_document_view_ms.png" alt="" width="199" height="175" /></strong></p>
+        <p><strong><img src="images/panel_document_tree_ms_data.png" alt="" width="199" height="175" /></strong></p>
         <p><strong>Figure 7. Waterfall view of each collision voltage</strong></p>
-        <p><strong><img src="images/origami_waterfall.png" alt="" width="511" height="498" /></strong></p>
+        <p><strong><img src="images/plot_origami_ms_waterfall.png" alt="" width="511" height="498" /></strong></p>
         <p><strong>Document view for ORIGAMI files</strong></p>
         <p>Documents hold all necessary information for opened files and in the case of ORIGAMI, there is a lot of data regarding each extracted ion. Figure 8 shows the typical view which contains information about mass spectra, chromatograms, mobiligrams and heatmaps. Those associated with the 'process' tag have been normalized and smoothed (for instance).</p>
         <p><strong>Figure 8. Document panel view of analysed ORIGAMI file</strong></p>
-        <p><strong><img src="images/origami_document_view.png" width="270" height="596" /></strong></p>
+        <p><strong><img src="images/panel_document_tree_data.png" width="270" height="596" /></strong></p>
         """.strip()
         self.page_origami_info = {'msg':msg,
                                   'title':"Learn about: Automated CIU (ORIGAMI-MS)", 
@@ -675,26 +675,26 @@ class HTMLHelp:
         <p>ORIGAMI enables multiple overlay and comparison functions for mobiligrams, chromatograms, mass spectra and two-dimensional heatmaps. These items are added to <strong>Comparison</strong> document which holds the input and output datasets, often pooled from multiple sources.</p>
         <p><strong>Overlaying mass spectra</strong></p>
         <p>Mass spectra can be overlayed from within the Multiple files panel where you can view either the <strong>raw</strong> data or pre-processed (just check the <strong>Pre-process mass spectra</strong>). Pre-processing parameters can be found under the Process -&gt; Settings: Process mass spectra (<strong>Shift + 3</strong>). In addition to overlaying raw spectra, you can also visualise multiple UniDec results.</p>
-        <p><img src="images/panel_multiple_files_overlay_waterfall_MS.png" alt="" width="910" height="371" /></p>
+        <p><img src="images/plot_overlay_waterfall_MS.png" alt="" width="910" height="371" /></p>
         <p><strong>Overlaying mobiligrams and chromatograms<br /></strong></p>
         <p>These can be created from within the Peak list panel or Text list panel and generate 1D overlay plots for selected items.</p>
         <p><strong>Figure 2. Overlayed mobiligram from Herceptin mAb (<span data-dobid="hdw">courtesy</span> of Rosie Upton).</strong></p>
-        <p><img src="images/origami_compare_mobiligrams.png" alt="" width="1243" height="527" /></p>
+        <p><img src="images/plot_origami_compare_mobiligrams.png" alt="" width="1243" height="527" /></p>
         <p>&nbsp;</p>
         <p><strong>Overlaying heatmaps</strong></p>
         <p>These can be created from within the Peak list panel or Text list panel. There are multiple overlay functions, some of which are shown below. You can change various parameters like colormap colour, line thickness in Plot --&gt; Settings: Plot 1D/2D/Legend etc.</p>
         <p><strong>Figure 3. Overlay method - MASK</strong></p>
-        <p><img src="images/origami_compare_mask.png" alt="" width="1017" height="903" /></p>
+        <p><img src="images/plot_origami_compare_mask.png" alt="" width="1017" height="903" /></p>
         <p><strong>Figure 4. Overlay method - TRANSPARENT</strong></p>
-        <p><strong><img src="images/origami_compare_transparent.png" alt="" width="960" height="906" /></strong></p>
+        <p><strong><img src="images/plot_origami_compare_transparent.png" alt="" width="960" height="906" /></strong></p>
         <p><strong>Figure 5. Overlay method - RGB</strong></p>
-        <p><strong><img src="images/origami_compare_rgb.png" alt="" width="956" height="910" /></strong></p>
+        <p><strong><img src="images/plot_origami_compare_rgb.png" alt="" width="956" height="910" /></strong></p>
         <p><strong>Figure 6. Overlay method - RMSD</strong></p>
-        <p><strong><img src="images/origami_compare_rmsd.png" alt="" width="987" height="911" /></strong></p>
+        <p><strong><img src="images/plot_origami_compare_rmsd.png" alt="" width="987" height="911" /></strong></p>
         <p><strong>Figure 7. Overlay method - RMSD/RMSF</strong></p>
-        <p><strong><img src="images/origami_compare_rmsdf.png" alt="" width="1031" height="941" /></strong></p>
+        <p><strong><img src="images/plot_origami_compare_rmsdf.png" alt="" width="1031" height="941" /></strong></p>
         <p><strong>Figure 8. Overlay method - GRID (n x n)<br /></strong></p>
-        <p><strong><img src="images/origami_compare_gridNxN.png" alt="" width="1047" height="933" /></strong></p>
+        <p><strong><img src="images/plot_origami_compare_gridNxN.png" alt="" width="1047" height="933" /></strong></p>
         <p>&nbsp;</p>
         """.strip()
         self.page_overlay_info = {'msg':msg, 
@@ -751,7 +751,7 @@ class HTMLHelp:
         <p>&kappa; = kappa, kk, u03BA</p>
         <p>&Delta; = delta, dd, u0394</p>
         <h4><strong>Example figures:</strong></h4>
-        <p><img src="images/other_data_examples.png" alt="" width="1485" height="1615" /></p>
+        <p><img src="images/plot_other_data_examples.png" alt="" width="1485" height="1615" /></p>
         <p>&nbsp;</p>
         """.strip()
         self.page_other_data_info = {'msg':msg, 
@@ -795,11 +795,11 @@ class HTMLHelp:
         <p><strong>Known issues:</strong></p>
         <p>On a vary rare occasion, annotation windows don't work as they are intended and you cannot use the interactive annotation function. The best way to fix that is to clear the mass spectrum, replot the desired spectrum and open a new instance of the annotation panel. It does not always work but it does in most occasions. This is caused when the annotation window is closed inappropriately (not your fault but Pythons...).</p>
         <p><strong>Figure 1. Annotation window</strong></p>
-        <p><img src="images/panel_annotations_only.png" width="577" height="500" /></p>
+        <p><img src="images/panel_annotations.png" width="728" height="500" /></p>
         <p><strong>Figure 2. Example file</strong></p>
         <p><img src="images/annotations_peaklist.png" alt="" width="393" height="182" /></p>
         <p><strong>Figure 3. Annotated peaks on plot</strong></p>
-        <p><img src="images/mass_spectrum_with_annotations.png" width="1149" height="422" /></p>
+        <p><img src="images/plot_mass_spectrum_with_annotations.png" width="1149" height="422" /></p>
         <p><strong>Figure 4. Annotations in an interactive output</strong></p>
         <p><img src="images/html_spectrum_with_annotations.png" alt="" width="1132" height="459" /></p>
         <p>Figure 5. Enable annotations in the HTML window.</p>

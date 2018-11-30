@@ -1556,6 +1556,7 @@ class ORIGAMI(object):
                 # Sort data regardless of what user did  
                 self.view.panelMML.topP.OnSortByColumn(column=1, overrideReverse=True)
                 tempDict = {}
+                extract_kwargs = {'return_data':True}
                 for item in xrange(nameList.GetItemCount()):
                     # Determine whether the title of the document matches the title of the item in the table
                     # if it does not, skip the row
@@ -1565,16 +1566,25 @@ class ORIGAMI(object):
                     nameValue = nameList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
                     try:
                         pathValue = document.multipleMassSpectrum[nameValue]['path']
-                        io_waters.rawMassLynx_DT_extract(path=pathValue,  
-                                                         driftscope_path=self.config.driftscopePath, 
-                                                         mz_start=mzStart, mz_end=mzEnd)
+                        __, imsData1D = io_waters.rawMassLynx_DT_extract(path=pathValue,  
+                                                                         driftscope_path=self.config.driftscopePath, 
+                                                                         mz_start=mzStart, mz_end=mzEnd,
+                                                                         **extract_kwargs)
+#                         
+#                         io_waters.rawMassLynx_DT_extract(path=pathValue,  
+#                                                          driftscope_path=self.config.driftscopePath, 
+#                                                          mz_start=mzStart, mz_end=mzEnd)
                     # if the files were moved, we can at least try to with the document path
                     except IOError:
                         try:
                             pathValue = os.path.join(document.path, nameValue)
-                            io_waters.rawMassLynx_DT_extract(path=pathValue,  
-                                                             driftscope_path=self.config.driftscopePath, 
-                                                             mz_start=mzStart, mz_end=mzEnd)
+#                             io_waters.rawMassLynx_DT_extract(path=pathValue,  
+#                                                              driftscope_path=self.config.driftscopePath, 
+#                                                              mz_start=mzStart, mz_end=mzEnd)
+                            __, imsData1D = io_waters.rawMassLynx_DT_extract(path=pathValue,  
+                                                                             driftscope_path=self.config.driftscopePath, 
+                                                                             mz_start=mzStart, mz_end=mzEnd,
+                                                                             **extract_kwargs)
                             document.multipleMassSpectrum[nameValue]['path'] = pathValue
                         except:
                             msg = "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
@@ -1586,9 +1596,9 @@ class ORIGAMI(object):
                                            type="Error")
                             return
                         
-                    imsData1D =  io_waters.rawMassLynx_DT_load(path=pathValue)
-                    io_waters.rawMassLynx_DT_extract(path=pathValue,  
-                                                     driftscope_path=self.config.driftscopePath)
+#                     imsData1D =  io_waters.rawMassLynx_DT_load(path=pathValue)
+#                     io_waters.rawMassLynx_DT_extract(path=pathValue,  
+#                                                      driftscope_path=self.config.driftscopePath)
                     # Get height of the peak
                     ms = document.massSpectrum
                     ms = np.transpose([ms['xvals'], ms['yvals']]) 

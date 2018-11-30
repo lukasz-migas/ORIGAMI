@@ -963,7 +963,7 @@ class MyFrame(wx.Frame):
                 message = "Version {} is now available for download.\nYou are currently using version {}.".format(newVersion, self.config.version)
                 self.presenter.onThreading(None, (message, 4), 
                                  action='updateStatusbar')
-                msgDialog = panelNotifyNewVersion(self, self, webpage)
+                msgDialog = panelNotifyNewVersion(self, self.presenter, webpage)
                 msgDialog.ShowModal()
         except:
             self.presenter.onThreading(None, ('Could not check version number', 4), 
@@ -972,7 +972,7 @@ class MyFrame(wx.Frame):
     def on_whats_new(self, evt):
         try:
             webpage = checkVersion(get_webpage=True)
-            msgDialog = panelNotifyNewVersion(self, self, webpage)
+            msgDialog = panelNotifyNewVersion(self, self.presenter, webpage)
             msgDialog.ShowModal()
         except: pass
 
