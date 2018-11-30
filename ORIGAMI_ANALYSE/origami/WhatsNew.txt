@@ -1,0 +1,449 @@
+# TODO:
+
+- add new document viewer which allows reviewing what data is included
+    in selected dataset i.e. size, shape, labels, processign steps etc
+
+- document panel
+    = add support for groups which will clean-up the gui a little 
+    as it is ver hard to search for anything in the document tree
+    = when renaming MS, it should check whether the file has UniDec results, if 
+    it does, rename it too
+
+- UniDec support
+    = add new 2D plot which colours charge states of various components as with RGB plot
+    = add adduct in the Pre-processing or deconvolution part
+    = add isotopic resolution in deconvolution
+    
+- Peak list
+    = when double-clicking on an item it incorrectly selects method (Linear/Manual)
+    = add option to visualise global ATD as a waterfall
+    
+- Support loading other data formats
+    = when loading 2D dataset, check column names to see if they are float, if not
+        add them as separate 1D items
+    = custom tooltips?
+        This could be quite simple. A user would have an option to select type of annotation
+        which could be integer, float or string and for which item(s) in the plot. These would be 
+        then rendered as tooltip features
+    = add several new options:
+        -- add MS from clipboard/file(s)
+        -- add 2D from clipboard/file(s)
+
+- interactive output
+	= add support for waterfall plots (2D datasets)
+	= only allow numbers in last column
+	
+- add new sub-document item: Saved images
+	= should allow saving already generated images to the document (no re-plotting required!)
+	
+- complete revamp of Linear DT files panel
+	= add features like highlighting on RT and MS panels
+	= load lists
+	= fix feature detection
+	
+- complete revamp of CCS panel
+	
+- contact Eric to see if I could implement impact in ORIGAMI
+
+- add other biophysical tools
+
+- add support for Agilent files
+
+- retention time:
+    = combine multiple areas
+    
+# v1.2.0.4 / v1.2.1
+# TODO: change testkDa from 10,000 to user-defined value. Also change the num of d.p 
+        in the statusbar updater
+
+Document tree:
+- [fix] Fixed type: spectrun -> spectrum (grr)
+- [fix] When loading mzml/mgf files, the individual scans will no longer 
+  be shown in the document tree as it caused some major issues. If you would like
+  to see the individual spectra, please double-click on the header 'Tandem Mass Spectra'
+  and new window will appear when you can select scan by double-clicking on it
+  in the table
+- [improvement] When loading any data into the INTERACTIVE document, you will be asked
+  whether data should be duplicated, merged or duplicated
+  
+Annotations:
+- [fix] font size, weight and rotation will now be aplied when adding labels
+- [improvement] auto-label generator will now also create labels based purely 
+  on the charge state
+
+Interactive panel:
+= [new] Made big progres in terms of copying/applying styles for plot elements. 
+  When you double-click on any element in the file list a new window will appear
+  where you can individually adjust plot parameters. When you finished, you can
+  right-click on that same (or any other) item in the list and select 'Copy style..'. 
+  You can then select any other item in the list, right-click on it and select
+  'Apply style..'. 
+= [fix] fixed sorting in the list (especilaly when using the 'Show selected' option)
+  Lists are sorted using 'natural sorting' from now on, meaning they should be more
+  logically sorted.
+= [fix] fixed the show/hide table elements when you right-click on the table headers
+= [improvement] Colorbars:
+    = added loads of new settings users can control
+    = better behaviour when adding colorbars to plots
+= [change] removed tools/toolset from ORIGAMI - the new system of copy/apply
+  style should work much better
+
+
+###########################################
+# KNOWN ISSUES in 1.2.0.3
+- when changing width of the colorbar (or position), the internals disappear
+- when adding text 2D files from a overlay document, and then trying to plot 1D or RT data
+  there is an error
+- resizing RMSF plot gives BIG ERRORS. The top part does not rescale properly.. 
+- zooming in RMSF plot is disabled
+- rotation does not work in 3D plot
+- changing RMSF (top) parameters does not respond
+- logging breaks things! Most likely issue with multi-threading etc
+Interactive panel:
+- disabling/enabling columns shows wrongly says which ones are shown and which ones are not
+
+###########################################
+# KNOWN ISSUES in 1.2.0
+- when plotting RMSD matrix and then plotting 2D, the plot needs to be completely refreshed as it currently
+  only paints on top whats already there (resulting in weird artefacts!)
+  
+- When plotting heatmap and then plotting processed heatmap, the colorbar 
+  doesn't always refresh values
+  
+- Delting 'multiple mass spectra' from document in the document tree should also 
+  trigger removal of that item from the panel
+  
+- Deleting of item in 'drift time (2D)' in the document tree should also trigger
+  removal of that item in the panel
+
+###########################################
+# Tracker of whats new in version 1.2.0.3
+New:
+    Interactive panel:
+        = added limited support for individually modifying parameters for interactive plots
+        = interactive documents can now be viewed in an interactive environment. 
+          Make sure you check the "Add offline support" in the GUI
+        
+    Peaklist panel:
+        = added 'Extract automatically' check tool to the Peaklist panel (Toolbar -> Extract...)
+        = added 'Overlay automatically' check tool to the Peaklist panel (Toolbar -> Overlay...) 
+    
+    Text panel:
+        = added 'Overlay automatically' check tool to the Peaklist panel (Toolbar -> Overlay...)
+        = added 'Show chromatogram' and 'Show mobiligram' for each viewed file (Right-click -> Select appropriate)
+        
+    Document tree:
+        = double-clicking on document name will clear all plots and show the basic plots for 
+          that document. You can also do this by selecting: Right-click on document title and selecting Refresh document
+        = You can change the x/y-axis labels for chromatograms and mobiligrams. Right-click
+          on the item in document tree and select 'Change x/y-axis to...'
+          
+    Multiple files panel:
+        = Added an option to rebin/reprocess mass spectra based on new parameters 
+          (Proess --> Average mass spectra (current document))
+          
+    Plot panel:
+        = Images can be rotated by 90 degrees (2D, DT/MS, RMSF, Comparison, Overlay)
+    
+    Data extraction:
+        = You can now extract mass spectra from the '2D' panel. Hold CTRL on your keyboard and drag to
+          select region of interest
+        
+    MS annotations:
+        = peaks can be now annotated with an arrow (also available when exported in an interactive format)
+        = other settings for peak annotations can be changed (Action button -> Customise other settings...)
+        = during selection (using Annotating: On button), the isotopic distribution
+          will be used to predict charge state. You can change the error tolerance
+          using the Action -> Customise other settings... -> Charge prediction value (default: 0.05)
+          
+    UniDec settings:
+        = added possibility to customise UniDec plots (Settings: UniDec -> Customise plots -> New window appears)
+        = UniDec plots can now be shown in a Tabbed-view or in Continous-view
+    
+    
+Improved:
+    General:
+        = The underlying source code of ORIGAMI was restructured and rewritten to be more readable
+          and more responsive 
+        = added better DriftScope setup
+        
+    Document tree:
+        = general improvements of behaviour
+        = better right-click menus and double-click response
+        = better changing of labels
+    
+    Interactive panel:
+        = interactive legends now work with markers and shaded areas
+        = Moved the show/hide list elements from the toolbar to right-click command 
+          (Right-click on the header of columns)
+    	
+    Processing:
+    	= UniDec and Peak Finding can be done in multi-threading mode now
+    	
+    Peaklist panel:
+        = Moved the show/hide list elements from the toolbar to right-click command 
+          (Right-click on the header of columns)
+        = Added a whole range of shortcuts for easier plotting and option selection
+        = Font color will be automatically selected to ensure appropriate contrast
+          to better visualisation
+        = Colors "should not" be repeated in the table from now on
+        = selection of visualisation method should plot that plot automatically
+        
+    Text panel:
+        = Moved the show/hide list elements from the toolbar to right-click command 
+          (Right-click on the header of columns)
+        = Added a whole range of shortcuts for easier plotting and option selection
+        = Font color will be automatically selected to ensure appropriate contrast
+          to better visualisation
+        = Colors "should not" be repeated in the table from now on
+        = File reader should be a bit more robust and better handle 'odd' files
+        
+    Multiple files panel:
+        = Average mass spectrum will be automatically rebinned when a file is deleted in 
+          the panel. 
+          
+    Plots:
+        = small changes to the plotting functions to improve performance and way things
+          are shown
+        = wheel-zoom in the X-dimension has been improved
+        
+    Data extraction:
+        = MS extracted in RT and 1D windows will now be shown underneath the plot area
+          so you don't have to change the window to see the results
+        
+    MS comparison:
+        = you can now compare spectra from the 'Mass Spectra' sub-directory and
+          other spectral types (e.g. Mass Spectrum, Mass Spectrum (processed))
+                
+Fixes:
+    Interactive:
+        = fixed an issue where it would crash exporting interactive figure with legend
+        = fixed an issue with the toolbar not showing properly
+    
+    Data extraction:
+        = fixed an issue where it was not possible to extract MS from retention time window
+        = fixed an issue that would incorrectly extract data from MS, DT and RT windows
+          if the plots had non-standard x-axis labels
+        
+    Text panel:
+        = fixed an issue which prevented loading some text files
+        = fixed an issue that was deleting items from the list when it was not meant to
+        
+    Multiple files panel
+        = when trying to change the column 'variable' and typing-in numerical values on a laptop keyboard
+          ORIGAMI would open a help page instead, blocking insertion of values - Very annoying 
+          (and not particularly consistent between different PCs...) -> Removed shortcuts
+          to help pages
+
+
+###########################################
+# Tracker of whats new in version 1.1.1 build 20_06_2018
+New:
+- annotations
+    = annotations can now be shown on the plot
+    = can now see and select them in the document tree
+    = peak finding can add peaks as annotations
+- violin plots
+    = added new way to visualise data by using pretty violin plots
+- document tree
+    = can now duplicate documents
+    
+
+Improvements:
+- simplified plot parameter controls + added several new values
+    = can now control length and width of ticks
+- document tree
+    = can now rename document plut several other components
+- waterfall plots now are a lot better
+    = better overlaying (lines and whatever is under them are correctly ordered)
+    = better color control
+    = can add labels at various increments (either as labels or as values)
+- interactive panel
+    = can add annotations to mass spectra
+    = all interactive windows will be appended with watermak from now on
+    = slightly better look to the panel
+    = you can now rename the document window
+- ORIGAMI logo
+    = fixed an issue that prevented logo being visible when ORIGAMI was pinned in the taskbar    
+
+Fixes:
+- fixed an issue where certain text input fields would be locked out and didn't allow entering values
+
+###########################################
+# Tracker of whats new in version 1.1.1
+New:
+- certain plots have new right-click item available (Customise plot...) which allows better
+    control of how the plot is shown and saved
+- loads of new overlay methods for mass spectra data
+    = compare unidec deconvolution results
+    = overlay spectra
+    = waterfall plots
+- you can now load MS spectra from clipboard (creates new document
+- you can easily compare spectra in the Multiple files panel
+- you can load MS text files (.txt/.tab/.csv)
+- added UniDec's deconvolution engine
+    = you can easily load MS and deconvolute using the well-established UniDec's Bayesian deconvolution algorithm
+    = ORIGAMI generates similar plots to those of UniDec
+    = all deconvolution results can be exported in HTML format
+    = if you happen to use this feature, please don't forget to cite UniDec!
+    = The results obtained in ORIGAMI are identical to those in UniDec however I have not ported all possible 
+      options but only the most commonly used!
+    = all results can be saved in nicely formatted way
+    
+
+- can now export RGB plots in the HTML format
+- added new comparison view Grid (2->1) (also supported in the Interactive format)
+- added support for Drag-and-Drop (supports .pickle, .raw and .csv/.txt/.tab files) in the main window
+    = .raw files will be assumed to be ORIGAMI files
+- added support for Drag-and-Drop (.raw) in the Multiple files panel (supports .raw ONLY)
+    = .raw files will be added to currently opened MANUAL document, if none present, a new one will be created
+- added waterfall plot for MS data (Document --> Right-click on Mass Spectra --> Select Show mass spectra (waterfall)
+    = by default, it will try to sort the MS list based on the energy. If not present, it will sort it by name
+      you can reverse the plot by going to Settings --> Waterfall --> Inverse
+- MS comparison panel now supports comparison of spectra from different documents and of different sizes
+- added color palettes for certain plots (and when adding new peaks to the peak list)
+
+
+Improvements:
+- binning is no longer the default method of linearizing data. Added multiple other methods that 
+    are better at that (and some are quite slow!)
+- significant improvements to the way images are saved...
+- improvements to the way files are saved
+- interactive documents will now contain a watermark 
+- small improvements to the hover tool in HTML viewer
+- small tweaks to 1D plots
+- fixed small issues with the waterfall plots (incorrect ordering of the plot lines)
+- when extracting peaks in the MS window, the charge state will try to be determined automatically
+
+Fixes:
+- a couple of small issues when loading Linear DT files
+
+
+###########################################
+# Tracker of whats new in version 1.0.5
+New:
+- you can open user guide using menu item (no browser necessary)
+- you can now add colorbar to the interactive plots with a large number of options
+- you can now adjust the size of the figure in more details
+
+
+Improvements:
+- changed a couple of labels + layout
+- file list in the multiple masslynx listctrl will automatically sort now according to energy + document name
+
+Fix:
+- fixed an issue where you couldn't assign name or any header/footer information to interactive plot
+- fixed an issue where you could not have more than one multi-ML document open
+- fixed an issue where you could not process text files
+
+###########################################
+# Tracker of whats new in version 1.0.4/1.1
+New:
+- you can now extract MS for specified region or RT plot
+    KNOWN ISSUE: since the MS is not normalized, when you selection option to zoom-in on a plot, it will cause issues
+- you can now zoom in the plot area using the mouse wheel: 
+    +/- wheel zooms in the X-axis
+    +/- and SHIFT key zoom in the Y axis
+- if you hold SHIFT and double-click in plot area, only the Y-axis will be reset
+- if you hold CTRL and double-click in plot area, only the X-axis will be reset
+- you can now plot MS vs DT plot. The bin size is by default 1 Da. Can be changed differnt values using the Extract Parameters --> MS/DT bin size
+- you can now extract RT data for specified MS and DT range
+- you can now assign charge states and alpha/transparency in batch mode (from the Peak list panel)
+- (experimental) added multi-threading to several functions (Opening ORIGAMI files, saving figures). These are in testing mode, but can speed up operation (or give you an error!)!
+    you can disable threading from Properties --> General parameters --> Threading
+- you can now use DELETE key to remove items from within Tree Control
+- you can now *TRY* to automatically assign charge states to high-res data. This function is only experimental and should be always checked!
+- changed the status bar slightly. Now, when you are 'measuring' distance, it will show you the charge state + prediced MW for that particular ion
+-the extraction region is now shown in status bar field 4
+
+- Added new shortcut: Alt+V = save CSV data
+- New function - Open multiple ORIGAMI files - CTRL+Shift+Q
+
+- each time you start ORIGAMI, it will check for new verions online (if you are online, of course!)
+- you can export Multiole Mass Spectra simultaneoulsy to single ifle
+
+Fixes:
+- slight improvements to 2D plots (the labels should sit where they are supposed to now!)
+- you could not save individual MS from Mass Spectra sub-tree
+- zooming got a bit better = should stop hanging!
+- fixed an issue which occured during processing of 2D data that resulted in an error
+- fixed an issue where adjusting the colormap intensities did nothing
+- slight tweaks to the extraction tools
+- rearranged a couple of text boxes to make things clearer
+- you can assign charge state from multiple places now (Document tree, peak list, Document Information panel)
+- changed a couple of labels to make things clearer
+- fixed issues that were encountered when trying to load multiple MassLynx files
+    - path problems
+    - selecting items in table
+    
+- fixed an issue where it would ask you for output file name a couple of times
+- you can save MS data in one file
+
+
+To do for version 1.1.0
+- histogram plot to show 2D + 1D plots of MZ/DT and RT/DT
+- quick extract (hold key and extract)
+- autoplot of data
+- proper charge assign window
+- universal extract panel : extract RT/MZ and DT/MZ 
+- new data structure
+- allow extraction of RT region (i.e. to get MS and 1D plot)
+- rename ions - include collision voltage
+- add better plot controls:
+    - should be able to set start/end point of labels
+    - change font 
+- add proper threading for loading data + saving images
+    - currently when executing, the event ID is not carried through
+- better peak picking:
+    - should accept currently selected MS as the source of picking
+- when chaning Type of file, it should update the document tree
+- change x axis label for MS. Da --> kDa
+
+# Tracker of whats new in version 1.0.3
+Fixes:
+- changed incorrect label in GUI (Threshold -> Fit plot)
+- when applying protein label in the Document Information Panel, the molecular weight value was not properly set
+- you can now change the x-axis labels for 1D data
+- the 1D DT label incorrectly said 'Drift time(bins)' - replaced with 'Drift time (bins)'
+- a couple of changes to menus - removed several spelling mistakes (probably put new ones in!)
+
+Improved:
+- if your processing settings are incorrect (i.e. threshold too low/high, smoothing issues), you will be notified of them via dialog box
+
+New:
+- you can now change the document path in the Documents Information Panel
+- added option to clear all plots (Menu --> Window --> Clear all plots)
+- you can now just measure distance between peaks by holding Shift on your keyboard and dragging. When shift is released, it will zoom in on a region
+- Alt+X will now zoom-in on the ion of interest
+- Alt+Z will now show charge assignment window for a selected item
+
+
+
+
+# Tracker of whats new in version 1.0.2
+
+Fixes:
+- fixed an issue which occured during zooming in 1D/2D plots
+    The issue occured when you tried to perform horizontal zoom. Occasionally
+    it would not happpen. Accidentally introduced it in 1.0.1...
+- fixed an issue where incorrect plots were saved when using the 'Document Panel'
+- fixed an issue when loading config file, some parameters were not setting up properly
+- fixed a couple of other bugs
+- 
+
+New:
+- added a couple of new shortcuts
+    Alt+P now processes and plots a currently selected 2D plot
+    Alt+C now combine collision voltages (ORIGAMI method)
+    Alt+R now will open the 'Rename' dialog box
+
+- smoothed MS now is added to the 'Document Panel' and can be restored and saved to file
+- added link to my YouTube channel where you can view instructional video(s) on how to use ORIGAMI-MS/ANALYSE
+- added new text box where you can adjust the distance between the colorbar and  the 2D plot
+- the currently selected RMSD label position is now highlighted with a blue frame
+- when in Interactive Output panel, you can now select normal Filters (i.e. Show MS..) in addition to Filter Document to hide unwanted items
+- changed the Interactive Panel around (should be a bit less messy!)
+- you can now assign set of tools to specific plot type
+- when zooming in the RMSF plot, the 1D plot is also zoomed in (you have to zoom in the 2D panel, bottom plot)
+
+

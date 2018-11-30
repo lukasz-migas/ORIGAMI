@@ -5,10 +5,11 @@
 *.msi
 *.zip
 list_of_tests.xlsx
-WhatsNew.txt
+configOut.xml
 .idea/
 .settings/
 build/
 dist/
 logs/
 temporary_data/
+ORIGAMI_ANALYSE/origami/None

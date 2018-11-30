@@ -43,10 +43,10 @@ from dialogs import panelHTMLViewer, panelPeakWidthTool, dlgBox
 from gui_elements.dialog_customiseUniDecPlots import panelCustomiseParameters
 import unidec as unidec
 from processing.spectra import smooth_1D
-from readers.io_waters_raw import (rawMassLynx_MS_extract, 
-                                      rawMassLynx_RT_extract,
-                                      rawMassLynx_DT_extract,
-                                      rawMassLynx_2DT_extract)
+from readers.io_waters_raw import (rawMassLynx_MS_extract,
+                                   rawMassLynx_RT_extract,
+                                   rawMassLynx_DT_extract,
+                                   rawMassLynx_2DT_extract)
 
 # TODO: UniDec - when picking peak and selecting G/L it gives the wrong value
 # TODO: UniDec - restrict how many points can be shown in a MW plot when finding peaks

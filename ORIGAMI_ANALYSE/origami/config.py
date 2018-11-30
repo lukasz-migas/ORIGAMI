@@ -39,7 +39,7 @@ class OrigamiConfig:
         self._processID = None
         self.loggingFile_path = None
         
-        self.version = "1.2.0.3"
+        self.version = "1.2.0.4"
         self.unidec_engine = None
         self.links = {'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
                       'github' : 'https://github.com/lukasz-migas/ORIGAMI',
@@ -62,6 +62,11 @@ class OrigamiConfig:
         self.configFile_name = 'configOut.xml'
         self.checkForDriftscopeAtStart = True
         self.driftscopePath = "C:\DriftScope\lib"
+        
+        self.import_duplicate_action = "merge"
+        self.import_duplicate_ask = False
+        
+        
         
         self.watermark = '<p><span style="color: #808080;">This document was generated using ORIGAMI (v. {}) which is an Open-Source software for the analysis of MS and IM-MS datasets. If you would like more information, have a look <a href="https://doi.org/10.1016/j.ijms.2017.08.014">here</a> and to download it for free, have a look <a href="https://github.com/lukasz-migas/ORIGAMI/releases">here</a>.</span></p>'.format(self.version)
         # Populate GUI
@@ -261,12 +266,14 @@ class OrigamiConfig:
                                      {'name':'footnote', 'order':6, 'width':40, 'show':True},
                                      {'name':'color/colormap', 'order':7, 'width':75, 'show':True},
                                      {'name':'page', 'order':8, 'width':50, 'show':True},
-                                     {'name':'tools', 'order':9, 'width':50, 'show':True},
-                                     {'name':'#', 'order':10, 'width':30, 'show':True},
+#                                      {'name':'tools', 'order':9, 'width':50, 'show':True},
+                                     {'name':'#', 'order':9, 'width':30, 'show':True},
                                      ]
         self.interactiveColNames = {'check':0, 'document':1, 'type':2,'file':3,'title':4,
                                      'header':5,'footnote':6,'color':7,'colormap':7,
-                                     'page':8,'tools':9,'order':10}
+                                     'page':8,
+#                                      'tools':9,
+                                     'order':9}
         
         self.ccsTopColNames = {'filename':0, 'start':1,'end':2,
                                'protein':3, 'charge':4,'ccs':5,'tD':6,
@@ -462,6 +469,7 @@ class OrigamiConfig:
         self.vertical_alignment_list = ['center', 'top', 'bottom']
         self.label_fontsize_list = ["xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large"]
         self.label_fontweight_list = ["ultralight", "light", "normal", "regular", "medium", "bold", "heavy"]
+        self.label_font_orientation_list = ['horizontal', 'vertical']
         
         # Annotation
         self.annotation_charge_std_dev = 0.05
@@ -471,6 +479,7 @@ class OrigamiConfig:
         self.annotation_label_vert = "center"
         self.annotation_label_font_size = "small"
         self.annotation_label_font_weight = "normal"
+        self.annotation_label_font_orientation = "horizontal"
 
 
         # UniDec
@@ -1028,19 +1037,28 @@ class OrigamiConfig:
         
         # Other
         self.interactive_override_defaults = True
-        
+        self.openInteractiveOnSave = True
+        self.interactive_add_offline_support = False
+        self.interactive_sort_before_saving = True # new in v1.2.1
         
         # Colorbar
         self.interactive_colorbar = False
         self.interactive_colorbar_precision = 1
-        self.interactive_colorbar_label_offset = 15
+        self.interactive_colorbar_label_offset = 2
         self.interactive_colorbar_useScientific = False
         self.interactive_colorbar_location = 'right'
         self.interactive_colorbar_orientation = 'vertical'
-        self.interactive_colorbar_offset_x = 20
+        self.interactive_colorbar_offset_x = 5
         self.interactive_colorbar_offset_y = 0
-        self.interactive_colorbar_width = 25
-        self.interactive_colorbar_padding = 25
+        self.interactive_colorbar_width = 15
+        self.interactive_colorbar_padding = 10
+        self.interactive_colorbar_edge_color = (0., 0., 0.) # new in v1.2.1
+        self.interactive_colorbar_edge_width = 2 # new in v1.2.1
+        self.interactive_colorbar_modify_ticks = False # new in v1.2.1
+        self.interactive_colorbar_label_fontSize = 16 # new in v1.2.1
+        self.interactive_colorbar_label_weight = False # new in v1.2.1
+        self.interactive_colorbar_title_fontSize = 16 # new in v1.2.1
+        self.interactive_colorbar_title_weight = False # new in v1.2.1
         
         # Frame
         self.interactive_outline_width = 2
@@ -1074,7 +1092,9 @@ class OrigamiConfig:
         self.interactive_grid_ypos = 10
         
         # Waterfall
-        self.interactive_waterfall_increment = 0.05
+        self.interactive_waterfall_increment = 0.05 
+        self.interactive_waterfall_shade_under = False # new in v1.2.1
+        self.interactive_waterfall_shade_alpha = 0.25 # new in v1.2.1
         
         # Mass spectra
         self.interactive_ms_annotations = True
@@ -1103,9 +1123,9 @@ class OrigamiConfig:
         self.interactive_legend_click_policy = 'hide'
         self.interactive_legend_location_choices = ["top_left", "top_center", "top_right", "center_right",
                                                     "bottom_right", "bottom_center", "bottom_left", "center_left", 
-                                                    "center", "other"]
+                                                    "center"]#, "other"]
         self.interactive_legend_location = 'top_left'
-        self.interactive_legend_mute_alpha = 0.2
+        self.interactive_legend_mute_alpha = 0.25
         self.interactive_legend_background_alpha = 0.5
         self.interactive_legend_orientation_choices = ['vertical', 'horizontal']
         self.interactive_legend_orientation = 'vertical'
@@ -1116,8 +1136,9 @@ class OrigamiConfig:
         self.interactive_line_style = 'solid'
         self.interactive_line_width = 2
         self.interactive_line_alpha = 1
-        self.openInteractiveOnSave = True
-        self.interactive_add_offline_support = False
+        self.interactive_line_shade_under = False # new in v1.2.1
+        self.interactive_line_shade_alpha = 0.25 # new in v1.2.1
+        self.interactive_line_color = (0., 0., 0.) # new in v1.2.1
         
         # Scatter
         self.interactive_scatter_size = 10 
@@ -1130,7 +1151,7 @@ class OrigamiConfig:
         self.interactive_scatter_marker = "circle"
         self.interactive_scatter_sameAsFill = True
         self.interactive_scatter_edge_color = (0., 0., 0.)
-        
+        self.interactive_scatter_lineWidth = 1. # new in v1.2.1
         
         # bar
         self.interactive_bar_width = 0.1
@@ -1500,6 +1521,8 @@ class OrigamiConfig:
         buff += '    <param name="overrideCombine" value="%s" type="bool" />\n' % (bool(self.overrideCombine))
         buff += '    <param name="useInternalParamsCombine" value="%s" type="bool" />\n' % (bool(self.useInternalParamsCombine))
         buff += '    <param name="overlay_usedProcessed" value="%s" type="bool" />\n' % (bool(self.overlay_usedProcessed))
+        buff += '    <param name="import_duplicate_action" value="%s" type="unicode" choices="%s" />\n' % (self.import_duplicate_action, ["override", "merge", "duplicate"])
+        buff += '    <param name="import_duplicate_ask" value="%s" type="bool" />\n' % (bool(self.import_duplicate_ask))
         buff += '  </presets_gui>\n\n'
         
         # Plot sizes in GUI
@@ -1770,7 +1793,6 @@ class OrigamiConfig:
         buff += '    <param name="waterfall_lineStyle" value="%s" type="unicode" choices="%s" />\n' % (self.waterfall_lineStyle, self.lineStylesList)
         buff += '    <param name="waterfall_color" value="%s" type="color" />\n' % (str(self.waterfall_color))
         buff += '    <param name="waterfall_useColormap" value="%s" type="bool" />\n' % (bool(self.waterfall_useColormap))
-        
         buff += '    <param name="waterfall_normalize" value="%s" type="bool" />\n' % (bool(self.waterfall_normalize))
         buff += '    <param name="waterfall_label_format" value="%s" type="unicode" choices="%s" />\n' % (self.waterfall_label_format, self.waterfall_label_format_choices)
         buff += '    <param name="waterfall_color_value" value="%s" type="unicode" choices="%s" />\n' % (self.waterfall_color_value, self.waterfall_color_choices)
@@ -1840,6 +1862,8 @@ class OrigamiConfig:
         buff += '  <plot_presets_plot_1D>\n'
         buff += '    <param name="lineColour_1D" value="%s" type="color" />\n' % (str(self.lineColour_1D))
         buff += '    <param name="lineWidth_1D" value="%.2f" type="float" />\n' % (float(self.lineWidth_1D))
+        buff += '    <param name="frameWidth_1D" value="%d" type="float" />\n' % (float(self.frameWidth_1D))
+        buff += '    <param name="labelPad_1D" value="%d" type="float" />\n' % (float(self.labelPad_1D))
         buff += '    <param name="lineStyle_1D" value="%s" type="unicode" choices="%s" />\n' % (self.lineStyle_1D, self.lineStylesList)
         buff += '    <param name="markerColor_1D" value="%s" type="color" />\n' % (str(self.markerColor_1D))
         buff += '    <param name="markerTransparency_1D" value="%.2f" type="float" />\n' % (float(self.markerTransparency_1D))

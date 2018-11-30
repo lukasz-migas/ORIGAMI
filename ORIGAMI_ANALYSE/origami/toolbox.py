@@ -148,11 +148,10 @@ def remove_nan_from_list(data_list):
     data_list = data_list[~np.isnan(data_list)]
     return data_list
     
-def determineFontColor(rgb, rgb_mode=2, return_rgb=False):
+def determineFontColor(rgb, rgb_mode=2, return_rgb=False, return_hex=False):
     """
     This function determines the luminance of background and determines the 
     'best' font color based on that value
-    
     --- LINKS ---
     https://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color
     https://stackoverflow.com/questions/1855884/determine-font-color-based-on-background-color
@@ -172,15 +171,13 @@ def determineFontColor(rgb, rgb_mode=2, return_rgb=False):
                  np.sqrt(rgb[1]) * 0.587 + 
                  np.sqrt(rgb[2]) * 0.114)/255
     if a < 0.5:
-        if return_rgb:
-            return (0, 0, 0)
-        else:
-            return "black"
+        if return_rgb: return (0, 0, 0)
+        elif return_hex: return "#000000"
+        else: return "black"
     else:
-        if return_rgb: 
-            return (255, 255, 255)
-        else:
-            return "white"
+        if return_rgb: return (255, 255, 255)
+        elif return_hex: return "#ffffff"
+        else: return "white"
 
 def dir_extra(dirlist, keywords="get"):
     """
@@ -666,7 +663,7 @@ def roundRGB(rgbList, decimals=3):
 def convertHEXtoRGB255(hex, decimals=3):
     hex = hex.lstrip('#')
     hlen = len(hex)
-    return tuple(int(hex[i:i+hlen/3], 16) for i in range(0, hlen, hlen/3))
+    return tuple(int(hex[i:i+int(hlen/3)], 16) for i in range(0, hlen, int(hlen/3)))
 
 def convertHEXtoRGB1(hex, decimals=3):
     hex = hex.lstrip('#')
