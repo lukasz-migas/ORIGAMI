@@ -194,7 +194,7 @@ def rawMassLynx_DT_extract(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt
         out_path = temp_data_folder
     else: 
         out_path = path
-    
+        
     # Create input file
     range_file = os.path.join(out_path, '__.1dDT.inp')
     try:
@@ -208,7 +208,6 @@ def rawMassLynx_DT_extract(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt
     # Create command for execution
     cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "', 
                    out_path, '\output.1dDT" -t mobilicube -p "', range_file, '"'])
-    
     extractIMS = Popen(cmd, shell=kwargs.get("verbose", True), 
                        creationflags=CREATE_NEW_CONSOLE)
     extractIMS.wait()

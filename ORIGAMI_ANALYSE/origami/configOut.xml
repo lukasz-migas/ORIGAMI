@@ -11,16 +11,16 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\3_Boltzmann_IMS2D_5139.58-5170.58.csv" format="Text" />
+    <path value="Z:\###_PhD4_###\documentation\origami_docs\docs\user-guide\example-files\MS_nist_intact.csv" format="Text_MS" />
+    <path value="Z:\###_PhD4_###\documentation\origami_docs\docs\user-guide\example-files\MS_p27-FL-K31.csv" format="Text_MS" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\moqtof.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\ORIGAMI_ConA_z20.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text" format="Text" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\ORIGAMI_ConA_z20.pickle" format="pickle" />
     <path value="Z:\###_PhD1_###\p27_Bex_Data\p27-C-paper_figures.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\aa.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="MassLynx" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1_overlay_document.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1 with MD.pickle" format="pickle" />
-    <path value="C:\Users\LukaszMigas\Downloads\interactive_doc.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -127,7 +127,7 @@
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
-    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
+    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="True" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
@@ -160,21 +160,21 @@
   </plot_presets_annotations>
 
   <custom_colors>
-    <param name="color_0" value="[219.3, 94.656, 86.7]" type="color" />
-    <param name="color_1" value="[219.3, 144.381, 86.7]" type="color" />
-    <param name="color_2" value="[219.3, 194.106, 86.7]" type="color" />
-    <param name="color_3" value="[194.769, 219.3, 86.7]" type="color" />
-    <param name="color_4" value="[145.044, 219.3, 86.7]" type="color" />
-    <param name="color_5" value="[95.319, 219.3, 86.7]" type="color" />
-    <param name="color_6" value="[86.7, 219.3, 127.806]" type="color" />
-    <param name="color_7" value="[86.7, 219.3, 177.531]" type="color" />
-    <param name="color_8" value="[86.7, 211.344, 219.3]" type="color" />
-    <param name="color_9" value="[86.7, 161.619, 219.3]" type="color" />
-    <param name="color_10" value="[86.7, 111.894, 219.3]" type="color" />
-    <param name="color_11" value="[111.231, 86.7, 219.3]" type="color" />
-    <param name="color_12" value="[160.956, 86.7, 219.3]" type="color" />
-    <param name="color_13" value="[210.681, 86.7, 219.3]" type="color" />
-    <param name="color_14" value="[219.3, 86.7, 178.194]" type="color" />
+    <param name="color_0" value="(219, 94, 86, 255)" type="color" />
+    <param name="color_1" value="(219, 144, 86, 255)" type="color" />
+    <param name="color_2" value="(219, 194, 86, 255)" type="color" />
+    <param name="color_3" value="(194, 219, 86, 255)" type="color" />
+    <param name="color_4" value="(145, 219, 86, 255)" type="color" />
+    <param name="color_5" value="(95, 219, 86, 255)" type="color" />
+    <param name="color_6" value="(86, 219, 127, 255)" type="color" />
+    <param name="color_7" value="(86, 219, 177, 255)" type="color" />
+    <param name="color_8" value="(86, 211, 219, 255)" type="color" />
+    <param name="color_9" value="(86, 161, 219, 255)" type="color" />
+    <param name="color_10" value="(86, 111, 219, 255)" type="color" />
+    <param name="color_11" value="(111, 86, 219, 255)" type="color" />
+    <param name="color_12" value="(160, 86, 219, 255)" type="color" />
+    <param name="color_13" value="(210, 86, 219, 255)" type="color" />
+    <param name="color_14" value="(219, 86, 178, 255)" type="color" />
     <param name="color_15" value="[219.3, 86.7, 128.469]" type="color" />
   </custom_colors>
 
@@ -212,23 +212,23 @@
   <process_presets_unidec>
     <!-- Pre-processing parameters -->
     <param name="unidec_mzStart" value="500" type="float" />
-    <param name="unidec_mzEnd" value="8000.00" type="float" />
+    <param name="unidec_mzEnd" value="2500.00" type="float" />
     <param name="unidec_mzBinSize" value="0.10" type="float" />
     <param name="unidec_gaussianFilter" value="0.00" type="float" />
     <param name="unidec_accelerationV" value="0.00" type="float" />
-    <param name="unidec_linearization" value="Linear m/z" type="unicode" choices="[u'Linear resolution', u'Nonlinear', u'Linear interpolation', u'Linear resolution interpolation', u'Linear m/z']" />
+    <param name="unidec_linearization" value="Linear interpolation" type="unicode" choices="[u'Linear resolution', u'Nonlinear', u'Linear interpolation', u'Linear resolution interpolation', u'Linear m/z']" />
     <!-- UniDec engine parameters -->
     <param name="unidec_zStart" value="5" type="int" />
-    <param name="unidec_zEnd" value="30" type="int" />
-    <param name="unidec_mwStart" value="140000.00" type="float" />
-    <param name="unidec_mwEnd" value="150000.00" type="float" />
-    <param name="unidec_mwFrequency" value="100.00" type="float" />
-    <param name="unidec_peakWidth" value="2.53" type="float" />
+    <param name="unidec_zEnd" value="35" type="int" />
+    <param name="unidec_mwStart" value="20000.00" type="float" />
+    <param name="unidec_mwEnd" value="25000.00" type="float" />
+    <param name="unidec_mwFrequency" value="1.00" type="float" />
+    <param name="unidec_peakWidth" value="0.32" type="float" />
     <param name="unidec_peakFunction" value="Lorentzian" type="unicode" choices="['Split G/L', 'Gaussian', 'Lorentzian']" />
     <!-- Peak picking parameters -->
-    <param name="unidec_peakDetectionWidth" value="100.00" type="float" />
-    <param name="unidec_peakDetectionThreshold" value="0.50" type="float" />
-    <param name="unidec_peakNormalization" value="None" type="unicode" choices="['Max', 'None', 'Total']" />
+    <param name="unidec_peakDetectionWidth" value="1.00" type="float" />
+    <param name="unidec_peakDetectionThreshold" value="0.01" type="float" />
+    <param name="unidec_peakNormalization" value="Total" type="unicode" choices="['Max', 'None', 'Total']" />
     <param name="unidec_lineSeparation" value="0.05" type="float" />
     <!-- Plotting parameters -->
     <param name="unidec_plot_panel_view" value="Tabbed view" type="unicode" />
@@ -238,21 +238,21 @@
     <param name="unidec_plot_MW_markerSize" value="50" type="int" />
     <param name="unidec_plot_isolatedMS_markerSize" value="50" type="int" />
     <param name="unidec_plot_bar_markerSize" value="50" type="int" />
-    <param name="unidec_plot_bar_width" value="1.00" type="float" />
+    <param name="unidec_plot_bar_width" value="0.90" type="float" />
     <param name="unidec_plot_bar_alpha" value="1.00" type="float" />
     <param name="unidec_plot_bar_edge_color" value="(0.0, 0.0, 0.0)" type="color" />
     <param name="unidec_plot_bar_sameAsFill" value="False" type="bool" />
     <param name="unidec_plot_bar_lineWidth" value="2" type="int" />
     <param name="unidec_plot_contour_levels" value="25" type="int" />
     <param name="unidec_plot_color_scheme" value="Colormap" type="unicode" choices="['Color scheme', 'Colormap']" />
-    <param name="unidec_plot_colormap" value="viridis" type="unicode" />
+    <param name="unidec_plot_colormap" value="plasma" type="unicode" />
     <param name="unidec_plot_palette" value="HLS" type="unicode" />
   </process_presets_unidec>
 
   <process_presets_fitting>
     <param name="fit_type" value="MS" type="unicode" choices="['MS', 'RT', 'MS + RT']" />
     <param name="fit_highlight" value="True" type="bool" />
-    <param name="fit_addPeaks" value="True" type="bool" />
+    <param name="fit_addPeaks" value="False" type="bool" />
     <param name="fit_xaxis_limit" value="False" type="bool" />
     <param name="fit_highRes_isotopicFit" value="False" type="bool" />
     <param name="fit_smoothPeaks" value="True" type="bool" />
@@ -270,27 +270,27 @@
   <process_presets_binning>
     <param name="ms_enable_in_RT" value="True" type="bool" />
     <param name="ms_enable_in_MML_start" value="True" type="bool" />
-    <param name="ms_mzStart" value="150.00" type="float" />
-    <param name="ms_mzEnd" value="3598.62" type="float" />
-    <param name="ms_mzBinSize" value="0.50" type="float" />
+    <param name="ms_mzStart" value="2508.22" type="float" />
+    <param name="ms_mzEnd" value="5598.22" type="float" />
+    <param name="ms_mzBinSize" value="0.10" type="float" />
     <param name="ms_dtmsBinSize" value="1.00" type="float" />
     <param name="ms_linearization_mode" value="Linear interpolation" type="unicode" choices="['Linear m/z', 'Linear resolution', 'Nonlinear', 'Linear interpolation', 'Linear resolution interpolation', 'Binning']" />
     <param name="ms_auto_range" value="True" type="bool" />
-    <param name="ms_process_crop" value="False" type="bool" />
+    <param name="ms_process_crop" value="True" type="bool" />
     <param name="ms_process_linearize" value="True" type="bool" />
-    <param name="ms_process_smooth" value="False" type="bool" />
-    <param name="ms_process_threshold" value="False" type="bool" />
+    <param name="ms_process_smooth" value="True" type="bool" />
+    <param name="ms_process_threshold" value="True" type="bool" />
     <param name="ms_process_normalize" value="True" type="bool" />
   </process_presets_binning>
 
   <process_presets_ms>
     <param name="ms_normalize" value="True" type="bool" />
     <param name="ms_normalize_mode" value="Maximum" type="unicode" choices="['Maximum']" />
-    <param name="ms_smooth_mode" value="Gaussian" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
-    <param name="ms_smooth_polynomial" value="1" type="int" />
-    <param name="ms_smooth_window" value="3" type="int" />
+    <param name="ms_smooth_mode" value="Savitzky-Golay" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
+    <param name="ms_smooth_polynomial" value="5" type="int" />
+    <param name="ms_smooth_window" value="7" type="int" />
     <param name="ms_smooth_sigma" value="10.00" type="float" />
-    <param name="ms_threshold" value="0.00" type="float" />
+    <param name="ms_threshold" value="0.01" type="float" />
   </process_presets_ms>
 
   <process_compare_mass_spectra>
@@ -304,11 +304,11 @@
 
   <process_presets_plot2D>
     <param name="plot2D_normalize" value="True" type="bool" />
-    <param name="plot2D_normalize_mode" value="Logarithmic" type="unicode" choices="['Maximum', 'Logarithmic', 'Natural log', 'Square root', 'Least Abs Deviation', 'Least Squares']" />
-    <param name="plot2D_smooth_mode" value="None" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
+    <param name="plot2D_normalize_mode" value="Maximum" type="unicode" choices="['Maximum', 'Logarithmic', 'Natural log', 'Square root', 'Least Abs Deviation', 'Least Squares']" />
+    <param name="plot2D_smooth_mode" value="Savitzky-Golay" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
     <param name="plot2D_smooth_polynomial" value="1" type="int" />
     <param name="plot2D_smooth_window" value="3" type="int" />
-    <param name="plot2D_smooth_sigma" value="1.00" type="float" />
+    <param name="plot2D_smooth_sigma" value="2.00" type="float" />
     <param name="plot2D_threshold" value="0.00" type="float" />
   </process_presets_plot2D>
 
@@ -330,19 +330,19 @@
   </plot_presets_rmsd>
 
   <plot_presets_waterfall>
-    <param name="waterfall" value="False" type="bool" />
+    <param name="waterfall" value="True" type="bool" />
     <param name="waterfallOffset" value="0.00" type="float" />
-    <param name="waterfall_increment" value="1.15" type="float" />
-    <param name="waterfall_reverse" value="False" type="bool" />
-    <param name="waterfall_lineWidth" value="2.00" type="float" />
+    <param name="waterfall_increment" value="1.05" type="float" />
+    <param name="waterfall_reverse" value="True" type="bool" />
+    <param name="waterfall_lineWidth" value="1.00" type="float" />
     <param name="waterfall_lineStyle" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
     <param name="waterfall_color" value="[0, 0, 0]" type="color" />
     <param name="waterfall_useColormap" value="True" type="bool" />
     <param name="waterfall_normalize" value="True" type="bool" />
     <param name="waterfall_label_format" value="Float" type="unicode" choices="['String', 'Float', 'Integer']" />
-    <param name="waterfall_color_value" value="Colormap" type="unicode" choices="['Same color', 'Colormap', 'Color palette', 'Random']" />
-    <param name="waterfall_add_labels" value="True" type="bool" />
-    <param name="waterfall_shade_under" value="True" type="bool" />
+    <param name="waterfall_color_value" value="Same color" type="unicode" choices="['Same color', 'Colormap', 'Color palette', 'Random']" />
+    <param name="waterfall_add_labels" value="False" type="bool" />
+    <param name="waterfall_shade_under" value="False" type="bool" />
     <param name="waterfall_shade_under_transparency" value="1.00" type="float" />
     <param name="waterfall_shade_under_nlimit" value="50" type="int" />
     <param name="waterfall_labels_frequency" value="5.00" type="float" />
@@ -376,7 +376,7 @@
   </plot_presets_bar>
 
   <plot_presets_legend>
-    <param name="legend" value="True" type="bool" />
+    <param name="legend" value="False" type="bool" />
     <param name="legendFancyBox" value="False" type="bool" />
     <param name="legendMarkerFirst" value="True" type="bool" />
     <param name="legendFrame" value="False" type="bool" />
@@ -435,7 +435,7 @@
   <plot_presets_plot_2D>
     <param name="interpolation" value="None" type="unicode" choices="['None', 'nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']" />
     <param name="plotType" value="Image" type="unicode" choices="['Image', 'Contour']" />
-    <param name="currentCmap" value="ocean_r" type="unicode" choices="[u'Accent', u'Accent_r', u'Blues', u'Blues_r', u'BrBG', u'BrBG_r', u'BuGn', u'BuGn_r', u'BuPu', u'BuPu_r', u'CMRmap', u'CMRmap_r', u'Dark2', u'Dark2_r', u'GnBu', u'GnBu_r', u'Greens', u'Greens_r', u'Greys', u'Greys_r', u'OrRd', u'OrRd_r', u'Oranges', u'Oranges_r', u'PRGn', u'PRGn_r', u'Paired', u'Paired_r', u'Pastel1', u'Pastel1_r', u'Pastel2', u'Pastel2_r', u'PiYG', u'PiYG_r', u'PuBu', u'PuBuGn', u'PuBuGn_r', u'PuBu_r', u'PuOr', u'PuOr_r', u'PuRd', u'PuRd_r', u'Purples', u'Purples_r', u'RdBu', u'RdBu_r', u'RdGy', u'RdGy_r', u'RdPu', u'RdPu_r', u'RdYlBu', u'RdYlBu_r', u'RdYlGn', u'RdYlGn_r', u'Reds', u'Reds_r', u'Set1', u'Set1_r', u'Set2', u'Set2_r', u'Set3', u'Set3_r', u'Spectral', u'Spectral_r', u'Wistia', u'Wistia_r', u'YlGn', u'YlGnBu', u'YlGnBu_r', u'YlGn_r', u'YlOrBr', u'YlOrBr_r', u'YlOrRd', u'YlOrRd_r', u'afmhot', u'afmhot_r', u'autumn', u'autumn_r', u'binary', u'binary_r', u'bone', u'bone_r', u'brg', u'brg_r', u'bwr', u'bwr_r', 'cividis', 'cividis_r', u'cool', u'cool_r', u'coolwarm', u'coolwarm_r', u'copper', u'copper_r', u'cubehelix', u'cubehelix_r', u'flag', u'flag_r', u'gist_earth', u'gist_earth_r', u'gist_gray', u'gist_gray_r', u'gist_heat', u'gist_heat_r', u'gist_ncar', u'gist_ncar_r', u'gist_rainbow', u'gist_rainbow_r', u'gist_stern', u'gist_stern_r', u'gist_yarg', u'gist_yarg_r', u'gnuplot', u'gnuplot2', u'gnuplot2_r', u'gnuplot_r', u'gray', u'gray_r', u'hot', u'hot_r', u'hsv', u'hsv_r', 'icefire', 'icefire_r', 'inferno', 'inferno_r', u'jet', u'jet_r', 'magma', 'magma_r', 'mako', 'mako_r', u'nipy_spectral', u'nipy_spectral_r', u'ocean', u'ocean_r', u'pink', u'pink_r', 'plasma', 'plasma_r', u'prism', u'prism_r', u'rainbow', u'rainbow_r', 'rocket', 'rocket_r', u'seismic', u'seismic_r', u'spring', u'spring_r', u'summer', u'summer_r', u'tab10', u'tab10_r', u'tab20', u'tab20_r', u'tab20b', u'tab20b_r', u'tab20c', u'tab20c_r', u'terrain', u'terrain_r', 'viridis', 'viridis_r', 'vlag', 'vlag_r', u'winter', u'winter_r']" />
+    <param name="currentCmap" value="viridis" type="unicode" choices="[u'Accent', u'Accent_r', u'Blues', u'Blues_r', u'BrBG', u'BrBG_r', u'BuGn', u'BuGn_r', u'BuPu', u'BuPu_r', u'CMRmap', u'CMRmap_r', u'Dark2', u'Dark2_r', u'GnBu', u'GnBu_r', u'Greens', u'Greens_r', u'Greys', u'Greys_r', u'OrRd', u'OrRd_r', u'Oranges', u'Oranges_r', u'PRGn', u'PRGn_r', u'Paired', u'Paired_r', u'Pastel1', u'Pastel1_r', u'Pastel2', u'Pastel2_r', u'PiYG', u'PiYG_r', u'PuBu', u'PuBuGn', u'PuBuGn_r', u'PuBu_r', u'PuOr', u'PuOr_r', u'PuRd', u'PuRd_r', u'Purples', u'Purples_r', u'RdBu', u'RdBu_r', u'RdGy', u'RdGy_r', u'RdPu', u'RdPu_r', u'RdYlBu', u'RdYlBu_r', u'RdYlGn', u'RdYlGn_r', u'Reds', u'Reds_r', u'Set1', u'Set1_r', u'Set2', u'Set2_r', u'Set3', u'Set3_r', u'Spectral', u'Spectral_r', u'Wistia', u'Wistia_r', u'YlGn', u'YlGnBu', u'YlGnBu_r', u'YlGn_r', u'YlOrBr', u'YlOrBr_r', u'YlOrRd', u'YlOrRd_r', u'afmhot', u'afmhot_r', u'autumn', u'autumn_r', u'binary', u'binary_r', u'bone', u'bone_r', u'brg', u'brg_r', u'bwr', u'bwr_r', 'cividis', 'cividis_r', u'cool', u'cool_r', u'coolwarm', u'coolwarm_r', u'copper', u'copper_r', u'cubehelix', u'cubehelix_r', u'flag', u'flag_r', u'gist_earth', u'gist_earth_r', u'gist_gray', u'gist_gray_r', u'gist_heat', u'gist_heat_r', u'gist_ncar', u'gist_ncar_r', u'gist_rainbow', u'gist_rainbow_r', u'gist_stern', u'gist_stern_r', u'gist_yarg', u'gist_yarg_r', u'gnuplot', u'gnuplot2', u'gnuplot2_r', u'gnuplot_r', u'gray', u'gray_r', u'hot', u'hot_r', u'hsv', u'hsv_r', 'icefire', 'icefire_r', 'inferno', 'inferno_r', u'jet', u'jet_r', 'magma', 'magma_r', 'mako', 'mako_r', u'nipy_spectral', u'nipy_spectral_r', u'ocean', u'ocean_r', u'pink', u'pink_r', 'plasma', 'plasma_r', u'prism', u'prism_r', u'rainbow', u'rainbow_r', 'rocket', 'rocket_r', u'seismic', u'seismic_r', u'spring', u'spring_r', u'summer', u'summer_r', u'tab10', u'tab10_r', u'tab20', u'tab20_r', u'tab20b', u'tab20b_r', u'tab20c', u'tab20c_r', u'terrain', u'terrain_r', 'viridis', 'viridis_r', 'vlag', 'vlag_r', u'winter', u'winter_r']" />
     <param name="useCurrentCmap" value="False" type="bool" />
     <param name="minCmap" value="0.00" type="float" />
     <param name="midCmap" value="50.00" type="float" />
@@ -492,9 +492,9 @@
     <param name="dpi" value="100" type="int" />
     <param name="imageWidthInch" value="8" type="int" />
     <param name="imageHeightInch" value="8" type="int" />
-    <param name="transparent" value="True" type="bool" />
+    <param name="transparent" value="False" type="bool" />
     <param name="colorbar" value="False" type="bool" />
-    <param name="imageFormat" value="svg" type="unicode" choices="['png', 'svg', 'svgz', 'ps', 'raw', 'eps', 'jpeg', 'tiff', 'pdf']" />
+    <param name="imageFormat" value="png" type="unicode" choices="['png', 'svg', 'svgz', 'ps', 'raw', 'eps', 'jpeg', 'tiff', 'pdf']" />
     <param name="saveDelimiterTXT" value="comma" type="unicode" choices="['comma', 'tab', 'space']" />
     <param name="normalizeMultipleMS" value="True" type="bool" />
   </exportParams>

@@ -4873,8 +4873,17 @@ class dlgOutputInteractive(wx.MiniFrame):
         if bkh_kwargs.get("test_x_axis", False):
             xvals, xlabel, __ = self._kda_test(xvals)
 
+        try:
+            shape = zvals.shape[1]
+            if shape > data['interactive_params']['preprocessing_properties'].get("subsample_limit", 20000):
+                shape = True
+            else: shape = False
+        except:
+            shape = True
+            
         # reshape array to ro reduce size
-        if data['interactive_params']['preprocessing_properties'].get("subsample", bkh_kwargs.get("reshape_array", False)):
+        if (data['interactive_params']['preprocessing_properties'].get("subsample", bkh_kwargs.get("reshape_array", False))
+            and shape):
             xlen = len(xvals)
             ylen = len(yvals)
             zvals = np.transpose(np.reshape(zvals, (xlen, ylen)))
@@ -7984,9 +7993,9 @@ class dlgOutputInteractive(wx.MiniFrame):
         if "subsample" not in data['interactive_params']['preprocessing_properties']:
             data['interactive_params']['preprocessing_properties']['subsample'] = True
         if "subsample_frequency" not in data['interactive_params']['preprocessing_properties']:
-            data['interactive_params']['preprocessing_properties']['subsample_frequency'] = 20000
+            data['interactive_params']['preprocessing_properties']['subsample_frequency'] = 20
         if "subsample_limit" not in data['interactive_params']['preprocessing_properties']:
-            data['interactive_params']['preprocessing_properties']['subsample_limit'] = 20
+            data['interactive_params']['preprocessing_properties']['subsample_limit'] = 20000
 
         return data
 
