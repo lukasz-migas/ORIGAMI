@@ -8,7 +8,7 @@
         <meta name="author" content="Lukasz Migas">
         
         <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>MS and IM-MS files - ORIGAMI</title>
+        <title>Automated CIU datasets (ORIGAMI<sup>MS</sup>) - ORIGAMI</title>
         <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../../css/font-awesome.min.css" rel="stylesheet">
         <link href="../../css/base.css" rel="stylesheet">
@@ -68,7 +68,7 @@
     <a href="#">Data handling</a>
     <ul class="dropdown-menu">
             
-<li class="active">
+<li >
     <a href="ms-and-imms-files.html">MS and IM-MS files</a>
 </li>
             
@@ -76,7 +76,7 @@
     <a href="text-files.html">Text files</a>
 </li>
             
-<li >
+<li class="active">
     <a href="automated-ciu.html">Automated CIU datasets (ORIGAMI<sup>MS</sup>)</a>
 </li>
             
@@ -161,17 +161,17 @@
                             </a>
                         </li>
                             <li >
-                                <a rel="next" href="../loading-data.html">
+                                <a rel="next" href="text-files.html">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li >
-                                <a rel="prev" href="text-files.html">
+                                <a rel="prev" href="manual-ciu.html">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
                             <li>
-                                <a href="https://github.com/lukasz-migas/ORIGAMI/edit/master/docs/user-guide/data-handling/ms-and-imms-files.md"><i class="fa fa-github"></i> Edit on GitHub</a>
+                                <a href="https://github.com/lukasz-migas/ORIGAMI/edit/master/docs/user-guide/data-handling/automated-ciu.md"><i class="fa fa-github"></i> Edit on GitHub</a>
                             </li>
                     </ul>
                 </div>
@@ -181,77 +181,104 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#analysis-of-ms-and-im-ms-files">Analysis of MS and IM-MS files</a></li>
+        <li class="main active"><a href="#analysis-of-origami-ms-datasets">Analysis of ORIGAMI-MS datasets</a></li>
             <li><a href="#data-loading">Data loading</a></li>
-            <li><a href="#document-tree">Document tree</a></li>
-            <li><a href="#plotting-and-replotting">Plotting and replotting</a></li>
             <li><a href="#data-extraction">Data extraction</a></li>
-            <li><a href="#mass-spectra-from-rt-1d-2d-windows">Mass spectra (from RT, 1D, 2D windows)</a></li>
-            <li><a href="#heatmaps-from-ms-window">Heatmaps (from MS window)</a></li>
-            <li><a href="#chromatograms-from-dtms-window">Chromatograms (from DT/MS window)</a></li>
-            <li><a href="#panel-peaklist">Panel: Peaklist</a></li>
-            <li><a href="#processing-mass-spectra">Processing mass spectra</a></li>
+            <li><a href="#origami-ms-method">ORIGAMI-MS method</a></li>
+            <li><a href="#getting-started">Getting started</a></li>
+            <li><a href="#how-to-determine-first-scan">How to determine first scan</a></li>
+            <li><a href="#how-to-determine-origami-ms-parameters">How to determine ORIGAMI-MS parameters</a></li>
+            <li><a href="#how-to-combine-the-same-cvs-into-one">How to combine the same CVs into one</a></li>
+            <li><a href="#extracting-mass-spectra-for-each-cv">Extracting mass spectra for each CV</a></li>
             <li><a href="#processing-heatmaps">Processing heatmaps</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="analysis-of-ms-and-im-ms-files">Analysis of MS and IM-MS files</h1>
-<p>In this example, we will use a file provided in the example. You can download it from <a href="../example-files/ORIGAMI_ConA_z20.raw.zip">here</a> or it should be found in your ORIGAMI directory (<strong>example_data/origami_ms</strong>).</p>
+<h1 id="analysis-of-origami-ms-datasets">Analysis of ORIGAMI-MS datasets</h1>
+<p>In this example we will use file provided with the ORIGAMI distribution. You can download it <a href="../example-files/ORIGAMI_ConA_z20.raw.zip">here</a> or it should be found in your ORIGAMI directory (<strong>example_data/origami_ms</strong>).</p>
 <h3 id="data-loading">Data loading</h3>
-<p>To load Waters (.raw) files, please use any of the following:</p>
-<ul>
-<li>Use the file menu. File -&gt; Open ORIGAMI MassLynx (.raw) file [CIU]</li>
-<li>Use the toolbar. Click on the <img alt="Image" src="img/origami-data-icon.png" /> button</li>
-<li>Use a keyboard shortcut:<ul>
-<li><strong>CTRL+R</strong> - open Waters (.raw) file - IM-MS   </li>
-</ul>
-</li>
-<li>Drag-and-drop the file in the main window</li>
-</ul>
-<h3 id="document-tree">Document tree</h3>
-<p>Any file you open will result in generation of a <strong>ORIGAMI document</strong> that will contain all <strong>data</strong> that you will generate. It is structured just like a directory on your PC so it should be easy to get used to. When you right-click on any item, a custom menu will appear from which you can figure out what you would like to do. An example is shown below: </p>
-<p><img alt="Image" src="img/document-tree.png" /></p>
-<h3 id="plotting-and-replotting">Plotting and replotting</h3>
-<p>You can either double-click on an item in the <strong>Document tree</strong> or right-click and select the option "Show...". If you would like to clear a plot, right-click in the plot area and select "Clear plot".</p>
+<p>Please have a look at <a href="ms-and-imms-files.html#data-loading">MS and IM-MS data loading</a>.</p>
 <h3 id="data-extraction">Data extraction</h3>
-<p>You can extract various types of data from Waters (.raw) files. The type you extract will depend on the window you are currently viewing. So, if you are in the <strong>MS</strong> window, you can extract <strong>heatmap</strong>, <strong>mobility</strong> and <strong>chromatography</strong> data. If you are in the <strong>RT</strong>, <strong>1D</strong> or <strong>2D</strong> windows, you can extract <strong>mass spectra</strong>. To select region you would like to extract, press and hold <strong>CTRL</strong> on your keyboard and <strong>left-click</strong> drag your mouse on the selected region. Most data will be automatically extracted (except for heatmaps - will discuss shortly). Data that has been extracted will be automatically added to your <strong>document</strong>. </p>
-<h3 id="mass-spectra-from-rt-1d-2d-windows">Mass spectra (from RT, 1D, 2D windows)</h3>
-<p>The extracted mass spectra can either represent the <strong>raw</strong> data or <strong>linearized</strong> data, depending on what settings you have enabled. To change this behaviour, open the <strong>Processing window</strong>, go to <strong>Mass spectrum</strong> and check (or uncheck) the "Enable MS linearization in chromatogram/mobiligram window". You can also change linearization settings in this panel. If you are extracting from the RT window, <em>chromatographic</em> information will be used, from the 1D window, <em>drift time</em> and from 2D window, both will be used. Extracted data will appear under <strong>Mass Spectra</strong>.</p>
-<h3 id="heatmaps-from-ms-window">Heatmaps (from MS window)</h3>
-<p>When you extract data from the MS window, an ion will automatically be added to the Peaklist. This panel serves as main select-and-compare tool for easy visualisation of multiple items together. In order for the data to be extracted, you must click on the <img alt="Image" src="img/extract-icon.png" /> button and a new menu will appear where appear where you can select the "Extract all ions". If, in future you would like to automatically extract heatmaps, click on the "Extract automatically" toggle. Extracted data will appear under <strong>Drift time (2D, EIC)</strong>.</p>
-<p><img alt="Image" src="img/extract-heatmap-from-ms.png" /></p>
-<h3 id="chromatograms-from-dtms-window">Chromatograms (from DT/MS window)</h3>
-<p>You can extract chromatograms in the DT/MS window where the <em>m/z</em> and <em>drift time</em> information will be taken into account during data extraction. Extracted data will appear under <strong>Chromatograms (EIC)</strong>.</p>
-<p><img alt="Image" src="img/extract-rt-from-dtms.png" /></p>
-<h3 id="panel-peaklist">Panel: Peaklist</h3>
-<p>All heatmaps are automatically added to the <strong>Panel peaklist</strong> which usually appears on the right-hand side of the window. From here, you can easily visualise, customise and compare data. </p>
-<p>When you right-click on any item in the list, a menu will appear from which you can easily access various visualisation modes and customisation settings.</p>
-<p><img alt="Image" src="img/panel-ion-list-right-click-menu.png" /></p>
-<p>When you double-click on an item (or right-click and select "Edit file information") a new window will appear where you can change certain parameters, such as <em>ORIGAMI<sup>MS</sup> parameters, charge state, color, colormap, etc</em>.</p>
-<p><img alt="Image" src="img/panel-ion-list-customise-item.png" /></p>
-<h3 id="processing-mass-spectra">Processing mass spectra</h3>
-<p>Mass spectra imported using Driftscope are automatically normalized to 1 (not my fault, I promise!). Sometimes, it might be necessary to remove noise or smooth the spectrum so it is more visually appealing. </p>
-<p>Panel processing: MS</p>
-<p><img alt="Image" src="img/panel-process-MS.png" /></p>
+<p>Please have a look at <a href="ms-and-imms-files.html#data-extraction">MS and IM-MS data extraction</a>.</p>
+<h3 id="origami-ms-method">ORIGAMI-MS method</h3>
+<p>ORIGAMI-MS acquired files are simply CIU datasets that were acquired within a single file in which the collision voltage (or cone voltage) were ramped to increase the activation energy. </p>
+<p>There are four methods available which either increase or keep constant the number of scans-per-voltage as the energy increases. 
+<em> Linear: the collision voltage (CV) is ramped from <strong>Start Voltage (StartV)</strong> to <strong>End Voltage (EndV)</strong> with <strong>Step Voltage (StepV)</strong> as the increment. The number of scans-per-voltage stays the same and is controlled by <strong>Scans per Voltage (SPV)</strong>.
+</em> Exponential: the CV is ramped from StartV to EndV with StepV as the increment. The SPVs increase as a function of an exponential function where the user specifies the <strong>Exponential %</strong> and <strong>Exponential Increment</strong>. These values determine the rate of the increase.
+<em> Boltzmann: the CV is ramped from StartV to EndV with StepV as the increment. The SPVs increase as a function of an Boltzmann function where the user specifies the <strong>Boltzmann Offset</strong>. These values determine the rate of the increase.
+</em> User-defined: values of SPV and CV are provided in a list by the user.
+The user-defined list looks something like this and is usually provided as a .csv file.</p>
+<table>
+<thead>
+<tr>
+<th align="center">SPV</th>
+<th align="center">CV</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">3</td>
+<td align="center">5</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td align="center">10</td>
+</tr>
+<tr>
+<td align="center">9</td>
+<td align="center">12</td>
+</tr>
+<tr>
+<td align="center">12</td>
+<td align="center">20</td>
+</tr>
+</tbody>
+</table>
+<h3 id="getting-started">Getting started</h3>
+<p>The first thing to consider when analysing ORIGAMI-MS based files is the fact that they have a definitive start and end. These two points correspond to the initial and final collision voltage used during the acquisition. ORIGAMI-MS inserts two reporter regions into the acquisition window, and they tend to manifest itself as significant (or sometimes not) dips in the signal intensity. If you started the acquisition correctly, they should be easy to spot. See below for an example</p>
+<p><img alt="Image" src="img/plot_origami_chromatogram.png" /></p>
+<h3 id="how-to-determine-first-scan">How to determine first scan</h3>
 <ol>
-<li>Right-click on any mass spectrum in the Document tree (e.g. Mass Spectrum) and select <strong>Process...</strong>.</li>
-<li>A new window will appear where you can adjust processing parameters.</li>
-<li>Click on the <strong>Replot</strong> button if you first want to see how the data will look or <strong>Process</strong> if you would like to add that data to the document.</li>
+<li>Change the view to the RT (chromatogram) tab</li>
+<li>Zoom-in on the 'reporter' region in the retention time plot. The <strong>first</strong> value after the break is the <strong>start</strong> scan which will be used later on. In this case, the start scan is <strong>7</strong> which means the first CV in the experiment was applied on the 7th scan. </li>
 </ol>
+<h3 id="how-to-determine-origami-ms-parameters">How to determine ORIGAMI-MS parameters</h3>
+<p>There are only two ways you can determine what parameters were used in the acquisition.
+<em> You saved them in your labbook or in the header of the MassLynx file (recommended)
+</em> You saved them to a .csv file using the <strong>Save parameters</strong> button in ORIGAMI-MS window during your acquisition</p>
+<p>If you have done neither of these things, you can try to figure out your parameters by going to the folder containing ORIGAMI-MS program and looking for the appropriate ORIGAMI_log_<strong>DATE-TIME</strong>.log file which contains <strong>all</strong> commands executed by the program.</p>
+<h3 id="how-to-combine-the-same-cvs-into-one">How to combine the same CVs into one</h3>
+<p>This is a crucial step that will combine multiple scans into one, corresponding to the typical CIU file. First, you must select ions of interest in the MS and subsequently extract the data. Once you've done that, follow these steps.</p>
+<p>ORIGAMI-MS panel</p>
+<p><img alt="Image" src="img/panel_process_origami.png" /></p>
+<ol>
+<li>Open the Processing panel (<strong>SHIFT+2</strong> keyboard shortcut or Menu -&gt; Process -&gt; Settings: ORIGAMI or click on the <img alt="Image" src="img/process-origami-icon.png" /> button)</li>
+<li>Fill-in all necessary parameters (depending on your acquisition method). In the example case, we've used: start <strong>scan - 7</strong>, <strong>start voltage - 4</strong>, <strong>final voltage - 200</strong>, <strong>step voltage - 2.0</strong>, <strong>scans-per-voltage - 3</strong>.</li>
+<li>Go to the Panel: Peaklist and select some or all extracted ions</li>
+<li>In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select -&gt; Combine collision voltages for selected/all ions (ORIGAMI)</li>
+<li>Ions with combined CVs should appear in the Document tree under <strong>Drift time (2D, combined voltages, EIC)</strong>.</li>
+</ol>
+<p>The toolbar -&gt; Process menu: </p>
+<p><img alt="Image" src="img/panel-ion-list-process-menu.png" /></p>
+<p>Comparison of the all-ion, extracted-ion and combined voltage EIC heatmaps:
+<img alt="Image" src="img/heatmap-raw-combined-cv.png" /></p>
+<h3 id="extracting-mass-spectra-for-each-cv">Extracting mass spectra for each CV</h3>
+<p>Once you've associated ORIGAMI-MS parameters with the opened file, you can extract mass spectrum for each CV. 
+1. Provide ORIGAMI-MS parameters (same as above #1)
+2. In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select Extract mass spectra for each collision voltage (ORIGAMI). If the check <strong>Bin mass spectra during extraction</strong> is selected, mass spectra will be automatically linearized based on the parameters set in the <strong>Processing panel: Mass spectrum</strong>. Extraction can take several seconds -&gt; minutes.
+3. All MS data will appear in your document under <strong>Mass Spectra</strong></p>
+<p>All extracted mass spectra shown in a waterfall-like plot
+<img alt="Image" src="img/plot-waterfall-ms.png" /></p>
 <h3 id="processing-heatmaps">Processing heatmaps</h3>
 <p>By default, all heatmaps will show the <strong>raw</strong> data which might not always be the most visually pleasing. In some circumstances, it might be necessary to process (e.g. normalize or smooth) the data. </p>
 <p>Panel processing: 2D</p>
 <p><img alt="Image" src="img/panel_process_2D.png" /></p>
-<p>Depending what are you planning on processing (e.g. extracted ion heatmap or whole-file heatmap), you can perform processing in the Panel: peaklist or in the Document tree. </p>
-<p><strong>Panel: peaklist</strong>
-1. Select any number of ions in the peaklist.
-2. In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select -&gt; Process selected/all ions. Ions will be process based on the parameters in the <strong>Processing panel: 2D</strong>. 
-3. All process data will appear in the document with the <strong>(processed)</strong> tag attached to the name.</p>
-<p><strong>Document tree</strong>
-1. Right-click on a desired item in the Document tree (e.g. Drift time (2D)) and select <strong>Process...</strong>
-2. A new window will appear where you can adjust processing parameters
-3. Click on the <strong>Replot</strong> button if you first want to see how the data will look or <strong>Process</strong> if you would like to add that data to the document.</p>
+<ol>
+<li>Select any number of ions in the peaklist.</li>
+<li>In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select -&gt; Process selected/all ions. Ions will be process based on the parameters in the <strong>Processing panel: 2D</strong>. </li>
+<li>All process data will appear in the document with the <strong>(processed)</strong> tag attached to the name.</li>
+</ol>
 <p>Comparison of processing of <em>some</em> processing methods. </p>
 <p><img alt="Image" src="img/heatmap-processing.png" /></p></div>
         </div>

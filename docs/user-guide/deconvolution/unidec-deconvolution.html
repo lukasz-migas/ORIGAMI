@@ -8,7 +8,7 @@
         <meta name="author" content="Lukasz Migas">
         
         <link rel="shortcut icon" href="../../img/favicon.ico">
-        <title>MS and IM-MS files - ORIGAMI</title>
+        <title>UniDec - deconvolution - ORIGAMI</title>
         <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../../css/font-awesome.min.css" rel="stylesheet">
         <link href="../../css/base.css" rel="stylesheet">
@@ -68,20 +68,20 @@
     <a href="#">Data handling</a>
     <ul class="dropdown-menu">
             
-<li class="active">
-    <a href="ms-and-imms-files.html">MS and IM-MS files</a>
+<li >
+    <a href="../data-handling/ms-and-imms-files.html">MS and IM-MS files</a>
 </li>
             
 <li >
-    <a href="text-files.html">Text files</a>
+    <a href="../data-handling/text-files.html">Text files</a>
 </li>
             
 <li >
-    <a href="automated-ciu.html">Automated CIU datasets (ORIGAMI<sup>MS</sup>)</a>
+    <a href="../data-handling/automated-ciu.html">Automated CIU datasets (ORIGAMI<sup>MS</sup>)</a>
 </li>
             
 <li >
-    <a href="manual-ciu.html">Manual CIU/SID datasets</a>
+    <a href="../data-handling/manual-ciu.html">Manual CIU/SID datasets</a>
 </li>
     </ul>
   </li>
@@ -108,16 +108,16 @@
     <a href="#">Deconvolution</a>
     <ul class="dropdown-menu">
             
-<li >
-    <a href="../deconvolution/unidec-deconvolution.html">UniDec - deconvolution</a>
+<li class="active">
+    <a href="unidec-deconvolution.html">UniDec - deconvolution</a>
 </li>
             
 <li >
-    <a href="../deconvolution/unidec-customise-plots.html">UniDec - customising plots </a>
+    <a href="unidec-customise-plots.html">UniDec - customising plots </a>
 </li>
             
 <li >
-    <a href="../deconvolution/unidec-change-window-view.html">UniDec - changing window view </a>
+    <a href="unidec-change-window-view.html">UniDec - changing window view </a>
 </li>
     </ul>
   </li>
@@ -161,17 +161,17 @@
                             </a>
                         </li>
                             <li >
-                                <a rel="next" href="../loading-data.html">
+                                <a rel="next" href="../processing/heatmaps.html">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li >
-                                <a rel="prev" href="text-files.html">
+                                <a rel="prev" href="unidec-customise-plots.html">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
                             <li>
-                                <a href="https://github.com/lukasz-migas/ORIGAMI/edit/master/docs/user-guide/data-handling/ms-and-imms-files.md"><i class="fa fa-github"></i> Edit on GitHub</a>
+                                <a href="https://github.com/lukasz-migas/ORIGAMI/edit/master/docs/user-guide/deconvolution/unidec-deconvolution.md"><i class="fa fa-github"></i> Edit on GitHub</a>
                             </li>
                     </ul>
                 </div>
@@ -181,79 +181,54 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#analysis-of-ms-and-im-ms-files">Analysis of MS and IM-MS files</a></li>
-            <li><a href="#data-loading">Data loading</a></li>
-            <li><a href="#document-tree">Document tree</a></li>
+        <li class="main active"><a href="#unidec-deconvolution">UniDec deconvolution</a></li>
+            <li><a href="#deconvolution-in-origami-analyse">Deconvolution in ORIGAMI-ANALYSE</a></li>
+            <li><a href="#example-data">Example data</a></li>
+            <li><a href="#loading-data">Loading data</a></li>
+            <li><a href="#deconvolution">Deconvolution</a></li>
+            <li><a href="#visualisation-of-results">Visualisation of results</a></li>
+            <li><a href="#visualisation-of-individual-species">Visualisation of individual species</a></li>
+            <li><a href="#saving-plots">Saving plots</a></li>
+            <li><a href="#saving-data">Saving data</a></li>
             <li><a href="#plotting-and-replotting">Plotting and replotting</a></li>
-            <li><a href="#data-extraction">Data extraction</a></li>
-            <li><a href="#mass-spectra-from-rt-1d-2d-windows">Mass spectra (from RT, 1D, 2D windows)</a></li>
-            <li><a href="#heatmaps-from-ms-window">Heatmaps (from MS window)</a></li>
-            <li><a href="#chromatograms-from-dtms-window">Chromatograms (from DT/MS window)</a></li>
-            <li><a href="#panel-peaklist">Panel: Peaklist</a></li>
-            <li><a href="#processing-mass-spectra">Processing mass spectra</a></li>
-            <li><a href="#processing-heatmaps">Processing heatmaps</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="analysis-of-ms-and-im-ms-files">Analysis of MS and IM-MS files</h1>
-<p>In this example, we will use a file provided in the example. You can download it from <a href="../example-files/ORIGAMI_ConA_z20.raw.zip">here</a> or it should be found in your ORIGAMI directory (<strong>example_data/origami_ms</strong>).</p>
-<h3 id="data-loading">Data loading</h3>
-<p>To load Waters (.raw) files, please use any of the following:</p>
-<ul>
-<li>Use the file menu. File -&gt; Open ORIGAMI MassLynx (.raw) file [CIU]</li>
-<li>Use the toolbar. Click on the <img alt="Image" src="img/origami-data-icon.png" /> button</li>
-<li>Use a keyboard shortcut:<ul>
-<li><strong>CTRL+R</strong> - open Waters (.raw) file - IM-MS   </li>
-</ul>
-</li>
-<li>Drag-and-drop the file in the main window</li>
-</ul>
-<h3 id="document-tree">Document tree</h3>
-<p>Any file you open will result in generation of a <strong>ORIGAMI document</strong> that will contain all <strong>data</strong> that you will generate. It is structured just like a directory on your PC so it should be easy to get used to. When you right-click on any item, a custom menu will appear from which you can figure out what you would like to do. An example is shown below: </p>
-<p><img alt="Image" src="img/document-tree.png" /></p>
-<h3 id="plotting-and-replotting">Plotting and replotting</h3>
-<p>You can either double-click on an item in the <strong>Document tree</strong> or right-click and select the option "Show...". If you would like to clear a plot, right-click in the plot area and select "Clear plot".</p>
-<h3 id="data-extraction">Data extraction</h3>
-<p>You can extract various types of data from Waters (.raw) files. The type you extract will depend on the window you are currently viewing. So, if you are in the <strong>MS</strong> window, you can extract <strong>heatmap</strong>, <strong>mobility</strong> and <strong>chromatography</strong> data. If you are in the <strong>RT</strong>, <strong>1D</strong> or <strong>2D</strong> windows, you can extract <strong>mass spectra</strong>. To select region you would like to extract, press and hold <strong>CTRL</strong> on your keyboard and <strong>left-click</strong> drag your mouse on the selected region. Most data will be automatically extracted (except for heatmaps - will discuss shortly). Data that has been extracted will be automatically added to your <strong>document</strong>. </p>
-<h3 id="mass-spectra-from-rt-1d-2d-windows">Mass spectra (from RT, 1D, 2D windows)</h3>
-<p>The extracted mass spectra can either represent the <strong>raw</strong> data or <strong>linearized</strong> data, depending on what settings you have enabled. To change this behaviour, open the <strong>Processing window</strong>, go to <strong>Mass spectrum</strong> and check (or uncheck) the "Enable MS linearization in chromatogram/mobiligram window". You can also change linearization settings in this panel. If you are extracting from the RT window, <em>chromatographic</em> information will be used, from the 1D window, <em>drift time</em> and from 2D window, both will be used. Extracted data will appear under <strong>Mass Spectra</strong>.</p>
-<h3 id="heatmaps-from-ms-window">Heatmaps (from MS window)</h3>
-<p>When you extract data from the MS window, an ion will automatically be added to the Peaklist. This panel serves as main select-and-compare tool for easy visualisation of multiple items together. In order for the data to be extracted, you must click on the <img alt="Image" src="img/extract-icon.png" /> button and a new menu will appear where appear where you can select the "Extract all ions". If, in future you would like to automatically extract heatmaps, click on the "Extract automatically" toggle. Extracted data will appear under <strong>Drift time (2D, EIC)</strong>.</p>
-<p><img alt="Image" src="img/extract-heatmap-from-ms.png" /></p>
-<h3 id="chromatograms-from-dtms-window">Chromatograms (from DT/MS window)</h3>
-<p>You can extract chromatograms in the DT/MS window where the <em>m/z</em> and <em>drift time</em> information will be taken into account during data extraction. Extracted data will appear under <strong>Chromatograms (EIC)</strong>.</p>
-<p><img alt="Image" src="img/extract-rt-from-dtms.png" /></p>
-<h3 id="panel-peaklist">Panel: Peaklist</h3>
-<p>All heatmaps are automatically added to the <strong>Panel peaklist</strong> which usually appears on the right-hand side of the window. From here, you can easily visualise, customise and compare data. </p>
-<p>When you right-click on any item in the list, a menu will appear from which you can easily access various visualisation modes and customisation settings.</p>
-<p><img alt="Image" src="img/panel-ion-list-right-click-menu.png" /></p>
-<p>When you double-click on an item (or right-click and select "Edit file information") a new window will appear where you can change certain parameters, such as <em>ORIGAMI<sup>MS</sup> parameters, charge state, color, colormap, etc</em>.</p>
-<p><img alt="Image" src="img/panel-ion-list-customise-item.png" /></p>
-<h3 id="processing-mass-spectra">Processing mass spectra</h3>
-<p>Mass spectra imported using Driftscope are automatically normalized to 1 (not my fault, I promise!). Sometimes, it might be necessary to remove noise or smooth the spectrum so it is more visually appealing. </p>
-<p>Panel processing: MS</p>
-<p><img alt="Image" src="img/panel-process-MS.png" /></p>
+<h1 id="unidec-deconvolution">UniDec deconvolution</h1>
+<p>UniDec is a Bayesian deconvolution algorithm that can be used to deconvolute mass spectra and ion mobility-mass spectra. It was developed by <a href="https://cbc.arizona.edu/faculty/michael-marty">Dr. Michael Marty</a> and is freely available under the modified BSD licence. I would highly recommend you check-out <a href="https://github.com/michaelmarty/UniDec/releases">UniDec (and MetaUniDec)</a> software. </p>
+<p>If you use it in your work, please cite their work:</p>
+<p><a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.5b00140">M. T. Marty, A. J. Baldwin, E. G. Marklund, G. K. A. Hochberg, J. L. P. Benesch, C. V. Robinson, Anal. Chem. 2015, 87, 4370-4376.</a></p>
+<h3 id="deconvolution-in-origami-analyse">Deconvolution in ORIGAMI-ANALYSE</h3>
+<p>Any mass spectrum within a ORIGAMI document can be deconvoluted and therefore a document can contain tens of spectra, each with its own deconvolution results. The easiest way to get started is to find an item in the Document Tree, right-click on it and select <strong>Deconvolute using UniDec...</strong> which will open a new panel where you can adjust the parameters. </p>
+<h3 id="example-data">Example data</h3>
+<p>In this example we will use a file provided with the ORIGAMI distribution. You can download <a href="../example-files/MS_p27-FL-K31.csv">MS file</a> or you can find it in your ORIGAMI directory (<strong>example_data/text</strong>). This file contains a mass spectrum of a intrinsically disordered protein, p27 that is approx. 22.5 kDa in size and has a very broad charge state distribution.</p>
+<h3 id="loading-data">Loading data</h3>
+<p>Please have a look at <a href="../data-handling/text-files.html">Loading Text files</a>. 
+In short, you either drag-and-drop the text file in the main window of ORIGAMI-ANALYSE or go to <strong>File -&gt; Open MS Text file</strong>.</p>
+<h3 id="deconvolution">Deconvolution</h3>
+<p>Once you've loaded data, right-click on it in the Document Tree and select <strong>Deconvolute using UniDec...</strong> If you are using the example file, you can start with the settings shown below:</p>
+<p><img alt="Image" src="img/panel-process-unidec.png" /></p>
 <ol>
-<li>Right-click on any mass spectrum in the Document tree (e.g. Mass Spectrum) and select <strong>Process...</strong>.</li>
-<li>A new window will appear where you can adjust processing parameters.</li>
-<li>Click on the <strong>Replot</strong> button if you first want to see how the data will look or <strong>Process</strong> if you would like to add that data to the document.</li>
+<li>Specify Pre-processing parameters. You can start with <strong>m/z start = 500</strong> and <strong>m/z end = 2500</strong> with m/z <strong>bin size = 0.1</strong> using <strong>Linear interpolation</strong> method. Click on the <strong>Pre-process</strong> button. If you are using the <strong>Tabbed view</strong>, the results will be shown in the tab <strong>UniDec -&gt; MS</strong></li>
+<li>Specify deconvolution parameters. If you are unsure about the sample you are analysing, specify a broad range of charge states and the molecular weight with large-ish Sampling frequency. This will help you narrow down the appropriate range for your sample. Once you are happy, click on the Run UniDec button. If you are using the <strong>Tabbed view</strong>, the results will be shown in <strong>UniDec -&gt; m/z vs Charge / MW vs Charge / MW</strong> tabs.</li>
+<li>Following successful deconvolution, you can find peaks and identify the <em>found</em> molecular weights. To do this, specify appropriate parameters in the <strong>Peak detection parameters</strong> section and then click on the <strong>Detect peaks</strong> button. If you are using the <strong>Tabbed view</strong>, the results will be shown in <strong>UniDec -&gt; Isolated MS / Barplot</strong> tabs.</li>
 </ol>
-<h3 id="processing-heatmaps">Processing heatmaps</h3>
-<p>By default, all heatmaps will show the <strong>raw</strong> data which might not always be the most visually pleasing. In some circumstances, it might be necessary to process (e.g. normalize or smooth) the data. </p>
-<p>Panel processing: 2D</p>
-<p><img alt="Image" src="img/panel_process_2D.png" /></p>
-<p>Depending what are you planning on processing (e.g. extracted ion heatmap or whole-file heatmap), you can perform processing in the Panel: peaklist or in the Document tree. </p>
-<p><strong>Panel: peaklist</strong>
-1. Select any number of ions in the peaklist.
-2. In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select -&gt; Process selected/all ions. Ions will be process based on the parameters in the <strong>Processing panel: 2D</strong>. 
-3. All process data will appear in the document with the <strong>(processed)</strong> tag attached to the name.</p>
-<p><strong>Document tree</strong>
-1. Right-click on a desired item in the Document tree (e.g. Drift time (2D)) and select <strong>Process...</strong>
-2. A new window will appear where you can adjust processing parameters
-3. Click on the <strong>Replot</strong> button if you first want to see how the data will look or <strong>Process</strong> if you would like to add that data to the document.</p>
-<p>Comparison of processing of <em>some</em> processing methods. </p>
-<p><img alt="Image" src="img/heatmap-processing.png" /></p></div>
+<h3 id="visualisation-of-results">Visualisation of results</h3>
+<p><img alt="Image" src="img/unidec-deconvolution-results.png" /></p>
+<h3 id="visualisation-of-individual-species">Visualisation of individual species</h3>
+<p>If you are lucky, deconvolution will result in a single species being detect. This is rather unlikely and therefore you will be presented with a range of detected MW. 
+In order to select and visualise only <strong>one</strong> species at at time, you can select an item with a molecular weight in the Dropdown menu (see below) and click on the <strong>Isolate</strong> button. You can also label its charge states by clicking on the <strong>Label</strong> button. </p>
+<p><strong>Note:</strong> It is likely that the automatic label optimiser is enabled and you can change that by clicking on the <strong>Customise plots...</strong> button and unchecking the <strong>Optimise label position</strong> option.</p>
+<p><img alt="Image" src="img/unidec-select-mw.png" /></p>
+<h3 id="saving-plots">Saving plots</h3>
+<p>The easiest way to save any plot in ORIGAMI-ANALYSE is to plot it, customise it and then right-click in the plot area and select <strong>Save figure...</strong>.</p>
+<p><strong>Note:</strong> It is likely that the figure will be automatically resized to a pre-defined image size. This can <strong>very occasionally</strong> cause problems, therefore you disable that option by unchecking the <strong>Resize on saving</strong> menu item.</p>
+<h3 id="saving-data">Saving data</h3>
+<p>All deconvolution data is saved within the document and if you to the Document Tree and open-up the item (see below), you can right-click on any item and select the option <strong>Save results</strong>. If you click on the <strong>UniDec</strong> header, you can save all results at the same time.</p>
+<p><img alt="Image" src="img/document-tree-save-unidec-data.png" /></p>
+<h3 id="plotting-and-replotting">Plotting and replotting</h3>
+<p>Find the desired item in the Document Tree and double-click on it to plot it.</p></div>
         </div>
 
         <footer class="col-md-12">
