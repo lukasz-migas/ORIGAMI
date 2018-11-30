@@ -53,6 +53,7 @@ from bokeh.models.widgets import Panel, Tabs, Div, RadioButtonGroup
 from bokeh import events
 from bokeh.resources import INLINE
 from bokeh.models.tickers import FixedTicker
+from bokeh.embed import components
 
 from ids import *
 from panelCustomiseInteractive import panelCustomiseInteractive
@@ -6790,7 +6791,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         if self.currentDocumentName in ["None", "", None]:
             self.currentDocumentName = "ORIGAMI"
 
-
+        add_width = 0
         add_watermark = self.addWatermarkCheck.GetValue()
         if self.currentPath == None:
             try:
@@ -7036,6 +7037,10 @@ class dlgOutputInteractive(wx.MiniFrame):
             elif len(bokehPlot) == 4:
                 bokehPlot, width, __, widget_kwargs = bokehPlot
 
+#             Add possibility to export div/script
+#             script, div = components(bokehPlot)
+#             print(div)
+
             # plot width
             widgetDict[page['name']]['plot_width'].append(width)
             # add widget kwargs to dictionary
@@ -7062,19 +7067,20 @@ class dlgOutputInteractive(wx.MiniFrame):
                 markupFootnote = widgetbox(divFootnote, width=width)
                 plot_output.append(markupFootnote)
 
+            
             # Generate layout
             if page['layout'] == 'Individual':
                 if add_watermark:
-                    divWatermark = Div(text=str(self.config.watermark), width=width + 50)
-                    markupWatermark = widgetbox(divWatermark, width=width + 50)
+                    divWatermark = Div(text=str(self.config.watermark), width=width + add_width)
+                    markupWatermark = widgetbox(divWatermark, width=width + add_width)
                     plot_output.append(markupWatermark)
                 bokehLayout = bokeh_layout(plot_output,
                                            sizing_mode='fixed',
-                                           width=width + 50)
+                                           width=width + add_width)
             else:
                 bokehLayout = bokeh_layout(plot_output,
                                            sizing_mode='fixed',
-                                           width=width + 50)
+                                           width=width + add_width)
             # Add to plot dictionary
             if page['layout'] == 'Individual':
                 bokehTab = Panel(child=bokehLayout, title=title)
@@ -7099,8 +7105,8 @@ class dlgOutputInteractive(wx.MiniFrame):
             width = np.max(widgetDict[pageKey]["plot_width"])
 
             if add_watermark:
-                divWatermark = Div(text=str(self.config.watermark), width=width + 50)
-                markupWatermark = widgetbox(divWatermark, width=width + 50)
+                divWatermark = Div(text=str(self.config.watermark), width=width + add_width)
+                markupWatermark = widgetbox(divWatermark, width=width + add_width)
 
             # get page format
             page_format = self.config.pageDict.get(pageKey, None)
@@ -7123,18 +7129,18 @@ class dlgOutputInteractive(wx.MiniFrame):
             if page_format['layout'] == 'Rows':
                 bokeh_output = [[row(plotDict[pageKey])]]
                 if page_format.get("header", "") != "":
-                    pageHeaderDiv = Div(text=page_format.get("header", ""), width=(width) + 50)
-                    pageHeader = widgetbox(pageHeaderDiv, width=(width) + 50)
+                    pageHeaderDiv = Div(text=page_format.get("header", ""), width=(width) + add_width)
+                    pageHeader = widgetbox(pageHeaderDiv, width=(width) + add_width)
                     bokeh_output.insert(0, pageHeader)
                 if page_format.get("footnote", "") != "":
-                    pageFootnoteDiv = Div(text=page_format.get("footnote", ""), width=(width) + 50)
-                    pageFootnote = widgetbox(pageFootnoteDiv, width=(width) + 50)
+                    pageFootnoteDiv = Div(text=page_format.get("footnote", ""), width=(width) + add_width)
+                    pageFootnote = widgetbox(pageFootnoteDiv, width=(width) + add_width)
                     bokeh_output.append(pageFootnote)
                 if add_watermark:
                     bokeh_output.append(markupWatermark)
                 rowOutput = bokeh_layout(bokeh_output,
                                          sizing_mode='fixed',
-                                         width=width + 50)
+                                         width=width + add_width)
 
                 # add widgets
                 if page_format.get("add_js_widgets", False):
@@ -7171,7 +7177,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                     bokeh_output.append(markupWatermark)
                 rowOutput = bokeh_layout(bokeh_output,
                                          sizing_mode='fixed',
-                                         width=width + 50)
+                                         width=width + add_width)
                 bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
                 outList.append(bokehTab)
 
@@ -7194,13 +7200,13 @@ class dlgOutputInteractive(wx.MiniFrame):
                     bokeh_output.append(pageFootnote)
 
                 if add_watermark:
-                    divWatermark = Div(text=str(self.config.watermark), width=(width * columnVal) + 50)
-                    markupWatermark = widgetbox(divWatermark, width=(width * columnVal) + 50)
+                    divWatermark = Div(text=str(self.config.watermark), width=(width * columnVal) + add_width)
+                    markupWatermark = widgetbox(divWatermark, width=(width * columnVal) + add_width)
                     bokeh_output.append(markupWatermark)
 
                 rowOutput = bokeh_layout(bokeh_output,
                                          sizing_mode='fixed',
-                                         width=(width * columnVal) + 50)
+                                         width=(width * columnVal) + add_width)
 
                 # add widgets
                 if page_format.get("add_js_widgets", False):

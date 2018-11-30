@@ -12,12 +12,12 @@
 
   <recent>
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\3_Boltzmann_IMS2D_5139.58-5170.58.csv" format="Text" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
     <path value="Z:\###_PhD4_###\documentation\origami_docs\docs\user-guide\example-files\MS_nist_intact.csv" format="Text_MS" />
     <path value="Z:\###_PhD4_###\documentation\origami_docs\docs\user-guide\example-files\MS_p27-FL-K31.csv" format="Text_MS" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\moqtof.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\ORIGAMI_ConA_z20.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text" format="Text" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\ORIGAMI_ConA_z20.pickle" format="pickle" />
     <path value="Z:\###_PhD1_###\p27_Bex_Data\p27-C-paper_figures.pickle" format="pickle" />
@@ -126,11 +126,11 @@
     <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
-    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="True" type="mixed" />
+    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
-    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Toolbar" gripper="True" orientation="top" close_button="False" left_position="False" top_position="True" left_dockable="True" right_dockable="True" top_dockable="True" bottom_dockable="True" show="True" type="mixed" />
   </presets_gui_aui_settings>
 
@@ -529,7 +529,7 @@
     <param name="openInteractiveOnSave" value="True" type="bool" />
     <!-- JAVA SCRIPT PARAMETERS -->
     <param name="interactive_custom_scripts" value="False" type="bool" />
-    <param name="interactive_custom_events" value="False" type="bool" />
+    <param name="interactive_custom_events" value="True" type="bool" />
     <param name="interactive_custom_position" value="right"  choices="['left', 'right', 'below', 'above']" type="unicode" />
     <!-- FRAME PARAMETERS -->
     <param name="figHeight" value="600" type="int" />
@@ -593,7 +593,7 @@
     <param name="interactive_line_alpha" value="1.00" type="float" />
     <!-- ANNOTATION PARAMETERS -->
     <param name="interactive_ms_annotations" value="True" type="bool" />
-    <param name="interactive_ms_annotations_color" value="(0.18, 0.8, 0.44)" type="color" />
+    <param name="interactive_ms_annotations_color" value="[0.0, 0.0, 0.0]" type="color" />
     <param name="interactive_ms_annotations_line_color" value="(0, 0, 0)" type="color" />
     <param name="interactive_ms_annotations_transparency" value="0.30" type="float" />
     <!-- LINEARIZE PARAMETERS -->

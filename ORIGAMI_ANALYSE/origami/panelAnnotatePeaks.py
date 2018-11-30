@@ -25,6 +25,7 @@ from numpy import where, arange, round, amax
 from operator import itemgetter
 from time import time as ttime
 from natsort import natsorted
+from re import split as re_split
 
 from dialogs import dlgBox, EditableListCtrl, panelAsk, panelSelectDocument
 from toolbox import (str2num, str2int, convertRGB1to255, convertRGB255to1,
@@ -776,9 +777,11 @@ class panelAnnotatePeaks(wx.MiniFrame):
             color = self.kwargs["annotations"][key].get('color', self.config.interactive_ms_annotations_color)
             if color in ["", None, "None"]:
                 color = self.config.interactive_ms_annotations_color
+                
+            label_tag = re_split(' - ', key)
             self.peaklist.Append(["",
-                                  self.kwargs["annotations"][key]['min'],
-                                  self.kwargs["annotations"][key]['max'],
+                                  label_tag[0],#self.kwargs["annotations"][key]['min'],
+                                  label_tag[1],#self.kwargs["annotations"][key]['max'],
                                   self.kwargs["annotations"][key]['isotopic_x'],
                                   self.kwargs["annotations"][key]['intensity'],
                                   self.kwargs["annotations"][key]['charge'],
