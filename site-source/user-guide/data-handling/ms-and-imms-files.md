@@ -1,6 +1,10 @@
 # Analysis of MS and IM-MS files
 In this example, we will use a file provided in the example. You can download it from [here](../example-files/ORIGAMI_ConA_z20.raw.zip) or it should be found in your ORIGAMI directory (**example_data/origami_ms**).
 
+### Video tutorial
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/nK7JO2zwDz4" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ### Data loading
 To load Waters (.raw) files, please use any of the following:
 
@@ -28,7 +32,7 @@ The extracted mass spectra can either represent the **raw** data or **linearized
 
 #### Video tutorial
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/OlWHNPCZEgg" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/QyiAhztgf_M" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 
 ### Heatmaps (from MS window)
