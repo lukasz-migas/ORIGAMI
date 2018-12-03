@@ -24,3 +24,7 @@ A number of example files have been provided to get started! Please see various 
 
 ### Main window
 ![Image](main/img/main-window.png)
+
+
+
+####### Last updated: 3/12/2018

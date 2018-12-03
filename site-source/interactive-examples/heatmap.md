@@ -1,4 +1,6 @@
 # Interactive heatmap
+
+### Figures without widgets
 You can easily export heatmaps and share them with the scientific world!
 
 [See figure in another tab](html-files/heatmap.html)

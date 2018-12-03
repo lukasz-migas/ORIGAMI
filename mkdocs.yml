@@ -13,6 +13,10 @@ site_dir: 'docs'
 
 markdown_extensions:
   - admonition
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - toc:
+      permalink: true
 
 nav:
     - Home: index.md
@@ -39,8 +43,29 @@ nav:
     - Interactive Examples:
         - 'Mass spectrum': interactive-examples/mass-spectrum.md
         - 'Heatmap': interactive-examples/heatmap.md
+    - Changelog: main/changelog.md
     - Cite: main/cite.md
     - About: main/about.md
+
 theme: 
-  name: slate
-  include_sidebar: true
+  name: material
+  language: 'en'
+  include_sidebar: true 
+  palette:
+    primary: 'blue grey'
+    accent: 'teal'
+  feature:
+    tabs: true
+
+extra:
+  social:
+    - type: 'youtube'
+      link: 'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8'
+    - type: 'github'
+      link: 'https://github.com/lukasz-migas'
+    - type: 'twitter'
+      link: 'https://twitter.com/munieq11'
+    - type: 'link'
+      link: 'https://lukasz-migas.com'
+
+  

@@ -1,4 +1,6 @@
 # Interactive mass spectrum
+ 
+### Figures without widgets
 You can easily export annotated mass spectrum and share it with the scientific world! Here is an example of a mass spectrum of a NIST antibody that you can zoom-in, move around, hover-over and more. 
 
 [See figure in another tab](html-files/mass-spectrum.html)
