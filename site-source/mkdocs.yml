@@ -1,0 +1,44 @@
+site_name: ORIGAMI
+site_description: "ORIGAMI is an open-source software for analysis of MS and IM-MS datasets."
+site_author: Lukasz Migas
+copyright: <a href='http://github.com/lukasz-migas'>Lukasz Migas</a>
+
+site_url: https://lukasz-migas.github.io/ORIGAMI
+repo_url: https://github.com/lukasz-migas/ORIGAMI
+
+use_directory_urls: false
+
+docs_dir: 'site-source'
+site_dir: '../docs'
+
+
+nav:
+    - Home: index.md
+    - Installation: installation.md
+    - User Guide:
+      - 'Example files': user-guide/example-files.md
+      - 'Opening files': user-guide/loading-data.md
+      - Data handling:
+        - 'MS and IM-MS files': user-guide/data-handling/ms-and-imms-files.md
+        - 'Text files': user-guide/data-handling/text-files.md
+        - 'Automated CIU datasets (ORIGAMI<sup>MS</sup>)': user-guide/data-handling/automated-ciu.md
+        - 'Manual CIU/SID datasets': user-guide/data-handling/manual-ciu.md
+      - Processing:
+        - 'Annotating mass spectra': user-guide/processing/mass-spectra-annotation.md
+        - 'Mass spectrum': user-guide/processing/mass-spectra.md
+        - 'Heatmap': user-guide/processing/heatmaps.md
+      - Deconvolution:
+        - 'UniDec - deconvolution': user-guide/deconvolution/unidec-deconvolution.md
+        - 'UniDec - customising plots ': user-guide/deconvolution/unidec-customise-plots.md
+        - 'UniDec - changing window view ': user-guide/deconvolution/unidec-change-window-view.md
+      - Interactive Output:
+        - 'Getting started': user-guide/interactive-output/simple-output.md
+
+    - Interactive Examples:
+        - 'Mass spectrum': interactive-examples/mass-spectrum.md
+        - 'Heatmap': interactive-examples/heatmap.md
+    - Cite: cite.md
+    - About: about.md
+theme: 
+  name: slate
+  include_sidebar: true
