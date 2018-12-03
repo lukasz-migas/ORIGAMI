@@ -13,3 +13,7 @@ dist/
 logs/
 temporary_data/
 ORIGAMI_ANALYSE/origami/None
+!dt-ims.zip
+!heatmaps.zip
+!ORIGAMI_ConA_z20.raw.zip
+!other_data.zip
