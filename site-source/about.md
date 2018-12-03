@@ -1,6 +1,6 @@
 # About
 ### Author
-Lukasz G. Migas [http://lukasz-migas.github.io/](http://lukasz-migas.github.io/)
+Lukasz G. Migas | [Website](http://lukasz-migas.github.io/) | [GitHub](https://github.com/lukasz-migas)
 
 
 ### Getting in touch
@@ -10,4 +10,4 @@ If you have any questions, encounter problems or would like to chat, please cont
 Prof. Perdita E. Barran  
 Bruno Bellina  
 Aidan France  
-Florian Benoit  
+Florian Benoit

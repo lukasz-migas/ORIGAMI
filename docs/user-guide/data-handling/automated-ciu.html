@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         
         <meta name="author" content="Lukasz Migas">
-        
+        <link rel="canonical" href="https://lukasz-migas.github.io/ORIGAMI/user-guide/data-handling/automated-ciu.html">
         <link rel="shortcut icon" href="../../img/favicon.ico">
         <title>Automated CIU datasets (ORIGAMI<sup>MS</sup>) - ORIGAMI</title>
         <link href="../../css/bootstrap-custom.min.css" rel="stylesheet">
@@ -131,6 +131,10 @@
 </li>
     </ul>
   </li>
+                                    
+<li >
+    <a href="../video-tutorials.html">Video tutorials</a>
+</li>
                                 </ul>
                             </li>
                             <li class="dropdown">
@@ -203,12 +207,14 @@
 <p>Please have a look at <a href="ms-and-imms-files.html#data-extraction">MS and IM-MS data extraction</a>.</p>
 <h3 id="origami-ms-method">ORIGAMI-MS method</h3>
 <p>ORIGAMI-MS acquired files are simply CIU datasets that were acquired within a single file in which the collision voltage (or cone voltage) were ramped to increase the activation energy. </p>
-<p>There are four methods available which either increase or keep constant the number of scans-per-voltage as the energy increases. 
-<em> Linear: the collision voltage (CV) is ramped from <strong>Start Voltage (StartV)</strong> to <strong>End Voltage (EndV)</strong> with <strong>Step Voltage (StepV)</strong> as the increment. The number of scans-per-voltage stays the same and is controlled by <strong>Scans per Voltage (SPV)</strong>.
-</em> Exponential: the CV is ramped from StartV to EndV with StepV as the increment. The SPVs increase as a function of an exponential function where the user specifies the <strong>Exponential %</strong> and <strong>Exponential Increment</strong>. These values determine the rate of the increase.
-<em> Boltzmann: the CV is ramped from StartV to EndV with StepV as the increment. The SPVs increase as a function of an Boltzmann function where the user specifies the <strong>Boltzmann Offset</strong>. These values determine the rate of the increase.
-</em> User-defined: values of SPV and CV are provided in a list by the user.
-The user-defined list looks something like this and is usually provided as a .csv file.</p>
+<p>There are four methods available which either increase or keep constant the number of scans-per-voltage as the energy increases. </p>
+<ul>
+<li>Linear: the collision voltage (CV) is ramped from <strong>Start Voltage (StartV)</strong> to <strong>End Voltage (EndV)</strong> with <strong>Step Voltage (StepV)</strong> as the increment. The number of scans-per-voltage stays the same and is controlled by <strong>Scans per Voltage (SPV)</strong>.</li>
+<li>Exponential: the CV is ramped from <strong>StartV</strong> to <strong>EndV</strong> with <strong>StepV</strong> as the increment. The SPVs increase as a function of an exponential function where the user specifies the <strong>Exponential %</strong> and <strong>Exponential Increment</strong>. These values determine the rate of the increase.</li>
+<li>Boltzmann: the CV is ramped from <strong>StartV</strong> to <strong>EndV</strong> with <strong>StepV</strong> as the increment. The SPVs increase as a function of an Boltzmann function where the user specifies the <strong>Boltzmann Offset</strong>. These values determine the rate of the increase.</li>
+<li>User-defined: values of <strong>SPV</strong> and <strong>CV</strong> are provided in a list by the user.</li>
+</ul>
+<p>The user-defined list looks something like this and is usually provided as a .csv file.</p>
 <table>
 <thead>
 <tr>
@@ -285,6 +291,7 @@ The user-defined list looks something like this and is usually provided as a .cs
 
         <footer class="col-md-12">
             <hr>
+                <p><a href='http://github.com/lukasz-migas'>Lukasz Migas</a></p>
             <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
         <script>

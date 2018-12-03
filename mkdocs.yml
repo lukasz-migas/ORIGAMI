@@ -9,8 +9,10 @@ repo_url: https://github.com/lukasz-migas/ORIGAMI
 use_directory_urls: false
 
 docs_dir: 'site-source'
-site_dir: '../docs'
+site_dir: 'docs'
 
+markdown_extensions:
+  - admonition
 
 nav:
     - Home: index.md
@@ -33,7 +35,7 @@ nav:
         - 'UniDec - changing window view ': user-guide/deconvolution/unidec-change-window-view.md
       - Interactive Output:
         - 'Getting started': user-guide/interactive-output/simple-output.md
-
+      - 'Video tutorials': user-guide/video-tutorials.html
     - Interactive Examples:
         - 'Mass spectrum': interactive-examples/mass-spectrum.md
         - 'Heatmap': interactive-examples/heatmap.md
