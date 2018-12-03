@@ -15,7 +15,7 @@ markdown_extensions:
   - admonition
 
 nav:
-    - Home: main/index.md
+    - Home: index.md
     - Installation: main/installation.md
     - User Guide:
       - 'Example files': user-guide/example-files.md

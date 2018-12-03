@@ -16,11 +16,11 @@ The analysis software, ORIGAMI-ANALYSE can aid analysis of MS and IM-MS results 
 
 
 ### Getting started
-See the [installation guide](installation.md) for instructions on how to get started.
+See the [installation guide](main/installation.md) for instructions on how to get started.
 
 ### Examples
-A number of example files have been provided to get started! Please see various user guides and the [examples page](../user-guide/example-files.md) for more information.
+A number of example files have been provided to get started! Please see various user guides and the [examples page](user-guide/example-files.md) for more information.
 
 
 ### Main window
-![Image](img/main-window.png)
+![Image](main/img/main-window.png)
