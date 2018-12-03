@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-     <loc>https://lukasz-migas.github.io/ORIGAMI/index.html</loc>
+     <loc>https://lukasz-migas.github.io/ORIGAMI/main/index.html</loc>
      <lastmod>2018-12-03</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://lukasz-migas.github.io/ORIGAMI/installation.html</loc>
+     <loc>https://lukasz-migas.github.io/ORIGAMI/main/installation.html</loc>
      <lastmod>2018-12-03</lastmod>
      <changefreq>daily</changefreq>
     </url>
@@ -91,12 +91,12 @@
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://lukasz-migas.github.io/ORIGAMI/cite.html</loc>
+     <loc>https://lukasz-migas.github.io/ORIGAMI/main/cite.html</loc>
      <lastmod>2018-12-03</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>https://lukasz-migas.github.io/ORIGAMI/about.html</loc>
+     <loc>https://lukasz-migas.github.io/ORIGAMI/main/about.html</loc>
      <lastmod>2018-12-03</lastmod>
      <changefreq>daily</changefreq>
     </url>

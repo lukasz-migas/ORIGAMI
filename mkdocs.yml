@@ -15,8 +15,8 @@ markdown_extensions:
   - admonition
 
 nav:
-    - Home: index.md
-    - Installation: installation.md
+    - Home: main/index.md
+    - Installation: main/installation.md
     - User Guide:
       - 'Example files': user-guide/example-files.md
       - 'Opening files': user-guide/loading-data.md
@@ -39,8 +39,8 @@ nav:
     - Interactive Examples:
         - 'Mass spectrum': interactive-examples/mass-spectrum.md
         - 'Heatmap': interactive-examples/heatmap.md
-    - Cite: cite.md
-    - About: about.md
+    - Cite: main/cite.md
+    - About: main/about.md
 theme: 
   name: slate
   include_sidebar: true
