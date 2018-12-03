@@ -368,6 +368,8 @@ class plots(plottingWindow):
         try: ymin, ymax = self.plotMS.get_ylim()
         except: return
         
+        print(yval)
+        
         if stick_to_intensity:
             try: y_position = np.divide(yval, self.y_divider)
             except: y_position = ymax

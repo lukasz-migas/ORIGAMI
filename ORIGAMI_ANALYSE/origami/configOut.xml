@@ -11,16 +11,16 @@
   </presets>
 
   <recent>
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\3_Boltzmann_IMS2D_5139.58-5170.58.csv" format="Text" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
-    <path value="Z:\###_PhD4_###\documentation\origami_docs\docs\user-guide\example-files\MS_nist_intact.csv" format="Text_MS" />
-    <path value="Z:\###_PhD4_###\documentation\origami_docs\docs\user-guide\example-files\MS_p27-FL-K31.csv" format="Text_MS" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\moqtof.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\ORIGAMI_ConA_z20.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text" format="Text" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw\ORIGAMI_ConA_z20.pickle" format="pickle" />
-    <path value="Z:\###_PhD1_###\p27_Bex_Data\p27-C-paper_figures.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\dt-ims\LM_20151006_7_B_DV50.raw" format="ORIGAMI" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\1_Linear_IMS2D_5140.73-5169.41.csv" format="Text" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text" format="Text" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\2_Exponential_IMS2D_5140.48-5164.36.csv" format="Text" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\3_Boltzmann_IMS2D_5139.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\MS_nist_intact.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\3_Boltzmann_IMS2D_5139.58-5170.58.csv" format="Text" />
   </recent>
 
   <presets_gui>
@@ -126,7 +126,7 @@
     <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
@@ -160,21 +160,21 @@
   </plot_presets_annotations>
 
   <custom_colors>
-    <param name="color_0" value="(219, 94, 86, 255)" type="color" />
-    <param name="color_1" value="(219, 144, 86, 255)" type="color" />
-    <param name="color_2" value="(219, 194, 86, 255)" type="color" />
-    <param name="color_3" value="(194, 219, 86, 255)" type="color" />
-    <param name="color_4" value="(145, 219, 86, 255)" type="color" />
-    <param name="color_5" value="(95, 219, 86, 255)" type="color" />
-    <param name="color_6" value="(86, 219, 127, 255)" type="color" />
-    <param name="color_7" value="(86, 219, 177, 255)" type="color" />
-    <param name="color_8" value="(86, 211, 219, 255)" type="color" />
-    <param name="color_9" value="(86, 161, 219, 255)" type="color" />
-    <param name="color_10" value="(86, 111, 219, 255)" type="color" />
-    <param name="color_11" value="(111, 86, 219, 255)" type="color" />
-    <param name="color_12" value="(160, 86, 219, 255)" type="color" />
-    <param name="color_13" value="(210, 86, 219, 255)" type="color" />
-    <param name="color_14" value="(219, 86, 178, 255)" type="color" />
+    <param name="color_0" value="[219.3, 94.656, 86.7]" type="color" />
+    <param name="color_1" value="[219.3, 144.381, 86.7]" type="color" />
+    <param name="color_2" value="[219.3, 194.106, 86.7]" type="color" />
+    <param name="color_3" value="[194.769, 219.3, 86.7]" type="color" />
+    <param name="color_4" value="[145.044, 219.3, 86.7]" type="color" />
+    <param name="color_5" value="[95.319, 219.3, 86.7]" type="color" />
+    <param name="color_6" value="[86.7, 219.3, 127.806]" type="color" />
+    <param name="color_7" value="[86.7, 219.3, 177.531]" type="color" />
+    <param name="color_8" value="[86.7, 211.344, 219.3]" type="color" />
+    <param name="color_9" value="[86.7, 161.619, 219.3]" type="color" />
+    <param name="color_10" value="[86.7, 111.894, 219.3]" type="color" />
+    <param name="color_11" value="[111.231, 86.7, 219.3]" type="color" />
+    <param name="color_12" value="[160.956, 86.7, 219.3]" type="color" />
+    <param name="color_13" value="[210.681, 86.7, 219.3]" type="color" />
+    <param name="color_14" value="[219.3, 86.7, 178.194]" type="color" />
     <param name="color_15" value="[219.3, 86.7, 128.469]" type="color" />
   </custom_colors>
 
@@ -211,23 +211,23 @@
 
   <process_presets_unidec>
     <!-- Pre-processing parameters -->
-    <param name="unidec_mzStart" value="500" type="float" />
-    <param name="unidec_mzEnd" value="2500.00" type="float" />
+    <param name="unidec_mzStart" value="4000" type="float" />
+    <param name="unidec_mzEnd" value="7500.00" type="float" />
     <param name="unidec_mzBinSize" value="0.10" type="float" />
     <param name="unidec_gaussianFilter" value="0.00" type="float" />
     <param name="unidec_accelerationV" value="0.00" type="float" />
     <param name="unidec_linearization" value="Linear interpolation" type="unicode" choices="[u'Linear resolution', u'Nonlinear', u'Linear interpolation', u'Linear resolution interpolation', u'Linear m/z']" />
     <!-- UniDec engine parameters -->
-    <param name="unidec_zStart" value="5" type="int" />
-    <param name="unidec_zEnd" value="35" type="int" />
-    <param name="unidec_mwStart" value="20000.00" type="float" />
-    <param name="unidec_mwEnd" value="25000.00" type="float" />
-    <param name="unidec_mwFrequency" value="1.00" type="float" />
-    <param name="unidec_peakWidth" value="0.32" type="float" />
-    <param name="unidec_peakFunction" value="Lorentzian" type="unicode" choices="['Split G/L', 'Gaussian', 'Lorentzian']" />
+    <param name="unidec_zStart" value="20" type="int" />
+    <param name="unidec_zEnd" value="30" type="int" />
+    <param name="unidec_mwStart" value="140000.00" type="float" />
+    <param name="unidec_mwEnd" value="160000.00" type="float" />
+    <param name="unidec_mwFrequency" value="5.00" type="float" />
+    <param name="unidec_peakWidth" value="2.29" type="float" />
+    <param name="unidec_peakFunction" value="Gaussian" type="unicode" choices="['Split G/L', 'Gaussian', 'Lorentzian']" />
     <!-- Peak picking parameters -->
-    <param name="unidec_peakDetectionWidth" value="1.00" type="float" />
-    <param name="unidec_peakDetectionThreshold" value="0.01" type="float" />
+    <param name="unidec_peakDetectionWidth" value="5.00" type="float" />
+    <param name="unidec_peakDetectionThreshold" value="0.50" type="float" />
     <param name="unidec_peakNormalization" value="Total" type="unicode" choices="['Max', 'None', 'Total']" />
     <param name="unidec_lineSeparation" value="0.05" type="float" />
     <!-- Plotting parameters -->
@@ -276,21 +276,21 @@
     <param name="ms_dtmsBinSize" value="1.00" type="float" />
     <param name="ms_linearization_mode" value="Linear interpolation" type="unicode" choices="['Linear m/z', 'Linear resolution', 'Nonlinear', 'Linear interpolation', 'Linear resolution interpolation', 'Binning']" />
     <param name="ms_auto_range" value="True" type="bool" />
-    <param name="ms_process_crop" value="True" type="bool" />
-    <param name="ms_process_linearize" value="True" type="bool" />
-    <param name="ms_process_smooth" value="True" type="bool" />
-    <param name="ms_process_threshold" value="True" type="bool" />
-    <param name="ms_process_normalize" value="True" type="bool" />
+    <param name="ms_process_crop" value="False" type="bool" />
+    <param name="ms_process_linearize" value="False" type="bool" />
+    <param name="ms_process_smooth" value="False" type="bool" />
+    <param name="ms_process_threshold" value="False" type="bool" />
+    <param name="ms_process_normalize" value="False" type="bool" />
   </process_presets_binning>
 
   <process_presets_ms>
     <param name="ms_normalize" value="True" type="bool" />
     <param name="ms_normalize_mode" value="Maximum" type="unicode" choices="['Maximum']" />
-    <param name="ms_smooth_mode" value="Savitzky-Golay" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
+    <param name="ms_smooth_mode" value="Gaussian" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
     <param name="ms_smooth_polynomial" value="5" type="int" />
     <param name="ms_smooth_window" value="7" type="int" />
     <param name="ms_smooth_sigma" value="10.00" type="float" />
-    <param name="ms_threshold" value="0.01" type="float" />
+    <param name="ms_threshold" value="0.02" type="float" />
   </process_presets_ms>
 
   <process_compare_mass_spectra>
@@ -305,7 +305,7 @@
   <process_presets_plot2D>
     <param name="plot2D_normalize" value="True" type="bool" />
     <param name="plot2D_normalize_mode" value="Maximum" type="unicode" choices="['Maximum', 'Logarithmic', 'Natural log', 'Square root', 'Least Abs Deviation', 'Least Squares']" />
-    <param name="plot2D_smooth_mode" value="Savitzky-Golay" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
+    <param name="plot2D_smooth_mode" value="None" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
     <param name="plot2D_smooth_polynomial" value="1" type="int" />
     <param name="plot2D_smooth_window" value="3" type="int" />
     <param name="plot2D_smooth_sigma" value="2.00" type="float" />
@@ -376,7 +376,7 @@
   </plot_presets_bar>
 
   <plot_presets_legend>
-    <param name="legend" value="False" type="bool" />
+    <param name="legend" value="True" type="bool" />
     <param name="legendFancyBox" value="False" type="bool" />
     <param name="legendMarkerFirst" value="True" type="bool" />
     <param name="legendFrame" value="False" type="bool" />

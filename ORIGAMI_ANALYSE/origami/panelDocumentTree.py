@@ -1473,6 +1473,8 @@ class documentsTree(wx.TreeCtrl):
             
         self.presenter.view.panelPlots.plot1.plot_remove_text_and_lines()
         _ymax = []
+        
+        label_kwargs = self.presenter.view.panelPlots._buildPlotParameters(plotType="label")
         for key in annotations:
             annotation = annotations[key]
             label_y_position = str2num(annotation['intensity'])
@@ -1489,7 +1491,6 @@ class documentsTree(wx.TreeCtrl):
                 label_x_position = max_x_value - ((max_x_value - min_x_value) / 2)
                 
             show_label = "{}, {}\nz={}".format(round(label_x_position, 4), label_y_position, charge)
-            kwargs = {'rotation':'horizontal'}
             
             if show_label == "": return
             
@@ -1501,9 +1502,10 @@ class documentsTree(wx.TreeCtrl):
                 label_y_position = annotation.get('position_label_y', label_y_position)
                 arrow_dy = label_y_position - arrow_y_position
                 
-            self.presenter.view.panelPlots.plot1.plot_add_text_and_lines(xpos=label_x_position, yval=label_y_position, 
-                                                                         label=show_label, vline=False, stick_to_intensity=True,
-                                                                         yoffset=0.05, color=color_value, **kwargs)
+            self.presenter.view.panelPlots.plot1.plot_add_text_and_lines(
+                xpos=label_x_position, yval=label_y_position, 
+                label=show_label, vline=False, stick_to_intensity=True,
+                yoffset=0.05, color=color_value, **label_kwargs)
             
             _ymax.append(label_y_position)
             if add_arrow:

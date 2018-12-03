@@ -3405,6 +3405,7 @@ class panelPlot(wx.Panel):
         self.view.panelPlots.bottomPlot1DT.repaint() 
         
     def _buildPlotParameters(self, plotType = None, evt=None):
+        add_frame_width = True
         if plotType == '1D':  
             plt_kwargs = {'line_width':self.config.lineWidth_1D,
                           'line_color':self.config.lineColour_1D,
@@ -3636,9 +3637,21 @@ class panelPlot(wx.Panel):
                           'shade_under_transparency':self.config.violin_shade_under_transparency,
                           'labels_frequency':self.config.violin_labels_frequency,
                           }
+        elif plotType in ['arrow']:
+            plt_kwargs = {'arrow_line_width':self.config.annotation_arrow_line_width,
+                          'arrow_line_style':self.config.annotation_arrow_line_style}
+            add_frame_width = False
+        elif plotType == "label":
+            plt_kwargs = {'horizontalalignment':self.config.annotation_label_horz,
+                          'verticalalignment':self.config.annotation_label_vert,
+                          'fontweight':self.config.annotation_label_font_weight,
+                          'fontsize':self.config.annotation_label_font_size,
+                          'rotation':self.config.annotation_label_font_orientation}
+            add_frame_width = False
         
-        if "frame_width" not in plt_kwargs:
+        if "frame_width" not in plt_kwargs and add_frame_width:
             plt_kwargs['frame_width'] = self.config.frameWidth_1D
+            
         # return kwargs
         return plt_kwargs  
         

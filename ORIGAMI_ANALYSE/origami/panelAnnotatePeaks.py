@@ -994,6 +994,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
         self.plot.plot_remove_text_and_lines()
         
         _ymax = []
+        plt_kwargs = self._buildPlotParameters(plotType="label")
         for key in self.kwargs['annotations']:
             # get annotation
             annotation = self.kwargs['annotations'][key]
@@ -1035,12 +1036,14 @@ class panelAnnotatePeaks(wx.MiniFrame):
             else:
                 vline = True
 
-            plt_kwargs = self._buildPlotParameters(plotType="label")
+            
             kwargs = merge_two_dicts(kwargs, plt_kwargs)
-            self.plot.plot_add_text_and_lines(xpos=label_x_position, yval=label_y_position, 
-                                              label=show_label, vline=vline, 
-                                              stick_to_intensity=self.showLabelsAtIntensity,
-                                              yoffset=0.05, color=color_value, **kwargs)
+            self.plot.plot_add_text_and_lines(
+                xpos=label_x_position, yval=label_y_position,
+                label=show_label, vline=vline, 
+                stick_to_intensity=self.showLabelsAtIntensity,
+                yoffset=0.05, color=color_value, **kwargs)
+            
             _ymax.append(label_y_position)
             if add_arrow and self.showLabelsAtIntensity:
                 plt_kwargs = self._buildPlotParameters(plotType="arrow")
@@ -1175,6 +1178,5 @@ class panelAnnotatePeaks(wx.MiniFrame):
                       'rotation':self.config.annotation_label_font_orientation
                       
                       }
-        
         return kwargs
              
