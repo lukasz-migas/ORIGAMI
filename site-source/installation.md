@@ -1,4 +1,5 @@
 # Installation
+
 ### Download
 You can download the latest version of **ORIGAMI-ANALYSE** from [GitHub](https://github.com/lukasz-migas/ORIGAMI/releases).
 
