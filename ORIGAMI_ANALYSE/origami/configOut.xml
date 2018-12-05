@@ -11,16 +11,16 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_07.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_06.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_07.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_07.raw" format="ORIGAMI" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\dt-ims\LM_20151006_7_B_DV50.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\1_Linear_IMS2D_5140.73-5169.41.csv" format="Text" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text" format="Text" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\2_Exponential_IMS2D_5140.48-5164.36.csv" format="Text" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\MS_nist_intact.csv" format="Text_MS" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\3_Boltzmann_IMS2D_5139.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\MS_nist_intact.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\3_Boltzmann_IMS2D_5139.58-5170.58.csv" format="Text" />
   </recent>
 
   <presets_gui>
@@ -250,7 +250,7 @@
   </process_presets_unidec>
 
   <process_presets_fitting>
-    <param name="fit_type" value="MS" type="unicode" choices="['MS', 'RT', 'MS + RT']" />
+    <param name="fit_type" value="MS + RT" type="unicode" choices="['MS', 'RT', 'MS + RT']" />
     <param name="fit_highlight" value="True" type="bool" />
     <param name="fit_addPeaks" value="False" type="bool" />
     <param name="fit_xaxis_limit" value="False" type="bool" />
@@ -258,7 +258,7 @@
     <param name="fit_smoothPeaks" value="True" type="bool" />
     <param name="fit_highRes" value="False" type="bool" />
     <param name="fit_window" value="500" type="int" />
-    <param name="fit_threshold" value="0.10" type="float" />
+    <param name="fit_threshold" value="0.02" type="float" />
     <param name="fit_width" value="1.00" type="float" />
     <param name="fit_asymmetric_ratio" value="0.60" type="float" />
     <param name="fit_highRes_window" value="10" type="int" />
@@ -330,18 +330,18 @@
   </plot_presets_rmsd>
 
   <plot_presets_waterfall>
-    <param name="waterfall" value="True" type="bool" />
+    <param name="waterfall" value="False" type="bool" />
     <param name="waterfallOffset" value="0.00" type="float" />
     <param name="waterfall_increment" value="1.05" type="float" />
-    <param name="waterfall_reverse" value="True" type="bool" />
+    <param name="waterfall_reverse" value="False" type="bool" />
     <param name="waterfall_lineWidth" value="1.00" type="float" />
     <param name="waterfall_lineStyle" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
     <param name="waterfall_color" value="[0, 0, 0]" type="color" />
     <param name="waterfall_useColormap" value="True" type="bool" />
     <param name="waterfall_normalize" value="True" type="bool" />
-    <param name="waterfall_label_format" value="Float" type="unicode" choices="['String', 'Float', 'Integer']" />
+    <param name="waterfall_label_format" value="String" type="unicode" choices="['String', 'Float', 'Integer']" />
     <param name="waterfall_color_value" value="Same color" type="unicode" choices="['Same color', 'Colormap', 'Color palette', 'Random']" />
-    <param name="waterfall_add_labels" value="False" type="bool" />
+    <param name="waterfall_add_labels" value="True" type="bool" />
     <param name="waterfall_shade_under" value="False" type="bool" />
     <param name="waterfall_shade_under_transparency" value="1.00" type="float" />
     <param name="waterfall_shade_under_nlimit" value="50" type="int" />
@@ -355,7 +355,7 @@
   <plot_presets_violin>
     <param name="violin_normalize" value="True" type="bool" />
     <param name="violin_orientation" value="vertical" type="unicode" choices="['vertical', 'horizontal']" />
-    <param name="violin_label_format" value="Float" type="unicode" choices="['String', 'Float', 'Integer']" />
+    <param name="violin_label_format" value="String" type="unicode" choices="['String', 'Float', 'Integer']" />
     <param name="violin_color_value" value="Colormap" type="unicode" choices="['Same color', 'Colormap', 'Color palette', 'Random']" />
     <param name="violin_line_sameAsShade" value="False" type="bool" />
     <param name="violin_shade_under_transparency" value="1.00" type="float" />
@@ -377,15 +377,15 @@
 
   <plot_presets_legend>
     <param name="legend" value="True" type="bool" />
-    <param name="legendFancyBox" value="False" type="bool" />
+    <param name="legendFancyBox" value="True" type="bool" />
     <param name="legendMarkerFirst" value="True" type="bool" />
-    <param name="legendFrame" value="False" type="bool" />
+    <param name="legendFrame" value="True" type="bool" />
     <param name="legendPosition" value="upper right" type="unicode" choices="['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center']" />
     <param name="legendFontSize" value="large" type="unicode" choices="['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']" />
     <param name="legendColumns" value="2" type="int" />
     <param name="legendNumberMarkers" value="1" type="int" />
     <param name="legendMarkerSize" value="3.00" type="float" />
-    <param name="legendAlpha" value="0.60" type="float" />
+    <param name="legendAlpha" value="1.00" type="float" />
     <param name="legendLineWidth" value="4.00" type="float" />
   </plot_presets_legend>
 
@@ -404,9 +404,9 @@
     <param name="frameWidth_1D" value="2" type="float" />
     <param name="labelPad_1D" value="0" type="float" />
     <param name="lineStyle_1D" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
-    <param name="markerColor_1D" value="(0, 0, 1)" type="color" />
-    <param name="markerTransparency_1D" value="1.00" type="float" />
-    <param name="markerSize_1D" value="35.00" type="float" />
+    <param name="markerColor_1D" value="[0.0, 0.502, 1.0]" type="color" />
+    <param name="markerTransparency_1D" value="0.30" type="float" />
+    <param name="markerSize_1D" value="25.00" type="float" />
     <param name="markerShape_1D" value="o" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
     <param name="markerShapeTXT_1D" value="circle" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
     <param name="axisOnOff_1D" value="True" type="bool" />

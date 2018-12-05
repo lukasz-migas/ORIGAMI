@@ -199,6 +199,7 @@ ID_processSettings_replotMS = NewId()
 ID_processSettings_processMS = NewId()
 ID_processSettings_replot2D = NewId()
 ID_processSettings_process2D = NewId()
+ID_docTree_processUVPD = NewId() 
 ID_processSettings_restoreIsolatedAll = NewId()
 
 
@@ -232,6 +233,35 @@ ID_annotPanel_otherSettings = NewId()
 
 # Tandem panel
 ID_tandemPanel_otherSettings = NewId()
+
+# UVPD panel
+ID_uvpd_laser_on_show_heatmap = NewId()
+ID_uvpd_laser_on_show_waterfall = NewId()
+ID_uvpd_laser_on_show_chromatogram = NewId()
+ID_uvpd_laser_on_show_mobiligram = NewId()
+
+ID_uvpd_laser_on_save_heatmap = NewId()
+ID_uvpd_laser_on_save_chromatogram = NewId()
+ID_uvpd_laser_on_save_mobiligram = NewId()
+
+ID_uvpd_laser_off_show_heatmap = NewId()
+ID_uvpd_laser_off_show_waterfall = NewId()
+ID_uvpd_laser_off_show_chromatogram = NewId()
+ID_uvpd_laser_off_show_mobiligram = NewId()
+
+ID_uvpd_laser_off_save_heatmap = NewId()
+ID_uvpd_laser_off_save_chromatogram = NewId()
+ID_uvpd_laser_off_save_mobiligram = NewId()
+
+
+
+ID_uvpd_laser_on_off_mobiligram_show_chromatogram = NewId()
+ID_uvpd_laser_on_off_compare_chromatogam = NewId()
+ID_uvpd_laser_on_off_compare_mobiligram = NewId()
+
+ID_uvpd_peaklist_remove = NewId()
+ID_uvpd_monitor_remove = NewId()
+
 
 # Multiple files panel
 ID_mmlPanel_assignColor = NewId()
@@ -783,6 +813,7 @@ ID_changeColorBackgroundInteractive = NewId()
 
 
 ID_addPage_HTML = NewId()
+ID_helpAuthor = NewId()
 ID_helpHomepage = NewId()
 ID_helpGitHub = NewId()
 ID_helpCite = NewId()

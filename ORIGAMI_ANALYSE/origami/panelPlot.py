@@ -1443,6 +1443,7 @@ class panelPlot(wx.Panel):
             self.plotUnidec_chargeDistribution.clearPlot()
 
     def on_clear_patches(self, plot="MS", repaint=False):
+        
         if plot == 'MS': 
             self.plot1.plot_remove_patches()
             if not repaint: return 
@@ -1452,6 +1453,11 @@ class panelPlot(wx.Panel):
             self.topPlotMS.plot_remove_patches()
             if not repaint: return 
             else: self.topPlotMS.repaint()
+            
+        elif plot == 'RT':
+            self.plotRT.plot_remove_patches()
+            if not repaint: return 
+            else: self.plotRT.repaint()
 
     def on_plot_patches(self, xmin, ymin, width, height, color='r', alpha=0.5, 
                         plot='MS', repaint=False):
@@ -1535,6 +1541,13 @@ class panelPlot(wx.Panel):
                                                 size=size,
                                                 testMax='yvals')
             self.bottomPlot1DT.repaint()
+            
+    def on_clear_markers(self, plot="MS", repaint=False):
+        
+        if plot == 'RT':
+            self.plotRT.plot_remove_markers()
+            if not repaint: return 
+            else: self.plotRT.repaint()
 
     def _get_color_list(self, colorList, count=None, **kwargs):
         """
@@ -2490,8 +2503,14 @@ class panelPlot(wx.Panel):
         # Plot data 
         self.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmapNorm=cmapNorm)
         if self.config.waterfall:
-            self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, 
-                                   xlabel=xlabel, ylabel=ylabel)
+            if len(xvals) > 500:
+                dlg = dlgBox(
+                    exceptionTitle='Would you like to continue?',
+                    exceptionMsg= "There are {} scans in this dataset (it could be slow to plot Waterfall plot...). Would you like to continue?".format(len(xvals)),
+                    type="Question")
+                if dlg == wx.ID_YES:
+                    self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, 
+                                           xlabel=xlabel, ylabel=ylabel)
         try:
             self.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals, 
                             xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
@@ -2529,8 +2548,13 @@ class panelPlot(wx.Panel):
             else:
                 self.presenter.onThreading(None, ("Selected item is too large to plot as violin. Plotting as waterfall instead.", 4, 10), 
                                            action='updateStatusbar')
-                self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, 
-                                       xlabel=xlabel, ylabel=ylabel)
+                if zvals.shape[1] > 500:
+                    dlg = dlgBox(exceptionTitle='Would you like to continue?',
+                                 exceptionMsg= "There are {} scans in this dataset (this could be slow...). Would you like to continue?".format(len(xvals)),
+                                 type="Question")
+                    if dlg == wx.ID_YES:
+                        self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, 
+                                               xlabel=xlabel, ylabel=ylabel)
         except:
             self.plotWaterfallIMS.clearPlot()
             print("Failed to plot the violin plot...")
@@ -3280,8 +3304,17 @@ class panelPlot(wx.Panel):
             self.plotUnidec_mwVsZ.plot_2D_update_normalization(**plt_kwargs)
             self.plotUnidec_mwVsZ.repaint()
         
+    def on_add_legend(self, labels, colors, plot="RT"):
+        plt_kwargs = self._buildPlotParameters(plotType='legend')
+        
+        if len(colors) ==  len(labels):
+            legend_text = zip(colors, labels)
+            
+        if plot == "RT":
+            self.plotRT.plot_1D_add_legend(legend_text, **plt_kwargs)
+        
     def on_add_marker(self, xvals=None, yvals=None, color='b', marker='o', 
-                    size=5, plot='MS'): #addMarkerMS
+                    size=5, plot='MS', clear_first=False): #addMarkerMS
         if plot == 'MS':
             self.plot1.onAddMarker(xval=xvals, yval=yvals,
                                    color=color, marker=marker,
@@ -3289,9 +3322,11 @@ class panelPlot(wx.Panel):
             self.plot1.repaint()
             
         elif plot == 'RT':
-            self.plotRT.onAddMarker(xval=xvals, yval=yvals,
-                                    color=color, marker=marker,
-                                    size=size)
+            if clear_first:
+                self.plotRT.plot_remove_markers()
+            self.plotRT.plot_add_markers(xvals, yvals,
+                                         color=color, marker=marker,
+                                         size=size)
             self.plotRT.repaint()
             
         elif plot == 'CalibrationMS':
@@ -3310,20 +3345,21 @@ class panelPlot(wx.Panel):
                      repaint=False, plot='MS'): # addRectMS
         
         if plot == 'MS': 
-            self.plot1.addRectangle(x,y, width, height, color=color,
+            self.plot1.plot_add_patch(x,y, width, height, color=color,
                                     alpha=alpha)
             if not repaint: return 
             else:
                 self.plot1.repaint()
+                
         elif plot == 'CalibrationMS':
-            self.topPlotMS.addRectangle(x,y, width, height, color=color, 
-                                        alpha=alpha)
+            self.topPlotMS.plot_add_patch(x,y, width, height, color=color, 
+                                          alpha=alpha)
             if not repaint: return 
             else:
                 self.topPlotMS.repaint()
                 
         elif plot == 'RT':
-            self.plotRT.addRectangle(x,y, width, height, color=color,
+            self.plotRT.plot_add_patch(x,y, width, height, color=color,
                                      alpha=alpha)
             if not repaint: return 
             else:
@@ -3469,6 +3505,20 @@ class panelPlot(wx.Panel):
                           'vertical_alignment':self.config.annotation_label_vert,
                           'font_size':self.config.annotation_label_font_size,
                           'font_weight':self.config.annotation_label_font_weight}
+        elif plotType == 'legend':
+            plt_kwargs = {'legend':self.config.legend,
+                          'legend_transparency':self.config.legendAlpha,
+                          'legend_position':self.config.legendPosition,
+                          'legend_num_columns':self.config.legendColumns,
+                          'legend_font_size':self.config.legendFontSize,
+                          'legend_frame_on':self.config.legendFrame,
+                          'legend_fancy_box':self.config.legendFancyBox,
+                          'legend_marker_first':self.config.legendMarkerFirst,
+                          'legend_marker_size':self.config.legendMarkerSize,
+                          'legend_num_markers':self.config.legendNumberMarkers,
+                          'legend_line_width':self.config.legendLineWidth,
+                          'legend_patch_transparency':self.config.legendPatchAlpha
+                          }
         elif plotType == "UniDec":
             plt_kwargs = {'bar_width':self.config.unidec_plot_bar_width,
                           'bar_alpha':self.config.unidec_plot_bar_alpha,

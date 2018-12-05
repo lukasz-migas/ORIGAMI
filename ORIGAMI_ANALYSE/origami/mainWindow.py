@@ -28,7 +28,7 @@ from panelMultipleML import panelMML
 from panelDocumentTree import panelDocuments
 from panelLinearDriftCell import panelLinearDriftCell
 from panelCCScalibration import panelCCScalibration
-from panelAbout import panelAbout
+from gui_elements.panelAbout import panelAbout
 from panelExtraParameters import panelParametersEdit
 from panelProcess import panelProcessData
 import dialogs as dialogs
@@ -44,13 +44,14 @@ from toolbox import (findPeakMax, getNarrow1Ddata, randomIntegerGenerator,
 from styles import makeMenuItem
 from readers.io_text_files import check_file_type
 from processing.data_processing import data_processing
+from data_handling.data_handling import data_handling
 
 import wx, os, wx.aui, psutil, sys, webbrowser
 from time import gmtime, strftime, sleep
 import numpy as np
 from wx.lib.pubsub import pub 
 
-
+# import logging
 
 class MyFrame(wx.Frame):
 
@@ -59,7 +60,7 @@ class MyFrame(wx.Frame):
                  style=wx.FULL_REPAINT_ON_RESIZE): # wx.DEFAULT_FRAME_STYLE): #
         wx.Frame.__init__(self, None, title=title)
         
-        #Extract size of screen
+        # Extract size of screen
         self.displaysize = wx.GetDisplaySize()
         self.SetDimensions(0,0,self.displaysize[0],self.displaysize[1]-50)
         # Setup config container
@@ -102,7 +103,9 @@ class MyFrame(wx.Frame):
         self.panelDocuments = panelDocuments(self, self.config, self.icons, self.presenter)
         
         # add data processing 
-        self.data_processing = data_processing(self.presenter, self, self.config)
+        self.data_processing = data_processing(self.presenter, self, self.config)#
+        # add data handling
+        self.data_handling = data_handling(self.presenter, self, self.config)
         
         self.panelPlots = panelPlot(self, self.config, self.presenter) # Plots
         self.panelMultipleIons= panelMultipleIons(self, self.config, self.icons, self.help, self.presenter) # List of ions
@@ -561,12 +564,15 @@ class MyFrame(wx.Frame):
                                          bitmap=self.icons.iconsLib['fullscreen_16']))
         self.mainMenubar.Append(menuView, '&View')
         
-#         # UTILITIES
-#         menuUtilities = wx.Menu()
-#         menuUtilities.AppendItem(makeMenuItem(parent=menuUtilities, id=ID_sequence_openGUI,
+        # UTILITIES
+        menuPlugins = wx.Menu()
+        menuPlugins.AppendItem(makeMenuItem(parent=menuPlugins, id=ID_docTree_processUVPD,
+                                              text='UVPD processing...', 
+                                              bitmap=None))
+#         menuPlugins.AppendItem(makeMenuItem(parent=menuPlugins, id=ID_sequence_openGUI,
 #                                               text='Sequence analysis...', 
 #                                               bitmap=None))
-#         self.mainMenubar.Append(menuUtilities, '&Utilities')
+        self.mainMenubar.Append(menuPlugins, '&Plugins')
          
         # CONFIG
         menuConfig = wx.Menu()
@@ -683,7 +689,7 @@ class MyFrame(wx.Frame):
                                          bitmap=self.icons.iconsLib['web_access_16']))
         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_helpGuideLocal,
                                          text='Open User Guide... (local)', 
-                                         bitmap=self.icons.iconsLib['file_pdf']))
+                                         bitmap=self.icons.iconsLib['web_access_16']))
         menuHelp.AppendItem(makeMenuItem(parent=menuHelp, id=ID_helpYoutube,
                                          text='Check out video guides... (online)', 
                                          bitmap=self.icons.iconsLib['youtube16'],
@@ -731,6 +737,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpNewVersion)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpReportBugs)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpNewFeatures)
+        self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpAuthor)
         self.Bind(wx.EVT_MENU, self.presenter.onRebootWindow, id=ID_RESET_ORIGAMI)
         
         self.Bind(wx.EVT_MENU, self.on_open_HTML_guide, id=ID_help_UniDecInfo) 
@@ -813,6 +820,8 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.openSaveAsDlg, id=ID_saveAsInteractive)
                 
         # UTILITIES
+        self.Bind(wx.EVT_MENU, self.panelDocuments.topP.documents.on_process_UVPD, 
+                  id=ID_docTree_processUVPD)
 #         self.Bind(wx.EVT_MENU, self.onSequenceEditor, id=ID_sequence_openGUI)
         
         # CONFIG MENU
@@ -928,11 +937,16 @@ class MyFrame(wx.Frame):
         else: evtID = evt.GetId()
         
         # set link
-        links = {ID_helpHomepage : 'home', ID_helpGitHub : 'github',
-                 ID_helpCite : 'cite', ID_helpNewVersion : 'newVersion',
-                 ID_helpYoutube: 'youtube', ID_helpGuide: 'guide',
-                 ID_helpHTMLEditor: 'htmlEditor', ID_helpNewFeatures: 'newFeatures',
-                 ID_helpReportBugs: 'reportBugs'}
+        links = {ID_helpHomepage : 'home', 
+                 ID_helpGitHub : 'github',
+                 ID_helpCite : 'cite', 
+                 ID_helpNewVersion : 'newVersion',
+                 ID_helpYoutube: 'youtube', 
+                 ID_helpGuide: 'guide',
+                 ID_helpHTMLEditor: 'htmlEditor', 
+                 ID_helpNewFeatures: 'newFeatures',
+                 ID_helpReportBugs: 'reportBugs',
+                 ID_helpAuthor:'about-author'}
         
         link = self.config.links[links[evtID]]
         
@@ -980,10 +994,16 @@ class MyFrame(wx.Frame):
         """ 
         Opens PDF viewer
         """
-        try:
-            os.startfile('UserGuide_ANALYSE.pdf')
-        except:
-            return
+#         try:
+#             os.startfile('UserGuide_ANALYSE.pdf')
+#         except:
+#             return
+        link = os.path.join(os.getcwd(), "docs\index.html")
+        try: 
+            self.presenter.onThreading(None, ("Opening local documentation in your browser...", 4), 
+                                       action='updateStatusbar')
+            webbrowser.open(link, autoraise=1)
+        except: pass
         
     def on_open_HTML_guide(self, evt):
         from help import HTMLHelp as htmlPages
@@ -1028,7 +1048,7 @@ class MyFrame(wx.Frame):
 
         elif evtID == ID_help_page_annotatingMassSpectra:
             kwargs = htmlPages.page_annotating_mass_spectra
-        
+            
 
         htmlViewer = panelHTMLViewer(self, self.config, **kwargs)
         htmlViewer.Show()
@@ -2181,12 +2201,9 @@ class MyFrame(wx.Frame):
         if self.config.loggingFile_path is None:
             file_path = "ORIGAMI_%s.log" % self.config.startTime
             self.config.loggingFile_path = os.path.join(log_directory, file_path)
+            #logging.basicConfig(filename=self.config.loggingFile_path,level=logging.DEBUG)
             if self.config.logging:
                 print('\nGenerated log filename: %s' % self.config.loggingFile_path)
-        
-        
-
-    
         
         if self.config.logging:
             sys.stdin = self.panelLog.log

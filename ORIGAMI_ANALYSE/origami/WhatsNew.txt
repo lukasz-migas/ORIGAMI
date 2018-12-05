@@ -56,28 +56,36 @@
 # TODO: change testkDa from 10,000 to user-defined value. Also change the num of d.p 
         in the statusbar updater
 
+Documentation:
+- Added online documentation (also copied locally in ORIGAMI path/docs/index.html). 
+    See online at https://lukasz-migas.github.io/ORIGAMI/
+- Added 10 new video guides to the Youtube playlist (https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8)
+
+
 Document tree:
 - [fix] Fixed type: spectrun -> spectrum (grr)
 - [fix] When loading mzml/mgf files, the individual scans will no longer 
-  be shown in the document tree as it caused some major issues. If you would like
-  to see the individual spectra, please double-click on the header 'Tandem Mass Spectra'
-  and new window will appear when you can select scan by double-clicking on it
-  in the table
-- [improvement] When loading any data into the INTERACTIVE document, you will be asked
-  whether data should be duplicated, merged or duplicated
+    be shown in the document tree as it caused some major issues. If you would like
+    to see the individual spectra, please double-click on the header 'Tandem Mass Spectra'
+    and new window will appear when you can select scan by double-clicking on it
+    in the table
+- [improvement] When loading any data into the INTERACTIVE document, you will be asked 
+    whether data should be duplicated, merged or duplicated
+- [improvement] When plotting a waterfall plot, data will be checked to ensure its not too big (e.g. too many rows). 
+    You will be asked if you would like to continue
   
 Annotations:
 - [fix] font size, weight and rotation will now be aplied when adding labels
-- [improvement] auto-label generator will now also create labels based purely 
-  on the charge state
+- [fix] annotation parameters (e.g. size, weight, rotation) will be respected when replotting from the Document Tree
+- [improvement] auto-label generator will now also create labels based purely on the charge state
 
 Interactive panel:
 = [new] Made big progres in terms of copying/applying styles for plot elements. 
-  When you double-click on any element in the file list a new window will appear
-  where you can individually adjust plot parameters. When you finished, you can
-  right-click on that same (or any other) item in the list and select 'Copy style..'. 
-  You can then select any other item in the list, right-click on it and select
-  'Apply style..'. 
+    When you double-click on any element in the file list a new window will appear
+    where you can individually adjust plot parameters. When you finished, you can
+    right-click on that same (or any other) item in the list and select 'Copy style..'. 
+    You can then select any other item in the list, right-click on it and select
+    'Apply style..'. 
 = [fix] fixed sorting in the list (especilaly when using the 'Show selected' option)
   Lists are sorted using 'natural sorting' from now on, meaning they should be more
   logically sorted.
@@ -85,8 +93,13 @@ Interactive panel:
 = [improvement] Colorbars:
     = added loads of new settings users can control
     = better behaviour when adding colorbars to plots
-= [change] removed tools/toolset from ORIGAMI - the new system of copy/apply
-  style should work much better
+= [change] removed tools/toolset from ORIGAMI - the new system of copy/apply style should work much better
+
+UVPD panel
+= added a new plugin that allows analysis and processing of UVPD datasets that were acquire with the laser
+    constantly switching between on and off. To activate, click on Menu -> Plugins -> UVPD processing...
+    
+
 
 
 ###########################################

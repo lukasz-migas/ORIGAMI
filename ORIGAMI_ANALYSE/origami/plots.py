@@ -368,25 +368,25 @@ class plots(plottingWindow):
         try: ymin, ymax = self.plotMS.get_ylim()
         except: return
         
-        print(yval)
-        
         if stick_to_intensity:
             try: y_position = np.divide(yval, self.y_divider)
             except: y_position = ymax
         else:
             y_position = ymax
             
-        text = self.plotMS.text(np.array(xpos), y_position+yoffset, 
-                                label,
-                                horizontalalignment=kwargs.pop("horizontalalignment", "center"),
-                                verticalalignment=kwargs.pop("verticalalignment", "top"), 
-                                color=color,
-                                **kwargs)
+        text = self.plotMS.text(
+            np.array(xpos), y_position+yoffset,
+            label,
+            horizontalalignment=kwargs.pop("horizontalalignment", "center"),
+            verticalalignment=kwargs.pop("verticalalignment", "top"), 
+            color=color,
+            **kwargs)
         self.text.append(text)
         
         if vline:
-            line = self.plotMS.axvline(xpos, ymin, yval*0.8, color=color, 
-                                       linestyle="dashed", alpha=0.4)
+            line = self.plotMS.axvline(
+                xpos, ymin, yval*0.8, color=color,
+                linestyle="dashed", alpha=0.4)
             self.lines.append(line)
 
     def plot_add_text(self, xpos, yval, label, color="black", zorder=3, **kwargs):
@@ -1394,6 +1394,8 @@ class plots(plottingWindow):
         
         if kwargs.get("butterfly_plot", False):
             yvals = -np.array(yvals)
+            self.plotMS.axhline(linewidth=kwargs['line_width'],
+                                color='k')
         
         if update_y_axis:
             yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)

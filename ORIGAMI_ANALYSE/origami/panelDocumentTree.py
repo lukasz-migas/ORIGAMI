@@ -1159,6 +1159,7 @@ class documentsTree(wx.TreeCtrl):
                 del self.presenter.documentsDict[currentDoc].calibrationDataset[self.extractData]
                 if len(self.presenter.documentsDict[currentDoc].calibrationDataset) == 0: 
                     self.presenter.documentsDict[currentDoc].gotCalibrationDataset = False
+
                                 
         # Add modified document to the dictionary
         self.presenter.documentsDict[currentDoc] = document
@@ -1804,6 +1805,8 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveWaterfallImageDoc)
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveRMSDmatrixImageDoc)
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveOtherImageDoc)
+        self.Bind(wx.EVT_MENU, self.on_process_UVPD, id=ID_docTree_processUVPD)
+        
         
         self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_MS_to_interactive)
         self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_RT_to_interactive)
@@ -3939,8 +3942,13 @@ class documentsTree(wx.TreeCtrl):
                 return
             elif evtID == ID_showPlotDocument_waterfall:
                 zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data, dataType='plot', compact=False)
-                self.presenter.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
-                                                                 xlabel=xlabel, ylabel=ylabel, set_page=True)
+                if len(xvals) > 500:
+                    dlg = dialogs.dlgBox(exceptionTitle='Would you like to continue?',
+                                 exceptionMsg= "There are {} scans in this dataset (this could be slow...). Would you like to continue?".format(len(xvals)),
+                                 type="Question")
+                    if dlg == wx.ID_YES:
+                        self.presenter.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
+                                                                        xlabel=xlabel, ylabel=ylabel, set_page=True)
                 return
             else: pass
             # Unpack data
@@ -4529,7 +4537,8 @@ class documentsTree(wx.TreeCtrl):
                     saveData = np.vstack((yvals, zvals.T))
                     xvals = map(str, xvals.tolist())
                     labels = ["DT"]
-                    for label in xvals: labels.append(label)
+                    for label in xvals: 
+                        labels.append(label)
                     # Save 2D array
                     kwargs = {'default_name':defaultValue}
                     self.onSaveData(data=[saveData], labels=labels, 
@@ -4822,7 +4831,10 @@ class documentsTree(wx.TreeCtrl):
         
         if not hasattr(docData, 'file_reader'):
             setattr(docData, "file_reader", {})
-        
+            
+        if not hasattr(docData, 'app_data'):
+            setattr(docData, "app_data", {})
+            print("Added missing attributute ('app_data') to document")
 
         # Add document
         docItem = self.AppendItem(self.GetRootItem(), title)
@@ -5441,6 +5453,15 @@ class documentsTree(wx.TreeCtrl):
                                                      self.icons,
                                                      **kwargs)
         self.panelTandemSpectra.Show()
+        
+    def on_process_UVPD(self, evt=None, **kwargs):
+        from panelUVPD import panelUVPD
+        self.panelUVPD = panelUVPD(self.presenter.view, 
+                                   self.presenter,
+                                   self.config, 
+                                   self.icons,
+                                   **kwargs)
+        self.panelUVPD.Show()
         
     def on_add_mzID_file(self, evt):
         document = self.data_processing._on_get_document()

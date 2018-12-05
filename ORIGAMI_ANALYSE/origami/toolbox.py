@@ -636,6 +636,7 @@ def saveAsText(filename, data, format='%.2f', delimiter=',',
     """
     This function uses np.savetxt to save formatted data to file
     """
+    
     try:
         np.savetxt(filename,
                    np.transpose(data),

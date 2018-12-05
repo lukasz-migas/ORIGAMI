@@ -39,20 +39,21 @@ class OrigamiConfig:
         self._processID = None
         self.loggingFile_path = None
         
-        self.version = "1.2.0.4"
+        self.version = "1.2.1"
         self.unidec_engine = None
         self.links = {'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
                       'github' : 'https://github.com/lukasz-migas/ORIGAMI',
                       'cite' : 'https://doi.org/10.1016/j.ijms.2017.08.014',
                       'newVersion' : 'https://github.com/lukasz-migas/ORIGAMI/releases',
-                      'guide': 'https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/UserGuide.pdf',
-                      'youtube':'https://www.youtube.com/watch?v=XNfM6F_MSb0&list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8',
+                      'guide': 'https://lukasz-migas.github.io/ORIGAMI/',
+                      'youtube':'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8',
                       'htmlEditor':'https://html-online.com/editor/',
                       'newFeatures':'https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform',
                       'reportBugs':'https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform',
                       'unidec_cite_1':'https://pubs.acs.org/doi/abs/10.1021/acs.analchem.5b00140',
                       'unidec_cite_2':'https://link.springer.com/article/10.1007/s13361-018-1951-9',
-                      'unidec_github':'https://github.com/michaelmarty/UniDec/releases'}
+                      'unidec_github':'https://github.com/michaelmarty/UniDec/releases',
+                      'about-author':'https://lukasz-migas.com/'}
         self.logging = False
         self.threading = True
         self.autoSaveSettings = True
@@ -318,11 +319,8 @@ class OrigamiConfig:
         self.replot1Ddata = {}
         self.replot2Ddata = {}
         
-        # Initilize main config
-        self.initilizeConfig()
-        self.new_config()
-
-    def new_config(self):
+        # temporary data storage
+        self._temp_ = {} # new in v1.2.1
         
         # mzml/mgf/mzident etc 
         self.msms_load_n_scans = 500  # new
@@ -585,6 +583,16 @@ class OrigamiConfig:
         self.fit_highRes_width = 1
         self.fit_highRes_isotopicFit = False
         
+        # UVPD
+        self.uvpd_peak_finding_threshold = 0.1 # new in v1.2.1
+        self.uvpd_peak_buffer_width = 1 # new in v1.2.1
+        self.uvpd_peak_first_index = 1 # new in v1.2.1
+        self.uvpd_peak_laser_on = (1,0,0) # new in v1.2.1
+        self.uvpd_peak_laser_off = (0,0,1) # new in v1.2.1
+        self.uvpd_peak_show_markers = True # new in v1.2.1
+        self.uvpd_peak_show_patches = False # new in v1.2.1
+        self.uvpd_peak_show_labels = False # new in v1.2.1
+        
         # RMSD 
         self.rmsd_position_choices = ['bottom left', 'bottom right', 'top left', 'top right', 'none', 'other']
         self.rmsd_position = 'bottom left'
@@ -834,7 +842,6 @@ class OrigamiConfig:
         self.compare_massSpectrumParams = {'inverse':True, 'preprocess':False,
                                            'normalize':False, 'subtract':False}
         
-    def initilizeConfig(self):
         # Settings Panel
         self.lastDir = None
         

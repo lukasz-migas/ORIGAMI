@@ -16,14 +16,14 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
+from __future__ import division
 import numpy as np
 from operator import itemgetter
 from itertools import groupby
 from time import time as ttime
 from scipy.signal import find_peaks # @UnresolvedImport
 
-def detect_peaks_chromatogram(data, threshold): # detectPeaksRT
+def detect_peaks_chromatogram(data, threshold, add_buffer=0): # detectPeaksRT
     """
     This function searches for split in the sequence of numbers (when signal goes to 0)
     and returns the xy coordinates for the rectangle to be plotted
@@ -36,17 +36,36 @@ def detect_peaks_chromatogram(data, threshold): # detectPeaksRT
     valXX = valX.astype(int).tolist()[0]
     # Find index values
     outlist = []
+    apex_list = []
     for k, g in groupby(enumerate(valXX), lambda (i,x):i-x):
         x = (map(itemgetter(1), g)) # list of vals
-#         print(x)
         xStart = x[0] # get x start
         xEnd = x[-1] # get x end
+        
+        if (xStart-xEnd) == 0:
+            apex_list.append([xStart, xEnd])
+            xStart = xStart - add_buffer
+            xEnd = xEnd + add_buffer
+            
+        
         outlist.append([xStart,xEnd])
+        
+    # pair list
     outlistRav = np.ravel(outlist)-1
     valXout = data[outlistRav,0]
     valYout = data[outlistRav,1]
     output = np.array(zip(valXout,valYout))
-    return output, outlist
+    # apex list
+    try:
+        apexListRav = np.ravel(apex_list)-1
+        apexListRav = np.unique(apexListRav)
+        valXout = data[apexListRav,0]
+        valYout = data[apexListRav,1]
+        apexlist = np.array(zip(valXout,valYout))
+    except IndexError:
+        apexlist = []
+    
+    return output, outlist, apexlist
 
 def detect_peaks_spectrum2(xvals, yvals, window=10, threshold=0):
     peaks, __ = find_peaks(yvals, distance=window, threshold=threshold)

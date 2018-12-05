@@ -21,11 +21,11 @@ import numpy as np
 from time import time as ttime
 
 from ids import (ID_smooth1DdataMS, ID_smooth1Ddata1DT, ID_smooth1DdataRT,
-                         ID_window_multiFieldList, ID_window_ionList, ID_window_ccsList,
-                         ID_processSettings_autoUniDec, ID_processSettings_loadDataUniDec,
-                         ID_processSettings_preprocessUniDec, ID_processSettings_runAll,
-                         ID_processSettings_runUniDec, ID_processSettings_pickPeaksUniDec,
-                         ID_processSettings_isolateZUniDec)
+                 ID_window_multiFieldList, ID_window_ionList, ID_window_ccsList,
+                 ID_processSettings_autoUniDec, ID_processSettings_loadDataUniDec,
+                 ID_processSettings_preprocessUniDec, ID_processSettings_runAll,
+                 ID_processSettings_runUniDec, ID_processSettings_pickPeaksUniDec,
+                 ID_processSettings_isolateZUniDec)
 from document import document as documents
 import processing.spectra as pr_spectra
 import processing.heatmap as pr_heatmap
@@ -235,6 +235,7 @@ class data_processing():
             pageID = self.config.panelNames['Calibration']
             markerPlot = 'CalibrationMS'
             listLinks = self.config.ccsTopColNames
+            
         else:
             msg = "%s is not supported yet." % self.docs.dataType
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
@@ -254,15 +255,15 @@ class data_processing():
         except: pass
         
         # Chromatograms
-        if self.config.currentPeakFit == "RT" or self.config.currentPeakFit == "MS/RT": 
-            if (self.docs.dataType == 'Type: Multifield Linear DT' or 
-                self.docs.dataType == 'Type: Infrared'): 
+        if self.config.fit_type in ["RT", "MS/RT"]: 
+            if (self.docs.dataType in ['Type: Multifield Linear DT', 'Type: Infrared']): 
                 # TO ADD: current view only, smooth
                     # Prepare data first
                     rtList = np.transpose([self.docs.RT['xvals'], self.docs.RT['yvals']]) 
                     
                     # Detect peaks
-                    peakList, tablelist = pr_utils.detect_peaks_chromatogram(rtList, self.config.fit_threshold)
+                    peakList, tablelist, _ = pr_utils.detect_peaks_chromatogram(
+                        rtList, self.config.fit_threshold)
                     peak_count = len(peakList)
                     
                     if len(peakList) > 0:
@@ -302,9 +303,42 @@ class data_processing():
                                         rtTemptList.Append([xmin, xmax, xdiff,"",self.presenter.currentDoc])
                                     # Removing duplicates
                                     self.view.panelLinearDT.topP.onRemoveDuplicates(evt=None)
+                                    
+        if self.config.fit_type in ["RT (UVPD)"]:
+            height = 100000000000
+            # Prepare data first
+            rtList = np.transpose([self.docs.RT['xvals'], self.docs.RT['yvals']]) 
+            # Detect peaks
+            peakList, tablelist, apexlist = pr_utils.detect_peaks_chromatogram(rtList, self.config.fit_threshold, add_buffer=1)
+            peak_count = len(peakList)
+            
+            self.view.panelPlots.on_clear_patches("RT", True)
+            self.view.panelPlots.on_add_marker(xvals=apexlist[:,0],yvals=apexlist[:,1],
+                                               color=self.config.markerColor_1D, 
+                                               marker=self.config.markerShape_1D,
+                                               size=self.config.markerSize_1D,
+                                               plot='RT',
+                                               clear_first=True)
+            last = len(tablelist)-1
+            for i, rt in enumerate(tablelist):
+                if i % 2: color = (1,0,0)
+                else: color = (0,0,1)
+                xmin = rt[0]
+                if xmin == 1: pass
+                else: xmin = xmin-1
+                width = rt[1]-xmin+1
+                if i == last:
+                    width = width-1
+                    self.view.panelPlots.on_add_patch(xmin, ymin, width, height, color=color, 
+#                                                       alpha=(self.config.markerTransparency_1D/100),
+                                                      plot="RT", repaint=True)
+                else:
+                    self.view.panelPlots.on_add_patch(xmin, ymin, width, height, color=color, 
+#                                                       alpha=(self.config.markerTransparency_1D/100),
+                                                      plot="RT", repaint=False)
 
         # Mass spectra
-        if self.config.currentPeakFit == "MS" or self.config.currentPeakFit == "MS/RT":
+        if self.config.fit_type in ["MS", "MS/RT"]:
             if self.docs.gotMS:
                 if self.config.fit_smoothPeaks:
                     msX = self.docs.massSpectrum['xvals']

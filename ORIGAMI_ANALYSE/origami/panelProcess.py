@@ -687,7 +687,7 @@ class panelProcessData(wx.MiniFrame):
         mainSizer = wx.BoxSizer(wx.VERTICAL)        
         
         fitPlot_label = wx.StaticText(panel, wx.ID_ANY, u"Search plot:")
-        self.fit_fitPlot_choice = wx.Choice(panel, -1, choices=self.config.fit_type_choices,
+        self.fit_fitPlot_choice = wx.Choice(panel, -1, choices=["MS", "RT", "MS + RT"], #self.config.fit_type_choices,
                                           size=(-1, -1))
         self.fit_fitPlot_choice.SetStringSelection(self.config.fit_type)
         self.fit_fitPlot_choice.Bind(wx.EVT_CHOICE, self.onApply)
