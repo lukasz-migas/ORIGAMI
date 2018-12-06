@@ -11,16 +11,16 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\comparison.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1_overlay_document.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\3_Boltzmann_IMS2D_5139.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\MS_nist_intact.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_07.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_06.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_07.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_07.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\dt-ims\LM_20151006_7_B_DV50.raw" format="ORIGAMI" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\1_Linear_IMS2D_5140.73-5169.41.csv" format="Text" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text" format="Text" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\text\2_Exponential_IMS2D_5140.48-5164.36.csv" format="Text" />
   </recent>
 
   <presets_gui>
@@ -515,6 +515,9 @@
     <param page_name="Columns" name="Columns" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 1" name="Figure 1" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 1b" name="Figure 1b" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure 2d - 20+" name="Figure 2d - 20+" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure 2d - 21+" name="Figure 2d - 21+" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure 2d - 22+" name="Figure 2d - 22+" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 4" name="Figure 4" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure S1 (a, c, e)" name="Figure S1 (a, c, e)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure S1 (b, d, f)" name="Figure S1 (b, d, f)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
@@ -529,7 +532,7 @@
     <param name="openInteractiveOnSave" value="True" type="bool" />
     <!-- JAVA SCRIPT PARAMETERS -->
     <param name="interactive_custom_scripts" value="False" type="bool" />
-    <param name="interactive_custom_events" value="True" type="bool" />
+    <param name="interactive_custom_events" value="False" type="bool" />
     <param name="interactive_custom_position" value="right"  choices="['left', 'right', 'below', 'above']" type="unicode" />
     <!-- FRAME PARAMETERS -->
     <param name="figHeight" value="600" type="int" />

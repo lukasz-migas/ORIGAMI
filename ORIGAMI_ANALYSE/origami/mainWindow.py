@@ -566,8 +566,11 @@ class MyFrame(wx.Frame):
         
         # UTILITIES
         menuPlugins = wx.Menu()
-        menuPlugins.AppendItem(makeMenuItem(parent=menuPlugins, id=ID_docTree_processUVPD,
-                                              text='UVPD processing...', 
+        menuPlugins.AppendItem(makeMenuItem(parent=menuPlugins, id=ID_docTree_plugin_UVPD,
+                                              text='UVPD processing window...', 
+                                              bitmap=None))
+        menuPlugins.AppendItem(makeMenuItem(parent=menuPlugins, id=ID_docTree_plugin_MSMS,
+                                              text='MS/MS window...', 
                                               bitmap=None))
 #         menuPlugins.AppendItem(makeMenuItem(parent=menuPlugins, id=ID_sequence_openGUI,
 #                                               text='Sequence analysis...', 
@@ -821,7 +824,11 @@ class MyFrame(wx.Frame):
                 
         # UTILITIES
         self.Bind(wx.EVT_MENU, self.panelDocuments.topP.documents.on_process_UVPD, 
-                  id=ID_docTree_processUVPD)
+                  id=ID_docTree_plugin_UVPD)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.topP.documents.on_open_MSMS_viewer, 
+                  id=ID_docTree_plugin_MSMS)
+                  
+                  
 #         self.Bind(wx.EVT_MENU, self.onSequenceEditor, id=ID_sequence_openGUI)
         
         # CONFIG MENU

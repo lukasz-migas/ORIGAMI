@@ -199,7 +199,8 @@ ID_processSettings_replotMS = NewId()
 ID_processSettings_processMS = NewId()
 ID_processSettings_replot2D = NewId()
 ID_processSettings_process2D = NewId()
-ID_docTree_processUVPD = NewId() 
+ID_docTree_plugin_UVPD = NewId() 
+ID_docTree_plugin_MSMS = NewId() 
 ID_processSettings_restoreIsolatedAll = NewId()
 
 
@@ -233,6 +234,7 @@ ID_annotPanel_otherSettings = NewId()
 
 # Tandem panel
 ID_tandemPanel_otherSettings = NewId()
+ID_tandemPanel_showPTMs = NewId()
 
 # UVPD panel
 ID_uvpd_laser_on_show_heatmap = NewId()

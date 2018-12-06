@@ -1043,18 +1043,19 @@ class data_processing():
         
         z = spectrum_dict['identification'][0]['charge']
         peptide = spectrum_dict['identification'][0]['peptide_seq']
-        fragments = self.frag_generator.generate_fragments_from_peptide(peptide=peptide, 
-                                                                        ion_types=kwargs.get("ion_types", ["b-all", "y-all"]), 
-                                                                        label_format=label_format,
-                                                                        max_charge=z)
+        fragments = self.frag_generator.generate_fragments_from_peptide(
+            peptide=peptide, ion_types=kwargs.get("ion_types", ["b-all", "y-all"]),
+            label_format=label_format, max_charge=z)
         
-        fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list, = self.frag_generator.get_fragment_mass_list(fragments)
+        fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list = self.frag_generator.get_fragment_mass_list(fragments)
         xvals, yvals = spectrum_dict['xvals'], spectrum_dict['yvals']
-        found_peaks = self.frag_generator.match_peaks(xvals, yvals, fragment_mass_list, fragment_name_list, 
-                                                      fragment_charge_list, fragment_peptide_list,
-                                                      tolerance=kwargs.get("tolerance", 0.25), 
-                                                      tolerance_units=kwargs.get("tolerance_units", "Da"), 
-                                                      max_found=kwargs.get("max_annotations", 1))
+        found_peaks = self.frag_generator.match_peaks(
+            xvals, yvals, fragment_mass_list, fragment_name_list,
+            fragment_charge_list, fragment_peptide_list,
+            tolerance=kwargs.get("tolerance", 0.25), 
+            tolerance_units=kwargs.get("tolerance_units", "Da"), 
+            max_found=kwargs.get("max_annotations", 1))
+        
         if kwargs.get("verbose", False):
             print("Matched {} peaks in the spectrum".format(len(found_peaks)))
         

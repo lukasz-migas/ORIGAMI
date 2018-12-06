@@ -37,7 +37,7 @@ block_cipher = None
 # pyinstaller ORIGAMI.spec -y --clean
 
 # Set version number
-version = "1.2.0.4"
+version = "1.2.1.0"
 
 current_dir = os.getcwd()
 origami_dir_name = "ORIGAMI_v{}".format(version)
@@ -119,8 +119,8 @@ coll = COLLECT(exe,
 print("Build ORIGAMI in {} seconds".format(time.clock()-tstart))
 
 # Copy additional files
-filelist = ['icon.ico', 'MassLynxRaw.dll', 'UserGuide_ANALYSE.pdf', 'calibrantDB.csv',
-            'calibrantDB.xlsx', 'cacert.pem', 'node-v8.11.3-x64.msi', 'node-v8.11.3-x86.msi']
+filelist = ['icon.ico', 'MassLynxRaw.dll', 'calibrantDB.csv',
+            'calibrantDB.xlsx', 'cacert.pem', 'node-v10.14.1-x64.msi']
 
 tstart = time.clock()
 savePath = path.path(''.join([dist_dir,'\\']))
@@ -132,7 +132,7 @@ for file in filelist:
     print("Skipped file: {}".format(file))
   
 # Copy additional folders
-dirlist = ['licences', 'unidec_bin', 'images', 'example_files'
+dirlist = ['licences', 'unidec_bin', 'images', 'example_files', 'docs'
            # r'C:\\Program Files\\Anaconda\\Lib\\site-packages\\bokeh\\core\\_templates',
            # r'C:\\Program Files\\Anaconda\\Lib\\site-packages\\bokeh\\server'
            ]

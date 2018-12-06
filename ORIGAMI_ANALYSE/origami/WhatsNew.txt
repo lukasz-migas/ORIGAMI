@@ -99,6 +99,9 @@ UVPD panel
 = added a new plugin that allows analysis and processing of UVPD datasets that were acquire with the laser
     constantly switching between on and off. To activate, click on Menu -> Plugins -> UVPD processing...
     
+Tandem MS panel:
+- [improvement] improved the way scans are loaded
+- [improvement] butterfly plots will have horizontal line at 0
 
 
 

@@ -1805,7 +1805,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveWaterfallImageDoc)
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveRMSDmatrixImageDoc)
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveOtherImageDoc)
-        self.Bind(wx.EVT_MENU, self.on_process_UVPD, id=ID_docTree_processUVPD)
+        self.Bind(wx.EVT_MENU, self.on_process_UVPD, id=ID_docTree_plugin_UVPD)
         
         
         self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_MS_to_interactive)
@@ -2207,10 +2207,10 @@ class documentsTree(wx.TreeCtrl):
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_add_mzIdentML, 
                                          text='Add identification information (.mzIdentML, .mzid, .mzid.gz)', 
                                          bitmap=None))
-        elif itemType == "Tandem Mass Spectra" and self.indent == 3:
-            menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
-                                         text='Show mass spectrum\tAlt+S', 
-                                         bitmap=self.icons.iconsLib['mass_spectrum_16'])) 
+#         elif itemType == "Tandem Mass Spectra" and self.indent == 3:
+#             menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+#                                          text='Show mass spectrum\tAlt+S', 
+#                                          bitmap=self.icons.iconsLib['mass_spectrum_16'])) 
         # Sample information
         elif itemType == 'Sample information':
             menu.Append(ID_showSampleInfo, 'Show sample information')

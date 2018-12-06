@@ -45,7 +45,7 @@ from bokeh.plotting import figure, save, ColumnDataSource
 from bokeh.models import (HoverTool, LinearColorMapper, Label, ColorBar,
                           AdaptiveTicker, BasicTickFormatter,
                           FixedTicker, FuncTickFormatter, LabelSet,
-                          CustomJS, Toggle, Slider, Legend, Dropdown,
+                          CustomJS, Toggle, Slider, Legend, Dropdown, Select,
                           Select, Arrow, NormalHead)
 from bokeh.layouts import (column, widgetbox, gridplot, row)
 from bokeh.layouts import layout as bokeh_layout
@@ -64,6 +64,8 @@ from toolbox import (str2int, str2num, convertRGB1to255, convertRGB1toHEX, find_
 from styles import makeStaticBox, makeStaticText, makeCheckbox, TEXT_STYLE_CV_R_L, makeMenuItem, validator
 import dialogs as dialogs
 from processing.spectra import linearize_data, crop_1D_data, normalize_1D
+
+# TODO: replace Dropdown with Select tool
 
 # import cmaputil as cmu
 # import cmaputil.cvdutil as cvu
@@ -1415,8 +1417,8 @@ class dlgOutputInteractive(wx.MiniFrame):
 #         self.interactive_outline_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 #         self.interactive_outline_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 #         self.interactive_grid_line.Bind(wx.EVT_CHECKBOX, self.onApply)
-#         self.interactive_background_colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_changeColorBackgroundInteractive)
-#         self.interactive_grid_line_colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_changeColorGridLineInteractive)
+#         self.interactive_background_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorBackgroundInteractive)
+#         self.interactive_grid_line_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorGridLineInteractive)
 #
 #         gridFigure = wx.GridBagSizer(5,2)
 #         n = 0
@@ -1483,8 +1485,8 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.notationSlider.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         self.rmsd_label_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         self.notationBoldCheck.Bind(wx.EVT_CHECKBOX, self.onApply)
-        self.interactive_annotation_colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_changeColorNotationInteractive)
-        self.interactive_annotation_colorBackgroundBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_changeColorBackgroundNotationInteractive)
+        self.interactive_annotation_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorNotationInteractive)
+        self.interactive_annotation_colorBackgroundBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorBackgroundNotationInteractive)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -1728,7 +1730,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                               u"", wx.DefaultPosition,
                                               wx.Size(26, 26), 0)
         self.bar_edgeColorBtn.SetBackgroundColour(convertRGB1to255(self.config.bar_edge_color))
-        self.bar_edgeColorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
+        self.bar_edgeColorBtn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
         self.bar_colorEdge_check = makeCheckbox(panel, u"Same as fill")
         self.bar_colorEdge_check.SetValue(self.config.bar_sameAsFill)
@@ -1777,7 +1779,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.scatter_marker_edge_colorBtn = wx.Button(panel, ID_interactivePanel_color_markerEdge,
                                                   u"", wx.DefaultPosition, wx.Size(26, 26), 0)
         self.scatter_marker_edge_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_scatter_edge_color))
-        self.scatter_marker_edge_colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_interactivePanel_color_markerEdge)
+        self.scatter_marker_edge_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_interactivePanel_color_markerEdge)
 
         self.scatter_color_sameAsFill = wx.CheckBox(panel, -1 , u'Same as fill', (15, 30))
         self.scatter_color_sameAsFill.SetValue(self.config.interactive_scatter_sameAsFill)
@@ -1878,7 +1880,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         self.annot_fontColor_colorBtn = wx.Button(panel, ID_changeColorAnnotLabelInteractive,
                                                   u"", wx.DefaultPosition, wx.Size(26, 26), 0)
         self.annot_fontColor_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_ms_annotations_label_color))
-        self.annot_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour, id=ID_changeColorAnnotLabelInteractive)
+        self.annot_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorAnnotLabelInteractive)
 
 
         gridAnnot = wx.GridBagSizer(2, 2)
@@ -2747,6 +2749,13 @@ class dlgOutputInteractive(wx.MiniFrame):
                         data = docData.other_data[innerKey]
                         kwargs = {"color":(215, 224, 184)}
                         self.append_to_table(data, key, innerKey, "Other data", **kwargs)
+                        
+                # Tandem dat a
+                if len(docData.tandem_spectra) > 0:
+                    data = docData.tandem_spectra
+                    if data.get('cmap', "") == "": data['cmap'] = self.config.interactive_line_color
+                    kwargs = {"toolset":"1D", "color":(219, 209, 255)}
+                    self.append_to_table(data, key, "", "MS/MS", **kwargs)
 
             self.onAddPageChoices(evt=None)
         else:
@@ -2846,32 +2855,34 @@ class dlgOutputInteractive(wx.MiniFrame):
         information, unidecMethod = "", ""
         # Determine which document was selected
         document = self.documentsDict[name]
-        if key == 'MS' and innerKey == '': docData = document.massSpectrum
-        if key == 'Processed MS' and innerKey == '': docData = document.smoothMS
-        if key == 'RT' and innerKey == '': docData = document.RT
-        if key == 'RT, multiple' and innerKey != '': docData = document.multipleRT[innerKey]
-        if key == '1D' and innerKey == '': docData = document.DT
-        if key == '1D, multiple' and innerKey != '': docData = document.multipleDT[innerKey]
-        if key == '2D' and innerKey == '': docData = document.IMS2D
-        if key == '2D, processed' and innerKey == '': docData = document.IMS2Dprocess
-        if key == 'MS, multiple' and innerKey != '': docData = document.multipleMassSpectrum[innerKey]
-        if key == '2D' and innerKey != '': docData = document.IMS2Dions[innerKey]
-        if key == 'DT-IMS' and innerKey != '': docData = document.IMS1DdriftTimes[innerKey]
-        if key == '1D' and innerKey != '': docData = document.IMS1DdriftTimes[innerKey]
-        if key == 'RT, combined' and innerKey != '': docData = document.IMSRTCombIons[innerKey]
-        if key == '2D, combined' and innerKey != '': docData = document.IMS2DCombIons[innerKey]
-        if key == '2D, processed' and innerKey != '': docData = document.IMS2DionsProcess[innerKey]
-        if key == 'Overlay' and innerKey != '':
-            docData = document.IMS2DoverlayData[innerKey]
-            overlayMethod = re.split('-|,|:|__', innerKey)
-        if key == 'Statistical' and innerKey != '': docData = document.IMS2DstatsData[innerKey]
-        if key == 'UniDec' and innerKey != '': docData = document.massSpectrum['unidec'][innerKey]
-        if key == 'UniDec, processed' and innerKey != '': docData = document.massSpectrum['unidec'][innerKey]
-        if key == 'UniDec, multiple' and innerKey != '':
-            unidecMethod = re.split(' \| ', innerKey)[0]
-            innerKey = re.split(' \| ', innerKey)[1]
-            docData = document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod]
-        if key == "Other data" and innerKey != '': docData = document.other_data[innerKey]
+        docData = self.getItemData(name, key, innerKey)
+#         if key == 'MS' and innerKey == '': docData = document.massSpectrum
+#         if key == 'Processed MS' and innerKey == '': docData = document.smoothMS
+#         if key == 'RT' and innerKey == '': docData = document.RT
+#         if key == 'RT, multiple' and innerKey != '': docData = document.multipleRT[innerKey]
+#         if key == '1D' and innerKey == '': docData = document.DT
+#         if key == '1D, multiple' and innerKey != '': docData = document.multipleDT[innerKey]
+#         if key == '2D' and innerKey == '': docData = document.IMS2D
+#         if key == '2D, processed' and innerKey == '': docData = document.IMS2Dprocess
+#         if key == 'MS, multiple' and innerKey != '': docData = document.multipleMassSpectrum[innerKey]
+#         if key == '2D' and innerKey != '': docData = document.IMS2Dions[innerKey]
+#         if key == 'DT-IMS' and innerKey != '': docData = document.IMS1DdriftTimes[innerKey]
+#         if key == '1D' and innerKey != '': docData = document.IMS1DdriftTimes[innerKey]
+#         if key == 'RT, combined' and innerKey != '': docData = document.IMSRTCombIons[innerKey]
+#         if key == '2D, combined' and innerKey != '': docData = document.IMS2DCombIons[innerKey]
+#         if key == '2D, processed' and innerKey != '': docData = document.IMS2DionsProcess[innerKey]
+#         if key == 'Overlay' and innerKey != '':
+#             docData = document.IMS2DoverlayData[innerKey]
+#             overlayMethod = re.split('-|,|:|__', innerKey)
+#         if key == 'Statistical' and innerKey != '': docData = document.IMS2DstatsData[innerKey]
+#         if key == 'UniDec' and innerKey != '': docData = document.massSpectrum['unidec'][innerKey]
+#         if key == 'UniDec, processed' and innerKey != '': docData = document.massSpectrum['unidec'][innerKey]
+#         if key == 'UniDec, multiple' and innerKey != '':
+#             unidecMethod = re.split(' \| ', innerKey)[0]
+#             innerKey = re.split(' \| ', innerKey)[1]
+#             docData = document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod]
+#         if key == "Other data" and innerKey != '': docData = document.other_data[innerKey]
+#         if key == "MS/MS" and innerKey == '': docData = document.tandem_spectra
 
 
         # build information
@@ -2943,7 +2954,8 @@ class dlgOutputInteractive(wx.MiniFrame):
             innerKey = re.split(' \| ', innerKey)[1]
             docData = deepcopy(document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod])
         if key == "Other data" and innerKey != "": docData = document.other_data[innerKey]
-
+        if key == "MS/MS" and innerKey == '': docData = document.tandem_spectra
+        
         return docData
 
     def on_change_page_for_item(self, evt):
@@ -2994,7 +3006,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                                  label=str(colormap))
                     self.onUpdateDocumentKeyword(name, key, innerKey, keyword="cmap", value=str(colormap))
 
-    def onChangeColour(self, evt):
+    def on_change_color(self, evt):
 
         if self.currentItem == None and evt.GetId() == ID_changeColorInteractive:
             msg = 'Please select item first'
@@ -3353,18 +3365,18 @@ class dlgOutputInteractive(wx.MiniFrame):
             if "label_toggle" in js_type and "labels" in kwargs:
                 labels = kwargs["labels"]
                 js_code = '''\
-                if toggle.active
-                    labels.text_alpha = 1
-                    figure.y_range.end = {}
-                    toggle.label = "Hide labels"
-                    console.log 'Showing labels'
-                else
-                    labels.text_alpha = 0
-                    figure.y_range.end = {}
-                    toggle.label = "Show labels"
-                    console.log 'Hiding labels'
-                '''.format(kwargs["y_range_shown"], kwargs["y_range_hidden"])
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                if (toggle.active) {
+                    labels.text_alpha = 1;
+                    toggle.label = "Hide labels";
+                    console.log('Showing labels');
+                    }
+                else {
+                    labels.text_alpha = 0;
+                    toggle.label = "Show labels";
+                    console.log('Hiding labels');
+                    }
+                '''
+                callback = CustomJS(code=js_code, args={})
                 toggle = Toggle(label="Hide labels", button_type="success", callback=callback, active=True,
                                 width=widget_width)
                 callback.args = {'toggle': toggle, 'labels': labels, 'figure':bokehPlot}
@@ -3376,9 +3388,9 @@ class dlgOutputInteractive(wx.MiniFrame):
                 js_code = '''\
                 label_size = slider.value;
                 labels.text_font_size = label_size + 'pt';
-                console.log 'Font size: ' + label_size;
+                console.log('Font size: ' + label_size);
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 slider = Slider(start=6, end=16, step=0.5, value=self.config.interactive_ms_annotations_fontSize,
                                 callback=callback, title="Label fontsize",
                                 width=widget_width)
@@ -3391,9 +3403,9 @@ class dlgOutputInteractive(wx.MiniFrame):
                 js_code = '''\
                 x_offset = slider.value;
                 labels.x_offset = x_offset;
-                console.log 'X offset: ' + x_offset;
+                console.log('X offset: ' + x_offset);
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 slider = Slider(start=-100, end=100, step=5, value=self.config.interactive_ms_annotations_offsetX,
                                 callback=callback, title="Label x-axis offset",
                                 width=widget_width)
@@ -3406,9 +3418,9 @@ class dlgOutputInteractive(wx.MiniFrame):
                 js_code = '''\
                 y_offset = slider.value;
                 labels.y_offset = y_offset;
-                console.log 'Y offset: ' + y_offset;
+                console.log('Y offset: ' + y_offset);
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 slider = Slider(start=-100, end=100, step=5, value=self.config.interactive_ms_annotations_offsetY,
                                 callback=callback, title="Label y-axis offset",
                                 width=widget_width)
@@ -3422,9 +3434,9 @@ class dlgOutputInteractive(wx.MiniFrame):
                 angle = slider.value * 0.0174533;
                 labels.angle_units = 'deg';
                 labels.angle = angle;
-                console.log 'Angle: ' + angle;
+                console.log('Angle: ' + angle);
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 slider = Slider(start=0, end=180, step=10, value=kwargs.get("label_rotation_angle", self.config.interactive_ms_annotations_rotation),
                                 callback=callback, title="Label rotation angle",
                                 width=widget_width)
@@ -3449,14 +3461,16 @@ class dlgOutputInteractive(wx.MiniFrame):
             if "hover_mode" in js_type and "hover" in kwargs:
                 hover = kwargs["hover"]
                 js_code = '''\
-                if radio.active == 0
-                    hover.mode = 'mouse'
-                    console.log 'Hover mode: follow mouse'
-                else if radio.active == 1
-                    hover.mode = 'vline'
-                    console.log 'Hover mode: follow vertical line'
+                if (radio.active == 0) {
+                    hover.mode = 'mouse';
+                    console.log('Hover mode: follow mouse');
+                    }
+                else if (radio.active == 1) {
+                    hover.mode = 'vline';
+                    console.log('Hover mode: follow vertical line');
+                    }
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 if hover.mode == "mouse": active_mode = 0
                 elif hover.mode == "vline": active_mode = 1
                 elif hover.mode == "hline": active_mode = 2
@@ -3471,19 +3485,21 @@ class dlgOutputInteractive(wx.MiniFrame):
             if "legend_toggle" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
-                if toggle.active
+                if (toggle.active) {
                     legend.border_line_alpha = 0;
                     legend.visible = true;
-                    toggle.label = "Hide legend"
-                    console.log 'Showing legend'
-                else
+                    toggle.label = "Hide legend";
+                    console.log('Showing legend');
+                    }
+                else {
                     legend.border_line_alpha = 0;
                     legend.visible = false;
-                    toggle.label = "Show legend"
-                    console.log 'Hiding legend'
+                    toggle.label = "Show legend";
+                    console.log('Hiding legend');
+                    }
                 figure.change.emit();
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 toggle = Toggle(label="Hide legend", button_type="success", callback=callback,
                                 active=True, width=widget_width)
                 callback.args = {'toggle': toggle, 'legend': legend, 'figure':bokehPlot}
@@ -3494,22 +3510,24 @@ class dlgOutputInteractive(wx.MiniFrame):
                 legends = kwargs["legends"]
                 figures = kwargs["figures"]
                 js_code = '''\
-                if toggle.active
+                if (toggle.active {
                     for j, i in legends
-                        [legend, figure] = [legends[i], figures[i]]
+                        [legend, figure] = [legends[i], figures[i]];
                         legend.border_line_alpha = 0;
                         legend.visible = true;
                         figure.change.emit();
-                    toggle.label = "Hide legends"
-                    console.log 'Showing legends'
-                else
+                    toggle.label = "Hide legends";
+                    console.log('Showing legends');
+                    }
+                else {
                     for j, i in legends
-                        [legend, figure] = [legends[i], figures[i]]
+                        [legend, figure] = [legends[i], figures[i]];
                         legend.border_line_alpha = 0;
                         legend.visible = false;
                         figure.change.emit();
-                    toggle.label = "Show legends"
-                    console.log 'Hiding legends'
+                    toggle.label = "Show legends";
+                    console.log('Hiding legends');
+                    }
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
                 toggle = Toggle(label="Hide legend", button_type="success", callback=callback,
@@ -3522,13 +3540,13 @@ class dlgOutputInteractive(wx.MiniFrame):
             if "legend_position" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
-                position = dropdown.value
-                legend.location = position
-                legend.visible = true
+                position = dropdown.value;
+                legend.location = position;
+                legend.visible = true;
                 figure.change.emit();
-                console.log 'Legend position: ' + position
+                console.log('Legend position: ' + position);
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 menu = [("Top left", "top_left"), ("Top right", "top_right"),
                         ("Bottom left", "bottom_left"), ("Bottom right", "bottom_right")]
                 dropdown = Dropdown(menu=menu, callback=callback, label="Legend position",
@@ -3541,16 +3559,17 @@ class dlgOutputInteractive(wx.MiniFrame):
             if "legend_orientation" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
-                if radio.active == 0
+                if (radio.active == 0) {
                     legend.orientation = 'vertical';
-                    console.log 'Legend orientation: vertical';
-                else if radio.active == 1
+                    console.log('Legend orientation: vertical');
+                    }
+                else if (radio.active == 1) {
                     legend.orientation = 'horizontal';
-                    console.log 'Legend orientation: horizontal';
-
+                    console.log('Legend orientation: horizontal');
+                    }
                 figure.change.emit();
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 if data["interactive_params"]["legend_properties"].get(
                     "legend_orientation", self.config.interactive_legend_orientation) == "vertical":
                     active_mode = 0
@@ -3571,9 +3590,9 @@ class dlgOutputInteractive(wx.MiniFrame):
                 transparency = slider.value;
                 legend.background_fill_alpha = transparency;
                 figure.change.emit();
-                console.log 'Legend transparency: ' + transparency;
+                console.log('Legend transparency: ' + transparency);
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 slider = Slider(start=0, end=1, step=0.1,
                                 value=data["interactive_params"]["legend_properties"].get(
                                     "legend_background_alpha", self.config.interactive_legend_background_alpha),
@@ -3589,12 +3608,13 @@ class dlgOutputInteractive(wx.MiniFrame):
                 js_code = '''\
                 transparency = slider.value;
                 for j, i in legends
-                    [legend, figure] = [legends[i], figures[i]]
+                    [legend, figure] = [legends[i], figures[i]];
                     legend.background_fill_alpha = transparency;
                     figure.change.emit();
-                console.log 'Legend transparency: ' + transparency;
+                    
+                console.log('Legend transparency: ' + transparency);
                 '''
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
+                callback = CustomJS(code=js_code, args={})
                 slider = Slider(start=0, end=1, step=0.1,
                                 value=data["interactive_params"]["legend_properties"].get(
                                     "legend_background_alpha", self.config.interactive_legend_background_alpha),
@@ -3614,9 +3634,9 @@ class dlgOutputInteractive(wx.MiniFrame):
                     if toggle.active
                         for line, i in lines
                             line.glyph.line_color = original_colors[i];
-                        toggle.label = "Show in colorblind mode"
-                        console.log 'Colors set to: normal mode'
-                    else
+                        toggle.label = "Show in colorblind mode";
+                        console.log('Colors set to: normal mode');
+                    else 
                         for line, i in lines
                             line.glyph.line_color = cvd_colors[i];
                         toggle.label = "Show in normal mode"
@@ -3913,7 +3933,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 # look here: https://groups.google.com/a/continuum.io/forum/#!topic/bokeh/_xtHNgab45o
 
                 js_code = '''\
-                console.log 'Resetting zoom';
+                console.log('Resetting zoom');
                 figure.reset.emit();
                 '''
 
@@ -4303,6 +4323,93 @@ class dlgOutputInteractive(wx.MiniFrame):
             bokehPlot = self.add_custom_js_events(bokehPlot, js_type=["double_tap_unzoom"], **kwargs)
 #             except: pass
         return bokehPlot
+
+    def _add_plot_centroid(self, data, **bkh_kwargs):
+        plt_kwargs = self._buildPlotParameters(data)
+        
+        tandem_data = data["Scan 557"]
+        print(tandem_data.keys(), tandem_data['charges'], tandem_data['identification'])
+        
+        # collect data
+        xvals_list, yvals_list, options_list = [], [], []
+        keys = data.keys()
+        for i in range(5):
+            key = keys[i]
+            xvals_list.append(data[key]['xvals'])
+            yvals_list.append(data[key]['yvals'])
+            options_list.append(str(i))
+        
+        source_list = ColumnDataSource(dict(
+            xvals_list=xvals_list,
+            yvals_list=yvals_list,
+            ))
+        
+        
+        source = ColumnDataSource(dict(
+            xvals=tandem_data['xvals'],
+            yvals=tandem_data['yvals'],
+                                ))
+        
+        
+
+        # Prepare hover tool
+        hoverTool = HoverTool(tooltips=[("m/z", '@xvals{0.00}'),
+                                        ("Intensity", '@yvals{0.00}'),
+#                                         ("Label", "@label")
+                                        ],
+                            mode="mouse"
+                              )
+        TOOLS = self._check_tools(hoverTool, data)
+        if data['interactive_params']['tools'].get("active_inspect", "auto") == "hover":
+            inspect_tool = hoverTool
+        else:
+            inspect_tool = data['interactive_params']['tools'].get("active_inspect", "auto")
+            
+        bokehPlot = figure(
+#             x_range=xlimits, y_range=ylimits,
+            tools=TOOLS,
+            title=bkh_kwargs["title"],
+            active_drag=data['interactive_params']['tools'].get("active_drag", "auto"),
+            active_scroll=data['interactive_params']['tools'].get("active_wheel", "auto"),
+            active_inspect=inspect_tool,
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=data.get("interactive_params", {}).get(
+                "tools", {}).get("position", self.config.toolsLocation),
+            toolbar_sticky=False)
+        
+        bokehPlot.segment(x0="xvals", y0=0, x1="xvals", y1="yvals", line_color="#000000", line_width=3, source=source)
+    
+        js_widgets = []
+        js_code = '''
+        // get data
+        var data = source_list.data;
+        var plot_data = source.data
+        // convert value to integer
+        i = parseInt(cb_obj.value, 10);
+        // retrieve data from list 
+        var xvals = data['xvals_list'][i];
+        var yvals = data['yvals_list'][i];
+        // replace data and trigger replot
+        plot_data['xvals'] = xvals;
+        plot_data['yvals'] = yvals;
+        source.change.emit();
+        '''
+        callback = CustomJS(code=js_code, args={'figure':bokehPlot, 'source':source, 'source_list':source_list})
+#         toggle = Select(title="Dataset (scan):", value="0", options=["Scan 557", "Scan 441", "Scan 3733", "Scan 504"], callback=callback)
+        toggle = Select(title="Dataset (scan):", value="0", options=options_list, #["0", "1", "2", "3"], 
+                        callback=callback)
+#         Select(label="Show in colorblind mode", button_type="success",
+#                         callback=callback, active=True, width=302)
+#         callback.args = {'toggle': toggle, 'figure':bokehPlot, 
+#                          'images': images,
+#                          'colorbars':colorbars, 'cvd_colors':cvd_colors, 'original_colors':original_colors
+#                          }
+        js_widgets.append(toggle)
+
+        bokehPlot = row(bokehPlot, widgetbox(js_widgets))
+                
+        return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
     def _add_plot_1D(self, data, **bkh_kwargs):
         """
@@ -6782,7 +6889,6 @@ class dlgOutputInteractive(wx.MiniFrame):
 
         return bokehPlot, arrows
 
-
     def onGenerateHTML(self, evt):
         """
         Generate plots for HTML output
@@ -7003,7 +7109,7 @@ class dlgOutputInteractive(wx.MiniFrame):
 
                 elif overlayMethod[0] == "Waterfall overlay":
                     bokehPlot = self._add_plot_waterfall_overlay(data, **bkh_kwargs)
-
+                    
                 else:
                     msg = "Cannot export '%s - %s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (overlayMethod[0], key, innerKey)
                     dialogs.dlgBox(exceptionTitle='Not supported yet',
@@ -7017,6 +7123,9 @@ class dlgOutputInteractive(wx.MiniFrame):
 
                 elif overlayMethod[0] == 'RMSD Matrix':
                     bokehPlot = self._add_plot_matrix(data, **bkh_kwargs)
+                    
+            elif key == "MS/MS":
+                bokehPlot = self._add_plot_centroid(data, **bkh_kwargs)
 
             else:
                 msg = "Cannot export '%s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (key, innerKey)
