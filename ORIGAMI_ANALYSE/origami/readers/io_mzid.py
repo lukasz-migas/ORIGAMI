@@ -144,8 +144,11 @@ class MZIdentReader():
 
             peptide_out[pep] = {'peptide_seq':peptide_sequence,
                                 'protein_description':protein_description, 
-                                'accession':accession, 'start':start, 'end':end,
-                                'pre':pre, 'post':post}
+                                'accession':accession, 
+                                'start':start, 
+                                'end':end,
+                                'pre':pre, 
+                                'post':post}
 
         return peptide_out
 

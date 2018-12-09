@@ -74,6 +74,7 @@ from processing.spectra import linearize_data, crop_1D_data, normalize_1D
 
 import warnings
 from _pytest.mark import param
+from bokeh.models.sources import ColumnDataSource
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -663,6 +664,9 @@ class dlgOutputInteractive(wx.MiniFrame):
             unidecMethod = re.split(' \| ', innerKey)[0]
             innerKey = re.split(' \| ', innerKey)[1]
             document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod]['interactive_params'] = parameters
+            
+        if key == "MS/MS" and innerKey == '': 
+            document.tandem_spectra.update(interactive_params=parameters)
 
         # Update dictionary
         self.presenter.OnUpdateDocument(document, 'no_refresh')
@@ -2856,33 +2860,6 @@ class dlgOutputInteractive(wx.MiniFrame):
         # Determine which document was selected
         document = self.documentsDict[name]
         docData = self.getItemData(name, key, innerKey)
-#         if key == 'MS' and innerKey == '': docData = document.massSpectrum
-#         if key == 'Processed MS' and innerKey == '': docData = document.smoothMS
-#         if key == 'RT' and innerKey == '': docData = document.RT
-#         if key == 'RT, multiple' and innerKey != '': docData = document.multipleRT[innerKey]
-#         if key == '1D' and innerKey == '': docData = document.DT
-#         if key == '1D, multiple' and innerKey != '': docData = document.multipleDT[innerKey]
-#         if key == '2D' and innerKey == '': docData = document.IMS2D
-#         if key == '2D, processed' and innerKey == '': docData = document.IMS2Dprocess
-#         if key == 'MS, multiple' and innerKey != '': docData = document.multipleMassSpectrum[innerKey]
-#         if key == '2D' and innerKey != '': docData = document.IMS2Dions[innerKey]
-#         if key == 'DT-IMS' and innerKey != '': docData = document.IMS1DdriftTimes[innerKey]
-#         if key == '1D' and innerKey != '': docData = document.IMS1DdriftTimes[innerKey]
-#         if key == 'RT, combined' and innerKey != '': docData = document.IMSRTCombIons[innerKey]
-#         if key == '2D, combined' and innerKey != '': docData = document.IMS2DCombIons[innerKey]
-#         if key == '2D, processed' and innerKey != '': docData = document.IMS2DionsProcess[innerKey]
-#         if key == 'Overlay' and innerKey != '':
-#             docData = document.IMS2DoverlayData[innerKey]
-#             overlayMethod = re.split('-|,|:|__', innerKey)
-#         if key == 'Statistical' and innerKey != '': docData = document.IMS2DstatsData[innerKey]
-#         if key == 'UniDec' and innerKey != '': docData = document.massSpectrum['unidec'][innerKey]
-#         if key == 'UniDec, processed' and innerKey != '': docData = document.massSpectrum['unidec'][innerKey]
-#         if key == 'UniDec, multiple' and innerKey != '':
-#             unidecMethod = re.split(' \| ', innerKey)[0]
-#             innerKey = re.split(' \| ', innerKey)[1]
-#             docData = document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod]
-#         if key == "Other data" and innerKey != '': docData = document.other_data[innerKey]
-#         if key == "MS/MS" and innerKey == '': docData = document.tandem_spectra
 
 
         # build information
@@ -2906,6 +2883,16 @@ class dlgOutputInteractive(wx.MiniFrame):
             else:
                 try: information = "Annotations: {}".format(len(docData["annotations"]))
                 except: information = ""
+                
+        if "annotated_item_list" in docData:
+            if len(information) > 0:
+                try: information = "{}\nAnnotated mass spectra: {}".format(information, len(docData["annotated_item_list"]))
+                except: pass
+            else:
+                try: information = "Annotated mass spectra: {}".format(len(docData["annotated_item_list"]))
+                except: information = ""
+            
+        #
 
         # Retrieve information
         title = docData.get('title', " ")
@@ -3382,7 +3369,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'toggle': toggle, 'labels': labels, 'figure':bokehPlot}
                 js_widgets.append(toggle)
                 msg = "{} Annotation on/off toggle |".format(msg)
-
+    
             if "label_size_slider" in js_type and "labels" in kwargs:
                 labels = kwargs["labels"]
                 js_code = '''\
@@ -3397,7 +3384,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'slider': slider, 'labels':labels}
                 js_widgets.append(slider)
                 msg = "{} Annotation font size slider |".format(msg)
-
+    
             if "label_offset_x" in js_type and "labels" in kwargs:
                 labels = kwargs["labels"]
                 js_code = '''\
@@ -3412,7 +3399,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'slider': slider, 'labels':labels}
                 js_widgets.append(slider)
                 msg = "{} Annotation x-axis offset slider |".format(msg)
-
+    
             if "label_offset_y" in js_type and "labels" in kwargs:
                 labels = kwargs["labels"]
                 js_code = '''\
@@ -3427,7 +3414,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'slider': slider, 'labels':labels}
                 js_widgets.append(slider)
                 msg = "{} Annotation y-axis offset slider |".format(msg)
-
+    
             if "label_rotation" in js_type and "labels" in kwargs:
                 labels = kwargs["labels"]
                 js_code = '''\
@@ -3443,7 +3430,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'slider': slider, 'labels':labels}
                 js_widgets.append(slider)
                 msg = "{} Annotation rotation slider |".format(msg)
-
+    
             if "slider_zoom" in js_type and "y_range_x1" in kwargs:
                 js_code = '''\
                 zoom_value  = slider.value;
@@ -3457,7 +3444,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'slider': slider, 'figure':bokehPlot}
                 js_widgets.append(slider)
                 msg = "{} Y-axis range slider |".format(msg)
-
+    
             if "hover_mode" in js_type and "hover" in kwargs:
                 hover = kwargs["hover"]
                 js_code = '''\
@@ -3481,7 +3468,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'radio': group, 'hover':hover}
                 js_widgets.append(group)
                 msg = "{} Hovertool mode toggle |".format(msg)
-
+    
             if "legend_toggle" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
@@ -3505,7 +3492,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'toggle': toggle, 'legend': legend, 'figure':bokehPlot}
                 js_widgets.append(toggle)
                 msg = "{} Legend on/off toggle |".format(msg)
-
+    
             if "legend_toggle_multi" in js_type and "legends" in kwargs:
                 legends = kwargs["legends"]
                 figures = kwargs["figures"]
@@ -3535,8 +3522,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'toggle': toggle, 'legends': legends, 'figures':figures}
                 js_widgets.append(toggle)
                 msg = "{} Legend on/off toggle |".format(msg)
-
-
+    
+    
             if "legend_position" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
@@ -3551,11 +3538,11 @@ class dlgOutputInteractive(wx.MiniFrame):
                         ("Bottom left", "bottom_left"), ("Bottom right", "bottom_right")]
                 dropdown = Dropdown(menu=menu, callback=callback, label="Legend position",
                                     width=widget_width)
-
+    
                 callback.args = {'dropdown': dropdown, 'legend':legend, 'figure':bokehPlot}
                 js_widgets.append(dropdown)
                 msg = "{} Legend position dropdown |".format(msg)
-
+    
             if "legend_orientation" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
@@ -3575,7 +3562,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                     active_mode = 0
                 else:
                     active_mode = 1
-
+    
                 group = RadioButtonGroup(labels=["      Legend: vertical      ",
                                                  "     Legend: horizontal    "],
                                          active=active_mode, callback=callback,
@@ -3583,7 +3570,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'radio': group, 'legend':legend, 'figure':bokehPlot}
                 js_widgets.append(group)
                 msg = "{} Legend orientation toggle |".format(msg)
-
+    
             if "legend_transparency" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
@@ -3601,7 +3588,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'slider': slider, 'legend':legend, 'figure':bokehPlot}
                 js_widgets.append(slider)
                 msg = "{} Legend transparency slider |".format(msg)
-
+    
             if "legend_transparency_multi" in js_type and "legends" in kwargs:
                 legends = kwargs["legends"]
                 figures = kwargs["figures"]
@@ -3623,7 +3610,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'slider': slider, 'legends':legends, 'figures':figures}
                 js_widgets.append(slider)
                 msg = "{} Legend transparency slider |".format(msg)
-
+    
             if "colorblind_safe_1D" in js_type and "lines" in kwargs:
                 lines = kwargs["lines"]
                 patches = kwargs.get("patches", [])
@@ -3668,7 +3655,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                  'cvd_colors':cvd_colors, 'original_colors':original_colors}
                 js_widgets.append(toggle)
                 msg = "{} Colorblind toggle |".format(msg)
-
+    
             if "colorblind_safe_1D_multi" in js_type and "lines" in kwargs:
                 lines = kwargs["lines"]
                 patches = kwargs.get("patches", [])
@@ -3683,7 +3670,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                             [line, patch, color] = [line_list[j], patch_list[j], color_list[j]]
                             line.glyph.line_color = color;
                             patch.glyph.fill_color = color;
-
+    
                     toggle.label = "Show in colorblind mode"
                     console.log 'Colors set to: normal mode'
                 else
@@ -3693,10 +3680,10 @@ class dlgOutputInteractive(wx.MiniFrame):
                             [line, patch, color] = [line_list[j], patch_list[j], color_list[j]]
                             line.glyph.line_color = color;
                             patch.glyph.fill_color = color;
-
+    
                     toggle.label = "Show in normal mode"
                     console.log 'Colors set to: colorblind friendly mode'
-
+    
                 for figure in figures
                     figure.change.emit()
                 '''
@@ -3707,7 +3694,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                  'cvd_colors':cvd_colors, 'original_colors':original_colors}
                 js_widgets.append(toggle)
                 msg = "{} Colorblind toggle |".format(msg)
-
+    
             if "colorblind_safe_scatter" in js_type and "scatters" in kwargs:
                 scatters = kwargs["scatters"]
                 cvd_colors = kwargs['cvd_colors']
@@ -3735,7 +3722,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                  'cvd_colors':cvd_colors, 'fill_colors':fill_colors, 'edge_colors':edge_colors}
                 js_widgets.append(toggle)
                 msg = "{} Colorblind toggle |".format(msg)
-
+    
             if "colorblind_safe_2D" in js_type and "images" in kwargs:
                 images = kwargs["images"]
                 colorbars = kwargs.get("colorbars", None)
@@ -3781,7 +3768,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                  'colorbars':colorbars, 'cvd_colors':cvd_colors, 'original_colors':original_colors}
                 js_widgets.append(toggle)
                 msg = "{} Colorblind toggle |".format(msg)
-
+    
             if "colormap_change" in js_type and "images" in kwargs:
                 images = kwargs["images"]
                 colorbars = kwargs.get("colorbars", [])
@@ -3794,7 +3781,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                     image.glyph.color_mapper = colormaps[i];
                 for cbar in colorbars
                     cbar.color_mapper = colormaps[i];
-
+    
                 figure.change.emit();
                 console.log 'Changed colormap', cbar
                 '''
@@ -3803,12 +3790,12 @@ class dlgOutputInteractive(wx.MiniFrame):
                         ("{}".format(colormap_names[2]), "2"), ("{}".format(colormap_names[3]), "3")]
                 dropdown = Dropdown(menu=menu, callback=callback, label="Colormap selection",
                                     width=widget_width)
-
+    
                 callback.args = {'dropdown': dropdown, 'colormaps':colormaps,
                                  'figure':bokehPlot, 'images': images, 'colorbars':colorbars}
                 js_widgets.append(dropdown)
                 msg = "{} Colormap dropdown |".format(msg)
-
+    
             if "scatter_size" in js_type and "scatters" in kwargs:
                 scatters = kwargs['scatters']
                 js_code = '''\
@@ -3825,7 +3812,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'slider': slider, 'scatters':scatters, 'figure':bokehPlot}
                 js_widgets.append(slider)
                 msg = "{} Scatter size slider |".format(msg)
-
+    
             if "scatter_transparency" in js_type and "scatters" in kwargs:
                 scatters = kwargs['scatters']
                 js_code = '''\
@@ -3843,7 +3830,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 callback.args = {'slider': slider, 'scatters':scatters, 'figure':bokehPlot}
                 js_widgets.append(slider)
                 msg = "{} Scatter size slider |".format(msg)
-
+    
             if "plot_size" in js_type:
                 js_code = '''\
                 width = slider_width.value;
@@ -3864,8 +3851,8 @@ class dlgOutputInteractive(wx.MiniFrame):
                 js_widgets.append(slider_width)
                 js_widgets.append(slider_height)
                 msg = "{} Plot size sliders |".format(msg)
-
-
+    
+            
             # add controls to the plot at specified position
             if position == "right":
                 bokehPlot = row(bokehPlot, widgetbox(js_widgets))
@@ -3879,25 +3866,27 @@ class dlgOutputInteractive(wx.MiniFrame):
                 bokehPlot = bokeh_layout([bokehPlot, js_widgets])
             elif position == "bottom_column":
                 bokehPlot = bokeh_layout([bokehPlot, widgetbox(js_widgets)])
-
+                
+            
+                
             msg = "{}. It took {:.3f} seconds".format(msg[:-2], (time.time() - tstart))
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
         except Exception, e:
             print(e)
 #         except RuntimeError:
-#             msg = "ORIGAMI encountered an error when compiling custom JavaScript widgets. There are a few things you can do to fix this.\n" + \
-#                   "1) Disable JavaScript widgets/events in the Annotations tab. OR\n" + \
-#                   "2) Go to ORIGAMI's working directory and use attached JavaScript installer \n" + \
-#                   "   (node-v8.11.3-x64.msi for 64-bit/node-v8.11.3-x86.msi for 32-bit PCs).\n" + \
-#                   "   Execute the script and either restart ORIGAMI or close the Interactive panel and try again OR\n" + \
-#                   "3) Go to https://nodejs.org/en/download/ and download the latest version of JavaScript installer \n" + \
-#                   "   and execute same steps as in the above option.\n\n" + \
-#                   "ORIGAMI directory: {}".format(self.config.cwd)
-#
-#             dialogs.dlgBox(exceptionTitle='No JavaScript available',
-#                            exceptionMsg= msg,
-#                            type="Error")
-#             self.config.interactive_custom_scripts = False
+            msg = "ORIGAMI encountered an error when compiling custom JavaScript widgets. There are a few things you can do to fix this.\n" + \
+                  "1) Disable JavaScript widgets/events in the Annotations tab. OR\n" + \
+                  "2) Go to ORIGAMI's working directory and use attached JavaScript installer \n" + \
+                  "   (node-v10.14.1-x64.msi)\n" + \
+                  "   Execute the script and either restart ORIGAMI or close the Interactive panel and try again OR\n" + \
+                  "3) Go to https://nodejs.org/en/download/ and download the latest version of JavaScript installer \n" + \
+                  "   and execute same steps as in the above option.\n\n" + \
+                  "ORIGAMI directory: {}".format(self.config.cwd)
+
+            dialogs.dlgBox(exceptionTitle='No JavaScript available',
+                           exceptionMsg= msg,
+                           type="Error")
+            self.config.interactive_custom_scripts = False
             self.custom_js_scripts.SetValue(False)
 
         # return plot with widgets
@@ -3946,7 +3935,7 @@ class dlgOutputInteractive(wx.MiniFrame):
             msg = "ORIGAMI encountered an error when compiling custom JavaScript widgets. There are a few things you can do to fix this.\n" + \
                   "1) Disable JavaScript widgets/events in the Annotations tab. OR\n" + \
                   "2) Go to ORIGAMI's working directory and use attached JavaScript installer \n" + \
-                  "   (node-v8.11.3-x64.msi for 64-bit/node-v8.11.3-x86.msi for 32-bit PCs).\n" + \
+                  "   (node-v10.14.1-x64.msi).\n" + \
                   "   Execute the script and either restart ORIGAMI or close the Interactive panel and try again OR\n" + \
                   "3) Go to https://nodejs.org/en/download/ and download the latest version of JavaScript installer \n" + \
                   "   and execute same steps as in the above option.\n\n" + \
@@ -4067,31 +4056,6 @@ class dlgOutputInteractive(wx.MiniFrame):
         # get parameters
         interactive_params = data.get('interactive_params', {})
 
-#         if len(interactive_params) == 0:
-#             hover_vline = self.config.hoverVline
-#             line_width = self.config.interactive_line_width
-#             line_alpha = self.config.interactive_line_alpha
-#             line_style = self.config.interactive_line_style
-#             overlay_layout = self.config.plotLayoutOverlay
-#             overlay_linkXY = self.config.linkXYaxes
-#             legend = self.config.interactive_legend
-#             addColorbar = self.config.interactive_colorbar
-#             title_label = False
-#             xpos = self.config.interactive_grid_xpos
-#             ypos = self.config.interactive_grid_ypos
-#             waterfall_increment = self.config.interactive_waterfall_increment
-#             linearize_spectra = self.config.interactive_ms_linearize
-#             show_annotations = self.config.interactive_ms_annotations
-#             bin_size = self.config.interactive_ms_binSize
-#             waterfall_shade = False
-#             waterfall_shade_transparency = 0.25
-#             overlay_shade = False
-#             overlay_shade_transparency = 0.25
-#             plot_width = self.config.figWidth
-#             plot_height = self.config.figHeight
-#             _xlimits_ = None
-#             _ylimits_ = None
-#         else:
         hover_vline = interactive_params['line_linkXaxis']
         line_width = interactive_params['line_width']
         line_alpha = interactive_params['line_alpha']
@@ -4324,49 +4288,170 @@ class dlgOutputInteractive(wx.MiniFrame):
 #             except: pass
         return bokehPlot
 
-    def _add_plot_centroid(self, data, **bkh_kwargs):
-        plt_kwargs = self._buildPlotParameters(data)
+#     def _prepare_centroid_annotations(self, data, yvals, y_offset=0):
+#         
+#         __, ylimits = find_limits_all(yvals, yvals)
+#         text_annot_xpos, text_annot_ypos, text_annot_label = [], [], []
+#         arrow_xpos_start, arrow_xpos_end, arrow_ypos_start, arrow_ypos_end = [], [], [], []
+#         text_annot_xpos_start, text_annot_ypos_start = [], []
+# 
+# #         # add annotations iteratively
+# #         for i, annotKey in enumerate(data['annotations']):
+# #             
+# #             # add labels
+# #             if data["interactive_params"]["annotation_properties"].get(
+# #                 "show_labels", self.config.interactive_ms_annotations_labels):
+# #                 # determine position of the ion/peak
+# #                 if 'isotopic_x' in data['annotations'][annotKey]:
+# #                     xpos = data['annotations'][annotKey]['isotopic_x']
+# #                 else:
+# #                     xpos = data['annotations'][annotKey]["max"] - (data['annotations'][annotKey]["max"] - data['annotations'][annotKey]["min"]) / 2.
+# #                 text_annot_xpos.append(xpos)
+# # 
+# #                 if 'isotopic_y' in data['annotations'][annotKey]:
+# #                     ypos = data['annotations'][annotKey]['isotopic_y']
+# #                 else:
+# #                     ypos = data['annotations'][annotKey]["intensity"]
+# #                 text_annot_ypos.append(ypos + y_offset)
+# # 
+# #                 # determine position of arrow (if any)
+# #                 if data['annotations'][annotKey].get('add_arrow', False):
+# #                     xpos_start = data['annotations'][annotKey].get('position_label_x', xpos)
+# #                     ypos_start = data['annotations'][annotKey].get('position_label_y', ypos)
+# #                 else: xpos_start, ypos_start = xpos, ypos
+# # 
+# #                 # if either xpos or ypos not equal position of the peak then we are not
+# #                 # adding arrow
+# #                 if xpos_start != xpos or ypos_start != ypos:
+# #                      arrow_xpos_start.append(xpos_start)
+# #                      arrow_xpos_end.append(xpos)
+# #                      arrow_ypos_start.append(ypos_start)
+# #                      arrow_ypos_end.append(ypos)
+# #                      # replace x/ypos of the label
+# #                      text_annot_xpos[-1] = xpos_start
+# #                      text_annot_ypos[-1] = ypos_start
+# # 
+# #                 # label
+# #                 if data['annotations'][annotKey]["label"] not in ["", None]:
+# #                     label = u"{}".format(_replace_labels(data['annotations'][annotKey]["label"]))
+# #                 else:
+# #                     label = u"{}".format(data['annotations'][annotKey]["charge"])
+# #                 text_annot_label.append(label)
+# # 
+# #                 # check if need to add arrow
+# #                 if data['annotations'][annotKey].get('add_arrow', False):
+# #                     xpos_start = data['annotations'][annotKey].get('position_label_x', xpos)
+# #                     ypos_start = data['annotations'][annotKey].get('position_label_y', ypos)
+# #                     if xpos_start == xpos and ypos_start == ypos: continue
+# #                     text_annot_xpos_start.append(xpos_start)
+# #                     text_annot_ypos_start.append(ypos_start)
+# 
+#         if data["interactive_params"]["annotation_properties"].get(
+#             "show_labels", self.config.interactive_ms_annotations_labels):
+#             ylimits[1] = max(text_annot_ypos) * 2
+#             label_source = ColumnDataSource(data=dict(xpos=text_annot_xpos,
+#                                                       ypos=text_annot_ypos,
+#                                                       label=text_annot_label))
+# 
+#         return label_source
+
+    def prepare_centroid_data(self, xvals_raw, xvals_lab, data, color_labelled, color_unlabelled):
+        """
+        Generate colors, labels and details about annotations in a MSMS file
+        ===
+        xvals_raw:    list / numpy.array
+            list of x-axis values (m/z)
+        xvals_lab:    list / numpy.array
+            list of x-axis values (m/z) of the annotations
+        data:    dict
+            dataset with annotation inforation: peptide, charge, label, measured_mz, calculated_mz, ...
+        """
         
-        tandem_data = data["Scan 557"]
-        print(tandem_data.keys(), tandem_data['charges'], tandem_data['identification'])
+        # unpack
+        xvals_raw = list(xvals_raw)
+        
+        # get index of labelled items
+        match_index = []
+        for mz_lab in xvals_lab:
+            match_index.append(xvals_raw.index(mz_lab))
+        
+        # xvals, yvals, labels, colors, details
+        mz_list_size = len(xvals_raw)
+        
+        labels = [""] * mz_list_size
+        details = deepcopy(labels)
+        item_colors = [color_unlabelled] *  mz_list_size
+        for i in match_index:
+            item_colors[i] = color_labelled
+            mz_value = xvals_raw[i]
+            detail_label = "{}; z={}; error={} Da".format(
+                data[mz_value][0]['peptide'],
+                data[mz_value][0]['charge'],
+                data[mz_value][0]['delta_mz'])
+            details[i] = detail_label
+            labels[i] = data[mz_value][0]['label']
+            
+        return item_colors, labels, details
+    
+    def prepare_centroid_title(self, scanID, title):
+        """
+        Generate html text for div
+        """
+        
+        html_title = "<p><strong>ID: </strong>{}</p> <p><strong>Title: </strong>{}</p>".format(
+            scanID, title)
+        
+        return html_title
+        
+    def _add_plot_centroid_without_annotations(self, data, **bkh_kwargs):
+        plt_kwargs = self._buildPlotParameters(data)
+        plt_user_params = data['interactive_params']
+        
+        # temporary limit
+        hard_limit = 500
         
         # collect data
         xvals_list, yvals_list, options_list = [], [], []
-        keys = data.keys()
-        for i in range(5):
-            key = keys[i]
+        annotated_ms_list, title_list = [], []
+        i = 0
+        for key in data:
+            # skip keys that are forbidden 
+            if "Scan " not in key: 
+                continue
+            if i >= hard_limit: 
+                break
+            # plot data
             xvals_list.append(data[key]['xvals'])
             yvals_list.append(data[key]['yvals'])
             options_list.append(str(i))
-        
+            html_title = self.prepare_centroid_title(key, data[key]['scan_info']['title'])
+            title_list.append(html_title)
+            annotated_ms_list.append(i)
+            i += 1
+            
+        # create source data
         source_list = ColumnDataSource(dict(
             xvals_list=xvals_list,
             yvals_list=yvals_list,
+            title_list=title_list,
             ))
         
         
         source = ColumnDataSource(dict(
-            xvals=tandem_data['xvals'],
-            yvals=tandem_data['yvals'],
-                                ))
+            xvals=xvals_list[0],
+            yvals=yvals_list[0],
+            ))
         
-        
-
         # Prepare hover tool
         hoverTool = HoverTool(tooltips=[("m/z", '@xvals{0.00}'),
                                         ("Intensity", '@yvals{0.00}'),
-#                                         ("Label", "@label")
-                                        ],
-                            mode="mouse"
-                              )
+                                        ], mode="mouse")
         TOOLS = self._check_tools(hoverTool, data)
-        if data['interactive_params']['tools'].get("active_inspect", "auto") == "hover":
-            inspect_tool = hoverTool
-        else:
-            inspect_tool = data['interactive_params']['tools'].get("active_inspect", "auto")
-            
+        if data['interactive_params']['tools'].get("active_inspect", "auto") == "hover": inspect_tool = hoverTool
+        else: inspect_tool = data['interactive_params']['tools'].get("active_inspect", "auto")
+        
+        # create figure
         bokehPlot = figure(
-#             x_range=xlimits, y_range=ylimits,
             tools=TOOLS,
             title=bkh_kwargs["title"],
             active_drag=data['interactive_params']['tools'].get("active_drag", "auto"),
@@ -4378,36 +4463,212 @@ class dlgOutputInteractive(wx.MiniFrame):
                 "tools", {}).get("position", self.config.toolsLocation),
             toolbar_sticky=False)
         
-        bokehPlot.segment(x0="xvals", y0=0, x1="xvals", y1="yvals", line_color="#000000", line_width=3, source=source)
+        # add plot
+        bokehPlot.segment(
+            x0="xvals", y0=0, x1="xvals", y1="yvals", line_color="#000000",
+            line_width=plt_user_params['plot_properties']['tandem_line_width'], 
+            source=source)
     
+    
+        # setup labels
+        bokehPlot.xaxis.axis_label = "m/z"
+        bokehPlot.yaxis.axis_label = "Intensity"
+
+        # generate js kwargs
+        setup_kwargs = dict(hover=hoverTool)
+        
+        # setup common plot parameters
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **setup_kwargs)
+    
+        # create div for scan information
+        divHeader = Div(text=title_list[0])
+
+        # generate javascript widget
         js_widgets = []
         js_code = '''
         // get data
-        var data = source_list.data;
+        var list_data = source_list.data;
         var plot_data = source.data
+        
         // convert value to integer
         i = parseInt(cb_obj.value, 10);
+        
         // retrieve data from list 
-        var xvals = data['xvals_list'][i];
-        var yvals = data['yvals_list'][i];
+        var xvals = list_data['xvals_list'][i];
+        var yvals = list_data['yvals_list'][i];
+        var title = list_data['title_list'][i];
+        
+        // report title
+        console.log("Spectrum title: " + title_list[i]);
+        div.text = title;
+        
         // replace data and trigger replot
         plot_data['xvals'] = xvals;
         plot_data['yvals'] = yvals;
+        
         source.change.emit();
         '''
-        callback = CustomJS(code=js_code, args={'figure':bokehPlot, 'source':source, 'source_list':source_list})
-#         toggle = Select(title="Dataset (scan):", value="0", options=["Scan 557", "Scan 441", "Scan 3733", "Scan 504"], callback=callback)
-        toggle = Select(title="Dataset (scan):", value="0", options=options_list, #["0", "1", "2", "3"], 
-                        callback=callback)
-#         Select(label="Show in colorblind mode", button_type="success",
-#                         callback=callback, active=True, width=302)
-#         callback.args = {'toggle': toggle, 'figure':bokehPlot, 
-#                          'images': images,
-#                          'colorbars':colorbars, 'cvd_colors':cvd_colors, 'original_colors':original_colors
-#                          }
+        
+        callback = CustomJS(code=js_code, 
+                            args={'figure':bokehPlot, 'source':source, 
+                                  'source_list':source_list, 
+                                  'title_list':annotated_ms_list,
+                                  'div':divHeader})
+        
+        toggle = Select(title="Dataset (id):", value="0", options=options_list, callback=callback)
         js_widgets.append(toggle)
+        
+        # arrange
+        bokehPlot = row(bokehPlot, column(widgetbox(js_widgets), divHeader))
+                
+        return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
+        
+    def _add_plot_centroid_with_annotations(self, data, **bkh_kwargs):
+        plt_kwargs = self._buildPlotParameters(data)
+        plt_user_params = data['interactive_params']
+        
+        annotated_ms_list = data.get("annotated_item_list", [])
+        if len(annotated_ms_list) == 0:
+            return 
+        
+        # convert colors
+        color_labelled = convertRGB1toHEX(plt_user_params["plot_properties"]["tandem_line_color_labelled"])
+        color_unlabelled = convertRGB1toHEX(plt_user_params["plot_properties"]["tandem_line_color_unlabelled"])
+        
+        
+        # sort list
+        annotated_ms_list = natsorted(annotated_ms_list)
+        
+#         print(tandem_data.keys(), tandem_data['charges'], tandem_data['identification'])
+        
+        # collect data
+        xvals_list, yvals_list, options_list = [], [], []
+        item_colors_list, item_labels_list, item_details_list, title_list = [], [], [], []
+        for i, key in enumerate(annotated_ms_list):
+            # plot data
+            xvals_list.append(data[key]['xvals'])
+            yvals_list.append(data[key]['yvals'])
+            options_list.append(str(i))
+            
+            item_colors, labels, details = self.prepare_centroid_data(
+                data[key]['xvals'],
+                data[key]['fragment_annotations']['fragment_mass_list'],
+                data[key]['fragment_annotations']['fragment_table'], 
+                color_labelled, color_unlabelled)
+            item_colors_list.append(item_colors)
+            item_labels_list.append(labels)
+            item_details_list.append(details)
+            html_title = self.prepare_centroid_title(key, data[key]['scan_info']['title'])
+            title_list.append(html_title)
+            
+        # create source data
+        source_list = ColumnDataSource(dict(
+            xvals_list=xvals_list,
+            yvals_list=yvals_list,
+            colors_frag_list=item_colors_list,
+            labels_frag_list=item_labels_list,
+            details_frag_list=item_details_list,
+            title_list=title_list,
+            ))
+        
+        
+        source = ColumnDataSource(dict(
+            xvals=xvals_list[0],
+            yvals=yvals_list[0],
+            colors=item_colors_list[0], 
+            label=item_labels_list[0], 
+            details=item_details_list[0], 
+            ))
+        
+        # Prepare hover tool
+        hoverTool = HoverTool(tooltips=[("m/z", '@xvals{0.00}'),
+                                        ("Intensity", '@yvals{0.00}'),
+                                        ("Label", "@label"),
+                                        ("Details", "@details")
+                                        ], mode="mouse")
+        TOOLS = self._check_tools(hoverTool, data)
+        if data['interactive_params']['tools'].get("active_inspect", "auto") == "hover": inspect_tool = hoverTool
+        else: inspect_tool = data['interactive_params']['tools'].get("active_inspect", "auto")
+        
+        # create figure
+        bokehPlot = figure(
+            tools=TOOLS,
+            title=bkh_kwargs["title"],
+            active_drag=data['interactive_params']['tools'].get("active_drag", "auto"),
+            active_scroll=data['interactive_params']['tools'].get("active_wheel", "auto"),
+            active_inspect=inspect_tool,
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=data.get("interactive_params", {}).get(
+                "tools", {}).get("position", self.config.toolsLocation),
+            toolbar_sticky=False)
+        
+        # add plot
+        bokehPlot.segment(
+            x0="xvals", y0=0, x1="xvals", y1="yvals", line_color="colors",
+            line_width=plt_user_params['plot_properties']['tandem_line_width'], 
+            source=source)
+    
+    
+        # setup labels
+        bokehPlot.xaxis.axis_label = "m/z"
+        bokehPlot.yaxis.axis_label = "Intensity"
 
-        bokehPlot = row(bokehPlot, widgetbox(js_widgets))
+        # generate js kwargs
+        setup_kwargs = dict(hover=hoverTool)
+        
+        # setup common plot parameters
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **setup_kwargs)
+    
+        # create div for scan information
+#         text = self.prepare_centroid_title(annotated_ms_list[0], data[annotated_ms_list[0]]['scan_info']['title'])
+        divHeader = Div(text=title_list[0]) #("<p><strong>Current ID: {}<br /></strong></p>".format(annotated_ms_list[0])))
+
+        # generate javascript widget
+        js_widgets = []
+        js_code = '''
+        // get data
+        var list_data = source_list.data;
+        var plot_data = source.data
+        
+        // convert value to integer
+        i = parseInt(cb_obj.value, 10);
+        
+        // retrieve data from list 
+        var xvals = list_data['xvals_list'][i];
+        var yvals = list_data['yvals_list'][i];
+        var colors = list_data['colors_frag_list'][i];
+        var labels = list_data['labels_frag_list'][i];
+        var details = list_data['details_frag_list'][i];
+        var title = list_data['title_list'][i];
+        
+        // report title
+        console.log("Spectrum title: " + title_list[i]);
+        div.text = title;
+        //div.text = "<p><strong>Current ID: " + title_list[i] + "<br /></strong></p>";
+        
+        // replace data and trigger replot
+        plot_data['xvals'] = xvals;
+        plot_data['yvals'] = yvals;
+        plot_data['colors'] = colors;
+        plot_data['labels'] = labels;
+        plot_data['details'] = details;
+        
+        source.change.emit();
+        '''
+        
+        callback = CustomJS(code=js_code, 
+                            args={'figure':bokehPlot, 'source':source, 
+                                  'source_list':source_list, 
+                                  'title_list':annotated_ms_list,
+                                  'div':divHeader})
+        
+        toggle = Select(title="Dataset (id):", value="0", options=options_list, callback=callback)
+        js_widgets.append(toggle)
+        
+        
+        # arrange
+        bokehPlot = row(bokehPlot, column(widgetbox(js_widgets), divHeader))
                 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -4590,7 +4851,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 if data["interactive_params"]["widgets"].get("label_offset_x", True): js_type.extend(["label_offset_x"])
                 if data["interactive_params"]["widgets"].get("label_offset_y", True): js_type.extend(["label_offset_y"])
 
-            try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, **js_code)
+            try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
             except: pass
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
@@ -4960,7 +5221,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                     js_type.extend(["legend_transparency"])
 
             if len(js_type) > 0:
-                try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, **js_code)
+                try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
                 except: pass
                 
         elif (data["interactive_params"]["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
@@ -5077,7 +5338,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 js_type.extend(["colorblind_safe_2D"])
 
             if len(js_type) > 0:
-                try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, **js_code)
+                try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
                 except: pass
         elif (data["interactive_params"]["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
               bkh_kwargs['page_layout'] not in ["Individual", "Columns"]):
@@ -5635,7 +5896,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                     js_type.extend(["legend_transparency"])
 
             if len(js_type) > 0:
-                try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, **js_code)
+                try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
                 except: pass
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
@@ -5767,7 +6028,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                     js_type.extend(["legend_transparency"])
 
             if len(js_type) > 0:
-                try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, **js_code)
+                try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
                 except: pass
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
@@ -6003,8 +6264,9 @@ class dlgOutputInteractive(wx.MiniFrame):
                     js_type.extend(["label_offset_y"])
 
             if len(js_type) > 0:
-                try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, **js_code)
-                except: pass
+#                 try: 
+                bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
+#                 except: pass
         elif (data["interactive_params"]["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and 
               bkh_kwargs['page_layout'] not in ["Individual", "Columns"]):
             _cvd_colors = self.presenter.view.panelPlots.onChangePalette(None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines),
@@ -6166,7 +6428,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                 if data["interactive_params"]["widgets"].get("legend_transparency", True):
                     js_type.extend(["legend_transparency"])
 
-            bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, **js_code)
+            bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -7125,7 +7387,11 @@ class dlgOutputInteractive(wx.MiniFrame):
                     bokehPlot = self._add_plot_matrix(data, **bkh_kwargs)
                     
             elif key == "MS/MS":
-                bokehPlot = self._add_plot_centroid(data, **bkh_kwargs)
+                annotated_ms_list = data.get("annotated_item_list", []) 
+                if len(annotated_ms_list) == 0:
+                    bokehPlot = self._add_plot_centroid_without_annotations(data, **bkh_kwargs)
+                else:
+                    bokehPlot = self._add_plot_centroid_with_annotations(data, **bkh_kwargs)
 
             else:
                 msg = "Cannot export '%s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (key, innerKey)
@@ -7211,7 +7477,10 @@ class dlgOutputInteractive(wx.MiniFrame):
             plotDict_list = plotDict.keys()
         
         for pageKey in plotDict_list:
-            width = np.max(widgetDict[pageKey]["plot_width"])
+            try:
+                width = np.max(widgetDict[pageKey]["plot_width"])
+            except ValueError:
+                return
 
             if add_watermark:
                 divWatermark = Div(text=str(self.config.watermark), width=width + add_width)
@@ -7266,7 +7535,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                        lines=widgetDict[pageKey]["lines"],
                                        patches=widgetDict[pageKey]["patches"])
 
-                    try: rowOutput = self.add_custom_js_widgets(rowOutput, js_type=js_type, **js_code)
+                    try: rowOutput = self.add_custom_js_widgets(rowOutput, js_type=js_type, data=data, **js_code)
                     except: pass
 
                 bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
@@ -7332,7 +7601,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                                        lines=widgetDict[pageKey]["lines"],
                                        patches=widgetDict[pageKey]["patches"])
 
-                    try: rowOutput = self.add_custom_js_widgets(rowOutput, js_type=js_type, **js_code)
+                    try: rowOutput = self.add_custom_js_widgets(rowOutput, js_type=js_type, data=data, **js_code)
                     except: pass
 
 
@@ -8186,6 +8455,14 @@ class dlgOutputInteractive(wx.MiniFrame):
             data['interactive_params']['plot_properties']['scatter_edge_color_sameAsFill'] = self.config.interactive_scatter_sameAsFill
         if "scatter_edge_color" not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['scatter_edge_color'] = self.config.interactive_scatter_edge_color
+
+        # tandem
+        if "tandem_line_width" not in data['interactive_params']['plot_properties']:
+            data['interactive_params']['plot_properties']['tandem_line_width'] = 1.
+        if "tandem_line_color_unlabelled" not in data['interactive_params']['plot_properties']:
+            data['interactive_params']['plot_properties']['tandem_line_color_unlabelled'] = (1., 1., 1.)
+        if "tandem_line_color_labelled" not in data['interactive_params']['plot_properties']:
+            data['interactive_params']['plot_properties']['tandem_line_color_labelled'] = (1., 0., 0.)
 
         return data
 

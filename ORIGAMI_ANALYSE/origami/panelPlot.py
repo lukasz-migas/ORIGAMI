@@ -3376,18 +3376,32 @@ class panelPlot(wx.Panel):
             self.plot1.repaint()
             if set_page: self.mainBook.SetSelection(self.config.panelNames['1D'])
             
-    def on_zoom_1D_x_axis(self, startX, endX, set_page=False, plot="MS", repaint=True):
+    def on_zoom_1D_x_axis(self, startX, endX, endY=None, set_page=False, plot="MS", repaint=True):
         
         if set_page: self.mainBook.SetSelection(self.config.panelNames['MS'])
         
         if plot == "MS":
-            self.plot1.on_zoom_x_axis(startX,endX)
+            if endY is None:
+                self.plot1.on_zoom_x_axis(startX,endX)
+            else:
+                self.plot1.on_zoom(startX,endX, endY)
+                
             if repaint:
                 self.plot1.repaint()
         elif plot == 'calibration_MS':
             self.topPlotMS.on_zoom_x_axis(startX,endX)
             if repaint:
                 self.topPlotMS.repaint()
+                
+    def on_zoom_1D_xy_axis(self, startX, endX, startY, endY, set_page=False, plot="MS", repaint=True):
+        
+        if set_page: self.mainBook.SetSelection(self.config.panelNames['MS'])
+        
+        if plot == "MS":
+            self.plot1.on_zoom_xy(startX,endX, startY, endY)
+                
+            if repaint:
+                self.plot1.repaint()
         
     def addRectRT(self, x, y, width, height, color='r', alpha=0.5, 
                   repaint=False): # addRectRT

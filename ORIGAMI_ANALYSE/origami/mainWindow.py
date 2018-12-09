@@ -387,8 +387,8 @@ class MyFrame(wx.Frame):
         openBinaryMenu.Append(ID_open2DIMSFile, 'Open 2D IM-MS from MassLynx file (2D IM-MS, .2dRTDT)\tCtrl+D')
         
         openCommunityMenu = wx.Menu()
-        openCommunityMenu.Append(ID_fileMenu_MGF, 'Open Mascot Generic Format file (.mgf)')
-#         openCommunityMenu.Append(ID_fileMenu_mzML, 'Open mzML (.mzML)')
+        openCommunityMenu.Append(ID_fileMenu_MGF, 'Open Mascot Generic Format file (.mgf) [MS/MS]')
+        openCommunityMenu.Append(ID_fileMenu_mzML, 'Open mzML (.mzML) [MS/MS]')
 
         menuFile = wx.Menu()
         menuFile.AppendMenu(ID_fileMenu_openRecent, "Open Recent", self.menuRecent)
@@ -417,7 +417,11 @@ class MyFrame(wx.Frame):
         menuFile.Append(ID_openMassLynxFile, 'Open MassLynx (no IM-MS, .raw) file\tCtrl+Shift+M')
         menuFile.AppendMenu(wx.ID_ANY, 'Open MassLynx...', openBinaryMenu)
         menuFile.AppendSeparator()
-        menuFile.AppendMenu(wx.ID_ANY, 'Open open-source files...', openCommunityMenu)
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_fileMenu_thermoRAW,
+                                         text='Open Thermo (.RAW) file\tCtrl+Shift+Y', 
+                                         bitmap=None))
+        menuFile.AppendSeparator()
+        menuFile.AppendMenu(wx.ID_ANY, "Open MS/MS files...", openCommunityMenu)
         menuFile.AppendSeparator()
         menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_addNewOverlayDoc,
                                          text='Create blank COMPARISON document [CIU]', 
@@ -784,7 +788,9 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
         self.Bind(wx.EVT_TOOL, self.on_open_multiple_files, id=ID_openMassLynxFiles)
         self.Bind(wx.EVT_TOOL, self.on_open_community_file, id=ID_fileMenu_MGF)
-#         self.Bind(wx.EVT_TOOL, self.on_open_community_file, id=ID_fileMenu_mzML)
+        self.Bind(wx.EVT_TOOL, self.on_open_community_file, id=ID_fileMenu_mzML)
+        self.Bind(wx.EVT_TOOL, self.on_open_thermo_file, id=ID_fileMenu_thermoRAW)
+        
         
         # PROCESS MENU
         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ExtractData) 
@@ -882,9 +888,13 @@ class MyFrame(wx.Frame):
         evtID = evt.GetId()
         
         if evtID == ID_fileMenu_MGF:
-            self.panelDocuments.topP.documents.on_open_MGF_file()
-#         elif evtID == ID_fileMenu_mzML:
-#             self.panelDocuments.topP.documents.on_open_mzML_file()
+            self.panelDocuments.topP.documents.on_open_MGF_file_fcn(None)
+        elif evtID == ID_fileMenu_mzML:
+            self.panelDocuments.topP.documents.on_open_mzML_file_fcn(None)
+            
+    def on_open_thermo_file(self, evt):
+        self.panelDocuments.topP.documents.on_open_thermo_file_fcn(None)      
+    
 
     def on_open_compare_MS_window(self, evt):
         self.panelDocuments.topP.documents.onCompareMS(None)
@@ -1226,11 +1236,11 @@ class MyFrame(wx.Frame):
     def on_open_source_menu(self, evt):
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_fileMenu_MGF,
-                                     text='Open Mascot Generic Format file (.mgf)', 
+                                     text='Open Mascot Generic Format file (.mgf) [MS/MS]', 
                                      bitmap=self.icons.iconsLib['blank_16']))
-#         menu.AppendItem(makeMenuItem(parent=menu, id=ID_fileMenu_mzML,
-#                                      text='Open mzML (.mzML)', 
-#                                      bitmap=self.icons.iconsLib['blank_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_fileMenu_mzML,
+                                     text='Open mzML (.mzML) [MS/MS]', 
+                                     bitmap=self.icons.iconsLib['blank_16']))
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -1257,7 +1267,7 @@ class MyFrame(wx.Frame):
             self.mainToolbar_horizontal.AddTool(ID_openIMStxtFile, self.icons.iconsLib['open_text_16'], shortHelpString="Open text file")
             self.mainToolbar_horizontal.AddTool(ID_openTextFiles, self.icons.iconsLib['open_textMany_16'], shortHelpString="Open multiple text files")
             self.mainToolbar_horizontal.AddSeparator()
-            self.mainToolbar_horizontal.AddTool(ID_mainPanel_openSourceFiles, self.icons.iconsLib['ms16'], shortHelpString="Open open-source files...")
+            self.mainToolbar_horizontal.AddTool(ID_mainPanel_openSourceFiles, self.icons.iconsLib['ms16'], shortHelpString="Open MS/MS files...")
             self.mainToolbar_horizontal.AddSeparator()
             self.mainToolbar_horizontal.AddCheckTool(ID_window_documentList, self.icons.iconsLib['panel_doc_16'], shortHelp="Enable/Disable documents panel")
             self.mainToolbar_horizontal.AddCheckTool(ID_window_ionList, self.icons.iconsLib['panel_ion_16'], shortHelp="Enable/Disable multi ion panel")
@@ -1301,7 +1311,7 @@ class MyFrame(wx.Frame):
             self.mainToolbar_vertical.AddTool(ID_openIMStxtFile, self.icons.iconsLib['open_text_16'], shortHelpString="Open text file")
             self.mainToolbar_vertical.AddTool(ID_openTextFiles, self.icons.iconsLib['open_textMany_16'], shortHelpString="Open multiple text files")
             self.mainToolbar_vertical.AddSeparator()
-            self.mainToolbar_vertical.AddTool(ID_mainPanel_openSourceFiles, self.icons.iconsLib['ms16'], shortHelpString="Open open-source files...")
+            self.mainToolbar_vertical.AddTool(ID_mainPanel_openSourceFiles, self.icons.iconsLib['ms16'], shortHelpString="Open MS/MS files...")
             self.mainToolbar_vertical.AddSeparator()
             self.mainToolbar_vertical.AddCheckTool(ID_window_documentList, self.icons.iconsLib['panel_doc_16'], shortHelp="Enable/Disable documents panel")
             self.mainToolbar_vertical.AddCheckTool(ID_window_ionList, self.icons.iconsLib['panel_ion_16'], shortHelp="Enable/Disable multi ion panel")
@@ -1772,6 +1782,10 @@ class MyFrame(wx.Frame):
             if xvalsMin == None or xvalsMax == None: 
                 self.SetStatusText('Your extraction range was outside the window. Please try again',3)
                 return
+            
+            if document.fileFormat == "Format: Thermo (.RAW)":
+                return
+            
             mzStart = np.round(xvalsMin,2)
             mzEnd = np.round(xvalsMax,2)
             
@@ -1919,7 +1933,10 @@ class MyFrame(wx.Frame):
                 self.SetStatusText('The scan range you selected was too small. Please choose wider range', 3)
                 return
             # Extract data
-            self.presenter.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
+            if document.fileFormat == "Format: Thermo (.RAW)":
+                return
+            else:
+                self.presenter.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
                 
         else:
             return

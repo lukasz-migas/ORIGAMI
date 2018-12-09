@@ -252,6 +252,16 @@ class plots(plottingWindow):
 
     ### PURE UPDATING FUNCTIONS ###
 
+    def on_zoom_xy(self, startX, endX, startY, endY):
+        try:
+            startY = startY / float(self.y_divider)
+            endY = endY / float(self.y_divider)
+        except: pass
+        try:
+            self.plotMS.axis([startX, endX, startY, endY])
+            self.repaint()
+        except: pass
+        
     def on_zoom(self, startX, endX, endY):
         try:
             endY = endY / float(self.y_divider)
@@ -276,8 +286,8 @@ class plots(plottingWindow):
         except: pass
         
         self.plotMS.set_ylim([startY, endY])
-        
         self.update_y_extents(startY, endY)
+        
 
     def on_rotate_90(self):
         # only works for 2D plots!

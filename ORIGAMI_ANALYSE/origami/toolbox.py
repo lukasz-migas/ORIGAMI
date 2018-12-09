@@ -40,12 +40,12 @@ def mlen(listitem, get_longest=False):
     for i, item in enumerate(listitem):
         print("Item {} has length {}".format(i, len(item)))
         
-
 def clean_filename(filename):
     filename = filename.replace(".csv","").replace(".txt","").replace(".raw","")
     filename = filename.replace(".tab","").replace(".RAW","").replace(".mgf","")
     filename = filename.replace(".mzML","").replace(".mzIdentML","").replace(":","")
-    filename = filename.replace("/","").replace("~","")
+    filename = filename.replace("/","").replace("~","").replace("@","at")
+    filename = filename.replace("[","_").replace("]","_")
     
     return filename
 

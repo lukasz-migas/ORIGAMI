@@ -176,7 +176,6 @@ class PeptideAnnotation():
                 
         return count
         
-    
     def check_peptide_rules(self, ion_type, peptide):
         """
         Check against common rulebook to ensure 'silly' fragments are not produced
@@ -202,7 +201,6 @@ class PeptideAnnotation():
         else:
             return True
             
-    
     def generate_fragments_from_peptide(self, peptide, ion_types, 
                                         label_format={}, 
                                         min_charge=1, max_charge=1, 

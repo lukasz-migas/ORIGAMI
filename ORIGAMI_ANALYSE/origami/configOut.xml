@@ -11,6 +11,9 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thermo\UbiX_radical_180413120355.txt" format="Text" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thermo" format="Text" />
+    <path value="C:\Users\LukaszMigas\Downloads\P43_FIGURES.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\comparison.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1_overlay_document.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\3_Boltzmann_IMS2D_5139.pickle" format="pickle" />
@@ -18,9 +21,6 @@
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_07.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_06.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_07.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_07.raw" format="ORIGAMI" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw" format="ORIGAMI" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
   </recent>
 
   <presets_gui>
@@ -126,11 +126,11 @@
     <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
-    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Toolbar" gripper="True" orientation="top" close_button="False" left_position="False" top_position="True" left_dockable="True" right_dockable="True" top_dockable="True" bottom_dockable="True" show="True" type="mixed" />
   </presets_gui_aui_settings>
 
@@ -211,22 +211,22 @@
 
   <process_presets_unidec>
     <!-- Pre-processing parameters -->
-    <param name="unidec_mzStart" value="4000" type="float" />
-    <param name="unidec_mzEnd" value="7500.00" type="float" />
-    <param name="unidec_mzBinSize" value="0.10" type="float" />
+    <param name="unidec_mzStart" value="8000" type="float" />
+    <param name="unidec_mzEnd" value="12000.00" type="float" />
+    <param name="unidec_mzBinSize" value="1.00" type="float" />
     <param name="unidec_gaussianFilter" value="0.00" type="float" />
     <param name="unidec_accelerationV" value="0.00" type="float" />
     <param name="unidec_linearization" value="Linear interpolation" type="unicode" choices="[u'Linear resolution', u'Nonlinear', u'Linear interpolation', u'Linear resolution interpolation', u'Linear m/z']" />
     <!-- UniDec engine parameters -->
-    <param name="unidec_zStart" value="20" type="int" />
-    <param name="unidec_zEnd" value="30" type="int" />
+    <param name="unidec_zStart" value="10" type="int" />
+    <param name="unidec_zEnd" value="100" type="int" />
     <param name="unidec_mwStart" value="140000.00" type="float" />
-    <param name="unidec_mwEnd" value="160000.00" type="float" />
-    <param name="unidec_mwFrequency" value="5.00" type="float" />
-    <param name="unidec_peakWidth" value="2.29" type="float" />
+    <param name="unidec_mwEnd" value="500000.00" type="float" />
+    <param name="unidec_mwFrequency" value="500.00" type="float" />
+    <param name="unidec_peakWidth" value="120.79" type="float" />
     <param name="unidec_peakFunction" value="Gaussian" type="unicode" choices="['Split G/L', 'Gaussian', 'Lorentzian']" />
     <!-- Peak picking parameters -->
-    <param name="unidec_peakDetectionWidth" value="5.00" type="float" />
+    <param name="unidec_peakDetectionWidth" value="500.00" type="float" />
     <param name="unidec_peakDetectionThreshold" value="0.50" type="float" />
     <param name="unidec_peakNormalization" value="Total" type="unicode" choices="['Max', 'None', 'Total']" />
     <param name="unidec_lineSeparation" value="0.05" type="float" />
@@ -250,7 +250,7 @@
   </process_presets_unidec>
 
   <process_presets_fitting>
-    <param name="fit_type" value="MS + RT" type="unicode" choices="['MS', 'RT', 'MS + RT']" />
+    <param name="fit_type" value="MS" type="unicode" choices="['MS', 'RT', 'MS + RT']" />
     <param name="fit_highlight" value="True" type="bool" />
     <param name="fit_addPeaks" value="False" type="bool" />
     <param name="fit_xaxis_limit" value="False" type="bool" />
@@ -276,9 +276,9 @@
     <param name="ms_dtmsBinSize" value="1.00" type="float" />
     <param name="ms_linearization_mode" value="Linear interpolation" type="unicode" choices="['Linear m/z', 'Linear resolution', 'Nonlinear', 'Linear interpolation', 'Linear resolution interpolation', 'Binning']" />
     <param name="ms_auto_range" value="True" type="bool" />
-    <param name="ms_process_crop" value="False" type="bool" />
+    <param name="ms_process_crop" value="True" type="bool" />
     <param name="ms_process_linearize" value="False" type="bool" />
-    <param name="ms_process_smooth" value="False" type="bool" />
+    <param name="ms_process_smooth" value="True" type="bool" />
     <param name="ms_process_threshold" value="False" type="bool" />
     <param name="ms_process_normalize" value="False" type="bool" />
   </process_presets_binning>
@@ -513,11 +513,13 @@
   <presets_interactive_pageLayouts>
     <!-- layout_choices="['Individual', 'Columns', 'Rows', 'Grid']" -->
     <param page_name="Columns" name="Columns" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Extended Data Figure 6." name="Extended Data Figure 6." layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 1" name="Figure 1" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 1b" name="Figure 1b" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 2d - 20+" name="Figure 2d - 20+" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 2d - 21+" name="Figure 2d - 21+" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 2d - 22+" name="Figure 2d - 22+" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="Figure 3.b." name="Figure 3.b." layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure 4" name="Figure 4" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure S1 (a, c, e)" name="Figure S1 (a, c, e)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Figure S1 (b, d, f)" name="Figure S1 (b, d, f)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
@@ -532,7 +534,7 @@
     <param name="openInteractiveOnSave" value="True" type="bool" />
     <!-- JAVA SCRIPT PARAMETERS -->
     <param name="interactive_custom_scripts" value="False" type="bool" />
-    <param name="interactive_custom_events" value="False" type="bool" />
+    <param name="interactive_custom_events" value="True" type="bool" />
     <param name="interactive_custom_position" value="right"  choices="['left', 'right', 'below', 'above']" type="unicode" />
     <!-- FRAME PARAMETERS -->
     <param name="figHeight" value="600" type="int" />

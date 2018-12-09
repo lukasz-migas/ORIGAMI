@@ -800,7 +800,6 @@ class panelCustomiseInteractive(wx.MiniFrame):
     def makePlotPanel_plot2D(self, panel):
         
         colormap_label = makeStaticText(panel, u"Colormap:")
-        print(self.kwargs.get("plot_properties", {}).get("colormap", self.config.currentCmap))
         self.plot_colormap_choice = wx.ComboBox(
             panel, -1, choices=self.config.cmaps2,
             value=self.kwargs.get("plot_properties", {}).get("colormap", self.config.currentCmap), 
@@ -820,6 +819,50 @@ class panelCustomiseInteractive(wx.MiniFrame):
         
         return grid_box_sizer
     
+    def makePlotPanel_tandem(self, panel):
+        
+        plot_tandem_line_width_value = makeStaticText(panel, u"Line width:")
+        self.plot_tandem_line_width_value = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY, min=.0, max=100, inc=.5, size=(50,-1),
+            value=str(self.kwargs.get("plot_properties", {}).get("tandem_line_width", 1.)),
+            initial=self.kwargs.get("plot_properties", {}).get("tandem_line_width", 1.))
+        self.plot_tandem_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_plots)
+        
+        plot_tandem_line_unlabelled_colorBtn = makeStaticText(panel, u"Line color (unlabelled):")
+        self.plot_tandem_line_unlabelled_colorBtn = wx.Button(
+            panel, wx.ID_ANY, u"",  size=wx.Size(26, 26), name="plot_tandem_unlabelled")
+        self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(convertRGB1to255(
+            self.kwargs.get("plot_properties", {}).get("tandem_line_color_unlabelled", (0., 0., 0.))))
+        self.plot_tandem_line_unlabelled_colorBtn.Bind(wx.EVT_BUTTON, self.onApply_color)
+        
+        plot_tandem_line_labelled_colorBtn = makeStaticText(panel, u"Line color (labelled):")
+        self.plot_tandem_line_labelled_colorBtn = wx.Button(
+            panel, wx.ID_ANY, u"",  size=wx.Size(26, 26), name="plot_tandem_labelled")
+        self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(convertRGB1to255(
+            self.kwargs.get("plot_properties", {}).get("tandem_line_color_labelled", (1., 0., 0.))))
+        self.plot_tandem_line_labelled_colorBtn.Bind(wx.EVT_BUTTON, self.onApply_color)
+
+        staticBox = makeStaticBox(
+            panel, "Scatter parameters", size=(-1, -1), color=wx.BLACK)
+        staticBox.SetSize((-1,-1))
+        grid_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
+        
+        grid = wx.GridBagSizer(2, 2)
+        n = 0
+        grid.Add(plot_tandem_line_width_value, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        grid.Add(self.plot_tandem_line_width_value, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
+        n = n + 1
+        grid.Add(plot_tandem_line_unlabelled_colorBtn, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        grid.Add(self.plot_tandem_line_unlabelled_colorBtn, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        n = n + 1
+        grid.Add(plot_tandem_line_labelled_colorBtn, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
+        grid.Add(self.plot_tandem_line_labelled_colorBtn, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+
+        grid_box_sizer.Add(grid, 0, wx.EXPAND, 10)
+        
+        return grid_box_sizer
+ 
+    
     def makePlotPanel(self, panel):
         
         plot1D_box_sizer = self.makePlotPanel_plot1D(panel)
@@ -827,12 +870,16 @@ class panelCustomiseInteractive(wx.MiniFrame):
         waterfall_box_sizer = self.makePlotPanel_waterfall(panel)
         scatter_box_sizer = self.makePlotPanel_scatter(panel)
         bar_box_sizer = self.makePlotPanel_bar(panel)
+        tandem_box_sizer = self.makePlotPanel_tandem(panel)
+        
+        
         
         # Add to grid sizer
         sizer_left = wx.BoxSizer(wx.VERTICAL)
         sizer_left.Add(plot1D_box_sizer, 0, wx.EXPAND, 0)
         sizer_left.Add(plot2D_box_sizer, 0, wx.EXPAND, 0)
         sizer_left.Add(waterfall_box_sizer, 0, wx.EXPAND, 0)
+        sizer_left.Add(tandem_box_sizer, 0, wx.EXPAND, 0)
 
         sizer_right = wx.BoxSizer(wx.VERTICAL)
         sizer_right.Add(scatter_box_sizer, 0, wx.EXPAND, 0)
@@ -1797,7 +1844,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.widgets_legend_show.Bind(wx.EVT_CHECKBOX, self.onApply_widgets)
         self.widgets_legend_show.SetValue(self.kwargs.get("widgets", {}).get("legend_toggle", False))
 
-        self.widgets_legend_transparency = makeCheckbox(panel, u"Font size slider")
+        self.widgets_legend_transparency = makeCheckbox(panel, u"Transparency slider")
         self.widgets_legend_transparency.Bind(wx.EVT_CHECKBOX, self.onApply_widgets)
         self.widgets_legend_transparency.SetValue(self.kwargs.get("widgets", {}).get("legend_transparency", False))
         
@@ -2375,7 +2422,17 @@ class panelCustomiseInteractive(wx.MiniFrame):
                 self.kwargs['plot_properties']['bar_edge_color'] = convertRGB255to1(newColour)
             elif source == "plot_scatter_edge_color":
                 self.plot_scatter_marker_edge_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['plot_properties']['scatter_edge_color'] = convertRGB255to1(newColour)                
+                self.kwargs['plot_properties']['scatter_edge_color'] = convertRGB255to1(newColour)       
+            elif source == "plot_tandem_labelled":
+                self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(newColour)
+                self.kwargs['plot_properties']['tandem_line_color_labelled'] = convertRGB255to1(newColour)      
+            elif source == "plot_tandem_unlabelled":
+                self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(newColour)
+                self.kwargs['plot_properties']['tandem_line_color_unlabelled'] = convertRGB255to1(newColour)                      
+    
+                
+                
+                      
                 
                 
             # update document
@@ -2462,6 +2519,10 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.kwargs['plot_properties']['scatter_transparency'] = self.plot_scatter_transparency_value.GetValue()
         self.kwargs['plot_properties']['scatter_line_width'] = self.plot_scatter_line_width_value.GetValue()
         self.kwargs['plot_properties']['scatter_edge_color_sameAsFill'] = self.plot_scatter_marker_edge_sameAsFill.GetValue()
+        
+        # tandem
+        self.kwargs['plot_properties']['tandem_line_width'] = self.plot_tandem_line_width_value.GetValue()
+        
         
         self.onUpdateDocument()
     

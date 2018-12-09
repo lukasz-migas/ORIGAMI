@@ -21,14 +21,14 @@
 # TODO: Add converter of MS from m/z to m/z (Da) to m/z (kDa)
 # TODO: Fix on_enable_document
 
-import wx, gc, os, re, time
+import wx, gc, os, re, time, threading
 import numpy as np
 import pandas as pd
 from operator import itemgetter
 from copy import deepcopy
 from natsort import natsorted
 
-from dialogs import panelRenameItem, panelSelectDataset
+from dialogs import panelRenameItem, panelSelectDataset, dlgBox
 from gui_elements.dialog_askOverride import dialogAskOverride
 from panelAnnotatePeaks import panelAnnotatePeaks
 from panelCompareMS import panelCompareMS
@@ -44,6 +44,8 @@ from readers.io_text_files import text_heatmap_open
 from styles import makeMenuItem
 import readers.io_mgf as io_mgf
 import readers.io_mzid as io_mzid
+import readers.io_mzml as io_mzml
+import readers.io_thermo_raw as io_thermo
 
 
 class panelDocuments ( wx.Panel ):
@@ -245,6 +247,20 @@ class documentsTree(wx.TreeCtrl):
             
         tend = time.clock()
         print('It took: %s seconds.' % str(np.round((tend-tstart),4)))
+        
+    def onThreading(self, evt, args, action):
+        if action == "add_mzidentml_annotations":
+            th = threading.Thread(target=self.on_add_mzID_file, args=(evt,))
+        elif action == "load_mgf":
+            th = threading.Thread(target=self.on_open_MGF_file, args=(evt,))
+        elif action == "load_mzml":
+            th = threading.Thread(target=self.on_open_mzML_file, args=(evt,))
+            
+        # Start thread
+        try: 
+            th.start()
+        except: 
+            print('Failed to execute the operation in threaded mode. Consider switching it off?')
         
     def onNotUseQuickDisplay(self, evt):
         """ 
@@ -1824,7 +1840,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShowUnidec, id=ID_docTree_show_unidec)
         self.Bind(wx.EVT_MENU, self.onSaveUnidec, id=ID_docTree_save_unidec)
         
-        self.Bind(wx.EVT_MENU, self.on_add_mzID_file, id=ID_docTree_add_mzIdentML)
+        self.Bind(wx.EVT_MENU, self.on_add_mzID_file_fcn, id=ID_docTree_add_mzIdentML)
         
         # save dataframe
         saveDFSubMenu = wx.Menu()
@@ -5416,7 +5432,7 @@ class documentsTree(wx.TreeCtrl):
         # no such item found
         return False
 
-    def on_open_MGF_file(self):
+    def on_open_MGF_file(self, evt=None):
         dlg = wx.FileDialog(self.presenter.view, "Open MGF file", wildcard = "*.mgf; *.MGF" ,
                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
@@ -5426,7 +5442,7 @@ class documentsTree(wx.TreeCtrl):
             
             basename = os.path.basename(path)
             data = reader.get_n_scans(n_scans=999999)
-            kwargs = {'data_type':"Type: MS/MS", "data_format":"Format: .mgf"}
+            kwargs = {'data_type':"Type: MS/MS", "file_format":"Format: .mgf"}
             document = self.presenter.on_create_document(basename, path, **kwargs)
             
             # add data to document
@@ -5440,10 +5456,47 @@ class documentsTree(wx.TreeCtrl):
                                                                title=title)
             
             self.presenter.OnUpdateDocument(document, 'document')
-            print(time.time()-tstart)
+            print("It took {:.4f} seconds to load {}".format(time.time()-tstart, basename))
             
-    def on_open_mzML_file(self):
-        print("on_open_mzML_file")
+    def on_open_MGF_file_fcn(self, evt):
+        
+        if not self.config.threading:
+            self.on_open_MGF_file(evt)
+        else:
+            self.onThreading(evt, (evt,), action='load_mgf')
+            
+    def on_open_mzML_file(self, evt=None):
+        dlg = wx.FileDialog(self.presenter.view, "Open mzML file", wildcard = "*.mzML; *.MZML" ,
+                           style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+        if dlg.ShowModal() == wx.ID_OK:
+            tstart = time.time()
+            path = dlg.GetPath()
+            reader = io_mzml.mzMLreader(filename = path)
+            
+            basename = os.path.basename(path)
+            data = reader.get_n_scans(n_scans=999999)
+            kwargs = {'data_type':"Type: MS/MS", "file_format":"Format: .mzML"}
+            document = self.presenter.on_create_document(basename, path, **kwargs)
+            
+            # add data to document
+            document.tandem_spectra = data
+            document.file_reader = {'data_reader':reader}
+            
+            title = "Precursor: {:.4f} [{}]".format(data["Scan 1"]['scan_info']['precursor_mz'], 
+                                                    data["Scan 1"]['scan_info']['precursor_charge'])
+            self.presenter.view.panelPlots.on_plot_centroid_MS(data["Scan 1"]['xvals'], 
+                                                               data["Scan 1"]['yvals'],
+                                                               title=title)
+            
+            self.presenter.OnUpdateDocument(document, 'document')
+            print("It took {:.4f} seconds to load {}".format(time.time()-tstart, basename))
+        
+    def on_open_mzML_file_fcn(self, evt):
+        
+        if not self.config.threading:
+            self.on_open_mzML_file(evt)
+        else:
+            self.onThreading(evt, (evt,), action='load_mzML')
         
     def on_open_MSMS_viewer(self, evt=None, **kwargs):
 
@@ -5469,6 +5522,7 @@ class documentsTree(wx.TreeCtrl):
         dlg = wx.FileDialog(self.presenter.view, "Open mzIdentML file", wildcard = "*.mzid; *.mzid.gz; *mzid.zip" ,
                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
+            print("Adding identification information to {}".format(document.title))
             tstart = time.time()
             path = dlg.GetPath()
             reader = io_mzid.MZIdentReader(filename=path)
@@ -5478,7 +5532,16 @@ class documentsTree(wx.TreeCtrl):
                 index_dict = document.file_reader['data_reader'].create_title_map(document.tandem_spectra)
             except KeyError:
                 print("Missing file reader. Creating a new instance of the reader...")
-                document.file_reader['data_reader'] = io_mgf.MGFreader(filename = document.path)
+                if document.fileFormat == "Format: .mgf":
+                    document.file_reader['data_reader'] = io_mgf.MGFreader(filename = document.path)
+                elif document.fileFormat == "Format: .mzML":
+                    document.file_reader['data_reader'] = io_mzml.mzMLreader(filename = document.path)
+                else:
+                    dialogs.dlgBox(exceptionTitle='Error', 
+                                   exceptionMsg= "{} not supported yet!".format(document.fileFormat), 
+                                   type="Error", exceptionPrint=True)
+                    return
+                    
                 index_dict = document.file_reader['data_reader'].create_title_map(document.tandem_spectra)
                 
             
@@ -5488,7 +5551,70 @@ class documentsTree(wx.TreeCtrl):
             document.tandem_spectra = tandem_spectra
             
             self.presenter.OnUpdateDocument(document, 'document')
-            print(time.time()-tstart)
+            print("It took {:.4f} seconds to annotate {}".format(time.time()-tstart, document.title))
+            
+    def on_add_mzID_file_fcn(self, evt):
+        
+        if not self.config.threading:
+            self.on_add_mzID_file(evt)
+        else:
+            self.onThreading(evt, (evt,), action='add_mzidentml_annotations')
+            
+    def on_open_thermo_file(self, evt):
+        dlg = wx.FileDialog(self.presenter.view, "Open Thermo file", wildcard = "*.raw; *.RAW" ,
+                           style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+        if dlg.ShowModal() == wx.ID_OK:
+            tstart = time.time()
+            path = dlg.GetPath()
+            reader = io_thermo.thermoRAWreader(filename = path)
+            
+            # get info
+            info = reader.get_scan_info()
+            
+            # get chromatogram
+            rtX, rtY = reader.get_tic()
+            self.presenter.view.panelPlots.on_plot_RT(rtX, rtY, "Time (min)", set_page=False)
+            
+            mass_spectra = reader.get_spectrum_for_each_filter()
+            chromatograms = reader.get_chromatogram_for_each_filter()
+#             rtX, rtY = reader._stitch_chromatograms(chromatograms)
+            
+            # get average mass spectrum
+            msX, msY = reader.get_average_spectrum()
+            xlimits = [np.min(msX), np.max(msX)]
+            name_kwargs = {"document":None, "dataset": None}
+            self.presenter.view.panelPlots.on_plot_MS(msX, msY, 
+                                                      xlimits=xlimits, 
+                                                      set_page=True, **name_kwargs)
+            
+            basename = os.path.basename(path)
+            kwargs = {'data_type':"Type: MS", "file_format":"Format: Thermo (.RAW)"}
+            document = self.presenter.on_create_document(basename, path, **kwargs)
+            
+            # add data to document
+            document.got1RT = True
+            document.RT = {'xvals':rtX, 'yvals':rtY, 'xlabels':'Time (min)'}
+            
+            document.gotMS = True
+            document.massSpectrum = {'xvals':msX, 'yvals':msY, 
+                                     'xlabels':'m/z (Da)', 
+                                     'xlimits':xlimits}
+            
+            document.gotMultipleMS = True
+            document.multipleMassSpectrum = mass_spectra
+            
+            document.gotMultipleRT = True
+            document.multipleRT = chromatograms
+            
+            document.file_reader = {'data_reader':reader}
+            
+            self.presenter.OnUpdateDocument(document, 'document')
+            print("It took {:.4f} seconds to load {}".format(time.time()-tstart, document.title))
+            
+            
+    def on_open_thermo_file_fcn(self, evt):
+        self.on_open_thermo_file(evt)
+        
 
 class topPanel(wx.Panel):
     def __init__(self, parent, mainParent,icons, presenter, config):

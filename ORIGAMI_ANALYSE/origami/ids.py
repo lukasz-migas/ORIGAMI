@@ -53,6 +53,7 @@ ID_fileMenu_clearRecent = NewId()
 ID_fileMenu_MGF = NewId()
 ID_fileMenu_mzML = NewId()
 ID_fileMenu_mzIdentML = NewId()
+ID_fileMenu_thermoRAW = NewId()
 
 
 # Plots
@@ -235,6 +236,7 @@ ID_annotPanel_otherSettings = NewId()
 # Tandem panel
 ID_tandemPanel_otherSettings = NewId()
 ID_tandemPanel_showPTMs = NewId()
+ID_tandemPanel_peaklist_show_selected = NewId()
 
 # UVPD panel
 ID_uvpd_laser_on_show_heatmap = NewId()

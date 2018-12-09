@@ -51,7 +51,10 @@
 
 - retention time:
     = combine multiple areas
-    
+
+################################################################################
+################################################################################
+################################################################################
 # v1.2.0.4 / v1.2.1
 # TODO: change testkDa from 10,000 to user-defined value. Also change the num of d.p 
         in the statusbar updater
@@ -101,9 +104,19 @@ UVPD panel
     
 Tandem MS panel:
 - [improvement] improved the way scans are loaded
-- [improvement] butterfly plots will have horizontal line at 0
+- [improvement] butterfly plots will now have horizontal line at 0
+- [new] you can now load mzML files
+- [new] you can now export *annotated* MS/MS datasets in an interactive format
+    This is still in development, however if you load mzML or mgf file and annotate
+    it using mzIdentML file and subsequently generate fragment annotations 
+    (no post-translational modifications...) then you can export it. Files that have 
+    not been annotated can also be exported. 
+- [improvement] loading of mzML, mgf and mzIdentML files will now be performed in 
+  threaded mode (e.g. no more hanging of the application). 
 
-
+################################################################################
+################################################################################
+################################################################################
 
 ###########################################
 # KNOWN ISSUES in 1.2.0.3

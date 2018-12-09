@@ -29,7 +29,7 @@ import json
 import wx.lib.pubsub as pub
 
 
-tstart = time.clock()
+tstart_build = time.clock()
 
 block_cipher = None
 
@@ -37,7 +37,7 @@ block_cipher = None
 # pyinstaller ORIGAMI.spec -y --clean
 
 # Set version number
-version = "1.2.1.0"
+version = "1.2.1.1"
 
 current_dir = os.getcwd()
 origami_dir_name = "ORIGAMI_v{}".format(version)
@@ -116,13 +116,14 @@ coll = COLLECT(exe,
                name=dist_dir)
 
 # Give information about build time
-print("Build ORIGAMI in {} seconds".format(time.clock()-tstart))
+tend_build = time.clock()
+print("Build ORIGAMI in {} seconds\n".format(tend_build-tstart_build))
 
 # Copy additional files
 filelist = ['icon.ico', 'MassLynxRaw.dll', 'calibrantDB.csv',
             'calibrantDB.xlsx', 'cacert.pem', 'node-v10.14.1-x64.msi']
 
-tstart = time.clock()
+tstart_copy = time.clock()
 savePath = path.path(''.join([dist_dir,'\\']))
 for file in filelist:
   try:
@@ -146,4 +147,7 @@ for directory in dirlist:
     print('Skipped directory: {}'.format(directory))
     pass
 
-print("Copied files in {} seconds".format(time.clock()-tstart))
+print("Copied files in {} seconds.\n".format(time.clock()-tstart_copy))
+print("ORIGAMI was compiled in {:.4f} seconds.\n".format(time.clock()-tstart_build))
+
+
