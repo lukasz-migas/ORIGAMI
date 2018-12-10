@@ -57,7 +57,6 @@ class thermoRAWreader():
         else: return spectrum 
         
     def get_spectrum_for_each_filter(self):
-        from toolbox import clean_filename
         
         unique_filters = set(self.filters)
         data = {}
@@ -71,7 +70,6 @@ class thermoRAWreader():
         return data
     
     def get_chromatogram_for_each_filter(self):
-        from toolbox import clean_filename
         
         unique_filters = set(self.filters)
         data = {}
@@ -91,8 +89,10 @@ class thermoRAWreader():
     def get_tic(self, return_xy=True):
         tic = np.array(self.source.tic())
         
-        if return_xy: return tic[:, 0], tic[:, 1]
-        else: return tic
+        if return_xy: 
+            return tic[:, 0], tic[:, 1]
+        else: 
+            return tic
         
     def get_xic(self, mz_start=-1, mz_end=-1, rt_start=-1, rt_end=-1, title=None, return_xy=True):
         xic = np.array(self.source.xic(rt_start, rt_end, mz_start, mz_end, title))

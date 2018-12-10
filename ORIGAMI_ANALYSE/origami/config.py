@@ -471,14 +471,24 @@ class OrigamiConfig:
         
         # Annotation
         self.annotation_charge_std_dev = 0.05
+        
         self.annotation_arrow_line_width = 0.5
         self.annotation_arrow_line_style = "dashed"
+        self.annotation_arrow_cap_length = 0.01 # new in v1.2.1
+        self.annotation_arrow_cap_width = 0.01 # new in v1.2.1
+        
         self.annotation_label_horz = "center"
         self.annotation_label_vert = "center"
         self.annotation_label_font_size = "small"
         self.annotation_label_font_weight = "normal"
         self.annotation_label_font_orientation = "horizontal"
-
+        
+        self.annotation_zoom_y = False # new in v1.2.1
+        self.annotation_zoom_y_multiplier = 1.5 # new in v1.2.1
+        self.annotation_show_vline = False # new in v1.2.1
+        
+        self.annotation_patch_transparency = 0.2 # new in v1.2.1
+        self.annotation_patch_width = 3 # new in v1.2.1
 
         # UniDec
         self.unidec_mzStart = 500

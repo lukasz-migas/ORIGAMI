@@ -11,6 +11,7 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Aidan\interactive.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thermo\UbiX_radical_180413120355.txt" format="Text" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thermo" format="Text" />
     <path value="C:\Users\LukaszMigas\Downloads\P43_FIGURES.pickle" format="pickle" />
@@ -20,7 +21,6 @@
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\MS_nist_intact.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_07.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_06.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_07.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -126,11 +126,11 @@
     <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
-    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Toolbar" gripper="True" orientation="top" close_button="False" left_position="False" top_position="True" left_dockable="True" right_dockable="True" top_dockable="True" bottom_dockable="True" show="True" type="mixed" />
   </presets_gui_aui_settings>
 
@@ -160,21 +160,21 @@
   </plot_presets_annotations>
 
   <custom_colors>
-    <param name="color_0" value="[219.3, 94.656, 86.7]" type="color" />
-    <param name="color_1" value="[219.3, 144.381, 86.7]" type="color" />
-    <param name="color_2" value="[219.3, 194.106, 86.7]" type="color" />
-    <param name="color_3" value="[194.769, 219.3, 86.7]" type="color" />
-    <param name="color_4" value="[145.044, 219.3, 86.7]" type="color" />
-    <param name="color_5" value="[95.319, 219.3, 86.7]" type="color" />
-    <param name="color_6" value="[86.7, 219.3, 127.806]" type="color" />
-    <param name="color_7" value="[86.7, 219.3, 177.531]" type="color" />
-    <param name="color_8" value="[86.7, 211.344, 219.3]" type="color" />
-    <param name="color_9" value="[86.7, 161.619, 219.3]" type="color" />
-    <param name="color_10" value="[86.7, 111.894, 219.3]" type="color" />
-    <param name="color_11" value="[111.231, 86.7, 219.3]" type="color" />
-    <param name="color_12" value="[160.956, 86.7, 219.3]" type="color" />
-    <param name="color_13" value="[210.681, 86.7, 219.3]" type="color" />
-    <param name="color_14" value="[219.3, 86.7, 178.194]" type="color" />
+    <param name="color_0" value="(219, 94, 86, 255)" type="color" />
+    <param name="color_1" value="(219, 144, 86, 255)" type="color" />
+    <param name="color_2" value="(219, 194, 86, 255)" type="color" />
+    <param name="color_3" value="(194, 219, 86, 255)" type="color" />
+    <param name="color_4" value="(145, 219, 86, 255)" type="color" />
+    <param name="color_5" value="(95, 219, 86, 255)" type="color" />
+    <param name="color_6" value="(86, 219, 127, 255)" type="color" />
+    <param name="color_7" value="(86, 219, 177, 255)" type="color" />
+    <param name="color_8" value="(86, 211, 219, 255)" type="color" />
+    <param name="color_9" value="(86, 161, 219, 255)" type="color" />
+    <param name="color_10" value="(86, 111, 219, 255)" type="color" />
+    <param name="color_11" value="(111, 86, 219, 255)" type="color" />
+    <param name="color_12" value="(160, 86, 219, 255)" type="color" />
+    <param name="color_13" value="(210, 86, 219, 255)" type="color" />
+    <param name="color_14" value="(219, 86, 178, 255)" type="color" />
     <param name="color_15" value="[219.3, 86.7, 128.469]" type="color" />
   </custom_colors>
 
@@ -330,7 +330,7 @@
   </plot_presets_rmsd>
 
   <plot_presets_waterfall>
-    <param name="waterfall" value="False" type="bool" />
+    <param name="waterfall" value="True" type="bool" />
     <param name="waterfallOffset" value="0.00" type="float" />
     <param name="waterfall_increment" value="1.05" type="float" />
     <param name="waterfall_reverse" value="False" type="bool" />
@@ -345,10 +345,10 @@
     <param name="waterfall_shade_under" value="False" type="bool" />
     <param name="waterfall_shade_under_transparency" value="1.00" type="float" />
     <param name="waterfall_shade_under_nlimit" value="50" type="int" />
-    <param name="waterfall_labels_frequency" value="5.00" type="float" />
-    <param name="waterfall_labels_x_offset" value="0.00" type="float" />
+    <param name="waterfall_labels_frequency" value="1.00" type="float" />
+    <param name="waterfall_labels_x_offset" value="0.01" type="float" />
     <param name="waterfall_labels_y_offset" value="0.10" type="float" />
-    <param name="waterfall_label_fontSize" value="12.00" type="float" />
+    <param name="waterfall_label_fontSize" value="16.00" type="float" />
     <param name="waterfall_label_fontWeight" value="True" type="bool" />
   </plot_presets_waterfall>
 
@@ -534,7 +534,7 @@
     <param name="openInteractiveOnSave" value="True" type="bool" />
     <!-- JAVA SCRIPT PARAMETERS -->
     <param name="interactive_custom_scripts" value="False" type="bool" />
-    <param name="interactive_custom_events" value="True" type="bool" />
+    <param name="interactive_custom_events" value="False" type="bool" />
     <param name="interactive_custom_position" value="right"  choices="['left', 'right', 'below', 'above']" type="unicode" />
     <!-- FRAME PARAMETERS -->
     <param name="figHeight" value="600" type="int" />

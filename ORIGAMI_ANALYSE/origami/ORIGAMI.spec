@@ -27,6 +27,7 @@ import wx
 import time
 import json
 import wx.lib.pubsub as pub
+import pymzml
 
 
 tstart_build = time.clock()
@@ -37,7 +38,7 @@ block_cipher = None
 # pyinstaller ORIGAMI.spec -y --clean
 
 # Set version number
-version = "1.2.1.1"
+version = "1.2.1.2"
 
 current_dir = os.getcwd()
 origami_dir_name = "ORIGAMI_v{}".format(version)
@@ -65,6 +66,15 @@ def collect_pkg_data(package, include_py_files=False, subdir=None):
 
     return data_toc
 
+def dir_files(path, rel):
+    ret = []
+    for p, d, f in os.walk(path):
+        relpath = p.replace(path, '')[1:]
+        for fname in f:
+            ret.append((os.path.join(rel, relpath, fname),
+                        os.path.join(p, fname), 'DATA'))
+    return ret
+
 pkg_data = collect_pkg_data('jinja2')
 
 a = Analysis(['ORIGAMI.py'],
@@ -74,21 +84,21 @@ a = Analysis(['ORIGAMI.py'],
                     #(r'C:\\Program Files\\Anaconda\\site-packages\\bokeh\\server', 'server')],
                     ],
              hiddenimports=[
-                            "scipy.sparse.csgraph._validation", 
-                            "scipy.linalg.cython_blas", "scipy.linalg.*","scipy.integrate", 
-                            "scipy.special", "scipy", "scipy.special._ufuncs_cxx", 
-                            "scipy.special.*", "scipy.special._ufuncs", "scipy.stats", 
-                            'scipy._lib.messagestream',
-                            "pkg_resources", 'wx.lib.pubsub', 
-                            'wx.lib',
-                            'wx.lib.pubsub', 'wx.lib.pubsub.core.publisherbase', 
-                            'wx.lib.pubsub.core.kwargs', 'wx.lib.pubsub.core.kwargs.publisher',
-                            'wx.lib.pubsub.core.kwargs.listenerimpl', 'wx.lib.pubsub.core.kwargs.publishermixin',
-                            'wx.lib.pubsub.core.listenerbase', 'wx.lib.pubsub.core', 
-                            'wx.lib.pubsub.core.kwargs.topicargspecimpl',
-                            'wx.lib.pubsub.core.kwargs.topicmgrimpl',
-                            'six', "bokeh", "nodejs", "adjustText", "cmocean"
-                            ],
+                 "scipy.sparse.csgraph._validation", 
+                 "scipy.linalg.cython_blas", "scipy.linalg.*","scipy.integrate", 
+                 "scipy.special", "scipy", "scipy.special._ufuncs_cxx", 
+                 "scipy.special.*", "scipy.special._ufuncs", "scipy.stats", 
+                 'scipy._lib.messagestream',
+                 "pkg_resources", 'wx.lib.pubsub', 
+                 'wx.lib',
+                 'wx.lib.pubsub', 'wx.lib.pubsub.core.publisherbase', 
+                 'wx.lib.pubsub.core.kwargs', 'wx.lib.pubsub.core.kwargs.publisher',
+                 'wx.lib.pubsub.core.kwargs.listenerimpl', 'wx.lib.pubsub.core.kwargs.publishermixin',
+                 'wx.lib.pubsub.core.listenerbase', 'wx.lib.pubsub.core', 
+                 'wx.lib.pubsub.core.kwargs.topicargspecimpl',
+                 'wx.lib.pubsub.core.kwargs.topicmgrimpl',
+                 'six', "bokeh", "nodejs", "adjustText", "cmocean", "multiplierz",
+                 'pymzml.run', 'pymzml.obo'],
              hookspath=[],
              runtime_hooks=[],
              excludes=['IPython', 'Cython', 'statsmodels', 'pyQT5',
@@ -96,6 +106,10 @@ a = Analysis(['ORIGAMI.py'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher)
+a.datas.extend(dir_files(os.path.join(os.path.dirname(pymzml.__file__), 'obo'), 'obo'))
+# a.datas.extend(dir_files("multiplierz", 'multiplierz'))
+
+
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
           a.scripts,
@@ -142,7 +156,7 @@ for directory in dirlist:
   try:
     saveDir = path.path(''.join([dist_dir,'\\', directory]))
     copy_tree(directory, saveDir)
-    print("Copied directory: {}".format(directory))
+    print("Copied directory: {}. It took {:.4f} seconds.".format(directory, time.clock()-tstart_copy))
   except:
     print('Skipped directory: {}'.format(directory))
     pass

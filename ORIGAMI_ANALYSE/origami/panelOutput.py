@@ -582,7 +582,10 @@ class dlgOutputInteractive(wx.MiniFrame):
             evt.Skip()
 
     def onCustomiseItem(self, evt):
-        name, key, innerKey = self._getItemDetails()
+        try: name, key, innerKey = self._getItemDetails()
+        except TypeError: 
+            print("Please select an item in the table")
+            return
         data = self.getItemData(name, key, innerKey)
 
         kwargs = dict(data=data, document_title=name, item_type=key, item_title=innerKey)
@@ -3960,11 +3963,15 @@ class dlgOutputInteractive(wx.MiniFrame):
     def _prepare_annotations(self, data, yvals, y_offset=0):
         annot_xmin_list, annot_xmax_list, annot_ymin_list, annot_ymax_list, color_list = [], [], [], [], []
         __, ylimits = find_limits_all(yvals, yvals)
-        text_annot_xpos, text_annot_ypos, text_annot_label = [], [], []
+        text_annot_xpos, text_annot_ypos, text_annot_label, text_annot_color = [], [], [], []
         arrow_xpos_start, arrow_xpos_end, arrow_ypos_start, arrow_ypos_end = [], [], [], []
         text_annot_xpos_start, text_annot_ypos_start = [], []
         quad_source, label_source, arrow_source = None, None, None
 
+        # get color
+        label_use_preset_color = data["interactive_params"]["annotation_properties"].get("label_use_preset_color", True)
+        label_color = convertRGB1toHEX(data["interactive_params"]["annotation_properties"].get("label_color", self.config.interactive_ms_annotations_line_color))
+                                          
         # add annotations iteratively
         for i, annotKey in enumerate(data['annotations']):
             # add patches
@@ -3974,27 +3981,35 @@ class dlgOutputInteractive(wx.MiniFrame):
                 annot_xmax_list.append(data['annotations'][annotKey]["max"])
                 annot_ymin_list.append(0)
                 annot_ymax_list.append(ylimits[1] + y_offset)
-                color_list.append(convertRGB1toHEX(
-                    data['annotations'][annotKey].get(
-                        "color", data.get("interactive_params", {}).get(
-                            "annotation_properties", {}).get(
-                                "label_color", self.config.interactive_ms_annotations_line_color))))
+                color_list.append(convertRGB1toHEX(data['annotations'][annotKey].get("color", data.get("interactive_params", {}).get(
+                    "annotation_properties", {}).get("label_color", self.config.interactive_ms_annotations_line_color))))
 
             # add labels
             if data["interactive_params"]["annotation_properties"].get(
                 "show_labels", self.config.interactive_ms_annotations_labels):
                 # determine position of the ion/peak
                 if 'isotopic_x' in data['annotations'][annotKey]:
-                    xpos = data['annotations'][annotKey]['isotopic_x']
+                    mz_value = data['annotations'][annotKey]['isotopic_x']
                 else:
-                    xpos = data['annotations'][annotKey]["max"] - (data['annotations'][annotKey]["max"] - data['annotations'][annotKey]["min"]) / 2.
-                text_annot_xpos.append(xpos)
-
+                    mz_value = data['annotations'][annotKey]["max"] - (data['annotations'][annotKey]["max"] - data['annotations'][annotKey]["min"]) / 2.
+                    
                 if 'isotopic_y' in data['annotations'][annotKey]:
-                    ypos = data['annotations'][annotKey]['isotopic_y']
+                    intensity = data['annotations'][annotKey]['isotopic_y']
                 else:
-                    ypos = data['annotations'][annotKey]["intensity"]
+                    intensity = data['annotations'][annotKey]["intensity"]
+                
+                xpos = data['annotations'][annotKey].get('position_label_x', mz_value)
+                ypos = data['annotations'][annotKey].get('position_label_y', intensity)
+                
+                text_annot_xpos.append(xpos)
                 text_annot_ypos.append(ypos + y_offset)
+                
+                if label_use_preset_color:
+                    label_color = convertRGB1toHEX(data['annotations'][annotKey].get("color", data["interactive_params"][
+                        "annotation_properties"].get("label_color", self.config.interactive_ms_annotations_line_color)))
+                text_annot_color.append(label_color)
+                
+                
 
                 # determine position of arrow (if any)
                 if data['annotations'][annotKey].get('add_arrow', False):
@@ -4042,7 +4057,8 @@ class dlgOutputInteractive(wx.MiniFrame):
             ylimits[1] = max(text_annot_ypos) * 2
             label_source = ColumnDataSource(data=dict(xpos=text_annot_xpos,
                                                       ypos=text_annot_ypos,
-                                                      label=text_annot_label))
+                                                      label=text_annot_label,
+                                                      color=text_annot_color))
 
         if len(text_annot_xpos_start) > 0 and len(text_annot_ypos_start) > 0:
             arrow_source = ColumnDataSource(data=dict(xpos_start=arrow_xpos_start,
@@ -6047,7 +6063,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         xlabel = _replace_labels(xlabel)
         ylabel = _replace_labels(ylabel)
 
-        if ylabel == "Intensity":
+        if ylabel in ["Intensity", "Normalized intensity", "Normalised intensity"]:
             ylabel = "Offset intensity"
 
         # check parameters
@@ -6205,9 +6221,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                         "label_fontsize", self.config.interactive_ms_annotations_fontSize)),
                     text_font_style=self._fontWeightConverter(data.get("interactive_params", {}).get(
                         "annotation_properties", {}).get("label_fontweight", self.config.interactive_ms_annotations_fontWeight)),
-                    text_color=convertRGB1to255(data.get("annotation_properties", {}).get(
-                        "label_color", self.config.interactive_ms_annotations_label_color),
-                                                as_integer=True, as_tuple=True),
+                    text_color="color", #=convertRGB1to255(data.get("annotation_properties", {}).get("label_color", self.config.interactive_ms_annotations_label_color),as_integer=True, as_tuple=True),
                     angle=data["interactive_params"]["annotation_properties"].get(
                         "label_rotation", self.config.interactive_ms_annotations_rotation),
                     angle_units="deg",
@@ -8668,6 +8682,10 @@ class dlgOutputInteractive(wx.MiniFrame):
             data['interactive_params']['annotation_properties']['show_patches'] = self.config.interactive_ms_annotations_highlight
         if "patch_transparency" not in data['interactive_params']['annotation_properties']:
             data['interactive_params']['annotation_properties']['patch_transparency'] = self.config.interactive_ms_annotations_transparency
+        if "label_use_preset_color" not in data['interactive_params']['annotation_properties']:
+            data['interactive_params']['annotation_properties']['label_use_preset_color'] = True
+
+            
 
         return data
 

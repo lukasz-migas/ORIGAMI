@@ -20,6 +20,7 @@
 import wx
 import numpy as np
 from matplotlib.patches import Rectangle
+from matplotlib.text import Text
 from wx.lib.pubsub import setupkwargs
 from wx.lib.pubsub import pub
 
@@ -27,6 +28,7 @@ from toolbox import dir_extra
 
 # TODO: add dragging in the labels area - should be able to grab and drag so its easier
 #       to manipulate plot area
+
 
 def GetMaxes(axes, xmin=None, xmax=None):
     yvals = []
@@ -305,6 +307,7 @@ class ZoomBox:
         self.active = True  # for activation / deactivation
         self.to_draw = []
         self.background = None
+        self.dragged = None
         
         self.insideAxes = True
         self.insideFigure = True
@@ -334,7 +337,6 @@ class ZoomBox:
         self.spancoords = spancoords
         self.eventpress = None 
         self.eventrelease = None 
-
         self.new_axes(axes, rectprops)
         
         try:
@@ -419,12 +421,23 @@ class ZoomBox:
     def update_mark_state(self, state):
         self.mark_annotation = state
             
+    def on_pick_event(self, event):
+        " Store which text object was picked and were the pick event occurs."
+        
+        if isinstance(event.artist, Text):
+            self.dragged = event.artist
+            self.pick_pos = (event.mouseevent.xdata, event.mouseevent.ydata)
+            
+        return True
+            
     def new_axes(self, axes, rectprops=None):
         self.axes = axes
         if self.canvas is not axes[0].figure.canvas:
             for cid in self.cids:
                 self.canvas.mpl_disconnect(cid)
             self.canvas = axes[0].figure.canvas
+            
+            self.cids.append(self.canvas.mpl_connect('pick_event', self.on_pick_event))
             
             self.cids.append(self.canvas.mpl_connect('button_press_event', self.press))
             self.cids.append(self.canvas.mpl_connect('button_release_event', self.release))
@@ -528,7 +541,8 @@ class ZoomBox:
 
         # Update cursor
         pub.sendMessage('motion_mode', dataOut=[self.shiftKey, self.ctrlKey, self.altKey, 
-                                                self.addToTable, True, self.buttonDown])
+                                                self.addToTable, True, self.buttonDown, 
+                                                self.dragged])
         
         if self.allowWheel:
             # The actual work
@@ -614,7 +628,8 @@ class ZoomBox:
         else: self.keyPress = False
             
         pub.sendMessage('motion_mode', dataOut=[self.shiftKey, self.ctrlKey, self.altKey, 
-                                                self.addToTable, self.wheel, self.buttonDown])
+                                                self.addToTable, self.wheel, self.buttonDown,
+                                                self.dragged])
       
     def onChangeLabels(self):
         # get labels
@@ -693,7 +708,8 @@ class ZoomBox:
                 self.canvas.draw()
                 return
             
-        
+        if self.dragged is not None: pass
+            
         # Is the correct button pressed within the correct axes?
         if self.ignore(evt): 
             return
@@ -755,6 +771,17 @@ class ZoomBox:
         if wx.GetKeyState(wx.WXK_ALT): 
             self.eventpress = None  # reset the variables to their
             self.eventrelease = None  # inital values
+            self.canvas.draw() # redraw image
+            return
+        
+        if self.dragged is not None:
+            old_pos = self.dragged.get_position()
+            new_pos = (old_pos[0] + evt.xdata - self.pick_pos[0],
+                       old_pos[1] + evt.ydata - self.pick_pos[1])
+            self.dragged.set_position(new_pos)
+            if self.dragged.obj_name is not None:
+                pub.sendMessage('update_text_position', text_obj=self.dragged)
+            self.dragged = None
             self.canvas.draw() # redraw image
             return
 
@@ -822,7 +849,7 @@ class ZoomBox:
                 elif self.plotName != 'CalibrationDT' and self.eventpress.xdata != evt.xdata:
                     pub.sendMessage('extract_from_plot_1D', xvalsMin=xmin, xvalsMax=xmax, yvalsMax=ymax)
             else:
-                pub.sendMessage('mark_annotation', xvalsMin=xmin, xvalsMax=xmax)
+                pub.sendMessage('mark_annotation', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
 
         if self.spancoords == 'data':

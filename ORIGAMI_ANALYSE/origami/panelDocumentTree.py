@@ -31,6 +31,7 @@ from natsort import natsorted
 from dialogs import panelRenameItem, panelSelectDataset, dlgBox
 from gui_elements.dialog_askOverride import dialogAskOverride
 from panelAnnotatePeaks import panelAnnotatePeaks
+from panelCustomAnnotation import panelCustomAnnotation #@UnresolvedImport
 from panelCompareMS import panelCompareMS
 from panelInformation import panelDocumentInfo
 from panelTandemSpectra import panelTandemSpectra
@@ -45,7 +46,7 @@ from styles import makeMenuItem
 import readers.io_mgf as io_mgf
 import readers.io_mzid as io_mzid
 import readers.io_mzml as io_mzml
-import readers.io_thermo_raw as io_thermo
+import readers.io_thermo_raw as io_thermo # @UnresolvedImport
 
 
 class panelDocuments ( wx.Panel ):
@@ -229,16 +230,6 @@ class documentsTree(wx.TreeCtrl):
             self.onShowSampleInfo(evt=None)
         elif self.indent == 1:
             self.onOpenDocInfo(evt=None)
-#         if self.itemType == 'UniDec':
-#             if self.indent == 2:
-#                 self.onShowUnidec(None)
-#             elif self.indent == 3 and self.extractParent != "Mass Spectra":
-#                 self.onShowUnidec(None, plot_type=self.extractData)
-#         elif  "UniDec" in self.extractData or "UniDec" in self.extractParent:
-#             if self.indent == 3:
-#                 self.onShowUnidec(None)
-#             elif self.indent == 4:
-#                 self.onShowUnidec(None, plot_type=self.extractData)
 
 
 
@@ -253,14 +244,16 @@ class documentsTree(wx.TreeCtrl):
             th = threading.Thread(target=self.on_add_mzID_file, args=(evt,))
         elif action == "load_mgf":
             th = threading.Thread(target=self.on_open_MGF_file, args=(evt,))
-        elif action == "load_mzml":
+        elif action == "load_mzML":
             th = threading.Thread(target=self.on_open_mzML_file, args=(evt,))
+        elif action == "load_thermo_RAW":
+            th = threading.Thread(target=self.on_open_thermo_file, args=(evt,))
             
         # Start thread
         try: 
             th.start()
         except: 
-            print('Failed to execute the operation in threaded mode. Consider switching it off?')
+            print("Failed to execute the '{}' operation in threaded mode. Consider switching it off?".format(action))
         
     def onNotUseQuickDisplay(self, evt):
         """ 
@@ -1066,7 +1059,12 @@ class documentsTree(wx.TreeCtrl):
                     self.presenter.documentsDict[currentDoc].gotMultipleDT = False
                     
         elif self.itemType == 'Other data':
-            if self.extractData == 'Other data':
+            # remove annotations
+            if "Annotations" in self.extractData and self.indent == 4:
+                del self.presenter.documentsDict[currentDoc].other_data[self.extractParent]['annotations']
+            elif "Annotations" in self.extractParent and self.indent == 5:
+                del self.presenter.documentsDict[currentDoc].other_data[self.extractGrandparent]['annotations'][self.extractData]
+            elif self.extractData == 'Other data':
                 self.presenter.documentsDict[currentDoc].other_data = {}
             else:
                 del self.presenter.documentsDict[currentDoc].other_data[self.extractData]
@@ -1273,6 +1271,9 @@ class documentsTree(wx.TreeCtrl):
             elif self.itemType == "Mass Spectra" and self.extractData == "Annotations":
                 data = self.itemData.multipleMassSpectrum[self.extractParent]
                 dataset = self.extractParent
+            elif "Other data" in self.itemType and self.extractData == "Annotations":
+                data = self.itemData.other_data[self.extractParent]
+                dataset = self.extractParent
                 
         
         if "annotations" in data: 
@@ -1288,12 +1289,14 @@ class documentsTree(wx.TreeCtrl):
                            exceptionMsg= msg, type="Error")
             return
         
-        if "Waterfall (Raw):" in self.extractData:
+        if ("Waterfall (Raw):" in self.extractData):
             data = None
             plot = self.presenter.view.panelPlots.plotWaterfallIMS
+        elif ("Waterfall: " in self.extractData or "Waterfall: " in self.extractParent):
+            data = None
+            plot = self.presenter.view.panelPlots.plotOther
         else:
-            data = np.transpose([data["xvals"], 
-                                 data["yvals"]])
+            data = np.transpose([data["xvals"], data["yvals"]])
             plot = self.presenter.view.panelPlots.plot1
         
         kwargs = {"document":document, "dataset":dataset,
@@ -1303,6 +1306,22 @@ class documentsTree(wx.TreeCtrl):
         self.annotateDlg = panelAnnotatePeaks(self.parent, self, self.config, 
                                               self.icons, **kwargs)
         self.annotateDlg.Show()
+        
+    def on_get_annotation_dataset(self, document, dataset):
+        document = self.presenter.documentsDict[document]
+        annotations = None
+        if dataset == "Mass Spectrum":
+            annotations = document.massSpectrum['annotations']
+        elif dataset == "Mass Spectrum (processed)":
+            annotations = document.smoothMS['annotations']
+        elif "Waterfall (Raw):" in dataset:
+            annotations = document.IMS2DoverlayData[dataset]['annotations']
+        elif "Waterfall: " in dataset:
+            annotations = document.other_data[dataset]['annotations']
+        else: 
+            annotations = document.multipleMassSpectrum[dataset]['annotations']
+            
+        return document, annotations
         
     def onUpdateAnotations(self, annotations, document, dataset, set_data_only=False):
         """
@@ -1336,6 +1355,10 @@ class documentsTree(wx.TreeCtrl):
             item = self.getItemByData(document.IMS2DoverlayData[dataset])
             document.IMS2DoverlayData[dataset]['annotations'] = annotations
             annotation_data = document.IMS2DoverlayData[dataset]['annotations']
+        elif "Waterfall: " in dataset:
+            item = self.getItemByData(document.other_data[dataset])
+            document.other_data[dataset]['annotations'] = annotations
+            annotation_data = document.other_data[dataset]['annotations']
         else: 
             item = self.getItemByData(document.multipleMassSpectrum[dataset])
             document.multipleMassSpectrum[dataset]['annotations'] = annotations
@@ -1481,35 +1504,56 @@ class documentsTree(wx.TreeCtrl):
             unused
         """
         document = self.presenter.documentsDict[self.itemData.title]
+        plot_obj = self.presenter.view.panelPlots.plot1
         if self.itemType == "Mass Spectrum":
             annotations = document.massSpectrum['annotations']
         elif self.itemType == "Mass Spectrum (processed)":
             annotations = document.smoothMS['annotations']
         elif self.itemType == "Mass Spectra":
             annotations = document.multipleMassSpectrum[self.extractParent]['annotations']
+        elif self.itemType == "Other data" and "Waterfall: " in self.extractParent:
+            annotations = document.other_data[self.extractParent]['annotations']
+            plot_obj = self.presenter.view.panelPlots.plotOther
             
-        self.presenter.view.panelPlots.plot1.plot_remove_text_and_lines()
+        plot_obj.plot_remove_text_and_lines()
         _ymax = []
         
         label_kwargs = self.presenter.view.panelPlots._buildPlotParameters(plotType="label")
         for key in annotations:
             annotation = annotations[key]
-            label_y_position = str2num(annotation['intensity'])
+            intensity = str2num(annotation['intensity'])
             charge = annotation['charge']
             min_x_value = annotation['min']
             max_x_value = annotation['max']
             color_value = annotation.get('color', self.config.interactive_ms_annotations_color)
             add_arrow = annotation.get('add_arrow', False)
-            if 'isotopic_x' in annotation:
-                label_x_position = annotation['isotopic_x']
-                if label_x_position in ["", 0] or label_x_position < min_x_value: 
-                    label_x_position = max_x_value - ((max_x_value - min_x_value) / 2)
-            else:
-                label_x_position = max_x_value - ((max_x_value - min_x_value) / 2)
-                
-            show_label = "{}, {}\nz={}".format(round(label_x_position, 4), label_y_position, charge)
+            show_label = annotation['label']
             
-            if show_label == "": return
+            if 'isotopic_x' in annotation:
+                mz_value = annotation['isotopic_x']
+                if mz_value in ["", 0] or mz_value < min_x_value: 
+                    mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
+            else:
+                mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
+            
+            label_x_position = annotation.get('position_label_x', mz_value)
+            label_y_position = annotation.get('position_label_y', intensity)
+                
+            if show_label == "": 
+                show_label = "{}, {}\nz={}".format(round(mz_value, 4), 
+                                                   intensity, 
+                                                   charge)
+            
+            
+            
+            # add  custom name tag
+            try:
+                obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(self.itemData.title, 
+                                                               self.extractParent,
+                                                               min_x_value, max_x_value,
+                                                               "annotation")
+                label_kwargs['text_name'] = obj_name_tag
+            except: pass
             
             if add_arrow:
                 arrow_x_position = label_x_position
@@ -1519,7 +1563,7 @@ class documentsTree(wx.TreeCtrl):
                 label_y_position = annotation.get('position_label_y', label_y_position)
                 arrow_dy = label_y_position - arrow_y_position
                 
-            self.presenter.view.panelPlots.plot1.plot_add_text_and_lines(
+            plot_obj.plot_add_text_and_lines(
                 xpos=label_x_position, yval=label_y_position, 
                 label=show_label, vline=False, stick_to_intensity=True,
                 yoffset=0.05, color=color_value, **label_kwargs)
@@ -1527,12 +1571,35 @@ class documentsTree(wx.TreeCtrl):
             _ymax.append(label_y_position)
             if add_arrow:
                 arrow_list = [arrow_x_position, arrow_y_position, arrow_dx, arrow_dy]
-                self.presenter.view.panelPlots.plot1.plot_add_arrow(arrow_list, stick_to_intensity=True)
+                plot_obj.plot_add_arrow(arrow_list, stick_to_intensity=True)
                 
-            self.presenter.view.panelPlots.plot1.on_zoom_y_axis(endY=np.amax(_ymax)*1.1)
+        if self.config.annotation_zoom_y:
+            try: plot_obj.on_zoom_y_axis(endY=np.amax(_ymax)*self.config.annotation_zoom_y_multiplier)
+            except TypeError: pass
 
-        self.presenter.view.panelPlots.plot1.repaint()
+        plot_obj.repaint()
         
+    def onAddCustomAnnotation(self, evt):
+        data = self.GetPyData(self.currentItem)
+        
+        document = self.itemData.title
+        dataset = self.extractData
+        
+        if "annotations" in data: 
+            annotations = data['annotations']
+        else:
+            annotations = {}
+        
+        plot = self.presenter.view.panelPlots.plot1
+        
+        kwargs = {"document":document, "dataset":dataset,
+                  "data":data, "plot":plot, 
+                  "annotations":annotations}        
+        
+        self.annotateDlg = panelCustomAnnotation(self.parent, self, self.config, 
+                                                 self.icons, **kwargs)
+        self.annotateDlg.Show()
+    
     def OnRightClickMenu(self, evt):
         """ Create and show up popup menu"""
         
@@ -1864,9 +1931,22 @@ class documentsTree(wx.TreeCtrl):
         menu = wx.Menu()
         if self.itemData.dataType == 'Type: Interactive':
             if self.itemType == "Other data" and self.extractData != self.itemType:
-                menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
-                                             text='Show plot', 
-                                             bitmap=self.icons.iconsLib['blank_16']))
+                if self.extractData == "Annotations":
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_add_annotations,
+                                                 text='Show annotations panel...', 
+                                                 bitmap=self.icons.iconsLib['annotate16']))
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_show_annotations, 
+                                                 text='Show annotations on plot', 
+                                                 bitmap=self.icons.iconsLib['highlight_16']))
+                else:
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
+                                                 text='Show plot', 
+                                                 bitmap=self.icons.iconsLib['blank_16']))
+                    
+                if "Waterfall: " in self.extractData:
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_add_annotations,
+                                                 text='Show annotations panel...', 
+                                                 bitmap=self.icons.iconsLib['annotate16']))
                 menu.AppendSeparator()
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveOtherImageDoc,
                                          text=saveImageLabel, 
@@ -1951,12 +2031,12 @@ class documentsTree(wx.TreeCtrl):
                     menu.AppendItem(makeMenuItem(parent=menu, id=ID_removeItemDocument,
                                                  text='Delete item\tDelete', 
                                                  bitmap=self.icons.iconsLib['clear_16']))
-                elif self.itemType == 'Mass Spectrum' or itemType == 'Mass Spectrum (processed)':
+                elif self.itemType in ['Mass Spectrum' 'Mass Spectrum (processed)']:
                     menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
                                                  text='Show mass spectrum\tAlt+S', 
                                                  bitmap=self.icons.iconsLib['mass_spectrum_16']))
                     menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_add_annotations,
-                                                 text='Show annotations panel...ons...', 
+                                                 text='Show annotations panel...', 
                                                  bitmap=self.icons.iconsLib['annotate16']))
                     menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_duplicate_annotations,
                                                  text='Duplicate annotations...', 
@@ -3684,9 +3764,14 @@ class documentsTree(wx.TreeCtrl):
         basename = os.path.splitext(self.itemData.title)[0]
         defaultValue, save_kwargs = None, {}
         if self.itemType in "Other data":
-            if self.extractData == "Other data": return
+            if self.extractData == "Other data": 
+                return
+            if self.extractData == "Annotations":
+                self.onAddAnnotation(None)
+                return
             data = deepcopy(self.GetPyData(self.currentItem))
-            plot_type = data['plot_type']
+            try: plot_type = data['plot_type']
+            except KeyError: return
             if plot_type in ["scatter", "waterfall", "line", "multi-line", "grid-scatter",
                              "grid-line", "vertical-bar", "horizontal-bar"]:
                 xlabel = data['xlabel']
@@ -5094,6 +5179,16 @@ class documentsTree(wx.TreeCtrl):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.other_data[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["calibration_on"], wx.TreeItemIcon_Normal)
+                
+                # add annotations 
+                if ('annotations' in docData.other_data[annotData] and 
+                    len(docData.other_data[annotData]['annotations']) > 0):
+                    docIonAnnotItem =  self.AppendItem(annotsItem, 'Annotations')
+                    self.SetItemImage(docIonAnnotItem, self.bulets_dict["annot"], wx.TreeItemIcon_Normal)
+                    for annotNameData in docData.other_data[annotData]['annotations']:
+                        annotsAnnotItem =  self.AppendItem(docIonAnnotItem, annotNameData)
+                        self.SetPyData(annotsAnnotItem, docData.other_data[annotData]['annotations'][annotNameData])
+                        self.SetItemImage(annotsAnnotItem, self.bulets_dict["annot"], wx.TreeItemIcon_Normal)
 
         # Recursively check currently selected document
         self.on_enable_document(loadingData=True, expandAll=expandAll, evt=None)
@@ -5560,6 +5655,13 @@ class documentsTree(wx.TreeCtrl):
         else:
             self.onThreading(evt, (evt,), action='add_mzidentml_annotations')
             
+    def on_open_thermo_file_fcn(self, evt):
+        
+        if not self.config.threading:
+            self.on_open_thermo_file(evt)
+        else:
+            self.onThreading(evt, (evt,), action='load_thermo_RAW')
+            
     def on_open_thermo_file(self, evt):
         dlg = wx.FileDialog(self.presenter.view, "Open Thermo file", wildcard = "*.raw; *.RAW" ,
                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
@@ -5583,9 +5685,8 @@ class documentsTree(wx.TreeCtrl):
             msX, msY = reader.get_average_spectrum()
             xlimits = [np.min(msX), np.max(msX)]
             name_kwargs = {"document":None, "dataset": None}
-            self.presenter.view.panelPlots.on_plot_MS(msX, msY, 
-                                                      xlimits=xlimits, 
-                                                      set_page=True, **name_kwargs)
+            self.presenter.view.panelPlots.on_plot_MS(
+                msX, msY, xlimits=xlimits, set_page=True, **name_kwargs)
             
             basename = os.path.basename(path)
             kwargs = {'data_type':"Type: MS", "file_format":"Format: Thermo (.RAW)"}
@@ -5610,10 +5711,6 @@ class documentsTree(wx.TreeCtrl):
             
             self.presenter.OnUpdateDocument(document, 'document')
             print("It took {:.4f} seconds to load {}".format(time.time()-tstart, document.title))
-            
-            
-    def on_open_thermo_file_fcn(self, evt):
-        self.on_open_thermo_file(evt)
         
 
 class topPanel(wx.Panel):

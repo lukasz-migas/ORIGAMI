@@ -21,14 +21,14 @@
 import wx, os, sys, time, re, gc, path, threading, random, webbrowser
 import numpy as np
 from _codecs import encode
-from numpy.ma import masked_array
+from numpy.ma import masked_array # @UnresolvedImport
 from wx.lib.pubsub import setuparg1
 import wx.lib.agw.multidirdialog as MDD
 from copy import deepcopy
 import pandas as pd
 from ids import *
 from math import sqrt, log
-from scipy.stats import linregress
+from scipy.stats import linregress # @UnresolvedImport
 
 import warnings
 # needed to avoid annoying warnings to be printed on console

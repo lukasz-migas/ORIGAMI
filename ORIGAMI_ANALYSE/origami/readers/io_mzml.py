@@ -17,7 +17,7 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import pymzml #@UnresolvedImport
+from pymzml import run as pymzml_run #@UnresolvedImport
 from collections import OrderedDict 
 import numpy as np
 
@@ -28,10 +28,10 @@ class mzMLreader():
         self.last_scan = 1
         
     def create_parser(self):
-        return pymzml.run.Reader(self.filename)
+        return pymzml_run.Reader(self.filename)
     
     def reset(self):
-        self.source = pymzml.run.Reader(self.filename)
+        self.source = pymzml_run.Reader(self.filename)
         self.last_scan = 1
 
     def get_spectrum_from_scan(self, scan, mode="2D"):

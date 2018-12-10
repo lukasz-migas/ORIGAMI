@@ -21,7 +21,7 @@ import wx
 from wx.lib.pubsub import pub 
 from ast import literal_eval
 from pandas import read_csv
-from numpy import where, arange, round, amax
+from numpy import where, arange, round, amax, average
 from operator import itemgetter
 from time import time as ttime
 from natsort import natsorted
@@ -39,10 +39,12 @@ from ids import (ID_annotPanel_assignColor_selected, ID_annotPanel_assignChargeS
                          ID_annotPanel_show_charge, ID_annotPanel_show_label, 
                          ID_annotPanel_show_labelsAtIntensity, ID_annotPanel_fixIntensity_selected,
                          ID_annotPanel_show_adjustLabelPosition, ID_annotPanel_show_mzAndIntensity,
-                         ID_annotPanel_otherSettings
+                         ID_annotPanel_otherSettings, ID_annotPanel_multipleAnnotation
                          )
 import processing.utils as pr_utils
 from gui_elements.dialog_customiseUserAnnotations import panelCustomiseParameters
+from sympy.physics.units import charge
+from unidec_modules.unidectools import intensitythresh
 
 
 class panelAnnotatePeaks(wx.MiniFrame):
@@ -77,9 +79,8 @@ class panelAnnotatePeaks(wx.MiniFrame):
         self.lastColumn = None
         self.currentItem = None
         
-        self.zoom_y_buffer_multiplier = 1.1
-        self.highlight_alpha = 0.2
-        self.highlight_width = 3
+        self.config.annotation_patch_transparency = 0.2
+        self.config.annotation_patch_width = 3
         
         self.data_xmin = None
         self.data_ymin = None
@@ -131,7 +132,8 @@ class panelAnnotatePeaks(wx.MiniFrame):
     def onClose(self, evt):
         """Destroy this frame."""
         # reset state
-        self.plot.plot_remove_temporary(repaint=True)
+        try: self.plot.plot_remove_temporary(repaint=True)
+        except TypeError: pass
         self.plot._on_mark_annotation(state=False)
         try: pub.unsubscribe(self.add_annotation_from_mouse_evt, 'mark_annotation')
         except: pass
@@ -158,16 +160,16 @@ class panelAnnotatePeaks(wx.MiniFrame):
                                 'intensity':4,'charge':5, 'label':6,'color':7,
                                 'arrow':8}
         
-        self.peaklist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
+        self.peaklist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES|wx.LC_SINGLE_SEL)
         self.peaklist.InsertColumn(self.annotation_list['check'],u'', width=25)
-        self.peaklist.InsertColumn(self.annotation_list['min'],u'min m/z', width=75)
-        self.peaklist.InsertColumn(self.annotation_list['max'],u'max m/z', width=75)
-        self.peaklist.InsertColumn(self.annotation_list['position'],u'position', width=75)
-        self.peaklist.InsertColumn(self.annotation_list['intensity'],u'intensity', width=75)
+        self.peaklist.InsertColumn(self.annotation_list['min'],u'min band', width=75)
+        self.peaklist.InsertColumn(self.annotation_list['max'],u'max band', width=75)
+        self.peaklist.InsertColumn(self.annotation_list['position'],u'value (x)', width=75)
+        self.peaklist.InsertColumn(self.annotation_list['intensity'],u'value (y)', width=75)
         self.peaklist.InsertColumn(self.annotation_list['charge'],u'charge', width=50)
         self.peaklist.InsertColumn(self.annotation_list['label'],u'label', width=100)
         self.peaklist.InsertColumn(self.annotation_list['color'],u'color', width=107)
-        self.peaklist.InsertColumn(self.annotation_list['arrow'],u'arrow', width=60)
+        self.peaklist.InsertColumn(self.annotation_list['arrow'],u'show arrow', width=75)
         
         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
         
@@ -180,10 +182,10 @@ class panelAnnotatePeaks(wx.MiniFrame):
         self.makePeaklist(panel)
         
         # make editor
-        min_label = wx.StaticText(panel, -1, u"min band (ion):")
+        min_label = wx.StaticText(panel, -1, u"min band (x):")
         self.min_value = wx.TextCtrl(panel, -1, "", validator=validator('float'))
         
-        max_label = wx.StaticText(panel, -1, u"max band (ion):")
+        max_label = wx.StaticText(panel, -1, u"max band (x):")
         self.max_value = wx.TextCtrl(panel, -1, "", validator=validator('float'))
         
         
@@ -201,19 +203,21 @@ class panelAnnotatePeaks(wx.MiniFrame):
         self.colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
 
         label_format = wx.StaticText(panel, -1, u"format:")
-        self.label_format = wx.ComboBox(panel, -1, choices=["None", "charge-only", "superscript", "M+nH", "2M+nH", "3M+nH", "4M+nH"], 
+        self.label_format = wx.ComboBox(panel, -1, choices=["None", "charge-only [n+]", "charge-only [+n]", "superscript", "M+nH", "2M+nH", "3M+nH", "4M+nH"], 
                                         value="None", style=wx.CB_READONLY, size=(-1, -1))
 
-        intensity_label = wx.StaticText(panel, -1, u"intensity (y, ion):")
+        intensity_label = wx.StaticText(panel, -1, u"value (y):")
         self.intensity_value = wx.TextCtrl(panel, -1, "", validator=validator('float'))
+        self.intensity_value.SetToolTip(wx.ToolTip("Value (y) could represent intensity of an ion in a mass spectrum."))
 
-        position_label = wx.StaticText(panel, -1, u"position (x, ion):")
+        position_label = wx.StaticText(panel, -1, u"value (x):")
         self.position_value = wx.TextCtrl(panel, -1, "", validator=validator('float'))
+        self.position_value.SetToolTip(wx.ToolTip("Value (x) could represent m/z of an ion in a mass spectrum."))
         
-        position_x_label = wx.StaticText(panel, -1, u"position (x, label):")
+        position_x_label = wx.StaticText(panel, -1, u"label position (x):")
         self.position_x_value = wx.TextCtrl(panel, -1, "", validator=validator('float'))
         
-        position_y_label = wx.StaticText(panel, -1, u"position (y, label):")
+        position_y_label = wx.StaticText(panel, -1, u"label position (y):")
         self.position_y_value = wx.TextCtrl(panel, -1, "", validator=validator('float'))
         
         add_arrow_to_peak = wx.StaticText(panel, -1, u"add arrow:")
@@ -230,8 +234,8 @@ class panelAnnotatePeaks(wx.MiniFrame):
         self.markTgl.SetBackgroundColour(wx.RED)
         self.markTgl.SetToolTip(wx.ToolTip("When toggled to On, right-click in the plot area to select an area and annotate accordingly."))
         
-        if self.manual_add_only:
-            self.markTgl.Disable()
+#         if self.manual_add_only:
+#             self.markTgl.Disable()
         
         self.addBtn = wx.Button(panel, wx.ID_OK, "Add annotation", size=(-1, 22))
         self.showBtn = wx.Button(panel, wx.ID_OK, u"Show ▼", size=(-1, 22))
@@ -246,7 +250,8 @@ class panelAnnotatePeaks(wx.MiniFrame):
         self.zoom_on_selection.SetValue(False)
         
         window_size = wx.StaticText(panel, wx.ID_ANY, u"window size:")
-        self.zoom_window_size = wx.SpinCtrlDouble(panel, -1,
+        self.zoom_window_size = wx.SpinCtrlDouble(
+            panel, -1,
                                                   value=str(5), 
                                                   min=0.0001, max=250, 
                                                   initial=5, 
@@ -319,16 +324,63 @@ class panelAnnotatePeaks(wx.MiniFrame):
     
     def onEnableDisableItems(self, evt):
         
-        add_arrow = self.add_arrow_to_peak.GetValue()
-        if add_arrow:
-            self.position_x_value.Enable()
-            self.position_y_value.Enable()
-        else:
-            self.position_x_value.Disable()
-            self.position_y_value.Disable()
+#         add_arrow = self.add_arrow_to_peak.GetValue()
+#         if add_arrow:
+#             self.position_x_value.Enable()
+#             self.position_y_value.Enable()
+#         else:
+#             self.position_x_value.Disable()
+#             self.position_y_value.Disable()
             
         if evt is not None:
             evt.Skip()
+    
+    def onMultiplyAnnotation(self, evt):
+        from dialogs import dlgAsk
+        import copy
+        
+        rows = self.peaklist.GetItemCount()
+        checked = []
+        
+        for row in xrange(rows):
+            if self.peaklist.IsChecked(row):
+                checked.append(row)
+                
+        if len(checked) == 0:
+            print("Please check at least one annotation the table...")
+            return
+        
+        n_duplicates = dlgAsk('How many times would you like to duplicate this annotations?', 
+                              defaultValue="1")
+        n_duplicates = int(n_duplicates)
+        
+        for row in checked:
+            min_value = self.peaklist.GetItem(row, self.annotation_list['min']).GetText()
+            max_value = self.peaklist.GetItem(row, self.annotation_list['max']).GetText()
+            annotation = self.get_annotation(min_value, max_value)
+            
+            # modify parameters
+            for i in xrange(n_duplicates):
+                _annotation = copy.deepcopy(annotation)
+                _annotation["min"] = annotation["min"]-(0.001 * (i+1))
+                
+                xmin = _annotation['min']
+                xmax = _annotation['max'] 
+                charge = _annotation['charge']
+                position = _annotation['isotopic_x']
+                intensity = _annotation['intensity']
+                label = _annotation['label']
+                color = _annotation['color']
+                add_arrow = _annotation['add_arrow']
+                
+                name = "{} - {}".format(xmin, xmax) 
+
+                self.kwargs['annotations'][name] = _annotation
+                self.peaklist.Append(["",xmin, xmax, position, intensity, charge, label, color, str(add_arrow)])
+                
+        self.documentTree.onUpdateAnotations(self.kwargs['annotations'],
+                                             self.kwargs['document'],
+                                             self.kwargs['dataset'])
     
     def onActionTool(self, evt):
         label_format = self.label_format.GetStringSelection()
@@ -341,6 +393,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.onOpenPeakList, id=ID_annotPanel_addAnnotations)
         self.Bind(wx.EVT_MENU, self.onSavePeaklist, id=ID_annotPanel_savePeakList_selected)
         self.Bind(wx.EVT_MENU, self.onCustomiseParameters, id=ID_annotPanel_otherSettings)
+        self.Bind(wx.EVT_MENU, self.onMultiplyAnnotation, id=ID_annotPanel_multipleAnnotation)
         
 
         menu = wx.Menu()
@@ -349,6 +402,9 @@ class panelAnnotatePeaks(wx.MiniFrame):
                                      bitmap=self.icons.iconsLib['settings16_2'],
                                      help_text=''))
         menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_annotPanel_multipleAnnotation,
+                                     text="Multiple annotation", 
+                                     bitmap=None))
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_annotPanel_addAnnotations,
                                      text='Add list of ions (.csv/.txt)', 
                                      bitmap=self.icons.iconsLib['filelist_16'],
@@ -676,7 +732,6 @@ class panelAnnotatePeaks(wx.MiniFrame):
             
             # Sort data  
             tempData = natsorted(tempData, key=itemgetter(column), reverse=self.reverse)
-#             tempData.sort(key = itemgetter(column), reverse=self.reverse)
             # Clear table
             self.peaklist.DeleteAllItems()
              
@@ -738,13 +793,6 @@ class panelAnnotatePeaks(wx.MiniFrame):
         position_label_y = annotations.get('position_label_y', intensity)
         self.position_y_value.SetValue(str(position_label_y))
         
-        if add_arrow:
-            self.position_x_value.Enable()
-            self.position_y_value.Enable()
-        else:
-            self.position_x_value.Disable()
-            self.position_y_value.Disable()
-        
         self.item_loading_lock = False
         
         if self.manual_add_only:
@@ -761,11 +809,11 @@ class panelAnnotatePeaks(wx.MiniFrame):
         intensity = str2num(intensity)*1.5
         
         if self.highlight_on_selection.GetValue():
-            self.plot.plot_add_patch(str2num(position)-self.highlight_width*0.5, 0, 
-                                     self.highlight_width, 
+            self.plot.plot_add_patch(str2num(position)-self.config.annotation_patch_width*0.5, 0, 
+                                     self.config.annotation_patch_width, 
                                      intensity*10, 
                                      color="r", 
-                                     alpha=self.highlight_alpha, add_temporary=True)
+                                     alpha=self.config.annotation_patch_transparency, add_temporary=True)
             self.plot.repaint()
             
         if self.zoom_on_selection.GetValue():
@@ -789,42 +837,63 @@ class panelAnnotatePeaks(wx.MiniFrame):
                                   color, 
                                   self.kwargs["annotations"][key].get('add_arrow', False)
                                   ])
+            
+    def onUpdateAnnotations(self, document_title, dataaset_title, annotations):
+        if (document_title == self.kwargs['document'] and
+            dataaset_title == self.kwargs['dataset']):
+            
+            self.kwargs['annotations'] = annotations
+        
+        
 
-    def add_annotation_from_mouse_evt(self, xvalsMin, xvalsMax):
+    def add_annotation_from_mouse_evt(self, xmin, xmax, ymin, ymax):
         # set them in correct order
-        if xvalsMax < xvalsMin: xvalsMin, xvalsMax = xvalsMax, xvalsMin
+        if xmax < xmin: 
+            xmin, xmax = xmax, xmin
+            
+        if ymax < ymin:
+            ymin, ymax = ymax, ymin
+        
+        # set intensity
+        intensity = round(average([ymin, ymax]), 4)
         
         # set to 4 decimal places
-        min_value = round(xvalsMin, 4)
-        max_value = round(xvalsMax, 4)
+        min_value = round(xmin, 4)
+        max_value = round(xmax, 4)
         
-        mz_narrow = pr_utils.get_narrow_data_range(data=self.kwargs["data"], 
-                                                   mzRange=[min_value, max_value])
-        intensity = pr_utils.find_peak_maximum(mz_narrow)
-        max_index = where(mz_narrow[:,1] == intensity)[0]
-        intensity = round(intensity, 2)
+        try:
+            mz_narrow = pr_utils.get_narrow_data_range(
+                data=self.kwargs["data"], mzRange=[min_value, max_value])
+            intensity = pr_utils.find_peak_maximum(mz_narrow)
+            max_index = where(mz_narrow[:,1] == intensity)[0]
+            intensity = round(intensity, 2)
+        except TypeError: 
+            pass
         try: position = mz_narrow[max_index,0][0]
         except: position = max_value - ((max_value - min_value) / 2)
         
-        charge = self.data_processing.predict_charge_state(self.kwargs['data'][:,0], 
-                                                           self.kwargs['data'][:,1],
-                                                           [min_value, max_value],
-                                                           std_dev=self.config.annotation_charge_std_dev)
-        # set values
         try:
-            self.min_value.SetValue(str(min_value))
-            self.max_value.SetValue(str(max_value))
-            self.position_value.SetValue(str(position))
-            self.intensity_value.SetValue(str(intensity))
-            self.charge_value.SetValue(str(charge))
-            self.charge_value.SetFocus()
-            self.label_value.SetValue("")
-            self.position_x_value.SetValue(str(position))
-            self.position_y_value.SetValue(str(intensity))
-            self.add_arrow_to_peak.SetValue(False)
-            self.position_x_value.Disable()
-            self.position_y_value.Disable()
-        except: pass
+            charge = self.data_processing.predict_charge_state(
+                self.kwargs['data'][:,0], self.kwargs['data'][:,1], 
+                [min_value, max_value], std_dev=self.config.annotation_charge_std_dev)
+        except TypeError: 
+            charge = 0
+        
+        # set values
+#         try:
+        self.min_value.SetValue(str(min_value))
+        self.max_value.SetValue(str(max_value))
+        self.position_value.SetValue(str(position))
+        self.intensity_value.SetValue(str(intensity))
+        self.charge_value.SetValue(str(charge))
+        self.charge_value.SetFocus()
+        self.label_value.SetValue("")
+        self.position_x_value.SetValue(str(position))
+        self.position_y_value.SetValue(str(intensity))
+        self.add_arrow_to_peak.SetValue(False)
+        self.position_x_value.SetValue("")
+        self.position_y_value.SetValue("")
+#         except: pass
         
         self.addBtn.SetFocus()
    
@@ -856,6 +925,10 @@ class panelAnnotatePeaks(wx.MiniFrame):
         self.kwargs['annotations'][name]['intensity'] = str2num(intensity_value)
         self.kwargs['annotations'][name]['isotopic_y'] = str2num(intensity_value)
         
+    def get_annotation(self, min_value, max_value):
+        name = "{} - {}".format(min_value, max_value)
+        return self.kwargs['annotations'].get(name, {})
+        
     def onAddAnnotation(self, evt):
         if self.item_loading_lock: 
             return
@@ -874,6 +947,10 @@ class panelAnnotatePeaks(wx.MiniFrame):
         position_label_x = str2num(self.position_x_value.GetValue())
         position_label_y = str2num(self.position_y_value.GetValue())
         
+        if position_label_x in [None, "None", ""]:
+            position_label_x = position
+        if position_label_y in [None, "None", ""]:
+            position_label_y = intensity            
         
         label_format = self.label_format.GetStringSelection()
         if label_value in ["", None, "None"]:
@@ -918,10 +995,13 @@ class panelAnnotatePeaks(wx.MiniFrame):
                                                  set_data_only=True)
             return
         
-        if min_value == None or max_value == None or charge_value == None:
-            dlgBox("Error", "Please fill min, max and charge fields at least!", 
+        if min_value == None or max_value == None:
+            dlgBox("Error", "Please fill min, max fields at least!", 
                    type="Error")
             return
+        
+        if charge_value is None:
+            charge_value = 0
         
         if intensity in ["", "None", None, False] and self.kwargs['data'] and not self.manual_add_only:
             mz_narrow= pr_utils.get_narrow_data_range(data=self.kwargs["data"], 
@@ -990,15 +1070,17 @@ class panelAnnotatePeaks(wx.MiniFrame):
     def onShowOnPlot(self, evt):
         
         evtID = evt.GetId()
-        
+        # clear plot
         self.plot.plot_remove_text_and_lines()
-        
+        # prepare plot kwargs
+        label_kwargs = self._buildPlotParameters(plotType="label")
+        arrow_kwargs = self._buildPlotParameters(plotType="arrow")
+        vline = False
         _ymax = []
-        plt_kwargs = self._buildPlotParameters(plotType="label")
         for key in self.kwargs['annotations']:
             # get annotation
             annotation = self.kwargs['annotations'][key]
-            label_y_position = str2num(annotation['intensity'])
+            intensity = str2num(annotation['intensity'])
             charge = annotation['charge']
             label = annotation['label']
             min_x_value = annotation['min']
@@ -1007,57 +1089,69 @@ class panelAnnotatePeaks(wx.MiniFrame):
             add_arrow = annotation.get('add_arrow', False)
 
             if 'isotopic_x' in annotation:
-                label_x_position = annotation['isotopic_x']
-                if label_x_position in ["", 0] or label_x_position < min_x_value: 
-                    label_x_position = max_x_value - ((max_x_value - min_x_value) / 2)
+                mz_value = annotation['isotopic_x']
+                if mz_value in ["", 0] or mz_value < min_x_value: 
+                    mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
             else:
-                label_x_position = max_x_value - ((max_x_value - min_x_value) / 2)
+                mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
+                
+            label_x_position = annotation.get('position_label_x', mz_value)
+            label_y_position = annotation.get('position_label_y', intensity)
+            
                 
             if evtID == ID_annotPanel_show_charge: 
                 show_label = charge
-                kwargs = {'rotation':'horizontal'}
             elif evtID == ID_annotPanel_show_label: 
                 show_label = _replace_labels(label)
-                kwargs = {'rotation':'horizontal'}
             elif evtID == ID_annotPanel_show_mzAndIntensity:
-                show_label = "{:.2f}, {}\nz={}".format(label_x_position, label_y_position, charge)
-                kwargs = {'rotation':'horizontal'}
+                show_label = "{:.2f}, {}\nz={}".format(mz_value, intensity, charge)
                 
             if show_label == "": return
-                
+              
+            # arrows have 4 positional parameters:
+            #    xpos, ypos = correspond to the label position
+            #    dx, dy = difference between label position and peak position
             if add_arrow and self.showLabelsAtIntensity:
-                arrow_x_position = label_x_position
-                label_x_position = annotation.get('position_label_x', label_x_position)
-                arrow_dx = label_x_position - arrow_x_position
-                arrow_y_position = label_y_position
-                label_y_position = annotation.get('position_label_y', label_y_position)
-                arrow_dy = label_y_position - arrow_y_position
-                vline = False
-            else:
-                vline = True
-
+                arrow_x_end = annotation.get('isotopic_x', label_x_position)
+                arrow_dx = arrow_x_end - label_x_position
+                arrow_y_end = annotation.get('isotopic_y', label_y_position)
+                arrow_dy = arrow_y_end - label_y_position
+#                 vline = False
+#             else:
+#                 vline = True
             
-            kwargs = merge_two_dicts(kwargs, plt_kwargs)
+            # add  custom name tag
+            obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
+                self.kwargs['document'], self.kwargs['dataset'], min_x_value, max_x_value,
+                "annotation")
+            label_kwargs['text_name'] = obj_name_tag
+            
+            
+            
             self.plot.plot_add_text_and_lines(
                 xpos=label_x_position, yval=label_y_position,
                 label=show_label, vline=vline, 
+                vline_position=mz_value, 
                 stick_to_intensity=self.showLabelsAtIntensity,
-                yoffset=0.05, color=color_value, **kwargs)
+                yoffset=0.05, color=color_value, **label_kwargs)
             
             _ymax.append(label_y_position)
             if add_arrow and self.showLabelsAtIntensity:
-                plt_kwargs = self._buildPlotParameters(plotType="arrow")
-                arrow_list = [arrow_x_position, arrow_y_position, arrow_dx, arrow_dy]
-                self.plot.plot_add_arrow(arrow_list,
-                                         stick_to_intensity=self.showLabelsAtIntensity,
-                                         **plt_kwargs)
+                arrow_list = [label_x_position, label_y_position, arrow_dx, arrow_dy]
+                arrow_kwargs['text_name'] = obj_name_tag
+                arrow_kwargs['props'] = [arrow_x_end, arrow_y_end]
+                self.plot.plot_add_arrow(
+                    arrow_list, stick_to_intensity=self.showLabelsAtIntensity,
+                    **arrow_kwargs)
                 
             
         if self.adjustLabelPosition:
             self.plot._fix_label_positions()
         
         # update intensity
-        self.plot.on_zoom_y_axis(endY=amax(_ymax)*self.zoom_y_buffer_multiplier)
+        if self.config.annotation_zoom_y:
+            try: self.plot.on_zoom_y_axis(endY=amax(_ymax)*self.config.annotation_zoom_y_multiplier)
+            except TypeError: pass
         
         self.plot.repaint()
              
@@ -1137,13 +1231,15 @@ class panelAnnotatePeaks(wx.MiniFrame):
       
     def _convert_str_to_unicode(self, s, return_type="superscript"):
         
-        if "+" not in s and "-" not in s:
+        if "+" not in s and "-" not in s and return_type not in ['charge-only [n+]', 'charge-only [+n]']:
             s = "+{}".format(s)
         
         if return_type == "None":
             return ""
-        elif return_type == "charge-only":
-            return s
+        elif return_type == "charge-only [+n]":
+            return "+{}".format(s)
+        elif return_type == "charge-only [n+]":
+            return "{}+".format(s)
         elif return_type == "superscript":
             unicode_string = u''.join(dict(zip(u"+-0123456789", u"⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹")).get(c, c) for c in s)
             return unicode_string
@@ -1169,7 +1265,10 @@ class panelAnnotatePeaks(wx.MiniFrame):
     def _buildPlotParameters(self, plotType="label"):
         if plotType == "arrow":
             kwargs = {'arrow_line_width':self.config.annotation_arrow_line_width,
-                      'arrow_line_style':self.config.annotation_arrow_line_style}
+                      'arrow_line_style':self.config.annotation_arrow_line_style,
+                      'arrow_head_length':self.config.annotation_arrow_cap_length,
+                      'arrow_head_width':self.config.annotation_arrow_cap_width}
+            
         elif plotType == "label":
             kwargs = {'horizontalalignment':self.config.annotation_label_horz,
                       'verticalalignment':self.config.annotation_label_vert,

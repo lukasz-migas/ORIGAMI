@@ -81,6 +81,11 @@ Annotations:
 - [fix] font size, weight and rotation will now be aplied when adding labels
 - [fix] annotation parameters (e.g. size, weight, rotation) will be respected when replotting from the Document Tree
 - [improvement] auto-label generator will now also create labels based purely on the charge state
+- [new] annotations can now be 'picked' and dragged. Those that have been added using the annotation panel
+    will also be updated when they have been dragged. The arrows draw in the application will also be adjusted.
+- [new] you can now also easily 'duplicate/multiply' annotations. Action -> Multiply annotations...
+    this will result in a copy of the selected annotation(s) with slight difference in the min-value (so they can be
+    distinguished from its parent
 
 Interactive panel:
 = [new] Made big progres in terms of copying/applying styles for plot elements. 

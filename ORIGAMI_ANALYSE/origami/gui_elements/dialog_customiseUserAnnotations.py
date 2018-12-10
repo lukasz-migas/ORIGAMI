@@ -19,6 +19,7 @@
 import wx
 
 from toolbox import (str2num, str2int, convertRGB1to255, convertRGB255to1, num2str)
+from styles import makeCheckbox
 
 class panelCustomiseParameters(wx.Dialog):
     def __init__(self, parent, config, **kwargs):
@@ -69,7 +70,7 @@ class panelCustomiseParameters(wx.Dialog):
 
         hz_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
-        arrow_line_width = wx.StaticText(panel, -1, "Line width:")
+        arrow_line_width = wx.StaticText(panel, -1, "Arrow line width:")
         self.arrow_line_width_value = wx.SpinCtrlDouble(panel, -1,
                                                         value=str(self.config.annotation_arrow_line_width), 
                                                         min=0.005, max=2, 
@@ -77,13 +78,30 @@ class panelCustomiseParameters(wx.Dialog):
                                                         size=(-1, -1))
         self.arrow_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
-        
-        arrow_line_style = wx.StaticText(panel, -1, "Line style:")
+        arrow_line_style = wx.StaticText(panel, -1, "Arrow line style:")
         self.arrow_line_style_value = wx.Choice(panel, -1, 
                                                 choices=self.config.lineStylesList,
                                                 size=(-1, -1))
         self.arrow_line_style_value.SetStringSelection(self.config.annotation_arrow_line_style)
         self.arrow_line_style_value.Bind(wx.EVT_CHOICE, self.onApply)
+        
+        arrow_cap_length_value = wx.StaticText(panel, -1, "Arrow cap length:")
+        self.arrow_cap_length_value = wx.SpinCtrlDouble(panel, -1,
+                                                       value=str(self.config.annotation_arrow_cap_length), 
+                                                       min=0.0, max=1000, 
+                                                       initial=self.config.annotation_arrow_cap_length, 
+                                                       inc=0.1, 
+                                                       size=(-1, -1))
+        self.arrow_cap_length_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)   
+        
+        arrow_cap_width_value = wx.StaticText(panel, -1, "Arrow cap width:")
+        self.arrow_cap_width_value = wx.SpinCtrlDouble(panel, -1,
+                                                       value=str(self.config.annotation_arrow_cap_width), 
+                                                       min=0.0, max=1000, 
+                                                       initial=self.config.annotation_arrow_cap_width, 
+                                                       inc=0.1, 
+                                                       size=(-1, -1))
+        self.arrow_cap_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
         hz_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
@@ -124,11 +142,15 @@ class panelCustomiseParameters(wx.Dialog):
         
         hz_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
+        zoom_y_buffer_check = wx.StaticText(panel, -1, "Adjust y-axis zoom:")
+        self.zoom_y_buffer_check = makeCheckbox(panel, u"")
+        self.zoom_y_buffer_check.SetValue(self.config.annotation_zoom_y)
+        
         zoom_y_buffer = wx.StaticText(panel, -1, "Zoom y-axis multiplier:")
         self.zoom_y_buffer_value = wx.SpinCtrlDouble(panel, -1,
-                                                     value=str(self.parent.zoom_y_buffer_multiplier), 
+                                                     value=str(self.config.annotation_zoom_y_multiplier), 
                                                      min=1, max=3, 
-                                                     initial=self.parent.zoom_y_buffer_multiplier, 
+                                                     initial=self.config.annotation_zoom_y_multiplier, 
                                                      inc=0.1, 
                                                      size=(-1, -1))
         self.zoom_y_buffer_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
@@ -137,18 +159,18 @@ class panelCustomiseParameters(wx.Dialog):
         
         highlight_alpha = wx.StaticText(panel, -1, "Highlight transparency:")
         self.highlight_alpha_value = wx.SpinCtrlDouble(panel, -1,
-                                                     value=str(self.parent.highlight_alpha), 
+                                                     value=str(self.config.annotation_patch_transparency), 
                                                      min=0., max=1., 
-                                                     initial=self.parent.highlight_alpha, 
+                                                     initial=self.config.annotation_patch_transparency, 
                                                      inc=0.2, 
                                                      size=(-1, -1))
         self.highlight_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
         highlight_width = wx.StaticText(panel, -1, "Highlight width:")
         self.highlight_width_value = wx.SpinCtrlDouble(panel, -1,
-                                                     value=str(self.parent.highlight_width), 
+                                                     value=str(self.config.annotation_patch_width), 
                                                      min=1., max=10., 
-                                                     initial=self.parent.highlight_width, 
+                                                     initial=self.config.annotation_patch_width, 
                                                      inc=1, 
                                                      size=(-1, -1))
         self.highlight_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
@@ -171,6 +193,12 @@ class panelCustomiseParameters(wx.Dialog):
         grid.Add(arrow_line_style, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.arrow_line_style_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
+        grid.Add(arrow_cap_length_value, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.arrow_cap_length_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        y = y+1
+        grid.Add(arrow_cap_width_value, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.arrow_cap_width_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        y = y+1
         grid.Add(hz_line_2, (y,0), wx.GBSpan(1,2), flag=wx.EXPAND)
         y = y+1
         grid.Add(label_fontOrientation_label, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
@@ -189,6 +217,9 @@ class panelCustomiseParameters(wx.Dialog):
         grid.Add(self.label_vert_alignment_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
         grid.Add(hz_line_3, (y,0), wx.GBSpan(1,2), flag=wx.EXPAND)
+        y = y+1
+        grid.Add(zoom_y_buffer_check, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.zoom_y_buffer_check, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
         grid.Add(zoom_y_buffer, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.zoom_y_buffer_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
@@ -213,17 +244,23 @@ class panelCustomiseParameters(wx.Dialog):
     
     def onApply(self, evt):
         self.config.annotation_charge_std_dev = self.charge_std_dev_value.GetValue()
+        
         self.config.annotation_arrow_line_width = self.arrow_line_width_value.GetValue()
         self.config.annotation_arrow_line_style = self.arrow_line_style_value.GetStringSelection()
+        self.config.annotation_arrow_cap_length = self.arrow_cap_length_value.GetValue()
+        self.config.annotation_arrow_cap_width = self.arrow_cap_width_value.GetValue()
+        
         self.config.annotation_label_font_size = self.label_fontSize_value.GetStringSelection()
         self.config.annotation_label_font_weight = self.label_fontWeight_value.GetStringSelection()
         self.config.annotation_label_vert = self.label_vert_alignment_value.GetStringSelection()
         self.config.annotation_label_horz = self.label_horz_alignment_value.GetStringSelection()
         self.config.annotation_label_font_orientation = self.label_fontOrientation_value.GetStringSelection()
     
-        self.parent.zoom_y_buffer_multiplier = self.zoom_y_buffer_value.GetValue()
-        self.parent.highlight_alpha = self.highlight_alpha_value.GetValue()
-        self.parent.highlight_width = self.highlight_width_value.GetValue()
+        self.config.annotation_zoom_y = self.zoom_y_buffer_check.GetValue()
+        self.config.annotation_zoom_y_multiplier = self.zoom_y_buffer_value.GetValue()
+        
+        self.config.annotation_patch_transparency = self.highlight_alpha_value.GetValue()
+        self.config.annotation_patch_width = self.highlight_width_value.GetValue()
         
         
         

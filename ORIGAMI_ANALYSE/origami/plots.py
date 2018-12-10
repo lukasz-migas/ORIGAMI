@@ -311,8 +311,6 @@ class plots(plottingWindow):
             
             if self.rotate == 360:
                 self.rotate = 0
-                
-            print(self.rotate)
 
     def plot_add_arrow(self, arrow_vals, stick_to_intensity=True, **kwargs):
         # unpack parameters
@@ -326,7 +324,10 @@ class plots(plottingWindow):
             
         if dx == 0 and dy == 0:
             return
-        
+
+        # get custom name tag
+        obj_name = kwargs.pop("text_name", None)      
+        obj_props = kwargs.pop("props", [None, None])         
         arrow = self.plotMS.arrow(xmin, ymin, dx, dy, 
                                   head_length=kwargs.get("arrow_head_length", 0),
                                   head_width=kwargs.get("arrow_head_width", 0),
@@ -335,6 +336,8 @@ class plots(plottingWindow):
                                   lw=kwargs.get("arrow_line_width", 0.5),
                                   ls=kwargs.get("arrow_line_style", "--"),
                                   )
+        arrow.obj_name = obj_name # custom tag
+        arrow.obj_props = obj_props
         self.arrows.append(arrow)
 
     def plot_remove_arrows(self):
@@ -372,8 +375,8 @@ class plots(plottingWindow):
         self.markers = []
         self.repaint()
 
-    def plot_add_text_and_lines(self, xpos, yval, label, vline=True, color="black", 
-                                yoffset=0.05, stick_to_intensity=False, **kwargs):
+    def plot_add_text_and_lines(self, xpos, yval, label, vline=True, vline_position=None,
+                                color="black", yoffset=0.05, stick_to_intensity=False, **kwargs):
         
         try: ymin, ymax = self.plotMS.get_ylim()
         except: return
@@ -384,16 +387,21 @@ class plots(plottingWindow):
         else:
             y_position = ymax
             
+        # get custom name tag
+        obj_name = kwargs.pop("text_name", None) 
         text = self.plotMS.text(
             np.array(xpos), y_position+yoffset,
             label,
             horizontalalignment=kwargs.pop("horizontalalignment", "center"),
             verticalalignment=kwargs.pop("verticalalignment", "top"), 
-            color=color,
+            color=color, picker=True,
             **kwargs)
+        text.obj_name = obj_name # custom tag
         self.text.append(text)
         
         if vline:
+            if vline_position is not None:
+                xpos = vline_position
             line = self.plotMS.axvline(
                 xpos, ymin, yval*0.8, color=color,
                 linestyle="dashed", alpha=0.4)
@@ -413,13 +421,16 @@ class plots(plottingWindow):
         if kwargs.pop("butterfly_plot", False):
             try: yval = - yval
             except: pass
+        
+        # get custom name tag
+        obj_name = kwargs.pop("text_name", None) 
             
         text = self.plotMS.text(np.array(xpos), yval, label,
-                                color=color,
-                                clip_on=True,
-                                zorder=zorder,
+                                color=color, clip_on=True,
+                                zorder=zorder, picker=True,
                                 **kwargs)
         text._yposition = yval - kwargs.get('labels_y_offset', self.config.waterfall_labels_y_offset)
+        text.obj_name = obj_name # custom tag
         self.text.append(text)
 
     def plot_remove_text(self):
@@ -4083,10 +4094,12 @@ class plots(plottingWindow):
             for i, j in itertools.product(range(zvals.shape[0]), range(zvals.shape[1])):
                 color = determineFontColor(convertRGB1to255(cmap(zvals[i, j]/2)))
                 label = format(zvals[i, j], '.2f')
+                obj_name = kwargs.pop("text_name", None) 
                 text = self.plotMS.text(j+1, i+1, label,
                                         horizontalalignment="center",
-                                        color=color,
+                                        color=color, picker=True,
                                         clip_on=True)
+                text.obj_name = obj_name# custom tag
                 self.text.append(text)
 
         cbarDivider = make_axes_locatable(self.plotMS)

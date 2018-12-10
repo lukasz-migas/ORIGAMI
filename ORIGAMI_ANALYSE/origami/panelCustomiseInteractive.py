@@ -1442,6 +1442,11 @@ class panelCustomiseInteractive(wx.MiniFrame):
             self.kwargs.get("annotation_properties", {}).get("label_color", self.config.interactive_ms_annotations_label_color)))
         self.annotation_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.onApply_color)
         
+        self.annotation_fontColor_presets_value = makeCheckbox(panel, u"use preset colors")
+        self.annotation_fontColor_presets_value.SetValue(
+            self.kwargs.get("annotation_properties", {}).get("label_use_preset_color", False))
+        self.annotation_fontColor_presets_value.Bind(wx.EVT_CHECKBOX, self.onApply_annotation)
+        
         annotation_highlight_peak_label = makeStaticText(panel, u"Add patch to peaks:")
         self.annotation_peakHighlight = wx.CheckBox(panel, -1 ,u'', (15, 30))
         self.annotation_peakHighlight.SetValue(
@@ -1541,7 +1546,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
             choices=self.config.interactive_legend_click_policy_choices,
             value=self.kwargs.get("legend_properties", {}).get("legend_click_policy", self.config.interactive_legend_click_policy), style=wx.CB_READONLY)
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onApply_legend)
-        self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onEnableDisable_legend)
+#         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onEnableDisable_legend)
 
         muteAlpha_label = makeStaticText(panel, u"Line transparency:")
         self.legend_mute_transparency = wx.SpinCtrlDouble(
@@ -2560,6 +2565,3 @@ class panelCustomiseInteractive(wx.MiniFrame):
             
         self.onApply_widgets(None)
         
-    def onEnableDisable_legend(self, evt):
-        pass
-    

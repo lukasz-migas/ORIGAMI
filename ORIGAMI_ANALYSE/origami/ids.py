@@ -232,6 +232,7 @@ ID_annotPanel_show_labelsAtIntensity = NewId()
 ID_annotPanel_show_adjustLabelPosition = NewId()
 ID_annotPanel_fixIntensity_selected = NewId()
 ID_annotPanel_otherSettings = NewId()
+ID_annotPanel_multipleAnnotation = NewId()
 
 # Tandem panel
 ID_tandemPanel_otherSettings = NewId()

@@ -24,6 +24,7 @@ import seaborn as sns
 import plots as plots
 import matplotlib.pyplot as plt
 from natsort import natsorted
+from wx.lib.pubsub import pub 
 
 from ids import *
 from styles import makeMenuItem
@@ -59,12 +60,52 @@ class panelPlot(wx.Panel):
         self.window_plot2D = '2D'
         self.window_plot3D = '3D'
         self.makeNotebook()
+        self.current_plot = self.plot1
         
         # bind events
         self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         
         # initialise
         self.onPageChanged(evt=None)
+        
+        # initilise pub
+        pub.subscribe(self._update_label_position, 'update_text_position') # update position of label
+        
+
+    # TODO: arrow positions should be updated automatically
+    def _update_label_position(self, text_obj):
+        document_title, dataset_name, annotation_name, text_type  = text_obj.obj_name.split('|-|')
+        
+        # get document
+        __, annotations = self.parent.panelDocuments.topP.documents.on_get_annotation_dataset(document_title, dataset_name)
+        if text_type == "annotation":
+            new_pos_x, new_pos_y = text_obj.get_position()
+            annotations[annotation_name]['position_label_x'] = np.round(new_pos_x, 4)
+            annotations[annotation_name]['position_label_y'] = np.round(new_pos_y, 4)
+            try:
+                arrow_kwargs = self._buildPlotParameters(plotType="arrow")
+                if annotations[annotation_name].get('add_arrow', False):
+                    for i, arrow in enumerate(self.current_plot.arrows):
+                        if arrow.obj_name == text_obj.obj_name:
+                            arrow_x_end, arrow_y_end = arrow.obj_props
+                            arrow_kwargs['text_name'] = arrow.obj_name
+                            arrow_kwargs['props'] = [arrow_x_end, arrow_y_end]
+                            
+                            # remove all arrow
+                            del self.current_plot.arrows[i]
+                            arrow.remove()
+                            
+                            # add arrow to plot
+                            arrow_list = [new_pos_x, new_pos_y, arrow_x_end-new_pos_x, arrow_y_end-new_pos_y]
+                            self.current_plot.plot_add_arrow(
+                                arrow_list, stick_to_intensity=True,
+                                **arrow_kwargs)
+            except: pass
+                        
+        # update annotation
+        self.parent.panelDocuments.topP.documents.onUpdateAnotations(
+            annotations, document_title, dataset_name, set_data_only=True)
+        
         
     def onPageChanged(self, evt):
         # get current page
@@ -78,6 +119,16 @@ class panelPlot(wx.Panel):
             self.window_plot2D = self.currentPage
         elif self.currentPage in ['3D']:
             self.window_plot3D = self.currentPage
+            
+        if self.currentPage == "Waterfall": self.current_plot = self.plotWaterfallIMS
+        elif self.currentPage == "MS": self.current_plot = self.plot1
+        elif self.currentPage == "1D": self.current_plot = self.plot1D
+        elif self.currentPage == "RT": self.current_plot = self.plotRT
+        elif self.currentPage == "2D": self.current_plot = self.plot2D
+        elif self.currentPage == "DT/MS": self.current_plot = self.plotMZDT
+        elif self.currentPage == "Overlay": self.current_plot = self.plotOverlay
+        elif self.currentPage == "Other": self.current_plot = self.plotOther
+        
             
         # update statusbars
         if self.config.processParamsWindow_on_off:
@@ -3703,7 +3754,9 @@ class panelPlot(wx.Panel):
                           }
         elif plotType in ['arrow']:
             plt_kwargs = {'arrow_line_width':self.config.annotation_arrow_line_width,
-                          'arrow_line_style':self.config.annotation_arrow_line_style}
+                          'arrow_line_style':self.config.annotation_arrow_line_style,
+                          'arrow_head_length':self.config.annotation_arrow_cap_length,
+                          'arrow_head_width':self.config.annotation_arrow_cap_width}
             add_frame_width = False
         elif plotType == "label":
             plt_kwargs = {'horizontalalignment':self.config.annotation_label_horz,

@@ -21,7 +21,7 @@
 from __future__ import division
 
 # Load modules
-from panelPlot import panelPlot
+from panelPlot import panelPlot 
 from panelMultipleIons import panelMultipleIons
 from panelMultipleTextFiles import panelMultipleTextFiles
 from panelMultipleML import panelMML
@@ -346,7 +346,7 @@ class MyFrame(wx.Frame):
         self.mainStatusbar.SetFont(wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.NORMAL))
  
     def onMode(self, dataOut):
-        shift, ctrl, alt, add2table, wheel, zoom = dataOut
+        shift, ctrl, alt, add2table, wheel, zoom, dragged = dataOut
         self.mode = ''
         myCursor = wx.StockCursor(wx.CURSOR_ARROW)
         if alt: 
@@ -366,9 +366,13 @@ class MyFrame(wx.Frame):
             myCursor= wx.StockCursor(wx.CURSOR_SIZEWE)
         elif alt and ctrl: 
             self.mode = ''
+        elif dragged is not None:
+            self.mode = 'Dragging'
+            myCursor= wx.StockCursor(wx.CURSOR_HAND)
         elif zoom:
             self.mode = 'Zooming'
             myCursor= wx.StockCursor(wx.CURSOR_MAGNIFIER)
+
         
         self.SetCursor(myCursor)
         self.SetStatusText("{}".format(self.mode), number=5)

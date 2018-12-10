@@ -3,7 +3,7 @@ import time
 import scipy
 import matplotlib.pyplot as plt
 import numpy as np
-import pymzml
+from pymzml import run as pymzml_run
 
 import unidectools as ud
 
@@ -93,7 +93,7 @@ class mzMLimporter:
         :return: mzMLimporter object
         """
         print "Reading mzML:", path
-        self.msrun = pymzml.run.Reader(path)
+        self.msrun = pymzml_run.Reader(path)
         self.data = []
         self.scans = []
         self.times = []

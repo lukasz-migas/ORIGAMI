@@ -859,7 +859,6 @@ class UniDecConfig(object):
         self.system = platform.system()
         # pathtofile = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         pathtofile = os.getcwd()
-        print("unidec path", pathtofile)
         
         self.defaultUnidecDir = os.path.join(pathtofile, 'unidec_bin')
 
