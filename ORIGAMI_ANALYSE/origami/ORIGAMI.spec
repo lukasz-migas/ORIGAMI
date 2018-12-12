@@ -38,7 +38,7 @@ block_cipher = None
 # pyinstaller ORIGAMI.spec -y --clean
 
 # Set version number
-version = "1.2.1.2"
+version = "1.2.1.3"
 
 current_dir = os.getcwd()
 origami_dir_name = "ORIGAMI_v{}".format(version)
@@ -154,9 +154,10 @@ dirlist = ['licences', 'unidec_bin', 'images', 'example_files', 'docs'
            
 for directory in dirlist:
   try:
+    tstart_copying = time.clock()
     saveDir = path.path(''.join([dist_dir,'\\', directory]))
     copy_tree(directory, saveDir)
-    print("Copied directory: {}. It took {:.4f} seconds.".format(directory, time.clock()-tstart_copy))
+    print("Copied directory: {}. It took {:.4f} seconds.".format(directory, time.clock()-tstart_copying))
   except:
     print('Skipped directory: {}'.format(directory))
     pass

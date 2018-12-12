@@ -380,6 +380,9 @@ class panelUVPD(wx.MiniFrame):
         self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, 22))
         self.find_peaks_btn.Bind(wx.EVT_BUTTON, self.on_find_peaks)
         
+        self.extract_MS_btn = wx.Button(panel, wx.ID_OK, "Extract spectra", size=(-1, 22))
+        self.extract_MS_btn.Bind(wx.EVT_BUTTON, self.on_extract_mass_spectra)
+        
         self.msg_bar = wx.StaticText(panel, -1, "")
         self.msg_bar.SetLabel("")
         
@@ -390,17 +393,20 @@ class panelUVPD(wx.MiniFrame):
         grid.Add(self.threshold_value, (n,1), wx.GBSpan(1,1), flag=wx.EXPAND)
         grid.Add(buffer_size_value, (n,2), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.buffer_size_value, (n,3), wx.GBSpan(1,1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(first_index_value, (n,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        grid.Add(self.first_index_value, (n,1), wx.GBSpan(1,1), flag=wx.EXPAND)
+        grid.Add(first_index_value, (n,4), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.first_index_value, (n,5), wx.GBSpan(1,1), flag=wx.EXPAND)
         n = n + 1
         grid.Add(show_markers, (n,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.show_labels, (n,1), wx.GBSpan(1,1), flag=wx.EXPAND)
         grid.Add(self.show_markers, (n,2), wx.GBSpan(1,1), flag=wx.EXPAND)
         grid.Add(self.show_patches, (n,3), wx.GBSpan(1,1), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.find_peaks_btn, (n,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        grid.Add(self.msg_bar, (n,1), wx.GBSpan(1,3), flag=wx.EXPAND)
+        grid.Add(self.find_peaks_btn, (n,0), wx.GBSpan(1,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.extract_MS_btn, (n,2), wx.GBSpan(1,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        n = n + 1
+        grid.Add(self.msg_bar, (n,0), wx.GBSpan(1,6), flag=wx.EXPAND)
+        
+        
         
         staticBox = makeStaticBox(panel, "Detect peaks", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1,-1))
@@ -480,7 +486,7 @@ class panelUVPD(wx.MiniFrame):
         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu_peaklist)
         self.peaklist.Bind(wx.EVT_LIST_KEY_DOWN, self.onSelectItem_peaklist)
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectItem_peaklist)
-        self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick_peaklist)
+        self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_peaklist)
         
         min_dt_value = wx.StaticText(panel, wx.ID_ANY, u"min dt:")
         self.min_dt_value = wx.TextCtrl(panel, -1, "", size=(45, -1),
@@ -515,7 +521,7 @@ class panelUVPD(wx.MiniFrame):
         
         # bind events
         self.monitorlist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu_monitorlist)
-        self.monitorlist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick_monitorlist)
+        self.monitorlist.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_monitorlist)
                 
         fragSizer = wx.BoxSizer(wx.VERTICAL)
         fragSizer.Add(frag_toolbar_grid, 0, wx.EXPAND|wx.ALL, 2)
@@ -562,10 +568,10 @@ class panelUVPD(wx.MiniFrame):
         if evt != None:
             evt.Skip()
     
-    def OnGetColumnClick_peaklist(self, evt):
-        self.OnSortByColumn_peaklist(column=evt.GetColumn())
+    def get_column_click_peaklist(self, evt):
+        self.sort_by_column_peaklist(column=evt.GetColumn())
         
-    def OnSortByColumn_peaklist(self, column, sort_direction=None):
+    def sort_by_column_peaklist(self, column, sort_direction=None):
         """
         Sort data in peaklist based on pressed column
         """
@@ -604,10 +610,10 @@ class panelUVPD(wx.MiniFrame):
             self.peaklist.Append(tempData[row])
             self.peaklist.CheckItem(row, check)
     
-    def OnGetColumnClick_monitorlist(self, evt):
-        self.OnSortByColumn_monitorlist(column=evt.GetColumn())
+    def get_column_click_monitorlist(self, evt):
+        self.sort_by_column_monitorlist(column=evt.GetColumn())
         
-    def OnSortByColumn_monitorlist(self, column, sort_direction=None):
+    def sort_by_column_monitorlist(self, column, sort_direction=None):
         """
         Sort data in peaklist based on pressed column
         """
@@ -705,7 +711,7 @@ class panelUVPD(wx.MiniFrame):
         if self.config.uvpd_peak_show_markers:
             self.view.panelPlots.on_add_marker(xvals=self.laser_on_marker[:,0], 
                                                yvals=self.laser_on_marker[:,1], 
-                                               color=colors[0], #(1,0,0), 
+                                               color=colors[0],
                                                marker=self.config.markerShape_1D,
                                                size=self.config.markerSize_1D,
                                                plot='RT',
@@ -741,10 +747,11 @@ class panelUVPD(wx.MiniFrame):
         self.view.panelPlots.on_add_legend(labels, colors, plot="RT")
         
         
-        msg = "Found {} regions - skipping first {}. #1: {} | #2: {}".format(
+        msg = "Found {} regions - skipping # peaks {}; #1: {} | #2: {}".format(
             len(tablelist), self.config.uvpd_peak_first_index, len(self.laser_on_list), 
             len(self.laser_off_list))
         self.msg_bar.SetLabel(msg)
+        self.msg_bar.SetForegroundColour(wx.BLUE)
                     
         print("Found {} regions. It took {:.4f} seconds".format(len(tablelist), ttime()-tstart))
         
@@ -911,7 +918,7 @@ class panelUVPD(wx.MiniFrame):
             mobility_list.append([dt_min, dt_max, ion_name])
             
         return mobility_list
-        
+    
     def get_mobility_name(self, itemID):
         dt_min = str2int(self.monitorlist.GetItem(itemID, 1).GetText())
         dt_max = str2int(self.monitorlist.GetItem(itemID, 2).GetText())
@@ -1074,7 +1081,6 @@ class panelUVPD(wx.MiniFrame):
                 colors=colors, xlimits=None, labels=labels,
                 set_page=True)
         
-            
     def on_save_data_heatmap(self, evt):
         evtID = evt.GetId()
         ion_name = self.get_ion_name(self.currentItem)
@@ -1231,11 +1237,69 @@ class panelUVPD(wx.MiniFrame):
                                                 labels=labels, 
                                                 set_page=True)
 
+    def on_extract_mass_spectra(self, evt):
+        import gc 
+        tstart = ttime()
+        
+        if len(self.laser_on_list) == 0 or len(self.laser_off_list) == 0:
+            dlgBox(exceptionTitle="Error", exceptionMsg="Please find peaks first!", 
+                   type="Error")
+            return
+        
+        # get document
+        document = self.document 
+        # prepare mass range and linearization parameters
+        xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+        kwargs = {'auto_range':self.config.ms_auto_range,
+                  'mz_min':xlimits[0], 'mz_max':xlimits[1],
+                  'linearization_mode':self.config.ms_linearization_mode}
+        
+        # extract dataset 1 mass spectra
+        msX_on, msY_on = self._extract_mass_spectrum(document.path, self.laser_on_list, **kwargs)
+        self.view.panelPlots.on_plot_MS(msX_on, msY_on, "m/z", "Intensity", set_page=True)
+        document.multipleMassSpectrum["UVPD - dataset 1"] = {
+            'xvals':msX_on, 'yvals':msY_on, 'xlabels':'m/z (Da)', 'scan_list':self.laser_on_list,
+            'xlimits':xlimits} 
+        
+        # extract dataset 2 mass spectra
+        msX_off, msY_off = self._extract_mass_spectrum(document.path, self.laser_off_list, **kwargs)
+        self.view.panelPlots.on_plot_MS(msX_off, msY_off, "m/z", "Intensity", set_page=True)
+        document.multipleMassSpectrum["UVPD - dataset 2"] = {
+            'xvals':msX_off, 'yvals':msY_off, 'xlabels':'m/z (Da)', 'scan_list':self.laser_off_list,
+            'xlimits':xlimits} 
+        
+        # add to document
+        document.gotMultipleMS = True
+        
+        # Update document
+        self.presenter.OnUpdateDocument(document, 'mass_spectra') 
+        gc.collect()
+        
+        print("In total, it took {:.4f} seconds.".format(ttime()-tstart))
+        
+    def _extract_mass_spectrum(self, document_path, scan_list, **kwargs):
+        from processing.spectra import sum_1D_dictionary
+        
+        for counter, item in enumerate(scan_list):
+            msDict = io_waters.rawMassLynx_MS_bin(filename=str(document_path), 
+                                                  function=1, 
+                                                  startScan=item[0], endScan=item[1], 
+                                                  binData=self.config.import_binOnImport, 
+                                                  mzStart=self.config.ms_mzStart, 
+                                                  mzEnd=self.config.ms_mzEnd, 
+                                                  binsize=self.config.ms_mzBinSize,
+                                                  **kwargs)
+            msX, msY = sum_1D_dictionary(ydict=msDict)
 
+            if counter == 0: 
+                tempArray = msY
+            else:
+                tempArray = np.add(tempArray, msY)
+            
+#         msY_array = tempArray.reshape((len(msY), int(counter+1)), order='F') 
+#         msY = np.sum(msY_array, axis=1)
         
-        
-        
-        
+        return msX, msY
         
         
         

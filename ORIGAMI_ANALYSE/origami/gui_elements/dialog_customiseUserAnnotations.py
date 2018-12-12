@@ -105,6 +105,15 @@ class panelCustomiseParameters(wx.Dialog):
         
         hz_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
+        label_yaxis_offset_value = wx.StaticText(panel, -1, "Y-axis label offset:")
+        self.label_yaxis_offset_value = wx.SpinCtrlDouble(panel, -1,
+                                                          value=str(self.config.annotation_label_y_offset), 
+                                                          min=0.0, max=1000, 
+                                                          initial=self.config.annotation_label_y_offset, 
+                                                          inc=0.05, 
+                                                          size=(-1, -1))
+        self.label_yaxis_offset_value.Bind(wx.EVT_CHOICE, self.onApply)
+        
         label_fontOrientation_label = wx.StaticText(panel, -1, "Font orientation:")
         self.label_fontOrientation_value= wx.Choice(panel, -1, 
                                    choices=self.config.label_font_orientation_list,
@@ -199,7 +208,10 @@ class panelCustomiseParameters(wx.Dialog):
         grid.Add(arrow_cap_width_value, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.arrow_cap_width_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
-        grid.Add(hz_line_2, (y,0), wx.GBSpan(1,2), flag=wx.EXPAND)
+        grid.Add(hz_line_2, (y,0), wx.GBSpan(1,2), flag=wx.EXPAND) 
+        y = y+1
+        grid.Add(label_yaxis_offset_value, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.label_yaxis_offset_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
         grid.Add(label_fontOrientation_label, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.label_fontOrientation_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
@@ -250,6 +262,7 @@ class panelCustomiseParameters(wx.Dialog):
         self.config.annotation_arrow_cap_length = self.arrow_cap_length_value.GetValue()
         self.config.annotation_arrow_cap_width = self.arrow_cap_width_value.GetValue()
         
+        self.config.annotation_label_y_offset = self.label_yaxis_offset_value.GetValue()
         self.config.annotation_label_font_size = self.label_fontSize_value.GetStringSelection()
         self.config.annotation_label_font_weight = self.label_fontWeight_value.GetStringSelection()
         self.config.annotation_label_vert = self.label_vert_alignment_value.GetStringSelection()

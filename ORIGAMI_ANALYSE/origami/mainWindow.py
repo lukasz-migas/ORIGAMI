@@ -21,7 +21,7 @@
 from __future__ import division
 
 # Load modules
-from panelPlot import panelPlot 
+from panelPlot import panelPlot
 from panelMultipleIons import panelMultipleIons
 from panelMultipleTextFiles import panelMultipleTextFiles
 from panelMultipleML import panelMML
@@ -529,6 +529,16 @@ class MyFrame(wx.Frame):
         menuPlot.AppendItem(makeMenuItem(parent=menuPlot, id=ID_extraSettings_general,
                                          text='Settings: &Extra', 
                                          bitmap=self.icons.iconsLib['panel_general2_16']))
+        
+        menuPlot.AppendSeparator()
+        menuPlot.AppendItem(makeMenuItem(parent=menuPlot, id=ID_annotPanel_otherSettings,
+                                         text='Settings: Annotation parameters', 
+                                         bitmap=None))
+        menuPlot.AppendItem(makeMenuItem(parent=menuPlot, id=ID_unidecPanel_otherSettings,
+                                         text='Settings: UniDec parameters', 
+                                         bitmap=None))
+                                         
+        
         menuPlot.AppendSeparator()
         menuPlot.Append(ID_plots_showCursorGrid, 'Update plot parameters')
         menuPlot.Append(ID_plots_resetZoom, 'Reset zoom tool\tF12')
@@ -818,6 +828,9 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.presenter.onRebootZoom, id=ID_plots_resetZoom)
         self.Bind(wx.EVT_MENU, self.updatePlots, id=ID_plots_showCursorGrid)    
         
+        self.Bind(wx.EVT_MENU, self.on_customise_annotation_plot_parameters, id=ID_annotPanel_otherSettings)
+        self.Bind(wx.EVT_MENU, self.on_customise_unidec_plot_parameters, id=ID_unidecPanel_otherSettings)
+        
         # OUTPUT
         self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveOverlayImage)
         self.Bind(wx.EVT_MENU, self.panelPlots.save_images,id=ID_saveMSImage)
@@ -875,6 +888,18 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_right)
         self.Bind(wx.EVT_MENU, self.on_open_compare_MS_window, id=ID_docTree_compareMS)
         
+        
+    def on_customise_annotation_plot_parameters(self, evt):
+        from gui_elements.dialog_customiseUserAnnotations import panelCustomiseParameters as panelCustomiseParameters_annotations
+        
+        dlg = panelCustomiseParameters_annotations(self,  self.config)
+        dlg.ShowModal()
+        
+    def on_customise_unidec_plot_parameters(self, evt):
+        from gui_elements.dialog_customiseUniDecPlots import panelCustomiseParameters as panelCustomiseParameters_unidec
+        
+        dlg = panelCustomiseParameters_unidec(self,  self.config, self.icons)
+        dlg.ShowModal()
         
     def on_add_blank_document_manual(self, evt):
         self.presenter.onAddBlankDocument(evt=None, document_type='manual')
@@ -1031,26 +1056,32 @@ class MyFrame(wx.Frame):
         
         htmlPages = htmlPages()
         evtID = evt.GetId()
+        link, kwargs = None, {}
         if evtID == ID_help_UniDecInfo:
             kwargs = htmlPages.page_UniDec_info
             
         elif evtID == ID_help_page_dataLoading:
-            kwargs = htmlPages.page_data_loading_info
+            link = os.path.join(os.getcwd(), "docs\user-guide\loading-data.html")
+            #kwargs = htmlPages.page_data_loading_info
             
         elif evtID == ID_help_page_gettingStarted:
-            kwargs = htmlPages.page_data_getting_started
+            link = os.path.join(os.getcwd(), "docs\user-guide\example-files.html")
+            #kwargs = htmlPages.page_data_getting_started
             
         elif evtID == ID_help_page_UniDec:
-            kwargs = htmlPages.page_deconvolution_info
+            link = os.path.join(os.getcwd(), "docs\user-guide\deconvolution\unidec-deconvolution.html")
+            #kwargs = htmlPages.page_deconvolution_info
             
         elif evtID == ID_help_page_ORIGAMI:
-            kwargs = htmlPages.page_origami_info
+            link = os.path.join(os.getcwd(), "docs\user-guide\data-handling\automated-ciu.html")
+            #kwargs = htmlPages.page_origami_info
             
         elif evtID == ID_help_page_overlay:
             kwargs = htmlPages.page_overlay_info
             
         elif evtID == ID_help_page_multipleFiles:
-            kwargs = htmlPages.page_multiple_files_info
+            link = os.path.join(os.getcwd(), "docs\user-guide\data-handling\manual-ciu.html")
+            #kwargs = htmlPages.page_multiple_files_info
             
         elif evtID == ID_help_page_linearDT:
             kwargs = htmlPages.page_linear_dt_info
@@ -1059,10 +1090,12 @@ class MyFrame(wx.Frame):
             kwargs = htmlPages.page_ccs_calibration_info
             
         elif evtID == ID_help_page_dataExtraction:
-            kwargs = htmlPages.page_data_extraction_info
+            link = os.path.join(os.getcwd(), "docs\user-guide\data-handling\ms-and-imms-files.html")
+            # kwargs = htmlPages.page_data_extraction_info
             
         elif evtID == ID_help_page_Interactive:
-            kwargs = htmlPages.page_interactive_output_info
+            link = os.path.join(os.getcwd(), "docs\user-guide\interactive-output\simple-output.html")
+            #kwargs = htmlPages.page_interactive_output_info
             
         elif evtID == ID_help_page_OtherData:
             kwargs = htmlPages.page_other_data_info
@@ -1070,9 +1103,15 @@ class MyFrame(wx.Frame):
         elif evtID == ID_help_page_annotatingMassSpectra:
             kwargs = htmlPages.page_annotating_mass_spectra
             
-
-        htmlViewer = panelHTMLViewer(self, self.config, **kwargs)
-        htmlViewer.Show()
+        if link is None:
+            htmlViewer = panelHTMLViewer(self, self.config, **kwargs)
+            htmlViewer.Show()
+        else:
+            try: 
+                self.presenter.onThreading(None, ("Opening local documentation in your browser...", 4), 
+                                           action='updateStatusbar')
+                webbrowser.open(link, autoraise=1)
+            except: pass
         
         
     def onCheckToggle(self, evt):

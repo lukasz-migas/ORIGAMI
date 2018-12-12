@@ -23,7 +23,7 @@ import wx.lib.agw.multidirdialog as MDD
 from document import document as documents
 from dialogs import panelSelectDocument
 import readers.io_waters_raw as io_waters
-from toolbox import (getTime)
+from toolbox import (getTime, randomColorGenerator, convertRGB1to255)
 
 class data_loading():
     def __init__(self, presenter, view, config, **kwargs):
@@ -32,7 +32,6 @@ class data_loading():
         self.documentTree = view.panelDocuments.topP.documents
         self.config = config
         
-    
     def on_create_document(self, name, path, **kwargs):
         """
         Create document

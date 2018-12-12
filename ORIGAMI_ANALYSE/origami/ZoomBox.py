@@ -774,16 +774,20 @@ class ZoomBox:
             self.canvas.draw() # redraw image
             return
         
-        if self.dragged is not None:
-            old_pos = self.dragged.get_position()
-            new_pos = (old_pos[0] + evt.xdata - self.pick_pos[0],
-                       old_pos[1] + evt.ydata - self.pick_pos[1])
-            self.dragged.set_position(new_pos)
-            if self.dragged.obj_name is not None:
-                pub.sendMessage('update_text_position', text_obj=self.dragged)
+        try:
+            if self.dragged is not None:
+                old_pos = self.dragged.get_position()
+                new_pos = (old_pos[0] + evt.xdata - self.pick_pos[0],
+                           old_pos[1] + evt.ydata - self.pick_pos[1])
+                self.dragged.set_position(new_pos)
+                if self.dragged.obj_name is not None:
+                    pub.sendMessage('update_text_position', text_obj=self.dragged)
+                self.dragged = None
+                self.canvas.draw() # redraw image
+                return
+        except:
             self.dragged = None
             self.canvas.draw() # redraw image
-            return
 
         # left-click + ctrl OR double left click reset axes
         if self.eventpress.dblclick:

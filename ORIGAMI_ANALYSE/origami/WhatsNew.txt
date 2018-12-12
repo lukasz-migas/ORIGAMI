@@ -3,12 +3,6 @@
 - add new document viewer which allows reviewing what data is included
     in selected dataset i.e. size, shape, labels, processign steps etc
 
-- document panel
-    = add support for groups which will clean-up the gui a little 
-    as it is ver hard to search for anything in the document tree
-    = when renaming MS, it should check whether the file has UniDec results, if 
-    it does, rename it too
-
 - UniDec support
     = add new 2D plot which colours charge states of various components as with RGB plot
     = add adduct in the Pre-processing or deconvolution part
@@ -25,14 +19,8 @@
         This could be quite simple. A user would have an option to select type of annotation
         which could be integer, float or string and for which item(s) in the plot. These would be 
         then rendered as tooltip features
-    = add several new options:
-        -- add MS from clipboard/file(s)
         -- add 2D from clipboard/file(s)
 
-- interactive output
-	= add support for waterfall plots (2D datasets)
-	= only allow numbers in last column
-	
 - add new sub-document item: Saved images
 	= should allow saving already generated images to the document (no re-plotting required!)
 	
@@ -64,7 +52,6 @@ Documentation:
     See online at https://lukasz-migas.github.io/ORIGAMI/
 - Added 10 new video guides to the Youtube playlist (https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8)
 
-
 Document tree:
 - [fix] Fixed type: spectrun -> spectrum (grr)
 - [fix] When loading mzml/mgf files, the individual scans will no longer 
@@ -76,6 +63,14 @@ Document tree:
     whether data should be duplicated, merged or duplicated
 - [improvement] When plotting a waterfall plot, data will be checked to ensure its not too big (e.g. too many rows). 
     You will be asked if you would like to continue
+    
+Main window:
+- [new] Added new sub-menu: Plugins. This will hold all future mini-applications that will be added
+- [new] Under the menu: Plot there are a couple of new settings windows that can be used
+    to optimise visualisation parameters.
+- [improvement] The help pages (Help -> Help pages -> ...) have now been replaced with
+    links to the provided documentation (opens in the browser). Where no documentation exists yet,
+    old pages will be shown.
   
 Annotations:
 - [fix] font size, weight and rotation will now be aplied when adding labels
@@ -102,6 +97,13 @@ Interactive panel:
     = added loads of new settings users can control
     = better behaviour when adding colorbars to plots
 = [change] removed tools/toolset from ORIGAMI - the new system of copy/apply style should work much better
+= [new] certain plot types (v-bar, h-bar, scatter, waterfall, multi-line/overlay) 
+    will now support addition of annotations (and their widgets). Annotations can correspond 
+    to anything you wish to say about specific region of a dataset. 
+= [improvement] I've realised that using 'coffeescript' for widget exportation was
+    a big mistake as it takes ~10x+ longer to compile that script than pure JavaScript.
+    Adding widgets will be a lot faster from now on (a couple haven't been ported
+    to JS yet).
 
 UVPD panel
 = added a new plugin that allows analysis and processing of UVPD datasets that were acquire with the laser
@@ -117,7 +119,15 @@ Tandem MS panel:
     (no post-translational modifications...) then you can export it. Files that have 
     not been annotated can also be exported. 
 - [improvement] loading of mzML, mgf and mzIdentML files will now be performed in 
-  threaded mode (e.g. no more hanging of the application). 
+  threaded mode (e.g. no more hanging of the application).
+  
+UVPD panel:
+- [new] you can now extract mass spectra from the found regions that correspond to
+    dataset 1 and dataset 2. Unfortunately spectra always return of different size
+    (thanks Waters) so they need to be linearized. You can change those settings in
+    Menu -> Process -> Mass Spectra.
+    
+    
 
 ################################################################################
 ################################################################################

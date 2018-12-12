@@ -52,15 +52,18 @@ def detect_peaks_chromatogram(data, threshold, add_buffer=0): # detectPeaksRT
         
     # pair list
     outlistRav = np.ravel(outlist)-1
-    valXout = data[outlistRav,0]
-    valYout = data[outlistRav,1]
-    output = np.array(zip(valXout,valYout))
+    try:
+        valXout = data[outlistRav, 0]
+        valYout = data[outlistRav, 1]
+        output = np.array(zip(valXout,valYout))
+    except IndexError:
+        output = []
     # apex list
     try:
         apexListRav = np.ravel(apex_list)-1
         apexListRav = np.unique(apexListRav)
-        valXout = data[apexListRav,0]
-        valYout = data[apexListRav,1]
+        valXout = data[apexListRav, 0]
+        valYout = data[apexListRav, 1]
         apexlist = np.array(zip(valXout,valYout))
     except IndexError:
         apexlist = []

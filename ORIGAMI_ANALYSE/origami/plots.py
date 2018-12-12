@@ -144,16 +144,20 @@ class plots(plottingWindow):
             itemShape = values.shape
 
         if len(itemShape)>1: 
-            maxValue = np.amax(values)
+            maxValue = np.amax(np.absolute(values))
         elif len(itemShape) == 1:
-            maxValue = np.max(values)
+            maxValue = np.max(np.absolute(values))
         else:
             maxValue = values
             
         while 10 <= (maxValue/divider) >= 1:
-            divider = divider *increment
+            divider = divider * increment
         
         expo = len(str(divider)) - len(str(divider).rstrip('0'))
+        
+        # TODO: make sure this does not break things!
+        if expo == 1:
+            divider = 1
         
         if expo > 1:
             offset_text = r'x$\mathregular{10^{%d}}$' % expo
@@ -386,6 +390,8 @@ class plots(plottingWindow):
             except: y_position = ymax
         else:
             y_position = ymax
+            
+        print(self.y_divider)
             
         # get custom name tag
         obj_name = kwargs.pop("text_name", None) 
@@ -1383,6 +1389,7 @@ class plots(plottingWindow):
         self.setupGetXAxies([self.plotMS])
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
         self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
+        
     #-----
 
     def plot_1D_centroid(self, xvals=None, yvals=None, xyvals=None, xlabel="m/z (Da)", 

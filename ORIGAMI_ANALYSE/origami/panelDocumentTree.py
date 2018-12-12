@@ -31,7 +31,6 @@ from natsort import natsorted
 from dialogs import panelRenameItem, panelSelectDataset, dlgBox
 from gui_elements.dialog_askOverride import dialogAskOverride
 from panelAnnotatePeaks import panelAnnotatePeaks
-from panelCustomAnnotation import panelCustomAnnotation #@UnresolvedImport
 from panelCompareMS import panelCompareMS
 from panelInformation import panelDocumentInfo
 from panelTandemSpectra import panelTandemSpectra
@@ -204,7 +203,6 @@ class documentsTree(wx.TreeCtrl):
         
         self.title = self.itemData.title
         
-#         try:
         if self.indent == 1 and self.extractData == None:
             self.on_refresh_document()
         elif self.itemType == 'Mass Spectra' and self.extractData == 'Mass Spectra':
@@ -230,11 +228,6 @@ class documentsTree(wx.TreeCtrl):
             self.onShowSampleInfo(evt=None)
         elif self.indent == 1:
             self.onOpenDocInfo(evt=None)
-
-
-
-#         except: 
-#             pass
             
         tend = time.clock()
         print('It took: %s seconds.' % str(np.round((tend-tstart),4)))
@@ -1289,15 +1282,31 @@ class documentsTree(wx.TreeCtrl):
                            exceptionMsg= msg, type="Error")
             return
         
+        # waterfall plot
         if ("Waterfall (Raw):" in self.extractData):
             data = None
             plot = self.presenter.view.panelPlots.plotWaterfallIMS
-        elif ("Waterfall: " in self.extractData or "Waterfall: " in self.extractParent):
+        # other data
+        elif ("Multi-line: " in self.extractData or "Multi-line: " in self.extractParent or
+              "V-bar: " in self.extractData or "V-bar: " in self.extractParent or
+              "H-bar: " in self.extractData or "H-bar: " in self.extractParent or
+              "Scatter: " in self.extractData or "Scatter: " in self.extractParent or
+              "Waterfall: " in self.extractData or "Waterfall: " in self.extractParent or 
+              "Line: " in self.extractData or "Line: " in self.extractParent):
             data = None
             plot = self.presenter.view.panelPlots.plotOther
+        # mass spectra
         else:
             data = np.transpose([data["xvals"], data["yvals"]])
             plot = self.presenter.view.panelPlots.plot1
+            
+            
+            
+        _plot_types = {"multi-line":"Multi-line", "scatter":"Scatter", 
+                       "line":"Line", "waterfall":"Waterfall", 
+                       "grid-line":"Grid-line", "grid-scatter":"Grid-scatter",
+                       "vertical-bar":"V-bar", "horizontal-bar":"H-bar"}
+            
         
         kwargs = {"document":document, "dataset":dataset,
                   "data":data, "plot":plot, 
@@ -1316,7 +1325,9 @@ class documentsTree(wx.TreeCtrl):
             annotations = document.smoothMS['annotations']
         elif "Waterfall (Raw):" in dataset:
             annotations = document.IMS2DoverlayData[dataset]['annotations']
-        elif "Waterfall: " in dataset:
+        elif ("Multi-line: " in dataset or "V-bar: " in dataset or 
+              "H-bar: " in dataset or "Scatter: " in dataset or 
+              "Waterfall: " in dataset or "Line: " in dataset):
             annotations = document.other_data[dataset]['annotations']
         else: 
             annotations = document.multipleMassSpectrum[dataset]['annotations']
@@ -1355,7 +1366,9 @@ class documentsTree(wx.TreeCtrl):
             item = self.getItemByData(document.IMS2DoverlayData[dataset])
             document.IMS2DoverlayData[dataset]['annotations'] = annotations
             annotation_data = document.IMS2DoverlayData[dataset]['annotations']
-        elif "Waterfall: " in dataset:
+        elif ("Multi-line: " in dataset or "V-bar: " in dataset or 
+              "H-bar: " in dataset or "Scatter: " in dataset or 
+              "Waterfall: " in dataset or "Line: " in dataset):
             item = self.getItemByData(document.other_data[dataset])
             document.other_data[dataset]['annotations'] = annotations
             annotation_data = document.other_data[dataset]['annotations']
@@ -1511,7 +1524,10 @@ class documentsTree(wx.TreeCtrl):
             annotations = document.smoothMS['annotations']
         elif self.itemType == "Mass Spectra":
             annotations = document.multipleMassSpectrum[self.extractParent]['annotations']
-        elif self.itemType == "Other data" and "Waterfall: " in self.extractParent:
+        elif (self.itemType == "Other data" and 
+              ("Waterfall: " in self.extractParent or "Multi-line: " in self.extractParent or
+               "V-bar: " in self.extractParent or "H-bar: " in self.extractParent or
+               "Scatter: " in self.extractParent or "Line: " in self.extractParent)):
             annotations = document.other_data[self.extractParent]['annotations']
             plot_obj = self.presenter.view.panelPlots.plotOther
             
@@ -1566,7 +1582,8 @@ class documentsTree(wx.TreeCtrl):
             plot_obj.plot_add_text_and_lines(
                 xpos=label_x_position, yval=label_y_position, 
                 label=show_label, vline=False, stick_to_intensity=True,
-                yoffset=0.05, color=color_value, **label_kwargs)
+                yoffset=self.config.annotation_label_y_offset, 
+                color=color_value, **label_kwargs)
             
             _ymax.append(label_y_position)
             if add_arrow:
@@ -1579,27 +1596,6 @@ class documentsTree(wx.TreeCtrl):
 
         plot_obj.repaint()
         
-    def onAddCustomAnnotation(self, evt):
-        data = self.GetPyData(self.currentItem)
-        
-        document = self.itemData.title
-        dataset = self.extractData
-        
-        if "annotations" in data: 
-            annotations = data['annotations']
-        else:
-            annotations = {}
-        
-        plot = self.presenter.view.panelPlots.plot1
-        
-        kwargs = {"document":document, "dataset":dataset,
-                  "data":data, "plot":plot, 
-                  "annotations":annotations}        
-        
-        self.annotateDlg = panelCustomAnnotation(self.parent, self, self.config, 
-                                                 self.icons, **kwargs)
-        self.annotateDlg.Show()
-    
     def OnRightClickMenu(self, evt):
         """ Create and show up popup menu"""
         
@@ -1943,7 +1939,9 @@ class documentsTree(wx.TreeCtrl):
                                                  text='Show plot', 
                                                  bitmap=self.icons.iconsLib['blank_16']))
                     
-                if "Waterfall: " in self.extractData:
+                if ("Multi-line: " in self.extractData or "V-bar: " in self.extractData or 
+                    "H-bar: " in self.extractData or "Scatter: " in self.extractData or 
+                    "Waterfall: " in self.extractData or "Line: " in self.extractData):
                     menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_add_annotations,
                                                  text='Show annotations panel...', 
                                                  bitmap=self.icons.iconsLib['annotate16']))
@@ -3294,9 +3292,8 @@ class documentsTree(wx.TreeCtrl):
             if len(msX) != len(msY_1) or  len(msX) != len(msY_2) or len(msY_1) != len(msY_2):
                 try: self.compareMSDlg.error_handler(flag="subtract")
                 except: pass
-                msg = "Mass spectra are not of the same size. X-axis: %s Y-axis (1): %s | Y-axis (2): %s" % (len(msX), 
-                                                                                                             len(msY_1), 
-                                                                                                             len(msY_2))
+                msg = "Mass spectra are not of the same size. X-axis: %s Y-axis (1): %s | Y-axis (2): %s" % (
+                    len(msX), len(msY_1), len(msY_2))
                 self.presenter.onThreading(None, (msg, 4, 5)  , action='updateStatusbar')
                 dialogs.dlgBox(exceptionTitle="Incorrect size", 
                                exceptionMsg= msg,

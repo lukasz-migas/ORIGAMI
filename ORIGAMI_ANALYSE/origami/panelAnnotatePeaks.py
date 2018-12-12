@@ -43,8 +43,6 @@ from ids import (ID_annotPanel_assignColor_selected, ID_annotPanel_assignChargeS
                          )
 import processing.utils as pr_utils
 from gui_elements.dialog_customiseUserAnnotations import panelCustomiseParameters
-from sympy.physics.units import charge
-from unidec_modules.unidectools import intensitythresh
 
 
 class panelAnnotatePeaks(wx.MiniFrame):
@@ -1035,7 +1033,8 @@ class panelAnnotatePeaks(wx.MiniFrame):
         
         if not self.manual_add_only:
             plt_kwargs = self._buildPlotParameters(plotType="label")
-            self.plot.plot_add_text_and_lines(xpos=position, yval=intensity, label=charge_value, **plt_kwargs)
+            self.plot.plot_add_text_and_lines(xpos=position, yval=intensity, 
+                                              label=charge_value, **plt_kwargs)
             self.plot.repaint()
         
         self.documentTree.onUpdateAnotations(self.kwargs['annotations'],
@@ -1116,9 +1115,6 @@ class panelAnnotatePeaks(wx.MiniFrame):
                 arrow_dx = arrow_x_end - label_x_position
                 arrow_y_end = annotation.get('isotopic_y', label_y_position)
                 arrow_dy = arrow_y_end - label_y_position
-#                 vline = False
-#             else:
-#                 vline = True
             
             # add  custom name tag
             obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
@@ -1133,7 +1129,8 @@ class panelAnnotatePeaks(wx.MiniFrame):
                 label=show_label, vline=vline, 
                 vline_position=mz_value, 
                 stick_to_intensity=self.showLabelsAtIntensity,
-                yoffset=0.05, color=color_value, **label_kwargs)
+                yoffset=self.config.annotation_label_y_offset, 
+                color=color_value, **label_kwargs)
             
             _ymax.append(label_y_position)
             if add_arrow and self.showLabelsAtIntensity:

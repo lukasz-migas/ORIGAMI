@@ -350,6 +350,7 @@ ID_ionPanel_clear_all = NewId()
 # UniDec panel
 ID_unidecPanel_fitLineColor = NewId()
 ID_unidecPanel_barEdgeColor = NewId()
+ID_unidecPanel_otherSettings = NewId()
 
 # interactive
 

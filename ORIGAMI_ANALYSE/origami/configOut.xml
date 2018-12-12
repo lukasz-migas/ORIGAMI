@@ -11,16 +11,16 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_06.pickle" format="pickle" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw" format="ORIGAMI" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\ORIGAMI_ConA_z20.raw" format="MassLynx" />
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1_overlay_document.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Aidan\interactive.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thermo\UbiX_radical_180413120355.txt" format="Text" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thermo" format="Text" />
     <path value="C:\Users\LukaszMigas\Downloads\P43_FIGURES.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\comparison.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Fdc1_overlay_document.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\3_Boltzmann_IMS2D_5139.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\MS_nist_intact.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_07.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_06.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -151,30 +151,38 @@
 
   <plot_presets_annotations>
     <param name="annotation_charge_std_dev" value="0.05" type="float" />
+    <param name="annotation_arrow_cap_length" value="0.01" type="float" />
+    <param name="annotation_arrow_cap_width" value="0.01" type="float" />
     <param name="annotation_arrow_line_width" value="0.25" type="float" />
     <param name="annotation_arrow_line_style" value="dashdot" type="unicode" choices="['Linear', 'Exponential', 'Boltzmann', 'User-defined', 'Manual']" />
+    <param name="annotation_label_y_offset" value="0.05" type="float" />
+    <param name="annotation_zoom_y_multiplier" value="1.50" type="float" />
+    <param name="annotation_zoom_y" value="False" type="bool" />
+    <param name="annotation_show_vline" value="False" type="bool" />
     <param name="annotation_label_horz" value="center" type="unicode" choices="['center', 'right', 'left']" />
     <param name="annotation_label_vert" value="center" type="unicode" choices="['center', 'top', 'bottom']" />
     <param name="annotation_label_font_size" value="medium" type="unicode" choices="['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']" />
     <param name="annotation_label_font_weight" value="normal" type="unicode" choices="['ultralight', 'light', 'normal', 'regular', 'medium', 'bold', 'heavy']" />
+    <param name="annotation_patch_transparency" value="0.20" type="float" />
+    <param name="annotation_patch_width" value="3.00" type="float" />
   </plot_presets_annotations>
 
   <custom_colors>
-    <param name="color_0" value="(219, 94, 86, 255)" type="color" />
-    <param name="color_1" value="(219, 144, 86, 255)" type="color" />
-    <param name="color_2" value="(219, 194, 86, 255)" type="color" />
-    <param name="color_3" value="(194, 219, 86, 255)" type="color" />
-    <param name="color_4" value="(145, 219, 86, 255)" type="color" />
-    <param name="color_5" value="(95, 219, 86, 255)" type="color" />
-    <param name="color_6" value="(86, 219, 127, 255)" type="color" />
-    <param name="color_7" value="(86, 219, 177, 255)" type="color" />
-    <param name="color_8" value="(86, 211, 219, 255)" type="color" />
-    <param name="color_9" value="(86, 161, 219, 255)" type="color" />
-    <param name="color_10" value="(86, 111, 219, 255)" type="color" />
-    <param name="color_11" value="(111, 86, 219, 255)" type="color" />
-    <param name="color_12" value="(160, 86, 219, 255)" type="color" />
-    <param name="color_13" value="(210, 86, 219, 255)" type="color" />
-    <param name="color_14" value="(219, 86, 178, 255)" type="color" />
+    <param name="color_0" value="[219.3, 94.656, 86.7]" type="color" />
+    <param name="color_1" value="[219.3, 144.381, 86.7]" type="color" />
+    <param name="color_2" value="[219.3, 194.106, 86.7]" type="color" />
+    <param name="color_3" value="[194.769, 219.3, 86.7]" type="color" />
+    <param name="color_4" value="[145.044, 219.3, 86.7]" type="color" />
+    <param name="color_5" value="[95.319, 219.3, 86.7]" type="color" />
+    <param name="color_6" value="[86.7, 219.3, 127.806]" type="color" />
+    <param name="color_7" value="[86.7, 219.3, 177.531]" type="color" />
+    <param name="color_8" value="[86.7, 211.344, 219.3]" type="color" />
+    <param name="color_9" value="[86.7, 161.619, 219.3]" type="color" />
+    <param name="color_10" value="[86.7, 111.894, 219.3]" type="color" />
+    <param name="color_11" value="[111.231, 86.7, 219.3]" type="color" />
+    <param name="color_12" value="[160.956, 86.7, 219.3]" type="color" />
+    <param name="color_13" value="[210.681, 86.7, 219.3]" type="color" />
+    <param name="color_14" value="[219.3, 86.7, 178.194]" type="color" />
     <param name="color_15" value="[219.3, 86.7, 128.469]" type="color" />
   </custom_colors>
 
@@ -272,7 +280,7 @@
     <param name="ms_enable_in_MML_start" value="True" type="bool" />
     <param name="ms_mzStart" value="2508.22" type="float" />
     <param name="ms_mzEnd" value="5598.22" type="float" />
-    <param name="ms_mzBinSize" value="0.10" type="float" />
+    <param name="ms_mzBinSize" value="0.01" type="float" />
     <param name="ms_dtmsBinSize" value="1.00" type="float" />
     <param name="ms_linearization_mode" value="Linear interpolation" type="unicode" choices="['Linear m/z', 'Linear resolution', 'Nonlinear', 'Linear interpolation', 'Linear resolution interpolation', 'Binning']" />
     <param name="ms_auto_range" value="True" type="bool" />
@@ -302,6 +310,17 @@
     <param name="lineTransparency_MS2" value="1.00" type="float" />
   </process_compare_mass_spectra>
 
+  <process_presets_uvpd>
+    <param name="uvpd_peak_show_markers" value="True" type="bool" />
+    <param name="uvpd_peak_show_patches" value="True" type="bool" />
+    <param name="uvpd_peak_show_labels" value="False" type="bool" />
+    <param name="uvpd_peak_laser_on" value="(1, 0, 0)" type="color" />
+    <param name="uvpd_peak_laser_off" value="(0, 0, 1)" type="color" />
+    <param name="uvpd_peak_first_index" value="1" type="int" />
+    <param name="uvpd_peak_buffer_width" value="1.00" type="float" />
+    <param name="uvpd_peak_finding_threshold" value="0.10" type="float" />
+  </process_presets_uvpd>
+
   <process_presets_plot2D>
     <param name="plot2D_normalize" value="True" type="bool" />
     <param name="plot2D_normalize_mode" value="Maximum" type="unicode" choices="['Maximum', 'Logarithmic', 'Natural log', 'Square root', 'Least Abs Deviation', 'Least Squares']" />
@@ -330,7 +349,7 @@
   </plot_presets_rmsd>
 
   <plot_presets_waterfall>
-    <param name="waterfall" value="True" type="bool" />
+    <param name="waterfall" value="False" type="bool" />
     <param name="waterfallOffset" value="0.00" type="float" />
     <param name="waterfall_increment" value="1.05" type="float" />
     <param name="waterfall_reverse" value="False" type="bool" />
@@ -532,6 +551,7 @@
     <!-- GENERAL PARAMETERS -->
     <param name="interactive_override_defaults" value="True" type="bool" />
     <param name="openInteractiveOnSave" value="True" type="bool" />
+    <param name="interactive_cvd_cmap" value="viridis"  choices="['magma', 'viridis', 'cividis', 'plasma', 'magma']" type="unicode" />
     <!-- JAVA SCRIPT PARAMETERS -->
     <param name="interactive_custom_scripts" value="False" type="bool" />
     <param name="interactive_custom_events" value="False" type="bool" />
@@ -559,6 +579,12 @@
     <!-- OVERLAY PARAMETERS -->
     <param name="plotLayoutOverlay" value="Rows" type="unicode" />
     <param name="linkXYaxes" value="True" type="bool" />
+    <param name="interactive_grid_label" value="True" type="bool" />
+    <param name="interactive_grid_label_weight" value="False" type="bool" />
+    <param name="interactive_grid_label_size" value="12.00" type="float" />
+    <param name="interactive_grid_xpos" value="10.00" type="float" />
+    <param name="interactive_grid_ypos" value="10.00" type="float" />
+    <param name="interactive_grid_label_color" value="(0, 0, 0)" type="color" />
     <!-- FONT PARAMETERS -->
     <param name="interactive_title_fontSize" value="12" type="int" />
     <param name="interactive_title_weight" value="False" type="bool" />
@@ -569,6 +595,7 @@
     <param name="interactive_annotation_weight" value="False" type="bool" />
     <param name="interactive_annotation_color" value="(0, 0, 0)" type="color" />
     <param name="interactive_annotation_background_color" value="(1, 1, 1)" type="color" />
+    <param name="interactive_annotation_alpha" value="1.00" type="float" />
     <!-- COLORBAR PARAMETERS -->
     <param name="interactive_colorbar" value="False" type="bool" />
     <param name="interactive_colorbar_useScientific" value="False" type="bool" />
@@ -580,6 +607,13 @@
     <param name="interactive_colorbar_padding" value="25" type="int" />
     <param name="interactive_colorbar_location" value="right"  choices="['left', 'above', 'right', 'below']" type="unicode" />
     <param name="interactive_colorbar_orientation" value="vertical" type="unicode" />
+    <param name="interactive_colorbar_edge_color" value="(0.0, 0.0, 0.0)" type="color" />
+    <param name="interactive_colorbar_edge_width" value="2.00" type="float" />
+    <param name="interactive_colorbar_label_fontSize" value="16.00" type="float" />
+    <param name="interactive_colorbar_title_fontSize" value="16.00" type="float" />
+    <param name="interactive_colorbar_title_weight" value="False" type="bool" />
+    <param name="interactive_colorbar_label_weight" value="False" type="bool" />
+    <param name="interactive_colorbar_modify_ticks" value="False" type="bool" />
     <!-- TICK PARAMETERS -->
     <param name="interactive_tick_precision" value="1" type="int" />
     <param name="interactive_tick_useScientific" value="True" type="bool" />
@@ -596,11 +630,9 @@
     <param name="interactive_line_style" value="solid"  choices="['solid', 'dashed', 'dotted', 'dotdash', 'dashdot']" type="unicode" />
     <param name="interactive_line_width" value="2.00" type="float" />
     <param name="interactive_line_alpha" value="1.00" type="float" />
-    <!-- ANNOTATION PARAMETERS -->
-    <param name="interactive_ms_annotations" value="True" type="bool" />
-    <param name="interactive_ms_annotations_color" value="[0.0, 0.0, 0.0]" type="color" />
-    <param name="interactive_ms_annotations_line_color" value="(0, 0, 0)" type="color" />
-    <param name="interactive_ms_annotations_transparency" value="0.30" type="float" />
+    <param name="interactive_line_color" value="(0.0, 0.0, 0.0)" type="color" />
+    <param name="interactive_line_shade_alpha" value="0.25" type="float" />
+    <param name="interactive_line_shade_under" value="False" type="bool" />
     <!-- LINEARIZE PARAMETERS -->
     <param name="interactive_ms_linearize" value="True" type="bool" />
     <param name="interactive_ms_binSize" value="0.10" type="float" />
@@ -616,7 +648,12 @@
     <param name="interactive_scatter_alpha" value="1.00" type="float" />
     <param name="interactive_scatter_edge_color" value="(0.0, 0.0, 0.0)" type="color" />
     <param name="interactive_scatter_marker" value="circle"  choices="['circle', 'square', 'triangle', 'circle_cross', 'square_cross', 'diamond', 'circle_x', 'square_x', 'inverted_triangle', 'cross', 'x', 'asterisk']" type="unicode" />
+    <param name="interactive_scatter_lineWidth" value="1.00" type="float" />
     <!-- ANNOTATIONS PARAMETERS -->
+    <param name="interactive_ms_annotations" value="True" type="bool" />
+    <param name="interactive_ms_annotations_color" value="[0.0, 0.0, 0.0]" type="color" />
+    <param name="interactive_ms_annotations_line_color" value="(0, 0, 0)" type="color" />
+    <param name="interactive_ms_annotations_transparency" value="0.30" type="float" />
     <param name="interactive_ms_annotations_fontWeight" value="True" type="bool" />
     <param name="interactive_ms_annotations_highlight" value="False" type="bool" />
     <param name="interactive_ms_annotations_labels" value="True" type="bool" />
@@ -625,6 +662,10 @@
     <param name="interactive_ms_annotations_fontSize" value="12.00" type="float" />
     <param name="interactive_ms_annotations_rotation" value="0.00" type="float" />
     <param name="interactive_ms_annotations_label_color" value="(0.0, 0.0, 0.0)" type="color" />
+    <!-- WATERFALL PARAMETERS -->
+    <param name="interactive_waterfall_shade_under" value="False" type="bool" />
+    <param name="interactive_waterfall_shade_alpha" value="0.25" type="float" />
+    <param name="interactive_waterfall_increment" value="0.05" type="float" />
   </presets_interactive_gui>
 
 </origamiConfig>

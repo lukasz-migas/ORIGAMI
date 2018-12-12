@@ -1950,7 +1950,6 @@ class ORIGAMI(object):
         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
         self.onThreading(None, (msg, 3), action='updateStatusbar')
                 
-                
     def onCombineCEvoltagesMultiple(self, evt):
         # self.config.extractMode = 'multipleIons'
         

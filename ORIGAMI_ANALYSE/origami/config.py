@@ -41,19 +41,20 @@ class OrigamiConfig:
         
         self.version = "1.2.1"
         self.unidec_engine = None
-        self.links = {'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
-                      'github' : 'https://github.com/lukasz-migas/ORIGAMI',
-                      'cite' : 'https://doi.org/10.1016/j.ijms.2017.08.014',
-                      'newVersion' : 'https://github.com/lukasz-migas/ORIGAMI/releases',
-                      'guide': 'https://lukasz-migas.github.io/ORIGAMI/',
-                      'youtube':'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8',
-                      'htmlEditor':'https://html-online.com/editor/',
-                      'newFeatures':'https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform',
-                      'reportBugs':'https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform',
-                      'unidec_cite_1':'https://pubs.acs.org/doi/abs/10.1021/acs.analchem.5b00140',
-                      'unidec_cite_2':'https://link.springer.com/article/10.1007/s13361-018-1951-9',
-                      'unidec_github':'https://github.com/michaelmarty/UniDec/releases',
-                      'about-author':'https://lukasz-migas.com/'}
+        self.links = {
+            'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
+            'github' : 'https://github.com/lukasz-migas/ORIGAMI',
+            'cite' : 'https://doi.org/10.1016/j.ijms.2017.08.014',
+            'newVersion' : 'https://github.com/lukasz-migas/ORIGAMI/releases',
+            'guide': 'https://lukasz-migas.github.io/ORIGAMI/',
+            'youtube':'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8',
+            'htmlEditor':'https://html-online.com/editor/',
+            'newFeatures':'https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform',
+            'reportBugs':'https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform',
+            'unidec_cite_1':'https://pubs.acs.org/doi/abs/10.1021/acs.analchem.5b00140',
+            'unidec_cite_2':'https://link.springer.com/article/10.1007/s13361-018-1951-9',
+            'unidec_github':'https://github.com/michaelmarty/UniDec/releases',
+            'about-author':'https://lukasz-migas.com/'}
         self.logging = False
         self.threading = True
         self.autoSaveSettings = True
@@ -325,11 +326,11 @@ class OrigamiConfig:
         # mzml/mgf/mzident etc 
         self.msms_load_n_scans = 500  # new
         
-        self.fragments_tolerance = {"Da":0.05, "ppm":25}
-        self.fragments_tolerance_limits = {"Da":[0.00,5,0.25], "ppm":[0,500,25]}
-        self.fragments_units_choices = ["Da", "ppm"]
-        self.fragments_units = "Da"
-        self.fragments_max_matches = 1
+        self.fragments_tolerance = {"Da":0.05, "ppm":25}  # new
+        self.fragments_tolerance_limits = {"Da":[0.00,5,0.25], "ppm":[0,500,25]}  # new
+        self.fragments_units_choices = ["Da", "ppm"]  # new
+        self.fragments_units = "Da"  # new
+        self.fragments_max_matches = 1  # new
         
         self.fragments_search = {'M-ALL':False, 'M':False, 'M-nH2O':False, 'M-nNH3':False,
                                  'a-ALL':False, 'a':False, 'a-nH2O':False, 'a-nNH3':False,
@@ -477,6 +478,7 @@ class OrigamiConfig:
         self.annotation_arrow_cap_length = 0.01 # new in v1.2.1
         self.annotation_arrow_cap_width = 0.01 # new in v1.2.1
         
+        self.annotation_label_y_offset = 0.05 # new in v1.2.1
         self.annotation_label_horz = "center"
         self.annotation_label_vert = "center"
         self.annotation_label_font_size = "small"
@@ -1040,8 +1042,8 @@ class OrigamiConfig:
         self.defNumColumns = ''
         self.linkXYaxes = True
         self.hoverVline = True
-        self.interactive_cvd_cmap = "viridis" # new
-        self.interactive_cvd_cmap_choices = ["cividis", "viridis"] # new
+        self.interactive_cvd_cmap = "viridis"
+        self.interactive_cvd_cmap_choices = ["magma", "viridis", "cividis", "plasma", "magma"]
         
         self.toolsLocation = 'right'
         self.activeDrag = 'Box Zoom'
@@ -1109,7 +1111,7 @@ class OrigamiConfig:
         self.interactive_grid_ypos = 10
         
         # Waterfall
-        self.interactive_waterfall_increment = 0.05 
+        self.interactive_waterfall_increment = 0.05 # new in v1.2.1
         self.interactive_waterfall_shade_under = False # new in v1.2.1
         self.interactive_waterfall_shade_alpha = 0.25 # new in v1.2.1
         
@@ -1626,12 +1628,20 @@ class OrigamiConfig:
         # Plot presets - annotations
         buff += '  <plot_presets_annotations>\n'
         buff += '    <param name="annotation_charge_std_dev" value="%.2f" type="float" />\n' % (float(self.annotation_charge_std_dev))
+        buff += '    <param name="annotation_arrow_cap_length" value="%.2f" type="float" />\n' % (float(self.annotation_arrow_cap_length))
+        buff += '    <param name="annotation_arrow_cap_width" value="%.2f" type="float" />\n' % (float(self.annotation_arrow_cap_width))
         buff += '    <param name="annotation_arrow_line_width" value="%.2f" type="float" />\n' % (float(self.annotation_arrow_line_width))
         buff += '    <param name="annotation_arrow_line_style" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_arrow_line_style, self.origami_acquisition_choices)
+        buff += '    <param name="annotation_label_y_offset" value="%.2f" type="float" />\n' % (float(self.annotation_label_y_offset))
+        buff += '    <param name="annotation_zoom_y_multiplier" value="%.2f" type="float" />\n' % (float(self.annotation_zoom_y_multiplier))
+        buff += '    <param name="annotation_zoom_y" value="%s" type="bool" />\n' % (bool(self.annotation_zoom_y))
+        buff += '    <param name="annotation_show_vline" value="%s" type="bool" />\n' % (bool(self.annotation_show_vline))
         buff += '    <param name="annotation_label_horz" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_label_horz, self.horizontal_alignment_list)
         buff += '    <param name="annotation_label_vert" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_label_vert, self.vertical_alignment_list)
         buff += '    <param name="annotation_label_font_size" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_label_font_size, self.label_fontsize_list)
         buff += '    <param name="annotation_label_font_weight" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_label_font_weight, self.label_fontweight_list)
+        buff += '    <param name="annotation_patch_transparency" value="%.2f" type="float" />\n' % (float(self.annotation_patch_transparency))
+        buff += '    <param name="annotation_patch_width" value="%.2f" type="float" />\n' % (float(self.annotation_patch_width))
         buff += '  </plot_presets_annotations>\n\n'
         
         # Custom colors
@@ -1772,6 +1782,18 @@ class OrigamiConfig:
         buff += '  </process_compare_mass_spectra>\n\n'
         
         # Process - plot 2D
+        buff += '  <process_presets_uvpd>\n'
+        buff += '    <param name="uvpd_peak_show_markers" value="%s" type="bool" />\n' % (bool(self.uvpd_peak_show_markers))
+        buff += '    <param name="uvpd_peak_show_patches" value="%s" type="bool" />\n' % (bool(self.uvpd_peak_show_patches))
+        buff += '    <param name="uvpd_peak_show_labels" value="%s" type="bool" />\n' % (bool(self.uvpd_peak_show_labels))
+        buff += '    <param name="uvpd_peak_laser_on" value="%s" type="color" />\n' % (str(self.uvpd_peak_laser_on))
+        buff += '    <param name="uvpd_peak_laser_off" value="%s" type="color" />\n' % (str(self.uvpd_peak_laser_off))
+        buff += '    <param name="uvpd_peak_first_index" value="%d" type="int" />\n' % (int(self.uvpd_peak_first_index))
+        buff += '    <param name="uvpd_peak_buffer_width" value="%.2f" type="float" />\n' % (float(self.uvpd_peak_buffer_width))
+        buff += '    <param name="uvpd_peak_finding_threshold" value="%.2f" type="float" />\n' % (float(self.uvpd_peak_finding_threshold))
+        buff += '  </process_presets_uvpd>\n\n'
+        
+        # Process - UVPD
         buff += '  <process_presets_plot2D>\n'
         buff += '    <param name="plot2D_normalize" value="%s" type="bool" />\n' % (bool(self.plot2D_normalize))
         buff += '    <param name="plot2D_normalize_mode" value="%s" type="unicode" choices="%s" />\n' % (self.plot2D_normalize_mode, self.plot2D_normalize_choices)
@@ -2005,10 +2027,13 @@ class OrigamiConfig:
         buff += '    <!-- GENERAL PARAMETERS -->\n'
         buff += '    <param name="interactive_override_defaults" value="%s" type="bool" />\n' % (bool(self.interactive_override_defaults))
         buff += '    <param name="openInteractiveOnSave" value="%s" type="bool" />\n' % (bool(self.openInteractiveOnSave))
+        buff += '    <param name="interactive_cvd_cmap" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_cvd_cmap), self.interactive_cvd_cmap_choices)
+        
         buff += '    <!-- JAVA SCRIPT PARAMETERS -->\n'
         buff += '    <param name="interactive_custom_scripts" value="%s" type="bool" />\n' % (bool(self.interactive_custom_scripts))
         buff += '    <param name="interactive_custom_events" value="%s" type="bool" />\n' % (bool(self.interactive_custom_events))
         buff += '    <param name="interactive_custom_position" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_custom_position), ["left", "right", "below", "above"])
+        
         buff += '    <!-- FRAME PARAMETERS -->\n'
         buff += '    <param name="figHeight" value="%d" type="int" />\n' % (int(self.figHeight))
         buff += '    <param name="figWidth" value="%d" type="int" />\n' % (int(self.figWidth))
@@ -2023,15 +2048,24 @@ class OrigamiConfig:
         buff += '    <param name="layoutModeDoc" value="%s" type="unicode" />\n' % (str(self.layoutModeDoc))
         buff += '    <param name="interactive_grid_line" value="%s" type="bool" />\n' % (bool(self.interactive_grid_line))
         buff += '    <param name="interactive_background_color" value="%s" type="color" />\n' % (str(self.interactive_background_color))      
-        buff += '    <param name="interactive_grid_line_color" value="%s" type="color" />\n' % (str(self.interactive_grid_line_color))      
+        buff += '    <param name="interactive_grid_line_color" value="%s" type="color" />\n' % (str(self.interactive_grid_line_color)) 
+             
         buff += '    <!-- TOOLS PARAMETERS -->\n'
         buff += '    <param name="toolsLocation" value="%s" type="unicode" />\n' % (str(self.toolsLocation))
         buff += '    <param name="activeDrag" value="%s" type="unicode" />\n' % (str(self.activeDrag))
         buff += '    <param name="activeWheel" value="%s" type="unicode" />\n' % (str(self.activeWheel))
         buff += '    <param name="activeInspect" value="%s" type="unicode" />\n' % (str(self.activeInspect))
+        
         buff += '    <!-- OVERLAY PARAMETERS -->\n'
         buff += '    <param name="plotLayoutOverlay" value="%s" type="unicode" />\n' % (str(self.plotLayoutOverlay))
         buff += '    <param name="linkXYaxes" value="%s" type="bool" />\n' % (bool(self.linkXYaxes))
+        buff += '    <param name="interactive_grid_label" value="%s" type="bool" />\n' % (bool(self.interactive_grid_label))
+        buff += '    <param name="interactive_grid_label_weight" value="%s" type="bool" />\n' % (bool(self.interactive_grid_label_weight))
+        buff += '    <param name="interactive_grid_label_size" value="%.2f" type="float" />\n' % (float(self.interactive_grid_label_size))
+        buff += '    <param name="interactive_grid_xpos" value="%.2f" type="float" />\n' % (float(self.interactive_grid_xpos))
+        buff += '    <param name="interactive_grid_ypos" value="%.2f" type="float" />\n' % (float(self.interactive_grid_ypos))
+        buff += '    <param name="interactive_grid_label_color" value="%s" type="color" />\n' % (str(self.interactive_grid_label_color))
+        
         buff += '    <!-- FONT PARAMETERS -->\n'
         buff += '    <param name="interactive_title_fontSize" value="%d" type="int" />\n' % (int(self.interactive_title_fontSize))
         buff += '    <param name="interactive_title_weight" value="%s" type="bool" />\n' % (bool(self.interactive_title_weight))
@@ -2042,6 +2076,8 @@ class OrigamiConfig:
         buff += '    <param name="interactive_annotation_weight" value="%s" type="bool" />\n' % (bool(self.interactive_annotation_weight))
         buff += '    <param name="interactive_annotation_color" value="%s" type="color" />\n' % (str(self.interactive_annotation_color))
         buff += '    <param name="interactive_annotation_background_color" value="%s" type="color" />\n' % (str(self.interactive_annotation_background_color))
+        buff += '    <param name="interactive_annotation_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_annotation_alpha))
+        
         buff += '    <!-- COLORBAR PARAMETERS -->\n'
         buff += '    <param name="interactive_colorbar" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar))
         buff += '    <param name="interactive_colorbar_useScientific" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_useScientific))
@@ -2053,9 +2089,18 @@ class OrigamiConfig:
         buff += '    <param name="interactive_colorbar_padding" value="%d" type="int" />\n' % (int(self.interactive_colorbar_padding))
         buff += '    <param name="interactive_colorbar_location" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_colorbar_location), self.interactive_colorbarPosition_choices)
         buff += '    <param name="interactive_colorbar_orientation" value="%s" type="unicode" />\n' % (str(self.interactive_colorbar_orientation))
+        buff += '    <param name="interactive_colorbar_edge_color" value="%s" type="color" />\n' % (str(self.interactive_colorbar_edge_color))
+        buff += '    <param name="interactive_colorbar_edge_width" value="%.2f" type="float" />\n' % (float(self.interactive_colorbar_edge_width))
+        buff += '    <param name="interactive_colorbar_label_fontSize" value="%.2f" type="float" />\n' % (float(self.interactive_colorbar_label_fontSize))
+        buff += '    <param name="interactive_colorbar_title_fontSize" value="%.2f" type="float" />\n' % (float(self.interactive_colorbar_title_fontSize))
+        buff += '    <param name="interactive_colorbar_title_weight" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_title_weight))
+        buff += '    <param name="interactive_colorbar_label_weight" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_label_weight))
+        buff += '    <param name="interactive_colorbar_modify_ticks" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_modify_ticks))
+        
         buff += '    <!-- TICK PARAMETERS -->\n'
         buff += '    <param name="interactive_tick_precision" value="%d" type="int" />\n' % (int(self.interactive_tick_precision))
         buff += '    <param name="interactive_tick_useScientific" value="%s" type="bool" />\n' % (bool(self.interactive_tick_useScientific)) 
+        
         buff += '    <!-- LEGEND PARAMETERS -->\n'
         buff += '    <param name="interactive_legend" value="%s" type="bool" />\n' % (bool(self.interactive_legend)) 
         buff += '    <param name="interactive_legend_click_policy" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_legend_click_policy), self.interactive_legend_click_policy_choices)
@@ -2064,32 +2109,40 @@ class OrigamiConfig:
         buff += '    <param name="interactive_legend_mute_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_legend_mute_alpha))
         buff += '    <param name="interactive_legend_background_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_legend_background_alpha))
         buff += '    <param name="interactive_legend_font_size" value="%.2f" type="float" />\n' % (float(self.interactive_legend_font_size))
+        
         buff += '    <!-- LINE PARAMETERS -->\n'
         buff += '    <param name="hoverVline" value="%s" type="bool" />\n' % (bool(self.hoverVline)) 
         buff += '    <param name="interactive_line_style" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_line_style), self.interactive_line_style_choices)
         buff += '    <param name="interactive_line_width" value="%.2f" type="float" />\n' % (float(self.interactive_line_width))
         buff += '    <param name="interactive_line_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_line_alpha)) 
-        buff += '    <!-- ANNOTATION PARAMETERS -->\n'
-        buff += '    <param name="interactive_ms_annotations" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations)) 
-        buff += '    <param name="interactive_ms_annotations_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_color))      
-        buff += '    <param name="interactive_ms_annotations_line_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_line_color))      
-        buff += '    <param name="interactive_ms_annotations_transparency" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_transparency))
+        buff += '    <param name="interactive_line_color" value="%s" type="color" />\n' % (str(self.interactive_line_color))
+        buff += '    <param name="interactive_line_shade_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_line_shade_alpha)) 
+        buff += '    <param name="interactive_line_shade_under" value="%s" type="bool" />\n' % (bool(self.interactive_line_shade_under)) 
+        
         buff += '    <!-- LINEARIZE PARAMETERS -->\n'
         buff += '    <param name="interactive_ms_linearize" value="%s" type="bool" />\n' % (bool(self.hoverVline)) 
         buff += '    <param name="interactive_ms_binSize" value="%.2f" type="float" />\n' % (float(self.interactive_ms_binSize))
+        
         buff += '    <!-- BAR PARAMETERS -->\n'
         buff += '    <param name="interactive_bar_sameAsFill" value="%s" type="bool" />\n' % (bool(self.interactive_bar_sameAsFill))
         buff += '    <param name="interactive_bar_width" value="%.2f" type="float" />\n' % (float(self.interactive_bar_width))
         buff += '    <param name="interactive_bar_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_bar_alpha))
         buff += '    <param name="interactive_bar_lineWidth" value="%.2f" type="float" />\n' % (float(self.interactive_bar_lineWidth))
         buff += '    <param name="interactive_bar_edge_color" value="%s" type="color" />\n' % (str(self.interactive_bar_edge_color))
+        
         buff += '    <!-- SCATTER PARAMETERS -->\n'
         buff += '    <param name="interactive_scatter_sameAsFill" value="%s" type="bool" />\n' % (bool(self.interactive_scatter_sameAsFill))
         buff += '    <param name="interactive_scatter_size" value="%d" type="int" />\n' % (int(self.interactive_scatter_size))
         buff += '    <param name="interactive_scatter_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_scatter_alpha))
         buff += '    <param name="interactive_scatter_edge_color" value="%s" type="color" />\n' % (str(self.interactive_scatter_edge_color))
         buff += '    <param name="interactive_scatter_marker" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_scatter_marker), self.interactive_scatter_marker_choices)
+        buff += '    <param name="interactive_scatter_lineWidth" value="%.2f" type="float" />\n' % (float(self.interactive_scatter_lineWidth))
+        
         buff += '    <!-- ANNOTATIONS PARAMETERS -->\n'
+        buff += '    <param name="interactive_ms_annotations" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations)) 
+        buff += '    <param name="interactive_ms_annotations_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_color))      
+        buff += '    <param name="interactive_ms_annotations_line_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_line_color))      
+        buff += '    <param name="interactive_ms_annotations_transparency" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_transparency))
         buff += '    <param name="interactive_ms_annotations_fontWeight" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations_fontWeight))
         buff += '    <param name="interactive_ms_annotations_highlight" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations_highlight))
         buff += '    <param name="interactive_ms_annotations_labels" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations_labels))
@@ -2098,6 +2151,12 @@ class OrigamiConfig:
         buff += '    <param name="interactive_ms_annotations_fontSize" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_fontSize))
         buff += '    <param name="interactive_ms_annotations_rotation" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_rotation))
         buff += '    <param name="interactive_ms_annotations_label_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_label_color))
+        
+        buff += '    <!-- WATERFALL PARAMETERS -->\n'
+        buff += '    <param name="interactive_waterfall_shade_under" value="%s" type="bool" />\n' % (bool(self.interactive_waterfall_shade_under))
+        buff += '    <param name="interactive_waterfall_shade_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_waterfall_shade_alpha))
+        buff += '    <param name="interactive_waterfall_increment" value="%.2f" type="float" />\n' % (float(self.interactive_waterfall_increment))
+        
         buff += '  </presets_interactive_gui>\n\n'
 
         buff += '</origamiConfig>'
@@ -2145,7 +2204,7 @@ class OrigamiConfig:
         self.userParameters['instrument'] = self.instrument
         
         tagList = ['process_presets_overlay', 'process_presets_binning',
-                   'process_compare_mass_spectra',
+                   'process_compare_mass_spectra', 'process_presets_uvpd',
                    'process_presets_origami', 'process_presets_fitting',
                    'process_presets_unidec', 'process_presets_ms', 'process_presets_plot2D',
                    'process_presets_extract', 'plot_presets_legend', 

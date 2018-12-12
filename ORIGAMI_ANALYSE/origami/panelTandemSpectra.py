@@ -1289,7 +1289,6 @@ class panelTandemSpectra(wx.MiniFrame):
         else:
             self.presenter.view.panelPlots.plot1.repaint()
         
-        
     def on_check_all_fragments_list(self, evt=None):
 
         check = not self.frag_check_all
