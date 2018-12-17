@@ -1,19 +1,71 @@
-*.pyc
+# PyDev
 *.pylintrc
 *.project
 *.pydevproject
-*.msi
-*.zip
-list_of_tests.xlsx
-configOut.xml
 .idea/
 .settings/
-build/
-dist/
+
+# ORIGAMI files
 logs/
 temporary_data/
 ORIGAMI_ANALYSE/origami/None
+*.zip
+list_of_tests.xlsx
+configOut.xml
+*.msi
 !dt-ims.zip
 !heatmaps.zip
 !ORIGAMI_ConA_z20.raw.zip
 !other_data.zip
+
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# mkdocs documentation
+/site
+ORIGAMI_ANALYSE/origami/icons/icons_binary.py
