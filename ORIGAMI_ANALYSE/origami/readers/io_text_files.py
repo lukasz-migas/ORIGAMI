@@ -43,7 +43,6 @@ def check_file_type(path=None, fileName=None):
     if ms.shape[0] > 1000: return "MS"
     else: return "2D"
 
-
 def text_infrared_open(path=None, normalize=None): # textOpenIRData
     tstart = time.clock()
 

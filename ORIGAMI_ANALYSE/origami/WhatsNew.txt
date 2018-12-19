@@ -1,5 +1,8 @@
 # TODO:
 
+- move to py3
+- move to wxPython 4+
+
 - add new document viewer which allows reviewing what data is included
     in selected dataset i.e. size, shape, labels, processign steps etc
 
@@ -25,20 +28,23 @@
 	= should allow saving already generated images to the document (no re-plotting required!)
 	
 - complete revamp of Linear DT files panel
+    = remove the DT panel and add it as a plugin instead
 	= add features like highlighting on RT and MS panels
 	= load lists
 	= fix feature detection
 	
 - complete revamp of CCS panel
+    = remove the CCS panel and add it as a plugin instead
 	
-- contact Eric to see if I could implement impact in ORIGAMI
-
-- add other biophysical tools
-
 - add support for Agilent files
 
 - retention time:
     = combine multiple areas
+    
+- move the MS extraction to Waters official API and stop using Driftscope for this
+
+Interactive:
+    - add pie chart
 
 ################################################################################
 ################################################################################
@@ -127,6 +133,11 @@ UVPD panel:
     (thanks Waters) so they need to be linearized. You can change those settings in
     Menu -> Process -> Mass Spectra.
     
+Other data:
+- [change] changed the poorly named 'Other data' to 'Annotated data'
+- [new] added new keyword 'axis_url/axis_urls' which can be used to provide web address
+    which will be used on action. Currently only implemented in scatter plots where
+    tap on any data point will take you to a new web address    
     
 
 ################################################################################

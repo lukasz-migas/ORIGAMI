@@ -11,6 +11,8 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\CCS-Compendium-master\ccs_compendium.pickle" format="pickle" />
+    <path value="Z:\###_PhD4_###\Aidan_paper_2018\scatter.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_06.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\ORIGAMI_ConA_z20.raw" format="MassLynx" />
@@ -19,8 +21,6 @@
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thermo\UbiX_radical_180413120355.txt" format="Text" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thermo" format="Text" />
     <path value="C:\Users\LukaszMigas\Downloads\P43_FIGURES.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\comparison.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\3_Boltzmann_IMS2D_5139.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -554,7 +554,7 @@
     <param name="interactive_cvd_cmap" value="viridis"  choices="['magma', 'viridis', 'cividis', 'plasma', 'magma']" type="unicode" />
     <!-- JAVA SCRIPT PARAMETERS -->
     <param name="interactive_custom_scripts" value="False" type="bool" />
-    <param name="interactive_custom_events" value="False" type="bool" />
+    <param name="interactive_custom_events" value="True" type="bool" />
     <param name="interactive_custom_position" value="right"  choices="['left', 'right', 'below', 'above']" type="unicode" />
     <!-- FRAME PARAMETERS -->
     <param name="figHeight" value="600" type="int" />

@@ -39,6 +39,7 @@ class OrigamiConfig:
         self._processID = None
         self.loggingFile_path = None
         
+        self.document_version = "19-10-2018"
         self.version = "1.2.1"
         self.unidec_engine = None
         self.links = {

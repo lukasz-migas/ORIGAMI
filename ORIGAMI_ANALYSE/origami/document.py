@@ -8,8 +8,9 @@ class document():
     def __init__(self):
         
         # File info
-        self.docVersion = "v1" # to keep track of new features
+        self.docVersion = "19-10-2018" # to keep track of new features: add as date: DD-MM-YYYY
         
+        self.last_saved = None # added in 19-10-2018 / v1.2.1
         self.title = ''
         self.path = ''
         self.notes = ''

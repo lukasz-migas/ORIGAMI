@@ -46,7 +46,7 @@ from bokeh.models import (HoverTool, LinearColorMapper, Label, ColorBar,
                           AdaptiveTicker, BasicTickFormatter,
                           FixedTicker, FuncTickFormatter, LabelSet,
                           CustomJS, Toggle, Slider, Legend, Dropdown, Select,
-                          Select, Arrow, NormalHead)
+                          Select, Arrow, NormalHead, TapTool, OpenURL)
 from bokeh.layouts import (column, widgetbox, gridplot, row)
 from bokeh.layouts import layout as bokeh_layout
 from bokeh.models.widgets import Panel, Tabs, Div, RadioButtonGroup
@@ -73,8 +73,6 @@ from processing.spectra import linearize_data, crop_1D_data, normalize_1D
 # hv.extension('bokeh')
 
 import warnings
-from _pytest.mark import param
-from bokeh.models.sources import ColumnDataSource
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -4509,7 +4507,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         js_code = '''
         // get data
         var list_data = source_list.data;
-        var plot_data = source.data
+        var plot_data = source.data;
         
         // convert value to integer
         i = parseInt(cb_obj.value, 10);
@@ -5087,6 +5085,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         xvalsErr = data['xvalsErr']
         yvalsErr = data['yvalsErr']
         hoverLabels = data.get('hover_labels', [])
+        urls = data.get('urls', [])
 
         # Prepare hover tool
         _tooltips = [(xlabel, '@xvals{0.00}'),
@@ -5117,6 +5116,8 @@ class dlgOutputInteractive(wx.MiniFrame):
         hoverTool = HoverTool(tooltips=_tooltips, mode='mouse')
         # create tools
         TOOLS = self._check_tools(hoverTool, data)
+        # add tap tool for url action
+        TOOLS.extend(["tap"])
 
         # create figure
         bokehPlot = figure(tools=TOOLS,
@@ -5129,6 +5130,7 @@ class dlgOutputInteractive(wx.MiniFrame):
                            toolbar_sticky=False)
 
         # add plots
+        add_tap_url = False
         _scatter, _colors, _edge_colors = [], [], []
         for i in range(len(yvals)):
             yval = yvals[i]
@@ -5136,6 +5138,13 @@ class dlgOutputInteractive(wx.MiniFrame):
             # if multiple xvals are provided - extract one for each yvals
             if len(xvals) == len(yvals): xval = xvals[i]
             else: xval = xvals[0]
+            
+            # get urls
+            if len(urls) == len(yvals): url = urls[i]
+            else: url = urls[0]
+            
+            if len(url) == yval_size:
+                add_tap_url = True
 
             # check if individual colors are provided
             if len(itemColors) > 0:
@@ -5181,7 +5190,10 @@ class dlgOutputInteractive(wx.MiniFrame):
                     _sourceDict["labels_0"] = itemLabels[i]
                 else:
                     _sourceDict["labels_0"] = itemLabels[0]
-
+                    
+            if add_tap_url:
+                _sourceDict["urls"] = url
+                
             if len(legend_labels) == len(yvals):
                 label = legend_labels[i]
             else:
@@ -5199,10 +5211,25 @@ class dlgOutputInteractive(wx.MiniFrame):
                 source=source,
                 legend=label)
             
+            # add tap tool
+            if add_tap_url:
+                print("Added tap -> ULR tool")
+                taptool = bokehPlot.select(type=TapTool)
+                jscode = """
+                var select_id = cb_data.source.selected['1d'].indices[0];
+                var url_data = source.data['urls'];
+                var url = url_data[select_id];
+                if (url !== "nan") { window.open(url); }
+                else { console.log("URL address was missing"); }
+                """
+                url_callback = CustomJS(args=dict(source=source), code=jscode)
+                taptool.callback = url_callback
+            
             _scatter.append(scatter)
             _colors.append(color[0])
             _edge_colors.append(edge_color[0])
-
+            
+        # add annotations
         if ("annotations" in data and len(data["annotations"]) > 0 and 
             user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs['show_annotations'])):
             __, label_source, __ = self._prepare_annotations(data, yvals)
@@ -5213,7 +5240,7 @@ class dlgOutputInteractive(wx.MiniFrame):
         bokehPlot.yaxis.axis_label = ylabel
         # modify plot
         bokehPlot = self._setupPlotParameters(bokehPlot, data=data, plot_type="Scatter")
-
+        
         # add widgets
         if (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
             bkh_kwargs['page_layout'] in ["Individual", "Columns"]):

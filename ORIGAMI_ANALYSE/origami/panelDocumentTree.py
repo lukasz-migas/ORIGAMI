@@ -37,7 +37,7 @@ from panelTandemSpectra import panelTandemSpectra
 from ids import *
 from toolbox import (str2num, saveAsText, convertRGB255to1, randomIntegerGenerator, 
                              randomColorGenerator, convertRGB1to255, str2int, convertHEXtoRGB1,
-                             merge_two_dicts, determineFontColor)
+                             merge_two_dicts, determineFontColor, _replace_labels)
 import dialogs as dialogs
 from processing.spectra import normalize_1D, subtract_1D
 from readers.io_text_files import text_heatmap_open
@@ -659,7 +659,10 @@ class documentsTree(wx.TreeCtrl):
         self.presenter.OnUpdateDocument(document, 'document')
             
     def onLoadOtherData(self, fname):
-        df = pd.read_csv(fname, sep='\t|,', engine='python', header=None)
+        if fname.endswith(".csv"):
+            df = pd.read_csv(fname, sep=',', engine='python', header=None)
+        elif fname.endswith(".txt"):
+            df = pd.read_csv(fname, sep='\t', engine='python', header=None)
         
         title = os.path.basename(fname)
         plot_type = "multi-line"
@@ -757,7 +760,7 @@ class documentsTree(wx.TreeCtrl):
         plot_modifiers.update(legend_labels=legend_labels, legend_colors=legend_colors,
                               xlimits=xlimits, ylimits=ylimits)
         xvals, yvals, zvals, xvalsErr, yvalsErr, itemColors, itemLabels  = [], [], [], [], [], [], []
-        xyvals = []
+        xyvals, urls = [], []
         axis_y_min, axis_y_max, axis_note = [], [], []
         xy_labels = []
         
@@ -766,7 +769,8 @@ class documentsTree(wx.TreeCtrl):
         
         # check if axis labels have been provided
         for xy_axis in ["axis_x", "axis_y", "axis_xerr", "axis_yerr", "axis_color", "axis_colors",  
-                        "axis_label", "axis_labels", "axis_y_min", "axis_y_max", "axis_xy"]:
+                        "axis_label", "axis_labels", "axis_y_min", "axis_y_max", "axis_xy",
+                        "axis_url"]:
             if xy_axis in row_labels:
                 idx = row_labels.index(xy_axis)
                 xy_labels = list(df.iloc[idx, :])
@@ -800,6 +804,8 @@ class documentsTree(wx.TreeCtrl):
                     plot_modifiers['label_items'] = True
                 if xy_label == "axis_note":
                     axis_note.append(np.asarray(df.iloc[:, i].replace(np.nan, '', regex=True).astype('str')))
+                if xy_label == "axis_url":
+                    urls.append(np.asarray(df.iloc[:, i].astype('str')))
         else:
             # drop all other non-numeric rows
             df = df[pd.to_numeric(df.iloc[:,0], errors='coerce').notnull()]
@@ -893,8 +899,8 @@ class documentsTree(wx.TreeCtrl):
                       "yvals_max":axis_y_max,
                       "itemColors":itemColors, 
                       "itemLabels":itemLabels,
-                      "xlabel":x_label, 
-                      "ylabel":y_label,
+                      "xlabel":_replace_labels(x_label), 
+                      "ylabel":_replace_labels(y_label),
                       "xlimits":xlimits, 
                       "ylimits":ylimits,
                       "xlabels":x_labels, 
@@ -904,6 +910,7 @@ class documentsTree(wx.TreeCtrl):
                       "y_unit":y_unit,
                       "colors":colors, 
                       "labels":labels,
+                      "urls":urls,
                       "column_types":column_types, 
                       "column_order":order, 
                       "path":fname,
@@ -4933,7 +4940,13 @@ class documentsTree(wx.TreeCtrl):
         if not hasattr(docData, 'app_data'):
             setattr(docData, "app_data", {})
             print("Added missing attributute ('app_data') to document")
-
+            
+        if not hasattr(docData, 'last_saved'):
+            setattr(docData, "last_saved", {})
+            print("Added missing attributute ('last_saved') to document")
+            
+        # update document to latest version
+            
         # Add document
         docItem = self.AppendItem(self.GetRootItem(), title)
         self.SetFocusedItem(docItem)
