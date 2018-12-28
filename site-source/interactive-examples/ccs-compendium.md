@@ -16,4 +16,4 @@ I recently came across this nice paper from John McLean's lab at Vanderbilt whic
 ></iframe><br />
 
 ### Download formatted data
-You can download the dat
+You can download the data used for this figure from [here].(https://lukasz-migas.com/assets/post-22-12-2018-ccs-compendium/ccs_compendium.txt.zip)
