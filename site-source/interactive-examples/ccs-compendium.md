@@ -1,0 +1,19 @@
+# Interactive scatter plot
+
+### Some background
+I recently came across this nice paper from John McLean's lab at Vanderbilt which discusses how we can use a relatively large (~4000 values) database of measured standards in omics studies. They have created a *R Shiny* app which provides interactivity to explore the dataset. Since I have been recently improving ORIGAMI's interactive capabilities, I've decided to embed their dataset in ORIGAMI and export it as a self-sufficient HTML document. This took me about ~10 minutes altogether (mostly rearranging columns and annotating text document). I think the results are quite close to the original publication (Figure 2a). 
+
+[See figure in another tab](html-files/widgets-ccs-compendium.html)
+
+### Interactive figure
+
+<iframe 
+    width="650" 
+    frameborder="0" 
+    height="1100"
+    src="html-files/widgets-ccs-compendium.html" 
+    style="background: #FFFFFF;"
+></iframe><br />
+
+### Download formatted data
+You can download the dat

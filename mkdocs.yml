@@ -1,13 +1,17 @@
+# Site settings
 site_name: ORIGAMI
 site_description: "ORIGAMI is an open-source software for analysis of MS and IM-MS datasets."
 site_author: Lukasz G. Migas
-copyright: <a href='http://github.com/lukasz-migas'>Lukasz Migas</a>
+
+copyright: <a href='http://github.com/lukasz-migas'>Lukasz G. Migas</a>
 
 site_url: https://lukasz-migas.github.io/ORIGAMI
 repo_url: https://github.com/lukasz-migas/ORIGAMI
+edit_uri: https://github.com/lukasz-migas/ORIGAMI/tree/master/site-source
 
 use_directory_urls: false
 
+google_analytics: ['UA-130097236-1', 'https://lukasz-migas.github.io/ORIGAMI/']
 docs_dir: 'site-source'
 site_dir: 'docs'
 
@@ -18,6 +22,11 @@ markdown_extensions:
   - toc:
       permalink: true
 
+# Extra CCS
+extra_css:
+  - css/justify.css
+
+# Page layout
 nav:
     - Home: index.md
     - Installation: main/installation.md
@@ -43,7 +52,10 @@ nav:
     - Interactive Examples:
         - 'Mass spectrum': interactive-examples/mass-spectrum.md
         - 'Heatmap': interactive-examples/heatmap.md
-    - Changelog: main/changelog.md
+        - 'CCS compendium': interactive-examples/ccs-compendium.md
+    - Changelog: 
+        - 'v1.2.1.1 - 27/12/2018': changelog/v1.2.1.1-27-12-2018.md
+        - 'v1.2.0.3 - 7/11/2018': changelog/v1.2.0.3-5-11-2018.md
     - Cite: main/cite.md
     - About: main/about.md
 
@@ -58,6 +70,7 @@ theme:
     tabs: true
 
 extra:
+  version: 1.2.1.1
   social:
     - type: 'youtube'
       link: 'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8'

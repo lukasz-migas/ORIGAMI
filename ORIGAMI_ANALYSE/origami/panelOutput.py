@@ -5213,7 +5213,7 @@ class dlgOutputInteractive(wx.MiniFrame):
             
             # add tap tool
             if add_tap_url:
-                print("Added tap -> ULR tool")
+                print("Added tap -> URL tool")
                 taptool = bokehPlot.select(type=TapTool)
                 jscode = """
                 var select_id = cb_data.source.selected['1d'].indices[0];
