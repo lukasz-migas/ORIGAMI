@@ -1,6 +1,6 @@
 site_name: ORIGAMI
 site_description: "ORIGAMI is an open-source software for analysis of MS and IM-MS datasets."
-site_author: Lukasz Migas
+site_author: Lukasz G. Migas
 copyright: <a href='http://github.com/lukasz-migas'>Lukasz Migas</a>
 
 site_url: https://lukasz-migas.github.io/ORIGAMI
