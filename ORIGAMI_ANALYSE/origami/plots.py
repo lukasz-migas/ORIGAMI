@@ -60,6 +60,8 @@ class plots(plottingWindow):
         
         plottingWindow.__init__(self, *args, **kwargs)
         self.plotflag = False
+        
+        # obj containers
         self.text = []
         self.lines = []
         self.patch = []
@@ -372,6 +374,7 @@ class plots(plottingWindow):
         self.markers.append(markers)
         
     def plot_remove_markers(self):
+        
         for marker in self.markers:
             try: marker.remove()
             except: pass
@@ -458,7 +461,7 @@ class plots(plottingWindow):
                                                             color=color, alpha=alpha,
                                                             linewidth=linewidth))
         except AttributeError:
-            print("Please plot mass spectrum first")
+            print("Please plot something first")
             return
         
         if add_temporary:
@@ -466,10 +469,12 @@ class plots(plottingWindow):
             self.temporary.append(patch)
         else:
             self.patch.append(patch)
-
+        
     def plot_remove_patches(self):
+
         for patch in self.patch:
-            try: patch.remove()
+            try: 
+                patch.remove()      
             except: pass
 
         self.patch = []
@@ -1187,7 +1192,15 @@ class plots(plottingWindow):
             leg = self.plotMS.axes.get_legend()
             leg.draggable()
             
-            self.patch = handles
+#             self.patch = handles
+
+    def plot_remove_legend(self):
+        try: 
+            leg = self.plotMS.axes.get_legend()
+            leg.remove()
+        except:
+            pass
+        
             
     def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
 

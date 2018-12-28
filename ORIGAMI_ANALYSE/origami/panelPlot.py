@@ -1596,9 +1596,16 @@ class panelPlot(wx.Panel):
     def on_clear_markers(self, plot="MS", repaint=False):
         
         if plot == 'RT':
-            self.plotRT.plot_remove_markers()
-            if not repaint: return 
-            else: self.plotRT.repaint()
+            plot_obj = self.plotRT
+        elif plot == 'MS':
+            plot_obj = self.plot1
+            
+        
+        plot_obj.plot_remove_markers()
+        if not repaint: return 
+        else: plot_obj.repaint()
+            
+        
 
     def _get_color_list(self, colorList, count=None, **kwargs):
         """
@@ -3363,9 +3370,14 @@ class panelPlot(wx.Panel):
             
         if plot == "RT":
             self.plotRT.plot_1D_add_legend(legend_text, **plt_kwargs)
+            
+    def on_clear_legend(self, plot, repaint=False):
+        if plot == 'RT':
+            self.plotRT.plot_remove_legend()
         
     def on_add_marker(self, xvals=None, yvals=None, color='b', marker='o', 
-                    size=5, plot='MS', clear_first=False): #addMarkerMS
+                    size=5, plot='MS', repaint=True, 
+                    clear_first=False): #addMarkerMS
         if plot == 'MS':
             self.plot1.onAddMarker(xval=xvals, yval=yvals,
                                    color=color, marker=marker,
@@ -3375,10 +3387,11 @@ class panelPlot(wx.Panel):
         elif plot == 'RT':
             if clear_first:
                 self.plotRT.plot_remove_markers()
-            self.plotRT.plot_add_markers(xvals, yvals,
-                                         color=color, marker=marker,
-                                         size=size)
-            self.plotRT.repaint()
+                
+            self.plotRT.plot_add_markers(
+                xvals, yvals, color=color, marker=marker,
+                size=size)
+            if repaint: self.plotRT.repaint()
             
         elif plot == 'CalibrationMS':
             self.topPlotMS.onAddMarker(xval=xvals, yval=yvals,

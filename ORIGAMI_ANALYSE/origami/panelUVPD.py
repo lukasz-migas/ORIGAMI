@@ -683,8 +683,9 @@ class panelUVPD(wx.MiniFrame):
             add_buffer=self.config.uvpd_peak_buffer_width)
         
         # clear plots
-        self.view.panelPlots.on_clear_patches("RT", True)
-        self.view.panelPlots.on_clear_markers("RT", True)
+        self.view.panelPlots.on_clear_patches("RT", False)
+        self.view.panelPlots.on_clear_markers("RT", False)
+        self.view.panelPlots.on_clear_legend("RT", False)
         
         # generate legend
         # first value is even then dataset 1 is red, and 2 is blue
@@ -714,16 +715,14 @@ class panelUVPD(wx.MiniFrame):
                                                color=colors[0],
                                                marker=self.config.markerShape_1D,
                                                size=self.config.markerSize_1D,
-                                               plot='RT',
-                                               clear_first=True)
+                                               plot='RT', repaint=False)
              
             self.view.panelPlots.on_add_marker(xvals=self.laser_off_marker[:,0],
                                                yvals=self.laser_off_marker[:,1], 
-                                               color=colors[1], #(0,0,1), 
+                                               color=colors[1],
                                                marker=self.config.markerShape_1D,
                                                size=self.config.markerSize_1D,
-                                               plot='RT',
-                                               clear_first=False)
+                                               plot='RT', repaint=False)
             
         # add patches
         if self.config.uvpd_peak_show_patches:
@@ -741,10 +740,12 @@ class panelUVPD(wx.MiniFrame):
                                                   color=colors[1], 
                                                   plot="RT", repaint=False)                
 
-            self.view.panelPlots.plotRT.repaint()
-                
+    
+        if self.config.uvpd_peak_show_markers or self.config.uvpd_peak_show_patches:
+            self.view.panelPlots.on_add_legend(labels, colors, plot="RT")
+            
         
-        self.view.panelPlots.on_add_legend(labels, colors, plot="RT")
+        self.view.panelPlots.plotRT.repaint()
         
         
         msg = "Found {} regions - skipping # peaks {}; #1: {} | #2: {}".format(
