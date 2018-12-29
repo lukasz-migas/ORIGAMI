@@ -1,11 +1,13 @@
 # Citation
 
-### Reference
+## Reference
+
 If you use ORIGAMI, please consider citing it in your work:  
 
 [L. G. Migas, A. P. France, B. Bellina, P. E. Barran, "ORIGAMI: A software suite for activated ion mobility mass spectrometry (aIM-MS) applied to multimeric protein assemblies”, Int. J. Mass Spectrom., 2017](https://doi.org/10.1016/j.ijms.2017.08.014)  
 
-### RIS
+## RIS
+
 ```
 TY  - JOUR
 T1  - ORIGAMI: A software suite for activated ion mobility mass spectrometry (aIM-MS) applied to multimeric protein assemblies
@@ -34,7 +36,8 @@ AB  -
 ER  - 
 ```
 
-### BibTex
+## BibTex
+
 ```
 @article{MIGAS201820,
 title = "ORIGAMI: A software suite for activated ion mobility mass spectrometry (aIM-MS) applied to multimeric protein assemblies",

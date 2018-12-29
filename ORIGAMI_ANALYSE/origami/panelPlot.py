@@ -1328,7 +1328,7 @@ class panelPlot(wx.Panel):
         self.parent._mgr.GetPane(self.parent.panelMultipleIons).Show()
         self.parent._mgr.Update()
         xmin, xmax = self.getPlotExtent(evt=None)
-        self.parent.panelMultipleIons.topP.peaklist.Append([round(xmin, 2),
+        self.parent.panelMultipleIons.peaklist.Append([round(xmin, 2),
                                                      round(xmax, 2),
                                                      ""])
     

@@ -1291,7 +1291,7 @@ class ORIGAMI(object):
 
     def on2DTextFileFcn(self, path=None, e=None):
         self.view.onPaneOnOff(evt=ID_window_textList, check=True)
-        tempList = self.view.panelMultipleText.topP.filelist
+        tempList = self.view.panelMultipleText.filelist
         
         imsData2D, xAxisLabels, yAxisLabels = io_text.text_heatmap_open(path=path)
         imsData1D = np.sum(imsData2D, axis=1).T
@@ -1306,9 +1306,9 @@ class ORIGAMI(object):
         # Update statusbar    
         self.onThreading(None, ("Opened: {}".format(path), 4), action='updateStatusbar')  
         # Add to table
-        color = self.view.panelMultipleText.topP.on_check_duplicate_colors(self.config.customColors[randomIntegerGenerator(0,15)])
+        color = self.view.panelMultipleText.on_check_duplicate_colors(self.config.customColors[randomIntegerGenerator(0,15)])
         color = convertRGB255to1(color)
-        outcome = self.view.panelMultipleText.topP.onCheckDuplicates(fileName=idName)
+        outcome = self.view.panelMultipleText.onCheckDuplicates(fileName=idName)
         if not outcome:
             tempList.Append([xAxisLabels[0], xAxisLabels[-1], "", color,
                              self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps)-1)],
@@ -1362,7 +1362,7 @@ class ORIGAMI(object):
             pathlist = dlg.GetPaths()
             filenames = dlg.GetFilenames()
             for (filepath, filename) in zip(pathlist,filenames):
-                outcome = self.view.panelMultipleText.topP.onCheckDuplicates(fileName=filename)
+                outcome = self.view.panelMultipleText.onCheckDuplicates(fileName=filename)
                 if outcome: continue
                 # Load data for each file
                 imsData2D, xAxisLabels, yAxisLabels = io_text.text_heatmap_open(path=filepath)
@@ -1392,7 +1392,7 @@ class ORIGAMI(object):
                             'shape':imsData2D.shape,
                             'document':filename}
                 
-                color = self.view.panelMultipleText.topP.on_add_to_table(add_dict, return_color=True)
+                color = self.view.panelMultipleText.on_add_to_table(add_dict, return_color=True)
                 color = convertRGB255to1(color)
                     
                 # Set XY limits
@@ -1431,10 +1431,10 @@ class ORIGAMI(object):
         """ extract multiple ions = threaded """
         
         # self.config.extractMode = 'multipleIons'
-        tempList = self.view.panelMultipleIons.topP.peaklist # shortcut
+        tempList = self.view.panelMultipleIons.peaklist # shortcut
         for row in range(tempList.GetItemCount()):
             # Extract ion name
-            itemInfo = self.view.panelMultipleIons.topP.OnGetItemInformation(itemID=row)
+            itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=row)
             filename = itemInfo['document']
             # Check if the ion has been assigned a filename
             if filename == '': 
@@ -1553,9 +1553,9 @@ class ORIGAMI(object):
             # Check if manual dataset
             elif document.dataType == 'Type: MANUAL':
                 # Shortcut to the file list
-                nameList = self.view.panelMML.topP.filelist # List with MassLynx file information
+                nameList = self.view.panelMML.filelist # List with MassLynx file information
                 # Sort data regardless of what user did  
-                self.view.panelMML.topP.OnSortByColumn(column=1, overrideReverse=True)
+                self.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
                 tempDict = {}
                 extract_kwargs = {'return_data':True}
                 for item in xrange(nameList.GetItemCount()):
@@ -1954,7 +1954,7 @@ class ORIGAMI(object):
         # self.config.extractMode = 'multipleIons'
         
         # Shortcut to ion table
-        tempList = self.view.panelMultipleIons.topP.peaklist 
+        tempList = self.view.panelMultipleIons.peaklist 
         
         # Make a list of current documents
         for row in range(tempList.GetItemCount()):
@@ -1988,7 +1988,7 @@ class ORIGAMI(object):
                 continue        
 
             # Extract ion name
-            itemInfo = self.view.panelMultipleIons.topP.OnGetItemInformation(itemID=row)
+            itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=row)
             selectedItem = itemInfo['ionName']
             
         # Combine data
@@ -2413,13 +2413,13 @@ class ORIGAMI(object):
         """
         # Check what is the ID
         if source == "ion":
-            tempList = self.view.panelMultipleIons.topP.peaklist
-            add_data_to_document = self.view.panelMultipleIons.topP.addToDocument
-            normalize_dataset = self.view.panelMultipleIons.topP.normalize1D
+            tempList = self.view.panelMultipleIons.peaklist
+            add_data_to_document = self.view.panelMultipleIons.addToDocument
+            normalize_dataset = self.view.panelMultipleIons.normalize1D
         elif source == "text":
-            tempList = self.view.panelMultipleText.topP.filelist
-            add_data_to_document = self.view.panelMultipleText.topP.addToDocument
-            normalize_dataset = self.view.panelMultipleText.topP.normalize1D
+            tempList = self.view.panelMultipleText.filelist
+            add_data_to_document = self.view.panelMultipleText.addToDocument
+            normalize_dataset = self.view.panelMultipleText.normalize1D
             
             
         try: self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
@@ -2468,7 +2468,7 @@ class ORIGAMI(object):
             if tempList.IsChecked(index=row):
                 if source == "ion":
                     # Get current document
-                    itemInfo = self.view.panelMultipleIons.topP.OnGetItemInformation(itemID=row)
+                    itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=row)
                     self.currentDoc = itemInfo['document']
                     # Check that data was extracted first
                     if self.currentDoc == '':
@@ -2529,7 +2529,7 @@ class ORIGAMI(object):
                 elif source == "text":
                     __, __, charge, color, colormap, alpha, mask, __,  \
                     label, filename, min_threshold, max_threshold \
-                     = self.view.panelMultipleText.topP.OnGetItemInformation(itemID=row, return_list=True)
+                     = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
                     try:
                         document = self.documentsDict[filename]
@@ -2640,15 +2640,15 @@ class ORIGAMI(object):
         """
         # Check what is the ID
         if source == "ion":
-            tempList = self.view.panelMultipleIons.topP.peaklist
+            tempList = self.view.panelMultipleIons.peaklist
             col_order = self.config.peaklistColNames
-            add_data_to_document = self.view.panelMultipleIons.topP.addToDocument
-            self.config.overlayMethod = self.view.panelMultipleIons.topP.combo.GetStringSelection()
+            add_data_to_document = self.view.panelMultipleIons.addToDocument
+            self.config.overlayMethod = self.view.panelMultipleIons.combo.GetStringSelection()
         elif source == "text":
-            tempList = self.view.panelMultipleText.topP.filelist
+            tempList = self.view.panelMultipleText.filelist
             col_order = self.config.textlistColNames
-            add_data_to_document = self.view.panelMultipleText.topP.addToDocument
-            self.config.overlayMethod = self.view.panelMultipleText.topP.combo.GetStringSelection()
+            add_data_to_document = self.view.panelMultipleText.addToDocument
+            self.config.overlayMethod = self.view.panelMultipleText.combo.GetStringSelection()
         
         tempAccumulator = 0 # Keeps count of how many items are ticked
         try:
@@ -2721,7 +2721,7 @@ class ORIGAMI(object):
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, label, \
                     self.currentDoc, ionName, min_threshold, max_threshold \
-                    = self.view.panelMultipleIons.topP.OnGetItemInformation(itemID=row, return_list=True)
+                    = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
                     
                     # processed name
                     ionNameProcessed = "%s (processed)" % ionName
@@ -2785,7 +2785,7 @@ class ORIGAMI(object):
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, __,  \
                     label, filename, min_threshold, max_threshold \
-                     = self.view.panelMultipleText.topP.OnGetItemInformation(itemID=row, return_list=True)
+                     = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
                     try:
                         document = self.documentsDict[filename]
@@ -3492,7 +3492,7 @@ class ORIGAMI(object):
 #             self.view.mainToolbar.ToggleTool(id=ID_OnOff_textView, toggle=True)
 #             self.view._mgr.GetPane(self.view.panelMultipleText).Show()
 #             self.view._mgr.Update()
-            tempList = self.view.panelMultipleText.topP.filelist
+            tempList = self.view.panelMultipleText.filelist
             document = self.documentsDict[self.currentDoc]
             if document.gotComparisonData:
                 filename = document.title
@@ -3548,8 +3548,8 @@ class ORIGAMI(object):
             return
         
         # Sort data in the dictionary first - if returns False then it hasn't done it!
-        vals_sorted = self.view.panelMML.topP.OnSortByColumn(column=1)
-        tempList = self.view.panelMML.topP.filelist
+        vals_sorted = self.view.panelMML.OnSortByColumn(column=1)
+        tempList = self.view.panelMML.filelist
         if not vals_sorted: 
             return
         else: 
@@ -3603,7 +3603,7 @@ class ORIGAMI(object):
         This function processes the 2D array data from multiple ions MULTIFILE or ORIGAMI
         """
         # Shortcut to table
-        tempList = self.view.panelMultipleIons.topP.peaklist
+        tempList = self.view.panelMultipleIons.peaklist
         
 
         # Make a list of current documents
@@ -3714,7 +3714,7 @@ class ORIGAMI(object):
         # http://stackoverflow.com/questions/22520739/python-sort-a-dict-by-values-producing-a-list-how-to-sort-this-from-largest-to
         
         self.config.ciuMode = 'MANUAL'
-        tempList = self.view.panelMML.topP.filelist
+        tempList = self.view.panelMML.filelist
         
         tstart = time.clock()
         if len(pathlist) > 0:
@@ -3807,7 +3807,7 @@ class ORIGAMI(object):
                                                                  **extract_kwargs)
                 if i <= 15: color = self.config.customColors[i]
                 else: color = randomColorGenerator(True)
-                color = convertRGB255to1(self.view.panelMML.topP.on_check_duplicate_colors(color, document_name=self.docs.title))
+                color = convertRGB255to1(self.view.panelMML.on_check_duplicate_colors(color, document_name=self.docs.title))
                 
                 tempList.Append([rawfile, 
                                  str(parameters['trapCE']), 
@@ -3901,7 +3901,7 @@ class ORIGAMI(object):
         # Show panel
         self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
         # Removing duplicates
-        self.view.panelMML.topP.onRemoveDuplicates(evt=None)
+        self.view.panelMML.onRemoveDuplicates(evt=None)
         
         tend = time.clock()        
         self.onThreading(None, ('Total time to extract %d files was: %.3gs' % (len(pathlist),tend-tstart), 4), action='updateStatusbar')
@@ -4038,7 +4038,7 @@ class ORIGAMI(object):
         self.docs = self.data_processing._on_get_document()
         
         if self.docs.dataType == 'Type: ORIGAMI' or self.docs.dataType == 'Type: MANUAL':
-            tempList = self.view.panelMultipleIons.topP.peaklist
+            tempList = self.view.panelMultipleIons.peaklist
         elif self.docs.dataType == 'Type: Multifield Linear DT':
             tempList = self.view.panelLinearDT.bottomP.peaklist
         else: return
@@ -4056,7 +4056,7 @@ class ORIGAMI(object):
         ymin = 0
         height = 100000000000
         for item in xrange(tempList.GetItemCount()):
-            itemInfo = self.view.panelMultipleIons.topP.OnGetItemInformation(itemID=item)
+            itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=item)
             filename = itemInfo['document']
             if filename != self.currentDoc: continue
             xmin = itemInfo['mzStart']
@@ -4374,9 +4374,9 @@ class ORIGAMI(object):
             # We also have to check if there is data in the table
             if self.document.dataType == 'Type: ORIGAMI' or self.document.dataType == 'Type: MANUAL':
                 splitText = re.split('-| |,|', selectedText)
-                row = self.view.panelMultipleIons.topP.findItem(splitText[0],splitText[1], self.currentDoc)
+                row = self.view.panelMultipleIons.findItem(splitText[0],splitText[1], self.currentDoc)
                 if row != None:
-                    self.view.panelMultipleIons.topP.peaklist.SetStringItem(index=row, 
+                    self.view.panelMultipleIons.peaklist.SetStringItem(index=row, 
                                                 col=self.config.peaklistColNames['charge'], 
                                                 label=str(charge))
 
@@ -4529,7 +4529,7 @@ class ORIGAMI(object):
         if dlg.ShowModal() == wx.ID_CANCEL: return
         else:
             # Create shortcut                
-            tempList = self.view.panelMultipleIons.topP.peaklist
+            tempList = self.view.panelMultipleIons.peaklist
             delimiter, __ = checkExtension(input=dlg.GetPath().encode('ascii', 'replace') )
             peaklist = pd.read_csv(dlg.GetPath(), delimiter=delimiter)
             try:
@@ -5184,12 +5184,12 @@ class ORIGAMI(object):
     def onProcessMultipleTextFiles(self, evt):
         
         if evt.GetId() == ID_processAllTextFiles:
-            self.view.panelMultipleText.topP.OnCheckAllItems(evt=None, override=True)
+            self.view.panelMultipleText.OnCheckAllItems(evt=None, override=True)
         
-        tempList = self.view.panelMultipleText.topP.filelist
+        tempList = self.view.panelMultipleText.filelist
         try:
             for row in xrange(tempList.GetItemCount()):
-                itemInfo = self.view.panelMultipleText.topP.OnGetItemInformation(itemID=row)
+                itemInfo = self.view.panelMultipleText.OnGetItemInformation(itemID=row)
                 if itemInfo['select']:
                     self.docs = self.documentsDict[itemInfo['document']]
                     imsData2D = self.data_processing.on_process_2D(zvals=self.docs.IMS2D['zvals'].copy(), 
@@ -5217,7 +5217,7 @@ class ORIGAMI(object):
             return
             
         if evt.GetId() == ID_processAllTextFiles:
-            self.view.panelMultipleText.topP.OnCheckAllItems(evt=None, check=False, override=True)
+            self.view.panelMultipleText.OnCheckAllItems(evt=None, check=False, override=True)
               
     def onPopulateXaxisTextLabels(self, startVal=None, endVal=None, shapeVal=None):
         """ 
@@ -6763,7 +6763,7 @@ class ORIGAMI(object):
             if (any([document.gotExtractedIons, document.got2DprocessIons, 
                     document.gotCombinedExtractedIonsRT, document.gotCombinedExtractedIons])
                 and document.dataType != 'Type: Interactive'):
-                tempList = self.view.panelMultipleIons.topP.peaklist
+                tempList = self.view.panelMultipleIons.peaklist
                 if len(document.IMS2DCombIons) > 0:
                     dataset = document.IMS2DCombIons
                 elif len(document.IMS2DCombIons) == 0:
@@ -6803,12 +6803,12 @@ class ORIGAMI(object):
             
                     # Update aui manager
                     self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
-                self.view.panelMultipleIons.topP.onRemoveDuplicates(evt=None, limitCols=False)
+                self.view.panelMultipleIons.onRemoveDuplicates(evt=None, limitCols=False)
                  
             # Restore file list
             # if self.config.ciuMode == 'MANUAL':
             if document.dataType == 'Type: MANUAL':
-                tempList = self.view.panelMML.topP.filelist
+                tempList = self.view.panelMML.filelist
                 count = tempList.GetItemCount() + len(document.multipleMassSpectrum)
                 colors = self.view.panelPlots.onChangePalette(None, n_colors=count+1, return_colors=True)
                 for i, key in enumerate(document.multipleMassSpectrum):
@@ -6832,7 +6832,7 @@ class ORIGAMI(object):
                     tempList.SetItemBackgroundColour(list_count, color)
                     tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
                 
-                self.view.panelMML.topP.onRemoveDuplicates(evt=None, limitCols=False)
+                self.view.panelMML.onRemoveDuplicates(evt=None, limitCols=False)
                 # Update aui manager
                 self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
                  

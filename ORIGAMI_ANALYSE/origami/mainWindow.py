@@ -34,7 +34,7 @@ from panelProcess import panelProcessData
 import dialogs as dialogs
 from dialogs import (panelExportSettings, panelSequenceAnalysis, panelNotifyOpenDocuments,
                              panelNotifyNewVersion, panelHTMLViewer)
-from panelOutput import dlgOutputInteractive as panelInteractive
+from panelOutput import panelInteractiveOutput as panelInteractive
 from panelLog import panelLog
 
 from ids import *
@@ -1846,7 +1846,7 @@ class MyFrame(wx.Frame):
 
             # predict charge state
             charge = self.data_processing.predict_charge_state(ms[:,0], ms[:,1], (mzStart, mzEnd))
-            color = self.panelMultipleIons.topP.on_check_duplicate_colors(self.config.customColors[randomIntegerGenerator(0,15)])
+            color = self.panelMultipleIons.on_check_duplicate_colors(self.config.customColors[randomIntegerGenerator(0,15)])
             color = convertRGB255to1(color)
             
             if (document.dataType == 'Type: ORIGAMI' or 
@@ -1854,7 +1854,7 @@ class MyFrame(wx.Frame):
                 document.dataType == 'Type: Infrared'):
                 self.onPaneOnOff(evt=ID_window_ionList, check=True)
                 # Check if value already present
-                outcome = self.panelMultipleIons.topP.onCheckForDuplicates(mzStart=str(mzStart), 
+                outcome = self.panelMultipleIons.onCheckForDuplicates(mzStart=str(mzStart), 
                                                                            mzEnd=str(mzEnd))
                 if outcome:
                     self.SetStatusText('Selected range already in the table',3)
@@ -1868,14 +1868,14 @@ class MyFrame(wx.Frame):
                                  "alpha":self.config.overlay_defaultAlpha,
                                  "mask":self.config.overlay_defaultMask,
                                  "document":currentDoc}
-                self.panelMultipleIons.topP.on_add_to_table(_add_to_table, check_color=False)
+                self.panelMultipleIons.on_add_to_table(_add_to_table, check_color=False)
                 
                 if self.config.showRectanges:
                     self.panelPlots.on_plot_patches(mzStart, 0, (mzEnd-mzStart), 100000000000, 
                                                     color=color, alpha=self.config.markerTransparency_1D,
                                                     repaint=True)
                     
-                if self.panelMultipleIons.topP.extractAutomatically:
+                if self.panelMultipleIons.extractAutomatically:
                     self.presenter.on_extract_2D_from_mass_range_threaded(None, extract_type="new")
                     
             elif document.dataType == 'Type: Multifield Linear DT':

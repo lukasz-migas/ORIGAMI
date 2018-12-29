@@ -1,4 +1,5 @@
 # Changing UniDec window
+
 Since version 1.2.0.3, ORIGAMI-ANALYSE shows UniDec plots in a seperate tab rather than in the continous view. It is quite straightforward to switch back to the **continous view**.
 
 1. Open the Processing panel: UniDec (**SHIFT+6** on your keyboard or menu -> Process -> UniDec).
@@ -8,4 +9,3 @@ Since version 1.2.0.3, ORIGAMI-ANALYSE shows UniDec plots in a seperate tab rath
 ![Image](img/unidec-change-view.png)
 
 **Note:** This will only take effect when you restart ORIGAMI-ANALYSE.
-

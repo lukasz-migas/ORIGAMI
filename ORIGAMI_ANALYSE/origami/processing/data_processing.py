@@ -214,7 +214,7 @@ class data_processing():
             self.docs.dataType == 'Type: Infrared' or
             self.docs.dataType == 'Type: MassLynx'):
             panel = self.view.panelMultipleIons.topP
-            tempList = self.view.panelMultipleIons.topP.peaklist
+            tempList = self.view.panelMultipleIons.peaklist
             dataPlot = self.view.panelPlots.plot1
             pageID = self.config.panelNames['MS']
             markerPlot = 'MS'

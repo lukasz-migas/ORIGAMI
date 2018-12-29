@@ -80,7 +80,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UnicodeWarning)
 
-class dlgOutputInteractive(wx.MiniFrame):
+class panelInteractiveOutput(wx.MiniFrame):
     """Save data in an interactive format"""
 
     def __init__(self, parent, icons, presenter, config):

@@ -36,40 +36,33 @@ from toolbox import (isempty, str2num, str2int, saveAsText, convertRGB1to255,
 from styles import gauge, makeMenuItem
 
 
-class panelMultipleIons ( wx.Panel ):
+class panelMultipleIons(wx.Panel):
     
     def __init__( self, parent, config, icons, helpInfo, presenter ):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, 
                             size = wx.Size( 300,400 ), style = wx.TAB_TRAVERSAL )
 
-        self.parent = parent
+        self.view = parent
         self.config = config  
         self.help = helpInfo
         self.presenter = presenter
         self.currentItem = None
         self.icons = icons
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        self.topP = topPanel(self, self.config, self.icons, self.help, self.presenter)
-        sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
-        self.SetSizer(sizer)
-
-class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
-    """ListCtrl"""
-     
-    def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT):
-        wx.ListCtrl.__init__(self, parent, id, pos, size, style)
-        listmix.CheckListCtrlMixin.__init__(self)
+#         sizer = wx.BoxSizer(wx.VERTICAL)
+#         self.topP = topPanel(self, self.config, self.icons, self.help, self.presenter)
+#         sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
+#         self.SetSizer(sizer)
+# 
+# class topPanel(wx.Panel):
+#     def __init__(self, parent, config, icons, helpInfo, presenter):
+#         wx.Panel.__init__(self, parent=parent)
         
-class topPanel(wx.Panel):
-    def __init__(self, parent, config, icons, helpInfo, presenter):
-        wx.Panel.__init__(self, parent=parent)
-        
-        self.config = config
-        self.help = helpInfo
-        self.presenter = presenter # wx.App
-        self.icons = icons
-        self.view = parent.parent
+#         self.config = config
+#         self.help = helpInfo
+#         self.presenter = presenter # wx.App
+#         self.icons = icons
+#         self.view = parent.parent
         
         self.listOfSelected = []
         self.allChecked = True
@@ -1904,7 +1897,13 @@ class topPanel(wx.Panel):
         if row is not None:
             self.peaklist.DeleteItem(row)
         
-                
+class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
+    """ListCtrl"""
+     
+    def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT):
+        wx.ListCtrl.__init__(self, parent, id, pos, size, style)
+        listmix.CheckListCtrlMixin.__init__(self)
+        
 class panelExportData(wx.MiniFrame):
     """
     Export data from table

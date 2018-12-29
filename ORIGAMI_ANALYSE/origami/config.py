@@ -47,7 +47,7 @@ class OrigamiConfig:
             'github' : 'https://github.com/lukasz-migas/ORIGAMI',
             'cite' : 'https://doi.org/10.1016/j.ijms.2017.08.014',
             'newVersion' : 'https://github.com/lukasz-migas/ORIGAMI/releases',
-            'guide': 'https://lukasz-migas.github.io/ORIGAMI/',
+            'guide': 'https://origami.lukasz-migas.com/',
             'youtube':'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8',
             'htmlEditor':'https://html-online.com/editor/',
             'newFeatures':'https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform',

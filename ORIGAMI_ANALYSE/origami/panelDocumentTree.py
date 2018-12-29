@@ -163,7 +163,7 @@ class documentsTree(wx.TreeCtrl):
         # Get selected item
         item = self.GetSelection()
         self.currentItem = item
-        
+        print("??")
         # Get the current text value for selected item
         itemType = self.GetItemText(item)
         if itemType == 'Current documents':
@@ -3013,8 +3013,8 @@ class documentsTree(wx.TreeCtrl):
     def onAddToTable(self, evt):
         evtID = evt.GetId()
         
-        filelist = self.presenter.view.panelMML.topP.filelist
-        textlist = self.presenter.view.panelMultipleText.topP.filelist
+        filelist = self.presenter.view.panelMML.filelist
+        textlist = self.presenter.view.panelMultipleText.filelist
         if evtID == ID_docTree_addToMMLTable:
             data = self.itemData.multipleMassSpectrum
             document_title = self.itemData.title
@@ -3086,13 +3086,13 @@ class documentsTree(wx.TreeCtrl):
         
         if evtID in [ID_docTree_addToMMLTable, ID_docTree_addOneToMMLTable]:
             # sort items
-            self.presenter.view.panelMML.topP.OnSortByColumn(column=1, overrideReverse=True)
-            self.presenter.view.panelMML.topP.onRemoveDuplicates(None)
+            self.presenter.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
+            self.presenter.view.panelMML.onRemoveDuplicates(None)
             self.presenter.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
             
         elif evtID in [ID_docTree_addToTextTable, ID_docTree_addOneToTextTable, ID_docTree_addInteractiveToTextTable]:
             # sort items
-            self.presenter.view.panelMultipleText.topP.onRemoveDuplicates(None)
+            self.presenter.view.panelMultipleText.onRemoveDuplicates(None)
             self.presenter.view.onPaneOnOff(evt=ID_window_textList, check=True)
             
     def onShowMassSpectra(self, evt):
@@ -3420,17 +3420,17 @@ class documentsTree(wx.TreeCtrl):
                 
                 # check if item is in other panels
                 # TODO: implement for other panels
-                try: self.presenter.view.panelMML.topP.onRenameItem(current_name, 
+                try: self.presenter.view.panelMML.onRenameItem(current_name, 
                                                                     new_name, 
                                                                     item_type="document")
                 except: pass
-                try: self.presenter.view.panelMultipleIons.topP.onRenameItem(current_name, 
+                try: self.presenter.view.panelMultipleIons.onRenameItem(current_name, 
                                                                              new_name, 
                                                                              item_type="document")
                 except: pass
-#                 try: self.presenter.view.panelMultipleText.topP.onClearItems(title)
+#                 try: self.presenter.view.panelMultipleText.onClearItems(title)
 #                 except: pass
-#                 try: self.presenter.view.panelMML.topP.onClearItems(title)
+#                 try: self.presenter.view.panelMML.onClearItems(title)
 #                 except: pass
 #                 try: self.presenter.view.panelLinearDT.topP.onClearItems(title)
 #                 except: pass
@@ -3463,7 +3463,7 @@ class documentsTree(wx.TreeCtrl):
                 self.presenter.documentsDict[self.title].multipleMassSpectrum[new_name] = self.presenter.documentsDict[self.title].multipleMassSpectrum.pop(self.extractData)
                 self.Expand(docItem)
                 # check if item is in other panels
-                try: self.presenter.view.panelMML.topP.onRenameItem(current_name, new_name, item_type="filename")
+                try: self.presenter.view.panelMML.onRenameItem(current_name, new_name, item_type="filename")
                 except: pass
             elif self.itemType == "Drift time (2D, EIC)":
                 new_name = new_name.replace(": ", " : ")
@@ -5266,11 +5266,11 @@ class documentsTree(wx.TreeCtrl):
                     # Remove data from dictionary if removing whole document
                     if evtID == ID_removeDocument  or evtID == None:
                         # make sure to clean-up various tables
-                        try: self.presenter.view.panelMultipleIons.topP.onClearItems(title)
+                        try: self.presenter.view.panelMultipleIons.onClearItems(title)
                         except: pass
-                        try: self.presenter.view.panelMultipleText.topP.onClearItems(title)
+                        try: self.presenter.view.panelMultipleText.onClearItems(title)
                         except: pass
-                        try: self.presenter.view.panelMML.topP.onClearItems(title)
+                        try: self.presenter.view.panelMML.onClearItems(title)
                         except: pass
                         try: self.presenter.view.panelLinearDT.topP.onClearItems(title)
                         except: pass

@@ -37,44 +37,32 @@ from styles import makeMenuItem
 from document import document as documents
 
 
-class panelMultipleTextFiles ( wx.Panel ):
+class panelMultipleTextFiles (wx.Panel):
     
     def __init__( self, parent, config, icons, presenter ):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, 
                             size = wx.Size( 300,400 ), style = wx.TAB_TRAVERSAL )
 
-        self.parent = parent
+        self.view = parent
         self.config = config  
         self.presenter = presenter
         self.icons = icons
         self.currentItem = None
-        
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        self.topP = topPanel(self, self.icons, self.presenter, self.config)
-        sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
-        self.SetSizer(sizer)     
+#         
+#         sizer = wx.BoxSizer(wx.VERTICAL)
+#         self.topP = topPanel(self, self.icons, self.presenter, self.config)
+#         sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
+#         self.SetSizer(sizer)     
 
 
-    def __del__( self ):
-         pass
-        
-class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
-    """
-    Editable list
-    """
-    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0): 
-        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.CheckListCtrlMixin.__init__(self)
-        
-class topPanel(wx.Panel):
-    def __init__(self, parent, icons, presenter, config):
-        wx.Panel.__init__(self, parent=parent)
-        
-        self.presenter = presenter # wx.App
-        self.config = config
-        self.icons = icons
-        self.view = parent.parent
+# class topPanel(wx.Panel):
+#     def __init__(self, parent, icons, presenter, config):
+#         wx.Panel.__init__(self, parent=parent)
+#         
+#         self.presenter = presenter # wx.App
+#         self.config = config
+#         self.icons = icons
+#         self.view = parent.parent
         
         self.allChecked = True
         self.reverse = False
@@ -120,6 +108,9 @@ class topPanel(wx.Panel):
         wx.EVT_MENU(self, ID_textPanel_show_mobiligram, self.on_plot)
         wx.EVT_MENU(self, ID_textPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_textPanel_delete_rightClick, self.OnDeleteAll)
+        
+    def __del__( self ):
+         pass
         
     def makeGUI(self):
         """ Make panel GUI """
@@ -1360,8 +1351,14 @@ class topPanel(wx.Panel):
         if return_color:
             return color
     
-            
-            
+class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
+    """
+    Editable list
+    """
+    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=0): 
+        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
+        listmix.CheckListCtrlMixin.__init__(self)
             
             
             

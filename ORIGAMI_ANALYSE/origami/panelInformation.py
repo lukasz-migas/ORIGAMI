@@ -941,11 +941,11 @@ class panelDocumentInfo(wx.MiniFrame):
                 self.document.dataType == 'Type: MANUAL') and self.extractData != None:
                 
                 splitText = self.extractData.split('-')
-                row = self.presenter.view.panelMultipleIons.topP.findItem(splitText[0],
+                row = self.presenter.view.panelMultipleIons.findItem(splitText[0],
                                                                           splitText[1], 
                                                                           self.document.title)
                 if row != None:
-                    self.presenter.view.panelMultipleIons.topP.peaklist.SetStringItem(index=row, 
+                    self.presenter.view.panelMultipleIons.peaklist.SetStringItem(index=row, 
                                                 col=self.config.peaklistColNames['charge'], 
                                                 label=self.charge_value.GetValue())
                     

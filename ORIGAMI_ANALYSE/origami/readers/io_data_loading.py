@@ -48,7 +48,7 @@ class data_loading():
         # http://stackoverflow.com/questions/22520739/python-sort-a-dict-by-values-producing-a-list-how-to-sort-this-from-largest-to
         
         self.config.ciuMode = 'MANUAL'
-        tempList = self.view.panelMML.topP.filelist
+        tempList = self.view.panelMML.filelist
         
         tstart = time.clock()
         if len(pathlist) > 0:
@@ -136,7 +136,7 @@ class data_loading():
                                                                  **extract_kwargs)
                 if i <= 15: color = self.config.customColors[i]
                 else: color = randomColorGenerator(True)
-                color = self.view.panelMML.topP.on_check_duplicate_colors(color, 
+                color = self.view.panelMML.on_check_duplicate_colors(color, 
                                                                           document_name=self.docs.title)
                 
                 tempList.Append([rawfile, 
@@ -221,7 +221,7 @@ class data_loading():
         # Show panel
         self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
         # Removing duplicates
-        self.view.panelMML.topP.onRemoveDuplicates(evt=None)
+        self.view.panelMML.onRemoveDuplicates(evt=None)
         
         tend = time.clock()        
         self.onThreading(None, ('Total time to extract %d files was: %.3gs' % (len(pathlist),tend-tstart), 4), action='updateStatusbar')

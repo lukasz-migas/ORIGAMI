@@ -46,74 +46,23 @@ class panelMML( wx.Panel ):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, 
                             size = wx.Size( 300,600 ), style = wx.TAB_TRAVERSAL )
 
-        self.parent = parent
+        self.view = parent
         self.config = config
         self.presenter = presenter
         self.icons = icons
                
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        self.topP = topPanel(self, self.icons, self.presenter, self.config)
-        sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
-        self.SetSizer(sizer)           
-        
-    def __del__( self ):
-         pass
-     
-class DragAndDrop(wx.FileDropTarget):
-    
-    #----------------------------------------------------------------------
-    def __init__(self, window):
-        """Constructor"""
-        wx.FileDropTarget.__init__(self)
-        self.window = window
-
-    #----------------------------------------------------------------------
-    
-    def OnDropFiles(self, x, y, filenames):
-        """
-        When files are dropped, write where they were dropped and then
-        the file paths themselves
-        """
-        pathlist = []
-        for filename in filenames:
-            
-            __, file_extension = splitext(filename)
-            if file_extension in ['.raw']:
-                print("Added {} file to the list".format(filename))
-                pathlist.append(filename)
-            else:
-                print("Dropped file {} is not supported".format(filename))
-                
-        if len(pathlist) > 0:
-            self.window.onOpenFile_DnD(pathlist)
-                      
-class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixin,
-                       listmix.ColumnSorterMixin):
-    """
-    Editable list
-    """
-    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0): 
-        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.TextEditMixin.__init__(self)
-        listmix.CheckListCtrlMixin.__init__(self)
-
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
-
-    def OnBeginLabelEdit(self, event):
-        # Block any attempts to change columns 0 and 1
-        if event.m_col == 0 or event.m_col == 2:
-            event.Veto()
-        else:
-            event.Skip()
-
-class topPanel(wx.Panel):
-    def __init__(self, parent, icons,  presenter, config):
-        wx.Panel.__init__(self, parent=parent)
-        self.icons = icons
-        self.config = config
-        self.presenter = presenter # wx.App
-        self.view = parent.parent
+#         sizer = wx.BoxSizer(wx.VERTICAL)
+#         self.topP = topPanel(self, self.icons, self.presenter, self.config)
+#         sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
+#         self.SetSizer(sizer)           
+#         
+# class topPanel(wx.Panel):
+#     def __init__(self, parent, icons,  presenter, config):
+#         wx.Panel.__init__(self, parent=parent)
+#         self.icons = icons
+#         self.config = config
+#         self.presenter = presenter # wx.App
+#         self.view = parent.parent
         
         self.makeToolbar()
         self.makeListCtrl()
@@ -156,6 +105,9 @@ class topPanel(wx.Panel):
         wx.EVT_MENU(self, ID_mmlPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.OnDeleteAll)
         wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.onCheckTool)
+        
+    def __del__( self ):
+         pass
         
     def on_check_selected(self, evt):
         check = not self.filelist.IsChecked(index=self.currentItem)
@@ -1114,3 +1066,50 @@ class topPanel(wx.Panel):
     def on_combine_mass_spectra(self, evt, document_name=None):
         self.presenter.on_combine_mass_spectra(document_name=document_name)
         
+class DragAndDrop(wx.FileDropTarget):
+    
+    #----------------------------------------------------------------------
+    def __init__(self, window):
+        """Constructor"""
+        wx.FileDropTarget.__init__(self)
+        self.window = window
+
+    #----------------------------------------------------------------------
+    
+    def OnDropFiles(self, x, y, filenames):
+        """
+        When files are dropped, write where they were dropped and then
+        the file paths themselves
+        """
+        pathlist = []
+        for filename in filenames:
+            
+            __, file_extension = splitext(filename)
+            if file_extension in ['.raw']:
+                print("Added {} file to the list".format(filename))
+                pathlist.append(filename)
+            else:
+                print("Dropped file {} is not supported".format(filename))
+                
+        if len(pathlist) > 0:
+            self.window.onOpenFile_DnD(pathlist)
+                      
+class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixin,
+                       listmix.ColumnSorterMixin):
+    """
+    Editable list
+    """
+    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=0): 
+        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
+        listmix.TextEditMixin.__init__(self)
+        listmix.CheckListCtrlMixin.__init__(self)
+
+        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
+
+    def OnBeginLabelEdit(self, event):
+        # Block any attempts to change columns 0 and 1
+        if event.m_col == 0 or event.m_col == 2:
+            event.Veto()
+        else:
+            event.Skip()
