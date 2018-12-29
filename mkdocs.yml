@@ -64,8 +64,8 @@ theme:
   language: 'en'
   include_sidebar: true 
   palette:
-    primary: 'blue grey'
-    accent: 'teal'
+    primary: 'blue grey' #'blue grey'
+    accent: 'teal' #'teal'
   feature:
     tabs: true
 
