@@ -2,7 +2,7 @@
 
 All two-dimensional heatmaps can be processed to produce a more visually attractive figure.
 
-## Video tutorial
+## Video tutorial on how to process heatmaps
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/lHCT3gIsoLY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 

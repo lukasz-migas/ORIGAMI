@@ -2,7 +2,7 @@
 
 All mass spectra found in a ORIGAMI document can be processed in a way that reduced noise, smoothes peaks, or linearized the spectrum to reduce its size.
 
-## Video tutorial
+## Video tutorial on how to process mass spectra
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/cDUFutzksbY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 

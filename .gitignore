@@ -69,3 +69,4 @@ coverage.xml
 # mkdocs documentation
 /site
 ORIGAMI_ANALYSE/origami/icons/icons_binary.py
+*.json
