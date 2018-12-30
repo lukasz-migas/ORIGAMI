@@ -46,6 +46,7 @@ import readers.io_mgf as io_mgf
 import readers.io_mzid as io_mzid
 import readers.io_mzml as io_mzml
 import readers.io_thermo_raw as io_thermo # @UnresolvedImport
+# import readers.io_waters_raw_api as io_waters_raw_api
 
 
 class panelDocuments ( wx.Panel ):
@@ -163,7 +164,7 @@ class documentsTree(wx.TreeCtrl):
         # Get selected item
         item = self.GetSelection()
         self.currentItem = item
-        print("??")
+
         # Get the current text value for selected item
         itemType = self.GetItemText(item)
         if itemType == 'Current documents':
@@ -217,7 +218,7 @@ class documentsTree(wx.TreeCtrl):
                 self.onShowUnidec(None, plot_type=self.extractData)
             elif self.extractData == "Annotations":
                 self.onAddAnnotation(None)
-        elif self.itemType in ['Chromatogram', 'Chromatograms (EIC)', "Other data",
+        elif self.itemType in ['Chromatogram', 'Chromatograms (EIC)', "Annotated data",
                                'Drift time (1D)', 'Drift time (1D, EIC, DT-IMS)', 'Drift time (1D, EIC)',
                                'Chromatograms (combined voltages, EIC)',
                                'Drift time (2D)', 'Drift time (2D, processed)', 'Drift time (2D, EIC)',
@@ -1058,13 +1059,13 @@ class documentsTree(wx.TreeCtrl):
                 if len(self.presenter.documentsDict[currentDoc].multipleDT) == 0: 
                     self.presenter.documentsDict[currentDoc].gotMultipleDT = False
                     
-        elif self.itemType == 'Other data':
+        elif self.itemType == 'Annotated data':
             # remove annotations
             if "Annotations" in self.extractData and self.indent == 4:
                 del self.presenter.documentsDict[currentDoc].other_data[self.extractParent]['annotations']
             elif "Annotations" in self.extractParent and self.indent == 5:
                 del self.presenter.documentsDict[currentDoc].other_data[self.extractGrandparent]['annotations'][self.extractData]
-            elif self.extractData == 'Other data':
+            elif self.extractData == 'Annotated data':
                 self.presenter.documentsDict[currentDoc].other_data = {}
             else:
                 del self.presenter.documentsDict[currentDoc].other_data[self.extractData]
@@ -1271,7 +1272,7 @@ class documentsTree(wx.TreeCtrl):
             elif self.itemType == "Mass Spectra" and self.extractData == "Annotations":
                 data = self.itemData.multipleMassSpectrum[self.extractParent]
                 dataset = self.extractParent
-            elif "Other data" in self.itemType and self.extractData == "Annotations":
+            elif "Annotated data" in self.itemType and self.extractData == "Annotations":
                 data = self.itemData.other_data[self.extractParent]
                 dataset = self.extractParent
                 
@@ -1293,7 +1294,7 @@ class documentsTree(wx.TreeCtrl):
         if ("Waterfall (Raw):" in self.extractData):
             data = None
             plot = self.presenter.view.panelPlots.plotWaterfallIMS
-        # other data
+        # Annotated data
         elif ("Multi-line: " in self.extractData or "Multi-line: " in self.extractParent or
               "V-bar: " in self.extractData or "V-bar: " in self.extractParent or
               "H-bar: " in self.extractData or "H-bar: " in self.extractParent or
@@ -1531,7 +1532,7 @@ class documentsTree(wx.TreeCtrl):
             annotations = document.smoothMS['annotations']
         elif self.itemType == "Mass Spectra":
             annotations = document.multipleMassSpectrum[self.extractParent]['annotations']
-        elif (self.itemType == "Other data" and 
+        elif (self.itemType == "Annotated data" and 
               ("Waterfall: " in self.extractParent or "Multi-line: " in self.extractParent or
                "V-bar: " in self.extractParent or "H-bar: " in self.extractParent or
                "Scatter: " in self.extractParent or "Line: " in self.extractParent)):
@@ -1933,7 +1934,7 @@ class documentsTree(wx.TreeCtrl):
         
         menu = wx.Menu()
         if self.itemData.dataType == 'Type: Interactive':
-            if self.itemType == "Other data" and self.extractData != self.itemType:
+            if self.itemType == "Annotated data" and self.extractData != self.itemType:
                 if self.extractData == "Annotations":
                     menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_add_annotations,
                                                  text='Show annotations panel...', 
@@ -3767,8 +3768,8 @@ class documentsTree(wx.TreeCtrl):
         self.presenter.currentDoc = self.itemData.title
         basename = os.path.splitext(self.itemData.title)[0]
         defaultValue, save_kwargs = None, {}
-        if self.itemType in "Other data":
-            if self.extractData == "Other data": 
+        if self.itemType in "Annotated data":
+            if self.extractData == "Annotated data": 
                 return
             if self.extractData == "Annotations":
                 self.onAddAnnotation(None)
@@ -4051,13 +4052,16 @@ class documentsTree(wx.TreeCtrl):
                     dlg = dialogs.dlgBox(exceptionTitle='Would you like to continue?',
                                  exceptionMsg= "There are {} scans in this dataset (this could be slow...). Would you like to continue?".format(len(xvals)),
                                  type="Question")
-                    if dlg == wx.ID_YES:
-                        self.presenter.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
-                                                                        xlabel=xlabel, ylabel=ylabel, set_page=True)
+                    if dlg == wx.ID_NO:
+                        return
+                    
+                self.presenter.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
+                                                                xlabel=xlabel, ylabel=ylabel, set_page=True)
                 return
             else: pass
             # Unpack data
-            if len(data) == 0: return
+            if len(data) == 0: 
+                return
             
             dataOut = self.presenter.get2DdataFromDictionary(dictionary=data, dataType='plot', compact=True)
             # Change panel and plot data
@@ -5183,7 +5187,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
                 
         if len(docData.other_data) > 0:
-            docIonItem = self.AppendItem(docItem, 'Other data')
+            docIonItem = self.AppendItem(docItem, 'Annotated data')
             self.SetItemImage(docIonItem, self.bulets_dict["calibration"], wx.TreeItemIcon_Normal)
             for annotData, __ in natsorted(docData.other_data.items()):
                 annotsItem =  self.AppendItem(docIonItem, annotData)

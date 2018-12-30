@@ -100,8 +100,8 @@ class panelParametersEdit(wx.Panel):
         self.windowSizes = {'General':(540,340), 'Plot 1D':(540,530), 
                             'Plot 2D':(540,295), 'Plot 3D':(540,385), 
                             'Colorbar':(540,220), 'Legend':(540,350), 
-                            'RMSD':(540,540), 'Waterfall':(540,520), 
-                            'Violin':(540,415), 'Extra':(540, 640)}
+                            'RMSD':(540,540), 'Waterfall':(540,550), 
+                            'Violin':(540,422), 'Extra':(540, 640)}
         
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
         
@@ -1110,6 +1110,8 @@ class panelParametersEdit(wx.Panel):
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.onApply)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.onEnableDisableFeatures_violin)
+        
+        self.violin_colorScheme_msg = wx.StaticText(panel, -1, "")
 
         cmap_list = self.config.cmaps2[:]
         cmap_list.remove("jet")
@@ -1119,6 +1121,13 @@ class panelParametersEdit(wx.Panel):
         self.violin_colormap_value.SetStringSelection(self.config.violin_colormap)
         self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.onApply)
         self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
+        
+        violin_shadeColor_label = wx.StaticText(panel, -1, "Shade color:")
+        self.violin_colorShadeBtn = wx.Button(panel, ID_extraSettings_shadeColour_violin,
+                                                u"", wx.DefaultPosition, 
+                                                wx.Size( 26, 26 ), 0, name="color")
+        self.violin_colorShadeBtn.SetBackgroundColour(convertRGB1to255(self.config.violin_shade_under_color))
+        self.violin_colorShadeBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
         
         violin_shadeTransparency_label = wx.StaticText(panel, -1, "Shade transparency:")
         self.violin_shadeTransparency_value = wx.SpinCtrlDouble(panel, -1,
@@ -1144,7 +1153,7 @@ class panelParametersEdit(wx.Panel):
                                                               initial=self.config.violin_labels_frequency, 
                                                               inc=1, size=(45, -1), name="label")
         self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
-        self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
+#         self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
        
         violin_nLimit_label = wx.StaticText(panel, -1, "Violin limit:")
         self.violin_nLimit_value = wx.SpinCtrlDouble(panel, -1, 
@@ -1168,12 +1177,6 @@ class panelParametersEdit(wx.Panel):
         grid.Add(violin_normalize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.violin_normalize_check, (y,1), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(violin_color_scheme_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        grid.Add(self.violin_colorScheme_value, (y,1), flag=wx.EXPAND)
-        y = y + 1
-        grid.Add(violin_colormap_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        grid.Add(self.violin_colormap_value, (y,1), flag=wx.EXPAND)
-        y = y + 1
         grid.Add(violin_lineWidth_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.violin_lineWidth_value, (y,1), flag=wx.EXPAND)
         y = y + 1
@@ -1183,6 +1186,16 @@ class panelParametersEdit(wx.Panel):
         grid.Add(violin_lineColor_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.violin_colorLineBtn, (y,1), flag=wx.EXPAND)
         grid.Add(self.violin_line_sameAsShade_check, (y,2), flag=wx.ALIGN_CENTER_VERTICAL)
+        y = y + 1
+        grid.Add(violin_color_scheme_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.violin_colorScheme_value, (y,1), flag=wx.EXPAND)
+        grid.Add(self.violin_colorScheme_msg, (y,2), (2,1),flag=wx.EXPAND)
+        y = y + 1
+        grid.Add(violin_colormap_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.violin_colormap_value, (y,1), flag=wx.EXPAND)
+        y = y + 1
+        grid.Add(violin_shadeColor_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.violin_colorShadeBtn, (y,1), flag=wx.EXPAND)
         y = y + 1
         grid.Add(violin_shadeTransparency_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.violin_shadeTransparency_value, (y,1), flag=wx.EXPAND)
@@ -1231,17 +1244,16 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
         
+        waterfall_normalize_label = wx.StaticText(panel, -1, "Normalize:")
+        self.waterfall_normalize_check = makeCheckbox(panel, u"")
+        self.waterfall_normalize_check.SetValue(self.config.waterfall_normalize)
+        self.waterfall_normalize_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+
         waterfall_reverse_label = wx.StaticText(panel, -1, "Reverse order:")
         self.waterfall_reverse_check = makeCheckbox(panel, u"")
         self.waterfall_reverse_check.SetValue(self.config.waterfall_reverse)
         self.waterfall_reverse_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        waterfall_normalize_label = wx.StaticText(panel, -1, "Normalize:")
-        self.waterfall_normalize_check = makeCheckbox(panel, u"")
-        self.waterfall_normalize_check.SetValue(self.config.waterfall_normalize)
-        self.waterfall_normalize_check.Bind(wx.EVT_CHECKBOX, self.onApply)
-        
-
         waterfall_lineWidth_label = wx.StaticText(panel, -1, "Line width:")
         self.waterfall_lineWidth_value = wx.SpinCtrlDouble(panel, -1, 
                                                            value=str(self.config.waterfall_lineWidth), 
@@ -1263,8 +1275,8 @@ class panelParametersEdit(wx.Panel):
                                                 wx.Size( 26, 26 ), 0, name="color")
         self.waterfall_colorLineBtn.SetBackgroundColour(convertRGB1to255(self.config.waterfall_color))
         self.waterfall_colorLineBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
-        
-        self.waterfall_line_sameAsShade_check = makeCheckbox(panel, u"Same as shade", name="color")
+
+        self.waterfall_line_sameAsShade_check = makeCheckbox(panel, u"Same as shade    ", name="color")
         self.waterfall_line_sameAsShade_check.SetValue(self.config.waterfall_line_sameAsShade)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_waterfall)
@@ -1277,6 +1289,7 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.onApply)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.onEnableDisableFeatures_waterfall)
+        self.waterfall_colorScheme_msg = wx.StaticText(panel, -1, "")
 
         cmap_list = self.config.cmaps2[:]
         cmap_list.remove("jet")
@@ -1293,7 +1306,14 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_waterfall)
         self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
-
+        
+        waterfall_shadeColor_label = wx.StaticText(panel, -1, "Shade color:")
+        self.waterfall_colorShadeBtn = wx.Button(panel, ID_extraSettings_shadeColour_waterfall,
+                                                u"", wx.DefaultPosition, 
+                                                wx.Size( 26, 26 ), 0, name="color")
+        self.waterfall_colorShadeBtn.SetBackgroundColour(convertRGB1to255(self.config.waterfall_shade_under_color))
+        self.waterfall_colorShadeBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
+        
         waterfall_shadeTransparency_label = wx.StaticText(panel, -1, "Shade transparency:")
         self.waterfall_shadeTransparency_value = wx.SpinCtrlDouble(panel, -1, 
                                                                    value=str(self.config.waterfall_shade_under_transparency), 
@@ -1383,12 +1403,6 @@ class panelParametersEdit(wx.Panel):
         grid.Add(waterfall_reverse_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.waterfall_reverse_check, (y,1), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(waterfall_color_scheme_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_colorScheme_value, (y,1), flag=wx.EXPAND)
-        y = y + 1
-        grid.Add(waterfall_colormap_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_colormap_value, (y,1), flag=wx.EXPAND)
-        y = y + 1
         grid.Add(waterfall_lineWidth_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.waterfall_lineWidth_value, (y,1), flag=wx.EXPAND)
         y = y + 1
@@ -1399,8 +1413,18 @@ class panelParametersEdit(wx.Panel):
         grid.Add(self.waterfall_colorLineBtn, (y,1), flag=wx.EXPAND)
         grid.Add(self.waterfall_line_sameAsShade_check, (y,2), flag=wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
+        grid.Add(waterfall_color_scheme_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.waterfall_colorScheme_value, (y,1), flag=wx.EXPAND)
+        grid.Add(self.waterfall_colorScheme_msg, (y,2), (2,1), flag=wx.EXPAND)
+        y = y + 1
+        grid.Add(waterfall_colormap_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.waterfall_colormap_value, (y,1), flag=wx.EXPAND)
+        y = y + 1
         grid.Add(waterfall_shade_under_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.waterfall_shadeUnder_check, (y,1), flag=wx.EXPAND)
+        y = y + 1
+        grid.Add(waterfall_shadeColor_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.waterfall_colorShadeBtn, (y,1), flag=wx.EXPAND)
         y = y + 1
         grid.Add(waterfall_shadeTransparency_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.waterfall_shadeTransparency_value, (y,1), flag=wx.EXPAND)
@@ -1585,6 +1609,13 @@ class panelParametersEdit(wx.Panel):
                                                size=(90, -1))
         self.legend_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
+        legend_patch_alpha_label = wx.StaticText(panel, -1, "Patch transparency:")
+        self.legend_patch_alpha_value = wx.SpinCtrlDouble(panel, -1, 
+                                               value=str(self.config.legendPatchAlpha), 
+                                               min=0.0, max=1, initial=0, inc=0.25,
+                                               size=(90, -1))
+        self.legend_patch_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        
         legend_frame_label = wx.StaticText(panel, -1, "Frame:")
         self.legend_frame_check = makeCheckbox(panel, u"")
         self.legend_frame_check.SetValue(self.config.legendFrame)
@@ -1595,13 +1626,6 @@ class panelParametersEdit(wx.Panel):
         self.legend_fancyBox_check.SetValue(self.config.legendFancyBox)
         self.legend_fancyBox_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        
-        legend_patch_alpha_label = wx.StaticText(panel, -1, "Patch transparency:")
-        self.legend_patch_alpha_value = wx.SpinCtrlDouble(panel, -1, 
-                                               value=str(self.config.legendPatchAlpha), 
-                                               min=0.0, max=1, initial=0, inc=0.25,
-                                               size=(90, -1))
-        self.legend_patch_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
         grid = wx.GridBagSizer(2, 2)
         y = 0
@@ -1713,6 +1737,13 @@ class panelParametersEdit(wx.Panel):
                                                size=(90, -1))
         self.plot1D_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
         
+        plot1D_alpha_label = wx.StaticText(panel, -1, "Marker transparency:")
+        self.plot1D_alpha_value = wx.SpinCtrlDouble(panel, -1, 
+                                                    value=str(self.config.markerTransparency_1D*100), 
+                                                    min=0, max=100, initial=self.config.markerTransparency_1D*100, 
+                                                    inc=5, size=(90, -1))
+        self.plot1D_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        
         plot1D_markerColor_label = wx.StaticText(panel, -1, "Marker face color:")
         self.plot1D_colorAnnotBtn = wx.Button(panel, ID_extraSettings_markerColor_1D,
                                               u"", wx.DefaultPosition, 
@@ -1731,13 +1762,6 @@ class panelParametersEdit(wx.Panel):
         self.plot1D_colorEdgeMarker_check.SetValue(self.config.markerEdgeUseSame_1D)
         self.plot1D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
         self.plot1D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_1D)
-        
-        plot1D_alpha_label = wx.StaticText(panel, -1, "Marker transparency:")
-        self.plot1D_alpha_value = wx.SpinCtrlDouble(panel, -1, 
-                                                    value=str(self.config.markerTransparency_1D*100), 
-                                                    min=0, max=100, initial=self.config.markerTransparency_1D*100, 
-                                                    inc=5, size=(90, -1))
-        self.plot1D_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
         
         barParameters_staticBox = makeStaticBox(panel, "Bar parameters", 
                                                  size=(-1, -1), color=wx.BLACK)
@@ -2012,6 +2036,13 @@ class panelParametersEdit(wx.Panel):
                                                size=(90, -1))
         self.plot3D_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
          
+        plot3D_alpha_label = wx.StaticText(panel, -1, "Marker transparency:")
+        self.plot3D_alpha_value = wx.SpinCtrlDouble(panel, -1, 
+                                               value=str(self.config.markerTransparency_3D*100), 
+                                               min=0, max=100, initial=self.config.markerTransparency_3D*100, 
+                                               inc=5, size=(90, -1))
+        self.plot3D_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
+         
         plot3D_markerColor_label = wx.StaticText(panel, -1, "Marker fill color:")
         self.plot3D_colorAnnotBtn = wx.Button(panel, ID_extraSettings_markerColor_3D,
                                               u"", wx.DefaultPosition, 
@@ -2031,14 +2062,6 @@ class panelParametersEdit(wx.Panel):
         self.plot3D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
         self.plot3D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_3D)
         
-
-        plot3D_alpha_label = wx.StaticText(panel, -1, "Marker transparency:")
-        self.plot3D_alpha_value = wx.SpinCtrlDouble(panel, -1, 
-                                               value=str(self.config.markerTransparency_3D*100), 
-                                               min=0, max=100, initial=self.config.markerTransparency_3D*100, 
-                                               inc=5, size=(90, -1))
-        self.plot3D_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
-
         axisParameters_staticBox = makeStaticBox(panel, "Axis parameters", 
                                                  size=(-1, -1), color=wx.BLACK)
         axisParameters_staticBox.SetSize((-1,-1))
@@ -2362,8 +2385,9 @@ class panelParametersEdit(wx.Panel):
         self.config.violin_spacing = str2num(self.violin_spacing_value.GetValue())
         self.config.violin_lineWidth = self.violin_lineWidth_value.GetValue()
         self.config.violin_lineStyle = self.violin_lineStyle_value.GetStringSelection()
-
         self.config.violin_color_scheme = self.violin_colorScheme_value.GetStringSelection()
+        if self.config.violin_color_scheme == "Color palette": self.violin_colorScheme_msg.SetLabel("You can change the color \npalette in the 'Extra' tab.")
+        else: self.violin_colorScheme_msg.SetLabel("")
         self.config.violin_colormap = self.violin_colormap_value.GetStringSelection()
         self.config.violin_normalize = self.violin_normalize_check.GetValue()
         self.config.violin_line_sameAsShade = self.violin_line_sameAsShade_check.GetValue()
@@ -2380,6 +2404,8 @@ class panelParametersEdit(wx.Panel):
         self.config.waterfall_lineStyle = self.waterfall_lineStyle_value.GetStringSelection()
         self.config.waterfall_reverse = self.waterfall_reverse_check.GetValue()
         self.config.waterfall_color_value = self.waterfall_colorScheme_value.GetStringSelection()
+        if self.config.waterfall_color_value == "Color palette": self.waterfall_colorScheme_msg.SetLabel("You can change the color \npalette in the 'Extra' tab.")
+        else: self.waterfall_colorScheme_msg.SetLabel("")
         self.config.waterfall_colormap = self.waterfall_colormap_value.GetStringSelection()
         self.config.waterfall_normalize = self.waterfall_normalize_check.GetValue()
         self.config.waterfall_line_sameAsShade = self.waterfall_line_sameAsShade_check.GetValue()
@@ -2500,9 +2526,19 @@ class panelParametersEdit(wx.Panel):
             self.waterfall_colorLineBtn.SetBackgroundColour(newColour)
             self.onUpdate2D(evt)
             
+        elif evtID == ID_extraSettings_shadeColour_waterfall:
+            self.config.waterfall_shade_under_color = convertRGB255to1(newColour)
+            self.waterfall_colorShadeBtn.SetBackgroundColour(newColour)
+            self.onUpdate2D(evt)
+            
         elif evtID == ID_extraSettings_lineColour_violin:
             self.config.violin_color = convertRGB255to1(newColour)
             self.violin_colorLineBtn.SetBackgroundColour(newColour)
+            self.onUpdate2D(evt)
+            
+        elif evtID == ID_extraSettings_shadeColour_violin:
+            self.config.violin_shade_under_color = convertRGB255to1(newColour)
+            self.violin_colorShadeBtn.SetBackgroundColour(newColour)
             self.onUpdate2D(evt)
             
         elif evtID == ID_extraSettings_shadeUnderColor_1D:

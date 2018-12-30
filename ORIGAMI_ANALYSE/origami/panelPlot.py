@@ -2606,13 +2606,16 @@ class panelPlot(wx.Panel):
             else:
                 self.presenter.onThreading(None, ("Selected item is too large to plot as violin. Plotting as waterfall instead.", 4, 10), 
                                            action='updateStatusbar')
+                # check if there are more than 500 elements
                 if zvals.shape[1] > 500:
                     dlg = dlgBox(exceptionTitle='Would you like to continue?',
                                  exceptionMsg= "There are {} scans in this dataset (this could be slow...). Would you like to continue?".format(len(xvals)),
                                  type="Question")
-                    if dlg == wx.ID_YES:
-                        self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, 
-                                               xlabel=xlabel, ylabel=ylabel)
+                    if dlg == wx.ID_NO:
+                        return
+                # plot
+                self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, 
+                                       xlabel=xlabel, ylabel=ylabel)
         except:
             self.plotWaterfallIMS.clearPlot()
             print("Failed to plot the violin plot...")
@@ -3720,6 +3723,7 @@ class panelPlot(wx.Panel):
                           'reverse':self.config.waterfall_reverse,
                           'use_colormap': self.config.waterfall_useColormap,
                           'line_color':self.config.waterfall_color,
+                          'shade_color':self.config.waterfall_shade_under_color,
                           'normalize':self.config.waterfall_normalize,
                           'colormap': self.config.waterfall_colormap,
                           'palette': self.config.currentPalette,
@@ -3754,6 +3758,7 @@ class panelPlot(wx.Panel):
                           'line_width':self.config.violin_lineWidth,
                           'line_style':self.config.violin_lineStyle,
                           'line_color':self.config.violin_color,
+                          'shade_color':self.config.violin_shade_under_color,
                           'normalize':self.config.violin_normalize,
                           'colormap': self.config.violin_colormap,
                           'palette': self.config.currentPalette,

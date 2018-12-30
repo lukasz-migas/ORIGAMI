@@ -34,7 +34,7 @@ from panelProcess import panelProcessData
 import dialogs as dialogs
 from dialogs import (panelExportSettings, panelSequenceAnalysis, panelNotifyOpenDocuments,
                              panelNotifyNewVersion, panelHTMLViewer)
-from panelOutput import panelInteractiveOutput as panelInteractive
+from panelInteractiveOutput import panelInteractiveOutput as panelInteractive
 from panelLog import panelLog
 
 from ids import *
@@ -44,7 +44,6 @@ from toolbox import (findPeakMax, getNarrow1Ddata, randomIntegerGenerator,
 from styles import makeMenuItem
 from readers.io_text_files import check_file_type
 from processing.data_processing import data_processing
-from data_handling.data_handling import data_handling
 
 import wx, os, wx.aui, psutil, sys, webbrowser
 from time import gmtime, strftime, sleep
@@ -104,8 +103,6 @@ class MyFrame(wx.Frame):
         
         # add data processing 
         self.data_processing = data_processing(self.presenter, self, self.config)#
-        # add data handling
-        self.data_handling = data_handling(self.presenter, self, self.config)
         
         self.panelPlots = panelPlot(self, self.config, self.presenter) # Plots
         self.panelMultipleIons= panelMultipleIons(self, self.config, self.icons, self.help, self.presenter) # List of ions
@@ -696,7 +693,7 @@ class MyFrame(wx.Frame):
                                               bitmap=self.icons.iconsLib['annotate16']))
                                               
         helpPagesMenu.AppendItem(makeMenuItem(parent=helpPagesMenu, id=ID_help_page_OtherData,
-                                              text='Learn more: Other data', 
+                                              text='Learn more: Annotated data', 
                                               bitmap=self.icons.iconsLib['blank_16']))
         
 

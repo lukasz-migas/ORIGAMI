@@ -148,7 +148,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
                 remove_window_list = ["preprocess", "annotations"]
             elif method[0] in ['1D', 'RT']:
                 remove_window_list = ["colorbar"]
-        elif self.item_type in ['Other data']:
+        elif self.item_type in ['Annotated data']:
             remove_window_list = ['overlay']
 #                 
         for item in remove_window_list:

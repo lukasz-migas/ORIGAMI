@@ -1565,49 +1565,37 @@ class OrigamiConfig:
                                                                                                                                                                                                                                                                                                                 ps['default_name'])
         buff += '  </presets_gui_plotSizes>\n\n'
         
-        buff += '  <presets_gui_peaklistPanel>\n'
-        for item in self._peakListSettings:
-            buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
-        buff += '  </presets_gui_peaklistPanel>\n\n'
-        
-        buff += '  <presets_gui_textPanel>\n'
-        for item in self._textlistSettings:
-            buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
-        buff += '  </presets_gui_textPanel>\n\n'
-        
-        buff += '  <presets_gui_multipleFilesPanel>\n'
-        for item in self._multipleFilesSettings:
-            buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (str(item['name']), int(item['order']), int(item['width']), bool(item['show']))
-        buff += '  </presets_gui_multipleFilesPanel>\n\n'
-
-        buff += '  <presets_gui_interactivePanel>\n'
-        for item in self._interactiveSettings:
-            buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
-        buff += '  </presets_gui_interactivePanel>\n\n'
+#         buff += '  <presets_gui_peaklistPanel>\n'
+#         for item in self._peakListSettings:
+#             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
+#         buff += '  </presets_gui_peaklistPanel>\n\n'
+#         
+#         buff += '  <presets_gui_textPanel>\n'
+#         for item in self._textlistSettings:
+#             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
+#         buff += '  </presets_gui_textPanel>\n\n'
+#         
+#         buff += '  <presets_gui_multipleFilesPanel>\n'
+#         for item in self._multipleFilesSettings:
+#             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (str(item['name']), int(item['order']), int(item['width']), bool(item['show']))
+#         buff += '  </presets_gui_multipleFilesPanel>\n\n'
+# 
+#         buff += '  <presets_gui_interactivePanel>\n'
+#         for item in self._interactiveSettings:
+#             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
+#         buff += '  </presets_gui_interactivePanel>\n\n'
         
         # GUI settings
         buff += '  <presets_gui_aui_settings>\n'
         for key in sorted(self._windowSettings.keys()):
             item = self._windowSettings[key]
             if key != "Toolbar":
-                buff += '    <param title="%s" gripper="%s" caption="%s" close_button="%s" floating="%s" show="%s" type="mixed" />\n' % (item['title'], 
-                                                                                                                                         bool(item['gripper']), 
-                                                                                                                                         str(item['caption']), 
-                                                                                                                                         bool(item['close_button']), 
-                                                                                                                                         bool(item['floating']), 
-                                                                                                                                         bool(item['show']))
+                buff += '    <param title="%s" gripper="%s" caption="%s" close_button="%s" floating="%s" show="%s" type="mixed" />\n' % (
+                    item['title'], bool(item['gripper']), str(item['caption']), bool(item['close_button']), bool(item['floating']), bool(item['show']))
             else:
-                buff += '    <param title="%s" gripper="%s" orientation="%s" close_button="%s" left_position="%s" top_position="%s" left_dockable="%s" right_dockable="%s" top_dockable="%s" bottom_dockable="%s" show="%s" type="mixed" />\n' % (item['title'], 
-                                                                                                                                                                                                                                                  bool(item['gripper']), 
-                                                                                                                                                                                                                                                  item['orientation'], 
-                                                                                                                                                                                                                                                  bool(item['close_button']), 
-                                                                                                                                                                                                                                                  bool(item['left_position']),
-                                                                                                                                                                                                                                                  bool(item['top_position']), 
-                                                                                                                                                                                                                                                  bool(item['left_dockable']), 
-                                                                                                                                                                                                                                                  bool(item['right_dockable']), 
-                                                                                                                                                                                                                                                  bool(item['top_dockable']), 
-                                                                                                                                                                                                                                                  bool(item['bottom_dockable']), 
-                                                                                                                                                                                                                                                  bool(item['show']))
+                buff += '    <param title="%s" gripper="%s" orientation="%s" close_button="%s" left_position="%s" top_position="%s" left_dockable="%s" right_dockable="%s" top_dockable="%s" bottom_dockable="%s" show="%s" type="mixed" />\n' % (
+                    item['title'], bool(item['gripper']), item['orientation'], bool(item['close_button']), bool(item['left_position']), bool(item['top_position']), bool(item['left_dockable']),
+                    bool(item['right_dockable']), bool(item['top_dockable']), bool(item['bottom_dockable']), bool(item['show'])) 
         buff += '  </presets_gui_aui_settings>\n\n'
                 
         # Plot presets - zoom
@@ -1648,7 +1636,9 @@ class OrigamiConfig:
         # Custom colors
         buff += '  <custom_colors>\n'
         for i in self.customColors:
-            buff += '    <param name="%s" value="%s" type="color" />\n' % ('_'.join(["color", str(i)]), str(self.customColors[i]))
+            try: color_text = "[{:d}, {:d}, {:d}]".format(int(self.customColors[i][0]), int(self.customColors[i][1]), int(self.customColors[i][2]))
+            except: color_text = str(self.customColors[i])
+            buff += '    <param name="{}" value="{}" type="color" />\n'.format('_'.join(["color", str(i)]), color_text)
         buff += '  </custom_colors>\n\n'
         
         # Process presets - overlay

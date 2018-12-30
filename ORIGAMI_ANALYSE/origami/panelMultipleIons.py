@@ -37,10 +37,9 @@ from styles import gauge, makeMenuItem
 
 
 class panelMultipleIons(wx.Panel):
-    
     def __init__( self, parent, config, icons, helpInfo, presenter ):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, 
-                            size = wx.Size( 300,400 ), style = wx.TAB_TRAVERSAL )
+                            size = wx.Size(300,-1), style = wx.TAB_TRAVERSAL )
 
         self.view = parent
         self.config = config  
@@ -48,21 +47,6 @@ class panelMultipleIons(wx.Panel):
         self.presenter = presenter
         self.currentItem = None
         self.icons = icons
-
-#         sizer = wx.BoxSizer(wx.VERTICAL)
-#         self.topP = topPanel(self, self.config, self.icons, self.help, self.presenter)
-#         sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
-#         self.SetSizer(sizer)
-# 
-# class topPanel(wx.Panel):
-#     def __init__(self, parent, config, icons, helpInfo, presenter):
-#         wx.Panel.__init__(self, parent=parent)
-        
-#         self.config = config
-#         self.help = helpInfo
-#         self.presenter = presenter # wx.App
-#         self.icons = icons
-#         self.view = parent.parent
         
         self.listOfSelected = []
         self.allChecked = True
@@ -137,6 +121,9 @@ class panelMultipleIons(wx.Panel):
         # fit layout
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
+        self.SetSize((300, -1))
+        self.Layout()
+        
             
     def makeToolbar(self):
         

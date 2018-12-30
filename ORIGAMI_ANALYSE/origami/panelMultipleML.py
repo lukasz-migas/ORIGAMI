@@ -44,28 +44,13 @@ class panelMML( wx.Panel ):
     
     def __init__( self, parent, config, icons,  presenter ):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, 
-                            size = wx.Size( 300,600 ), style = wx.TAB_TRAVERSAL )
+                            size = wx.Size( 300,-1 ), style = wx.TAB_TRAVERSAL )
 
         self.view = parent
         self.config = config
         self.presenter = presenter
         self.icons = icons
-               
-#         sizer = wx.BoxSizer(wx.VERTICAL)
-#         self.topP = topPanel(self, self.icons, self.presenter, self.config)
-#         sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
-#         self.SetSizer(sizer)           
-#         
-# class topPanel(wx.Panel):
-#     def __init__(self, parent, icons,  presenter, config):
-#         wx.Panel.__init__(self, parent=parent)
-#         self.icons = icons
-#         self.config = config
-#         self.presenter = presenter # wx.App
-#         self.view = parent.parent
         
-        self.makeToolbar()
-        self.makeListCtrl()
         self.currentItem = None
         self.editingItem = None
         self.allChecked = True
@@ -73,11 +58,8 @@ class panelMML( wx.Panel ):
         self.showLegend = True
         self.addToDocument = False
         
-        panelSizer = wx.BoxSizer( wx.VERTICAL )
-        panelSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
-        panelSizer.Add(self.filelist, 1, wx.EXPAND | wx.ALL, 5)
-        self.SetSizer(panelSizer)
-
+        self.makeGUI()
+        
         self.reverse = False
         self.lastColumn = None
         
@@ -105,6 +87,18 @@ class panelMML( wx.Panel ):
         wx.EVT_MENU(self, ID_mmlPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.OnDeleteAll)
         wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.onCheckTool)
+        
+    def makeGUI(self):
+        """ Make panel GUI """
+        
+        self.makeToolbar()
+        self.makeListCtrl()
+        panelSizer = wx.BoxSizer( wx.VERTICAL )
+        panelSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
+        panelSizer.Add(self.filelist, 1, wx.EXPAND | wx.ALL, 5)
+        self.SetSizer(panelSizer)
+        self.SetSize((300, -1))
+        self.Layout()
         
     def __del__( self ):
          pass

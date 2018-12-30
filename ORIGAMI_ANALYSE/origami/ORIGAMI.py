@@ -141,7 +141,6 @@ class ORIGAMI(object):
         
         # add data processing module
         self.data_processing = self.view.data_processing
-        self.data_handling = self.view.data_handling
         
         # Load protein/CCS database
         if self.config.loadCCSAtStart:

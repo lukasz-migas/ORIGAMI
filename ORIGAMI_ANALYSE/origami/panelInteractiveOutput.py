@@ -652,7 +652,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if key == 'Statistical' and innerKey != '':
             document.IMS2DstatsData[innerKey]['interactive_params'] = parameters
 
-        if key == 'Other data' and innerKey != '':
+        if key == 'Annotated data' and innerKey != '':
             document.other_data[innerKey].update(interactive_params=parameters)
 
         if key == 'UniDec' and innerKey != '':
@@ -783,7 +783,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                                                                  "Show UniDec (all)",
                                                                  "Show UniDec (processed)",
                                                                  "Show UniDec (multiple)",
-                                                                 "Show Other data"],
+                                                                 "Show Annotated data"],
                                              size=(150, -1))
         self.dataSelection_combo.SetStringSelection("Show All")
         self.dataSelection_combo.Bind(wx.EVT_CHOICE, self.OnShowOneDataType)
@@ -2753,7 +2753,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                     for innerKey in docData.other_data:
                         data = docData.other_data[innerKey]
                         kwargs = {"color":(215, 224, 184)}
-                        self.append_to_table(data, key, innerKey, "Other data", **kwargs)
+                        self.append_to_table(data, key, innerKey, "Annotated data", **kwargs)
                         
                 # Tandem dat a
                 if len(docData.tandem_spectra) > 0:
@@ -2941,7 +2941,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             unidecMethod = re.split(' \| ', innerKey)[0]
             innerKey = re.split(' \| ', innerKey)[1]
             docData = deepcopy(document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod])
-        if key == "Other data" and innerKey != "": docData = document.other_data[innerKey]
+        if key == "Annotated data" and innerKey != "": docData = document.other_data[innerKey]
         if key == "MS/MS" and innerKey == '': docData = document.tandem_spectra
         
         return docData
@@ -3113,7 +3113,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if key == 'Statistical' and innerKey != '':
             document.IMS2DstatsData[innerKey][keyword] = value
 
-        if key == 'Other data' and innerKey != '':
+        if key == 'Annotated data' and innerKey != '':
             document.other_data[innerKey][keyword] = value
 
         if key == 'UniDec' and innerKey != '':
@@ -3168,7 +3168,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         if key == 'Statistical' and innerKey != '': document.IMS2DstatsData[innerKey] = self.add_tags_to_data(document.IMS2DstatsData[innerKey], colorbar=colorbar, **kwargs)
 
-        if key == 'Other data' and innerKey != '': document.other_data[innerKey] = self.add_tags_to_data(document.other_data[innerKey], colorbar=colorbar, **kwargs)
+        if key == 'Annotated data' and innerKey != '': document.other_data[innerKey] = self.add_tags_to_data(document.other_data[innerKey], colorbar=colorbar, **kwargs)
 
         if key == 'UniDec' and innerKey != '': document.massSpectrum['unidec'][innerKey] = self.add_tags_to_data(document.massSpectrum['unidec'][innerKey], colorbar=colorbar, **kwargs)
 
@@ -7316,7 +7316,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 data['ylabel'] = "Intensity"
                 bokehPlot = self._add_plot_1D(data, **bkh_kwargs)
 
-            elif key == "Other data":
+            elif key == "Annotated data":
                 plot_type = data['plot_type']
                 if plot_type == "scatter":
                     bokehPlot = self._add_plot_scatter(data, **bkh_kwargs)
@@ -7866,7 +7866,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             criteria = ['MS', 'Processed MS', 'RT', 'RT, multiple', '1D',
                         '1D, multiple', '2D', '2D, processed', 'DT-IMS',
                         'RT, combined', '2D, combined', 'Overlay', 'Statistical',
-                        'MS, multiple', 'UniDec', 'UniDec, multiple', 'Other data']
+                        'MS, multiple', 'UniDec', 'UniDec, multiple', 'Annotated data']
         elif filter == 'Show MS (all)':
             criteria = ['MS', 'MS, multiple', 'Processed MS']
         elif filter == 'Show MS (multiple)':
@@ -7895,8 +7895,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             criteria = ['UniDec, processed']
         elif filter == 'Show UniDec (multiple)':
             criteria = ['UniDec, multiple']
-        elif filter == 'Show Other data':
-            criteria = ['Other data']
+        elif filter == 'Show Annotated data':
+            criteria = ['Annotated data']
 
         # Iterate over row and columns to get data
         for row in range(rows):
@@ -7958,7 +7958,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         elif evtID == ID_interactivePanel_check_unidec:
              criteria = ['UniDec', 'UniDec, multiple', 'UniDec, processed']
         elif evtID == ID_interactivePanel_check_other:
-            criteria = ['Other data']
+            criteria = ['Annotated data']
 
 
         rows = self.itemsList.GetItemCount()

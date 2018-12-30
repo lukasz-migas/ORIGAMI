@@ -105,7 +105,7 @@ class document():
         self.IMS2DstatsData = {}
         self.got2Dmatrix = False
         
-        # Other data
+        # Annotated data
         self.other_data = {}
         self.tandem_spectra = {}
         self.file_reader = {}

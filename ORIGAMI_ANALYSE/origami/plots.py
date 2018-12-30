@@ -631,7 +631,7 @@ class plots(plottingWindow):
                 colorlist = color_palette(kwargs['palette'], n_colors)
 
             elif kwargs["color_scheme"] == "Same color":
-                colorlist = [kwargs["line_color"]] * n_colors
+                colorlist = [kwargs["shade_color"]] * n_colors
 
             elif kwargs['color_scheme'] == "Random":
                 colorlist = []
@@ -699,8 +699,10 @@ class plots(plottingWindow):
                     line.set_ydata(new_yvals)
                     ydata.extend(new_yvals)
                     yOffset=yOffset-increment
-
-
+                    
+            # remove nans
+            ydata = np.array(ydata)
+            ydata = ydata[~np.isnan(ydata)]
             self.plot_limits[2] = np.min(ydata)-offset
             self.plot_limits[3] = np.max(ydata)+0.05
             extent = [self.plot_limits[0], self.plot_limits[2],
@@ -2223,7 +2225,7 @@ class plots(plottingWindow):
                     kwargs['palette'] = kwargs['palette'].lower()
                 colorlist = color_palette(kwargs['palette'], n_colors)
             elif kwargs["color_scheme"] == "Same color":
-                colorlist = [kwargs["line_color"]] * n_colors
+                colorlist = [kwargs["shade_color"]] * n_colors
             elif kwargs['color_scheme'] == "Random":
                 colorlist = []
                 for __ in range(n_colors): colorlist.append(randomColorGenerator())
@@ -2596,7 +2598,7 @@ class plots(plottingWindow):
                 kwargs['palette'] = kwargs['palette'].lower()
             colorlist = color_palette(kwargs['palette'], n_count)
         elif kwargs["color_scheme"] == "Same color":
-            colorlist = [kwargs["line_color"]] * n_count
+            colorlist = [kwargs["shade_color"]] * n_count
         elif kwargs['color_scheme'] == "Random":
             colorlist = []
             for __ in range(n_count): colorlist.append(randomColorGenerator())

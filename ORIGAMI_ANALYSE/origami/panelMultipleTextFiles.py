@@ -41,7 +41,7 @@ class panelMultipleTextFiles (wx.Panel):
     
     def __init__( self, parent, config, icons, presenter ):
         wx.Panel.__init__ ( self, parent, id = wx.ID_ANY, pos = wx.DefaultPosition, 
-                            size = wx.Size( 300,400 ), style = wx.TAB_TRAVERSAL )
+                            size = wx.Size( 300,-1 ), style = wx.TAB_TRAVERSAL )
 
         self.view = parent
         self.config = config  
@@ -49,21 +49,6 @@ class panelMultipleTextFiles (wx.Panel):
         self.icons = icons
         self.currentItem = None
 #         
-#         sizer = wx.BoxSizer(wx.VERTICAL)
-#         self.topP = topPanel(self, self.icons, self.presenter, self.config)
-#         sizer.Add(self.topP, 1, wx.EXPAND | wx.ALL, 1)
-#         self.SetSizer(sizer)     
-
-
-# class topPanel(wx.Panel):
-#     def __init__(self, parent, icons, presenter, config):
-#         wx.Panel.__init__(self, parent=parent)
-#         
-#         self.presenter = presenter # wx.App
-#         self.config = config
-#         self.icons = icons
-#         self.view = parent.parent
-        
         self.allChecked = True
         self.reverse = False
         self.lastColumn = None
@@ -125,6 +110,9 @@ class panelMultipleTextFiles (wx.Panel):
         # fit layout
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
+        self.SetSize((300, -1))
+        self.Layout()
+        
         
     def makeListCtrl(self):
 
