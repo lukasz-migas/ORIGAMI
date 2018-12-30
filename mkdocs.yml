@@ -5,13 +5,13 @@ site_author: Lukasz G. Migas
 
 copyright: <a href='http://github.com/lukasz-migas'>Lukasz G. Migas</a>
 
-site_url: https://lukasz-migas.github.io/ORIGAMI
+site_url: https://origami.lukasz-migas.com
 repo_url: https://github.com/lukasz-migas/ORIGAMI
 edit_uri: https://github.com/lukasz-migas/ORIGAMI/tree/master/site-source
 
 use_directory_urls: false
 
-google_analytics: ['UA-130097236-1', 'https://lukasz-migas.github.io/ORIGAMI/']
+google_analytics: ['UA-130097236-1', 'https://origami.lukasz-migas.com']
 docs_dir: 'site-source'
 site_dir: 'docs'
 
