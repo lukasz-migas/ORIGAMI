@@ -4558,8 +4558,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         # sort list
         annotated_ms_list = natsorted(annotated_ms_list)
         
-#         print(tandem_data.keys(), tandem_data['charges'], tandem_data['identification'])
-        
         # collect data
         xvals_list, yvals_list, options_list = [], [], []
         item_colors_list, item_labels_list, item_details_list, title_list = [], [], [], []
@@ -8520,7 +8518,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if "tandem_line_width" not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['tandem_line_width'] = 1.
         if "tandem_line_color_unlabelled" not in data['interactive_params']['plot_properties']:
-            data['interactive_params']['plot_properties']['tandem_line_color_unlabelled'] = (1., 1., 1.)
+            data['interactive_params']['plot_properties']['tandem_line_color_unlabelled'] = (0., 0., 0.)
         if "tandem_line_color_labelled" not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['tandem_line_color_labelled'] = (1., 0., 0.)
 

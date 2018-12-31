@@ -13,7 +13,7 @@
         <meta name="description" content="ORIGAMI is an open-source software for analysis of MS and IM-MS datasets.">
       
       
-        <link rel="canonical" href="https://lukasz-migas.github.io/ORIGAMI/user-guide/data-handling/text-files.html">
+        <link rel="canonical" href="https://origami.lukasz-migas.com/user-guide/data-handling/text-files.html">
       
       
         <meta name="author" content="Lukasz G. Migas">
@@ -116,7 +116,7 @@
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
-        <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-header-nav__button md-logo">
+        <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-header-nav__button md-logo">
           
             <i class="md-icon"></i>
           
@@ -266,6 +266,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     </ul>
   </div>
 </nav>
@@ -279,7 +285,7 @@
                   <div class="md-sidebar__inner">
                     <nav class="md-nav md-nav--primary" data-md-level="0">
   <label class="md-nav__title md-nav__title--site" for="__drawer">
-    <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-nav__button md-logo">
+    <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-nav__button md-logo">
       
         <i class="md-icon"></i>
       
@@ -477,6 +483,33 @@
   <a href="#processing-heatmaps" title="Processing heatmaps" class="md-nav__link">
     Processing heatmaps
   </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#processing-panel-2d" title="Processing panel: 2D" class="md-nav__link">
+    Processing panel: 2D
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processing-from-panel-textlist" title="Processing from Panel: Textlist" class="md-nav__link">
+    Processing from Panel: Textlist
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processing-from-document-tree" title="Processing from Document tree" class="md-nav__link">
+    Processing from Document tree
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -807,6 +840,42 @@
 
 
   <li class="md-nav__item">
+    <a href="../../main/request.html" title="Request New Features" class="md-nav__link">
+      Request New Features
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/bugs.html" title="Report Bugs" class="md-nav__link">
+      Report Bugs
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/subscribe.html" title="Newsletter" class="md-nav__link">
+      Newsletter
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
     <a href="../../main/cite.html" title="Cite" class="md-nav__link">
       Cite
     </a>
@@ -878,6 +947,33 @@
     Processing heatmaps
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#processing-panel-2d" title="Processing panel: 2D" class="md-nav__link">
+    Processing panel: 2D
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processing-from-panel-textlist" title="Processing from Panel: Textlist" class="md-nav__link">
+    Processing from Panel: Textlist
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processing-from-document-tree" title="Processing from Document tree" class="md-nav__link">
+    Processing from Document tree
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
       
@@ -901,38 +997,44 @@
                 
                 <h1 id="analysis-of-text-files">Analysis of text files<a class="headerlink" href="#analysis-of-text-files" title="Permanent link">&para;</a></h1>
 <p>In this example we will use files provided with the ORIGAMI distribution. You can download <a href="../example-files/MS_p27-FL-K31.csv">MS file</a> and <a href="../example-files/heatmaps.zip">heatmap file</a> or you can find them in your ORIGAMI directory (<strong>example_data/text</strong>).</p>
-<h3 id="data-loading">Data loading<a class="headerlink" href="#data-loading" title="Permanent link">&para;</a></h3>
+<h2 id="data-loading">Data loading<a class="headerlink" href="#data-loading" title="Permanent link">&para;</a></h2>
 <p>To load text files, please use any of the following:</p>
 <ul>
 <li>Use the file menu. File -&gt; Open IM-MS Text file [CIU] or Open MS Text file</li>
 <li>Use the toolbar. Click on the <strong>T</strong> or <strong>T+</strong> button</li>
-<li>Use a keyboard shortcut:<ul>
-<li><strong>CTRL+T</strong> - open heatmap text (.csv/.txt/.tab) file   </li>
-</ul>
-</li>
+<li>Use a keyboard shortcut:</li>
+<li><strong>CTRL+T</strong> - open heatmap text (.csv/.txt/.tab) file</li>
 <li>Drag-and-drop the file in the main window</li>
 <li>Clipboard: - MS data only</li>
 </ul>
-<h3 id="document-tree">Document tree<a class="headerlink" href="#document-tree" title="Permanent link">&para;</a></h3>
-<p>Any file you open will result in generation of a <strong>ORIGAMI document</strong> that will contain all <strong>data</strong> that you will generate. It is structured just like a directory on your PC so it should be easy to get used to. When you right-click on any item, a custom menu will appear from which you can figure out what you would like to do. An example is shown below: </p>
+<h2 id="document-tree">Document tree<a class="headerlink" href="#document-tree" title="Permanent link">&para;</a></h2>
+<p>Any file you open will result in generation of a <strong>ORIGAMI document</strong> that will contain all <strong>data</strong> that you will generate. It is structured just like a directory on your PC so it should be easy to get used to. When you right-click on any item, a custom menu will appear from which you can figure out what you would like to do. An example is shown below:</p>
 <p><img alt="Image" src="img/document-tree-text.png" /></p>
-<h3 id="plotting-and-replotting">Plotting and replotting<a class="headerlink" href="#plotting-and-replotting" title="Permanent link">&para;</a></h3>
+<h2 id="plotting-and-replotting">Plotting and replotting<a class="headerlink" href="#plotting-and-replotting" title="Permanent link">&para;</a></h2>
 <p>You can either double-click on an item in the <strong>Document tree</strong> or right-click and select the option "Show...". If you would like to clear a plot, right-click in the plot area and select "Clear plot".</p>
-<h3 id="panel-textlist">Panel: Textlist<a class="headerlink" href="#panel-textlist" title="Permanent link">&para;</a></h3>
-<p>All text-based heatmaps are automatically added to the <strong>Panel textlist</strong> which usually appears on the right-hand side of the window. From here, you can easily visualise, customise and compare data. </p>
+<h2 id="panel-textlist">Panel: Textlist<a class="headerlink" href="#panel-textlist" title="Permanent link">&para;</a></h2>
+<p>All text-based heatmaps are automatically added to the <strong>Panel textlist</strong> which usually appears on the right-hand side of the window. From here, you can easily visualise, customise and compare data.</p>
 <p><img alt="Image" src="img/panel-text-list.png" /></p>
 <p>When you right-click on any item in the list, a menu will appear from which you can easily access various visualisation modes and customisation settings.</p>
 <p><img alt="Image" src="img/panel-text-list-right-click-menu.png" /></p>
 <p>When you double-click on an item (or right-click and select "Edit file information") a new window will appear where you can change certain parameters, such as <em>charge state, color, colormap, etc</em>.</p>
 <p><img alt="Image" src="img/panel-text-list-customise-item.png" /></p>
-<h3 id="processing-heatmaps">Processing heatmaps<a class="headerlink" href="#processing-heatmaps" title="Permanent link">&para;</a></h3>
-<p>By default, all heatmaps will show the <strong>raw</strong> data which might not always be the most visually pleasing. In some circumstances, it might be necessary to process (e.g. normalize or smooth) the data. </p>
-<p>Panel processing: 2D</p>
+<h2 id="processing-heatmaps">Processing heatmaps<a class="headerlink" href="#processing-heatmaps" title="Permanent link">&para;</a></h2>
+<p>By default, all heatmaps will show the <strong>raw</strong> data which might not always be the most visually pleasing. In some circumstances, it might be necessary to process (e.g. normalize or smooth) the data.</p>
+<h3 id="processing-panel-2d">Processing panel: 2D<a class="headerlink" href="#processing-panel-2d" title="Permanent link">&para;</a></h3>
 <p><img alt="Image" src="img/panel_process_2D.png" /></p>
-<p><strong>Panel: Textlist</strong>
-1. Select any number of ions in the textlist.
-2. In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select -&gt; Process selected/all ions. Ions will be process based on the parameters in the <strong>Processing panel: 2D</strong>. 
-3. All process data will appear in the document with the <strong>(processed)</strong> tag attached to the name.</p>
+<h3 id="processing-from-panel-textlist">Processing from <strong>Panel: Textlist</strong><a class="headerlink" href="#processing-from-panel-textlist" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Select any number of ions in the textlist.</li>
+<li>In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select -&gt; Process selected/all ions. Ions will be process based on the parameters in the <strong>Processing panel: 2D</strong>.</li>
+<li>All process data will appear in the document with the <strong>(processed)</strong> tag attached to the name.</li>
+</ol>
+<h3 id="processing-from-document-tree">Processing from <strong>Document tree</strong><a class="headerlink" href="#processing-from-document-tree" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Right-click on a desired item in the Document tree (e.g. Drift time (2D)) and select <strong>Process...</strong></li>
+<li>A new window will appear where you can adjust processing parameters</li>
+<li>Click on the <strong>Replot</strong> button if you first want to see how the data will look or <strong>Process</strong> if you would like to add that data to the document.</li>
+</ol>
                 
                   
                 
@@ -1028,7 +1130,7 @@
     
     
       
-        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://lukasz-migas.github.io/ORIGAMI/"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
+        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://origami.lukasz-migas.com"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
       
     
   </body>

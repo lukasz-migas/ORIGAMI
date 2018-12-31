@@ -13,7 +13,7 @@
         <meta name="description" content="ORIGAMI is an open-source software for analysis of MS and IM-MS datasets.">
       
       
-        <link rel="canonical" href="https://lukasz-migas.github.io/ORIGAMI/user-guide/deconvolution/unidec-deconvolution.html">
+        <link rel="canonical" href="https://origami.lukasz-migas.com/user-guide/deconvolution/unidec-deconvolution.html">
       
       
         <meta name="author" content="Lukasz G. Migas">
@@ -116,7 +116,7 @@
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
-        <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-header-nav__button md-logo">
+        <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-header-nav__button md-logo">
           
             <i class="md-icon"></i>
           
@@ -266,6 +266,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     </ul>
   </div>
 </nav>
@@ -279,7 +285,7 @@
                   <div class="md-sidebar__inner">
                     <nav class="md-nav md-nav--primary" data-md-level="0">
   <label class="md-nav__title md-nav__title--site" for="__drawer">
-    <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-nav__button md-logo">
+    <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-nav__button md-logo">
       
         <i class="md-icon"></i>
       
@@ -842,6 +848,42 @@
 
 
   <li class="md-nav__item">
+    <a href="../../main/request.html" title="Request New Features" class="md-nav__link">
+      Request New Features
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/bugs.html" title="Report Bugs" class="md-nav__link">
+      Report Bugs
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/subscribe.html" title="Newsletter" class="md-nav__link">
+      Newsletter
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
     <a href="../../main/cite.html" title="Cite" class="md-nav__link">
       Cite
     </a>
@@ -970,19 +1012,20 @@
                 
                 
                 <h1 id="unidec-deconvolution">UniDec deconvolution<a class="headerlink" href="#unidec-deconvolution" title="Permanent link">&para;</a></h1>
-<p>UniDec is a Bayesian deconvolution algorithm that can be used to deconvolute mass spectra and ion mobility-mass spectra. It was developed by <a href="https://cbc.arizona.edu/faculty/michael-marty">Dr. Michael Marty</a> and is freely available under the modified BSD licence. I would highly recommend you check-out <a href="https://github.com/michaelmarty/UniDec/releases">UniDec (and MetaUniDec)</a> software. </p>
+<p>UniDec is a Bayesian deconvolution algorithm that can be used to deconvolute mass spectra and ion mobility-mass spectra. It was developed by <a href="https://cbc.arizona.edu/faculty/michael-marty">Dr. Michael Marty</a> and is freely available under the modified BSD licence. I would highly recommend you check-out <a href="https://github.com/michaelmarty/UniDec/releases">UniDec (and MetaUniDec)</a> software.</p>
 <p>If you use it in your work, please cite their work:</p>
 <p><a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.5b00140">M. T. Marty, A. J. Baldwin, E. G. Marklund, G. K. A. Hochberg, J. L. P. Benesch, C. V. Robinson, Anal. Chem. 2015, 87, 4370-4376.</a></p>
-<h3 id="video-tutorial">Video tutorial<a class="headerlink" href="#video-tutorial" title="Permanent link">&para;</a></h3>
-<p><iframe width="560" height="315" src="https://www.youtube.com/embed/6_-TDvwH-QQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></p>
-<h3 id="deconvolution-in-origami-analyse">Deconvolution in ORIGAMI-ANALYSE<a class="headerlink" href="#deconvolution-in-origami-analyse" title="Permanent link">&para;</a></h3>
-<p>Any mass spectrum within a ORIGAMI document can be deconvoluted and therefore a document can contain tens of spectra, each with its own deconvolution results. The easiest way to get started is to find an item in the Document Tree, right-click on it and select <strong>Deconvolute using UniDec...</strong> which will open a new panel where you can adjust the parameters. </p>
-<h3 id="example-data">Example data<a class="headerlink" href="#example-data" title="Permanent link">&para;</a></h3>
+<h2 id="video-tutorial">Video tutorial<a class="headerlink" href="#video-tutorial" title="Permanent link">&para;</a></h2>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/6_-TDvwH-QQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<h2 id="deconvolution-in-origami-analyse">Deconvolution in ORIGAMI-ANALYSE<a class="headerlink" href="#deconvolution-in-origami-analyse" title="Permanent link">&para;</a></h2>
+<p>Any mass spectrum within a ORIGAMI document can be deconvoluted and therefore a document can contain tens of spectra, each with its own deconvolution results. The easiest way to get started is to find an item in the Document Tree, right-click on it and select <strong>Deconvolute using UniDec...</strong> which will open a new panel where you can adjust the parameters.</p>
+<h2 id="example-data">Example data<a class="headerlink" href="#example-data" title="Permanent link">&para;</a></h2>
 <p>In this example we will use a file provided with the ORIGAMI distribution. You can download <a href="../example-files/MS_p27-FL-K31.csv">MS file</a> or you can find it in your ORIGAMI directory (<strong>example_data/text</strong>). This file contains a mass spectrum of a intrinsically disordered protein, p27 that is approx. 22.5 kDa in size and has a very broad charge state distribution.</p>
-<h3 id="loading-data">Loading data<a class="headerlink" href="#loading-data" title="Permanent link">&para;</a></h3>
-<p>Please have a look at <a href="../data-handling/text-files.html">Loading Text files</a>. 
+<h2 id="loading-data">Loading data<a class="headerlink" href="#loading-data" title="Permanent link">&para;</a></h2>
+<p>Please have a look at <a href="../data-handling/text-files.html">Loading Text files</a>.
 In short, you either drag-and-drop the text file in the main window of ORIGAMI-ANALYSE or go to <strong>File -&gt; Open MS Text file</strong>.</p>
-<h3 id="deconvolution">Deconvolution<a class="headerlink" href="#deconvolution" title="Permanent link">&para;</a></h3>
+<h2 id="deconvolution">Deconvolution<a class="headerlink" href="#deconvolution" title="Permanent link">&para;</a></h2>
 <p>Once you've loaded data, right-click on it in the Document Tree and select <strong>Deconvolute using UniDec...</strong> If you are using the example file, you can start with the settings shown below:</p>
 <p><img alt="Image" src="img/panel-process-unidec.png" /></p>
 <ol>
@@ -990,20 +1033,20 @@ In short, you either drag-and-drop the text file in the main window of ORIGAMI-A
 <li>Specify deconvolution parameters. If you are unsure about the sample you are analysing, specify a broad range of charge states and the molecular weight with large-ish Sampling frequency. This will help you narrow down the appropriate range for your sample. Once you are happy, click on the Run UniDec button. If you are using the <strong>Tabbed view</strong>, the results will be shown in <strong>UniDec -&gt; m/z vs Charge / MW vs Charge / MW</strong> tabs.</li>
 <li>Following successful deconvolution, you can find peaks and identify the <em>found</em> molecular weights. To do this, specify appropriate parameters in the <strong>Peak detection parameters</strong> section and then click on the <strong>Detect peaks</strong> button. If you are using the <strong>Tabbed view</strong>, the results will be shown in <strong>UniDec -&gt; Isolated MS / Barplot</strong> tabs.</li>
 </ol>
-<h3 id="visualisation-of-results">Visualisation of results<a class="headerlink" href="#visualisation-of-results" title="Permanent link">&para;</a></h3>
+<h2 id="visualisation-of-results">Visualisation of results<a class="headerlink" href="#visualisation-of-results" title="Permanent link">&para;</a></h2>
 <p><img alt="Image" src="img/unidec-deconvolution-results.png" /></p>
-<h3 id="visualisation-of-individual-species">Visualisation of individual species<a class="headerlink" href="#visualisation-of-individual-species" title="Permanent link">&para;</a></h3>
-<p>If you are lucky, deconvolution will result in a single species being detect. This is rather unlikely and therefore you will be presented with a range of detected MW. 
-In order to select and visualise only <strong>one</strong> species at at time, you can select an item with a molecular weight in the Dropdown menu (see below) and click on the <strong>Isolate</strong> button. You can also label its charge states by clicking on the <strong>Label</strong> button. </p>
+<h2 id="visualisation-of-individual-species">Visualisation of individual species<a class="headerlink" href="#visualisation-of-individual-species" title="Permanent link">&para;</a></h2>
+<p>If you are lucky, deconvolution will result in a single species being detect. This is rather unlikely and therefore you will be presented with a range of detected MW.
+In order to select and visualise only <strong>one</strong> species at at time, you can select an item with a molecular weight in the Dropdown menu (see below) and click on the <strong>Isolate</strong> button. You can also label its charge states by clicking on the <strong>Label</strong> button.</p>
 <p><strong>Note:</strong> It is likely that the automatic label optimiser is enabled and you can change that by clicking on the <strong>Customise plots...</strong> button and unchecking the <strong>Optimise label position</strong> option.</p>
 <p><img alt="Image" src="img/unidec-select-mw.png" /></p>
-<h3 id="saving-plots">Saving plots<a class="headerlink" href="#saving-plots" title="Permanent link">&para;</a></h3>
+<h2 id="saving-plots">Saving plots<a class="headerlink" href="#saving-plots" title="Permanent link">&para;</a></h2>
 <p>The easiest way to save any plot in ORIGAMI-ANALYSE is to plot it, customise it and then right-click in the plot area and select <strong>Save figure...</strong>.</p>
 <p><strong>Note:</strong> It is likely that the figure will be automatically resized to a pre-defined image size. This can <strong>very occasionally</strong> cause problems, therefore you disable that option by unchecking the <strong>Resize on saving</strong> menu item.</p>
-<h3 id="saving-data">Saving data<a class="headerlink" href="#saving-data" title="Permanent link">&para;</a></h3>
+<h2 id="saving-data">Saving data<a class="headerlink" href="#saving-data" title="Permanent link">&para;</a></h2>
 <p>All deconvolution data is saved within the document and if you to the Document Tree and open-up the item (see below), you can right-click on any item and select the option <strong>Save results</strong>. If you click on the <strong>UniDec</strong> header, you can save all results at the same time.</p>
 <p><img alt="Image" src="img/document-tree-save-unidec-data.png" /></p>
-<h3 id="plotting-and-replotting">Plotting and replotting<a class="headerlink" href="#plotting-and-replotting" title="Permanent link">&para;</a></h3>
+<h2 id="plotting-and-replotting">Plotting and replotting<a class="headerlink" href="#plotting-and-replotting" title="Permanent link">&para;</a></h2>
 <p>Find the desired item in the Document Tree and double-click on it to plot it.</p>
                 
                   
@@ -1100,7 +1143,7 @@ In order to select and visualise only <strong>one</strong> species at at time, y
     
     
       
-        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://lukasz-migas.github.io/ORIGAMI/"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
+        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://origami.lukasz-migas.com"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
       
     
   </body>

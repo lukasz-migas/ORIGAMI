@@ -147,8 +147,8 @@ class MZIdentReader():
                                 'accession':accession, 
                                 'start':start, 
                                 'end':end,
-                                'pre':pre, 
-                                'post':post}
+                                'peptide_prev_aa':pre, 
+                                'peptide_next_aa':post}
 
         return peptide_out
 

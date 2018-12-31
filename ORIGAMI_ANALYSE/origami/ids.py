@@ -239,6 +239,7 @@ ID_annotPanel_multipleAnnotation = NewId()
 # Tandem panel
 ID_tandemPanel_otherSettings = NewId()
 ID_tandemPanel_showPTMs = NewId()
+ID_tandemPanel_showUnidentifiedScans = NewId()
 ID_tandemPanel_peaklist_show_selected = NewId()
 
 # UVPD panel

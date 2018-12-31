@@ -13,7 +13,7 @@
         <meta name="description" content="ORIGAMI is an open-source software for analysis of MS and IM-MS datasets.">
       
       
-        <link rel="canonical" href="https://lukasz-migas.github.io/ORIGAMI/user-guide/processing/mass-spectra.html">
+        <link rel="canonical" href="https://origami.lukasz-migas.com/user-guide/processing/mass-spectra.html">
       
       
         <meta name="author" content="Lukasz G. Migas">
@@ -116,7 +116,7 @@
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
-        <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-header-nav__button md-logo">
+        <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-header-nav__button md-logo">
           
             <i class="md-icon"></i>
           
@@ -266,6 +266,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     </ul>
   </div>
 </nav>
@@ -279,7 +285,7 @@
                   <div class="md-sidebar__inner">
                     <nav class="md-nav md-nav--primary" data-md-level="0">
   <label class="md-nav__title md-nav__title--site" for="__drawer">
-    <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-nav__button md-logo">
+    <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-nav__button md-logo">
       
         <i class="md-icon"></i>
       
@@ -518,8 +524,8 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#video-tutorial" title="Video tutorial" class="md-nav__link">
-    Video tutorial
+  <a href="#video-tutorial-on-how-to-process-mass-spectra" title="Video tutorial on how to process mass spectra" class="md-nav__link">
+    Video tutorial on how to process mass spectra
   </a>
   
 </li>
@@ -807,6 +813,42 @@
 
 
   <li class="md-nav__item">
+    <a href="../../main/request.html" title="Request New Features" class="md-nav__link">
+      Request New Features
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/bugs.html" title="Report Bugs" class="md-nav__link">
+      Report Bugs
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/subscribe.html" title="Newsletter" class="md-nav__link">
+      Newsletter
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
     <a href="../../main/cite.html" title="Cite" class="md-nav__link">
       Cite
     </a>
@@ -846,8 +888,8 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#video-tutorial" title="Video tutorial" class="md-nav__link">
-    Video tutorial
+  <a href="#video-tutorial-on-how-to-process-mass-spectra" title="Video tutorial on how to process mass spectra" class="md-nav__link">
+    Video tutorial on how to process mass spectra
   </a>
   
 </li>
@@ -900,22 +942,22 @@
                 
                 
                 <h1 id="processing-mass-spectra">Processing mass spectra<a class="headerlink" href="#processing-mass-spectra" title="Permanent link">&para;</a></h1>
-<p>All mass spectra found in a ORIGAMI document can be processed in a way that reduced noise, smoothes peaks, or linearized the spectrum to reduce its size. </p>
-<h3 id="video-tutorial">Video tutorial<a class="headerlink" href="#video-tutorial" title="Permanent link">&para;</a></h3>
+<p>All mass spectra found in a ORIGAMI document can be processed in a way that reduced noise, smoothes peaks, or linearized the spectrum to reduce its size.</p>
+<h2 id="video-tutorial-on-how-to-process-mass-spectra">Video tutorial on how to process mass spectra<a class="headerlink" href="#video-tutorial-on-how-to-process-mass-spectra" title="Permanent link">&para;</a></h2>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/cDUFutzksbY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-<h3 id="loading-data">Loading data<a class="headerlink" href="#loading-data" title="Permanent link">&para;</a></h3>
-<p>Please have a look at <a href="../data-handling/text-files.html">Loading Text files</a>. 
+<h2 id="loading-data">Loading data<a class="headerlink" href="#loading-data" title="Permanent link">&para;</a></h2>
+<p>Please have a look at <a href="../data-handling/text-files.html">Loading Text files</a>.
 In short, you either drag-and-drop the text file in the main window of ORIGAMI-ANALYSE or go to <strong>File -&gt; Open MS Text file</strong>.</p>
-<h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h3>
-<p>In this example we will use a file provided with the ORIGAMI distribution. You can download <a href="../example-files/MS_nist_intact.csv">MS file</a> or you can find it in your ORIGAMI directory (<strong>example_data/text</strong>). </p>
+<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
+<p>In this example we will use a file provided with the ORIGAMI distribution. You can download <a href="../example-files/MS_nist_intact.csv">MS file</a> or you can find it in your ORIGAMI directory (<strong>example_data/text</strong>).</p>
 <p><strong>Raw mass spectrum</strong>
 <img alt="Image" src="img/mass-spectrum.png" /></p>
-<h3 id="opening-processing-panel">Opening processing panel<a class="headerlink" href="#opening-processing-panel" title="Permanent link">&para;</a></h3>
+<h2 id="opening-processing-panel">Opening processing panel<a class="headerlink" href="#opening-processing-panel" title="Permanent link">&para;</a></h2>
 <p>The easiest way to process a mass spectrum is to find it in the Document Tree, right-click on it and select the <strong>Process...</strong> option. This will open a new window where you can select desired parameters and also execute the action. If you simply open the Processing window, it is not guaranteed ORIGAMI will know which mass spectrum you want to process. Of course, this is only a concern if you have more than one spectrum in the document.</p>
 <p><img alt="Image" src="img/panel-process-MS.png" /></p>
-<h3 id="processing">Processing<a class="headerlink" href="#processing" title="Permanent link">&para;</a></h3>
-<p>Spectral processing is taken in steps, and you can specify which action you would like to take. </p>
+<h2 id="processing">Processing<a class="headerlink" href="#processing" title="Permanent link">&para;</a></h2>
+<p>Spectral processing is taken in steps, and you can specify which action you would like to take.</p>
 <ul>
 <li><strong>Crop spectrum:</strong> specify the min m/z and max m/z range spectrum should restricted to</li>
 <li><strong>Linearize spectrum:</strong> linearize spectrum to have consistent spacing between points. There is a number of methods available that will change the way the spacing is calculated</li>
@@ -923,7 +965,7 @@ In short, you either drag-and-drop the text file in the main window of ORIGAMI-A
 <li><strong>Baseline subtract:</strong> remove noise from the spectrum</li>
 <li><strong>Normalize:</strong> normalize the spectrum to maximum value of 1</li>
 </ul>
-<p>Once you are happy with your parameters, you can either <strong>replot</strong> the spectrum (data <strong>will not</strong> be added to the document) or <strong>process</strong> (data <strong>will</strong> be added to the document). </p>
+<p>Once you are happy with your parameters, you can either <strong>replot</strong> the spectrum (data <strong>will not</strong> be added to the document) or <strong>process</strong> (data <strong>will</strong> be added to the document).</p>
 <p><strong>Processed mass spectrum</strong>
 <img alt="Image" src="img/processed-mass-spectrum.png" /></p>
 <p><strong>Note:</strong> If the <strong>Process</strong> button is disable, it probably means you just opened the Processing panel without specifying the mass spectrum - you can close it and try again from the Document Tree view.</p>
@@ -1022,7 +1064,7 @@ In short, you either drag-and-drop the text file in the main window of ORIGAMI-A
     
     
       
-        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://lukasz-migas.github.io/ORIGAMI/"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
+        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://origami.lukasz-migas.com"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
       
     
   </body>

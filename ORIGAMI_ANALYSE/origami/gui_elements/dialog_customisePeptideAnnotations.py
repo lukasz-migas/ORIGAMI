@@ -88,6 +88,15 @@ class panelCustomiseParameters(wx.Dialog):
          
         hz_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
+        label_yaxis_offset_value = wx.StaticText(panel, -1, "Y-axis label offset:")
+        self.label_yaxis_offset_value = wx.SpinCtrlDouble(panel, -1,
+                                                          value=str(self.config.msms_label_y_offset), 
+                                                          min=0.0, max=1000, 
+                                                          initial=self.config.msms_label_y_offset, 
+                                                          inc=0.01, 
+                                                          size=(-1, -1))
+        self.label_yaxis_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        
         label_fontSize_label = wx.StaticText(panel, -1, "Font size:")
         self.label_fontSize_value= wx.Choice(panel, -1, 
                                    choices=self.config.label_fontsize_list,
@@ -115,47 +124,57 @@ class panelCustomiseParameters(wx.Dialog):
                                                     size=(-1, -1))
         self.label_vert_alignment_value.SetStringSelection(self.config.annotation_label_vert)
         self.label_vert_alignment_value.Bind(wx.EVT_CHOICE, self.onApply)
-        
+
         hz_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        plot_tandem_line_unlabelled_colorBtn = wx.StaticText(panel, -1, u"Line color (unlabelled):")
+        self.plot_tandem_line_unlabelled_colorBtn = wx.Button(
+            panel, wx.ID_ANY, u"",  size=wx.Size(26, 26), name="plot_tandem_unlabelled")
+        self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(convertRGB1to255(
+            self.config.msms_line_color_unlabelled))
+        self.plot_tandem_line_unlabelled_colorBtn.Bind(wx.EVT_BUTTON, self.onApply_color)
         
+        plot_tandem_line_labelled_colorBtn = wx.StaticText(panel, -1, u"Line color (labelled):")
+        self.plot_tandem_line_labelled_colorBtn = wx.Button(
+            panel, wx.ID_ANY, u"",  size=wx.Size(26, 26), name="plot_tandem_labelled")
+        self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(convertRGB1to255(
+            self.config.msms_line_color_labelled))
+        self.plot_tandem_line_labelled_colorBtn.Bind(wx.EVT_BUTTON, self.onApply_color)
+
+        label_show_neutral_loss = wx.StaticText(panel, -1, "Show neutral loss labels:")
+        self.label_show_neutral_loss_check = makeCheckbox(panel, u"")
+        self.label_show_neutral_loss_check.SetValue(self.config.msms_show_neutral_loss)
+        self.label_show_neutral_loss_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        
+        hz_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
         label_show_name = wx.StaticText(panel, -1, "Label structure:")
         
-        label_show_fragment = wx.StaticText(panel, -1, "fragment:")
-        self.label_show_fragment_check = makeCheckbox(panel, u"")
-        self.label_show_fragment_check.SetValue(self.parent.label_format['fragment_name'])
+        self.label_show_fragment_check = makeCheckbox(panel, u"fragment")
+        self.label_show_fragment_check.SetValue(self.config._tandem_label_format['fragment_name'])
         self.label_show_fragment_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        label_show_peptide = wx.StaticText(panel, -1, "sequence:")
-        self.label_show_peptide_check = makeCheckbox(panel, u"")
-        self.label_show_peptide_check.SetValue(self.parent.label_format['peptide_seq'])
-        self.label_show_peptide_check.Bind(wx.EVT_CHECKBOX, self.onApply)
-        
-        label_show_charge = wx.StaticText(panel, -1, "charge:")
-        self.label_show_charge_check = makeCheckbox(panel, u"")
-        self.label_show_charge_check.SetValue(self.parent.label_format['charge'])
+        self.label_show_charge_check = makeCheckbox(panel, u"charge")
+        self.label_show_charge_check.SetValue(self.config._tandem_label_format['charge'])
         self.label_show_charge_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        label_show_error = wx.StaticText(panel, -1, u"Δ error:")
-        self.label_show_error_check = makeCheckbox(panel, u"")
-        self.label_show_error_check.SetValue(self.parent.label_format['delta_mz'])
+        self.label_show_peptide_check = makeCheckbox(panel, u"sequence")
+        self.label_show_peptide_check.SetValue(self.config._tandem_label_format['peptide_seq'])
+        self.label_show_peptide_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        
+        self.label_show_error_check = makeCheckbox(panel, u"Δ error")
+        self.label_show_error_check.SetValue(self.config._tandem_label_format['delta_mz'])
         self.label_show_error_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
         # temporarily disable
-        self.label_show_fragment_check.Disable()
-        self.label_show_peptide_check.Disable()
-        self.label_show_charge_check.Disable()
         self.label_show_error_check.Disable()
         
         label_grid = wx.GridBagSizer(5, 5)
         y = 0
-        label_grid.Add(label_show_fragment, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        label_grid.Add(self.label_show_fragment_check, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        label_grid.Add(label_show_peptide, (y,2), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        label_grid.Add(self.label_show_peptide_check, (y,3), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        label_grid.Add(label_show_charge, (y,4), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        label_grid.Add(self.label_show_charge_check, (y,5), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        label_grid.Add(label_show_error, (y,6), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        label_grid.Add(self.label_show_error_check, (y,7), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(self.label_show_fragment_check, (y,0), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(self.label_show_charge_check, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(self.label_show_peptide_check, (y,2), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(self.label_show_error_check, (y,3), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -171,6 +190,9 @@ class panelCustomiseParameters(wx.Dialog):
         y = y+1        
         grid.Add(hz_line_1, (y,0), wx.GBSpan(1,3), flag=wx.EXPAND)
         y = y+1
+        grid.Add(label_yaxis_offset_value, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.label_yaxis_offset_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        y = y+1
         grid.Add(label_fontSize_label, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.label_fontSize_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
@@ -182,8 +204,19 @@ class panelCustomiseParameters(wx.Dialog):
         y = y+1
         grid.Add(label_vert_alignment, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.label_vert_alignment_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        y = y+1
+        y = y+1        
         grid.Add(hz_line_2, (y,0), wx.GBSpan(1,3), flag=wx.EXPAND)
+        y = y+1
+        grid.Add(plot_tandem_line_unlabelled_colorBtn, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.plot_tandem_line_unlabelled_colorBtn, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        y = y+1
+        grid.Add(plot_tandem_line_labelled_colorBtn, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.plot_tandem_line_labelled_colorBtn, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        y = y+1
+        grid.Add(label_show_neutral_loss, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.label_show_neutral_loss_check, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        y = y+1
+        grid.Add(hz_line_3, (y,0), wx.GBSpan(1,3), flag=wx.EXPAND)
         y = y+1
         grid.Add(label_show_name, (y,0), wx.GBSpan(1,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
         y = y+1
@@ -204,16 +237,42 @@ class panelCustomiseParameters(wx.Dialog):
         self.config.annotation_arrow_line_width = self.arrow_line_width_value.GetValue()
         self.config.annotation_arrow_line_style = self.arrow_line_style_value.GetStringSelection()
         
-        self.parent.add_arrows = self.add_arrows_check.GetValue() 
+        self.parent.add_arrows = self.add_arrows_check.GetValue()
+        self.config.msms_show_neutral_loss = self.label_show_neutral_loss_check.GetValue()
+        self.config.msms_label_y_offset = self.label_yaxis_offset_value.GetValue()
         
         _label_format = {'fragment_name':self.label_show_fragment_check.GetValue(), 
                          'peptide_seq':self.label_show_peptide_check.GetValue(), 
                          'charge':self.label_show_charge_check.GetValue(), 
-                         'delta_mz':self.label_show_error_check.GetValue(), }
+                         'delta_mz':self.label_show_error_check.GetValue()}
 
-        self.parent.label_format = _label_format
+        self.config._tandem_label_format = _label_format
         
-        
+    def onApply_color(self, evt):
+        source = evt.GetEventObject().GetName()
+         
+        # Restore custom colors
+        custom = wx.ColourData()
+        for key in range(len(self.config.customColors)):
+            custom.SetCustomColour(key, self.config.customColors[key])
+        dlg = wx.ColourDialog(self, custom)
+        dlg.GetColourData().SetChooseFull(True)
+         
+        # Show dialog and get new colour
+        if dlg.ShowModal() == wx.ID_OK:
+            data = dlg.GetColourData()
+            newColour = list(data.GetColour().Get())
+            dlg.Destroy()
+            # Retrieve custom colors
+            for i in xrange(15): 
+                self.config.customColors[i] = data.GetCustomColour(i)
+                
+            if source == "plot_tandem_labelled":
+                self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(newColour)
+                self.config.msms_line_color_labelled = convertRGB255to1(newColour)      
+            elif source == "plot_tandem_unlabelled":
+                self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(newColour)
+                self.config.msms_line_color_unlabelled = convertRGB255to1(newColour)     
         
         
         

@@ -1543,7 +1543,9 @@ class panelPlot(wx.Panel):
                       "fontsize": kwargs.pop("font_size", "medium"),}
         
         if plot == 'MS': 
-            self.plot1.plot_add_text(xpos=xpos, yval=yval, label=label, **plt_kwargs)
+            self.plot1.plot_add_text(xpos=xpos, yval=yval, label=label, 
+                                     yoffset=kwargs.get("yoffset", 0.0),
+                                     **plt_kwargs)
             if not repaint: 
                 return 
             else: 
@@ -2297,7 +2299,7 @@ class panelPlot(wx.Panel):
         
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
-        plt_kwargs['line_color'] = [1, 0, 0]
+        plt_kwargs['line_color'] = self.config.msms_line_color_labelled
         plt_kwargs['butterfly_plot'] = butterfly_plot
         
         plot_name="MS"
@@ -2321,10 +2323,17 @@ class panelPlot(wx.Panel):
         
         kwargs = self._buildPlotParameters(plotType="annotation")
         kwargs.update({"check_yscale":True, 
-                       "butterfly_plot":butterfly_plot})
+                       "butterfly_plot":butterfly_plot,
+                       "yoffset":self.config.msms_label_y_offset})
         
         for i in xrange(len(labels)):
-            self.on_plot_labels(msX[i], msY[i], label=labels[i], **kwargs)
+            xval, yval, label = msX[i], msY[i], labels[i]
+            
+            if not self.config.msms_show_neutral_loss:
+                if "H2O" in label or "NH3" in label:
+                    continue
+                
+            self.on_plot_labels(xval, yval, label=label, **kwargs)
             if i == len(labels)-1 and not butterfly_plot:
                 self.plot1.set_xylimits(xylimits)
             
@@ -2336,6 +2345,7 @@ class panelPlot(wx.Panel):
         
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
+        plt_kwargs['line_color'] = self.config.msms_line_color_unlabelled 
         
         self.plot1.clearPlot() 
         self.plot1.plot_1D_centroid(xvals=msX, 

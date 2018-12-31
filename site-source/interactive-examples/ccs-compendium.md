@@ -16,6 +16,16 @@ I recently came across this nice paper from John McLean's lab at Vanderbilt whic
     style="background: #FFFFFF;">
 </iframe>
 
+## Formatted data
+
+You can have a look at the way the data is structured below.
+
+<iframe 
+    src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRqOJpxBvUagahpBvQzM78FjHLRWnfVbkEYXJsUMYLtO_TnN-9cT2X9JlR1iS16K-2qfl4pr-iWS7dn/pubhtml?widget=true&amp;headers=false"
+    width="650" 
+    height="400">
+</iframe>
+
 ## Download formatted data
 
 You can download the data used for this figure from [here](https://lukasz-migas.com/assets/post-22-12-2018-ccs-compendium/ccs_compendium.txt.zip).

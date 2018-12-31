@@ -30,7 +30,9 @@ from toolbox import (str2num, str2int, str2bool)
 from styles import (makeCheckbox, makeStaticBox, makeMenuItem)
 from gui_elements.dialog_customisePeptideAnnotations import panelCustomiseParameters
 from ids import (ID_tandemPanel_otherSettings, ID_tandemPanel_showPTMs, 
-                 ID_tandemPanel_peaklist_show_selected)
+                 ID_tandemPanel_peaklist_show_selected,
+                 ID_tandemPanel_showUnidentifiedScans)
+from sympy.series import residues
 
 
 class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
@@ -60,7 +62,8 @@ class panelTandemSpectra(wx.MiniFrame):
 
         self.peaklist_page = "All scans"
         self.n_loaded_scans = 0
-        self.show_PTMs_in_table = False
+#         self.config._tandem_show_PTMs_in_table = False
+#         self.config._tandem_show_unidentified_in_table = True
         self.fragment_ions = {}
         
         # peaklist
@@ -84,8 +87,8 @@ class panelTandemSpectra(wx.MiniFrame):
         self.verbose = True
         self.butterfly_plot = False
         self.add_arrows = False
-        self.label_format = {'fragment_name':True, 'peptide_seq':False, 
-                             'charge':True, 'delta_mz': False}
+#         self.config._tandem_label_format = {'fragment_name':True, 'peptide_seq':False, 
+#                              'charge':True, 'delta_mz': False}
         
         # make gui items
         self.makeGUI()
@@ -116,9 +119,9 @@ class panelTandemSpectra(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.on_keep_selected_peaklist, id=ID_tandemPanel_peaklist_show_selected)
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_tandemPanel_peaklist_show_selected,
-                                     text='Hide unselected items',
-                                     bitmap=None))
+#         menu.AppendItem(makeMenuItem(parent=menu, id=ID_tandemPanel_peaklist_show_selected,
+#                                      text='Hide unselected items',
+#                                      bitmap=None))
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -133,9 +136,25 @@ class panelTandemSpectra(wx.MiniFrame):
         dlg.ShowModal()
         
     def on_show_PTMs_peaklist(self, evt):
-        self.show_PTMs_in_table = not self.show_PTMs_in_table
+        self.config._tandem_show_PTMs_in_table = not self.config._tandem_show_PTMs_in_table
+        
+        # clear table
+        self.peaklist.DeleteAllItems()
+        
+        if "tandem_spectra" in self.kwargs:
+            self.on_populate_table()
+        
+    def on_show_unidentified_peaklist(self, evt):
+        self.config._tandem_show_unidentified_in_table = not self.config._tandem_show_unidentified_in_table
+        
+        # clear table
+        self.peaklist.DeleteAllItems()
+        
+        if "tandem_spectra" in self.kwargs:
+            self.on_populate_table()
         
     def on_keep_selected_peaklist(self, evt):
+        print("This action does nothing at the moment!")
         pass
     
     def on_check_item_peaklist(self, index, flag):
@@ -199,7 +218,7 @@ class panelTandemSpectra(wx.MiniFrame):
         print("Annotated {} scans in {:.4f} seconds.". format(counter, ttime()-tstart))
         
     def on_clear_annotations(self, evt):
-        tstart = ttime()
+
         document = self.presenter.documentsDict[self.kwargs['document']]
         count = self.peaklist_selected.GetItemCount()
         # iterate over list
@@ -221,8 +240,6 @@ class panelTandemSpectra(wx.MiniFrame):
                 
         # update document
         self.presenter.OnUpdateDocument(document, 'no_refresh')
-        
-        
         
     def peaklist_page_changed(self, evt):
         self.peaklist_page = self.peaklistBook.GetPageText(self.peaklistBook.GetSelection())
@@ -541,10 +558,38 @@ class panelTandemSpectra(wx.MiniFrame):
         
         # bind events
         self.fraglist.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_fragments)
-        self.fraglist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected_fragments)
+        self.fraglist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_fragments)
         self.fraglist.Bind(wx.EVT_LEFT_DCLICK, self.on_zoom_on_spectrum)
         
         mainSizer.Add(self.fraglist, 1, wx.EXPAND|wx.ALL, 0)
+        # fit layout
+        mainSizer.Fit(panel)
+        panel.SetSizerAndFit(mainSizer) 
+        
+        return panel
+    
+    def make_modification_list(self, panel):
+        
+#         self._mod_list = {'check':0, 'delta':1, 'calculated m/z':2, 'intensity':3, 'delta':4, 
+#                           'charge':5, 'label':6, 'peptide':7}
+        
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        
+        self.modlist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
+        self.modlist.SetFont(wx.SMALL_FONT)
+        self.modlist.InsertColumn(0,u'', width=25)
+#         self.modlist.InsertColumn(1,u'ID #', width=50)
+        self.modlist.InsertColumn(1,u'name', width=150)
+        self.modlist.InsertColumn(2,u'Δ mass', width=100)
+        self.modlist.InsertColumn(3,u'residues', width=100)
+        self.modlist.InsertColumn(4,u'location', width=100)
+        
+        # bind events
+#         self.modlist.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_fragments)
+#         self.modlist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_fragments)
+#         self.modlist.Bind(wx.EVT_LEFT_DCLICK, self.on_zoom_on_spectrum)
+        
+        mainSizer.Add(self.modlist, 1, wx.EXPAND|wx.ALL, 0)
         # fit layout
         mainSizer.Fit(panel)
         panel.SetSizerAndFit(mainSizer) 
@@ -578,28 +623,28 @@ class panelTandemSpectra(wx.MiniFrame):
     
     def make_peaklist_all_list(self, panel):
         
-        self._columns_peaklist = {'check':0, 'scan ID':1, 'MSn':2, 'parent m/z':3, 
-                                  'charge':4, '# peaks':5, 'peptide':6, 'identification':6,
-                                  'PTM':7, 'title':8}
+        self._columns_peaklist = {'check':0, 'scan ID':1, 'ID #':2, 'MSn':3, 'parent m/z':4, 
+                                  'charge':5, '# peaks':6, 'peptide':7, 'identification':7,
+                                  'PTM':8, 'title':9}
         
         self.peaklist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
         self.peaklist.SetFont(wx.SMALL_FONT)
         self.peaklist.InsertColumn(0,u'', width=25)
         self.peaklist.InsertColumn(1,u'scan ID', width=65)
-        self.peaklist.InsertColumn(2,u'MSn', width=35)
-        self.peaklist.InsertColumn(3,u'parent m/z', width=65)
-        self.peaklist.InsertColumn(4,u'charge', width=50)
-        self.peaklist.InsertColumn(5,u'# peaks', width=53)
-        self.peaklist.InsertColumn(6,u'peptide', width=110)
-        self.peaklist.InsertColumn(7,u'PTM', width=45)
-        self.peaklist.InsertColumn(8,u'title', width=120)
+        self.peaklist.InsertColumn(2,u'ID #', width=40)
+        self.peaklist.InsertColumn(3,u'MSn', width=35)
+        self.peaklist.InsertColumn(4,u'parent m/z', width=65)
+        self.peaklist.InsertColumn(5,u'charge', width=50)
+        self.peaklist.InsertColumn(6,u'# peaks', width=53)
+        self.peaklist.InsertColumn(7,u'peptide', width=110)
+        self.peaklist.InsertColumn(8,u'PTM', width=45)
+        self.peaklist.InsertColumn(9,u'title', width=120)
         
         # bind events
-        self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self._dummy)
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_peaklist_all)
         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_peaklist)
-        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_show_spectrum)
-        self.peaklist.Bind(wx.EVT_LIST_KEY_DOWN, self.on_show_spectrum)
-        self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
+#         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_show_spectrum)
+#         self.peaklist.Bind(wx.EVT_LIST_KEY_DOWN, self.on_peaklist_all_key_down)
         self.peaklist.Bind(wx.EVT_CONTEXT_MENU, self.onRightClickMenu_peaklist)
         self.peaklist.OnCheckItem = self.on_check_item_peaklist
         
@@ -610,24 +655,29 @@ class panelTandemSpectra(wx.MiniFrame):
         panel.SetSizerAndFit(mainSizer) 
         
         return panel
+    
+    def on_peaklist_all_key_down(self, evt):
+        self.currentItem = evt.m_itemIndex
+        self.on_show_spectrum(evt)
         
     def make_peaklist_selected_list(self, panel):
-        self._columns_peaklist_selected = {'check':0, 'scan ID':1, 'MSn':2, 'parent m/z':3, 
-                                           'charge':4, '# peaks':5, '# matched':6, 'peptide':7, 'identification':8,
-                                           'PTM':8, 'title':9}
+        self._columns_peaklist_selected = {'check':0, 'scan ID':1, 'ID #':2, 'MSn':3, 'parent m/z':4, 
+                                           'charge':5, '# peaks':6, '# matched':7, 'peptide':8, 'identification':9,
+                                           'PTM':9, 'title':10}
         
         self.peaklist_selected = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
         self.peaklist_selected.SetFont(wx.SMALL_FONT)
         self.peaklist_selected.InsertColumn(0,u'', width=25)
         self.peaklist_selected.InsertColumn(1,u'scan ID', width=65)
-        self.peaklist_selected.InsertColumn(2,u'MSn', width=35)
-        self.peaklist_selected.InsertColumn(3,u'parent m/z', width=65)
-        self.peaklist_selected.InsertColumn(4,u'charge', width=50)
-        self.peaklist_selected.InsertColumn(5,u'# peaks', width=53)
-        self.peaklist_selected.InsertColumn(6,u'# matched', width=65)
-        self.peaklist_selected.InsertColumn(7,u'peptide', width=110)
-        self.peaklist_selected.InsertColumn(8,u'PTM', width=45)
-        self.peaklist_selected.InsertColumn(9,u'title', width=120)
+        self.peaklist_selected.InsertColumn(2,u'ID #', width=40)
+        self.peaklist_selected.InsertColumn(3,u'MSn', width=35)
+        self.peaklist_selected.InsertColumn(4,u'parent m/z', width=65)
+        self.peaklist_selected.InsertColumn(5,u'charge', width=50)
+        self.peaklist_selected.InsertColumn(6,u'# peaks', width=53)
+        self.peaklist_selected.InsertColumn(7,u'# matched', width=65)
+        self.peaklist_selected.InsertColumn(8,u'peptide', width=110)
+        self.peaklist_selected.InsertColumn(9,u'PTM', width=45)
+        self.peaklist_selected.InsertColumn(10,u'title', width=120)
         
         # bind events
         self.peaklist_selected.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_peaklist)
@@ -662,6 +712,7 @@ class panelTandemSpectra(wx.MiniFrame):
         fragment_box_sizer = self.make_peptide_checkbox(panel)
         
         self.peaklistBook = wx.Notebook(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, style=wx.NB_MULTILINE)
+    
         self.peaklist_all = wx.Panel(self.peaklistBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.peaklistBook.AddPage(self.make_peaklist_all_list(self.peaklist_all), u"All scans", False)
         
@@ -669,8 +720,12 @@ class panelTandemSpectra(wx.MiniFrame):
         self.peaklistBook.AddPage(self.make_peaklist_selected_list(self.peaklist_selected), u"Selected scans", False)
         
         self.annotationBook = wx.Notebook(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, style=wx.NB_MULTILINE)
+        
         self.annotation_peaklist = wx.Panel(self.annotationBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.annotationBook.AddPage(self.make_peptide_list(self.annotation_peaklist), u"Fragment list", False)
+        
+        self.annotation_modlist = wx.Panel(self.annotationBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.annotationBook.AddPage(self.make_modification_list(self.annotation_modlist), u"Modifications list", False)
         
         self.peaklistBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.peaklist_page_changed)
       
@@ -721,6 +776,7 @@ class panelTandemSpectra(wx.MiniFrame):
     def onActionTool(self, evt):
         self.Bind(wx.EVT_MENU, self.onCustomiseParameters, id=ID_tandemPanel_otherSettings)
         self.Bind(wx.EVT_MENU, self.on_show_PTMs_peaklist, id=ID_tandemPanel_showPTMs)
+        self.Bind(wx.EVT_MENU, self.on_show_unidentified_peaklist, id=ID_tandemPanel_showUnidentifiedScans)
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_tandemPanel_otherSettings,
@@ -728,17 +784,17 @@ class panelTandemSpectra(wx.MiniFrame):
                                      bitmap=self.icons.iconsLib['settings16_2'],
                                      help_text=''))
         menu.AppendSeparator()
+        self.show_unidentified_check =  menu.AppendCheckItem(ID_tandemPanel_showUnidentifiedScans, "Include scans without identification", help="")
+        self.show_unidentified_check.Check(self.config._tandem_show_unidentified_in_table)
+        
         self.show_PTMs_check =  menu.AppendCheckItem(ID_tandemPanel_showPTMs, "Include scans with PTMs", help="")
-        self.show_PTMs_check.Check(self.show_PTMs_in_table)
+        self.show_PTMs_check.Check(self.config._tandem_show_PTMs_in_table)
 
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
     
-    def _dummy(self, evt):
-        pass
-    
-    def onItemSelected_fragments(self, evt):
+    def on_select_fragments(self, evt):
         keyCode = evt.GetKeyCode()
         if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
             self.frag_currentItem = evt.m_itemIndex
@@ -748,15 +804,18 @@ class panelTandemSpectra(wx.MiniFrame):
         if evt != None:
             evt.Skip()
     
-    def onItemSelected(self, evt):
+    def on_select_peaklist_all(self, evt):
         keyCode = evt.GetKeyCode()
+
         if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
             self.currentItem = evt.m_itemIndex
         else:
             self.currentItem = evt.m_itemIndex
             
-        if evt != None:
-            evt.Skip()
+        self.on_show_spectrum(evt)
+        
+#         if evt != None:
+#             evt.Skip()
         
     def on_select_peaklist_selected(self, evt):
         self.selected_currentItem = evt.m_itemIndex
@@ -910,6 +969,7 @@ class panelTandemSpectra(wx.MiniFrame):
                        'peptide':self.peaklist.GetItem(itemID, self._columns_peaklist['peptide']).GetText(),
                        'PTM':str2bool(self.peaklist.GetItem(itemID, self._columns_peaklist['PTM']).GetText()),
                        'title':self.peaklist.GetItem(itemID, self._columns_peaklist['title']).GetText(),
+                       'id_num':int(self.peaklist.GetItem(itemID, self._columns_peaklist['ID #']).GetText())-1, # adjust for previously added 1
                        }
            
         if return_list:
@@ -924,7 +984,7 @@ class panelTandemSpectra(wx.MiniFrame):
             return scanID, MSlevel, precursor_mz, precursor_charge, n_peaks, peptide, ptm, title 
         
         if return_row:
-            return ["", information['scanID'], information['MSlevel'], information['precursor_mz'], 
+            return ["", information['scanID'], information['id_num'], information['MSlevel'], information['precursor_mz'], 
                     information['precursor_charge'], information['n_peaks'], "0", information['peptide'],
                     information['PTM'], information['title']]
             
@@ -1029,20 +1089,20 @@ class panelTandemSpectra(wx.MiniFrame):
         
         enableList = []
         if self.peptide_M_all.GetValue():
-            enableList = [self.peptide_M, self.peptide_M_nH2O, self.peptide_M_nNH3]
+            enableList.extend([self.peptide_M, self.peptide_M_nH2O, self.peptide_M_nNH3])
         if self.peptide_a_all.GetValue():
-            enableList = [self.peptide_a, self.peptide_a_nH2O, self.peptide_a_nNH3]
+            enableList.extend([self.peptide_a, self.peptide_a_nH2O, self.peptide_a_nNH3])
         if self.peptide_b_all.GetValue():
-            enableList = [self.peptide_b, self.peptide_b_nH2O, self.peptide_b_nNH3]
+            enableList.extend([self.peptide_b, self.peptide_b_nH2O, self.peptide_b_nNH3])
         if self.peptide_c_all.GetValue():
-            enableList = [self.peptide_c, self.peptide_c_nH2O, self.peptide_c_nNH3, self.peptide_c_dot, self.peptide_c_add_1_2]
+            enableList.extend([self.peptide_c, self.peptide_c_nH2O, self.peptide_c_nNH3, self.peptide_c_dot, self.peptide_c_add_1_2])
         if self.peptide_x_all.GetValue():
-            enableList = [self.peptide_x, self.peptide_x_nH2O, self.peptide_x_nNH3]
+            enableList.extend([self.peptide_x, self.peptide_x_nH2O, self.peptide_x_nNH3])
         if self.peptide_y_all.GetValue():
-            enableList = [self.peptide_y, self.peptide_y_nH2O, self.peptide_y_nNH3]
+            enableList.extend([self.peptide_y, self.peptide_y_nH2O, self.peptide_y_nNH3])
         if self.peptide_z_all.GetValue():
-            enableList = [self.peptide_z, self.peptide_z_nH2O, self.peptide_z_nNH3, self.peptide_z_dot, self.peptide_z_add_1_2]
-        
+            enableList.extend([self.peptide_z, self.peptide_z_nH2O, self.peptide_z_nNH3, self.peptide_z_dot, self.peptide_z_add_1_2])
+
         for item in enableList:
             item.SetValue(True)
             
@@ -1066,10 +1126,13 @@ class panelTandemSpectra(wx.MiniFrame):
                     except: 
                         pass
                     
-                    if not self.show_PTMs_in_table and ptm:
+                    if not self.config._tandem_show_PTMs_in_table and ptm:
                         continue
                     
-                self.peaklist_selected.Append(["", scan,
+                if not self.config._tandem_show_unidentified_in_table and peptide == "":
+                    continue
+                
+                self.peaklist_selected.Append(["", scan, "",
                                                spectrum['scan_info'].get('ms_level', "2"),
                                                "{:.4f}".format(spectrum['scan_info'].get('precursor_mz', "")),
                                                spectrum['scan_info'].get('precursor_charge', ""),
@@ -1082,31 +1145,46 @@ class panelTandemSpectra(wx.MiniFrame):
             
         for i, scan in enumerate(data):
             # skip keys that are forbidden 
-            if "Scan " not in scan: continue
+            if "Scan " not in scan: 
+                continue
                 
             spectrum = data[scan]
-            peptide, ptm = "", False
+            n_ids, peptide, ptm = 1, [""], [False]
             if "identification" in spectrum:
-                try: peptide = spectrum['identification'][0]['peptide_seq']
-                except: pass
-                try:
-                    if len(spectrum['identification'][0]['modification_info']) > 0:
-                        ptm = True
-                except: 
-                    pass
+                n_ids = len(spectrum['identification'])
                 
-                if not self.show_PTMs_in_table and ptm:
+                peptide = [""] * n_ids
+                ptm = [False] * n_ids
+                for n_id in natsorted(spectrum['identification']):
+                    
+                    try: peptide[n_id] = spectrum['identification'][n_id]['peptide_seq']
+                    except: pass
+                    try: 
+                        if len(spectrum['identification'][n_id]['modification_info']) > 0:
+                            ptm[n_id] = True
+                    except: 
+                        pass
+        
+            for n_id in xrange(n_ids):
+                # check if scans with PTMs should be shown
+                if not self.config._tandem_show_PTMs_in_table and ptm[n_id]:
                     continue
-                
-            self.peaklist.Append(["", scan,
-                                  spectrum['scan_info'].get('ms_level', "2"),
-                                  "{:.4f}".format(spectrum['scan_info'].get('precursor_mz', "")),
-                                  spectrum['scan_info'].get('precursor_charge', ""),
-                                  spectrum['scan_info'].get('peak_count', len(spectrum['xvals'])),
-                                  peptide, str(ptm),
-                                  spectrum['scan_info'].get('title', ""),
-                                  ])
-            if i == n_show: 
+            
+                # check if un-identified scans should be shown
+                if not self.config._tandem_show_unidentified_in_table and peptide[n_id] == "":
+                    continue
+                 
+                # add to table
+                self.peaklist.Append(["", scan, str(n_id+1),
+                                      spectrum['scan_info'].get('ms_level', "2"),
+                                      "{:.4f}".format(spectrum['scan_info'].get('precursor_mz', "")),
+                                      spectrum['scan_info'].get('precursor_charge', ""),
+                                      spectrum['scan_info'].get('peak_count', len(spectrum['xvals'])),
+                                      peptide[n_id], 
+                                      str(ptm[n_id]),
+                                      spectrum['scan_info'].get('title', ""),
+                                      ])
+            if i >= n_show: 
                 self.n_loaded_scans = self.peaklist.GetItemCount()
                 return
             
@@ -1134,33 +1212,56 @@ class panelTandemSpectra(wx.MiniFrame):
                 continue
             
             spectrum = data[scan]
-            peptide, ptm = "", False
+            n_ids, peptide, ptm = 1, [""], [False]
             if "identification" in spectrum:
-                try: peptide = spectrum['identification'][0]['peptide_seq']
-                except: pass
-                try:
-                    if len(spectrum['identification'][0]['modification_info']) > 0:
-                        ptm = True
-                except: pass
+                n_ids = len(spectrum['identification'])
+                
+                peptide = [""] * n_ids
+                ptm = [False] * n_ids
+                for n_id in natsorted(spectrum['identification']):
+                    
+                    try: peptide[n_id] = spectrum['identification'][n_id]['peptide_seq']
+                    except: pass
+                    try: 
+                        if len(spectrum['identification'][n_id]['modification_info']) > 0:
+                            ptm[n_id] = True
+                    except: 
+                        pass
+                
             try: 
                 ms_level = spectrum['scan_info'].get('ms_level', "2")
             except TypeError:
                  self.n_loaded_scans = self.peaklist.GetItemCount()
                  return
              
-            if not self.show_PTMs_in_table and ptm:
-                continue
+            for n_id in xrange(n_ids):
+                
+                # check if scans with PTMs should be shown
+                if not self.config._tandem_show_PTMs_in_table and ptm[n_id]:
+                    continue
+            
+                # check if un-identified scans should be shown
+                if not self.config._tandem_show_unidentified_in_table and peptide[n_id] == "":
+                    continue
              
-            self.peaklist.Append(["", scan, ms_level,
-                                  "{:.4f}".format(spectrum['scan_info'].get('precursor_mz', "")),
-                                  spectrum['scan_info'].get('precursor_charge', ""),
-                                  spectrum['scan_info'].get('peak_count', len(spectrum['xvals'])),
-                                  peptide, str(ptm),
-                                  spectrum['scan_info'].get('title', ""),
-                                  ])
+                self.peaklist.Append(["", scan, str(n_id+1), 
+                                      ms_level,
+                                      "{:.4f}".format(spectrum['scan_info'].get('precursor_mz', "")),
+                                      spectrum['scan_info'].get('precursor_charge', ""),
+                                      spectrum['scan_info'].get('peak_count', len(spectrum['xvals'])),
+                                      peptide[n_id], 
+                                      str(ptm[n_id]),
+                                      spectrum['scan_info'].get('title', ""),
+                                      ])
             
         self.n_loaded_scans = self.peaklist.GetItemCount()
             
+    def on_show_n_spectra(self, evt):
+        self.on_update_table()
+    
+    def on_show_all_spectra(self, evt):
+        self.on_update_table(show_all=True)
+        
     def on_show_spectrum(self, evt):
         tstart = ttime()
         itemInfo = self.get_item_info_peaklist(self.currentItem)
@@ -1204,49 +1305,50 @@ class panelTandemSpectra(wx.MiniFrame):
         else:
             self.presenter.view.panelPlots.on_zoom_1D_xy_axis(min_mz, max_mz, -intensity, intensity)
         
-    def on_show_n_spectra(self, evt):
-        self.on_update_table()
-    
-    def on_show_all_spectra(self, evt):
-        self.on_update_table(show_all=True)
         
     def on_add_fragments(self, itemID=None, return_fragments=False):
         # if itemid is provided, data will most likely be returned
         if itemID is None:
             itemID = self.currentItem
-        
+            
         itemInfo = self.get_item_info_peaklist(itemID)
         document = self.presenter.documentsDict[self.kwargs['document']]
         tandem_spectra = document.tandem_spectra[itemInfo['scanID']]
-        
+
         kwargs = {"ion_types":self._fragments,
                   "tolerance":self.config.fragments_tolerance[self.config.fragments_units],
                   "tolerance_units":self.config.fragments_units,
                   "max_annotations":self.config.fragments_max_matches,
                   "verbose":self.verbose,
-                  "get_calculated_mz":self.butterfly_plot}
+                  "get_calculated_mz":self.butterfly_plot,
+                  "id_num":itemInfo["id_num"]}
+        
         fragments, frag_mass_list, frag_int_list, frag_label_list = self.data_processing.on_get_peptide_fragments(
-            tandem_spectra, get_lists=True, label_format=self.label_format, **kwargs)
+            tandem_spectra, get_lists=True, label_format=self.config._tandem_label_format, **kwargs)
         
         # add to temporary storage
         self.fragment_ions = {'fragment_table':fragments,
                               'fragment_mass_list':frag_mass_list,
                               'fragment_intensity_list':frag_int_list,
                               'fragment_label_list':frag_label_list}
-        
+
         # rather than plotting data, return it for annotation of an item
         if return_fragments:
             return itemInfo, document, fragments, frag_mass_list, frag_int_list, frag_label_list
         
+        # clear tables
         self.on_clear_peptide_table()
+        self.on_clear_modification_table()
+        
+        # add modifications
+        modifications = tandem_spectra.get('identification', {})
+        if len(modifications) > 0:
+            self.on_populate_modification_table(modifications, itemInfo["id_num"])
+        
+        # plot data
         if len(fragments) > 0:
-            self.presenter.view.panelPlots.on_add_centroid_MS_and_labels(frag_mass_list, frag_int_list, frag_label_list, 
-                                                                         butterfly_plot=self.butterfly_plot)
-#             # add arrows
-#             xylimits = self.presenter.view.panelPlots.plot1.get_xylimits()
-#             
-#             available_y_range = [xylimits[3]*0.3, xylimits[3]*0.8]
-            
+            self.presenter.view.panelPlots.on_add_centroid_MS_and_labels(
+                frag_mass_list, frag_int_list, frag_label_list, butterfly_plot=self.butterfly_plot)
             self.on_populate_peptide_table(fragments)
         else:
             self.presenter.view.panelPlots.plot1.repaint()
@@ -1269,7 +1371,7 @@ class panelTandemSpectra(wx.MiniFrame):
                   "verbose":self.verbose,
                   "get_calculated_mz":self.butterfly_plot}
         fragments, frag_mass_list, frag_int_list, frag_label_list = self.data_processing.on_get_peptide_fragments(
-            tandem_spectra, get_lists=True, label_format=self.label_format, **kwargs)
+            tandem_spectra, get_lists=True, label_format=self.config._tandem_label_format, **kwargs)
                 
         # rather than plotting data, return it for annotation of an item
         return itemInfo, document, fragments, frag_mass_list, frag_int_list, frag_label_list
@@ -1368,6 +1470,26 @@ class panelTandemSpectra(wx.MiniFrame):
                                       str(annot.get('charge', "")), 
                                       annot['label'],
                                       annot.get('peptide', "")])
+                
+    def on_clear_modification_table(self):
+        self.modlist.DeleteAllItems()
+                
+    def on_populate_modification_table(self, mod_dict, n_id):
+        
+#         for n_id in natsorted(mod_dict):
+        modifications = mod_dict[n_id]['modification_info']
+        for modification in natsorted(modifications):
+            name = modifications[modification]['name']
+            mass_delta = modifications[modification]['mass_delta'] 
+            residues = ";".join(modifications[modification]['residues'])
+            location = modifications[modification]['location']
+            
+            self.modlist.Append(["",
+#                                  str(n_id), 
+                                 str(name),
+                                 str(mass_delta),
+                                 str(residues),
+                                 str(location)])
         
     def _build_fragment_search_query(self):
         frag_dict = self.config.fragments_search

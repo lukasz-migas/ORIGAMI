@@ -13,7 +13,7 @@
         <meta name="description" content="ORIGAMI is an open-source software for analysis of MS and IM-MS datasets.">
       
       
-        <link rel="canonical" href="https://lukasz-migas.github.io/ORIGAMI/user-guide/data-handling/automated-ciu.html">
+        <link rel="canonical" href="https://origami.lukasz-migas.com/user-guide/data-handling/automated-ciu.html">
       
       
         <meta name="author" content="Lukasz G. Migas">
@@ -116,7 +116,7 @@
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
-        <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-header-nav__button md-logo">
+        <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-header-nav__button md-logo">
           
             <i class="md-icon"></i>
           
@@ -266,6 +266,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     </ul>
   </div>
 </nav>
@@ -279,7 +285,7 @@
                   <div class="md-sidebar__inner">
                     <nav class="md-nav md-nav--primary" data-md-level="0">
   <label class="md-nav__title md-nav__title--site" for="__drawer">
-    <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-nav__button md-logo">
+    <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-nav__button md-logo">
       
         <i class="md-icon"></i>
       
@@ -835,6 +841,42 @@
 
 
   <li class="md-nav__item">
+    <a href="../../main/request.html" title="Request New Features" class="md-nav__link">
+      Request New Features
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/bugs.html" title="Report Bugs" class="md-nav__link">
+      Report Bugs
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/subscribe.html" title="Newsletter" class="md-nav__link">
+      Newsletter
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
     <a href="../../main/cite.html" title="Cite" class="md-nav__link">
       Cite
     </a>
@@ -957,13 +999,13 @@
                 
                 <h1 id="analysis-of-origami-ms-datasets">Analysis of ORIGAMI-MS datasets<a class="headerlink" href="#analysis-of-origami-ms-datasets" title="Permanent link">&para;</a></h1>
 <p>In this example we will use file provided with the ORIGAMI distribution. You can download it <a href="../example-files/ORIGAMI_ConA_z20.raw.zip">here</a> or it should be found in your ORIGAMI directory (<strong>example_data/origami_ms</strong>).</p>
-<h3 id="data-loading">Data loading<a class="headerlink" href="#data-loading" title="Permanent link">&para;</a></h3>
+<h2 id="data-loading">Data loading<a class="headerlink" href="#data-loading" title="Permanent link">&para;</a></h2>
 <p>Please have a look at <a href="ms-and-imms-files.html#data-loading">MS and IM-MS data loading</a>.</p>
-<h3 id="data-extraction">Data extraction<a class="headerlink" href="#data-extraction" title="Permanent link">&para;</a></h3>
+<h2 id="data-extraction">Data extraction<a class="headerlink" href="#data-extraction" title="Permanent link">&para;</a></h2>
 <p>Please have a look at <a href="ms-and-imms-files.html#data-extraction">MS and IM-MS data extraction</a>.</p>
-<h3 id="origami-ms-method">ORIGAMI-MS method<a class="headerlink" href="#origami-ms-method" title="Permanent link">&para;</a></h3>
-<p>ORIGAMI-MS acquired files are simply CIU datasets that were acquired within a single file in which the collision voltage (or cone voltage) were ramped to increase the activation energy. </p>
-<p>There are four methods available which either increase or keep constant the number of scans-per-voltage as the energy increases. </p>
+<h2 id="origami-ms-method">ORIGAMI-MS method<a class="headerlink" href="#origami-ms-method" title="Permanent link">&para;</a></h2>
+<p>ORIGAMI-MS acquired files are simply CIU datasets that were acquired within a single file in which the collision voltage (or cone voltage) were ramped to increase the activation energy.</p>
+<p>There are four methods available which either increase or keep constant the number of scans-per-voltage as the energy increases.</p>
 <ul>
 <li>Linear: the collision voltage (CV) is ramped from <strong>Start Voltage (StartV)</strong> to <strong>End Voltage (EndV)</strong> with <strong>Step Voltage (StepV)</strong> as the increment. The number of scans-per-voltage stays the same and is controlled by <strong>Scans per Voltage (SPV)</strong>.</li>
 <li>Exponential: the CV is ramped from <strong>StartV</strong> to <strong>EndV</strong> with <strong>StepV</strong> as the increment. The SPVs increase as a function of an exponential function where the user specifies the <strong>Exponential %</strong> and <strong>Exponential Increment</strong>. These values determine the rate of the increase.</li>
@@ -997,20 +1039,22 @@
 </tr>
 </tbody>
 </table>
-<h3 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h3>
+<h2 id="getting-started">Getting started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
 <p>The first thing to consider when analysing ORIGAMI-MS based files is the fact that they have a definitive start and end. These two points correspond to the initial and final collision voltage used during the acquisition. ORIGAMI-MS inserts two reporter regions into the acquisition window, and they tend to manifest itself as significant (or sometimes not) dips in the signal intensity. If you started the acquisition correctly, they should be easy to spot. See below for an example</p>
 <p><img alt="Image" src="img/plot_origami_chromatogram.png" /></p>
-<h3 id="how-to-determine-first-scan">How to determine first scan<a class="headerlink" href="#how-to-determine-first-scan" title="Permanent link">&para;</a></h3>
+<h2 id="how-to-determine-first-scan">How to determine first scan<a class="headerlink" href="#how-to-determine-first-scan" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Change the view to the RT (chromatogram) tab</li>
-<li>Zoom-in on the 'reporter' region in the retention time plot. The <strong>first</strong> value after the break is the <strong>start</strong> scan which will be used later on. In this case, the start scan is <strong>7</strong> which means the first CV in the experiment was applied on the 7th scan. </li>
+<li>Zoom-in on the 'reporter' region in the retention time plot. The <strong>first</strong> value after the break is the <strong>start</strong> scan which will be used later on. In this case, the start scan is <strong>7</strong> which means the first CV in the experiment was applied on the 7th scan.</li>
 </ol>
-<h3 id="how-to-determine-origami-ms-parameters">How to determine ORIGAMI-MS parameters<a class="headerlink" href="#how-to-determine-origami-ms-parameters" title="Permanent link">&para;</a></h3>
-<p>There are only two ways you can determine what parameters were used in the acquisition.
-<em> You saved them in your labbook or in the header of the MassLynx file (recommended)
-</em> You saved them to a .csv file using the <strong>Save parameters</strong> button in ORIGAMI-MS window during your acquisition</p>
+<h2 id="how-to-determine-origami-ms-parameters">How to determine ORIGAMI-MS parameters<a class="headerlink" href="#how-to-determine-origami-ms-parameters" title="Permanent link">&para;</a></h2>
+<p>There are only two ways you can determine what parameters were used in the acquisition.</p>
+<ul>
+<li>You saved them in your labbook or in the header of the MassLynx file (recommended)</li>
+<li>You saved them to a .csv file using the <strong>Save parameters</strong> button in ORIGAMI-MS window during your acquisition</li>
+</ul>
 <p>If you have done neither of these things, you can try to figure out your parameters by going to the folder containing ORIGAMI-MS program and looking for the appropriate ORIGAMI_log_<strong>DATE-TIME</strong>.log file which contains <strong>all</strong> commands executed by the program.</p>
-<h3 id="how-to-combine-the-same-cvs-into-one">How to combine the same CVs into one<a class="headerlink" href="#how-to-combine-the-same-cvs-into-one" title="Permanent link">&para;</a></h3>
+<h2 id="how-to-combine-the-same-cvs-into-one">How to combine the same CVs into one<a class="headerlink" href="#how-to-combine-the-same-cvs-into-one" title="Permanent link">&para;</a></h2>
 <p>This is a crucial step that will combine multiple scans into one, corresponding to the typical CIU file. First, you must select ions of interest in the MS and subsequently extract the data. Once you've done that, follow these steps.</p>
 <p>ORIGAMI-MS panel</p>
 <p><img alt="Image" src="img/panel_process_origami.png" /></p>
@@ -1021,27 +1065,29 @@
 <li>In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select -&gt; Combine collision voltages for selected/all ions (ORIGAMI)</li>
 <li>Ions with combined CVs should appear in the Document tree under <strong>Drift time (2D, combined voltages, EIC)</strong>.</li>
 </ol>
-<p>The toolbar -&gt; Process menu: </p>
+<p>The toolbar -&gt; Process menu:</p>
 <p><img alt="Image" src="img/panel-ion-list-process-menu.png" /></p>
 <p>Comparison of the all-ion, extracted-ion and combined voltage EIC heatmaps:
 <img alt="Image" src="img/heatmap-raw-combined-cv.png" /></p>
-<h3 id="extracting-mass-spectra-for-each-cv">Extracting mass spectra for each CV<a class="headerlink" href="#extracting-mass-spectra-for-each-cv" title="Permanent link">&para;</a></h3>
-<p>Once you've associated ORIGAMI-MS parameters with the opened file, you can extract mass spectrum for each CV. 
-1. Provide ORIGAMI-MS parameters (same as above #1)
-2. In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select Extract mass spectra for each collision voltage (ORIGAMI). If the check <strong>Bin mass spectra during extraction</strong> is selected, mass spectra will be automatically linearized based on the parameters set in the <strong>Processing panel: Mass spectrum</strong>. Extraction can take several seconds -&gt; minutes.
-3. All MS data will appear in your document under <strong>Mass Spectra</strong></p>
+<h2 id="extracting-mass-spectra-for-each-cv">Extracting mass spectra for each CV<a class="headerlink" href="#extracting-mass-spectra-for-each-cv" title="Permanent link">&para;</a></h2>
+<p>Once you've associated ORIGAMI-MS parameters with the opened file, you can extract mass spectrum for each CV.</p>
+<ol>
+<li>Provide ORIGAMI-MS parameters (same as above #1)</li>
+<li>In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select Extract mass spectra for each collision voltage (ORIGAMI). If the check <strong>Bin mass spectra during extraction</strong> is selected, mass spectra will be automatically linearized based on the parameters set in the <strong>Processing panel: Mass spectrum</strong>. Extraction can take several seconds -&gt; minutes.</li>
+<li>All MS data will appear in your document under <strong>Mass Spectra</strong></li>
+</ol>
 <p>All extracted mass spectra shown in a waterfall-like plot
 <img alt="Image" src="img/plot-waterfall-ms.png" /></p>
-<h3 id="processing-heatmaps">Processing heatmaps<a class="headerlink" href="#processing-heatmaps" title="Permanent link">&para;</a></h3>
-<p>By default, all heatmaps will show the <strong>raw</strong> data which might not always be the most visually pleasing. In some circumstances, it might be necessary to process (e.g. normalize or smooth) the data. </p>
+<h2 id="processing-heatmaps">Processing heatmaps<a class="headerlink" href="#processing-heatmaps" title="Permanent link">&para;</a></h2>
+<p>By default, all heatmaps will show the <strong>raw</strong> data which might not always be the most visually pleasing. In some circumstances, it might be necessary to process (e.g. normalize or smooth) the data.</p>
 <p>Panel processing: 2D</p>
 <p><img alt="Image" src="img/panel_process_2D.png" /></p>
 <ol>
 <li>Select any number of ions in the peaklist.</li>
-<li>In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select -&gt; Process selected/all ions. Ions will be process based on the parameters in the <strong>Processing panel: 2D</strong>. </li>
+<li>In the toolbar, click on the Process(<img alt="Image" src="img/process-icon.png" />) button and select -&gt; Process selected/all ions. Ions will be process based on the parameters in the <strong>Processing panel: 2D</strong>.</li>
 <li>All process data will appear in the document with the <strong>(processed)</strong> tag attached to the name.</li>
 </ol>
-<p>Comparison of processing of <em>some</em> processing methods. </p>
+<p>Comparison of processing of <em>some</em> processing methods.</p>
 <p><img alt="Image" src="img/heatmap-processing.png" /></p>
                 
                   
@@ -1138,7 +1184,7 @@
     
     
       
-        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://lukasz-migas.github.io/ORIGAMI/"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
+        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://origami.lukasz-migas.com"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
       
     
   </body>

@@ -843,7 +843,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.plot_tandem_line_labelled_colorBtn.Bind(wx.EVT_BUTTON, self.onApply_color)
 
         staticBox = makeStaticBox(
-            panel, "Scatter parameters", size=(-1, -1), color=wx.BLACK)
+            panel, "TAndem MS/MS parameters", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1,-1))
         grid_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
         
@@ -2434,11 +2434,6 @@ class panelCustomiseInteractive(wx.MiniFrame):
             elif source == "plot_tandem_unlabelled":
                 self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(newColour)
                 self.kwargs['plot_properties']['tandem_line_color_unlabelled'] = convertRGB255to1(newColour)                      
-    
-                
-                
-                      
-                
                 
             # update document
             self.onUpdateDocument()

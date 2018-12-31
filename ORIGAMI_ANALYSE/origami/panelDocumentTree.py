@@ -231,7 +231,7 @@ class documentsTree(wx.TreeCtrl):
             self.onOpenDocInfo(evt=None)
             
         tend = time.clock()
-        print('It took: %s seconds.' % str(np.round((tend-tstart),4)))
+        print('It took: %s seconds to process double-click.' % str(np.round((tend-tstart),4)))
         
     def onThreading(self, evt, args, action):
         if action == "add_mzidentml_annotations":
@@ -5547,10 +5547,12 @@ class documentsTree(wx.TreeCtrl):
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.time()
             path = dlg.GetPath()
+            print("Opening {}...".format(path))
             reader = io_mgf.MGFreader(filename = path)
+            print("Created file reader. Loading scans...")
             
             basename = os.path.basename(path)
-            data = reader.get_n_scans(n_scans=999999)
+            data = reader.get_n_scans(n_scans=20000)
             kwargs = {'data_type':"Type: MS/MS", "file_format":"Format: .mgf"}
             document = self.presenter.on_create_document(basename, path, **kwargs)
             
@@ -5580,7 +5582,9 @@ class documentsTree(wx.TreeCtrl):
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.time()
             path = dlg.GetPath()
+            print("Opening {}...".format(path))
             reader = io_mzml.mzMLreader(filename = path)
+            print("Created file reader. Loading scans...")
             
             basename = os.path.basename(path)
             data = reader.get_n_scans(n_scans=999999)
@@ -5650,8 +5654,13 @@ class documentsTree(wx.TreeCtrl):
                                    exceptionMsg= "{} not supported yet!".format(document.fileFormat), 
                                    type="Error", exceptionPrint=True)
                     return
-                    
-                index_dict = document.file_reader['data_reader'].create_title_map(document.tandem_spectra)
+                try:
+                    index_dict = document.file_reader['data_reader'].create_title_map(document.tandem_spectra)
+                except AttributeError:
+                    dialogs.dlgBox(exceptionTitle='Error', 
+                                   exceptionMsg= "Cannot add identification information to {} yet!".format(document.fileFormat), 
+                                   type="Error", exceptionPrint=True)
+                    return
                 
             
             tandem_spectra = reader.match_identification_with_peaklist(peaklist=deepcopy(document.tandem_spectra), 
@@ -5682,7 +5691,9 @@ class documentsTree(wx.TreeCtrl):
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.time()
             path = dlg.GetPath()
+            print("Opening {}...".format(path))
             reader = io_thermo.thermoRAWreader(filename = path)
+            print("Created file reader. Loading scans...")
             
             # get info
             info = reader.get_scan_info()

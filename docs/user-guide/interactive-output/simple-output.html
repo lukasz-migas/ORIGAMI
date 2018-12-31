@@ -13,7 +13,7 @@
         <meta name="description" content="ORIGAMI is an open-source software for analysis of MS and IM-MS datasets.">
       
       
-        <link rel="canonical" href="https://lukasz-migas.github.io/ORIGAMI/user-guide/interactive-output/simple-output.html">
+        <link rel="canonical" href="https://origami.lukasz-migas.com/user-guide/interactive-output/simple-output.html">
       
       
         <meta name="author" content="Lukasz G. Migas">
@@ -116,7 +116,7 @@
   <nav class="md-header-nav md-grid">
     <div class="md-flex">
       <div class="md-flex__cell md-flex__cell--shrink">
-        <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-header-nav__button md-logo">
+        <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-header-nav__button md-logo">
           
             <i class="md-icon"></i>
           
@@ -266,6 +266,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     </ul>
   </div>
 </nav>
@@ -279,7 +285,7 @@
                   <div class="md-sidebar__inner">
                     <nav class="md-nav md-nav--primary" data-md-level="0">
   <label class="md-nav__title md-nav__title--site" for="__drawer">
-    <a href="https://lukasz-migas.github.io/ORIGAMI" title="ORIGAMI" class="md-nav__button md-logo">
+    <a href="https://origami.lukasz-migas.com" title="ORIGAMI" class="md-nav__button md-logo">
       
         <i class="md-icon"></i>
       
@@ -786,6 +792,42 @@
 
 
   <li class="md-nav__item">
+    <a href="../../main/request.html" title="Request New Features" class="md-nav__link">
+      Request New Features
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/bugs.html" title="Report Bugs" class="md-nav__link">
+      Report Bugs
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../main/subscribe.html" title="Newsletter" class="md-nav__link">
+      Newsletter
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
     <a href="../../main/cite.html" title="Cite" class="md-nav__link">
       Cite
     </a>
@@ -859,15 +901,15 @@
                 
                 <h1 id="exporting-interactive-figures">Exporting interactive figures<a class="headerlink" href="#exporting-interactive-figures" title="Permanent link">&para;</a></h1>
 <p>ORIGAMI enables creation of HTML/JavaScript webpages which embed interactive versions of figures visualised in ORIGAMI. Practically all figures that you can generate in the desktop application can be also exported to a HTML document that can be shared with your supervisor, journal reviewers or collaborators for their in-depth interrogation.</p>
-<p>While this might seem like a bit of a gimmick, it makes sense to share the results with the scientific community in a manner more explorative than a simple static image. See here for some helpful encouragement (<a href="https://www.nature.com/articles/d41586-018-01322-9"><em>Perkel</em></a> and <a href="https://journals.plos.org/plosbiology/article/file?id=10.1371/journal.pbio.1002484&amp;type=printable"><em>Weissgerber</em></a>). </p>
-<h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h3>
-<p>In this example we will use a file provided with the ORIGAMI distribution. You can download <a href="../example-files/MS_nist_intact.csv">MS file</a> or you can find it in your ORIGAMI directory (<strong>example_data/text</strong>). </p>
-<h3 id="interactive-output-panel">Interactive output panel<a class="headerlink" href="#interactive-output-panel" title="Permanent link">&para;</a></h3>
+<p>While this might seem like a bit of a gimmick, it makes sense to share the results with the scientific community in a manner more explorative than a simple static image. See here for some helpful encouragement (<a href="https://www.nature.com/articles/d41586-018-01322-9"><em>Perkel</em></a> and <a href="https://journals.plos.org/plosbiology/article/file?id=10.1371/journal.pbio.1002484&amp;type=printable"><em>Weissgerber</em></a>).</p>
+<h2 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h2>
+<p>In this example we will use a file provided with the ORIGAMI distribution. You can download <a href="../example-files/MS_nist_intact.csv">MS file</a> or you can find it in your ORIGAMI directory (<strong>example_data/text</strong>).</p>
+<h2 id="interactive-output-panel">Interactive output panel<a class="headerlink" href="#interactive-output-panel" title="Permanent link">&para;</a></h2>
 <p>You can use any example file here as once you open the output window, all available plots will be shown in a list. In this case, the list contains all available items from a number of previous examples (e.g. annotating mass spectra, combining drift voltages, etc).</p>
 <p><img alt="Image" src="img/panel-interactive-output.png" /></p>
-<p>If you click on any item in the list, its previously provided settings such as <em>title, header, footnote information</em> or <em>plot parameters</em> will be automatically rendered. Focusing on a mass spectrum first, you can see some useful information about the size of <em>number of annotations, min/max ranges</em> and <em>its size</em>. </p>
+<p>If you click on any item in the list, its previously provided settings such as <em>title, header, footnote information</em> or <em>plot parameters</em> will be automatically rendered. Focusing on a mass spectrum first, you can see some useful information about the size of <em>number of annotations, min/max ranges</em> and <em>its size</em>.</p>
 <p><img alt="Image" src="img/panel-interactive-output-item-info.png" /></p>
-<p>Check that item and click on the <strong>Export HTML</strong> button. You will be asked to provide a <em>path</em> where you would like to save the document. Make sure to check the <strong>Open in browser after saving</strong> checkbox. </p>
+<p>Check that item and click on the <strong>Export HTML</strong> button. You will be asked to provide a <em>path</em> where you would like to save the document. Make sure to check the <strong>Open in browser after saving</strong> checkbox.</p>
 <p>You can checkout a mass spectrum example <a href="../../interactive-examples/mass-spectrum.html">here</a> and heatmap example <a href="../../interactive-examples/heatmap.html">here</a>.</p>
                 
                   
@@ -964,7 +1006,7 @@
     
     
       
-        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://lukasz-migas.github.io/ORIGAMI/"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
+        <script>!function(e,a,t,n,o,c,i){e.GoogleAnalyticsObject=o,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),i=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",i.parentNode.insertBefore(c,i)}(window,document,"script",0,"ga"),ga("create","UA-130097236-1","https://origami.lukasz-migas.com"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");if(Array.prototype.map.call(links,function(a){a.host!=document.location.host&&a.addEventListener("click",function(){var e=a.getAttribute("data-md-action")||"follow";ga("send","event","outbound",e,a.href)})}),document.forms.search){var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})}</script>
       
     
   </body>

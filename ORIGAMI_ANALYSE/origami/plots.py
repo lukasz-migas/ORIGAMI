@@ -394,8 +394,6 @@ class plots(plottingWindow):
         else:
             y_position = ymax
             
-        print(self.y_divider)
-            
         # get custom name tag
         obj_name = kwargs.pop("text_name", None) 
         text = self.plotMS.text(
@@ -416,25 +414,27 @@ class plots(plottingWindow):
                 linestyle="dashed", alpha=0.4)
             self.lines.append(line)
 
-    def plot_add_text(self, xpos, yval, label, color="black", zorder=3, **kwargs):
+    def plot_add_text(self, xpos, yval, label, color="black", yoffset=0.0,
+                      zorder=3, **kwargs):
         
-#         if 'horizontal_alignment' not in kwargs:
-#             kwargs['horizontalalignment'] = "left"
-#         if 'vertical_alignment' not in kwargs:
-#             kwargs['verticalalignment'] = "bottom"
-            
+        # check if value should be scaled based on the exponential
         if kwargs.pop("check_yscale", False):
             try: yval = np.divide(yval, self.y_divider)
             except: pass
-            
+        
+        # reverse value
         if kwargs.pop("butterfly_plot", False):
-            try: yval = - yval
-            except: pass
+            try: 
+                yval = -yval
+                yoffset = -yoffset
+            except: 
+                pass
         
         # get custom name tag
         obj_name = kwargs.pop("text_name", None) 
             
-        text = self.plotMS.text(np.array(xpos), yval, label,
+        text = self.plotMS.text(np.array(xpos), yval+yoffset,
+                                label,
                                 color=color, clip_on=True,
                                 zorder=zorder, picker=True,
                                 **kwargs)

@@ -112,7 +112,7 @@ class panelCustomiseParameters(wx.Dialog):
                                                           initial=self.config.annotation_label_y_offset, 
                                                           inc=0.05, 
                                                           size=(-1, -1))
-        self.label_yaxis_offset_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.label_yaxis_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
         label_fontOrientation_label = wx.StaticText(panel, -1, "Font orientation:")
         self.label_fontOrientation_value= wx.Choice(panel, -1, 

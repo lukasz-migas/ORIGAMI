@@ -326,20 +326,30 @@ class OrigamiConfig:
         
         # mzml/mgf/mzident etc 
         self.msms_load_n_scans = 500  # new
+        self.msms_show_neutral_loss = False # new
+        self.msms_line_color_unlabelled = (0, 0, 0) # new
+        self.msms_line_color_labelled = (1, 0, 0) # new
+        self.msms_label_y_offset = 0.02 # new
         
+        self._tandem_show_PTMs_in_table = False # new
+        self._tandem_show_unidentified_in_table = True # new
+        self._tandem_label_format = {'fragment_name':True, 'peptide_seq':False, 
+                                     'charge':True, 'delta_mz': False}
+                
         self.fragments_tolerance = {"Da":0.05, "ppm":25}  # new
         self.fragments_tolerance_limits = {"Da":[0.00,5,0.25], "ppm":[0,500,25]}  # new
         self.fragments_units_choices = ["Da", "ppm"]  # new
         self.fragments_units = "Da"  # new
         self.fragments_max_matches = 1  # new
         
-        self.fragments_search = {'M-ALL':False, 'M':False, 'M-nH2O':False, 'M-nNH3':False,
-                                 'a-ALL':False, 'a':False, 'a-nH2O':False, 'a-nNH3':False,
-                                 'b-ALL':False, 'b':False, 'b-nH2O':False, 'b-nNH3':False,
-                                 'c-ALL':False, 'c':False, 'c-nH2O':False, 'c-nNH3':False, 'c-dot':False, 'c+1/2':False,
-                                 'x-ALL':False, 'x':False, 'x-nH2O':False, 'x-nNH3':False,
-                                 'y-ALL':False, 'y':False, 'y-nH2O':False, 'y-nNH3':False,
-                                 'z-ALL':False, 'z':False, 'z-nH2O':False, 'z-nNH3':False, 'z-dot':False, 'z+1/2/3':False}
+        self.fragments_search = {
+            'M-ALL':False, 'M':False, 'M-nH2O':False, 'M-nNH3':False,
+            'a-ALL':False, 'a':False, 'a-nH2O':False, 'a-nNH3':False,
+            'b-ALL':False, 'b':False, 'b-nH2O':False, 'b-nNH3':False,
+            'c-ALL':False, 'c':False, 'c-nH2O':False, 'c-nNH3':False, 'c-dot':False, 'c+1/2':False,
+            'x-ALL':False, 'x':False, 'x-nH2O':False, 'x-nNH3':False,
+            'y-ALL':False, 'y':False, 'y-nH2O':False, 'y-nNH3':False,
+            'z-ALL':False, 'z':False, 'z-nH2O':False, 'z-nNH3':False, 'z-dot':False, 'z+1/2/3':False}
         
         # plot parameters
         self._plots_grid_show = False

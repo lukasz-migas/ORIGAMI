@@ -55,6 +55,15 @@ class PeptideAnnotation():
         
         # generate composition map
         self.ion_composition = self.generate_ion_composition_map()
+        
+        # set label
+        self._label_format = kwargs.get("label_format", None)
+        
+    def get_unimod_db(self):
+        self.unimod_db = mass.Unimod()
+        
+    def set_label_format(self, label_format):
+        self._label_format = label_format
     
     def replace_ion_composition_shortcut(self, ion_types):
         
@@ -164,7 +173,6 @@ class PeptideAnnotation():
         ion_comp['z-NH3x3'] = mass.Composition(formula='H-2O-1' + 'ON-1H-1' + 'N-3H-9')
         ion_comp['z-NH3x4'] = mass.Composition(formula='H-2O-1' + 'ON-1H-1' + 'N-4H-12')
         
-        
         return ion_comp
     
     def count_sequence_letters(self, peptide, amino_acids):
@@ -201,19 +209,61 @@ class PeptideAnnotation():
         else:
             return True
             
-    def generate_fragments_from_peptide(self, peptide, ion_types, 
-                                        label_format={}, 
-                                        min_charge=1, max_charge=1, 
-                                        aa_mass_dict=None, polarity="+",
-                                        ion_composition=None, verbose=False):
+    def add_modification_composition(self, modification_dict):
+        
+        for i in modification_dict:
+            modification = modification_dict[i]["name"]
+            
+            # check if modification already present
+            if modification in self.ion_composition.keys():
+                continue
+            
+            # try retrieving modification information
+            try:
+                unimod = self.unimod_db.by_title(modification, True)
+            except AttributeError:
+                self.get_unimod_db()
+                unimod = self.unimod_db.by_title(modification, True)
+            
+            # update ion composition dictionary
+            self.ion_composition[modification] = unimod['composition']
+    
+    def check_modification(self, seq_id, peptide_seq, modification_dict):
+        
+        mod_peptide_seq = peptide_seq
+        mod_peptide_mass = 0
+        for mod_id in modification_dict:
+            mod_location = modification_dict[mod_id]['location']
+            mod_name = modification_dict[mod_id]['name']
+            if seq_id >= mod_location:
+                for res_id in modification_dict[mod_id]['residues']:
+                    if res_id in peptide_seq:
+                        mod_peptide_seq = peptide_seq[:mod_location] + mod_name + peptide_seq[mod_location:]
+                        mod_peptide_mass = modification_dict[mod_id]['mass_delta']
+        
+        return mod_peptide_seq, mod_peptide_mass
+                        
+    
+    def generate_fragments_from_peptide(self, peptide, ion_types, label_format={},
+        min_charge=1, max_charge=1, aa_mass_dict=None, polarity="+", ion_composition=None, 
+        modification_dict={}, verbose=False):
+        
         tstart = ttime()
         
+        # specify charges
         if min_charge < 1:
             min_charge = 1
         
         if max_charge < min_charge:
             max_charge, min_charge = min_charge, max_charge
             
+        # update ion composition obj
+        include_modifications = False
+        if len(modification_dict) > 0:
+            include_modifications = True
+            self.add_modification_composition(modification_dict)
+            
+        # determine ion composition
         if ion_composition is None:
             ion_composition = self.ion_composition
             
@@ -228,38 +278,73 @@ class PeptideAnnotation():
             if ion_type in [self._M_all_]:
                 peptide = _peptide
                 for charge in xrange(min_charge, max_charge+1):
-                    ion_mz = mass.fast_mass(peptide, ion_type=ion_type, charge=charge, 
-                                            ion_comp=ion_composition)
+                    ion_mz = mass.fast_mass(
+                        peptide, ion_type=ion_type, charge=charge, ion_comp=ion_composition)
+                    
                     ion_label = "{}{}{}".format(ion_type, polarity, charge)
                     fragment_dict[ion_label] = {'mz':ion_mz, 'z':charge, 'seq':peptide}
                     
             if ion_type in self._a_all_ + self._b_all_ + self._c_all_:
                 peptide = _peptide
-                if not self.check_peptide_rules(ion_type, peptide): continue
+                if not self.check_peptide_rules(ion_type, peptide): 
+                    continue
                 for i in xrange(1, len(peptide)):
+                    peptide_seq = peptide[:i]
+                    mod_peptide_mass = 0 
+                    if include_modifications:
+                        mod_peptide_seq, mod_peptide_mass = self.check_modification(i, peptide_seq, modification_dict)
+                        print(mod_peptide_seq, mod_peptide_mass)
+                    
                     for charge in xrange(min_charge, max_charge+1):
-                        ion_mz = mass.fast_mass(peptide[:i], ion_type=ion_type, charge=charge, 
-                                                ion_comp=ion_composition)
-                        ion_label = "{}{}{}{}{}".format(ion_type[0], i, ion_type[1::], polarity, charge)
-                        fragment_dict[ion_label] = {'mz':ion_mz, 'z':charge, 'seq':peptide[:i]}
+                        ion_mz = mass.fast_mass(
+                            peptide_seq, ion_type=ion_type, charge=charge, ion_comp=ion_composition)
+                        
+#                         ion_mz = ion_mz + (mod_peptide_mass) / charge
+                        
+                        ion_label = self.generate_label(
+                            ion_type[0], i, polarity, charge, peptide_seq)
+                        fragment_dict[ion_label] = {'mz':ion_mz, 'z':charge, 'seq':peptide_seq}
                         
             if ion_type in self._x_all_ + self._y_all_ + self._z_all_:
                 peptide = _peptide[::-1]
-                if not self.check_peptide_rules(ion_type, peptide): continue
+                if not self.check_peptide_rules(ion_type, peptide): 
+                    continue
                 for i in xrange(1, len(peptide)):
+                    peptide_seq = peptide[:i]
                     for charge in xrange(min_charge, max_charge+1):
-                        ion_mz = mass.fast_mass(peptide[:i], ion_type=ion_type, charge=charge, 
-                                                ion_comp=ion_composition)
-                        ion_label = "{}{}{}{}{}".format(ion_type[0], i, ion_type[1::], polarity, charge)
-                        fragment_dict[ion_label] = {'mz':ion_mz, 'z':charge, 'seq':peptide[:i][::-1]}
-        
+                        ion_mz = mass.fast_mass(
+                            peptide_seq, ion_type=ion_type, charge=charge, ion_comp=ion_composition)
+                        
+                        ion_label = self.generate_label(
+                            ion_type[0], i, polarity, charge, peptide_seq)
+                        fragment_dict[ion_label] = {'mz':ion_mz, 'z':charge, 'seq':peptide_seq[::-1]}
+                        
         if verbose:
-            msg = "Peptide length: {} | # Fragments: {} | Time to generate: {:.4f}".format(len(peptide),
-                                                                                           len(fragment_dict),
-                                                                                           ttime()-tstart)
+            msg = "Peptide length: {} | # Fragments: {} | Time to generate: {:.4f}".format(
+                len(peptide), len(fragment_dict), ttime()-tstart)
             print(msg)
         return fragment_dict
     
+    def generate_label(self, frag_name, idx, polarity, charge, sequence, **kwargs):
+        label = ""
+        if self._label_format is None:
+            label = "{}{}{}{}".format(frag_name, idx, polarity, charge)
+            return label
+            
+        if self._label_format['fragment_name']:
+            label = "{}{}".format(frag_name, idx)
+        if self._label_format['charge']:
+            label = "{}{}{}".format(label, polarity, charge)
+        if self._label_format['peptide_seq']:
+            if label == "": label = "{}".format(sequence)
+            else: label = "{}, {}".format(label, sequence)
+            
+        return label
+                
+#         if self._label_format['delta_mz']:
+#             if label == "": label = "{}".format(frag_name)
+#             else: label = "{}, {}".format(label, frag_name)
+            
     def find_n_nearest(self, value, array, n_nearest=1):
         idx = np.argpartition(np.abs(array-value), n_nearest)
         idx = idx[0:n_nearest]
