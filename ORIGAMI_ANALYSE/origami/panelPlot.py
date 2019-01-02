@@ -106,7 +106,6 @@ class panelPlot(wx.Panel):
         self.parent.panelDocuments.topP.documents.onUpdateAnotations(
             annotations, document_title, dataset_name, set_data_only=True)
         
-        
     def onPageChanged(self, evt):
         # get current page
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
@@ -2320,24 +2319,28 @@ class panelPlot(wx.Panel):
                                     **plt_kwargs)
         
         # add labels
-        
-        kwargs = self._buildPlotParameters(plotType="annotation")
-        kwargs.update({"check_yscale":True, 
-                       "butterfly_plot":butterfly_plot,
-                       "yoffset":self.config.msms_label_y_offset})
-        
+        plt_label_kwargs = {"horizontalalignment": self.config.annotation_label_horz,
+                            "verticalalignment": self.config.annotation_label_vert,
+                            "check_yscale":True,
+                            "add_arrow_to_low_intensity":self.config.msms_add_arrows,
+                            "butterfly_plot":butterfly_plot,
+                            "fontweight": self.config.annotation_label_font_weight,
+                            "fontsize": self.config.annotation_label_font_size,
+                            'rotation':self.config.annotation_label_font_orientation}
+     
         for i in xrange(len(labels)):
             xval, yval, label, full_label = msX[i], msY[i], labels[i], full_labels[i]
             
             if not self.config.msms_show_neutral_loss:
                 if "H2O" in full_label or "NH3" in full_label:
-                    print("skipping")
                     continue
                 
             if self.config.msms_show_full_label:
                 label = full_label
                 
-            self.on_plot_labels(xval, yval, label=label, **kwargs)
+            self.plot1.plot_add_text(xpos=xval, yval=yval, label=label, 
+                                     yoffset=self.config.msms_label_y_offset,
+                                     **plt_label_kwargs) 
             
         if i == len(labels)-1 and not butterfly_plot:
             self.plot1.set_xylimits(xylimits)

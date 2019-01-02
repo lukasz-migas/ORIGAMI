@@ -343,6 +343,9 @@ class OrigamiConfig:
         self.fragments_units_choices = ["Da", "ppm"]  # new
         self.fragments_units = "Da"  # new
         self.fragments_max_matches = 1  # new
+        self.fragments_common = {"a/x":["a-all", "x-all"], "b/y":["b-all", "y-all"],
+                                 "c/z":["c-all", "z-all"], "ETD/ECD":["c-all", "y-all","z+1/2/3"],
+                                 "CID":["b-all", "y-all"]}
         
         self.fragments_search = {
             'M-ALL':False, 'M':False, 'M-nH2O':False, 'M-nNH3':False,

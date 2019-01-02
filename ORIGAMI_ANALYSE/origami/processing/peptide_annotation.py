@@ -316,7 +316,7 @@ class PeptideAnnotation():
                     continue
                 for i in xrange(1, len(peptide)):
                     peptide_seq = peptide[:i]
-                    modification_mass = 0 
+                    mod_peptide_seq, modification_mass = peptide_seq, 0 
                     if include_modifications:
                         mod_peptide_seq, modification_mass = self.check_modification(i, peptide_seq, modification_dict)
                     
@@ -413,11 +413,28 @@ class PeptideAnnotation():
         return array[idx], idx
     
     def get_fragment_mass_list(self, fragment_dict):
-        frag_mass_list = np.array([fragment_dict[frag]['mz'] for frag in fragment_dict])
-        frag_name_list = np.array([frag for frag in fragment_dict])
-        frag_charge_list = np.array([fragment_dict[frag]['z'] for frag in fragment_dict])
-        frag_peptide_list = np.array([fragment_dict[frag]['seq'] for frag in fragment_dict])
-        frag_full_name_list = np.array([fragment_dict[frag]['full_label'] for frag in fragment_dict])
+        
+        frag_mass_list, frag_name_list, frag_charge_list, frag_peptide_list, frag_full_name_list = [], [], [], [], []
+        for frag in fragment_dict:
+            frag_mass_list.append(fragment_dict[frag]['mz'])
+            frag_name_list.append(frag)
+            frag_charge_list.append(fragment_dict[frag]['z'])
+            frag_peptide_list.append(fragment_dict[frag]['seq'])
+            frag_full_name_list.append(fragment_dict[frag]['full_label'])
+            
+        # convert to arrays
+        frag_mass_list = np.array(frag_mass_list)
+        frag_name_list = np.array(frag_name_list)
+        frag_charge_list = np.array(frag_charge_list)
+        frag_peptide_list = np.array(frag_peptide_list)
+        frag_full_name_list = np.array(frag_full_name_list)
+        
+#         frag_mass_list = np.array([fragment_dict[frag]['mz'] for frag in fragment_dict])
+#         frag_name_list = np.array([frag for frag in fragment_dict])
+#         frag_charge_list = np.array([fragment_dict[frag]['z'] for frag in fragment_dict])
+#         frag_peptide_list = np.array([fragment_dict[frag]['seq'] for frag in fragment_dict])
+#         frag_full_name_list = np.array([fragment_dict[frag]['full_label'] for frag in fragment_dict])
+        
         return frag_mass_list, frag_name_list, frag_charge_list, frag_peptide_list, frag_full_name_list
     
     def match_peaks(self, peaklist, peakints, fragment_mass_list, fragment_name_list, 
@@ -459,7 +476,7 @@ class PeptideAnnotation():
         return found_peaks
     
     def get_fragment_lists(self, fragment_dict, get_calculated_mz=False):
-        
+
         frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = [], [], [], []
         for frag in fragment_dict:
             for annot in xrange(len(fragment_dict[frag])):

@@ -83,7 +83,7 @@ class plots(plottingWindow):
         self.rotate = 0
         self.document_name = None
         self.dataset_name = None
-
+        
     #-----
 
     def _update_plot_settings_(self, **kwargs):
@@ -337,10 +337,10 @@ class plots(plottingWindow):
         arrow = self.plotMS.arrow(xmin, ymin, dx, dy, 
                                   head_length=kwargs.get("arrow_head_length", 0),
                                   head_width=kwargs.get("arrow_head_width", 0),
-                                  fc=kwargs.get("arrow_face_color", "k"),
-                                  ec=kwargs.get("arrow_edge_color", "k"),
+                                  fc=kwargs.get("arrow_face_color", (.5,.5,.5)),
+                                  ec=kwargs.get("arrow_edge_color", (.5,.5,.5)),
                                   lw=kwargs.get("arrow_line_width", 0.5),
-                                  ls=kwargs.get("arrow_line_style", "--"),
+                                  ls=kwargs.get("arrow_line_style", ':'),
                                   )
         arrow.obj_name = obj_name # custom tag
         arrow.obj_props = obj_props
@@ -417,13 +417,15 @@ class plots(plottingWindow):
     def plot_add_text(self, xpos, yval, label, color="black", yoffset=0.0,
                       zorder=3, **kwargs):
         
+        is_butterfly = kwargs.pop("butterfly_plot", False)
+        
         # check if value should be scaled based on the exponential
         if kwargs.pop("check_yscale", False):
             try: yval = np.divide(yval, self.y_divider)
             except: pass
         
         # reverse value
-        if kwargs.pop("butterfly_plot", False):
+        if is_butterfly:
             try: 
                 yval = -yval
                 yoffset = -yoffset
@@ -431,13 +433,29 @@ class plots(plottingWindow):
                 pass
         
         # get custom name tag
-        obj_name = kwargs.pop("text_name", None) 
-            
-        text = self.plotMS.text(np.array(xpos), yval+yoffset,
-                                label,
-                                color=color, clip_on=True,
-                                zorder=zorder, picker=True,
-                                **kwargs)
+        obj_name = kwargs.pop("text_name", None)
+        
+        yval = yval+yoffset
+        if kwargs.pop("add_arrow_to_low_intensity", False):
+            if is_butterfly:
+                if yval > 0.2 * self.plot_limits[2]:
+                    rand_offset = -np.random.uniform(high=0.75 * self.plot_limits[2])
+                    yval_old = yval-yoffset
+                    yval -= rand_offset
+                    arrow_vals = [xpos, yval_old, 0, yval-yval_old]
+                    self.plot_add_arrow(arrow_vals, stick_to_intensity=False)
+            else: 
+                if yval < 0.2 * self.plot_limits[3]:
+                    rand_offset = np.random.uniform(high=0.75 * self.plot_limits[3])
+                    yval_old = yval-yoffset
+                    yval += rand_offset
+                    arrow_vals = [xpos, yval_old, 0, yval-yval_old]
+                    self.plot_add_arrow(arrow_vals, stick_to_intensity=False)
+                
+        text = self.plotMS.text(
+            np.array(xpos), yval+yoffset, label,
+            color=color, clip_on=True, zorder=zorder, picker=True,
+            **kwargs)
         text._yposition = yval - kwargs.get('labels_y_offset', self.config.waterfall_labels_y_offset)
         text.obj_name = obj_name # custom tag
         self.text.append(text)
@@ -1471,7 +1489,7 @@ class plots(plottingWindow):
             ylimits = [-xylimits[3], xylimits[3]]
         else:
             ylimits = (np.min(yvals), np.max(yvals)*1.1)
-        
+            
         # check if user provided 
         if "plot_modifiers" in kwargs:
             plot_modifiers = kwargs["plot_modifiers"]

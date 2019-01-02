@@ -61,7 +61,7 @@ class panelCustomiseParameters(wx.Dialog):
         
         add_arrows_check = wx.StaticText(panel, -1, "Add arrows to labels:")
         self.add_arrows_check = makeCheckbox(panel, u"")
-        self.add_arrows_check.SetValue(self.parent.add_arrows)
+        self.add_arrows_check.SetValue(self.config.msms_add_arrows)
         self.add_arrows_check.Bind(wx.EVT_CHECKBOX, self.onApply)
          
         arrow_line_width = wx.StaticText(panel, -1, "Line width:")
@@ -81,7 +81,6 @@ class panelCustomiseParameters(wx.Dialog):
         self.arrow_line_style_value.Bind(wx.EVT_CHOICE, self.onApply)
         
         # temporarily disable
-        self.add_arrows_check.Disable()
         self.arrow_line_width_value.Disable()
         self.arrow_line_style_value.Disable()
         
@@ -96,6 +95,13 @@ class panelCustomiseParameters(wx.Dialog):
                                                           inc=0.01, 
                                                           size=(-1, -1))
         self.label_yaxis_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        
+        label_fontOrientation_label = wx.StaticText(panel, -1, "Font orientation:")
+        self.label_fontOrientation_value= wx.Choice(panel, -1, 
+                                   choices=self.config.label_font_orientation_list,
+                                   size=(-1, -1))
+        self.label_fontOrientation_value.SetStringSelection(self.config.annotation_label_font_orientation)
+        self.label_fontOrientation_value.Bind(wx.EVT_CHOICE, self.onApply)
         
         label_fontSize_label = wx.StaticText(panel, -1, "Font size:")
         self.label_fontSize_value= wx.Choice(panel, -1, 
@@ -202,6 +208,9 @@ class panelCustomiseParameters(wx.Dialog):
         grid.Add(label_yaxis_offset_value, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.label_yaxis_offset_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
+        grid.Add(label_fontOrientation_label, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.label_fontOrientation_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        y = y+1
         grid.Add(label_fontSize_label, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.label_fontSize_value, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
@@ -246,10 +255,12 @@ class panelCustomiseParameters(wx.Dialog):
         self.config.annotation_label_font_weight = self.label_fontWeight_value.GetStringSelection()
         self.config.annotation_label_vert = self.label_vert_alignment_value.GetStringSelection()
         self.config.annotation_label_horz = self.label_horz_alignment_value.GetStringSelection()
+        self.config.annotation_label_font_orientation = self.label_fontOrientation_value.GetStringSelection()
+        
         self.config.annotation_arrow_line_width = self.arrow_line_width_value.GetValue()
         self.config.annotation_arrow_line_style = self.arrow_line_style_value.GetStringSelection()
         
-        self.parent.add_arrows = self.add_arrows_check.GetValue()
+        self.config.msms_add_arrows = self.add_arrows_check.GetValue()
         self.config.msms_show_neutral_loss = self.label_show_neutral_loss_check.GetValue()
         self.config.msms_label_y_offset = self.label_yaxis_offset_value.GetValue()
         self.config.msms_show_full_label = self.label_show_full_label_check.GetValue()

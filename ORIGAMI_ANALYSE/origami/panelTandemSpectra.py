@@ -26,9 +26,10 @@ import numpy as np
 from copy import deepcopy
 from time import time as ttime
 
-from toolbox import (str2num, str2int, str2bool)
+from toolbox import (str2num, str2int, str2bool, removeListDuplicates)
 from styles import (makeCheckbox, makeStaticBox, makeMenuItem)
 from gui_elements.dialog_customisePeptideAnnotations import panelCustomiseParameters
+from gui_elements.misc_dialogs import dlgBox
 from ids import (ID_tandemPanel_otherSettings, ID_tandemPanel_showPTMs, 
                  ID_tandemPanel_peaklist_show_selected,
                  ID_tandemPanel_showUnidentifiedScans)
@@ -162,8 +163,9 @@ class panelTandemSpectra(wx.MiniFrame):
         if flag:
             # retrieve item info
             itemInfo = self.get_item_info_peaklist(index, return_row=True)
-#             if not self.on_check_for_duplicates_peaklist_selected(itemInfo):
             self.peaklist_selected.Append(itemInfo)
+            
+            self.on_remove_duplicates_peaklist_selected()
     
     def on_check_for_duplicates_peaklist_selected(self, table_row):
         scan_id = table_row[1]
@@ -203,9 +205,12 @@ class panelTandemSpectra(wx.MiniFrame):
                 # get fragments
                 itemInfo, document, fragments, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.on_get_fragments(
                     itemID=i, document=document)
-                
+
                 # add fragmentation to document
-                document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'] = {
+                if "fragment_annotations" not in document.tandem_spectra[itemInfo['scanID']]:
+                    document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'] = {}
+                    
+                document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'][itemInfo['id_num']] = {
                     'fragment_table':fragments, 
                     'fragment_mass_list':frag_mass_list,
                     'fragment_intensity_list':frag_int_list,
@@ -225,6 +230,31 @@ class panelTandemSpectra(wx.MiniFrame):
         
         print("Annotated {} scans in {:.4f} seconds.". format(counter, ttime()-tstart))
         
+    def on_delete_all_annotations(self, evt):
+        
+        dlg = dlgBox(exceptionTitle='Are you sure?', 
+                     exceptionMsg= "Are you sure you want to remove all annotations from the document? This action is irreversible.",
+                     type="Question")
+        if dlg == wx.ID_NO:
+            self._update_status_('Operation was cancelled.')
+            return
+        else:
+            document = self.presenter.documentsDict[self.kwargs['document']]
+            count = self.peaklist_selected.GetItemCount()
+            for i in xrange(count):
+                itemInfo = self.get_item_info_peaklist_selected(i)
+                document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'] = {}
+                
+                try:
+                    scan_idx = document.tandem_spectra['annotated_item_list'].index(itemInfo["scanID"])
+                    del document.tandem_spectra['annotated_item_list'][scan_idx]
+                except ValueError as e: 
+                    pass
+                
+            # Clear table
+            self.peaklist_selected.DeleteAllItems()
+            self._update_status_('Deleted all items.')
+                    
     def on_clear_annotations(self, evt):
 
         document = self.presenter.documentsDict[self.kwargs['document']]
@@ -237,11 +267,6 @@ class panelTandemSpectra(wx.MiniFrame):
                 itemInfo = self.get_item_info_peaklist(i)
                 document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'] = {}
                 
-                try:
-                    scan_idx = document.tandem_spectra['annotated_item_list'].index(itemInfo["scanID"])
-                    del document.tandem_spectra['annotated_item_list'][scan_idx]
-                except ValueError: pass
-                
                 # annotate table
                 self.peaklist_selected.SetStringItem(i, self._columns_peaklist_selected['# matched'], "0")
                 counter += 1
@@ -252,6 +277,9 @@ class panelTandemSpectra(wx.MiniFrame):
     def peaklist_page_changed(self, evt):
         self.peaklist_page = self.peaklistBook.GetPageText(self.peaklistBook.GetSelection())
         self.on_clear_peptide_table()
+        
+    def _update_status_(self, msg, duration=5):
+        self.presenter.onThreading(None, (msg, 4, duration), action='updateStatusbar')
         
     def makeGUI(self):
         
@@ -697,13 +725,17 @@ class panelTandemSpectra(wx.MiniFrame):
         self.annotate_Btn  = wx.Button(panel, -1, "Annotate selected", size=(-1, 25))
         self.annotate_Btn.Bind(wx.EVT_BUTTON, self.on_annotate_items)    
         
-        self.clear_Btn  = wx.Button(panel, -1, "Clear selected", size=(-1, 25))
-        self.clear_Btn.Bind(wx.EVT_BUTTON, self.on_clear_annotations)    
+        self.clear_Btn  = wx.Button(panel, -1, "Clear annotations", size=(-1, 25))
+        self.clear_Btn.Bind(wx.EVT_BUTTON, self.on_clear_annotations)
+        
+        self.delete_Btn  = wx.Button(panel, -1, "Delete all", size=(-1, 25))
+        self.delete_Btn.Bind(wx.EVT_BUTTON, self.on_delete_all_annotations)
 
         btn2_grid = wx.GridBagSizer(5, 5)
         n = 0
         btn2_grid.Add(self.annotate_Btn, (n,0), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND)
         btn2_grid.Add(self.clear_Btn, (n,1), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND)
+        btn2_grid.Add(self.delete_Btn, (n,2), flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND)
         
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(self.peaklist_selected, 1, wx.EXPAND|wx.ALL, 0)
@@ -829,7 +861,7 @@ class panelTandemSpectra(wx.MiniFrame):
     def on_select_peaklist_selected(self, evt):
         self.selected_currentItem = evt.m_itemIndex
     
-    def on_check_all_spectrum_list(self, evt=None):
+    def on_check_all_spectrum_list(self, evt=None, add_selected=False):
 
         check = not self.check_all
         self.check_all = not self.check_all
@@ -837,6 +869,51 @@ class panelTandemSpectra(wx.MiniFrame):
         rows = self.peaklist.GetItemCount()
         for row in xrange(rows):
             self.peaklist.CheckItem(row, check=check)
+            if check and add_selected:
+                itemInfo = self.get_item_info_peaklist(row, return_row=True)
+                self.peaklist_selected.Append(itemInfo)
+            
+    def on_remove_duplicates_peaklist_selected(self):
+        """
+        This function removes duplicates from the list
+        Its not very efficient!
+        """
+        
+        columns = self.peaklist_selected.GetColumnCount()
+        rows = self.peaklist_selected.GetItemCount()
+
+        tempData = []
+        # Iterate over row and columns to get data
+        for row in range(rows):
+            tempRow = []
+            for col in range(columns):
+                item = self.peaklist_selected.GetItem(itemId=row, col=col)
+                itemText = item.GetText()
+                tempRow.append(itemText)
+            tempRow.append(self.peaklist_selected.IsChecked(index=row))
+            tempData.append(tempRow)
+
+        # Remove duplicates
+        tempData = removeListDuplicates(
+            input=tempData, 
+            columnsIn=['', 'scanID', 'id', 'MSn', 'parent_mz','charge', 'n_peaks', 'n_matched', 'peptide',
+                       'ptm', 'title', 'check'],
+            limitedCols=['scanID', 'id', 'title'])
+        
+        rows = len(tempData)
+        # Clear table
+        self.peaklist_selected.DeleteAllItems()
+        
+        checkData = []
+        for check in tempData:
+            checkData.append(check[-1])
+            del check[-1]
+
+        # Reinstate data
+        rowList = np.arange(len(tempData))
+        for row, check in zip(rowList, checkData):
+            self.peaklist_selected.Append(tempData[row])
+            self.peaklist_selected.CheckItem(row, check)
             
     def on_check_all_peaklist_selected(self, evt=None):
 
@@ -846,12 +923,18 @@ class panelTandemSpectra(wx.MiniFrame):
         rows = self.peaklist_selected.GetItemCount()
         for row in xrange(rows):
             self.peaklist_selected.CheckItem(row, check=check)
-            
+    
+    def _dummy(self, *args, **kwargs):
+        pass
+        
     def get_column_click_peaklist(self, evt):
         column = evt.GetColumn()
         if self.peaklist_page == "All scans":
             if column == 0:
-                self.on_check_all_spectrum_list()
+                self.peaklist.OnCheckItem = self._dummy
+                self.on_check_all_spectrum_list(add_selected=True)
+                self.on_remove_duplicates_peaklist_selected()
+                self.peaklist.OnCheckItem = self.on_check_item_peaklist
             else:
                 self.sort_by_column_peaklist(column=column)
         else:
@@ -993,7 +1076,7 @@ class panelTandemSpectra(wx.MiniFrame):
             return scanID, MSlevel, precursor_mz, precursor_charge, n_peaks, peptide, ptm, title 
         
         if return_row:
-            return ["", information['scanID'], information['id_num'], information['MSlevel'], information['precursor_mz'], 
+            return ["", information['scanID'], information['id_num']+1, information['MSlevel'], information['precursor_mz'], 
                     information['precursor_charge'], information['n_peaks'], "0", information['peptide'],
                     information['PTM'], information['title']]
             
@@ -1002,7 +1085,7 @@ class panelTandemSpectra(wx.MiniFrame):
     def get_item_info_peaklist_selected(self, itemID, return_list=False):
         # get item information
         information = {'scanID':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['scan ID']).GetText(),
-                       'MSlevel':str2num(self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['MSn']).GetText()),
+                       'MSlevel':str2int(self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['MSn']).GetText()),
                        'precursor_mz':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['parent m/z']).GetText(),
                        'precursor_charge':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['charge']).GetText(),
                        'n_peaks':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['# peaks']).GetText(),
@@ -1170,7 +1253,7 @@ class panelTandemSpectra(wx.MiniFrame):
                                                    "{:.4f}".format(spectrum['scan_info'].get('precursor_mz', "")),
                                                    spectrum['scan_info'].get('precursor_charge', ""),
                                                    spectrum['scan_info'].get('peak_count', len(spectrum['xvals'])),
-                                                   len(spectrum['fragment_annotations']['fragment_table']),
+                                                   len(spectrum['fragment_annotations'][n_id]['fragment_table']),
                                                    peptide[n_id], 
                                                    str(ptm[n_id]),
                                                    spectrum['scan_info'].get('title', ""),
@@ -1324,7 +1407,11 @@ class panelTandemSpectra(wx.MiniFrame):
                                                            data['yvals'], 
                                                            title=title, 
                                                            repaint=False)
-        self.on_add_annotations(data)
+        try:
+            self.on_add_annotations(data, id_num=itemInfo['id_num'])
+        except KeyError:
+            print("Please annotate item first!")
+            return
         
         print("It took {:.4f}".format(ttime()-tstart))
         
@@ -1406,23 +1493,27 @@ class panelTandemSpectra(wx.MiniFrame):
                   "tolerance_units":self.config.fragments_units,
                   "max_annotations":self.config.fragments_max_matches,
                   "verbose":self.verbose,
-                  "get_calculated_mz":self.butterfly_plot}
+                  "get_calculated_mz":self.butterfly_plot,
+                  "id_num":itemInfo["id_num"]}
         fragments, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.data_processing.on_get_peptide_fragments(
             tandem_spectra, get_lists=True, label_format=self.config._tandem_label_format, **kwargs)
                 
         # rather than plotting data, return it for annotation of an item
         return itemInfo, document, fragments, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list
         
-    def on_add_annotations(self, data):
-        fragments = data['fragment_annotations']['fragment_table']
-        frag_mass_list = data['fragment_annotations']['fragment_mass_list']
-        frag_int_list = data['fragment_annotations']['fragment_intensity_list']
-        frag_label_list = data['fragment_annotations']['fragment_label_list']
-        frag_full_label_list = data['fragment_annotations']['fragment_full_label_list']
+    def on_add_annotations(self, data, id_num):
+
+        fragments = data['fragment_annotations'][id_num]['fragment_table']
+        frag_mass_list = data['fragment_annotations'][id_num]['fragment_mass_list']
+        frag_int_list = data['fragment_annotations'][id_num]['fragment_intensity_list']
+        frag_label_list = data['fragment_annotations'][id_num]['fragment_label_list']
+        frag_full_label_list = data['fragment_annotations'][id_num]['fragment_full_label_list']
         
         self.on_clear_peptide_table()
         if len(fragments) > 0:
-            self.presenter.view.panelPlots.on_add_centroid_MS_and_labels(frag_mass_list, frag_int_list, frag_label_list, 
+            self.presenter.view.panelPlots.on_add_centroid_MS_and_labels(frag_mass_list, 
+                                                                         frag_int_list, 
+                                                                         frag_label_list, 
                                                                          frag_full_label_list,
                                                                          butterfly_plot=self.butterfly_plot)
             
