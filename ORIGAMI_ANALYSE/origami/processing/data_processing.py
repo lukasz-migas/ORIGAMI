@@ -1009,27 +1009,9 @@ class data_processing():
         # Update file list
         self.presenter.OnUpdateDocument(self.docs, 'document')
                 
-    def on_annotate_peptide_fragments(self, spectrum_dict, **kwargs):
-        tstart = ttime()
-        got_annot = 0
-        for scan in spectrum_dict:
-            if len(spectrum_dict[scan]['identification'][0]['modification_info']) > 0:
-                continue
-            z = spectrum_dict[scan]['identification'][0]['charge']
-            peptide = spectrum_dict[scan]['identification'][0]['peptide_seq']
-            fragments = self.frag_generator.generate_fragments_from_peptide(peptide=peptide, ion_types=["M-all", "b-all", "y-all"], max_charge=z)
-            fragment_mass_list, fragment_name_list = self.frag_generator.get_fragment_mass_list(fragments)
-            xvals, yvals = spectrum_dict[scan]['xvals'], spectrum_dict[scan]['yvals']
-            found_peaks = self.frag_generator.match_peaks(xvals, yvals, fragment_mass_list, fragment_name_list, 
-                                                          tolerance=kwargs.get("tolerance", 0.25), 
-                                                          tolerance_units=kwargs.get("tolerance_units", "Da"), 
-                                                          max_found=kwargs.get("max_annotations", 1))
-        
-        print("It took {} seconds to annotate {} scans".format(ttime()-tstart, got_annot))
-        
     def on_get_peptide_fragments(self, spectrum_dict, label_format={}, get_lists=False, 
                                  **kwargs):    
-        
+        tstart = ttime()
         id_num = kwargs.get("id_num", 0)
         if len(label_format) == 0:
             label_format = {'fragment_name':True, 'peptide_seq':False, 
@@ -1037,44 +1019,51 @@ class data_processing():
         
         self.frag_generator.set_label_format(label_format)
 #         self.frag_generator = pr_frag.PeptideAnnotation(**{"label_format":label_format}) # refresh, temprorary!
-        modifications = {}
-        try:
-            modifications = spectrum_dict['identification'][id_num]['modification_info']
-            if len(modifications) > 0:
-                print("Peptide has PTMs. Cannot complete action, yet!")
-#                 if get_lists:
-#                     return {}, [], [], []
-#                 return {}
-        except: 
-            if get_lists:
-                return {}, [], [], []
-            return {}
-        
+
+        # get parameters
+        peptide = spectrum_dict['identification'][id_num].get('peptide_seq', None)
+        if peptide is None:
+            return {}, {}, {}, {}, {}
         z = spectrum_dict['identification'][id_num]['charge']
-        peptide = spectrum_dict['identification'][id_num]['peptide_seq']
+
+        modifications = {}
+        try: 
+            modifications = spectrum_dict['identification'][id_num]['modification_info']
+        except: 
+            pass
+        
+        # generate fragments
         fragments = self.frag_generator.generate_fragments_from_peptide(
             peptide=peptide, ion_types=kwargs.get("ion_types", ["b-all", "y-all"]),
             label_format=label_format, max_charge=z, modification_dict=modifications)
         
-        fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list = self.frag_generator.get_fragment_mass_list(fragments)
+        # generate fragment lists
+        fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list, frag_full_name_list = self.frag_generator.get_fragment_mass_list(fragments)
         xvals, yvals = spectrum_dict['xvals'], spectrum_dict['yvals']
         
+        # match fragments to peaks in the spectrum
         found_peaks = self.frag_generator.match_peaks(
             xvals, yvals, fragment_mass_list, fragment_name_list,
             fragment_charge_list, fragment_peptide_list,
+            frag_full_name_list,
             tolerance=kwargs.get("tolerance", 0.25), 
             tolerance_units=kwargs.get("tolerance_units", "Da"), 
             max_found=kwargs.get("max_annotations", 1))
-        
+
+        # print info
         if kwargs.get("verbose", False):
-            print("Matched {} peaks in the spectrum for peptide {}".format(
-                len(found_peaks), peptide))
+            msg = "Matched {} peaks in the spectrum for peptide {}. It took {:.4f}.".format(
+                len(found_peaks), peptide, ttime()-tstart) 
+            print(msg)
         
+        # return data
         if get_lists:
-            frag_mass_list, frag_int_list, frag_label_list = self.frag_generator.get_fragment_lists(
+            frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.frag_generator.get_fragment_lists(
                 found_peaks, get_calculated_mz=kwargs.get("get_calculated_mz", False))
-            return found_peaks, frag_mass_list, frag_int_list, frag_label_list
+            
+            return found_peaks, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list
         
+        # return peaks only
         return found_peaks
               
     def _check_unidec_input(self, **kwargs):

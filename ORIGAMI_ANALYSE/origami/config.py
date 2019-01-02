@@ -327,6 +327,8 @@ class OrigamiConfig:
         # mzml/mgf/mzident etc 
         self.msms_load_n_scans = 500  # new
         self.msms_show_neutral_loss = False # new
+        self.msms_show_full_label = True # new
+        self.msms_add_arrows = False
         self.msms_line_color_unlabelled = (0, 0, 0) # new
         self.msms_line_color_labelled = (1, 0, 0) # new
         self.msms_label_y_offset = 0.02 # new

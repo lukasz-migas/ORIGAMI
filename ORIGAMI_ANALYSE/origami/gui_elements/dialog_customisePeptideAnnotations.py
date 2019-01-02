@@ -19,7 +19,7 @@
 import wx
 
 from toolbox import (str2num, str2int, convertRGB1to255, convertRGB255to1, num2str)
-from styles import (makeCheckbox)
+from styles import (makeCheckbox, makeTooltip)
 
 class panelCustomiseParameters(wx.Dialog):
     def __init__(self, parent, config, **kwargs):
@@ -145,6 +145,15 @@ class panelCustomiseParameters(wx.Dialog):
         self.label_show_neutral_loss_check = makeCheckbox(panel, u"")
         self.label_show_neutral_loss_check.SetValue(self.config.msms_show_neutral_loss)
         self.label_show_neutral_loss_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.label_show_neutral_loss_check.SetToolTip(makeTooltip(
+            text="When checked neutral loss labels (e.g. H2O, NH3) will be shown."))
+        
+        label_show_full_label = wx.StaticText(panel, -1, "Show full label:")
+        self.label_show_full_label_check = makeCheckbox(panel, u"")
+        self.label_show_full_label_check.SetValue(self.config.msms_show_full_label)
+        self.label_show_full_label_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.label_show_full_label_check.SetToolTip(makeTooltip(
+            text="Full labels will be shown, e.g. y5_H2Ox2+1. When unchecked, this label would look: y5+1."))
         
         hz_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
@@ -216,6 +225,9 @@ class panelCustomiseParameters(wx.Dialog):
         grid.Add(label_show_neutral_loss, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
         grid.Add(self.label_show_neutral_loss_check, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         y = y+1
+        grid.Add(label_show_full_label, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        grid.Add(self.label_show_full_label_check, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        y = y+1
         grid.Add(hz_line_3, (y,0), wx.GBSpan(1,3), flag=wx.EXPAND)
         y = y+1
         grid.Add(label_show_name, (y,0), wx.GBSpan(1,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
@@ -240,6 +252,7 @@ class panelCustomiseParameters(wx.Dialog):
         self.parent.add_arrows = self.add_arrows_check.GetValue()
         self.config.msms_show_neutral_loss = self.label_show_neutral_loss_check.GetValue()
         self.config.msms_label_y_offset = self.label_yaxis_offset_value.GetValue()
+        self.config.msms_show_full_label = self.label_show_full_label_check.GetValue()
         
         _label_format = {'fragment_name':self.label_show_fragment_check.GetValue(), 
                          'peptide_seq':self.label_show_peptide_check.GetValue(), 

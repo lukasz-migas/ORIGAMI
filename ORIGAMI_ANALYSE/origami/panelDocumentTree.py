@@ -5552,7 +5552,7 @@ class documentsTree(wx.TreeCtrl):
             print("Created file reader. Loading scans...")
             
             basename = os.path.basename(path)
-            data = reader.get_n_scans(n_scans=20000)
+            data = reader.get_n_scans(n_scans=50000)
             kwargs = {'data_type':"Type: MS/MS", "file_format":"Format: .mgf"}
             document = self.presenter.on_create_document(basename, path, **kwargs)
             

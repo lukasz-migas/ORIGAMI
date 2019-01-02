@@ -2293,8 +2293,8 @@ class panelPlot(wx.Panel):
         
         return True
          
-    def on_add_centroid_MS_and_labels(self, msX, msY, labels, xlimits=None, title="", 
-                                      butterfly_plot=False, set_page=False, **kwargs):
+    def on_add_centroid_MS_and_labels(self, msX, msY, labels, full_labels, xlimits=None, 
+                                      title="", butterfly_plot=False, set_page=False, **kwargs):
         if set_page: self.mainBook.SetSelection(self.config.panelNames['MS'])
         
         # Build kwargs
@@ -2327,15 +2327,20 @@ class panelPlot(wx.Panel):
                        "yoffset":self.config.msms_label_y_offset})
         
         for i in xrange(len(labels)):
-            xval, yval, label = msX[i], msY[i], labels[i]
+            xval, yval, label, full_label = msX[i], msY[i], labels[i], full_labels[i]
             
             if not self.config.msms_show_neutral_loss:
-                if "H2O" in label or "NH3" in label:
+                if "H2O" in full_label or "NH3" in full_label:
+                    print("skipping")
                     continue
                 
+            if self.config.msms_show_full_label:
+                label = full_label
+                
             self.on_plot_labels(xval, yval, label=label, **kwargs)
-            if i == len(labels)-1 and not butterfly_plot:
-                self.plot1.set_xylimits(xylimits)
+            
+        if i == len(labels)-1 and not butterfly_plot:
+            self.plot1.set_xylimits(xylimits)
             
         self.plot1.repaint()
         

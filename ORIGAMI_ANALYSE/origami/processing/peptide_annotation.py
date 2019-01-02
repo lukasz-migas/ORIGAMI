@@ -28,29 +28,47 @@ class PeptideAnnotation():
         
         # list all available peptide fragments
         self._all_ = ["M-all", "a-all", "b-all", "c-all", "x-all", "y-all", "z-all"]
-        self._M_all_ = ["M", "M-H2Ox1", "M-NH3x1", 'M-H2Ox2', 'M-H2Ox3', 'M-H2Ox4', "M-NH3x2", 
-                        "M-NH3x3", "M-NH3x4"]
-        self._a_all_ = ["a", "a-H2Ox1", "a-NH3x1", 'a-H2Ox2', 'a-H2Ox3', 'a-H2Ox4', "a-NH3x2", 
-                        "a-NH3x3", "a-NH3x4"]
-        self._b_all_ =  ["b", "b-H2Ox1", "b-NH3x1", 'b-H2Ox2', 'b-H2Ox3', 'b-H2Ox4', "b-NH3x2", 
-                         "b-NH3x3", "b-NH3x4"]
-        self._c_all_ = ["c", "c-H2Ox1", "c-NH3x1", 'c-H2Ox2', 'c-H2Ox3', "c-NH3x2", "c-NH3x3", 
+        self._M_all_ = ["M", 
+                        "M-H2Ox1", 'M-H2Ox2', 'M-H2Ox3', 'M-H2Ox4', 
+                        "M-NH3x1", "M-NH3x2", "M-NH3x3", "M-NH3x4"]
+        self._a_all_ = ["a", 
+                        "a-H2Ox1", 'a-H2Ox2', 'a-H2Ox3', 'a-H2Ox4', 
+                        "a-NH3x1", "a-NH3x2", "a-NH3x3", "a-NH3x4"]
+        self._b_all_ =  ["b", 
+                         "b-H2Ox1", 'b-H2Ox2', 'b-H2Ox3', 'b-H2Ox4', 
+                         "b-NH3x1", "b-NH3x2", "b-NH3x3", "b-NH3x4"]
+        self._c_all_ = ["c", 
+                        "c-H2Ox1", 'c-H2Ox2', 'c-H2Ox3', 'c-H2Ox4', 
+                        "c-NH3x1", "c-NH3x2", "c-NH3x3", "c-NH3x4", 
                         "c-1", "c-dot", "c+1", "c+2"]
-        self._x_all_ = ["x", "x-H2Ox1", "x-NH3x1", "x-H2Ox2", "x-H2Ox3", "x-H2Ox4", "x-NH3x2", 
-                        "x-NH3x3", "x-NH3x4"]
-        self._y_all_ = ["y", "y-H2Ox1", "y-NH3x1", "y-H2Ox2", "y-H2Ox3", "y-H2Ox4", "y-NH3x2", 
-                        "y-NH3x3", "y-NH3x4"]
-        self._z_all_ = ["z", "z-H2Ox1", "z-NH3x1", "z-H2Ox2", "z-H2Ox3", "z-H2Ox4", "z-NH3x2", 
-                        "z-NH3x3", "z-NH3x4", "z-dot", "z+1", "z+2", "z+3"]
+        self._x_all_ = ["x", 
+                        "x-H2Ox1", "x-H2Ox2", "x-H2Ox3", "x-H2Ox4", 
+                        "x-NH3x1", "x-NH3x2", "x-NH3x3", "x-NH3x4"]
+        self._y_all_ = ["y", 
+                        "y-H2Ox1", "y-H2Ox2", "y-H2Ox3", "y-H2Ox4", 
+                        "y-NH3x1", "y-NH3x2", "y-NH3x3", "y-NH3x4"]
+        self._z_all_ = ["z", 
+                        "z-H2Ox1", "z-H2Ox2", "z-H2Ox3", "z-H2Ox4", 
+                        "z-NH3x1", "z-NH3x2", "z-NH3x3", "z-NH3x4", 
+                        "z-dot", "z+1", "z+2", "z+3"]
     
-        self._all_h2o_loss_ = ["M-H2Ox1", 'M-H2Ox2', 'M-H2Ox3', 'M-H2Ox4', "a-H2O", 'a-H2Ox2', 'a-H2Ox3', 'a-H2Ox4',
-                               "b-H2Ox1", 'b-H2Ox2', 'b-H2Ox3', 'b-H2Ox4', "c-H2O", 'c-H2Ox2', 'c-H2Ox3', 'c-H2Ox4',
-                               "x-H2Ox1", 'x-H2Ox2', 'x-H2Ox3', 'x-H2Ox4', "y-H2O", 'y-H2Ox2', 'y-H2Ox3', 'y-H2Ox4',
+        self._all_h2o_loss_ = ["M-H2Ox1", 'M-H2Ox2', 'M-H2Ox3', 'M-H2Ox4', 
+                               "a-H2Ox1", 'a-H2Ox2', 'a-H2Ox3', 'a-H2Ox4',
+                               "b-H2Ox1", 'b-H2Ox2', 'b-H2Ox3', 'b-H2Ox4', 
+                               "c-H2Ox1", 'c-H2Ox2', 'c-H2Ox3', 'c-H2Ox4',
+                               "x-H2Ox1", 'x-H2Ox2', 'x-H2Ox3', 'x-H2Ox4', 
+                               "y-H2Ox1", 'y-H2Ox2', 'y-H2Ox3', 'y-H2Ox4',
                                "z-H2Ox1", 'z-H2Ox2', 'z-H2Ox3', 'z-H2Ox4']
-        self._all_nh3_loss_ = ["M-NH3x1", "M-NH3x2", "M-NH3x3", "M-NH3x4", "a-NH3", "a-NH3x2", "a-NH3x3", "a-NH3x4",
-                               "b-NH3x1", "b-NH3x2", "b-NH3x3", "b-NH3x4", "c-NH3", "c-NH3x2", "c-NH3x3", "c-NH3x4",
-                               "x-NH3x1", "x-NH3x2", "x-NH3x3", "x-NH3x4", "y-NH3", "y-NH3x2", "y-NH3x3", "y-NH3x4",
+        self._all_nh3_loss_ = ["M-NH3x1", "M-NH3x2", "M-NH3x3", "M-NH3x4", 
+                               "a-NH3x1", "a-NH3x2", "a-NH3x3", "a-NH3x4",
+                               "b-NH3x1", "b-NH3x2", "b-NH3x3", "b-NH3x4", 
+                               "c-NH3x1", "c-NH3x2", "c-NH3x3", "c-NH3x4",
+                               "x-NH3x1", "x-NH3x2", "x-NH3x3", "x-NH3x4", 
+                               "y-NH3x1", "y-NH3x2", "y-NH3x3", "y-NH3x4",
                                "z-NH3x1", "z-NH3x2", "z-NH3x3", "z-NH3x4"]
+        
+        self._all_abc_all_ = self._a_all_ + self._b_all_ + self._c_all_
+        self._all_xyz_all_ = self._x_all_ + self._y_all_ + self._z_all_
         
         
         # generate composition map
@@ -98,8 +116,9 @@ class PeptideAnnotation():
         if "z-all" in ion_types:
             ion_types.extend(self._z_all_)
             ion_types.remove("z-all")
-    
-        return ion_types
+            
+        # remove duplicates and return
+        return list(set(ion_types))
     
     def generate_ion_composition_map(self):
         ion_comp = mass.std_ion_comp
@@ -108,6 +127,7 @@ class PeptideAnnotation():
         ion_comp['M-H2Ox2'] = mass.Composition(formula='H-4O-2')
         ion_comp['M-H2Ox3'] = mass.Composition(formula='H-6O-3')
         ion_comp['M-H2Ox4'] = mass.Composition(formula='H-8O-4')
+        
         ion_comp['M-NH3x1'] = mass.Composition(formula='N-1H-3')
         ion_comp['M-NH3x2'] = mass.Composition(formula='N-2H-6')
         ion_comp['M-NH3x3'] = mass.Composition(formula='N-3H-9')
@@ -118,6 +138,7 @@ class PeptideAnnotation():
         ion_comp['a-H2Ox2'] = mass.Composition(formula='H-2O-1' + 'C-1O-1' + 'H-4O-2')
         ion_comp['a-H2Ox3'] = mass.Composition(formula='H-2O-1' + 'C-1O-1' + 'H-6O-3')
         ion_comp['a-H2Ox4'] = mass.Composition(formula='H-2O-1' + 'C-1O-1' + 'H-8O-4')
+        
         ion_comp['a-NH3x1'] = mass.Composition(formula='H-2O-1' + 'C-1O-1' + 'N-1H-3')
         ion_comp['a-NH3x2'] = mass.Composition(formula='H-2O-1' + 'C-1O-1' + 'N-2H-6')
         ion_comp['a-NH3x3'] = mass.Composition(formula='H-2O-1' + 'C-1O-1' + 'N-3H-9')
@@ -128,6 +149,7 @@ class PeptideAnnotation():
         ion_comp['b-H2Ox2'] = mass.Composition(formula='H-2O-1' + 'H-4O-2')
         ion_comp['b-H2Ox3'] = mass.Composition(formula='H-2O-1' + 'H-6O-3')
         ion_comp['b-H2Ox4'] = mass.Composition(formula='H-2O-1' + 'H-8O-4')
+        
         ion_comp['b-NH3x1'] = mass.Composition(formula='H-2O-1' + 'N-1H-3')
         ion_comp['b-NH3x2'] = mass.Composition(formula='H-2O-1' + 'N-2H-6')
         ion_comp['b-NH3x3'] = mass.Composition(formula='H-2O-1' + 'N-3H-9')
@@ -138,6 +160,7 @@ class PeptideAnnotation():
         ion_comp['c-H2Ox2'] = mass.Composition(formula='H-2O-1' + 'NH3' + 'H-4O-2')
         ion_comp['c-H2Ox3'] = mass.Composition(formula='H-2O-1' + 'NH3' + 'H-6O-3')
         ion_comp['c-H2Ox4'] = mass.Composition(formula='H-2O-1' + 'NH3' + 'H-8O-4')
+        
         ion_comp['c-NH3x1'] = mass.Composition(formula='H-2O-1' + 'NH3' + 'N-1H-3')
         ion_comp['c-NH3x2'] = mass.Composition(formula='H-2O-1' + 'NH3' + 'N-2H-6')
         ion_comp['c-NH3x3'] = mass.Composition(formula='H-2O-1' + 'NH3' + 'N-3H-9')
@@ -148,6 +171,7 @@ class PeptideAnnotation():
         ion_comp['x-H2Ox2'] = mass.Composition(formula='H-2O-1' + 'CO2'+ 'H-4O-2')
         ion_comp['x-H2Ox3'] = mass.Composition(formula='H-2O-1' + 'CO2'+ 'H-6O-3')
         ion_comp['x-H2Ox4'] = mass.Composition(formula='H-2O-1' + 'CO2'+ 'H-8O-4')
+        
         ion_comp['x-NH3x1'] = mass.Composition(formula='H-2O-1' + 'CO2'+ 'N-1H-3')
         ion_comp['x-NH3x2'] = mass.Composition(formula='H-2O-1' + 'CO2'+ 'N-2H-6')
         ion_comp['x-NH3x3'] = mass.Composition(formula='H-2O-1' + 'CO2'+ 'N-3H-9')
@@ -158,6 +182,7 @@ class PeptideAnnotation():
         ion_comp['y-H2Ox2'] = mass.Composition(formula='H-4O-2')
         ion_comp['y-H2Ox3'] = mass.Composition(formula='H-6O-3')
         ion_comp['y-H2Ox4'] = mass.Composition(formula='H-8O-4')
+        
         ion_comp['y-NH3x1'] = mass.Composition(formula='N-1H-3')
         ion_comp['y-NH3x2'] = mass.Composition(formula='N-2H-6')
         ion_comp['y-NH3x3'] = mass.Composition(formula='N-3H-9')
@@ -168,6 +193,7 @@ class PeptideAnnotation():
         ion_comp['z-H2Ox2'] = mass.Composition(formula='H-2O-1' + 'ON-1H-1' + 'H-4O-2')
         ion_comp['z-H2Ox3'] = mass.Composition(formula='H-2O-1' + 'ON-1H-1' + 'H-6O-3')
         ion_comp['z-H2Ox4'] = mass.Composition(formula='H-2O-1' + 'ON-1H-1' + 'H-8O-4')
+        
         ion_comp['z-NH3x1'] = mass.Composition(formula='H-2O-1' + 'ON-1H-1' + 'N-1H-3')
         ion_comp['z-NH3x2'] = mass.Composition(formula='H-2O-1' + 'ON-1H-1' + 'N-2H-6')
         ion_comp['z-NH3x3'] = mass.Composition(formula='H-2O-1' + 'ON-1H-1' + 'N-3H-9')
@@ -231,7 +257,7 @@ class PeptideAnnotation():
     def check_modification(self, seq_id, peptide_seq, modification_dict):
         
         mod_peptide_seq = peptide_seq
-        mod_peptide_mass = 0
+        modification_mass = 0
         for mod_id in modification_dict:
             mod_location = modification_dict[mod_id]['location']
             mod_name = modification_dict[mod_id]['name']
@@ -239,9 +265,9 @@ class PeptideAnnotation():
                 for res_id in modification_dict[mod_id]['residues']:
                     if res_id in peptide_seq:
                         mod_peptide_seq = peptide_seq[:mod_location] + mod_name + peptide_seq[mod_location:]
-                        mod_peptide_mass = modification_dict[mod_id]['mass_delta']
+                        modification_mass = modification_dict[mod_id]['mass_delta']
         
-        return mod_peptide_seq, mod_peptide_mass
+        return mod_peptide_seq, modification_mass
                         
     
     def generate_fragments_from_peptide(self, peptide, ion_types, label_format={},
@@ -257,11 +283,11 @@ class PeptideAnnotation():
         if max_charge < min_charge:
             max_charge, min_charge = min_charge, max_charge
             
-        # update ion composition obj
+#         # update ion composition obj
         include_modifications = False
         if len(modification_dict) > 0:
             include_modifications = True
-            self.add_modification_composition(modification_dict)
+#             self.add_modification_composition(modification_dict)
             
         # determine ion composition
         if ion_composition is None:
@@ -272,7 +298,7 @@ class PeptideAnnotation():
             
         # check if shortcuts were used
         ion_types = self.replace_ion_composition_shortcut(ion_types)
-        
+
         fragment_dict = {}
         for ion_type in ion_types:
             if ion_type in [self._M_all_]:
@@ -284,66 +310,102 @@ class PeptideAnnotation():
                     ion_label = "{}{}{}".format(ion_type, polarity, charge)
                     fragment_dict[ion_label] = {'mz':ion_mz, 'z':charge, 'seq':peptide}
                     
-            if ion_type in self._a_all_ + self._b_all_ + self._c_all_:
+            if ion_type in self._all_abc_all_:
                 peptide = _peptide
                 if not self.check_peptide_rules(ion_type, peptide): 
                     continue
                 for i in xrange(1, len(peptide)):
                     peptide_seq = peptide[:i]
-                    mod_peptide_mass = 0 
+                    modification_mass = 0 
                     if include_modifications:
-                        mod_peptide_seq, mod_peptide_mass = self.check_modification(i, peptide_seq, modification_dict)
-                        print(mod_peptide_seq, mod_peptide_mass)
+                        mod_peptide_seq, modification_mass = self.check_modification(i, peptide_seq, modification_dict)
                     
                     for charge in xrange(min_charge, max_charge+1):
                         ion_mz = mass.fast_mass(
                             peptide_seq, ion_type=ion_type, charge=charge, ion_comp=ion_composition)
                         
-#                         ion_mz = ion_mz + (mod_peptide_mass) / charge
+                        ion_mz = ion_mz + (modification_mass / charge)
                         
-                        ion_label = self.generate_label(
-                            ion_type[0], i, polarity, charge, peptide_seq)
-                        fragment_dict[ion_label] = {'mz':ion_mz, 'z':charge, 'seq':peptide_seq}
+                        ion_label, ion_label_full = self.generate_label(
+                            ion_type[0], i, polarity, charge, mod_peptide_seq)
+                        fragment_dict[ion_label] = {'mz':ion_mz, 
+                                                    'z':charge, 
+                                                    'seq':peptide_seq,
+                                                    'full_label':ion_label_full}
                         
-            if ion_type in self._x_all_ + self._y_all_ + self._z_all_:
-                peptide = _peptide[::-1]
+            if ion_type in self._all_xyz_all_:
+                peptide = _peptide#[::-1] 
                 if not self.check_peptide_rules(ion_type, peptide): 
                     continue
-                for i in xrange(1, len(peptide)):
-                    peptide_seq = peptide[:i]
+                # generate list of inverse fragment numbers
+                _frag_label_length = np.arange(len(peptide), 0, -1 )
+                # iterate over peptide length
+                for i in xrange(1, len(peptide)): #xrange(len(peptide)-1, 0, -1):
+                    peptide_seq = peptide[i:] 
+                    mod_peptide_seq, modification_mass = peptide_seq, 0 
+                    if include_modifications:
+                        mod_peptide_seq, modification_mass = self.check_modification(i+1, peptide_seq, modification_dict)
+                    
                     for charge in xrange(min_charge, max_charge+1):
                         ion_mz = mass.fast_mass(
                             peptide_seq, ion_type=ion_type, charge=charge, ion_comp=ion_composition)
                         
-                        ion_label = self.generate_label(
-                            ion_type[0], i, polarity, charge, peptide_seq)
-                        fragment_dict[ion_label] = {'mz':ion_mz, 'z':charge, 'seq':peptide_seq[::-1]}
+                        # modify ion mass with modification mass
+                        ion_mz = ion_mz + (modification_mass / charge)
                         
+                        # generate label
+                        ion_label, ion_label_full = self.generate_label(
+                            ion_type[0], _frag_label_length[i], polarity, charge, mod_peptide_seq, full_ion_type=ion_type)
+                        
+                        fragment_dict[ion_label] = {'mz':ion_mz, 
+                                                    'z':charge, 
+                                                    'seq':mod_peptide_seq,
+                                                    'full_label':ion_label_full}
+                        
+        # print verbose information            
         if verbose:
             msg = "Peptide length: {} | # Fragments: {} | Time to generate: {:.4f}".format(
                 len(peptide), len(fragment_dict), ttime()-tstart)
             print(msg)
+            
         return fragment_dict
     
-    def generate_label(self, frag_name, idx, polarity, charge, sequence, **kwargs):
+    def generate_label(self, frag_name, idx, polarity, charge, sequence, 
+                       full_ion_type=None, **kwargs):
+        """
+        Generate consistent fragment labels
+        """
         label = ""
+        
+        if full_ion_type is None or full_ion_type in "abcxyz<":
+            full_ion_type = ""
+        else:
+            full_ion_type = "_{}".format(full_ion_type[2::])
+        
+        # return default if nothing is specified
         if self._label_format is None:
             label = "{}{}{}{}".format(frag_name, idx, polarity, charge)
-            return label
+            label_full = "{}{}{}{}{}".format(frag_name, idx, full_ion_type, polarity, charge)
+            return label, label_full
             
+        # add fragment name
         if self._label_format['fragment_name']:
             label = "{}{}".format(frag_name, idx)
+            label_full = "{}{}{}".format(frag_name, idx, full_ion_type)
+        # add charge
         if self._label_format['charge']:
             label = "{}{}{}".format(label, polarity, charge)
+            label_full = "{}{}{}".format(label_full, polarity, charge)
+        # add peptide sequence
         if self._label_format['peptide_seq']:
-            if label == "": label = "{}".format(sequence)
-            else: label = "{}, {}".format(label, sequence)
+            if label == "": 
+                label = "{}".format(sequence)
+                label_full = "{}".format(sequence)
+            else: 
+                label = "{}, {}".format(label, sequence)
+                label_full = "{}, {}".format(label_full, sequence)
             
-        return label
-                
-#         if self._label_format['delta_mz']:
-#             if label == "": label = "{}".format(frag_name)
-#             else: label = "{}, {}".format(label, frag_name)
+        return label, label_full
             
     def find_n_nearest(self, value, array, n_nearest=1):
         idx = np.argpartition(np.abs(array-value), n_nearest)
@@ -351,15 +413,16 @@ class PeptideAnnotation():
         return array[idx], idx
     
     def get_fragment_mass_list(self, fragment_dict):
-        frag_mass_list = [fragment_dict[frag]['mz'] for frag in fragment_dict]
-        frag_name_list = [frag for frag in fragment_dict]
-        frag_charge_list = [fragment_dict[frag]['z'] for frag in fragment_dict]
-        frag_peptide_list = [fragment_dict[frag]['seq'] for frag in fragment_dict]
-        return np.array(frag_mass_list), np.array(frag_name_list), np.array(frag_charge_list), np.array(frag_peptide_list)
+        frag_mass_list = np.array([fragment_dict[frag]['mz'] for frag in fragment_dict])
+        frag_name_list = np.array([frag for frag in fragment_dict])
+        frag_charge_list = np.array([fragment_dict[frag]['z'] for frag in fragment_dict])
+        frag_peptide_list = np.array([fragment_dict[frag]['seq'] for frag in fragment_dict])
+        frag_full_name_list = np.array([fragment_dict[frag]['full_label'] for frag in fragment_dict])
+        return frag_mass_list, frag_name_list, frag_charge_list, frag_peptide_list, frag_full_name_list
     
     def match_peaks(self, peaklist, peakints, fragment_mass_list, fragment_name_list, 
-                    fragment_charge_list, fragment_peptide_list, tolerance=0.01, 
-                    tolerance_units="Da", max_found=1, verbose=False, **kwargs):
+                    fragment_charge_list, fragment_peptide_list, frag_full_name_list,
+                    tolerance=0.01, tolerance_units="Da", max_found=1, verbose=False, **kwargs):
         tstart = ttime()
         found_peaks = {}
         _more_than_one_peak_ = 0
@@ -380,6 +443,7 @@ class PeptideAnnotation():
                                              'calculated_mz':calculated_mz, 
                                              'delta_mz':delta_mz, 
                                              'label':fragment_name_list[idx],
+                                             'full_label':frag_full_name_list[idx],
                                              'peptide':fragment_peptide_list[idx],
                                              'charge':fragment_charge_list[idx]})
             if len(found_peaks_list) > 0:
@@ -396,7 +460,7 @@ class PeptideAnnotation():
     
     def get_fragment_lists(self, fragment_dict, get_calculated_mz=False):
         
-        frag_mass_list, frag_int_list, frag_label_list = [], [], []
+        frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = [], [], [], []
         for frag in fragment_dict:
             for annot in xrange(len(fragment_dict[frag])):
                 if get_calculated_mz:
@@ -405,8 +469,9 @@ class PeptideAnnotation():
                     frag_mass_list.append(fragment_dict[frag][annot]['measured_mz'])
                 frag_int_list.append(fragment_dict[frag][annot]['measured_int'])
                 frag_label_list.append(fragment_dict[frag][annot]['label'])
+                frag_full_label_list.append(fragment_dict[frag][annot]['full_label'])
         
-        return frag_mass_list, frag_int_list, frag_label_list
+        return frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list
         
     def convert_Da_to_ppm(self, value, delta_value):
         value_out = 1000000 * delta_value/value
