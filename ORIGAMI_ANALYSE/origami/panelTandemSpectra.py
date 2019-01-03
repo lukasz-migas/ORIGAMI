@@ -25,6 +25,7 @@ from operator import itemgetter
 import numpy as np
 from copy import deepcopy
 from time import time as ttime
+from re import split as re_split
 
 from toolbox import (str2num, str2int, str2bool, removeListDuplicates)
 from styles import (makeCheckbox, makeStaticBox, makeMenuItem)
@@ -33,7 +34,6 @@ from gui_elements.misc_dialogs import dlgBox
 from ids import (ID_tandemPanel_otherSettings, ID_tandemPanel_showPTMs, 
                  ID_tandemPanel_peaklist_show_selected,
                  ID_tandemPanel_showUnidentifiedScans)
-from sympy.series import residues
 
 
 class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
@@ -217,7 +217,8 @@ class panelTandemSpectra(wx.MiniFrame):
                     'fragment_label_list':frag_label_list,
                     'fragment_full_label_list':frag_full_label_list}
                 
-                document.tandem_spectra['annotated_item_list'].append(itemInfo["scanID"]) 
+                annot_title = "{}:{}".format(itemInfo["scanID"], itemInfo["id_num"])
+                document.tandem_spectra['annotated_item_list'].append(annot_title) 
                 
                 # annotate table
                 self.peaklist_selected.SetStringItem(i, self._columns_peaklist_selected['# matched'], str(len(fragments)))
@@ -243,17 +244,22 @@ class panelTandemSpectra(wx.MiniFrame):
             count = self.peaklist_selected.GetItemCount()
             for i in xrange(count):
                 itemInfo = self.get_item_info_peaklist_selected(i)
-                document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'] = {}
+                document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'][itemInfo['id_num']] = {}
                 
                 try:
-                    scan_idx = document.tandem_spectra['annotated_item_list'].index(itemInfo["scanID"])
+                    annot_title = "{}:{}".format(itemInfo["scanID"], itemInfo["id_num"])
+                    scan_idx = document.tandem_spectra['annotated_item_list'].index(annot_title)
                     del document.tandem_spectra['annotated_item_list'][scan_idx]
                 except ValueError as e: 
                     pass
                 
             # Clear table
+            document.tandem_spectra['annotated_item_list'] = []
             self.peaklist_selected.DeleteAllItems()
             self._update_status_('Deleted all items.')
+            
+            # update document
+            self.presenter.OnUpdateDocument(document, 'no_refresh')
                     
     def on_clear_annotations(self, evt):
 
@@ -265,7 +271,7 @@ class panelTandemSpectra(wx.MiniFrame):
             check = self.peaklist_selected.IsChecked(index=i)
             if check:
                 itemInfo = self.get_item_info_peaklist(i)
-                document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'] = {}
+                document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'][itemInfo['id_num']] = {}
                 
                 # annotate table
                 self.peaklist_selected.SetStringItem(i, self._columns_peaklist_selected['# matched'], "0")
@@ -1209,53 +1215,38 @@ class panelTandemSpectra(wx.MiniFrame):
         # populate selected table first
         if "annotated_item_list" in data:
             annot_list = natsorted(data['annotated_item_list'])
-            for scan in annot_list:
+            for scan_id in annot_list:
+                scan, id_num = re_split(":", scan_id)
+                id_num = int(id_num)
                 spectrum = data[scan]
-                n_ids, peptide, ptm = 1, [""], [False]
-#                 peptide, ptm = "", False
+                peptide, ptm = "", False
                 
                 if "identification" in spectrum:
-                    n_ids = len(spectrum['identification'])
-                    
-                    peptide = [""] * n_ids
-                    ptm = [False] * n_ids
-                    
-                    for n_id in natsorted(spectrum['identification']):
-                        try: peptide[n_id] = spectrum['identification'][n_id]['peptide_seq']
-                        except: pass
-                        try: 
-                            if len(spectrum['identification'][n_id]['modification_info']) > 0:
-                                ptm[n_id] = True
-                        except: 
-                            pass
-                    
-#                     try: peptide = spectrum['identification'][0]['peptide_seq']
-#                     except: pass
-#                     try:
-#                         if len(spectrum['identification'][0]['modification_info']) > 0:
-#                             ptm = True
-# #                     except: 
-#                         pass
-                    
-                for n_id in xrange(n_ids):
+                    try: peptide = spectrum['identification'][id_num]['peptide_seq']
+                    except: pass
+                    try: 
+                        if len(spectrum['identification'][id_num]['modification_info']) > 0:
+                            ptm = True
+                    except: pass
+
                     # check if scans with PTMs should be shown
-                    if not self.config._tandem_show_PTMs_in_table and ptm[n_id]:
+                    if not self.config._tandem_show_PTMs_in_table and ptm:
                         continue
                 
                     # check if un-identified scans should be shown
-                    if not self.config._tandem_show_unidentified_in_table and peptide[n_id] == "":
+                    if not self.config._tandem_show_unidentified_in_table and peptide == "":
                         continue
                 
                     self.peaklist_selected.Append(["", 
                                                    scan, 
-                                                   str(n_id+1),
+                                                   str(id_num+1),
                                                    spectrum['scan_info'].get('ms_level', "2"),
                                                    "{:.4f}".format(spectrum['scan_info'].get('precursor_mz', "")),
                                                    spectrum['scan_info'].get('precursor_charge', ""),
                                                    spectrum['scan_info'].get('peak_count', len(spectrum['xvals'])),
-                                                   len(spectrum['fragment_annotations'][n_id]['fragment_table']),
-                                                   peptide[n_id], 
-                                                   str(ptm[n_id]),
+                                                   len(spectrum['fragment_annotations'][id_num].get('fragment_table', [])),
+                                                   peptide, 
+                                                   str(ptm),
                                                    spectrum['scan_info'].get('title', ""),
                                                    ])
             
