@@ -241,6 +241,8 @@ ID_tandemPanel_otherSettings = NewId()
 ID_tandemPanel_showPTMs = NewId()
 ID_tandemPanel_showUnidentifiedScans = NewId()
 ID_tandemPanel_peaklist_show_selected = NewId()
+ID_tandemPanel_sort_peptide_by_AZ = NewId()
+ID_tandemPanel_sort_peptide_by_length = NewId()
 
 # UVPD panel
 ID_uvpd_laser_on_show_heatmap = NewId()

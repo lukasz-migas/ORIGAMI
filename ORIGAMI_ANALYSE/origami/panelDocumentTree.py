@@ -1658,7 +1658,7 @@ class documentsTree(wx.TreeCtrl):
         
         # split
         try:
-            self.splitText = re.split('-|,|:|__', self.extractData)
+            self.splitText = re.split('-|,|:|__', self.extractData) 
         except:
             self.splitText = []
             

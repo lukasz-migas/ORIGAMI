@@ -64,7 +64,7 @@ def makeMenuItem(parent, text, id=-1, bitmap=None, help_text=None,
     menuItem = wx.MenuItem(parent, id, text, kind=kind)
     if bitmap != None:
         menuItem.SetBitmap(bitmap)
-    
+        
     if help_text != None:
         menuItem.SetHelp(help_text)
     

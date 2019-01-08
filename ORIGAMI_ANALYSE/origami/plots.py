@@ -42,9 +42,9 @@ from copy import deepcopy
 
 from plottingWindow import plottingWindow
 from toolbox import (find_limits, dir_extra, determineFontColor, convertRGB1to255,
-                             find_limits_list, MidpointNormalize, merge_two_dicts,
-                             str2num, str2int, randomColorGenerator, convertHEXtoRGB1,
-                             _replace_labels, remove_nan_from_list, find_limits_all)
+                     find_limits_list, MidpointNormalize, merge_two_dicts,
+                     str2num, str2int, randomColorGenerator, convertHEXtoRGB1,
+                     _replace_labels, remove_nan_from_list, find_limits_all)
 import dialogs as dialogs
 from processing.spectra import normalize_1D
 from processing.heatmap import normalize_2D
@@ -436,17 +436,19 @@ class plots(plottingWindow):
         obj_name = kwargs.pop("text_name", None)
         
         yval = yval+yoffset
+
+        # this will offset the intensity of the label by small value
         if kwargs.pop("add_arrow_to_low_intensity", False):
             if is_butterfly:
-                if yval > 0.2 * self.plot_limits[2]:
+                if (yval-yoffset) > 0.2 * self.plot_limits[2]:
                     rand_offset = -np.random.uniform(high=0.75 * self.plot_limits[2])
                     yval_old = yval-yoffset
                     yval -= rand_offset
                     arrow_vals = [xpos, yval_old, 0, yval-yval_old]
                     self.plot_add_arrow(arrow_vals, stick_to_intensity=False)
             else: 
-                if yval < 0.2 * self.plot_limits[3]:
-                    rand_offset = np.random.uniform(high=0.75 * self.plot_limits[3])
+                if (yval-yoffset) < 0.2 * self.plot_limits[3]:
+                    rand_offset = np.random.uniform(high=0.5 * self.plot_limits[3])
                     yval_old = yval-yoffset
                     yval += rand_offset
                     arrow_vals = [xpos, yval_old, 0, yval-yval_old]
@@ -1554,7 +1556,9 @@ class plots(plottingWindow):
 
         # Setup X-axis getter
         self.setupGetXAxies([self.plotMS])
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+        if not adding_on_top:
+            self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+        
 
     def plot_1D_barplot(self, xvals, yvals, labels, colors, xlabel="", ylabel="",
                         title="", zoom="box", axesSize=None, plotType=None, **kwargs):

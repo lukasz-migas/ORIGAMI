@@ -4381,12 +4381,19 @@ class panelInteractiveOutput(wx.MiniFrame):
         ===
         xvals_raw:    list / numpy.array
             list of x-axis values (m/z)
+            
         xvals_lab:    list / numpy.array
             list of x-axis values (m/z) of the annotations
+            
         data:    dict
             dataset with annotation inforation: peptide, charge, label, measured_mz, calculated_mz, ...
-        """
         
+        color_labelled:    hex color
+            color used for peaks with label/details
+            
+        color_unlabelled:    hex color
+            color used for peaks without label/details
+        """
         # unpack
         xvals_raw = list(xvals_raw)
         
@@ -4401,7 +4408,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         labels = [""] * mz_list_size
         details = deepcopy(labels)
         item_colors = [color_unlabelled] *  mz_list_size
+        
+        # iterate over matched index 
         for i in match_index:
+            # value "0" corresponds to the first returned label. Currently ORIGAMI does not
+            # support more than one label for one peak
             item_colors[i] = color_labelled
             mz_value = xvals_raw[i]
             detail_label = "{}; z={}; error={} Da".format(
@@ -4413,13 +4424,104 @@ class panelInteractiveOutput(wx.MiniFrame):
             
         return item_colors, labels, details
     
-    def _prepare_centroid_title(self, scanID, title):
+    def _prepare_protein_sequence(self, sequence):
+        from textwrap import wrap
+        seq = wrap(sequence, 80)
+        seq_len, seq_split = 0, []
+        for seq_n in seq:
+            seq_n = wrap(seq_n, 10)
+            seq_n = " ".join(seq_n)
+            if len(seq_n) < 87:
+                seq_n = seq_n + "&nbsp;" * (87-len(seq_n))
+            seq_len+=80
+            seq_split.append("<font face='Courier New'><p>{}  {}</p>".format(seq_n, seq_len))
+        seq = "\n".join(seq_split)
+        
+        return seq
+    
+    def _prepare_protein_accession(self, accession):
+        if accession.startswith("sp|"):
+            accession_split = re.split("\|", accession)
+            accession = '<a href="https://www.uniprot.org/uniprot/{}">{}</a>'.format(
+                accession_split[1], accession)
+        elif accession.startswith("gi|"):
+            accession_split = re.split("\|", accession)
+            accession = '<a href="https://www.ncbi.nlm.nih.gov/protein/{}">{}</a>'.format(
+                accession_split[1], accession)
+        
+        return accession
+    
+    def _prepare_centroid_title_with_annotations(self, scanID, scan_num, data):
         """
         Generate html text for div
         """
         
-        html_title = "<p><strong>ID: </strong>{}</p> <p><strong>Title: </strong>{}</p>".format(
-            scanID, title)
+        protein_seq, protein_desc, protein_accession = "Sequence was not provided", "", ""
+        if "identification" in data[scanID]:
+            # get protein sequence
+            protein_seq = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("peptide_seq", "")
+            if protein_seq == {}: protein_seq = "Sequence was not provided"
+            
+            if protein_seq != "Sequence was not provided":
+                protein_seq = self._prepare_protein_sequence(protein_seq)
+            # get protein description
+            protein_desc = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("protein_description", "")
+            # get protein accession
+            protein_accession = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("accession", "Sequence was not provided")
+            protein_accession = self._prepare_protein_accession(protein_accession)
+            
+            # get peptide sequence
+            peptide_seq = data[scanID]['identification'][scan_num]['peptide_seq']
+            # get peptide start/end
+            peptide_start = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("start", "")
+            peptide_end = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("end", "")
+            
+            # get fragments
+            n_fragments = len(data[scanID]['fragment_annotations'][scan_num].get('fragment_table', []))
+            
+        html_title = """
+        <p><strong>Title: </strong>{}</p>
+        <p><strong>ID</strong>: {}:{}</p>
+        <p><strong>Precursor sequence</strong>: {} | <strong>Start</strong>: {} | <strong>End</strong>: {}</p>
+        <p><strong>Precursor m/z</strong>: {} | <strong>Precursor charge</strong>: {}</p>
+        <p><strong>Found fragments</strong>: {}</p>
+        <p><strong>Protein description</strong>: {}</p>
+        <p><strong>Protein accession</strong>: {}</p>
+        <p><strong>Sequence</strong>:</p>
+        <p>{}</p>
+        
+        """.format(data[scanID]['scan_info']['title'],
+                   scanID, 
+                   scan_num+1, 
+                   peptide_seq, peptide_start, peptide_end,
+                   data[scanID]['scan_info']['precursor_mz'],
+                   data[scanID]['scan_info']['precursor_charge'],
+                   n_fragments,
+                   protein_desc,
+                   protein_accession,
+                   protein_seq
+                   )
+        
+        return html_title
+    
+    def _prepare_centroid_title_without_annotations(self, scanID, scan_num, data):
+        """
+        Generate html text for div
+        """
+        
+        html_title = """
+        <p><strong>Title: </strong>{}</p>
+        <p><strong>ID</strong>: {}</p>
+        <p><strong>Identification ID</strong>: {}</p>
+        <p><strong>Precursor m/z</strong>: {}</p>
+        <p><strong>Precursor charge</strong>: {}</p>
+        <p><strong>Protein</strong>: {}</p>
+        """.format(data[scanID]['scan_info']['title'],
+                   scanID, 
+                   scan_num+1, 
+                   data[scanID]['scan_info']['precursor_mz'],
+                   "", 
+                   )
         
         return html_title
         
@@ -4561,21 +4663,24 @@ class panelInteractiveOutput(wx.MiniFrame):
         # collect data
         xvals_list, yvals_list, options_list = [], [], []
         item_colors_list, item_labels_list, item_details_list, title_list = [], [], [], []
-        for i, key in enumerate(annotated_ms_list):
+        for scan_id in annotated_ms_list:
+            scan, id_num = re.split(":", scan_id)
+            id_num = int(id_num)
             # plot data
-            xvals_list.append(data[key]['xvals'])
-            yvals_list.append(data[key]['yvals'])
-            options_list.append(str(i))
+            xvals_list.append(data[scan]['xvals'])
+            yvals_list.append(data[scan]['yvals'])
+            options_list.append("{}:{}".format(scan,id_num+1))
             
             item_colors, labels, details = self._prepare_centroid_data(
-                data[key]['xvals'],
-                data[key]['fragment_annotations']['fragment_mass_list'],
-                data[key]['fragment_annotations']['fragment_table'], 
+                data[scan]['xvals'],
+                data[scan]['fragment_annotations'][id_num]['fragment_mass_list'],
+                data[scan]['fragment_annotations'][id_num]['fragment_table'], 
                 color_labelled, color_unlabelled)
+            
             item_colors_list.append(item_colors)
             item_labels_list.append(labels)
             item_details_list.append(details)
-            html_title = self._prepare_centroid_title(key, data[key]['scan_info']['title'])
+            html_title = self._prepare_centroid_title_with_annotations(scan, id_num, data)
             title_list.append(html_title)
             
         # create source data
@@ -4593,14 +4698,14 @@ class panelInteractiveOutput(wx.MiniFrame):
             xvals=xvals_list[0],
             yvals=yvals_list[0],
             colors=item_colors_list[0], 
-            label=item_labels_list[0], 
+            labels=item_labels_list[0], 
             details=item_details_list[0], 
             ))
         
         # Prepare hover tool
         hoverTool = HoverTool(tooltips=[("m/z", '@xvals{0.00}'),
                                         ("Intensity", '@yvals{0.00}'),
-                                        ("Label", "@label"),
+                                        ("Label", "@labels"),
                                         ("Details", "@details")
                                         ], mode="mouse")
         TOOLS = self._check_tools(hoverTool, data)
@@ -4637,8 +4742,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **setup_kwargs)
     
         # create div for scan information
-#         text = self._prepare_centroid_title(annotated_ms_list[0], data[annotated_ms_list[0]]['scan_info']['title'])
-        divHeader = Div(text=title_list[0]) #("<p><strong>Current ID: {}<br /></strong></p>".format(annotated_ms_list[0])))
+        divHeader = Div(text=title_list[0],
+                        width=plt_kwargs['plot_width']) #("<p><strong>Current ID: {}<br /></strong></p>".format(annotated_ms_list[0])))
 
         # generate javascript widget
         js_widgets = []
@@ -4647,8 +4752,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         var list_data = source_list.data;
         var plot_data = source.data
         
-        // convert value to integer
-        i = parseInt(cb_obj.value, 10);
+        // get selection index
+        i = cb_obj.options.indexOf(cb_obj.value) // parseInt(cb_obj.value, 10);
         
         // retrieve data from list 
         var xvals = list_data['xvals_list'][i];
@@ -4661,7 +4766,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         // report title
         console.log("Spectrum title: " + title_list[i]);
         div.text = title;
-        //div.text = "<p><strong>Current ID: " + title_list[i] + "<br /></strong></p>";
         
         // replace data and trigger replot
         plot_data['xvals'] = xvals;
@@ -4670,11 +4774,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         plot_data['labels'] = labels;
         plot_data['details'] = details;
         
+        // update plot
         source.change.emit();
         '''
         
         callback = CustomJS(code=js_code, 
-                            args={'figure':bokehPlot, 'source':source, 
+                            args={'figure':bokehPlot, 
+                                  'source':source, 
                                   'source_list':source_list, 
                                   'title_list':annotated_ms_list,
                                   'div':divHeader})
@@ -4682,11 +4788,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         toggle = Select(title="Dataset (id):", value="0", options=options_list, callback=callback)
         js_widgets.append(toggle)
         
-        
         # arrange
-        bokehPlot = row(bokehPlot, column(widgetbox(js_widgets), divHeader))
-                
-        return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
+#         bokehPlot = row(bokehPlot, column(widgetbox(js_widgets), divHeader))
+        bokehPlot = column(children=[row(bokehPlot, widgetbox(js_widgets)),divHeader], 
+                           sizing_mode="scale_width")
+        
+        return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height'], {}, dict(add_watermark=False)]
 
     def _add_plot_1D(self, data, **bkh_kwargs):
         """
@@ -7213,9 +7320,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         """
         Generate plots for HTML output
         """
-        self.currentDocumentName = self.documentName_value.GetValue()
-        if self.currentDocumentName in ["None", "", None]:
-            self.currentDocumentName = "ORIGAMI"
 
         add_width = 0
         add_watermark = self.addWatermarkCheck.GetValue()
@@ -7258,7 +7362,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         # Sort the list based on which page each item belongs to
         if self.config.interactive_sort_before_saving:
             self.OnSortByColumn(column=self.config.interactiveColNames['order'], sort_direction=False)
-
+        
+        # check if user selected anything in the list
         if len(listOfPages) == 0:
             msg = 'Please select items to plot'
             dialogs.dlgBox(exceptionTitle='No plots were selected',
@@ -7275,6 +7380,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 pageTable = self.itemsList.GetItem(item, self.config.interactiveColNames['page']).GetText()
                 data_export_list.append([name, key, innerKey, pageTable])
 
+        # get bokeh plot for each selected item
         for data_export_item in data_export_list:
             name, key, innerKey, pageTable = data_export_item
             data = self.getItemData(name, key, innerKey)
@@ -7447,10 +7553,14 @@ class panelInteractiveOutput(wx.MiniFrame):
             elif key == "MS/MS":
                 annotated_ms_list = data.get("annotated_item_list", []) 
                 if len(annotated_ms_list) == 0:
-                    bokehPlot = self._add_plot_centroid_without_annotations(data, **bkh_kwargs)
+                    msg = "Cannot export '%s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (key, innerKey)
+                    dialogs.dlgBox(exceptionTitle='Not supported yet',
+                                   exceptionMsg=msg,
+                                   type="Error")
+                    continue
+#                     bokehPlot = self._add_plot_centroid_without_annotations(data, **bkh_kwargs)
                 else:
                     bokehPlot = self._add_plot_centroid_with_annotations(data, **bkh_kwargs)
-
             else:
                 msg = "Cannot export '%s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (key, innerKey)
                 dialogs.dlgBox(exceptionTitle='Not supported yet',
@@ -7463,13 +7573,21 @@ class panelInteractiveOutput(wx.MiniFrame):
                 continue
 
             # check if returned width and height
+            other_kwargs = {}
             if len(bokehPlot) == 3:
                 bokehPlot, width, __ = bokehPlot
                 widget_kwargs = {}
             # check if returned width, height and widget information
             elif len(bokehPlot) == 4:
                 bokehPlot, width, __, widget_kwargs = bokehPlot
-
+            # check if returned width, height and widget information and other parameters 
+            elif len(bokehPlot) == 5:
+                bokehPlot, width, __, widget_kwargs, other_kwargs = bokehPlot
+            
+            if "add_watermark" in other_kwargs:
+                add_watermark = other_kwargs["add_watermark"]
+                self.addWatermarkCheck.SetValue(add_watermark)
+            
 #             Add possibility to export div/script
 #             script, div = components(bokehPlot)
 #             print(div)
@@ -7540,6 +7658,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             except ValueError:
                 return
 
+            # check if watermark should be added
             if add_watermark:
                 divWatermark = Div(text=str(self.config.watermark), width=width + add_width)
                 markupWatermark = widgetbox(divWatermark, width=width + add_width)
@@ -7549,6 +7668,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if page_format is None:
                 page_format = self.config.pageDict["None"]
 
+            # add page as INDIVIDUAL TAB
             if page_format['layout'] == 'Individual':
                 if len(plotDict[pageKey]) > 1:
                     for plot in range(len(plotDict[pageKey])):
@@ -7562,6 +7682,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 else:
                     outList.append(plotDict[pageKey][0])
 
+            # add pages that are meant to be saved as ROW
             if page_format['layout'] == 'Rows':
                 bokeh_output = [[row(plotDict[pageKey])]]
                 if page_format.get("header", "") != "":
@@ -7599,6 +7720,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
                 outList.append(bokehTab)
 
+            # add pages that are meant to be saved as COLUMN 
             if page_format['layout'] == 'Columns':
                 bokeh_output = [[column(plotDict[pageKey])]]
                 if page_format.get("header", "") != "":
@@ -7617,6 +7739,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
                 outList.append(bokehTab)
 
+            # add pages that are meant to be saved in GRID
             if page_format['layout'] == 'Grid':
                 columnVal = page_format.get('columns', None)
                 if columnVal in [None, '']:
@@ -7671,6 +7794,11 @@ class panelInteractiveOutput(wx.MiniFrame):
             bokehOutput = Tabs(tabs=outList)
         else:
             return
+
+        # get current document name
+        self.currentDocumentName = self.documentName_value.GetValue()
+        if self.currentDocumentName in ["None", "", None]:
+            self.currentDocumentName = "ORIGAMI"
 
         # Save output
         filename = self.itemPath_value.GetValue()
