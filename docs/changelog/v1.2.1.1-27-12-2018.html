@@ -684,6 +684,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../interactive-examples/protemics-scans.html" title="Proteomics - MS/MS" class="md-nav__link">
+      Proteomics - MS/MS
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1050,8 +1062,11 @@ double-click on any element in the file list a new window will appear where you 
 <p><img alt="Added" src="img/added.png" /> Added new plug that allows analysis and processing of UVPD datasets that were acquired with laser being constantly switched on/off. This is a user-specific plugin that will most likely have no use for anyone else apart from some Barran group members. To activate, click on the <strong>Menu -&gt; Plugins -&gt; UVPD processing window...</strong>.</p>
 <h2 id="tandem-ms-panel">Tandem MS panel<a class="headerlink" href="#tandem-ms-panel" title="Permanent link">&para;</a></h2>
 <p><img alt="Added" src="img/added.png" /> You can now load .mzML files (haven't figured out how to add .mzIdentML files to them yet...)</p>
-<p><img alt="Added" src="img/added.png" /> MS/MS files can now be exported in an interactive format (.html document). This is still in development and I imagine will not be until v1.2.2 that it will be truly working as is intended. At the moment MS/MS file (.mgf ONLY) that has been annotated with mzIdentML information can be 'User-annotated' to mark which scans should be exportable in interactive format. This will be properly showcased in a tutorial.</p>
-<p><img alt="Added" src="img/added.png" /> Added two new options in the <strong>Action menu</strong> which permit improved population of the table by either exlcuding scans with PTMs (ORIGAMI cannot handle these yet...) and excluding scans without identification. Clicking on either of these will automatically trigger re-population of the table based on the selected options.</p>
+<p><img alt="Added" src="img/added.png" /> MS/MS files can now be exported in an interactive format (.html document). This feature is still in development and I imagine will not be stable until v1.2.2 at the earliest. At the moment, individual scans of MS/MS file (.mgf only) can be annotated (e.g. fragments can be generated) and added to the file. Scans that have been user-annotated can be subsequently exported. This will be properly showcased in a tutorial.</p>
+<p><img alt="Added" src="img/added.png" /> Added two new options in the <strong>Action menu</strong> which permit improved population of the table by either exlcuding scans with PTMs and excluding scans without identification. Clicking on either of these will automatically trigger re-population of the table based on the selected options.</p>
+<p><img alt="Added" src="img/added.png" /> You can see what PTMs have been included in the scan by clicking on the <strong>Modifications list</strong></p>
+<p><img alt="Improved" src="img/improved.png" /> Scans that have multiple identification information will be separated into separae instances in the table (e.g. look at the column ID #)</p>
+<p><img alt="Improved" src="img/improved.png" /> Fragment generator can now handle PTMs (at least those that have kept the mass information)</p>
 <p><img alt="Improved" src="img/improved.png" /> Improved the way scans are loaded (faster and actually works...)</p>
 <p><img alt="Improved" src="img/improved.png" /> Improved the way butterfly plots are shown. A horizontal line will be drawn from now on (at y=0)</p>
 <p><img alt="Improved" src="img/improved.png" /> Added several new customisation parameters that permit better data visualisation. These are found under <strong>Action -&gt; Customise...</strong></p>
@@ -1080,7 +1095,7 @@ double-click on any element in the file list a new window will appear where you 
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../interactive-examples/ccs-compendium.html" title="CCS compendium" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../interactive-examples/protemics-scans.html" title="Proteomics - MS/MS" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1089,7 +1104,7 @@ double-click on any element in the file list a new window will appear where you 
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                CCS compendium
+                Proteomics - MS/MS
               </span>
             </div>
           </a>
