@@ -223,6 +223,7 @@ class PeptideAnnotation():
                 elif "x3" in ion_type and aa_count >= 3: return True
                 elif "x4" in ion_type and aa_count >= 4: return True
                 else: return False
+                
         # only consider peptides with R, K, Q, N amino acids
         elif ion_type in self._all_nh3_loss_:
             if re.search('[RKQN]', peptide):
@@ -269,7 +270,6 @@ class PeptideAnnotation():
         
         return mod_peptide_seq, modification_mass
                         
-    
     def generate_fragments_from_peptide(self, peptide, ion_types, label_format={},
         min_charge=1, max_charge=1, aa_mass_dict=None, polarity="+", ion_composition=None, 
         modification_dict={}, verbose=False):
@@ -316,6 +316,8 @@ class PeptideAnnotation():
                     continue
                 for i in xrange(1, len(peptide)):
                     peptide_seq = peptide[:i]
+                    if not self.check_peptide_rules(ion_type, peptide_seq):
+                        continue
                     mod_peptide_seq, modification_mass = peptide_seq, 0 
                     if include_modifications:
                         mod_peptide_seq, modification_mass = self.check_modification(i, peptide_seq, modification_dict)
@@ -328,20 +330,20 @@ class PeptideAnnotation():
                         
                         ion_label, ion_label_full = self.generate_label(
                             ion_type[0], i, polarity, charge, mod_peptide_seq)
-                        fragment_dict[ion_label] = {'mz':ion_mz, 
-                                                    'z':charge, 
-                                                    'seq':peptide_seq,
-                                                    'full_label':ion_label_full}
+                        fragment_dict[ion_label_full] = {
+                            'mz':ion_mz, 'z':charge, 'seq':peptide_seq, 'full_label':ion_label_full, 'label':ion_label}
                         
             if ion_type in self._all_xyz_all_:
                 peptide = _peptide#[::-1] 
-                if not self.check_peptide_rules(ion_type, peptide): 
+                if not self.check_peptide_rules(ion_type, peptide):
                     continue
                 # generate list of inverse fragment numbers
-                _frag_label_length = np.arange(len(peptide), 0, -1 )
+                _frag_label_length = np.arange(len(peptide), 0, -1)
                 # iterate over peptide length
-                for i in xrange(1, len(peptide)): #xrange(len(peptide)-1, 0, -1):
-                    peptide_seq = peptide[i:] 
+                for i in xrange(1, len(peptide)): 
+                    peptide_seq = peptide[i:]
+                    if not self.check_peptide_rules(ion_type, peptide_seq):
+                        continue
                     mod_peptide_seq, modification_mass = peptide_seq, 0 
                     if include_modifications:
                         mod_peptide_seq, modification_mass = self.check_modification(i+1, peptide_seq, modification_dict)
@@ -357,10 +359,8 @@ class PeptideAnnotation():
                         ion_label, ion_label_full = self.generate_label(
                             ion_type[0], _frag_label_length[i], polarity, charge, mod_peptide_seq, full_ion_type=ion_type)
                         
-                        fragment_dict[ion_label] = {'mz':ion_mz, 
-                                                    'z':charge, 
-                                                    'seq':mod_peptide_seq,
-                                                    'full_label':ion_label_full}
+                        fragment_dict[ion_label_full] = {
+                            'mz':ion_mz, 'z':charge, 'seq':mod_peptide_seq, 'full_label':ion_label_full, 'label':ion_label}
                         
         # print verbose information            
         if verbose:
@@ -417,7 +417,7 @@ class PeptideAnnotation():
         frag_mass_list, frag_name_list, frag_charge_list, frag_peptide_list, frag_full_name_list = [], [], [], [], []
         for frag in fragment_dict:
             frag_mass_list.append(fragment_dict[frag]['mz'])
-            frag_name_list.append(frag)
+            frag_name_list.append(fragment_dict[frag].get('label', frag))
             frag_charge_list.append(fragment_dict[frag]['z'])
             frag_peptide_list.append(fragment_dict[frag]['seq'])
             frag_full_name_list.append(fragment_dict[frag]['full_label'])
@@ -428,12 +428,6 @@ class PeptideAnnotation():
         frag_charge_list = np.array(frag_charge_list)
         frag_peptide_list = np.array(frag_peptide_list)
         frag_full_name_list = np.array(frag_full_name_list)
-        
-#         frag_mass_list = np.array([fragment_dict[frag]['mz'] for frag in fragment_dict])
-#         frag_name_list = np.array([frag for frag in fragment_dict])
-#         frag_charge_list = np.array([fragment_dict[frag]['z'] for frag in fragment_dict])
-#         frag_peptide_list = np.array([fragment_dict[frag]['seq'] for frag in fragment_dict])
-#         frag_full_name_list = np.array([fragment_dict[frag]['full_label'] for frag in fragment_dict])
         
         return frag_mass_list, frag_name_list, frag_charge_list, frag_peptide_list, frag_full_name_list
     
@@ -465,13 +459,14 @@ class PeptideAnnotation():
                                              'charge':fragment_charge_list[idx]})
             if len(found_peaks_list) > 0:
                 if len(found_peaks_list) > 1:
+                    print(found_peaks_list)
                     _more_than_one_peak_ += 1
                 found_peaks[measured_mz] = found_peaks_list
                 
-        if verbose:
-            msg = "Found {} ({} > 1 labels) matches with {} {} tolerance | Time to search: {:.4f}".format(len(found_peaks), _more_than_one_peak_,
-                                                                                                          tolerance, tolerance_units, ttime()-tstart)
-            print(msg)
+#         if verbose:
+        msg = "Found {} ({} > 1 labels) matches with {} {} tolerance | Time to search: {:.4f}".format(
+            len(found_peaks), _more_than_one_peak_, tolerance, tolerance_units, ttime()-tstart)
+        print(msg)
             
         return found_peaks
     

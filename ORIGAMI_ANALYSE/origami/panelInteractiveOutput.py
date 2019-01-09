@@ -3126,6 +3126,9 @@ class panelInteractiveOutput(wx.MiniFrame):
             unidecMethod = re.split(' \| ', innerKey)[0]
             innerKey = re.split(' \| ', innerKey)[1]
             document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod][keyword] = value
+            
+        if key == 'MS/MS' and innerKey != '':
+            document.document.tandem_spectra[keyword] = value
 
         # Update dictionary
         self.presenter.documentsDict[document.title] = document
@@ -3137,6 +3140,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         if key == 'MS' and innerKey == '': document.massSpectrum = self.add_tags_to_data(document.massSpectrum, colorbar=False, **kwargs)
 
         if key == 'Processed MS' and innerKey == '': document.smoothMS = self.add_tags_to_data(document.smoothMS, colorbar=False, **kwargs)
+
+        if key == 'MS/MS' and innerKey == '': document.tandem_spectra = self.add_tags_to_data(document.tandem_spectra, colorbar=False, **kwargs)
 
         if key == 'RT' and innerKey == '': document.RT = self.add_tags_to_data(document.RT, colorbar=False, **kwargs)
 
@@ -3200,16 +3205,9 @@ class panelInteractiveOutput(wx.MiniFrame):
         innerKey = self.itemsList.GetItem(self.currentItem, self.config.interactiveColNames['file']).GetText()
         color = self.itemsList.GetItem(self.currentItem, self.config.interactiveColNames['color']).GetText()
         page = self.itemsList.GetItem(self.currentItem, self.config.interactiveColNames['page']).GetText()
-#         tool = self.itemsList.GetItem(self.currentItem, self.config.interactiveColNames['tools']).GetText()
-#         title = self.itemsList.GetItem(self.currentItem,self.config.interactiveColNames['title']).GetText()
-#         header = self.itemsList.GetItem(self.currentItem,self.config.interactiveColNames['header']).GetText()
-#         footnote = self.itemsList.GetItem(self.currentItem,self.config.interactiveColNames['footnote']).GetText()
-#         orderNum = self.itemsList.GetItem(self.currentItem,self.config.interactiveColNames['order']).GetText()
 
         # Get data
         pageData = self.config.pageDict[page]
-#         tools = self.getToolSet(preset=tool)
-#         toolSet = {'name':tool, 'tools':tools}  # dictionary object
 
         if any(key in method for method in ["MS", "RT", "1D", "RT, combined",
                                             'MS, multiple', '1D, multiple',
@@ -3220,56 +3218,16 @@ class panelInteractiveOutput(wx.MiniFrame):
         header = self.itemHeader_value.GetValue()
         footnote = self.itemFootnote_value.GetValue()
         orderNum = self.order_value.GetValue()
-#         colorbar = self.colorbarCheck.GetValue()
 
         interactive_params = {}
-#         interactive_params = {'line_width':self.html_plot1D_line_width.GetValue(),
-#                               'line_alpha':self.html_plot1D_line_alpha.GetValue(),
-#                               'line_style':self.html_plot1D_line_style.GetStringSelection(),
-#                               'line_linkXaxis':self.html_plot1D_hoverLinkX.GetValue(),
-#                               'overlay_layout':self.html_overlay_layout.GetValue(),
-#                               'overlay_linkXY':self.html_overlay_linkXY.GetValue(),
-#                               'overlay_color_1':self.html_overlay_colormap_1.GetStringSelection(),
-#                               'overlay_color_2':self.html_overlay_colormap_2.GetStringSelection(),
-#                               'colorbar':self.colorbarCheck.GetValue(),
-#                               'legend':self.html_overlay_legend.GetValue(),
-#                               'title_label':self.grid_label_check.GetValue(),
-#                               'grid_xpos':str2num(self.grid_xpos_value.GetValue()),
-#                               'grid_ypos':str2num(self.grid_ypos_value.GetValue()),
-#                               'linearize_spectra':self.linearizeCheck.GetValue(),
-#                               'show_annotations':self.showAnnotationsCheck.GetValue(),
-#                               'bin_size':str2num(self.binSize_value.GetValue()),
-#                               'plot_height':str2int(self.figsize_height_value.GetValue()),
-#                               'plot_width':str2int(self.figsize_width_value.GetValue()),
-#                               'xlimits':[str2num(self.axes_xmin_value.GetValue()), str2num(self.axes_xmax_value.GetValue())],
-#                               'ylimits':[str2num(self.axes_ymin_value.GetValue()), str2num(self.axes_ymax_value.GetValue())],
-#                               'waterfall_increment':str2num(self.waterfall_increment_value.GetValue()),
-#                               'waterfall_shade_under':self.waterfall_shade_check.GetValue(),
-#                               'waterfall_shade_transparency':str2num(self.waterfall_shade_transparency_value.GetValue()),
-#                               'overlay_1D_shade_under':self.overlay_shade_check.GetValue(),
-#                               'overlay_1D_shade_transparency':str2num(self.overlay_shade_transparency_value.GetValue()),
-#                               }
 
         color_label = color
-#         if key == 'Overlay':
-#             overlayMethod = re.split('-|,|:|__', innerKey)
-#             if overlayMethod[0] == 'Mask' or overlayMethod[0] == 'Transparent':
-#                 color_label = "%s/%s" % (self.html_overlay_colormap_1.GetStringSelection(),
-#                                          self.html_overlay_colormap_2.GetStringSelection())
-#                 pageData = self.config.pageDict['None']
-#
-#         if ((key in ['MS', 'Processed MS', 'RT', '1D']  and innerKey == '') or
-#             (key in ['MS, multiple', 'RT, multiple', '1D, multiple', 'DT-IMS',
-#                      'RT, combined', ] and innerKey != '')):
-# #             colorbar = False
 
 
         # Retrieve and add data to dictionary
         kwargs = {"title":_replace_labels(title), "header":header, "footnote":footnote,
                   "order":orderNum, "color":color, "page":pageData,
-#                   "toolset":toolSet,
                   "interactive_parameters":interactive_params,
-#                   "colorbar":colorbar
                   }
 
         self.onUpdateDocument(name, key, innerKey, **kwargs)
@@ -3287,8 +3245,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                                      col=self.config.interactiveColNames['order'], label=orderNum)
         self.itemsList.SetStringItem(index=self.currentItem,
                                      col=self.config.interactiveColNames['page'], label=page)
-#         self.itemsList.SetStringItem(index=self.currentItem,
-#                                      col=self.config.interactiveColNames['tools'], label=tool)
 
     def add_tags_to_data(self, dictionary, colorbar=False, **kwargs):
         """
@@ -4420,7 +4376,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 data[mz_value][0]['charge'],
                 data[mz_value][0]['delta_mz'])
             details[i] = detail_label
-            labels[i] = data[mz_value][0]['label']
+            labels[i] = data[mz_value][0]['full_label']
             
         return item_colors, labels, details
     
@@ -4641,7 +4597,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         
         # arrange
         bokehPlot = row(bokehPlot, column(widgetbox(js_widgets), divHeader))
-                
+#         bokehPlot = column([bokehPlot, widgetbox(js_widgets), divHeader])
+                        
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
         
     def _add_plot_centroid_with_annotations(self, data, **bkh_kwargs):
@@ -7644,7 +7601,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 plotDict[page['name']].append(bokehLayout)
 
             print("Added {} - {} ({}) to the HTML file".format(key, innerKey, name))
-
+            
         outList = []
         # Generate layout
         if self.config.interactive_sort_before_saving:

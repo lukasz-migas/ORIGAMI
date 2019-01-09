@@ -988,12 +988,16 @@ class panelTandemSpectra(wx.MiniFrame):
 #             elif column == self._columns_peaklist['peptide']:
 #                 self.on_tool_menu(None)
             else:
+                tstart = ttime()
                 self.sort_by_column_peaklist(column=column)
+                print("Sorting took {:.4f} seconds.".format(ttime()-tstart))
         else:
             if column == 0:
                 self.on_check_all_peaklist_selected()
             else:
+                tstart = ttime()
                 self.sort_by_column_peaklist_selected(column=column)
+                print("Sorting took {:.4f} seconds.".format(ttime()-tstart))
         
     def sort_by_column_peaklist(self, column, sort_direction=None, sort_type=None):
         """
@@ -1601,7 +1605,9 @@ class panelTandemSpectra(wx.MiniFrame):
         if column == 0:
             self.on_check_all_fragments_list()
         else:
+            tstart = ttime()
             self.sort_by_column_fragments(column=column)
+            print("Sorting took {:.4f} seconds.".format(ttime()-tstart))
             
     def sort_by_column_fragments(self, column, sort_direction=None):
         """

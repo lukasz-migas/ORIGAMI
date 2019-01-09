@@ -52,9 +52,9 @@ class data_processing():
         self.config = config
         
         self.frag_generator = pr_frag.PeptideAnnotation()
-        try:
-            self.frag_generator.get_unimod_db()
-        except: pass
+#         try:
+#             self.frag_generator.get_unimod_db()
+#         except: pass
         
         
         # unidec parameters
@@ -1021,7 +1021,11 @@ class data_processing():
 #         self.frag_generator = pr_frag.PeptideAnnotation(**{"label_format":label_format}) # refresh, temprorary!
 
         # get parameters
-        peptide = spectrum_dict['identification'][id_num].get('peptide_seq', None)
+        if "identification" in spectrum_dict:
+            peptide = spectrum_dict['identification'][id_num].get('peptide_seq', None)
+        else:
+            peptide = None
+            
         if peptide is None:
             return {}, {}, {}, {}, {}
         z = spectrum_dict['identification'][id_num]['charge']

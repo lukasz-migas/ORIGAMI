@@ -11,6 +11,7 @@
   </presets>
 
   <recent>
+    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\mzml\Chimeric Protein CP04_Labelled (F048911).pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\mzml\OT_151030_10 (F009116).pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\mzml\Day21controlmerged.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\mzml\BR3_CNTRL_ C_20150102.pickle" format="pickle" />
@@ -20,7 +21,6 @@
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\ORIGAMI_ConA_z20.raw" format="MassLynx" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\CCS-Compendium-master\ccs_compendium.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\rachel_uvpd\RB_20181128_A_MELITTIN_06.raw\RB_20181128_A_MELITTIN_06.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -485,17 +485,7 @@
   <presets_interactive_pageLayouts>
     <!-- layout_choices="['Individual', 'Columns', 'Rows', 'Grid']" -->
     <param page_name="Columns" name="Columns" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Extended Data Figure 6." name="Extended Data Figure 6." layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure 1" name="Figure 1" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure 1b" name="Figure 1b" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure 2d - 20+" name="Figure 2d - 20+" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure 2d - 21+" name="Figure 2d - 21+" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure 2d - 22+" name="Figure 2d - 22+" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure 3.b." name="Figure 3.b." layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure 4" name="Figure 4" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure S1 (a, c, e)" name="Figure S1 (a, c, e)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure S1 (b, d, f)" name="Figure S1 (b, d, f)" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="Figure S3" name="Figure S3" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="MS/MS" name="MS/MS" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="None" name="None" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Rows" name="Rows" layout="Rows" rows="None" columns="None" grid_share_tools="True" type="mixed" />
   </presets_interactive_pageLayouts>
