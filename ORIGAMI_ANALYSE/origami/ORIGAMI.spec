@@ -38,7 +38,7 @@ block_cipher = None
 # pyinstaller ORIGAMI.spec -y --clean
 
 # Set version number
-version = "1.2.1.3"
+version = "1.2.1.4"
 
 current_dir = os.getcwd()
 origami_dir_name = "ORIGAMI_v{}".format(version)
