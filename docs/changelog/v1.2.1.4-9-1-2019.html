@@ -13,7 +13,7 @@
         <meta name="description" content="ORIGAMI is an open-source software for analysis of MS and IM-MS datasets.">
       
       
-        <link rel="canonical" href="https://origami.lukasz-migas.com/changelog/v1.2.1.1-27-12-2018.html">
+        <link rel="canonical" href="https://origami.lukasz-migas.com/changelog/v1.2.1.4-9-1-2019.html">
       
       
         <meta name="author" content="Lukasz G. Migas">
@@ -254,7 +254,7 @@
   
     <li class="md-tabs__item">
       
-        <a href="v1.2.1.1-27-12-2018.html" title="Changelog" class="md-tabs__link md-tabs__link--active">
+        <a href="v1.2.1.4-9-1-2019.html" title="Changelog" class="md-tabs__link md-tabs__link--active">
           Changelog
         </a>
       
@@ -740,7 +740,7 @@
         v1.2.1.1 - 27/12/2018
       </label>
     
-    <a href="v1.2.1.1-27-12-2018.html" title="v1.2.1.1 - 27/12/2018" class="md-nav__link md-nav__link--active">
+    <a href="v1.2.1.4-9-1-2019.html" title="v1.2.1.1 - 27/12/2018" class="md-nav__link md-nav__link--active">
       v1.2.1.1 - 27/12/2018
     </a>
     
@@ -820,6 +820,27 @@
         <li class="md-nav__item">
   <a href="#figures" title="Figures" class="md-nav__link">
     Figures
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#animation" title="Animation" class="md-nav__link">
+    Animation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mailing-list" title="Mailing list" class="md-nav__link">
+    Mailing list
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-update" title="How to update" class="md-nav__link">
+    How to update
   </a>
   
 </li>
@@ -1002,6 +1023,27 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#animation" title="Animation" class="md-nav__link">
+    Animation
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mailing-list" title="Mailing list" class="md-nav__link">
+    Mailing list
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-update" title="How to update" class="md-nav__link">
+    How to update
+  </a>
+  
+</li>
+      
       
       
       
@@ -1018,7 +1060,7 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/lukasz-migas/ORIGAMI/tree/master/site-source/changelog/v1.2.1.1-27-12-2018.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/lukasz-migas/ORIGAMI/tree/master/site-source/changelog/v1.2.1.4-9-1-2019.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
                 <h1 id="what-changed-in-origamianalyse">What changed in ORIGAMI<sup>ANALYSE</sup><a class="headerlink" href="#what-changed-in-origamianalyse" title="Permanent link">&para;</a></h1>
@@ -1044,7 +1086,7 @@
 <p><img alt="Fixed" src="img/fixed.png" /> annotation parameters (e.g. size, weight, rotation) will be respected when replotting from the Document Tree</p>
 <h2 id="interactive-panel">Interactive panel<a class="headerlink" href="#interactive-panel" title="Permanent link">&para;</a></h2>
 <p><img alt="Added" src="img/added.png" /> Made big progres in terms of copying/applying styles for plot elements. When you
-double-click on any element in the file list a new window will appear where you can individually adjust plot parameters. When you finished, you can right-click on that same (or any other) item in the list and select 'Copy style..'.  You can then select any other item in the list, right-click on it and select 'Apply style..'.</p>
+double-click on any element in the file list a new window will appear where you can individually adjust plot parameters. When you finished, you can right-click on that same (or any other) item in the list and select 'Copy style..'. You can then select any other item in the list, right-click on it and select 'Apply style..'.</p>
 <p><img alt="Added" src="img/added.png" /> certain plot types (v-bar, h-bar, scatter, waterfall, multi-line/overlay) will now support addition of annotations (and their widgets). Annotations can correspond to anything you wish to say about specific region of a dataset.</p>
 <p><img alt="Added" src="img/added.png" /> Scatter plots that are created from datasets loaded through text files with added metadata can be enhanced with weblinks/URLs. See the <a href="https://origami.lukasz-migas.com/interactive-examples/ccs-compendium.html">example</a> for more information.</p>
 <p><img alt="Fixed" src="img/fixed.png" /> fixed sorting in the list (especilaly when using the 'Show selected' option) Lists are sorted using 'natural sorting' from now on, meaning they should be more logically sorted.</p>
@@ -1063,7 +1105,7 @@ double-click on any element in the file list a new window will appear where you 
 <h2 id="tandem-ms-panel">Tandem MS panel<a class="headerlink" href="#tandem-ms-panel" title="Permanent link">&para;</a></h2>
 <p><img alt="Added" src="img/added.png" /> You can now load .mzML files (haven't figured out how to add .mzIdentML files to them yet...)</p>
 <p><img alt="Added" src="img/added.png" /> MS/MS files can now be exported in an interactive format (.html document). This feature is still in development and I imagine will not be stable until v1.2.2 at the earliest. At the moment, individual scans of MS/MS file (.mgf only) can be annotated (e.g. fragments can be generated) and added to the file. Scans that have been user-annotated can be subsequently exported. This will be properly showcased in a tutorial.</p>
-<p><img alt="Added" src="img/added.png" /> Added two new options in the <strong>Action menu</strong> which permit improved population of the table by either exlcuding scans with PTMs and excluding scans without identification. Clicking on either of these will automatically trigger re-population of the table based on the selected options.</p>
+<p><img alt="Added" src="img/added.png" /> Added two new options in the <strong>Action menu</strong> which permit improved population of the table by either excluding scans with PTMs and excluding scans without identification. Clicking on either of these will automatically trigger re-population of the table based on the selected options.</p>
 <p><img alt="Added" src="img/added.png" /> You can see what PTMs have been included in the scan by clicking on the <strong>Modifications list</strong></p>
 <p><img alt="Improved" src="img/improved.png" /> Scans that have multiple identification information will be separated into separae instances in the table (e.g. look at the column ID #)</p>
 <p><img alt="Improved" src="img/improved.png" /> Fragment generator can now handle PTMs (at least those that have kept the mass information)</p>
@@ -1071,10 +1113,30 @@ double-click on any element in the file list a new window will appear where you 
 <p><img alt="Improved" src="img/improved.png" /> Improved the way butterfly plots are shown. A horizontal line will be drawn from now on (at y=0)</p>
 <p><img alt="Improved" src="img/improved.png" /> Added several new customisation parameters that permit better data visualisation. These are found under <strong>Action -&gt; Customise...</strong></p>
 <p><img alt="Fixed" src="img/fixed.png" /> When selecting frag-all option, appropriate checkboxes will be ticked from now on</p>
+<p><img alt="Fixed" src="img/fixed.png" /> Fixed fragment generator to stop overriding fragments with same name (e.g. y1+ was equal y_H2Ox11+...)</p>
 <h2 id="other-data-annotated-data">Other data -&gt; Annotated data<a class="headerlink" href="#other-data-annotated-data" title="Permanent link">&para;</a></h2>
 <p><img alt="Added" src="img/added.png" /> Added new keyword 'axis_url'/'axis_urls' to the data parser. These keywords can be used to provide web addresses which can be attached to the data (scatter points only for now). If valid URL address is provided, when you tap on a point you will be taken to a new tab in your browser which corresponds to the web address. This is only valid in the interactive plots</p>
 <p><img alt="Changed" src="img/changed.png" /> Changed the poorly selected name of 'Other data' to 'Annotated data'</p>
 <h2 id="figures">Figures<a class="headerlink" href="#figures" title="Permanent link">&para;</a></h2>
+<p>Updated MS/MS panel</p>
+<p><img alt="MSMS" src="img/v1.2.1.4-9-1-2019/interactive_customise_item.png" /></p>
+<p>MS/MS customisation window</p>
+<p><img alt="MSMS" src="img/v1.2.1.4-9-1-2019/msms_settings.png" /></p>
+<p>Annotated MS/MS mass spectrum with automatically generated arrows</p>
+<p><img alt="MSMS" src="img/v1.2.1.4-9-1-2019/annotated_spectrum.png" /></p>
+<p>Interactive data customisation window</p>
+<p><img alt="Interactive" src="img/v1.2.1.4-9-1-2019/interactive_customise_item.png" /></p>
+<p>Interactive copy style</p>
+<p><img alt="Interactive" src="img/v1.2.1.4-9-1-2019/interactive_copy_style.png" /></p>
+<h2 id="animation">Animation<a class="headerlink" href="#animation" title="Permanent link">&para;</a></h2>
+<p>Interactive adjustment of labels</p>
+<p><img alt="Interactive" src="img/v1.2.1.4-9-1-2019/interactive_label_movement.gif" /></p>
+<h2 id="mailing-list">Mailing list<a class="headerlink" href="#mailing-list" title="Permanent link">&para;</a></h2>
+<p>If you would like to be added to the ORIGAMI mailing list where you will be notified of new releases, please contact <a href="mailto:lukasz.migas@manchester.ac.uk">lukasz.migas@manchester.ac.uk</a> or visit <a href="https://origami.lukasz-migas.com/main/subscribe.html">ORIGAMI documentation website</a>.</p>
+<h2 id="how-to-update">How to update<a class="headerlink" href="#how-to-update" title="Permanent link">&para;</a></h2>
+<p>A lot has changed in this version so the only way to update is to download the package and unpack it somewhere else on your PC. I've tried really hard not to break too many things :)</p>
+<p>Many thanks,
+Lukasz</p>
                 
                   
                 

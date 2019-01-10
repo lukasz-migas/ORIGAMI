@@ -55,7 +55,7 @@ nav:
         - 'CCS compendium': interactive-examples/ccs-compendium.md
         - 'Proteomics - MS/MS': interactive-examples/protemics-scans.md
     - Changelog: 
-        - 'v1.2.1.1 - 27/12/2018': changelog/v1.2.1.4-9-1-2019.md
+        - 'v1.2.1.4 - 27/12/2018': changelog/v1.2.1.4-9-1-2019.md
         - 'v1.2.0.3 - 7/11/2018': changelog/v1.2.0.3-5-11-2018.md
     - Request New Features: main/request.md
     - Report Bugs: main/bugs.md
