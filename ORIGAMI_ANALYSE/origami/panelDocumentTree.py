@@ -4940,6 +4940,7 @@ class documentsTree(wx.TreeCtrl):
         
         if not hasattr(docData, 'file_reader'):
             setattr(docData, "file_reader", {})
+            print("Added missing attributute ('file_reader') to document")
             
         if not hasattr(docData, 'app_data'):
             setattr(docData, "app_data", {})

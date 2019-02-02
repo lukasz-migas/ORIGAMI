@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 # -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas 
+#    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-# 
-#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#	 Cite : 10.1016/j.ijms.2017.08.014
 #
-#    This program is free software. Feel free to redistribute it and/or 
-#    modify it under the condition you cite and credit the authors whenever 
-#    appropriate. 
-#    The program is distributed in the hope that it will be useful but is 
+# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+# 	 Cite : 10.1016/j.ijms.2017.08.014
+#
+#    This program is free software. Feel free to redistribute it and/or
+#    modify it under the condition you cite and credit the authors whenever
+#    appropriate.
+#    The program is distributed in the hope that it will be useful but is
 #    provided WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
@@ -22,58 +22,58 @@ import itertools
 import numpy as np
 
 import matplotlib
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
+# import matplotlib as mpl
+# import matplotlib.pyplot as plt
+# from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib import gridspec
 import matplotlib.cm as cm
-import matplotlib.colors as mpl_colors
+# import matplotlib.colors as mpl_colors
 import matplotlib.patches as patches
 from matplotlib.ticker import MaxNLocator
 from matplotlib.collections import LineCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 
 from seaborn import color_palette
 from adjustText import adjust_text
 from copy import deepcopy
 
-
-
 from plottingWindow import plottingWindow
 from toolbox import (find_limits, dir_extra, determineFontColor, convertRGB1to255,
                      find_limits_list, MidpointNormalize, merge_two_dicts,
-                     str2num, str2int, randomColorGenerator, convertHEXtoRGB1,
-                     _replace_labels, remove_nan_from_list, find_limits_all)
+                     str2num, str2int, randomColorGenerator, _replace_labels,
+                     remove_nan_from_list, find_limits_all)
 import dialogs as dialogs
 from processing.spectra import normalize_1D
 from processing.heatmap import normalize_2D
 
-#needed to avoid annoying warnings to be printed on console
+# needed to avoid annoying warnings to be printed on console
 import warnings
-warnings.filterwarnings("ignore",category=DeprecationWarning)
-warnings.filterwarnings("ignore",category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+
 
 class plots(plottingWindow):
+
     def __init__(self, *args, **kwargs):
-        self._axes = kwargs.get("axes_size", [0.1, 0.1, 0.8, 0.8]) # keep track of axes size
-        
+        self._axes = kwargs.get("axes_size", [0.1, 0.1, 0.8, 0.8])  # keep track of axes size
+
         plottingWindow.__init__(self, *args, **kwargs)
         self.plotflag = False
-        
+
         # obj containers
         self.text = []
         self.lines = []
         self.patch = []
         self.markers = []
         self.arrows = []
-        self.temporary = [] # temporary holder
+        self.temporary = []  # temporary holder
 
         self.lock_plot_from_updating = False
         self.lock_plot_from_updating_size = False
         self.plot_parameters = {}
         self.plot_limits = []
-        
+
         self.plot_name = ""
         self.plot_data = {}
         self.plot_labels = {}
@@ -83,7 +83,7 @@ class plots(plottingWindow):
         self.rotate = 0
         self.document_name = None
         self.dataset_name = None
-        
+
     #-----
 
     def _update_plot_settings_(self, **kwargs):
@@ -122,137 +122,137 @@ class plots(plottingWindow):
         else:
             palette = self.config.currentPalette
         colorlist = color_palette(palette, n_colors)
-        
+
         return colorlist
 
     def _convert_to_vertical_line_input(self, xvals, yvals):
         lines = []
         for i in range(len(xvals)):
-            pair=[(xvals[i],0), (xvals[i], yvals[i])]
+            pair = [(xvals[i], 0), (xvals[i], yvals[i])]
             lines.append(pair)
-            
+
         return lines
 
     def _convert_intensities(self, values, label, set_divider=True, convert_values=True):
         """ Function to check whether x/y axis labels do not need formatting """
-        
+
         baseDiv, increment = 10, 10
         divider = 1
-        
-        try: 
+
+        try:
             itemShape = values.shape
-        except: 
-            values = np.array(values) 
+        except:
+            values = np.array(values)
             itemShape = values.shape
 
-        if len(itemShape)>1: 
+        if len(itemShape) > 1:
             maxValue = np.amax(np.absolute(values))
         elif len(itemShape) == 1:
             maxValue = np.max(np.absolute(values))
         else:
             maxValue = values
-            
-        while 10 <= (maxValue/divider) >= 1:
+
+        while 10 <= (maxValue / divider) >= 1:
             divider = divider * increment
-        
+
         expo = len(str(divider)) - len(str(divider).rstrip('0'))
-        
+
         # TODO: make sure this does not break things!
         if expo == 1:
             divider = 1
-        
+
         if expo > 1:
             offset_text = r'x$\mathregular{10^{%d}}$' % expo
-            label = ''.join([label, " [", offset_text,"]"])
+            label = ''.join([label, " [", offset_text, "]"])
             if convert_values:
-                values = np.divide(values, float(divider))    
+                values = np.divide(values, float(divider))
 
         if set_divider:
             self.y_divider = divider
-        
+
         return values, label, divider
-    
+
     def _add_exponent_to_label(self, label, divider):
         expo = len(str(divider)) - len(str(divider).rstrip('0'))
-        
+
         if expo > 1:
             offset_text = r'x$\mathregular{10^{%d}}$' % expo
-            label = ''.join([label, " [", offset_text,"]"])
-            
+            label = ''.join([label, " [", offset_text, "]"])
+
         return label
-        
+
     def _convert_intensities_list(self, values, label):
-        
+
         _dividers = []
         for i in xrange(len(values)):
-            yval, __ylabel, divider = self._convert_intensities(values[i], label, 
+            yval, __ylabel, divider = self._convert_intensities(values[i], label,
                                                                 set_divider=False,
                                                                 convert_values=False)
             _dividers.append(divider)
-            
+
         self.y_divider = np.max(_dividers)
-        
+
         for i in xrange(len(values)):
             values[i] = np.divide(values[i], float(divider))
-            
+
         label = self._add_exponent_to_label(label, self.y_divider)
-        
+
         return values, label
-            
+
     def _check_n_grid_dimensions(self, n_grid):
-        
-        if n_grid in [2]: n_rows, n_cols, y_label_pos, x_label_pos = 1, 2, 1, 1 
-        elif n_grid in [3, 4]: n_rows, n_cols, y_label_pos, x_label_pos = 2, 2, 1, 1 
+
+        if n_grid in [2]: n_rows, n_cols, y_label_pos, x_label_pos = 1, 2, 1, 1
+        elif n_grid in [3, 4]: n_rows, n_cols, y_label_pos, x_label_pos = 2, 2, 1, 1
         elif n_grid in [5, 6]: n_rows, n_cols, y_label_pos, x_label_pos = 2, 3, 1, 2
         elif n_grid in [7, 8, 9]: n_rows, n_cols, y_label_pos, x_label_pos = 3, 3, 2, 2
         elif n_grid in [10, 11, 12]: n_rows, n_cols, y_label_pos, x_label_pos = 3, 4, 2, 1
         elif n_grid in [13, 14, 15, 16]: n_rows, n_cols, y_label_pos, x_label_pos = 4, 4, 1, 1
-        elif n_grid in list(range(17,26)): n_rows, n_cols, y_label_pos, x_label_pos = 5, 5, 3, 3
-        elif n_grid in list(range(26,37)): n_rows, n_cols, y_label_pos, x_label_pos = 6, 6, 1, 1
-        
+        elif n_grid in list(range(17, 26)): n_rows, n_cols, y_label_pos, x_label_pos = 5, 5, 3, 3
+        elif n_grid in list(range(26, 37)): n_rows, n_cols, y_label_pos, x_label_pos = 6, 6, 1, 1
+
         return n_rows, n_cols
 
     def _check_colormap(self, cmap=None, **kwargs):
         if cmap is None:
             if kwargs['colormap'] in self.config.cmocean_cmaps:
                 kwargs['colormap'] = eval("cmocean.cm.%s" % kwargs['colormap'])
-                
+
             return kwargs
         else:
             if cmap in self.config.cmocean_cmaps:
                 cmap = eval("cmocean.cm.%s" % cmap)
-                
+
             return cmap
 
     def _fix_label_positions(self, lim=20):
         """
         Try to fix position of labels to prevent overlap
         """
-        try: 
+        try:
             adjust_text(self.text, lim=lim)
-        except: 
+        except:
             pass
 
     def extents(self, f):
         delta = f[1] - f[0]
-        return [f[0] - delta/2, f[-1] + delta/2]
+        return [f[0] - delta / 2, f[-1] + delta / 2]
     #-----
-    
+
     def get_xylimits(self):
         xmin, xmax = self.plotMS.get_xlim()
         ymin, ymax = self.plotMS.get_ylim()
-        
+
         return [xmin, xmax, ymin, ymax]
-    
+
     def set_xylimits(self, xylimits):
         # xylimits = [xmin, xmax, ymin, ymax]
 
         self.plotMS.set_xlim([xylimits[0], xylimits[1]])
         self.plotMS.set_ylim([xylimits[2], xylimits[3]])
-        
-        extent= [xylimits[0], xylimits[2], xylimits[1], xylimits[3]]
+
+        extent = [xylimits[0], xylimits[2], xylimits[1], xylimits[3]]
         self.update_extents(extent)
-        
+
     def on_zoom_x_axis(self, xmin, xmax):
         self.plotMS.set_xlim([xmin, xmax])
 
@@ -267,7 +267,7 @@ class plots(plottingWindow):
             self.plotMS.axis([startX, endX, startY, endY])
             self.repaint()
         except: pass
-        
+
     def on_zoom(self, startX, endX, endY):
         try:
             endY = endY / float(self.y_divider)
@@ -279,70 +279,69 @@ class plots(plottingWindow):
 
     def on_zoom_y_axis(self, startY=None, endY=None):
         xylimits = self.get_xylimits()
-        
-        if startY is None: 
+
+        if startY is None:
             startY = xylimits[2]
-            
-        if endY is None: 
+
+        if endY is None:
             endY = xylimits[3]
-            
-        try: 
+
+        try:
             startY = np.divide(startY, self.y_divider)
             endY = np.divide(endY, self.y_divider)
         except: pass
-        
+
         self.plotMS.set_ylim([startY, endY])
         self.update_y_extents(startY, endY)
-        
 
     def on_rotate_90(self):
         # only works for 2D plots!
-        
+
         if hasattr(self, "plot_data"):
             if len(self.plot_data) == 0: return
-            
+
             self.rotate = self.rotate + 90
-            
+
             yvals = deepcopy(self.plot_data['xvals'])
             xvals = deepcopy(self.plot_data['yvals'])
             ylabel = deepcopy(self.plot_data['xlabel'])
             xlabel = deepcopy(self.plot_data['ylabel'])
-                
+
             # rotate zvals
             zvals = np.rot90(deepcopy(self.plot_data['zvals']))
             yvals = yvals[::-1]
-            
-            self.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, 
+
+            self.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals,
                                      **self.plot_parameters)
-            
+
             if self.rotate == 360:
                 self.rotate = 0
 
     def plot_add_arrow(self, arrow_vals, stick_to_intensity=True, **kwargs):
         # unpack parameters
         xmin, ymin, dx, dy = arrow_vals
-        
+
         if stick_to_intensity:
-            try: 
+            try:
                 ymin = np.divide(ymin, self.y_divider)
                 dy = np.divide(dy, self.y_divider)
             except: pass
-            
+
         if dx == 0 and dy == 0:
             return
 
         # get custom name tag
-        obj_name = kwargs.pop("text_name", None)      
-        obj_props = kwargs.pop("props", [None, None])         
-        arrow = self.plotMS.arrow(xmin, ymin, dx, dy, 
+        obj_name = kwargs.pop("text_name", None)
+        obj_props = kwargs.pop("props", [None, None])
+        arrow = self.plotMS.arrow(xmin, ymin, dx, dy,
                                   head_length=kwargs.get("arrow_head_length", 0),
                                   head_width=kwargs.get("arrow_head_width", 0),
-                                  fc=kwargs.get("arrow_face_color", (.5,.5,.5)),
-                                  ec=kwargs.get("arrow_edge_color", (.5,.5,.5)),
+                                  fc=kwargs.get("arrow_face_color", (.5, .5, .5)),
+                                  ec=kwargs.get("arrow_edge_color", (.5, .5, .5)),
                                   lw=kwargs.get("arrow_line_width", 0.5),
                                   ls=kwargs.get("arrow_line_style", ':'),
                                   )
-        arrow.obj_name = obj_name # custom tag
+        arrow.obj_name = obj_name  # custom tag
         arrow.obj_props = obj_props
         self.arrows.append(arrow)
 
@@ -356,25 +355,25 @@ class plots(plottingWindow):
 
     def plot_add_markers(self, xvals, yvals, label="", marker="o", color="r", size=15,
                          test_yvals=False, test_xvals=False, **kwargs):
-        
+
         if test_yvals:
             ydivider, expo = self.testXYmaxValsUpdated(values=yvals)
             if expo > 1:
                 yvals = np.divide(yvals, float(ydivider))
-                
+
         if test_xvals:
             xvals, xlabel, __ = self.kda_test(xvals)
-        
-        markers = self.plotMS.scatter(xvals, yvals, color=color, marker=marker, 
-                                      s=size, label=label, 
+
+        markers = self.plotMS.scatter(xvals, yvals, color=color, marker=marker,
+                                      s=size, label=label,
                                       edgecolor=kwargs.get("edge_color", "k"),
                                       alpha=kwargs.get("marker_alpha", 1.0),
                                       zorder=kwargs.get("zorder", 5),
                                       )
         self.markers.append(markers)
-        
+
     def plot_remove_markers(self):
-        
+
         for marker in self.markers:
             try: marker.remove()
             except: pass
@@ -384,82 +383,82 @@ class plots(plottingWindow):
 
     def plot_add_text_and_lines(self, xpos, yval, label, vline=True, vline_position=None,
                                 color="black", yoffset=0.05, stick_to_intensity=False, **kwargs):
-        
+
         try: ymin, ymax = self.plotMS.get_ylim()
         except: return
-        
+
         if stick_to_intensity:
             try: y_position = np.divide(yval, self.y_divider)
             except: y_position = ymax
         else:
             y_position = ymax
-            
+
         # get custom name tag
-        obj_name = kwargs.pop("text_name", None) 
+        obj_name = kwargs.pop("text_name", None)
         text = self.plotMS.text(
-            np.array(xpos), y_position+yoffset,
+            np.array(xpos), y_position + yoffset,
             label,
             horizontalalignment=kwargs.pop("horizontalalignment", "center"),
-            verticalalignment=kwargs.pop("verticalalignment", "top"), 
+            verticalalignment=kwargs.pop("verticalalignment", "top"),
             color=color, picker=True,
             **kwargs)
-        text.obj_name = obj_name # custom tag
+        text.obj_name = obj_name  # custom tag
         self.text.append(text)
-        
+
         if vline:
             if vline_position is not None:
                 xpos = vline_position
             line = self.plotMS.axvline(
-                xpos, ymin, yval*0.8, color=color,
+                xpos, ymin, yval * 0.8, color=color,
                 linestyle="dashed", alpha=0.4)
             self.lines.append(line)
 
     def plot_add_text(self, xpos, yval, label, color="black", yoffset=0.0,
                       zorder=3, **kwargs):
-        
+
         is_butterfly = kwargs.pop("butterfly_plot", False)
-        
+
         # check if value should be scaled based on the exponential
         if kwargs.pop("check_yscale", False):
             try: yval = np.divide(yval, self.y_divider)
             except: pass
-        
+
         # reverse value
         if is_butterfly:
-            try: 
+            try:
                 yval = -yval
                 yoffset = -yoffset
-            except: 
+            except:
                 pass
-        
+
         # get custom name tag
         obj_name = kwargs.pop("text_name", None)
-        
-        yval = yval+yoffset
+
+        yval = yval + yoffset
 
         # this will offset the intensity of the label by small value
         if kwargs.pop("add_arrow_to_low_intensity", False):
             if is_butterfly:
-                if (yval-yoffset) > 0.2 * self.plot_limits[2]:
+                if (yval - yoffset) > 0.2 * self.plot_limits[2]:
                     rand_offset = -np.random.uniform(high=0.75 * self.plot_limits[2])
-                    yval_old = yval-yoffset
+                    yval_old = yval - yoffset
                     yval -= rand_offset
-                    arrow_vals = [xpos, yval_old, 0, yval-yval_old]
+                    arrow_vals = [xpos, yval_old, 0, yval - yval_old]
                     self.plot_add_arrow(arrow_vals, stick_to_intensity=False)
-            else: 
-                if (yval-yoffset) < 0.2 * self.plot_limits[3]:
+            else:
+                if (yval - yoffset) < 0.2 * self.plot_limits[3]:
                     rand_offset = np.random.uniform(high=0.5 * self.plot_limits[3])
-                    yval_old = yval-yoffset
+                    yval_old = yval - yoffset
                     yval += rand_offset
-                    arrow_vals = [xpos, yval_old, 0, yval-yval_old]
+                    arrow_vals = [xpos, yval_old, 0, yval - yval_old]
                     self.plot_add_arrow(arrow_vals, stick_to_intensity=False)
-                
+
         text = self.plotMS.text(
-            np.array(xpos), yval+yoffset, label,
+            np.array(xpos), yval + yoffset, label,
             color=color, clip_on=True, zorder=zorder, picker=True,
             **kwargs)
         text._yposition = yval - kwargs.get('labels_y_offset', self.config.waterfall_labels_y_offset)
-        text.obj_name = obj_name # custom tag
+        text.obj_name = obj_name  # custom tag
         self.text.append(text)
 
     def plot_remove_text(self):
@@ -483,18 +482,18 @@ class plots(plottingWindow):
         except AttributeError:
             print("Please plot something first")
             return
-        
+
         if add_temporary:
             self.plot_remove_temporary()
             self.temporary.append(patch)
         else:
             self.patch.append(patch)
-        
+
     def plot_remove_patches(self):
 
         for patch in self.patch:
-            try: 
-                patch.remove()      
+            try:
+                patch.remove()
             except: pass
 
         self.patch = []
@@ -510,7 +509,7 @@ class plots(plottingWindow):
             self.repaint()
 
     def plot_remove_text_and_lines(self):
-        
+
         for text in self.text:
             try: text.remove()
             except: pass
@@ -518,11 +517,11 @@ class plots(plottingWindow):
         for line in self.lines:
             try: line.remove()
             except: pass
-            
+
         for arrow in self.arrows:
             try: arrow.remove()
             except: pass
-                
+
         self.text = []
         self.lines = []
         self.arrows = []
@@ -563,7 +562,7 @@ class plots(plottingWindow):
 
         if testMax == 'yvals':
             yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
-            
+
         lines[0].set_xdata(xvals)
         lines[0].set_ydata(yvals)
         lines[0].set_linewidth(kwargs['line_width'])
@@ -572,8 +571,8 @@ class plots(plottingWindow):
 
         # update limits and extents
         xlimits = (np.min(xvals), np.max(xvals))
-        ylimits = (np.min(yvals), np.max(yvals)*1.1)
-        extent= [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
+        ylimits = (np.min(yvals), np.max(yvals) * 1.1)
+        extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
 
         if kwargs['shade_under']:
             for shade in range(len(self.plotMS.collections)):
@@ -603,14 +602,14 @@ class plots(plottingWindow):
                                labelpad=kwargs['label_pad'],
                                fontsize=kwargs['label_size'],
                                weight=kwargs['label_weight'])
-        
+
         if kwargs.get('minor_ticks_off', False) or xlabel == 'Scans' or xlabel == 'Charge':
             self.plotMS.xaxis.set_tick_params(which='minor', bottom='off')
             self.plotMS.xaxis.set_major_locator(MaxNLocator(integer=True))
-        
+
         self.update_extents(extent)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-        
+
         self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
 
     def plot_1D_waterfall_update(self, which="other", **kwargs):
@@ -623,7 +622,6 @@ class plots(plottingWindow):
 
         if self.plot_name == "Waterfall_overlay" and which in ["color", "data"]:
             return
-
 
         if which in ["other", "style"]:
             if self.plot_name != "Violin":
@@ -690,7 +688,7 @@ class plots(plottingWindow):
                 self.text[i].set_fontweight(kwargs['labels_font_weight'])
                 self.text[i].set_fontsize(kwargs['labels_font_size'])
                 yposition = self.text[i]._yposition + kwargs['labels_y_offset']
-                position = [label_xposition, yposition] 
+                position = [label_xposition, yposition]
                 self.text[i].set_position(position)
                 text = self._convert_label(self.text[i].get_text(), label_format=kwargs['labels_format'])
                 self.text[i].set_text(text)
@@ -700,7 +698,7 @@ class plots(plottingWindow):
             # fix might be here: https://stackoverflow.com/questions/16120801/matplotlib-animate-fill-between-shape
             count = 0
             increment = kwargs['increment'] - self.plot_parameters['increment']
-            offset = kwargs['offset'] #- self.plot_parameters['offset']
+            offset = kwargs['offset']  # - self.plot_parameters['offset']
             ydata = []
 #             print(dir(self.plotMS.collections[0]),
 #                   self.plotMS.collections[2]._offset_position)
@@ -710,21 +708,21 @@ class plots(plottingWindow):
 #                 print(dir_extra(dir(self.plotMS.collections[shade]), "set"))
             for i, line in enumerate(self.plotMS.get_lines()):
                 yvals = line.get_ydata()
-                if len(yvals) > 5: count =+ 1
-            yOffset = 0 #offset*(count+1)
+                if len(yvals) > 5: count = +1
+            yOffset = 0  # offset*(count+1)
             for i, line in enumerate(self.plotMS.get_lines()):
                 yvals = line.get_ydata()
                 if len(yvals) > 5:
                     new_yvals = yvals + yOffset
                     line.set_ydata(new_yvals)
                     ydata.extend(new_yvals)
-                    yOffset=yOffset-increment
-                    
+                    yOffset = yOffset - increment
+
             # remove nans
             ydata = np.array(ydata)
             ydata = ydata[~np.isnan(ydata)]
-            self.plot_limits[2] = np.min(ydata)-offset
-            self.plot_limits[3] = np.max(ydata)+0.05
+            self.plot_limits[2] = np.min(ydata) - offset
+            self.plot_limits[3] = np.max(ydata) + 0.05
             extent = [self.plot_limits[0], self.plot_limits[2],
                       self.plot_limits[1], self.plot_limits[3]]
             self.update_extents(extent)
@@ -778,7 +776,6 @@ class plots(plottingWindow):
             # Setup font size info
             self.plotMS.tick_params(labelsize=kwargs['tick_size'])
 
-
         self.plot_parameters = kwargs
 
     def plot_1D_update(self, **kwargs):
@@ -816,7 +813,6 @@ class plots(plottingWindow):
         else:
             self.plotMS.set_axis_off()
 
-
         self.plotMS.tick_params(axis='both',
                                 left=kwargs['ticks_left'],
                                 right=kwargs['ticks_right'],
@@ -837,8 +833,6 @@ class plots(plottingWindow):
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
         self._update_plot_settings_(**kwargs)
-
-    #-----
 
     def plot_1D_update_rmsf(self, **kwargs):
         if self.lock_plot_from_updating:
@@ -935,13 +929,12 @@ class plots(plottingWindow):
 
         if 'colormap_norm' in kwargs:
             self.cax.set_norm(kwargs['colormap_norm'])
-            
+
 #         kwargs = self._check_colormap(**kwargs)
         self.cax.set_cmap(kwargs['colormap'])
 
         try: self.cax.set_interpolation(kwargs['interpolation'])
         except AttributeError: pass
-
 
         # convert weights
         if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
@@ -973,7 +966,6 @@ class plots(plottingWindow):
         except:
             pass
 
-
         self.plotMS.tick_params(axis='both',
                                 left=kwargs['ticks_left'],
                                 right=kwargs['ticks_right'],
@@ -998,7 +990,6 @@ class plots(plottingWindow):
         self.plotMS.set_position(axes_sizes)
 
     def plot_2D_matrix_update_label(self, **kwargs):
-
 
         self.plotMS.set_xticklabels(self.plotMS.get_xticklabels(),
                                     rotation=kwargs['rmsd_matrix_rotX'])
@@ -1040,7 +1031,6 @@ class plots(plottingWindow):
             self.plotMS.set_xticks([])
             self.plotMS.set_yticks([])
             self.plotMS.set_zticks([])
-
 
         # convert weights
         if kwargs['label_weight']:
@@ -1143,9 +1133,9 @@ class plots(plottingWindow):
                 # normalize
                 zvals_max = np.max(self.plot_data['zvals'])
 
-                cmap_min = (zvals_max*kwargs['colormap_min'])/100.
-                cmap_mid = (zvals_max*kwargs['colormap_mid'])/100.
-                cmap_max = (zvals_max*kwargs['colormap_max'])/100.
+                cmap_min = (zvals_max * kwargs['colormap_min']) / 100.
+                cmap_mid = (zvals_max * kwargs['colormap_mid']) / 100.
+                cmap_max = (zvals_max * kwargs['colormap_max']) / 100.
 
                 cmap_norm = MidpointNormalize(midpoint=cmap_mid,
                                               vmin=cmap_min,
@@ -1157,7 +1147,7 @@ class plots(plottingWindow):
                     self.cax.set_norm(self.plot_parameters['colormap_norm'])
                     self.plot_2D_colorbar_update(**kwargs)
 
-    def plot_1D_add(self, xvals, yvals, color, label="", setup_zoom=True, 
+    def plot_1D_add(self, xvals, yvals, color, label="", setup_zoom=True,
                     allowWheel=False, plot_name=None, **kwargs):
         if plot_name is not None:
             self.plot_name = plot_name
@@ -1173,9 +1163,9 @@ class plots(plottingWindow):
         ylimits = [np.min(yvals_limits), np.max(yvals_limits)]
 
         self.plotMS.set_xlim([xlimits[0], xlimits[1]])
-        self.plotMS.set_ylim([ylimits[0], ylimits[1]+0.025])
+        self.plotMS.set_ylim([ylimits[0], ylimits[1] + 0.025])
 
-        extent= [xlimits[0], ylimits[0], xlimits[-1], ylimits[-1]+0.025]
+        extent = [xlimits[0], ylimits[0], xlimits[-1], ylimits[-1] + 0.025]
         if setup_zoom:
             self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent,
                             plotName=plot_name, allowWheel=allowWheel)
@@ -1204,7 +1194,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -1213,17 +1203,14 @@ class plots(plottingWindow):
 
             leg = self.plotMS.axes.get_legend()
             leg.draggable()
-            
-#             self.patch = handles
 
     def plot_remove_legend(self):
-        try: 
+        try:
             leg = self.plotMS.axes.get_legend()
             leg.remove()
         except:
             pass
-        
-            
+
     def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
 
         # override parameters
@@ -1234,7 +1221,7 @@ class plots(plottingWindow):
             self.plot_parameters = kwargs
 
         # update limits and extents
-        extent = self.extents(xvals)+self.extents(yvals)
+        extent = self.extents(xvals) + self.extents(yvals)
 
         self.cax.set_data(zvals)
         self.cax.set_norm(kwargs['colormap_norm'])
@@ -1243,13 +1230,12 @@ class plots(plottingWindow):
         self.cax.set_interpolation(kwargs['interpolation'])
 
         xmin, xmax, ymin, ymax = extent
-        self.plotMS.set_xlim(xmin, xmax)#-0.5)
-        self.plotMS.set_ylim(ymin, ymax)#-0.5)
+        self.plotMS.set_xlim(xmin, xmax)  # -0.5)
+        self.plotMS.set_ylim(ymin, ymax)  # -0.5)
 
         extent = [xmin, ymin, xmax, ymax]
         self.update_extents(extent)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-
 
         self.plotMS.set_xlabel(xlabel, fontsize=kwargs['label_size'],
                                weight=kwargs['label_weight'])
@@ -1260,8 +1246,8 @@ class plots(plottingWindow):
             leg = self.plotMS.axes.get_legend()
             leg.remove()
         except: pass
-        
-        # add data 
+
+        # add data
         self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
                           'xlabel':xlabel, 'ylabel':ylabel}
         self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
@@ -1275,7 +1261,7 @@ class plots(plottingWindow):
                                               size="".join([str(kwargs['colorbar_width']), "%"]),
                                               pad=kwargs['colorbar_pad'])
 
-                ticks = [np.min(zvals), (np.max(zvals)-np.min(zvals))/2, np.max(zvals)]
+                ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
                 if ticks[1] in [ticks[0], ticks[2]]: ticks[1] = 0
 
                 if self.plot_name in ['RMSD', 'RMSF']:
@@ -1307,7 +1293,7 @@ class plots(plottingWindow):
         Plots MS and 1DT data
         """
         # Setup parameters
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotType
 
@@ -1329,7 +1315,7 @@ class plots(plottingWindow):
         if testX:
             xvals, xlabel, __ = self.kda_test(xvals)
 
-        # Simple hack to reduce size is to use different subplot size 
+        # Simple hack to reduce size is to use different subplot size
         self.plotMS = self.figure.add_axes(self._axes)
         self.plotMS.plot(xvals, yvals,
                          color=kwargs['line_color'],
@@ -1345,24 +1331,22 @@ class plots(plottingWindow):
                 )
             self.plotMS.fill_between(xvals, 0, yvals, **shade_kws)
 
-
         # Setup parameters
         if xlimits == None or xlimits[0] == None or xlimits[1] == None:
             xlimits = (np.min(xvals), np.max(xvals))
 
         # update limits and extents
-        ylimits = (np.min(yvals), np.max(yvals)*1.1)
-        
+        ylimits = (np.min(yvals), np.max(yvals) * 1.1)
 
-        # check if user provided 
+        # check if user provided
         if "plot_modifiers" in kwargs:
             plot_modifiers = kwargs["plot_modifiers"]
-            
+
             if "xlimits" in plot_modifiers and plot_modifiers['xlimits'] != [None, None]:
                 xlimits = plot_modifiers["xlimits"]
             if "ylimits" in plot_modifiers and plot_modifiers['ylimits'] != [None, None]:
                 ylimits = plot_modifiers["ylimits"]
-            
+
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
         self.plotMS.set_xlim(xlimits)
         self.plotMS.set_ylim(ylimits)
@@ -1424,12 +1408,12 @@ class plots(plottingWindow):
         self.setupGetXAxies([self.plotMS])
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
         self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
-        
+
     #-----
 
-    def plot_1D_centroid(self, xvals=None, yvals=None, xyvals=None, xlabel="m/z (Da)", 
+    def plot_1D_centroid(self, xvals=None, yvals=None, xyvals=None, xlabel="m/z (Da)",
                          ylabel="Intensity", title="", xlimits=None, color="black",
-                         update_y_axis=True, zoom="box", plot_name="MS", axesSize=None, 
+                         update_y_axis=True, zoom="box", plot_name="MS", axesSize=None,
                          adding_on_top=False, **kwargs):
         """
         Parameters
@@ -1441,8 +1425,8 @@ class plots(plottingWindow):
             If ``True`` y-axis values will be rescaled to ensure they do not have 
             excessive number of zeroes.
         """
-        
-        self.plotflag = True # Used only if saving data
+
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = "box"
         self.plot_name = plot_name
 
@@ -1454,53 +1438,53 @@ class plots(plottingWindow):
         else:
             kwargs = merge_two_dicts(kwargs, self.plot_parameters)
             self.plot_parameters = kwargs
-        
+
         if kwargs.get("butterfly_plot", False):
             yvals = -np.array(yvals)
             self.plotMS.axhline(linewidth=kwargs['line_width'],
                                 color='k')
-        
+
         if update_y_axis:
             yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
         else:
             yvals = np.divide(yvals, float(self.y_divider))
-            
+
         if xyvals is None:
             xyvals = self._convert_to_vertical_line_input(xvals, yvals)
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
-        # Simple hack to reduce size is to use different subplot size 
+        # Simple hack to reduce size is to use different subplot size
         if not adding_on_top:
             self.plotMS = self.figure.add_axes(self._axes)
         else:
             self.plotMS.set_position(self._axes)
-        line_coll = LineCollection(xyvals, 
-                                   colors=(kwargs['line_color']), 
+        line_coll = LineCollection(xyvals,
+                                   colors=(kwargs['line_color']),
                                    linewidths=(kwargs['line_width']))
         self.plotMS.add_collection(line_coll)
 
         # Setup parameters
         if xlimits == None or xlimits[0] == None or xlimits[1] == None:
-            xlimits = (np.min(xvals)-5, np.max(xvals)+5)
+            xlimits = (np.min(xvals) - 5, np.max(xvals) + 5)
 
         # update limits and extents
         if kwargs.get("butterfly_plot", False):
             xylimits = self.get_xylimits()
             ylimits = [-xylimits[3], xylimits[3]]
         else:
-            ylimits = (np.min(yvals), np.max(yvals)*1.1)
-            
-        # check if user provided 
+            ylimits = (np.min(yvals), np.max(yvals) * 1.1)
+
+        # check if user provided
         if "plot_modifiers" in kwargs:
             plot_modifiers = kwargs["plot_modifiers"]
-            
+
             if "xlimits" in plot_modifiers and plot_modifiers['xlimits'] != [None, None]:
                 xlimits = plot_modifiers["xlimits"]
             if "ylimits" in plot_modifiers and plot_modifiers['ylimits'] != [None, None]:
                 ylimits = plot_modifiers["ylimits"]
-            
+
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
         self.plotMS.set_xlim(xlimits)
         self.plotMS.set_ylim(ylimits)
@@ -1513,7 +1497,7 @@ class plots(plottingWindow):
                                labelpad=kwargs['label_pad'],
                                fontsize=kwargs['label_size'],
                                weight=kwargs['label_weight'])
-        
+
         if update_y_axis:
             self.plotMS.set_ylabel(ylabel,
                                    labelpad=kwargs['label_pad'],
@@ -1558,11 +1542,10 @@ class plots(plottingWindow):
         self.setupGetXAxies([self.plotMS])
         if not adding_on_top:
             self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-        
 
     def plot_1D_barplot(self, xvals, yvals, labels, colors, xlabel="", ylabel="",
                         title="", zoom="box", axesSize=None, plotType=None, **kwargs):
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotType
 
@@ -1577,27 +1560,24 @@ class plots(plottingWindow):
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
-        
-        
+
         if not kwargs.get("bar_edgecolor_sameAsFill", True):
             edgecolor = kwargs.get("bar_edgecolor", "#000000")
         else:
             edgecolor = colors
-            
-        
+
         # Simple hack to reduce size is to use different subplot size
         xticloc = np.array(xvals)
         self.plotMS = self.figure.add_axes(self._axes, xticks=xticloc)
-        self.plotMS.bar(xvals, yvals, color=colors, label="Intensities", 
+        self.plotMS.bar(xvals, yvals, color=colors, label="Intensities",
                         alpha=kwargs.get("bar_alpha", 0.5),
                         linewidth=kwargs.get("bar_linewidth", 1),
                         width=kwargs.get("bar_width", 1),
                         edgecolor=edgecolor)
 
-        
         peaklabels = [str(p) for p in labels]
         self.plotMS.set_xticklabels(peaklabels,
-                                    rotation=90, #90
+                                    rotation=90,  # 90
                                     fontsize=kwargs['label_size'])
         # convert weights
         if kwargs['label_weight']:
@@ -1646,17 +1626,17 @@ class plots(plottingWindow):
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
-        
+
         xlimits = self.plotMS.get_xlim()
         ylimits = self.plotMS.get_ylim()
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
         self.setup_zoom([self.plotMS], self.zoomtype, plotName=plotType,
                         data_lims=extent)
 
-    def plot_floating_barplot(self, xvals, yvals_min, yvals_max, xlabel, ylabel, 
+    def plot_floating_barplot(self, xvals, yvals_min, yvals_max, xlabel, ylabel,
                               colors=[], axesSize=None, plotName='bar', **kwargs):
         # Setup parameters
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = "box"
         self.plot_name = plotName
 
@@ -1675,7 +1655,7 @@ class plots(plottingWindow):
         # disable ticks on one side
         if kwargs["orientation"] == "horizontal-bar":
             kwargs['ticks_left'] = False
-            kwargs['tickLabels_left'] = False   
+            kwargs['tickLabels_left'] = False
         else:
             kwargs['ticks_bottom'] = False
             kwargs['tickLabels_bottom'] = False
@@ -1684,7 +1664,7 @@ class plots(plottingWindow):
         plot_modifiers = kwargs["plot_modifiers"]
         xlabel = _replace_labels(xlabel)
         ylabel = _replace_labels(ylabel)
-        
+
         xvals_count = len(xvals)
         yvals_min_count = len(yvals_min)
         yvals_max_count = len(yvals_max)
@@ -1692,7 +1672,7 @@ class plots(plottingWindow):
             if xvals_count < yvals_min_count or xvals_count < yvals_max_count:
                 xvals = xvals * yvals_min_count
             # if yvals_min_count != yvals_max_count and yvals_max_count > yvals_min_count:
-            
+
         if len(colors) != yvals_min_count:
             colors = self._get_colors(yvals_min_count)
 
@@ -1700,21 +1680,21 @@ class plots(plottingWindow):
             xlimits = plot_modifiers["xlimits"]
         else:
             xlimits, __ = find_limits_all(xvals, xvals)
-            xlimits = [xlimits[0]-2*kwargs.get("bar_width", 0.1), 
-                       xlimits[1]+2*kwargs.get("bar_width", 0.1)]
-            
+            xlimits = [xlimits[0] - 2 * kwargs.get("bar_width", 0.1),
+                       xlimits[1] + 2 * kwargs.get("bar_width", 0.1)]
+
         if "ylimits" in plot_modifiers and plot_modifiers['ylimits'] != [None, None]:
             ylimits = plot_modifiers["ylimits"]
         else:
             ymin, ymax = find_limits_all(yvals_min, yvals_max)
-            ylimits= [ymin[0]-0.05*ymin[0], ymax[1]+0.05*ymax[1]]
+            ylimits = [ymin[0] - 0.05 * ymin[0], ymax[1] + 0.05 * ymax[1]]
 
         for i in xrange(yvals_min_count):
             xval = xvals[i]
             yval_min = yvals_min[i]
             yval_max = yvals_max[i]
             yvals_height = yval_max - yval_min
-            
+
             if len(kwargs["item_colors"]) > 0 and len(kwargs["item_colors"]) == yvals_min_count:
                 if len(kwargs["item_colors"][i]) == len(xval):
                     colorList = kwargs["item_colors"][i]
@@ -1722,15 +1702,15 @@ class plots(plottingWindow):
                     colorList = len(xval) * [colors[i]]
             else:
                 colorList = len(xval) * [colors[i]]
-    
+
             self.plotMS = self.figure.add_axes(self._axes)
             if not kwargs.get("bar_edgecolor_sameAsFill", True):
                 edgecolor = kwargs.get("bar_edgecolor", "#000000")
             else:
                 edgecolor = colorList
-                
+
             if kwargs["orientation"] == "vertical-bar":
-                self.plotMS.bar(xval, bottom=yval_min, height=yvals_height, color=colorList, 
+                self.plotMS.bar(xval, bottom=yval_min, height=yvals_height, color=colorList,
                                  width=kwargs.get("bar_width", 0.1),
                                  edgecolor=edgecolor,
                                  alpha=kwargs.get("bar_alpha", 0.5),
@@ -1744,7 +1724,7 @@ class plots(plottingWindow):
                                  alpha=kwargs.get("bar_alpha", 0.5),
                                  linewidth=kwargs.get("bar_linewidth", 1)
                                  )
-            
+
         self.plotMS.set_xlabel(xlabel, fontsize=kwargs['label_size'],
                                weight=kwargs['label_weight'])
         self.plotMS.set_ylabel(ylabel, fontsize=kwargs['label_size'],
@@ -1762,22 +1742,22 @@ class plots(plottingWindow):
                                 labelleft=kwargs['tickLabels_left'],
                                 labelright=kwargs['tickLabels_right'],
                                 labeltop=kwargs['tickLabels_top'],
-                                labelbottom=kwargs['tickLabels_bottom'],labelsize=kwargs['tick_size'])
+                                labelbottom=kwargs['tickLabels_bottom'], labelsize=kwargs['tick_size'])
 
         self.plotMS.spines['left'].set_visible(kwargs['spines_left'])
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
- 
+
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
         self.setup_zoom([self.plotMS], self.zoomtype,
                         data_lims=extent)
-#  
+#
         # Setup X-axis getter
         self.setupGetXAxies([self.plotMS])
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-        
+
         # add legend
         plot_modifiers = kwargs["plot_modifiers"]
         legend_labels = plot_modifiers["legend_labels"]
@@ -1791,11 +1771,11 @@ class plots(plottingWindow):
             self.plot_1D_add_legend(legend_text, **kwargs)
 
     def plot_1D_scatter(self, xvals=None, yvals=None, zvals=None,
-                        colors='red', labels=[], title='',xlabel="",
+                        colors='red', labels=[], title='', xlabel="",
                         ylabel="", xlimits=None, axesSize=None,
                         plotName='whole', **kwargs):
         # Setup parameters
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = "box"
         self.plot_name = plotName
 
@@ -1815,22 +1795,22 @@ class plots(plottingWindow):
         self.plotMS = self.figure.add_axes(self._axes)
         plot_modifiers = kwargs["plot_modifiers"]
         itemColors = kwargs.get("item_colors", [])
-        
+
         if yvals is None: yvals = []
         self.scatter_plots = []
         if len(zvals) == 0:
             for i in range(len(yvals)):
                 yval = yvals[i]
-                if len(xvals) == len(yvals): 
+                if len(xvals) == len(yvals):
                     xval = xvals[i]
-                else: 
+                else:
                     xval = xvals
                 if len(itemColors) > 0:
                     if len(itemColors) == len(yvals): color = itemColors[i]
                     else: color = itemColors[0]
                     try:
                         plot = self.plotMS.scatter(xval, yval,
-                                                   edgecolors="k", 
+                                                   edgecolors="k",
                                                    c=color,
                                                    s=kwargs['scatter_size'],
                                                    marker=kwargs['scatter_shape'],
@@ -1839,7 +1819,7 @@ class plots(plottingWindow):
                     except:
                         color = colors[i]
                         plot = self.plotMS.scatter(xval, yval,
-                                                   edgecolors=color, 
+                                                   edgecolors=color,
                                                    color=color,
                                                    s=kwargs['scatter_size'],
                                                    marker=kwargs['scatter_shape'],
@@ -1848,16 +1828,15 @@ class plots(plottingWindow):
                 else:
                     color = colors[i]
                     plot = self.plotMS.scatter(xval, yval,
-                                               edgecolors=color, 
+                                               edgecolors=color,
                                                color=color,
                                                s=kwargs['scatter_size'],
                                                marker=kwargs['scatter_shape'],
                                                alpha=kwargs['scatter_alpha'],
                                                picker=5)
-                    
+
                 self.scatter_plots.append(plot)
 
-        
         elif len(xvals) != len(yvals) and zvals.shape[1] == len(colors):
             for i, color in enumerate(colors):
                 plot = self.plotMS.scatter(xvals, zvals[:, i],
@@ -1865,7 +1844,7 @@ class plots(plottingWindow):
                                            s=kwargs['scatter_size'],
                                            marker=kwargs['scatter_shape'],
                                            alpha=kwargs['scatter_alpha'],
-                                           label=labels[i], 
+                                           label=labels[i],
                                            picker=5)
                 self.scatter_plots.append(plot)
 
@@ -1874,7 +1853,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -1886,8 +1865,8 @@ class plots(plottingWindow):
         xlimits, ylimits = find_limits_all(xvals, yvals)
         self.plotMS.set_xlim([xlimits[0], xlimits[1]])
         self.plotMS.set_ylim([ylimits[0], ylimits[1]])
-        extent= [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
-        
+        extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
+
         self.plotMS.set_xlabel(xlabel, fontsize=kwargs['label_size'],
                                weight=kwargs['label_weight'])
         self.plotMS.set_ylabel(ylabel, fontsize=kwargs['label_size'],
@@ -1907,17 +1886,17 @@ class plots(plottingWindow):
                                 labelleft=kwargs['tickLabels_left'],
                                 labelright=kwargs['tickLabels_right'],
                                 labeltop=kwargs['tickLabels_top'],
-                                labelbottom=kwargs['tickLabels_bottom'],labelsize=kwargs['tick_size'])
+                                labelbottom=kwargs['tickLabels_bottom'], labelsize=kwargs['tick_size'])
 
         self.plotMS.spines['left'].set_visible(kwargs['spines_left'])
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
- 
+
         self.setup_zoom([self.plotMS], self.zoomtype,
                         data_lims=extent)
- 
+
         # Setup X-axis getter
         self.setupGetXAxies([self.plotMS])
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
@@ -1932,7 +1911,7 @@ class plots(plottingWindow):
         Plots MS and 1DT data
         """
         # Setup parameters
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotType
 
@@ -1988,7 +1967,7 @@ class plots(plottingWindow):
         ylimits = np.min([np.min(yvals1), np.min(yvals2)]), np.max([np.max(yvals1), np.max(yvals2)])
         # Setup parameters
 #
-        extent= [xlimits[0], ylimits[0]-0.01, xlimits[-1], ylimits[1]+0.01]
+        extent = [xlimits[0], ylimits[0] - 0.01, xlimits[-1], ylimits[1] + 0.01]
 
         self.plotMS.set_xlabel(xlabel, fontsize=kwargs['label_size'],
                                weight=kwargs['label_weight'])
@@ -2009,7 +1988,7 @@ class plots(plottingWindow):
                                 labelleft=kwargs['tickLabels_left'],
                                 labelright=kwargs['tickLabels_right'],
                                 labeltop=kwargs['tickLabels_top'],
-                                labelbottom=kwargs['tickLabels_bottom'],labelsize=kwargs['tick_size'])
+                                labelbottom=kwargs['tickLabels_bottom'], labelsize=kwargs['tick_size'])
 
         self.plotMS.spines['left'].set_visible(kwargs['spines_left'])
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
@@ -2023,7 +2002,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -2031,7 +2010,7 @@ class plots(plottingWindow):
             leg = self.plotMS.axes.get_legend()
             leg.draggable()
 
-        self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent, 
+        self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent,
                         plotName=plotType,)
 
         # Setup X-axis getter
@@ -2043,7 +2022,7 @@ class plots(plottingWindow):
                         xlimits=None, zoom="box", plotType=None, testMax='yvals',
                         axesSize=None, title="", allowWheel=True, **kwargs):
         # Setup parameters
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotType
 
@@ -2063,11 +2042,11 @@ class plots(plottingWindow):
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
-        
+
         if xlimits is None:
             xvals_limit, __ = find_limits_list(xvals, yvals)
             xlimits = (np.min(xvals_limit), np.max(xvals_limit))
-            
+
         yvals, ylabel = self._convert_intensities_list(yvals, ylabel)
 
         xlabel = _replace_labels(xlabel)
@@ -2087,14 +2066,13 @@ class plots(plottingWindow):
                              linestyle=kwargs['line_style'],
                              zorder=zorder)
 
-
             if kwargs['shade_under']:
                 handles.append(patches.Patch(color=color, label=label, alpha=0.25))
                 shade_kws = dict(
                     facecolor=color,
                     alpha=kwargs.get("shade_under_transparency", 0.25),
                     clip_on=kwargs.get("clip_on", True),
-                    zorder=zorder-2,
+                    zorder=zorder - 2,
                     )
                 self.plotMS.fill_between(xval, 0, yval, **shade_kws)
                 zorder = zorder + zorder_offset
@@ -2107,7 +2085,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -2116,7 +2094,7 @@ class plots(plottingWindow):
 
             leg = self.plotMS.axes.get_legend()
             leg.draggable()
-            leg.set_zorder(zorder+10)
+            leg.set_zorder(zorder + 10)
 
         self.plotMS.set_xlabel(xlabel, fontsize=kwargs['label_size'],
                                weight=kwargs['label_weight'])
@@ -2124,9 +2102,9 @@ class plots(plottingWindow):
                                weight=kwargs['label_weight'])
 
         self.plotMS.set_xlim(xlimits)
-        self.plotMS.set_ylim([np.min(np.concatenate(yvals)), np.max(np.concatenate(yvals))+0.01])
+        self.plotMS.set_ylim([np.min(np.concatenate(yvals)), np.max(np.concatenate(yvals)) + 0.01])
 
-        extent= [xlimits[0], np.min(np.concatenate(yvals)), xlimits[-1],np.max(np.concatenate(yvals))+0.01]
+        extent = [xlimits[0], np.min(np.concatenate(yvals)), xlimits[-1], np.max(np.concatenate(yvals)) + 0.01]
 
         # update axis frame
         if kwargs['axis_onoff']: self.plotMS.set_axis_on()
@@ -2159,7 +2137,6 @@ class plots(plottingWindow):
                                   fontsize=kwargs['title_size'],
                                   weight=title_weight)
 
-
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent,
                         plotName=plotType, allowWheel=allowWheel)
         # Setup X-axis getter
@@ -2188,7 +2165,6 @@ class plots(plottingWindow):
             kwargs = merge_two_dicts(kwargs, self.plot_parameters)
             self.plot_parameters = kwargs
 
-
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
@@ -2204,11 +2180,11 @@ class plots(plottingWindow):
 
         xlabel = _replace_labels(xlabel)
         ylabel = _replace_labels(ylabel)
-        
+
         # uniform x-axis
         ydata = []
         if zvals is not None:
-            n_colors = len(zvals[1,:])
+            n_colors = len(zvals[1, :])
 
             if len(labels) == 0:
                 labels = [""] * n_colors
@@ -2231,11 +2207,11 @@ class plots(plottingWindow):
                 if expo > 1:
                     zvals = np.divide(zvals, float(ydivider))
                     offset_text = r'x$\mathregular{10^{%d}}$' % expo
-                    ylabel = ''.join([ylabel, " [", offset_text,"]"])
+                    ylabel = ''.join([ylabel, " [", offset_text, "]"])
 
-            voltage_idx = np.linspace(0, len(zvals[1,:])-1, len(zvals[1,:]))
+            voltage_idx = np.linspace(0, len(zvals[1, :]) - 1, len(zvals[1, :]))
             label_xposition = np.min(xvals) + (np.max(xvals) * kwargs['labels_x_offset'])
-            yOffset = kwargs['offset'] * (len(zvals[1,:])+1)
+            yOffset = kwargs['offset'] * (len(zvals[1, :]) + 1)
 
             self.text_offset_position = dict(min=np.min(xvals), max=np.max(xvals),
                                              offset=kwargs['labels_x_offset'])
@@ -2254,16 +2230,16 @@ class plots(plottingWindow):
 
             # Iterate over the colormap to get the color shading we desire
             for i in voltage_idx[::-1]:
-                y = zvals[:,int(i)]
-                
+                y = zvals[:, int(i)]
+
                 if kwargs.get('normalize', True):
                     y = normalize_1D(inputData=y)
-                
+
                 if kwargs['line_color_as_shade']: line_color = colorlist[int(i)]
                 else: line_color = kwargs['line_color']
                 shade_color = colorlist[int(i)]
 
-                self.plotMS.plot(xvals, (y+yOffset),
+                self.plotMS.plot(xvals, (y + yOffset),
                                  color=line_color,
                                  linewidth=kwargs['line_width'],
                                  linestyle=kwargs['line_style'],
@@ -2273,8 +2249,8 @@ class plots(plottingWindow):
                     shade_kws = dict(facecolor=shade_color,
                                      alpha=kwargs.get("shade_under_transparency", 0.25),
                                      clip_on=kwargs.get("clip_on", True),
-                                     zorder=zorder-2)
-                    self.plotMS.fill_between(xvals, np.min((y+yOffset)), (y+yOffset), **shade_kws)
+                                     zorder=zorder - 2)
+                    self.plotMS.fill_between(xvals, np.min((y + yOffset)), (y + yOffset), **shade_kws)
 
                 if kwargs.get('add_labels', True) and kwargs["labels_frequency"] != 0:
                     label = self._convert_label(yvals[int(i)],
@@ -2283,12 +2259,12 @@ class plots(plottingWindow):
                         label_kws = dict(fontsize=kwargs['labels_font_size'],
                                          fontweight=kwargs['labels_font_weight'])
                         self.plot_add_text(xpos=label_xposition,
-                                           yval=yOffset+kwargs['labels_y_offset'],
+                                           yval=yOffset + kwargs['labels_y_offset'],
                                            label=label,
-                                           zorder=zorder+3,
+                                           zorder=zorder + 3,
                                            **label_kws)
-                ydata.extend(y+yOffset)
-                yOffset = yOffset-kwargs['increment']
+                ydata.extend(y + yOffset)
+                yOffset = yOffset - kwargs['increment']
                 zorder = zorder + zorder_offset
                 count = count + 1
 
@@ -2298,15 +2274,15 @@ class plots(plottingWindow):
             # assumes xvals is a list in a list
             if len(xvals) != len(yvals) and len(xvals) == 1:
                 xvals = xvals * len(yvals)
-                
+
             n_colors = len(yvals)
             if len(labels) == 0: labels = [""] * n_colors
-            yOffset = kwargs['offset'] * (n_colors+1)
+            yOffset = kwargs['offset'] * (n_colors + 1)
 
             # Find new xlimits
             xvals_limit, __ = find_limits_list(xvals, yvals)
             xlimits = (np.min(xvals_limit), np.max(xvals_limit))
-            
+
             label_xposition = xlimits[0] + (xlimits[1] * kwargs['labels_x_offset'])
             self.text_offset_position = dict(min=xlimits[0],
                                              max=xlimits[1],
@@ -2334,7 +2310,7 @@ class plots(plottingWindow):
 
             for irow in xrange(len(xvals)):
                 # Always normalizes data - otherwise it looks pretty bad
-                
+
                 if kwargs['increment'] != 0 and kwargs.get('normalize', True):
                     yvals[irow] = normalize_1D(inputData=yvals[irow])
                 else:
@@ -2344,44 +2320,43 @@ class plots(plottingWindow):
                         if expo > 1:
                             yvals[irow] = np.divide(yvals[irow], float(ydivider))
                             offset_text = r'x$\mathregular{10^{%d}}$' % expo
-                            ylabel = ''.join([ylabel, " [", offset_text,"]"])
+                            ylabel = ''.join([ylabel, " [", offset_text, "]"])
                     except AttributeError:
                         kwargs['increment'] = 0.00001
                         yvals[irow] = normalize_1D(inputData=yvals[irow])
 
-                voltage_idx = np.linspace(0, n_colors-1, n_colors)
+                voltage_idx = np.linspace(0, n_colors - 1, n_colors)
                 if kwargs['line_color_as_shade']: line_color = colorlist[irow]
                 else: line_color = kwargs['line_color']
                 shade_color = colorlist[int(irow)]
                 y = yvals[irow]
-                self.plotMS.plot(xvals[irow], (y+yOffset),
+                self.plotMS.plot(xvals[irow], (y + yOffset),
                                  color=line_color,
                                  linewidth=kwargs['line_width'],
                                  linestyle=kwargs['line_style'],
                                  label=labels[irow],
                                  zorder=zorder)
-                
-                
+
                 if kwargs['shade_under'] and len(voltage_idx) < kwargs.get('shade_under_n_limit', 50):
                     shade_kws = dict(facecolor=shade_color,
                                      alpha=kwargs.get("shade_under_transparency", 0.25),
                                      clip_on=kwargs.get("clip_on", True),
-                                     zorder=zorder-2)
-                    self.plotMS.fill_between(xvals[irow], np.min((y+yOffset)), (y+yOffset), **shade_kws)
+                                     zorder=zorder - 2)
+                    self.plotMS.fill_between(xvals[irow], np.min((y + yOffset)), (y + yOffset), **shade_kws)
 
                 if kwargs.get('add_labels', True) and kwargs["labels_frequency"] != 0:
-                    label=_replace_labels(labels[irow])
+                    label = _replace_labels(labels[irow])
                     if irow % kwargs["labels_frequency"] == 0:
                         label_kws = dict(fontsize=kwargs['labels_font_size'],
                                          fontweight=kwargs['labels_font_weight'])
                         self.plot_add_text(xpos=label_xposition,
-                                           yval=yOffset+kwargs['labels_y_offset'],
+                                           yval=yOffset + kwargs['labels_y_offset'],
                                            label=label,
-                                           zorder=zorder+3,
+                                           zorder=zorder + 3,
                                            **label_kws)
-                ydata.extend(y+yOffset)
-                yOffset=yOffset-kwargs['increment']
-                zorder=zorder+zorder_offset
+                ydata.extend(y + yOffset)
+                yOffset = yOffset - kwargs['increment']
+                zorder = zorder + zorder_offset
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -2416,9 +2391,9 @@ class plots(plottingWindow):
 
         # convert to array to remove nan's and figure out limits
         ydata = remove_nan_from_list(ydata)
-        ylimits = np.min(ydata)-kwargs['offset'], np.max(ydata)+0.05 
+        ylimits = np.min(ydata) - kwargs['offset'], np.max(ydata) + 0.05
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
-        
+
         self.setup_zoom([self.plotMS], self.zoomtype, plotName=plotName,
                         data_lims=extent)
         self.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
@@ -2432,7 +2407,6 @@ class plots(plottingWindow):
     def plot_1D_waterfall_overlay(self, xvals=None, yvals=None, zvals=None, label="", xlabel="",
                                   colorList=[], ylabel="", zoom="box", axesSize=None, plotName='1D',
                                   xlimits=None, plotType="Waterfall_overlay", labels=[], **kwargs):
-
 
         self.zoomtype = zoom
         self.plot_name = plotType
@@ -2450,7 +2424,6 @@ class plots(plottingWindow):
             kwargs = merge_two_dicts(kwargs, self.plot_parameters)
             self.plot_parameters = kwargs
 
-
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
@@ -2459,7 +2432,7 @@ class plots(plottingWindow):
         else: kwargs['labels_font_weight'] = "normal"
 
         count = len(xvals)
-        zorder, zorder_offset = 5, 5+count
+        zorder, zorder_offset = 5, 5 + count
         label_freq = kwargs["labels_frequency"]
 
         if xlabel not in ["m/z", "Mass (Da)", "Charge"]:
@@ -2467,9 +2440,9 @@ class plots(plottingWindow):
 
         ydata = []
 
-        if len(labels) == 0: 
+        if len(labels) == 0:
             labels = [" "] * count
-        yOffset_start = yOffset = kwargs['offset'] * (count+1)
+        yOffset_start = yOffset = kwargs['offset'] * (count + 1)
 
         # Find new xlimits
         xvals_limit, __ = find_limits_list(xvals, yvals)
@@ -2482,7 +2455,7 @@ class plots(plottingWindow):
         for item in xrange(len(xvals)):
             xval = xvals[item]
             yval = yvals[item]
-            zval = zvals[item]
+            zval = np.array(zvals[item])
             line_color = colorList[item]
             yOffset = yOffset_start
             label = labels[item]
@@ -2494,11 +2467,12 @@ class plots(plottingWindow):
 
             for irow in xrange(len(yval)):
                 if irow > 0: label = ""
-                
+
+                zval_one = np.asarray((zval[:, irow]))
                 if kwargs['increment'] != 0 and kwargs.get('normalize', True):
-                    zval[:, irow] = normalize_1D(inputData=zval[:, irow])
-                    
-                y = zval[:,irow] + yOffset
+                    zval_one = normalize_1D(inputData=zval_one)
+
+                y = zval_one + yOffset
                 self.plotMS.plot(xval, y,
                                  color=line_color,
                                  linewidth=kwargs['line_width'],
@@ -2508,7 +2482,7 @@ class plots(plottingWindow):
                     shade_kws = dict(facecolor=shade_color,
                                      alpha=kwargs.get("shade_under_transparency", 0.25),
                                      clip_on=kwargs.get("clip_on", True),
-                                     zorder=zorder-2
+                                     zorder=zorder - 2
                                      )
                     self.plotMS.fill_between(xval, np.min(y), y, **shade_kws)
 
@@ -2517,15 +2491,14 @@ class plots(plottingWindow):
                     if irow % kwargs["labels_frequency"] == 0:
                         label_kws = dict(fontsize=kwargs['labels_font_size'],
                                          fontweight=kwargs['labels_font_weight'])
-                        self.plot_add_text(xpos=label_xposition, 
-                                           yval=yOffset+kwargs['labels_y_offset'],
-                                           label=x_label, zorder=zorder+3,
+                        self.plot_add_text(xpos=label_xposition,
+                                           yval=yOffset + kwargs['labels_y_offset'],
+                                           label=x_label, zorder=zorder + 3,
                                            **label_kws)
                 ydata.extend(y)
-                yOffset=yOffset-kwargs['increment']
-                zorder=zorder+5
-            zorder=zorder+(zorder_offset*5)
-
+                yOffset = yOffset - kwargs['increment']
+                zorder = zorder + 5
+            zorder = zorder + (zorder_offset * 5)
 
         handles, __ = self.plotMS.get_legend_handles_labels()
         if kwargs.get('legend', self.config.legend):
@@ -2533,7 +2506,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -2574,7 +2547,7 @@ class plots(plottingWindow):
             i.set_zorder(zorder)
 
         ydata = remove_nan_from_list(ydata)
-        ylimits = [np.min(ydata)-kwargs['offset'], np.max(ydata)+0.05]
+        ylimits = [np.min(ydata) - kwargs['offset'], np.max(ydata) + 0.05]
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
         self.setup_zoom([self.plotMS], self.zoomtype, plotName=plotName,
                         data_lims=extent
@@ -2603,7 +2576,6 @@ class plots(plottingWindow):
             # update ticks
             kwargs = merge_two_dicts(kwargs, self.plot_parameters)
             self.plot_parameters = kwargs
-
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
@@ -2634,13 +2606,13 @@ class plots(plottingWindow):
         offset_list = []
         # precalculate positions
         for i in range(n_count):
-            yvals_in = zvals[:,i]
+            yvals_in = zvals[:, i]
             max_value = np.max(yvals_in)
             offset_list.append(max_value)
 
         for i in range(n_count):
             # get yvals
-            yvals_in = zvals[:,i]
+            yvals_in = zvals[:, i]
             if normalize:
                 yvals_in = normalize_1D(inputData=yvals_in)
 
@@ -2653,7 +2625,7 @@ class plots(plottingWindow):
                 if i == 0:
                     offset = offset + max_value
                 else:
-                    offset = offset + max_value + (offset_list[(i-1)]) + spacing
+                    offset = offset + max_value + (offset_list[(i - 1)]) + spacing
 
             filter_index = yvals_in > (max_value * min_percentage)
             # minimise number of points
@@ -2714,7 +2686,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -2764,7 +2736,7 @@ class plots(plottingWindow):
         self.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
 
     def plot_n_grid_1D_overlay(self, xvals, yvals, xlabel, ylabel, labels, colors,
-                               plotName='Grid_1D', axesSize=None, testMax="yvals", 
+                               plotName='Grid_1D', axesSize=None, testMax="yvals",
                                **kwargs):
         self.plot_name = plotName
         self.zoomtype = "box"
@@ -2781,20 +2753,20 @@ class plots(plottingWindow):
         n_yvals = len(yvals)
         n_grid = np.max([n_xvals, n_yvals])
         n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
- 
+
         # convert weights
         if kwargs['title_weight']: kwargs['title_weight'] = "heavy"
         else: kwargs['title_weight'] = "normal"
- 
+
         if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
         else: kwargs['label_weight'] = "normal"
- 
+
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
- 
+
         gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols)
-        
+
         # check if labels were added
         if "xlabels" in kwargs:
             xlabels = kwargs["xlabels"]
@@ -2802,26 +2774,26 @@ class plots(plottingWindow):
                 xlabels = [xlabel] * n_xvals
         else:
             xlabels = [xlabel] * n_xvals
-            
+
         if "ylabels" in kwargs:
             ylabels = kwargs["ylabels"]
             if len(ylabels) != n_yvals:
                 ylabels = [ylabel] * n_yvals
         else:
             ylabels = [ylabel] * n_yvals
-        
+
         plt_list, handles, extent = [], [], []
         for i in range(n_grid):
             row = int(i // n_cols)
             col = i % n_cols
-            
+
             xval = xvals[i]
             yval = yvals[i]
             color = colors[i]
             label = labels[i]
             xlabel = xlabels[i]
             ylabel = ylabels[i]
-            
+
             xlabel = _replace_labels(xlabel)
             ylabel = _replace_labels(ylabel)
 #             if testMax == 'yvals':
@@ -2832,16 +2804,16 @@ class plots(plottingWindow):
 #                     yval = divide(yval, float(ydivider))
 #                 else: ydivider = 1
 #                 self.y_divider = ydivider
-            
+
             xmin, xmax = np.min(xval), np.max(xval)
             ymin, ymax = np.min(yval), np.max(yval)
             extent.append([xmin, ymin, xmax, ymax])
             ax = self.figure.add_subplot(gs[row, col], aspect='auto')
             ax.plot(xval, yval, color=color,
-                    label=label, 
+                    label=label,
                     linewidth=kwargs['line_width'],
                     linestyle=kwargs['line_style'])
-            
+
             if kwargs['shade_under']:
                 handles.append(patches.Patch(color=color, label=label, alpha=0.25))
                 shade_kws = dict(
@@ -2861,41 +2833,41 @@ class plots(plottingWindow):
                             labelright=kwargs['tickLabels_right'],
                             labeltop=kwargs['tickLabels_top'],
                             labelbottom=kwargs['tickLabels_bottom'])
- 
+
             # spines
             ax.spines['left'].set_visible(kwargs['spines_left'])
             ax.spines['right'].set_visible(kwargs['spines_right'])
             ax.spines['top'].set_visible(kwargs['spines_top'])
             ax.spines['bottom'].set_visible(kwargs['spines_bottom'])
-            
+
             # update axis frame
             if kwargs['axis_onoff']: ax.set_axis_on()
             else: ax.set_axis_off()
-            
+
             kwargs['label_pad'] = 5
             ax.set_xlabel(xlabel,
                           labelpad=kwargs['label_pad'],
                           fontsize=kwargs['label_size'],
                           weight=kwargs['label_weight'])
-            
+
             ax.set_ylabel(ylabel,
                           labelpad=kwargs['label_pad'],
                           fontsize=kwargs['label_size'],
                           weight=kwargs['label_weight'])
-            
+
             if kwargs.get('legend', self.config.legend):
                 handle, label = ax.get_legend_handles_labels()
                 ax.legend(loc=kwargs.get('legend_position', self.config.legendPosition),
                                    ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                    fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                    frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                                   framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                                   framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                    markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                    markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                    fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
                                    scatterpoints=kwargs.get('legend_num_markers', self.config.legendNumberMarkers),
                                    handles=handle, labels=label)
-      
+
                 leg = ax.axes.get_legend()
                 leg.draggable()
             # add plot list
@@ -2903,12 +2875,12 @@ class plots(plottingWindow):
 
         gs.tight_layout(self.figure)
         self.figure.tight_layout()
-# 
+#
         self.setup_zoom(plt_list, self.zoomtype, data_lims=extent)
 #         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
     def plot_n_grid_scatter(self, xvals, yvals, xlabel, ylabel, labels, colors,
-                            plotName='Grid_scatter', axesSize=None, testMax="yvals", 
+                            plotName='Grid_scatter', axesSize=None, testMax="yvals",
                             **kwargs):
         self.plot_name = plotName
         self.zoomtype = "box"
@@ -2925,20 +2897,20 @@ class plots(plottingWindow):
         n_yvals = len(yvals)
         n_grid = np.max([n_xvals, n_yvals])
         n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
- 
+
         # convert weights
         if kwargs['title_weight']: kwargs['title_weight'] = "heavy"
         else: kwargs['title_weight'] = "normal"
- 
+
         if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
         else: kwargs['label_weight'] = "normal"
- 
+
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
- 
+
         gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols)
-        
+
         # check if labels were added
         if "xlabels" in kwargs:
             xlabels = kwargs["xlabels"]
@@ -2946,73 +2918,70 @@ class plots(plottingWindow):
                 xlabels = [xlabel] * n_xvals
         else:
             xlabels = [xlabel] * n_xvals
-            
+
         if "ylabels" in kwargs:
             ylabels = kwargs["ylabels"]
             if len(ylabels) != n_yvals:
                 ylabels = [ylabel] * n_yvals
         else:
             ylabels = [ylabel] * n_yvals
-        
+
         plt_list, handles, extent = [], [], []
         for i in range(n_grid):
             row = int(i // n_cols)
             col = i % n_cols
-            
+
             xval = xvals[i]
             yval = yvals[i]
             color = colors[i]
             label = labels[i]
             xlabel = xlabels[i]
             ylabel = ylabels[i]
-            
+
             xlabel = _replace_labels(xlabel)
             ylabel = _replace_labels(ylabel)
-            
+
             xmin, xmax = np.min(xval), np.max(xval)
             ymin, ymax = np.min(yval), np.max(yval)
             extent.append([xmin, ymin, xmax, ymax])
             ax = self.figure.add_subplot(gs[row, col], aspect='auto')
-            ax.scatter(xval, yval, 
+            ax.scatter(xval, yval,
                        color=color,
                        marker=kwargs['scatter_shape'],
                        alpha=kwargs['scatter_alpha'],
                        s=kwargs['scatter_size'])
-            
-            
-            
+
 #                 if plot_modifiers.get("color_items", False) and len(kwargs['item_colors']) > 0:
 #                     color = kwargs['item_colors'][0]
 #                     try:
 #                         plot = self.plotMS.scatter(xval, yval,
-#                                                    edgecolors="k", 
+#                                                    edgecolors="k",
 #                                                     c=color,
 #                                                    s=kwargs['scatter_size'],
 #                                                    marker=kwargs['scatter_shape'],
 #                                                    alpha=kwargs['scatter_alpha'],
-#     #                                                label=labels[i], 
+#     #                                                label=labels[i],
 #                                                    picker=5)
 #                     except:
 #                         color = colors[i]
 #                         plot = self.plotMS.scatter(xval, yval,
-#                                                    edgecolors=color, 
+#                                                    edgecolors=color,
 #                                                    color=color,
 #                                                    s=kwargs['scatter_size'],
 #                                                    marker=kwargs['scatter_shape'],
 #                                                    alpha=kwargs['scatter_alpha'],
-#     #                                                label=labels[i], 
+#     #                                                label=labels[i],
 #                                                    picker=5)
 #                 else:
 #                     color = colors[i]
 #                     plot = self.plotMS.scatter(xval, yval,
-#                                                edgecolors=color, 
+#                                                edgecolors=color,
 #                                                color=color,
 #                                                s=kwargs['scatter_size'],
 #                                                marker=kwargs['scatter_shape'],
 #                                                alpha=kwargs['scatter_alpha'],
-# #                                                label=labels[i], 
+# #                                                label=labels[i],
 #                                                picker=5)
-            
 
             ax.set_xlim(xmin, xmax)
             ax.set_ylim(ymin, ymax)
@@ -3025,41 +2994,41 @@ class plots(plottingWindow):
                             labelright=kwargs['tickLabels_right'],
                             labeltop=kwargs['tickLabels_top'],
                             labelbottom=kwargs['tickLabels_bottom'])
- 
+
             # spines
             ax.spines['left'].set_visible(kwargs['spines_left'])
             ax.spines['right'].set_visible(kwargs['spines_right'])
             ax.spines['top'].set_visible(kwargs['spines_top'])
             ax.spines['bottom'].set_visible(kwargs['spines_bottom'])
-            
+
             # update axis frame
             if kwargs['axis_onoff']: ax.set_axis_on()
             else: ax.set_axis_off()
-            
+
             kwargs['label_pad'] = 5
             ax.set_xlabel(xlabel,
                           labelpad=kwargs['label_pad'],
                           fontsize=kwargs['label_size'],
                           weight=kwargs['label_weight'])
-            
+
             ax.set_ylabel(ylabel,
                           labelpad=kwargs['label_pad'],
                           fontsize=kwargs['label_size'],
                           weight=kwargs['label_weight'])
-            
+
             if kwargs.get('legend', self.config.legend):
                 handle, label = ax.get_legend_handles_labels()
                 ax.legend(loc=kwargs.get('legend_position', self.config.legendPosition),
                                    ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                    fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                    frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                                   framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                                   framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                    markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                    markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                    fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
                                    scatterpoints=kwargs.get('legend_num_markers', self.config.legendNumberMarkers),
                                    handles=handle, labels=label)
-      
+
                 leg = ax.axes.get_legend()
                 leg.draggable()
             # add plot list
@@ -3067,7 +3036,7 @@ class plots(plottingWindow):
 
         gs.tight_layout(self.figure)
         self.figure.tight_layout()
-# 
+#
         self.setup_zoom(plt_list, self.zoomtype, data_lims=extent)
 #         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
@@ -3096,35 +3065,35 @@ class plots(plottingWindow):
 
         gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols)
         gs.update(hspace=kwargs.get('grid_hspace', 1), wspace=kwargs.get('grid_hspace', 1))
-        
+
 #         extent = self.extents(xvals)+self.extents(yvals)
         plt_list, extent_list = [], []
         for i in range(n_grid):
             row = int(i // n_cols)
             col = i % n_cols
             ax = self.figure.add_subplot(gs[row, col], aspect='auto')
-            
+
             if len(xvals) == n_grid:
-                extent = self.extents(xvals[i])+self.extents(yvals[i])
+                extent = self.extents(xvals[i]) + self.extents(yvals[i])
                 xmin, xmax = np.min(xvals[i]), np.max(xvals[i])
                 ymin, ymax = np.min(yvals[i]), np.max(yvals[i])
             else:
-                extent = self.extents(xvals)+self.extents(yvals)
+                extent = self.extents(xvals) + self.extents(yvals)
                 xmin, xmax = np.min(xvals), np.max(xvals)
                 ymin, ymax = np.min(yvals), np.max(yvals)
             extent_list.append([xmin, ymin, xmax, ymax])
-            
+
             if kwargs.get("override_colormap", False):
                 cmap = kwargs["colormap"]
             else: cmap = cmap_list[i]
-            
+
             ax.imshow(n_zvals[i], extent=extent,
                       cmap=cmap,
                       interpolation=kwargs['interpolation'],
                       aspect='auto', origin='lower')
 
-            ax.set_xlim(xmin, xmax-0.5)
-            ax.set_ylim(ymin, ymax-0.5)
+            ax.set_xlim(xmin, xmax - 0.5)
+            ax.set_ylim(ymin, ymax - 0.5)
             ax.tick_params(axis='both',
                            left=kwargs['ticks_left'],
                             right=kwargs['ticks_right'],
@@ -3149,7 +3118,7 @@ class plots(plottingWindow):
             # remove ticks for anything thats not on the outskirts
             if kwargs.get('grid_show_tickLabels', True):
                 if col != 0: ax.set_yticks([])
-                if row != (n_rows-1): ax.set_xticks([])
+                if row != (n_rows - 1): ax.set_xticks([])
             else:
                 ax.set_yticks([])
                 ax.set_xticks([])
@@ -3166,7 +3135,7 @@ class plots(plottingWindow):
                                   labelpad=kwargs['label_pad'],
                                   fontsize=kwargs['label_size'],
                                   weight=kwargs['label_weight'])
-                if row == n_rows-1:
+                if row == n_rows - 1:
                     ax.set_xlabel(xlabel,
                                   labelpad=kwargs['label_pad'],
                                   fontsize=kwargs['label_size'],
@@ -3196,15 +3165,15 @@ class plots(plottingWindow):
             kwargs = merge_two_dicts(kwargs, self.plot_parameters)
             self.plot_parameters = kwargs
 
-        gs = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1,1], width_ratios=[1,2])
+        gs = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1, 1], width_ratios=[1, 2])
         gs.update(hspace=kwargs['rmsd_hspace'], wspace=kwargs['rmsd_hspace'])
 
-        self.plot2D_upper = self.figure.add_subplot(gs[0,0], aspect='auto')
-        self.plot2D_lower = self.figure.add_subplot(gs[1,0], aspect='auto')
-        self.plot2D_side = self.figure.add_subplot(gs[:,1], aspect='auto')
+        self.plot2D_upper = self.figure.add_subplot(gs[0, 0], aspect='auto')
+        self.plot2D_lower = self.figure.add_subplot(gs[1, 0], aspect='auto')
+        self.plot2D_side = self.figure.add_subplot(gs[:, 1], aspect='auto')
 
         # Calculate extents
-        extent = self.extents(xvals)+self.extents(yvals)
+        extent = self.extents(xvals) + self.extents(yvals)
         self.plot2D_upper.imshow(zvals_1,
                                  extent=extent,
                                  cmap=kwargs.get('colormap_1', 'Reds'),
@@ -3234,8 +3203,8 @@ class plots(plottingWindow):
 
         # ticks
         for plot in [self.plot2D_upper, self.plot2D_lower, self.plot2D_side]:
-            plot.set_xlim(xmin, xmax-0.5)
-            plot.set_ylim(ymin, ymax-0.5)
+            plot.set_xlim(xmin, xmax - 0.5)
+            plot.set_ylim(ymin, ymax - 0.5)
 
             plot.tick_params(axis='both',
                                     left=kwargs['ticks_left'],
@@ -3270,7 +3239,6 @@ class plots(plottingWindow):
                                    fontsize=kwargs['label_size'],
                                    weight=kwargs['label_weight'])
 
-
         gs.tight_layout(self.figure)
         self.figure.tight_layout()
         extent = [xmin, ymin, xmax, ymax]
@@ -3279,14 +3247,14 @@ class plots(plottingWindow):
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
     def plot_1D_2D(self, yvalsRMSF=None, zvals=None, labelsX=None, labelsY=None,
-                   ylabelRMSF="", xlabelRMSD="",ylabelRMSD="", testMax = 'yvals',
+                   ylabelRMSF="", xlabelRMSD="", ylabelRMSD="", testMax='yvals',
                    label="", zoom="box", plotName="RMSF", axesSize=None,
                    **kwargs):
         """
         Plots RMSF and RMSD together
         """
         # Setup parameters
-        gs = gridspec.GridSpec(2, 1, height_ratios=[1,3])
+        gs = gridspec.GridSpec(2, 1, height_ratios=[1, 3])
         gs.update(hspace=kwargs['rmsd_hspace'])
         self.plot_name = plotName
         self.zoomtype = zoom
@@ -3308,22 +3276,22 @@ class plots(plottingWindow):
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         # Check if there are any labels attached with the data
-        if xlabelRMSD=="": xlabelRMSD = "Scans"
-        if ylabelRMSD=="": ylabelRMSD = "Drift time (bins)"
-        if ylabelRMSF=="": ylabelRMSF = "RMSD (%)"
+        if xlabelRMSD == "": xlabelRMSD = "Scans"
+        if ylabelRMSD == "": ylabelRMSD = "Drift time (bins)"
+        if ylabelRMSF == "": ylabelRMSF = "RMSD (%)"
 
         if testMax == 'yvals':
             ydivider, expo = self.testXYmaxValsUpdated(values=yvalsRMSF)
             if expo > 1:
-                offset_text = r'x$\mathregular{10^{%d}}$' %expo
-                ylabelRMSF = ''.join([ylabelRMSF, " [", offset_text,"]"])
+                offset_text = r'x$\mathregular{10^{%d}}$' % expo
+                ylabelRMSF = ''.join([ylabelRMSF, " [", offset_text, "]"])
                 yvalsRMSF = np.divide(yvalsRMSF, float(ydivider))
         else: ylabelRMSF = "RMSD (%)"
 
         # Plot RMSF data (top plot)
         if len(labelsX) != len(yvalsRMSF):
                 dialogs.dlgBox(exceptionTitle='Missing data',
-                               exceptionMsg= 'Missing x-axis labels! Cannot execute this action!',
+                               exceptionMsg='Missing x-axis labels! Cannot execute this action!',
                                type="Error")
                 return
 
@@ -3333,7 +3301,7 @@ class plots(plottingWindow):
                            linewidth=kwargs['rmsd_line_width'],
                            linestyle=kwargs['rmsd_line_style'])
 
-        self.plotRMSF.fill_between(labelsX, yvalsRMSF,0,
+        self.plotRMSF.fill_between(labelsX, yvalsRMSF, 0,
                                    edgecolor=kwargs['rmsd_line_color'],
                                    facecolor=kwargs['rmsd_underline_color'],
                                    alpha=kwargs['rmsd_underline_transparency'],
@@ -3342,7 +3310,7 @@ class plots(plottingWindow):
                                    linestyle=kwargs['rmsd_line_style'])
 
         self.plotRMSF.set_xlim([np.min(labelsX), np.max(labelsX)])
-        self.plotRMSF.set_ylim([0, np.max(yvalsRMSF)+0.2])
+        self.plotRMSF.set_ylim([0, np.max(yvalsRMSF) + 0.2])
         self.plotRMSF.get_xaxis().set_visible(False)
 
         self.plotRMSF.set_ylabel(ylabelRMSF,
@@ -3362,10 +3330,10 @@ class plots(plottingWindow):
 
         xmin, xmax = self.plotMS.get_xlim()
         ymin, ymax = self.plotMS.get_ylim()
-        self.plotMS.set_xlim(xmin, xmax-0.5)
-        self.plotMS.set_ylim(ymin, ymax-0.5)
+        self.plotMS.set_xlim(xmin, xmax - 0.5)
+        self.plotMS.set_ylim(ymin, ymax - 0.5)
 
-        extent= [labelsX[0], labelsY[0], labelsX[-1],labelsY[-1]]
+        extent = [labelsX[0], labelsY[0], labelsX[-1], labelsY[-1]]
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent,
                         plotName=plotName)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
@@ -3454,14 +3422,13 @@ class plots(plottingWindow):
         if kwargs['axis_onoff_1D']: self.plotRMSF.set_axis_on()
         else: self.plotRMSF.set_axis_off()
 
-
         # update gridspace
         gs.tight_layout(self.figure)
         self.figure.tight_layout()
 
     def plot_2D(self, zvals=None, title="", extent=None, xlabel="", ylabel="", zoom="box",
                       axesSize=None, colorbar=False, legend=None, plotName="2D", **kwargs):
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotName
 
@@ -3504,8 +3471,8 @@ class plots(plottingWindow):
 
         xmin, xmax = self.plotMS.get_xlim()
         ymin, ymax = self.plotMS.get_ylim()
-        self.plotMS.set_xlim(xmin, xmax-0.5)
-        self.plotMS.set_ylim(ymin, ymax-0.5)
+        self.plotMS.set_xlim(xmin, xmax - 0.5)
+        self.plotMS.set_ylim(ymin, ymax - 0.5)
         extent = [xmin, ymin, xmax, ymax]
 
         cbarDivider = make_axes_locatable(self.plotMS)
@@ -3516,7 +3483,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -3525,8 +3492,8 @@ class plots(plottingWindow):
             leg.draggable()
 
         # labels
-        if xlabel in ['None', None]: xlabel=''
-        if ylabel in ['None', None]: ylabel=''
+        if xlabel in ['None', None]: xlabel = ''
+        if ylabel in ['None', None]: ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -3544,7 +3511,7 @@ class plots(plottingWindow):
                                           size="".join([str(kwargs['colorbar_width']), "%"]),
                                           pad=kwargs['colorbar_pad'])
 
-            ticks = [np.min(zvals), (np.max(zvals)-np.min(zvals))/2, np.max(zvals)]
+            ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
 
             self.cbar.ticks = ticks
 #             self.cbar.tick_labels = tick_labels
@@ -3585,20 +3552,20 @@ class plots(plottingWindow):
 
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-        
-        # add data 
+
+        # add data
         self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
                           'xlabel':xlabel, 'ylabel':ylabel}
 
     def plot_2D_surface(self, zvals, xvals, yvals, xlabel, ylabel,
                         legend=False, zoom='box',
                         axesSize=None, plotName=None, **kwargs):
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotName
 
 #         kwargs = self._check_colormap(**kwargs)
-        
+
         # override parameters
         if not self.lock_plot_from_updating:
             if axesSize is not None:
@@ -3614,7 +3581,7 @@ class plots(plottingWindow):
 
         # Plot
         self.plotMS = self.figure.add_axes(self._axes)
-        extent = self.extents(xvals)+self.extents(yvals)
+        extent = self.extents(xvals) + self.extents(yvals)
 
         # Add imshow
         self.cax = self.plotMS.imshow(zvals, extent=extent,
@@ -3624,8 +3591,8 @@ class plots(plottingWindow):
                                       aspect='auto',
                                       origin='lower')
         xmin, xmax, ymin, ymax = extent
-        self.plotMS.set_xlim(xmin, xmax-0.5)
-        self.plotMS.set_ylim(ymin, ymax-0.5)
+        self.plotMS.set_xlim(xmin, xmax - 0.5)
+        self.plotMS.set_ylim(ymin, ymax - 0.5)
 
         # legend
         if legend:
@@ -3633,7 +3600,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -3646,10 +3613,9 @@ class plots(plottingWindow):
                         plotName=plotName)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
-
         # labels
-        if xlabel in ['None', None, ""]: xlabel=''
-        if ylabel in ['None', None, ""]: ylabel=''
+        if xlabel in ['None', None, ""]: xlabel = ''
+        if ylabel in ['None', None, ""]: ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -3716,8 +3682,8 @@ class plots(plottingWindow):
         # update axis frame
         if kwargs['axis_onoff']: self.plotMS.set_axis_on()
         else: self.plotMS.set_axis_off()
-        
-        # add data 
+
+        # add data
         self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
                           'xlabel':xlabel, 'ylabel':ylabel}
         self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
@@ -3725,7 +3691,7 @@ class plots(plottingWindow):
     def plot_2D_contour(self, zvals, xvals, yvals, xlabel, ylabel,
                         legend=False, zoom='box',
                         axesSize=None, plotName=None, **kwargs):
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotName
 
@@ -3745,7 +3711,7 @@ class plots(plottingWindow):
         # Plot
         self.plotMS = self.figure.add_axes(self._axes)
 
-        extent = self.extents(xvals)+self.extents(yvals)
+        extent = self.extents(xvals) + self.extents(yvals)
 
         # Add imshow
         self.cax = self.plotMS.contourf(zvals, 300, extent=extent,
@@ -3754,8 +3720,8 @@ class plots(plottingWindow):
                                         antialiasing=True)
 
         xmin, xmax, ymin, ymax = extent
-        self.plotMS.set_xlim(xmin, xmax-0.5)
-        self.plotMS.set_ylim(ymin, ymax-0.5)
+        self.plotMS.set_xlim(xmin, xmax - 0.5)
+        self.plotMS.set_ylim(ymin, ymax - 0.5)
 
         # legend
         if legend:
@@ -3763,7 +3729,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -3774,8 +3740,8 @@ class plots(plottingWindow):
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         # labels
-        if xlabel in ['None', None, ""]: xlabel=''
-        if ylabel in ['None', None, ""]: ylabel=''
+        if xlabel in ['None', None, ""]: xlabel = ''
+        if ylabel in ['None', None, ""]: ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -3794,7 +3760,7 @@ class plots(plottingWindow):
                                           size="".join([str(kwargs['colorbar_width']), "%"]),
                                           pad=kwargs['colorbar_pad'])
 
-            ticks = [np.min(zvals), (np.max(zvals)-np.min(zvals))/2, np.max(zvals)]
+            ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
             if ticks[1] in [ticks[0], ticks[2]]: ticks[1] = 0
 
             self.cbar.ticks = ticks
@@ -3833,8 +3799,8 @@ class plots(plottingWindow):
         # update axis frame
         if kwargs['axis_onoff']: self.plotMS.set_axis_on()
         else: self.plotMS.set_axis_off()
-        
-        # add data 
+
+        # add data
         self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
                           'xlabel':xlabel, 'ylabel':ylabel}
         self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
@@ -3843,7 +3809,7 @@ class plots(plottingWindow):
                                xlabel="m/z (Da)", ylabel="Charge", legend=False,
                                speedy=True, zoom='box', axesSize=None, plotName=None,
                                testX=False, title="", **kwargs):
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotName
 
@@ -3878,11 +3844,11 @@ class plots(plottingWindow):
         if testX:
             xvals, xlabel, __ = self.kda_test(xvals)
 
-        extent = self.extents(xvals)+self.extents(yvals)
+        extent = self.extents(xvals) + self.extents(yvals)
 
         if not speedy:
             self.cax = self.plotMS.contourf(xvals, yvals, np.transpose(zvals),
-                                            kwargs.get("contour_levels", 100), 
+                                            kwargs.get("contour_levels", 100),
                                             cmap=kwargs['colormap'],
                                             norm=norm)
         else:
@@ -3898,16 +3864,16 @@ class plots(plottingWindow):
 
         xmin, xmax = self.plotMS.get_xlim()
         ymin, ymax = self.plotMS.get_ylim()
-        self.plotMS.set_xlim(xmin, xmax-0.5)
-        self.plotMS.set_ylim(ymin, ymax-0.5)
+        self.plotMS.set_xlim(xmin, xmax - 0.5)
+        self.plotMS.set_ylim(ymin, ymax - 0.5)
 
         if kwargs.get('minor_ticks_off', True):
             self.plotMS.yaxis.set_tick_params(which='minor', bottom='off')
             self.plotMS.yaxis.set_major_locator(MaxNLocator(integer=True))
 
         # labels
-        if xlabel in ['None', None, ""]: xlabel=''
-        if ylabel in ['None', None, ""]: ylabel=''
+        if xlabel in ['None', None, ""]: xlabel = ''
+        if ylabel in ['None', None, ""]: ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -3918,7 +3884,7 @@ class plots(plottingWindow):
                                fontsize=kwargs['label_size'],
                                weight=kwargs['label_weight'])
 
-        cbarDivider = make_axes_locatable(self.plotMS)  
+        cbarDivider = make_axes_locatable(self.plotMS)
         # setup colorbar
         if kwargs['colorbar']:
             # pad controls how close colorbar is to the axes
@@ -3926,7 +3892,7 @@ class plots(plottingWindow):
                                           size="".join([str(kwargs['colorbar_width']), "%"]),
                                           pad=kwargs['colorbar_pad'])
 
-            ticks = [np.min(zvals), (np.max(zvals)-np.min(zvals))/2, np.max(zvals)]
+            ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
             if ticks[1] in [ticks[0], ticks[2]]: ticks[1] = 0
 
             tick_labels = ["0", "%", "100"]
@@ -3988,7 +3954,7 @@ class plots(plottingWindow):
     def plot_2D_rgb(self, zvals, xvals, yvals, xlabel, ylabel,
                     zoom="box", axesSize=None, legend_text=None,
                     plotName='RGB', **kwargs):
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotName
 
@@ -4014,7 +3980,7 @@ class plots(plottingWindow):
                                              label=legend_text[i][1],
                                              alpha=kwargs['legend_patch_transparency']))
 
-        extent = self.extents(xvals)+self.extents(yvals)
+        extent = self.extents(xvals) + self.extents(yvals)
 
         # Add imshow
         self.cax = self.plotMS.imshow(zvals, extent=extent,
@@ -4024,8 +3990,8 @@ class plots(plottingWindow):
 
         xmin, xmax = self.plotMS.get_xlim()
         ymin, ymax = self.plotMS.get_ylim()
-        self.plotMS.set_xlim(xmin, xmax-0.5)
-        self.plotMS.set_ylim(ymin, ymax-0.5)
+        self.plotMS.set_xlim(xmin, xmax - 0.5)
+        self.plotMS.set_ylim(ymin, ymax - 0.5)
         extent = [xmin, ymin, xmax, ymax]
 
         # legend
@@ -4034,7 +4000,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -4043,7 +4009,6 @@ class plots(plottingWindow):
 
             leg = self.plotMS.axes.get_legend()
             leg.draggable()
-
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -4084,7 +4049,7 @@ class plots(plottingWindow):
     def plot_2D_matrix(self, zvals=None, xylabels=None, xNames=None, zoom="box",
                        axesSize=None, plotName=None, **kwargs):
 
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotName
 
@@ -4106,14 +4071,14 @@ class plots(plottingWindow):
         # Setup labels
         xsize = len(zvals)
         if xylabels:
-            self.plotMS.set_xticks(np.arange(1,xsize+1,1))
+            self.plotMS.set_xticks(np.arange(1, xsize + 1, 1))
             self.plotMS.set_xticklabels(xylabels,
                                         rotation=kwargs['rmsd_matrix_rotX'])
-            self.plotMS.set_yticks(np.arange(1,xsize+1,1))
+            self.plotMS.set_yticks(np.arange(1, xsize + 1, 1))
             self.plotMS.set_yticklabels(xylabels,
                                         rotation=kwargs['rmsd_matrix_rotY'])
 
-        extent=[0.5, xsize+0.5 , 0.5, xsize+0.5]
+        extent = [0.5, xsize + 0.5 , 0.5, xsize + 0.5]
 
         # Add imshow
         self.cax = self.plotMS.imshow(zvals,
@@ -4125,8 +4090,8 @@ class plots(plottingWindow):
 
         xmin, xmax = self.plotMS.get_xlim()
         ymin, ymax = self.plotMS.get_ylim()
-        self.plotMS.set_xlim(xmin, xmax-0.5)
-        self.plotMS.set_ylim(ymin, ymax-0.5)
+        self.plotMS.set_xlim(xmin, xmax - 0.5)
+        self.plotMS.set_ylim(ymin, ymax - 0.5)
         extent = [xmin, ymin, xmax, ymax]
 
         # add labels
@@ -4136,14 +4101,14 @@ class plots(plottingWindow):
             cmap = self.cax.get_cmap()
             color = determineFontColor(convertRGB1to255(cmap(thresh)))
             for i, j in itertools.product(range(zvals.shape[0]), range(zvals.shape[1])):
-                color = determineFontColor(convertRGB1to255(cmap(zvals[i, j]/2)))
+                color = determineFontColor(convertRGB1to255(cmap(zvals[i, j] / 2)))
                 label = format(zvals[i, j], '.2f')
-                obj_name = kwargs.pop("text_name", None) 
-                text = self.plotMS.text(j+1, i+1, label,
+                obj_name = kwargs.pop("text_name", None)
+                text = self.plotMS.text(j + 1, i + 1, label,
                                         horizontalalignment="center",
                                         color=color, picker=True,
                                         clip_on=True)
-                text.obj_name = obj_name# custom tag
+                text.obj_name = obj_name  # custom tag
                 self.text.append(text)
 
         cbarDivider = make_axes_locatable(self.plotMS)
@@ -4157,7 +4122,7 @@ class plots(plottingWindow):
                                        ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                        fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                        frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                                       framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                                       framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                        markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                        markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                        fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -4172,7 +4137,7 @@ class plots(plottingWindow):
                                           size="".join([str(kwargs['colorbar_width']), "%"]),
                                           pad=kwargs['colorbar_pad'])
 
-            ticks = [np.min(zvals), (np.max(zvals)-np.min(zvals))/2, np.max(zvals)]
+            ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
             tick_labels = ["0", "%", "100"]
 
             self.cbar.ticks = ticks
@@ -4189,7 +4154,6 @@ class plots(plottingWindow):
 
             # setup other parameters
             self.cbar.tick_params(labelsize=kwargs['colorbar_label_size'])
-
 
         # ticks
         self.plotMS.tick_params(axis='both',
@@ -4221,9 +4185,9 @@ class plots(plottingWindow):
     def plot_2D_overlay(self, zvalsIon1=None, zvalsIon2=None, cmapIon1='Reds',
                         cmapIon2='Greens', alphaIon1=1, alphaIon2=1,
                         labelsX=None, labelsY=None, xlabel="", ylabel="",
-                        zoom="box",  axesSize=None, plotName=None, **kwargs):
+                        zoom="box", axesSize=None, plotName=None, **kwargs):
 
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotName
 
@@ -4243,7 +4207,7 @@ class plots(plottingWindow):
         # Plot
         self.plotMS = self.figure.add_axes(self._axes)
 
-        extent = self.extents(labelsX)+self.extents(labelsY)
+        extent = self.extents(labelsX) + self.extents(labelsY)
 
         # Add imshow
         self.cax = self.plotMS.imshow(zvalsIon1, extent=extent,
@@ -4259,8 +4223,8 @@ class plots(plottingWindow):
 
         xmin, xmax = self.plotMS.get_xlim()
         ymin, ymax = self.plotMS.get_ylim()
-        self.plotMS.set_xlim(xmin, xmax-0.5)
-        self.plotMS.set_ylim(ymin, ymax-0.5)
+        self.plotMS.set_xlim(xmin, xmax - 0.5)
+        self.plotMS.set_ylim(ymin, ymax - 0.5)
 
         # legend
         if kwargs.get('legend', self.config.legend):
@@ -4268,7 +4232,7 @@ class plots(plottingWindow):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' ,self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -4280,8 +4244,8 @@ class plots(plottingWindow):
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         # labels
-        if xlabel in ['None', None, ""]: xlabel=''
-        if ylabel in ['None', None, ""]: ylabel=''
+        if xlabel in ['None', None, ""]: xlabel = ''
+        if ylabel in ['None', None, ""]: ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                fontsize=kwargs['label_size'],
@@ -4335,12 +4299,12 @@ class plots(plottingWindow):
 #         if kwargs['colormap'] in self.config.cmocean_cmaps:
 #             kwargs['colormap'] = eval("cmocean.cm.%s" % kwargs['colormap'])
 
-        cmap = cm.get_cmap(kwargs['colormap']) # Get desired colormap
-        max_height = np.max(top)   # get range of colorbars
+        cmap = cm.get_cmap(kwargs['colormap'])  # Get desired colormap
+        max_height = np.max(top)  # get range of colorbars
         min_height = np.min(top)
 
         # scale each z to [0,1], and get their rgb values
-        rgba = [cmap((k-min_height)/max_height) for k in top]
+        rgba = [cmap((k - min_height) / max_height) for k in top]
 
         self.plotMS = self.figure.add_subplot(111, projection='3d', aspect='auto')
         self.plotMS.mouse_init(rotate_btn=1, zoom_btn=2)
@@ -4371,11 +4335,11 @@ class plots(plottingWindow):
         # Setup labels
         xsize = len(zvals)
         if xylabels:
-            self.plotMS.set_xticks(np.arange(1,xsize+1,1)-0.5)
+            self.plotMS.set_xticks(np.arange(1, xsize + 1, 1) - 0.5)
             self.plotMS.set_xticklabels(xylabels,
                                         rotation=kwargs['rmsd_matrix_rotX']
                                         )
-            self.plotMS.set_yticks(np.arange(1,xsize+1,1)-0.5)
+            self.plotMS.set_yticks(np.arange(1, xsize + 1, 1) - 0.5)
             self.plotMS.set_yticklabels(xylabels,
                                         rotation=kwargs['rmsd_matrix_rotY']
                                         )
@@ -4404,8 +4368,8 @@ class plots(plottingWindow):
                                visible=kwargs['show_labels'])
         self.plotMS.grid(kwargs['grid'])
 
-        self.plotMS.set_xlim([0,len(xvals)])
-        self.plotMS.set_ylim([0,len(yvals)])
+        self.plotMS.set_xlim([0, len(xvals)])
+        self.plotMS.set_ylim([0, len(yvals)])
         self.plotMS.set_zlim([np.min(zvals), np.max(zvals)])
 
         self.plotMS.set_position(axesSize)
@@ -4415,26 +4379,25 @@ class plots(plottingWindow):
                         axesSize=None, plotType="Surface3D", **kwargs):
         if axesSize is not None:
             self._axes = axesSize
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.plot_parameters = kwargs
         self.plot_name = plotType
-        
+
 #         kwargs = self._check_colormap(**kwargs)
         xvals, yvals = np.meshgrid(xvals, yvals)
 
         ydivider, expo = self.testXYmaxValsUpdated(values=zvals)
         if expo > 1:
-            offset_text = r'x$\mathregular{10^{%d}}$' %expo
-            zlabel = ''.join([zlabel, " [", offset_text,"]"])
+            offset_text = r'x$\mathregular{10^{%d}}$' % expo
+            zlabel = ''.join([zlabel, " [", offset_text, "]"])
             zvals = np.divide(zvals, float(ydivider))
-
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         self.plotMS = self.figure.add_subplot(111, projection='3d', aspect='auto')
         self.plotMS.mouse_init(rotate_btn=1, zoom_btn=2)
-        
+
         self.cax = self.plotMS.plot_surface(xvals, yvals, zvals,
                                             cmap=kwargs['colormap'],
                                             antialiased=True,
@@ -4487,7 +4450,6 @@ class plots(plottingWindow):
 
         self.plotMS.grid(kwargs['grid'])
 
-
         self.plotMS.set_xlim([np.min(xvals), np.max(xvals)])
         self.plotMS.set_ylim([np.min(yvals), np.max(yvals)])
         self.plotMS.set_zlim([np.min(zvals), np.max(zvals)])
@@ -4499,7 +4461,7 @@ class plots(plottingWindow):
                         axesSize=None, plotType="Wireframe3D", **kwargs):
         if axesSize is not None:
             self._axes = axesSize
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.plot_parameters = kwargs
         self.plot_name = plotType
 
@@ -4507,15 +4469,13 @@ class plots(plottingWindow):
 
         ydivider, expo = self.testXYmaxValsUpdated(values=zvals)
         if expo > 1:
-            offset_text = r'x$\mathregular{10^{%d}}$' %expo
-            zlabel = ''.join([zlabel, " [", offset_text,"]"])
+            offset_text = r'x$\mathregular{10^{%d}}$' % expo
+            zlabel = ''.join([zlabel, " [", offset_text, "]"])
             zvals = np.divide(zvals, float(ydivider))
-
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
-        
 #         kwargs = self._check_colormap(**kwargs)
         self.plotMS = self.figure.add_subplot(111, projection='3d', aspect='auto')
         self.plotMS.mouse_init(rotate_btn=1, zoom_btn=2)
@@ -4576,10 +4536,9 @@ class plots(plottingWindow):
 
         self.plotMS.grid(kwargs['grid'])
 
-
-        self.plotMS.set_xlim([np.min(xvals),np.max(xvals)])
-        self.plotMS.set_ylim([np.min(yvals),np.max(yvals)])
-        self.plotMS.set_zlim([np.min(zvals),np.max(zvals)])
+        self.plotMS.set_xlim([np.min(xvals), np.max(xvals)])
+        self.plotMS.set_ylim([np.min(yvals), np.max(yvals)])
+        self.plotMS.set_zlim([np.min(zvals), np.max(zvals)])
 
         self.plotMS.set_position(axesSize)
 
@@ -4588,13 +4547,12 @@ class plots(plottingWindow):
                         axesSize=None, plotType="Scatter3D", **kwargs):
         if axesSize is not None:
             self._axes = axesSize
-        self.plotflag = True # Used only if saving data
+        self.plotflag = True  # Used only if saving data
         self.plot_parameters = kwargs
         self.plot_name = plotType
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
-
 
         self.plotMS = self.figure.add_subplot(111, projection='3d', aspect='auto')
         if colors != None:
@@ -4660,14 +4618,11 @@ class plots(plottingWindow):
 
         self.plotMS.grid(kwargs['grid'])
 
-
-        self.plotMS.set_xlim([np.min(xvals),np.max(xvals)])
-        self.plotMS.set_ylim([np.min(yvals),np.max(yvals)])
-        self.plotMS.set_zlim([np.min(zvals),np.max(zvals)])
+        self.plotMS.set_xlim([np.min(xvals), np.max(xvals)])
+        self.plotMS.set_ylim([np.min(yvals), np.max(yvals)])
+        self.plotMS.set_zlim([np.min(zvals), np.max(zvals)])
 
     #----
-
-
 
 # class MayaviPanel(HasTraits):
 #     scene = Instance(MlabSceneModel, ())
@@ -4695,7 +4650,6 @@ class plots(plottingWindow):
 #     def surface(self, xvals, yvals, zvals, cmap):
 #         self.scene.mlab.clf()
 #         self.plot = self.scene.mlab.surf(zvals, warp_scale="auto")
-
 
 # from traits.api import HasTraits, Instance
 # from traitsui.api import View, Item

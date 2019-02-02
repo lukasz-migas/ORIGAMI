@@ -20,8 +20,8 @@
 # This file contains a number of useful functions
 from __future__ import division, print_function, unicode_literals
 from __builtin__ import str
-
-import wx, os, re, urllib2, random, string, time, shutil
+import wx, os, re, random, string, time, shutil
+import urllib2
 import numpy as np
 from numpy import savetxt, asarray
 from operator import itemgetter
@@ -29,11 +29,11 @@ from itertools import groupby
 from datetime import datetime
 from distutils.version import LooseVersion
 from matplotlib.colors import LogNorm, Normalize
-import cPickle as pickle
 from collections import OrderedDict
 from ast import literal_eval
 from random import randint
 import pandas as pd
+import cPickle as pickle
 
 def mlen(listitem, get_longest=False):
     
@@ -231,7 +231,7 @@ def merge_two_dicts(dict_1, dict_2):
     return combined_dict
 
 def checkVersion(link=None, get_webpage=False):
-
+ 
     if not get_webpage:
         # Search website for all versions
         vers = []
@@ -286,7 +286,7 @@ def openObject(filename=None):
         with open(filename, 'rb') as f:
             try:
                 return pickle.load(f)
-            except Exception, e:
+            except Exception as e:
                 print(e)
                 return None
     else:
@@ -580,30 +580,30 @@ def detectPeaks1D(data, window=10, threshold=0, mzRange=None):
                 peaks.append([data[i, 0], data[i, 1]])
     return np.array(peaks)
 
-def detectPeaksRT(data, threshold):
-    """
-    This function searches for split in the sequence of numbers (when signal goes to 0)
-    and returns the xy coordinates for the rectangle to be plotted
-    ---
-    output : list of tuples, start and end x coordinates
-    """
-    inxY = np.where(data[:,1] > threshold)
-    valX = data[inxY,0]
-    valY = data[inxY,1]
-    valXX = valX.astype(int).tolist()[0]
-    # Find index values
-    outlist = []
-    for k, g in groupby(enumerate(valXX), lambda (i,x):i-x):
-        x = (map(itemgetter(1), g)) # list of vals
-#         print(x)
-        xStart = x[0] # get x start
-        xEnd = x[-1] # get x end
-        outlist.append([xStart,xEnd])
-    outlistRav = np.ravel(outlist)-1
-    valXout = data[outlistRav,0]
-    valYout = data[outlistRav,1]
-    output = np.array(zip(valXout,valYout))
-    return output, outlist
+# def detectPeaksRT(data, threshold):
+#     """
+#     This function searches for split in the sequence of numbers (when signal goes to 0)
+#     and returns the xy coordinates for the rectangle to be plotted
+#     ---
+#     output : list of tuples, start and end x coordinates
+#     """
+#     inxY = np.where(data[:,1] > threshold)
+#     valX = data[inxY,0]
+#     valY = data[inxY,1]
+#     valXX = valX.astype(int).tolist()[0]
+#     # Find index values
+#     outlist = []
+#     for k, g in groupby(enumerate(valXX), lambda (i,x):i-x):
+#         x = (map(itemgetter(1), g)) # list of vals
+# #         print(x)
+#         xStart = x[0] # get x start
+#         xEnd = x[-1] # get x end
+#         outlist.append([xStart,xEnd])
+#     outlistRav = np.ravel(outlist)-1
+#     valXout = data[outlistRav,0]
+#     valYout = data[outlistRav,1]
+#     output = np.array(zip(valXout,valYout))
+#     return output, outlist
 
 def findPeakMax(data, fail_value=1):
     """

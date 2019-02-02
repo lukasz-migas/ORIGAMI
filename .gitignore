@@ -71,3 +71,4 @@ coverage.xml
 ORIGAMI_ANALYSE/origami/icons/icons_binary.py
 *.json
 origami-docs.code-workspace
+ORIGAMI_ANALYSE/origami/configOut.xml

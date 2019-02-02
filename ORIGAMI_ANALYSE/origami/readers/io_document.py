@@ -56,7 +56,9 @@ def cleanup_document(document):
         if 'temporary_unidec' in document.multipleMassSpectrum[spectrum]:
             del document.multipleMassSpectrum[spectrum]['temporary_unidec']
             
-    try: document.file_reader = {}
-    except: pass
+    try: 
+        document.file_reader = {}
+    except: 
+        pass
     
     return document
