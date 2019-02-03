@@ -1,66 +1,113 @@
-<h2><strong>What changed in ORIGAMI<sup>ANALYSE</sup>:</strong></h2>
-<h3><strong>Note</strong>&nbsp;</h3>
-<p>Again, this was meant to be a small-ish update but turned into a fairly significant revamp of ORIGAMI. Because of this, I have upgraded it to version 1.2.0.3.</p>
-<h3><strong>General:</strong></h3>
-<p><strong>[IMPROVED]:</strong> The underlying codebase of ORIGAMI has been improved to make it more readable and more responsive</p>
-<p><strong>[IMPROVED]:</strong> Item font color will be automatically adjusted to ensure best contrast from the background color in various lists in the GUI</p>
-<p><strong>[CHANGED]</strong>: Modification of the table elements is now available by Right-clicking on the column name</p>
-<p><strong>[CHANGED]</strong>: Logging of events was temporarily disabled as it appears to be causing some issues. I haven't been able to figure out why it crashes the program (yet).</p>
-<p><strong>Tandem MS [NEW]:</strong></p>
-<p><strong>[NEW]:</strong> Added support to load .mgf and .mzIdentML file formats to visualise tandem mass spectrometry results. Menu -&gt; Open open-source files... to load .mgf files. You can then annotate the tandem MS with peptide fragments. See Figure 1 for example.</p>
-<h3><strong>Interactive panel:</strong></h3>
-<p><strong>[NEW]: </strong>Started adding support for individual modification of parameters for interactive plots (double-clicking on an item in the list)</p>
-<p><strong>[NEW]: </strong>Interactive documents can now be visualised without access to internet. Just check the "Add offline support" checkbox</p>
-<p><strong>[NEW]:</strong> Annotated mass spectra will now include label + arrow (if available)</p>
-<p><strong>[IMPROVED]</strong>: Legends now work with markers and shaded areas</p>
-<p><strong>[FIXED]: </strong>Issue that prevent exporting interactive documents with legends has been removed</p>
-<p><strong>[FIXED]:</strong> Issue that prevent proper showing of toolbar has been removed</p>
-<h3><strong>Peaklist panel:</strong></h3>
-<p><strong>[NEW]: </strong>Added 'Extract automatically' check tool (Peaklist -&gt; Toolbar -&gt; Extract...)</p>
-<p><strong>[NEW]: </strong>Added 'Overlay automatically' check tool (Peaklist -&gt; Toolbar -&gt; Overlay...)</p>
-<p><strong>[IMPROVED]:</strong> Added a lot of new shortcuts for easier plotting</p>
-<h3><strong>Text file panel:</strong></h3>
-<p><strong>[NEW]: </strong>Added 'Extract automatically' check tool (Peaklist -&gt; Toolbar -&gt; Extract...)</p>
-<p><strong>[NEW]: </strong>Added 'Show chromatogram' and 'Show mobiligram' for each viewed file (Right-click -&gt; Select appropriate)</p>
-<p><strong>[IMPROVED]:</strong> Added a lot of new shortcuts for easier plotting</p>
-<p><strong>[FIXED]:</strong> Removed an issue that prevented loading certain text files</p>
-<p><strong>[FIXED]:</strong> Removed an issue that would incorrectly remove documents from the text file list</p>
-<h3><strong>Multiple MS files panel:</strong></h3>
-<p><strong><strong>[NEW]</strong>:</strong> The average mass spectrum can be re-binned/re-processed based on new parameters (Process -&gt; Average mass spectra (current document))</p>
-<p><strong>[IMPROVED]:</strong> Item font color will be automatically adjusted to ensure best contrast from the background color</p>
-<p><strong>[IMPROVED]:</strong> Average mass spectrum will be automatically re-binned/re-processed when an item is added or deleted</p>
-<p><strong>[FIXED]:</strong> Removed an issue that prevented typing-in numerical values in the 'variable' colument when using laptop keyboards. I have only ever encountered this issue once... Let me know if it still occurs!</p>
-<h3><strong>Document tree:</strong></h3>
-<p><strong>[NEW]: </strong>Double-clicking on the document header will now clear all plots and show the most basic plots for that document (e.g. MS, DT, RT, etc). You can also do this by Right-click -&gt; Refresh document.</p>
-<p><strong>[NEW]: </strong>You can now change the x-/y-axis labels for chromatograms and mobiligrams. Right-click on the item and slect 'Change x/y-axis to...'. These changes will be taken into account when extracting data from the chromatogram/mobiligram windows</p>
-<p><strong><strong>[IMPROVED]</strong>: </strong>Significant improvements to the right-click menus (most notably for UniDec/Annotations)</p>
-<h3><strong>Plots panel</strong></h3>
-<p><strong><strong>[NEW]:</strong></strong> Some images can now be rotated by 90 degrees (mainly 2D)</p>
-<p><strong>[IMPROVED]</strong>: Significant improvements to the right-click menus.</p>
-<p><strong>[IMPROVED]:</strong> Wheel-zoom in the X-dimensions has been improved (works like on maps now)</p>
-<h3><strong>Data extraction:</strong></h3>
-<p><strong>[NEW]:</strong> You can now extract mass spectra from the '2D' panel. Hold CTRL on your keyboard and drag the mouse in the plot area. Only works when standard plot is shown (e.g. Drift time (bins) vs Scans/Time)</p>
-<p><strong>[IMPROVED]:</strong> All data extraction will be carried out in a temporary_data folder (found in the ORIGAMI directory). This <strong>should</strong> fix any issues where data was being extracted from network drives and should keep your HDDs a little bit tidier. All files will be deleted at the end of the session.</p>
-<p><strong>[IMPROVED]:</strong> Data extraction in the DT, RT, DT/MS panels now takes into account the plot labels/units.</p>
-<p><strong>[IMPROVED]:</strong> Extracted mass spectra extracted in the DT and RT windows will be now shown in an area beneath the extraction plot (for convenience)</p>
-<h3><strong>MS annotations:</strong></h3>
-<p><strong>[NEW]:</strong> Peaks can now be annotated with an arrow (also available when exporting in an interactive format)</p>
-<p><strong>[NEW]:</strong> Added new customisation parameters window where you can change your visualisation preferences. Action -&gt; Customise other settings...</p>
-<p><strong>[IMPROVED]:</strong> Selection of a peak in the MS window using the mouse (Annotating: On) will automatically try to determine the charge state based on the peaks isotopic distribution. You can change the error tolerance in Action -&gt; Customise other settings -&gt; Charge prediction value (default: 0.05).</p>
-<h3><strong>UniDec settings:</strong></h3>
-<p><strong><strong>[NEW]</strong>:</strong> Plots can now be customised using settings editor. (Settings: UniDec -&gt; Customise plots...)</p>
-<p><strong><strong>[NEW]</strong>:</strong> You can switch between tabbed view where each plot is in a separate tab OR continuous view where all plots are available on the same page (Customise plots... -&gt; Panel view)</p>
-<p><strong>[IMPROVED]:</strong> Deconvolution is now done in a multi-threaded mode. Should stop program from hanging</p>
-<p><strong>[IMPROVED]:</strong> All deconvolution results will be now stored in a temporary_data folder (found in ORIGAMI directory). This should keep your HDDs a little bit tidier. All files will be deleted at the end of the session.</p>
-<h3><strong>MS comparison:</strong></h3>
-<p><strong><strong>[NEW]</strong>: </strong>You can now assign your own label to the plot.</p>
-<p><strong>[IMPROVED]:</strong> You can now compare ALL available mass spectra and not just those that were hidden under 'Mass Spectra' tag. (This includes: Mass Spectra, Mass Spectrum, Mass Spectrum (processed)). To open comparison panel: Menu -&gt; View -&gt; Open MS comparison panel...)</p>
-<h3><strong>Peak detection:</strong></h3>
-<p><strong>[IMPROVED]:</strong> Works in multi-threaded mode. Should stop program from hanging.</p>
-<p><strong>Mailing list</strong></p>
-<p>If you would like to be added to a ORIGAMI mailing list where you will be notified of new releases, please contact <a href="mailto:lukasz.migas@manchester.ac.uk">lukasz.migas@manchester.ac.uk</a>.&nbsp;</p>
-<p><strong>How to update</strong></p>
-<p>Since the whole package was revamped, the only way to update ORIGAMI is to download the ORIGAMI_ANALYSE_v1.2.0.3.zip file, unpack it somewhere on your PC and it should work out of the box. :)</p>
-<p>As you might notice, the size of the directory increased quite a bit, it is about 1 Gb when unpacked.</p>
-<p>Many thanks,</p>
-<p>Lukasz</p>
+<h2><strong>What changed in ORIGAMI<sup>ANALYSE</sup></strong></h2>
+
+## Documentation
+
+<p><strong>[NEW]:</strong> Added online [documentation](https://lukasz-migas.github.io/ORIGAMI/)
+
+<p><strong>[NEW]:</strong> Added several new videos to the [YouTube playlist](https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8)
+
+## Document Tree
+
+<p><strong>[FIXED]:</strong>Fixed typo: spectrun -> spectrum (grr)
+
+<p><strong>[FIXED]:</strong>When loading mzml/mgf files, the individual scans will no longer be shown in the document tree as it caused some major issues. If you would like to see the individual spectra, please double-click on the header 'Tandem Mass Spectra'
+
+<p><strong>[FIXED]:</strong>Fixed a problem when trying to plot waterfall plot from the Document Tree menu
+
+<p><strong>[IMPROVED]:</strong> When loading any data into the INTERACTIVE document, you will be asked whether data should be duplicated, merged or duplicated
+
+<p><strong>[IMPROVED]:</strong> When plotting a waterfall plot, data will be checked to ensure its not too big (e.g. not too many rows). If the value is above the threshold (set to 500), you will be asked if you would like to continue
+
+## Main window
+
+<p><strong>[NEW]:</strong> Added new menu: **Plugins**. This menu will hold all future mini-applications
+
+<p><strong>[NEW]:</strong> Umder the menu **Plot settings** I've added a couple new options that allow modification of plot extra plot parameters.
+
+<p><strong>[IMPROVED]:</strong> The help pages **(Help -> Help pages -> ...)** have now been replaced with links to the new documentation (opens in the browser). Where no documentation exists yet, old pages will be shown. Also available [online](https://origami.lukasz-migas.com)
+
+## Annotations
+
+<p><strong>[NEW]:</strong> you can now also easily 'duplicate/multiply' annotations. **Action -> Multiply annotations...** this will result in a copy of the selected annotation(s) with slight difference in the min-value (so they can be distinguished from its parent)
+
+<p><strong>[NEW]:</strong> Text annotations can now be added to other plots (scatter, v-bar, h-bar, waterfall, multi-line/overlay). To added annotations, find it in the **Document Tree**, right-click on it and you should be presented with option **Show annotations panel...**. Then you can simply follow the standard annotations protocol. See [here](https://origami.lukasz-migas.com/user-guide/processing/mass-spectra-annotation.html) for more information
+
+<p><strong>[NEW]:</strong> Annotations parameters can now be easily modified as they can be **dragged** on the plot. If an annotation is shown on your plot, you can simply drag it around in the plot area and once you let-go, new settings (e.g. position) will be updated in the ORIGAMI document.
+
+<p><strong>[FIXED]:</strong>font size, weight and rotation will now be aplied when adding labels
+
+<p><strong>[FIXED]:</strong>auto-label generator will now also create labels based purely on the charge state
+
+<p><strong>[FIXED]:</strong>annotation parameters (e.g. size, weight, rotation) will be respected when replotting from the Document Tree
+
+## Interactive panel
+
+<p><strong>[NEW]:</strong> Made big progres in terms of copying/applying styles for plot elements. When you
+double-click on any element in the file list a new window will appear where you can individually adjust plot parameters. When you finished, you can right-click on that same (or any other) item in the list and select 'Copy style..'. You can then select any other item in the list, right-click on it and select 'Apply style..'.
+
+<p><strong>[NEW]:</strong> certain plot types (v-bar, h-bar, scatter, waterfall, multi-line/overlay) will now support addition of annotations (and their widgets). Annotations can correspond to anything you wish to say about specific region of a dataset.
+
+<p><strong>[NEW]:</strong> Scatter plots that are created from datasets loaded through text files with added metadata can be enhanced with weblinks/URLs. See the [example](https://origami.lukasz-migas.com/interactive-examples/ccs-compendium.html) for more information.
+
+<p><strong>[FIXED]:</strong>fixed sorting in the list (especilaly when using the 'Show selected' option) Lists are sorted using 'natural sorting' from now on, meaning they should be more logically sorted.
+
+<p><strong>[FIXED]:</strong>fixed the show/hide table elements when you right-click on the table headers
+
+<p><strong>[IMPROVED]:</strong> Colorbars:
+
+* added loads of new settings users can control
+* better behaviour when adding colorbars to plots
+
+<p><strong>[CHANED]:</strong> removed tools/toolset from ORIGAMI - the new system of copy/apply style should work much better
+
+<p><strong>[IMPROVED]:</strong> I've realised that using 'coffeescript' for widget exportation was a big mistake as it takes ~10x+ longer to compile that script than pure JavaScript. Adding widgets will be a lot faster from now on (a couple haven't been ported to JS yet).
+
+## Plots
+
+<p><strong>[IMPROVED]:</strong> Improved color handling in violin and waterfall plots. The line color (edge) and shade/fill-under can be independently controlled now.
+
+## UVPD processing :star:
+
+<p><strong>[NEW]:</strong> Added new plug that allows analysis and processing of UVPD datasets that were acquired with laser being constantly switched on/off. This is a user-specific plugin that will most likely have no use for anyone else apart from some Barran group members. To activate, click on the **Menu -> Plugins -> UVPD processing window...**.
+
+## Tandem MS panel
+
+<p><strong>[NEW]:</strong> You can now load .mzML files (haven't figured out how to add .mzIdentML files to them yet...)
+
+<p><strong>[NEW]:</strong> MS/MS files can now be exported in an interactive format (.html document). This feature is still in development and I imagine will not be stable until v1.2.2 at the earliest. At the moment, individual scans of MS/MS file (.mgf only) can be annotated (e.g. fragments can be generated) and added to the file. Scans that have been user-annotated can be subsequently exported. This will be properly showcased in a tutorial.
+
+<p><strong>[NEW]:</strong> Added two new options in the **Action menu** which permit improved population of the table by either excluding scans with PTMs and excluding scans without identification. Clicking on either of these will automatically trigger re-population of the table based on the selected options.
+
+<p><strong>[NEW]:</strong> You can see what PTMs have been included in the scan by clicking on the **Modifications list**
+
+<p><strong>[IMPROVED]:</strong> Scans that have multiple identification information will be separated into separae instances in the table (e.g. look at the column ID #)
+
+<p><strong>[IMPROVED]:</strong> Fragment generator can now handle PTMs (at least those that have kept the mass information)
+
+<p><strong>[IMPROVED]:</strong> Improved the way scans are loaded (faster and actually works...)
+
+<p><strong>[IMPROVED]:</strong> Improved the way butterfly plots are shown. A horizontal line will be drawn from now on (at y=0)
+
+<p><strong>[IMPROVED]:</strong> Added several new customisation parameters that permit better data visualisation. These are found under **Action -> Customise...**
+
+<p><strong>[FIXED]:</strong>When selecting frag-all option, appropriate checkboxes will be ticked from now on
+
+<p><strong>[FIXED]:</strong>Fixed fragment generator to stop overriding fragments with same name (e.g. y1+ was equal y_H2Ox11+...)
+
+## Other data -> Annotated data
+
+<p><strong>[NEW]:</strong> Added new keyword 'axis_url'/'axis_urls' to the data parser. These keywords can be used to provide web addresses which can be attached to the data (scatter points only for now). If valid URL address is provided, when you tap on a point you will be taken to a new tab in your browser which corresponds to the web address. This is only valid in the interactive plots
+
+<p><strong>[CHANED]:</strong> Changed the poorly selected name of 'Other data' to 'Annotated data'
+
+
+## Mailing list
+
+If you would like to be added to the ORIGAMI mailing list where you will be notified of new releases, please contact lukasz.migas@manchester.ac.uk or visit https://origami.lukasz-migas.com/main/subscribe.html.
+
+## How to update
+
+A lot has changed in this version so the only way to update is to download the package and unpack it somewhere else on your PC. I've tried really hard not to break too many things :)
+
+Many thanks,
+Lukasz

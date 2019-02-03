@@ -11,7 +11,7 @@ edit_uri: https://github.com/lukasz-migas/ORIGAMI/tree/master/site-source
 
 use_directory_urls: false
 
-google_analytics: ['UA-130097236-1', 'https://origami.lukasz-migas.com']
+google_analytics: ['UA-130097236-2', 'https://origami.lukasz-migas.com']
 docs_dir: 'site-source'
 site_dir: 'docs'
 
@@ -68,8 +68,8 @@ theme:
   language: 'en'
   include_sidebar: true 
   palette:
-    primary: 'blue grey' #'blue grey'
-    accent: 'teal' #'teal'
+    primary: 'blue grey'
+    accent: 'teal'
   feature:
     tabs: true
 

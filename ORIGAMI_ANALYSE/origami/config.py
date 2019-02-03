@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 # -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas 
+#    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-# 
-#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#	 Cite : 10.1016/j.ijms.2017.08.014
 #
-#    This program is free software. Feel free to redistribute it and/or 
-#    modify it under the condition you cite and credit the authors whenever 
-#    appropriate. 
-#    The program is distributed in the hope that it will be useful but is 
+# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+# 	 Cite : 10.1016/j.ijms.2017.08.014
+#
+#    This program is free software. Feel free to redistribute it and/or
+#    modify it under the condition you cite and credit the authors whenever
+#    appropriate.
+#    The program is distributed in the hope that it will be useful but is
 #    provided WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
@@ -29,18 +29,19 @@ from ast import literal_eval
 import dialogs as dialogs
 from toolbox import (str2num, str2int, str2bool)
 
+
 class OrigamiConfig:
-    
+
     def __init__(self):
         """
         Initilize config
         """
-        
+
         self._processID = None
         self.loggingFile_path = None
-        
+
         self.document_version = "19-10-2018"
-        self.version = "1.2.1"
+        self.version = "1.2.0.4"
         self.unidec_engine = None
         self.links = {
             'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
@@ -65,76 +66,74 @@ class OrigamiConfig:
         self.configFile_name = 'configOut.xml'
         self.checkForDriftscopeAtStart = True
         self.driftscopePath = "C:\DriftScope\lib"
-        
+
         self.import_duplicate_action = "merge"
         self.import_duplicate_ask = False
-        
-        
-        
+
         self.watermark = '<p><span style="color: #808080;">This document was generated using ORIGAMI (v. {}) which is an Open-Source software for the analysis of MS and IM-MS datasets. If you would like more information, have a look <a href="https://doi.org/10.1016/j.ijms.2017.08.014">here</a> and to download it for free, have a look <a href="https://github.com/lukasz-migas/ORIGAMI/releases">here</a>.</span></p>'.format(self.version)
         # Populate GUI
-        self.overlayChoices = sorted(["Mask", "Transparent", "RGB", "Mean", 
-                                      "Variance", "Standard Deviation",  
+        self.overlayChoices = sorted(["Mask", "Transparent", "RGB", "Mean",
+                                      "Variance", "Standard Deviation",
                                       "RMSD", "RMSF", "RMSD Matrix",
                                       "Grid (2->1)", "Grid (n x n)"])
-        
-        self.comboAcqTypeSelectChoices = ["Linear", "Exponential", "Fitted", 
+
+        self.comboAcqTypeSelectChoices = ["Linear", "Exponential", "Fitted",
                                           "User-defined"]
-        
-        self.normModeChoices = ["Maximum", "Logarithmic","Natural log", "Square root",
-                                "Least Abs Deviation","Least Squares"]
-        
+
+        self.normModeChoices = ["Maximum", "Logarithmic", "Natural log", "Square root",
+                                "Least Abs Deviation", "Least Squares"]
+
         self.detectModeChoices = ["MS", "RT", "MS/RT"]
-        self.comboSmoothSelectChoices = ["None","Savitzky-Golay", "Gaussian"]
-        self.comboInterpSelectChoices = ['None', 'nearest', 'bilinear', 
-                                         'bicubic', 'spline16','spline36', 'hanning', 
-                                        'hamming', 'hermite', 'kaiser', 'quadric', 
-                                        'catrom', 'gaussian', 'bessel', 'mitchell', 
+        self.comboSmoothSelectChoices = ["None", "Savitzky-Golay", "Gaussian"]
+        self.comboInterpSelectChoices = ['None', 'nearest', 'bilinear',
+                                         'bicubic', 'spline16', 'spline36', 'hanning',
+                                        'hamming', 'hermite', 'kaiser', 'quadric',
+                                        'catrom', 'gaussian', 'bessel', 'mitchell',
                                         'sinc', 'lanczos']
         self.narrowCmapList = ['Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
-                               'Greys_r', 'Purples_r', 'Blues_r', 'Greens_r', 'Oranges_r', 'Reds_r', 
+                               'Greys_r', 'Purples_r', 'Blues_r', 'Greens_r', 'Oranges_r', 'Reds_r',
                                'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
                                'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn',
                                'viridis', 'plasma', 'inferno', 'magma',
                                'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
                                'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm']
-        
-        self.imageFormatType  = ['png','svg','svgz','ps','raw','eps','jpeg','tiff','pdf']
+
+        self.imageFormatType = ['png', 'svg', 'svgz', 'ps', 'raw', 'eps', 'jpeg', 'tiff', 'pdf']
         self.styles = ['Default', 'ggplot', 'fivethirtyeight', 'classic',
                        'bmh', 'seaborn', 'seaborn-ticks',
-                       'seaborn-bright', 'seaborn-dark','seaborn-pastel']
+                       'seaborn-bright', 'seaborn-dark', 'seaborn-pastel']
         self.currentPalette = "HLS"
         self.color_palettes = {'HLS':'hls', 'HUSL':'husl', 'Cubehelix':'cubehelix',
-                               'Spectral':'Spectral', 'Viridis':'viridis', 
+                               'Spectral':'Spectral', 'Viridis':'viridis',
                                'Rainbow':'rainbow', 'Inferno':'Inferno'}
-        
-        self.imageType2D = ['Image','Contour']
-        self.imageType3D = ['Surface','Wireframe']
-        
-        self.availablePlotsList = ["MS", "MS (compare)", "RT", "DT", "2D", "3D", "DT/MS", "Waterfall",  
+
+        self.imageType2D = ['Image', 'Contour']
+        self.imageType3D = ['Surface', 'Wireframe']
+
+        self.availablePlotsList = ["MS", "MS (compare)", "RT", "DT", "2D", "3D", "DT/MS", "Waterfall",
                                    "RMSD", "Comparison", "Overlay", "Calibration (MS)",
                                    "Calibration (DT)"]
-        
-        self.markerShapeDict = {'square':'s', 'circle':'o', 'pentagon':'p','star':'*',
+
+        self.markerShapeDict = {'square':'s', 'circle':'o', 'pentagon':'p', 'star':'*',
                                 'diamond':'D', 'cross':'x'}
-        
+
         self.textOutputDict = {'comma':',', 'tab':'\t', 'space':' '}
         self.textExtensionDict = {'comma':'.csv', 'tab':'.txt', 'space':'.txt'}
-        
+
         self.rmsdLocChoices = {'leftTop': (5, 95), 'rightTop': (75, 95), 'leftBottom': (5, 5),
                                'rightBottom': (75, 5), 'None':()}
 
-        self.interactiveToolsOnOff = {'1D':{'hover':True,'save':True,'pan':True,
-                                            'boxzoom':True,'crosshair':False,
+        self.interactiveToolsOnOff = {'1D':{'hover':True, 'save':True, 'pan':True,
+                                            'boxzoom':True, 'crosshair':False,
                                             'boxzoom_horizontal':True,
                                             'boxzoom_vertical':False,
-                                            'reset':True, 'wheel':True, 
+                                            'reset':True, 'wheel':True,
                                             'wheelType':'Wheel Zoom X',
                                             'activeDrag':'Box Zoom',
                                             'activeWheel':'None',
                                             'activeInspect':'Hover'},
-                                      '2D':{'hover':True,'save':True,'pan':True,
-                                             'boxzoom':True,'crosshair':True, 
+                                      '2D':{'hover':True, 'save':True, 'pan':True,
+                                             'boxzoom':True, 'crosshair':True,
                                              'boxzoom_horizontal':False,
                                              'boxzoom_vertical':False,
                                              'reset':True, 'wheel':True,
@@ -142,57 +141,55 @@ class OrigamiConfig:
                                              'activeDrag':'Box Zoom',
                                              'activeWheel':'None',
                                              'activeInspect':'Hover'},
-                                      'Overlay':{'hover':True,'save':True,'pan':True,
-                                                 'boxzoom':True,'crosshair':True,
+                                      'Overlay':{'hover':True, 'save':True, 'pan':True,
+                                                 'boxzoom':True, 'crosshair':True,
                                                  'boxzoom_horizontal':False,
                                                  'boxzoom_vertical':False,
-                                                 'reset':True, 
+                                                 'reset':True,
                                                  'wheel':False,
                                                  'wheelType':'Wheel Zoom X',
                                                  'activeDrag':'Box Zoom',
                                                  'activeWheel':'None',
                                                  'activeInspect':'Hover'},
-                                      'All':{'hover':True,'save':True,'pan':True,
-                                             'boxzoom':True,'crosshair':True,
+                                      'All':{'hover':True, 'save':True, 'pan':True,
+                                             'boxzoom':True, 'crosshair':True,
                                              'boxzoom_horizontal':True,
                                              'boxzoom_vertical':True,
-                                             'reset':True, 'wheel':True, 
+                                             'reset':True, 'wheel':True,
                                              'wheelType':'Wheel Zoom XY',
                                              'activeDrag':'Box Zoom',
                                              'activeWheel':'None',
                                              'activeInspect':'Hover'}}
-        
-        
-        self._plotSettings = {'MS':{'axes_size':[0.1,0.5,0.85,0.45], 'gui_size':[10,6], 'resize_size':[10, 4], 'save_size':[0.1,0.15,0.85,0.8], 'default_name':'MS'},
-                              'MS (compare)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8,8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'MS_compare'},
-                              'RT':{'axes_size':[0.1, 0.2,0.8,0.75], 'gui_size':[10,4], 'resize_size':[10, 4], 'save_size':[0.1,0.15,0.85,0.8], 'default_name':'RT'},
-                              'DT':{'axes_size':[0.1, 0.2,0.8,0.75], 'gui_size':[10,4], 'resize_size':[10, 4], 'save_size':[0.1,0.15,0.85,0.8], 'default_name':'IMS1D'},
+
+        self._plotSettings = {'MS':{'axes_size':[0.1, 0.5, 0.85, 0.45], 'gui_size':[10, 6], 'resize_size':[10, 4], 'save_size':[0.1, 0.15, 0.85, 0.8], 'default_name':'MS'},
+                              'MS (compare)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'MS_compare'},
+                              'RT':{'axes_size':[0.1, 0.2, 0.8, 0.75], 'gui_size':[10, 4], 'resize_size':[10, 4], 'save_size':[0.1, 0.15, 0.85, 0.8], 'default_name':'RT'},
+                              'DT':{'axes_size':[0.1, 0.2, 0.8, 0.75], 'gui_size':[10, 4], 'resize_size':[10, 4], 'save_size':[0.1, 0.15, 0.85, 0.8], 'default_name':'IMS1D'},
                               '2D':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'IMS2D'},
-                              '3D':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[12,8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'IMS3D'},
+                              '3D':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[12, 8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'IMS3D'},
                               'DT/MS':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'DTMS'},
-                              'MS (DT/RT)':{'axes_size':[0.1,0.2,0.8,0.75], 'gui_size':[10,4], 'resize_size':[10, 4], 'save_size':[0.1,0.15,0.85,0.8], 'default_name':'MS'},
-                              
-                              
-                              'Waterfall':{'axes_size':[0.05,0.1,0.9,0.85], 'gui_size':[10,4], 'resize_size':[10, 10], 'save_size':[0.1,0.1,0.8,0.8], 'default_name':'Waterfall'},
-                              'Violin':{'axes_size':[0.15,0.1,0.8,0.85], 'gui_size':[10,4], 'resize_size':[10, 10], 'save_size':[0.1,0.1,0.8,0.8], 'default_name':'Violin'},
-                              'RMSD':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[10,4], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'RMSD'},
-                              'RMSF':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[10,4], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'RMSF'},
-                              'Matrix':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8,8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'matrix'},
-                              'Comparison':{'axes_size':[0.2, 0.2, 0.6, 0.6], 'gui_size':[8,8], 'resize_size':[10, 10], 'save_size':[0.2, 0.2, 0.6, 0.6], 'default_name':'comparison'},
-                              'Overlay':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8,8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'overlay'},
-                              'Overlay (Grid)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8,8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'overlay'},
-                              
-                              'Calibration (MS)':{'axes_size':[0.10, 0.15, 0.8, 0.7], 'gui_size':[10,4], 'resize_size':[10, 4], 'save_size':[0.10, 0.20, 0.8, 0.7], 'default_name':'calibration_MS'},
-                              'Calibration (DT)':{'axes_size':[0.10, 0.15, 0.8, 0.7], 'gui_size':[6,6], 'resize_size':[10, 4], 'save_size':[0.10, 0.15, 0.8, 0.7], 'default_name':'calibration_DT'},
-                              
-                              'UniDec (MS)':{'axes_size':[0.1, 0.2, 0.8, 0.7], 'gui_size':[6,3], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_MS'},
-                              'UniDec (MW)':{'axes_size':[0.1, 0.2, 0.8, 0.7], 'gui_size':[6,3], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_MW'},
-                              'UniDec (m/z vs Charge)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6,6], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_grid_MZvZ'},
-                              'UniDec (Isolated MS)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6,6], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_isolated_MS'},
-                              'UniDec (MW vs Charge)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6,6], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_grid_MWvZ'},
-                              'UniDec (Barplot)':{'axes_size':[0.15, 0.1, 0.8, 0.85], 'gui_size':[6,6], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_barplot'},
-                              'UniDec (Charge Distribution)':{'axes_size':[0.15, 0.1, 0.7, 0.75], 'gui_size':[6,3], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_chargeDist'},
-                              
+                              'MS (DT/RT)':{'axes_size':[0.1, 0.2, 0.8, 0.75], 'gui_size':[10, 4], 'resize_size':[10, 4], 'save_size':[0.1, 0.15, 0.85, 0.8], 'default_name':'MS'},
+
+                              'Waterfall':{'axes_size':[0.05, 0.1, 0.9, 0.85], 'gui_size':[10, 4], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.8], 'default_name':'Waterfall'},
+                              'Violin':{'axes_size':[0.15, 0.1, 0.8, 0.85], 'gui_size':[10, 4], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.8], 'default_name':'Violin'},
+                              'RMSD':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[10, 4], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'RMSD'},
+                              'RMSF':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[10, 4], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'RMSF'},
+                              'Matrix':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'matrix'},
+                              'Comparison':{'axes_size':[0.2, 0.2, 0.6, 0.6], 'gui_size':[8, 8], 'resize_size':[10, 10], 'save_size':[0.2, 0.2, 0.6, 0.6], 'default_name':'comparison'},
+                              'Overlay':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'overlay'},
+                              'Overlay (Grid)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'overlay'},
+
+                              'Calibration (MS)':{'axes_size':[0.10, 0.15, 0.8, 0.7], 'gui_size':[10, 4], 'resize_size':[10, 4], 'save_size':[0.10, 0.20, 0.8, 0.7], 'default_name':'calibration_MS'},
+                              'Calibration (DT)':{'axes_size':[0.10, 0.15, 0.8, 0.7], 'gui_size':[6, 6], 'resize_size':[10, 4], 'save_size':[0.10, 0.15, 0.8, 0.7], 'default_name':'calibration_DT'},
+
+                              'UniDec (MS)':{'axes_size':[0.1, 0.2, 0.8, 0.7], 'gui_size':[6, 3], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_MS'},
+                              'UniDec (MW)':{'axes_size':[0.1, 0.2, 0.8, 0.7], 'gui_size':[6, 3], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_MW'},
+                              'UniDec (m/z vs Charge)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6, 6], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_grid_MZvZ'},
+                              'UniDec (Isolated MS)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6, 6], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_isolated_MS'},
+                              'UniDec (MW vs Charge)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6, 6], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_grid_MWvZ'},
+                              'UniDec (Barplot)':{'axes_size':[0.15, 0.1, 0.8, 0.85], 'gui_size':[6, 6], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_barplot'},
+                              'UniDec (Charge Distribution)':{'axes_size':[0.15, 0.1, 0.7, 0.75], 'gui_size':[6, 3], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_chargeDist'},
+
                               'Other (Line)':{'axes_size':[0.15, 0.45, 0.75, 0.5], 'gui_size':[10, 6], 'resize_size':[10, 4], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'other_line'},
                               'Other (Multi-line)':{'axes_size':[0.15, 0.2, 0.7, 0.7], 'gui_size':[6, 3], 'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'other_multiline'},
                               'Other (Barplot)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6, 6], 'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'other_barplot'},
@@ -203,20 +200,20 @@ class OrigamiConfig:
 
         self.labelsXChoices = ['Scans', 'Collision Voltage (V)',
                                'Activation Voltage (V)', 'Lab Frame Energy (eV)',
-                               'Activation Energy (eV)', 'Mass-to-charge (Da)', 
+                               'Activation Energy (eV)', 'Mass-to-charge (Da)',
                                'm/z (Da)', u'Wavenumber (cm⁻¹)']
-        
+
         self.labelsYChoices = ['Drift time (bins)', 'Drift time (ms)',
                                'Arrival time (ms)', u'Collision Cross Section (Å²)']
 
-        self.panelNames = {'MS':0, 'RT':1,'1D':2,'2D':3, 'MZDT':4, 'Waterfall':5,
-                           '3D':6, 'RMSF':7,'Comparison':8,'Overlay':9,
-                           'Calibration':10,'UniDec':11, "Other":12}
-        
-        self.peaklistColNames = {'start':0, 'end':1,'charge':2,'intensity':3,
-                                 'color':4,'colormap':5,'alpha':6,'mask':7,
-                                 'label':8,'method':9,'filename':10}
-        
+        self.panelNames = {'MS':0, 'RT':1, '1D':2, '2D':3, 'MZDT':4, 'Waterfall':5,
+                           '3D':6, 'RMSF':7, 'Comparison':8, 'Overlay':9,
+                           'Calibration':10, 'UniDec':11, "Other":12}
+
+        self.peaklistColNames = {'start':0, 'end':1, 'charge':2, 'intensity':3,
+                                 'color':4, 'colormap':5, 'alpha':6, 'mask':7,
+                                 'label':8, 'method':9, 'filename':10}
+
         self._peakListSettings = [{'name':'min m/z', 'order':0, 'width':65, 'show':True},
                                   {'name':'max m/z', 'order':1, 'width':65, 'show':True},
                                   {'name':'z', 'order':2, 'width':25, 'show':True},
@@ -229,17 +226,17 @@ class OrigamiConfig:
                                   {'name':'method', 'order':9, 'width':80, 'show':True},
                                   {'name':'file', 'order':10, 'width':100, 'show':True}
                                   ]
-        
-        self.driftTopColNames = {'start':0,'end':1,'scans':2,'drift_voltage':4,
+
+        self.driftTopColNames = {'start':0, 'end':1, 'scans':2, 'drift_voltage':4,
                                  'filename':5}
-        
-        self.driftBottomColNames = {'start':0,'end':1,'intensity':2,'charge':4,
+
+        self.driftBottomColNames = {'start':0, 'end':1, 'intensity':2, 'charge':4,
                                     'filename':5}
-        
+
         self.textlistColNames = {'start':0, 'end':1, 'charge':2, 'color':3,
-                                 'colormap':4, 'alpha':5, 'mask':6,'label':7,
+                                 'colormap':4, 'alpha':5, 'mask':6, 'label':7,
                                  'shape':8, 'filename':9}
-        
+
         self._textlistSettings = [{'name':'min CE', 'order':0, 'width':65, 'show':True},
                                   {'name':'max CE', 'order':1, 'width':65, 'show':True},
                                   {'name':'z', 'order':2, 'width':25, 'show':True},
@@ -251,15 +248,15 @@ class OrigamiConfig:
                                   {'name':'shape', 'order':8, 'width':70, 'show':True},
                                   {'name':'file', 'order':9, 'width':100, 'show':True}
                                   ]
-        
-        # column name 'energy' was changed to 'variable' as it might be more appropriate 
-        self.multipleMLColNames = {'filename':0,'energy':1, 'document':2, 'label':3} 
+
+        # column name 'energy' was changed to 'variable' as it might be more appropriate
+        self.multipleMLColNames = {'filename':0, 'energy':1, 'document':2, 'label':3}
         self._multipleFilesSettings = [{'name':'filename', 'order':0, 'width':200, 'show':True},
                                        {'name':'variable', 'order':1, 'width':50, 'show':True},
                                        {'name':'document', 'order':2, 'width':80, 'show':True},
                                        {'name':'label', 'order':3, 'width':100, 'show':True}
                                        ]
-        
+
         self._interactiveSettings = [{'name':'', 'order':0, 'width':25, 'show':True},
                                      {'name':'document', 'order':1, 'width':150, 'show':True},
                                      {'name':'type', 'order':2, 'width':90, 'show':True},
@@ -272,40 +269,40 @@ class OrigamiConfig:
 #                                      {'name':'tools', 'order':9, 'width':50, 'show':True},
                                      {'name':'#', 'order':9, 'width':30, 'show':True},
                                      ]
-        self.interactiveColNames = {'check':0, 'document':1, 'type':2,'file':3,'title':4,
-                                     'header':5,'footnote':6,'color':7,'colormap':7,
+        self.interactiveColNames = {'check':0, 'document':1, 'type':2, 'file':3, 'title':4,
+                                     'header':5, 'footnote':6, 'color':7, 'colormap':7,
                                      'page':8,
 #                                      'tools':9,
                                      'order':9}
-        
-        self.ccsTopColNames = {'filename':0, 'start':1,'end':2,
-                               'protein':3, 'charge':4,'ccs':5,'tD':6,
+
+        self.ccsTopColNames = {'filename':0, 'start':1, 'end':2,
+                               'protein':3, 'charge':4, 'ccs':5, 'tD':6,
                                'gas':7}
-        
-        self.ccsBottomColNames = {'filename':0, 'start':1,'end':2,
-                                  'ion':3,'protein':4, 'charge':5, 
+
+        self.ccsBottomColNames = {'filename':0, 'start':1, 'end':2,
+                                  'ion':3, 'protein':4, 'charge':5,
                                   'format':6}
-        
-        self.ccsDBColNames = {'protein':0,'mw':1,'units':2,'charge':3,'ion':4,
-                              'hePos':5,'n2Pos':6,'heNeg':7,'n2Neg':8,'state':9,
+
+        self.ccsDBColNames = {'protein':0, 'mw':1, 'units':2, 'charge':3, 'ion':4,
+                              'hePos':5, 'n2Pos':6, 'heNeg':7, 'n2Neg':8, 'state':9,
                               'source':10}
-        
+
         # Calibration
         self.elementalMass = {'Hydrogen':1.00794, 'Helium':4.002602, 'Nitrogen':28.0134}
-        
-        # Add default HTML output methods 
+
+        # Add default HTML output methods
         self.pageDict = {'None':{'name':'None', 'layout':'Individual', 'rows':None, 'columns':None},
                          'Rows':{'name':'Rows', 'layout':'Rows', 'rows':None, 'columns':None},
                          'Columns':{'name':'Columns', 'layout':'Columns', 'rows':None, 'columns':None}
                          }
-        self.interactive_pageLayout_choices = ['Individual', 'Columns','Rows', 'Grid']
+        self.interactive_pageLayout_choices = ['Individual', 'Columns', 'Rows', 'Grid']
         self.interactive_wheelZoom_choices = ['Wheel Zoom XY', 'Wheel Zoom X', 'Wheel Zoom Y']
-        self.interactive_toolbarPosition_choices = ['left','above','right','below']
+        self.interactive_toolbarPosition_choices = ['left', 'above', 'right', 'below']
         self.interactive_activeDragTools_choices = ['Box Zoom', 'Box Zoom X', 'Box Zoom Y', 'Pan', 'Pan X', 'Pan Y', 'auto', 'None']
         self.interactive_activeWheelTools_choices = ['Wheel Zoom XY', 'Wheel Zoom X', 'Wheel Zoom Y', 'auto', 'None']
         self.interactive_activeHoverTools_choices = ['Hover', 'Crosshair', 'auto', 'None']
-        self.interactive_colorbarPosition_choices = ['left','above','right','below']
-        
+        self.interactive_colorbarPosition_choices = ['left', 'above', 'right', 'below']
+
         #=========== FILE INFO ===========
         # can be removed
         self.rawName = ''
@@ -313,43 +310,42 @@ class OrigamiConfig:
         self.textName = ''
         self.dirname = ''
         self.savefilename = ''
-        
-        
+
         # Replot data
         self.replotData = {}
         self.replotMSdata = {}
         self.replot1Ddata = {}
         self.replot2Ddata = {}
-        
+
         # temporary data storage
-        self._temp_ = {} # new in v1.2.1
-        
-        # mzml/mgf/mzident etc 
+        self._temp_ = {}  # new in v1.2.1
+
+        # mzml/mgf/mzident etc
         self.msms_load_n_scans = 500  # new
-        self.msms_show_neutral_loss = False # new
-        self.msms_show_full_label = True # new
+        self.msms_show_neutral_loss = False  # new
+        self.msms_show_full_label = True  # new
         self.msms_add_arrows = False
-        self.msms_line_color_unlabelled = (0, 0, 0) # new
-        self.msms_line_color_labelled = (1, 0, 0) # new
-        self.msms_label_y_offset = 0.02 # new
-        
-        self._tandem_show_PTMs_in_table = False # new
-        self._tandem_show_unidentified_in_table = True # new
-        self._tandem_label_format = {'fragment_name':True, 'peptide_seq':False, 
+        self.msms_line_color_unlabelled = (0, 0, 0)  # new
+        self.msms_line_color_labelled = (1, 0, 0)  # new
+        self.msms_label_y_offset = 0.02  # new
+
+        self._tandem_show_PTMs_in_table = False  # new
+        self._tandem_show_unidentified_in_table = True  # new
+        self._tandem_label_format = {'fragment_name':True, 'peptide_seq':False,
                                      'charge':True, 'delta_mz': False}
-                
+
         self.fragments_tolerance = {"Da":0.05, "ppm":25}  # new
-        self.fragments_tolerance_limits = {"Da":[0.00,5,0.25], "ppm":[0,500,25]}  # new
+        self.fragments_tolerance_limits = {"Da":[0.00, 5, 0.25], "ppm":[0, 500, 25]}  # new
         self.fragments_units_choices = ["Da", "ppm"]  # new
         self.fragments_units = "Da"  # new
         self.fragments_max_matches = 1  # new
-        self.fragments_common = {"a/x":["a-all", "x-all"], 
+        self.fragments_common = {"a/x":["a-all", "x-all"],
                                  "b/y":["b-all", "y-all"],
-                                 "c/z":["c-all", "z-all"], 
-                                 "ETD/ECD":["c-all", "y-all","z+1/2/3"],
+                                 "c/z":["c-all", "z-all"],
+                                 "ETD/ECD":["c-all", "y-all", "z+1/2/3"],
                                  "CID":["b-all", "y-all"],
                                  "Other":[]}
-        
+
         self.fragments_search = {
             'M-ALL':False, 'M':False, 'M-nH2O':False, 'M-nNH3':False,
             'a-ALL':False, 'a':False, 'a-nH2O':False, 'a-nNH3':False,
@@ -358,172 +354,172 @@ class OrigamiConfig:
             'x-ALL':False, 'x':False, 'x-nH2O':False, 'x-nNH3':False,
             'y-ALL':False, 'y':False, 'y-nH2O':False, 'y-nNH3':False,
             'z-ALL':False, 'z':False, 'z-nH2O':False, 'z-nNH3':False, 'z-dot':False, 'z+1/2/3':False}
-        
+
         # plot parameters
         self._plots_grid_show = False
         self._plots_grid_color = [0, 0, 0]
         self._plots_grid_line_width = 1
-        
+
         self._plots_extract_color = [1, 0, 0.2]
         self._plots_extract_line_width = 4.0
         self._plots_extract_crossover_1D = 0.1
         self._plots_extract_crossover_2D = 0.02
-        
+
         self._plots_zoom_vertical_color = [0.5, 0.0, 0]
         self._plots_zoom_horizontal_color = [0.5, 0.0, 0]
         self._plots_zoom_box_color = [0.5, 0.0, 0]
         self._plots_zoom_line_width = 2
         self._plots_zoom_crossover = 0.05
-        
+
         # window parameters
         self.extraParamsWindow_on_off = False
-        self.extraParamsWindow = {'General':0, 'Plot 1D':1, 'Plot 2D':2, 
+        self.extraParamsWindow = {'General':0, 'Plot 1D':1, 'Plot 2D':2,
                                   'Plot 3D':3, 'Colorbar':4, 'Legend':5,
-                                  'RMSD':6, 'Waterfall':7, 'Violin':8, 
+                                  'RMSD':6, 'Waterfall':7, 'Violin':8,
                                   'Extra':9}
 
         self.processParamsWindow_on_off = False
-        self.processParamsWindow= {'Extract':0, 'ORIGAMI':1, 'MS':2, '2D':3, 'Peak fitting':4, 'UniDec':5}
-        
+        self.processParamsWindow = {'Extract':0, 'ORIGAMI':1, 'MS':2, '2D':3, 'Peak fitting':4, 'UniDec':5}
+
         self.interactiveParamsWindow_on_off = False
-        
+
         self.importExportParamsWindow_on_off = False
         self.importExportParamsWindow = {'Peaklist':0, 'Image':1, 'Files':2}
-                
+
         # Custom colors dictionary
-        self.customColors = OrderedDict([(0, [16,71,185]), (1, [50,140,0]), (2, [241,144,0]),
-                                         (3, [76,199,197]), (4, [143,143,21]), (5, [38,122,255]),
-                                         (6, [38,143,73]), (7, [237,187,0]), (8, [120,109,255]),
-                                         (9, [179,78,0]), (10, [128,191,189]), (11, [137,136,68]),
-                                         (12, [200,136,18]), (13, [197,202,61]), (14, [123,182,255]),
-                                         (15, [69,67,138])])
+        self.customColors = OrderedDict([(0, [16, 71, 185]), (1, [50, 140, 0]), (2, [241, 144, 0]),
+                                         (3, [76, 199, 197]), (4, [143, 143, 21]), (5, [38, 122, 255]),
+                                         (6, [38, 143, 73]), (7, [237, 187, 0]), (8, [120, 109, 255]),
+                                         (9, [179, 78, 0]), (10, [128, 191, 189]), (11, [137, 136, 68]),
+                                         (12, [200, 136, 18]), (13, [197, 202, 61]), (14, [123, 182, 255]),
+                                         (15, [69, 67, 138])])
         self.used_customColors = []
         self.overlay_cmaps = ['Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
-                              'Greys_r', 'Purples_r', 'Blues_r', 'Greens_r', 'Oranges_r', 'Reds_r',  
+                              'Greys_r', 'Purples_r', 'Blues_r', 'Greens_r', 'Oranges_r', 'Reds_r',
                               'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
             				  'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
         self.overlay_defaultMask = 0.4
         self.overlay_defaultAlpha = 0.5
         self.overlay_smooth1DRT = 1
         self.smoothOverlay1DRT = 1
-               
+
         # previous files
         self.previousFiles = []
-        
+
         # Open windows
-        self._windowSettings = {'Plots':{'gripper':False, 'caption':False, 
-                                         'close_button':False, 'show':True, 
+        self._windowSettings = {'Plots':{'gripper':False, 'caption':False,
+                                         'close_button':False, 'show':True,
                                          'floating':False, 'title':'Plots'},
-                                'Documents':{'gripper':False, 'caption':True, 
-                                             'close_button':True, 'show':True, 
+                                'Documents':{'gripper':False, 'caption':True,
+                                             'close_button':True, 'show':True,
                                              'floating':False, 'title':'Documents'},
-                                'Peak list':{'gripper':False, 'caption':True, 
-                                             'close_button':True, 'show':False, 
+                                'Peak list':{'gripper':False, 'caption':True,
+                                             'close_button':True, 'show':False,
                                              'floating':False, 'title':'Peak list'},
-                                'CCS calibration':{'gripper':False, 'caption':True, 
-                                                   'close_button':True, 'show':False, 
+                                'CCS calibration':{'gripper':False, 'caption':True,
+                                                   'close_button':True, 'show':False,
                                                    'floating':False, 'title':'CCS calibration'},
-                                'Linear Drift Cell':{'gripper':False, 'caption':True, 
-                                                     'close_button':True, 'show':False, 
+                                'Linear Drift Cell':{'gripper':False, 'caption':True,
+                                                     'close_button':True, 'show':False,
                                                      'floating':False, 'title':'Linear Drift Cell'},
-                                'Text files':{'gripper':False, 'caption':True, 
-                                              'close_button':True, 'show':False, 
+                                'Text files':{'gripper':False, 'caption':True,
+                                              'close_button':True, 'show':False,
                                               'floating':False, 'title':'Text files'},
-                                'Multiple files':{'gripper':False, 'caption':True, 
-                                                  'close_button':True, 'show':False, 
+                                'Multiple files':{'gripper':False, 'caption':True,
+                                                  'close_button':True, 'show':False,
                                                   'floating':False, 'title':'Multiple files'},
-                                'Log':{'gripper':False, 'caption':True, 
-                                       'close_button':True, 'show':False, 
-                                       'title':'Log','floating':False},
-                                'Plot parameters':{'gripper':False, 'caption':True, 
-                                                   'close_button':True, 'show':False, 
+                                'Log':{'gripper':False, 'caption':True,
+                                       'close_button':True, 'show':False,
+                                       'title':'Log', 'floating':False},
+                                'Plot parameters':{'gripper':False, 'caption':True,
+                                                   'close_button':True, 'show':False,
                                                    'floating':True, 'title':'Plot parameters'},
-                                'Import/Export parameters':{'gripper':False, 'caption':True, 
-                                                            'close_button':True, 'show':False, 
+                                'Import/Export parameters':{'gripper':False, 'caption':True,
+                                                            'close_button':True, 'show':False,
                                                             'floating':True, 'title':'Import/Export parameters'},
-                                'Processing parameters':{'gripper':False, 'caption':True, 
-                                                         'close_button':True, 'show':False, 
+                                'Processing parameters':{'gripper':False, 'caption':True,
+                                                         'close_button':True, 'show':False,
                                                          'floating':True, 'title':'Processing parameters'},
                                 'Toolbar':{'gripper':True, 'show':True, 'orientation':'top',
-                                           'left_position':False,'top_position':True,
-                                           'left_dockable':True,'right_dockable':True,
-                                           'top_dockable':True,'bottom_dockable':True,
-                                           'title':'Toolbar','close_button':False}
+                                           'left_position':False, 'top_position':True,
+                                           'left_dockable':True, 'right_dockable':True,
+                                           'top_dockable':True, 'bottom_dockable':True,
+                                           'title':'Toolbar', 'close_button':False}
                                 }
-                                
+
         # GUI add-ons
-        self.cmap_narrow_choices = ['Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds', 
-                                    'Greys_r', 'Purples_r', 'Blues_r', 'Greens_r', 'Oranges_r', 'Reds_r',  
-                                    'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu', 'GnBu', 
-                                    'YlOrBr_r', 'YlOrRd_r', 'OrRd_r', 'PuRd_r', 'RdPu_r', 'BuPu_r', 'GnBu_r', 
-                                    'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn', 'viridis', 'plasma', 
-                                    'inferno', 'magma', 'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu', 
+        self.cmap_narrow_choices = ['Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+                                    'Greys_r', 'Purples_r', 'Blues_r', 'Greens_r', 'Oranges_r', 'Reds_r',
+                                    'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu', 'GnBu',
+                                    'YlOrBr_r', 'YlOrRd_r', 'OrRd_r', 'PuRd_r', 'RdPu_r', 'BuPu_r', 'GnBu_r',
+                                    'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn', 'viridis', 'plasma',
+                                    'inferno', 'magma', 'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
                                     'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm']
-        self.interpolation_choices = ['None', 'nearest', 'bilinear', 'bicubic', 
-                                      'spline16','spline36', 'hanning', 'hamming', 
-                                      'hermite', 'kaiser', 'quadric', 'catrom', 
-                                      'gaussian', 'bessel', 'mitchell', 'sinc', 
+        self.interpolation_choices = ['None', 'nearest', 'bilinear', 'bicubic',
+                                      'spline16', 'spline36', 'hanning', 'hamming',
+                                      'hermite', 'kaiser', 'quadric', 'catrom',
+                                      'gaussian', 'bessel', 'mitchell', 'sinc',
                                       'lanczos']
         self.normalizationMS_choices = ["Maximum"]
-        self.normalization2D_choices = ["Maximum", "Logarithmic","Natural log","Square root", "Least Abs Deviation","Least Squares"]
-        self.smoothMS_choices = ["None","Savitzky-Golay", "Gaussian"]
-        self.smooth2D_choices = ["None","Savitzky-Golay", "Gaussian"]
+        self.normalization2D_choices = ["Maximum", "Logarithmic", "Natural log", "Square root", "Least Abs Deviation", "Least Squares"]
+        self.smoothMS_choices = ["None", "Savitzky-Golay", "Gaussian"]
+        self.smooth2D_choices = ["None", "Savitzky-Golay", "Gaussian"]
 
-        self.markerShapeDict = {'square':'s', 'circle':'o', 'pentagon':'p','star':'*',
-                                'diamond':'D', 'cross':'x', 'plus':'+','point':'.',
+        self.markerShapeDict = {'square':'s', 'circle':'o', 'pentagon':'p', 'star':'*',
+                                'diamond':'D', 'cross':'x', 'plus':'+', 'point':'.',
                                 'vline':': ', 'hline':'_'}
         self.lineStylesList = ['solid', 'dashed', 'dashdot', 'dotted']
         self.lineStylesDict = {"-":'solid', "--":'dashed', "-.":'dashdot', ":":'dotted'}
         self.lineHatchDict = OrderedDict([('none', ' '), ('sparse hatch', '/'), ('dense hatch', '//'),
                                           ('vertical line', '|'), ('horizontal line', '-'),
-                                          ('square', '+'), ('cross', 'X'), ('small circles', 'o'), 
+                                          ('square', '+'), ('cross', 'X'), ('small circles', 'o'),
                                           ('large circles', 'O'), ('dots', '.'), ('stars', '*')])
-        self.lineHatchList = ['','/', ' |', '|', '-', '+', 'X', 'o', 'O', '.', '*']
+        self.lineHatchList = ['', '/', ' |', '|', '-', '+', 'X', 'o', 'O', '.', '*']
         self.legendPositionChoice = ["best", "upper right", "upper left", "lower left", "lower right", "right", "center left", "center right", "lower center", "upper center", "center"]
         self.legendFontChoice = ["xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large"]
         self.colorbarChoices = ["left", "right", "top", "bottom"]
-        
+
         self.horizontal_alignment_list = ['center', 'right', 'left']
         self.vertical_alignment_list = ['center', 'top', 'bottom']
         self.label_fontsize_list = ["xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large"]
         self.label_fontweight_list = ["ultralight", "light", "normal", "regular", "medium", "bold", "heavy"]
         self.label_font_orientation_list = ['horizontal', 'vertical']
-        
+
         # Annotation
         self.annotation_charge_std_dev = 0.05
-        
+
         self.annotation_arrow_line_width = 0.5
         self.annotation_arrow_line_style = "dashed"
-        self.annotation_arrow_cap_length = 0.01 # new in v1.2.1
-        self.annotation_arrow_cap_width = 0.01 # new in v1.2.1
-        
-        self.annotation_label_y_offset = 0.05 # new in v1.2.1
+        self.annotation_arrow_cap_length = 0.01  # new in v1.2.1
+        self.annotation_arrow_cap_width = 0.01  # new in v1.2.1
+
+        self.annotation_label_y_offset = 0.05  # new in v1.2.1
         self.annotation_label_horz = "center"
         self.annotation_label_vert = "center"
         self.annotation_label_font_size = "small"
         self.annotation_label_font_weight = "normal"
         self.annotation_label_font_orientation = "horizontal"
-        
-        self.annotation_zoom_y = False # new in v1.2.1
-        self.annotation_zoom_y_multiplier = 1.5 # new in v1.2.1
-        self.annotation_show_vline = False # new in v1.2.1
-        
-        self.annotation_patch_transparency = 0.2 # new in v1.2.1
-        self.annotation_patch_width = 3 # new in v1.2.1
+
+        self.annotation_zoom_y = False  # new in v1.2.1
+        self.annotation_zoom_y_multiplier = 1.5  # new in v1.2.1
+        self.annotation_show_vline = False  # new in v1.2.1
+
+        self.annotation_patch_transparency = 0.2  # new in v1.2.1
+        self.annotation_patch_width = 3  # new in v1.2.1
 
         # UniDec
         self.unidec_mzStart = 500
         self.unidec_mzEnd = 8000
         self.unidec_mzBinSize = 0.1
         self.unidec_gaussianFilter = 0.0
-        self.unidec_linearization_choices = {u"Linear m/z":0, 
+        self.unidec_linearization_choices = {u"Linear m/z":0,
                                              u"Linear resolution":1,
-                                             u"Nonlinear":2, 
-                                             u"Linear interpolation":3, 
+                                             u"Nonlinear":2,
+                                             u"Linear interpolation":3,
                                              u"Linear resolution interpolation":4}
         self.unidec_linearization = u"Linear m/z"
         self.unidec_accelerationV = 0.0
-        
+
         self.unidec_zStart = 1
         self.unidec_zEnd = 100
         self.unidec_mwStart = 500
@@ -533,7 +529,7 @@ class OrigamiConfig:
         self.unidec_peakWidth_auto = True
         self.unidec_peakFunction_choices = {"Gaussian":0, "Lorentzian":1, "Split G/L":""}
         self.unidec_peakFunction = "Lorentzian"
-        
+
         self.unidec_peakDetectionWidth = 500.0
         self.unidec_peakDetectionThreshold = 0.1
         self.unidec_peakNormalization_choices = {"None":0, "Max":1, "Total":2}
@@ -548,7 +544,7 @@ class OrigamiConfig:
         self.unidec_show_chargeStates = False
         self.unidec_maxShown_individualLines = 100
         self.unidec_optimiseLabelPositions = True
-        
+
         self.unidec_plot_fit_lineColor = (1., 0., 0.)
         self.unidec_plot_MW_showMarkers = True
         self.unidec_plot_MW_markerSize = 50
@@ -557,14 +553,14 @@ class OrigamiConfig:
         self.unidec_plot_bar_width = 1
         self.unidec_plot_bar_alpha = 1.0
         self.unidec_plot_bar_edge_color = (0., 0., 0.)
-        self.unidec_plot_bar_sameAsFill = False 
-        self.unidec_plot_bar_lineWidth = 2. 
-        self.unidec_plot_color_scheme = "Color palette" 
-        self.unidec_plot_colormap = "viridis" 
-        self.unidec_plot_palette = "HLS" 
-        self.unidec_plot_contour_levels = 75 
+        self.unidec_plot_bar_sameAsFill = False
+        self.unidec_plot_bar_lineWidth = 2.
+        self.unidec_plot_color_scheme = "Color palette"
+        self.unidec_plot_colormap = "viridis"
+        self.unidec_plot_palette = "HLS"
+        self.unidec_plot_contour_levels = 75
         self.unidec_plot_panel_view = "Tabbed view"
-        
+
         # ORIGAMI
         self.origami_startScan = 0
         self.origami_spv = 3
@@ -577,12 +573,12 @@ class OrigamiConfig:
         self.origami_acquisition_choices = ['Linear', 'Exponential', 'Boltzmann', 'User-defined', 'Manual']
         self.origami_acquisition = 'Linear'
         self.origami_userDefined_list = []
-        
+
         # Extracting
         self.extract_massSpectra = False
         self.extract_chromatograms = False
         self.extract_driftTime1D = False
-        self.extract_driftTime2D= False
+        self.extract_driftTime2D = False
         self.extract_mzStart = 0
         self.extract_mzEnd = 0
         self.extract_rtStart = 0
@@ -613,18 +609,18 @@ class OrigamiConfig:
         self.fit_highRes_window = 10
         self.fit_highRes_width = 1
         self.fit_highRes_isotopicFit = False
-        
+
         # UVPD
-        self.uvpd_peak_finding_threshold = 0.1 # new in v1.2.1
-        self.uvpd_peak_buffer_width = 1 # new in v1.2.1
-        self.uvpd_peak_first_index = 1 # new in v1.2.1
-        self.uvpd_peak_laser_on = (1,0,0) # new in v1.2.1
-        self.uvpd_peak_laser_off = (0,0,1) # new in v1.2.1
-        self.uvpd_peak_show_markers = True # new in v1.2.1
-        self.uvpd_peak_show_patches = False # new in v1.2.1
-        self.uvpd_peak_show_labels = False # new in v1.2.1
-        
-        # RMSD 
+        self.uvpd_peak_finding_threshold = 0.1  # new in v1.2.1
+        self.uvpd_peak_buffer_width = 1  # new in v1.2.1
+        self.uvpd_peak_first_index = 1  # new in v1.2.1
+        self.uvpd_peak_laser_on = (1, 0, 0)  # new in v1.2.1
+        self.uvpd_peak_laser_off = (0, 0, 1)  # new in v1.2.1
+        self.uvpd_peak_show_markers = True  # new in v1.2.1
+        self.uvpd_peak_show_patches = False  # new in v1.2.1
+        self.uvpd_peak_show_labels = False  # new in v1.2.1
+
+        # RMSD
         self.rmsd_position_choices = ['bottom left', 'bottom right', 'top left', 'top right', 'none', 'other']
         self.rmsd_position = 'bottom left'
         self.rmsd_location = (5, 5)
@@ -634,9 +630,9 @@ class OrigamiConfig:
         self.rmsd_rotation_X = 45
         self.rmsd_rotation_Y = 0
         self.rmsd_matrix_add_labels = True
-        self.rmsd_lineColour = (0,0,0)
+        self.rmsd_lineColour = (0, 0, 0)
         self.rmsd_lineTransparency = 0.4
-        self.rmsd_underlineColor = (0,0,0)
+        self.rmsd_underlineColor = (0, 0, 0)
         self.rmsd_underlineTransparency = 0.4
         self.rmsd_lineWidth = 1
         self.rmsd_lineStyle = 'solid'
@@ -645,7 +641,7 @@ class OrigamiConfig:
 
         # Process 2D
         self.plot2D_normalize = False
-        self.plot2D_normalize_choices = ["Maximum", "Logarithmic","Natural log","Square root", "Least Abs Deviation","Least Squares"]
+        self.plot2D_normalize_choices = ["Maximum", "Logarithmic", "Natural log", "Square root", "Least Abs Deviation", "Least Squares"]
         self.plot2D_normalize_mode = 'Maximum'
         self.plot2D_smooth_choices = ['None', 'Gaussian', 'Savitzky-Golay']
         self.plot2D_smooth_mode = 'None'
@@ -653,7 +649,7 @@ class OrigamiConfig:
         self.plot2D_smooth_window = 3
         self.plot2D_smooth_polynomial = 1
         self.plot2D_threshold = 0.0
-        
+
         # Process MS
         self.ms_normalize = True
         self.ms_normalize_choices = ['Maximum']
@@ -664,24 +660,23 @@ class OrigamiConfig:
         self.ms_smooth_window = 3
         self.ms_smooth_polynomial = 1
         self.ms_threshold = 0.0
-        
+
         self.ms_crop_min = 500
         self.ms_crop_max = 8000
-        
-        
+
         self.ms_process_crop = False
         self.ms_process_linearize = True
         self.ms_process_smooth = True
         self.ms_process_threshold = True
         self.ms_process_normalize = True
-        
+
         # Importing files
         self.import_binOnImport = True
         self.import_loadMS = True
         self.import_loadRT = True
         self.import_loadDT = True
         self.import_loadDTMS = True
-        
+
         # Binning
         self.ms_mzStart = 500
         self.ms_mzEnd = 8000
@@ -692,10 +687,10 @@ class OrigamiConfig:
         self.ms_linearization_mode_choices = ["Linear m/z", "Linear resolution",
                                               "Nonlinear", "Linear interpolation",
                                               "Linear resolution interpolation",
-                                              "Binning"] 
+                                              "Binning"]
         self.ms_linearization_mode = "Linear interpolation"
         self.ms_auto_range = True
-        
+
         # waterfall
         self.waterfall = False
         self.waterfall_increment = 0.05
@@ -706,51 +701,51 @@ class OrigamiConfig:
         self.waterfall_color = [0, 0, 0]
         self.waterfall_useColormap = True
         self.waterfall_normalize = True
-        self.waterfall_color_choices = ["Same color", "Colormap", "Color palette", "Random"] # new
-        self.waterfall_colormap = "mako" 
+        self.waterfall_color_choices = ["Same color", "Colormap", "Color palette", "Random"]  # new
+        self.waterfall_colormap = "mako"
         self.waterfall_color_value = "Same color"
-        self.waterfall_line_sameAsShade = True 
+        self.waterfall_line_sameAsShade = True
         self.waterfall_add_labels = False
-        self.waterfall_labels_frequency = 1 
+        self.waterfall_labels_frequency = 1
         self.waterfall_labels_x_offset = 0.05
         self.waterfall_labels_y_offset = 0.05
         self.waterfall_label_fontSize = 12
         self.waterfall_label_fontWeight = True
         self.waterfall_shade_under = True
-        self.waterfall_shade_under_color = [0, 0, 0] 
+        self.waterfall_shade_under_color = [0, 0, 0]
         self.waterfall_shade_under_nlimit = 50
         self.waterfall_shade_under_transparency = 0.25
         self.waterfall_label_format_choices = ["String", "Float", "Integer"]
         self.waterfall_label_format = "Float"
-        
+
         # violin
-        self.violin_orientation_choices = ["vertical", "horizontal"] 
+        self.violin_orientation_choices = ["vertical", "horizontal"]
         self.violin_orientation = "vertical"
         self.violin_spacing = 0.5
-        self.violin_min_percentage = 0.03 
+        self.violin_min_percentage = 0.03
         self.violin_lineWidth = 2
         self.violin_lineStyle = 'solid'
-        self.violin_color = [0, 0, 0] 
+        self.violin_color = [0, 0, 0]
         self.violin_normalize = True
         self.violin_color_choices = ["Same color", "Colormap", "Color palette", "Random"]
         self.violin_colormap = "mako"
         self.violin_color_value = "Colormap"
-        self.violin_line_sameAsShade = False  
-        self.violin_shade_under = True 
+        self.violin_line_sameAsShade = False
+        self.violin_shade_under = True
         self.violin_shade_under_color = [0, 0, 0]
         self.violin_nlimit = 50
-        self.violin_shade_under_transparency = 1 
-        self.violin_label_format_choices = ["String", "Float", "Integer"] 
-        self.violin_label_format = "Integer" 
+        self.violin_shade_under_transparency = 1
+        self.violin_label_format_choices = ["String", "Float", "Integer"]
+        self.violin_label_format = "Integer"
         self.violin_labels_frequency = 1
-        
+
         # bar
         self.bar_width = 0.1
         self.bar_alpha = 1.0
         self.bar_edge_color = (0., 0., 0.)
         self.bar_sameAsFill = True
         self.bar_lineWidth = 1.
-        
+
         # colorbar
         self.colorbar = False
         self.colorbarWidth = 2
@@ -759,7 +754,7 @@ class OrigamiConfig:
         self.colorbarMinPoints = 5
         self.colorbarPosition = 'right'
         self.colorbarLabelSize = 12
-        
+
         # legend
         self.legend = False
         self.legendFrame = True
@@ -774,20 +769,20 @@ class OrigamiConfig:
         self.legendFancyBox = True
         self.legendLineWidth = 4
         self.legendPatchAlpha = 0.25
-        
+
         # 1D parameters
-        self.lineColour_1D = (0,0,0)
+        self.lineColour_1D = (0, 0, 0)
         self.labelPad_1D = 5
         self.frameWidth_1D = 1
         self.lineWidth_1D = 1
         self.lineStyle_1D = 'solid'
         self.lineShadeUnder_1D = True
-        self.lineShadeUnderColour_1D = (0,0,0)
+        self.lineShadeUnderColour_1D = (0, 0, 0)
         self.lineShadeUnderTransparency_1D = 0.4
-        self.markerColor_1D = (0,0,1)
+        self.markerColor_1D = (0, 0, 1)
         self.markerTransparency_1D = 0.4
         self.markerEdgeUseSame_1D = True
-        self.markerEdgeColor_1D = (0, 0, 1) 
+        self.markerEdgeColor_1D = (0, 0, 1)
         self.markerShape_1D = 'o'
         self.markerShapeTXT_1D = 'circle'
         self.markerSize_1D = 5
@@ -812,7 +807,7 @@ class OrigamiConfig:
         self.tickLabels_right_1D = False
         self.tickLabels_top_1D = False
         self.tickLabels_bottom_1D = True
-        
+
         # 2D parameters
         self.interpolation = "None"
         self.axisOnOff_2D = True
@@ -837,7 +832,7 @@ class OrigamiConfig:
         self.tickLabels_right_2D = False
         self.tickLabels_top_2D = False
         self.tickLabels_bottom_2D = True
-        
+
         # 3D parameters
         self.plotType_3D = 'Surface'
         self.showGrids_3D = False
@@ -846,12 +841,12 @@ class OrigamiConfig:
         self.spines_3D = True
         self.labels_3D = True
         self.markerTransparency_3D = 0.7
-        self.markerColor_3D = (0,0,1)
+        self.markerColor_3D = (0, 0, 1)
         self.markerShape_3D = 'o'
         self.markerShapeTXT_3D = 'circle'
         self.markerSize_3D = 50
         self.markerEdgeUseSame_3D = True
-        self.markerEdgeColor_3D = (0, 0, 0) 
+        self.markerEdgeColor_3D = (0, 0, 0)
         self.labelPad_3D = 20
         self.annotationFontSize_3D = 8
         self.annotationFontWeight_3D = False
@@ -861,44 +856,44 @@ class OrigamiConfig:
         self.labelFontWeight_3D = False
         self.titleFontSize_3D = 16
         self.titleFontWeight_3D = False
-        
+
         # comparison MS
-        self.lineColour_MS1 = (0,0,0)
+        self.lineColour_MS1 = (0, 0, 0)
         self.lineTransparency_MS1 = 1.0
         self.lineStyle_MS1 = 'solid'
-        self.lineColour_MS2 = (0,0,1)
+        self.lineColour_MS2 = (0, 0, 1)
         self.lineTransparency_MS2 = 1.0
         self.lineStyle_MS2 = 'solid'
         self.compare_massSpectrum = []
         self.compare_massSpectrumParams = {'inverse':True, 'preprocess':False,
                                            'normalize':False, 'subtract':False}
-        
+
         # Settings Panel
         self.lastDir = None
-        
+
         # Events
         self.extraParamsWindow_on_off = False
-        
+
         # Standard input/output/error
         self.stdin = None
         self.stdout = None
         self.stderr = None
-        
+
         self.cwd = None
         self.unidec_path = None
         self.temporary_data = None
-        
+
         # Application presets
-        self.zoomWindowX = 3 # m/z units
-        self.zoomWindowY = 5 # percent
-            
+        self.zoomWindowX = 3  # m/z units
+        self.zoomWindowY = 5  # percent
+
         # Presets
         self.userParameters = {'operator':'Lukasz G. Migas',
                                'contact':'lukasz.migas@manchester.ac.uk',
                                'institution':'University of Manchester',
                                'instrument':'SynaptG2',
                                'date':'date'}
-        
+
         self.resize = True
         #=========== DOCUMENT TREE PARAMETERS ==========
         self.quickDisplay = False
@@ -907,12 +902,12 @@ class OrigamiConfig:
         self.overrideCombine = True
         self.useInternalParamsCombine = False
         self.overlay_usedProcessed = True
-        
-        self.binMSfromRT = False        
+
+        self.binMSfromRT = False
         self.showMZDT = True
         self.ccsDB = None
         self.proteinData = None
-        
+
         #=========== FILE INFO ===========
         self.normalize = False
         self.ciuMode = ''
@@ -930,21 +925,21 @@ class OrigamiConfig:
         self.fittedScale = ''
         self.acqMode = ''
         self.origamiList = []
-        
+
         self.binCVdata = True
         self.binMSstart = 500
         self.binMSend = 8000
         self.binMSbinsize = 0.1
-        
+
         #=========== EXTRACT MZ ===========
         self.mzStart = ''
         self.mzEnd = ''
         self.rtStart = ''
         self.rtEnd = ''
-         
-        self.extractMode = '' # 'singleIon' OR 'multipleIons'
-        
-        self.annotColor = (0,0,1)
+
+        self.extractMode = ''  # 'singleIon' OR 'multipleIons'
+
+        self.annotColor = (0, 0, 1)
         self.annotTransparency = 40
         self.markerShape = 's'
         self.markerSize = 5
@@ -959,8 +954,8 @@ class OrigamiConfig:
         self.peakThresholdAssign = 0.0
         self.peakWidthAssign = 1
         self.peakWindowAssign = 10
-        self.showIsotopes = True 
-               
+        self.showIsotopes = True
+
         self.showRectanges = True
         self.autoAddToTable = False
         self.currentRangePeakFitCheck = False
@@ -968,56 +963,54 @@ class OrigamiConfig:
         self.sigmaMS = 1
         self.markerShapeTXT = 'square'
 
-        
         #=========== PROCESS ===========
-        self.datatype = ''  
+        self.datatype = ''
         self.normMode = 'None'
         self.smoothMode = ''
         self.savGolPolyOrder = 1
         self.savGolWindowSize = 3
         self.gaussSigma = 1
         self.threshold = 0
-        
-        
+
         #=========== PLOT PARAMETERS =============
-        self.lineColour = (0,0,0)
+        self.lineColour = (0, 0, 0)
         self.lineWidth = 10
         self.currentCmap = "inferno"
         self.interpolation = "None"
         self.overlayMethod = "Transparent"
         self.textOverlayMethod = "Mask"
-        
-        self.plotType = "Image" # Contour / Heatmap 
+
+        self.plotType = "Image"  # Contour / Heatmap
         self.currentStyle = 'Default'
         self.prettyContour = False
         self.useCurrentCmap = True
         self.addWaterfall = False
-        
-        self.minCmap = 0 # %
-        self.midCmap = 50 # %
-        self.maxCmap = 100 # %
-        
+
+        self.minCmap = 0  # %
+        self.midCmap = 50  # %
+        self.maxCmap = 100  # %
+
         self.rmsdLoc = "leftBottom"
-        self.rmsdLocPos = (5,5) # (xpos, ypos) %
-        self.rmsdColor = (1,1,1)
+        self.rmsdLocPos = (5, 5)  # (xpos, ypos) %
+        self.rmsdColor = (1, 1, 1)
         self.rmsdFontSize = 16
         self.rmsdFontWeight = True
         self.rmsdRotX = 45
         self.rmsdRotY = 0
-        
+
         self.restrictXYrange = False
-        self.xyLimits = [] # limits the view of 2D plot
-        
+        self.xyLimits = []  # limits the view of 2D plot
+
         self.restrictXYrangeRMSD = False
-        self.xyLimitsRMSD = [] # limits the range of RMSD/F calculation
-        
+        self.xyLimitsRMSD = []  # limits the range of RMSD/F calculation
+
         self.dpi = 200
         self.transparent = True
-        
+
         self.imageWidthInch = 8
         self.imageHeightInch = 8
         self.imageFormat = 'png'
-        
+
         #=========== TEXT PARAMETERS =============
         self.notationFontSize = 8
         self.tickFontWeight = False
@@ -1027,11 +1020,11 @@ class OrigamiConfig:
         self.labelFontWeight = False
         self.titleFontSize = 16
         self.titleFontWeight = False
-        
+
         # Import CSV
         self.mzWindowSize = 3
         self.useInternalMZwindow = False
-       
+
         # Export CSV
         self.saveDelimiterTXT = 'comma'
         self.saveDelimiter = ','
@@ -1043,18 +1036,17 @@ class OrigamiConfig:
         self.initilizeColormaps()
 #         self.initlizePaths()
 
-       
 #===============================================================================
-# # Interactive parameters 
+# # Interactive parameters
 #===============================================================================
-        
+
         self.saveInteractiveOverride = True
-        
+
         self.figHeight = 600
         self.figWidth = 600
         self.figHeight1D = 300
         self.figWidth1D = 800
-        
+
         self.layoutModeDoc = 'Individual'
         self.plotLayoutOverlay = 'Rows'
         self.defNumRows = ''
@@ -1063,22 +1055,22 @@ class OrigamiConfig:
         self.hoverVline = True
         self.interactive_cvd_cmap = "viridis"
         self.interactive_cvd_cmap_choices = ["magma", "viridis", "cividis", "plasma", "magma"]
-        
+
         self.toolsLocation = 'right'
         self.activeDrag = 'Box Zoom'
         self.activeWheel = 'None'
         self.activeInspect = 'Hover'
-        
-        self.interactive_custom_scripts = True 
-        self.interactive_custom_events = True 
+
+        self.interactive_custom_scripts = True
+        self.interactive_custom_events = True
         self.interactive_custom_position = "right"
-        
+
         # Other
         self.interactive_override_defaults = True
         self.openInteractiveOnSave = True
         self.interactive_add_offline_support = False
-        self.interactive_sort_before_saving = True # new in v1.2.1
-        
+        self.interactive_sort_before_saving = True  # new in v1.2.1
+
         # Colorbar
         self.interactive_colorbar = False
         self.interactive_colorbar_precision = 1
@@ -1090,14 +1082,14 @@ class OrigamiConfig:
         self.interactive_colorbar_offset_y = 0
         self.interactive_colorbar_width = 15
         self.interactive_colorbar_padding = 10
-        self.interactive_colorbar_edge_color = (0., 0., 0.) # new in v1.2.1
-        self.interactive_colorbar_edge_width = 2 # new in v1.2.1
-        self.interactive_colorbar_modify_ticks = False # new in v1.2.1
-        self.interactive_colorbar_label_fontSize = 16 # new in v1.2.1
-        self.interactive_colorbar_label_weight = False # new in v1.2.1
-        self.interactive_colorbar_title_fontSize = 16 # new in v1.2.1
-        self.interactive_colorbar_title_weight = False # new in v1.2.1
-        
+        self.interactive_colorbar_edge_color = (0., 0., 0.)  # new in v1.2.1
+        self.interactive_colorbar_edge_width = 2  # new in v1.2.1
+        self.interactive_colorbar_modify_ticks = False  # new in v1.2.1
+        self.interactive_colorbar_label_fontSize = 16  # new in v1.2.1
+        self.interactive_colorbar_label_weight = False  # new in v1.2.1
+        self.interactive_colorbar_title_fontSize = 16  # new in v1.2.1
+        self.interactive_colorbar_title_weight = False  # new in v1.2.1
+
         # Frame
         self.interactive_outline_width = 2
         self.interactive_outline_alpha = 1
@@ -1105,10 +1097,10 @@ class OrigamiConfig:
         self.interactive_border_min_right = 20
         self.interactive_border_min_top = 20
         self.interactive_border_min_bottom = 20
-        self.interactive_background_color = (1., 1., 1.) 
+        self.interactive_background_color = (1., 1., 1.)
         self.interactive_grid_line = False
         self.interactive_grid_line_color = (1., 1., 1.)
-        
+
         # Fonts
         self.interactive_title_fontSize = 16
         self.interactive_title_weight = False
@@ -1120,7 +1112,7 @@ class OrigamiConfig:
         self.interactive_annotation_color = (0, 0, 0)
         self.interactive_annotation_background_color = (1, 1, 1)
         self.interactive_annotation_alpha = 1
-        
+
         # Overlay grid
         self.interactive_grid_label = True
         self.interactive_grid_label_size = 12
@@ -1128,69 +1120,69 @@ class OrigamiConfig:
         self.interactive_grid_label_color = (0, 0, 0)
         self.interactive_grid_xpos = 10
         self.interactive_grid_ypos = 10
-        
+
         # Waterfall
-        self.interactive_waterfall_increment = 0.05 # new in v1.2.1
-        self.interactive_waterfall_shade_under = False # new in v1.2.1
-        self.interactive_waterfall_shade_alpha = 0.25 # new in v1.2.1
-        
+        self.interactive_waterfall_increment = 0.05  # new in v1.2.1
+        self.interactive_waterfall_shade_under = False  # new in v1.2.1
+        self.interactive_waterfall_shade_alpha = 0.25  # new in v1.2.1
+
         # Mass spectra
         self.interactive_ms_annotations = True
         self.interactive_ms_annotations_color = (0.18, 0.8, 0.44)
         self.interactive_ms_annotations_line_color = (0, 0, 0)
-        self.interactive_ms_annotations_transparency = 0.3 
-        self.interactive_ms_linearize = True 
+        self.interactive_ms_annotations_transparency = 0.3
+        self.interactive_ms_linearize = True
         self.interactive_ms_binSize = 0.1
-        
+
         self.interactive_ms_annotations_offsetX = 5
         self.interactive_ms_annotations_offsetY = 5
         self.interactive_ms_annotations_fontSize = 10
         self.interactive_ms_annotations_fontWeight = True
         self.interactive_ms_annotations_highlight = False
-        self.interactive_ms_annotations_labels = True 
+        self.interactive_ms_annotations_labels = True
         self.interactive_ms_annotations_rotation = 90
-        self.interactive_ms_annotations_label_color = (0., 0., 0.)     
-        
+        self.interactive_ms_annotations_label_color = (0., 0., 0.)
+
         # Ticks
         self.interactive_tick_useScientific = True
         self.interactive_tick_precision = 1
-        
+
         # Legend
         self.interactive_legend = True
         self.interactive_legend_click_policy_choices = ['hide', 'mute']
         self.interactive_legend_click_policy = 'hide'
         self.interactive_legend_location_choices = ["top_left", "top_center", "top_right", "center_right",
-                                                    "bottom_right", "bottom_center", "bottom_left", "center_left", 
-                                                    "center"]#, "other"]
+                                                    "bottom_right", "bottom_center", "bottom_left", "center_left",
+                                                    "center"]  # , "other"]
         self.interactive_legend_location = 'top_left'
         self.interactive_legend_mute_alpha = 0.25
         self.interactive_legend_background_alpha = 0.5
         self.interactive_legend_orientation_choices = ['vertical', 'horizontal']
         self.interactive_legend_orientation = 'vertical'
         self.interactive_legend_font_size = 10
-        
+
         # Line
         self.interactive_line_style_choices = ['solid', 'dashed', 'dotted', 'dotdash', 'dashdot']
         self.interactive_line_style = 'solid'
         self.interactive_line_width = 2
         self.interactive_line_alpha = 1
-        self.interactive_line_shade_under = False # new in v1.2.1
-        self.interactive_line_shade_alpha = 0.25 # new in v1.2.1
-        self.interactive_line_color = (0., 0., 0.) # new in v1.2.1
-        
+        self.interactive_line_shade_under = False  # new in v1.2.1
+        self.interactive_line_shade_alpha = 0.25  # new in v1.2.1
+        self.interactive_line_color = (0., 0., 0.)  # new in v1.2.1
+
         # Scatter
-        self.interactive_scatter_size = 10 
+        self.interactive_scatter_size = 10
         self.interactive_scatter_alpha = 1.
-        self.interactive_scatter_marker_choices = ["circle", "square", "triangle", 
+        self.interactive_scatter_marker_choices = ["circle", "square", "triangle",
                                                   "circle_cross", "square_cross",
-                                                  "diamond", "circle_x", "square_x", 
-                                                  "inverted_triangle", "cross", "x", 
+                                                  "diamond", "circle_x", "square_x",
+                                                  "inverted_triangle", "cross", "x",
                                                   "asterisk"]
         self.interactive_scatter_marker = "circle"
         self.interactive_scatter_sameAsFill = True
         self.interactive_scatter_edge_color = (0., 0., 0.)
-        self.interactive_scatter_lineWidth = 1. # new in v1.2.1
-        
+        self.interactive_scatter_lineWidth = 1.  # new in v1.2.1
+
         # bar
         self.interactive_bar_width = 0.1
         self.interactive_bar_alpha = 1.0
@@ -1209,106 +1201,105 @@ class OrigamiConfig:
             'process'    :    only variables involved in processing are checked
             'plotting'   :    only variables involved in plotting are checked
         """
-        
+
         if data_type in ['all', 'extract']:
             # Extract
             if self.extract_mzStart == self.extract_mzEnd:
                 self.extract_mzEnd = self.extract_mzStart + 1
             if self.extract_mzEnd < self.extract_mzStart:
                 self.extract_mzStart, self.extract_mzEnd = self.extract_mzEnd, self.extract_mzStart
-                
+
             if self.extract_dtStart == self.extract_dtEnd:
                 self.extract_dtEnd = self.extract_dtStart + 1
             if self.extract_dtEnd < self.extract_dtStart:
                 self.extract_dtStart, self.extract_dtEnd = self.extract_dtEnd, self.extract_dtStart
-                
+
             if self.extract_rtStart == self.extract_rtEnd:
                 self.extract_rtEnd = self.extract_rtStart + 1
             if self.extract_rtEnd < self.extract_rtStart:
                 self.extract_rtStart, self.extract_rtEnd = self.extract_rtEnd, self.extract_rtStart
-                
+
             # Mass spectrum
             if self.ms_mzEnd < self.ms_mzStart:
                 self.ms_mzStart, self.ms_mzEnd = self.ms_mzEnd, self.ms_mzStart
-            
+
             if self.ms_mzBinSize == 0:
                 self.ms_mzBinSize = 0.1
-                
+
             if self.ms_dtmsBinSize == 0:
                 self.ms_dtmsBinSize = 0.1
-                
+
         if data_type in ['all', 'origami']:
             # ORIGAMI
             if self.origami_spv == 0:
                 self.origami_spv = 1
-            
+
             if self.origami_endVoltage < self.origami_startVoltage:
                 self.origami_startVoltage, self.origami_endVoltage = self.origami_endVoltage, self.origami_startVoltage
-                                
+
         if data_type in ['all', 'process']:
-            
+
             # SMOOTHINH
             # mass spectra
             if self.ms_smooth_sigma < 0:
                 self.ms_smooth_sigma = 0
-            
-            if self.ms_smooth_window %2 == 0:
+
+            if self.ms_smooth_window % 2 == 0:
                 self.ms_smooth_window = self.ms_smooth_window + 1
-            
+
             if self.ms_smooth_polynomial >= self.ms_smooth_window:
-                if self.ms_smooth_polynomial %2 == 0:
+                if self.ms_smooth_polynomial % 2 == 0:
                     self.ms_smooth_window = self.ms_smooth_polynomial + 1
                 else:
                     self.ms_smooth_window = self.ms_smooth_polynomial + 2
-                    
+
             # plot 2D
             if self.plot2D_smooth_sigma < 0:
                 self.plot2D_smooth_sigma = 0
-                
-            if self.plot2D_smooth_window %2 == 0:
+
+            if self.plot2D_smooth_window % 2 == 0:
                 self.plot2D_smooth_window = self.plot2D_smooth_window + 1
-            
+
             if self.plot2D_smooth_polynomial >= self.plot2D_smooth_window:
-                if self.plot2D_smooth_polynomial %2 == 0:
+                if self.plot2D_smooth_polynomial % 2 == 0:
                     self.plot2D_smooth_window = self.plot2D_smooth_polynomial + 1
                 else:
                     self.plot2D_smooth_window = self.plot2D_smooth_polynomial + 2
-             
+
     def initilizeColormaps(self):
         self.colormapMode = 0
 
-        mapList = colormaps() #+ cmocean.cmapnames
+        mapList = colormaps()  # + cmocean.cmapnames
         self.cmaps2 = sorted(mapList)
 #         self.cmocean_cmaps = cmocean.cmapnames
-        
+
     def initlizePaths(self, return_check=False):
         self.system = platform.system()
-        
+
         # Check if driftscope exists
         if not os.path.isdir(self.driftscopePath):
             print('Could not find Driftscope path')
             msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
-            dialogs.dlgBox(exceptionTitle='Could not find Driftscope', 
-                           exceptionMsg= msg,
+            dialogs.dlgBox(exceptionTitle='Could not find Driftscope',
+                           exceptionMsg=msg,
                            type="Warning")
             return False
-            
-        if not os.path.isfile(self.driftscopePath+"\imextract.exe"):
+
+        if not os.path.isfile(self.driftscopePath + "\imextract.exe"):
             print('Could not find imextract.exe')
             msg = "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
-            dialogs.dlgBox(exceptionTitle='Could not find Driftscope', 
-                           exceptionMsg= msg,
+            dialogs.dlgBox(exceptionTitle='Could not find Driftscope',
+                           exceptionMsg=msg,
                            type="Warning")
             return False
-        
+
         self.origamiPath = ""
-        
+
         if return_check:
             return True
         else:
             print("Driftscope Path: {}".format(self.driftscopePath))
-        
-        
+
     def getPusherFrequency(self, parameters, mode="V"):
         mode = 'V'
         """           V           W
@@ -1358,7 +1349,7 @@ class OrigamiConfig:
                 parameters['pusherFreq'] = 547.25
             elif 32000 < parameters['endMS'] <= 100000:
                 parameters['pusherFreq'] = 547.25
-                
+
         return parameters
 
     def importMassLynxInfFile(self, path, manual=False, e=None):
@@ -1366,16 +1357,16 @@ class OrigamiConfig:
         Imports information file for selected MassLynx file
         '''
         fileName = "\_extern.inf"
-        fileName = ''.join([path,fileName])
-        
-        parameters = OrderedDict.fromkeys(["startMS","endMS","setMS","scanTime","ionPolarity",
+        fileName = ''.join([path, fileName])
+
+        parameters = OrderedDict.fromkeys(["startMS", "endMS", "setMS", "scanTime", "ionPolarity",
                                    "modeSensitivity", "pusherFreq", "corrC", "trapCE"], None)
-        
-        if not os.path.isfile(fileName): 
+
+        if not os.path.isfile(fileName):
             return parameters
-        
+
         f = open(fileName, 'r')
-        i = 0 # hacky way to get the correct collision voltage value
+        i = 0  # hacky way to get the correct collision voltage value
         for line in f:
             if "Start Mass" in line:
                 try: parameters['startMS'] = str2num(str(line.split()[2]))
@@ -1402,34 +1393,34 @@ class OrigamiConfig:
                 try: parameters['modeAnalyser'] = str(line.split()[1])
                 except: pass
             if "EDC Delay Coefficient" in line:
-                try: 
+                try:
                     parameters['corrC'] = str2num(str(line.split()[3]))
                 except: pass
 #             if manual == True:
             if "Trap Collision Energy" in line:
-                if i==1:
+                if i == 1:
                     try: parameters['trapCE'] = str2num(str(line.split()[3]))
                     except: pass
-                i+=1
+                i += 1
         f.close()
         parameters = self.getPusherFrequency(parameters=parameters, mode="V")
-        
+
         return parameters
-    
+
     def importMassLynxHeaderFile(self, path, e=None):
         '''
         Imports information file for selected MassLynx file
         '''
         fileName = "\_HEADER.TXT"
-        fileName = ''.join([path,fileName])
-        
+        fileName = ''.join([path, fileName])
+
         fileInfo = OrderedDict.fromkeys(["SampleDescription"], None)
-        
-        if not os.path.isfile(fileName): 
+
+        if not os.path.isfile(fileName):
             return "None"
-        
+
         f = open(fileName, 'r')
-        i = 0 # hacky way to get the correct collision voltage value
+        i = 0  # hacky way to get the correct collision voltage value
         for line in f:
             if "$$ Sample Description:" in line:
                 splitline = line.split(" ")
@@ -1438,39 +1429,37 @@ class OrigamiConfig:
         f.close()
 
         return fileInfo
-        
+
     def importOrigamiConfFile(self, path, e=None):
         """
         Tries to import conf file from MassLynx directory
         """
         fileName = "\origami.conf"
-        fileName = ''.join([path,fileName])
-        parameters = OrderedDict.fromkeys(["method","spv","startVoltage",
-                                           "endVoltage","stepVoltage",
-                                           "expIncrement", "expPercentage", 
+        fileName = ''.join([path, fileName])
+        parameters = OrderedDict.fromkeys(["method", "spv", "startVoltage",
+                                           "endVoltage", "stepVoltage",
+                                           "expIncrement", "expPercentage",
                                            "dx", "spvList", "cvList"], "")
-        
-        
+
         # Check if there is another file with different name
-        searchname = ''.join([path,"\*.conf"])
+        searchname = ''.join([path, "\*.conf"])
         filelist = []
         for file in glob.glob(searchname):
             filelist.append(file)
-        
+
         if len(filelist) > 0:
             if filelist[0] == fileName: pass
             else: fileName = filelist[0]
-            
-        
+
         if os.path.isfile(fileName):
             print('Found ORIGAMI-MS configuration file')
             f = open(fileName, 'r')
             pass
         else:
             print('Did not find any ORIGAMI-MS configuration files')
-            return parameters   
+            return parameters
 
-        for line in f:        
+        for line in f:
             if "method" in line:
                 try: parameters['method'] = str(line.split()[1])
                 except: pass
@@ -1492,46 +1481,45 @@ class OrigamiConfig:
             if "expPercentage" in line:
                 try: parameters['expPercentage'] = str2num(str(line.split()[1]))
                 except: pass
-            if "dx" in line: 
+            if "dx" in line:
                 try: parameters['dx'] = str2num(str(line.split()[1]))
                 except: pass
             if "SPVsList" in line:
                 try: parameters['spvList'] = str(line.split()[1::])
                 except: pass
-            if "CVsList" in line: 
+            if "CVsList" in line:
                 try: parameters['cvList'] = str(line.split()[1::])
                 except: pass
         f.close()
-        
+
         # Also check if there is a list file
         spvCVlist = None
         try:
-            spvPath = ''.join([path,"\spvCVlistOut.csv"])
+            spvPath = ''.join([path, "\spvCVlistOut.csv"])
         except:
             pass
         try:
-            spvPath = ''.join([path,'\cv.csv'])
+            spvPath = ''.join([path, '\cv.csv'])
         except:
             return parameters
-        
+
         try:
             print('Found collision voltage list.')
             self.origamiList = np.genfromtxt(spvPath, skip_header=1,
-                                             delimiter=',', 
+                                             delimiter=',',
                                              filling_values=0)
-        except: 
+        except:
             pass
-        
-        
+
         return parameters
-    
+
     def saveConfigXML(self, path, evt=None, verbose=True):
         """ Make and save config file in XML format """
-        
+
         buff = '<?xml version="1.0" encoding="utf-8" ?>\n'
         buff += '<!-- Please refrain from changing the parameter names - this will break things! -->\n'
         buff += '<origamiConfig version="1.0">\n\n'
-        
+
         # presets
         buff += '  <presets>\n'
         buff += '    <!-- User-specific parameters -->\n'
@@ -1540,13 +1528,13 @@ class OrigamiConfig:
         buff += '    <param name="institution" value="%s" type="unicode" />\n' % (self.userParameters['institution'])
         buff += '    <param name="instrument" value="%s" type="unicode" />\n' % (self.userParameters['instrument'])
         buff += '  </presets>\n\n'
-        
+
         # recent files
         buff += '  <recent>\n'
         for item in self.previousFiles:
             buff += '    <path value="%s" format="%s" />\n' % (self._escape(item['file_path']), item['file_type'])
         buff += '  </recent>\n\n'
-        
+
         # GUI presets
         buff += '  <presets_gui>\n'
         buff += '    <param name="logging" value="%s" type="bool" />\n' % (bool(self.logging))
@@ -1562,47 +1550,47 @@ class OrigamiConfig:
         buff += '    <param name="import_duplicate_action" value="%s" type="unicode" choices="%s" />\n' % (self.import_duplicate_action, ["override", "merge", "duplicate"])
         buff += '    <param name="import_duplicate_ask" value="%s" type="bool" />\n' % (bool(self.import_duplicate_ask))
         buff += '  </presets_gui>\n\n'
-        
+
         # Plot sizes in GUI
         buff += '  <presets_gui_plotSizes>\n'
         for key, __ in sorted(self._plotSettings.items()):
             ps = self._plotSettings[key]
-            buff += '    <param name="%s" left_axes="%.2f" bottom_axes="%.2f" width_axes="%.2f" height_axes="%.2f" left_save="%.2f" bottom_save="%.2f" width_save="%.2f" height_save="%.2f" width_resize="%.2f" height_resize="%.2f" width_gui="%.2f" height_gui="%.2f" default_name="%s" type="float" />\n' % (key, 
-                                                                                                                                                                                                                                                                                                                ps['axes_size'][0], 
-                                                                                                                                                                                                                                                                                                                ps['axes_size'][1], 
-                                                                                                                                                                                                                                                                                                                ps['axes_size'][2], 
-                                                                                                                                                                                                                                                                                                                ps['axes_size'][3], 
-                                                                                                                                                                                                                                                                                                                ps['save_size'][0], 
-                                                                                                                                                                                                                                                                                                                ps['save_size'][1], 
-                                                                                                                                                                                                                                                                                                                ps['save_size'][2], 
-                                                                                                                                                                                                                                                                                                                ps['save_size'][3], 
-                                                                                                                                                                                                                                                                                                                ps['resize_size'][0], 
+            buff += '    <param name="%s" left_axes="%.2f" bottom_axes="%.2f" width_axes="%.2f" height_axes="%.2f" left_save="%.2f" bottom_save="%.2f" width_save="%.2f" height_save="%.2f" width_resize="%.2f" height_resize="%.2f" width_gui="%.2f" height_gui="%.2f" default_name="%s" type="float" />\n' % (key,
+                                                                                                                                                                                                                                                                                                                ps['axes_size'][0],
+                                                                                                                                                                                                                                                                                                                ps['axes_size'][1],
+                                                                                                                                                                                                                                                                                                                ps['axes_size'][2],
+                                                                                                                                                                                                                                                                                                                ps['axes_size'][3],
+                                                                                                                                                                                                                                                                                                                ps['save_size'][0],
+                                                                                                                                                                                                                                                                                                                ps['save_size'][1],
+                                                                                                                                                                                                                                                                                                                ps['save_size'][2],
+                                                                                                                                                                                                                                                                                                                ps['save_size'][3],
+                                                                                                                                                                                                                                                                                                                ps['resize_size'][0],
                                                                                                                                                                                                                                                                                                                 ps['resize_size'][1],
-                                                                                                                                                                                                                                                                                                                ps['gui_size'][0], 
-                                                                                                                                                                                                                                                                                                                ps['gui_size'][1], 
+                                                                                                                                                                                                                                                                                                                ps['gui_size'][0],
+                                                                                                                                                                                                                                                                                                                ps['gui_size'][1],
                                                                                                                                                                                                                                                                                                                 ps['default_name'])
         buff += '  </presets_gui_plotSizes>\n\n'
-        
+
 #         buff += '  <presets_gui_peaklistPanel>\n'
 #         for item in self._peakListSettings:
 #             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
 #         buff += '  </presets_gui_peaklistPanel>\n\n'
-#         
+#
 #         buff += '  <presets_gui_textPanel>\n'
 #         for item in self._textlistSettings:
 #             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
 #         buff += '  </presets_gui_textPanel>\n\n'
-#         
+#
 #         buff += '  <presets_gui_multipleFilesPanel>\n'
 #         for item in self._multipleFilesSettings:
 #             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (str(item['name']), int(item['order']), int(item['width']), bool(item['show']))
 #         buff += '  </presets_gui_multipleFilesPanel>\n\n'
-# 
+#
 #         buff += '  <presets_gui_interactivePanel>\n'
 #         for item in self._interactiveSettings:
 #             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
 #         buff += '  </presets_gui_interactivePanel>\n\n'
-        
+
         # GUI settings
         buff += '  <presets_gui_aui_settings>\n'
         for key in sorted(self._windowSettings.keys()):
@@ -1613,9 +1601,9 @@ class OrigamiConfig:
             else:
                 buff += '    <param title="%s" gripper="%s" orientation="%s" close_button="%s" left_position="%s" top_position="%s" left_dockable="%s" right_dockable="%s" top_dockable="%s" bottom_dockable="%s" show="%s" type="mixed" />\n' % (
                     item['title'], bool(item['gripper']), item['orientation'], bool(item['close_button']), bool(item['left_position']), bool(item['top_position']), bool(item['left_dockable']),
-                    bool(item['right_dockable']), bool(item['top_dockable']), bool(item['bottom_dockable']), bool(item['show'])) 
+                    bool(item['right_dockable']), bool(item['top_dockable']), bool(item['bottom_dockable']), bool(item['show']))
         buff += '  </presets_gui_aui_settings>\n\n'
-                
+
         # Plot presets - zoom
         buff += '  <plot_presets_zoom>\n'
         buff += '    <param name="_plots_grid_show" value="%s" type="bool" />\n' % (bool(self._plots_grid_show))
@@ -1631,7 +1619,7 @@ class OrigamiConfig:
         buff += '    <param name="_plots_zoom_line_width" value="%.2f" type="float" />\n' % (float(self._plots_zoom_line_width))
         buff += '    <param name="_plots_zoom_crossover" value="%.2f" type="float" />\n' % (float(self._plots_zoom_crossover))
         buff += '  </plot_presets_zoom>\n\n'
-        
+
         # Plot presets - annotations
         buff += '  <plot_presets_annotations>\n'
         buff += '    <param name="annotation_charge_std_dev" value="%.2f" type="float" />\n' % (float(self.annotation_charge_std_dev))
@@ -1650,7 +1638,7 @@ class OrigamiConfig:
         buff += '    <param name="annotation_patch_transparency" value="%.2f" type="float" />\n' % (float(self.annotation_patch_transparency))
         buff += '    <param name="annotation_patch_width" value="%.2f" type="float" />\n' % (float(self.annotation_patch_width))
         buff += '  </plot_presets_annotations>\n\n'
-        
+
         # Custom colors
         buff += '  <custom_colors>\n'
         for i in self.customColors:
@@ -1658,14 +1646,14 @@ class OrigamiConfig:
             except: color_text = str(self.customColors[i])
             buff += '    <param name="{}" value="{}" type="color" />\n'.format('_'.join(["color", str(i)]), color_text)
         buff += '  </custom_colors>\n\n'
-        
+
         # Process presets - overlay
         buff += '  <process_presets_overlay>\n'
         buff += '    <param name="overlay_defaultMask" value="%.2f" type="float" />\n' % (float(self.overlay_defaultMask))
         buff += '    <param name="overlay_defaultAlpha" value="%.2f" type="float" />\n' % (float(self.overlay_defaultAlpha))
         buff += '    <param name="overlay_smooth1DRT" value="%.2f" type="float" />\n' % (float(self.overlay_smooth1DRT))
         buff += '  </process_presets_overlay>\n\n'
-        
+
         # Process - extract
         buff += '  <process_presets_extract>\n'
         buff += '    <param name="extract_massSpectra" value="%s" type="bool" />\n' % (bool(self.extract_massSpectra))
@@ -1679,7 +1667,7 @@ class OrigamiConfig:
         buff += '    <param name="extract_dtStart" value="%.2f" type="float" />\n' % (float(self.extract_dtStart))
         buff += '    <param name="extract_dtEnd" value="%.2f" type="float" />\n' % (float(self.extract_dtEnd))
         buff += '  </process_presets_extract>\n\n'
-        
+
         # Process - origami
         buff += '  <process_presets_origami>\n'
         buff += '    <param name="origami_acquisition" value="%s" type="unicode" choices="%s" />\n' % (self.origami_acquisition, self.origami_acquisition_choices)
@@ -1692,7 +1680,7 @@ class OrigamiConfig:
         buff += '    <param name="origami_exponentialPercentage" value="%.2f" type="float" />\n' % (float(self.origami_exponentialPercentage))
         buff += '    <param name="origami_exponentialIncrement" value="%.2f" type="float" />\n' % (float(self.origami_exponentialIncrement))
         buff += '  </process_presets_origami>\n\n'
-        
+
         # Process - mass spectrum
         buff += '  <process_presets_unidec>\n'
         buff += '    <!-- Pre-processing parameters -->\n'
@@ -1733,7 +1721,7 @@ class OrigamiConfig:
         buff += '    <param name="unidec_plot_colormap" value="%s" type="unicode" />\n' % (str(self.unidec_plot_colormap))
         buff += '    <param name="unidec_plot_palette" value="%s" type="unicode" />\n' % (str(self.unidec_plot_palette))
         buff += '  </process_presets_unidec>\n\n'
-        
+
         # Process - peak fitting
         buff += '  <process_presets_fitting>\n'
         buff += '    <param name="fit_type" value="%s" type="unicode" choices="%s" />\n' % (self.fit_type, self.fit_type_choices)
@@ -1752,7 +1740,7 @@ class OrigamiConfig:
         buff += '    <param name="fit_highRes_threshold" value="%.2f" type="float" />\n' % (float(self.fit_highRes_threshold))
         buff += '    <param name="fit_highRes_width" value="%.2f" type="float" />\n' % (float(self.fit_highRes_width))
         buff += '  </process_presets_fitting>\n\n'
-        
+
         buff += '  <process_presets_binning>\n'
         buff += '    <param name="ms_enable_in_RT" value="%s" type="bool" />\n' % (bool(self.ms_enable_in_RT))
         buff += '    <param name="ms_enable_in_MML_start" value="%s" type="bool" />\n' % (bool(self.ms_enable_in_MML_start))
@@ -1768,7 +1756,7 @@ class OrigamiConfig:
         buff += '    <param name="ms_process_threshold" value="%s" type="bool" />\n' % (bool(self.ms_process_threshold))
         buff += '    <param name="ms_process_normalize" value="%s" type="bool" />\n' % (bool(self.ms_process_normalize))
         buff += '  </process_presets_binning>\n\n'
-        
+
         # Process - mass spectrum
         buff += '  <process_presets_ms>\n'
         buff += '    <param name="ms_normalize" value="%s" type="bool" />\n' % (bool(self.ms_normalize))
@@ -1779,7 +1767,7 @@ class OrigamiConfig:
         buff += '    <param name="ms_smooth_sigma" value="%.2f" type="float" />\n' % (float(self.ms_smooth_sigma))
         buff += '    <param name="ms_threshold" value="%.2f" type="float" />\n' % (float(self.ms_threshold))
         buff += '  </process_presets_ms>\n\n'
-        
+
         # Plot presets - compare mass spectra
         buff += '  <process_compare_mass_spectra>\n'
         buff += '    <param name="lineColour_MS1" value="%s" type="color" />\n' % (str(self.lineColour_MS1))
@@ -1789,7 +1777,7 @@ class OrigamiConfig:
         buff += '    <param name="lineStyle_MS2" value="%s" type="unicode" choices="%s" />\n' % (self.lineStyle_MS2, self.lineStylesList)
         buff += '    <param name="lineTransparency_MS2" value="%.2f" type="float" />\n' % (float(self.lineTransparency_MS2))
         buff += '  </process_compare_mass_spectra>\n\n'
-        
+
         # Process - plot 2D
         buff += '  <process_presets_uvpd>\n'
         buff += '    <param name="uvpd_peak_show_markers" value="%s" type="bool" />\n' % (bool(self.uvpd_peak_show_markers))
@@ -1801,7 +1789,7 @@ class OrigamiConfig:
         buff += '    <param name="uvpd_peak_buffer_width" value="%.2f" type="float" />\n' % (float(self.uvpd_peak_buffer_width))
         buff += '    <param name="uvpd_peak_finding_threshold" value="%.2f" type="float" />\n' % (float(self.uvpd_peak_finding_threshold))
         buff += '  </process_presets_uvpd>\n\n'
-        
+
         # Process - UVPD
         buff += '  <process_presets_plot2D>\n'
         buff += '    <param name="plot2D_normalize" value="%s" type="bool" />\n' % (bool(self.plot2D_normalize))
@@ -1812,7 +1800,7 @@ class OrigamiConfig:
         buff += '    <param name="plot2D_smooth_sigma" value="%.2f" type="float" />\n' % (float(self.plot2D_smooth_sigma))
         buff += '    <param name="plot2D_threshold" value="%.2f" type="float" />\n' % (float(self.plot2D_threshold))
         buff += '  </process_presets_plot2D>\n\n'
-        
+
         # Plot presets - rmsd
         buff += '  <plot_presets_rmsd>\n'
         buff += '    <param name="rmsd_position" value="%s" type="unicode" choices="%s" />\n' % (self.rmsd_position, self.rmsd_position_choices)
@@ -1830,7 +1818,7 @@ class OrigamiConfig:
         buff += '    <param name="rmsd_lineHatch" value="%s" type="unicode" choices="%s" />\n' % (self.rmsd_lineHatch, self.lineHatchList)
         buff += '    <param name="rmsd_hspace" value="%.2f" type="float" />\n' % (float(self.rmsd_hspace))
         buff += '  </plot_presets_rmsd>\n\n'
-        
+
         # Plot presets - waterfall
         buff += '  <plot_presets_waterfall>\n'
         buff += '    <param name="waterfall" value="%s" type="bool" />\n' % (bool(self.waterfall))
@@ -1854,7 +1842,7 @@ class OrigamiConfig:
         buff += '    <param name="waterfall_label_fontSize" value="%.2f" type="float" />\n' % (float(self.waterfall_label_fontSize))
         buff += '    <param name="waterfall_label_fontWeight" value="%s" type="bool" />\n' % (bool(self.waterfall_label_fontWeight))
         buff += '  </plot_presets_waterfall>\n\n'
-        
+
         # Plot presets - violin
         buff += '  <plot_presets_violin>\n'
         buff += '    <param name="violin_normalize" value="%s" type="bool" />\n' % (bool(self.violin_normalize))
@@ -1870,7 +1858,7 @@ class OrigamiConfig:
         buff += '    <param name="violin_lineWidth" value="%.2f" type="float" />\n' % (float(self.violin_lineWidth))
         buff += '    <param name="violin_lineStyle" value="%s" type="unicode" choices="%s" />\n' % (self.violin_lineStyle, self.lineStylesList)
         buff += '  </plot_presets_violin>\n\n'
-        
+
         # Plot presets - bar
         buff += '  <plot_presets_bar>\n'
         buff += '    <param name="bar_sameAsFill" value="%s" type="bool" />\n' % (bool(self.bar_sameAsFill))
@@ -1879,7 +1867,7 @@ class OrigamiConfig:
         buff += '    <param name="bar_lineWidth" value="%.2f" type="float" />\n' % (float(self.bar_lineWidth))
         buff += '    <param name="bar_edge_color" value="%s" type="color" />\n' % (str(self.bar_edge_color))
         buff += '  </plot_presets_bar>\n\n'
-        
+
         # Plot presets - legend
         buff += '  <plot_presets_legend>\n'
         buff += '    <param name="legend" value="%s" type="bool" />\n' % (bool(self.legend))
@@ -1894,7 +1882,7 @@ class OrigamiConfig:
         buff += '    <param name="legendAlpha" value="%.2f" type="float" />\n' % (float(self.legendAlpha))
         buff += '    <param name="legendLineWidth" value="%.2f" type="float" />\n' % (float(self.legendLineWidth))
         buff += '  </plot_presets_legend>\n\n'
-        
+
         # Plot presets - colorbar
         buff += '  <plot_presets_colorbar>\n'
         buff += '    <param name="colorbar" value="%s" type="bool" />\n' % (bool(self.colorbar))
@@ -1904,8 +1892,7 @@ class OrigamiConfig:
         buff += '    <param name="colorbarPad" value="%.2f" type="float" />\n' % (float(self.colorbarPad))
         buff += '    <param name="colorbarLabelSize" value="%.2f" type="float" />\n' % (float(self.colorbarLabelSize))
         buff += '  </plot_presets_colorbar>\n\n'
-        
-        
+
         # Plot presets - 1D plots
         buff += '  <plot_presets_plot_1D>\n'
         buff += '    <param name="lineColour_1D" value="%s" type="color" />\n' % (str(self.lineColour_1D))
@@ -1940,9 +1927,9 @@ class OrigamiConfig:
         buff += '    <param name="tickLabels_top_1D" value="%s" type="bool" />\n' % (bool(self.tickLabels_top_1D))
         buff += '    <param name="tickLabels_bottom_1D" value="%s" type="bool" />\n' % (bool(self.tickLabels_bottom_1D))
         buff += '  </plot_presets_plot_1D>\n\n'
-        
+
         # Plot presets - 2D plots
-        buff += '  <plot_presets_plot_2D>\n'        
+        buff += '  <plot_presets_plot_2D>\n'
         buff += '    <param name="interpolation" value="%s" type="unicode" choices="%s" />\n' % (self.interpolation, self.comboInterpSelectChoices)
         buff += '    <param name="plotType" value="%s" type="unicode" choices="%s" />\n' % (self.plotType, self.imageType2D)
         buff += '    <param name="currentCmap" value="%s" type="unicode" choices="%s" />\n' % (self.currentCmap, self.cmaps2)
@@ -1973,9 +1960,9 @@ class OrigamiConfig:
         buff += '    <param name="tickLabels_top_2D" value="%s" type="bool" />\n' % (bool(self.tickLabels_top_2D))
         buff += '    <param name="tickLabels_bottom_2D" value="%s" type="bool" />\n' % (bool(self.tickLabels_bottom_2D))
         buff += '  </plot_presets_plot_2D>\n\n'
-        
+
         # Plot presets - 3D plots
-        buff += '  <plot_presets_plot_3D>\n'      
+        buff += '  <plot_presets_plot_3D>\n'
         buff += '    <param name="showGrids_3D" value="%s" type="bool" />\n' % (bool(self.showGrids_3D))
         buff += '    <param name="shade_3D" value="%s" type="bool" />\n' % (bool(self.shade_3D))
         buff += '    <param name="ticks_3D" value="%s" type="bool" />\n' % (bool(self.ticks_3D))
@@ -1988,7 +1975,7 @@ class OrigamiConfig:
         buff += '    <param name="markerSize_3D" value="%.2f" type="float" />\n' % (float(self.markerSize_3D))
         buff += '    <param name="markerShape_3D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShape_3D, self.markerShapeDict.keys())
         buff += '    <param name="markerShapeTXT_3D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShapeTXT_3D, self.markerShapeDict.keys())
-        buff += '    <param name="markerEdgeColor_3D" value="%s" type="color" />\n' % (str(self.markerEdgeColor_3D))        
+        buff += '    <param name="markerEdgeColor_3D" value="%s" type="color" />\n' % (str(self.markerEdgeColor_3D))
         buff += '    <param name="annotationFontWeight_3D" value="%s" type="bool" />\n' % (bool(self.annotationFontWeight_3D))
         buff += '    <param name="annotationFontSize_3D" value="%.2f" type="float" />\n' % (float(self.annotationFontSize_3D))
         buff += '    <param name="tickFontWeight_3D" value="%s" type="bool" />\n' % (bool(self.tickFontWeight_3D))
@@ -1998,7 +1985,7 @@ class OrigamiConfig:
         buff += '    <param name="titleFontWeight_3D" value="%s" type="bool" />\n' % (bool(self.titleFontWeight_3D))
         buff += '    <param name="titleFontSize_3D" value="%.2f" type="float" />\n' % (float(self.titleFontSize_3D))
         buff += '  </plot_presets_plot_3D>\n\n'
-        
+
         buff += '  <exportParams>\n'
         buff += '    <param name="dpi" value="%d" type="int" />\n' % (int(self.dpi))
         buff += '    <param name="imageWidthInch" value="%d" type="int" />\n' % (int(self.imageWidthInch))
@@ -2009,7 +1996,7 @@ class OrigamiConfig:
         buff += '    <param name="saveDelimiterTXT" value="%s" type="unicode" choices="%s" />\n' % (self.saveDelimiterTXT, self.textOutputDict.keys())
         buff += '    <param name="normalizeMultipleMS" value="%s" type="bool" />\n' % (bool(self.normalizeMultipleMS))
         buff += '  </exportParams>\n\n'
-        
+
         buff += '  <presets_interactive_toolsets>\n'
         buff += '    <!-- wheelType_choices="%s" -->\n' % self.interactive_wheelZoom_choices
         buff += '    <!-- activeDrag_choices="%s" -->\n' % self.interactive_activeDragTools_choices
@@ -2019,30 +2006,30 @@ class OrigamiConfig:
             ts = self.interactiveToolsOnOff[key]
             buff += '    <param name="%s" hover="%s" save="%s" pan="%s" boxzoom="%s" boxzoom_horizontal="%s" boxzoom_vertical="%s" crosshair="%s" reset="%s" wheel="%s" wheelType="%s" activeDrag="%s" activeWheel="%s" activeInspect="%s" type="mixed" />\n' % (key, bool(ts['hover']), bool(ts['save']), bool(ts['pan']), bool(ts['boxzoom']), bool(ts.get('boxzoom_horizontal', True)), bool(ts.get('boxzoom_vertical', False)), bool(ts['crosshair']), bool(ts['reset']), bool(ts['wheel']), ts['wheelType'], ts['activeDrag'], ts['activeWheel'], ts['activeInspect'])
         buff += '  </presets_interactive_toolsets>\n\n'
-        
+
         buff += '  <presets_interactive_pageLayouts>\n'
         buff += '    <!-- layout_choices="%s" -->\n' % self.interactive_pageLayout_choices
         for key, __ in sorted(self.pageDict.items()):
             pl = self.pageDict[key]
-            buff += '    <param page_name="%s" name="%s" layout="%s" rows="%s" columns="%s" grid_share_tools="%s" type="mixed" />\n' % (key,  
+            buff += '    <param page_name="%s" name="%s" layout="%s" rows="%s" columns="%s" grid_share_tools="%s" type="mixed" />\n' % (key,
                                                                                                                                                                   pl['name'],
-                                                                                                                                                                  pl['layout'], 
-                                                                                                                                                                  pl.get('rows', None), 
+                                                                                                                                                                  pl['layout'],
+                                                                                                                                                                  pl.get('rows', None),
                                                                                                                                                                   pl['columns'],
                                                                                                                                                                   pl.get('grid_share_tools', True))
         buff += '  </presets_interactive_pageLayouts>\n\n'
-        
+
         buff += '  <presets_interactive_gui>\n'
         buff += '    <!-- GENERAL PARAMETERS -->\n'
         buff += '    <param name="interactive_override_defaults" value="%s" type="bool" />\n' % (bool(self.interactive_override_defaults))
         buff += '    <param name="openInteractiveOnSave" value="%s" type="bool" />\n' % (bool(self.openInteractiveOnSave))
         buff += '    <param name="interactive_cvd_cmap" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_cvd_cmap), self.interactive_cvd_cmap_choices)
-        
+
         buff += '    <!-- JAVA SCRIPT PARAMETERS -->\n'
         buff += '    <param name="interactive_custom_scripts" value="%s" type="bool" />\n' % (bool(self.interactive_custom_scripts))
         buff += '    <param name="interactive_custom_events" value="%s" type="bool" />\n' % (bool(self.interactive_custom_events))
         buff += '    <param name="interactive_custom_position" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_custom_position), ["left", "right", "below", "above"])
-        
+
         buff += '    <!-- FRAME PARAMETERS -->\n'
         buff += '    <param name="figHeight" value="%d" type="int" />\n' % (int(self.figHeight))
         buff += '    <param name="figWidth" value="%d" type="int" />\n' % (int(self.figWidth))
@@ -2056,15 +2043,15 @@ class OrigamiConfig:
         buff += '    <param name="interactive_border_min_bottom" value="%d" type="int" />\n' % (int(self.interactive_border_min_bottom))
         buff += '    <param name="layoutModeDoc" value="%s" type="unicode" />\n' % (str(self.layoutModeDoc))
         buff += '    <param name="interactive_grid_line" value="%s" type="bool" />\n' % (bool(self.interactive_grid_line))
-        buff += '    <param name="interactive_background_color" value="%s" type="color" />\n' % (str(self.interactive_background_color))      
-        buff += '    <param name="interactive_grid_line_color" value="%s" type="color" />\n' % (str(self.interactive_grid_line_color)) 
-             
+        buff += '    <param name="interactive_background_color" value="%s" type="color" />\n' % (str(self.interactive_background_color))
+        buff += '    <param name="interactive_grid_line_color" value="%s" type="color" />\n' % (str(self.interactive_grid_line_color))
+
         buff += '    <!-- TOOLS PARAMETERS -->\n'
         buff += '    <param name="toolsLocation" value="%s" type="unicode" />\n' % (str(self.toolsLocation))
         buff += '    <param name="activeDrag" value="%s" type="unicode" />\n' % (str(self.activeDrag))
         buff += '    <param name="activeWheel" value="%s" type="unicode" />\n' % (str(self.activeWheel))
         buff += '    <param name="activeInspect" value="%s" type="unicode" />\n' % (str(self.activeInspect))
-        
+
         buff += '    <!-- OVERLAY PARAMETERS -->\n'
         buff += '    <param name="plotLayoutOverlay" value="%s" type="unicode" />\n' % (str(self.plotLayoutOverlay))
         buff += '    <param name="linkXYaxes" value="%s" type="bool" />\n' % (bool(self.linkXYaxes))
@@ -2074,7 +2061,7 @@ class OrigamiConfig:
         buff += '    <param name="interactive_grid_xpos" value="%.2f" type="float" />\n' % (float(self.interactive_grid_xpos))
         buff += '    <param name="interactive_grid_ypos" value="%.2f" type="float" />\n' % (float(self.interactive_grid_ypos))
         buff += '    <param name="interactive_grid_label_color" value="%s" type="color" />\n' % (str(self.interactive_grid_label_color))
-        
+
         buff += '    <!-- FONT PARAMETERS -->\n'
         buff += '    <param name="interactive_title_fontSize" value="%d" type="int" />\n' % (int(self.interactive_title_fontSize))
         buff += '    <param name="interactive_title_weight" value="%s" type="bool" />\n' % (bool(self.interactive_title_weight))
@@ -2086,7 +2073,7 @@ class OrigamiConfig:
         buff += '    <param name="interactive_annotation_color" value="%s" type="color" />\n' % (str(self.interactive_annotation_color))
         buff += '    <param name="interactive_annotation_background_color" value="%s" type="color" />\n' % (str(self.interactive_annotation_background_color))
         buff += '    <param name="interactive_annotation_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_annotation_alpha))
-        
+
         buff += '    <!-- COLORBAR PARAMETERS -->\n'
         buff += '    <param name="interactive_colorbar" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar))
         buff += '    <param name="interactive_colorbar_useScientific" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_useScientific))
@@ -2105,40 +2092,40 @@ class OrigamiConfig:
         buff += '    <param name="interactive_colorbar_title_weight" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_title_weight))
         buff += '    <param name="interactive_colorbar_label_weight" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_label_weight))
         buff += '    <param name="interactive_colorbar_modify_ticks" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_modify_ticks))
-        
+
         buff += '    <!-- TICK PARAMETERS -->\n'
         buff += '    <param name="interactive_tick_precision" value="%d" type="int" />\n' % (int(self.interactive_tick_precision))
-        buff += '    <param name="interactive_tick_useScientific" value="%s" type="bool" />\n' % (bool(self.interactive_tick_useScientific)) 
-        
+        buff += '    <param name="interactive_tick_useScientific" value="%s" type="bool" />\n' % (bool(self.interactive_tick_useScientific))
+
         buff += '    <!-- LEGEND PARAMETERS -->\n'
-        buff += '    <param name="interactive_legend" value="%s" type="bool" />\n' % (bool(self.interactive_legend)) 
+        buff += '    <param name="interactive_legend" value="%s" type="bool" />\n' % (bool(self.interactive_legend))
         buff += '    <param name="interactive_legend_click_policy" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_legend_click_policy), self.interactive_legend_click_policy_choices)
         buff += '    <param name="interactive_legend_location" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_legend_location), self.interactive_legend_location_choices)
         buff += '    <param name="interactive_legend_orientation" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_legend_orientation), self.interactive_legend_orientation_choices)
         buff += '    <param name="interactive_legend_mute_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_legend_mute_alpha))
         buff += '    <param name="interactive_legend_background_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_legend_background_alpha))
         buff += '    <param name="interactive_legend_font_size" value="%.2f" type="float" />\n' % (float(self.interactive_legend_font_size))
-        
+
         buff += '    <!-- LINE PARAMETERS -->\n'
-        buff += '    <param name="hoverVline" value="%s" type="bool" />\n' % (bool(self.hoverVline)) 
+        buff += '    <param name="hoverVline" value="%s" type="bool" />\n' % (bool(self.hoverVline))
         buff += '    <param name="interactive_line_style" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_line_style), self.interactive_line_style_choices)
         buff += '    <param name="interactive_line_width" value="%.2f" type="float" />\n' % (float(self.interactive_line_width))
-        buff += '    <param name="interactive_line_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_line_alpha)) 
+        buff += '    <param name="interactive_line_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_line_alpha))
         buff += '    <param name="interactive_line_color" value="%s" type="color" />\n' % (str(self.interactive_line_color))
-        buff += '    <param name="interactive_line_shade_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_line_shade_alpha)) 
-        buff += '    <param name="interactive_line_shade_under" value="%s" type="bool" />\n' % (bool(self.interactive_line_shade_under)) 
-        
+        buff += '    <param name="interactive_line_shade_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_line_shade_alpha))
+        buff += '    <param name="interactive_line_shade_under" value="%s" type="bool" />\n' % (bool(self.interactive_line_shade_under))
+
         buff += '    <!-- LINEARIZE PARAMETERS -->\n'
-        buff += '    <param name="interactive_ms_linearize" value="%s" type="bool" />\n' % (bool(self.hoverVline)) 
+        buff += '    <param name="interactive_ms_linearize" value="%s" type="bool" />\n' % (bool(self.hoverVline))
         buff += '    <param name="interactive_ms_binSize" value="%.2f" type="float" />\n' % (float(self.interactive_ms_binSize))
-        
+
         buff += '    <!-- BAR PARAMETERS -->\n'
         buff += '    <param name="interactive_bar_sameAsFill" value="%s" type="bool" />\n' % (bool(self.interactive_bar_sameAsFill))
         buff += '    <param name="interactive_bar_width" value="%.2f" type="float" />\n' % (float(self.interactive_bar_width))
         buff += '    <param name="interactive_bar_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_bar_alpha))
         buff += '    <param name="interactive_bar_lineWidth" value="%.2f" type="float" />\n' % (float(self.interactive_bar_lineWidth))
         buff += '    <param name="interactive_bar_edge_color" value="%s" type="color" />\n' % (str(self.interactive_bar_edge_color))
-        
+
         buff += '    <!-- SCATTER PARAMETERS -->\n'
         buff += '    <param name="interactive_scatter_sameAsFill" value="%s" type="bool" />\n' % (bool(self.interactive_scatter_sameAsFill))
         buff += '    <param name="interactive_scatter_size" value="%d" type="int" />\n' % (int(self.interactive_scatter_size))
@@ -2146,11 +2133,11 @@ class OrigamiConfig:
         buff += '    <param name="interactive_scatter_edge_color" value="%s" type="color" />\n' % (str(self.interactive_scatter_edge_color))
         buff += '    <param name="interactive_scatter_marker" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_scatter_marker), self.interactive_scatter_marker_choices)
         buff += '    <param name="interactive_scatter_lineWidth" value="%.2f" type="float" />\n' % (float(self.interactive_scatter_lineWidth))
-        
+
         buff += '    <!-- ANNOTATIONS PARAMETERS -->\n'
-        buff += '    <param name="interactive_ms_annotations" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations)) 
-        buff += '    <param name="interactive_ms_annotations_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_color))      
-        buff += '    <param name="interactive_ms_annotations_line_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_line_color))      
+        buff += '    <param name="interactive_ms_annotations" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations))
+        buff += '    <param name="interactive_ms_annotations_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_color))
+        buff += '    <param name="interactive_ms_annotations_line_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_line_color))
         buff += '    <param name="interactive_ms_annotations_transparency" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_transparency))
         buff += '    <param name="interactive_ms_annotations_fontWeight" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations_fontWeight))
         buff += '    <param name="interactive_ms_annotations_highlight" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations_highlight))
@@ -2160,16 +2147,16 @@ class OrigamiConfig:
         buff += '    <param name="interactive_ms_annotations_fontSize" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_fontSize))
         buff += '    <param name="interactive_ms_annotations_rotation" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_rotation))
         buff += '    <param name="interactive_ms_annotations_label_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_label_color))
-        
+
         buff += '    <!-- WATERFALL PARAMETERS -->\n'
         buff += '    <param name="interactive_waterfall_shade_under" value="%s" type="bool" />\n' % (bool(self.interactive_waterfall_shade_under))
         buff += '    <param name="interactive_waterfall_shade_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_waterfall_shade_alpha))
         buff += '    <param name="interactive_waterfall_increment" value="%.2f" type="float" />\n' % (float(self.interactive_waterfall_increment))
-        
+
         buff += '  </presets_interactive_gui>\n\n'
 
         buff += '</origamiConfig>'
-        
+
         # save config file
         try:
             save = file(path, 'w')
@@ -2178,7 +2165,7 @@ class OrigamiConfig:
             if verbose:
                 print('Saved configuration file in {}'.format(path))
             return True
-        except: 
+        except:
             return False
 
     def loadConfigXML(self, path, evt=None):
@@ -2193,7 +2180,7 @@ class OrigamiConfig:
             print(e)
             print('Syntax error - please load XML config file')
             return
-        
+
         presetsTags = document.getElementsByTagName('presets')
         if presetsTags:
             xmlTags = presetsTags[0].getElementsByTagName('param')
@@ -2203,7 +2190,7 @@ class OrigamiConfig:
                 value = item.getAttribute('value')
                 type = item.getAttribute('type')
                 # Get value of proper type
-                value  = self.setProperType(value=value, type=type)
+                value = self.setProperType(value=value, type=type)
                 # Set attribute
                 setattr(self, name, value)
         # Update user parameters
@@ -2211,21 +2198,21 @@ class OrigamiConfig:
         self.userParameters['contact'] = self.contact
         self.userParameters['institution'] = self.institution
         self.userParameters['instrument'] = self.instrument
-        
+
         tagList = ['process_presets_overlay', 'process_presets_binning',
                    'process_compare_mass_spectra', 'process_presets_uvpd',
                    'process_presets_origami', 'process_presets_fitting',
                    'process_presets_unidec', 'process_presets_ms', 'process_presets_plot2D',
-                   'process_presets_extract', 'plot_presets_legend', 
-                   'plot_presets_colorbar', 'plot_presets_plot_1D', 
+                   'process_presets_extract', 'plot_presets_legend',
+                   'plot_presets_colorbar', 'plot_presets_plot_1D',
                    'plot_presets_plot_2D', 'plot_presets_plot_3D',
                    'plot_presets_rmsd', 'plot_presets_violin',
                    'plot_presets_bar',
-                   'plot_presets_waterfall','plot_presets_zoom',
-                   'plot_presets_annotations', 
-                   'presets_gui', 'exportParams','presets_interactive_gui'
+                   'plot_presets_waterfall', 'plot_presets_zoom',
+                   'plot_presets_annotations',
+                   'presets_gui', 'exportParams', 'presets_interactive_gui'
                    ]
-         
+
         for tag in tagList:
             mainTags = document.getElementsByTagName(tag)
             if mainTags:
@@ -2236,10 +2223,10 @@ class OrigamiConfig:
                     value = item.getAttribute('value')
                     type = item.getAttribute('type')
                     # Get value of proper type
-                    value  = self.setProperType(value=value, type=type)
+                    value = self.setProperType(value=value, type=type)
                     # Set attribute
                     setattr(self, name, value)
-                    
+
         mainTags = document.getElementsByTagName('custom_colors')
         if mainTags:
             xmlTags = mainTags[0].getElementsByTagName('param')
@@ -2252,7 +2239,7 @@ class OrigamiConfig:
                 value = item.getAttribute('value')
                 type = item.getAttribute('type')
                 # Get value of proper type
-                value  = self.setProperType(value=value, type=type)
+                value = self.setProperType(value=value, type=type)
                 # Set attribute
                 custom_colors[name] = value
             self.customColors = custom_colors
@@ -2266,7 +2253,7 @@ class OrigamiConfig:
                     self.previousFiles.append({'file_path':pathTag.getAttribute('value'),
                                                'file_type':pathTag.getAttribute('format')
                                                })
- 
+
         plotSizesTags = document.getElementsByTagName('presets_gui_plotSizes')
         if plotSizesTags:
             xmlTags = plotSizesTags[0].getElementsByTagName('param')
@@ -2274,30 +2261,30 @@ class OrigamiConfig:
                 # Get values
                 name = item.getAttribute('name')
                 axes_size, save_size, resize_size, gui_size = [], [], [], []
-                for sizer in ['left_axes', 'bottom_axes', 'width_axes', 'height_axes']:                              
+                for sizer in ['left_axes', 'bottom_axes', 'width_axes', 'height_axes']:
                     value = item.getAttribute(sizer)
                     type = item.getAttribute('type')
                     # Get value of proper type
-                    value  = self.setProperType(value=value, type=type)
+                    value = self.setProperType(value=value, type=type)
                     axes_size.append(value)
-                for sizer in ['left_save', 'bottom_save', 'width_save', 'height_save']:                              
+                for sizer in ['left_save', 'bottom_save', 'width_save', 'height_save']:
                     value = item.getAttribute(sizer)
                     type = item.getAttribute('type')
                     # Get value of proper type
-                    value  = self.setProperType(value=value, type=type)
+                    value = self.setProperType(value=value, type=type)
                     save_size.append(value)
-                for sizer in ['width_resize', 'height_resize']:                              
+                for sizer in ['width_resize', 'height_resize']:
                     value = item.getAttribute(sizer)
                     type = item.getAttribute('type')
                     # Get value of proper type
-                    value  = self.setProperType(value=value, type=type)
+                    value = self.setProperType(value=value, type=type)
                     resize_size.append(value)
-                for sizer in ['width_gui', 'height_gui']:                              
+                for sizer in ['width_gui', 'height_gui']:
                     value = item.getAttribute(sizer)
                     type = item.getAttribute('type')
                     # Get value of proper type
                     try:
-                        value  = self.setProperType(value=value, type=type)
+                        value = self.setProperType(value=value, type=type)
                         gui_size.append(value)
                     except ValueError:
                         gui_size = self._plotSettings[name]['gui_size']
@@ -2305,7 +2292,7 @@ class OrigamiConfig:
                     value = item.getAttribute(sizer)
                     type = "unicode"
                     # Get value of proper type
-                    value  = self.setProperType(value=value, type=type)
+                    value = self.setProperType(value=value, type=type)
                     default_name = value
                 # Set attribute
                 self._plotSettings[name]['axes_size'] = axes_size
@@ -2318,7 +2305,6 @@ class OrigamiConfig:
 #                                             'resize_size':resize_size,
 #                                             'gui_size':gui_size,
 #                                             'default_name':default_name}
-                
 
         interactiveTags = document.getElementsByTagName('presets_interactive_toolsets')
         if interactiveTags:
@@ -2327,31 +2313,30 @@ class OrigamiConfig:
                 # Get values
                 name = item.getAttribute('name')
                 tools_dict = {}
-                for key_item in ['hover','save','pan', 
-                                 'boxzoom','crosshair',
+                for key_item in ['hover', 'save', 'pan',
+                                 'boxzoom', 'crosshair',
                                  'reset', 'wheel', 'boxzoom_vertical',
                                  'boxzoom_horizontal']:
                     try:
                         value = item.getAttribute(key_item)
                         # Get value of proper type
-                        value  = self.setProperType(value=value, type='bool')
+                        value = self.setProperType(value=value, type='bool')
                         tools_dict[key_item] = value
                     except ValueError:
                         pass
-                for key_item in ['wheelType','activeDrag','activeWheel','activeInspect']:                              
+                for key_item in ['wheelType', 'activeDrag', 'activeWheel', 'activeInspect']:
                     value = item.getAttribute(key_item)
                     # Get value of proper type
-                    value  = self.setProperType(value=value, type='str')
+                    value = self.setProperType(value=value, type='str')
                     tools_dict[key_item] = value
-                    
+
                 if "boxzoom_vertical" not in tools_dict:
                     tools_dict['boxzoom_vertical'] = False
-                    
+
                 if "boxzoom_horizontal" not in tools_dict:
                     tools_dict['boxzoom_horizontal'] = True
                 self.interactiveToolsOnOff[name] = tools_dict
-                
-                
+
         interactiveTags = document.getElementsByTagName('presets_interactive_pageLayouts')
         if interactiveTags:
             xmlTags = interactiveTags[0].getElementsByTagName('param')
@@ -2359,15 +2344,15 @@ class OrigamiConfig:
                 # Get values
                 page_name = item.getAttribute('page_name')
                 page_dict = {}
-                for key_item in ['name','layout','rows','columns', 'grid_share_tools', 
+                for key_item in ['name', 'layout', 'rows', 'columns', 'grid_share_tools',
 #                                  'header', 'footnote'
-                                 ]:                            
+                                 ]:
                     value = item.getAttribute(key_item)
                     # Get value of proper type
-                    value  = self.setProperType(value=value, type='str')
-                    if value in ['None', 'none'] and key_item in ['rows','columns']: 
+                    value = self.setProperType(value=value, type='str')
+                    if value in ['None', 'none'] and key_item in ['rows', 'columns']:
                         value = None
-                    elif key_item in ['rows','columns']: 
+                    elif key_item in ['rows', 'columns']:
                         value = int(value)
                     elif key_item in ["grid_share_tools"]:
                         value = str2bool(value)
@@ -2375,13 +2360,12 @@ class OrigamiConfig:
 #                         value = str(value)
                     page_dict[key_item] = value
                 self.pageDict[page_name] = page_dict
-                
-                
+
 #         tagList = {'presets_gui_textPanel':'_textlistSettings',
 #                    'presets_gui_peaklistPanel':'_peakListSettings',
 #                    'presets_gui_multipleFilesPanel':'_multipleFilesSettings',
 #                    'presets_gui_interactivePanel':'_interactiveSettings'}
-#          
+#
 #         for tag, tag_name in tagList.items():
 #             mainTags = document.getElementsByTagName(tag)
 #             if mainTags:
@@ -2398,7 +2382,7 @@ class OrigamiConfig:
 #                             gui_params[i] = {'name':name, 'order':order, 'width':width, 'show':show}
 #                 # Set attribute
 #                 setattr(self, tag_name, gui_params)
-                
+
             gui_settings = document.getElementsByTagName('presets_gui_aui_settings')
             if gui_settings:
                 xmlTags = gui_settings[0].getElementsByTagName('param')
@@ -2411,8 +2395,8 @@ class OrigamiConfig:
                         close_button = str2bool(item.getAttribute('close_button'))
                         floating = str2bool(item.getAttribute('floating'))
                         show = str2bool(item.getAttribute('show'))
-                        self._windowSettings[title] = {'title':title, 'gripper':gripper, 'caption':caption, 
-                                                       'close_button':close_button, 'floating':floating, 
+                        self._windowSettings[title] = {'title':title, 'gripper':gripper, 'caption':caption,
+                                                       'close_button':close_button, 'floating':floating,
                                                        'show':show}
                     else:
                         orientation = item.getAttribute('orientation')
@@ -2425,35 +2409,35 @@ class OrigamiConfig:
                         top_dockable = str2bool(item.getAttribute('top_dockable'))
                         bottom_dockable = str2bool(item.getAttribute('bottom_dockable'))
                         show = str2bool(item.getAttribute('show'))
-                        self._windowSettings[title] = {'title':title, 'orientation':orientation, 'gripper':gripper, 
-                                                       'close_button':close_button, 'left_position':left_position, 
-                                                       'top_position':top_position, 'left_dockable':left_dockable, 
+                        self._windowSettings[title] = {'title':title, 'orientation':orientation, 'gripper':gripper,
+                                                       'close_button':close_button, 'left_position':left_position,
+                                                       'top_position':top_position, 'left_dockable':left_dockable,
                                                        'right_dockable':right_dockable, 'bottom_dockable':bottom_dockable,
                                                        'top_dockable':top_dockable, 'show':show}
-                        
+
                     # Set attribute
 #                     self._windowSettings = gui_params
 
     def saveProteinXML(self, path, evt=None):
         pass
-    
+
     def saveCCSCalibrantsXML(self, path, evt=None):
         """ Make and save config file in XML format """
-        
+
         buff = '<?xml version="1.0" encoding="utf-8" ?>\n'
         buff += '<!-- Please refrain from changing the parameter names - this will break things! -->\n'
         buff += '<origamiConfig version="1.0">\n\n'
-        
+
         # calibrants
         buff += '  <calibrants>\n'
         buff += '    <param protein="operator" mw="%.3f" subunits="%d" charge="%d" m/z="%.3f" ccsHePos="%.3f" ccsN2Pos="%.3f" ccsHeNeg="%.3f" ccsN2Neg="%.3f" state="%s" source="%s" type="calibrant" />\n'
         buff += '  </calibrants>\n\n'
-                
-        buff += '</origamiConfig>'    
-                
+
+        buff += '</origamiConfig>'
+
     def setProperType(self, value, type):
         """ change type for config objects """
-        
+
         if type == 'str' or type == 'unicode':
             value = str(value)
         elif type == 'int':
@@ -2468,18 +2452,18 @@ class OrigamiConfig:
             value = os.path.normpath(value)
         elif type == 'tuple':
             value = literal_eval(value)
-        
+
         # Return value
         return value
-        
+
     def _escape(self, text):
         """Clear special characters such as <> etc."""
-        
+
         text = text.strip()
         search = ('&', '"', "'", '<', '>')
         replace = ('&amp;', '&quot;', '&apos;', '&lt;', '&gt;')
         for x, item in enumerate(search):
             text = text.replace(item, replace[x])
-            
+
         return text
     # ----
