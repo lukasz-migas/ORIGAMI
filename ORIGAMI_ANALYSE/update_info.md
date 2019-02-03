@@ -99,7 +99,7 @@ double-click on any element in the file list a new window will appear where you 
 <p><strong>[NEW]:</strong> Added new keyword 'axis_url'/'axis_urls' to the data parser. These keywords can be used to provide web addresses which can be attached to the data (scatter points only for now). If valid URL address is provided, when you tap on a point you will be taken to a new tab in your browser which corresponds to the web address. This is only valid in the interactive plots
 
 <p><strong>[CHANED]:</strong> Changed the poorly selected name of 'Other data' to 'Annotated data'
-
+<p></p>
 
 ## Mailing list
 
