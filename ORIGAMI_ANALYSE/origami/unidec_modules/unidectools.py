@@ -15,7 +15,7 @@ from scipy.interpolate import griddata
 from scipy import signal
 from scipy import fftpack
 import matplotlib.cm as cm
-import mzMLimporter
+# import mzMLimporter
 from fitting import *
 import unidecstructure
 import tempfile
@@ -602,11 +602,11 @@ def load_mz_file(path, config=None):
 
         if extension == ".txt":
             data = np.loadtxt(path, skiprows=header_test(path))
-        elif extension == ".mzml":
-            data = mzMLimporter.mzMLimporter(path).get_data()
-            txtname = path[:-5] + ".txt"
-            np.savetxt(txtname, data)
-            print "Saved to:", txtname
+        # elif extension == ".mzml":
+        #     data = mzMLimporter.mzMLimporter(path).get_data()
+        #     txtname = path[:-5] + ".txt"
+        #     np.savetxt(txtname, data)
+        #     print "Saved to:", txtname
         elif extension.lower() == ".raw":
             data = data_reader.DataImporter(path).get_data()
             txtname = path[:-4] + ".txt"
