@@ -1,6 +1,6 @@
 import os
 import numpy as np
-import unidectools as ud
+import unidec_modules.unidectools as ud
 import platform
 import matplotlib.cm as cm
 from matplotlib.pyplot import colormaps
@@ -214,12 +214,12 @@ class UniDecConfig(object):
             if not ud.isempty(self.masslist):
                 f.write("mfile " + str(self.mfile) + "\n")
             else:
-                print "Need to specify mass list. Running without mass list."
+                print("Need to specify mass list. Running without mass list.")
         if self.manualfileflag:
             if not ud.isempty(self.manuallist):
                 f.write("manualfile " + str(self.manualfile) + "\n")
             else:
-                print "Need to specify manual assignments. Running without assignments."
+                print("Need to specify manual assignments. Running without assignments.")
         f.write("minmz " + str(self.minmz) + "\n")
         f.write("maxmz " + str(self.maxmz) + "\n")
         f.write("mzbins " + str(self.mzbins) + "\n")
@@ -253,7 +253,7 @@ class UniDecConfig(object):
                 f.write("integratelb " + str(self.integratelb) + "\n")
                 f.write("integrateub " + str(self.integrateub) + "\n")
             except ValueError:
-                print "Failed to write integation areas:", self.integratelb, self.integrateub
+                print("Failed to write integation areas:", self.integratelb, self.integrateub)
                 pass
         f.write("filterwidth " + str(self.filterwidth) + "\n")
         f.write("zerolog " + str(self.zerolog) + "\n")
@@ -296,14 +296,14 @@ class UniDecConfig(object):
                 if self.manuallist.shape[1] == 3:
                     ud.dataexport(self.manuallist, self.manualfile)
                 else:
-                    print "Manual List Shape is wrong. Try using manual list tool again."
-                    print self.manuallist.shape
+                    print("Manual List Shape is wrong. Try using manual list tool again.")
+                    print(self.manuallist.shape)
             else:
                 if self.manuallist.shape[1] == 5:
                     ud.dataexport(self.manuallist, self.manualfile)
                 else:
-                    print "Manual List Shape is wrong. Try using manual list tool again."
-                    print self.manuallist.shape
+                    print("Manual List Shape is wrong. Try using manual list tool again.")
+                    print(self.manuallist.shape)
         if not ud.isempty(self.oligomerlist):
             np.savetxt(self.ofile, self.oligomerlist, fmt='%s')
 
@@ -564,7 +564,7 @@ class UniDecConfig(object):
 #         pass
 
     def read_attr(self, thing, string, config):
-        if string in config.attrs.keys():
+        if string in list(config.attrs.keys()):
             val = config.attrs.get(string)
             if isinstance(val, np.ndarray):
                 return val[0]
@@ -671,7 +671,7 @@ class UniDecConfig(object):
         :return: None
         """
         f = open(self.confname)
-        print f.read()
+        print(f.read())
         f.close()
 
     def default_file_names(self):
@@ -882,7 +882,7 @@ class UniDecConfig(object):
         def giveup():
             self.defaultUnidecDir = ""
             self.UniDecPath = self.defaultUnidecName
-            print "Assuming " + self.defaultUnidecName + " is in system path."
+            print("Assuming " + self.defaultUnidecName + " is in system path.")
 
         self.UniDecPath = os.path.join(self.defaultUnidecDir, self.defaultUnidecName)
         if not os.path.isfile(self.UniDecPath):
@@ -907,7 +907,7 @@ class UniDecConfig(object):
         self.masstablefile = os.path.join(self.UniDecDir, "mass_table.csv")
         self.h5repackfile = os.path.join(self.UniDecDir, self.h5repackfile)
 
-        print "\nUniDec Path:", self.UniDecPath
+        print("\nUniDec Path:", self.UniDecPath)
 
     def check_new(self, other):
         flag = False
@@ -920,9 +920,9 @@ class UniDecConfig(object):
                         if value != value2:
                             flag = True
                             break
-                    except RuntimeWarning, e:
-                        print e
-                        print value, value2
+                    except RuntimeWarning as e:
+                        print(e)
+                        print(value, value2)
                 except:
                     pass
         except KeyError:

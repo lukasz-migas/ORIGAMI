@@ -17,8 +17,11 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-from pyteomics import mzid # @UnresolvedImport
-import zipfile, os, gzip
+import gzip
+import os
+import zipfile
+
+from pyteomics import mzid  # @UnresolvedImport
 
 
 class MZIdentReader():
@@ -108,7 +111,7 @@ class MZIdentReader():
 
     def get_spectrum_information(self, spectrum_in):
         spectrum_out = {}
-        for spec in xrange(len(spectrum_in.get('SpectrumIdentificationItem', []))):
+        for spec in range(len(spectrum_in.get('SpectrumIdentificationItem', []))):
             peptide_sequence = spectrum_in['SpectrumIdentificationItem'][spec]['PeptideSequence']
             experimental_mz = spectrum_in['SpectrumIdentificationItem'][spec]['experimentalMassToCharge']
             calculated_mz = spectrum_in['SpectrumIdentificationItem'][spec]['calculatedMassToCharge']
@@ -133,7 +136,7 @@ class MZIdentReader():
         Retrieve peptide information from mzIdent file
         """
         peptide_out = {}
-        for pep in xrange(len(peptide_in)):
+        for pep in range(len(peptide_in)):
             peptide_sequence = peptide_in[pep].get('Seq', "")
             protein_description = peptide_in[pep].get('protein description', "")
             accession = peptide_in[pep].get('accession', "")
@@ -157,7 +160,7 @@ class MZIdentReader():
         Retrieve modification information from mzIdent file
         """
         modifications_out = {}
-        for mod in xrange(len(modifications_in)):
+        for mod in range(len(modifications_in)):
             modification_location = modifications_in[mod].get('location', "")
             modification_mass_delta = modifications_in[mod].get('monoisotopicMassDelta', "")
             modification_name = modifications_in[mod].get('name', "")

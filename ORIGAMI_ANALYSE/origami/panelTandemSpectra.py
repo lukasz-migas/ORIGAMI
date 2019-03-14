@@ -98,7 +98,7 @@ class panelTandemSpectra(wx.MiniFrame):
         self._fragments = self._build_fragment_search_query()
         
         if "document" in kwargs:
-            scans = len(kwargs['tandem_spectra'].keys())
+            scans = len(list(kwargs['tandem_spectra'].keys()))
             self.SetTitle("MS/MS spectra - {} - Scans: {}".format(kwargs['document'], scans))
             
         self.kwargs = kwargs
@@ -200,7 +200,7 @@ class panelTandemSpectra(wx.MiniFrame):
         if rows == 0:
             return False
         
-        for i in xrange(rows):
+        for i in range(rows):
             scan_id_table = self.peaklist_selected.GetItem(i, self._columns_peaklist_selected['scan ID']).GetText()
             scan_id_id_table = self.peaklist_selected.GetItem(i, self._columns_peaklist_selected['ID #']).GetText()
             scan_title_table = self.peaklist_selected.GetItem(i, self._columns_peaklist_selected['title']).GetText()
@@ -223,7 +223,7 @@ class panelTandemSpectra(wx.MiniFrame):
         
         # iterate over list
         counter = 0        
-        for i in xrange(count):
+        for i in range(count):
             check = self.peaklist_selected.IsChecked(index=i)
             if check:
                 # get fragments
@@ -253,7 +253,7 @@ class panelTandemSpectra(wx.MiniFrame):
         # update document
         self.presenter.OnUpdateDocument(document, 'no_refresh')
         
-        print("Annotated {} scans in {:.4f} seconds.". format(counter, ttime()-tstart))
+        print(("Annotated {} scans in {:.4f} seconds.". format(counter, ttime()-tstart)))
         
     def on_delete_all_annotations(self, evt):
         
@@ -266,7 +266,7 @@ class panelTandemSpectra(wx.MiniFrame):
         else:
             document = self.presenter.documentsDict[self.kwargs['document']]
             count = self.peaklist_selected.GetItemCount()
-            for i in xrange(count):
+            for i in range(count):
                 itemInfo = self.get_item_info_peaklist_selected(i)
                 document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'][itemInfo['id_num']] = {}
                 
@@ -291,7 +291,7 @@ class panelTandemSpectra(wx.MiniFrame):
         count = self.peaklist_selected.GetItemCount()
         # iterate over list
         counter = 0        
-        for i in xrange(count):
+        for i in range(count):
             check = self.peaklist_selected.IsChecked(index=i)
             if check:
                 itemInfo = self.get_item_info_peaklist(i)
@@ -328,7 +328,7 @@ class panelTandemSpectra(wx.MiniFrame):
         self.Layout()
         
     def make_peptide_checkbox(self, panel):
-        tolerance_label = wx.StaticText(panel, wx.ID_ANY, u"Tolerance:")
+        tolerance_label = wx.StaticText(panel, wx.ID_ANY, "Tolerance:")
         self.tolerance_value = wx.SpinCtrlDouble(panel, -1, 
                                                  value=str(self.config.fragments_tolerance[self.config.fragments_units]),
                                                  min=self.config.fragments_tolerance_limits[self.config.fragments_units][0], 
@@ -338,14 +338,14 @@ class panelTandemSpectra(wx.MiniFrame):
                                                  size=(90, -1), name="not_update_gui")
         self.tolerance_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        tolerance_units_label = wx.StaticText(panel, wx.ID_ANY, u"Tolerance units:")
+        tolerance_units_label = wx.StaticText(panel, wx.ID_ANY, "Tolerance units:")
         self.tolerance_choice = wx.Choice(panel, -1, choices=self.config.fragments_units_choices,
                                           size=(-1, -1))
         self.tolerance_choice.SetStringSelection(self.config.fragments_units)
         self.tolerance_choice.Bind(wx.EVT_CHOICE, self.onApply)
         self.tolerance_choice.Bind(wx.EVT_CHOICE, self.onUpdateGUI)
         
-        max_labels_label = wx.StaticText(panel, wx.ID_ANY, u"Maximum labels:")
+        max_labels_label = wx.StaticText(panel, wx.ID_ANY, "Maximum labels:")
         self.max_labels_value = wx.SpinCtrlDouble(panel, -1, value=str(self.config.fragments_max_matches), min=1, 
                                                  max=5, initial=self.config.fragments_max_matches, inc=1, 
                                                  size=(90, -1))
@@ -374,19 +374,19 @@ class panelTandemSpectra(wx.MiniFrame):
         
         
         # M-ions
-        self.peptide_M_all = makeCheckbox(panel, u"P-all")
+        self.peptide_M_all = makeCheckbox(panel, "P-all")
         self.peptide_M_all.SetValue(self.config.fragments_search['M-ALL'])
         self.peptide_M_all.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_M = makeCheckbox(panel, u"P")
+        self.peptide_M = makeCheckbox(panel, "P")
         self.peptide_M.SetValue(self.config.fragments_search['M'])
         self.peptide_M.Bind(wx.EVT_CHECKBOX, self.onApply)
          
-        self.peptide_M_nH2O = makeCheckbox(panel, u"P-nH2O/P°")
+        self.peptide_M_nH2O = makeCheckbox(panel, "P-nH2O/P°")
         self.peptide_M_nH2O.SetValue(self.config.fragments_search['M-nH2O'])
         self.peptide_M_nH2O.Bind(wx.EVT_CHECKBOX, self.onApply)
          
-        self.peptide_M_nNH3 = makeCheckbox(panel, u"P-nNH3/P*")
+        self.peptide_M_nNH3 = makeCheckbox(panel, "P-nNH3/P*")
         self.peptide_M_nNH3.SetValue(self.config.fragments_search['M-nNH3'])
         self.peptide_M_nNH3.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -403,19 +403,19 @@ class panelTandemSpectra(wx.MiniFrame):
         M_ions_box_sizer.Add(M_ions_grid, 0, wx.EXPAND, 10)
         
         # a-ions
-        self.peptide_a_all = makeCheckbox(panel, u"a-all")
+        self.peptide_a_all = makeCheckbox(panel, "a-all")
         self.peptide_a_all.SetValue(self.config.fragments_search['a-ALL'])
         self.peptide_a_all.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_a = makeCheckbox(panel, u"a")
+        self.peptide_a = makeCheckbox(panel, "a")
         self.peptide_a.SetValue(self.config.fragments_search['a'])
         self.peptide_a.Bind(wx.EVT_CHECKBOX, self.onApply)
          
-        self.peptide_a_nH2O = makeCheckbox(panel, u"a-nH2O/a°")
+        self.peptide_a_nH2O = makeCheckbox(panel, "a-nH2O/a°")
         self.peptide_a_nH2O.SetValue(self.config.fragments_search['a-nH2O'])
         self.peptide_a_nH2O.Bind(wx.EVT_CHECKBOX, self.onApply)
          
-        self.peptide_a_nNH3 = makeCheckbox(panel, u"a-nNH3/a*")
+        self.peptide_a_nNH3 = makeCheckbox(panel, "a-nNH3/a*")
         self.peptide_a_nNH3.SetValue(self.config.fragments_search['a-nNH3'])
         self.peptide_a_nNH3.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -432,19 +432,19 @@ class panelTandemSpectra(wx.MiniFrame):
         a_ions_box_sizer.Add(a_ions_grid, 0, wx.EXPAND, 10)
         
         
-        self.peptide_b_all = makeCheckbox(panel, u"b-all")
+        self.peptide_b_all = makeCheckbox(panel, "b-all")
         self.peptide_b_all.SetValue(self.config.fragments_search['b-ALL'])
         self.peptide_b_all.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_b = makeCheckbox(panel, u"b")
+        self.peptide_b = makeCheckbox(panel, "b")
         self.peptide_b.SetValue(self.config.fragments_search['b'])
         self.peptide_b.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_b_nH2O = makeCheckbox(panel, u"b-nH2O/b°")
+        self.peptide_b_nH2O = makeCheckbox(panel, "b-nH2O/b°")
         self.peptide_b_nH2O.SetValue(self.config.fragments_search['b-nH2O'])
         self.peptide_b_nH2O.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_b_nNH3 = makeCheckbox(panel, u"b-nNH3/b*")
+        self.peptide_b_nNH3 = makeCheckbox(panel, "b-nNH3/b*")
         self.peptide_b_nNH3.SetValue(self.config.fragments_search['b-nNH3'])
         self.peptide_b_nNH3.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -460,27 +460,27 @@ class panelTandemSpectra(wx.MiniFrame):
         b_ions_grid.Add(self.peptide_b_nNH3, (3,0), wx.GBSpan(1,1), flag=wx.EXPAND)
         b_ions_box_sizer.Add(b_ions_grid, 0, wx.EXPAND, 10)
         
-        self.peptide_c_all = makeCheckbox(panel, u"c-all")
+        self.peptide_c_all = makeCheckbox(panel, "c-all")
         self.peptide_c_all.SetValue(self.config.fragments_search['c-ALL'])
         self.peptide_c_all.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_c = makeCheckbox(panel, u"c")
+        self.peptide_c = makeCheckbox(panel, "c")
         self.peptide_c.SetValue(self.config.fragments_search['c'])
         self.peptide_c.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_c_nH2O = makeCheckbox(panel, u"c-nH2O/c°")
+        self.peptide_c_nH2O = makeCheckbox(panel, "c-nH2O/c°")
         self.peptide_c_nH2O.SetValue(self.config.fragments_search['c-nH2O'])
         self.peptide_c_nH2O.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_c_nNH3 = makeCheckbox(panel, u"c-nNH3/c*")
+        self.peptide_c_nNH3 = makeCheckbox(panel, "c-nNH3/c*")
         self.peptide_c_nNH3.SetValue(self.config.fragments_search['c-nNH3'])
         self.peptide_c_nNH3.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_c_dot = makeCheckbox(panel, u"c-dot")
+        self.peptide_c_dot = makeCheckbox(panel, "c-dot")
         self.peptide_c_dot.SetValue(self.config.fragments_search['c-dot'])
         self.peptide_c_dot.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_c_add_1_2 = makeCheckbox(panel, u"c+1/2")
+        self.peptide_c_add_1_2 = makeCheckbox(panel, "c+1/2")
         self.peptide_c_add_1_2.SetValue(self.config.fragments_search['c+1/2'])
         self.peptide_c_add_1_2.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -498,19 +498,19 @@ class panelTandemSpectra(wx.MiniFrame):
         c_ions_grid.Add(self.peptide_c_add_1_2, (5,0), wx.GBSpan(1,1), flag=wx.EXPAND)
         c_ions_box_sizer.Add(c_ions_grid, 0, wx.EXPAND, 10)
         
-        self.peptide_x_all = makeCheckbox(panel, u"x-all")
+        self.peptide_x_all = makeCheckbox(panel, "x-all")
         self.peptide_x_all.SetValue(self.config.fragments_search['x-ALL'])
         self.peptide_x_all.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_x = makeCheckbox(panel, u"x")
+        self.peptide_x = makeCheckbox(panel, "x")
         self.peptide_x.SetValue(self.config.fragments_search['x'])
         self.peptide_x.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_x_nH2O = makeCheckbox(panel, u"x-nH2O/x°")
+        self.peptide_x_nH2O = makeCheckbox(panel, "x-nH2O/x°")
         self.peptide_x_nH2O.SetValue(self.config.fragments_search['x-nH2O'])
         self.peptide_x_nH2O.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_x_nNH3 = makeCheckbox(panel, u"x-nNH3/x*")
+        self.peptide_x_nNH3 = makeCheckbox(panel, "x-nNH3/x*")
         self.peptide_x_nNH3.SetValue(self.config.fragments_search['x-nNH3'])
         self.peptide_x_nNH3.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -526,19 +526,19 @@ class panelTandemSpectra(wx.MiniFrame):
         x_ions_grid.Add(self.peptide_x_nNH3, (3,0), wx.GBSpan(1,1), flag=wx.EXPAND)
         x_ions_box_sizer.Add(x_ions_grid, 0, wx.EXPAND, 10)
         
-        self.peptide_y_all = makeCheckbox(panel, u"y-all")
+        self.peptide_y_all = makeCheckbox(panel, "y-all")
         self.peptide_y_all.SetValue(self.config.fragments_search['y-ALL'])
         self.peptide_y_all.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_y = makeCheckbox(panel, u"y")
+        self.peptide_y = makeCheckbox(panel, "y")
         self.peptide_y.SetValue(self.config.fragments_search['y'])
         self.peptide_y.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_y_nH2O = makeCheckbox(panel, u"y-nH2O/y°")
+        self.peptide_y_nH2O = makeCheckbox(panel, "y-nH2O/y°")
         self.peptide_y_nH2O.SetValue(self.config.fragments_search['y-nH2O'])
         self.peptide_y_nH2O.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_y_nNH3 = makeCheckbox(panel, u"y-nNH3/y*")
+        self.peptide_y_nNH3 = makeCheckbox(panel, "y-nNH3/y*")
         self.peptide_y_nNH3.SetValue(self.config.fragments_search['y-nNH3'])
         self.peptide_y_nNH3.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -554,27 +554,27 @@ class panelTandemSpectra(wx.MiniFrame):
         y_ions_grid.Add(self.peptide_y_nNH3, (3,0), wx.GBSpan(1,1), flag=wx.EXPAND)
         y_ions_box_sizer.Add(y_ions_grid, 0, wx.EXPAND, 10)
         
-        self.peptide_z_all = makeCheckbox(panel, u"z-all")
+        self.peptide_z_all = makeCheckbox(panel, "z-all")
         self.peptide_z_all.SetValue(self.config.fragments_search['z-ALL'])
         self.peptide_z_all.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_z = makeCheckbox(panel, u"z")
+        self.peptide_z = makeCheckbox(panel, "z")
         self.peptide_z.SetValue(self.config.fragments_search['z'])
         self.peptide_z.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_z_nH2O = makeCheckbox(panel, u"z-nH2O/z°")
+        self.peptide_z_nH2O = makeCheckbox(panel, "z-nH2O/z°")
         self.peptide_z_nH2O.SetValue(self.config.fragments_search['z-nH2O'])
         self.peptide_z_nH2O.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_z_nNH3 = makeCheckbox(panel, u"z-nNH3/z*")
+        self.peptide_z_nNH3 = makeCheckbox(panel, "z-nNH3/z*")
         self.peptide_z_nNH3.SetValue(self.config.fragments_search['z-nNH3'])
         self.peptide_z_nNH3.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_z_dot = makeCheckbox(panel, u"z-dot")
+        self.peptide_z_dot = makeCheckbox(panel, "z-dot")
         self.peptide_z_dot.SetValue(self.config.fragments_search['z-dot'])
         self.peptide_z_dot.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.peptide_z_add_1_2 = makeCheckbox(panel, u"z+1/2/3")
+        self.peptide_z_add_1_2 = makeCheckbox(panel, "z+1/2/3")
         self.peptide_z_add_1_2.SetValue(self.config.fragments_search['z+1/2/3'])
         self.peptide_z_add_1_2.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -622,15 +622,15 @@ class panelTandemSpectra(wx.MiniFrame):
         
         self.fraglist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
         self.fraglist.SetFont(wx.SMALL_FONT)
-        self.fraglist.InsertColumn(0,u'', width=25)
-        self.fraglist.InsertColumn(1,u'measured m/z', width=86)
-        self.fraglist.InsertColumn(2,u'calculated m/z', width=86)
-        self.fraglist.InsertColumn(3,u'intensity', width=60)
-        self.fraglist.InsertColumn(4,u'Δ error', width=50)
-        self.fraglist.InsertColumn(5,u'charge', width=50)
-        self.fraglist.InsertColumn(6,u'label', width=70)
-        self.fraglist.InsertColumn(7,u'full label', width=90)
-        self.fraglist.InsertColumn(8,u'peptide', width=122)
+        self.fraglist.InsertColumn(0,'', width=25)
+        self.fraglist.InsertColumn(1,'measured m/z', width=86)
+        self.fraglist.InsertColumn(2,'calculated m/z', width=86)
+        self.fraglist.InsertColumn(3,'intensity', width=60)
+        self.fraglist.InsertColumn(4,'Δ error', width=50)
+        self.fraglist.InsertColumn(5,'charge', width=50)
+        self.fraglist.InsertColumn(6,'label', width=70)
+        self.fraglist.InsertColumn(7,'full label', width=90)
+        self.fraglist.InsertColumn(8,'peptide', width=122)
         
         # bind events
         self.fraglist.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_fragments)
@@ -653,12 +653,12 @@ class panelTandemSpectra(wx.MiniFrame):
         
         self.modlist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
         self.modlist.SetFont(wx.SMALL_FONT)
-        self.modlist.InsertColumn(0,u'', width=25)
-        self.modlist.InsertColumn(1,u'peptide', width=150)
-        self.modlist.InsertColumn(2,u'name', width=150)
-        self.modlist.InsertColumn(3,u'Δ mass', width=100)
-        self.modlist.InsertColumn(4,u'residues', width=100)
-        self.modlist.InsertColumn(5,u'location', width=100)
+        self.modlist.InsertColumn(0,'', width=25)
+        self.modlist.InsertColumn(1,'peptide', width=150)
+        self.modlist.InsertColumn(2,'name', width=150)
+        self.modlist.InsertColumn(3,'Δ mass', width=100)
+        self.modlist.InsertColumn(4,'residues', width=100)
+        self.modlist.InsertColumn(5,'location', width=100)
         
         # bind events
 #         self.modlist.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_fragments)
@@ -679,7 +679,7 @@ class panelTandemSpectra(wx.MiniFrame):
         self.identlist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
         self.identlist.SetFont(wx.SMALL_FONT)
         
-        self.identlist.InsertColumn(0,u'', width=25)
+        self.identlist.InsertColumn(0,'', width=25)
 #         self.identlist.InsertColumn(1,u'measured m/z', width=88)
 #         self.identlist.InsertColumn(2,u'calculated m/z', width=88)
 #         self.identlist.InsertColumn(3,u'Δ error', width=100)
@@ -705,16 +705,16 @@ class panelTandemSpectra(wx.MiniFrame):
         
         self.peaklist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
         self.peaklist.SetFont(wx.SMALL_FONT)
-        self.peaklist.InsertColumn(0,u'', width=25)
-        self.peaklist.InsertColumn(1,u'scan ID', width=65)
-        self.peaklist.InsertColumn(2,u'ID #', width=30)
-        self.peaklist.InsertColumn(3,u'MSn', width=35)
-        self.peaklist.InsertColumn(4,u'parent m/z', width=65)
-        self.peaklist.InsertColumn(5,u'charge', width=50)
-        self.peaklist.InsertColumn(6,u'# peaks', width=53)
-        self.peaklist.InsertColumn(7,u'peptide', width=110)
-        self.peaklist.InsertColumn(8,u'PTM', width=45)
-        self.peaklist.InsertColumn(9,u'title', width=157)
+        self.peaklist.InsertColumn(0,'', width=25)
+        self.peaklist.InsertColumn(1,'scan ID', width=65)
+        self.peaklist.InsertColumn(2,'ID #', width=30)
+        self.peaklist.InsertColumn(3,'MSn', width=35)
+        self.peaklist.InsertColumn(4,'parent m/z', width=65)
+        self.peaklist.InsertColumn(5,'charge', width=50)
+        self.peaklist.InsertColumn(6,'# peaks', width=53)
+        self.peaklist.InsertColumn(7,'peptide', width=110)
+        self.peaklist.InsertColumn(8,'PTM', width=45)
+        self.peaklist.InsertColumn(9,'title', width=157)
         
         # bind events
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_peaklist_all)
@@ -743,17 +743,17 @@ class panelTandemSpectra(wx.MiniFrame):
         
         self.peaklist_selected = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
         self.peaklist_selected.SetFont(wx.SMALL_FONT)
-        self.peaklist_selected.InsertColumn(0,u'', width=25)
-        self.peaklist_selected.InsertColumn(1,u'scan ID', width=65)
-        self.peaklist_selected.InsertColumn(2,u'ID #', width=30)
-        self.peaklist_selected.InsertColumn(3,u'MSn', width=35)
-        self.peaklist_selected.InsertColumn(4,u'parent m/z', width=65)
-        self.peaklist_selected.InsertColumn(5,u'charge', width=50)
-        self.peaklist_selected.InsertColumn(6,u'# peaks', width=53)
-        self.peaklist_selected.InsertColumn(7,u'# matched', width=65)
-        self.peaklist_selected.InsertColumn(8,u'peptide', width=100)
-        self.peaklist_selected.InsertColumn(9,u'PTM', width=45)
-        self.peaklist_selected.InsertColumn(10,u'title', width=120)
+        self.peaklist_selected.InsertColumn(0,'', width=25)
+        self.peaklist_selected.InsertColumn(1,'scan ID', width=65)
+        self.peaklist_selected.InsertColumn(2,'ID #', width=30)
+        self.peaklist_selected.InsertColumn(3,'MSn', width=35)
+        self.peaklist_selected.InsertColumn(4,'parent m/z', width=65)
+        self.peaklist_selected.InsertColumn(5,'charge', width=50)
+        self.peaklist_selected.InsertColumn(6,'# peaks', width=53)
+        self.peaklist_selected.InsertColumn(7,'# matched', width=65)
+        self.peaklist_selected.InsertColumn(8,'peptide', width=100)
+        self.peaklist_selected.InsertColumn(9,'PTM', width=45)
+        self.peaklist_selected.InsertColumn(10,'title', width=120)
         
         # bind events
         self.peaklist_selected.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_peaklist)
@@ -795,18 +795,18 @@ class panelTandemSpectra(wx.MiniFrame):
         self.peaklistBook = wx.Notebook(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, style=wx.NB_MULTILINE)
     
         self.peaklist_all = wx.Panel(self.peaklistBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.peaklistBook.AddPage(self.make_peaklist_all_list(self.peaklist_all), u"All scans", False)
+        self.peaklistBook.AddPage(self.make_peaklist_all_list(self.peaklist_all), "All scans", False)
         
         self.peaklist_selected = wx.Panel(self.peaklistBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.peaklistBook.AddPage(self.make_peaklist_selected_list(self.peaklist_selected), u"Selected scans", False)
+        self.peaklistBook.AddPage(self.make_peaklist_selected_list(self.peaklist_selected), "Selected scans", False)
         
         self.annotationBook = wx.Notebook(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, style=wx.NB_MULTILINE)
         
         self.annotation_peaklist = wx.Panel(self.annotationBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.annotationBook.AddPage(self.make_peptide_list(self.annotation_peaklist), u"Fragment list", False)
+        self.annotationBook.AddPage(self.make_peptide_list(self.annotation_peaklist), "Fragment list", False)
         
         self.annotation_modlist = wx.Panel(self.annotationBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.annotationBook.AddPage(self.make_modification_list(self.annotation_modlist), u"Modifications list", False)
+        self.annotationBook.AddPage(self.make_modification_list(self.annotation_modlist), "Modifications list", False)
         
         self.peaklistBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.peaklist_page_changed)
       
@@ -821,15 +821,15 @@ class panelTandemSpectra(wx.MiniFrame):
         self.show_all_Btn = wx.Button(panel, -1, "Load all scans", size=(-1, 25))
         self.show_all_Btn.Bind(wx.EVT_BUTTON, self.on_load_all_spectra)
         
-        self.verbose_check = makeCheckbox(panel, u"verbose")
+        self.verbose_check = makeCheckbox(panel, "verbose")
         self.verbose_check.SetValue(self.verbose)
         self.verbose_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.butterfly_check = makeCheckbox(panel, u"butterfly plot")
+        self.butterfly_check = makeCheckbox(panel, "butterfly plot")
         self.butterfly_check.SetValue(self.butterfly_plot)
         self.butterfly_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.actionBtn = wx.Button(panel, wx.ID_OK, u"Action ▼", size=(-1, 22))
+        self.actionBtn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, 22))
         self.actionBtn.Bind(wx.EVT_BUTTON, self.onActionTool)
         
         btn_grid = wx.GridBagSizer(5, 5)
@@ -915,7 +915,7 @@ class panelTandemSpectra(wx.MiniFrame):
         self.check_all = not self.check_all
         
         rows = self.peaklist.GetItemCount()
-        for row in xrange(rows):
+        for row in range(rows):
             self.peaklist.CheckItem(row, check=check)
             if check and add_selected:
                 itemInfo = self.get_item_info_peaklist(row, return_row=True)
@@ -969,7 +969,7 @@ class panelTandemSpectra(wx.MiniFrame):
         self.selected_check_all = not self.selected_check_all
         
         rows = self.peaklist_selected.GetItemCount()
-        for row in xrange(rows):
+        for row in range(rows):
             self.peaklist_selected.CheckItem(row, check=check)
     
     def _dummy(self, *args, **kwargs):
@@ -990,14 +990,14 @@ class panelTandemSpectra(wx.MiniFrame):
             else:
                 tstart = ttime()
                 self.sort_by_column_peaklist(column=column)
-                print("Sorting took {:.4f} seconds.".format(ttime()-tstart))
+                print(("Sorting took {:.4f} seconds.".format(ttime()-tstart)))
         else:
             if column == 0:
                 self.on_check_all_peaklist_selected()
             else:
                 tstart = ttime()
                 self.sort_by_column_peaklist_selected(column=column)
-                print("Sorting took {:.4f} seconds.".format(ttime()-tstart))
+                print(("Sorting took {:.4f} seconds.".format(ttime()-tstart)))
         
     def sort_by_column_peaklist(self, column, sort_direction=None, sort_type=None):
         """
@@ -1343,7 +1343,7 @@ class panelTandemSpectra(wx.MiniFrame):
                             ptm[n_id] = True
                     except: pass
                     
-            for n_id in xrange(n_ids):
+            for n_id in range(n_ids):
                 # check if scans with PTMs should be shown
                 if not self.config._tandem_show_PTMs_in_table and ptm[n_id]:
                     continue
@@ -1370,7 +1370,7 @@ class panelTandemSpectra(wx.MiniFrame):
         
     def on_update_table(self, show_all=False):
         data = self.kwargs['tandem_spectra']
-        scans = self.kwargs['tandem_spectra'].keys()
+        scans = list(self.kwargs['tandem_spectra'].keys())
         
         n_show = self.config.msms_load_n_scans
             
@@ -1384,7 +1384,7 @@ class panelTandemSpectra(wx.MiniFrame):
             print("You have already loaded all scans.")
             return
             
-        for i in xrange(start_scans, end_scans):
+        for i in range(start_scans, end_scans):
             scan = scans[i]
             if "Scan " not in scan:
                 continue
@@ -1413,7 +1413,7 @@ class panelTandemSpectra(wx.MiniFrame):
                  self.n_loaded_scans = self.peaklist.GetItemCount()
                  return
              
-            for n_id in xrange(n_ids):
+            for n_id in range(n_ids):
                 # check if scans with PTMs should be shown
                 if not self.config._tandem_show_PTMs_in_table and ptm[n_id]:
                     continue
@@ -1474,7 +1474,7 @@ class panelTandemSpectra(wx.MiniFrame):
             print("Please annotate item first!")
             return
         
-        print("It took {:.4f}".format(ttime()-tstart))
+        print(("It took {:.4f}".format(ttime()-tstart)))
         
     def on_zoom_on_spectrum(self, evt):
         itemInfo = self.get_item_info_fragments(self.frag_currentItem)
@@ -1537,7 +1537,7 @@ class panelTandemSpectra(wx.MiniFrame):
         else:
             self.presenter.view.panelPlots.plot1.repaint()
             
-        print("It took {:.4f}".format(ttime()-tstart))
+        print(("It took {:.4f}".format(ttime()-tstart)))
             
     def on_get_fragments(self, itemID=None, document=None):
         # if itemid is provided, data will most likely be returned
@@ -1597,7 +1597,7 @@ class panelTandemSpectra(wx.MiniFrame):
         self.frag_check_all = not self.frag_check_all
         
         rows = self.fraglist.GetItemCount()
-        for row in xrange(rows):
+        for row in range(rows):
             self.fraglist.CheckItem(row, check=check) 
         
     def get_column_click_fragments(self, evt):
@@ -1607,7 +1607,7 @@ class panelTandemSpectra(wx.MiniFrame):
         else:
             tstart = ttime()
             self.sort_by_column_fragments(column=column)
-            print("Sorting took {:.4f} seconds.".format(ttime()-tstart))
+            print(("Sorting took {:.4f} seconds.".format(ttime()-tstart)))
             
     def sort_by_column_fragments(self, column, sort_direction=None):
         """

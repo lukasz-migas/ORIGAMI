@@ -1,8 +1,10 @@
+from copy import deepcopy
+
+import numpy as np
+
+import unidec_modules.unidectools as ud
 from multiplierz.mzAPI import mzFile
 from mzMLimporter import merge_spectra
-from copy import deepcopy
-import unidectools as ud
-import numpy as np
 
 
 class DataImporter:
@@ -18,7 +20,7 @@ class DataImporter:
         :param kwargs: keywords (unused)
         :return: mzMLimporter object
         """
-        #TODO make this work
+        # TODO make this work
         """
         del sys.modules[mzFile]
         print "Breaking"
@@ -28,7 +30,7 @@ class DataImporter:
             dlg.ShowModal()
             return
             """
-        print "Reading Data:", path
+        print("Reading Data:", path)
         self.msrun = mzFile(path)
         self.scanrange = self.msrun.scan_range()
         self.scans = np.arange(self.scanrange[0], self.scanrange[1] + 1)
@@ -50,22 +52,22 @@ class DataImporter:
         data = deepcopy(self.data)
         if time_range is not None:
             scan_range = self.get_scans_from_times(time_range)
-            print "Getting times:", time_range
+            print("Getting times:", time_range)
 
         if scan_range is not None:
             data = data[scan_range[0]:scan_range[1]]
-            print "Getting scans:", scan_range
+            print("Getting scans:", scan_range)
         else:
-            print "Getting all scans, length:", len(self.scans)
+            print("Getting all scans, length:", len(self.scans))
 
         if len(data) > 1:
             try:
                 data = merge_spectra(data)
-            except Exception, e:
+            except Exception as e:
                 concat = np.concatenate(data)
                 sort = concat[concat[:, 0].argsort()]
                 data = ud.removeduplicates(sort)
-                print e
+                print(e)
         elif len(data) == 1:
             data = data[0]
         else:
@@ -112,7 +114,7 @@ if __name__ == "__main__":
     test = "Z:\Group Share\Scott\\test.RAW"
     d = DataImporter(test).get_data()
     exit()
-    print d.get_times_from_scans([15, 30])
+    print(d.get_times_from_scans([15, 30]))
 
     exit()
 

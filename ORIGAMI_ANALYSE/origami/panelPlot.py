@@ -17,14 +17,14 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-from __future__ import division
+
 import wx, time, math, matplotlib, os
 import numpy as np
 import seaborn as sns
 import plots as plots
 import matplotlib.pyplot as plt
 from natsort import natsorted
-from wx.lib.pubsub import pub 
+from pubsub import pub 
 
 from ids import *
 from styles import makeMenuItem
@@ -143,7 +143,7 @@ class panelPlot(wx.Panel):
         # Setup PLOT MS
         self.panelMS = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition,
                                     wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.mainBook.AddPage( self.panelMS, u"MS", False )
+        self.mainBook.AddPage( self.panelMS, "MS", False )
         
         self.plot1 = plots.plots(self.panelMS, 
                                  figsize=self.config._plotSettings["MS"]['gui_size'], 
@@ -156,7 +156,7 @@ class panelPlot(wx.Panel):
         # Setup PLOT RT
         self.panelRT = wx.SplitterWindow(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
                                          wx.DefaultSize, wx.TAB_TRAVERSAL | wx.SP_3DSASH)
-        self.mainBook.AddPage( self.panelRT, u"RT", False )        
+        self.mainBook.AddPage( self.panelRT, "RT", False )        
 
         # Create two panels for each dataset
         self.topPanelRT_RT = wx.Panel(self.panelRT)
@@ -184,7 +184,7 @@ class panelPlot(wx.Panel):
         # Setup PLOT 1D
         self.panel1D = wx.SplitterWindow(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
                                          wx.DefaultSize, wx.TAB_TRAVERSAL | wx.SP_3DSASH)
-        self.mainBook.AddPage(self.panel1D, u"1D", False)        
+        self.mainBook.AddPage(self.panel1D, "1D", False)        
 
         # Create two panels for each dataset
         self.topPanel1D_1D = wx.Panel(self.panel1D)
@@ -211,7 +211,7 @@ class panelPlot(wx.Panel):
         
         # Setup PLOT 2D
         self.panel2D = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.panel2D, u"2D", False)
+        self.mainBook.AddPage(self.panel2D, "2D", False)
 
         self.plot2D = plots.plots(self.panel2D, 
                                   figsize=self.config._plotSettings["2D"]['gui_size'], 
@@ -224,7 +224,7 @@ class panelPlot(wx.Panel):
         # Setup PLOT DT/MS
         self.panelMZDT = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition, 
                                    wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.mainBook.AddPage( self.panelMZDT, u"DT/MS", False )
+        self.mainBook.AddPage( self.panelMZDT, "DT/MS", False )
 
         self.plotMZDT = plots.plots(self.panelMZDT, 
                                     figsize=self.config._plotSettings["DT/MS"]['gui_size'], 
@@ -237,7 +237,7 @@ class panelPlot(wx.Panel):
         # Setup PLOT WATERFALL
         self.waterfallIMS = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition, 
                                    wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.mainBook.AddPage( self.waterfallIMS, u"Waterfall", False )
+        self.mainBook.AddPage( self.waterfallIMS, "Waterfall", False )
 
         self.plotWaterfallIMS = plots.plots(self.waterfallIMS, 
                                             figsize=self.config._plotSettings["Waterfall"]['gui_size'], 
@@ -250,7 +250,7 @@ class panelPlot(wx.Panel):
         # Setup PLOT 3D
         self.panel3D = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition, 
                                    wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.mainBook.AddPage( self.panel3D, u"3D", False )
+        self.mainBook.AddPage( self.panel3D, "3D", False )
         
         self.plot3D = plots.plots(self.panel3D, 
                                   figsize=self.config._plotSettings["3D"]['gui_size'], 
@@ -263,7 +263,7 @@ class panelPlot(wx.Panel):
         # Setup PLOT RMSF
         self.panelRMSF = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition, 
                                    wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.mainBook.AddPage( self.panelRMSF, u"RMSF", False )
+        self.mainBook.AddPage( self.panelRMSF, "RMSF", False )
 
         self.plotRMSF = plots.plots(self.panelRMSF, 
                                     figsize=self.config._plotSettings["RMSF"]['gui_size'], 
@@ -276,7 +276,7 @@ class panelPlot(wx.Panel):
         # Setup PLOT Comparison
         self.panelCompare = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition, 
                                    wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.mainBook.AddPage( self.panelCompare, u"Comparison", False )
+        self.mainBook.AddPage( self.panelCompare, "Comparison", False )
 
         self.plotCompare = plots.plots(self.panelCompare, 
                                        figsize=self.config._plotSettings["Comparison"]['gui_size'],
@@ -288,7 +288,7 @@ class panelPlot(wx.Panel):
         # Setup PLOT Overlay
         self.panelOverlay = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition, 
                                    wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.mainBook.AddPage( self.panelOverlay, u"Overlay", False )
+        self.mainBook.AddPage( self.panelOverlay, "Overlay", False )
 
         self.plotOverlay = plots.plots(self.panelOverlay, 
                                        figsize=self.config._plotSettings["Overlay"]['gui_size'],
@@ -313,7 +313,7 @@ class panelPlot(wx.Panel):
         self.panelCCSCalibration.SetSashGravity(0.5)
         self.panelCCSCalibration.SetSashSize(10)
         # Add to notebook
-        self.mainBook.AddPage(self.panelCCSCalibration, u"Calibration", False)
+        self.mainBook.AddPage(self.panelCCSCalibration, "Calibration", False)
         
         # Plot MS 
         self.topPlotMS = plots.plots(self.topPanelMS, 
@@ -335,7 +335,7 @@ class panelPlot(wx.Panel):
             self.panelUniDec = wx.lib.scrolledpanel.ScrolledPanel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, # @UndefinedVariable
                                                                   wx.TAB_TRAVERSAL) 
             self.panelUniDec.SetupScrolling()
-            self.mainBook.AddPage(self.panelUniDec, u"UniDec", False)
+            self.mainBook.AddPage(self.panelUniDec, "UniDec", False)
             figsize = self.config._plotSettings["UniDec (MS)"]['gui_size']
             self.plotUnidec_MS = plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
             
@@ -369,14 +369,14 @@ class panelPlot(wx.Panel):
         else:
             self.panelUniDec = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition, 
                                        wx.DefaultSize, wx.TAB_TRAVERSAL )
-            self.mainBook.AddPage( self.panelUniDec, u"UniDec", False )
+            self.mainBook.AddPage( self.panelUniDec, "UniDec", False )
             
             # Setup notebook
             self.unidec_notebook = wx.Notebook(self.panelUniDec, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
             # Setup PLOT MS
             self.unidec_MS = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
                                     wx.DefaultSize, wx.TAB_TRAVERSAL )
-            self.unidec_notebook.AddPage(self.unidec_MS, u"MS", False )
+            self.unidec_notebook.AddPage(self.unidec_MS, "MS", False )
             figsize = self.config._plotSettings["UniDec (MS)"]['gui_size']
             self.plotUnidec_MS = plots.plots(self.unidec_MS, config=self.config, figsize=figsize)
             boxsizer_unidec_MS = wx.BoxSizer(wx.VERTICAL)     
@@ -385,7 +385,7 @@ class panelPlot(wx.Panel):
              
             self.unidec_mzGrid = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
                                     wx.DefaultSize, wx.TAB_TRAVERSAL )
-            self.unidec_notebook.AddPage(self.unidec_mzGrid, u"m/z vs Charge", False )
+            self.unidec_notebook.AddPage(self.unidec_mzGrid, "m/z vs Charge", False )
             figsize = self.config._plotSettings["UniDec (m/z vs Charge)"]['gui_size']
             self.plotUnidec_mzGrid = plots.plots(self.unidec_mzGrid, config=self.config, figsize=figsize)
             boxsizer_unidec_mzGrid = wx.BoxSizer(wx.VERTICAL)     
@@ -394,7 +394,7 @@ class panelPlot(wx.Panel):
              
             self.unidec_mwVsZ = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
                                     wx.DefaultSize, wx.TAB_TRAVERSAL )
-            self.unidec_notebook.AddPage(self.unidec_mwVsZ, u"MW vs Charge", False )
+            self.unidec_notebook.AddPage(self.unidec_mwVsZ, "MW vs Charge", False )
             figsize = self.config._plotSettings["UniDec (MW vs Charge)"]['gui_size']
             self.plotUnidec_mwVsZ = plots.plots(self.unidec_mwVsZ, config=self.config, figsize=figsize)
             boxsizer_unidec__mwVsZ = wx.BoxSizer(wx.VERTICAL)     
@@ -403,7 +403,7 @@ class panelPlot(wx.Panel):
              
             self.unidec_mwDistribution = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
                                     wx.DefaultSize, wx.TAB_TRAVERSAL )
-            self.unidec_notebook.AddPage(self.unidec_mwDistribution, u"MW", False )
+            self.unidec_notebook.AddPage(self.unidec_mwDistribution, "MW", False )
             figsize = self.config._plotSettings["UniDec (MW)"]['gui_size']
             self.plotUnidec_mwDistribution = plots.plots(self.unidec_mwDistribution, config=self.config, figsize=figsize)
             boxsizer_unidec_mwDistribution = wx.BoxSizer(wx.VERTICAL)     
@@ -412,7 +412,7 @@ class panelPlot(wx.Panel):
              
             self.unidec_individualPeaks = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
                                                    wx.DefaultSize, wx.TAB_TRAVERSAL )
-            self.unidec_notebook.AddPage(self.unidec_individualPeaks, u"Isolated MS", False )
+            self.unidec_notebook.AddPage(self.unidec_individualPeaks, "Isolated MS", False )
             figsize = self.config._plotSettings["UniDec (Isolated MS)"]['gui_size']
             self.plotUnidec_individualPeaks = plots.plots(self.unidec_individualPeaks, config=self.config, figsize=figsize)
             boxsizer_unidec_individualPeaks = wx.BoxSizer(wx.VERTICAL)     
@@ -422,7 +422,7 @@ class panelPlot(wx.Panel):
              
             self.unidec_barChart = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
                                     wx.DefaultSize, wx.TAB_TRAVERSAL )
-            self.unidec_notebook.AddPage(self.unidec_barChart, u"Barplot", False )
+            self.unidec_notebook.AddPage(self.unidec_barChart, "Barplot", False )
             figsize = self.config._plotSettings["UniDec (Barplot)"]['gui_size']
             self.plotUnidec_barChart = plots.plots(self.unidec_barChart, 
                                                    config=self.config, 
@@ -433,7 +433,7 @@ class panelPlot(wx.Panel):
              
             self.unidec_chargeDistribution = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
                                     wx.DefaultSize, wx.TAB_TRAVERSAL )
-            self.unidec_notebook.AddPage(self.unidec_chargeDistribution, u"Charge distribution", False )
+            self.unidec_notebook.AddPage(self.unidec_chargeDistribution, "Charge distribution", False )
             figsize = self.config._plotSettings["UniDec (Charge Distribution)"]['gui_size']
             self.plotUnidec_chargeDistribution = plots.plots(self.unidec_chargeDistribution, 
                                                              config=self.config, 
@@ -450,7 +450,7 @@ class panelPlot(wx.Panel):
         # Other
         self.panelOther = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition, 
                                    wx.DefaultSize, wx.TAB_TRAVERSAL )
-        self.mainBook.AddPage( self.panelOther, u"Other", False )        
+        self.mainBook.AddPage( self.panelOther, "Other", False )        
 
         self.plotOther = plots.plots(self.panelOther, 
                                      figsize=self.config._plotSettings["2D"]['gui_size'], 
@@ -684,7 +684,7 @@ class panelPlot(wx.Panel):
                                          text='Process heatmap...', 
                                          bitmap=self.icons.iconsLib['process_2d_16']))
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_plots_rotate90,
-                                         text=u'Rotate 90°', 
+                                         text='Rotate 90°', 
                                          bitmap=self.icons.iconsLib['blank_16']))
             menu.AppendSeparator()
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_extraSettings_general_plot,
@@ -717,7 +717,7 @@ class panelPlot(wx.Panel):
                                          text='Process heatmap...', 
                                          bitmap=self.icons.iconsLib['process_2d_16']))
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_plots_rotate90,
-                                         text=u'Rotate 90°', 
+                                         text='Rotate 90°', 
                                          bitmap=self.icons.iconsLib['blank_16']))
             menu.AppendSeparator()
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_extraSettings_general_plot,
@@ -1305,9 +1305,9 @@ class panelPlot(wx.Panel):
                     
                 try:
                     plotWindow.saveFigure2(path=filename, **kwargs)
-                    print("Saved {}".format(filename))
+                    print(("Saved {}".format(filename)))
                 except: 
-                    print("Could not save {}. Moving on...".format(filename))
+                    print(("Could not save {}. Moving on...".format(filename)))
                     continue
 
     def onSetupMenus(self, evt):
@@ -1375,7 +1375,7 @@ class panelPlot(wx.Panel):
         new_colors = sns.color_palette(palette_name, n_colors)
         
         if not return_colors:
-            for i in xrange(n_colors):
+            for i in range(n_colors):
                 self.config.customColors[i] = convertRGB1to255(new_colors[i])
         else:
             if return_hex:
@@ -1824,7 +1824,7 @@ class panelPlot(wx.Panel):
         mw = np.transpose([mw_data['xvals'], mw_data['yvals']])
         
         num = 0
-        for key in natsorted(data.keys()):
+        for key in natsorted(list(data.keys())):
             if key.split(" ")[0] != "MW:": 
                 continue
             if num >= plt_kwargs["maximum_shown_items"]: 
@@ -1834,7 +1834,7 @@ class panelPlot(wx.Panel):
         colors = self._get_color_list(None, count=num, **unidec_kwargs)
         
         num = 0
-        for key in natsorted(data.keys()):
+        for key in natsorted(list(data.keys())):
             if key.split(" ")[0] != "MW:": continue
              
             if num >= plt_kwargs["maximum_shown_items"]: continue
@@ -1889,7 +1889,7 @@ class panelPlot(wx.Panel):
             legend_text = [[[0,0,0], "Raw"]]
             
         num = 0
-        for key in natsorted(replot.keys()):
+        for key in natsorted(list(replot.keys())):
             if key.split(" ")[0] != "MW:": continue
             if num >= plt_kwargs["maximum_shown_items"]: continue
             num += 1
@@ -1897,7 +1897,7 @@ class panelPlot(wx.Panel):
         colors = self._get_color_list(None, count=num, **unidec_kwargs)
             
         num = 0
-        for key in natsorted(replot.keys()):
+        for key in natsorted(list(replot.keys())):
             if key.split(" ")[0] != "MW:": continue
             if num >= plt_kwargs["maximum_shown_items"]:
                 continue
@@ -2027,7 +2027,7 @@ class panelPlot(wx.Panel):
                 markers = markers[:plt_kwargs["maximum_shown_items"]]
         
         colors = self._get_color_list(colors, **unidec_kwargs)
-        for i in xrange(len(legend_text)):
+        for i in range(len(legend_text)):
             legend_text[i][0] = colors[i]
         
         self.plotUnidec_barChart.clearPlot()
@@ -2040,7 +2040,7 @@ class panelPlot(wx.Panel):
             
         if unidec_eng_data is None and replot is not None:
             if kwargs['show_markers']:
-                for i in xrange(len(markers)):
+                for i in range(len(markers)):
                     if i >= plt_kwargs["maximum_shown_items"]:
                         continue
                     self.plotUnidec_barChart.plot_add_markers(xvals[i], yvals[i], 
@@ -2328,7 +2328,7 @@ class panelPlot(wx.Panel):
                             "fontsize": self.config.annotation_label_font_size,
                             'rotation':self.config.annotation_label_font_orientation}
      
-        for i in xrange(len(labels)):
+        for i in range(len(labels)):
             xval, yval, label, full_label = msX[i], msY[i], labels[i], full_labels[i]
             
             if not self.config.msms_show_neutral_loss:
@@ -2854,7 +2854,7 @@ class panelPlot(wx.Panel):
         if ('add_legend' in kwargs and 'labels' in kwargs and
             len(colors) == len(kwargs['labels'])):
             if kwargs['add_legend']:
-                legend_text = zip(colors, kwargs['labels'])
+                legend_text = list(zip(colors, kwargs['labels']))
                 self.plotWaterfallIMS.plot_1D_add_legend(legend_text, **plt_kwargs)
         
         # Show the mass spectrum
@@ -2905,7 +2905,7 @@ class panelPlot(wx.Panel):
         if ('add_legend' in kwargs and 'labels' in kwargs and
             len(colors) == len(kwargs['labels'])):
             if kwargs['add_legend']:
-                legend_text = zip(colors, kwargs['labels'])
+                legend_text = list(zip(colors, kwargs['labels']))
                 self.plotWaterfallIMS.plot_1D_add_legend(legend_text, **plt_kwargs)
                 
         self.plotWaterfallIMS.repaint()
@@ -3387,7 +3387,7 @@ class panelPlot(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType='legend')
         
         if len(colors) ==  len(labels):
-            legend_text = zip(colors, labels)
+            legend_text = list(zip(colors, labels))
             
         if plot == "RT":
             self.plotRT.plot_1D_add_legend(legend_text, **plt_kwargs)

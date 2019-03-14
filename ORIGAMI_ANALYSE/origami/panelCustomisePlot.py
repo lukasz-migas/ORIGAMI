@@ -123,7 +123,7 @@ class panelCustomisePlot(wx.Dialog):
         self.yaxis_tick_division_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator('float'))        
         self.yaxis_tick_division_value.Disable()
         
-        self.override_defaults = makeCheckbox(panel, u"Override extents")
+        self.override_defaults = makeCheckbox(panel, "Override extents")
         
         self.applyBtn = wx.Button(panel, wx.ID_ANY, "Apply scales", size=(-1, 22))
         self.applyBtn.Bind(wx.EVT_BUTTON, self.onApply_scales)
@@ -190,7 +190,7 @@ class panelCustomisePlot(wx.Dialog):
                                                   inc=0.25, size=(TEXT_SIZE, -1))
         self.legend_patch_alpha_value.Bind(wx.EVT_TEXT, self.onApply_legendSettings)     
         
-        self.legend_frame_check = makeCheckbox(panel, u"Frame")
+        self.legend_frame_check = makeCheckbox(panel, "Frame")
         self.legend_frame_check.Bind(wx.EVT_CHECKBOX, self.onApply_legendSettings)
         
         legend_grid = wx.GridBagSizer(2, 2)
@@ -233,43 +233,43 @@ class panelCustomisePlot(wx.Dialog):
         colormap_grid.Add(self.cmap_max_value, (y, 7), wx.GBSpan(1, 1), flag=wx.EXPAND)
         
         spines_label = wx.StaticText(panel, -1, "Line:")
-        self.leftSpines_check = makeCheckbox(panel, u"Left")
+        self.leftSpines_check = makeCheckbox(panel, "Left")
         self.leftSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
-        self.rightSpines_check = makeCheckbox(panel, u"Right")
+        self.rightSpines_check = makeCheckbox(panel, "Right")
         self.rightSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
-        self.topSpines_check = makeCheckbox(panel, u"Top")
+        self.topSpines_check = makeCheckbox(panel, "Top")
         self.topSpines_check.SetValue(self.config.spines_top_1D)
         self.topSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
-        self.bottomSpines_check = makeCheckbox(panel, u"Bottom")
+        self.bottomSpines_check = makeCheckbox(panel, "Bottom")
         self.bottomSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
         ticks_label = wx.StaticText(panel, -1, "Ticks:")
-        self.leftTicks_check = makeCheckbox(panel, u"Left")
+        self.leftTicks_check = makeCheckbox(panel, "Left")
         self.leftTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
-        self.rightTicks_check = makeCheckbox(panel, u"Right")
+        self.rightTicks_check = makeCheckbox(panel, "Right")
         self.rightTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
-        self.topTicks_check = makeCheckbox(panel, u"Top")
+        self.topTicks_check = makeCheckbox(panel, "Top")
         self.topTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
-        self.bottomTicks_check = makeCheckbox(panel, u"Bottom")
+        self.bottomTicks_check = makeCheckbox(panel, "Bottom")
         self.bottomTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
         tickLabels_label = wx.StaticText(panel, -1, "Tick labels:")
-        self.leftTickLabels_check = makeCheckbox(panel, u"Left")
+        self.leftTickLabels_check = makeCheckbox(panel, "Left")
         self.leftTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
-        self.rightTickLabels_check = makeCheckbox(panel, u"Right")
+        self.rightTickLabels_check = makeCheckbox(panel, "Right")
         self.rightTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
-        self.topTickLabels_check = makeCheckbox(panel, u"Top")
+        self.topTickLabels_check = makeCheckbox(panel, "Top")
         self.topTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
-        self.bottomTickLabels_check = makeCheckbox(panel, u"Bottom")
+        self.bottomTickLabels_check = makeCheckbox(panel, "Bottom")
         self.bottomTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_frame)
         
         frame_lineWidth_label = wx.StaticText(panel, -1, "Frame width:")
@@ -325,7 +325,7 @@ class panelCustomisePlot(wx.Dialog):
                                                inc=2, size=(90, -1))
         self.titleFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_fonts)
 
-        self.titleFontWeight_check = makeCheckbox(panel, u"Bold")
+        self.titleFontWeight_check = makeCheckbox(panel, "Bold")
         self.titleFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_fonts)
         
         labelFontSize_label = wx.StaticText(panel, -1, "Label font size:")
@@ -334,7 +334,7 @@ class panelCustomisePlot(wx.Dialog):
                                                inc=2, size=(90, -1))
         self.labelFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_fonts)
 
-        self.labelFontWeight_check = makeCheckbox(panel, u"Bold")
+        self.labelFontWeight_check = makeCheckbox(panel, "Bold")
         self.labelFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_fonts)
         
         tickFontSize_label = wx.StaticText(panel, -1, "Tick font size:")
@@ -343,7 +343,7 @@ class panelCustomisePlot(wx.Dialog):
                                                inc=2, size=(90, -1))
         self.tickFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_fonts)
         
-        self.tickFontWeight_check = makeCheckbox(panel, u"Bold")
+        self.tickFontWeight_check = makeCheckbox(panel, "Bold")
         self.tickFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_fonts)
         self.tickFontWeight_check.Disable()
         
@@ -411,7 +411,7 @@ class panelCustomisePlot(wx.Dialog):
                                                           size=(60, -1))
         self.height_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_size)
         
-        self.lock_size_plot = makeCheckbox(panel, u"Lock size")
+        self.lock_size_plot = makeCheckbox(panel, "Lock size")
         self.lock_size_plot.SetValue(self.plot.lock_plot_from_updating_size)
         self.lock_size_plot.Bind(wx.EVT_CHECKBOX, self.onLockPlotSize)
         
@@ -445,7 +445,7 @@ class panelCustomisePlot(wx.Dialog):
         horizontal_line_6 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_7 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL) 
         
-        self.lock_plot = makeCheckbox(panel, u"Lock plot look")
+        self.lock_plot = makeCheckbox(panel, "Lock plot look")
         self.lock_plot.SetValue(self.plot.lock_plot_from_updating)
         self.lock_plot.Bind(wx.EVT_CHECKBOX, self.onLockPlot)
 
@@ -697,7 +697,7 @@ class panelCustomisePlot(wx.Dialog):
         self.plot.plotMS.spines['top'].set_visible(self.topSpines_check.GetValue())
         self.plot.plotMS.spines['bottom'].set_visible(self.bottomSpines_check.GetValue())
         
-        [i.set_linewidth(frame_width) for i in self.plot.plotMS.spines.itervalues()]
+        [i.set_linewidth(frame_width) for i in self.plot.plotMS.spines.values()]
         self.plot.repaint()
         
         self.plot.plot_parameters['spines_left'] = self.leftSpines_check.GetValue()

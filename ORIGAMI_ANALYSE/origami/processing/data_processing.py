@@ -33,7 +33,7 @@ import processing.origami_ms as pr_origami
 import processing.activation as pr_activation
 import processing.utils as pr_utils
 import processing.peptide_annotation as pr_frag
-import dialogs as dialogs
+import dialogs
 import unidec as unidec
 from toolbox import (str2num, str2int, num2str, convertRGB1to255,
                              convertRGB255to1, randomIntegerGenerator, isempty, 
@@ -1196,14 +1196,14 @@ class data_processing():
             self.presenter.onThreading(None, ("UniDec: Picking peaks...", 4, 5) , action='updateStatusbar')
             
             try: self.config.unidec_engine.pick_peaks()  
-            except (ValueError, ZeroDivisionError), e:
+            except (ValueError, ZeroDivisionError) as e:
                 print(e)
                 msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'. " + \
                       "This value should be >= 'Sample frequency (Da)'"
                 self.presenter.onThreading(None, (msg, 4) , action='updateStatusbar')
                 dlgBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
                 return
-            except IndexError, e:
+            except IndexError as e:
                 print(e)
                 dlgBox(exceptionTitle="Error", 
                        exceptionMsg="Index error. Try reducing value of 'Sample frequency (Da)'", 
@@ -1354,7 +1354,7 @@ class data_processing():
             legend_text = [[[0,0,0], "Raw"]]
             colors, labels = [], []
 #             charges = self.config.unidec_engine.get_charge_peaks()
-            for i in xrange(0, self.config.unidec_engine.pks.plen):
+            for i in range(0, self.config.unidec_engine.pks.plen):
                 p = self.config.unidec_engine.pks.peaks[i]
                 if p.ignore == 0:
                     list1, list2 = [], []
@@ -1423,7 +1423,7 @@ class data_processing():
                         legend_text.append([color, "MW: {:.2f}".format(p.mass)])
                         legend.append("MW: {:.2f}".format(p.mass))
                         num += 1
-                    xvals = range(0, num)
+                    xvals = list(range(0, num))
                     barchart_dict = {'xvals':xvals,
                                      'yvals':yvals,
                                      'labels':labels,

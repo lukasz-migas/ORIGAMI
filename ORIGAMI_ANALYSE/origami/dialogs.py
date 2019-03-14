@@ -29,8 +29,8 @@ import wx.lib.mixins.listctrl as listmix
 from numpy import arange, transpose, argmax, min
 from numpy import sum as npsum
 
-import plots as plots
-from help import OrigamiHelp as help
+import plots
+from help_documentation import OrigamiHelp
 from ids import (ID_addNewOverlayDoc, ID_helpNewVersion, ID_saveAllDocuments)
 from styles import makeCheckbox, validator, makeSuperTip
 from toolbox import (str2num, str2int, getNarrow1Ddata)
@@ -520,19 +520,19 @@ class panelCalibrantDB(wx.MiniFrame):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.peaklist = ListCtrl(panel, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0, u'protein', width=150)
-        self.peaklist.InsertColumn(1, u'MW (kDa)', width=80)
-        self.peaklist.InsertColumn(2, u'units', width=60)
+        self.peaklist.InsertColumn(0, 'protein', width=150)
+        self.peaklist.InsertColumn(1, 'MW (kDa)', width=80)
+        self.peaklist.InsertColumn(2, 'units', width=60)
         if self.mode == 'calibrants':
             # TODO : add m/z
-            self.peaklist.InsertColumn(3, u'z', width=40)
-            self.peaklist.InsertColumn(4, u'm/z (kDa)', width=80)
-            self.peaklist.InsertColumn(5, u'He⁺', width=60)
-            self.peaklist.InsertColumn(6, u'N2⁺', width=60)
-            self.peaklist.InsertColumn(7, u'He⁻', width=60)
-            self.peaklist.InsertColumn(8, u'N2⁻', width=60)
-            self.peaklist.InsertColumn(9, u'state', width=100)
-            self.peaklist.InsertColumn(10, u'source', width=60)
+            self.peaklist.InsertColumn(3, 'z', width=40)
+            self.peaklist.InsertColumn(4, 'm/z (kDa)', width=80)
+            self.peaklist.InsertColumn(5, 'He⁺', width=60)
+            self.peaklist.InsertColumn(6, 'N2⁺', width=60)
+            self.peaklist.InsertColumn(7, 'He⁻', width=60)
+            self.peaklist.InsertColumn(8, 'N2⁻', width=60)
+            self.peaklist.InsertColumn(9, 'state', width=100)
+            self.peaklist.InsertColumn(10, 'source', width=60)
 
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
@@ -823,7 +823,7 @@ class panelSequenceAnalysis(wx.MiniFrame):
         self.config = config
         self.icons = icons
 
-        self.help = help()
+        self.help = OrigamiHelp()
 
         # make gui items
         self.makeGUI()
@@ -907,17 +907,17 @@ class panelSequenceAnalysis(wx.MiniFrame):
 
         LABEL_SIZE = (100, -1)
         TEXT_SIZE = (60, -1)
-        length_label = wx.StaticText(panel, -1, u"Length:", size=LABEL_SIZE)
-        mw_label = wx.StaticText(panel, -1, u"Av. mass:", size=LABEL_SIZE)
-        pI_label = wx.StaticText(panel, -1, u"pI:", size=LABEL_SIZE)
+        length_label = wx.StaticText(panel, -1, "Length:", size=LABEL_SIZE)
+        mw_label = wx.StaticText(panel, -1, "Av. mass:", size=LABEL_SIZE)
+        pI_label = wx.StaticText(panel, -1, "pI:", size=LABEL_SIZE)
 
         self.length_value = wx.StaticText(panel, -1, "", size=TEXT_SIZE)
         self.mw_value = wx.StaticText(panel, -1, "", size=TEXT_SIZE)
         self.pI_value = wx.StaticText(panel, -1, "", size=(50, -1))
 
-        minCCS_label = wx.StaticText(panel, -1, u"Compact CCS (Å²):", size=LABEL_SIZE)
-        maxCCS_label = wx.StaticText(panel, -1, u"Extended CCS (Å²):", size=LABEL_SIZE)
-        kappa_label = wx.StaticText(panel, -1, u"κ value:", size=(50, -1))
+        minCCS_label = wx.StaticText(panel, -1, "Compact CCS (Å²):", size=LABEL_SIZE)
+        maxCCS_label = wx.StaticText(panel, -1, "Extended CCS (Å²):", size=LABEL_SIZE)
+        kappa_label = wx.StaticText(panel, -1, "κ value:", size=(50, -1))
 
         self.minCCS_value = wx.StaticText(panel, -1, "", size=TEXT_SIZE)
         self.maxCCS_value = wx.StaticText(panel, -1, "", size=TEXT_SIZE)
@@ -1002,7 +1002,7 @@ class panelExportSettings(wx.MiniFrame):
         self.presenter = presenter
         self.config = config
         self.icons = icons
-        self.help = help()
+        self.help = OrigamiHelp()
 
         self.importEvent = False
         self.windowSizes = {'Peaklist':(250, 110), 'Image':(250, 150),
@@ -1061,13 +1061,13 @@ class panelExportSettings(wx.MiniFrame):
                                     wx.DefaultSize, style=wx.NB_MULTILINE)
 
         self.parameters_peaklist = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanel_Peaklist(self.parameters_peaklist), u"Peaklist", False)
+        self.mainBook.AddPage(self.makePanel_Peaklist(self.parameters_peaklist), "Peaklist", False)
         # ------
         self.parameters_image = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanel_Image(self.parameters_image), u"Image", False)
+        self.mainBook.AddPage(self.makePanel_Image(self.parameters_image), "Image", False)
         # ------
         self.parameters_files = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanel_Files(self.parameters_files), u"Files", False)
+        self.mainBook.AddPage(self.makePanel_Files(self.parameters_files), "Files", False)
 
         self.mainSizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 2)
 
@@ -1077,13 +1077,13 @@ class panelExportSettings(wx.MiniFrame):
     def makePanel_Peaklist(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        useInternal_label = wx.StaticText(panel, wx.ID_ANY, u"Override imported values:")
-        self.peaklist_useInternalWindow_check = makeCheckbox(panel, u"")
+        useInternal_label = wx.StaticText(panel, wx.ID_ANY, "Override imported values:")
+        self.peaklist_useInternalWindow_check = makeCheckbox(panel, "")
         self.peaklist_useInternalWindow_check.SetValue(self.config.useInternalMZwindow)
         self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
 
-        windowSize_label = wx.StaticText(panel, wx.ID_ANY, u"± m/z (Da):")
+        windowSize_label = wx.StaticText(panel, wx.ID_ANY, "± m/z (Da):")
         self.peaklist_windowSize_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                   min=0.5, max=50, initial=0, inc=1,
                                                   size=(60, -1))
@@ -1109,26 +1109,26 @@ class panelExportSettings(wx.MiniFrame):
     def makePanel_Image(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        fileFormat_label = wx.StaticText(panel, wx.ID_ANY, u"File format:")
+        fileFormat_label = wx.StaticText(panel, wx.ID_ANY, "File format:")
         self.image_fileFormat_choice = wx.Choice(panel, -1, choices=self.config.imageFormatType,
                                                  size=(-1, -1))
         self.image_fileFormat_choice.SetStringSelection(self.config.imageFormat)
         self.image_fileFormat_choice.Bind(wx.EVT_CHOICE, self.onApply)
 
-        resolution_label = wx.StaticText(panel, wx.ID_ANY, u"Resolution:")
+        resolution_label = wx.StaticText(panel, wx.ID_ANY, "Resolution:")
         self.image_resolution = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                   min=50, max=600, initial=0, inc=50,
                                                   size=(60, -1))
         self.image_resolution.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         self.image_resolution.SetValue(self.config.dpi)
 
-        transparency_label = wx.StaticText(panel, wx.ID_ANY, u"Transparent:")
-        self.image_transparency_check = makeCheckbox(panel, u"")
+        transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparent:")
+        self.image_transparency_check = makeCheckbox(panel, "")
         self.image_transparency_check.SetValue(self.config.transparent)
         self.image_transparency_check.Bind(wx.EVT_CHECKBOX, self.onApply)
 
-        resize_label = wx.StaticText(panel, wx.ID_ANY, u"Resize:")
-        self.image_resize_check = makeCheckbox(panel, u"")
+        resize_label = wx.StaticText(panel, wx.ID_ANY, "Resize:")
+        self.image_resize_check = makeCheckbox(panel, "")
         self.image_resize_check.SetValue(self.config.resize)
         self.image_resize_check.Bind(wx.EVT_CHECKBOX, self.onApply)
 
@@ -1157,13 +1157,13 @@ class panelExportSettings(wx.MiniFrame):
     def makePanel_Files(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        delimiter_label = wx.StaticText(panel, wx.ID_ANY, u"Delimiter:")
-        self.file_delimiter_choice = wx.Choice(panel, -1, choices=self.config.textOutputDict.keys(),
+        delimiter_label = wx.StaticText(panel, wx.ID_ANY, "Delimiter:")
+        self.file_delimiter_choice = wx.Choice(panel, -1, choices=list(self.config.textOutputDict.keys()),
                                                  size=(-1, -1))
         self.file_delimiter_choice.SetStringSelection(self.config.saveDelimiterTXT)
         self.file_delimiter_choice.Bind(wx.EVT_CHOICE, self.onApply)
 
-        default_name_label = wx.StaticText(panel, wx.ID_ANY, u"Default name:")
+        default_name_label = wx.StaticText(panel, wx.ID_ANY, "Default name:")
         self.file_default_name_choice = wx.Choice(panel, -1, choices=sorted(self.config._plotSettings.keys()),
                                                  size=(-1, -1))
         self.file_default_name_choice.SetSelection(0)
@@ -1314,7 +1314,7 @@ class panelPeakWidthTool(wx.MiniFrame):
         self.config = config
         self.presenter = presenter
         self.kwargs = kwargs
-        self.help = help()
+        self.help = OrigamiHelp()
         # make gui items
         self.makeGUI()
         self.on_plot_MS(kwargs['xvals'], kwargs['yvals'])
@@ -1350,21 +1350,21 @@ class panelPeakWidthTool(wx.MiniFrame):
 
         self.plotMS = plots.plots(panel, figsize=(6, 3), config=self.config)
 
-        unidec_peakShape_label = wx.StaticText(panel, wx.ID_ANY, u"Peak Shape:")
-        self.unidec_peakFcn_choice = wx.Choice(panel, -1, choices=self.config.unidec_peakFunction_choices.keys(),
+        unidec_peakShape_label = wx.StaticText(panel, wx.ID_ANY, "Peak Shape:")
+        self.unidec_peakFcn_choice = wx.Choice(panel, -1, choices=list(self.config.unidec_peakFunction_choices.keys()),
                                           size=(-1, -1))
         self.unidec_peakFcn_choice.SetStringSelection(self.config.unidec_peakFunction)
         self.unidec_peakFcn_choice.Bind(wx.EVT_CHOICE, self.on_fit_peak)
 
-        unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, u"Peak FWHM (Da):")
+        unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")
         self.unidec_fit_peakWidth_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         _tip = makeSuperTip(self.unidec_fit_peakWidth_value, **self.help.unidec_peak_FWHM)
 
-        unidec_error_label = wx.StaticText(panel, wx.ID_ANY, u"Error:")
-        self.unidec_error = wx.StaticText(panel, wx.ID_ANY, u"")
-        unidec_resolution_label = wx.StaticText(panel, wx.ID_ANY, u"Resolution (M/FWHM):")
-        self.unidec_resolution = wx.StaticText(panel, wx.ID_ANY, u"")
+        unidec_error_label = wx.StaticText(panel, wx.ID_ANY, "Error:")
+        self.unidec_error = wx.StaticText(panel, wx.ID_ANY, "")
+        unidec_resolution_label = wx.StaticText(panel, wx.ID_ANY, "Resolution (M/FWHM):")
+        self.unidec_resolution = wx.StaticText(panel, wx.ID_ANY, "")
 
         self.fitBtn = wx.Button(panel, -1, "Fit", size=(-1, 22))
         msg = "To determine peak width, please zoom-in on a desired peak, \n" + \

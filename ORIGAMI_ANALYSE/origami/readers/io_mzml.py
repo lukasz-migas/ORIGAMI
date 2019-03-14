@@ -17,9 +17,11 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-from pymzml import run as pymzml_run #@UnresolvedImport
-from collections import OrderedDict 
+from collections import OrderedDict
+
 import numpy as np
+from pymzml import run as pymzml_run  # @UnresolvedImport
+
 
 class mzMLreader():
     def __init__(self, filename, **kwargs):
@@ -62,7 +64,7 @@ class mzMLreader():
 
     def get_n_scans(self, n_scans):
         data = OrderedDict()
-        for scan in xrange(n_scans):
+        for scan in range(n_scans):
             try: 
                 spectrum = next(self.source)
             except StopIteration:
@@ -80,4 +82,3 @@ class mzMLreader():
             
         self.last_scan = scan_n
         return data
-    

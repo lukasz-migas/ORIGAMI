@@ -242,7 +242,7 @@ class PeptideAnnotation():
             modification = modification_dict[i]["name"]
             
             # check if modification already present
-            if modification in self.ion_composition.keys():
+            if modification in list(self.ion_composition.keys()):
                 continue
             
             # try retrieving modification information
@@ -303,7 +303,7 @@ class PeptideAnnotation():
         for ion_type in ion_types:
             if ion_type in [self._M_all_]:
                 peptide = _peptide
-                for charge in xrange(min_charge, max_charge+1):
+                for charge in range(min_charge, max_charge+1):
                     ion_mz = mass.fast_mass(
                         peptide, ion_type=ion_type, charge=charge, ion_comp=ion_composition)
                     
@@ -314,7 +314,7 @@ class PeptideAnnotation():
                 peptide = _peptide
                 if not self.check_peptide_rules(ion_type, peptide): 
                     continue
-                for i in xrange(1, len(peptide)):
+                for i in range(1, len(peptide)):
                     peptide_seq = peptide[:i]
                     if not self.check_peptide_rules(ion_type, peptide_seq):
                         continue
@@ -322,7 +322,7 @@ class PeptideAnnotation():
                     if include_modifications:
                         mod_peptide_seq, modification_mass = self.check_modification(i, peptide_seq, modification_dict)
                     
-                    for charge in xrange(min_charge, max_charge+1):
+                    for charge in range(min_charge, max_charge+1):
                         ion_mz = mass.fast_mass(
                             peptide_seq, ion_type=ion_type, charge=charge, ion_comp=ion_composition)
                         
@@ -340,7 +340,7 @@ class PeptideAnnotation():
                 # generate list of inverse fragment numbers
                 _frag_label_length = np.arange(len(peptide), 0, -1)
                 # iterate over peptide length
-                for i in xrange(1, len(peptide)): 
+                for i in range(1, len(peptide)): 
                     peptide_seq = peptide[i:]
                     if not self.check_peptide_rules(ion_type, peptide_seq):
                         continue
@@ -348,7 +348,7 @@ class PeptideAnnotation():
                     if include_modifications:
                         mod_peptide_seq, modification_mass = self.check_modification(i+1, peptide_seq, modification_dict)
                     
-                    for charge in xrange(min_charge, max_charge+1):
+                    for charge in range(min_charge, max_charge+1):
                         ion_mz = mass.fast_mass(
                             peptide_seq, ion_type=ion_type, charge=charge, ion_comp=ion_composition)
                         
@@ -474,7 +474,7 @@ class PeptideAnnotation():
 
         frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = [], [], [], []
         for frag in fragment_dict:
-            for annot in xrange(len(fragment_dict[frag])):
+            for annot in range(len(fragment_dict[frag])):
                 if get_calculated_mz:
                     frag_mass_list.append(fragment_dict[frag][annot]['calculated_mz'])
                 else:

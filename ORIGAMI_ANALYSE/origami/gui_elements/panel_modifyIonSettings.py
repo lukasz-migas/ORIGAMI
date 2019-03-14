@@ -89,50 +89,50 @@ class panelModifyIonSettings(wx.MiniFrame):
         panel = wx.Panel(self, -1, size=(-1,-1))
         mainSizer = wx.BoxSizer(wx.VERTICAL)
                 
-        select_label = wx.StaticText(panel, wx.ID_ANY, u"Select:")
-        self.origami_select_value = makeCheckbox(panel, u"")
+        select_label = wx.StaticText(panel, wx.ID_ANY, "Select:")
+        self.origami_select_value = makeCheckbox(panel, "")
         self.origami_select_value.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        filename_label = wx.StaticText(panel, wx.ID_ANY, u"Filename:")
-        self.origami_filename_value = wx.TextCtrl(panel, wx.ID_ANY, u"", style=wx.TE_READONLY)
+        filename_label = wx.StaticText(panel, wx.ID_ANY, "Filename:")
+        self.origami_filename_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
         
-        ion_label = wx.StaticText(panel, wx.ID_ANY, u"Ion:")
-        self.origami_ion_value = wx.TextCtrl(panel, wx.ID_ANY, u"", style=wx.TE_READONLY)
+        ion_label = wx.StaticText(panel, wx.ID_ANY, "Ion:")
+        self.origami_ion_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
 
         label_label = wx.StaticText(panel, wx.ID_ANY,
-                                    u"Label:", wx.DefaultPosition, 
+                                    "Label:", wx.DefaultPosition, 
                                     wx.DefaultSize, wx.ALIGN_LEFT)
         self.origami_label_value = wx.TextCtrl(panel, -1, "", size=(90, -1))
         self.origami_label_value.SetValue(self.itemInfo['label'])
         self.origami_label_value.Bind(wx.EVT_TEXT, self.onApply)
 
-        charge_label = wx.StaticText(panel, wx.ID_ANY, u"Charge:")
+        charge_label = wx.StaticText(panel, wx.ID_ANY, "Charge:")
         self.origami_charge_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.origami_charge_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        min_threshold_label = wx.StaticText(panel, wx.ID_ANY, u"Min threshold:")
+        min_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Min threshold:")
         self.origami_min_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                             value="1",min=0.0, max=1.0,
                                             initial=1.0, inc=0.05, size=(60,-1))
         self.origami_min_threshold_value.SetValue(self.itemInfo['min_threshold'])
         self.origami_min_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        max_threshold_label = wx.StaticText(panel, wx.ID_ANY, u"Max threshold:")
+        max_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Max threshold:")
         self.origami_max_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                             value="1",min=0.0, max=1.0,
                                             initial=1.0, inc=0.05, size=(60,-1))
         self.origami_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
         self.origami_max_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
-        mask_label = wx.StaticText(panel, wx.ID_ANY, u"Mask:")
+        mask_label = wx.StaticText(panel, wx.ID_ANY, "Mask:")
         self.origami_mask_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                             value="1",min=0.0, max=1.0,
                                             initial=1.0, inc=0.05, size=(60,-1))
         self.origami_mask_value.SetValue(self.itemInfo['mask'])
         self.origami_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
-        transparency_label = wx.StaticText(panel, wx.ID_ANY, u"Transparency:")
+        transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparency:")
         self.origami_transparency_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                     value="1",min=0.0, max=1.0,
                                                     initial=1.0, inc=0.05, size=(60,-1))
@@ -144,11 +144,11 @@ class panelModifyIonSettings(wx.MiniFrame):
                                                size=(-1, -1))
         self.origami_colormap_value.Bind(wx.EVT_CHOICE, self.onApply)
         
-        self.origami_restrictColormap_value = makeCheckbox(panel, u"")
+        self.origami_restrictColormap_value = makeCheckbox(panel, "")
         self.origami_restrictColormap_value.Bind(wx.EVT_CHECKBOX, self.onRestrictCmaps)
         
         color_label = wx.StaticText(panel, -1, "Color:")
-        self.origami_color_value = wx.Button(panel, wx.ID_ANY, u"", wx.DefaultPosition, 
+        self.origami_color_value = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition, 
                                      wx.Size( 26, 26 ), 0)
         self.origami_color_value.SetBackgroundColour(self.itemInfo['color'])
         self.origami_color_value.Bind(wx.EVT_BUTTON, self.OnAssignColor)
@@ -170,43 +170,43 @@ class panelModifyIonSettings(wx.MiniFrame):
 #                                                   size=(26, 26),
 #                                                   style=wx.BORDER_DOUBLE | wx.ALIGN_CENTER_VERTICAL)
                 
-        spv_label = wx.StaticText(panel, wx.ID_ANY, u"Scans per voltage:")
+        spv_label = wx.StaticText(panel, wx.ID_ANY, "Scans per voltage:")
         self.origami_scansPerVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.origami_scansPerVoltage_value.SetValue(str(self.config.origami_spv))
         self.origami_scansPerVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        scan_label = wx.StaticText(panel, wx.ID_ANY, u"First scan:")
+        scan_label = wx.StaticText(panel, wx.ID_ANY, "First scan:")
         self.origami_startScan_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.origami_startScan_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        startVoltage_label = wx.StaticText(panel, wx.ID_ANY, u"First voltage:")
+        startVoltage_label = wx.StaticText(panel, wx.ID_ANY, "First voltage:")
         self.origami_startVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_startVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        endVoltage_label = wx.StaticText(panel, wx.ID_ANY, u"Final voltage:")
+        endVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Final voltage:")
         self.origami_endVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_endVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        stepVoltage_label = wx.StaticText(panel, wx.ID_ANY, u"Voltage step:")
+        stepVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Voltage step:")
         self.origami_stepVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_stepVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        boltzmann_label = wx.StaticText(panel, wx.ID_ANY, u"Boltzmann offset:")
+        boltzmann_label = wx.StaticText(panel, wx.ID_ANY, "Boltzmann offset:")
         self.origami_boltzmannOffset_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                                          validator=validator('floatPos'))
         self.origami_boltzmannOffset_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        exponentialPercentage_label = wx.StaticText(panel, wx.ID_ANY, u"Exponential percentage:")
+        exponentialPercentage_label = wx.StaticText(panel, wx.ID_ANY, "Exponential percentage:")
         self.origami_exponentialPercentage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_exponentialPercentage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        exponentialIncrement_label = wx.StaticText(panel, wx.ID_ANY, u"Exponential increment:")
+        exponentialIncrement_label = wx.StaticText(panel, wx.ID_ANY, "Exponential increment:")
         self.origami_exponentialIncrement_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_exponentialIncrement_value.Bind(wx.EVT_TEXT, self.onApply)
@@ -356,7 +356,7 @@ class panelModifyIonSettings(wx.MiniFrame):
             charge = str2int(self.itemInfo['charge'])
             ion_centre = (str2num(self.itemInfo['mzStart']) + str2num(self.itemInfo['mzEnd']))/2
             mw = (ion_centre - self.config.elementalMass['Hydrogen'] * charge) * charge
-            ion_value = (u"%s  ~%.2f Da") % (self.itemInfo['ionName'], mw)
+            ion_value = ("%s  ~%.2f Da") % (self.itemInfo['ionName'], mw)
             self.origami_ion_value.SetValue(ion_value)
         except:
             self.origami_ion_value.SetValue(self.itemInfo['ionName'])
@@ -376,7 +376,7 @@ class panelModifyIonSettings(wx.MiniFrame):
             charge = str2int(self.itemInfo['charge'])
             ion_centre = (str2num(self.itemInfo['mzStart']) + str2num(self.itemInfo['mzEnd']))/2
             mw = (ion_centre - self.config.elementalMass['Hydrogen'] * charge) * charge
-            ion_value = (u"%s  ~%.2f Da") % (self.itemInfo['ionName'], mw)
+            ion_value = ("%s  ~%.2f Da") % (self.itemInfo['ionName'], mw)
             self.origami_ion_value.SetValue(ion_value)
         except:
             self.origami_ion_value.SetValue(self.itemInfo['ionName'])

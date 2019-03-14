@@ -37,7 +37,7 @@ class thermoRAWreader():
     def get_scan_info(self, rt_start=0, rt_end=None):
         
         scan_info = {}
-        for scan in xrange(*self.source.scan_range()):
+        for scan in range(*self.source.scan_range()):
             info = self.source.source.GetFilterInfoForScan(scan)
             ms_level = info[0].upper() if info[0].upper() != 'MS' else 'MS1'
             time = self.source.source.time_from_scan(scan)

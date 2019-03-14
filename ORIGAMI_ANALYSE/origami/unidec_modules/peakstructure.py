@@ -109,9 +109,9 @@ class Peaks:
             self.colormap = cm.get_cmap("rainbow", len(self.peaks))
         self.peakcolors = self.colormap(np.arange(len(self.peaks)))
         self.markers = ['o', 'v', '^', '>', 's', 'd', '*']
-        self.textmarkers = [u'\u25CB', u'\u25BD', u'\u25B3', u'\u25B7', u'\u25A2', u'\u2662', u'\u2606']
+        self.textmarkers = ['\u25CB', '\u25BD', '\u25B3', '\u25B7', '\u25A2', '\u2662', '\u2606']
         self.marklen = len(self.markers)
-        for i in xrange(0, len(self.peaks)):
+        for i in range(0, len(self.peaks)):
             self.peaks[i].marker = self.markers[i % self.marklen]
             self.peaks[i].textmarker = self.textmarkers[i % self.marklen]
             self.peaks[i].color = self.peakcolors[i]

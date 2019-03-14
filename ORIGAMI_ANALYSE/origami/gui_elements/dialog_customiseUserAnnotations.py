@@ -152,7 +152,7 @@ class panelCustomiseParameters(wx.Dialog):
         hz_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
         zoom_y_buffer_check = wx.StaticText(panel, -1, "Adjust y-axis zoom:")
-        self.zoom_y_buffer_check = makeCheckbox(panel, u"")
+        self.zoom_y_buffer_check = makeCheckbox(panel, "")
         self.zoom_y_buffer_check.SetValue(self.config.annotation_zoom_y)
         
         zoom_y_buffer = wx.StaticText(panel, -1, "Zoom y-axis multiplier:")

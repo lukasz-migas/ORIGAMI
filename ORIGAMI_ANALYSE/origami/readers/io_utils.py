@@ -25,10 +25,13 @@ def remove_non_digits_from_list(check_list):
         try: 
             float(s)
             list_update.append(s)
-        except: pass
+        except: 
+            pass
         
     return list_update
 
 def clean_up(filepath):
-    try: os.remove(filepath)
-    except: pass
+    try: 
+        os.remove(filepath)
+    except: 
+        pass

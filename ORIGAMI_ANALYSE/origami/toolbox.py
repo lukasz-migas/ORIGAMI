@@ -18,10 +18,10 @@
 # __author__ lukasz.g.migas
 
 # This file contains a number of useful functions
-from __future__ import division, print_function, unicode_literals
-from __builtin__ import str
+
+from builtins import str
 import wx, os, re, random, string, time, shutil
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import numpy as np
 from numpy import savetxt, asarray
 from operator import itemgetter
@@ -33,7 +33,7 @@ from collections import OrderedDict
 from ast import literal_eval
 from random import randint
 import pandas as pd
-import cPickle as pickle
+import pickle as pickle
 
 def mlen(listitem, get_longest=False):
     
@@ -63,7 +63,7 @@ def clean_directory(dirpath):
 def _replace_labels(label):
     """ Replace string labels to unicode """
     
-    unicode_label = unicode(label)
+    unicode_label = str(label)
     try:
         if any(_label in unicode_label for _label in ["\u2070", "u2070", "^0"]):
             unicode_label = unicode_label.replace("\u2070", "⁰").replace("u2070", "⁰").replace("^0", "⁰")
@@ -106,15 +106,15 @@ def _replace_labels(label):
         if any(_label in unicode_label for _label in ["\u2089", "u2089", "*9"]):
             unicode_label = unicode_label.replace("\u2089", "₉").replace("u2089", "₉").replace("*9", "₉")
         if any(_label in unicode_label for _label in ["\R", "\r"]):
-            unicode_label = unicode_label.replace("\R", u"®").replace("\r", u"®")
+            unicode_label = unicode_label.replace("\R", "®").replace("\r", "®")
         if any(_label in unicode_label for _label in ["\u207A", "u207A", "++", "^+"]):
-            unicode_label = unicode_label.replace("\u207A", u"⁺").replace("u207A", u"⁺").replace("++", u"⁺").replace("^+", u"⁺")
+            unicode_label = unicode_label.replace("\u207A", "⁺").replace("u207A", "⁺").replace("++", "⁺").replace("^+", "⁺")
         if any(_label in unicode_label for _label in ["\u207B", "u207B", "--",  "^-"]):
-            unicode_label = unicode_label.replace("\u207B", u"⁻").replace("u207B", u"⁻").replace("--", u"⁻").replace("^-", u"⁻")
+            unicode_label = unicode_label.replace("\u207B", "⁻").replace("u207B", "⁻").replace("--", "⁻").replace("^-", "⁻")
         if any(_label in unicode_label for _label in ["\u22C5", "u22C5", ",,",  "^,"]):
-            unicode_label = unicode_label.replace("\u22C5", u"⋅").replace("u22C5", u"⋅").replace(",,", u"⋅").replace("^,", u"⋅")
+            unicode_label = unicode_label.replace("\u22C5", "⋅").replace("u22C5", "⋅").replace(",,", "⋅").replace("^,", "⋅")
         if any(_label in unicode_label for _label in ["nan", "NaN"]):
-            unicode_label = unicode_label.replace("nan", u"").replace("NaN", u"")
+            unicode_label = unicode_label.replace("nan", "").replace("NaN", "")
         if any(_label in unicode_label for _label in ["\u212B", "u212B", "AA", "ang"]):
             unicode_label = unicode_label.replace("\u212B", "Å").replace("u212B", "Å").replace("AA", "Å").replace("ang", "Å")
         if any(_label in unicode_label for _label in ["\u03B1", "u03B1", "alpha", "aaa"]):
@@ -235,7 +235,7 @@ def checkVersion(link=None, get_webpage=False):
     if not get_webpage:
         # Search website for all versions
         vers = []
-        for line in urllib2.urlopen(link):
+        for line in urllib.request.urlopen(link):
             if 'Update to ORIGAMI-ANALYSE (' in line.decode('utf-8'):
                 vers.append(line)
                 break
@@ -249,7 +249,7 @@ def checkVersion(link=None, get_webpage=False):
                 break
         return webVersion
     else:
-        webpage = urllib2.urlopen("https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md")
+        webpage = urllib.request.urlopen("https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md")
         return webpage.read()
     
 def compareVersions(newVersion, oldVersion):
@@ -349,7 +349,7 @@ def str2bool(s):
     
 def isnumber(input):
     """ Quick and easy way to check if input is a number """
-    return isinstance(input, (int, long, float, complex))
+    return isinstance(input, (int, float, complex))
      
 def checkExtension(input):
     # FIXME add this to the text loader
@@ -727,7 +727,7 @@ def find_limits_list(xvals, yvals):
     xouts, youts = [], []
     
     # Iterate over dictionary to find minimum values for each key
-    for i in xrange(len(xvals)):
+    for i in range(len(xvals)):
         xouts.append(np.min(xvals[i]))
         xouts.append(np.max(xvals[i]))
         youts.append(np.min(yvals[i]))
@@ -743,11 +743,11 @@ def find_limits_all(xvals, yvals):
             xouts.append(np.min(xvals[key]))
             xouts.append(np.max(xvals[key]))
     elif any(isinstance(el, list) for el in xvals):
-        for i in xrange(len(xvals)):
+        for i in range(len(xvals)):
             xouts.append(np.min(xvals[i]))
             xouts.append(np.max(xvals[i]))
     elif any(isinstance(el, np.ndarray) for el in xvals):
-        for i in xrange(len(xvals)):
+        for i in range(len(xvals)):
             xouts.append(np.min(xvals[i]))
             xouts.append(np.max(xvals[i]))
     else:
@@ -758,11 +758,11 @@ def find_limits_all(xvals, yvals):
             youts.append(np.min(yvals[key]))
             youts.append(np.max(yvals[key]))
     elif any(isinstance(el, list) for el in yvals):
-        for i in xrange(len(yvals)):
+        for i in range(len(yvals)):
             youts.append(np.min(yvals[i]))
             youts.append(np.max(yvals[i]))
     elif any(isinstance(el, np.ndarray) for el in yvals):
-        for i in xrange(len(yvals)):
+        for i in range(len(yvals)):
             youts.append(np.min(yvals[i]))
             youts.append(np.max(yvals[i]))
     else:
@@ -779,9 +779,9 @@ def sort_dictionary(dictionary, key='key'):
     Sort OrderedDict based on key value
     """
     if key != 'key':
-        return OrderedDict(sorted(dictionary.iteritems(), key=lambda x: x[1][key]))
+        return OrderedDict(sorted(iter(dictionary.items()), key=lambda x: x[1][key]))
     else:
-        return OrderedDict(sorted(dictionary.items(), key=lambda x: x[0]))
+        return OrderedDict(sorted(list(dictionary.items()), key=lambda x: x[0]))
     
 def make_rgb(x, color):
     """

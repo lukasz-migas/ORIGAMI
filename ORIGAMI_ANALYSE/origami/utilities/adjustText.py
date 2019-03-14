@@ -1,4 +1,4 @@
-from __future__ import division
+
 import sys
 from matplotlib import pyplot as plt
 from itertools import product
@@ -512,14 +512,14 @@ def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
 #    ydiff = np.diff(ax.get_ylim())[0]
 
     bboxes = get_bboxes(texts, r, (1.0, 1.0), ax)
-    sum_width = np.sum(list(map(lambda bbox: bbox.width, bboxes)))
-    sum_height = np.sum(list(map(lambda bbox: bbox.height, bboxes)))
-    if not any(list(map(lambda val: 'x' in val, only_move.values()))):
+    sum_width = np.sum(list([bbox.width for bbox in bboxes]))
+    sum_height = np.sum(list([bbox.height for bbox in bboxes]))
+    if not any(list(['x' in val for val in list(only_move.values())])):
         precision_x = np.inf
     else:
         precision_x = precision*sum_width
 #
-    if not any(list(map(lambda val: 'y' in val, only_move.values()))):
+    if not any(list(['y' in val for val in list(only_move.values())])):
         precision_y = np.inf
     else:
         precision_y = precision*sum_height
@@ -575,7 +575,7 @@ def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
 
     texts = repel_text_from_axes(texts, ax, renderer=r, expand=expand_points)
     history = [(np.inf, np.inf)]*10
-    for i in xrange(lim):
+    for i in range(lim):
 #        q1, q2 = [np.inf, np.inf], [np.inf, np.inf]
 
         if avoid_text:

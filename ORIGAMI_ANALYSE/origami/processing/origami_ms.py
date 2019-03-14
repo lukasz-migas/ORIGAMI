@@ -32,7 +32,7 @@ def origami_combine_infrared(inputData=None, threshold=2000, noiseLevel=500, sig
             indexList.append(x)
               
     # Split the indexList so we have a list of lists of indexes to split data into
-    splitlist = [map(itemgetter(1), g) for k, g in groupby(enumerate(indexList), lambda (i,x):i-x)]
+    splitlist = [list(map(itemgetter(1), g)) for k, g in groupby(enumerate(indexList), lambda i_x:i_x[0]-i_x[1])]
       
     # Split data
     dataSplit = []
@@ -70,7 +70,7 @@ def origami_combine_linear(imsDataInput, firstVoltage, startVoltage, endVoltage,
     if lastVoltage > len(imsDataInput[1,:]):
         return [None, lastVoltage, len(imsDataInput[1,:])], None, None
     else:
-        print('File has a total of: %s scans. The last scan of CE ramp is %s' %(len(imsDataInput[1,:]), lastVoltage))
+        print(('File has a total of: %s scans. The last scan of CE ramp is %s' %(len(imsDataInput[1,:]), lastVoltage)))
    
     # Pre-calculate X-axis information
     ColEnergyX = np.linspace(startVoltage,endVoltage, num=numberOfVoltages)
@@ -79,7 +79,7 @@ def origami_combine_linear(imsDataInput, firstVoltage, startVoltage, endVoltage,
     x1 = 0
     # Create an empty array to put data into
     imsDataCEcombined, scanList = [], []
-    for i, cv in zip(range(int(numberOfVoltages)), ColEnergyX):
+    for i, cv in zip(list(range(int(numberOfVoltages))), ColEnergyX):
         x2 = int(x1+scansPerVoltage)
         scanList.append([x1+firstVoltage, x2+firstVoltage, cv])
         _tempIMSData = cropIMSdata[:,x1:x2] # Crop appropriate range 
@@ -121,7 +121,7 @@ def origami_combine_exponential(imsDataInput, firstVoltage, # combineCEscansExpo
     if lastVoltage > len(imsDataInput[1,:]):
         return [None, lastVoltage, len(imsDataInput[1,:])], None, None
     else: 
-        print('File has a total of: %s scans. The last scan of CE ramp is %s' %(len(imsDataInput[1,:]), lastVoltage))
+        print(('File has a total of: %s scans. The last scan of CE ramp is %s' %(len(imsDataInput[1,:]), lastVoltage)))
     # Crop IMS data to appropriate size (remove start and end regions 'reporter')
     cropIMSdata = imsDataInput[:,int(firstVoltage)::] #int(lastVoltage)]
     x1 = 0
@@ -164,7 +164,7 @@ def origami_combine_boltzmann(imsDataInput, firstVoltage, # combineCEscansFitted
     if lastVoltage > len(imsDataInput[1,:]):
         return [None, lastVoltage, len(imsDataInput[1,:])], None, None
     else: 
-        print('File has a total of: %s scans. The last scan of CE ramp is %s' %(len(imsDataInput[1,:]), lastVoltage))
+        print(('File has a total of: %s scans. The last scan of CE ramp is %s' %(len(imsDataInput[1,:]), lastVoltage)))
     # Crop IMS data to appropriate size (remove start and end regions 'reporter')
     cropIMSdata = imsDataInput[:,int(firstVoltage)::] #int(lastVoltage)]
     x1 = 0
@@ -203,7 +203,7 @@ def origami_combine_userDefined(imsDataInput=None, firstVoltage=None, inputList=
     if lastVoltage > len(imsDataInput[1,:]):
         return [None, lastVoltage, len(imsDataInput[1,:])], None, None, None
     else:
-        print('File has a total of: %s scans. The last scan of CE ramp is %s' %(len(imsDataInput[1,:]), lastVoltage))
+        print(('File has a total of: %s scans. The last scan of CE ramp is %s' %(len(imsDataInput[1,:]), lastVoltage)))
     # Crop IMS data to appropriate size (remove start and end regions 'reporter')
     cropIMSdata = imsDataInput[:,int(firstVoltage)::]
     x1 = int(0)

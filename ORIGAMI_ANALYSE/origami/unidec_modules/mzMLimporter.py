@@ -53,7 +53,7 @@ def merge_spectra(datalist):
     # axis = nonlinear_axis(np.amin(concat[:, 0]), np.amax(concat[:, 0]), resolution)
     axis = ud.nonlinear_axis(np.amin(concat[:, 0]), np.amax(concat[:, 0]), resolution)
     template = np.transpose([axis, np.zeros_like(axis)])
-    print "Length merge axis:", len(template)
+    print("Length merge axis:", len(template))
     for d in datalist:
         if len(d) > 1:
             newdat = ud.mergedata(template, d)
@@ -92,13 +92,13 @@ class mzMLimporter:
         :param kwargs: keywords (unused)
         :return: mzMLimporter object
         """
-        print "Reading mzML:", path
+        print("Reading mzML:", path)
         self.msrun = pymzml_run.Reader(path)
         self.data = []
         self.scans = []
         self.times = []
         for i, spectrum in enumerate(self.msrun):
-            if 'scan start time' in spectrum.keys():
+            if 'scan start time' in list(spectrum.keys()):
                 impdat = np.transpose([spectrum.mz, spectrum.i])
                 impdat = impdat[impdat[:, 0] > 10]
                 self.data.append(impdat)
@@ -116,22 +116,22 @@ class mzMLimporter:
         data = deepcopy(self.data)
         if time_range is not None:
             scan_range=self.get_scans_from_times(time_range)
-            print "Getting times:", time_range
+            print("Getting times:", time_range)
 
         if scan_range is not None:
             data = data[int(scan_range[0]):int(scan_range[1])]
-            print "Getting scans:", scan_range
+            print("Getting scans:", scan_range)
         else:
-            print "Getting all scans, length:", len(self.scans), data.shape
+            print("Getting all scans, length:", len(self.scans), data.shape)
 
         if len(data) > 1:
             try:
                 data = merge_spectra(data)
-            except Exception, e:
+            except Exception as e:
                 concat = np.concatenate(data)
                 sort = concat[concat[:, 0].argsort()]
                 data = ud.removeduplicates(sort)
-                print e
+                print(e)
         elif len(data) == 1:
             data = data[0]
         else:

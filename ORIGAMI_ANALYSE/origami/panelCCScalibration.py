@@ -24,7 +24,7 @@ from operator import itemgetter
 
 from styles import validator, layout
 from toolbox import str2num, str2int, isnumber
-import dialogs as dialogs
+import dialogs
 from ids import *
 
 class panelCCScalibration(wx.Panel):
@@ -126,13 +126,13 @@ class topPanel(wx.Panel):
 
         self.peaklist = ListCtrl(self, style=wx.LC_REPORT)
 
-        self.peaklist.InsertColumn(0,u'file', width=80)
-        self.peaklist.InsertColumn(1,u'min m/z', width=55)
-        self.peaklist.InsertColumn(2,u'max m/z', width=55)
-        self.peaklist.InsertColumn(3,u'protein', width=60)
-        self.peaklist.InsertColumn(4,u'z', width=30)
-        self.peaklist.InsertColumn(5,u'Ω', width=40)
-        self.peaklist.InsertColumn(6,u'tD', width=50)
+        self.peaklist.InsertColumn(0,'file', width=80)
+        self.peaklist.InsertColumn(1,'min m/z', width=55)
+        self.peaklist.InsertColumn(2,'max m/z', width=55)
+        self.peaklist.InsertColumn(3,'protein', width=60)
+        self.peaklist.InsertColumn(4,'z', width=30)
+        self.peaklist.InsertColumn(5,'Ω', width=40)
+        self.peaklist.InsertColumn(6,'tD', width=50)
         
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.disableBottomAnnotation)
@@ -253,7 +253,7 @@ class topPanel(wx.Panel):
         self.protein_value.SetFont(wx.SMALL_FONT)
         
         self.selectBtn = wx.Button( self, ID_selectCalibrant,
-                                    u"...", wx.DefaultPosition, 
+                                    "...", wx.DefaultPosition, 
                                     wx.Size( 25,-1 ), 0 )
         
         ion_label = wx.StaticText(self, -1, "m/z:")
@@ -273,26 +273,26 @@ class topPanel(wx.Panel):
         charge_label.SetFont(wx.SMALL_FONT)
         self.charge_value.SetFont(wx.SMALL_FONT)
         
-        ccs_label = wx.StaticText(self, -1, u"CCS (Å²):")
+        ccs_label = wx.StaticText(self, -1, "CCS (Å²):")
         self.ccs_value = wx.TextCtrl(self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=validator('float'),
                                      style=wx.TE_PROCESS_ENTER)
         ccs_label.SetFont(wx.SMALL_FONT)
         self.ccs_value.SetFont(wx.SMALL_FONT)
         
-        tD_label = wx.StaticText(self, -1, u"DT (ms):")
+        tD_label = wx.StaticText(self, -1, "DT (ms):")
         self.tD_value = wx.TextCtrl(self, ID_calibration_changeTD, "", size=(TEXT_SIZE_SMALL, -1), 
                                     validator=validator('float'), style=wx.TE_PROCESS_ENTER)
         tD_label.SetFont(wx.SMALL_FONT)
         self.tD_value.SetFont(wx.SMALL_FONT)
         
-        gas_label = wx.StaticText(self, -1, u"Gas:")
+        gas_label = wx.StaticText(self, -1, "Gas:")
         self.gas_value = wx.ComboBox(self, -1, value= "Nitrogen",
                                      choices=["Nitrogen", "Helium"], 
                                      style=wx.CB_READONLY)
         tD_label.SetFont(wx.SMALL_FONT)
         self.tD_value.SetFont(wx.SMALL_FONT)
         
-        self.applyBtn = wx.Button( self, ID_calibration_changeTD, u"Apply", wx.DefaultPosition, 
+        self.applyBtn = wx.Button( self, ID_calibration_changeTD, "Apply", wx.DefaultPosition, 
                                    wx.Size( BTN_SIZE,-1 ), 0 )
         
         grid = wx.GridBagSizer(2, 2)
@@ -670,7 +670,7 @@ class topPanel(wx.Panel):
         currentItems = self.peaklist.GetItemCount()-1
         while (currentItems >= 0):
             ionInTable = self.peaklist.GetItem(currentItems,1).GetText()
-            print(ionInTable, mzCentre)
+            print((ionInTable, mzCentre))
             if ionInTable == mzCentre:
                 print('Ion already in the table')
                 currentItems = 0
@@ -696,7 +696,7 @@ class topPanel(wx.Panel):
                     rangeName = ''.join([str(mzStart),'-',str(mzEnd)])
                     try: 
                         del self.presenter.documentsDict[selectedItem].calibration[rangeName]
-                        if len(self.presenter.documentsDict[selectedItem].calibration.keys()) == 0:
+                        if len(list(self.presenter.documentsDict[selectedItem].calibration.keys())) == 0:
                             self.presenter.documentsDict[selectedItem].gotCalibration = False
                     except KeyError: pass
                     self.peaklist.DeleteItem(currentItems)
@@ -717,7 +717,7 @@ class topPanel(wx.Panel):
             rangeName = ''.join([str(mzStart),'-',str(mzEnd)])
             try: 
                 del self.presenter.documentsDict[selectedItem].calibration[rangeName]
-                if len(self.presenter.documentsDict[selectedItem].calibration.keys()) == 0:
+                if len(list(self.presenter.documentsDict[selectedItem].calibration.keys())) == 0:
                     self.presenter.documentsDict[selectedItem].gotCalibration = False
             except KeyError: pass
             self.peaklist.DeleteItem(self.currentItem)
@@ -756,7 +756,7 @@ class topPanel(wx.Panel):
                     except KeyError: pass   
                     self.peaklist.DeleteItem(currentItems)
                     currentItems-=1
-        print(''.join(["Remaining documents: ", str(len(self.presenter.documentsDict))]))
+        print((''.join(["Remaining documents: ", str(len(self.presenter.documentsDict))])))
             
     def onRemoveDuplicates(self, evt):
         """
@@ -1011,15 +1011,15 @@ class bottomPanel(wx.Panel):
 #                 xcentre = ((self.config.elementalMass['Hydrogen']*str2int(charge)+
 #                            str2num(mw))/str2int(charge))
                 
-        print('xcentre', xcentre)
+        print(('xcentre', xcentre))
         
         # Check whether there is a calibration file/object available
         if len(self.presenter.currentCalibrationParams) == 0:
             print('No global calibration parameters were found')
             if self.docs.gotCalibrationParameters:
                 self.presenter.currentCalibrationParams = self.docs.calibrationParameters
-                print('Found calibration parameters in the %s file' % self.docs.title)
-                print(len(self.presenter.currentCalibrationParams))
+                print(('Found calibration parameters in the %s file' % self.docs.title))
+                print((len(self.presenter.currentCalibrationParams)))
             
         
          
@@ -1043,13 +1043,13 @@ class bottomPanel(wx.Panel):
     def makeListCtrl(self):
         mainSizer = wx.BoxSizer( wx.VERTICAL )
         self.peaklist = ListCtrl(self, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0,u'file', width=50)
-        self.peaklist.InsertColumn(1,u'min m/z ', width=55)
-        self.peaklist.InsertColumn(2,u'max m/z ', width=55)
-        self.peaklist.InsertColumn(3,u'm/z', width=45)
-        self.peaklist.InsertColumn(4,u'protein', width=60)
-        self.peaklist.InsertColumn(5,u'z',width=30)
-        self.peaklist.InsertColumn(6,u'format',width=80)
+        self.peaklist.InsertColumn(0,'file', width=50)
+        self.peaklist.InsertColumn(1,'min m/z ', width=55)
+        self.peaklist.InsertColumn(2,'max m/z ', width=55)
+        self.peaklist.InsertColumn(3,'m/z', width=45)
+        self.peaklist.InsertColumn(4,'protein', width=60)
+        self.peaklist.InsertColumn(5,'z',width=30)
+        self.peaklist.InsertColumn(6,'format',width=80)
 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.disableTopAnnotation)
@@ -1121,7 +1121,7 @@ class bottomPanel(wx.Panel):
         currentItems = self.peaklist.GetItemCount()-1
         while (currentItems >= 0):
             ionInTable = self.peaklist.GetItem(currentItems,1).GetText()
-            print(ionInTable, mzCentre)
+            print((ionInTable, mzCentre))
             if ionInTable == mzCentre:
                 print('Ion already in the table')
                 currentItems = 0
@@ -1155,7 +1155,7 @@ class bottomPanel(wx.Panel):
         else:
             self.OnClearTable(evt=None)
 
-        print(''.join(["Remaining documents: ", str(len(self.presenter.documentsDict))]))
+        print((''.join(["Remaining documents: ", str(len(self.presenter.documentsDict))])))
         
     def onRemoveDuplicates(self, evt):
         """

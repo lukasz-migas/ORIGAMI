@@ -16,14 +16,14 @@ from scipy import signal
 from scipy import fftpack
 import matplotlib.cm as cm
 # import mzMLimporter
-from fitting import *
-import unidecstructure
+from unidec_modules.fitting import *
+import unidec_modules.unidecstructure
 import tempfile
 
 try:
     import data_reader
 except:
-    print "Could not import data reader: unidectools"
+    print("Could not import data reader: unidectools")
 import fnmatch
 
 is_64bits = sys.maxsize > 2 ** 32
@@ -63,12 +63,12 @@ else:
                 dllpath = testpath
             else:
                 # print testpath
-                print "Unable to find file", testpath
+                print("Unable to find file", testpath)
 
 try:
     libs = cdll.LoadLibrary(dllpath)
 except (OSError, NameError):
-    print "Failed to load libmypfunc, convolutions in nonlinear mode might be slow"
+    print("Failed to load libmypfunc, convolutions in nonlinear mode might be slow")
 
 
 # ..........................
@@ -98,7 +98,7 @@ def isempty(thing):
         else:
             out = False
     except (TypeError, ValueError, AttributeError):
-        print "Error testing emptiness"
+        print("Error testing emptiness")
         out = False
     return out
 
@@ -392,7 +392,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
         else:
             index = nearest(data[:, 0], x)
             val = data[index, 1]
-            print "NEED TO SET INTEGRAL WINDOW!\nUsing Peak Height Instead"
+            print("NEED TO SET INTEGRAL WINDOW!\nUsing Peak Height Instead")
 
     elif extract_method == 3:
         if window is not None:
@@ -401,7 +401,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val, junk = center_of_mass(data, start, end)
         else:
             val, junk = center_of_mass(data, data[0, 0], data[len(data) - 1, 0])
-            print "No window set for center of mass!\nUsing entire data range...."
+            print("No window set for center of mass!\nUsing entire data range....")
 
     elif extract_method == 4:
         if window is not None:
@@ -410,7 +410,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val = localmaxpos(data, start, end)
         else:
             val = localmaxpos(data, data[0, 0], data[len(data) - 1, 0])
-            print "No window set for local max position!\nUsing entire data range...."
+            print("No window set for local max position!\nUsing entire data range....")
 
     elif extract_method == 5:
         # Remove data points that fall below 50% threshold
@@ -424,7 +424,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val, junk = center_of_mass(cutdat, start, end)
         else:
             val, junk = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
-            print "No window set for center of mass!\nUsing entire data range...."
+            print("No window set for center of mass!\nUsing entire data range....")
 
     elif extract_method == 6:
         # Remove data points that fall below 10% threshold
@@ -438,19 +438,19 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val, junk = center_of_mass(cutdat, start, end)
         else:
             val, junk = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
-            print "No window set for center of mass!\nUsing entire data range...."
+            print("No window set for center of mass!\nUsing entire data range....")
 
     else:
         val = 0
-        print "Undefined extraction choice"
+        print("Undefined extraction choice")
     return val
 
 
 def data_extract_grid(data, xarray, extract_method=1, window=0):
     igrid = np.zeros_like(xarray)
     dims = igrid.shape
-    for j in xrange(0, dims[0]):
-        for k in xrange(0, dims[1]):
+    for j in range(0, dims[0]):
+        for k in range(0, dims[1]):
             x = xarray[j, k]
             igrid[j, k] = data_extract(data, x, extract_method=extract_method, window=window)
     return igrid
@@ -459,7 +459,7 @@ def data_extract_grid(data, xarray, extract_method=1, window=0):
 def kendrick_analysis(massdat, kendrickmass, centermode=1, nbins=50, transformmode=1, xaxistype=1):
     # Calculate Defects for Deconvolved Masses
     if kendrickmass == 0:
-        print "Error: Kendrick mass is 0."
+        print("Error: Kendrick mass is 0.")
         return None, None, None, None, None
     xaxis = massdat[:, 0]
     kmass = np.array(xaxis) / float(kendrickmass)
@@ -478,8 +478,8 @@ def kendrick_analysis(massdat, kendrickmass, centermode=1, nbins=50, transformmo
     if transformmode == 1:
         # Interpolation
         f = interp1d(massdat[:, 0], massdat[:, 1], bounds_error=False, fill_value=0)
-        for j in xrange(0, len(nominal)):
-            for k in xrange(0, len(defects)):
+        for j in range(0, len(nominal)):
+            for k in range(0, len(defects)):
                 nommass = nominal[j]
                 defect = defects[k]
                 mass = (nommass + defect) * kendrickmass
@@ -487,7 +487,7 @@ def kendrick_analysis(massdat, kendrickmass, centermode=1, nbins=50, transformmo
                 igrid[j, k] = intensity
     else:
         # Integration
-        for j in xrange(0, len(kmass)):
+        for j in range(0, len(kmass)):
             nommass = nominalkmass[j]
             defect = kmdefectexact[j]
             pos = nearest(defects, defect)
@@ -553,9 +553,9 @@ def header_test(path):
                         header += 1
                         break
         if header > 0:
-            print "Header Length:", header
+            print("Header Length:", header)
     except (ImportError, OSError, AttributeError, IOError):
-        print "Failed header test"
+        print("Failed header test")
         header = 0
     return header
 
@@ -564,12 +564,12 @@ def waters_convert(path, config=None):
     if config is None:
         config = unidecstructure.UniDecConfig()
         config.initialize_system_paths()
-        print config.rawreaderpath
+        print(config.rawreaderpath)
 
     t = os.path.join(path, "converted_rawdata.txt")
     call = [config.rawreaderpath, "-i", path, "-o", t]
     result = subprocess.call(call)
-    print "Conversion Stderr:", result
+    print("Conversion Stderr:", result)
     data = np.loadtxt(t)
     return data
 
@@ -589,14 +589,14 @@ def load_mz_file(path, config=None):
     if not os.path.isfile(path):
         if os.path.isdir(path) and os.path.splitext(path)[1].lower() == ".raw":
             try:
-                print "Trying to convert Waters File"
+                print("Trying to convert Waters File")
                 data = waters_convert(path, config)
             except:
-                print "Attempted to convert Waters Raw file but failed"
+                print("Attempted to convert Waters Raw file but failed")
                 raise IOError
         else:
-            print "Attempted to open:", path
-            print "\t but I couldn't find the file..."
+            print("Attempted to open:", path)
+            print("\t but I couldn't find the file...")
             raise IOError
     else:
 
@@ -611,12 +611,12 @@ def load_mz_file(path, config=None):
             data = data_reader.DataImporter(path).get_data()
             txtname = path[:-4] + ".txt"
             np.savetxt(txtname, data)
-            print "Saved to:", txtname
+            print("Saved to:", txtname)
         else:
             try:
                 data = np.loadtxt(path, skiprows=header_test(path))
             except IOError:
-                print"Failed to open:", path
+                print("Failed to open:", path)
                 data = None
     return data
 
@@ -641,11 +641,11 @@ def zip_folder(save_path):
     :return: None
     """
     directory = os.getcwd()
-    print "Zipping directory:", directory
+    print("Zipping directory:", directory)
     zipf = zipfile.ZipFile(save_path, 'w')
     zipdir(directory, zipf)
     zipf.close()
-    print "File saved to: " + str(save_path)
+    print("File saved to: " + str(save_path))
 
 
 def dataexport(datatop, fname):
@@ -707,7 +707,7 @@ def auto_peak_width(datatop, psfun=None):
         boo3 = np.all([boo1, boo2], axis=0)
         isodat = datatop[boo3]
 
-        fits = np.array([isolated_peak_fit(isodat[:, 0], isodat[:, 1], i) for i in xrange(0, 3)])
+        fits = np.array([isolated_peak_fit(isodat[:, 0], isodat[:, 1], i) for i in range(0, 3)])
 
         errors = [np.sum(np.array(isodat[:, 1] - f) ** 2.) for f in fits[:, 1]]
         if psfun is None:
@@ -787,8 +787,8 @@ def datacompsub(datatop, buff):
     :return: Subtracted data
     """
     length = len(datatop)
-    mins = range(0, length)
-    indexes = range(0, length)
+    mins = list(range(0, length))
+    indexes = list(range(0, length))
     for i in indexes:
         mins[i] = np.amin(datatop[int(max([0, i - abs(buff)])):int(min([i + abs(buff), length])), 1])
     background = filt.gaussian_filter(mins, abs(buff) * 2)
@@ -1062,7 +1062,7 @@ def nonlinearize(datatop, num_compressed):
     else:
         num_compressed = int(num_compressed)
         return np.array([np.mean(datatop[index:index + num_compressed], axis=0) for index in
-                         xrange(0, len(datatop), num_compressed)])
+                         range(0, len(datatop), num_compressed)])
 
 
 def removeduplicates(datatop):
@@ -1074,7 +1074,7 @@ def removeduplicates(datatop):
     """
     testunique = np.unique(datatop[:, 0])
     if len(testunique) != len(datatop):
-        print "Removing Duplicates"
+        print("Removing Duplicates")
         num, start = np.histogram(datatop[:, 0], bins=testunique)
         means = []
         xvals = []
@@ -1195,7 +1195,7 @@ def dataprep(datatop, config):
     elif buff == 0:
         pass
     else:
-        print "Background subtraction code unsupported", subtype, buff
+        print("Background subtraction code unsupported", subtype, buff)
 
     # Intensity Threshold
     data2 = intensitythresh(data2, 0)  # thresh
@@ -1337,14 +1337,14 @@ def make_peaks_mztab(mzgrid, pks, adductmass, index=None):
     ylen = len(yvals)
     newgrid = np.reshape(mzgrid[:, 2], (xlen, ylen))
     plen = pks.plen
-    ftab = [interp1d(xvals, newgrid[:, k]) for k in xrange(0, ylen)]
-    mztab = [[makespecfun(i, k, pks.masses, adductmass, yvals, xvals, ftab, xmax, xmin) for k in xrange(0, ylen)] for i
-             in xrange(0, plen)]
+    ftab = [interp1d(xvals, newgrid[:, k]) for k in range(0, ylen)]
+    mztab = [[makespecfun(i, k, pks.masses, adductmass, yvals, xvals, ftab, xmax, xmin) for k in range(0, ylen)] for i
+             in range(0, plen)]
     if index is None:
-        for i in xrange(0, plen):
+        for i in range(0, plen):
             pks.peaks[i].mztab = np.array(mztab[i])
     else:
-        for i in xrange(0, plen):
+        for i in range(0, plen):
             pks.peaks[i].mztab.append(np.array(mztab[i]))
     return np.array(mztab)
 
@@ -1392,12 +1392,12 @@ def make_peaks_mztab_spectrum(mzgrid, pks, data2, mztab, index=None):
 
     if index is None:
         mztab2[:, :, 1] = [[data2[int(pks.peaks[i].mztab[k, 2]), 1] for k in range(0, zlen)] for i in range(0, plen)]
-        for i in xrange(0, plen):
+        for i in range(0, plen):
             pks.peaks[i].mztab2 = np.array(mztab2[i])
     else:
         mztab2[:, :, 1] = [[data2[int(pks.peaks[i].mztab[index][k, 2]), 1] for k in range(0, zlen)] for i in
                            range(0, plen)]
-        for i in xrange(0, plen):
+        for i in range(0, plen):
             pks.peaks[i].mztab2.append(np.array(mztab2[i]))
 
     return mztab2
@@ -1427,7 +1427,7 @@ def makeconvspecies(processed_data, pks, config):
             stickdat = [nonlinstickconv(xvals, p.mztab, config.mzsig, config.psfun) for p in pks.peaks]
 
     pks.composite = np.zeros(xlen)
-    for i in xrange(0, pks.plen):
+    for i in range(0, pks.plen):
         pks.peaks[i].stickdat = stickdat[i]
         pks.composite += np.array(stickdat[i])
     pks.convolved = True
@@ -1450,9 +1450,9 @@ def nonlinstickconv(xvals, mztab, fwhm, psfun):
     xlen = len(xvals)
     stick = np.zeros(xlen)
     stick[np.array(mztab[:, 2]).astype(np.int)] = mztab[:, 1]
-    bool1 = [np.abs(xvals - xvals[i]) < window for i in xrange(0, xlen)]
-    kernels = np.array([make_peak_shape(-xvals[bool1[i]], psfun, fwhm, -xvals[i]) for i in xrange(0, xlen)])
-    output = np.array([np.sum(kernels[i] * stick[bool1[i]]) for i in xrange(0, xlen)])
+    bool1 = [np.abs(xvals - xvals[i]) < window for i in range(0, xlen)]
+    kernels = np.array([make_peak_shape(-xvals[bool1[i]], psfun, fwhm, -xvals[i]) for i in range(0, xlen)])
+    output = np.array([np.sum(kernels[i] * stick[bool1[i]]) for i in range(0, xlen)])
     return output
 
 
@@ -1945,7 +1945,7 @@ def win_fft_diff(rawdata, binsize=0.05, sigma=1000, diffrange=None):
     mzdata = pad_two_power(mzdata)
     maxpos = smoothdata[np.argmax(smoothdata[:, 1]), 0]
     maxdiff, fftdat = windowed_fft(mzdata, maxpos, sigma, diffrange=diffrange)
-    print "Difference:", maxdiff
+    print("Difference:", maxdiff)
     return maxdiff, fftdat
 
 
@@ -2013,7 +2013,7 @@ def correlation_integration(dat1, dat2, alpha=0.01, plot_corr=False, **kwargs):
     # print ci,cierr
 
     if slope > 0 and plot_corr:
-        print slope, cierr, rsquared, slope_std_error * np.sqrt(n), pvalue
+        print(slope, cierr, rsquared, slope_std_error * np.sqrt(n), pvalue)
         fitdat = y1 * slope + intercept
         import matplotlib.pyplot as plt
         plt.figure()
@@ -2172,7 +2172,7 @@ def peaks_error_mean(pks, data, ztab, massdat, config):
 
 
 if __name__ == "__main__":
-    testfile = "C:\Python\UniDec\TestSpectra\\test_imms.raw"
+    testfile = "C:\Python\\UniDec\TestSpectra\\test_imms.raw"
     waters_convert(testfile)
 
     exit()

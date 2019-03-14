@@ -301,7 +301,7 @@ class panelUVPD(wx.MiniFrame):
         
     def populate_table(self):
         
-        ions = self.document.IMS2Dions.keys()
+        ions = list(self.document.IMS2Dions.keys())
         for ion in ions:
             min_mz, max_mz = re_split('-|,|:|__', ion)
             
@@ -342,38 +342,38 @@ class panelUVPD(wx.MiniFrame):
         self.Layout()
      
     def make_peak_finding_panel(self, panel):
-        threshold_value = wx.StaticText(panel, wx.ID_ANY, u"Threshold:")
+        threshold_value = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.threshold_value = wx.SpinCtrlDouble(panel, -1, min=0, max=1, inc=0.05,
                                                  value=str(self.config.uvpd_peak_finding_threshold),
                                                  initial=self.config.uvpd_peak_finding_threshold, 
                                                  size=(60, -1))
         self.threshold_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        buffer_size_value = wx.StaticText(panel, wx.ID_ANY, u"Buffer size:")
+        buffer_size_value = wx.StaticText(panel, wx.ID_ANY, "Buffer size:")
         self.buffer_size_value = wx.SpinCtrlDouble(panel, -1, min=0, max=100, inc=1,
                                                    value=str(self.config.uvpd_peak_buffer_width), 
                                                    initial=self.config.uvpd_peak_buffer_width, 
                                                  size=(60, -1))
         self.buffer_size_value.Bind(wx.EVT_TEXT, self.onApply)
 
-        first_index_value = wx.StaticText(panel, wx.ID_ANY, u"First index:")
+        first_index_value = wx.StaticText(panel, wx.ID_ANY, "First index:")
         self.first_index_value = wx.SpinCtrlDouble(panel, -1, min=0, max=10000, inc=1,
                                                    value=str(self.config.uvpd_peak_first_index), 
                                                    initial=self.config.uvpd_peak_first_index, 
                                                    size=(60, -1))
         self.first_index_value.Bind(wx.EVT_TEXT, self.onApply)
 
-        show_markers = wx.StaticText(panel, wx.ID_ANY, u"Show on plot:")
-        self.show_labels = makeCheckbox(panel, u"labels")
+        show_markers = wx.StaticText(panel, wx.ID_ANY, "Show on plot:")
+        self.show_labels = makeCheckbox(panel, "labels")
         self.show_labels.SetValue(self.config.uvpd_peak_show_labels)
         self.show_labels.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.show_labels.Disable()
         
-        self.show_markers = makeCheckbox(panel, u"markers")
+        self.show_markers = makeCheckbox(panel, "markers")
         self.show_markers.SetValue(self.config.uvpd_peak_show_markers)
         self.show_markers.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.show_patches = makeCheckbox(panel, u"patches")
+        self.show_patches = makeCheckbox(panel, "patches")
         self.show_patches.SetValue(self.config.uvpd_peak_show_patches)
         self.show_patches.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -455,12 +455,12 @@ class panelUVPD(wx.MiniFrame):
         detect_grid = self.make_monitor_panel(panel)
         
         
-        min_mz_value = wx.StaticText(panel, wx.ID_ANY, u"min m/z:")
+        min_mz_value = wx.StaticText(panel, wx.ID_ANY, "min m/z:")
         self.min_mz_value = wx.TextCtrl(panel, -1, "", size=(45, -1),
                                         validator=validator('floatPos'))
         self.min_mz_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        max_mz_value = wx.StaticText(panel, wx.ID_ANY, u"max m/z:")
+        max_mz_value = wx.StaticText(panel, wx.ID_ANY, "max m/z:")
         self.max_mz_value = wx.TextCtrl(panel, -1, "", size=(45, -1),
                                         validator=validator('floatPos'))
         self.max_mz_value.Bind(wx.EVT_TEXT, self.onApply)
@@ -478,9 +478,9 @@ class panelUVPD(wx.MiniFrame):
         
         self.peaklist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
         self.peaklist.SetFont(wx.SMALL_FONT)
-        self.peaklist.InsertColumn(0,u'', width=25)
-        self.peaklist.InsertColumn(1,u'min m/z', width=60)
-        self.peaklist.InsertColumn(2,u'max m/z', width=60)
+        self.peaklist.InsertColumn(0,'', width=25)
+        self.peaklist.InsertColumn(1,'min m/z', width=60)
+        self.peaklist.InsertColumn(2,'max m/z', width=60)
         
         # bind events
         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu_peaklist)
@@ -488,13 +488,13 @@ class panelUVPD(wx.MiniFrame):
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onSelectItem_peaklist)
         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_peaklist)
         
-        min_dt_value = wx.StaticText(panel, wx.ID_ANY, u"min dt:")
+        min_dt_value = wx.StaticText(panel, wx.ID_ANY, "min dt:")
         self.min_dt_value = wx.TextCtrl(panel, -1, "", size=(45, -1),
                                         validator=validator('intPos'))
         self.min_dt_value.Bind(wx.EVT_TEXT, self.onApply)
         self.min_dt_value.Disable()
         
-        max_dt_value = wx.StaticText(panel, wx.ID_ANY, u"max dt:")
+        max_dt_value = wx.StaticText(panel, wx.ID_ANY, "max dt:")
         self.max_dt_value = wx.TextCtrl(panel, -1, "", size=(45, -1),
                                         validator=validator('intPos'))
         self.max_dt_value.Bind(wx.EVT_TEXT, self.onApply)
@@ -513,10 +513,10 @@ class panelUVPD(wx.MiniFrame):
         
         self.monitorlist = EditableListCtrl(panel, style=wx.LC_REPORT|wx.LC_VRULES)
         self.monitorlist.SetFont(wx.SMALL_FONT)
-        self.monitorlist.InsertColumn(0,u'', width=25)
-        self.monitorlist.InsertColumn(1,u'min dt', width=45)
-        self.monitorlist.InsertColumn(2,u'max dt', width=45)
-        self.monitorlist.InsertColumn(3,u'ion name', width=95)
+        self.monitorlist.InsertColumn(0,'', width=25)
+        self.monitorlist.InsertColumn(1,'min dt', width=45)
+        self.monitorlist.InsertColumn(2,'max dt', width=45)
+        self.monitorlist.InsertColumn(3,'ion name', width=95)
         self.monitorlist.Disable()
         
         # bind events
@@ -754,7 +754,7 @@ class panelUVPD(wx.MiniFrame):
         self.msg_bar.SetLabel(msg)
         self.msg_bar.SetForegroundColour(wx.BLUE)
                     
-        print("Found {} regions. It took {:.4f} seconds".format(len(tablelist), ttime()-tstart))
+        print(("Found {} regions. It took {:.4f} seconds".format(len(tablelist), ttime()-tstart)))
         
         # enable feature extraction
         self.extract_features.Enable()
@@ -800,7 +800,7 @@ class panelUVPD(wx.MiniFrame):
         count = self.peaklist.GetItemCount()
         
         ion_list = []
-        for i in xrange(count):
+        for i in range(count):
             mz_min = self.peaklist.GetItem(i, 1).GetText()
             mz_max = self.peaklist.GetItem(i, 2).GetText()
             ion_list.append([mz_min, mz_max])
@@ -838,8 +838,8 @@ class panelUVPD(wx.MiniFrame):
             # Data needs to be present in the document
             try: ion_data = self.document.IMS2Dions[ion_name]['zvals']
             except KeyError:
-                print("Data was missing for {} ion. This take might few seconds longer...".format(
-                    ion_name))
+                print(("Data was missing for {} ion. This take might few seconds longer...".format(
+                    ion_name)))
                 
                 extract_kwargs = {'return_data':True}
                 path = self.document.path 
@@ -877,7 +877,7 @@ class panelUVPD(wx.MiniFrame):
                 yvals=yvals, xlabel="Laser shots",
                 ylabel="Drift time (bins)")
             
-            print("Extracted data for {}-{} ion".format(mzStart, mzEnd))
+            print(("Extracted data for {}-{} ion".format(mzStart, mzEnd)))
         
             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, "Laser shots", "Drift time (bins)", override=False)
         
@@ -912,7 +912,7 @@ class panelUVPD(wx.MiniFrame):
         count = self.monitorlist.GetItemCount()
         
         mobility_list = []
-        for i in xrange(count):
+        for i in range(count):
             dt_min = str2int(self.monitorlist.GetItem(i, 1).GetText())
             dt_max = str2int(self.monitorlist.GetItem(i, 2).GetText())
             ion_name = self.monitorlist.GetItem(i, 3).GetText()
@@ -973,8 +973,8 @@ class panelUVPD(wx.MiniFrame):
                 self.laser_off_data[ion_name]['dt_extract'][dt_name] = {
                     "xvals":xvals, "yvals":sum_mobility_slide}
                 
-                print("Extracted data for dt: {} for ion: {}".format(
-                    dt_name, ion_name))
+                print(("Extracted data for dt: {} for ion: {}".format(
+                    dt_name, ion_name)))
                 
     def on_plot_laser_on(self, evt):
         
@@ -1101,7 +1101,7 @@ class panelUVPD(wx.MiniFrame):
             
         saveData = np.vstack((yvals, zvals.T))
         
-        xvals = map(str, xvals.tolist())
+        xvals = list(map(str, xvals.tolist()))
         labels = ["DT"]
         for label in xvals: labels.append(label)
         
@@ -1192,7 +1192,7 @@ class panelUVPD(wx.MiniFrame):
                 filename = dlg.GetPath()
                 __, extension = os.path.splitext(filename)
                 self.config.saveExtension = extension
-                self.config.saveDelimiter = wildcard_dict.keys()[wildcard_dict.values().index(dlg.GetFilterIndex())]
+                self.config.saveDelimiter = list(wildcard_dict.keys())[list(wildcard_dict.values()).index(dlg.GetFilterIndex())]
                 saveAsText(filename=filename, 
                            data=data, 
                            format=data_format,
@@ -1276,7 +1276,7 @@ class panelUVPD(wx.MiniFrame):
         self.presenter.OnUpdateDocument(document, 'mass_spectra') 
         gc.collect()
         
-        print("In total, it took {:.4f} seconds.".format(ttime()-tstart))
+        print(("In total, it took {:.4f} seconds.".format(ttime()-tstart)))
         
     def _extract_mass_spectrum(self, document_path, scan_list, **kwargs):
         from processing.spectra import sum_1D_dictionary

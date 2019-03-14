@@ -194,7 +194,7 @@ class sortListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixi
         if self._getItemTextFn != None:
             return self._getItemTextFn(row, col)
         else:
-            return unicode(self._data[row][col])
+            return str(self._data[row][col])
     # ----
     
     
@@ -414,7 +414,7 @@ class sortListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixi
             return
         
         # update each row
-        for row in xrange(self.GetItemCount()):
+        for row in range(self.GetItemCount()):
             if row % 2:
                 self.SetItemBackgroundColour(row, self._altColour)
             else:

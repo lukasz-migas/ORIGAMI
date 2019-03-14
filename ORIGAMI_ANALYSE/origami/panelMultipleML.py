@@ -26,7 +26,7 @@ from natsort import natsorted
 
 from styles import makeTooltip, makeMenuItem
 from ids import *
-import dialogs as dialogs
+import dialogs
 from toolbox import (str2num, str2int, removeListDuplicates, convertRGB255to1, 
                              convertRGB1to255, isempty, mlen, determineFontColor,
                              randomColorGenerator, roundRGB)
@@ -394,7 +394,7 @@ class panelMML( wx.Panel ):
             dlg.Destroy()
             
             # Retrieve custom colors
-            for i in xrange(len(self.config.customColors)): 
+            for i in range(len(self.config.customColors)): 
                 self.config.customColors[i] = data.GetCustomColour(i)
                 
             return convertRGB255to1(newColour)
@@ -411,9 +411,9 @@ class panelMML( wx.Panel ):
             dataset = itemInfo["filename"]           
             self.data_processing.on_run_unidec(dataset, task="auto_unidec")
              
-            print("Pre-processing mass spectra using m/z range {} - {} with {} bin size".format(self.config.unidec_mzStart,
+            print(("Pre-processing mass spectra using m/z range {} - {} with {} bin size".format(self.config.unidec_mzStart,
                                                                                                 self.config.unidec_mzEnd,
-                                                                                                self.config.unidec_mzBinSize))
+                                                                                                self.config.unidec_mzBinSize)))
 
     def onRenameItem(self, old_name, new_name, item_type="Document"):
         for row in range(self.filelist.GetItemCount()):
@@ -674,7 +674,7 @@ class panelMML( wx.Panel ):
                     self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum[itemInfo['filename']]
-                        if len(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
                     except KeyError: pass
                     self.filelist.DeleteItem(currentItems)
@@ -688,7 +688,7 @@ class panelMML( wx.Panel ):
             self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
             try: 
                 del self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum[itemInfo['filename']]
-                if len(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys()) == 0: 
+                if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0: 
                     self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
             except KeyError: pass
             self.filelist.DeleteItem(self.currentItem)
@@ -713,7 +713,7 @@ class panelMML( wx.Panel ):
                 self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
                 try: 
                     del self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum[itemInfo['filename']]
-                    if len(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys()) == 0: 
+                    if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0: 
                         self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
                 except KeyError: pass
                 self.filelist.DeleteItem(currentItems)
@@ -857,7 +857,7 @@ class panelMML( wx.Panel ):
             self.filelist.SetItemBackgroundColour(self.currentItem, newColour)
             self.filelist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
             # Retrieve custom colors
-            for i in xrange(15): 
+            for i in range(15): 
                 self.config.customColors[i] = data.GetCustomColour(i)
             
             # update document
@@ -913,8 +913,8 @@ class panelMML( wx.Panel ):
                                                   ID_mmlPanel_overlayFittedSpectra,
                                                   ID_mmlPanel_overlayChargeStates,
                                                   ID_mmlPanel_overlayFoundPeaks]:
-                print("Selected item {} ({}) does not have UniDec results".format(itemInfo['document'],
-                                                                                   itemInfo['filename']))
+                print(("Selected item {} ({}) does not have UniDec results".format(itemInfo['document'],
+                                                                                   itemInfo['filename'])))
                 continue
             if evtID == ID_mmlPanel_overlayWaterfall:
                 _interpolate = False
@@ -1035,7 +1035,7 @@ class panelMML( wx.Panel ):
         """
         count = self.filelist.GetItemCount()
         color_list = []
-        for row in xrange(count):
+        for row in range(count):
             itemInfo = self.OnGetItemInformation(itemID=row)
             if itemInfo['document'] == document_name:
                 color_list.append(self.filelist.GetItemBackgroundColour(item=row))
@@ -1080,10 +1080,10 @@ class DragAndDrop(wx.FileDropTarget):
             
             __, file_extension = splitext(filename)
             if file_extension in ['.raw']:
-                print("Added {} file to the list".format(filename))
+                print(("Added {} file to the list".format(filename)))
                 pathlist.append(filename)
             else:
-                print("Dropped file {} is not supported".format(filename))
+                print(("Dropped file {} is not supported".format(filename)))
                 
         if len(pathlist) > 0:
             self.window.onOpenFile_DnD(pathlist)

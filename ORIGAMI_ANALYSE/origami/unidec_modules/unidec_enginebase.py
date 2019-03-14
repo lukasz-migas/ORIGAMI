@@ -1,6 +1,8 @@
-import unidecstructure, peakstructure
 from copy import deepcopy
-import unidectools as ud
+
+import unidec_modules.peakstructure
+import unidec_modules.unidecstructure
+import unidec_modules.unidectools as ud
 
 
 class UniDecEngine:
@@ -15,7 +17,7 @@ class UniDecEngine:
         :return: None
         """
         self.version = "2.6.7"
-        print "\nUniDec Engine v." + self.version
+        print("\nUniDec Engine v." + self.version)
         self.config = None
         self.config_history = []
         self.config_count = 0
@@ -54,7 +56,7 @@ class UniDecEngine:
             self.config.config_import(f_name)
             self.update_history()
         else:
-            print "Load Config Error: No file provided."
+            print("Load Config Error: No file provided.")
 
     def export_config(self, f_name=None):
         """
@@ -123,8 +125,8 @@ class UniDecEngine:
             for item in new.__dict__:
                 try:
                     old.__dict__[item] = new.__dict__[item]
-                except KeyError, e:
-                    print e
+                except KeyError as e:
+                    print(e)
         pass
 
     def redo(self):
@@ -135,8 +137,8 @@ class UniDecEngine:
             for item in new.__dict__:
                 try:
                     old.__dict__[item] = new.__dict__[item]
-                except KeyError, e:
-                    print e
+                except KeyError as e:
+                    print(e)
         pass
 
     def get_auto_peak_width(self):
@@ -144,9 +146,9 @@ class UniDecEngine:
             fwhm, psfun, mid = ud.auto_peak_width(self.data.data2)
             self.config.psfun = psfun
             self.config.mzsig = fwhm
-            print "Automatic Peak Width:", fwhm
-        except Exception, e:
-            print "Failed Automatic Peak Width:", e
+            print("Automatic Peak Width:", fwhm)
+        except Exception as e:
+            print("Failed Automatic Peak Width:", e)
 
     def check_badness(self):
         """
@@ -155,5 +157,5 @@ class UniDecEngine:
         """
         badness, warning = self.config.check_badness()
         if warning is not "":
-            print warning
+            print(warning)
         return badness

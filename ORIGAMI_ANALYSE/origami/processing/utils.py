@@ -16,7 +16,7 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-from __future__ import division
+
 import numpy as np
 from operator import itemgetter
 from itertools import groupby
@@ -37,8 +37,8 @@ def detect_peaks_chromatogram(data, threshold, add_buffer=0): # detectPeaksRT
     # Find index values
     outlist = []
     apex_list = []
-    for k, g in groupby(enumerate(valXX), lambda (i,x):i-x):
-        x = (map(itemgetter(1), g)) # list of vals
+    for k, g in groupby(enumerate(valXX), lambda i_x:i_x[0]-i_x[1]):
+        x = (list(map(itemgetter(1), g))) # list of vals
         xStart = x[0] # get x start
         xEnd = x[-1] # get x end
         
@@ -55,7 +55,7 @@ def detect_peaks_chromatogram(data, threshold, add_buffer=0): # detectPeaksRT
     try:
         valXout = data[outlistRav, 0]
         valYout = data[outlistRav, 1]
-        output = np.array(zip(valXout,valYout))
+        output = np.array(list(zip(valXout,valYout)))
     except IndexError:
         output = []
     # apex list
@@ -64,7 +64,7 @@ def detect_peaks_chromatogram(data, threshold, add_buffer=0): # detectPeaksRT
         apexListRav = np.unique(apexListRav)
         valXout = data[apexListRav, 0]
         valYout = data[apexListRav, 1]
-        apexlist = np.array(zip(valXout,valYout))
+        apexlist = np.array(list(zip(valXout,valYout)))
     except IndexError:
         apexlist = []
     
@@ -99,7 +99,7 @@ def detect_peaks_spectrum(data, window=10, threshold=0, mzRange=None): # detectP
         
     length = len(data)
     maxval = np.amax(data[:, 1])
-    for i in xrange(1, length):
+    for i in range(1, length):
         if data[i, 1] > maxval * threshold:
             start = i - window
             end = i + window
@@ -123,7 +123,7 @@ def find_peak_maximum(data, fail_value=1): # findPeakMax
     try:
         ymax = np.amax(data[:,1])
     except ValueError: 
-        print('Failed to find value. Ymax set to maximum, {}'.format(fail_value))
+        print(('Failed to find value. Ymax set to maximum, {}'.format(fail_value)))
         ymax = fail_value
     return ymax
 

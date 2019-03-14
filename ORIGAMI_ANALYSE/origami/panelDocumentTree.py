@@ -38,7 +38,7 @@ from ids import *
 from toolbox import (str2num, saveAsText, convertRGB255to1, randomIntegerGenerator, 
                              randomColorGenerator, convertRGB1to255, str2int, convertHEXtoRGB1,
                              merge_two_dicts, determineFontColor, _replace_labels)
-import dialogs as dialogs
+import dialogs
 from processing.spectra import normalize_1D, subtract_1D
 from readers.io_text_files import text_heatmap_open
 from styles import makeMenuItem
@@ -231,7 +231,7 @@ class documentsTree(wx.TreeCtrl):
             self.onOpenDocInfo(evt=None)
             
         tend = time.clock()
-        print('It took: %s seconds to process double-click.' % str(np.round((tend-tstart),4)))
+        print(('It took: %s seconds to process double-click.' % str(np.round((tend-tstart),4))))
         
     def onThreading(self, evt, args, action):
         if action == "add_mzidentml_annotations":
@@ -247,7 +247,7 @@ class documentsTree(wx.TreeCtrl):
         try: 
             th.start()
         except: 
-            print("Failed to execute the '{}' operation in threaded mode. Consider switching it off?".format(action))
+            print(("Failed to execute the '{}' operation in threaded mode. Consider switching it off?".format(action)))
         
     def onNotUseQuickDisplay(self, evt):
         """ 
@@ -457,15 +457,15 @@ class documentsTree(wx.TreeCtrl):
             elif xlabel == 'Activation Energy (eV)': idX = ID_xlabel_2D_actLabFrame
             elif xlabel == 'Mass-to-charge (Da)': idX = ID_xlabel_2D_massToCharge
             elif xlabel == 'm/z (Da)': idX = ID_xlabel_2D_mz
-            elif xlabel == u'Wavenumber (cm⁻¹)': idX = ID_xlabel_2D_wavenumber
+            elif xlabel == 'Wavenumber (cm⁻¹)': idX = ID_xlabel_2D_wavenumber
             elif xlabel == 'Charge': idX = ID_xlabel_2D_charge
-            elif xlabel == u'Collision Cross Section (Å²)': idX = ID_xlabel_2D_ccs
+            elif xlabel == 'Collision Cross Section (Å²)': idX = ID_xlabel_2D_ccs
             else: idX = ID_xlabel_2D_custom
                 
             if ylabel == 'Drift time (bins)': idY = ID_ylabel_2D_bins
             elif ylabel == 'Drift time (ms)': idY = ID_ylabel_2D_ms
             elif ylabel == 'Arrival time (ms)': idY = ID_ylabel_2D_ms_arrival
-            elif ylabel == u'Collision Cross Section (Å²)': idY = ID_ylabel_2D_ccs
+            elif ylabel == 'Collision Cross Section (Å²)': idY = ID_ylabel_2D_ccs
             else:  idY = ID_ylabel_2D_custom
             
             return idX, idY 
@@ -482,7 +482,7 @@ class documentsTree(wx.TreeCtrl):
         if xlabel == 'Drift time (bins)': idX = ID_xlabel_1D_bins
         elif xlabel == 'Drift time (ms)': idX = ID_xlabel_1D_ms
         elif xlabel == 'Arrival time (ms)': idX = ID_xlabel_1D_ms_arrival
-        elif xlabel == u'Collision Cross Section (Å²)': idX = ID_xlabel_1D_ccs
+        elif xlabel == 'Collision Cross Section (Å²)': idX = ID_xlabel_1D_ccs
         else:  idX = ID_ylabel_2D_bins
         
         return idX
@@ -622,7 +622,7 @@ class documentsTree(wx.TreeCtrl):
                                 title = "{} (2)".format(title)
                              
                         document.other_data[title] = data
-                    except Exception, e:
+                    except Exception as e:
                         print(e)
                         self.presenter.onThreading(None, 
                                                    ("Failed to load data for: {}".format(path), 4, 5), 
@@ -826,7 +826,7 @@ class documentsTree(wx.TreeCtrl):
                 
             if plot_type in ["multi-line", "waterfall", "scatter", "grid-line", "grid-scatter"]:
                 yvals_new = []
-                for item in xrange(zvals.shape[1]):
+                for item in range(zvals.shape[1]):
                     yvals_new.append(zvals[:, item])
                     
                 # replace
@@ -1208,7 +1208,7 @@ class documentsTree(wx.TreeCtrl):
             return
         else:
             self.presenter.onClearAllPlots()
-            doc_keys = self.presenter.documentsDict.keys()
+            doc_keys = list(self.presenter.documentsDict.keys())
             for document in doc_keys:
                 try:
                     self.removeDocument(evt=None, 
@@ -1459,7 +1459,7 @@ class documentsTree(wx.TreeCtrl):
         for document_title in self.presenter.documentsDict:
             document_spectrum_list[document_title] = []
             if self.presenter.documentsDict[document_title].gotMultipleMS:
-                document_spectrum_list[document_title].extend(self.presenter.documentsDict[document_title].multipleMassSpectrum.keys())
+                document_spectrum_list[document_title].extend(list(self.presenter.documentsDict[document_title].multipleMassSpectrum.keys()))
             if len(self.presenter.documentsDict[document_title].massSpectrum) > 0:
                 document_spectrum_list[document_title].append("Mass Spectrum")
             if len(self.presenter.documentsDict[document_title].smoothMS) > 0:
@@ -1701,9 +1701,9 @@ class documentsTree(wx.TreeCtrl):
         xlabel2DMenu.Append(ID_xlabel_2D_actLabFrame, 'Activation Energy (eV)',"",wx.ITEM_RADIO)
         xlabel2DMenu.Append(ID_xlabel_2D_massToCharge, 'Mass-to-charge (Da)',"",wx.ITEM_RADIO)
         xlabel2DMenu.Append(ID_xlabel_2D_mz, 'm/z (Da)',"",wx.ITEM_RADIO)
-        xlabel2DMenu.Append(ID_xlabel_2D_wavenumber, u'Wavenumber (cm⁻¹)',"",wx.ITEM_RADIO)
+        xlabel2DMenu.Append(ID_xlabel_2D_wavenumber, 'Wavenumber (cm⁻¹)',"",wx.ITEM_RADIO)
         xlabel2DMenu.Append(ID_xlabel_2D_charge, 'Charge',"",wx.ITEM_RADIO)
-        xlabel2DMenu.Append(ID_xlabel_2D_ccs, u'Collision Cross Section (Å²)',"",wx.ITEM_RADIO)
+        xlabel2DMenu.Append(ID_xlabel_2D_ccs, 'Collision Cross Section (Å²)',"",wx.ITEM_RADIO)
         xlabel2DMenu.Append(ID_xlabel_2D_custom, 'Custom label...',"",wx.ITEM_RADIO)
         xlabel2DMenu.AppendSeparator()
         xlabel2DMenu.Append(ID_xlabel_2D_restore, 'Restore default', "")
@@ -1713,7 +1713,7 @@ class documentsTree(wx.TreeCtrl):
         ylabel2DMenu.Append(ID_ylabel_2D_bins, 'Drift time (bins)',"",wx.ITEM_RADIO)
         ylabel2DMenu.Append(ID_ylabel_2D_ms, 'Drift time (ms)',"",wx.ITEM_RADIO)
         ylabel2DMenu.Append(ID_ylabel_2D_ms_arrival, 'Arrival time (ms)',"",wx.ITEM_RADIO)
-        ylabel2DMenu.Append(ID_ylabel_2D_ccs, u'Collision Cross Section (Å²)',"",wx.ITEM_RADIO)
+        ylabel2DMenu.Append(ID_ylabel_2D_ccs, 'Collision Cross Section (Å²)',"",wx.ITEM_RADIO)
         ylabel2DMenu.Append(ID_ylabel_2D_custom, 'Custom label...',"",wx.ITEM_RADIO)
         ylabel2DMenu.AppendSeparator()
         ylabel2DMenu.Append(ID_ylabel_2D_restore, 'Restore default', "")
@@ -1756,7 +1756,7 @@ class documentsTree(wx.TreeCtrl):
         xlabel1DMenu.Append(ID_xlabel_1D_bins, 'Drift time (bins)',"",wx.ITEM_RADIO)
         xlabel1DMenu.Append(ID_xlabel_1D_ms, 'Drift time (ms)',"",wx.ITEM_RADIO)
         xlabel1DMenu.Append(ID_xlabel_1D_ms_arrival, 'Arrival time (ms)',"",wx.ITEM_RADIO)
-        xlabel1DMenu.Append(ID_xlabel_1D_ccs, u'Collision Cross Section (Å²)',"",wx.ITEM_RADIO)
+        xlabel1DMenu.Append(ID_xlabel_1D_ccs, 'Collision Cross Section (Å²)',"",wx.ITEM_RADIO)
         xlabel1DMenu.AppendSeparator()
         xlabel1DMenu.Append(ID_xlabel_1D_restore, 'Restore default', "")
 
@@ -2720,9 +2720,9 @@ class documentsTree(wx.TreeCtrl):
             elif evtID == ID_xlabel_2D_actLabFrame: newXlabel = 'Activation Energy (eV)'
             elif evtID == ID_xlabel_2D_massToCharge: newXlabel = 'Mass-to-charge (Da)'
             elif evtID == ID_xlabel_2D_mz: newXlabel = 'm/z (Da)'
-            elif evtID == ID_xlabel_2D_wavenumber: newXlabel =  u'Wavenumber (cm⁻¹)'
+            elif evtID == ID_xlabel_2D_wavenumber: newXlabel =  'Wavenumber (cm⁻¹)'
             elif evtID == ID_xlabel_2D_charge: newXlabel = 'Charge'
-            elif evtID == ID_xlabel_2D_ccs: newXlabel = u'Collision Cross Section (Å²)'
+            elif evtID == ID_xlabel_2D_ccs: newXlabel = 'Collision Cross Section (Å²)'
             elif evtID == ID_xlabel_2D_custom: 
                 newXlabel = dialogs.dlgAsk('Please type in your new label...')
             elif evtID == ID_xlabel_2D_restore:
@@ -2740,7 +2740,7 @@ class documentsTree(wx.TreeCtrl):
             if evtID == ID_ylabel_2D_bins: newYlabel = 'Drift time (bins)'
             elif evtID == ID_ylabel_2D_ms: newYlabel = 'Drift time (ms)'
             elif evtID == ID_ylabel_2D_ms_arrival: newYlabel = 'Arrival time (ms)'
-            elif evtID == ID_ylabel_2D_ccs: newYlabel = u'Collision Cross Section (Å²)'
+            elif evtID == ID_ylabel_2D_ccs: newYlabel = 'Collision Cross Section (Å²)'
             elif evtID == ID_ylabel_2D_custom: 
                 newYlabel = dialogs.dlgAsk('Please type in your new label...')
             elif evtID == ID_ylabel_2D_restore: 
@@ -2756,7 +2756,7 @@ class documentsTree(wx.TreeCtrl):
             if evtID == ID_xlabel_1D_bins: newXlabel = 'Drift time (bins)'
             elif evtID == ID_xlabel_1D_ms: newXlabel = 'Drift time (ms)'
             elif evtID == ID_xlabel_1D_ms_arrival: newXlabel = 'Arrival time (ms)'
-            elif evtID == ID_xlabel_1D_ccs: newXlabel = u'Collision Cross Section (Å²)'
+            elif evtID == ID_xlabel_1D_ccs: newXlabel = 'Collision Cross Section (Å²)'
             elif evtID == ID_xlabel_1D_restore: 
                 newXlabel = data['defaultX']['xlabels']
                 restoreX = True
@@ -2928,18 +2928,18 @@ class documentsTree(wx.TreeCtrl):
                 newVals = (data/pusherFreq)*1000
                 return newVals
             elif (oldLabel in ['Drift time (ms)', 'Arrival time (ms)'] and 
-                  newLabel == u'Collision Cross Section (Å²)'):
+                  newLabel == 'Collision Cross Section (Å²)'):
                 self.presenter.onThreading(None, (msg, 4, 7), action='updateStatusbar')
                 newVals = data
-            elif (oldLabel == u'Collision Cross Section (Å²)' and 
+            elif (oldLabel == 'Collision Cross Section (Å²)' and 
                   newLabel in ['Drift time (ms)', 'Arrival time (ms)']):
                 self.presenter.onThreading(None, (msg, 4, 7), action='updateStatusbar')
                 newVals = data
             elif (oldLabel == 'Drift time (bins)' and 
-                  newLabel == u'Collision Cross Section (Å²)'):
+                  newLabel == 'Collision Cross Section (Å²)'):
                 self.presenter.onThreading(None, (msg, 4, 7), action='updateStatusbar')
                 newVals = data
-            elif (oldLabel == u'Collision Cross Section (Å²)' and 
+            elif (oldLabel == 'Collision Cross Section (Å²)' and 
                   newLabel == 'Drift time (bins)'):
                 self.presenter.onThreading(None, (msg, 4, 7), action='updateStatusbar')
                 newVals = data
@@ -3099,7 +3099,7 @@ class documentsTree(wx.TreeCtrl):
     def onShowMassSpectra(self, evt):
         
         data = self.itemData.multipleMassSpectrum
-        spectra_count = len(data.keys())
+        spectra_count = len(list(data.keys()))
         if spectra_count > 50:
             dlg = dialogs.dlgBox(exceptionTitle='Would you like to continue?', 
                                  exceptionMsg= "There are {} mass spectra in this document. Would you like to continue?".format(spectra_count),
@@ -3595,7 +3595,7 @@ class documentsTree(wx.TreeCtrl):
     
                 # Combine x-axis with data
                 save_data = np.column_stack((xvals, zvals)).T
-                yvals = map(str, yvals.tolist())
+                yvals = list(map(str, yvals.tolist()))
                 labels = ["m/z(Da)"]
                 for label in yvals: labels.append(label)
                 
@@ -3619,7 +3619,7 @@ class documentsTree(wx.TreeCtrl):
                 
                 # Combine x-axis with data
                 save_data = np.column_stack((xvals, zvals)).T
-                yvals = map(str, yvals.tolist())
+                yvals = list(map(str, yvals.tolist()))
                 labels = ["MW(Da)"]
                 for label in yvals: 
                     labels.append(label)
@@ -4080,7 +4080,7 @@ class documentsTree(wx.TreeCtrl):
             out = re.split('-|,|__|:', self.extractData)
             data = self.itemData.IMS2DoverlayData.get(self.extractData, {})
             if len(data) == 0:
-                keys = self.itemData.IMS2DoverlayData.keys()
+                keys = list(self.itemData.IMS2DoverlayData.keys())
                 for key in keys:
                     if self.extractData in key:
                         self.extractData = key
@@ -4237,7 +4237,7 @@ class documentsTree(wx.TreeCtrl):
                     self.presenter.view.panelPlots.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
                 
             # Overlayed 1D data
-            elif out[0] == u'1D' or out[0] == u'RT': 
+            elif out[0] == '1D' or out[0] == 'RT': 
                 xvals, yvals, xlabels, colors, labels, xlimits = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                                         plotType='Overlay1D',
                                                                                                         compact=True)
@@ -4346,7 +4346,7 @@ class documentsTree(wx.TreeCtrl):
                     if filename is None: return
                     dataframe.to_hdf(path_or_buf=filename, key='data')
                 
-                print('Dataframe was saved in %s. It took: %s s.' % (filename, str(np.round(time.time()-tstart, 4))))
+                print(('Dataframe was saved in %s. It took: %s s.' % (filename, str(np.round(time.time()-tstart, 4)))))
             except AttributeError:
                 args = ("This document does not have correctly formatted MS data. Please export each item separately", 4) 
                 self.presenter.onThreading(None, args, action='updateStatusbar')
@@ -4388,7 +4388,7 @@ class documentsTree(wx.TreeCtrl):
                 filename = dlg.GetPath()
                 __, extension = os.path.splitext(filename)
                 self.config.saveExtension = extension
-                self.config.saveDelimiter = wildcard_dict.keys()[wildcard_dict.values().index(dlg.GetFilterIndex())]
+                self.config.saveDelimiter = list(wildcard_dict.keys())[list(wildcard_dict.values()).index(dlg.GetFilterIndex())]
                 saveAsText(filename=filename, 
                            data=data, 
                            format=data_format,
@@ -4611,7 +4611,7 @@ class documentsTree(wx.TreeCtrl):
             if evt.GetId() == ID_saveDataCSVDocument:
                 defaultValue = "MSDT_{}{}".format(basename, self.config.saveExtension)
                 saveData = np.vstack((yvals, zvals.T))
-                xvals = map(str, xvals.tolist())
+                xvals = list(map(str, xvals.tolist()))
                 labels = ["DT"]
                 for label in xvals: labels.append(label)
                 # Save 2D array
@@ -4644,7 +4644,7 @@ class documentsTree(wx.TreeCtrl):
                                                                                                        dataType='plot',
                                                                                                        compact=False)
                     saveData = np.vstack((yvals, zvals.T))
-                    xvals = map(str, xvals.tolist())
+                    xvals = list(map(str, xvals.tolist()))
                     labels = ["DT"]
                     for label in xvals: 
                         labels.append(label)
@@ -4705,7 +4705,7 @@ class documentsTree(wx.TreeCtrl):
                             zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(dictionary=data[key],
                                                                                                              dataType='plot',compact=False)
                             saveData = np.vstack((yvals, zvals.T))
-                            xvals = map(str, xvals.tolist())
+                            xvals = list(map(str, xvals.tolist()))
                             labels = ["DT"]
                             for label in xvals: labels.append(label)
                             # Save 2D array
@@ -4772,8 +4772,8 @@ class documentsTree(wx.TreeCtrl):
                         zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(dictionary=data[self.extractData],
                                                                                                            dataType='plot',compact=False)
                         saveData = np.vstack((yvals, zvals.T))
-                        try: xvals = map(str, xvals.tolist())
-                        except AttributeError: xvals = map(str, xvals)
+                        try: xvals = list(map(str, xvals.tolist()))
+                        except AttributeError: xvals = list(map(str, xvals))
                         labels = ["DT"]
                         for label in xvals: labels.append(label)
                         # Save 2D array
@@ -4882,7 +4882,7 @@ class documentsTree(wx.TreeCtrl):
         if document is None: return
         
         for key in self.presenter.documentsDict:
-            print(self.presenter.documentsDict[key].title)
+            print((self.presenter.documentsDict[key].title))
  
         if self.indent == 2 and any(self.itemType in itemType for itemType in ['Drift time (2D)', 
                                                                                'Drift time (2D, processed)']):
@@ -5068,7 +5068,7 @@ class documentsTree(wx.TreeCtrl):
             if docData.gotMultipleRT == True:
                 docIonItem = self.AppendItem(docItem, 'Chromatograms (EIC)')
                 self.SetItemImage(docIonItem, self.bulets_dict["rt"], wx.TreeItemIcon_Normal)
-                for annotData, __ in natsorted(docData.multipleRT.items()):
+                for annotData, __ in natsorted(list(docData.multipleRT.items())):
                     annotsItem =  self.AppendItem(docIonItem, annotData)
                     self.SetPyData(annotsItem, docData.multipleRT[annotData])
                     self.SetItemImage(annotsItem, self.bulets_dict["rt_on"], wx.TreeItemIcon_Normal)
@@ -5082,7 +5082,7 @@ class documentsTree(wx.TreeCtrl):
             if docData.gotMultipleDT == True:
                 docIonItem = self.AppendItem(docItem, 'Drift time (1D, EIC)')
                 self.SetItemImage(docIonItem, self.bulets_dict["drift_time"], wx.TreeItemIcon_Normal)
-                for annotData, __ in natsorted(docData.multipleDT.items()):
+                for annotData, __ in natsorted(list(docData.multipleDT.items())):
                     annotsItem =  self.AppendItem(docIonItem, annotData)
                     self.SetPyData(annotsItem, docData.multipleDT[annotData])
                     self.SetItemImage(annotsItem, self.bulets_dict["drift_time_on"], wx.TreeItemIcon_Normal)
@@ -5090,7 +5090,7 @@ class documentsTree(wx.TreeCtrl):
         if docData.gotExtractedDriftTimes == True:
             docIonItem = self.AppendItem(docItem, 'Drift time (1D, EIC, DT-IMS)')
             self.SetItemImage(docIonItem, self.bulets_dict["drift_time"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.IMS1DdriftTimes.items()):
+            for annotData, __ in natsorted(list(docData.IMS1DdriftTimes.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS1DdriftTimes[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["drift_time_on"], wx.TreeItemIcon_Normal)
@@ -5108,14 +5108,14 @@ class documentsTree(wx.TreeCtrl):
         if docData.gotExtractedIons == True:
             docIonItem = self.AppendItem(docItem, 'Drift time (2D, EIC)')
             self.SetItemImage(docIonItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.IMS2Dions.items()):
+            for annotData, __ in natsorted(list(docData.IMS2Dions.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2Dions[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
         if docData.gotCombinedExtractedIons == True:
             docIonItem = self.AppendItem(docItem, 'Drift time (2D, combined voltages, EIC)')
             self.SetItemImage(docIonItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.IMS2DCombIons.items()):
+            for annotData, __ in natsorted(list(docData.IMS2DCombIons.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DCombIons[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
@@ -5123,7 +5123,7 @@ class documentsTree(wx.TreeCtrl):
         if docData.gotCombinedExtractedIonsRT == True:
             docIonItem = self.AppendItem(docItem, 'Chromatograms (combined voltages, EIC)')
             self.SetItemImage(docIonItem, self.bulets_dict["rt"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.IMSRTCombIons.items()):
+            for annotData, __ in natsorted(list(docData.IMSRTCombIons.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMSRTCombIons[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["rt_on"], wx.TreeItemIcon_Normal)
@@ -5131,7 +5131,7 @@ class documentsTree(wx.TreeCtrl):
         if docData.got2DprocessIons == True:
             docIonItem = self.AppendItem(docItem, 'Drift time (2D, processed, EIC)')
             self.SetItemImage(docIonItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.IMS2DionsProcess.items()):
+            for annotData, __ in natsorted(list(docData.IMS2DionsProcess.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DionsProcess[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
@@ -5139,7 +5139,7 @@ class documentsTree(wx.TreeCtrl):
         if docData.gotCalibration == True:
             docIonItem = self.AppendItem(docItem, 'Calibration peaks')
             self.SetItemImage(docIonItem, self.bulets_dict["calibration"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.calibration.items()):
+            for annotData, __ in natsorted(list(docData.calibration.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.calibration[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["dots_on"], wx.TreeItemIcon_Normal)
@@ -5160,7 +5160,7 @@ class documentsTree(wx.TreeCtrl):
         if docData.gotComparisonData == True:
             docIonItem =  self.AppendItem(docItem, 'Input data')
             self.SetItemImage(docIonItem, self.bulets_dict["overlay"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.IMS2DcompData.items()):
+            for annotData, __ in natsorted(list(docData.IMS2DcompData.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DcompData[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
@@ -5168,7 +5168,7 @@ class documentsTree(wx.TreeCtrl):
         if docData.gotOverlay == True or len(docData.IMS2DoverlayData) > 0:
             docIonItem =  self.AppendItem(docItem, 'Overlay')
             self.SetItemImage(docIonItem, self.bulets_dict["overlay"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.IMS2DoverlayData.items()):
+            for annotData, __ in natsorted(list(docData.IMS2DoverlayData.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DoverlayData[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
@@ -5176,7 +5176,7 @@ class documentsTree(wx.TreeCtrl):
         if docData.gotStatsData == True:
             docIonItem =  self.AppendItem(docItem, 'Statistical')
             self.SetItemImage(docIonItem, self.bulets_dict["overlay"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.IMS2DstatsData.items()):
+            for annotData, __ in natsorted(list(docData.IMS2DstatsData.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DstatsData[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
@@ -5190,7 +5190,7 @@ class documentsTree(wx.TreeCtrl):
         if len(docData.other_data) > 0:
             docIonItem = self.AppendItem(docItem, 'Annotated data')
             self.SetItemImage(docIonItem, self.bulets_dict["calibration"], wx.TreeItemIcon_Normal)
-            for annotData, __ in natsorted(docData.other_data.items()):
+            for annotData, __ in natsorted(list(docData.other_data.items())):
                 annotsItem =  self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.other_data[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["calibration_on"], wx.TreeItemIcon_Normal)
@@ -5266,7 +5266,7 @@ class documentsTree(wx.TreeCtrl):
                 
             if deleteItem == title:
                 if child:
-                    print("Deleted {}".format(deleteItem))
+                    print(("Deleted {}".format(deleteItem)))
                     self.Delete(child)
                     # Remove data from dictionary if removing whole document
                     if evtID == ID_removeDocument  or evtID == None:
@@ -5287,7 +5287,7 @@ class documentsTree(wx.TreeCtrl):
                         self.presenter.currentDoc = None
                         # go to the next document
                         if len(self.presenter.documentsDict) > 0:
-                            self.presenter.currentDoc = self.presenter.documentsDict.keys()[0]
+                            self.presenter.currentDoc = list(self.presenter.documentsDict.keys())[0]
                             self.on_enable_document()
                         # collect garbage
                         gc.collect()
@@ -5484,7 +5484,7 @@ class documentsTree(wx.TreeCtrl):
                 self.presenter.currentDoc = docTitle
                 
         self.itemData = self.presenter.documentsDict[docTitle]
-        print(self.itemData)        
+        print((self.itemData))        
       
     def getItemIndent(self, item):
         # Check item first
@@ -5505,7 +5505,7 @@ class documentsTree(wx.TreeCtrl):
     def getParentItem(self, item, level, getSelected=False):
         """ Get parent item for selected item and level"""
         # Get item
-        for x in xrange(level, self.getItemIndent(item)):
+        for x in range(level, self.getItemIndent(item)):
             item = self.GetItemParent(item)
         
         if getSelected:
@@ -5548,7 +5548,7 @@ class documentsTree(wx.TreeCtrl):
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.time()
             path = dlg.GetPath()
-            print("Opening {}...".format(path))
+            print(("Opening {}...".format(path)))
             reader = io_mgf.MGFreader(filename = path)
             print("Created file reader. Loading scans...")
             
@@ -5568,7 +5568,7 @@ class documentsTree(wx.TreeCtrl):
                                                                title=title)
             
             self.presenter.OnUpdateDocument(document, 'document')
-            print("It took {:.4f} seconds to load {}".format(time.time()-tstart, basename))
+            print(("It took {:.4f} seconds to load {}".format(time.time()-tstart, basename)))
             
     def on_open_MGF_file_fcn(self, evt):
         
@@ -5583,7 +5583,7 @@ class documentsTree(wx.TreeCtrl):
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.time()
             path = dlg.GetPath()
-            print("Opening {}...".format(path))
+            print(("Opening {}...".format(path)))
             reader = io_mzml.mzMLreader(filename = path)
             print("Created file reader. Loading scans...")
             
@@ -5603,7 +5603,7 @@ class documentsTree(wx.TreeCtrl):
                                                                title=title)
             
             self.presenter.OnUpdateDocument(document, 'document')
-            print("It took {:.4f} seconds to load {}".format(time.time()-tstart, basename))
+            print(("It took {:.4f} seconds to load {}".format(time.time()-tstart, basename)))
         
     def on_open_mzML_file_fcn(self, evt):
         
@@ -5636,7 +5636,7 @@ class documentsTree(wx.TreeCtrl):
         dlg = wx.FileDialog(self.presenter.view, "Open mzIdentML file", wildcard = "*.mzid; *.mzid.gz; *mzid.zip" ,
                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
-            print("Adding identification information to {}".format(document.title))
+            print(("Adding identification information to {}".format(document.title)))
             tstart = time.time()
             path = dlg.GetPath()
             reader = io_mzid.MZIdentReader(filename=path)
@@ -5670,7 +5670,7 @@ class documentsTree(wx.TreeCtrl):
             document.tandem_spectra = tandem_spectra
             
             self.presenter.OnUpdateDocument(document, 'document')
-            print("It took {:.4f} seconds to annotate {}".format(time.time()-tstart, document.title))
+            print(("It took {:.4f} seconds to annotate {}".format(time.time()-tstart, document.title)))
             
     def on_add_mzID_file_fcn(self, evt):
         
@@ -5692,7 +5692,7 @@ class documentsTree(wx.TreeCtrl):
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.time()
             path = dlg.GetPath()
-            print("Opening {}...".format(path))
+            print(("Opening {}...".format(path)))
             reader = io_thermo.thermoRAWreader(filename = path)
             print("Created file reader. Loading scans...")
             
@@ -5736,7 +5736,7 @@ class documentsTree(wx.TreeCtrl):
             document.file_reader = {'data_reader':reader}
             
             self.presenter.OnUpdateDocument(document, 'document')
-            print("It took {:.4f} seconds to load {}".format(time.time()-tstart, document.title))
+            print(("It took {:.4f} seconds to load {}".format(time.time()-tstart, document.title)))
         
 
 class topPanel(wx.Panel):

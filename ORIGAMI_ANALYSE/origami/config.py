@@ -17,17 +17,20 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import glob, platform
-import numpy as np
-# import matplotlib.cm as cm
-import xml.dom.minidom, xml.parsers.expat
+import glob
 import os.path
-from collections import OrderedDict
-from matplotlib.pyplot import colormaps
+import platform
+# import matplotlib.cm as cm
+import xml.dom.minidom
+import xml.parsers.expat
 from ast import literal_eval
+from collections import OrderedDict
 
-import dialogs as dialogs
-from toolbox import (str2num, str2int, str2bool)
+import numpy as np
+from matplotlib.pyplot import colormaps
+
+import dialogs
+from toolbox import str2bool, str2int, str2num
 
 
 class OrigamiConfig:
@@ -201,10 +204,10 @@ class OrigamiConfig:
         self.labelsXChoices = ['Scans', 'Collision Voltage (V)',
                                'Activation Voltage (V)', 'Lab Frame Energy (eV)',
                                'Activation Energy (eV)', 'Mass-to-charge (Da)',
-                               'm/z (Da)', u'Wavenumber (cm⁻¹)']
+                               'm/z (Da)', 'Wavenumber (cm⁻¹)']
 
         self.labelsYChoices = ['Drift time (bins)', 'Drift time (ms)',
-                               'Arrival time (ms)', u'Collision Cross Section (Å²)']
+                               'Arrival time (ms)', 'Collision Cross Section (Å²)']
 
         self.panelNames = {'MS':0, 'RT':1, '1D':2, '2D':3, 'MZDT':4, 'Waterfall':5,
                            '3D':6, 'RMSF':7, 'Comparison':8, 'Overlay':9,
@@ -220,7 +223,7 @@ class OrigamiConfig:
                                   {'name':'% int', 'order':3, 'width':60, 'show':True},
                                   {'name':'color', 'order':4, 'width':60, 'show':True},
                                   {'name':'colormap', 'order':5, 'width':70, 'show':True},
-                                  {'name':u'\N{GREEK SMALL LETTER ALPHA}', 'order':6, 'width':35, 'show':True},
+                                  {'name':'\N{GREEK SMALL LETTER ALPHA}', 'order':6, 'width':35, 'show':True},
                                   {'name':'mask', 'order':7, 'width':40, 'show':True},
                                   {'name':'label', 'order':8, 'width':50, 'show':True},
                                   {'name':'method', 'order':9, 'width':80, 'show':True},
@@ -242,7 +245,7 @@ class OrigamiConfig:
                                   {'name':'z', 'order':2, 'width':25, 'show':True},
                                   {'name':'color', 'order':3, 'width':60, 'show':True},
                                   {'name':'colormap', 'order':4, 'width':70, 'show':True},
-                                  {'name':u'\N{GREEK SMALL LETTER ALPHA}', 'order':5, 'width':35, 'show':True},
+                                  {'name':'\N{GREEK SMALL LETTER ALPHA}', 'order':5, 'width':35, 'show':True},
                                   {'name':'mask', 'order':6, 'width':40, 'show':True},
                                   {'name':'label', 'order':7, 'width':50, 'show':True},
                                   {'name':'shape', 'order':8, 'width':70, 'show':True},
@@ -512,12 +515,12 @@ class OrigamiConfig:
         self.unidec_mzEnd = 8000
         self.unidec_mzBinSize = 0.1
         self.unidec_gaussianFilter = 0.0
-        self.unidec_linearization_choices = {u"Linear m/z":0,
-                                             u"Linear resolution":1,
-                                             u"Nonlinear":2,
-                                             u"Linear interpolation":3,
-                                             u"Linear resolution interpolation":4}
-        self.unidec_linearization = u"Linear m/z"
+        self.unidec_linearization_choices = {"Linear m/z":0,
+                                             "Linear resolution":1,
+                                             "Nonlinear":2,
+                                             "Linear interpolation":3,
+                                             "Linear resolution interpolation":4}
+        self.unidec_linearization = "Linear m/z"
         self.unidec_accelerationV = 0.0
 
         self.unidec_zStart = 1
@@ -1298,7 +1301,7 @@ class OrigamiConfig:
         if return_check:
             return True
         else:
-            print("Driftscope Path: {}".format(self.driftscopePath))
+            print(("Driftscope Path: {}".format(self.driftscopePath)))
 
     def getPusherFrequency(self, parameters, mode="V"):
         mode = 'V'
@@ -1689,7 +1692,7 @@ class OrigamiConfig:
         buff += '    <param name="unidec_mzBinSize" value="%.2f" type="float" />\n' % (float(self.unidec_mzBinSize))
         buff += '    <param name="unidec_gaussianFilter" value="%.2f" type="float" />\n' % (float(self.unidec_gaussianFilter))
         buff += '    <param name="unidec_accelerationV" value="%.2f" type="float" />\n' % (float(self.unidec_accelerationV))
-        buff += '    <param name="unidec_linearization" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_linearization, self.unidec_linearization_choices.keys())
+        buff += '    <param name="unidec_linearization" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_linearization, list(self.unidec_linearization_choices.keys()))
         buff += '    <!-- UniDec engine parameters -->\n'
         buff += '    <param name="unidec_zStart" value="%d" type="int" />\n' % (int(self.unidec_zStart))
         buff += '    <param name="unidec_zEnd" value="%d" type="int" />\n' % (int(self.unidec_zEnd))
@@ -1697,11 +1700,11 @@ class OrigamiConfig:
         buff += '    <param name="unidec_mwEnd" value="%.2f" type="float" />\n' % (float(self.unidec_mwEnd))
         buff += '    <param name="unidec_mwFrequency" value="%.2f" type="float" />\n' % (float(self.unidec_mwFrequency))
         buff += '    <param name="unidec_peakWidth" value="%.2f" type="float" />\n' % (float(self.unidec_peakWidth))
-        buff += '    <param name="unidec_peakFunction" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_peakFunction, self.unidec_peakFunction_choices.keys())
+        buff += '    <param name="unidec_peakFunction" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_peakFunction, list(self.unidec_peakFunction_choices.keys()))
         buff += '    <!-- Peak picking parameters -->\n'
         buff += '    <param name="unidec_peakDetectionWidth" value="%.2f" type="float" />\n' % (float(self.unidec_peakDetectionWidth))
         buff += '    <param name="unidec_peakDetectionThreshold" value="%.2f" type="float" />\n' % (float(self.unidec_peakDetectionThreshold))
-        buff += '    <param name="unidec_peakNormalization" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_peakNormalization, self.unidec_peakNormalization_choices.keys())
+        buff += '    <param name="unidec_peakNormalization" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_peakNormalization, list(self.unidec_peakNormalization_choices.keys()))
         buff += '    <param name="unidec_lineSeparation" value="%.2f" type="float" />\n' % (float(self.unidec_lineSeparation))
         buff += '    <!-- Plotting parameters -->\n'
         buff += '    <param name="unidec_plot_panel_view" value="%s" type="unicode" />\n' % (str(self.unidec_plot_panel_view))
@@ -1903,8 +1906,8 @@ class OrigamiConfig:
         buff += '    <param name="markerColor_1D" value="%s" type="color" />\n' % (str(self.markerColor_1D))
         buff += '    <param name="markerTransparency_1D" value="%.2f" type="float" />\n' % (float(self.markerTransparency_1D))
         buff += '    <param name="markerSize_1D" value="%.2f" type="float" />\n' % (float(self.markerSize_1D))
-        buff += '    <param name="markerShape_1D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShape_1D, self.markerShapeDict.keys())
-        buff += '    <param name="markerShapeTXT_1D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShapeTXT_1D, self.markerShapeDict.keys())
+        buff += '    <param name="markerShape_1D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShape_1D, list(self.markerShapeDict.keys()))
+        buff += '    <param name="markerShapeTXT_1D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShapeTXT_1D, list(self.markerShapeDict.keys()))
         buff += '    <param name="axisOnOff_1D" value="%s" type="bool" />\n' % (bool(self.axisOnOff_1D))
         buff += '    <param name="annotationFontWeight_1D" value="%s" type="bool" />\n' % (bool(self.annotationFontWeight_1D))
         buff += '    <param name="annotationFontSize_1D" value="%.2f" type="float" />\n' % (float(self.annotationFontSize_1D))
@@ -1973,8 +1976,8 @@ class OrigamiConfig:
         buff += '    <param name="markerColor_3D" value="%s" type="color" />\n' % (str(self.markerColor_3D))
         buff += '    <param name="markerTransparency_3D" value="%.2f" type="float" />\n' % (float(self.markerTransparency_3D))
         buff += '    <param name="markerSize_3D" value="%.2f" type="float" />\n' % (float(self.markerSize_3D))
-        buff += '    <param name="markerShape_3D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShape_3D, self.markerShapeDict.keys())
-        buff += '    <param name="markerShapeTXT_3D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShapeTXT_3D, self.markerShapeDict.keys())
+        buff += '    <param name="markerShape_3D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShape_3D, list(self.markerShapeDict.keys()))
+        buff += '    <param name="markerShapeTXT_3D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShapeTXT_3D, list(self.markerShapeDict.keys()))
         buff += '    <param name="markerEdgeColor_3D" value="%s" type="color" />\n' % (str(self.markerEdgeColor_3D))
         buff += '    <param name="annotationFontWeight_3D" value="%s" type="bool" />\n' % (bool(self.annotationFontWeight_3D))
         buff += '    <param name="annotationFontSize_3D" value="%.2f" type="float" />\n' % (float(self.annotationFontSize_3D))
@@ -1993,7 +1996,7 @@ class OrigamiConfig:
         buff += '    <param name="transparent" value="%s" type="bool" />\n' % (bool(self.transparent))
         buff += '    <param name="colorbar" value="%s" type="bool" />\n' % (bool(self.colorbar))
         buff += '    <param name="imageFormat" value="%s" type="unicode" choices="%s" />\n' % (str(self.imageFormat), self.imageFormatType)
-        buff += '    <param name="saveDelimiterTXT" value="%s" type="unicode" choices="%s" />\n' % (self.saveDelimiterTXT, self.textOutputDict.keys())
+        buff += '    <param name="saveDelimiterTXT" value="%s" type="unicode" choices="%s" />\n' % (self.saveDelimiterTXT, list(self.textOutputDict.keys()))
         buff += '    <param name="normalizeMultipleMS" value="%s" type="bool" />\n' % (bool(self.normalizeMultipleMS))
         buff += '  </exportParams>\n\n'
 
@@ -2163,7 +2166,7 @@ class OrigamiConfig:
             save.write(buff.encode("utf-8"))
             save.close()
             if verbose:
-                print('Saved configuration file in {}'.format(path))
+                print(('Saved configuration file in {}'.format(path)))
             return True
         except:
             return False
@@ -2176,7 +2179,7 @@ class OrigamiConfig:
             print('Missing configuration file')
             self.saveConfigXML(path='configOut.xml', evt=None)
             return
-        except xml.parsers.expat.ExpatError, e:
+        except xml.parsers.expat.ExpatError as e:
             print(e)
             print('Syntax error - please load XML config file')
             return

@@ -94,7 +94,7 @@ def check_mass_range(ms_list=None, ms_dict=None):
             mz_max.append(ms_dict[key]['xvals'][-1])
 
     if ms_list is not None:
-        for i in xrange(len(ms_list)):
+        for i in range(len(ms_list)):
             mz_min.append(ms_dict[i]['xvals'][0])
             mz_max.append(ms_dict[i]['xvals'][-1])
 
@@ -239,7 +239,7 @@ def smooth_1D(data=None, smoothMode='Gaussian', **kwargs):  # smooth_1D
         # Smooth array
         try:
             dataOut = gaussian_filter(data, sigma=sigma, order=0)
-        except (ValueError, TypeError, MemoryError), error:
+        except (ValueError, TypeError, MemoryError) as error:
             return data
         return dataOut
 
@@ -254,7 +254,7 @@ def smooth_1D(data=None, smoothMode='Gaussian', **kwargs):  # smooth_1D
             dataOut = savgol_filter(data, polyorder=polyOrder,
                                     window_length=windowSize,
                                     axis=0)
-        except (ValueError, TypeError, MemoryError), error:
+        except (ValueError, TypeError, MemoryError) as error:
             print(error)
             return data
         # Remove values below zero
@@ -436,4 +436,4 @@ def nonlinearize(data, num_compressed):
     else:
         num_compressed = int(num_compressed)
         return np.array([np.mean(data[index:index + num_compressed], axis=0) for index in
-                         xrange(0, len(data), num_compressed)])
+                         range(0, len(data), num_compressed)])

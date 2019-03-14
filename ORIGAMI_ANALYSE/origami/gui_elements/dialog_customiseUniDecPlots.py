@@ -74,8 +74,8 @@ class panelCustomiseParameters(wx.Dialog):
         self.unidec_view_value.SetStringSelection(self.config.unidec_plot_panel_view)
         self.unidec_view_value.Bind(wx.EVT_CHOICE, self.onUniDecView)
         
-        remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, u"Optimise label position:")
-        self.unidec_labels_optimise_position_check = makeCheckbox(panel, u"")
+        remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, "Optimise label position:")
+        self.unidec_labels_optimise_position_check = makeCheckbox(panel, "")
         self.unidec_labels_optimise_position_check.SetValue(self.config.unidec_optimiseLabelPositions)
         self.unidec_labels_optimise_position_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -95,7 +95,7 @@ class panelCustomiseParameters(wx.Dialog):
         
         fit_lineColor_label = wx.StaticText(panel, -1, "Line color:")
         self.fit_lineColor_Btn = wx.Button(panel, ID_unidecPanel_fitLineColor,
-                                           u"", wx.DefaultPosition, 
+                                           "", wx.DefaultPosition, 
                                            wx.Size( 26, 26 ), 0 )
         self.fit_lineColor_Btn.SetBackgroundColour(convertRGB1to255(self.config.unidec_plot_fit_lineColor))
         self.fit_lineColor_Btn.Bind(wx.EVT_BUTTON, self.onChangeColour)
@@ -111,8 +111,8 @@ class panelCustomiseParameters(wx.Dialog):
         contour_staticBox.SetSize((-1,-1))
         contour_box_sizer = wx.StaticBoxSizer(contour_staticBox, wx.HORIZONTAL)
 
-        speedy_label = wx.StaticText(panel, wx.ID_ANY, u"Quick plot:")
-        self.speedy_check = makeCheckbox(panel, u"")
+        speedy_label = wx.StaticText(panel, wx.ID_ANY, "Quick plot:")
+        self.speedy_check = makeCheckbox(panel, "")
         self.speedy_check.SetValue(self.config.unidec_speedy)
         self.speedy_check.Bind(wx.EVT_CHECKBOX, self.onApply)
 
@@ -138,7 +138,7 @@ class panelCustomiseParameters(wx.Dialog):
         MW_box_sizer = wx.StaticBoxSizer(MW_staticBox, wx.HORIZONTAL)
         
         MW_show_markers = wx.StaticText(panel, -1, "Show markers:")
-        self.MW_show_markers_check = makeCheckbox(panel, u"")
+        self.MW_show_markers_check = makeCheckbox(panel, "")
         self.MW_show_markers_check.SetValue(self.config.unidec_plot_MW_showMarkers)
         self.MW_show_markers_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -239,13 +239,13 @@ class panelCustomiseParameters(wx.Dialog):
 
         bar_edgeColor_label = wx.StaticText(panel, -1, "Edge color:")
         self.bar_edgeColor_Btn = wx.Button(panel, ID_unidecPanel_barEdgeColor,
-                                              u"", wx.DefaultPosition, 
+                                              "", wx.DefaultPosition, 
                                               wx.Size( 26, 26 ), 0 )
         self.bar_edgeColor_Btn.SetBackgroundColour(convertRGB1to255(self.config.unidec_plot_bar_edge_color))
         self.bar_edgeColor_Btn.Bind(wx.EVT_BUTTON, self.onChangeColour)
 
         bar_colorEdge_check_label = wx.StaticText(panel, -1, "Same as fill:")
-        self.bar_colorEdge_check = makeCheckbox(panel, u"")
+        self.bar_colorEdge_check = makeCheckbox(panel, "")
         self.bar_colorEdge_check.SetValue(self.config.unidec_plot_bar_sameAsFill)
         self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -358,7 +358,7 @@ class panelCustomiseParameters(wx.Dialog):
             newColour = list(data.GetColour().Get())
             dlg.Destroy()
             # Retrieve custom colors
-            for i in xrange(15):
+            for i in range(15):
                 self.config.customColors[i] = data.GetCustomColour(i)
         else:
             return

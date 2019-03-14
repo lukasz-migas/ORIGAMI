@@ -27,7 +27,7 @@
 # plot = renderer.get_plot(violin).state # need to grab the figure instance
 
 # load libs
-from __future__ import division, unicode_literals
+
 import wx, re, webbrowser, time, threading
 import wx.lib.mixins.listctrl as listmix
 import wx.lib.scrolledpanel
@@ -62,7 +62,7 @@ from toolbox import (str2int, str2num, convertRGB1to255, convertRGB1toHEX, find_
                              num2str, find_limits_all, merge_two_dicts, determineFontColor,
     convertHEXtoRGB255)
 from styles import makeStaticBox, makeStaticText, makeCheckbox, TEXT_STYLE_CV_R_L, makeMenuItem, validator
-import dialogs as dialogs
+import dialogs
 from processing.spectra import linearize_data, crop_1D_data, normalize_1D
 
 # TODO: replace Dropdown with Select tool
@@ -142,7 +142,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.Layout()
         self.SetFocus()
 
-        print("Startup of interactive panel took {:.3f} seconds".format(time.time() - tstart))
+        print(("Startup of interactive panel took {:.3f} seconds".format(time.time() - tstart)))
         # bind
         wx.EVT_CLOSE(self, self.onClose)
         wx.EVT_SPLITTER_DCLICK(self, wx.ID_ANY, self._onSash)
@@ -223,7 +223,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_all,
                                      text='Paste style (all)',
                                      bitmap=None))
-        menu.AppendMenu(wx.ID_ANY, u'Paste style...', apply_style_menu)
+        menu.AppendMenu(wx.ID_ANY, 'Paste style...', apply_style_menu)
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -316,7 +316,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             self._item_style_.update(xlimits=xlimits, ylimits=ylimits)
             _copied_msg = "plot limits"
 
-        print("Copied [{}] parameters from: {} - {} - {}".format(_copied_msg, name, key, innerKey))
+        print(("Copied [{}] parameters from: {} - {} - {}".format(_copied_msg, name, key, innerKey)))
 
     def on_apply_style(self, evt, itemID=None):
         """
@@ -425,10 +425,10 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         self.onUpdateItemParameters(name, key, innerKey, style_data)
 
-        print("Applied [{}] parameters from {} - {} - {} to {} - {} - {}".format(
+        print(("Applied [{}] parameters from {} - {} - {} to {} - {} - {}".format(
             _copied_msg, self._item_style_['document_title'],
             self._item_style_['item_type'], self._item_style_['item_title'],
-            name, key, innerKey))
+            name, key, innerKey)))
 
     def on_apply_style_batch(self, evt):
         """
@@ -768,7 +768,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.Bind(wx.EVT_BUTTON, self.onCheckTool, id=ID_interactivePanel_check_menu)
 
         document_label = wx.StaticText(panel, -1, "Document filter:")
-        docList = ['All'] + self.documentsDict.keys()
+        docList = ['All'] + list(self.documentsDict.keys())
         self.docSelection_combo = wx.Choice(panel, -1, choices=docList, size=(160, -1))
         self.docSelection_combo.SetStringSelection("All")
         self.docSelection_combo.Bind(wx.EVT_CHOICE, self.OnShowOneDataType)
@@ -789,7 +789,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.dataSelection_combo.Bind(wx.EVT_CHOICE, self.OnShowOneDataType)
 
         output_label = wx.StaticText(panel, -1, "Assign output page:")
-        self.pageLayoutSelect_toolbar = wx.Choice(panel, -1, choices=self.config.pageDict.keys(), size=(140, -1))
+        self.pageLayoutSelect_toolbar = wx.Choice(panel, -1, choices=list(self.config.pageDict.keys()), size=(140, -1))
         self.pageLayoutSelect_toolbar.SetStringSelection("None")
         page_applyBtn = wx.BitmapButton(panel, ID_assignPageSelected_HTML, self.icons.iconsLib['tick16'],
                                       size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
@@ -809,7 +809,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.apply_style_btn.Bind(wx.EVT_BUTTON, self.on_apply_style_menu)
         
         sort_label = wx.StaticText(panel, -1, "Sort:")
-        self.sort_before_saving = wx.CheckBox(panel, -1 , u'', (15, 30))
+        self.sort_before_saving = wx.CheckBox(panel, -1 , '', (15, 30))
         self.sort_before_saving.SetToolTip(wx.ToolTip("When checked, table will be sorted by the # column before plots are exported."))
         self.sort_before_saving.SetValue(self.config.interactive_sort_before_saving)
         self.sort_before_saving.Bind(wx.EVT_CHECKBOX, self.onApply)
@@ -892,14 +892,14 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.documentName_value = wx.TextCtrl(panel, -1, "", size=(350, -1))
         self.documentName_value.SetValue(str(self.currentDocumentName))
 
-        self.openInBrowserCheck = makeCheckbox(panel, u"Open in browser after saving")
+        self.openInBrowserCheck = makeCheckbox(panel, "Open in browser after saving")
         self.openInBrowserCheck.SetValue(self.config.openInteractiveOnSave)
 
-        self.addOfflineSupportCheck = makeCheckbox(panel, u"Add offline support")
+        self.addOfflineSupportCheck = makeCheckbox(panel, "Add offline support")
         self.addOfflineSupportCheck.SetValue(self.config.interactive_add_offline_support)
         self.addOfflineSupportCheck.SetToolTip(wx.ToolTip("Will enable viewing HTML files offline. Beware: file size and time to generate the document will increase."))
 
-        self.addWatermarkCheck = makeCheckbox(panel, u"Add watermark")
+        self.addWatermarkCheck = makeCheckbox(panel, "Add watermark")
         self.addWatermarkCheck.SetValue(True)
         self.addWatermarkCheck.SetToolTip(wx.ToolTip("When checked, a watermark message will be displayed on each tab in the document. Only a little bit of advertising..."))
 
@@ -940,17 +940,17 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.htmlView = wx.lib.scrolledpanel.ScrolledPanel(self.editorBook, wx.ID_ANY, wx.DefaultPosition, (-1, -1), wx.TAB_TRAVERSAL)
         self.htmlView.SetupScrolling()
         self.htmlView = self.makeHTMLView(self.htmlView)
-        self.editorBook.AddPage(self.htmlView, u"HTML", False)
+        self.editorBook.AddPage(self.htmlView, "HTML", False)
 
         self.pageView = wx.lib.scrolledpanel.ScrolledPanel(self.editorBook, wx.ID_ANY, wx.DefaultPosition, (-1, -1), wx.TAB_TRAVERSAL)
         self.pageView.SetupScrolling()
         self.pageView = self.makePageView(self.pageView)
-        self.editorBook.AddPage(self.pageView, u"Output page", False)
+        self.editorBook.AddPage(self.pageView, "Output page", False)
 
         self.propertiesView = wx.lib.scrolledpanel.ScrolledPanel(self.editorBook, wx.ID_ANY, wx.DefaultPosition, (-1, -1), wx.TAB_TRAVERSAL)
         self.propertiesView.SetupScrolling()
         self.propertiesView = self.makePropertiesView(self.propertiesView)
-        self.editorBook.AddPage(self.propertiesView, u"Default settings", False)
+        self.editorBook.AddPage(self.propertiesView, "Default settings", False)
 
         mainSizer.Add(self.editorBook, 1, wx.EXPAND | wx.ALL, 3)
         mainSizer.Fit(self.editorBook)
@@ -969,7 +969,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.mainBoxPage.SetSize((-1, -1))
         html_box_sizer = wx.StaticBoxSizer(self.mainBoxPage, wx.HORIZONTAL)
 
-        pageSelect_label = makeStaticText(panel, u"Select page:")
+        pageSelect_label = makeStaticText(panel, "Select page:")
         self.pageLayoutSelect_propView = wx.ComboBox(panel, -1, choices=[],
                                         value="None", style=wx.CB_READONLY)
         self.pageLayoutSelect_propView.Bind(wx.EVT_COMBOBOX, self.onChangePage)
@@ -989,33 +989,33 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.clearAllPages.Bind(wx.EVT_BUTTON, self.onClearPages)
         self.clearAllPages.SetToolTip(wx.ToolTip("Remove ALL non-default pages"))
 
-        layoutDoc_label = makeStaticText(panel, u"Page layout:")
+        layoutDoc_label = makeStaticText(panel, "Page layout:")
         self.layoutDoc_combo = wx.ComboBox(panel, -1, choices=self.config.interactive_pageLayout_choices,
                                         value=self.config.layoutModeDoc, style=wx.CB_READONLY)
         self.layoutDoc_combo.SetToolTip(wx.ToolTip("Select type of layout for the page. Default: Individual"))
         self.layoutDoc_combo.Bind(wx.EVT_COMBOBOX, self.onApply)
         self.layoutDoc_combo.Bind(wx.EVT_COMBOBOX, self.onSelectPageProperties)
 
-        columns_label = makeStaticText(panel, u"Columns:")
+        columns_label = makeStaticText(panel, "Columns:")
         self.columns_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
         self.columns_value.SetToolTip(wx.ToolTip("Grid only. Number of columns in the grid"))
         self.columns_value.Bind(wx.EVT_TEXT, self.onSelectPageProperties)
 
-        self.grid_shared_tools = makeCheckbox(panel, u"Shared tools")
+        self.grid_shared_tools = makeCheckbox(panel, "Shared tools")
         self.grid_shared_tools.SetValue(True)
         self.grid_shared_tools.Bind(wx.EVT_CHECKBOX, self.onSelectPageProperties)
 
-        self.grid_add_custom_js_widgets = makeCheckbox(panel, u"Add widgets when available")
+        self.grid_add_custom_js_widgets = makeCheckbox(panel, "Add widgets when available")
         self.grid_add_custom_js_widgets.SetToolTip(wx.ToolTip("Grid/rows only. Add custom widgets that work for all plots in a grid."))
         self.grid_add_custom_js_widgets.SetValue(True)
         self.grid_add_custom_js_widgets.Bind(wx.EVT_CHECKBOX, self.onSelectPageProperties)
 
-        height_label = makeStaticText(panel, u"Plot height:")
+        height_label = makeStaticText(panel, "Plot height:")
         self.grid_height_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
         self.grid_height_value.SetToolTip(wx.ToolTip("Grid only. Height of individual plots"))
         self.grid_height_value.Bind(wx.EVT_TEXT, self.onSelectPageProperties)
 
-        width_label = makeStaticText(panel, u"Plot width:")
+        width_label = makeStaticText(panel, "Plot width:")
         self.grid_width_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
         self.grid_width_value.SetToolTip(wx.ToolTip("Grid only. Width of individual plots"))
         self.grid_width_value.Bind(wx.EVT_TEXT, self.onSelectPageProperties)
@@ -1145,11 +1145,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         general_staticBox.SetSize((-1, -1))
         general_box_sizer = wx.StaticBoxSizer(general_staticBox, wx.HORIZONTAL)
 
-        page_label = makeStaticText(panel, u"Output page:")
+        page_label = makeStaticText(panel, "Output page:")
         self.pageLayoutSelect_htmlView = wx.ComboBox(panel, -1, choices=[], value="None", style=wx.CB_READONLY, size=(200, -1))
         self.pageLayoutSelect_htmlView.Bind(wx.EVT_COMBOBOX, self.on_change_page_for_item)
 
-        order_label = makeStaticText(panel, u"Plot order:")
+        order_label = makeStaticText(panel, "Plot order:")
         self.order_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
         self.order_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
 
@@ -1265,35 +1265,35 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = makeStaticBox(panel, "Font properties", (210, -1), wx.BLACK)
         mainBox.SetSize((230, -1))
         mainSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
-        titleFontSize = makeStaticText(panel, u"Title font size")
+        titleFontSize = makeStaticText(panel, "Title font size")
 
         self.titleSlider = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                              value=str(self.config.interactive_title_fontSize), min=8, max=32,
                                              initial=self.config.interactive_title_fontSize, inc=1, size=(50, -1))
-        self.titleBoldCheck = makeCheckbox(panel, u"Bold")
+        self.titleBoldCheck = makeCheckbox(panel, "Bold")
         self.titleBoldCheck.SetValue(self.config.interactive_title_weight)
 
-        labelFontSize = makeStaticText(panel, u"Label font size")
+        labelFontSize = makeStaticText(panel, "Label font size")
         self.labelSlider = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                              value=str(self.config.interactive_label_fontSize), min=8, max=32,
                                              initial=self.config.interactive_label_fontSize, inc=1, size=(50, -1))
 
-        self.labelBoldCheck = makeCheckbox(panel, u"Bold")
+        self.labelBoldCheck = makeCheckbox(panel, "Bold")
         self.labelBoldCheck.SetValue(self.config.interactive_label_weight)
 
-        tickFontSize = makeStaticText(panel, u"Tick font size")
+        tickFontSize = makeStaticText(panel, "Tick font size")
         self.tickSlider = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                              value=str(self.config.interactive_tick_fontSize), min=8, max=32,
                                              initial=self.config.interactive_tick_fontSize, inc=1, size=(50, -1))
 
 
-        precision_label = makeStaticText(panel, u"Tick precision")
+        precision_label = makeStaticText(panel, "Tick precision")
         self.tickPrecision = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_tick_precision), min=0, max=5,
                                                    initial=self.config.interactive_tick_precision, inc=1, size=(50, -1))
 
 
-        self.tickUseScientific = wx.CheckBox(panel, -1 , u'Scientific\nnotation', (15, 30))
+        self.tickUseScientific = wx.CheckBox(panel, -1 , 'Scientific\nnotation', (15, 30))
         self.tickUseScientific.SetValue(self.config.interactive_tick_useScientific)
         self.tickUseScientific.Bind(wx.EVT_CHECKBOX, self.onEnableDisableItems)
 
@@ -1458,24 +1458,24 @@ class panelInteractiveOutput(wx.MiniFrame):
         rmsdSizer = wx.StaticBoxSizer(rmsdBox, wx.HORIZONTAL)
         rmsdBox.SetToolTip(wx.ToolTip(""))
 
-        notationFontSize = makeStaticText(panel, u"Label font size")
+        notationFontSize = makeStaticText(panel, "Label font size")
         self.notationSlider = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                              value=str(self.config.interactive_annotation_fontSize), min=8, max=32,
                                              initial=self.config.interactive_annotation_fontSize, inc=1, size=(50, -1))
-        self.notationBoldCheck = makeCheckbox(panel, u"Bold")
+        self.notationBoldCheck = makeCheckbox(panel, "Bold")
         self.notationBoldCheck.SetValue(self.config.interactive_annotation_weight)
 
-        interactive_annotation_color_label = makeStaticText(panel, u"Font")
+        interactive_annotation_color_label = makeStaticText(panel, "Font")
         self.interactive_annotation_colorBtn = wx.Button(panel, ID_changeColorNotationInteractive,
-                                           u"", wx.DefaultPosition, wx.Size(26, 26), 0)
+                                           "", wx.DefaultPosition, wx.Size(26, 26), 0)
         self.interactive_annotation_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_annotation_color))
 
-        interactive_annotation_background_color_label = makeStaticText(panel, u"Background")
+        interactive_annotation_background_color_label = makeStaticText(panel, "Background")
         self.interactive_annotation_colorBackgroundBtn = wx.Button(panel, ID_changeColorBackgroundNotationInteractive,
-                                                     u"", wx.DefaultPosition, wx.Size(26, 26), 0)
+                                                     "", wx.DefaultPosition, wx.Size(26, 26), 0)
         self.interactive_annotation_colorBackgroundBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_annotation_background_color))
 
-        interactive_transparency_label = makeStaticText(panel, u"Transparency")
+        interactive_transparency_label = makeStaticText(panel, "Transparency")
         self.rmsd_label_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                          value=str(self.config.interactive_annotation_alpha), min=0, max=1,
                                                          initial=self.config.interactive_annotation_alpha, inc=0.1, size=(50, -1))
@@ -1640,13 +1640,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = makeStaticBox(panel, "Plot (1D) properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        lineWidth_label = makeStaticText(panel, u"Line width:")
+        lineWidth_label = makeStaticText(panel, "Line width:")
         self.line_width = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                          value=str(self.config.interactive_line_width), min=0.5, max=10,
                                                          initial=self.config.interactive_line_width, inc=0.5, size=(50, -1))
         self.line_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        lineAlpha_label = makeStaticText(panel, u"Transparency:")
+        lineAlpha_label = makeStaticText(panel, "Transparency:")
         self.line_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_line_alpha), min=0, max=1,
                                                    initial=self.config.interactive_line_alpha, inc=0.1, size=(50, -1))
@@ -1658,7 +1658,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.line_style.SetStringSelection(self.config.interactive_line_style)
         self.line_style.Bind(wx.EVT_COMBOBOX, self.onApply)
 
-        self.hoverVlineCheck = wx.CheckBox(panel, -1 , u'Link hover to X axis', (15, 30))
+        self.hoverVlineCheck = wx.CheckBox(panel, -1 , 'Link hover to X axis', (15, 30))
         self.hoverVlineCheck.SetToolTip(wx.ToolTip("Hover tool information is linked to the X-axis"))
         self.hoverVlineCheck.SetValue(self.config.hoverVline)
         self.hoverVlineCheck.Bind(wx.EVT_CHECKBOX, self.onApply)
@@ -1683,12 +1683,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = makeStaticBox(panel, "Overlay plot properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        layout_label = makeStaticText(panel, u"Layout")
+        layout_label = makeStaticText(panel, "Layout")
         self.layout_combo = wx.ComboBox(panel, -1, choices=['Rows', 'Columns'],
                                         value=self.config.plotLayoutOverlay, style=wx.CB_READONLY)
         self.layout_combo.SetToolTip(wx.ToolTip("Select type of layout for the 2D overlay plots. The HTML viewer does not allow a good enough overlay function, so column/row option is provided. Default: Rows"))
 
-        self.XYaxisLinkCheck = wx.CheckBox(panel, -1 , u'Link XY axes', (15, 30))
+        self.XYaxisLinkCheck = wx.CheckBox(panel, -1 , 'Link XY axes', (15, 30))
         self.XYaxisLinkCheck.SetValue(self.config.linkXYaxes)
 
         # bind
@@ -1732,12 +1732,12 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         bar_edgeColor_label = wx.StaticText(panel, -1, "Edge color:")
         self.bar_edgeColorBtn = wx.Button(panel, ID_interactivePanel_color_barEdge,
-                                              u"", wx.DefaultPosition,
+                                              "", wx.DefaultPosition,
                                               wx.Size(26, 26), 0)
         self.bar_edgeColorBtn.SetBackgroundColour(convertRGB1to255(self.config.bar_edge_color))
         self.bar_edgeColorBtn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
-        self.bar_colorEdge_check = makeCheckbox(panel, u"Same as fill")
+        self.bar_colorEdge_check = makeCheckbox(panel, "Same as fill")
         self.bar_colorEdge_check.SetValue(self.config.bar_sameAsFill)
         self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.onApply)
 
@@ -1762,31 +1762,31 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = makeStaticBox(panel, "Plot (scatter) properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        marker_label = makeStaticText(panel, u"Marker shape")
+        marker_label = makeStaticText(panel, "Marker shape")
         self.scatter_marker = wx.ComboBox(panel, -1,
                                         choices=self.config.interactive_scatter_marker_choices,
                                           value=self.config.interactive_scatter_marker, style=wx.CB_READONLY)
         self.scatter_marker.Bind(wx.EVT_COMBOBOX, self.onApply)
 
-        marker_size_label = makeStaticText(panel, u"Marker size:")
+        marker_size_label = makeStaticText(panel, "Marker size:")
         self.scatter_marker_size = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                      value=str(self.config.interactive_scatter_size), min=1, max=100,
                                                      initial=self.config.interactive_scatter_size, inc=5, size=(50, -1))
         self.scatter_marker_size.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        marker_alpha_label = makeStaticText(panel, u"transparency:")
+        marker_alpha_label = makeStaticText(panel, "transparency:")
         self.scatter_marker_alpha = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                      value=str(self.config.interactive_scatter_alpha), min=0, max=1,
                                                      initial=self.config.interactive_scatter_alpha, inc=0.1, size=(50, -1))
         self.scatter_marker_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        marker_color_label = makeStaticText(panel, u"Edge color:")
+        marker_color_label = makeStaticText(panel, "Edge color:")
         self.scatter_marker_edge_colorBtn = wx.Button(panel, ID_interactivePanel_color_markerEdge,
-                                                  u"", wx.DefaultPosition, wx.Size(26, 26), 0)
+                                                  "", wx.DefaultPosition, wx.Size(26, 26), 0)
         self.scatter_marker_edge_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_scatter_edge_color))
         self.scatter_marker_edge_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_interactivePanel_color_markerEdge)
 
-        self.scatter_color_sameAsFill = wx.CheckBox(panel, -1 , u'Same as fill', (15, 30))
+        self.scatter_color_sameAsFill = wx.CheckBox(panel, -1 , 'Same as fill', (15, 30))
         self.scatter_color_sameAsFill.SetValue(self.config.interactive_scatter_sameAsFill)
         self.scatter_color_sameAsFill.Bind(wx.EVT_CHECKBOX, self.onApply)
 
@@ -1812,17 +1812,17 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = makeStaticBox(panel, "Custom JavaScript", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        self.custom_js_events = wx.CheckBox(panel, -1 , u'Add custom JS events when available', (15, 30))
+        self.custom_js_events = wx.CheckBox(panel, -1 , 'Add custom JS events when available', (15, 30))
         self.custom_js_events.SetToolTip(wx.ToolTip("When checked, custom JavaScripts will be added to the plot to enable better operation (i.e. double-tap in plot area will restore original state of the plot)"))
         self.custom_js_events.SetValue(self.config.interactive_custom_events)
         self.custom_js_events.Bind(wx.EVT_CHECKBOX, self.onApply)
 
-        self.custom_js_scripts = wx.CheckBox(panel, -1 , u'Add custom JS scripts when available', (15, 30))
+        self.custom_js_scripts = wx.CheckBox(panel, -1 , 'Add custom JS scripts when available', (15, 30))
         self.custom_js_scripts.SetToolTip(wx.ToolTip("When checked, custom JavaScript code snippets will be execute when triggered (i.e. toggle button to show/hide legend)"))
         self.custom_js_scripts.SetValue(self.config.interactive_custom_scripts)
         self.custom_js_scripts.Bind(wx.EVT_CHECKBOX, self.onApply)
 
-        position_label = makeStaticText(panel, u"Widget position")
+        position_label = makeStaticText(panel, "Widget position")
         self.custom_js_position = wx.ComboBox(panel, -1,
                                                choices=["left", "right", "bottom_row", "bottom_column", "top_row", "top_column"],
                                                value="right", style=wx.CB_READONLY)
@@ -1845,45 +1845,45 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = makeStaticBox(panel, "Annotation properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        self.annot_peakLabel = wx.CheckBox(panel, -1 , u'Label peak', (15, 30))
+        self.annot_peakLabel = wx.CheckBox(panel, -1 , 'Label peak', (15, 30))
         self.annot_peakLabel.SetValue(self.config.interactive_ms_annotations_labels)
         self.annot_peakLabel.Bind(wx.EVT_CHECKBOX, self.onApply)
 
-        self.annot_peakHighlight = wx.CheckBox(panel, -1 , u'Highlight peak', (15, 30))
+        self.annot_peakHighlight = wx.CheckBox(panel, -1 , 'Highlight peak', (15, 30))
         self.annot_peakHighlight.SetValue(self.config.interactive_ms_annotations_highlight)
         self.annot_peakHighlight.Bind(wx.EVT_CHECKBOX, self.onApply)
 
-        annot_xpos_label = makeStaticText(panel, u"Offset X:")
+        annot_xpos_label = makeStaticText(panel, "Offset X:")
         self.annot_xpos_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                   value=str(self.config.interactive_ms_annotations_offsetX), min=-100, max=100,
                                                   initial=self.config.interactive_ms_annotations_offsetX, inc=5, size=(50, -1))
         self.annot_xpos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        annot_ypos_label = makeStaticText(panel, u"Offset Y:")
+        annot_ypos_label = makeStaticText(panel, "Offset Y:")
         self.annot_ypos_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                   value=str(self.config.interactive_ms_annotations_offsetY), min=-100, max=100,
                                                   initial=self.config.interactive_ms_annotations_offsetY, inc=5, size=(50, -1))
         self.annot_ypos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        annot_rotation_label = makeStaticText(panel, u"Rotation:")
+        annot_rotation_label = makeStaticText(panel, "Rotation:")
         self.annot_rotation_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                   value=str(self.config.interactive_ms_annotations_rotation), min=0, max=180,
                                                   initial=self.config.interactive_ms_annotations_rotation, inc=45, size=(50, -1))
         self.annot_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        annot_fontSize_label = makeStaticText(panel, u"Font size:")
+        annot_fontSize_label = makeStaticText(panel, "Font size:")
         self.annot_fontSize_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                       value=str(self.config.interactive_ms_annotations_fontSize), min=0, max=32,
                                                       initial=self.config.interactive_ms_annotations_fontSize, inc=2, size=(50, -1))
         self.annot_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        self.annot_fontWeight_value = makeCheckbox(panel, u"Bold")
+        self.annot_fontWeight_value = makeCheckbox(panel, "Bold")
         self.annot_fontWeight_value.SetValue(self.config.interactive_ms_annotations_fontWeight)
         self.annot_fontWeight_value.Bind(wx.EVT_CHECKBOX, self.onApply)
 
-        annot_fontColor_label = makeStaticText(panel, u"Color:")
+        annot_fontColor_label = makeStaticText(panel, "Color:")
         self.annot_fontColor_colorBtn = wx.Button(panel, ID_changeColorAnnotLabelInteractive,
-                                                  u"", wx.DefaultPosition, wx.Size(26, 26), 0)
+                                                  "", wx.DefaultPosition, wx.Size(26, 26), 0)
         self.annot_fontColor_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_ms_annotations_label_color))
         self.annot_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorAnnotLabelInteractive)
 
@@ -1914,53 +1914,53 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = makeStaticBox(panel, "Colorbar properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        colorbar_label = makeStaticText(panel, u"Colorbar:")
-        self.interactive_colorbar = wx.CheckBox(panel, -1 , u'', (15, 30))
+        colorbar_label = makeStaticText(panel, "Colorbar:")
+        self.interactive_colorbar = wx.CheckBox(panel, -1 , '', (15, 30))
         self.interactive_colorbar.SetValue(self.config.interactive_colorbar)
         self.interactive_colorbar.Bind(wx.EVT_CHECKBOX, self.onApply)
 
-        precision_label = makeStaticText(panel, u"Precision")
+        precision_label = makeStaticText(panel, "Precision")
         self.interactive_colorbar_precision = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_colorbar_precision), min=0, max=5,
                                                    initial=self.config.interactive_colorbar_precision, inc=1, size=(50, -1))
         self.interactive_colorbar_precision.SetToolTip(wx.ToolTip("Number of decimal places in the colorbar tickers"))
 
-        self.interactive_colorbar_useScientific = wx.CheckBox(panel, -1 , u'Scientific\nnotation', (15, 30))
+        self.interactive_colorbar_useScientific = wx.CheckBox(panel, -1 , 'Scientific\nnotation', (15, 30))
         self.interactive_colorbar_useScientific.SetValue(self.config.interactive_colorbar_useScientific)
         self.interactive_colorbar_useScientific.SetToolTip(wx.ToolTip("Enable/disable scientific notation of colorbar tickers"))
         self.interactive_colorbar_useScientific.Bind(wx.EVT_CHECKBOX, self.onEnableDisableItems)
 
-        labelOffset_label = makeStaticText(panel, u"Label offset:")
+        labelOffset_label = makeStaticText(panel, "Label offset:")
         self.interactive_colorbar_label_offset = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_colorbar_label_offset), min=0, max=100,
                                                    initial=self.config.interactive_colorbar_label_offset, inc=5, size=(50, -1))
         self.interactive_colorbar_label_offset.SetToolTip(wx.ToolTip("Distance between the colorbar and labels"))
 
-        location_label = makeStaticText(panel, u"Position:")
+        location_label = makeStaticText(panel, "Position:")
         self.interactive_colorbar_location = wx.ComboBox(panel, -1,
                                             choices=self.config.interactive_colorbarPosition_choices,
                                             value=self.config.interactive_colorbar_location, style=wx.CB_READONLY)
         self.interactive_colorbar_location.SetToolTip(wx.ToolTip("Colorbar position next to the plot. The colorbar orientation changes automatically"))
 
-        offsetX_label = makeStaticText(panel, u"Offset X")
+        offsetX_label = makeStaticText(panel, "Offset X")
         self.interactive_colorbar_offset_x = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_colorbar_offset_x), min=0, max=100,
                                                    initial=self.config.interactive_colorbar_offset_x, inc=5, size=(50, -1))
         self.interactive_colorbar_offset_x.SetToolTip(wx.ToolTip("Colorbar position offset in the X axis. Adjust if colorbar is too close or too far away from the plot"))
 
-        offsetY_label = makeStaticText(panel, u"Offset Y")
+        offsetY_label = makeStaticText(panel, "Offset Y")
         self.interactive_colorbar_offset_y = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_colorbar_offset_y), min=0, max=100,
                                                    initial=self.config.interactive_colorbar_offset_y, inc=5, size=(50, -1))
         self.interactive_colorbar_offset_y.SetToolTip(wx.ToolTip("Colorbar position offset in the Y axis. Adjust if colorbar is too close or too far away from the plot"))
 
-        padding_label = makeStaticText(panel, u"Pad")
+        padding_label = makeStaticText(panel, "Pad")
         self.colorbarPadding = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_colorbar_padding), min=0, max=100,
                                                    initial=self.config.interactive_colorbar_padding, inc=5, size=(50, -1))
         self.colorbarPadding.SetToolTip(wx.ToolTip(""))
 
-        margin_label = makeStaticText(panel, u"Width")
+        margin_label = makeStaticText(panel, "Width")
         self.colorbarWidth = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_colorbar_width), min=0, max=100,
                                                    initial=self.config.interactive_colorbar_width, inc=5, size=(50, -1))
@@ -2009,43 +2009,43 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = makeStaticBox(panel, "Legend properties", (210,-1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        legend_label = makeStaticText(panel, u"Legend:")
-        self.legend_legend = wx.CheckBox(panel, -1 ,u'', (15, 30))
+        legend_label = makeStaticText(panel, "Legend:")
+        self.legend_legend = wx.CheckBox(panel, -1 ,'', (15, 30))
         self.legend_legend.SetValue(self.config.interactive_legend)
         self.legend_legend.Bind(wx.EVT_CHECKBOX, self.onApply)
 
-        position_label = makeStaticText(panel, u"Position")
+        position_label = makeStaticText(panel, "Position")
         self.legend_position = wx.ComboBox(panel, -1,
                                            choices=self.config.interactive_legend_location_choices,
                                            value=self.config.interactive_legend_location, style=wx.CB_READONLY)
         self.legend_position.Bind(wx.EVT_COMBOBOX, self.onApply)
 
-        orientation_label = makeStaticText(panel, u"Orientation")
+        orientation_label = makeStaticText(panel, "Orientation")
         self.legend_orientation = wx.ComboBox(panel, -1,
                                                choices=self.config.interactive_legend_orientation_choices,
                                                value=self.config.interactive_legend_orientation, style=wx.CB_READONLY)
         self.legend_orientation.Bind(wx.EVT_COMBOBOX, self.onApply)
 
-        legendAlpha_label = makeStaticText(panel, u"Legend transparency")
+        legendAlpha_label = makeStaticText(panel, "Legend transparency")
         self.legend_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                      value=str(self.config.interactive_legend_background_alpha),min=0, max=1,
                                                      initial=self.config.interactive_legend_background_alpha, inc=0.1, size=(50,-1))
         self.legend_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        fontSize_label = makeStaticText(panel, u"Font size")
+        fontSize_label = makeStaticText(panel, "Font size")
         self.legend_fontSize = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                  value=str(self.config.interactive_legend_font_size),min=0, max=32,
                                                  initial=self.config.interactive_legend_font_size, inc=2, size=(50,-1))
         self.legend_fontSize.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        action_label = makeStaticText(panel, u"Action")
+        action_label = makeStaticText(panel, "Action")
         self.legend_click_policy = wx.ComboBox(panel, -1,
                                                choices=self.config.interactive_legend_click_policy_choices,
                                                value=self.config.interactive_legend_click_policy, style=wx.CB_READONLY)
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onApply)
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onEnableDisableItems)
 
-        muteAlpha_label = makeStaticText(panel, u"Line transparency")
+        muteAlpha_label = makeStaticText(panel, "Line transparency")
         self.legend_mute_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_legend_mute_alpha),min=0, max=1,
                                                    initial=self.config.interactive_legend_mute_alpha, inc=0.1, size=(50,-1))
@@ -2244,7 +2244,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.pageLayoutSelect_toolbar.Clear()
 
         # Append new list
-        sorted_page_list = natsorted(self.config.pageDict.keys())
+        sorted_page_list = natsorted(list(self.config.pageDict.keys()))
         self.pageLayoutSelect_htmlView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_propView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_toolbar.AppendItems(sorted_page_list)
@@ -2267,7 +2267,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.pageLayoutSelect_toolbar.Clear()
 
         # Append new list
-        sorted_page_list = natsorted(self.config.pageDict.keys())
+        sorted_page_list = natsorted(list(self.config.pageDict.keys()))
         self.pageLayoutSelect_htmlView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_propView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_toolbar.AppendItems(sorted_page_list)
@@ -2802,10 +2802,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.pageLayoutSelect_toolbar.Clear()
 
         # Remove any key without a proper name
-        try: del self.config.pageDict[u'']
+        try: del self.config.pageDict['']
         except KeyError: pass
 
-        sorted_page_list = natsorted(self.config.pageDict.keys())
+        sorted_page_list = natsorted(list(self.config.pageDict.keys()))
         self.pageLayoutSelect_htmlView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_propView.AppendItems(sorted_page_list)
         self.pageLayoutSelect_toolbar.AppendItems(sorted_page_list)
@@ -3278,10 +3278,10 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         msX, msY = linearize_data(xvals, yvals, **kwargs)
         if len(msX) > len(xvals):
-            print("Chose not to linearize spectrum as it would increase it from {} to {}".format(len(xvals), len(msX)))
+            print(("Chose not to linearize spectrum as it would increase it from {} to {}".format(len(xvals), len(msX))))
             return xvals, yvals
         else:
-            print("Linearized spectrum. Reduced spectrum from {} to {}".format(len(xvals), len(msX)))
+            print(("Linearized spectrum. Reduced spectrum from {} to {}".format(len(xvals), len(msX))))
             return msX, msY
 
     def add_custom_js_widgets(self, bokehPlot, js_type="label_toggle",
@@ -3829,7 +3829,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 
             msg = "{}. It took {:.3f} seconds".format(msg[:-2], (time.time() - tstart))
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-        except Exception, e:
+        except Exception as e:
             print(e)
 #         except RuntimeError:
             msg = "ORIGAMI encountered an error when compiling custom JavaScript widgets. There are a few things you can do to fix this.\n" + \
@@ -3989,9 +3989,9 @@ class panelInteractiveOutput(wx.MiniFrame):
 
                 # label
                 if data['annotations'][annotKey]["label"] not in ["", None]:
-                    label = u"{}".format(_replace_labels(data['annotations'][annotKey]["label"]))
+                    label = "{}".format(_replace_labels(data['annotations'][annotKey]["label"]))
                 else:
-                    label = u"{}".format(data['annotations'][annotKey]["charge"])
+                    label = "{}".format(data['annotations'][annotKey]["charge"])
                 text_annot_label.append(label)
 
                 # check if need to add arrow
@@ -4788,7 +4788,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                          (ylabel, '@yvals{0.00}')]
             itemLabels = data['itemLabels']
             hoverLabels = data['hover_labels']
-            for i in xrange(len(itemLabels)):
+            for i in range(len(itemLabels)):
                 try: hover_label = hoverLabels[i]
                 except: hover_label = "Label ({})".format(i)
                 _tooltips.append((hover_label, '@labels_{}'.format(i)))
@@ -4826,7 +4826,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         # generate source data
         _sourceDict = dict(xvals=xvals, yvals=yvals)
         if len(itemLabels) > 0:
-            for ilabel in xrange(len(itemLabels)):
+            for ilabel in range(len(itemLabels)):
                 dict_label = "labels_{}".format(ilabel)
                 if len(itemLabels[ilabel]) == len(xvals):
                     _labels = itemLabels[ilabel]
@@ -5163,7 +5163,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 #                 plot_modifiers["bokeh_add_dataset_label"] = True
         if plot_modifiers.get("label_items", False):
             if len(itemLabels) > len(yvals):
-                for i in xrange(len(itemLabels)):
+                for i in range(len(itemLabels)):
                     try: hover_label = hoverLabels[i]
                     except: hover_label = "Label ({})".format(i)
                     _tooltips.append((_replace_labels(hover_label), '@labels_{}'.format(i)))
@@ -5245,7 +5245,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             if plot_modifiers.get("bokeh_add_item_label", False):
                 if len(itemLabels) > len(yvals):
-                    for ilabel in xrange(len(itemLabels)):
+                    for ilabel in range(len(itemLabels)):
                         dict_label = "labels_{}".format(ilabel)
                         _sourceDict[dict_label] = itemLabels[ilabel]
                 elif len(itemLabels) == len(yvals):
@@ -6402,14 +6402,14 @@ class panelInteractiveOutput(wx.MiniFrame):
         # add plots
         _ydata = []
         _lines, _patches, _original_colors, _cvd_colors = [], [], [], []
-        for item in xrange(len(xvals)):
+        for item in range(len(xvals)):
             xval = xvals[item]
             yval = yvals[item]
             zval = zvals[item]
             dataset = labels[item]
             line_color = convertRGB1toHEX(colorList[item])
             shade_color = convertRGB1toHEX(colorList[item])
-            for irow in xrange(len(yval)):
+            for irow in range(len(yval)):
                 if irow > 0: 
                     label = ""
                 
@@ -6957,7 +6957,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             _tooltips.append(("Dataset", '@dataset'))
 
         if len(itemLabels) > 0:
-            for i in xrange(len(itemLabels)):
+            for i in range(len(itemLabels)):
                 try: hover_label = hoverLabels[i]
                 except:
                     if len(itemLabels) == 1:
@@ -6978,7 +6978,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                            toolbar_sticky=False)
 
         # iterate over list of bar containers
-        for i in xrange(len(xvals)):
+        for i in range(len(xvals)):
             xval = xvals[i]
             yval_min = yvals_min[i]
             yval_max = yvals_max[i]
@@ -6987,7 +6987,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             # get labels
             if len(itemLabels) > 0:
-                for ilabel in xrange(len(itemLabels)):
+                for ilabel in range(len(itemLabels)):
                     dict_label = "labels_{}".format(ilabel)
                     if len(itemLabels[ilabel]) == len(xval):
                         _labels = itemLabels[ilabel]
@@ -7295,8 +7295,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         tstart = time.time()
         # First, lets check how many pages are present in the selected item list
         listOfPages = []
-        pageItems = self.config.pageDict.keys()
-        for item in xrange(self.itemsList.GetItemCount()):
+        pageItems = list(self.config.pageDict.keys())
+        for item in range(self.itemsList.GetItemCount()):
             if self.itemsList.IsChecked(index=item):
                 page = self.itemsList.GetItem(item, self.config.interactiveColNames['page']).GetText()
                 if page not in pageItems:
@@ -7329,7 +7329,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         itemCount = self.itemsList.GetItemCount()
         data_export_list = []
-        for item in xrange(itemCount):
+        for item in range(itemCount):
             if self.itemsList.IsChecked(index=item):
                 name = self.itemsList.GetItem(item, self.config.interactiveColNames['document']).GetText()
                 key = self.itemsList.GetItem(item, self.config.interactiveColNames['type']).GetText()
@@ -7526,7 +7526,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 continue
 
             if bokehPlot == None:
-                print("%s - %s plot was returned empty. Skipping") % (key, innerKey)
+                print(("%s - %s plot was returned empty. Skipping") % (key, innerKey))
                 continue
 
             # check if returned width and height
@@ -7600,14 +7600,14 @@ class panelInteractiveOutput(wx.MiniFrame):
             elif page['layout'] == 'Grid':
                 plotDict[page['name']].append(bokehLayout)
 
-            print("Added {} - {} ({}) to the HTML file".format(key, innerKey, name))
+            print(("Added {} - {} ({}) to the HTML file".format(key, innerKey, name)))
             
         outList = []
         # Generate layout
         if self.config.interactive_sort_before_saving:
-            plotDict_list = natsorted(plotDict.keys())
+            plotDict_list = natsorted(list(plotDict.keys()))
         else:
-            plotDict_list = plotDict.keys()
+            plotDict_list = list(plotDict.keys())
         
         for pageKey in plotDict_list:
             try:
@@ -7774,7 +7774,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if self.openInBrowserCheck.GetValue():
             webbrowser.open(filename)
 
-        print("It took {:.3f} seconds to generate interactive document. It was saved as {}".format(time.time() - tstart, filename))
+        print(("It took {:.3f} seconds to generate interactive document. It was saved as {}".format(time.time() - tstart, filename)))
 
     def onGetSavePath(self, evt):
         """
@@ -7798,7 +7798,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         if dlg.ShowModal() == wx.ID_OK:
             self.currentPath = dlg.GetPath()
-            print "You chose %s" % dlg.GetPath()
+            print("You chose %s" % dlg.GetPath())
             self.itemPath_value.SetValue(dlg.GetPath())
 
         self.presenter.currentPath = self.currentPath
@@ -8069,7 +8069,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             self.allChecked = not self.allChecked
             check = self.allChecked
 
-        for row in xrange(rows):
+        for row in range(rows):
             self.itemsList.CheckItem(row, check=check)
 
     def onCheckItem(self, evt):
@@ -8549,7 +8549,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             data['interactive_params']['plot_properties']['shade_transparency'] = self.config.interactive_line_shade_alpha
         if "line_color" not in data['interactive_params']['plot_properties']:
             color = data.get('cmap', self.config.interactive_line_color)
-            if isinstance(color, (str, unicode)): color = self.config.interactive_line_color
+            if isinstance(color, str): color = self.config.interactive_line_color
             data['interactive_params']['plot_properties']['line_color'] = color
         if "hover_link_x" not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['hover_link_x'] = self.config.linkXYaxes
@@ -8570,7 +8570,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         # heatmaps
         if "colormap" not in data['interactive_params']['plot_properties']:
             color = data.get('cmap', self.config.currentCmap)
-            if not isinstance(color, (str, unicode)): color = self.config.currentCmap
+            if not isinstance(color, str): color = self.config.currentCmap
             data['interactive_params']['plot_properties']['colormap'] = color
             
         # bar
@@ -8646,7 +8646,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             data['interactive_params']['overlay_properties']['rmsd_matrix_label_color'] = self.config.interactive_ms_annotations_label_color
         if "rmsd_matrix_colormap" not in data['interactive_params']['overlay_properties']:
             color = data.get('cmap', "coolwarm")
-            if not isinstance(color, (str, unicode)): color = "coolwarm"
+            if not isinstance(color, str): color = "coolwarm"
             data['interactive_params']['overlay_properties']['rmsd_matrix_colormap'] = color
         if "rmsd_matrix_auto_label_color" not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['rmsd_matrix_auto_label_color'] = True

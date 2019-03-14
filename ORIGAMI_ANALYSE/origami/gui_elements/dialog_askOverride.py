@@ -68,7 +68,7 @@ class dialogAskOverride(wx.Dialog):
         self.copyBtn = wx.Button(panel, wx.ID_OK, "Create copy", size=(-1, 22))
         self.copyBtn.Bind(wx.EVT_BUTTON, self.create_copy)
         
-        self.askAgain_check = makeCheckbox(panel, u"Don't ask again")
+        self.askAgain_check = makeCheckbox(panel, "Don't ask again")
         self.askAgain_check.Bind(wx.EVT_CHECKBOX, self.onApply)  
     
         # pack elements

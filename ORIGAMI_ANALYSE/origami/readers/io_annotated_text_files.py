@@ -199,7 +199,7 @@ class MetaTextReader():
                 
             if plot_type in ["multi-line", "waterfall", "scatter", "grid-line", "grid-scatter"]:
                 yvals_new = []
-                for item in xrange(zvals.shape[1]):
+                for item in range(zvals.shape[1]):
                     yvals_new.append(zvals[:, item])
                     
                 # replace

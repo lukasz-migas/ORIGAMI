@@ -25,7 +25,7 @@ from ids import (ID_extraSettings_plot1D, ID_processSettings_MS,
                          ID_extraSettings_legend, ID_compareMS_MS_1, ID_compareMS_MS_2)
 from styles import makeCheckbox, makeSuperTip, makeStaticBox
 from toolbox import (str2num,  convertRGB1to255, convertRGB255to1)
-from help import OrigamiHelp as help
+from help_documentation import OrigamiHelp
 
 class panelCompareMS(wx.MiniFrame):
     """
@@ -40,7 +40,7 @@ class panelCompareMS(wx.MiniFrame):
         self.config = config
         self.icons = icons
         
-        self.help = help()
+        self.help = OrigamiHelp()
         
         self.currentItem = None
         self.kwargs = kwargs   
@@ -149,7 +149,7 @@ class panelCompareMS(wx.MiniFrame):
         self.label1_value = wx.TextCtrl(panel, -1, "")
         
         msSpectrum1_color_label = wx.StaticText(panel, -1, "Color:")
-        self.msSpectrum1_colorBtn = wx.Button(panel, wx.ID_ANY, u"", wx.DefaultPosition, 
+        self.msSpectrum1_colorBtn = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition, 
                                               wx.Size( 26, 26 ), 0 )
         self.msSpectrum1_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.lineColour_MS1))
         
@@ -178,7 +178,7 @@ class panelCompareMS(wx.MiniFrame):
         self.label2_value = wx.TextCtrl(panel, -1, "")
         
         self.msSpectrum2_colorBtn = wx.Button(panel, wx.ID_ANY,
-                                              u"", wx.DefaultPosition, 
+                                              "", wx.DefaultPosition, 
                                               wx.Size( 26, 26 ), 0 )
         self.msSpectrum2_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.lineColour_MS2))
 
@@ -198,20 +198,20 @@ class panelCompareMS(wx.MiniFrame):
         processing_staticBox.SetSize((-1,-1))
         processing_box_sizer = wx.StaticBoxSizer(processing_staticBox, wx.HORIZONTAL)    
          
-        self.preprocess_check = makeCheckbox(panel, u"Preprocess")
+        self.preprocess_check = makeCheckbox(panel, "Preprocess")
         self.preprocess_check.SetValue(self.config.compare_massSpectrumParams['preprocess'])
         self.preprocess_tip = makeSuperTip(self.preprocess_check, delay=7, **self.help.compareMS_preprocess)
          
-        self.normalize_check = makeCheckbox(panel, u"Normalize")
+        self.normalize_check = makeCheckbox(panel, "Normalize")
         self.normalize_check.SetValue(self.config.compare_massSpectrumParams['normalize'])
         
-        self.inverse_check = makeCheckbox(panel, u"Inverse")
+        self.inverse_check = makeCheckbox(panel, "Inverse")
         self.inverse_check.SetValue(self.config.compare_massSpectrumParams['inverse'])
         
-        self.subtract_check = makeCheckbox(panel, u"Subtract")
+        self.subtract_check = makeCheckbox(panel, "Subtract")
         self.subtract_check.SetValue(self.config.compare_massSpectrumParams['subtract'])
         
-        settings_label = wx.StaticText(panel, wx.ID_ANY, u"Settings:")
+        settings_label = wx.StaticText(panel, wx.ID_ANY, "Settings:")
         self.settingsBtn = wx.BitmapButton(panel, ID_extraSettings_plot1D,
                                            self.icons.iconsLib['panel_plot1D_16'],
                                            size=(26, 26), 
@@ -409,7 +409,7 @@ class panelCompareMS(wx.MiniFrame):
             self.config.lineColour_MS1 = convertRGB255to1(newColour)
             dlg.Destroy()
             # Retrieve custom colors
-            for i in xrange(15):
+            for i in range(15):
                 self.config.customColors[i] = data.GetCustomColour(i)
         else:
             return
@@ -430,7 +430,7 @@ class panelCompareMS(wx.MiniFrame):
             self.config.lineColour_MS2 = convertRGB255to1(newColour)
             dlg.Destroy()
             # Retrieve custom colors
-            for i in xrange(15):
+            for i in range(15):
                 self.config.customColors[i] = data.GetCustomColour(i)
         else:
             return

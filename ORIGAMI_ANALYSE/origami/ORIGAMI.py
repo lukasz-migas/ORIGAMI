@@ -17,59 +17,57 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import warnings
-from copy import deepcopy
-
 # Import libraries
 import gc
-import numpy as np
 import os
-import pandas as pd
 # import path
 import random
 import re
 import sys
 import threading
 import time
+import warnings
 import webbrowser
-import wx
-import wx.lib.agw.multidirdialog as MDD
-from _codecs import encode
-from math import sqrt, log
-from numpy.ma import masked_array  # @UnresolvedImport
-from scipy.stats import linregress  # @UnresolvedImport
-from wx.lib.pubsub import setuparg1
+from copy import deepcopy
+from math import log, sqrt
 
-from ids import *
-
-# needed to avoid annoying warnings to be printed on console
-warnings.filterwarnings("ignore",category=DeprecationWarning)
-warnings.filterwarnings("ignore",category=RuntimeWarning)
-warnings.filterwarnings("ignore",category=UserWarning)
-warnings.filterwarnings("ignore",category=FutureWarning)
-
+import matplotlib.cm as cm
 # Import libraries used for Interactive Plots
 import matplotlib.colors as colors
-import matplotlib.cm as cm
+import numpy as np
+import pandas as pd
+import wx
+import wx.lib.agw.multidirdialog as MDD
+from numpy.ma import masked_array  # @UnresolvedImport
+from scipy.stats import linregress  # @UnresolvedImport
 
+import dialogs
 # Import ORIGAMI libraries
 import mainWindow as mainWindow
-from config import OrigamiConfig as config
-from icons import IconContainer as icons
-from document import document as documents
-from help import OrigamiHelp as help
-import readers.io_waters_raw as io_waters
-import readers.io_text_files as io_text
-import readers.io_document as io_document
-import processing.spectra as pr_spectra
+import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
 import processing.origami_ms as pr_origami
-import processing.activation as pr_activation
-from toolbox import *
-import dialogs as dialogs
-from dialogs import (panelSelectDocument, panelCalibrantDB, panelHTMLViewer, 
-                             panelNotifyNewVersion)
+import processing.spectra as pr_spectra
+import readers.io_document as io_document
+import readers.io_text_files as io_text
+import readers.io_waters_raw as io_waters
 import unidec as unidec
+from _codecs import encode
+import OrigamiConfig as config
+import panelCalibrantDB, panelHTMLViewer, panelNotifyNewVersion, panelSelectDocument
+import document as documents
+from help_documentation import OrigamiHelp
+from  icons import IconContainer as icons
+from ids import *
+from toolbox import *
+
+# needed to avoid annoying warnings to be printed on console
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
+
+
 
     
 class ORIGAMI(object):
@@ -108,7 +106,7 @@ class ORIGAMI(object):
         self.config = config()
         self.icons = icons()
         self.docs = documents()
-        self.help = help()
+        self.help = OrigamiHelp()
 
         # Load configuration file
         self.onImportConfig(evt=None, onStart=True)
@@ -133,14 +131,13 @@ class ORIGAMI(object):
         self.config.cwd = os.getcwd()
         
         # Set unidec directory
-        self.config.unidec_path = os.path.join(os.getcwd(), "unidec_bin\UniDec.exe")
+        self.config.unidec_path = os.path.join(os.getcwd(), "unidec_bin\\UniDec.exe")
         
         # Set temporary data path
         temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
         if not os.path.exists(temp_data_folder):
             os.makedirs(temp_data_folder)
         self.config.temporary_data = temp_data_folder
-        
 
         # Setup plot style
         self.view.panelPlots.onChangePlotStyle(evt=None)
@@ -212,7 +209,7 @@ class ORIGAMI(object):
                            style=wx.DD_DEFAULT_STYLE)
             
         if dlg.ShowModal() == wx.ID_OK:
-            print "You chose %s" % dlg.GetPath()
+            print("You chose %s" % dlg.GetPath())
             # Check whether appropriate calibration file was selected
             path = self.checkIfRawFile(dlg.GetPath())
             if path is None: 
@@ -276,7 +273,7 @@ class ORIGAMI(object):
             if dlg.ShowModal() == wx.ID_OK:
                 pathlist = dlg.GetPaths()
                 for path in pathlist:
-                    print "You chose %s" % path
+                    print("You chose %s" % path)
     #             dlg.Destroy()
                     if path is not None:
                         self.onMSTextFileFcn(path=path)
@@ -388,7 +385,7 @@ class ORIGAMI(object):
                            style=wx.DD_DEFAULT_STYLE)
              
         if dlg.ShowModal() == wx.ID_OK:
-            print "You chose %s" % dlg.GetPath()     
+            print("You chose %s" % dlg.GetPath())     
             # Check whether appropriate calibration file was selected
             path = self.checkIfRawFile(dlg.GetPath())
             self.config.lastDir = dlg.GetPath()
@@ -460,7 +457,7 @@ class ORIGAMI(object):
                            style=wx.DD_DEFAULT_STYLE)
             
         if dlg.ShowModal() == wx.ID_OK:
-            print "You chose %s" % dlg.GetPath()     
+            print("You chose %s" % dlg.GetPath())     
             # Check whether appropriate calibration file was selected
             path = self.checkIfRawFile(dlg.GetPath())
             if path is None: 
@@ -516,7 +513,7 @@ class ORIGAMI(object):
             dlg.SetPath(self.config.dirname)
             
         if dlg.ShowModal() == wx.ID_OK:
-            print "You chose %s" % dlg.GetPath()
+            print("You chose %s" % dlg.GetPath())
             # Check whether appropriate calibration file was selected
             path = self.checkIfRawFile(dlg.GetPath())
             if path is None: 
@@ -842,7 +839,7 @@ class ORIGAMI(object):
         dlg = wx.FileDialog(self.view, "Choose a binary MS file:", wildcard = "*.1dMZ" ,
                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
-            print "You chose %s" % dlg.GetPath()
+            print("You chose %s" % dlg.GetPath())
             # For now this is read as TRUE - need to add other normalization methods
             extract_kwargs = {'return_data':True}
             msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=dlg.GetPath(),  
@@ -885,7 +882,7 @@ class ORIGAMI(object):
         dlg = wx.FileDialog(self.view, "Choose a binary MS file:", wildcard = "*.1dDT" ,
                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
-            print "You chose %s" % dlg.GetPath()    
+            print("You chose %s" % dlg.GetPath())    
             extract_kwargs = {'return_data':True}
             xvalsDT, imsData1D = io_waters.rawMassLynx_DT_extract(path=dlg.GetPath(),  
                                                                   driftscope_path=self.config.driftscopePath, 
@@ -921,7 +918,7 @@ class ORIGAMI(object):
         dlg = wx.FileDialog(self.view, "Choose a binary MS file:", wildcard = "*.2dRTDT" ,
                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
-            print "You chose %s" % dlg.GetPath()   
+            print("You chose %s" % dlg.GetPath())   
             extract_kwargs = {'return_data':True}
             imsData2D = io_waters.rawMassLynx_2DT_extract(path=dlg.GetPath(),
                                                           driftscope_path=self.config.driftscopePath, 
@@ -972,7 +969,7 @@ class ORIGAMI(object):
             dlg.SetPath(self.config.dirname)
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.clock()
-            print "You chose %s" % dlg.GetPath()   
+            print("You chose %s" % dlg.GetPath())   
             # Update statusbar      
             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
             # Get experimental parameters
@@ -1066,7 +1063,7 @@ class ORIGAMI(object):
                                exceptionMsg= msg,
                                type="Error")
                 return
-            print "You chose %s" % dlg.GetPath()   
+            print("You chose %s" % dlg.GetPath())   
             # Update statusbar      
             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
             # Get experimental parameters
@@ -1162,7 +1159,7 @@ class ORIGAMI(object):
             # Get the document
             document = self.documentsDict[filename]
             if document.fileFormat == 'Format: DataFrame':
-                print('Skipping %s as this is a DataFrame document.' % rangeName)
+                print(('Skipping %s as this is a DataFrame document.' % rangeName))
                 continue
 
             extract_kwargs = {'return_data':True}
@@ -1183,7 +1180,7 @@ class ORIGAMI(object):
             if len(ind) > 1:
                 self.view.SetStatusText('Found more than one peak. Selected the first one', 3)
                 tD = np.round(xvalsDT[ind[0]],2)
-                print(ind[0], tD)
+                print((ind[0], tD))
                 yval = np.round(yvalsDT[ind[0]],2)
                 yval = pr_spectra.normalize_1D(yval)
             elif len(ind) == 0: 
@@ -1237,7 +1234,7 @@ class ORIGAMI(object):
         dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard = "*.txt; *.csv" ,
                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
-            print "You chose %s" % dlg.GetPath()   
+            print("You chose %s" % dlg.GetPath())   
             imsData2D, xAxisLabels, yAxisLabels = None, None, None
             imsData2D, xAxisLabels, yAxisLabels = io_text.text_infrared_open(path=dlg.GetPath())
             dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT  = pr_origami.origami_combine_infrared(inputData=imsData2D, 
@@ -1259,7 +1256,7 @@ class ORIGAMI(object):
             self.docs.got1RT = True
             self.docs.RT = {'xvals':yAxisLabels,  # bins
                             'yvals':dataRT,
-                            'xlabels':u'Wavenumber (cm⁻¹)'}
+                            'xlabels':'Wavenumber (cm⁻¹)'}
             self.docs.got1DT = True
             self.docs.DT = {'xvals':xAxisLabels, 
                             'yvals':data1DT,
@@ -1269,7 +1266,7 @@ class ORIGAMI(object):
             self.docs.got2DIMS = True
             self.docs.IMS2D = {'zvals':dataSplit,
                                'xvals':xAxisLabels,
-                               'xlabels':u'Wavenumber (cm⁻¹)',
+                               'xlabels':'Wavenumber (cm⁻¹)',
                                'yvals':yAxisLabels,
                                'ylabels':'Drift time (bins)',
                                'cmap':self.docs.colormap}
@@ -1278,8 +1275,8 @@ class ORIGAMI(object):
             
             # Plots
             self.view.panelPlots.on_plot_1D(yAxisLabels, data1DT, 'Drift time (bins)')
-            self.view.panelPlots.on_plot_RT(xAxisLabels, dataRT, u'Wavenumber (cm⁻¹)')
-            self.view.panelPlots.on_plot_2D_data(data=[dataSplit, xAxisLabels,u'Wavenumber (cm⁻¹)',yAxisLabels,'Drift time (bins)',
+            self.view.panelPlots.on_plot_RT(xAxisLabels, dataRT, 'Wavenumber (cm⁻¹)')
+            self.view.panelPlots.on_plot_2D_data(data=[dataSplit, xAxisLabels,'Wavenumber (cm⁻¹)',yAxisLabels,'Drift time (bins)',
                                    self.docs.colormap])
             
             # Update documents tree
@@ -1291,7 +1288,7 @@ class ORIGAMI(object):
             dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard = "*.txt; *.csv" ,
                                style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
             if dlg.ShowModal() == wx.ID_OK:
-                print "You chose %s" % dlg.GetPath()
+                print("You chose %s" % dlg.GetPath())
                 path = dlg.GetPath()
             dlg.Destroy()
             if path is not None:
@@ -1568,7 +1565,7 @@ class ORIGAMI(object):
                 self.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
                 tempDict = {}
                 extract_kwargs = {'return_data':True}
-                for item in xrange(nameList.GetItemCount()):
+                for item in range(nameList.GetItemCount()):
                     # Determine whether the title of the document matches the title of the item in the table
                     # if it does not, skip the row
                     docValue = nameList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
@@ -1638,7 +1635,7 @@ class ORIGAMI(object):
                 # Combine the contents in the dictionary - assumes they are ordered!
                 counter = 0 # needed to start off
                 xlabelsActual = []
-                for item in xrange(nameList.GetItemCount()):
+                for item in range(nameList.GetItemCount()):
                     # Determine whether the title of the document matches the title of the item in the table
                     # if it does not, skip the row
                     docValue = nameList.GetItem(item,self.config.multipleMLColNames['document']).GetText()
@@ -1709,7 +1706,7 @@ class ORIGAMI(object):
                 document.gotExtractedIons = True
                 document.IMS2Dions[rangeName] = {'zvals':dataSplit,
                                                   'xvals':xAxisLabels,
-                                                  'xlabels':u'Wavenumber (cm⁻¹)',
+                                                  'xlabels':'Wavenumber (cm⁻¹)',
                                                   'yvals':yAxisLabels,
                                                   'ylabels':'Drift time (bins)',
                                                   'cmap':document.colormap,
@@ -2123,7 +2120,7 @@ class ORIGAMI(object):
                                                                                        dx=self.config.origami_boltzmannOffset)
             # USER-DEFINED/LIST METHOD
             elif self.config.origami_acquisition == 'User-defined':
-                print(self.config.origamiList, self.config.origami_startScan)
+                print((self.config.origamiList, self.config.origami_startScan))
                 errorMsg = None
                 # Check that the user filled in appropriate parameters
                 if evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine:
@@ -2978,7 +2975,7 @@ class ORIGAMI(object):
             
             pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot,
                                               inputData2=zvalsIon2plot)
-            rmsdLabel = u"RMSD: %2.2f" % pRMSD 
+            rmsdLabel = "RMSD: %2.2f" % pRMSD 
             self.onThreading(None, ("RMSD: %2.2f" % pRMSD, 4), action='updateStatusbar')
             self.setXYlimitsRMSD2D(xaxisLabels, yaxisLabels)
             self.view.panelPlots.on_plot_grid(zvalsIon1plot, zvalsIon2plot, tempArray, xaxisLabels, 
@@ -3143,7 +3140,7 @@ class ORIGAMI(object):
                     
                 pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot,
                                                   inputData2=zvalsIon2plot)
-                rmsdLabel = u"RMSD: %2.2f" % pRMSD 
+                rmsdLabel = "RMSD: %2.2f" % pRMSD 
                 self.onThreading(None, ("RMSD: %2.2f" % pRMSD, 4), action='updateStatusbar')
                 
                 self.setXYlimitsRMSD2D(xaxisLabels, yaxisLabels)
@@ -3176,7 +3173,7 @@ class ORIGAMI(object):
                 pRMSFlist = pr_activation.compute_RMSF(inputData1=zvalsIon1plot, inputData2=zvalsIon2plot)
                 pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot, inputData2=zvalsIon2plot)
                 
-                rmsdLabel = u"RMSD: %2.2f" % pRMSD 
+                rmsdLabel = "RMSD: %2.2f" % pRMSD 
                 self.onThreading(None, ("RMSD: %2.2f" % pRMSD, 4), action='updateStatusbar')
                 xLabel = compDict[compList[0]]['xlabels'] 
                 yLabel = compDict[compList[0]]['ylabels'] 
@@ -3564,7 +3561,7 @@ class ORIGAMI(object):
             return
         else: 
             counter = 0
-            for item in xrange(tempList.GetItemCount()):
+            for item in range(tempList.GetItemCount()):
                 key = tempList.GetItem(item,0).GetText()
 #                 trapCV = str2num(tempList.GetItem(item,1).GetText())
                 if counter == 0:
@@ -3935,7 +3932,7 @@ class ORIGAMI(object):
                                                                                                   self.config.ms_auto_range)
         self.onThreading(None, (msg, 4), action='updateStatusbar')
         
-        if len(self.docs.multipleMassSpectrum.keys()) > 0:
+        if len(list(self.docs.multipleMassSpectrum.keys())) > 0:
             # check the min/max values in the mass spectrum
             if self.config.ms_auto_range:
                 mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=self.docs.multipleMassSpectrum)
@@ -4065,7 +4062,7 @@ class ORIGAMI(object):
         last = tempList.GetItemCount()-1
         ymin = 0
         height = 100000000000
-        for item in xrange(tempList.GetItemCount()):
+        for item in range(tempList.GetItemCount()):
             itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=item)
             filename = itemInfo['document']
             if filename != self.currentDoc: continue
@@ -4550,7 +4547,7 @@ class ORIGAMI(object):
                                exceptionMsg= msg,
                                type="Error")
                 return
-            for peak in xrange(len(peaklist)):
+            for peak in range(len(peaklist)):
                 
                 # Determine window size
                 if self.config.useInternalMZwindow:
@@ -4791,7 +4788,7 @@ class ORIGAMI(object):
         selectedIon =  None
         calibrationDict = {}
         # Update CCS dataset
-        for caliID in xrange(tempList.GetItemCount()):
+        for caliID in range(tempList.GetItemCount()):
             # Only add info if dataset was checked
             if tempList.IsChecked(index=caliID):
                 # Get document info
@@ -4908,15 +4905,15 @@ class ORIGAMI(object):
         # Set current calibration parameters
         self.currentCalibrationParams = self.docs.calibrationParameters
 
-        self.view.SetStatusText(''.join([u'R² (linear): ', str(np.round(r2Linear,4)), 
-                                         u' | R² (power): ', str(np.round(r2Power,4)),]), 3)
+        self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear,4)), 
+                                         ' | R² (power): ', str(np.round(r2Power,4)),]), 3)
    
     def OnApplyCCSCalibrationToSelectedIons(self, evt):
         
         # Shortcut to the table
         tempList = self.view.panelCCS.bottomP.peaklist
         calibrationMode = self.view.panelCCS.bottomP.calibrationMode.GetStringSelection()
-        for caliID in xrange(tempList.GetItemCount()):
+        for caliID in range(tempList.GetItemCount()):
             # Only add info if dataset was checked
             if tempList.IsChecked(index=caliID):
                 # Get document info
@@ -5058,15 +5055,15 @@ class ORIGAMI(object):
                 if selectedType == '2D, extracted':
                     document.IMS2Dions[rangeName]['yvals'] = ccsVals
                     document.IMS2Dions[rangeName]['yvalsCCSBackup'] = ccsVals
-                    document.IMS2Dions[rangeName]['ylabels'] = u'Collision Cross Section (Å²)'
+                    document.IMS2Dions[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
                 elif selectedType == '2D, combined':
                     document.IMS2DCombIons[rangeName]['yvals'] = ccsVals
                     document.IMS2DCombIons[rangeName]['yvalsCCSBackup'] = ccsVals
-                    document.IMS2DCombIons[rangeName]['ylabels'] = u'Collision Cross Section (Å²)'
+                    document.IMS2DCombIons[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
                 elif selectedType == '2D, processed':   
                     document.IMS2DionsProcess[rangeName]['yvals'] = ccsVals
                     document.IMS2DionsProcess[rangeName]['yvalsCCSBackup'] = ccsVals
-                    document.IMS2DionsProcess[rangeName]['ylabels'] = u'Collision Cross Section (Å²)'
+                    document.IMS2DionsProcess[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
                 
                 # Assign updated to dictionary
                 self.documentsDict[document.title] = document
@@ -5076,9 +5073,9 @@ class ORIGAMI(object):
                 
         # Update status bar
         try:
-            self.view.SetStatusText(''.join([u'R² (linear): ', str(np.round(r2Linear,4)), 
-                                             u' | R² (power): ', str(np.round(r2Power,4)),
-                                             u' | Used: ',calibrationMode, ' mode']), 3)
+            self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear,4)), 
+                                             ' | R² (power): ', str(np.round(r2Power,4)),
+                                             ' | Used: ',calibrationMode, ' mode']), 3)
         except: pass
     
     def OnAddDataToCCSTable(self, filename=None, mzStart=None, mzEnd=None,
@@ -5170,7 +5167,7 @@ class ORIGAMI(object):
         dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard = "*.csv" ,
                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
-            print "You chose %s" % dlg.GetPath()   
+            print("You chose %s" % dlg.GetPath())   
 
             origamiList = np.genfromtxt(dlg.GetPath(), delimiter=',', skip_header=True)
             self.config.origamiList = origamiList
@@ -5183,7 +5180,7 @@ class ORIGAMI(object):
             dlg = wx.FileDialog(self.view, "Choose a CCS database file:", wildcard = "*.csv" ,
                                style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
             if dlg.ShowModal() == wx.ID_OK:
-                print "You chose %s" % dlg.GetPath()  
+                print("You chose %s" % dlg.GetPath())  
                 
                 # Open database
                 self.config.ccsDB= io_text.text_ccsDatabase_open(filename=dlg.GetPath())
@@ -5198,7 +5195,7 @@ class ORIGAMI(object):
         
         tempList = self.view.panelMultipleText.filelist
         try:
-            for row in xrange(tempList.GetItemCount()):
+            for row in range(tempList.GetItemCount()):
                 itemInfo = self.view.panelMultipleText.OnGetItemInformation(itemID=row)
                 if itemInfo['select']:
                     self.docs = self.documentsDict[itemInfo['document']]
@@ -5280,7 +5277,7 @@ class ORIGAMI(object):
         if rtList.GetItemCount() == 0 or mzList.GetItemCount() == 0:
             self.view.SetStatusText('Please make sure you selected regions to extract', 3)
             return 
-        for mz in xrange(mzList.GetItemCount()):
+        for mz in range(mzList.GetItemCount()):
             mzStart= str2num(mzList.GetItem(mz,0).GetText())
             mzEnd = str2num(mzList.GetItem(mz,1).GetText())
             charge = str2num(mzList.GetItem(mz,3).GetText())
@@ -5300,7 +5297,7 @@ class ORIGAMI(object):
             tempArray = []
             driftList = []
             retTimeList = []
-            for rt in xrange(rtList.GetItemCount()):
+            for rt in range(rtList.GetItemCount()):
                 # RT has to be in minutes to extract using Driftscope
                 rtStart= str2num(rtList.GetItem(rt,0).GetText())
                 rtEnd = str2num(rtList.GetItem(rt,1).GetText())
@@ -6665,7 +6662,7 @@ class ORIGAMI(object):
             dlg =  wx.FileDialog(self.view, "Save document to file...", "", "", fileType,
                                     wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             defaultFilename = self.documentsDict[document].title.split(".")
-            print("Saving {}".format(defaultFilename[0]))
+            print(("Saving {}".format(defaultFilename[0])))
             dlg.SetFilename(defaultFilename[0])
             
             if dlg.ShowModal() == wx.ID_OK:
@@ -6708,7 +6705,7 @@ class ORIGAMI(object):
         elif file_path != None:
             try:
                 self.loadDocumentData(document=openObject(filename=file_path))
-            except (ValueError, AttributeError, TypeError, IOError), e:
+            except (ValueError, AttributeError, TypeError, IOError) as e:
                 dialogs.dlgBox(exceptionTitle='Failed to load document on load.', 
                                exceptionMsg= str(e),
                                type="Error")
@@ -7110,7 +7107,7 @@ class ORIGAMI(object):
             return
         
     def openHTMLViewer(self, evt):
-        from help import HTMLHelp as htmlPages
+        import HTMLHelp as htmlPages
         htmlPages = htmlPages()
         evtID = evt.GetId()
         if evtID == ID_help_UniDecInfo:
@@ -7160,6 +7157,3 @@ class ORIGAMI(object):
 if __name__ == '__main__':
     app = ORIGAMI(redirect=False)
     app.start()
-    
-    
-    

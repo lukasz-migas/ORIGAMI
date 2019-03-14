@@ -17,7 +17,7 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-from __future__ import division, unicode_literals
+
 
 import itertools
 # needed to avoid annoying warnings to be printed on console
@@ -39,7 +39,7 @@ from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from seaborn import color_palette
 
-import dialogs as dialogs
+import dialogs
 from plottingWindow import plottingWindow
 from processing.heatmap import normalize_2D
 from processing.spectra import normalize_1D
@@ -99,12 +99,12 @@ class plots(plottingWindow):
     def _convert_label(self, label, label_format):
         if label_format == "String":
             try: new_label = str(label)
-            except UnicodeEncodeError: new_label = unicode(label)
+            except UnicodeEncodeError: new_label = str(label)
         elif label_format == "Float":
             new_label = str2num(label)
             if new_label in [None, "None"]:
                 try: new_label = str(label)
-                except UnicodeEncodeError: new_label = unicode(label)
+                except UnicodeEncodeError: new_label = str(label)
         elif label_format == "Integer":
             new_label = str2int(label)
             if new_label in [None, "None"]:
@@ -112,7 +112,7 @@ class plots(plottingWindow):
                 new_label = str2int(new_label)
                 if new_label in [None, "None"]:
                     try: new_label = str(label)
-                    except UnicodeEncodeError: new_label = unicode(label)
+                    except UnicodeEncodeError: new_label = str(label)
 
         return new_label
 
@@ -184,7 +184,7 @@ class plots(plottingWindow):
     def _convert_intensities_list(self, values, label):
 
         _dividers = []
-        for i in xrange(len(values)):
+        for i in range(len(values)):
             yval, __ylabel, divider = self._convert_intensities(values[i], label,
                                                                 set_divider=False,
                                                                 convert_values=False)
@@ -192,7 +192,7 @@ class plots(plottingWindow):
 
         self.y_divider = np.max(_dividers)
 
-        for i in xrange(len(values)):
+        for i in range(len(values)):
             values[i] = np.divide(values[i], float(divider))
 
         label = self._add_exponent_to_label(label, self.y_divider)
@@ -752,7 +752,7 @@ class plots(plottingWindow):
             self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
             self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
             self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-            [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+            [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         elif which == 'fonts':
             # update ticks
@@ -831,7 +831,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
         self._update_plot_settings_(**kwargs)
 
     def plot_1D_update_rmsf(self, **kwargs):
@@ -887,7 +887,7 @@ class plots(plottingWindow):
         self.plotRMSF.spines['right'].set_visible(kwargs['spines_right'])
         self.plotRMSF.spines['top'].set_visible(kwargs['spines_top'])
         self.plotRMSF.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
     #-----
 
@@ -980,7 +980,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         self.plot_parameters = kwargs
 
@@ -1398,7 +1398,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent,
                         plotName=plotType, allowWheel=allowWheel,
@@ -1533,7 +1533,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent,
                         plotName=plot_name, allowWheel=True)
@@ -1625,7 +1625,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         xlimits = self.plotMS.get_xlim()
         ylimits = self.plotMS.get_ylim()
@@ -1689,7 +1689,7 @@ class plots(plottingWindow):
             ymin, ymax = find_limits_all(yvals_min, yvals_max)
             ylimits = [ymin[0] - 0.05 * ymin[0], ymax[1] + 0.05 * ymax[1]]
 
-        for i in xrange(yvals_min_count):
+        for i in range(yvals_min_count):
             xval = xvals[i]
             yval_min = yvals_min[i]
             yval_max = yvals_max[i]
@@ -1748,7 +1748,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
         self.setup_zoom([self.plotMS], self.zoomtype,
@@ -1892,7 +1892,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         self.setup_zoom([self.plotMS], self.zoomtype,
                         data_lims=extent)
@@ -1994,7 +1994,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
          # legend
         if kwargs.get('legend', self.config.legend):
@@ -2128,7 +2128,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         if title != "":
             if kwargs['title_weight']: title_weight = "heavy"
@@ -2308,7 +2308,7 @@ class plots(plottingWindow):
                 colorlist = colorlist[::-1]
                 labels = labels[::-1]
 
-            for irow in xrange(len(xvals)):
+            for irow in range(len(xvals)):
                 # Always normalizes data - otherwise it looks pretty bad
 
                 if kwargs['increment'] != 0 and kwargs.get('normalize', True):
@@ -2385,7 +2385,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        for i in self.plotMS.spines.itervalues():
+        for i in self.plotMS.spines.values():
             i.set_linewidth(kwargs['frame_width'])
             i.set_zorder(zorder)
 
@@ -2452,7 +2452,7 @@ class plots(plottingWindow):
         self.text_offset_position = dict(min=xlimits[0], max=xlimits[1],
                                          offset=kwargs['labels_x_offset'])
 
-        for item in xrange(len(xvals)):
+        for item in range(len(xvals)):
             xval = xvals[item]
             yval = yvals[item]
             zval = np.array(zvals[item])
@@ -2465,7 +2465,7 @@ class plots(plottingWindow):
                 yval = yval[::-1]
                 zval = np.fliplr(zval)
 
-            for irow in xrange(len(yval)):
+            for irow in range(len(yval)):
                 if irow > 0: label = ""
 
                 zval_one = np.asarray((zval[:, irow]))
@@ -2542,7 +2542,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        for i in self.plotMS.spines.itervalues():
+        for i in self.plotMS.spines.values():
             i.set_linewidth(kwargs['frame_width'])
             i.set_zorder(zorder)
 
@@ -2725,7 +2725,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        for i in self.plotMS.spines.itervalues():
+        for i in self.plotMS.spines.values():
             i.set_linewidth(kwargs['frame_width'])
 
         # a couple of set values
@@ -3142,7 +3142,7 @@ class plots(plottingWindow):
                                   weight=kwargs['label_weight'])
 
         try: gs.tight_layout(self.figure, pad=kwargs.get("grid_pad", 1.08))
-        except ValueError, e: print(e)
+        except ValueError as e: print(e)
         self.figure.tight_layout()
 
 #         extent = [xmin, ymin, xmax, ymax]
@@ -3221,7 +3221,7 @@ class plots(plottingWindow):
             plot.spines['right'].set_visible(kwargs['spines_right'])
             plot.spines['top'].set_visible(kwargs['spines_top'])
             plot.spines['bottom'].set_visible(kwargs['spines_bottom'])
-            [i.set_linewidth(kwargs['frame_width']) for i in plot.spines.itervalues()]
+            [i.set_linewidth(kwargs['frame_width']) for i in plot.spines.values()]
 
             # update axis frame
             if kwargs['axis_onoff']:
@@ -3407,13 +3407,13 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         self.plotRMSF.spines['left'].set_visible(kwargs['spines_left_1D'])
         self.plotRMSF.spines['right'].set_visible(kwargs['spines_right_1D'])
         self.plotRMSF.spines['top'].set_visible(kwargs['spines_top_1D'])
         self.plotRMSF.spines['bottom'].set_visible(kwargs['spines_bottom_1D'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotRMSF.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotRMSF.spines.values()]
 
         # update axis frame
         if kwargs['axis_onoff']: self.plotMS.set_axis_on()
@@ -3544,7 +3544,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
         if kwargs['axis_onoff']: self.plotMS.set_axis_on()
@@ -3677,7 +3677,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
         if kwargs['axis_onoff']: self.plotMS.set_axis_on()
@@ -3794,7 +3794,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
         if kwargs['axis_onoff']: self.plotMS.set_axis_on()
@@ -3928,7 +3928,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
         if kwargs['axis_onoff']:
@@ -4035,7 +4035,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
         if kwargs['axis_onoff']:
@@ -4100,7 +4100,7 @@ class plots(plottingWindow):
             thresh = zvals.max() / 2.
             cmap = self.cax.get_cmap()
             color = determineFontColor(convertRGB1to255(cmap(thresh)))
-            for i, j in itertools.product(range(zvals.shape[0]), range(zvals.shape[1])):
+            for i, j in itertools.product(list(range(zvals.shape[0])), list(range(zvals.shape[1]))):
                 color = determineFontColor(convertRGB1to255(cmap(zvals[i, j] / 2)))
                 label = format(zvals[i, j], '.2f')
                 obj_name = kwargs.pop("text_name", None)
@@ -4167,7 +4167,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
         if kwargs['axis_onoff']:
@@ -4270,7 +4270,7 @@ class plots(plottingWindow):
         self.plotMS.spines['right'].set_visible(kwargs['spines_right'])
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
-        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.itervalues()]
+        [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
         if kwargs['axis_onoff']:
@@ -4286,8 +4286,8 @@ class plots(plottingWindow):
         self.plot_parameters = kwargs
         self.plot_name = plotType
 
-        xvals = range(zvals.shape[1])
-        yvals = range(zvals.shape[0])
+        xvals = list(range(zvals.shape[1]))
+        yvals = list(range(zvals.shape[0]))
         xvals, yvals = np.meshgrid(xvals, yvals)
 
         x, y = xvals.ravel(), yvals.ravel()

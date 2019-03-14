@@ -22,7 +22,7 @@ import wx.lib.mixins.listctrl as listmix
 from operator import itemgetter
 
 from ids import *
-import dialogs as dialogs
+import dialogs
 from toolbox import  str2num, str2int
 
 class panelLinearDriftCell( wx.Panel ):
@@ -109,11 +109,11 @@ class topPanel(wx.Panel):
     def makeListCtrl(self):
         mainSizer = wx.BoxSizer( wx.VERTICAL )
         self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0,u'min RT', width=70)
-        self.peaklist.InsertColumn(1,u'max RT', width=60)
-        self.peaklist.InsertColumn(2,u'# scans', width=60)
-        self.peaklist.InsertColumn(3,u'dv (V)', width=60)
-        self.peaklist.InsertColumn(4,u'file', width=60)
+        self.peaklist.InsertColumn(0,'min RT', width=70)
+        self.peaklist.InsertColumn(1,'max RT', width=60)
+        self.peaklist.InsertColumn(2,'# scans', width=60)
+        self.peaklist.InsertColumn(3,'dv (V)', width=60)
+        self.peaklist.InsertColumn(4,'file', width=60)
 
         mainSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
         mainSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
@@ -380,11 +380,11 @@ class bottomPanel(wx.Panel):
         
         mainSizer = wx.BoxSizer( wx.VERTICAL )
         self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0,u'min m/z', width=70)
-        self.peaklist.InsertColumn(1,u'max m/z', width=60)
-        self.peaklist.InsertColumn(2,u'% int', width=40)
-        self.peaklist.InsertColumn(3,u'z', width=40)
-        self.peaklist.InsertColumn(4,u'file', width=40)
+        self.peaklist.InsertColumn(0,'min m/z', width=70)
+        self.peaklist.InsertColumn(1,'max m/z', width=60)
+        self.peaklist.InsertColumn(2,'% int', width=40)
+        self.peaklist.InsertColumn(3,'z', width=40)
+        self.peaklist.InsertColumn(4,'file', width=40)
          
         mainSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
         mainSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
@@ -587,10 +587,10 @@ class bottomPanel(wx.Panel):
                     mzStart = self.peaklist.GetItem(currentItems,0).GetText()
                     mzEnd = self.peaklist.GetItem(currentItems,1).GetText()
                     selectedIon = ''.join([str(mzStart),'-',str(mzEnd)])
-                    print(''.join(["Deleting ",selectedIon, " from ", selectedItem]))
+                    print((''.join(["Deleting ",selectedIon, " from ", selectedItem])))
                     try: 
                         del self.presenter.documentsDict[selectedItem].IMS1DdriftTimes[selectedIon]
-                        if len(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys())) == 0: 
                             self.presenter.documentsDict[selectedItem].gotExtractedDriftTimes = False
                     except KeyError: 
                         pass
@@ -606,10 +606,10 @@ class bottomPanel(wx.Panel):
             mzStart = self.peaklist.GetItem(self.currentItem,0).GetText()
             mzEnd = self.peaklist.GetItem(self.currentItem,1).GetText()
             selectedIon = ''.join([str(mzStart),'-',str(mzEnd)])
-            print(''.join(["Deleting ",selectedIon, " from ", selectedItem]))
+            print((''.join(["Deleting ",selectedIon, " from ", selectedItem])))
             try: 
                 del self.presenter.documentsDict[selectedItem].IMS1DdriftTimes[selectedIon]
-                if len(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys()) == 0: 
+                if len(list(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys())) == 0: 
                     self.presenter.documentsDict[selectedItem].gotExtractedDriftTimes = False
             except KeyError: 
                 pass
@@ -628,10 +628,10 @@ class bottomPanel(wx.Panel):
                 mzStart = self.peaklist.GetItem(currentItems,0).GetText()
                 mzEnd = self.peaklist.GetItem(currentItems,1).GetText()
                 selectedIon = ''.join([str(mzStart),'-',str(mzEnd)])
-                print(''.join(["Deleting ",selectedIon, " from ", selectedItem]))
+                print((''.join(["Deleting ",selectedIon, " from ", selectedItem])))
                 try: 
                     del self.presenter.documentsDict[selectedItem].IMS1DdriftTimes[selectedIon]
-                    if len(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys()) == 0: 
+                    if len(list(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys())) == 0: 
                         self.presenter.documentsDict[selectedItem].gotExtractedDriftTimes = False
                 except KeyError: 
                     pass

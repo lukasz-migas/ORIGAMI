@@ -26,7 +26,7 @@ from pandas import read_csv
 from natsort import natsorted
 
 from ids import *
-import dialogs as dialogs
+import dialogs
 from dialogs import panelAsk
 from gui_elements.panel_modifyIonSettings import panelModifyIonSettings
 from toolbox import (isempty, str2num, str2int, saveAsText, convertRGB1to255, 
@@ -935,7 +935,7 @@ class panelMultipleIons(wx.Panel):
     def on_check_duplicate(self, mz_min, mz_max, document):
         rows = self.peaklist.GetItemCount()
         
-        for row in xrange(rows):
+        for row in range(rows):
             mzStart_in_table = str2num(self.peaklist.GetItem(row, self.config.peaklistColNames['start']).GetText())
             mzEnd_in_table = str2num(self.peaklist.GetItem(row, self.config.peaklistColNames['end']).GetText())
             document_in_table = self.peaklist.GetItem(row, self.config.peaklistColNames['filename']).GetText()
@@ -1051,22 +1051,22 @@ class panelMultipleIons(wx.Panel):
                     self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
-                        if len(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
                     except KeyError: pass
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
-                        if len(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
                     except KeyError: pass
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
-                        if len(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
                     except KeyError: pass
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
-                        if len(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
                     except KeyError: pass
                     self.peaklist.DeleteItem(currentItems)
@@ -1086,22 +1086,22 @@ class panelMultipleIons(wx.Panel):
                 # Delete selected document from dictionary + table   
                 try: 
                     del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
-                    if len(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys()) == 0: 
+                    if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0: 
                         self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
                 except KeyError: pass
                 try: 
                     del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
-                    if len(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys()) == 0: 
+                    if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0: 
                         self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
                 except KeyError: pass
                 try: 
                     del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
-                    if len(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys()) == 0: 
+                    if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0: 
                         self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
                 except KeyError: pass
                 try: 
                     del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
-                    if len(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys()) == 0: 
+                    if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0: 
                         self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
                 except KeyError: pass
                 self.peaklist.DeleteItem(self.currentItem)
@@ -1128,25 +1128,25 @@ class panelMultipleIons(wx.Panel):
                         self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
-                        if len(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
                     except KeyError: 
                         pass
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
-                        if len(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
                     except KeyError: 
                         pass
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
-                        if len(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
                     except KeyError: 
                         pass
                     try: 
                         del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
-                        if len(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys()) == 0: 
+                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0: 
                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
                     except KeyError: 
                         pass
@@ -1480,7 +1480,7 @@ class panelMultipleIons(wx.Panel):
             self.peaklist.SetItemBackgroundColour(self.currentItem, newColour)
             self.peaklist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
             # Retrieve custom colors
-            for i in xrange(15): 
+            for i in range(15): 
                 self.config.customColors[i] = data.GetCustomColour(i)
             
             # update document
@@ -1518,7 +1518,7 @@ class panelMultipleIons(wx.Panel):
             dlg.Destroy()
             
             # Retrieve custom colors
-            for i in xrange(len(self.config.customColors)): 
+            for i in range(len(self.config.customColors)): 
                 self.config.customColors[i] = data.GetCustomColour(i)
                 
             return convertRGB255to1(newColour)
@@ -1715,7 +1715,7 @@ class panelMultipleIons(wx.Panel):
             colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=count+1, return_colors=True)
             
             # iterate
-            for peak in xrange(len(peaklist)):
+            for peak in range(len(peaklist)):
                 print(peak)
                 min_value = peaklist[min_name][peak]
                 max_value = peaklist[max_name][peak]
@@ -1816,7 +1816,7 @@ class panelMultipleIons(wx.Panel):
         """
         count = self.peaklist.GetItemCount()
         color_list = []
-        for row in xrange(count):
+        for row in range(count):
             color_list.append(self.peaklist.GetItemBackgroundColour(item=row))
         
         if new_color in color_list:

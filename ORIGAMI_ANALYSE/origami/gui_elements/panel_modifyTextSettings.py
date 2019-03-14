@@ -89,50 +89,50 @@ class panelModifyTextSettings(wx.MiniFrame):
         panel = wx.Panel(self, -1, size=(-1,-1))
         mainSizer = wx.BoxSizer(wx.VERTICAL)
                 
-        select_label = wx.StaticText(panel, wx.ID_ANY, u"Select:")
-        self.text_select_value = makeCheckbox(panel, u"")
+        select_label = wx.StaticText(panel, wx.ID_ANY, "Select:")
+        self.text_select_value = makeCheckbox(panel, "")
         self.text_select_value.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        filename_label = wx.StaticText(panel, wx.ID_ANY, u"Filename:")
-        self.text_filename_value = wx.TextCtrl(panel, wx.ID_ANY, u"", style=wx.TE_READONLY)
+        filename_label = wx.StaticText(panel, wx.ID_ANY, "Filename:")
+        self.text_filename_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
         
-        ion_label = wx.StaticText(panel, wx.ID_ANY, u"Ion:")
-        self.text_ion_value = wx.TextCtrl(panel, wx.ID_ANY, u"", style=wx.TE_READONLY)
+        ion_label = wx.StaticText(panel, wx.ID_ANY, "Ion:")
+        self.text_ion_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
 
         label_label = wx.StaticText(panel, wx.ID_ANY,
-                                    u"Label:", wx.DefaultPosition, 
+                                    "Label:", wx.DefaultPosition, 
                                     wx.DefaultSize, wx.ALIGN_LEFT)
         self.text_label_value = wx.TextCtrl(panel, -1, "", size=(90, -1))
         self.text_label_value.SetValue(self.itemInfo['label'])
         self.text_label_value.Bind(wx.EVT_TEXT, self.onApply)
 
-        charge_label = wx.StaticText(panel, wx.ID_ANY, u"Charge:")
+        charge_label = wx.StaticText(panel, wx.ID_ANY, "Charge:")
         self.text_charge_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.text_charge_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        min_threshold_label = wx.StaticText(panel, wx.ID_ANY, u"Min threshold:")
+        min_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Min threshold:")
         self.text_min_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                             value="1",min=0.0, max=1.0,
                                             initial=1.0, inc=0.05, size=(60,-1))
         self.text_min_threshold_value.SetValue(self.itemInfo['min_threshold'])
         self.text_min_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-        max_threshold_label = wx.StaticText(panel, wx.ID_ANY, u"Max threshold:")
+        max_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Max threshold:")
         self.text_max_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                             value="1",min=0.0, max=1.0,
                                             initial=1.0, inc=0.05, size=(60,-1))
         self.text_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
         self.text_max_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
-        mask_label = wx.StaticText(panel, wx.ID_ANY, u"Mask:")
+        mask_label = wx.StaticText(panel, wx.ID_ANY, "Mask:")
         self.text_mask_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                             value="1",min=0.0, max=1.0,
                                             initial=1.0, inc=0.05, size=(60,-1))
         self.text_mask_value.SetValue(self.itemInfo['mask'])
         self.text_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
-        transparency_label = wx.StaticText(panel, wx.ID_ANY, u"Transparency:")
+        transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparency:")
         self.text_transparency_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                     value="1",min=0.0, max=1.0,
                                                     initial=1.0, inc=0.05, size=(60,-1))
@@ -144,11 +144,11 @@ class panelModifyTextSettings(wx.MiniFrame):
                                                size=(-1, -1))
         self.text_colormap_value.Bind(wx.EVT_CHOICE, self.onApply)
         
-        self.text_restrictColormap_value = makeCheckbox(panel, u"")
+        self.text_restrictColormap_value = makeCheckbox(panel, "")
         self.text_restrictColormap_value.Bind(wx.EVT_CHECKBOX, self.onRestrictCmaps)
         
         color_label = wx.StaticText(panel, -1, "Color:")
-        self.text_color_value = wx.Button(panel, wx.ID_ANY, u"", wx.DefaultPosition, 
+        self.text_color_value = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition, 
                                           wx.Size( 26, 26 ), 0)
         self.text_color_value.SetBackgroundColour(self.itemInfo['color'])
         self.text_color_value.Bind(wx.EVT_BUTTON, self.OnAssignColor)

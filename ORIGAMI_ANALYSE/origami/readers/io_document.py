@@ -18,19 +18,19 @@
 # __author__ lukasz.g.migas
 
 import time
-import cPickle as pickle
+import pickle
 
 def save_py_object(filename=None, saveFile=None):
     """ 
     Simple tool to save objects/dictionaries
     """
     tstart = time.clock()
-    print(''.join(['Saving data...']))
+    print((''.join(['Saving data...'])))
     with open(filename, 'wb') as handle:
         saveFile = cleanup_document(saveFile)
         pickle.dump(saveFile, handle, protocol=pickle.HIGHEST_PROTOCOL)
     tend = time.clock()
-    print("Saved document in: {}. It took {:.4f} seconds.".format(filename, (tend-tstart)))
+    print(("Saved document in: {}. It took {:.4f} seconds.".format(filename, (tend-tstart))))
         
 def open_py_object(filename=None):
     """
@@ -40,7 +40,7 @@ def open_py_object(filename=None):
         with open(filename, 'rb') as f:
             try:
                 return pickle.load(f)
-            except Exception, e:
+            except Exception as e:
                 print(e)
                 return None
     else:

@@ -290,7 +290,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.path_value.Bind(wx.EVT_TEXT, self.onApply)
         
 
-        self.path_check = makeCheckbox(panel, u"")
+        self.path_check = makeCheckbox(panel, "")
         self.path_check.SetToolTip(wx.ToolTip("Enable/disable"))
         self.path_check.SetValue(False)
         self.path_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
@@ -372,7 +372,7 @@ class panelDocumentInfo(wx.MiniFrame):
             
         self.docType_choice.Bind(wx.EVT_COMBOBOX, self.onApply)
 
-        self.docType_check = makeCheckbox(panel, u"")
+        self.docType_check = makeCheckbox(panel, "")
         self.docType_check.SetToolTip(wx.ToolTip("Enable/disable"))
         self.docType_check.SetValue(False)
         self.docType_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
@@ -381,7 +381,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.scanTime_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.scanTime_value.SetValue(num2str(self.document.parameters.get('scanTime',None)))
         self.scanTime_value.Bind(wx.EVT_TEXT, self.onApply)
-        self.scanTime_check = makeCheckbox(panel, u"")
+        self.scanTime_check = makeCheckbox(panel, "")
         self.scanTime_check.SetValue(False)
         self.scanTime_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
         
@@ -390,7 +390,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.protein_value.SetValue(num2str(self.document.moleculeDetails.get('protein',None)))
         self.protein_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        self.selectBtn = wx.Button(panel, ID_selectProtein, u"...", 
+        self.selectBtn = wx.Button(panel, ID_selectProtein, "...", 
                                    wx.DefaultPosition, wx.Size( 25,-1 ), 0 )
         
         self.selectBtn.Bind(wx.EVT_BUTTON, 
@@ -412,25 +412,25 @@ class panelDocumentInfo(wx.MiniFrame):
         self.precursorCharge_value.SetValue(num2str(self.document.moleculeDetails.get('charge',None)))
         self.precursorCharge_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        pusherFreq_label = wx.StaticText(panel, -1, u"Pusher frequency (μs):")
+        pusherFreq_label = wx.StaticText(panel, -1, "Pusher frequency (μs):")
         self.pusherFreq_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.pusherFreq_value.SetValue(num2str(self.document.parameters.get('pusherFreq',None)))
         self.pusherFreq_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        self.pusherFreq_check = makeCheckbox(panel, u"")
+        self.pusherFreq_check = makeCheckbox(panel, "")
         self.pusherFreq_check.SetValue(False)
         self.pusherFreq_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
         
-        tofCorrFactor_label = wx.StaticText(panel, -1, u"TOF corr. factor (EDC):")
+        tofCorrFactor_label = wx.StaticText(panel, -1, "TOF corr. factor (EDC):")
         self.tofCorrFactor_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.tofCorrFactor_value.SetValue(num2str(self.document.parameters.get('corrC',None)))
         self.tofCorrFactor_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        self.tofCorrFactor_check = makeCheckbox(panel, u"")
+        self.tofCorrFactor_check = makeCheckbox(panel, "")
         self.tofCorrFactor_check.SetValue(False)
         self.tofCorrFactor_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
         
-        headerInfo_label = wx.StaticText(panel, -1, u"Header information:")
+        headerInfo_label = wx.StaticText(panel, -1, "Header information:")
         self.headerInfo_value = wx.TextCtrl(panel, -1, "", size=(180, 100),style=wx.TE_WORDWRAP|wx.TE_MULTILINE )
         self.headerInfo_value.SetValue(self.document.fileInformation.get('SampleDescription',"None"))
         self.headerInfo_value.Disable()
@@ -550,10 +550,10 @@ class panelDocumentInfo(wx.MiniFrame):
         self.labelsX_value.SetStringSelection(data.get('xlabels', 'Scans'))
         self.labelsX_value.Bind(wx.EVT_COMBOBOX, self.onApply)
         
-        self.labelsX_check = makeCheckbox(panel, u"Just label")
+        self.labelsX_check = makeCheckbox(panel, "Just label")
         self.labelsX_check.SetValue(False)        
         self.labelsX_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
-        self.restoreDefaultX_check = makeCheckbox(panel, u"Restore default")
+        self.restoreDefaultX_check = makeCheckbox(panel, "Restore default")
         self.restoreDefaultX_check.SetValue(False)
         self.restoreDefaultX_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable) 
         
@@ -563,10 +563,10 @@ class panelDocumentInfo(wx.MiniFrame):
         self.labelsY_value.SetStringSelection(data.get('ylabels', 'Drift time (bins)'))
         self.labelsY_value.Bind(wx.EVT_COMBOBOX, self.onApply)
 
-        self.labelsY_check = makeCheckbox(panel, u"Just label")
+        self.labelsY_check = makeCheckbox(panel, "Just label")
         self.labelsY_check.SetValue(False)
         self.labelsY_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)        
-        self.restoreDefaultY_check = makeCheckbox(panel, u"Restore default")
+        self.restoreDefaultY_check = makeCheckbox(panel, "Restore default")
         self.restoreDefaultY_check.SetValue(False)        
         self.restoreDefaultY_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
         
@@ -629,7 +629,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.calibrationType_value.Disable()
         
         
-        self.calibrationType_check = makeCheckbox(panel, u"")
+        self.calibrationType_check = makeCheckbox(panel, "")
         self.calibrationType_check.SetValue(False)
         
         numOfPoints_label = wx.StaticText(panel, -1, "Number of points:")
@@ -640,7 +640,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.numOfCalibrants_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.numOfCalibrants_value.Disable()
         
-        calibrants_label = wx.StaticText(panel, -1, u"Calibrants:")
+        calibrants_label = wx.StaticText(panel, -1, "Calibrants:")
         self.calibrants_value = wx.TextCtrl(panel, -1, "", size=(180, 100), 
                                             style=wx.TE_WORDWRAP|wx.TE_MULTILINE )
         self.calibrants_value.Disable()
@@ -661,7 +661,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.interceptPower_value = wx.TextCtrl(panel, -1, "", size=(90, -1),
                                                  style=wx.TE_READONLY)
         
-        r2_label = wx.StaticText(panel, -1, u"R²:")
+        r2_label = wx.StaticText(panel, -1, "R²:")
         self.r2Linear_value = wx.TextCtrl(panel, -1, "", size=(90, -1),
                                           style=wx.TE_READONLY)
         self.r2Power_value = wx.TextCtrl(panel, -1, "", size=(90, -1),

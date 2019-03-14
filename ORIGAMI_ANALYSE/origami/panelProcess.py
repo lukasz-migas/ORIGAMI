@@ -38,7 +38,7 @@ from ids import (ID_processSettings_replotMS, ID_processSettings_processMS,
                          ID_processSettings_showZUniDec, ID_processSettings_isolateZUniDec,
                          ID_processSettings_replotAll, ID_processSettings_restoreIsolatedAll,
                          ID_window_ionList, ID_window_ccsList, ID_window_multiFieldList, ID_saveConfig)
-from help import OrigamiHelp as help
+from help_documentation import OrigamiHelp
 from dialogs import panelHTMLViewer, panelPeakWidthTool, dlgBox
 from gui_elements.dialog_customiseUniDecPlots import panelCustomiseParameters
 import unidec as unidec
@@ -66,7 +66,7 @@ class panelProcessData(wx.MiniFrame):
         self.presenter = presenter
         self.config = config
         self.icons = icons
-        self.help = help()
+        self.help = OrigamiHelp()
         self.data_processing = self.parent.data_processing
         
         self.importEvent = False
@@ -136,7 +136,7 @@ class panelProcessData(wx.MiniFrame):
         self.onPageChanged(evt=None)
         self.updateStatusbar()
         self.onUpdateUniDecPanel()
-        print("Startup took {:.3f} seconds".format(time.time()-tstart))
+        print(("Startup took {:.3f} seconds".format(time.time()-tstart)))
         
     def onUpdateKwargs(self, data_type='MS', **kwargs):
         if not hasattr(self, 'document'):
@@ -236,27 +236,27 @@ class panelProcessData(wx.MiniFrame):
         
         self.parameters_Extract = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.makePanel_ExtractData(self.parameters_Extract), 
-                              u"Extract", False)
+                              "Extract", False)
         # ------
         self.parameters_ORIGAMI = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.makePanel_ORIGAMI(self.parameters_ORIGAMI), 
-                              u"ORIGAMI", False)
+                              "ORIGAMI", False)
         # ------
         self.parameters_MS = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.makePanel_MS(self.parameters_MS), 
-                              u"Mass spectrum", False)
+                              "Mass spectrum", False)
         # ------
         self.parameters_2D = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.makePanel_2D(self.parameters_2D), 
-                              u"2D", False)
+                              "2D", False)
         # ------
         self.parameters_peakFitting = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.makePanel_PeakFitting(self.parameters_peakFitting), 
-                              u"Peak fitting", False)
+                              "Peak fitting", False)
         # ------
         self.parameters_unidec = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.makePanel_UniDec(self.parameters_unidec), 
-                              u"UniDec", False)
+                              "UniDec", False)
         
         self.mainSizer.Add(self.mainBook, 1, wx.EXPAND |wx.ALL, 2)
         
@@ -289,41 +289,41 @@ class panelProcessData(wx.MiniFrame):
         preprocess_staticBox.SetSize((-1,-1))
         preprocess_box_sizer = wx.StaticBoxSizer(preprocess_staticBox, wx.HORIZONTAL)
         
-        unidec_ms_min_label = wx.StaticText(panel, wx.ID_ANY, u"m/z start:")
+        unidec_ms_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
         self.unidec_mzStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                                 validator=validator('floatPos'))
         self.unidec_mzStart_value.SetValue(str(self.config.unidec_mzStart))
         self.unidec_mzStart_value.Bind(wx.EVT_TEXT, self.onApply)
         self.unidec_mzStart_value.SetToolTip(makeTooltip(text=self.help.unidec_min_mz['help_msg']))
         
-        unidec_ms_max_label = wx.StaticText(panel, wx.ID_ANY, u"end:")
+        unidec_ms_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
         self.unidec_mzEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_mzEnd_value.SetValue(str(self.config.unidec_mzEnd))
         self.unidec_mzEnd_value.Bind(wx.EVT_TEXT, self.onApply)
         self.unidec_mzEnd_value.SetToolTip(makeTooltip(text=self.help.unidec_max_mz['help_msg']))
         
-        unidec_ms_binsize_label = wx.StaticText(panel, wx.ID_ANY, u"m/z bin size:")
+        unidec_ms_binsize_label = wx.StaticText(panel, wx.ID_ANY, "m/z bin size:")
         self.unidec_mzBinSize_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_mzBinSize_value.SetValue(str(self.config.unidec_mzBinSize))
         self.unidec_mzBinSize_value.Bind(wx.EVT_TEXT, self.onApply)
         self.unidec_mzBinSize_value.SetToolTip(makeTooltip(text=self.help.unidec_linearization['help_msg']))
         
-        unidec_ms_gaussianFilter_label = wx.StaticText(panel, wx.ID_ANY, u"Gaussian filter:")
+        unidec_ms_gaussianFilter_label = wx.StaticText(panel, wx.ID_ANY, "Gaussian filter:")
         self.unidec_gaussianFilter_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_gaussianFilter_value.SetValue(str(self.config.unidec_gaussianFilter))
         self.unidec_gaussianFilter_value.Bind(wx.EVT_TEXT, self.onApply)
 
-        unidec_ms_accelerationV_label = wx.StaticText(panel, wx.ID_ANY, u"Acceleration voltage (kV):")
+        unidec_ms_accelerationV_label = wx.StaticText(panel, wx.ID_ANY, "Acceleration voltage (kV):")
         self.unidec_accelerationV_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_accelerationV_value.SetValue(str(self.config.unidec_accelerationV))
         self.unidec_accelerationV_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        unidec_linearization_label = wx.StaticText(panel, wx.ID_ANY, u"Linearization mode:")
-        self.unidec_linearization_choice = wx.Choice(panel, -1, choices=self.config.unidec_linearization_choices.keys(),
+        unidec_linearization_label = wx.StaticText(panel, wx.ID_ANY, "Linearization mode:")
+        self.unidec_linearization_choice = wx.Choice(panel, -1, choices=list(self.config.unidec_linearization_choices.keys()),
                                           size=(-1, -1))
         self.unidec_linearization_choice.SetStringSelection(self.config.unidec_linearization)
         self.unidec_linearization_choice.Bind(wx.EVT_CHOICE, self.onApply)
@@ -363,55 +363,55 @@ class panelProcessData(wx.MiniFrame):
         unidec_staticBox.SetSize((-1,-1))
         unidec_box_sizer = wx.StaticBoxSizer(unidec_staticBox, wx.HORIZONTAL)
          
-        unidec_charge_min_label = wx.StaticText(panel, wx.ID_ANY, u"Charge start:")
+        unidec_charge_min_label = wx.StaticText(panel, wx.ID_ANY, "Charge start:")
         self.unidec_zStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_zStart_value.SetValue(str(self.config.unidec_zStart))
         self.unidec_zStart_value.Bind(wx.EVT_TEXT, self.onApply)
         self.unidec_zStart_value.SetToolTip(makeTooltip(text=self.help.unidec_min_z['help_msg']))
         
-        unidec_charge_max_label = wx.StaticText(panel, wx.ID_ANY, u"end:")
+        unidec_charge_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
         self.unidec_zEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_zEnd_value.SetValue(str(self.config.unidec_zEnd))
         self.unidec_zEnd_value.Bind(wx.EVT_TEXT, self.onApply)
         self.unidec_zEnd_value.SetToolTip(makeTooltip(text=self.help.unidec_max_z['help_msg']))
         
-        unidec_mw_min_label = wx.StaticText(panel, wx.ID_ANY, u"MW start:")
+        unidec_mw_min_label = wx.StaticText(panel, wx.ID_ANY, "MW start:")
         self.unidec_mwStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_mwStart_value.SetValue(str(self.config.unidec_mwStart))
         self.unidec_mwStart_value.Bind(wx.EVT_TEXT, self.onApply)
         self.unidec_mwStart_value.SetToolTip(makeTooltip(text=self.help.unidec_min_mw['help_msg']))
         
-        unidec_mw_max_label = wx.StaticText(panel, wx.ID_ANY, u"end:")
+        unidec_mw_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
         self.unidec_mwEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_mwEnd_value.SetValue(str(self.config.unidec_mwEnd))
         self.unidec_mwEnd_value.Bind(wx.EVT_TEXT, self.onApply)
         self.unidec_mwEnd_value.SetToolTip(makeTooltip(text=self.help.unidec_max_mw['help_msg']))
         
-        unidec_mw_sampleFrequency_label = wx.StaticText(panel, wx.ID_ANY, u"Sample frequency (Da):")
+        unidec_mw_sampleFrequency_label = wx.StaticText(panel, wx.ID_ANY, "Sample frequency (Da):")
         self.unidec_mw_sampleFrequency_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_mw_sampleFrequency_value.SetValue(str(self.config.unidec_mwFrequency))
         self.unidec_mw_sampleFrequency_value.Bind(wx.EVT_TEXT, self.onApply)
         self.unidec_mw_sampleFrequency_value.SetToolTip(makeTooltip(text=self.help.unidec_mw_resolution['help_msg']))
         
-        unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, u"Peak FWHM (Da):")
+        unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")
         self.unidec_fit_peakWidth_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_fit_peakWidth_value.SetValue(str(self.config.unidec_peakWidth))
         self.unidec_fit_peakWidth_value.Bind(wx.EVT_TEXT, self.onApply)
         self.unidec_fit_peakWidth_value.SetToolTip(makeTooltip(text=self.help.unidec_peak_FWHM['help_msg']))
         
-        self.unidec_fit_peakWidth_check = makeCheckbox(panel, u"Auto")
+        self.unidec_fit_peakWidth_check = makeCheckbox(panel, "Auto")
         self.unidec_fit_peakWidth_check.SetValue(self.config.unidec_peakWidth_auto)
         self.unidec_fit_peakWidth_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.unidec_fit_peakWidth_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
         
-        unidec_peakShape_label = wx.StaticText(panel, wx.ID_ANY, u"Peak Shape:")
-        self.unidec_peakFcn_choice = wx.Choice(panel, -1, choices=self.config.unidec_peakFunction_choices.keys(),
+        unidec_peakShape_label = wx.StaticText(panel, wx.ID_ANY, "Peak Shape:")
+        self.unidec_peakFcn_choice = wx.Choice(panel, -1, choices=list(self.config.unidec_peakFunction_choices.keys()),
                                           size=(-1, -1))
         self.unidec_peakFcn_choice.SetStringSelection(self.config.unidec_peakFunction)
         self.unidec_peakFcn_choice.Bind(wx.EVT_CHOICE, self.onApply)
@@ -451,35 +451,35 @@ class panelProcessData(wx.MiniFrame):
         peakDetect_staticBox.SetSize((-1,-1))
         peakDetect_box_sizer = wx.StaticBoxSizer(peakDetect_staticBox, wx.HORIZONTAL)
          
-        unidec_peak_width_label = wx.StaticText(panel, wx.ID_ANY, u"Peak detection window (Da):")
+        unidec_peak_width_label = wx.StaticText(panel, wx.ID_ANY, "Peak detection window (Da):")
         self.unidec_peakWidth_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_peakWidth_value.SetValue(str(self.config.unidec_peakDetectionWidth))
         self.unidec_peakWidth_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        unidec_peak_threshold_label = wx.StaticText(panel, wx.ID_ANY, u"Peak detection threshold:")
+        unidec_peak_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Peak detection threshold:")
         self.unidec_peakThreshold_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_peakThreshold_value.SetValue(str(self.config.unidec_peakDetectionThreshold))
         self.unidec_peakThreshold_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        unidec_peak_normalization_label = wx.StaticText(panel, wx.ID_ANY, u"Peak normalization:")
-        self.unidec_peakNormalization_choice = wx.Choice(panel, -1, choices=self.config.unidec_peakNormalization_choices.keys(),
+        unidec_peak_normalization_label = wx.StaticText(panel, wx.ID_ANY, "Peak normalization:")
+        self.unidec_peakNormalization_choice = wx.Choice(panel, -1, choices=list(self.config.unidec_peakNormalization_choices.keys()),
                                           size=(-1, -1))
         self.unidec_peakNormalization_choice.SetStringSelection(self.config.unidec_peakNormalization)
         self.unidec_peakNormalization_choice.Bind(wx.EVT_CHOICE, self.onApply)
         
-        individualComponents_label = wx.StaticText(panel, wx.ID_ANY, u"Show individual components:")
-        self.unidec_individualComponents_check = makeCheckbox(panel, u"")
+        individualComponents_label = wx.StaticText(panel, wx.ID_ANY, "Show individual components:")
+        self.unidec_individualComponents_check = makeCheckbox(panel, "")
         self.unidec_individualComponents_check.SetValue(self.config.unidec_show_individualComponents)
         self.unidec_individualComponents_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        markers_label = wx.StaticText(panel, wx.ID_ANY, u"Show markers:")
-        self.unidec_markers_check = makeCheckbox(panel, u"")
+        markers_label = wx.StaticText(panel, wx.ID_ANY, "Show markers:")
+        self.unidec_markers_check = makeCheckbox(panel, "")
         self.unidec_markers_check.SetValue(self.config.unidec_show_markers)
         self.unidec_markers_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        unidec_peak_separation_label = wx.StaticText(panel, wx.ID_ANY, u"Line separation:")
+        unidec_peak_separation_label = wx.StaticText(panel, wx.ID_ANY, "Line separation:")
         self.unidec_lineSeparation_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('floatPos'))
         self.unidec_lineSeparation_value.SetValue(str(self.config.unidec_lineSeparation))
@@ -529,7 +529,7 @@ class panelProcessData(wx.MiniFrame):
         plot_staticBox.SetSize((-1,-1))
         plot_box_sizer = wx.StaticBoxSizer(plot_staticBox, wx.HORIZONTAL)
 
-        unidec_plotting_weights_label = wx.StaticText(panel, wx.ID_ANY, u"Molecular weights:")
+        unidec_plotting_weights_label = wx.StaticText(panel, wx.ID_ANY, "Molecular weights:")
         self.unidec_weightList_choice = wx.ComboBox(panel, ID_processSettings_showZUniDec, 
                                                     choices=[],
                                                     size=(150, -1), style=wx.CB_READONLY,
@@ -544,14 +544,14 @@ class panelProcessData(wx.MiniFrame):
         self.unidec_weightList_sort.Bind(wx.EVT_BUTTON, self.on_sort_unidec_MW) 
         self.unidec_weightList_sort.SetToolTip(makeTooltip(text=self.help.unidec_sort_mw_list['help_msg']))
 
-        unidec_plotting_adduct_label = wx.StaticText(panel, wx.ID_ANY, u"Adduct:")
+        unidec_plotting_adduct_label = wx.StaticText(panel, wx.ID_ANY, "Adduct:")
         self.unidec_adductMW_choice = wx.Choice(panel, ID_processSettings_showZUniDec, 
                                                 choices=["H+", "Na+", "K+", "NH4+", "H-", "Cl-"],
                                                 size=(-1, -1), name="ChargeStates")
         self.unidec_adductMW_choice.SetStringSelection("H+")
         self.unidec_adductMW_choice.Bind(wx.EVT_CHOICE, self.onRunUnidecThreaded)
         
-        unidec_charges_threshold_label = wx.StaticText(panel, wx.ID_ANY, u"Intensity threshold:")
+        unidec_charges_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Intensity threshold:")
         self.unidec_charges_threshold_value = wx.SpinCtrlDouble(panel, -1,
                                                              value=str(self.config.unidec_charges_label_charges), 
                                                              min=0, max=1, 
@@ -559,7 +559,7 @@ class panelProcessData(wx.MiniFrame):
                                                              inc=0.01, size=(90, -1))
         self.unidec_charges_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
-        unidec_charges_offset_label = wx.StaticText(panel, wx.ID_ANY, u"Vertical charge offset:")
+        unidec_charges_offset_label = wx.StaticText(panel, wx.ID_ANY, "Vertical charge offset:")
         self.unidec_charges_offset_value = wx.SpinCtrlDouble(panel, -1,
                                                              value=str(self.config.unidec_charges_offset), 
                                                              min=0, max=1, 
@@ -605,14 +605,14 @@ class panelProcessData(wx.MiniFrame):
         other_staticBox.SetSize((-1,-1))
         other_box_sizer = wx.StaticBoxSizer(other_staticBox, wx.HORIZONTAL)
         
-        unidec_max_iters_label = wx.StaticText(panel, wx.ID_ANY, u"Max iterations:")
+        unidec_max_iters_label = wx.StaticText(panel, wx.ID_ANY, "Max iterations:")
         self.unidec_maxIters_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('intPos'))
         self.unidec_maxIters_value.SetValue(str(self.config.unidec_maxIterations))
         self.unidec_maxIters_value.Bind(wx.EVT_TEXT, self.onApply)
 
         
-        unidec_max_shown_label = wx.StaticText(panel, wx.ID_ANY, u"Max shown:")
+        unidec_max_shown_label = wx.StaticText(panel, wx.ID_ANY, "Max shown:")
         self.unidec_maxShownLines_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE,
                                           validator=validator('intPos'))
         self.unidec_maxShownLines_value.SetValue(str(self.config.unidec_maxShown_individualLines))
@@ -686,50 +686,50 @@ class panelProcessData(wx.MiniFrame):
     def makePanel_PeakFitting(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)        
         
-        fitPlot_label = wx.StaticText(panel, wx.ID_ANY, u"Search plot:")
+        fitPlot_label = wx.StaticText(panel, wx.ID_ANY, "Search plot:")
         self.fit_fitPlot_choice = wx.Choice(panel, -1, choices=["MS", "RT", "MS + RT"], #self.config.fit_type_choices,
                                           size=(-1, -1))
         self.fit_fitPlot_choice.SetStringSelection(self.config.fit_type)
         self.fit_fitPlot_choice.Bind(wx.EVT_CHOICE, self.onApply)
         self.fit_fitPlot_choice.Bind(wx.EVT_CHOICE, self.enableDisableBoxes)
         
-        threshold_label = wx.StaticText(panel, wx.ID_ANY, u"Threshold:")
+        threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.fit_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.fit_threshold_value.SetValue(str(self.config.fit_threshold))
         self.fit_threshold_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        window_label = wx.StaticText(panel, wx.ID_ANY, u"Window size (points):")
+        window_label = wx.StaticText(panel, wx.ID_ANY, "Window size (points):")
         self.fit_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                             validator=validator('intPos'))
         self.fit_window_value.SetValue(str(self.config.fit_window))
         self.fit_window_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        width_label = wx.StaticText(panel, wx.ID_ANY, u"Peak width:")
+        width_label = wx.StaticText(panel, wx.ID_ANY, "Peak width:")
         self.fit_width_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                            validator=validator('floatPos'))
         self.fit_width_value.SetValue(str(self.config.fit_width))
         self.fit_width_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        asymmetricity_label = wx.StaticText(panel, wx.ID_ANY, u"Peak asymmetricity:")
+        asymmetricity_label = wx.StaticText(panel, wx.ID_ANY, "Peak asymmetricity:")
         self.fit_asymmetricRatio_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                            validator=validator('float'))
         self.fit_asymmetricRatio_value.SetValue(str(self.config.fit_asymmetric_ratio))
         self.fit_asymmetricRatio_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        smooth_label = wx.StaticText(panel, wx.ID_ANY, u"Smooth peaks:")
-        self.fit_smooth_check = makeCheckbox(panel, u"")
+        smooth_label = wx.StaticText(panel, wx.ID_ANY, "Smooth peaks:")
+        self.fit_smooth_check = makeCheckbox(panel, "")
         self.fit_smooth_check.SetValue(self.config.fit_smoothPeaks)
         self.fit_smooth_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.fit_smooth_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
 
-        sigma_label = wx.StaticText(panel, wx.ID_ANY, u"Gaussian sigma:")
+        sigma_label = wx.StaticText(panel, wx.ID_ANY, "Gaussian sigma:")
         self.fit_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                            validator=validator('floatPos'))
         self.fit_sigma_value.SetValue(str(self.config.fit_smooth_sigma))
         self.fit_sigma_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        self.fit_show_smoothed = makeCheckbox(panel, u"Show")
+        self.fit_show_smoothed = makeCheckbox(panel, "Show")
         self.fit_show_smoothed.SetValue(self.show_smoothed)
         self.fit_show_smoothed.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -737,30 +737,30 @@ class panelProcessData(wx.MiniFrame):
         highRes_staticBox.SetSize((-1,-1))
         highRes_box_sizer = wx.StaticBoxSizer(highRes_staticBox, wx.HORIZONTAL)
         
-        highRes_label = wx.StaticText(panel, wx.ID_ANY, u"Enable:")
-        self.fit_highRes_check = makeCheckbox(panel, u"")
+        highRes_label = wx.StaticText(panel, wx.ID_ANY, "Enable:")
+        self.fit_highRes_check = makeCheckbox(panel, "")
         self.fit_highRes_check.SetValue(self.config.fit_highRes)
         self.fit_highRes_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.fit_highRes_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
         __fit_highRes_tip = makeSuperTip(self.fit_highRes_check, **self.help.fit_highRes)
         
-        threshold_highRes_label = wx.StaticText(panel, wx.ID_ANY, u"Threshold:")
+        threshold_highRes_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.fit_thresholdHighRes_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
         self.fit_thresholdHighRes_value.SetValue(str(self.config.fit_highRes_threshold))
         self.fit_thresholdHighRes_value.Bind(wx.EVT_TEXT, self.onApply)
          
-        window_highRes_label = wx.StaticText(panel, wx.ID_ANY, u"Window size (points):")
+        window_highRes_label = wx.StaticText(panel, wx.ID_ANY, "Window size (points):")
         self.fit_windowHighRes_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
         self.fit_windowHighRes_value.SetValue(str(self.config.fit_highRes_window))
         self.fit_windowHighRes_value.Bind(wx.EVT_TEXT, self.onApply)
          
-        width_highRes_label = wx.StaticText(panel, wx.ID_ANY, u"Peak width:")
+        width_highRes_label = wx.StaticText(panel, wx.ID_ANY, "Peak width:")
         self.fit_widthHighRes_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
         self.fit_widthHighRes_value.SetValue(str(self.config.fit_highRes_width))
         self.fit_widthHighRes_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        fitChargeStates_label = wx.StaticText(panel, wx.ID_ANY, u"Isotopic fit:")
-        self.fit_isotopes_check = makeCheckbox(panel, u"")
+        fitChargeStates_label = wx.StaticText(panel, wx.ID_ANY, "Isotopic fit:")
+        self.fit_isotopes_check = makeCheckbox(panel, "")
         self.fit_isotopes_check.SetValue(self.config.fit_highRes_isotopicFit)
         self.fit_isotopes_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         __fit_isotopes_tip = makeSuperTip(self.fit_isotopes_check, **self.help.fit_showIsotopes)
@@ -769,18 +769,18 @@ class panelProcessData(wx.MiniFrame):
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
-        highlight_label = wx.StaticText(panel, wx.ID_ANY, u"Highlight:")
-        self.fit_highlight_check = makeCheckbox(panel, u"")
+        highlight_label = wx.StaticText(panel, wx.ID_ANY, "Highlight:")
+        self.fit_highlight_check = makeCheckbox(panel, "")
         self.fit_highlight_check.SetValue(self.config.fit_highlight)
         self.fit_highlight_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        labels_label = wx.StaticText(panel, wx.ID_ANY, u"Labels:")
-        self.fit_show_labels_check = makeCheckbox(panel, u"")
+        labels_label = wx.StaticText(panel, wx.ID_ANY, "Labels:")
+        self.fit_show_labels_check = makeCheckbox(panel, "")
         self.fit_show_labels_check.SetValue(self.config.fit_show_labels)
         self.fit_show_labels_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.fit_show_labels_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
         
-        max_labels_label = wx.StaticText(panel, wx.ID_ANY, u"Max no. labels:")
+        max_labels_label = wx.StaticText(panel, wx.ID_ANY, "Max no. labels:")
         self.fit_max_labels = wx.SpinCtrlDouble(panel, -1,
                                                 value=str(self.config.fit_show_labels_max_count), 
                                                 min=0, max=250, 
@@ -788,16 +788,16 @@ class panelProcessData(wx.MiniFrame):
                                                 inc=50, size=(90, -1))
         self.fit_max_labels.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         
-        self.fit_show_labels_mz_check = makeCheckbox(panel, u"m/z")
+        self.fit_show_labels_mz_check = makeCheckbox(panel, "m/z")
         self.fit_show_labels_mz_check.SetValue(self.config.fit_show_labels_mz)
         self.fit_show_labels_mz_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.fit_show_labels_int_check = makeCheckbox(panel, u"intensity")
+        self.fit_show_labels_int_check = makeCheckbox(panel, "intensity")
         self.fit_show_labels_int_check.SetValue(self.config.fit_show_labels_int)
         self.fit_show_labels_int_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, u"Optimise label position:")
-        self.fit_labels_optimise_position_check = makeCheckbox(panel, u"")
+        remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, "Optimise label position:")
+        self.fit_labels_optimise_position_check = makeCheckbox(panel, "")
         self.fit_labels_optimise_position_check.SetValue(self.config.fit_labels_optimise_position)
         self.fit_labels_optimise_position_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -817,18 +817,18 @@ class panelProcessData(wx.MiniFrame):
         annot_grid.Add(self.fit_labels_optimise_position_check, (n,1), wx.GBSpan(1,2), flag=wx.EXPAND)
         
         
-        xaxisLimit_label = wx.StaticText(panel, wx.ID_ANY, u"Use current x-axis range:")
-        self.fit_xaxisLimit_check = makeCheckbox(panel, u"")
+        xaxisLimit_label = wx.StaticText(panel, wx.ID_ANY, "Use current x-axis range:")
+        self.fit_xaxisLimit_check = makeCheckbox(panel, "")
         self.fit_xaxisLimit_check.SetValue(self.config.fit_xaxis_limit)
         self.fit_xaxisLimit_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        addPeaks_label = wx.StaticText(panel, wx.ID_ANY, u"Add peaks to peak list:")
-        self.fit_addPeaks_check = makeCheckbox(panel, u"")
+        addPeaks_label = wx.StaticText(panel, wx.ID_ANY, "Add peaks to peak list:")
+        self.fit_addPeaks_check = makeCheckbox(panel, "")
         self.fit_addPeaks_check.SetValue(self.config.fit_addPeaks)
         self.fit_addPeaks_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        addPeaksToAnnotations_label = wx.StaticText(panel, wx.ID_ANY, u"Add peaks to annotations:")
-        self.fit_addPeaksToAnnotations_check = makeCheckbox(panel, u"")
+        addPeaksToAnnotations_label = wx.StaticText(panel, wx.ID_ANY, "Add peaks to annotations:")
+        self.fit_addPeaksToAnnotations_check = makeCheckbox(panel, "")
         self.fit_addPeaksToAnnotations_check.SetValue(self.config.fit_addPeaksToAnnotations)
         self.fit_addPeaksToAnnotations_check.Bind(wx.EVT_CHECKBOX, self.onApply)
 
@@ -919,7 +919,7 @@ class panelProcessData(wx.MiniFrame):
     def makePanel_ORIGAMI(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         
-        acquisition_label = wx.StaticText(panel, wx.ID_ANY, u"Acquisition method:")
+        acquisition_label = wx.StaticText(panel, wx.ID_ANY, "Acquisition method:")
         self.origami_method_choice = wx.Choice(panel, -1, choices=self.config.origami_acquisition_choices,
                                           size=(-1, -1))
         self.origami_method_choice.SetStringSelection(self.config.origami_acquisition)
@@ -932,55 +932,55 @@ class panelProcessData(wx.MiniFrame):
 #                                                   style=wx.BORDER_DOUBLE | wx.ALIGN_CENTER_VERTICAL)
 #         self.origami_loadParams.Bind(wx.EVT_BUTTON, self.onUpdateColorbar)
         
-        spv_label = wx.StaticText(panel, wx.ID_ANY, u"Scans per voltage:")
+        spv_label = wx.StaticText(panel, wx.ID_ANY, "Scans per voltage:")
         self.origami_scansPerVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.origami_scansPerVoltage_value.SetValue(str(self.config.origami_spv))
         self.origami_scansPerVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        scan_label = wx.StaticText(panel, wx.ID_ANY, u"First scan:")
+        scan_label = wx.StaticText(panel, wx.ID_ANY, "First scan:")
         self.origami_startScan_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.origami_startScan_value.SetValue(str(self.config.origami_startScan))
         self.origami_startScan_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        startVoltage_label = wx.StaticText(panel, wx.ID_ANY, u"First voltage:")
+        startVoltage_label = wx.StaticText(panel, wx.ID_ANY, "First voltage:")
         self.origami_startVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_startVoltage_value.SetValue(str(self.config.origami_startVoltage))
         self.origami_startVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        endVoltage_label = wx.StaticText(panel, wx.ID_ANY, u"Final voltage:")
+        endVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Final voltage:")
         self.origami_endVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_endVoltage_value.SetValue(str(self.config.origami_endVoltage))
         self.origami_endVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        stepVoltage_label = wx.StaticText(panel, wx.ID_ANY, u"Voltage step:")
+        stepVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Voltage step:")
         self.origami_stepVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_stepVoltage_value.SetValue(str(self.config.origami_stepVoltage))
         self.origami_stepVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        boltzmann_label = wx.StaticText(panel, wx.ID_ANY, u"Boltzmann offset:")
+        boltzmann_label = wx.StaticText(panel, wx.ID_ANY, "Boltzmann offset:")
         self.origami_boltzmannOffset_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                                          validator=validator('floatPos'))
         self.origami_boltzmannOffset_value.SetValue(str(self.config.origami_boltzmannOffset))
         self.origami_boltzmannOffset_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        exponentialPercentage_label = wx.StaticText(panel, wx.ID_ANY, u"Exponential percentage:")
+        exponentialPercentage_label = wx.StaticText(panel, wx.ID_ANY, "Exponential percentage:")
         self.origami_exponentialPercentage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_exponentialPercentage_value.SetValue(str(self.config.origami_exponentialPercentage))
         self.origami_exponentialPercentage_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        exponentialIncrement_label = wx.StaticText(panel, wx.ID_ANY, u"Exponential increment:")
+        exponentialIncrement_label = wx.StaticText(panel, wx.ID_ANY, "Exponential increment:")
         self.origami_exponentialIncrement_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.origami_exponentialIncrement_value.SetValue(str(self.config.origami_exponentialIncrement))
         self.origami_exponentialIncrement_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        import_label = wx.StaticText(panel, wx.ID_ANY, u"Import list:")
+        import_label = wx.StaticText(panel, wx.ID_ANY, "Import list:")
         self.origami_loadListBtn = wx.Button(panel, wx.ID_OK, "...", size=(-1, 22))
         self.origami_loadListBtn.Bind(wx.EVT_BUTTON, self.presenter.onUserDefinedListImport)
         
@@ -1046,7 +1046,7 @@ class panelProcessData(wx.MiniFrame):
         dtms_staticBox.SetSize((-1,-1))
         dtms_box_sizer = wx.StaticBoxSizer(dtms_staticBox, wx.HORIZONTAL)    
         
-        bin_msdt_label = wx.StaticText(panel, wx.ID_ANY, u"DT/MS bin size:")
+        bin_msdt_label = wx.StaticText(panel, wx.ID_ANY, "DT/MS bin size:")
         self.bin_msdt_binSize_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.bin_msdt_binSize_value.SetValue(str(self.config.ms_dtmsBinSize))
@@ -1056,13 +1056,13 @@ class panelProcessData(wx.MiniFrame):
         crop_staticBox.SetSize((-1,-1))
         crop_box_sizer = wx.StaticBoxSizer(crop_staticBox, wx.HORIZONTAL)    
         
-        crop_min_label = wx.StaticText(panel, wx.ID_ANY, u"m/z start:")
+        crop_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
         self.crop_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.crop_min_value.SetValue(str(self.config.ms_crop_min))
         self.crop_min_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        crop_max_label = wx.StaticText(panel, wx.ID_ANY, u"end:")
+        crop_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
         self.crop_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.crop_max_value.SetValue(str(self.config.ms_crop_max))
@@ -1072,41 +1072,41 @@ class panelProcessData(wx.MiniFrame):
         massSpec_staticBox.SetSize((-1,-1))
         massSpec_box_sizer = wx.StaticBoxSizer(massSpec_staticBox, wx.HORIZONTAL)
         
-        self.bin_RT_window_check = makeCheckbox(panel, u"Enable MS linearization in chromatogram/mobiligram window")
+        self.bin_RT_window_check = makeCheckbox(panel, "Enable MS linearization in chromatogram/mobiligram window")
         self.bin_RT_window_check.SetValue(self.config.ms_enable_in_RT)
         self.bin_RT_window_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         __bin_RT_window_tip = makeSuperTip(self.bin_RT_window_check, **self.help.bin_MS_in_RT)
         
-        self.bin_MML_window_check = makeCheckbox(panel, u"Enable MS linearization when loading Manual aIM-MS datasets")
+        self.bin_MML_window_check = makeCheckbox(panel, "Enable MS linearization when loading Manual aIM-MS datasets")
         self.bin_MML_window_check.SetValue(self.config.ms_enable_in_MML_start)
         self.bin_MML_window_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         __bin_MML_window_tip = makeSuperTip(self.bin_MML_window_check, **self.help.bin_MS_when_loading_MML)
         
-        linearizationMode_label = wx.StaticText(panel, wx.ID_ANY, u"Linearization mode:")
+        linearizationMode_label = wx.StaticText(panel, wx.ID_ANY, "Linearization mode:")
         self.bin_linearizationMode_choice = wx.Choice(panel, -1, choices=self.config.ms_linearization_mode_choices,
                                           size=(-1, -1))
         self.bin_linearizationMode_choice.SetStringSelection(self.config.ms_linearization_mode)
         self.bin_linearizationMode_choice.Bind(wx.EVT_CHOICE, self.onApply)
 
-        bin_ms_min_label = wx.StaticText(panel, wx.ID_ANY, u"m/z start:")
+        bin_ms_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
         self.bin_mzStart_value = wx.TextCtrl(panel, -1, "", size=(65, -1),
                                           validator=validator('floatPos'))
         self.bin_mzStart_value.SetValue(str(self.config.ms_mzStart))
         self.bin_mzStart_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        bin_ms_max_label = wx.StaticText(panel, wx.ID_ANY, u"end:")
+        bin_ms_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
         self.bin_mzEnd_value = wx.TextCtrl(panel, -1, "", size=(65, -1),
                                           validator=validator('floatPos'))
         self.bin_mzEnd_value.SetValue(str(self.config.ms_mzEnd))
         self.bin_mzEnd_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        self.bin_autoRange_check = makeCheckbox(panel, u"Automatic range")
+        self.bin_autoRange_check = makeCheckbox(panel, "Automatic range")
         self.bin_autoRange_check.SetValue(self.config.ms_auto_range)
         self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
 #         self.bin_autoRange_check = makeSuperTip(self.bin_MML_window_check, **self.help.bin_MS_when_loading_MML)
 
-        bin_ms_binsize_label = wx.StaticText(panel, wx.ID_ANY, u"m/z bin size:")
+        bin_ms_binsize_label = wx.StaticText(panel, wx.ID_ANY, "m/z bin size:")
         self.bin_mzBinSize_value = wx.TextCtrl(panel, -1, "", size=(65, -1),
                                           validator=validator('floatPos'))
         self.bin_mzBinSize_value.SetValue(str(self.config.ms_mzBinSize))
@@ -1116,38 +1116,38 @@ class panelProcessData(wx.MiniFrame):
         process_staticBox.SetSize((-1,-1))
         process_box_sizer = wx.StaticBoxSizer(process_staticBox, wx.HORIZONTAL)    
         
-        smoothFcn_label = wx.StaticText(panel, wx.ID_ANY, u"Smooth function:")
+        smoothFcn_label = wx.StaticText(panel, wx.ID_ANY, "Smooth function:")
         self.ms_smoothFcn_choice = wx.Choice(panel, -1, choices=self.config.ms_smooth_choices,
                                           size=(-1, -1))
         self.ms_smoothFcn_choice.SetStringSelection(self.config.ms_smooth_mode)
         self.ms_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.onApply)
         self.ms_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.enableDisableBoxes)
         
-        polynomial_label = wx.StaticText(panel, wx.ID_ANY, u"Polynomial:")
+        polynomial_label = wx.StaticText(panel, wx.ID_ANY, "Polynomial:")
         self.ms_polynomial_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.ms_polynomial_value.SetValue(str(self.config.ms_smooth_polynomial))
         self.ms_polynomial_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        window_label = wx.StaticText(panel, wx.ID_ANY, u"Window size:")
+        window_label = wx.StaticText(panel, wx.ID_ANY, "Window size:")
         self.ms_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.ms_window_value.SetValue(str(self.config.ms_smooth_window))
         self.ms_window_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        sigma_label = wx.StaticText(panel, wx.ID_ANY, u"Sigma:")
+        sigma_label = wx.StaticText(panel, wx.ID_ANY, "Sigma:")
         self.ms_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.ms_sigma_value.SetValue(str(self.config.ms_smooth_sigma))
         self.ms_sigma_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        threshold_label = wx.StaticText(panel, wx.ID_ANY, u"Baseline subtraction:")
+        threshold_label = wx.StaticText(panel, wx.ID_ANY, "Baseline subtraction:")
         self.ms_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.ms_threshold_value.SetValue(str(self.config.ms_threshold))
         self.ms_threshold_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        normalize_label = wx.StaticText(panel, wx.ID_ANY, u"Normalize:")
+        normalize_label = wx.StaticText(panel, wx.ID_ANY, "Normalize:")
         self.ms_normalizeTgl = makeToggleBtn(panel, 'Off', wx.RED)
         self.ms_normalizeTgl.SetValue(self.config.ms_normalize)
         self.ms_normalizeTgl.Bind(wx.EVT_TOGGLEBUTTON, self.onApply)
@@ -1178,23 +1178,23 @@ class panelProcessData(wx.MiniFrame):
         steps_staticBox.SetSize((-1,-1))
         steps_box_sizer = wx.StaticBoxSizer(steps_staticBox, wx.HORIZONTAL)
     
-        self.ms_process_crop = makeCheckbox(panel, u"Crop spectrum")
+        self.ms_process_crop = makeCheckbox(panel, "Crop spectrum")
         self.ms_process_crop.SetValue(self.config.ms_process_crop)
         self.ms_process_crop.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.ms_process_linearize = makeCheckbox(panel, u"Linearize spectrum")
+        self.ms_process_linearize = makeCheckbox(panel, "Linearize spectrum")
         self.ms_process_linearize.SetValue(self.config.ms_process_linearize)
         self.ms_process_linearize.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.ms_process_smooth = makeCheckbox(panel, u"Smooth spectrum")
+        self.ms_process_smooth = makeCheckbox(panel, "Smooth spectrum")
         self.ms_process_smooth.SetValue(self.config.ms_process_smooth)
         self.ms_process_smooth.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.ms_process_threshold = makeCheckbox(panel, u"Baseline subtract")
+        self.ms_process_threshold = makeCheckbox(panel, "Baseline subtract")
         self.ms_process_threshold.SetValue(self.config.ms_process_threshold)
         self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.ms_process_normalize = makeCheckbox(panel, u"Normalize")
+        self.ms_process_normalize = makeCheckbox(panel, "Normalize")
         self.ms_process_normalize.SetValue(self.config.ms_process_normalize)
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.onApply)
             
@@ -1296,38 +1296,38 @@ class panelProcessData(wx.MiniFrame):
     def makePanel_2D(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        smoothFcn_label = wx.StaticText(panel, wx.ID_ANY, u"Smooth function:")
+        smoothFcn_label = wx.StaticText(panel, wx.ID_ANY, "Smooth function:")
         self.plot2D_smoothFcn_choice = wx.Choice(panel, -1, choices=self.config.plot2D_smooth_choices,
                                           size=(-1, -1))
         self.plot2D_smoothFcn_choice.SetStringSelection(self.config.plot2D_smooth_mode)
         self.plot2D_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.onApply)
         self.plot2D_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.enableDisableBoxes)
         
-        polynomial_label = wx.StaticText(panel, wx.ID_ANY, u"Polynomial:")
+        polynomial_label = wx.StaticText(panel, wx.ID_ANY, "Polynomial:")
         self.plot2D_polynomial_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.plot2D_polynomial_value.SetValue(str(self.config.plot2D_smooth_polynomial))
         self.plot2D_polynomial_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        window_label = wx.StaticText(panel, wx.ID_ANY, u"Window size:")
+        window_label = wx.StaticText(panel, wx.ID_ANY, "Window size:")
         self.plot2D_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
         self.plot2D_window_value.SetValue(str(self.config.plot2D_smooth_window))
         self.plot2D_window_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        sigma_label = wx.StaticText(panel, wx.ID_ANY, u"Sigma:")
+        sigma_label = wx.StaticText(panel, wx.ID_ANY, "Sigma:")
         self.plot2D_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                               validator=validator('floatPos'))
         self.plot2D_sigma_value.SetValue(str(self.config.plot2D_smooth_sigma))
         self.plot2D_sigma_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        threshold_label = wx.StaticText(panel, wx.ID_ANY, u"Threshold:")
+        threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.plot2D_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('floatPos'))
         self.plot2D_threshold_value.SetValue(str(self.config.plot2D_threshold))
         self.plot2D_threshold_value.Bind(wx.EVT_TEXT, self.onApply)
         
-        normalize_label = wx.StaticText(panel, wx.ID_ANY, u"Normalize:")
+        normalize_label = wx.StaticText(panel, wx.ID_ANY, "Normalize:")
         self.plot2D_normalizeTgl = makeToggleBtn(panel, 'Off', wx.RED)
         self.plot2D_normalizeTgl.SetValue(self.config.plot2D_normalize)
         self.plot2D_normalizeTgl.Bind(wx.EVT_TOGGLEBUTTON, self.onApply)
@@ -1393,13 +1393,13 @@ class panelProcessData(wx.MiniFrame):
         extractData_sep_label = wx.StaticText(panel, -1, "Extract data")
         extractData_sep_label.SetFont(BOLD_STYLE)
         
-        self.mz_label = wx.StaticText(panel, wx.ID_ANY, u"m/z (Da):")
-        self.rt_label = wx.StaticText(panel, wx.ID_ANY, u"RT (min): ")
-        self.dt_label = wx.StaticText(panel, wx.ID_ANY, u"DT (bins):")
-        start_label = wx.StaticText(panel, wx.ID_ANY, u"Min:")
-        end_label = wx.StaticText(panel, wx.ID_ANY, u"Max:")
-        pusherFreq_label = wx.StaticText(panel, wx.ID_ANY, u"Pusher frequency:")
-        scanTime_label = wx.StaticText(panel, wx.ID_ANY, u"Scan time:")
+        self.mz_label = wx.StaticText(panel, wx.ID_ANY, "m/z (Da):")
+        self.rt_label = wx.StaticText(panel, wx.ID_ANY, "RT (min): ")
+        self.dt_label = wx.StaticText(panel, wx.ID_ANY, "DT (bins):")
+        start_label = wx.StaticText(panel, wx.ID_ANY, "Min:")
+        end_label = wx.StaticText(panel, wx.ID_ANY, "Max:")
+        pusherFreq_label = wx.StaticText(panel, wx.ID_ANY, "Pusher frequency:")
+        scanTime_label = wx.StaticText(panel, wx.ID_ANY, "Scan time:")
         
         self.extract_mzStart_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                         validator=validator('floatPos')
@@ -1426,7 +1426,7 @@ class panelProcessData(wx.MiniFrame):
         self.extract_rtEnd_value.Bind(wx.EVT_TEXT, self.onApply)
         _extract_rtEnd_value = makeSuperTip(self.extract_rtEnd_value, **self.help.extract_rt)
         
-        self.extract_rt_scans_check = makeCheckbox(panel, u"In scans")
+        self.extract_rt_scans_check = makeCheckbox(panel, "In scans")
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.onChangeValidator)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
@@ -1453,7 +1453,7 @@ class panelProcessData(wx.MiniFrame):
         self.extract_dtEnd_value.Bind(wx.EVT_TEXT, self.onApply)
         _extract_dtEnd_value = makeSuperTip(self.extract_dtEnd_value, **self.help.extract_dt)
         
-        self.extract_dt_ms_check = makeCheckbox(panel, u"In ms")
+        self.extract_dt_ms_check = makeCheckbox(panel, "In ms")
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.onChangeValidator)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
@@ -1470,20 +1470,20 @@ class panelProcessData(wx.MiniFrame):
         ms_staticBox.SetSize((-1,-1))
         ms_box_sizer = wx.StaticBoxSizer(ms_staticBox, wx.HORIZONTAL)       
 
-        self.extract_extractMS_check = makeCheckbox(panel, u"Enable")
+        self.extract_extractMS_check = makeCheckbox(panel, "Enable")
         self.extract_extractMS_check.SetValue(self.config.extract_massSpectra)
         self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
 
-        self.extract_extractMS_ms_check = makeCheckbox(panel, u"m/z")
+        self.extract_extractMS_ms_check = makeCheckbox(panel, "m/z")
         self.extract_extractMS_ms_check.SetValue(False)
         self.extract_extractMS_ms_check.Bind(wx.EVT_CHECKBOX, self.onApply)
 
-        self.extract_extractMS_rt_check = makeCheckbox(panel, u"RT")
+        self.extract_extractMS_rt_check = makeCheckbox(panel, "RT")
         self.extract_extractMS_rt_check.SetValue(True)
         self.extract_extractMS_rt_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.extract_extractMS_dt_check = makeCheckbox(panel, u"DT")
+        self.extract_extractMS_dt_check = makeCheckbox(panel, "DT")
         self.extract_extractMS_dt_check.SetValue(True)
         self.extract_extractMS_dt_check.Bind(wx.EVT_CHECKBOX, self.onApply)
 
@@ -1491,16 +1491,16 @@ class panelProcessData(wx.MiniFrame):
         rt_staticBox.SetSize((-1,-1))
         rt_box_sizer = wx.StaticBoxSizer(rt_staticBox, wx.HORIZONTAL)
 
-        self.extract_extractRT_check = makeCheckbox(panel, u"Enable")
+        self.extract_extractRT_check = makeCheckbox(panel, "Enable")
         self.extract_extractRT_check.SetValue(self.config.extract_chromatograms)
         self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
 
-        self.extract_extractRT_ms_check = makeCheckbox(panel, u"m/z")
+        self.extract_extractRT_ms_check = makeCheckbox(panel, "m/z")
         self.extract_extractRT_ms_check.SetValue(True)
         self.extract_extractRT_ms_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.extract_extractRT_dt_check = makeCheckbox(panel, u"DT")
+        self.extract_extractRT_dt_check = makeCheckbox(panel, "DT")
         self.extract_extractRT_dt_check.SetValue(True)
         self.extract_extractRT_dt_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
@@ -1508,16 +1508,16 @@ class panelProcessData(wx.MiniFrame):
         dt_staticBox.SetSize((-1,-1))
         dt_box_sizer = wx.StaticBoxSizer(dt_staticBox, wx.HORIZONTAL)
 
-        self.extract_extractDT_check = makeCheckbox(panel, u"Enable")
+        self.extract_extractDT_check = makeCheckbox(panel, "Enable")
         self.extract_extractDT_check.SetValue(self.config.extract_driftTime1D)
         self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
 
-        self.extract_extractDT_ms_check = makeCheckbox(panel, u"m/z")
+        self.extract_extractDT_ms_check = makeCheckbox(panel, "m/z")
         self.extract_extractDT_ms_check.SetValue(True)
         self.extract_extractDT_ms_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.extract_extractDT_rt_check = makeCheckbox(panel, u"RT")
+        self.extract_extractDT_rt_check = makeCheckbox(panel, "RT")
         self.extract_extractDT_rt_check.SetValue(True)
         self.extract_extractDT_rt_check.Bind(wx.EVT_CHECKBOX, self.onApply)
           
@@ -1525,23 +1525,23 @@ class panelProcessData(wx.MiniFrame):
         dt2d_staticBox.SetSize((-1,-1))
         dt2d_box_sizer = wx.StaticBoxSizer(dt2d_staticBox, wx.HORIZONTAL)           
         
-        self.extract_extract2D_check = makeCheckbox(panel, u"Enable")
+        self.extract_extract2D_check = makeCheckbox(panel, "Enable")
         self.extract_extract2D_check.SetValue(self.config.extract_driftTime2D)
         self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
 
-        self.extract_extract2D_ms_check = makeCheckbox(panel, u"m/z")
+        self.extract_extract2D_ms_check = makeCheckbox(panel, "m/z")
         self.extract_extract2D_ms_check.SetValue(True)
         self.extract_extract2D_ms_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         
-        self.extract_extract2D_rt_check = makeCheckbox(panel, u"RT")
+        self.extract_extract2D_rt_check = makeCheckbox(panel, "RT")
         self.extract_extract2D_rt_check.SetValue(True)
         self.extract_extract2D_rt_check.Bind(wx.EVT_CHECKBOX, self.onApply)
                    
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         
-        add_to_document_label = wx.StaticText(panel, wx.ID_ANY, u"Add data to document:")
-        self.extract_add_to_document = makeCheckbox(panel, u"")
+        add_to_document_label = wx.StaticText(panel, wx.ID_ANY, "Add data to document:")
+        self.extract_add_to_document = makeCheckbox(panel, "")
         self.extract_add_to_document.SetValue(False)
         self.extract_add_to_document.Bind(wx.EVT_CHECKBOX, self.onApply)
 
@@ -2495,7 +2495,7 @@ class panelProcessData(wx.MiniFrame):
                     'H-': -1.007276, 'Cl-':34.969402}
         
         min_mz, max_mz =  np.min(msX), np.max(msX) #np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(self.config.unidec_engine.data.data2[:, 0])
-        charges = np.array(map(int, np.arange(chargeList[0,0], chargeList[-1,0] + 1)))
+        charges = np.array(list(map(int, np.arange(chargeList[0,0], chargeList[-1,0] + 1))))
         peakpos = (float(selectedMW) + (charges * _adducts[adductIon])) / charges
 
         ignore = (peakpos > min_mz) & (peakpos < max_mz)
@@ -2512,7 +2512,7 @@ class panelProcessData(wx.MiniFrame):
         _adducts = {'H+':1.007276467, 'Na+':22.989218, 'K+':38.963158, 'NH4+':18.033823,
                     'H-': -1.007276, 'Cl-':34.969402}
         min_mz, max_mz = np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(self.config.unidec_engine.data.data2[:, 0])
-        charges = np.array(map(int, np.arange(chargeList[0,0], chargeList[-1,0] + 1)))
+        charges = np.array(list(map(int, np.arange(chargeList[0,0], chargeList[-1,0] + 1))))
         peakpos = (float(selectedMW) + charges * _adducts[adductIon]) / charges
 
         ignore = (peakpos > min_mz) & (peakpos < max_mz)
@@ -2544,7 +2544,7 @@ class panelProcessData(wx.MiniFrame):
         ---
         @param update_what (str): select what you would like to update
         """
-        print("??", self.config.ms_mzStart, self.config.ms_mzEnd, self.config)
+        print(("??", self.config.ms_mzStart, self.config.ms_mzEnd, self.config))
         if update_what in ["all", "mass_spectra"]:
             self.bin_mzStart_value.SetValue(str(self.config.ms_mzStart))
             self.bin_mzEnd_value.SetValue(str(self.config.ms_mzEnd))
