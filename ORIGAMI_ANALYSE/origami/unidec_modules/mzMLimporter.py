@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pymzml import run as pymzml_run
 
-import unidectools as ud
+import unidec_modules.unidectools as ud
 
 from copy import deepcopy
 
 __author__ = 'Michael.Marty'
+
 
 def get_resolution(testdata):
     """
@@ -35,8 +36,10 @@ def get_resolution(testdata):
     # return popt2
     return np.median(resolutions)
 
+
 def fit_line(x, a, b):
-    return a*x**b
+    return a * x ** b
+
 
 def merge_spectra(datalist):
     """
@@ -60,6 +63,7 @@ def merge_spectra(datalist):
             # newdat=ud.lintegrate(d,axis)
             template[:, 1] += newdat[:, 1]
     return template
+
 
 def nonlinear_axis(start, end, res):
     """
@@ -104,8 +108,8 @@ class mzMLimporter:
                 self.data.append(impdat)
                 self.times.append(float(spectrum['scan start time']))
                 self.scans.append(i)
-        self.times=np.array(self.times)
-        self.scans=np.array(self.scans)
+        self.times = np.array(self.times)
+        self.scans = np.array(self.scans)
         self.data = np.array(self.data)
 
     def get_data(self, scan_range=None, time_range=None):
@@ -115,7 +119,7 @@ class mzMLimporter:
         """
         data = deepcopy(self.data)
         if time_range is not None:
-            scan_range=self.get_scans_from_times(time_range)
+            scan_range = self.get_scans_from_times(time_range)
             print("Getting times:", time_range)
 
         if scan_range is not None:
@@ -136,9 +140,9 @@ class mzMLimporter:
             data = data[0]
         else:
             data = data
-        #plt.figure()
-        #plt.plot(data)
-        #plt.show()
+        # plt.figure()
+        # plt.plot(data)
+        # plt.show()
         return data
 
     def get_tic(self):
@@ -155,7 +159,7 @@ class mzMLimporter:
             max = -1
         return [min, max]
 
-    def get_times_from_scans(self,scan_range):
+    def get_times_from_scans(self, scan_range):
         boo1 = self.scans >= scan_range[0]
         boo2 = self.scans < scan_range[1]
         boo3 = np.logical_and(boo1, boo2)
@@ -177,6 +181,4 @@ class mzMLimporter:
 if __name__ == "__main__":
     test = "Z:\Group Share\Scott\\test.mzML"
     d = mzMLimporter(test).get_data()
-    #print d.get_times_from_scans([15, 30])
-
-
+    # print d.get_times_from_scans([15, 30])

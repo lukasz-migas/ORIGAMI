@@ -4,9 +4,9 @@
 #    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
 #
-#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#	 Cite : 10.1016/j.ijms.2017.08.014
+# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+# 	 Cite : 10.1016/j.ijms.2017.08.014
 #
 #    This program is free software. Feel free to redistribute it and/or
 #    modify it under the condition you cite and credit the authors whenever
@@ -25,7 +25,7 @@ from subprocess import CREATE_NEW_CONSOLE, Popen, call
 import numpy as np
 
 from gui_elements.misc_dialogs import dlgBox
-from io_utils import clean_up
+from readers.io_utils import clean_up
 from processing.spectra import bin_1D, get_linearization_range, linearize
 from toolbox import strictly_increasing
 
@@ -41,9 +41,9 @@ temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
 #     os.makedirs(temp_data_folder)
 
 
-###
+# ##
 # USE DRIFTSCOPE
-###
+# ##
 def rawMassLynx_MS_extract(path, bin_size=10000, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
                            mz_start=0, mz_end=99999, driftscope_path='C:\DriftScope\lib', **kwargs):
     """
@@ -164,11 +164,11 @@ def rawMassLynx_RT_extract(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt
     if kwargs.get("return_data", False):
         if kwargs.get("normalize", False):
             rtY, rtYnorm = rawMassLynx_RT_load(out_path, normalize=True)
-            rtX = np.arange(1, len(rtY)+1)
+            rtX = np.arange(1, len(rtY) + 1)
             return rtX, rtY, rtYnorm
         else:
             rtY = rawMassLynx_RT_load(out_path)
-            rtX = np.arange(1, len(rtY)+1)
+            rtX = np.arange(1, len(rtY) + 1)
             return rtX, rtY
     else:
         return None
@@ -227,11 +227,11 @@ def rawMassLynx_DT_extract(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt
     if kwargs.get("return_data", False):
         if kwargs.get("normalize", False):
             dtY, dtYnorm = rawMassLynx_DT_load(out_path, normalize=True)
-            dtX = np.arange(1, len(dtY)+1)
+            dtX = np.arange(1, len(dtY) + 1)
             return dtX, dtY, dtYnorm
         else:
             dtY = rawMassLynx_DT_load(out_path)
-            dtX = np.arange(1, len(dtY)+1)
+            dtX = np.arange(1, len(dtY) + 1)
             return dtX, dtY
     else:
         return None
@@ -393,9 +393,9 @@ def rawMassLynx_MZDT_load(path=None, inputFile='output.2dDTMZ', normalize=False,
         return imsDataSplit
     # ------------ #
 
-###
+# ##
 # USE C READER
-###
+# ##
 
 
 def rawMassLynx_MS_bin(filename=None, startScan=0, endScan=-1, function=1,
@@ -439,12 +439,12 @@ def rawMassLynx_MS_bin(filename=None, startScan=0, endScan=-1, function=1,
             mzStart = kwargs['mz_min']
             mzEnd = kwargs['mz_max']
 
-        if mzStart == None or mzEnd == None or binsize == None:
+        if mzStart is None or mzEnd is None or binsize is None:
             print('Missing parameters')
             return
         elif kwargs['linearization_mode'] == "Binning":
-            msList = np.arange(mzStart, mzEnd+binsize, binsize)
-            msCentre = msList[:-1]+(binsize/2)
+            msList = np.arange(mzStart, mzEnd + binsize, binsize)
+            msCentre = msList[:-1] + (binsize / 2)
         else:
             msCentre = get_linearization_range(mzStart, mzEnd, binsize, kwargs['linearization_mode'])
 

@@ -5,7 +5,7 @@ import math
 import subprocess
 import time
 from bisect import bisect_left
-from ctypes import *
+# from ctypes import *
 from copy import deepcopy
 import zipfile
 import numpy as np
@@ -15,14 +15,13 @@ from scipy.interpolate import griddata
 from scipy import signal
 from scipy import fftpack
 import matplotlib.cm as cm
-# import mzMLimporter
-from unidec_modules.fitting import *
+from unidec_modules.fitting import stats, ndis, ldis, splitdis, ndis_std, logistic, isolated_peak_fit
+from ctypes import c_double, c_int, byref, cdll
 import unidec_modules.unidecstructure
-import tempfile
 
 try:
-    import data_reader
-except:
+    import unidec_modules.data_reader
+except ImportError:
     print("Could not import data reader: unidectools")
 import fnmatch
 
@@ -69,7 +68,6 @@ try:
     libs = cdll.LoadLibrary(dllpath)
 except (OSError, NameError):
     print("Failed to load libmypfunc, convolutions in nonlinear mode might be slow")
-
 
 # ..........................
 #
@@ -524,7 +522,6 @@ def solve_for_mass(mz1, mz2, adductmass=1.007276467):
     mass = z2 * mz2
     return mass, z2 + 1, z2
 
-
 # ............................
 #
 # File manipulation
@@ -562,7 +559,7 @@ def header_test(path):
 
 def waters_convert(path, config=None):
     if config is None:
-        config = unidecstructure.UniDecConfig()
+        config = unidec_modules.unidecstructure.UniDecConfig()
         config.initialize_system_paths()
         print(config.rawreaderpath)
 
@@ -685,7 +682,6 @@ def mergedata2d(x1, y1, x2, y2, z2):
     newy = np.ravel(y1)
     zout = griddata(np.transpose([oldx, oldy]), np.ravel(z2), (newx, newy), method='linear', fill_value=0)
     return zout
-
 
 # ........................................
 #
@@ -1211,15 +1207,13 @@ def dataprep(datatop, config):
     if linflag == 2:
         try:
             data2 = remove_middle_zeros(data2)
-        except:
+        except Exception:
             pass
-        pass
 
     # Normalization
     data2 = normalize(data2)
 
     return data2
-
 
 # ......................................................
 #
@@ -1501,12 +1495,12 @@ def color_map_array(array, cmap, alpha):
         cmarr.append(make_alpha_cmap(topcm[i], alpha))
     return cmarr, topcm
 
-
 # ..............................................
 #
 # Matching Functions
 #
 # ..................................................
+
 
 def lengths(array):
     top = []
@@ -1618,7 +1612,6 @@ def match(pks, oligomasslist, oligonames, tolerance=None):
         names.append(name)
     matchlist = [peaks, matches, errors, names]
     return matchlist
-
 
 # ...........................................................
 #
