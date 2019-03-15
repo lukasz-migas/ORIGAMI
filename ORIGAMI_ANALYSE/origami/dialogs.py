@@ -26,8 +26,7 @@ import webbrowser
 import wx
 import wx.html
 import wx.lib.mixins.listctrl as listmix
-from numpy import arange, transpose, argmax, min
-from numpy import sum as npsum
+import numpy as np
 
 import plots
 from help_documentation import OrigamiHelp
@@ -459,7 +458,7 @@ class panelCalibrantDB(wx.MiniFrame):
     def __init__(self, parent, presenter, config, mode):
         wx.MiniFrame.__init__(self, parent, -1, 'Select protein...', size=(-1, -1),
                               style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER |
-                              wx.RESIZE_BOX | wx.MAXIMIZE_BOX)
+                               wx.MAXIMIZE_BOX)
 
         self.parent = parent
         self.presenter = presenter
@@ -995,7 +994,7 @@ class panelExportSettings(wx.MiniFrame):
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
         wx.MiniFrame.__init__(self, parent, -1, 'Import/Export parameters', size=(-1, -1),
-                              style=(wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BOX |
+                              style=(wx.DEFAULT_FRAME_STYLE |
                                       wx.MAXIMIZE_BOX | wx.CLOSE_BOX))
 
         self.parent = parent
@@ -1235,7 +1234,7 @@ class panelHTMLViewer(wx.MiniFrame):
 
     def __init__(self, parent, config, msg=None, title=None, **kwargs):
         wx.MiniFrame.__init__(self, parent, -1, 'HTML viewer', size=(-1, -1),
-                              style=(wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BOX |
+                              style=(wx.DEFAULT_FRAME_STYLE |
                                       wx.MAXIMIZE_BOX | wx.CLOSE_BOX))
 
         self.parent = parent
@@ -1308,7 +1307,7 @@ class panelPeakWidthTool(wx.MiniFrame):
     def __init__(self, parent, presenter, config, **kwargs):
         wx.MiniFrame.__init__(self, parent, -1, 'UniDec peak width tool...', size=(600, 500),
                               style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.config = config
@@ -1424,7 +1423,7 @@ class panelPeakWidthTool(wx.MiniFrame):
 
     def on_crop_data(self):
         xlimits = self.plotMS.plotMS.get_xlim()
-        ms_spectrum = transpose([self.kwargs['xvals'], self.kwargs['yvals']])
+        ms_spectrum = np.transpose([self.kwargs['xvals'], self.kwargs['yvals']])
         ms_narrow = getNarrow1Ddata(data=ms_spectrum, mzRange=xlimits)
         return ms_narrow, xlimits
 
@@ -1439,8 +1438,8 @@ class panelPeakWidthTool(wx.MiniFrame):
 
         fitout = fitout[:, 0]
         width = fitout[0]
-        resolution = ms_narrow[argmax(ms_narrow[:, 1]), 0] / fitout[0]
-        error = npsum((fit_yvals - ms_narrow[:, 1]) * (fit_yvals - ms_narrow[:, 1]))
+        resolution = ms_narrow[np.argmax(ms_narrow[:, 1]), 0] / fitout[0]
+        error = np.sum((fit_yvals - ms_narrow[:, 1]) * (fit_yvals - ms_narrow[:, 1]))
 
         # setup labels
         self.unidec_resolution.SetLabel("{:.4f}".format(resolution))
@@ -1493,7 +1492,7 @@ class panelNotifyNewVersion(wx.Dialog):
     def __init__(self, parent, presenter, message, **kwargs):
         wx.Dialog.__init__(self, parent, -1, 'New version of ORIGAMI is available!', size=(-1, -1),
                               style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+                              (wx.Rwx.RESIZE_BOX | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.presenter = presenter

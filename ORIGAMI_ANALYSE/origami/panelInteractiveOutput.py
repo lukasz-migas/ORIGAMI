@@ -80,13 +80,14 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UnicodeWarning)
 
+
 class panelInteractiveOutput(wx.MiniFrame):
     """Save data in an interactive format"""
 
     def __init__(self, parent, icons, presenter, config):
         wx.MiniFrame.__init__(self, parent, -1, "Export plots in interactive format...",
                               style=(wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER |
-                                      wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+                                      wx.MAXIMIZE_BOX))
 
         tstart = time.time()
         self.displaysize = wx.GetDisplaySize()
@@ -181,7 +182,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.on_apply_style, id=ID_interactivePanel_apply_plots)
         self.Bind(wx.EVT_MENU, self.on_apply_style, id=ID_interactivePanel_apply_preprocess)
 
-
         copy_style_menu = wx.Menu()
         copy_style_menu.Append(ID_interactivePanel_copy_plot, 'Copy: X/Y limits')
         copy_style_menu.Append(ID_interactivePanel_copy_figure, 'Copy: Figure parameters (figure size)')
@@ -207,8 +207,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         apply_style_menu.Append(ID_interactivePanel_apply_overlay, 'Paste: Overlay parameters')
         apply_style_menu.Append(ID_interactivePanel_apply_tools, 'Paste: Tools parameters')
         apply_style_menu.Append(ID_interactivePanel_apply_widgets, 'Paste: Widget parameters')
-
-
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_customise_item,
@@ -442,7 +440,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                                        action='updateStatusbar')
             return
 
-
         # get event and decide event trigger
         evtID = evt.GetId()
         if evtID == ID_interactivePanel_apply_batch_all: evt_trg = ID_interactivePanel_apply_all
@@ -581,7 +578,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def onCustomiseItem(self, evt):
         try: name, key, innerKey = self._getItemDetails()
-        except TypeError: 
+        except TypeError:
             print("Please select an item in the table")
             return
         data = self.getItemData(name, key, innerKey)
@@ -665,8 +662,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             unidecMethod = re.split(' \| ', innerKey)[0]
             innerKey = re.split(' \| ', innerKey)[1]
             document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod]['interactive_params'] = parameters
-            
-        if key == "MS/MS" and innerKey == '': 
+
+        if key == "MS/MS" and innerKey == '':
             document.tandem_spectra.update(interactive_params=parameters)
 
         # Update dictionary
@@ -807,7 +804,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.apply_style_btn = wx.BitmapButton(panel, -1, self.icons.iconsLib['idea16'],
                                           size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
         self.apply_style_btn.Bind(wx.EVT_BUTTON, self.on_apply_style_menu)
-        
+
         sort_label = wx.StaticText(panel, -1, "Sort:")
         self.sort_before_saving = wx.CheckBox(panel, -1 , '', (15, 30))
         self.sort_before_saving.SetToolTip(wx.ToolTip("When checked, table will be sorted by the # column before plots are exported."))
@@ -842,7 +839,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         grid.Add(colormap_applyBtn, (1, 10), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.apply_style_btn, (1, 12), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.sort_before_saving, (1, 14), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
-
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(grid, 0, wx.ALL, 2)
@@ -902,7 +898,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.addWatermarkCheck = makeCheckbox(panel, "Add watermark")
         self.addWatermarkCheck.SetValue(True)
         self.addWatermarkCheck.SetToolTip(wx.ToolTip("When checked, a watermark message will be displayed on each tab in the document. Only a little bit of advertising..."))
-
 
         btnGrid = wx.GridBagSizer(1, 1)
         btnGrid.Add(openHTMLWebBtn, (0, 0), flag=wx.ALIGN_CENTER | wx.ALIGN_CENTER_HORIZONTAL)
@@ -1020,7 +1015,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.grid_width_value.SetToolTip(wx.ToolTip("Grid only. Width of individual plots"))
         self.grid_width_value.Bind(wx.EVT_TEXT, self.onSelectPageProperties)
 
-
         min_size_text = 525
         itemName_label = wx.StaticText(panel, -1, "Title:", style=RICH_TEXT)
         self.pageTitle_value = wx.TextCtrl(panel, -1, "", size=(-1, -1))
@@ -1071,7 +1065,6 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(html_box_sizer, 0, wx.EXPAND, 0)
-
 
         mainSizer.Fit(panel)
         panel.SetSizer(mainSizer)
@@ -1153,7 +1146,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.order_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
         self.order_value.Bind(wx.EVT_TEXT, self.onAnnotateItems)
 
-
         general_grid = wx.GridBagSizer(2, 2)
         y = 0
         general_grid.Add(page_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -1169,7 +1161,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainSizer.Fit(panel)
         panel.SetSizer(mainSizer)
         panel.SetBackgroundColour((240, 240, 240))
-        
+
         return panel
 
     def onCheckTool(self, evt):
@@ -1220,7 +1212,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.SetFocus()
 
     def makePropertiesView(self, panel):
-        
+
         fontSizer = self.makeFontSubPanel(panel)
         plot1Dsizer = self.make1DplotSubPanel(panel)
         overlaySizer = self.makeOverLaySubPanel(panel)
@@ -1245,9 +1237,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         sizer_2.Add(rmsdSizer, 0, wx.EXPAND, 0)
         sizer_2.Add(colorbarSizer, 0, wx.EXPAND, 0)
         sizer_2.Add(legendSettingsSizer, 0, wx.EXPAND, 0)
-        
-        sizer_2.Add(customJSSizer, 0, wx.EXPAND, 0)
 
+        sizer_2.Add(customJSSizer, 0, wx.EXPAND, 0)
 
         # pack elements
         viewSizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1286,12 +1277,10 @@ class panelInteractiveOutput(wx.MiniFrame):
                                              value=str(self.config.interactive_tick_fontSize), min=8, max=32,
                                              initial=self.config.interactive_tick_fontSize, inc=1, size=(50, -1))
 
-
         precision_label = makeStaticText(panel, "Tick precision")
         self.tickPrecision = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                    value=str(self.config.interactive_tick_precision), min=0, max=5,
                                                    initial=self.config.interactive_tick_precision, inc=1, size=(50, -1))
-
 
         self.tickUseScientific = wx.CheckBox(panel, -1 , 'Scientific\nnotation', (15, 30))
         self.tickUseScientific.SetValue(self.config.interactive_tick_useScientific)
@@ -1479,8 +1468,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.rmsd_label_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                          value=str(self.config.interactive_annotation_alpha), min=0, max=1,
                                                          initial=self.config.interactive_annotation_alpha, inc=0.1, size=(50, -1))
-
-
 
         self.titleSlider.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         self.titleBoldCheck.Bind(wx.EVT_CHECKBOX, self.onApply)
@@ -1673,7 +1660,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         gridFigure.Add(lineStyle_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.line_style, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.hoverVlineCheck, (n, 2), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-
 
         figSizer.Add(gridFigure, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
@@ -1887,7 +1873,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.annot_fontColor_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_ms_annotations_label_color))
         self.annot_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorAnnotLabelInteractive)
 
-
         gridAnnot = wx.GridBagSizer(2, 2)
         y = 0
         gridAnnot.Add(self.annot_peakLabel, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
@@ -1966,7 +1951,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                                                    initial=self.config.interactive_colorbar_width, inc=5, size=(50, -1))
         self.colorbarWidth.SetToolTip(wx.ToolTip(""))
 
-
         # bind
         self.interactive_colorbar_precision.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         self.interactive_colorbar_useScientific.Bind(wx.EVT_CHECKBOX, self.onApply)
@@ -2006,11 +1990,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def makeLegendSubPanel(self, panel):
-        mainBox = makeStaticBox(panel, "Legend properties", (210,-1), wx.BLACK)
+        mainBox = makeStaticBox(panel, "Legend properties", (210, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         legend_label = makeStaticText(panel, "Legend:")
-        self.legend_legend = wx.CheckBox(panel, -1 ,'', (15, 30))
+        self.legend_legend = wx.CheckBox(panel, -1 , '', (15, 30))
         self.legend_legend.SetValue(self.config.interactive_legend)
         self.legend_legend.Bind(wx.EVT_CHECKBOX, self.onApply)
 
@@ -2028,14 +2012,14 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         legendAlpha_label = makeStaticText(panel, "Legend transparency")
         self.legend_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                     value=str(self.config.interactive_legend_background_alpha),min=0, max=1,
-                                                     initial=self.config.interactive_legend_background_alpha, inc=0.1, size=(50,-1))
+                                                     value=str(self.config.interactive_legend_background_alpha), min=0, max=1,
+                                                     initial=self.config.interactive_legend_background_alpha, inc=0.1, size=(50, -1))
         self.legend_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
         fontSize_label = makeStaticText(panel, "Font size")
         self.legend_fontSize = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                 value=str(self.config.interactive_legend_font_size),min=0, max=32,
-                                                 initial=self.config.interactive_legend_font_size, inc=2, size=(50,-1))
+                                                 value=str(self.config.interactive_legend_font_size), min=0, max=32,
+                                                 initial=self.config.interactive_legend_font_size, inc=2, size=(50, -1))
         self.legend_fontSize.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
         action_label = makeStaticText(panel, "Action")
@@ -2047,35 +2031,34 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         muteAlpha_label = makeStaticText(panel, "Line transparency")
         self.legend_mute_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                   value=str(self.config.interactive_legend_mute_alpha),min=0, max=1,
-                                                   initial=self.config.interactive_legend_mute_alpha, inc=0.1, size=(50,-1))
+                                                   value=str(self.config.interactive_legend_mute_alpha), min=0, max=1,
+                                                   initial=self.config.interactive_legend_mute_alpha, inc=0.1, size=(50, -1))
         self.legend_mute_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
-
-        gridFigure = wx.GridBagSizer(2,2)
+        gridFigure = wx.GridBagSizer(2, 2)
         n = 0
-        gridFigure.Add(legend_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_legend, (n,1), flag=wx.EXPAND)
+        gridFigure.Add(legend_label, (n, 0), flag=wx.ALIGN_LEFT)
+        gridFigure.Add(self.legend_legend, (n, 1), flag=wx.EXPAND)
         n = n + 1
-        gridFigure.Add(position_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_position, (n,1), flag=wx.EXPAND)
+        gridFigure.Add(position_label, (n, 0), flag=wx.ALIGN_LEFT)
+        gridFigure.Add(self.legend_position, (n, 1), flag=wx.EXPAND)
         n = n + 1
-        gridFigure.Add(orientation_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_orientation, (n,1), flag=wx.EXPAND)
+        gridFigure.Add(orientation_label, (n, 0), flag=wx.ALIGN_LEFT)
+        gridFigure.Add(self.legend_orientation, (n, 1), flag=wx.EXPAND)
         n = n + 1
-        gridFigure.Add(fontSize_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_fontSize, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(fontSize_label, (n, 0), flag=wx.ALIGN_LEFT)
+        gridFigure.Add(self.legend_fontSize, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
-        gridFigure.Add(legendAlpha_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_transparency, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(legendAlpha_label, (n, 0), flag=wx.ALIGN_LEFT)
+        gridFigure.Add(self.legend_transparency, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
-        gridFigure.Add(action_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_click_policy, (n,1), flag=wx.EXPAND)
+        gridFigure.Add(action_label, (n, 0), flag=wx.ALIGN_LEFT)
+        gridFigure.Add(self.legend_click_policy, (n, 1), flag=wx.EXPAND)
         n = n + 1
-        gridFigure.Add(muteAlpha_label, (n,0), flag=wx.ALIGN_LEFT)
-        gridFigure.Add(self.legend_mute_transparency, (n,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(muteAlpha_label, (n, 0), flag=wx.ALIGN_LEFT)
+        gridFigure.Add(self.legend_mute_transparency, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
-        figSizer.Add(gridFigure, 0, wx.ALIGN_CENTER|wx.ALL, 5)
+        figSizer.Add(gridFigure, 0, wx.ALIGN_CENTER | wx.ALL, 5)
         return figSizer
 
     def onColumnRightClickMenu(self, evt):
@@ -2093,7 +2076,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_method)
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_hideAll)
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_restoreAll)
-
 
         menu = wx.Menu()
         n = 1
@@ -2227,7 +2209,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def onClearPages(self, evt):
 
         dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
-                             exceptionMsg= "Are you sure you want to remove all pages?\nThis action is irreversible!",
+                             exceptionMsg="Are you sure you want to remove all pages?\nThis action is irreversible!",
                              type="Question")
         if dlg == wx.ID_NO:
             self.presenter.onThreading(evt, ("Cancelled operation", 4, 3), action='updateStatusbar')
@@ -2328,7 +2310,6 @@ class panelInteractiveOutput(wx.MiniFrame):
 
 #         self.onSetupTools(preset=toolName, evt=None)
 
-
 #         if evt != None:
 #             evt.Skip()
 
@@ -2352,7 +2333,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         plot_width = str(self.config.pageDict[selectedItem].get('grid_plot_width', 400))
         plot_height = str(self.config.pageDict[selectedItem].get('grid_plot_height', 500))
         addCustomJSWidgets = self.config.pageDict[selectedItem].get('add_js_widgets', False)
-
 
         self.layoutDoc_combo.SetStringSelection(self.config.pageDict[selectedItem].get('layout', 'Individual'))
         self.columns_value.SetValue(colValue)
@@ -2638,7 +2618,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset":"MS", "color":(116, 185, 255)}
                         self.append_to_table(data, key, "", "Processed MS", **kwargs)
 
-
                     if 'unidec' in docData.smoothMS:
                         for innerKey in docData.smoothMS['unidec']:
                             if innerKey in ['Charge information']: continue
@@ -2703,7 +2682,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset":"1D", "color":(255, 118, 117)}
                         self.append_to_table(data, key, innerKey, "1D, multiple", **kwargs)
 
-
                 if docData.gotExtractedDriftTimes == True:
                     for innerKey in docData.IMS1DdriftTimes:
                         if docData.dataType == 'Type: MANUAL': tableKey = '1D'
@@ -2754,7 +2732,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         data = docData.other_data[innerKey]
                         kwargs = {"color":(215, 224, 184)}
                         self.append_to_table(data, key, innerKey, "Annotated data", **kwargs)
-                        
+
                 # Tandem dat a
                 if len(docData.tandem_spectra) > 0:
                     data = docData.tandem_spectra
@@ -2862,7 +2840,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         document = self.documentsDict[name]
         docData = self.getItemData(name, key, innerKey)
 
-
         # build information
         if key in ['MS', 'Processed MS', 'RT', 'RT, multiple', '1D', '1D, multiple',
                    'MS, multiple', 'RT, combined']:
@@ -2884,7 +2861,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             else:
                 try: information = "Annotations: {}".format(len(docData["annotations"]))
                 except: information = ""
-                
+
         if "annotated_item_list" in docData:
             if len(information) > 0:
                 try: information = "{}\nAnnotated mass spectra: {}".format(information, len(docData["annotated_item_list"]))
@@ -2892,7 +2869,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             else:
                 try: information = "Annotated mass spectra: {}".format(len(docData["annotated_item_list"]))
                 except: information = ""
-            
+
         #
 
         # Retrieve information
@@ -2943,7 +2920,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             docData = deepcopy(document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod])
         if key == "Annotated data" and innerKey != "": docData = document.other_data[innerKey]
         if key == "MS/MS" and innerKey == '': docData = document.tandem_spectra
-        
+
         return docData
 
     def on_change_page_for_item(self, evt):
@@ -3016,7 +2993,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                 custom.SetCustomColour(key, self.config.customColors[key])
             dlg = wx.ColourDialog(self, custom)
             dlg.GetColourData().SetChooseFull(True)
-
 
             if dlg.ShowModal() == wx.ID_OK:
                 data = dlg.GetColourData()
@@ -3126,7 +3102,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             unidecMethod = re.split(' \| ', innerKey)[0]
             innerKey = re.split(' \| ', innerKey)[1]
             document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod][keyword] = value
-            
+
         if key == 'MS/MS' and innerKey != '':
             document.document.tandem_spectra[keyword] = value
 
@@ -3222,7 +3198,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         interactive_params = {}
 
         color_label = color
-
 
         # Retrieve and add data to dictionary
         kwargs = {"title":_replace_labels(title), "header":header, "footnote":footnote,
@@ -3327,7 +3302,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'toggle': toggle, 'labels': labels, 'figure':bokehPlot}
                 js_widgets.append(toggle)
                 msg = "{} Annotation on/off toggle |".format(msg)
-    
+
             if "label_size_slider" in js_type and "labels" in kwargs:
                 labels = kwargs["labels"]
                 js_code = '''\
@@ -3342,7 +3317,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'slider': slider, 'labels':labels}
                 js_widgets.append(slider)
                 msg = "{} Annotation font size slider |".format(msg)
-    
+
             if "label_offset_x" in js_type and "labels" in kwargs:
                 labels = kwargs["labels"]
                 js_code = '''\
@@ -3357,7 +3332,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'slider': slider, 'labels':labels}
                 js_widgets.append(slider)
                 msg = "{} Annotation x-axis offset slider |".format(msg)
-    
+
             if "label_offset_y" in js_type and "labels" in kwargs:
                 labels = kwargs["labels"]
                 js_code = '''\
@@ -3372,7 +3347,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'slider': slider, 'labels':labels}
                 js_widgets.append(slider)
                 msg = "{} Annotation y-axis offset slider |".format(msg)
-    
+
             if "label_rotation" in js_type and "labels" in kwargs:
                 labels = kwargs["labels"]
                 js_code = '''\
@@ -3388,7 +3363,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'slider': slider, 'labels':labels}
                 js_widgets.append(slider)
                 msg = "{} Annotation rotation slider |".format(msg)
-    
+
             if "slider_zoom" in js_type and "y_range_x1" in kwargs:
                 js_code = '''\
                 zoom_value  = slider.value;
@@ -3402,7 +3377,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'slider': slider, 'figure':bokehPlot}
                 js_widgets.append(slider)
                 msg = "{} Y-axis range slider |".format(msg)
-    
+
             if "hover_mode" in js_type and "hover" in kwargs:
                 hover = kwargs["hover"]
                 js_code = '''\
@@ -3426,7 +3401,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'radio': group, 'hover':hover}
                 js_widgets.append(group)
                 msg = "{} Hovertool mode toggle |".format(msg)
-    
+
             if "legend_toggle" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
@@ -3450,7 +3425,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'toggle': toggle, 'legend': legend, 'figure':bokehPlot}
                 js_widgets.append(toggle)
                 msg = "{} Legend on/off toggle |".format(msg)
-    
+
             if "legend_toggle_multi" in js_type and "legends" in kwargs:
                 legends = kwargs["legends"]
                 figures = kwargs["figures"]
@@ -3480,8 +3455,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'toggle': toggle, 'legends': legends, 'figures':figures}
                 js_widgets.append(toggle)
                 msg = "{} Legend on/off toggle |".format(msg)
-    
-    
+
             if "legend_position" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
@@ -3496,11 +3470,11 @@ class panelInteractiveOutput(wx.MiniFrame):
                         ("Bottom left", "bottom_left"), ("Bottom right", "bottom_right")]
                 dropdown = Dropdown(menu=menu, callback=callback, label="Legend position",
                                     width=widget_width)
-    
+
                 callback.args = {'dropdown': dropdown, 'legend':legend, 'figure':bokehPlot}
                 js_widgets.append(dropdown)
                 msg = "{} Legend position dropdown |".format(msg)
-    
+
             if "legend_orientation" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
@@ -3520,7 +3494,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                     active_mode = 0
                 else:
                     active_mode = 1
-    
+
                 group = RadioButtonGroup(labels=["      Legend: vertical      ",
                                                  "     Legend: horizontal    "],
                                          active=active_mode, callback=callback,
@@ -3528,7 +3502,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'radio': group, 'legend':legend, 'figure':bokehPlot}
                 js_widgets.append(group)
                 msg = "{} Legend orientation toggle |".format(msg)
-    
+
             if "legend_transparency" in js_type and "legend" in kwargs:
                 legend = kwargs["legend"]
                 js_code = '''\
@@ -3546,7 +3520,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'slider': slider, 'legend':legend, 'figure':bokehPlot}
                 js_widgets.append(slider)
                 msg = "{} Legend transparency slider |".format(msg)
-    
+
             if "legend_transparency_multi" in js_type and "legends" in kwargs:
                 legends = kwargs["legends"]
                 figures = kwargs["figures"]
@@ -3568,7 +3542,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'slider': slider, 'legends':legends, 'figures':figures}
                 js_widgets.append(slider)
                 msg = "{} Legend transparency slider |".format(msg)
-    
+
             if "colorblind_safe_1D" in js_type and "lines" in kwargs:
                 lines = kwargs["lines"]
                 patches = kwargs.get("patches", [])
@@ -3613,7 +3587,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                                  'cvd_colors':cvd_colors, 'original_colors':original_colors}
                 js_widgets.append(toggle)
                 msg = "{} Colorblind toggle |".format(msg)
-    
+
             if "colorblind_safe_1D_multi" in js_type and "lines" in kwargs:
                 lines = kwargs["lines"]
                 patches = kwargs.get("patches", [])
@@ -3652,7 +3626,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                                  'cvd_colors':cvd_colors, 'original_colors':original_colors}
                 js_widgets.append(toggle)
                 msg = "{} Colorblind toggle |".format(msg)
-    
+
             if "colorblind_safe_scatter" in js_type and "scatters" in kwargs:
                 scatters = kwargs["scatters"]
                 cvd_colors = kwargs['cvd_colors']
@@ -3680,7 +3654,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                                  'cvd_colors':cvd_colors, 'fill_colors':fill_colors, 'edge_colors':edge_colors}
                 js_widgets.append(toggle)
                 msg = "{} Colorblind toggle |".format(msg)
-    
+
             if "colorblind_safe_2D" in js_type and "images" in kwargs:
                 images = kwargs["images"]
                 colorbars = kwargs.get("colorbars", None)
@@ -3726,7 +3700,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                                  'colorbars':colorbars, 'cvd_colors':cvd_colors, 'original_colors':original_colors}
                 js_widgets.append(toggle)
                 msg = "{} Colorblind toggle |".format(msg)
-    
+
             if "colormap_change" in js_type and "images" in kwargs:
                 images = kwargs["images"]
                 colorbars = kwargs.get("colorbars", [])
@@ -3748,12 +3722,12 @@ class panelInteractiveOutput(wx.MiniFrame):
                         ("{}".format(colormap_names[2]), "2"), ("{}".format(colormap_names[3]), "3")]
                 dropdown = Dropdown(menu=menu, callback=callback, label="Colormap selection",
                                     width=widget_width)
-    
+
                 callback.args = {'dropdown': dropdown, 'colormaps':colormaps,
                                  'figure':bokehPlot, 'images': images, 'colorbars':colorbars}
                 js_widgets.append(dropdown)
                 msg = "{} Colormap dropdown |".format(msg)
-    
+
             if "scatter_size" in js_type and "scatters" in kwargs:
                 scatters = kwargs['scatters']
                 js_code = '''\
@@ -3770,7 +3744,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'slider': slider, 'scatters':scatters, 'figure':bokehPlot}
                 js_widgets.append(slider)
                 msg = "{} Scatter size slider |".format(msg)
-    
+
             if "scatter_transparency" in js_type and "scatters" in kwargs:
                 scatters = kwargs['scatters']
                 js_code = '''\
@@ -3788,7 +3762,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 callback.args = {'slider': slider, 'scatters':scatters, 'figure':bokehPlot}
                 js_widgets.append(slider)
                 msg = "{} Scatter size slider |".format(msg)
-    
+
             if "plot_size" in js_type:
                 js_code = '''\
                 width = slider_width.value;
@@ -3809,8 +3783,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 js_widgets.append(slider_width)
                 js_widgets.append(slider_height)
                 msg = "{} Plot size sliders |".format(msg)
-    
-            
+
             # add controls to the plot at specified position
             if position == "right":
                 bokehPlot = row(bokehPlot, widgetbox(js_widgets))
@@ -3824,9 +3797,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 bokehPlot = bokeh_layout([bokehPlot, js_widgets])
             elif position == "bottom_column":
                 bokehPlot = bokeh_layout([bokehPlot, widgetbox(js_widgets)])
-                
-            
-                
+
             msg = "{}. It took {:.3f} seconds".format(msg[:-2], (time.time() - tstart))
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
         except Exception as e:
@@ -3842,7 +3813,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                   "ORIGAMI directory: {}".format(self.config.cwd)
 
             dialogs.dlgBox(exceptionTitle='No JavaScript available',
-                           exceptionMsg= msg,
+                           exceptionMsg=msg,
                            type="Error")
             self.config.interactive_custom_scripts = False
             self.custom_js_scripts.SetValue(False)
@@ -3870,7 +3841,6 @@ class panelInteractiveOutput(wx.MiniFrame):
 #             """
 #             bokehPlot.js_on_event(events.PanStart, CustomJS.from_coffeescript(code=js_code, args={"figure":bokehPlot,
 #                                                                                                   "hover":hover}))
-
 
             if "double_tap_unzoom" in js_type:
                 # TODO: add support to programatically disable hover tool
@@ -3917,10 +3887,10 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def _prepare_annotations(self, data, yvals=None, y_offset=0, ylimits=None):
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         if yvals is not None:
             __, ylimits = find_limits_all(yvals, yvals)
-        
+
         annot_xmin_list, annot_xmax_list, annot_ymin_list, annot_ymax_list, color_list = [], [], [], [], []
         text_annot_xpos, text_annot_ypos, text_annot_label, text_annot_color = [], [], [], []
         arrow_xpos_start, arrow_xpos_end, arrow_ypos_start, arrow_ypos_end = [], [], [], []
@@ -3930,7 +3900,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         # get color
         label_use_preset_color = user_kwargs["annotation_properties"].get("label_use_preset_color", True)
         label_color = convertRGB1toHEX(user_kwargs["annotation_properties"].get("label_color", self.config.interactive_ms_annotations_line_color))
-                                          
+
         # add annotations iteratively
         for i, annotKey in enumerate(data['annotations']):
             # add patches
@@ -3951,24 +3921,22 @@ class panelInteractiveOutput(wx.MiniFrame):
                     mz_value = data['annotations'][annotKey]['isotopic_x']
                 else:
                     mz_value = data['annotations'][annotKey]["max"] - (data['annotations'][annotKey]["max"] - data['annotations'][annotKey]["min"]) / 2.
-                    
+
                 if 'isotopic_y' in data['annotations'][annotKey]:
                     intensity = data['annotations'][annotKey]['isotopic_y']
                 else:
                     intensity = data['annotations'][annotKey]["intensity"]
-                
+
                 xpos = data['annotations'][annotKey].get('position_label_x', mz_value)
                 ypos = data['annotations'][annotKey].get('position_label_y', intensity)
-                
+
                 text_annot_xpos.append(xpos)
                 text_annot_ypos.append(ypos + y_offset)
-                
+
                 if label_use_preset_color:
                     label_color = convertRGB1toHEX(data['annotations'][annotKey].get("color", user_kwargs[
                         "annotation_properties"].get("label_color", self.config.interactive_ms_annotations_line_color)))
                 text_annot_color.append(label_color)
-                
-                
 
                 # determine position of arrow (if any)
                 if data['annotations'][annotKey].get('add_arrow', False):
@@ -4001,7 +3969,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                     if xpos_start == xpos and ypos_start == ypos: continue
                     text_annot_xpos_start.append(xpos_start)
                     text_annot_ypos_start.append(ypos_start)
-
 
         if user_kwargs["annotation_properties"].get(
             "show_patches", self.config.interactive_ms_annotations_highlight):
@@ -4058,7 +4025,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if hover_vline: hoverMode = 'vline'
         else: hoverMode = 'mouse'
 
-        plt_kwargs = {'hover_mode':hoverMode, 
+        plt_kwargs = {'hover_mode':hoverMode,
                       'line_width':line_width,
                       'line_alpha':line_alpha,
                       'line_style':line_style,
@@ -4199,8 +4166,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                     data.get("interactive_params", {}).get("frame_properties", {}).get(
                         "tick_labels_yaxis_fontsize", self.config.interactive_tick_fontSize))
 
-                
-
             if param in ["legend"]:
                 bokehPlot.legend.location = data.get(
                     "interactive_params", {}).get("legend_properties", {}).get(
@@ -4235,7 +4200,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 bokehPlot.outline_line_color = data.get(
                     "interactive_params", {}).get("frame_properties", {}).get(
                         "outline_color", "#000000")
-                    
+
                 # add borders
                 bokehPlot.min_border_right = data.get(
                     "interactive_params", {}).get("frame_properties", {}).get(
@@ -4265,15 +4230,15 @@ class panelInteractiveOutput(wx.MiniFrame):
         return bokehPlot
 
 #     def _prepare_centroid_annotations(self, data, yvals, y_offset=0):
-#         
+#
 #         __, ylimits = find_limits_all(yvals, yvals)
 #         text_annot_xpos, text_annot_ypos, text_annot_label = [], [], []
 #         arrow_xpos_start, arrow_xpos_end, arrow_ypos_start, arrow_ypos_end = [], [], [], []
 #         text_annot_xpos_start, text_annot_ypos_start = [], []
-# 
+#
 # #         # add annotations iteratively
 # #         for i, annotKey in enumerate(data['annotations']):
-# #             
+# #
 # #             # add labels
 # #             if user_kwargs["annotation_properties"].get(
 # #                 "show_labels", self.config.interactive_ms_annotations_labels):
@@ -4283,19 +4248,19 @@ class panelInteractiveOutput(wx.MiniFrame):
 # #                 else:
 # #                     xpos = data['annotations'][annotKey]["max"] - (data['annotations'][annotKey]["max"] - data['annotations'][annotKey]["min"]) / 2.
 # #                 text_annot_xpos.append(xpos)
-# # 
+# #
 # #                 if 'isotopic_y' in data['annotations'][annotKey]:
 # #                     ypos = data['annotations'][annotKey]['isotopic_y']
 # #                 else:
 # #                     ypos = data['annotations'][annotKey]["intensity"]
 # #                 text_annot_ypos.append(ypos + y_offset)
-# # 
+# #
 # #                 # determine position of arrow (if any)
 # #                 if data['annotations'][annotKey].get('add_arrow', False):
 # #                     xpos_start = data['annotations'][annotKey].get('position_label_x', xpos)
 # #                     ypos_start = data['annotations'][annotKey].get('position_label_y', ypos)
 # #                 else: xpos_start, ypos_start = xpos, ypos
-# # 
+# #
 # #                 # if either xpos or ypos not equal position of the peak then we are not
 # #                 # adding arrow
 # #                 if xpos_start != xpos or ypos_start != ypos:
@@ -4306,14 +4271,14 @@ class panelInteractiveOutput(wx.MiniFrame):
 # #                      # replace x/ypos of the label
 # #                      text_annot_xpos[-1] = xpos_start
 # #                      text_annot_ypos[-1] = ypos_start
-# # 
+# #
 # #                 # label
 # #                 if data['annotations'][annotKey]["label"] not in ["", None]:
 # #                     label = u"{}".format(_replace_labels(data['annotations'][annotKey]["label"]))
 # #                 else:
 # #                     label = u"{}".format(data['annotations'][annotKey]["charge"])
 # #                 text_annot_label.append(label)
-# # 
+# #
 # #                 # check if need to add arrow
 # #                 if data['annotations'][annotKey].get('add_arrow', False):
 # #                     xpos_start = data['annotations'][annotKey].get('position_label_x', xpos)
@@ -4321,14 +4286,14 @@ class panelInteractiveOutput(wx.MiniFrame):
 # #                     if xpos_start == xpos and ypos_start == ypos: continue
 # #                     text_annot_xpos_start.append(xpos_start)
 # #                     text_annot_ypos_start.append(ypos_start)
-# 
+#
 #         if user_kwargs["annotation_properties"].get(
 #             "show_labels", self.config.interactive_ms_annotations_labels):
 #             ylimits[1] = max(text_annot_ypos) * 2
 #             label_source = ColumnDataSource(data=dict(xpos=text_annot_xpos,
 #                                                       ypos=text_annot_ypos,
 #                                                       label=text_annot_label))
-# 
+#
 #         return label_source
 
     def _prepare_centroid_data(self, xvals_raw, xvals_lab, data, color_labelled, color_unlabelled):
@@ -4352,20 +4317,20 @@ class panelInteractiveOutput(wx.MiniFrame):
         """
         # unpack
         xvals_raw = list(xvals_raw)
-        
+
         # get index of labelled items
         match_index = []
         for mz_lab in xvals_lab:
             match_index.append(xvals_raw.index(mz_lab))
-        
+
         # xvals, yvals, labels, colors, details
         mz_list_size = len(xvals_raw)
-        
+
         labels = [""] * mz_list_size
         details = deepcopy(labels)
-        item_colors = [color_unlabelled] *  mz_list_size
-        
-        # iterate over matched index 
+        item_colors = [color_unlabelled] * mz_list_size
+
+        # iterate over matched index
         for i in match_index:
             # value "0" corresponds to the first returned label. Currently ORIGAMI does not
             # support more than one label for one peak
@@ -4377,9 +4342,9 @@ class panelInteractiveOutput(wx.MiniFrame):
                 data[mz_value][0]['delta_mz'])
             details[i] = detail_label
             labels[i] = data[mz_value][0]['full_label']
-            
+
         return item_colors, labels, details
-    
+
     def _prepare_protein_sequence(self, sequence):
         from textwrap import wrap
         seq = wrap(sequence, 80)
@@ -4388,13 +4353,13 @@ class panelInteractiveOutput(wx.MiniFrame):
             seq_n = wrap(seq_n, 10)
             seq_n = " ".join(seq_n)
             if len(seq_n) < 87:
-                seq_n = seq_n + "&nbsp;" * (87-len(seq_n))
-            seq_len+=80
+                seq_n = seq_n + "&nbsp;" * (87 - len(seq_n))
+            seq_len += 80
             seq_split.append("<font face='Courier New'><p>{}  {}</p>".format(seq_n, seq_len))
         seq = "\n".join(seq_split)
-        
+
         return seq
-    
+
     def _prepare_protein_accession(self, accession):
         if accession.startswith("sp|"):
             accession_split = re.split("\|", accession)
@@ -4404,20 +4369,20 @@ class panelInteractiveOutput(wx.MiniFrame):
             accession_split = re.split("\|", accession)
             accession = '<a href="https://www.ncbi.nlm.nih.gov/protein/{}">{}</a>'.format(
                 accession_split[1], accession)
-        
+
         return accession
-    
+
     def _prepare_centroid_title_with_annotations(self, scanID, scan_num, data):
         """
         Generate html text for div
         """
-        
+
         protein_seq, protein_desc, protein_accession = "Sequence was not provided", "", ""
         if "identification" in data[scanID]:
             # get protein sequence
             protein_seq = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("peptide_seq", "")
             if protein_seq == {}: protein_seq = "Sequence was not provided"
-            
+
             if protein_seq != "Sequence was not provided":
                 protein_seq = self._prepare_protein_sequence(protein_seq)
             # get protein description
@@ -4425,16 +4390,16 @@ class panelInteractiveOutput(wx.MiniFrame):
             # get protein accession
             protein_accession = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("accession", "Sequence was not provided")
             protein_accession = self._prepare_protein_accession(protein_accession)
-            
+
             # get peptide sequence
             peptide_seq = data[scanID]['identification'][scan_num]['peptide_seq']
             # get peptide start/end
             peptide_start = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("start", "")
             peptide_end = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("end", "")
-            
+
             # get fragments
             n_fragments = len(data[scanID]['fragment_annotations'][scan_num].get('fragment_table', []))
-            
+
         html_title = """
         <p><strong>Title: </strong>{}</p>
         <p><strong>ID</strong>: {}:{}</p>
@@ -4447,8 +4412,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         <p>{}</p>
         
         """.format(data[scanID]['scan_info']['title'],
-                   scanID, 
-                   scan_num+1, 
+                   scanID,
+                   scan_num + 1,
                    peptide_seq, peptide_start, peptide_end,
                    data[scanID]['scan_info']['precursor_mz'],
                    data[scanID]['scan_info']['precursor_charge'],
@@ -4457,14 +4422,14 @@ class panelInteractiveOutput(wx.MiniFrame):
                    protein_accession,
                    protein_seq
                    )
-        
+
         return html_title
-    
+
     def _prepare_centroid_title_without_annotations(self, scanID, scan_num, data):
         """
         Generate html text for div
         """
-        
+
         html_title = """
         <p><strong>Title: </strong>{}</p>
         <p><strong>ID</strong>: {}</p>
@@ -4473,30 +4438,30 @@ class panelInteractiveOutput(wx.MiniFrame):
         <p><strong>Precursor charge</strong>: {}</p>
         <p><strong>Protein</strong>: {}</p>
         """.format(data[scanID]['scan_info']['title'],
-                   scanID, 
-                   scan_num+1, 
+                   scanID,
+                   scan_num + 1,
                    data[scanID]['scan_info']['precursor_mz'],
-                   "", 
+                   "",
                    )
-        
+
         return html_title
-        
+
     def _add_plot_centroid_without_annotations(self, data, **bkh_kwargs):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         # temporary limit
         hard_limit = 500
-        
+
         # collect data
         xvals_list, yvals_list, options_list = [], [], []
         annotated_ms_list, title_list = [], []
         i = 0
         for key in data:
-            # skip keys that are forbidden 
-            if "Scan " not in key: 
+            # skip keys that are forbidden
+            if "Scan " not in key:
                 continue
-            if i >= hard_limit: 
+            if i >= hard_limit:
                 break
             # plot data
             xvals_list.append(data[key]['xvals'])
@@ -4506,20 +4471,19 @@ class panelInteractiveOutput(wx.MiniFrame):
             title_list.append(html_title)
             annotated_ms_list.append(i)
             i += 1
-            
+
         # create source data
         source_list = ColumnDataSource(dict(
             xvals_list=xvals_list,
             yvals_list=yvals_list,
             title_list=title_list,
             ))
-        
-        
+
         source = ColumnDataSource(dict(
             xvals=xvals_list[0],
             yvals=yvals_list[0],
             ))
-        
+
         # Prepare hover tool
         hoverTool = HoverTool(tooltips=[("m/z", '@xvals{0.00}'),
                                         ("Intensity", '@yvals{0.00}'),
@@ -4527,7 +4491,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         TOOLS = self._check_tools(hoverTool, data)
         if user_kwargs['tools'].get("active_inspect", "auto") == "hover": inspect_tool = hoverTool
         else: inspect_tool = user_kwargs['tools'].get("active_inspect", "auto")
-        
+
         # create figure
         bokehPlot = figure(
             tools=TOOLS,
@@ -4539,24 +4503,23 @@ class panelInteractiveOutput(wx.MiniFrame):
             plot_height=plt_kwargs['plot_height'],
             toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
             toolbar_sticky=False)
-        
+
         # add plot
         bokehPlot.segment(
             x0="xvals", y0=0, x1="xvals", y1="yvals", line_color="#000000",
-            line_width=user_kwargs['plot_properties']['tandem_line_width'], 
+            line_width=user_kwargs['plot_properties']['tandem_line_width'],
             source=source)
-    
-    
+
         # setup labels
         bokehPlot.xaxis.axis_label = "m/z"
         bokehPlot.yaxis.axis_label = "Intensity"
 
         # generate js kwargs
         setup_kwargs = dict(hover=hoverTool)
-        
+
         # setup common plot parameters
         bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **setup_kwargs)
-    
+
         # create div for scan information
         divHeader = Div(text=title_list[0])
 
@@ -4585,38 +4548,37 @@ class panelInteractiveOutput(wx.MiniFrame):
         
         source.change.emit();
         '''
-        
-        callback = CustomJS(code=js_code, 
-                            args={'figure':bokehPlot, 'source':source, 
-                                  'source_list':source_list, 
+
+        callback = CustomJS(code=js_code,
+                            args={'figure':bokehPlot, 'source':source,
+                                  'source_list':source_list,
                                   'title_list':annotated_ms_list,
                                   'div':divHeader})
-        
+
         toggle = Select(title="Dataset (id):", value="0", options=options_list, callback=callback)
         js_widgets.append(toggle)
-        
+
         # arrange
         bokehPlot = row(bokehPlot, column(widgetbox(js_widgets), divHeader))
 #         bokehPlot = column([bokehPlot, widgetbox(js_widgets), divHeader])
-                        
+
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
-        
+
     def _add_plot_centroid_with_annotations(self, data, **bkh_kwargs):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         annotated_ms_list = data.get("annotated_item_list", [])
         if len(annotated_ms_list) == 0:
-            return 
-        
+            return
+
         # convert colors
         color_labelled = convertRGB1toHEX(user_kwargs["plot_properties"]["tandem_line_color_labelled"])
         color_unlabelled = convertRGB1toHEX(user_kwargs["plot_properties"]["tandem_line_color_unlabelled"])
-        
-        
+
         # sort list
         annotated_ms_list = natsorted(annotated_ms_list)
-        
+
         # collect data
         xvals_list, yvals_list, options_list = [], [], []
         item_colors_list, item_labels_list, item_details_list, title_list = [], [], [], []
@@ -4626,20 +4588,20 @@ class panelInteractiveOutput(wx.MiniFrame):
             # plot data
             xvals_list.append(data[scan]['xvals'])
             yvals_list.append(data[scan]['yvals'])
-            options_list.append("{}:{}".format(scan,id_num+1))
-            
+            options_list.append("{}:{}".format(scan, id_num + 1))
+
             item_colors, labels, details = self._prepare_centroid_data(
                 data[scan]['xvals'],
                 data[scan]['fragment_annotations'][id_num]['fragment_mass_list'],
-                data[scan]['fragment_annotations'][id_num]['fragment_table'], 
+                data[scan]['fragment_annotations'][id_num]['fragment_table'],
                 color_labelled, color_unlabelled)
-            
+
             item_colors_list.append(item_colors)
             item_labels_list.append(labels)
             item_details_list.append(details)
             html_title = self._prepare_centroid_title_with_annotations(scan, id_num, data)
             title_list.append(html_title)
-            
+
         # create source data
         source_list = ColumnDataSource(dict(
             xvals_list=xvals_list,
@@ -4649,16 +4611,15 @@ class panelInteractiveOutput(wx.MiniFrame):
             details_frag_list=item_details_list,
             title_list=title_list,
             ))
-        
-        
+
         source = ColumnDataSource(dict(
             xvals=xvals_list[0],
             yvals=yvals_list[0],
-            colors=item_colors_list[0], 
-            labels=item_labels_list[0], 
-            details=item_details_list[0], 
+            colors=item_colors_list[0],
+            labels=item_labels_list[0],
+            details=item_details_list[0],
             ))
-        
+
         # Prepare hover tool
         hoverTool = HoverTool(tooltips=[("m/z", '@xvals{0.00}'),
                                         ("Intensity", '@yvals{0.00}'),
@@ -4668,7 +4629,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         TOOLS = self._check_tools(hoverTool, data)
         if user_kwargs['tools'].get("active_inspect", "auto") == "hover": inspect_tool = hoverTool
         else: inspect_tool = user_kwargs['tools'].get("active_inspect", "auto")
-        
+
         # create figure
         bokehPlot = figure(
             tools=TOOLS,
@@ -4680,27 +4641,26 @@ class panelInteractiveOutput(wx.MiniFrame):
             plot_height=plt_kwargs['plot_height'],
             toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
             toolbar_sticky=False)
-        
+
         # add plot
         bokehPlot.segment(
             x0="xvals", y0=0, x1="xvals", y1="yvals", line_color="colors",
-            line_width=user_kwargs['plot_properties']['tandem_line_width'], 
+            line_width=user_kwargs['plot_properties']['tandem_line_width'],
             source=source)
-    
-    
+
         # setup labels
         bokehPlot.xaxis.axis_label = "m/z"
         bokehPlot.yaxis.axis_label = "Intensity"
 
         # generate js kwargs
         setup_kwargs = dict(hover=hoverTool)
-        
+
         # setup common plot parameters
         bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **setup_kwargs)
-    
+
         # create div for scan information
         divHeader = Div(text=title_list[0],
-                        width=plt_kwargs['plot_width']) #("<p><strong>Current ID: {}<br /></strong></p>".format(annotated_ms_list[0])))
+                        width=plt_kwargs['plot_width'])  # ("<p><strong>Current ID: {}<br /></strong></p>".format(annotated_ms_list[0])))
 
         # generate javascript widget
         js_widgets = []
@@ -4734,22 +4694,22 @@ class panelInteractiveOutput(wx.MiniFrame):
         // update plot
         source.change.emit();
         '''
-        
-        callback = CustomJS(code=js_code, 
-                            args={'figure':bokehPlot, 
-                                  'source':source, 
-                                  'source_list':source_list, 
+
+        callback = CustomJS(code=js_code,
+                            args={'figure':bokehPlot,
+                                  'source':source,
+                                  'source_list':source_list,
                                   'title_list':annotated_ms_list,
                                   'div':divHeader})
-        
+
         toggle = Select(title="Dataset (id):", value="0", options=options_list, callback=callback)
         js_widgets.append(toggle)
-        
+
         # arrange
 #         bokehPlot = row(bokehPlot, column(widgetbox(js_widgets), divHeader))
-        bokehPlot = column(children=[row(bokehPlot, widgetbox(js_widgets)),divHeader], 
+        bokehPlot = column(children=[row(bokehPlot, widgetbox(js_widgets)), divHeader],
                            sizing_mode="scale_width")
-        
+
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height'], {}, dict(add_watermark=False)]
 
     def _add_plot_1D(self, data, **bkh_kwargs):
@@ -4757,7 +4717,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         """
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         xvals, yvals, xlabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                             plotType='1D',
                                                                             dataType='plot',
@@ -4940,7 +4900,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 #         """
 #         plt_kwargs = self._buildPlotParameters(data)
 #         user_kwargs = deepcopy(data['interactive_params'])
-# 
+#
 #         # unpack data
 #         xvals = data['xvals']
 #         yvals = data['yvals']
@@ -4948,7 +4908,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 #         ylabel = data['ylabel']
 #         line_colors = data['colors']
 #         labels = data['labels']
-# 
+#
 #         # Prepare hover tool
 #         hoverTool = HoverTool(tooltips=[(xlabel, '@xvals{0.00}'),
 #                                           (ylabel, '@yvals{0.00}'),
@@ -4956,10 +4916,10 @@ class panelInteractiveOutput(wx.MiniFrame):
 #                               mode=plt_kwargs['hover_mode'])
 #         # Prepare MS file
 #         TOOLS = self._check_tools(hoverTool, data)
-# 
+#
 #         xlimits, ylimits = find_limits_all(xvals, yvals)
 #         xlimits = self._check_limits(xlimits, plt_kwargs['_xlimits_'])
-# 
+#
 #         bokehPlot = figure(x_range=xlimits, y_range=ylimits,
 #                            tools=TOOLS, title=bkh_kwargs['title'],
 #                            active_drag=user_kwargs['tools'].get("active_drag", "auto"),
@@ -4968,7 +4928,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 #                            plot_height=plt_kwargs["plot_height"],
 #                            toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
 #                            toolbar_sticky=False)
-# 
+#
 #         ms_source = ColumnDataSource(data=dict(xvals=xvals[0], yvals=yvals[0]))
 #         color_1 = convertRGB1toHEX(line_colors[0])
 #         line_1 = bokehPlot.line("xvals", "yvals", source=ms_source,
@@ -4977,7 +4937,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 #                                 line_dash=user_kwargs["plot_properties"]["line_style"],
 #                                 line_alpha=user_kwargs["plot_properties"]["line_transparency"],
 #                                 name="plot")
-# 
+#
 #         ms_source = ColumnDataSource(data=dict(xvals=xvals[0], yvals=-yvals[0]))
 #         color_2 = convertRGB1toHEX(line_colors[0])
 #         line_2 = bokehPlot.line("xvals", "yvals", source=ms_source,
@@ -4986,7 +4946,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 #                                 line_dash=user_kwargs["plot_properties"]["line_style"],
 #                                 line_alpha=user_kwargs["plot_properties"]["line_transparency"],
 #                                 name="plot")
-# 
+#
 #         bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data)
 #         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -5012,7 +4972,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                               mode=plt_kwargs['hover_mode'])
 
         TOOLS = self._check_tools(hoverTool, data)
-
 
         xlimits, ylimits = find_limits_all(xvals, yvals)
         xlimits = self._check_limits(xlimits, plt_kwargs['_xlimits_'])
@@ -5070,7 +5029,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 source=source)
             _lines.append(line)
             _original_colors.append(color)
-            
+
             if plt_kwargs['overlay_shade']:
                 patch = bokehPlot.patch(
                     "xvals", "yvals", color=color,
@@ -5078,8 +5037,8 @@ class panelInteractiveOutput(wx.MiniFrame):
                     line_alpha=0., source=source,
                     legend=label)
                 _patches.append(patch)
-                
-        if ("annotations" in data and len(data["annotations"]) > 0 and 
+
+        if ("annotations" in data and len(data["annotations"]) > 0 and
             user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs['show_annotations'])):
             __, label_source, __ = self._prepare_annotations(data, yvals)
             bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
@@ -5200,11 +5159,11 @@ class panelInteractiveOutput(wx.MiniFrame):
             # if multiple xvals are provided - extract one for each yvals
             if len(xvals) == len(yvals): xval = xvals[i]
             else: xval = xvals[0]
-            
+
             # get urls
             if len(urls) == len(yvals): url = urls[i]
             else: url = urls[0]
-            
+
             if len(url) == yval_size:
                 add_tap_url = True
 
@@ -5252,10 +5211,10 @@ class panelInteractiveOutput(wx.MiniFrame):
                     _sourceDict["labels_0"] = itemLabels[i]
                 else:
                     _sourceDict["labels_0"] = itemLabels[0]
-                    
+
             if add_tap_url:
                 _sourceDict["urls"] = url
-                
+
             if len(legend_labels) == len(yvals):
                 label = legend_labels[i]
             else:
@@ -5272,7 +5231,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 muted_alpha=user_kwargs['legend_properties'].get("legend_mute_alpha", self.config.interactive_legend_mute_alpha),
                 source=source,
                 legend=label)
-            
+
             # add tap tool
             if add_tap_url:
                 print("Added tap -> URL tool")
@@ -5286,13 +5245,13 @@ class panelInteractiveOutput(wx.MiniFrame):
                 """
                 url_callback = CustomJS(args=dict(source=source), code=jscode)
                 taptool.callback = url_callback
-            
+
             _scatter.append(scatter)
             _colors.append(color[0])
             _edge_colors.append(edge_color[0])
-            
+
         # add annotations
-        if ("annotations" in data and len(data["annotations"]) > 0 and 
+        if ("annotations" in data and len(data["annotations"]) > 0 and
             user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs['show_annotations'])):
             __, label_source, __ = self._prepare_annotations(data, yvals)
             bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
@@ -5302,7 +5261,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         bokehPlot.yaxis.axis_label = ylabel
         # modify plot
         bokehPlot = self._setupPlotParameters(bokehPlot, data=data, plot_type="Scatter")
-        
+
         # add widgets
         if (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
             bkh_kwargs['page_layout'] in ["Individual", "Columns"]):
@@ -5313,7 +5272,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if user_kwargs["widgets"].get("hover_mode", True):
                 js_code.update(hover=hoverTool)
                 js_type.extend(["hover_mode"])
-                
+
             if user_kwargs["widgets"].get("colorblind_safe_scatter", True):
                 js_code.update(fill_colors=_colors, edge_colors=_edge_colors, cvd_colors=_cvd_colors, scatters=_scatter)
                 js_type.extend(["colorblind_safe_scatter"])
@@ -5340,7 +5299,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if len(js_type) > 0:
                 try: bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
                 except: pass
-                
+
         elif (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
               bkh_kwargs['page_layout'] not in ["Individual", "Columns"]):
             self.presenter.onThreading(None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment." , 4),
@@ -5367,7 +5326,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             else: shape = False
         except:
             shape = True
-            
+
         # reshape array to ro reduce size
         if (user_kwargs['preprocessing_properties'].get("subsample", bkh_kwargs.get("reshape_array", False))
             and shape):
@@ -5376,7 +5335,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             zvals = np.transpose(np.reshape(zvals, (xlen, ylen)))
             if zvals.shape[1] > user_kwargs['preprocessing_properties'].get("subsample_limit", 20000):
                 print("Have to subsample the grid as it is too big...")
-                zvals = zvals[:,::user_kwargs['preprocessing_properties'].get("subsample_frequency", 20)].copy()
+                zvals = zvals[:, ::user_kwargs['preprocessing_properties'].get("subsample_frequency", 20)].copy()
 
         # generate image data
         z_data = dict(image=[zvals], x=[min(xvals)], y=[min(yvals)],
@@ -5467,7 +5426,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def _add_plot_rgb(self, data, **bkh_kwargs):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         # Unpacks data using a helper function
         zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                            dataType='plot',
@@ -5523,13 +5482,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         # get data
         zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(
             dictionary=data, plotType='Matrix', compact=False)
-        
+
         # rotate data
         zvals = np.rot90(np.fliplr(zvals))
-        
+
         # get colormapper and palette
         colorMapper, bokehpalette = self._convert_cmap_to_colormapper(
-            user_kwargs["overlay_properties"].get("rmsd_matrix_colormap", cmap), 
+            user_kwargs["overlay_properties"].get("rmsd_matrix_colormap", cmap),
             zvals=zvals, return_palette=True)
         xlabel = 'Labels (x, y):'
         ylabel = bkh_kwargs.get("hover_label", 'RMSD (%)')
@@ -5538,7 +5497,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                              point_policy='follow_mouse')
         # Add tools
         TOOLS = self._check_tools(hoverTool, data)
-        
+
         # Assemble data into appropriate format
         xname, yname, color, alpha, text_color = [], [], [], [], []
         # rescaling parameters
@@ -5565,14 +5524,13 @@ class panelInteractiveOutput(wx.MiniFrame):
                     color.append(bokehpalette[int(new_value)])
                     if zvals[i, j] == 0: alpha_val = 0.
                     else: alpha_val = 1.
-                    alpha.append(alpha_val) #min(zvals[i, j] / 3.0, 0.9) + 0.0)
+                    alpha.append(alpha_val)  # min(zvals[i, j] / 3.0, 0.9) + 0.0)
                     if user_kwargs["overlay_properties"].get("rmsd_matrix_auto_label_color", True):
                         label_color = determineFontColor(convertHEXtoRGB255(color[-1]), return_hex=True)
                     else:
                         label_color = convertRGB1toHEX(user_kwargs["overlay_properties"].get("rmsd_matrix_label_color", self.config.interactive_ms_annotations_label_color))
                     text_color.append(label_color)
-                    
-                    
+
         # create plot source
         source = ColumnDataSource(data=dict(xname=xname, yname=yname,
                                             count=zvals.flatten(),
@@ -5662,7 +5620,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if user_kwargs["colorbar_properties"].get(
                 "colorbar", self.config.interactive_colorbar):
             bokehPlot = self._add_colorbar(bokehPlot, zvals, colorMapper,
-                                           modify_colorbar = data.get(
+                                           modify_colorbar=data.get(
                                                 "interactive_params", {}).get("colorbar_properties", {}).get(
                                                     "modify_ticks", bkh_kwargs.get("modify_colorbar", False)),
                                            data=data)
@@ -5713,7 +5671,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                                   line_alpha=user_kwargs["overlay_properties"]["rmsf_line_transparency"],
                                   line_dash=user_kwargs["overlay_properties"]["rmsf_line_style"])
         bokehPlotRMSF.yaxis.axis_label = ylabelRMSF
-        
+
         # add patch
         if user_kwargs["overlay_properties"].get("rmsf_line_shade_under", False):
             patch = bokehPlotRMSF.patch(
@@ -5756,7 +5714,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if user_kwargs["colorbar_properties"].get(
                 "colorbar", self.config.interactive_colorbar):
              bokehPlotRMSD = self._add_colorbar(bokehPlotRMSD, zvals, colorMapper,
-                                                modify_colorbar = data.get(
+                                                modify_colorbar=data.get(
                                                     "interactive_params", {}).get("colorbar_properties", {}).get(
                                                         "modify_ticks", bkh_kwargs.get("modify_colorbar", False)),
                                                 data=data)
@@ -5775,12 +5733,12 @@ class panelInteractiveOutput(wx.MiniFrame):
     def _add_plot_overlay_2D(self, data, **bkh_kwargs):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         # get plot data
         (zvals1, zvals2, cmapIon1, cmapIon2, alphaIon1, alphaIon2, xvals,
          xlabel, yvals, ylabel, charge1, charge2) = self.presenter.get2DdataFromDictionary(
              dictionary=data, dataType='plot', plotType='Overlay', compact=False)
-        
+
         if bkh_kwargs['plot_type'] == 'Mask':
             zvals1 = zvals1.filled(0)
             zvals2 = zvals2.filled(0)
@@ -5797,7 +5755,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                              point_policy='follow_mouse')
         # Add tools
         TOOLS1 = self._check_tools(hoverTool1, data)
-        
+
         # create figure
         leftPlot = figure(x_range=(min(xvals), max(xvals)),
                            y_range=(min(yvals), max(yvals)),
@@ -5822,12 +5780,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         TOOLS2 = self._check_tools(hoverTool2, data)
 
         if user_kwargs['overlay_properties']['overlay_link_xy']:
-            x_range=leftPlot.x_range
-            y_range=leftPlot.y_range
+            x_range = leftPlot.x_range
+            y_range = leftPlot.y_range
         else:
-            x_range=(min(xvals), max(xvals))
-            y_range=(min(yvals), max(yvals))
-        
+            x_range = (min(xvals), max(xvals))
+            y_range = (min(yvals), max(yvals))
+
         rightPlot = figure(x_range=x_range, y_range=y_range,
                            tools=TOOLS2,
                            active_drag=user_kwargs['tools'].get("active_drag", "auto"),
@@ -5865,7 +5823,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 plot.yaxis.axis_label = ylabel
             leftPlot.xaxis.major_label_text_color = None  # turn off y-axis tick labels leaving space
             rightPlot.xaxis.axis_label = xlabel
-            bokehPlot = gridplot([[leftPlot], [rightPlot]], 
+            bokehPlot = gridplot([[leftPlot], [rightPlot]],
                 merge_tools=user_kwargs['overlay_properties'].get("overlay_merge_tools", False))
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
@@ -5937,7 +5895,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                 line_xvals, line_yvals = self.linearize_spectrum(
                     line_xvals, line_yvals, user_kwargs["preprocessing_properties"]["linearize_binsize"])
 
-
             _ydata.extend(line_yvals)
             color = convertRGB1to255(data[key]['color'], as_integer=True, as_tuple=True)
             source = ColumnDataSource(data=dict(xvals=line_xvals,
@@ -5956,7 +5913,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                            muted_color=color,
                            source=source)
             legend_handle.append((label, [bokehPlot]))
-
 
             source = ColumnDataSource(data=dict(xvals=data[key]['scatter_xvals'],
                                                 yvals=data[key]['scatter_yvals'],
@@ -6011,7 +5967,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def _add_plot_unidec_2D(self, data, **bkh_kwargs):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         # Unpacks data using a helper function
         zvals = data['grid'][:, 2]
         xvals = np.unique(data['grid'][:, 0])
@@ -6058,7 +6014,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if user_kwargs["colorbar_properties"].get(
                 "colorbar", self.config.interactive_colorbar):
              bokehPlot = self._add_colorbar(bokehPlot, zvals, colorMapper,
-                                            modify_colorbar = data.get(
+                                            modify_colorbar=data.get(
                                                 "interactive_params", {}).get("colorbar_properties", {}).get(
                                                     "modify_ticks", bkh_kwargs.get("modify_colorbar", False)),
                                             as_percentage=True, data=data)
@@ -6194,7 +6150,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         i = len(xvals)
         _ydata = []
-        
+
         # create empty label holders
         if user_kwargs["annotation_properties"].get(
             "show_labels", self.config.interactive_ms_annotations_labels):
@@ -6215,7 +6171,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             yval = np.asarray(yval)
 
             # normalize data
-            normalize = True # TODO: add to parameters
+            normalize = True  # TODO: add to parameters
             if normalize: yval = normalize_1D(inputData=yval)
 
             # create plot source
@@ -6224,13 +6180,13 @@ class panelInteractiveOutput(wx.MiniFrame):
                           yvals=yval + user_kwargs['plot_properties'].get(
                               "waterfall_increment", self.config.interactive_waterfall_increment) * i,
                           label=([_replace_labels(label)] * len(xval))))
-            
+
             # create legend label
-            if not user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']): 
+            if not user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']):
                 legend_label = None
-            else: 
+            else:
                 legend_label = _replace_labels(label)
-                
+
             line = bokehPlot.line(
                 x="xvals", y="yvals", line_color=color,
                 line_width=user_kwargs["plot_properties"]["line_width"],
@@ -6242,12 +6198,12 @@ class panelInteractiveOutput(wx.MiniFrame):
                 muted_alpha=user_kwargs['legend_properties'].get("legend_mute_alpha", self.config.interactive_legend_mute_alpha),
                 muted_color=color,
                 source=source)
-            
+
             # add underline patch
             if user_kwargs['plot_properties'].get(
                 "waterfall_shade_under", self.config.interactive_waterfall_shade_under):
                 patch = bokehPlot.patch(
-                    "xvals", "yvals", color=color, 
+                    "xvals", "yvals", color=color,
                     fill_alpha=user_kwargs['plot_properties'].get(
                         "waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha),
                     line_alpha=0., source=source, legend=legend_label)
@@ -6276,18 +6232,17 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # add labels
         labels = None
-        
+
         # add annotations
-        if ("annotations" in data and len(data["annotations"]) > 0 and 
+        if ("annotations" in data and len(data["annotations"]) > 0 and
             user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs['show_annotations'])):
             quad_source, label_source, __ = self._prepare_annotations(data, yvals, y_offset=user_kwargs['plot_properties'].get(
                 "waterfall_increment", self.config.interactive_waterfall_increment) * len(xvals))
 
-
             if user_kwargs["annotation_properties"].get(
                         "show_patches", self.config.interactive_ms_annotations_highlight):
                 bokehPlot.quad(top="top", bottom="bottom", left="left", right="right",
-                                color="color", 
+                                color="color",
                                 fill_alpha=user_kwargs["annotation_properties"].get(
                                     "patch_transparency", self.config.interactive_ms_annotations_transparency),
                                 source=quad_source,
@@ -6296,7 +6251,6 @@ class panelInteractiveOutput(wx.MiniFrame):
             if user_kwargs["annotation_properties"].get(
                         "show_labels", self.config.interactive_ms_annotations_labels):
                 bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
-
 
         # setup labels
         bokehPlot.xaxis.axis_label = xlabel
@@ -6307,7 +6261,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Waterfall", data=data, **js_kwargs)
         plot_mods = {}
         # add widgets
-        if (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and 
+        if (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
             bkh_kwargs['page_layout'] in ["Individual", "Columns"]):
             _cvd_colors = self.presenter.view.panelPlots.onChangePalette(None, cmap=self.config.interactive_cvd_cmap,
                                                                         n_colors=len(_lines),
@@ -6339,7 +6293,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             if len(js_type) > 0:
                 bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
-        elif (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and 
+        elif (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
               bkh_kwargs['page_layout'] not in ["Individual", "Columns"]):
             _cvd_colors = self.presenter.view.panelPlots.onChangePalette(None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines),
                                                                          return_colors=True, return_hex=True)
@@ -6369,7 +6323,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             xlabel, ylabel = ylabel, xlabel
 
         ylabel = "Offset intensity"
-        
+
         # create hover tool
         hoverTool = HoverTool(tooltips=[(xlabel, '@xvals{0.00}'),
                                           (ylabel, '@yvals{0.00}'),
@@ -6380,7 +6334,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         TOOLS = self._check_tools(hoverTool, data)
 
         xvals_list, __ = find_limits_list(xvals, yvals)
-        
+
         # create figure
         bokehPlot = figure(tools=TOOLS,
                            title=bkh_kwargs['title'],
@@ -6390,7 +6344,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                            plot_height=plt_kwargs["plot_height"],
                            toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
                            toolbar_sticky=False)
-        
+
         # generate labels
         if len(labels) == 0:
             labels = [" "] * count
@@ -6398,7 +6352,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         # get colorblind colors
         cvd_colors = self.presenter.view.panelPlots.onChangePalette(
             None, cmap=self.config.interactive_cvd_cmap, n_colors=len(xvals), return_colors=True, return_hex=True)
-        
+
         # add plots
         _ydata = []
         _lines, _patches, _original_colors, _cvd_colors = [], [], [], []
@@ -6410,28 +6364,28 @@ class panelInteractiveOutput(wx.MiniFrame):
             line_color = convertRGB1toHEX(colorList[item])
             shade_color = convertRGB1toHEX(colorList[item])
             for irow in range(len(yval)):
-                if irow > 0: 
+                if irow > 0:
                     label = ""
-                
+
                 yOffset = user_kwargs['plot_properties'].get(
                     "waterfall_increment", self.config.interactive_waterfall_increment) * irow
                 label = str(yval[irow])
                 y = zval[:, irow] + yOffset
                 # create source
                 source = ColumnDataSource(
-                    data=dict(xvals=xval, yvals=y, 
+                    data=dict(xvals=xval, yvals=y,
                               dataset=([dataset] * len(xval)),
                               label=([label] * len(xval))))
 
                 # generate legend label
                 if not user_kwargs['legend_properties'].get(
-                    "legend", self.config.interactive_legend): 
+                    "legend", self.config.interactive_legend):
                     legend_label = None
-                elif irow == 0: 
+                elif irow == 0:
                     legend_label = dataset
-                else: 
+                else:
                     legend_label = None
-                    
+
                 line = bokehPlot.line(
                     x="xvals", y="yvals",
                     line_color=line_color,
@@ -6442,23 +6396,22 @@ class panelInteractiveOutput(wx.MiniFrame):
                     muted_alpha=user_kwargs['legend_properties'].get("legend_mute_alpha", self.config.interactive_legend_mute_alpha),
                     muted_color=line_color,
                     source=source)
-                
+
                 # add underline patch
                 if user_kwargs['plot_properties'].get(
                     "waterfall_shade_under", self.config.interactive_waterfall_shade_under):
                     patch = bokehPlot.patch(
-                        "xvals", "yvals", 
-                        color=shade_color, 
+                        "xvals", "yvals",
+                        color=shade_color,
                         fill_alpha=user_kwargs['plot_properties'].get(
                             "waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha),
                         line_alpha=0., source=source, legend=legend_label)
                     _patches.append(patch)
-                    
+
                 _ydata.extend(y)
                 _lines.append(line)
                 _original_colors.append(line_color)
                 _cvd_colors.append(cvd_colors[item])
-
 
         xvals_list, __ = find_limits_list(xvals, yvals)
         xlimits = [np.min(xvals_list), np.max(xvals_list)]
@@ -6472,8 +6425,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         # setup common parameters
         js_kwargs = dict(xlimits=xlimits, ylimits=ylimits)
         bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Waterfall_overlay", data=data, **js_kwargs)
-        
-        # add widgets        
+
+        # add widgets
         if user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts):
             # get cvd colors
             js_type, js_code = [], {}
@@ -6488,7 +6441,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 js_type.extend(["hover_mode"])
 
             if (user_kwargs['legend_properties'].get(
-                "legend", self.config.interactive_legend) and 
+                "legend", self.config.interactive_legend) and
                 len(bokehPlot.legend) > 0):
                 js_code.update(legend=bokehPlot.legend[0])
                 if user_kwargs["widgets"].get("legend_toggle", True):
@@ -6584,7 +6537,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def _add_plot_grid_NxN_2D(self, data, **bkh_kwargs):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         zvals_list = data['zvals_list']
         cmap_list = data['cmap_list']
         title_list = data['title_list']
@@ -6664,7 +6617,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                 plot = self._add_grid_label(plot, title_list[i],
                                             plt_kwargs['xpos'], plt_kwargs['ypos'])
 
-
             kwargs = {'tight_layout':True}
             plot = self._setupPlotParameters(plot, plot_type="2D", data=data, **kwargs)
             plot_list.append(plot)
@@ -6678,7 +6630,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def _add_plot_grid_NxN_scatter(self, data, **bkh_kwargs):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         xvals = data['xvals']
         yvals = data['yvals']
         xlabel = data['xlabel']
@@ -6731,7 +6683,6 @@ class panelInteractiveOutput(wx.MiniFrame):
             _tooltips = [(xlabel, '@xvals{0.00}'),
                          (ylabel, '@yvals{0.00}')]
 
-
             if len(itemColors) > 0 and len(itemColors[0]) == yval_size:
                 color = self._convert_color_list(itemColors[0])
             else:
@@ -6767,7 +6718,6 @@ class panelInteractiveOutput(wx.MiniFrame):
             xlabel = _replace_labels(xlabels[i])
             ylabel = _replace_labels(ylabels[i])
 
-
             hoverTool = HoverTool(tooltips=_tooltips,
                                   point_policy='follow_mouse')
             TOOLS = self._check_tools(hoverTool, data)
@@ -6777,7 +6727,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 x_range, y_range = xlimits, ylimits
             else:
                 x_range, y_range = plot_list[0].x_range, plot_list[0].y_range
-                
+
             plot = figure(x_range=x_range, y_range=y_range,
                           tools=TOOLS,
                           title=label,
@@ -6817,7 +6767,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def _add_plot_grid_NxN_1D(self, data, **bkh_kwargs):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         xvals = data['xvals']
         yvals = data['yvals']
         xlabel = data['xlabel']
@@ -6899,7 +6849,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                       source=source)
             if plt_kwargs['overlay_shade']:
                 plot.patch(
-                    "xvals", "yvals", color=color, 
+                    "xvals", "yvals", color=color,
                     fill_alpha=plt_kwargs['overlay_shade_transparency'],
                     line_alpha=0., source=source)
 
@@ -6920,7 +6870,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def _add_plot_barchart(self, data, **bkh_kwargs):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         xvals = data['xvals']
         yvals_min = data['yvals_min']
         yvals_max = data['yvals_max']
@@ -6936,7 +6886,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         xvals_count = len(xvals)
         yvals_min_count = len(yvals_min)
         yvals_max_count = len(yvals_max)
-        
+
         if yvals_min_count > 1 or yvals_max_count > 1:
             if xvals_count < yvals_min_count or xvals_count < yvals_max_count:
                 xvals = xvals * yvals_min_count
@@ -7036,28 +6986,28 @@ class panelInteractiveOutput(wx.MiniFrame):
                                    "bar_transparency", self.config.interactive_bar_alpha),
                                line_width=user_kwargs['plot_properties'].get(
                                    "bar_line_width", self.config.interactive_bar_lineWidth)
-                               
+
                                )
-                
+
         ylimits = [bokehPlot.y_range.start, bokehPlot.y_range.end]
         ylimits = self._check_limits(ylimits, plt_kwargs['_ylimits_'])
-        
+
         # setup labels
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
 
         kwargs = {"bar_type":type, "ylimits":ylimits}
         # setup common plot parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **kwargs)        
-        
-        if ("annotations" in data and len(data["annotations"]) > 0 and 
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **kwargs)
+
+        if ("annotations" in data and len(data["annotations"]) > 0 and
             user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs['show_annotations'])):
             __, label_source, __ = self._prepare_annotations(data, yvals=None, ylimits=ylimits)
             bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
-            
+
         # setup widgets
         if user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts):
-            js_type, js_code = [], {}            
+            js_type, js_code = [], {}
 
             if labels is not None:
                 js_code.update(labels=labels, y_range_shown=ylimits[1], y_range_hidden=ylimits[1])
@@ -7066,8 +7016,8 @@ class panelInteractiveOutput(wx.MiniFrame):
                 if user_kwargs["widgets"].get("label_rotation", True): js_type.extend(["label_rotation"])
                 if user_kwargs["widgets"].get("label_offset_x", True): js_type.extend(["label_offset_x"])
                 if user_kwargs["widgets"].get("label_offset_y", True): js_type.extend(["label_offset_y"])
-                
-            if len(js_type) > 0: 
+
+            if len(js_type) > 0:
                 bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
@@ -7116,8 +7066,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                     "precision", self.config.interactive_colorbar_precision),
                 use_scientific=user_kwargs["colorbar_properties"].get(
                     "use_scientific", self.config.interactive_colorbar_useScientific))
-
-
 
         colorbar = ColorBar(
             color_mapper=color_mapper, ticker=ticker, formatter=formatter,
@@ -7211,7 +7159,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def _add_plot_labels(self, bokehPlot, data, label_source, plot_type="1D"):
         user_kwargs = deepcopy(data['interactive_params'])
-        
+
         if plot_type in ["1D"]:
             labels = LabelSet(
                 x='xpos', y='ypos', text='label', level='glyph',
@@ -7243,7 +7191,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                     "label_fontsize", self.config.interactive_ms_annotations_fontSize)),
                 text_font_style=self._fontWeightConverter(data.get("interactive_params", {}).get(
                     "annotation_properties", {}).get("label_fontweight", self.config.interactive_ms_annotations_fontWeight)),
-                text_color="color", #=convertRGB1to255(data.get("annotation_properties", {}).get("label_color", self.config.interactive_ms_annotations_label_color),as_integer=True, as_tuple=True),
+                text_color="color",  # =convertRGB1to255(data.get("annotation_properties", {}).get("label_color", self.config.interactive_ms_annotations_label_color),as_integer=True, as_tuple=True),
                 angle=user_kwargs["annotation_properties"].get(
                     "label_rotation", self.config.interactive_ms_annotations_rotation),
                 angle_units="deg",
@@ -7315,11 +7263,10 @@ class panelInteractiveOutput(wx.MiniFrame):
                                "lines":[], "patches":[], "original_colors":[], "cvd_colors":[],
                                "plot_width":[]}
 
-
         # Sort the list based on which page each item belongs to
         if self.config.interactive_sort_before_saving:
             self.OnSortByColumn(column=self.config.interactiveColNames['order'], sort_direction=False)
-        
+
         # check if user selected anything in the list
         if len(listOfPages) == 0:
             msg = 'Please select items to plot'
@@ -7449,7 +7396,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                 data['ylabel'] = "Intensity"
                 bokehPlot = self._add_plot_1D(data, **bkh_kwargs)
 
-
             elif key in ['RT', 'RT, multiple', 'RT, combined']:
                 bkh_kwargs.update(plot_type="RT")
                 data['ylabel'] = "Intensity"
@@ -7492,7 +7438,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
                 elif overlayMethod[0] == "Waterfall overlay":
                     bokehPlot = self._add_plot_waterfall_overlay(data, **bkh_kwargs)
-                    
+
                 else:
                     msg = "Cannot export '%s - %s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (overlayMethod[0], key, innerKey)
                     dialogs.dlgBox(exceptionTitle='Not supported yet',
@@ -7506,9 +7452,9 @@ class panelInteractiveOutput(wx.MiniFrame):
 
                 elif overlayMethod[0] == 'RMSD Matrix':
                     bokehPlot = self._add_plot_matrix(data, **bkh_kwargs)
-                    
+
             elif key == "MS/MS":
-                annotated_ms_list = data.get("annotated_item_list", []) 
+                annotated_ms_list = data.get("annotated_item_list", [])
                 if len(annotated_ms_list) == 0:
                     msg = "Cannot export '%s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (key, innerKey)
                     dialogs.dlgBox(exceptionTitle='Not supported yet',
@@ -7537,14 +7483,14 @@ class panelInteractiveOutput(wx.MiniFrame):
             # check if returned width, height and widget information
             elif len(bokehPlot) == 4:
                 bokehPlot, width, __, widget_kwargs = bokehPlot
-            # check if returned width, height and widget information and other parameters 
+            # check if returned width, height and widget information and other parameters
             elif len(bokehPlot) == 5:
                 bokehPlot, width, __, widget_kwargs, other_kwargs = bokehPlot
-            
+
             if "add_watermark" in other_kwargs:
                 add_watermark = other_kwargs["add_watermark"]
                 self.addWatermarkCheck.SetValue(add_watermark)
-            
+
 #             Add possibility to export div/script
 #             script, div = components(bokehPlot)
 #             print(div)
@@ -7575,7 +7521,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                 markupFootnote = widgetbox(divFootnote, width=width)
                 plot_output.append(markupFootnote)
 
-            
             # Generate layout
             if page['layout'] == 'Individual':
                 if add_watermark:
@@ -7601,14 +7546,14 @@ class panelInteractiveOutput(wx.MiniFrame):
                 plotDict[page['name']].append(bokehLayout)
 
             print(("Added {} - {} ({}) to the HTML file".format(key, innerKey, name)))
-            
+
         outList = []
         # Generate layout
         if self.config.interactive_sort_before_saving:
             plotDict_list = natsorted(list(plotDict.keys()))
         else:
             plotDict_list = list(plotDict.keys())
-        
+
         for pageKey in plotDict_list:
             try:
                 width = np.max(widgetDict[pageKey]["plot_width"])
@@ -7677,7 +7622,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
                 outList.append(bokehTab)
 
-            # add pages that are meant to be saved as COLUMN 
+            # add pages that are meant to be saved as COLUMN
             if page_format['layout'] == 'Columns':
                 bokeh_output = [[column(plotDict[pageKey])]]
                 if page_format.get("header", "") != "":
@@ -7741,7 +7686,6 @@ class panelInteractiveOutput(wx.MiniFrame):
 
                     try: rowOutput = self.add_custom_js_widgets(rowOutput, js_type=js_type, data=data, **js_code)
                     except: pass
-
 
                 bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
                 outList.append(bokehTab)
@@ -7829,7 +7773,6 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         if sort_direction is None:
             sort_direction = self.reverse
-
 
         columns = self.itemsList.GetColumnCount()
         rows = self.itemsList.GetItemCount()
@@ -8043,7 +7986,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         elif evtID == ID_interactivePanel_check_other:
             criteria = ['Annotated data']
 
-
         rows = self.itemsList.GetItemCount()
 
         # first uncheck all
@@ -8205,7 +8147,6 @@ class panelInteractiveOutput(wx.MiniFrame):
                             'Crosshair':'crosshair',
                             'auto':'auto', 'None':None}
 
-
         # Match those values to dictionary
         self.activeDrag = activeDragTools[tools['activeDrag']]
         self.activeWheel = activeWheelTools[tools['activeWheel']]
@@ -8304,7 +8245,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         """
         if "widgets" not in data['interactive_params']:
             data['interactive_params']["widgets"] = {}
-            
+
         if "add_custom_widgets" not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['add_custom_widgets'] = False
         if "label_toggle" not in data['interactive_params']['widgets']:
@@ -8353,17 +8294,17 @@ class panelInteractiveOutput(wx.MiniFrame):
         data : dict
             dictionary object will all data
         """
-        
+
         _active_replace_ = {
             'Box zoom (both)':"box_zoom", 'Box zoom (horizontal)':"xbox_zoom",
             'Box zoom (vertical)':"ybox_zoom", 'Pan (both)':"pan", 'Pan (horizontal)':"xpan",
             'Wheel zoom (both)':"wheel_zoom", 'Wheel zoom (horizontal)':"xwheel_zoom",
             'Wheel zoom (vertical)':"ywheel_zoom", 'Pan (vertical)':"ypan", 'auto':"auto", 'None':None,
             'Hover':'hover', 'Crosshair':'crosshair'}
-        
+
         if "tools" not in data['interactive_params']:
             data['interactive_params']["tools"] = {}
-        
+
         if "position" not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['position'] = "right"
         if "hover" not in data['interactive_params']['tools']:
@@ -8413,7 +8354,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if key in ["on_tools", "wheel", "wheel_type", "position", "active_drag_type",
                        "active_inspect_type", "active_wheel_type"]:
                 continue
-            elif key in ["active_drag","active_inspect", "active_wheel"]:
+            elif key in ["active_drag", "active_inspect", "active_wheel"]:
                 active_value = data['interactive_params']['tools'][key]
                 if active_value not in ["auto", "None", None]:
                     on_tools.append(active_value)
@@ -8572,7 +8513,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             color = data.get('cmap', self.config.currentCmap)
             if not isinstance(color, str): color = self.config.currentCmap
             data['interactive_params']['plot_properties']['colormap'] = color
-            
+
         # bar
         if "bar_width" not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['bar_width'] = self.config.interactive_bar_width
@@ -8584,7 +8525,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             data['interactive_params']['plot_properties']['bar_edge_color_sameAsFill'] = self.config.interactive_bar_sameAsFill
         if "bar_edge_color" not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['bar_edge_color'] = self.config.interactive_bar_edge_color
-            
+
         # scatter
         if "scatter_shape" not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['scatter_shape'] = self.config.interactive_scatter_marker
@@ -8650,7 +8591,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             data['interactive_params']['overlay_properties']['rmsd_matrix_colormap'] = color
         if "rmsd_matrix_auto_label_color" not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['rmsd_matrix_auto_label_color'] = True
-            
+
         # multi-line
         if "multiline_shade_under" not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['multiline_shade_under'] = False
@@ -8682,7 +8623,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             data['interactive_params']['overlay_properties']['grid_position_offset_y'] = self.config.interactive_ms_annotations_offsetY
         if "grid_label_color" not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['grid_label_color'] = self.config.interactive_annotation_color
-            
+
         # rmsf
         if "rmsf_line_width" not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['rmsf_line_width'] = self.config.interactive_line_width
@@ -8695,7 +8636,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if "rmsf_shade_transparency" not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['rmsf_shade_transparency'] = self.config.interactive_line_alpha
         if "rmsf_line_color" not in data['interactive_params']['overlay_properties']:
-            data['interactive_params']['overlay_properties']['rmsf_line_color'] = data.get("colorRMSF", (0.,0.,0.))
+            data['interactive_params']['overlay_properties']['rmsf_line_color'] = data.get("colorRMSF", (0., 0., 0.))
 
         return data
 
@@ -8743,12 +8684,12 @@ class panelInteractiveOutput(wx.MiniFrame):
                 data['interactive_params']['frame_properties']['ticks_xaxis_color'] = "#000000"
             else:
                 data['interactive_params']['frame_properties']['ticks_xaxis_color'] = None
-        
+
         if "ticks_yaxis" not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['ticks_yaxis'] = True
         if "ticks_yaxis_color" not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['ticks_yaxis_color'] = "#000000"
-        
+
         if "tick_labels_xaxis" not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['tick_labels_xaxis'] = True
         if "tick_labels_xaxis_fontsize" not in data['interactive_params']['frame_properties']:
@@ -8777,7 +8718,6 @@ class panelInteractiveOutput(wx.MiniFrame):
             data['interactive_params']['frame_properties']['gridline_color'] = self.config.interactive_grid_line_color
         if "background_color" not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['background_color'] = self.config.interactive_background_color
-
 
         return data
 
@@ -8813,8 +8753,6 @@ class panelInteractiveOutput(wx.MiniFrame):
             data['interactive_params']['annotation_properties']['patch_transparency'] = self.config.interactive_ms_annotations_transparency
         if "label_use_preset_color" not in data['interactive_params']['annotation_properties']:
             data['interactive_params']['annotation_properties']['label_use_preset_color'] = True
-
-            
 
         return data
 

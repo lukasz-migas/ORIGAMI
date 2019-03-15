@@ -1,11 +1,12 @@
 from copy import deepcopy
 
-import unidec_modules.peakstructure
-import unidec_modules.unidecstructure
+import unidec_modules.peakstructure as peakstructure
+import unidec_modules.unidecstructure as unidecstructure
 import unidec_modules.unidectools as ud
 
 
 class UniDecEngine:
+
     def __init__(self):
         """
         UniDec Engine Base
@@ -93,7 +94,7 @@ class UniDecEngine:
         # self.data.read_hdf5(self.config.hdf_file)
 
     def update_history(self):
-        #print "Update"
+        # print "Update"
         try:
             if self.config_count > 0 and self.config.check_new(self.config_history[len(self.config_history) - 1]):
                 self.config_history.append(self.copy_config(self.config))
@@ -105,11 +106,11 @@ class UniDecEngine:
                 # print "No changes"
         except:
             self.clear_history()
-        #print self.config_count
+        # print self.config_count
         pass
 
     def copy_config(self, config):
-        #return deepcopy(config)
+        # return deepcopy(config)
         return type("UniDecConfig", (object,), dict(config.__dict__))
 
     def clear_history(self):

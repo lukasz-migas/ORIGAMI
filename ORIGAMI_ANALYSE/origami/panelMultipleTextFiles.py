@@ -31,7 +31,7 @@ from dialogs import panelAsk, panelSelectDocument
 from document import document as documents
 from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
 from ids import *
-from styles import makeMenuItem
+from styles import makeMenuItem, makeTooltip
 from toolbox import (convertRGB1to255, convertRGB255to1, determineFontColor,
                      getTime, isempty, literal_eval, merge_two_dicts,
                      randomColorGenerator, randomIntegerGenerator,
@@ -163,28 +163,62 @@ class panelMultipleTextFiles (wx.Panel):
         self.Bind(wx.EVT_TOOL, self.OnCheckAllItems, id=ID_textPanel_check_all)
         self.Bind(wx.EVT_TOOL, self.onOverlayTool, id=ID_overlayTextFilesMenu)
 
-        # Create toolbar for the table
-        toolbar = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.TB_DOCKABLE, id=wx.ID_ANY)
-        toolbar.SetToolBitmapSize((16, 16))
-        toolbar.AddTool(ID_textPanel_check_all, self.icons.iconsLib['check16'],
-                        shortHelpString="Check all items")
-        toolbar.AddTool(ID_addTextFilesToList, self.icons.iconsLib['add16'],
-                        shortHelpString="Add...")
-        toolbar.AddTool(ID_removeTextFilesMenu, self.icons.iconsLib['remove16'],
-                        shortHelpString="Remove...")
-        toolbar.AddTool(ID_annotateTextFilesMenu, self.icons.iconsLib['annotate16'],
-                        shortHelpString="Annotate...")
-        toolbar.AddTool(ID_processTextFilesMenu, self.icons.iconsLib['process16'],
-                        shortHelpString="Process...")
-        toolbar.AddTool(ID_overlayTextFilesMenu, self.icons.iconsLib['overlay16'],
-                        shortHelpString="Overlay currently selected ions\tAlt+W")
-        self.combo = wx.ComboBox(toolbar, ID_textSelectOverlayMethod, value="Mask",
-                                 choices=self.config.overlayChoices,
-                                 style=wx.CB_READONLY, size=(110, -1))
-        toolbar.AddControl(self.combo)
-        toolbar.Realize()
+        self.check_btn = wx.BitmapButton(
+            self, ID_textPanel_check_all, self.icons.iconsLib['check16'],
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        self.check_btn.SetToolTip(makeTooltip("Check all items\tX"))
 
-        return toolbar
+        self.add_btn = wx.BitmapButton(
+            self, ID_addTextFilesToList, self.icons.iconsLib['add16'],
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        self.add_btn.SetToolTip(makeTooltip("Add..."))
+
+        self.remove_btn = wx.BitmapButton(
+            self, ID_removeTextFilesMenu, self.icons.iconsLib['remove16'],
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        self.remove_btn.SetToolTip(makeTooltip("Remove..."))
+
+        self.annotate_btn = wx.BitmapButton(
+            self, ID_annotateTextFilesMenu, self.icons.iconsLib['annotate16'],
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        self.annotate_btn.SetToolTip(makeTooltip("Annotate..."))
+
+        self.process_btn = wx.BitmapButton(
+            self, ID_processTextFilesMenu, self.icons.iconsLib['process16'],
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        self.process_btn.SetToolTip(makeTooltip("Process..."))
+
+        self.overlay_btn = wx.BitmapButton(
+            self, ID_overlayTextFilesMenu, self.icons.iconsLib['overlay16'],
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        self.overlay_btn.SetToolTip(makeTooltip("Overlay selected ions..."))
+
+        self.combo = wx.ComboBox(self, ID_textSelectOverlayMethod,
+                                 size=(105, -1), choices=self.config.overlayChoices,
+                                 style=wx.CB_READONLY)
+
+        vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
+
+        # button grid
+        btn_grid_vert = wx.GridBagSizer(2, 2)
+        x = 0
+        btn_grid_vert.Add(self.check_btn, (x, 0), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(vertical_line_1, (x, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid_vert.Add(self.add_btn, (x, 2), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(self.remove_btn, (x, 3), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(self.annotate_btn, (x, 4), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(self.process_btn, (x, 5), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(self.overlay_btn, (x, 6), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(self.combo, (x, 7), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+
+        return btn_grid_vert
 
     def OnRightClickMenu(self, evt):
 

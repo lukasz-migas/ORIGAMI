@@ -21,6 +21,7 @@
 import gc
 import os
 import random
+import logging
 import re
 import sys
 import threading
@@ -63,6 +64,11 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
+
+logger = logging.getLogger("origami")
+
+# disable MPL logger
+logging.getLogger("matplotlib").setLevel(logging.ERROR)
 
 
 class ORIGAMI(object):

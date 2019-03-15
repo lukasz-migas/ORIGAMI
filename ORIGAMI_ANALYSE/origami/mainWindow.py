@@ -4,9 +4,9 @@
 #    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
 #
-#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#	 Cite : 10.1016/j.ijms.2017.08.014
+# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+# 	 Cite : 10.1016/j.ijms.2017.08.014
 #
 #    This program is free software. Feel free to redistribute it and/or
 #    modify it under the condition you cite and credit the authors whenever
@@ -18,7 +18,6 @@
 # __author__ lukasz.g.migas
 
 # Load libraries
-
 
 import os
 import sys
@@ -36,7 +35,6 @@ from dialogs import (panelExportSettings, panelHTMLViewer,
                      panelNotifyNewVersion, panelNotifyOpenDocuments,
                      panelSequenceAnalysis)
 from gui_elements.panelAbout import panelAbout
-from ids import *
 from panelCCScalibration import panelCCScalibration
 from panelDocumentTree import panelDocuments
 from panelExtraParameters import panelParametersEdit
@@ -46,7 +44,6 @@ from panelLog import panelLog
 from panelMultipleIons import panelMultipleIons
 from panelMultipleML import panelMML
 from panelMultipleTextFiles import panelMultipleTextFiles
-# Load modules
 from panelPlot import panelPlot
 from panelProcess import panelProcessData
 from processing.data_processing import data_processing
@@ -55,20 +52,48 @@ from styles import makeMenuItem
 from toolbox import (checkVersion, clean_directory, compareVersions,
                      convertRGB1to255, convertRGB255to1, findPeakMax,
                      getNarrow1Ddata, randomIntegerGenerator)
-
-# import logging
+from ids import ID_openMSFile, ID_open1DIMSFile, ID_open2DIMSFile, ID_fileMenu_MGF, ID_fileMenu_mzML, \
+    ID_fileMenu_openRecent, ID_openDocument, ID_openORIGAMIRawFile, ID_openMultipleORIGAMIRawFiles, ID_addNewManualDoc, \
+    ID_openMassLynxFiles, ID_addCCScalibrantFile, ID_openLinearDTRawFile, ID_openMassLynxFile, ID_fileMenu_thermoRAW, \
+    ID_addNewOverlayDoc, ID_addNewInteractiveDoc, ID_openMStxtFile, ID_openIMStxtFile, ID_openTextFilesMenu, \
+    ID_getSpectrumFromClipboard, ID_saveDocument, ID_saveAllDocuments, ID_quit, ID_processSettings_ExtractData, \
+    ID_processSettings_ORIGAMI, ID_processSettings_MS, ID_processSettings_2D, ID_processSettings_FindPeaks, \
+    ID_processSettings_UniDec, ID_extraSettings_general_plot, ID_extraSettings_plot1D, ID_extraSettings_plot2D, \
+    ID_extraSettings_plot3D, ID_extraSettings_colorbar, ID_extraSettings_legend, ID_extraSettings_rmsd, \
+    ID_extraSettings_waterfall, ID_extraSettings_violin, ID_extraSettings_general, ID_annotPanel_otherSettings, \
+    ID_unidecPanel_otherSettings, ID_plots_showCursorGrid, ID_plots_resetZoom, ID_clearAllPlots, ID_docTree_compareMS, \
+    ID_saveAsInteractive, ID_window_documentList, ID_window_ionList, ID_window_textList, ID_window_multipleMLList, \
+    ID_window_multiFieldList, ID_window_ccsList, ID_window_logWindow, ID_window_all, ID_windowMaximize, \
+    ID_windowMinimize, ID_windowFullscreen, ID_docTree_plugin_UVPD, ID_docTree_plugin_MSMS, ID_saveConfig, \
+    ID_saveAsConfig, ID_openConfig, ID_openAsConfig, ID_importAtStart_CCS, ID_openCCScalibrationDatabse, \
+    ID_selectCalibrant, ID_importExportSettings_peaklist, ID_importExportSettings_image, ID_importExportSettings_file, \
+    ID_checkAtStart_Driftscope, ID_check_Driftscope, ID_setDriftScopeDir, ID_help_UniDecInfo, ID_help_page_dataLoading, \
+    ID_help_page_dataExtraction, ID_help_page_UniDec, ID_help_page_ORIGAMI, ID_help_page_multipleFiles, \
+    ID_help_page_overlay, ID_help_page_Interactive, ID_help_page_annotatingMassSpectra, ID_help_page_OtherData, \
+    ID_helpGuide, ID_helpGuideLocal, ID_helpYoutube, ID_helpNewVersion, ID_helpCite, ID_helpNewFeatures, \
+    ID_helpReportBugs, ID_CHECK_VERSION, ID_WHATS_NEW, ID_SHOW_ABOUT, ID_helpAuthor, ID_RESET_ORIGAMI, \
+    ID_help_page_gettingStarted, ID_help_page_CCScalibration, ID_help_page_linearDT, ID_openIRRawFile, ID_openMSbinFile, \
+    ID_open1DbinFile, ID_open2DbinFile, ID_openIRTextile, ID_saveOverlayImage, ID_saveMSImage, ID_saveMZDTImage, \
+    ID_saveRTImage, ID_save1DImage, ID_save2DImage, ID_save3DImage, ID_saveWaterfallImage, ID_saveRMSDImage, \
+    ID_saveRMSFImage, ID_saveRMSDmatrixImage, ID_openTextFiles, ID_processTextFiles, ID_overlayTextFromList, \
+    ID_extractDriftVoltagesForEachIon, ID_helpHomepage, ID_helpGitHub, ID_helpHTMLEditor, ID_overlayMZfromList, \
+    ID_extractAllIons, ID_showPlotDocument, ID_process2DDocument, ID_combineCEscans, ID_renameItem, \
+    ID_showPlotMSDocument, ID_assignChargeState, ID_saveDataCSVDocument, ID_mainPanel_openSourceFiles, \
+    ID_openMassLynxRawFile, ID_window_controls, ID_documentRecent0, ID_documentRecent1, ID_documentRecent2, \
+    ID_documentRecent3, ID_documentRecent4, ID_documentRecent5, ID_documentRecent6, ID_documentRecent7, \
+    ID_documentRecent8, ID_documentRecent9, ID_fileMenu_clearRecent
 
 
 class MyFrame(wx.Frame):
 
     def __init__(self, parent, config, helpInfo, icons, id=-1, title='ORIGAMI',
                  pos=wx.DefaultPosition, size=(1200, 600),
-                 style=wx.FULL_REPAINT_ON_RESIZE):  # wx.DEFAULT_FRAME_STYLE): #
+                 style=wx.FULL_REPAINT_ON_RESIZE):
         wx.Frame.__init__(self, None, title=title)
 
         # Extract size of screen
         self.displaysize = wx.GetDisplaySize()
-        self.SetDimensions(0, 0, self.displaysize[0], self.displaysize[1]-50)
+        self.SetDimensions(0, 0, self.displaysize[0], self.displaysize[1] - 50)
         # Setup config container
         self.config = config
         self.icons = icons
@@ -127,36 +152,16 @@ class MyFrame(wx.Frame):
 
         # Toolbar
         self.makeToolbar()
-        if self.config._windowSettings['Toolbar']['orientation'] in ['top', 'bottom']:
-            self._mgr.AddPane(self.mainToolbar_horizontal, wx.aui.AuiPaneInfo()
-                              .Name("Toolbar_horizontal").Caption("Toolbar_horizontal").ToolbarPane().Top()
-                              .Show(self.config._windowSettings['Toolbar']['show'])
-                              .Gripper(self.config._windowSettings['Toolbar']['show'])
-                              .Dockable())
-            if self.config._windowSettings['Toolbar']['orientation'] == "top":
-                self._mgr.GetPane(self.mainToolbar_horizontal).Top()
-            else:
-                self._mgr.GetPane(self.mainToolbar_horizontal).Bottom()
-        else:
-            self._mgr.AddPane(self.mainToolbar_vertical, wx.aui.AuiPaneInfo()
-                              .Name("Toolbar_vertical").Caption("Toolbar_vertical").ToolbarPane().Left().GripperTop()
-                              .Show(self.config._windowSettings['Toolbar']['show'])
-                              .Gripper(self.config._windowSettings['Toolbar']['show'])
-                              .Dockable())
-            if self.config._windowSettings['Toolbar']['orientation'] == "left":
-                self._mgr.GetPane(self.mainToolbar_vertical).Left()
-            else:
-                self._mgr.GetPane(self.mainToolbar_vertical).Right()
 
         # Panel to store document information
-        self._mgr.AddPane(self.panelDocuments,  wx.aui.AuiPaneInfo().Left().Caption('Documents')
+        self._mgr.AddPane(self.panelDocuments, wx.aui.AuiPaneInfo().Left().Caption('Documents')
                           .MinSize((250, 100)).GripperTop().BottomDockable(False).TopDockable(False)
                           .Show(self.config._windowSettings['Documents']['show'])
                           .CloseButton(self.config._windowSettings['Documents']['close_button'])
                           .CaptionVisible(self.config._windowSettings['Documents']['caption'])
                           .Gripper(self.config._windowSettings['Documents']['gripper']))
 
-        self._mgr.AddPane(self.panelPlots,  wx.aui.AuiPaneInfo().CenterPane().Caption('Plot')
+        self._mgr.AddPane(self.panelPlots, wx.aui.AuiPaneInfo().CenterPane().Caption('Plot')
                           .Show(self.config._windowSettings['Plots']['show'])
                           .CloseButton(self.config._windowSettings['Plots']['close_button'])
                           .CaptionVisible(self.config._windowSettings['Plots']['caption'])
@@ -164,7 +169,7 @@ class MyFrame(wx.Frame):
                           )
 
         # Panel to extract multiple ions from ML files
-        self._mgr.AddPane(self.panelMultipleIons,  wx.aui.AuiPaneInfo().Right().Caption('Peak list')
+        self._mgr.AddPane(self.panelMultipleIons, wx.aui.AuiPaneInfo().Right().Caption('Peak list')
                           .MinSize((300, -1)).GripperTop().BottomDockable(True).TopDockable(False)
                           .Show(self.config._windowSettings['Peak list']['show'])
                           .CloseButton(self.config._windowSettings['Peak list']['close_button'])
@@ -173,7 +178,7 @@ class MyFrame(wx.Frame):
                           )
 
         # Panel to operate on multiple text files
-        self._mgr.AddPane(self.panelMultipleText,  wx.aui.AuiPaneInfo().Right().Caption('Text files')
+        self._mgr.AddPane(self.panelMultipleText, wx.aui.AuiPaneInfo().Right().Caption('Text files')
                           .MinSize((300, -1)).GripperTop().BottomDockable(True).TopDockable(False)
                           .Show(self.config._windowSettings['Text files']['show'])
                           .CloseButton(self.config._windowSettings['Text files']['close_button'])
@@ -182,7 +187,7 @@ class MyFrame(wx.Frame):
                           )
 
         # Panel to operate on multiple ML files
-        self._mgr.AddPane(self.panelMML,  wx.aui.AuiPaneInfo().Right().Caption('Multiple files')
+        self._mgr.AddPane(self.panelMML, wx.aui.AuiPaneInfo().Right().Caption('Multiple files')
                           .MinSize((300, -1)).GripperTop().BottomDockable(True).TopDockable(False)
                           .Show(self.config._windowSettings['Multiple files']['show'])
                           .CloseButton(self.config._windowSettings['Multiple files']['close_button'])
@@ -191,7 +196,7 @@ class MyFrame(wx.Frame):
                           )
 
         # Panel to analyse linear DT data (Synapt)
-        self._mgr.AddPane(self.panelLinearDT,  wx.aui.AuiPaneInfo().Right().Caption('Linear Drift Cell')
+        self._mgr.AddPane(self.panelLinearDT, wx.aui.AuiPaneInfo().Right().Caption('Linear Drift Cell')
                           .MinSize((300, -1)).GripperTop().BottomDockable(True).TopDockable(False)
                           .Show(self.config._windowSettings['Linear Drift Cell']['show'])
                           .CloseButton(self.config._windowSettings['Linear Drift Cell']['close_button'])
@@ -200,7 +205,7 @@ class MyFrame(wx.Frame):
                           )
 
         # Panel to perform CCS calibration
-        self._mgr.AddPane(self.panelCCS,  wx.aui.AuiPaneInfo().Right().Caption('CCS calibration')
+        self._mgr.AddPane(self.panelCCS, wx.aui.AuiPaneInfo().Right().Caption('CCS calibration')
                           .MinSize((320, -1)).GripperTop().BottomDockable(True).TopDockable(False)
                           .Show(self.config._windowSettings['CCS calibration']['show'])
                           .CloseButton(self.config._windowSettings['CCS calibration']['close_button'])
@@ -208,7 +213,7 @@ class MyFrame(wx.Frame):
                           .Gripper(self.config._windowSettings['CCS calibration']['gripper'])
                           )
 
-        self._mgr.AddPane(self.panelParametersEdit,  wx.aui.AuiPaneInfo().Right()
+        self._mgr.AddPane(self.panelParametersEdit, wx.aui.AuiPaneInfo().Right()
                           .Caption(self.config._windowSettings['Plot parameters']['title'])
                           .MinSize((320, -1)).GripperTop().BottomDockable(True).TopDockable(False)
                           .Show(self.config._windowSettings['Plot parameters']['show'])
@@ -217,7 +222,7 @@ class MyFrame(wx.Frame):
                           .Gripper(self.config._windowSettings['Plot parameters']['gripper'])
                           )
 
-        self._mgr.AddPane(self.panelLog,  wx.aui.AuiPaneInfo().Bottom()
+        self._mgr.AddPane(self.panelLog, wx.aui.AuiPaneInfo().Bottom()
                           .Caption(self.config._windowSettings['Log']['title'])
                           .MinSize((320, -1)).GripperTop().BottomDockable(True).TopDockable(True)
                           .Show(self.config._windowSettings['Log']['show'])
@@ -253,7 +258,7 @@ class MyFrame(wx.Frame):
         self._onUpdateWindowSettings()
         self.onPaneOnOff(evt=None)
         self._onToggleOnStart()
-        self.onSetupMenu(None)
+#         self.onSetupMenu(None)
 
     def _onUpdateWindowSettings(self):
         self.config._windowSettings['Documents']['id'] = ID_window_documentList
@@ -286,8 +291,8 @@ class MyFrame(wx.Frame):
             _data = self.presenter._get_replot_data(data_format='2D')
             try:
                 yshape, xshape = _data[0].shape
-                _yscale = yshape/np.max(_data[2])
-                _xscale = xshape/np.max(_data[1])
+                _yscale = yshape / np.max(_data[2])
+                _xscale = xshape / np.max(_data[1])
                 self.plot_data['2D'] = _data[0]
                 self.plot_scale['2D'] = [_yscale, _xscale]
             except:
@@ -295,15 +300,15 @@ class MyFrame(wx.Frame):
         elif plot_type == 'DT/MS':
             _data = self.presenter._get_replot_data(data_format='DT/MS')
             yshape, xshape = _data[0].shape
-            _yscale = yshape/np.max(_data[2])
-            _xscale = xshape/np.max(_data[1])
+            _yscale = yshape / np.max(_data[2])
+            _xscale = xshape / np.max(_data[1])
             self.plot_data['DT/MS'] = _data[0]
             self.plot_scale['DT/MS'] = [_yscale, _xscale]
         elif plot_type == 'RMSF':
             _data = self.presenter._get_replot_data(data_format='RMSF')
             yshape, xshape = _data[0].shape
-            _yscale = yshape/np.max(_data[2])
-            _xscale = xshape/np.max(_data[1])
+            _yscale = yshape / np.max(_data[2])
+            _xscale = xshape / np.max(_data[1])
             self.plot_data['DT/MS'] = _data[0]
             self.plot_scale['DT/MS'] = [_yscale, _xscale]
 
@@ -338,7 +343,7 @@ class MyFrame(wx.Frame):
 
     def statusBar(self):
 
-        self.mainStatusbar = self.CreateStatusBar(6, wx.ST_SIZEGRIP, wx.ID_ANY)
+        self.mainStatusbar = self.CreateStatusBar(6, wx.STB_SIZEGRIP, wx.ID_ANY)
         # 0 = current x y pos
         # 1 = m/z range
         # 2 = MSMS mass
@@ -347,7 +352,8 @@ class MyFrame(wx.Frame):
         # 5 = tool
         # 6 = process
         self.mainStatusbar.SetStatusWidths([250, 80, 80, 200, -1, 50])
-        self.mainStatusbar.SetFont(wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.NORMAL))
+        self.mainStatusbar.SetFont(
+            wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
 
     def onMode(self, dataOut):
         shift, ctrl, alt, add2table, wheel, zoom, dragged = dataOut
@@ -569,11 +575,6 @@ class MyFrame(wx.Frame):
         self.window_logWindow = menuView.Append(ID_window_logWindow, 'Panel: Log\tCtrl+8', kind=wx.ITEM_CHECK)
         menuView.AppendSeparator()
         menuView.Append(ID_window_all, 'Panel: Restore &all')
-        menuView.AppendSeparator()
-        self.toolbar_top = menuView.Append(ID_toolbar_top, 'Toolbar: &Top', kind=wx.ITEM_RADIO)
-        self.toolbar_bottom = menuView.Append(ID_toolbar_bottom, 'Toolbar: &Bottom', kind=wx.ITEM_RADIO)
-        self.toolbar_left = menuView.Append(ID_toolbar_left, 'Toolbar: &Left', kind=wx.ITEM_RADIO)
-        self.toolbar_right = menuView.Append(ID_toolbar_right, 'Toolbar: &Right', kind=wx.ITEM_RADIO)
         menuView.AppendSeparator()
         menuView.AppendItem(makeMenuItem(parent=menuView, id=ID_windowMaximize,
                                          text='Maximize window',
@@ -851,7 +852,6 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panelDocuments.topP.documents.on_open_MSMS_viewer,
                   id=ID_docTree_plugin_MSMS)
 
-
 #         self.Bind(wx.EVT_MENU, self.onSequenceEditor, id=ID_sequence_openGUI)
 
         # CONFIG MENU
@@ -882,22 +882,22 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onWindowIconize, id=ID_windowMinimize)
         self.Bind(wx.EVT_MENU, self.onWindowFullscreen, id=ID_windowFullscreen)
         self.Bind(wx.EVT_MENU, self.presenter.onClearAllPlots, id=ID_clearAllPlots)
-        self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_top)
-        self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_bottom)
-        self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_left)
-        self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_right)
+#         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_top)
+#         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_bottom)
+#         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_left)
+#         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_right)
         self.Bind(wx.EVT_MENU, self.on_open_compare_MS_window, id=ID_docTree_compareMS)
 
     def on_customise_annotation_plot_parameters(self, evt):
         from gui_elements.dialog_customiseUserAnnotations import panelCustomiseParameters as panelCustomiseParameters_annotations
 
-        dlg = panelCustomiseParameters_annotations(self,  self.config)
+        dlg = panelCustomiseParameters_annotations(self, self.config)
         dlg.ShowModal()
 
     def on_customise_unidec_plot_parameters(self, evt):
         from gui_elements.dialog_customiseUniDecPlots import panelCustomiseParameters as panelCustomiseParameters_unidec
 
-        dlg = panelCustomiseParameters_unidec(self,  self.config, self.icons)
+        dlg = panelCustomiseParameters_unidec(self, self.config, self.icons)
         dlg.ShowModal()
 
     def on_add_blank_document_manual(self, evt):
@@ -1060,7 +1060,7 @@ class MyFrame(wx.Frame):
             pass
 
     def on_open_HTML_guide(self, evt):
-        from help import HTMLHelp as htmlPages
+        from help_documentation import HTMLHelp as htmlPages
 
         htmlPages = htmlPages()
         evtID = evt.GetId()
@@ -1070,26 +1070,26 @@ class MyFrame(wx.Frame):
 
         elif evtID == ID_help_page_dataLoading:
             link = os.path.join(os.getcwd(), "docs\\user-guide\loading-data.html")
-            #kwargs = htmlPages.page_data_loading_info
+            # kwargs = htmlPages.page_data_loading_info
 
         elif evtID == ID_help_page_gettingStarted:
             link = os.path.join(os.getcwd(), "docs\\user-guide\example-files.html")
-            #kwargs = htmlPages.page_data_getting_started
+            # kwargs = htmlPages.page_data_getting_started
 
         elif evtID == ID_help_page_UniDec:
             link = os.path.join(os.getcwd(), "docs\\user-guide\deconvolution\\unidec-deconvolution.html")
-            #kwargs = htmlPages.page_deconvolution_info
+            # kwargs = htmlPages.page_deconvolution_info
 
         elif evtID == ID_help_page_ORIGAMI:
             link = os.path.join(os.getcwd(), "docs\\user-guide\data-handling\automated-ciu.html")
-            #kwargs = htmlPages.page_origami_info
+            # kwargs = htmlPages.page_origami_info
 
         elif evtID == ID_help_page_overlay:
             kwargs = htmlPages.page_overlay_info
 
         elif evtID == ID_help_page_multipleFiles:
             link = os.path.join(os.getcwd(), "docs\\user-guide\data-handling\manual-ciu.html")
-            #kwargs = htmlPages.page_multiple_files_info
+            # kwargs = htmlPages.page_multiple_files_info
 
         elif evtID == ID_help_page_linearDT:
             kwargs = htmlPages.page_linear_dt_info
@@ -1103,7 +1103,7 @@ class MyFrame(wx.Frame):
 
         elif evtID == ID_help_page_Interactive:
             link = os.path.join(os.getcwd(), "docs\\user-guide\interactive-output\simple-output.html")
-            #kwargs = htmlPages.page_interactive_output_info
+            # kwargs = htmlPages.page_interactive_output_info
 
         elif evtID == ID_help_page_OtherData:
             kwargs = htmlPages.page_other_data_info
@@ -1215,89 +1215,6 @@ class MyFrame(wx.Frame):
         self.SetAcceleratorTable(wx.AcceleratorTable(ctrllist))
         pass
 
-    def onSetupMenu(self, evt):
-
-        if self.config._windowSettings['Toolbar']['orientation'] == 'top':
-            self.toolbar_top.Check(True)
-        elif self.config._windowSettings['Toolbar']['orientation'] == 'bottom':
-            self.toolbar_bottom.Check(True)
-        elif self.config._windowSettings['Toolbar']['orientation'] == 'left':
-            self.toolbar_left.Check(True)
-        elif self.config._windowSettings['Toolbar']['orientation'] == 'right':
-            self.toolbar_right.Check(True)
-
-    def onToolbarPosition(self, evt):
-
-        evtID = evt.GetId()
-        # Try hiding
-        try:
-            self._mgr.GetPane(self.mainToolbar_vertical).Hide()
-        except:
-            pass
-
-        try:
-            self._mgr.GetPane(self.mainToolbar_horizontal).Hide()
-        except:
-            pass
-
-        if evtID == ID_toolbar_top:
-            self.config._windowSettings['Toolbar']['orientation'] = 'top'
-        elif evtID == ID_toolbar_bottom:
-            self.config._windowSettings['Toolbar']['orientation'] = 'bottom'
-        elif evtID == ID_toolbar_left:
-            self.config._windowSettings['Toolbar']['orientation'] = 'left'
-        elif evtID == ID_toolbar_right:
-            self.config._windowSettings['Toolbar']['orientation'] = 'right'
-
-        if evtID in [ID_toolbar_top, ID_toolbar_bottom]:
-            self.makeToolbar()
-            try:
-                self._mgr.AddPane(self.mainToolbar_horizontal, wx.aui.AuiPaneInfo().
-                                  Name("Toolbar_horizontal").Caption("Toolbar_horizontal").ToolbarPane().Top()
-                                  .Show(self.config._windowSettings['Toolbar']['show'])
-                                  .Gripper(self.config._windowSettings['Toolbar']['show'])
-                                  .LeftDockable(self.config._windowSettings['Toolbar']['left_dockable'])
-                                  .RightDockable(self.config._windowSettings['Toolbar']['right_dockable'])
-                                  .TopDockable(self.config._windowSettings['Toolbar']['top_dockable'])
-                                  .BottomDockable(self.config._windowSettings['Toolbar']['bottom_dockable']))
-            except:
-                self._mgr.GetPane(self.mainToolbar_horizontal).Show()
-                try:
-                    self._mgr.GetPane(self.mainToolbar_vertical).Hide()
-                except:
-                    pass
-
-            if evtID == ID_toolbar_top:
-                self._mgr.GetPane(self.mainToolbar_horizontal).Top()
-            else:
-                self._mgr.GetPane(self.mainToolbar_horizontal).Bottom()
-
-        elif evtID in [ID_toolbar_left, ID_toolbar_right]:
-            self.makeToolbar()
-            try:
-                self._mgr.AddPane(self.mainToolbar_vertical, wx.aui.AuiPaneInfo().
-                                  Name("Toolbar_vertical").Caption("Toolbar_vertical").ToolbarPane().Left().GripperTop()
-                                  .Show(self.config._windowSettings['Toolbar']['show'])
-                                  .Gripper(self.config._windowSettings['Toolbar']['show'])
-                                  .LeftDockable(self.config._windowSettings['Toolbar']['left_dockable'])
-                                  .RightDockable(self.config._windowSettings['Toolbar']['right_dockable'])
-                                  .TopDockable(self.config._windowSettings['Toolbar']['top_dockable'])
-                                  .BottomDockable(self.config._windowSettings['Toolbar']['bottom_dockable']))
-            except:
-                self._mgr.GetPane(self.mainToolbar_vertical).Show()
-                try:
-                    self._mgr.GetPane(self.mainToolbar_horizontal).Hide()
-                except:
-                    pass
-
-            if evtID == ID_toolbar_left:
-                self._mgr.GetPane(self.mainToolbar_vertical).Left()
-            else:
-                self._mgr.GetPane(self.mainToolbar_vertical).Right()
-
-        self._onToggleOnStart()
-        self._mgr.Update()
-
     def on_open_source_menu(self, evt):
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_fileMenu_MGF,
@@ -1318,158 +1235,83 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_openMassLynxRawFile)
         self.Bind(wx.EVT_TOOL, self.on_open_source_menu, id=ID_mainPanel_openSourceFiles)
 
-        if self.config._windowSettings['Toolbar']['orientation'] in ['top', 'bottom']:
-            style = wx.TB_HORIZONTAL | wx.TB_DOCKABLE | wx.TB_NODIVIDER | wx.TB_FLAT
-            self.mainToolbar_horizontal = wx.ToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize, style)
-            self.mainToolbar_horizontal.SetToolBitmapSize(wx.Size(16, 16))
-            self.mainToolbar_horizontal.AddTool(
-                ID_openDocument, self.icons.iconsLib['open_project_16'], shortHelpString="Open project file")
-            self.mainToolbar_horizontal.AddTool(
-                ID_saveDocument, self.icons.iconsLib['save16'], shortHelpString="Save project file")
-            self.mainToolbar_horizontal.AddSeparator()
-            self.mainToolbar_horizontal.AddTool(
-                ID_openORIGAMIRawFile, self.icons.iconsLib['open_origami_16'], shortHelpString="Open ORIGAMI MassLynx file")
-            self.mainToolbar_horizontal.AddTool(
-                ID_openORIGAMIRawFile, self.icons.iconsLib['open_masslynx_16'], shortHelpString="Open MassLynx file (IM-MS)")
-            self.mainToolbar_horizontal.AddTool(
-                ID_openMassLynxFiles, self.icons.iconsLib['open_masslynxMany_16'], shortHelpString="Open multiple MassLynx files")
-            self.mainToolbar_horizontal.AddSeparator()
-            self.mainToolbar_horizontal.AddTool(
-                ID_openIMStxtFile, self.icons.iconsLib['open_text_16'], shortHelpString="Open text file")
-            self.mainToolbar_horizontal.AddTool(
-                ID_openTextFiles, self.icons.iconsLib['open_textMany_16'], shortHelpString="Open multiple text files")
-            self.mainToolbar_horizontal.AddSeparator()
-            self.mainToolbar_horizontal.AddTool(ID_mainPanel_openSourceFiles,
-                                                self.icons.iconsLib['ms16'], shortHelpString="Open MS/MS files...")
-            self.mainToolbar_horizontal.AddSeparator()
-            self.mainToolbar_horizontal.AddCheckTool(
-                ID_window_documentList, self.icons.iconsLib['panel_doc_16'], shortHelp="Enable/Disable documents panel")
-            self.mainToolbar_horizontal.AddCheckTool(
-                ID_window_ionList, self.icons.iconsLib['panel_ion_16'], shortHelp="Enable/Disable multi ion panel")
-            self.mainToolbar_horizontal.AddCheckTool(
-                ID_window_textList, self.icons.iconsLib['panel_text_16'], shortHelp="Enable/Disable multi text panel")
-            self.mainToolbar_horizontal.AddCheckTool(
-                ID_window_multipleMLList, self.icons.iconsLib['panel_mll__16'], shortHelp="Enable/Disable multi MassLynx panel")
-            self.mainToolbar_horizontal.AddCheckTool(
-                ID_window_multiFieldList, self.icons.iconsLib['panel_dt_16'], shortHelp="Enable/Disable linear DT panel")
-            self.mainToolbar_horizontal.AddCheckTool(
-                ID_window_ccsList, self.icons.iconsLib['panel_ccs_16'], shortHelp="Enable/Disable CCS calibration panel")
-            self.mainToolbar_horizontal.AddCheckTool(
-                ID_window_logWindow, self.icons.iconsLib['panel_log_16'], shortHelp="Enable/Disable Log panel")
-            self.mainToolbar_horizontal.AddSeparator()
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_general_plot, self.icons.iconsLib['panel_plot_general_16'], shortHelpString="Settings: General plot")
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_plot1D, self.icons.iconsLib['panel_plot1D_16'], shortHelpString="Settings: Plot 1D panel")
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_plot2D, self.icons.iconsLib['panel_plot2D_16'], shortHelpString="Settings: Plot 2D panel")
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_plot3D, self.icons.iconsLib['panel_plot3D_16'], shortHelpString="Settings: Plot 3D panel")
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_colorbar, self.icons.iconsLib['panel_colorbar_16'], shortHelpString="Settings: Colorbar panel")
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_legend, self.icons.iconsLib['panel_legend_16'], shortHelpString="Settings: Legend panel")
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_rmsd, self.icons.iconsLib['panel_rmsd_16'], shortHelpString="Settings: RMSD panel")
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_waterfall, self.icons.iconsLib['panel_waterfall_16'], shortHelpString="Settings: Waterfall panel")
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_violin, self.icons.iconsLib['panel_violin_16'], shortHelpString="Settings: Violin panel")
-            self.mainToolbar_horizontal.AddTool(
-                ID_extraSettings_general, self.icons.iconsLib['panel_general2_16'], shortHelpString="Settings: Extra panel")
-            self.mainToolbar_horizontal.AddSeparator()
-            self.mainToolbar_horizontal.AddTool(
-                ID_processSettings_ExtractData, self.icons.iconsLib['process_extract_16'], shortHelpString="Settings: &Extract data\tShift+1")
-            self.mainToolbar_horizontal.AddTool(
-                ID_processSettings_ORIGAMI, self.icons.iconsLib['process_origami_16'], shortHelpString="Settings: &ORIGAMI\tShift+2")
-            self.mainToolbar_horizontal.AddTool(
-                ID_processSettings_MS, self.icons.iconsLib['process_ms_16'], shortHelpString="Settings: &Process mass spectra\tShift+3")
-            self.mainToolbar_horizontal.AddTool(
-                ID_processSettings_2D, self.icons.iconsLib['process_2d_16'], shortHelpString="Settings: Process &2D heatmaps\tShift+4")
-            self.mainToolbar_horizontal.AddTool(
-                ID_processSettings_FindPeaks, self.icons.iconsLib['process_fit_16'], shortHelpString="Settings: Peak &fitting\tShift+5")
-            self.mainToolbar_horizontal.AddTool(
-                ID_processSettings_UniDec, self.icons.iconsLib['process_unidec_16'], shortHelpString="Settings: &UniDec\tShift+6")
-            self.mainToolbar_horizontal.AddSeparator()
-            self.mainToolbar_horizontal.AddTool(
-                ID_saveAsInteractive, self.icons.iconsLib['bokehLogo_16'], shortHelpString="Open interactive output panel")
-            self.mainToolbar_horizontal.Realize()
-        else:
-            style = wx.TB_VERTICAL | wx.TB_DOCKABLE | wx.TB_NODIVIDER | wx.TB_FLAT
-            self.mainToolbar_vertical = wx.ToolBar(self, -1, wx.DefaultPosition, wx.DefaultSize, style)
-            self.mainToolbar_vertical.SetToolBitmapSize(wx.Size(16, 16))
-            self.mainToolbar_vertical.AddTool(
-                ID_openDocument, self.icons.iconsLib['open_project_16'], shortHelpString="Open project file")
-            self.mainToolbar_vertical.AddTool(
-                ID_saveDocument, self.icons.iconsLib['save16'], shortHelpString="Save project file")
-            self.mainToolbar_vertical.AddSeparator()
-            self.mainToolbar_vertical.AddTool(
-                ID_openORIGAMIRawFile, self.icons.iconsLib['open_origami_16'], shortHelpString="Open ORIGAMI MassLynx file")
-            self.mainToolbar_vertical.AddTool(
-                ID_openORIGAMIRawFile, self.icons.iconsLib['open_masslynx_16'], shortHelpString="Open MassLynx file")
-            self.mainToolbar_vertical.AddTool(
-                ID_openMassLynxFiles, self.icons.iconsLib['open_masslynxMany_16'], shortHelpString="Open multiple MassLynx files")
-            self.mainToolbar_vertical.AddSeparator()
-            self.mainToolbar_vertical.AddTool(
-                ID_openIMStxtFile, self.icons.iconsLib['open_text_16'], shortHelpString="Open text file")
-            self.mainToolbar_vertical.AddTool(
-                ID_openTextFiles, self.icons.iconsLib['open_textMany_16'], shortHelpString="Open multiple text files")
-            self.mainToolbar_vertical.AddSeparator()
-            self.mainToolbar_vertical.AddTool(ID_mainPanel_openSourceFiles,
-                                              self.icons.iconsLib['ms16'], shortHelpString="Open MS/MS files...")
-            self.mainToolbar_vertical.AddSeparator()
-            self.mainToolbar_vertical.AddCheckTool(
-                ID_window_documentList, self.icons.iconsLib['panel_doc_16'], shortHelp="Enable/Disable documents panel")
-            self.mainToolbar_vertical.AddCheckTool(
-                ID_window_ionList, self.icons.iconsLib['panel_ion_16'], shortHelp="Enable/Disable multi ion panel")
-            self.mainToolbar_vertical.AddCheckTool(
-                ID_window_textList, self.icons.iconsLib['panel_text_16'], shortHelp="Enable/Disable multi text panel")
-            self.mainToolbar_vertical.AddCheckTool(
-                ID_window_multipleMLList, self.icons.iconsLib['panel_mll__16'], shortHelp="Enable/Disable multi MassLynx panel")
-            self.mainToolbar_vertical.AddCheckTool(
-                ID_window_multiFieldList, self.icons.iconsLib['panel_dt_16'], shortHelp="Enable/Disable linear DT panel")
-            self.mainToolbar_vertical.AddCheckTool(
-                ID_window_ccsList, self.icons.iconsLib['panel_ccs_16'], shortHelp="Enable/Disable CCS calibration panel")
-            self.mainToolbar_vertical.AddCheckTool(
-                ID_window_logWindow, self.icons.iconsLib['panel_log_16'], shortHelp="Enable/Disable Log panel")
-            self.mainToolbar_vertical.AddSeparator()
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_general_plot, self.icons.iconsLib['panel_plot_general_16'], shortHelpString="Settings: General plot")
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_plot1D, self.icons.iconsLib['panel_plot1D_16'], shortHelpString="Settings: Plot 1D panel")
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_plot2D, self.icons.iconsLib['panel_plot2D_16'], shortHelpString="Settings: Plot 2D panel")
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_plot3D, self.icons.iconsLib['panel_plot3D_16'], shortHelpString="Settings: Plot 3D panel")
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_colorbar, self.icons.iconsLib['panel_colorbar_16'], shortHelpString="Settings: Colorbar panel")
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_legend, self.icons.iconsLib['panel_legend_16'], shortHelpString="Settings: Legend panel")
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_rmsd, self.icons.iconsLib['panel_rmsd_16'], shortHelpString="Settings: RMSD panel")
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_waterfall, self.icons.iconsLib['panel_waterfall_16'], shortHelpString="Settings: Waterfall panel")
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_violin, self.icons.iconsLib['panel_violin_16'], shortHelpString="Settings: Violin panel")
-            self.mainToolbar_vertical.AddTool(
-                ID_extraSettings_general, self.icons.iconsLib['panel_general2_16'], shortHelpString="Settings: Extra panel")
-            self.mainToolbar_vertical.AddSeparator()
-            self.mainToolbar_vertical.AddTool(
-                ID_processSettings_ExtractData, self.icons.iconsLib['process_extract_16'], shortHelpString="Settings: &Extract data\tShift+1")
-            self.mainToolbar_vertical.AddTool(
-                ID_processSettings_ORIGAMI, self.icons.iconsLib['process_origami_16'], shortHelpString="Settings: &ORIGAMI\tShift+2")
-            self.mainToolbar_vertical.AddTool(
-                ID_processSettings_MS, self.icons.iconsLib['process_ms_16'], shortHelpString="Settings: &Process mass spectra\tShift+3")
-            self.mainToolbar_vertical.AddTool(
-                ID_processSettings_2D, self.icons.iconsLib['process_2d_16'], shortHelpString="Settings: Process &2D heatmaps\tShift+4")
-            self.mainToolbar_vertical.AddTool(
-                ID_processSettings_FindPeaks, self.icons.iconsLib['process_fit_16'], shortHelpString="Settings: Peak &fitting\tShift+5")
-            self.mainToolbar_vertical.AddTool(
-                ID_processSettings_UniDec, self.icons.iconsLib['process_unidec_16'], shortHelpString="Settings: &UniDec\tShift+6")
-            self.mainToolbar_vertical.AddSeparator()
-            self.mainToolbar_vertical.AddTool(
-                ID_saveAsInteractive, self.icons.iconsLib['bokehLogo_16'], shortHelpString="Open interactive output panel")
-            self.mainToolbar_vertical.Realize()
+        # Create toolbar
+        self.mainToolbar_horizontal = self.CreateToolBar((wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT))
+        self.mainToolbar_horizontal.SetToolBitmapSize((12, 12))
+
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_openDocument, "", self.icons.iconsLib['open_project_16'], shortHelp="Open project file")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_saveDocument, "", self.icons.iconsLib['save16'], shortHelp="Save project file")
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_openORIGAMIRawFile, "", self.icons.iconsLib['open_origami_16'], shortHelp="Open ORIGAMI MassLynx file")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_openORIGAMIRawFile, "", self.icons.iconsLib['open_masslynx_16'], shortHelp="Open MassLynx file (IM-MS)")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_openMassLynxFiles, "", self.icons.iconsLib['open_masslynxMany_16'], shortHelp="Open multiple MassLynx files")
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_openIMStxtFile, "", self.icons.iconsLib['open_text_16'], shortHelp="Open text file")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_openTextFiles, "", self.icons.iconsLib['open_textMany_16'], shortHelp="Open multiple text files")
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddLabelTool(ID_mainPanel_openSourceFiles, "", self.icons.iconsLib['ms16'], shortHelp="Open MS/MS files...")
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_documentList, "", self.icons.iconsLib['panel_doc_16'], shortHelp="Enable/Disable documents panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_ionList, "", self.icons.iconsLib['panel_ion_16'], shortHelp="Enable/Disable multi ion panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_textList, "", self.icons.iconsLib['panel_text_16'], shortHelp="Enable/Disable multi text panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_multipleMLList, "", self.icons.iconsLib['panel_mll__16'], shortHelp="Enable/Disable multi MassLynx panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_multiFieldList, "", self.icons.iconsLib['panel_dt_16'], shortHelp="Enable/Disable linear DT panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_ccsList, "", self.icons.iconsLib['panel_ccs_16'], shortHelp="Enable/Disable CCS calibration panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_logWindow, "", self.icons.iconsLib['panel_log_16'], shortHelp="Enable/Disable Log panel")
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_general_plot, "", self.icons.iconsLib['panel_plot_general_16'], shortHelp="Settings: General plot")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_plot1D, "", self.icons.iconsLib['panel_plot1D_16'], shortHelp="Settings: Plot 1D panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_plot2D, "", self.icons.iconsLib['panel_plot2D_16'], shortHelp="Settings: Plot 2D panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_plot3D, "", self.icons.iconsLib['panel_plot3D_16'], shortHelp="Settings: Plot 3D panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_colorbar, "", self.icons.iconsLib['panel_colorbar_16'], shortHelp="Settings: Colorbar panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_legend, "", self.icons.iconsLib['panel_legend_16'], shortHelp="Settings: Legend panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_rmsd, "", self.icons.iconsLib['panel_rmsd_16'], shortHelp="Settings: RMSD panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_waterfall, "", self.icons.iconsLib['panel_waterfall_16'], shortHelp="Settings: Waterfall panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_violin, "", self.icons.iconsLib['panel_violin_16'], shortHelp="Settings: Violin panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_general, "", self.icons.iconsLib['panel_general2_16'], shortHelp="Settings: Extra panel")
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_ExtractData, "", self.icons.iconsLib['process_extract_16'], shortHelp="Settings: &Extract data\tShift+1")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_ORIGAMI, "", self.icons.iconsLib['process_origami_16'], shortHelp="Settings: &ORIGAMI\tShift+2")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_MS, "", self.icons.iconsLib['process_ms_16'], shortHelp="Settings: &Process mass spectra\tShift+3")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_2D, "", self.icons.iconsLib['process_2d_16'], shortHelp="Settings: Process &2D heatmaps\tShift+4")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_FindPeaks, "", self.icons.iconsLib['process_fit_16'], shortHelp="Settings: Peak &fitting\tShift+5")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_UniDec, "", self.icons.iconsLib['process_unidec_16'], shortHelp="Settings: &UniDec\tShift+6")
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_saveAsInteractive, "", self.icons.iconsLib['bokehLogo_16'], shortHelp="Open interactive output panel")
+
+        # Actually realise the toolbar
+        self.mainToolbar_horizontal.Realize()
 
     def checkIfWindowsAreShown(self, evt):
         """ Check which windows are currently shown in the GUI"""
@@ -1634,23 +1476,13 @@ class MyFrame(wx.Frame):
         idList = [ID_window_documentList, ID_window_controls, ID_window_ccsList,
                   ID_window_ionList, ID_window_multipleMLList, ID_window_textList,
                   ID_window_multiFieldList, ID_window_logWindow]
-        if self.config._windowSettings['Toolbar']['orientation'] in ['top', 'bottom']:
-            for itemID in idList:
-                if check_all:
-                    self.mainToolbar_horizontal.ToggleTool(id=itemID, toggle=True)
-                elif itemID == find_id:
-                    self.mainToolbar_horizontal.ToggleTool(id=find_id, toggle=check)
-            if find_id == ID_window_all:
-                self.mainToolbar_horizontal.ToggleTool(id=id, toggle=True)
-
-        else:
-            for itemID in idList:
-                if check_all:
-                    self.mainToolbar_vertical.ToggleTool(id=itemID, toggle=True)
-                elif itemID == find_id:
-                    self.mainToolbar_vertical.ToggleTool(id=find_id, toggle=check)
-            if find_id == ID_window_all:
-                self.mainToolbar_vertical.ToggleTool(id=id, toggle=True)
+        for itemID in idList:
+            if check_all:
+                self.mainToolbar_horizontal.ToggleTool(toolId=itemID, toggle=True)
+            elif itemID == find_id:
+                self.mainToolbar_horizontal.ToggleTool(toolId=find_id, toggle=check)
+        if find_id == ID_window_all:
+            self.mainToolbar_horizontal.ToggleTool(toolId=id, toggle=True)
 
     def onCheckToggleID(self, panel):
         panelDict = {'Documents': ID_window_documentList,
@@ -1758,10 +1590,10 @@ class MyFrame(wx.Frame):
             # make observations
             if self.startX is not None:
                 range = np.absolute(self.startX - xpos)
-                charge = np.round(1.0/range, 1)
-                mass = (xpos+charge)*charge
+                charge = np.round(1.0 / range, 1)
+                mass = (xpos + charge) * charge
                 # If inside a plot area with MS, give out charge state
-                if self.mode == 'Measure' and self.panelPlots.currentPage in ["MS",  "DT/MS"]:
+                if self.mode == 'Measure' and self.panelPlots.currentPage in ["MS", "DT/MS"]:
                     self.SetStatusText("m/z=%.2f int=%.2f Δm/z=%.2f z=%.1f mw=%.1f" %
                                        (xpos, ypos, range, charge, mass), number=0)
                 else:
@@ -1783,8 +1615,8 @@ class MyFrame(wx.Frame):
                 elif self.panelPlots.currentPage in ['DT/MS']:
                     if self.plot_data['DT/MS'] is not None and len(self.plot_scale['DT/MS']) == 2:
                         try:
-                            yIdx = int(ypos*self.plot_scale['DT/MS'][0])-1
-                            xIdx = int(xpos*self.plot_scale['DT/MS'][1])-1
+                            yIdx = int(ypos * self.plot_scale['DT/MS'][0]) - 1
+                            xIdx = int(xpos * self.plot_scale['DT/MS'][1]) - 1
                             int_value = self.plot_data['DT/MS'][yIdx, xIdx]
                         except:
                             int_value = 0.
@@ -1799,8 +1631,8 @@ class MyFrame(wx.Frame):
                     try:
                         if self.plot_data['2D'] is not None and len(self.plot_scale['2D']) == 2:
                             try:
-                                yIdx = int(ypos*self.plot_scale['2D'][0])-1
-                                xIdx = int(xpos*self.plot_scale['2D'][1])-1
+                                yIdx = int(ypos * self.plot_scale['2D'][0]) - 1
+                                xIdx = int(xpos * self.plot_scale['2D'][1]) - 1
                                 int_value = self.plot_data['2D'][yIdx, xIdx]
                             except:
                                 int_value = ""
@@ -1838,7 +1670,7 @@ class MyFrame(wx.Frame):
         This helper function determines the maximum value of X-axis
         """
         msList = getNarrow1Ddata(data=msList, mzRange=(mzStart, mzEnd))
-        mzYMax = np.round(findPeakMax(data=msList)*100, 1)
+        mzYMax = np.round(findPeakMax(data=msList) * 100, 1)
         return mzYMax
 
     def extract_from_plot_2D(self, dataOut):
@@ -1944,7 +1776,7 @@ class MyFrame(wx.Frame):
             mzStart = np.round(xvalsMin, 2)
             mzEnd = np.round(xvalsMax, 2)
 
-            mzYMax = np.round(yvalsMax*100, 1)
+            mzYMax = np.round(yvalsMax * 100, 1)
             # Check that values are in correct order
             if mzEnd < mzStart:
                 mzEnd, mzStart = mzStart, mzEnd
@@ -1978,14 +1810,14 @@ class MyFrame(wx.Frame):
 
                 _add_to_table = {"mz_start": mzStart, "mz_end": mzEnd, "charge": charge,
                                  "mz_ymax": mzYMax, "color": convertRGB1to255(color),
-                                 "colormap": self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps)-1)],
+                                 "colormap": self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
                                  "alpha": self.config.overlay_defaultAlpha,
                                  "mask": self.config.overlay_defaultMask,
                                  "document": currentDoc}
                 self.panelMultipleIons.on_add_to_table(_add_to_table, check_color=False)
 
                 if self.config.showRectanges:
-                    self.panelPlots.on_plot_patches(mzStart, 0, (mzEnd-mzStart), 100000000000,
+                    self.panelPlots.on_plot_patches(mzStart, 0, (mzEnd - mzStart), 100000000000,
                                                     color=color, alpha=self.config.markerTransparency_1D,
                                                     repaint=True)
 
@@ -2004,7 +1836,7 @@ class MyFrame(wx.Frame):
                                                             self.presenter.currentDoc])
 
                 if self.config.showRectanges:
-                    self.panelPlots.on_plot_patches(mzStart, 0, (mzEnd-mzStart), 100000000000,
+                    self.panelPlots.on_plot_patches(mzStart, 0, (mzEnd - mzStart), 100000000000,
                                                     color=self.config.annotColor,
                                                     alpha=self.config.markerTransparency_1D,
                                                     repaint=True)
@@ -2015,7 +1847,7 @@ class MyFrame(wx.Frame):
             if (document.fileFormat != 'Format: MassLynx (.raw)' or document.dataType != 'Type: CALIBRANT'):
                 print('Please select the correct document file in document window!')
                 return
-            mzVal = np.round((xvalsMax+xvalsMin)/2, 2)
+            mzVal = np.round((xvalsMax + xvalsMin) / 2, 2)
             # prevents extraction if value is below 50. This assumes (wrongly!)
             # that the m/z range will never be below 50.
             if xvalsMax < 50:
@@ -2041,9 +1873,9 @@ class MyFrame(wx.Frame):
                                                     np.round(xvalsMax, 2),
                                                     "", "", "", str(tD)])
                 if self.config.showRectanges:
-                    self.presenter.addRectMS(xvalsMin, 0, (xvalsMax-xvalsMin), 1.0,
+                    self.presenter.addRectMS(xvalsMin, 0, (xvalsMax - xvalsMin), 1.0,
                                              color=self.config.annotColor,
-                                             alpha=(self.config.annotTransparency/100),
+                                             alpha=(self.config.annotTransparency / 100),
                                              repaint=True, plot='CalibrationMS')
 
         # Extract mass spectrum from chromatogram window - Linear DT files
@@ -2062,14 +1894,14 @@ class MyFrame(wx.Frame):
                                                                    rtEnd=str(xvalsMax))
             if outcome == True:
                 return
-            xvalDiff = xvalsMax-xvalsMin.astype(int)
+            xvalDiff = xvalsMax - xvalsMin.astype(int)
             self.panelLinearDT.topP.peaklist.Append([xvalsMin, xvalsMax,
                                                      xvalDiff, "",
                                                      self.presenter.currentDoc])
 
-            self.panelPlots.on_add_patch(xvalsMin, 0, (xvalsMax-xvalsMin), 100000000000,
+            self.panelPlots.on_add_patch(xvalsMin, 0, (xvalsMax - xvalsMin), 100000000000,
                                          color=self.config.annotColor,
-                                         alpha=(self.config.annotTransparency/100),
+                                         alpha=(self.config.annotTransparency / 100),
                                          repaint=True, plot="RT")
 
         # Extract mass spectrum from chromatogram window
@@ -2265,7 +2097,7 @@ class MyFrame(wx.Frame):
 
         # populate menu
         for i, __ in enumerate(self.config.previousFiles):
-            ID = eval('ID_documentRecent'+str(i))
+            ID = eval('ID_documentRecent' + str(i))
             path = self.config.previousFiles[i]['file_path']
             self.menuRecent.Insert(i, ID, path, "Open Document")
             self.Bind(wx.EVT_MENU, self.onDocumentRecent, id=ID)

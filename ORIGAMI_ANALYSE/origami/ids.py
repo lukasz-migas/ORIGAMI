@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 # -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas 
+#    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-# 
-#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#	 Cite : 10.1016/j.ijms.2017.08.014
 #
-#    This program is free software. Feel free to redistribute it and/or 
-#    modify it under the condition you cite and credit the authors whenever 
-#    appropriate. 
-#    The program is distributed in the hope that it will be useful but is 
+# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+# 	 Cite : 10.1016/j.ijms.2017.08.014
+#
+#    This program is free software. Feel free to redistribute it and/or
+#    modify it under the condition you cite and credit the authors whenever
+#    appropriate.
+#    The program is distributed in the hope that it will be useful but is
 #    provided WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
@@ -55,13 +55,12 @@ ID_fileMenu_mzML = NewId()
 ID_fileMenu_mzIdentML = NewId()
 ID_fileMenu_thermoRAW = NewId()
 
-
 # Plots
 ID_plots_resetZoom = NewId()
 ID_plots_showCursorGrid = NewId()
 ID_plots_customisePlot = NewId()
 ID_plots_customisePlot_unidec_ms = NewId()
-ID_plots_customisePlot_unidec_mw= NewId()
+ID_plots_customisePlot_unidec_mw = NewId()
 ID_plots_customisePlot_unidec_mz_v_charge = NewId()
 ID_plots_customisePlot_unidec_isolated_mz = NewId()
 ID_plots_customisePlot_unidec_mw_v_charge = NewId()
@@ -70,14 +69,14 @@ ID_plots_customisePlot_unidec_chargeDist = NewId()
 ID_plots_rotate90 = NewId()
 
 ID_plots_saveImage_unidec_ms = NewId()
-ID_plots_saveImage_unidec_mw= NewId()
+ID_plots_saveImage_unidec_mw = NewId()
 ID_plots_saveImage_unidec_mz_v_charge = NewId()
 ID_plots_saveImage_unidec_isolated_mz = NewId()
 ID_plots_saveImage_unidec_mw_v_charge = NewId()
 ID_plots_saveImage_unidec_ms_barchart = NewId()
-ID_plots_saveImage_unidec_chargeDist = NewId() 
+ID_plots_saveImage_unidec_chargeDist = NewId()
 
-# Compare MS 
+# Compare MS
 ID_compareMS_MS_1 = NewId()
 ID_compareMS_MS_2 = NewId()
 
@@ -101,7 +100,7 @@ ID_interactivePanel_check_ms = NewId()
 ID_interactivePanel_check_dt1D = NewId()
 ID_interactivePanel_check_dt2D = NewId()
 ID_interactivePanel_check_rt = NewId()
-ID_interactivePanel_check_overlay = NewId() 
+ID_interactivePanel_check_overlay = NewId()
 ID_interactivePanel_check_unidec = NewId()
 ID_interactivePanel_check_other = NewId()
 ID_interactivePanel_color_markerEdge = NewId()
@@ -155,7 +154,7 @@ ID_importExportSettings_peaklist = NewId()
 # Extra settings
 ID_extraSettings_autoSaveSettings = NewId()
 ID_extraSettings_rmsd = NewId()
-ID_extraSettings_waterfall = NewId() 
+ID_extraSettings_waterfall = NewId()
 ID_extraSettings_colorbar = NewId()
 ID_extraSettings_violin = NewId()
 ID_extraSettings_legend = NewId()
@@ -202,10 +201,9 @@ ID_processSettings_replotMS = NewId()
 ID_processSettings_processMS = NewId()
 ID_processSettings_replot2D = NewId()
 ID_processSettings_process2D = NewId()
-ID_docTree_plugin_UVPD = NewId() 
-ID_docTree_plugin_MSMS = NewId() 
+ID_docTree_plugin_UVPD = NewId()
+ID_docTree_plugin_MSMS = NewId()
 ID_processSettings_restoreIsolatedAll = NewId()
-
 
 ID_processSettings_UniDec = NewId()
 ID_processSettings_preprocessUniDec = NewId()
@@ -227,7 +225,7 @@ ID_annotPanel_deleteSelected_selected = NewId()
 ID_annotPanel_addAnnotations = NewId()
 ID_annotPanel_assignLabel_selected = NewId()
 ID_annotPanel_savePeakList_selected = NewId()
-ID_annotPanel_show_charge = NewId() 
+ID_annotPanel_show_charge = NewId()
 ID_annotPanel_show_label = NewId()
 ID_annotPanel_show_mzAndIntensity = NewId()
 ID_annotPanel_show_labelsAtIntensity = NewId()
@@ -263,15 +261,12 @@ ID_uvpd_laser_off_save_heatmap = NewId()
 ID_uvpd_laser_off_save_chromatogram = NewId()
 ID_uvpd_laser_off_save_mobiligram = NewId()
 
-
-
 ID_uvpd_laser_on_off_mobiligram_show_chromatogram = NewId()
 ID_uvpd_laser_on_off_compare_chromatogam = NewId()
 ID_uvpd_laser_on_off_compare_mobiligram = NewId()
 
 ID_uvpd_peaklist_remove = NewId()
 ID_uvpd_monitor_remove = NewId()
-
 
 # Multiple files panel
 ID_mmlPanel_assignColor = NewId()
@@ -310,7 +305,6 @@ ID_mmlPanel_data_combineMS = NewId()
 ID_mmlPanel_plot_MS = NewId()
 ID_mmlPanel_plot_combined_MS = NewId()
 ID_mmlPanel_plot_DT = NewId()
-
 
 # Ion panel
 ID_ionPanel_guiMenuTool = NewId()
@@ -473,10 +467,6 @@ ID_window_multiFieldList = NewId()
 ID_window_logWindow = NewId()
 
 # Toolbar
-ID_toolbar_top = NewId()
-ID_toolbar_bottom = NewId()
-ID_toolbar_left = NewId()
-ID_toolbar_right = NewId()
 
 ID_helpGuideLocal = NewId()
 
@@ -509,13 +499,13 @@ ID_OnOff_ionView = NewId()
 ID_OnOff_settingsView = NewId()
 ID_OnOff_docView = NewId()
 
-# Config Menu 
+# Config Menu
 ID_saveConfig = NewId()
 ID_saveAsConfig = NewId()
 ID_openConfig = NewId()
 ID_openAsConfig = NewId()
 ID_setDriftScopeDir = NewId()
-ID_check_Driftscope = NewId() 
+ID_check_Driftscope = NewId()
 ID_checkAtStart_Driftscope = NewId()
 ID_openDocInfo = NewId()
 ID_importAtStart_CCS = NewId()
@@ -608,7 +598,6 @@ ID_removeSelectedFileDT_RT = NewId()
 ID_removeAllFilesDT_RT = NewId()
 ID_clearTableDT_RT = NewId()
 
-
 #===============================================================================
 # # DocumentTree
 #===============================================================================
@@ -630,7 +619,7 @@ ID_removeIonsMenu = NewId()
 ID_extractNewIon = NewId()
 ID_extractSelectedIon = NewId()
 ID_extractAllIons = NewId()
-ID_extractIonsMenu  = NewId()
+ID_extractIonsMenu = NewId()
 
 ID_combineCEscans = NewId()
 ID_processSelectedIons = NewId()
@@ -821,7 +810,6 @@ ID_changeColorGridLabelInteractive = NewId()
 ID_changeColorAnnotLabelInteractive = NewId()
 ID_changeColorGridLineInteractive = NewId()
 ID_changeColorBackgroundInteractive = NewId()
-
 
 ID_addPage_HTML = NewId()
 ID_helpAuthor = NewId()
