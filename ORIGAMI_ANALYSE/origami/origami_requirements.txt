@@ -1,3 +1,4 @@
+adjustText==0.7.3
 attrs==19.1.0
 backports-abc==0.5
 backports.functools-lru-cache==1.5
