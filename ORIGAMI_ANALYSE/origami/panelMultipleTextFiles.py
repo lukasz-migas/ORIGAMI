@@ -23,14 +23,12 @@ from operator import itemgetter
 from os.path import split
 
 import wx
-import wx.lib.mixins.listctrl as listmix
 from natsort import natsorted
 from numpy import arange
 
 from document import document as documents
 from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
-from ids import *
-from styles import makeMenuItem, makeTooltip
+from styles import makeMenuItem, makeTooltip, ListCtrl
 from toolbox import (convertRGB1to255, convertRGB255to1, determineFontColor,
                      getTime, isempty, literal_eval, merge_two_dicts,
                      randomColorGenerator, randomIntegerGenerator,
@@ -38,6 +36,20 @@ from toolbox import (convertRGB1to255, convertRGB255to1, determineFontColor,
 from gui_elements.dialog_selectDocument import panelSelectDocument
 from gui_elements.dialog_panelAsk import panelAsk
 from gui_elements.misc_dialogs import dlgBox
+from ids import ID_textPanel_addToDocument, ID_textPanel_assignColor, ID_textPanel_editItem, ID_textPanel_show_heatmap, \
+    ID_textPanel_show_mobiligram, ID_textPanel_normalize1D, ID_useProcessedCombinedMenu, ID_textPanel_automaticOverlay, \
+    ID_textPanel_check_selected, ID_textPanel_check_all, ID_textPanel_delete_rightClick, ID_addTextFilesToList, \
+    ID_annotateTextFilesMenu, ID_removeTextFilesMenu, ID_processTextFilesMenu, ID_overlayTextFilesMenu, \
+    ID_textSelectOverlayMethod, ID_textPanel_show_chromatogram, ID_textPanel_show_process_heatmap, \
+    ID_assignChargeStateText, ID_assignAlphaText, ID_assignMaskText, ID_assignMinThresholdText, \
+    ID_assignMaxThresholdText, ID_textPanel_changeColorBatch_color, ID_textPanel_changeColorBatch_palette, \
+    ID_textPanel_changeColorBatch_colormap, ID_textPanel_changeColormapBatch, ID_addNewOverlayDoc, ID_ionPanel_edit_all, \
+    ID_textPanel_edit_selected, ID_textPanel_clear_selected, ID_textPanel_table_startCE, ID_textPanel_delete_all, \
+    ID_textPanel_delete_selected, ID_textPanel_clear_all, ID_processTextFiles, ID_processAllTextFiles, \
+    ID_overlayTextfromList1D, ID_overlayTextfromListRT, ID_overlayTextFromList, ID_overlayTextfromListWaterfall, \
+    ID_openTextFiles, ID_textPanel_table_endCE, ID_textPanel_table_charge, ID_textPanel_table_color, \
+    ID_textPanel_table_colormap, ID_textPanel_table_alpha, ID_textPanel_table_mask, ID_textPanel_table_document, \
+    ID_textPanel_table_label, ID_textPanel_table_shape, ID_textPanel_table_hideAll, ID_textPanel_table_restoreAll
 
 
 class panelMultipleTextFiles (wx.Panel):
@@ -118,7 +130,7 @@ class panelMultipleTextFiles (wx.Panel):
 
     def makeListCtrl(self):
 
-        self.filelist = EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
+        self.filelist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
 
         for item in self.config._textlistSettings:
             order = item['order']
@@ -1408,14 +1420,3 @@ class panelMultipleTextFiles (wx.Panel):
 
         if return_color:
             return color
-
-
-class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
-    """
-    Editable list
-    """
-
-    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0):
-        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.CheckListCtrlMixin.__init__(self)

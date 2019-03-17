@@ -43,8 +43,8 @@ from ids import (ID_uvpd_laser_on_off_compare_chromatogam, ID_uvpd_laser_on_off_
 
 import processing.utils as pr_utils
 import readers.io_waters_raw as io_waters
-from dialogs import dlgBox
 from gui_elements.panel_htmlViewer import panelHTMLViewer
+from gui_elements.misc_dialogs import dlgBox
 
 
 class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):

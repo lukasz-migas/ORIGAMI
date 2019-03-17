@@ -44,12 +44,12 @@ from ids import (ID_annotPanel_addAnnotations,
                  ID_annotPanel_show_charge, ID_annotPanel_show_label,
                  ID_annotPanel_show_labelsAtIntensity,
                  ID_annotPanel_show_mzAndIntensity)
-from styles import makeCheckbox, makeMenuItem, makeToggleBtn, validator
+from styles import makeCheckbox, makeMenuItem, makeToggleBtn, validator, ListCtrl
 from toolbox import (_replace_labels, checkExtension, convertRGB1to255,
                      convertRGB255to1, dir_extra, find_nearest,
                      merge_two_dicts, str2int, str2num)
 from gui_elements.dialog_panelAsk import panelAsk
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import dlgBox, dlgAsk
 
 
 class panelAnnotatePeaks(wx.MiniFrame):
@@ -169,7 +169,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
                                 'intensity': 4, 'charge': 5, 'label': 6, 'color': 7,
                                 'arrow': 8}
 
-        self.peaklist = EditableListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES | wx.LC_SINGLE_SEL)
+        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES | wx.LC_SINGLE_SEL)
         self.peaklist.InsertColumn(self.annotation_list['check'], '', width=25)
         self.peaklist.InsertColumn(self.annotation_list['min'], 'min band', width=75)
         self.peaklist.InsertColumn(self.annotation_list['max'], 'max band', width=75)
@@ -349,7 +349,6 @@ class panelAnnotatePeaks(wx.MiniFrame):
             evt.Skip()
 
     def onMultiplyAnnotation(self, evt):
-        from dialogs import dlgAsk
         import copy
 
         rows = self.peaklist.GetItemCount()

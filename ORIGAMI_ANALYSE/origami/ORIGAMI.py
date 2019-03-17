@@ -61,6 +61,7 @@ from gui_elements.panel_htmlViewer import panelHTMLViewer
 from gui_elements.panel_calibrantDB import panelCalibrantDB
 from gui_elements.dialog_selectDocument import panelSelectDocument
 from gui_elements.misc_dialogs import dlgBox, dlgAsk
+from utils.logging import set_logger, set_logger_level
 
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -160,8 +161,9 @@ class ORIGAMI(object):
             self.onImportCCSDatabase(evt=None, onStart=True)
 
         gc.enable()
-        # Setup logging
-        self.view.onEnableDisableLogging(evt=None, show_msg=False)
+#         # Setup logging
+        self.on_start_logging()
+#         self.view.onEnableDisableLogging(evt=None, show_msg=False)
 
         # add binding to UniDec engine
         self.config.unidec_engine = unidec.UniDec()
@@ -181,6 +183,24 @@ class ORIGAMI(object):
 #                         'Z:\###_PhD2_###\CIU\PythonCIU\ORIGAMI_2\_TEST_DATA\ORIGAMI_ConA_z20.pickle'
 #                           ]:
 #             self.onOpenDocument(evt=None, file_path = file_path)
+
+    def on_start_logging(self):
+
+        log_directory = os.path.join(self.config.cwd, "logs")
+        if not os.path.exists(log_directory):
+            print("Directory logs did not exist - created a new one in {}".format(log_directory))
+            os.makedirs(log_directory)
+
+        # Generate filename
+        if self.config.loggingFile_path is None:
+            file_path = "specML_%s.log" % self.config.startTime
+            self.config.loggingFile_path = os.path.join(
+                log_directory, file_path)
+
+        set_logger(file_path=self.config.loggingFile_path)
+        set_logger_level(verbose="DEBUG")
+
+        logger.info("Logs can be found in {}".format(self.config.loggingFile_path))
 
     def makeVariables(self):
         """
@@ -7060,14 +7080,16 @@ class ORIGAMI(object):
             else:
                 webpage = checkVersion(get_webpage=True)
                 wx.Bell()
-                message = "Version {} is now available for download.\nYou are currently using version {}.".format(newVersion, self.config.version)
+                message = "Version {} is now available for download.\nYou are currently using version {}.".format(
+                    newVersion, self.config.version)
                 self.onThreading(None, (message, 4),
                                  action='updateStatusbar')
                 msgDialog = panelNotifyNewVersion(self.view, self, webpage)
                 msgDialog.ShowModal()
-        except:
+        except Exception as e:
             self.onThreading(None, ('Could not check version number', 4),
                              action='updateStatusbar')
+            logger.error(e)
 
     def onOpenUserGuide(self, evt):
         """ 

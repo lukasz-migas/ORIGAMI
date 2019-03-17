@@ -35,12 +35,12 @@ from ids import (ID_processSettings_replotMS, ID_processSettings_processMS,
                  ID_processSettings_replotAll, ID_processSettings_restoreIsolatedAll,
                  ID_saveConfig)
 from help_documentation import OrigamiHelp
-from dialogs import dlgBox
 from gui_elements.dialog_customiseUniDecPlots import panelCustomiseParameters
 from readers.io_waters_raw import (rawMassLynx_MS_extract, rawMassLynx_RT_extract, rawMassLynx_DT_extract,
                                    rawMassLynx_2DT_extract)
 from gui_elements.panel_peakWidthTool import panelPeakWidthTool
 from gui_elements.panel_htmlViewer import panelHTMLViewer
+from gui_elements.misc_dialogs import dlgBox
 
 # TODO: UniDec - when picking peak and selecting G/L it gives the wrong value
 # TODO: UniDec - restrict how many points can be shown in a MW plot when finding peaks

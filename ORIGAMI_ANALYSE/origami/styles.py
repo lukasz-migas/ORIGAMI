@@ -20,7 +20,13 @@
 # This file creates various styles for the GUI
 
 import wx
+import wx.lib.mixins.listctrl as listmix
 from wx.lib.agw import supertooltip as superTip
+from operator import itemgetter
+from natsort.natsort import natsorted
+import numpy as np
+from gui_elements.misc_dialogs import dlgBox
+import itertools
 
 # Sizes
 COMBO_SIZE = 120
@@ -153,6 +159,269 @@ def makeSuperTip(parent, title='Title', text='Insert message', delay=5,
         tip.SetHeaderBitmap(headerImg)
 
     return tip
+
+
+def mac_app_init():
+    """Run after application initialize."""
+    # set MAC
+    if wx.Platform == '__WXMAC__':
+        wx.SystemOptions.SetOptionInt("mac.listctrl.always_use_generic", True)
+        wx.ToolTip.SetDelay(1500)
+        global SCROLL_DIRECTION
+        SCROLL_DIRECTION = -1
+
+
+class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
+    """ListCtrl"""
+
+    def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=wx.LC_REPORT, **kwargs):
+        wx.ListCtrl.__init__(self, parent, id, pos, size, style)
+        listmix.CheckListCtrlMixin.__init__(self)
+
+        # specify that simpler sorter should be used to speed things up
+        self.use_simple_sorter = kwargs.get("use_simple_sorter", False)
+
+        self.old_column = None
+        self.reverse = False
+        self.check = False
+
+        self.Bind(wx.EVT_LIST_COL_CLICK, self.on_column_click, self)
+
+    def on_column_click(self, evt):
+        column = evt.GetColumn()
+
+        if self.old_column is not None and self.old_column == column:
+            self.reverse = not self.reverse
+        else:
+            self.reverse = False
+
+        if column == 0:
+            self.check = not self.check
+            self.on_check_all(self.check)
+        else:
+            if self.use_simple_sorter:
+                self.on_simple_sort(column, self.reverse)
+            else:
+                self.on_sort(column, self.reverse)
+
+        self.old_column = column
+
+    def on_check_all(self, check):
+        rows = self.GetItemCount()
+
+        for row in range(rows):
+            self.CheckItem(row, check=check)
+
+    def on_sort(self, column, direction):
+        """
+        Sort items based on column and direction
+        """
+
+        # get list data
+        tempData = self._get_list_data()
+
+        # Sort data
+        tempData = natsorted(tempData, key=itemgetter(column), reverse=direction)
+        # Clear table
+        self.DeleteAllItems()
+
+        # restructure data
+        tempData, checkData, bg_rgb, fg_rgb = self._restructure_list_data(tempData)
+
+        # Reinstate data
+        self._set_list_data(tempData, checkData, bg_rgb, fg_rgb)
+
+    def on_simple_sort(self, column, direction):
+        """
+        Sort items based on column and direction
+        """
+        columns = self.GetColumnCount()
+        rows = self.GetItemCount()
+
+        tempData = []
+        # Iterate over row and columns to get data
+        for row in range(rows):
+            tempRow = []
+
+            for col in range(columns):
+                item = self.GetItem(itemIdx=row, col=col)
+                tempRow.append(item.GetText())
+
+            tempRow.append(self.IsChecked(index=row))
+            tempData.append(tempRow)
+
+        # Sort data
+        tempData = natsorted(tempData, key=itemgetter(column), reverse=direction)
+        # Clear table
+        self.DeleteAllItems()
+
+        checkData = []
+        for check in tempData:
+            checkData.append(check[-1])
+            del check[-1]
+
+        # Reinstate data
+        rowList = np.arange(len(tempData))
+        for row, check, in zip(rowList, checkData):
+            self.Append(tempData[row])
+            self.CheckItem(row, check)
+
+    def on_clear_table_selected(self, evt):
+        """
+        This function clears the table without deleting any items from the
+        document tree
+        """
+        rows = self.GetItemCount() - 1
+        while rows >= 0:
+            if self.IsChecked(rows):
+                self.DeleteItem(rows)
+            rows -= 1
+
+    def on_clear_table_all(self, evt):
+        """
+        This function clears the table without deleting any items from the
+        document tree
+        """
+        # Ask if you want to delete all items
+        dlg = dlgBox(exceptionMsg="Are you sure you would like to clear the table?",
+                     type="Question")
+        if dlg == wx.ID_NO:
+            print('The operation was cancelled')
+            return
+        self.DeleteAllItems()
+
+    def on_remove_duplicates(self):
+
+        # get list data
+        tempData = self._get_list_data()
+
+        # remove duplicates
+        tempData.sort()
+        tempData = list(k for k, _ in itertools.groupby(tempData))
+
+        # clear table
+        self.DeleteAllItems()
+
+        tempData, checkData, bg_rgb, fg_rgb = self._restructure_list_data(tempData)
+
+        self._set_list_data(tempData, checkData, bg_rgb, fg_rgb)
+
+    def _get_list_data(self):
+        columns = self.GetColumnCount()
+        rows = self.GetItemCount()
+
+        tempData = []
+        # Iterate over row and columns to get data
+        for row in range(rows):
+            tempRow = []
+            for col in range(columns):
+                item = self.GetItem(itemIdx=row, col=col)
+                tempRow.append(item.GetText())
+            tempRow.append(self.IsChecked(index=row))
+            tempRow.append(self.GetItemBackgroundColour(row))
+            tempRow.append(self.GetItemTextColour(row))
+            tempData.append(tempRow)
+
+        return tempData
+
+    @staticmethod
+    def _restructure_list_data(listData):
+
+        check_list, bg_rgb, fg_rgb = [], [], []
+        for check in listData:
+            fg_rgb.append(check[-1])
+            del check[-1]
+            bg_rgb.append(check[-1])
+            del check[-1]
+            check_list.append(check[-1])
+            del check[-1]
+
+        return listData, check_list, bg_rgb, fg_rgb
+
+    def _set_list_data(self, listData, checkData, bg_rgb, fg_rgb):
+        # Reinstate data
+        rowList = np.arange(len(listData))
+        for row, check, bg_color, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
+            self.Append(listData[row])
+            self.CheckItem(row, check)
+            self.SetItemBackgroundColour(row, bg_color)
+            self.SetItemTextColour(row, fg_color)
+
+
+class SimpleListCtrl(wx.ListCtrl):
+    """ListCtrl"""
+
+    def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize,
+                 style=wx.LC_REPORT):
+        wx.ListCtrl.__init__(self, parent, id, pos, size, style)
+
+        self.old_column = None
+        self.reverse = False
+        self.check = False
+
+        self.Bind(wx.EVT_LIST_COL_CLICK, self.on_column_click, self)
+
+    def on_column_click(self, evt):
+        column = evt.GetColumn()
+
+        if self.old_column is not None and self.old_column == column:
+            self.reverse = not self.reverse
+        else:
+            self.reverse = False
+
+        self.on_sort(column, self.reverse)
+        self.old_column = column
+
+    def on_sort(self, column, direction):
+        """
+        Sort items based on column and direction
+        """
+        columns = self.GetColumnCount()
+        rows = self.GetItemCount()
+
+        tempData = []
+        # Iterate over row and columns to get data
+        for row in range(rows):
+            tempRow = []
+
+            for col in range(columns):
+                item = self.GetItem(itemIdx=row, col=col)
+                tempRow.append(item.GetText())
+            tempData.append(tempRow)
+
+        # Sort data
+        tempData = natsorted(tempData, key=itemgetter(column), reverse=direction)
+        # Clear table
+        self.DeleteAllItems()
+
+        # Reinstate data
+        for row in tempData:
+            self.Append(row)
+
+    def on_clear_table_selected(self, evt):
+        """
+        This function clears the table without deleting any items from the
+        document tree
+        """
+        rows = self.GetItemCount() - 1
+        while rows >= 0:
+            if self.IsChecked(rows):
+                self.DeleteItem(rows)
+            rows -= 1
+
+    def on_clear_table_all(self, evt):
+        """
+        This function clears the table without deleting any items from the
+        document tree
+        """
+        # Ask if you want to delete all items
+        dlg = dlgBox(exceptionMsg="Are you sure you would like to clear the table?",
+                     type="Question")
+        if dlg == wx.ID_NO:
+            print('The operation was cancelled')
+            return
+        self.DeleteAllItems()
 
 
 class bgrPanel(wx.Panel):

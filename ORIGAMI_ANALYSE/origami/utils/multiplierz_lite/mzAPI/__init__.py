@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with multiplierz.  If not, see <http://www.gnu.org/licenses/>.
 
-
 """Common API for multiple mass spectrometry instrument file access
 
 mzAPI unifies access to MS data files by referring to scans by time.
@@ -36,7 +35,7 @@ import os
 import re
 import sys
 
-from utilities.multiplierz_lite import logger_message
+from utils.multiplierz_lite import logger_message
 
 
 def make_info_file(data_file, **kwargs):
@@ -163,7 +162,7 @@ class mzScan(list):
 
     def peak(self, mz, tolerance):
         '''Returns the max intensity within a tolerance of a target m/z'''
-        return max([i for m, i in self if abs(m-mz) <= tolerance] or [0])
+        return max([i for m, i in self if abs(m - mz) <= tolerance] or [0])
 
 
 class mzFile(object):
@@ -193,14 +192,14 @@ class mzFile(object):
             raise IOError("%s not found." % data_file)
 
         elif data_file.lower().endswith('.raw'):
-           utilsfrom . import raw
+            from utils.multiplierz_lite.mzAPI import raw
             self.__class__ = raw.mzFile
             self.format = 'raw'
             raw.mzFile.__init__(self, data_file, **kwargs)
         elif (data_file.lower().endswith('.mzml') or
               data_file.lower().endswith('.mzml.gz') or
               data_file.lower().endswith('.mzmlsql')):
-            from utilities.multiplierz_lite.mzAPI import mzML
+            from utils.multiplierz_lite.mzAPI import mzML
             self.__class__ = mzML.mzFile
             self.format = 'mzml'
             mzML.mzFile.__init__(self, data_file, **kwargs)

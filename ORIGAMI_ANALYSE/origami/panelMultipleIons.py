@@ -19,23 +19,42 @@
 
 import wx
 import csv
-import wx.lib.mixins.listctrl as listmix
 from ast import literal_eval
 from operator import itemgetter
 from numpy import arange, vstack, insert
 from pandas import read_csv
 from natsort import natsorted
 
-from ids import *
 from gui_elements.panel_modifyIonSettings import panelModifyIonSettings
-from toolbox import (isempty, str2num, str2int, saveAsText, convertRGB1to255,
-                             convertRGB255to1, randomIntegerGenerator, removeListDuplicates,
-                             checkExtension, roundRGB, randomColorGenerator,
-                             determineFontColor)
+from toolbox import isempty, saveAsText, convertRGB1to255, removeListDuplicates, \
+                     checkExtension, roundRGB
 from styles import makeMenuItem, makeTooltip
 from gui_elements.dialog_selectDocument import panelSelectDocument
 from gui_elements.dialog_panelAsk import panelAsk
 from gui_elements.misc_dialogs import dlgBox
+from utils.converters import str2num, str2int
+from ids import ID_ionPanel_addToDocument, ID_combinedCV_binMSCombinedMenu, ID_ionPanel_assignColor, \
+    ID_ionPanel_normalize1D, ID_overrideCombinedMenu, ID_useProcessedCombinedMenu, ID_ionPanel_check_selected, \
+    ID_ionPanel_check_all, ID_ionPanel_show_zoom_in_MS, ID_ionPanel_delete_rightClick, ID_addIonsMenu, ID_removeIonsMenu, \
+    ID_extractIonsMenu, ID_processIonsMenu, ID_saveIonsMenu, ID_showIonsMenu, ID_overlayIonsMenu, ID_selectOverlayMethod, \
+    ID_ionPanel_table_startMS, ID_ionPanel_table_endMS, ID_ionPanel_table_color, ID_ionPanel_table_colormap, \
+    ID_ionPanel_table_charge, ID_ionPanel_table_intensity, ID_ionPanel_table_document, ID_ionPanel_table_alpha, \
+    ID_ionPanel_table_mask, ID_ionPanel_table_label, ID_ionPanel_table_method, ID_ionPanel_table_hideAll, \
+    ID_ionPanel_table_restoreAll, ID_ionPanel_show_chromatogram, ID_ionPanel_show_heatmap, \
+    ID_ionPanel_show_process_heatmap, ID_assignChargeStateIons, ID_assignAlphaIons, ID_assignMaskIons, \
+    ID_assignMinThresholdIons, ID_assignMaxThresholdIons, ID_ionPanel_changeColorBatch_color, \
+    ID_ionPanel_changeColorBatch_palette, ID_ionPanel_changeColorBatch_colormap, ID_ionPanel_changeColormapBatch, \
+    ID_addManyIonsCSV, ID_duplicateIons, ID_addNewOverlayDoc, ID_ionPanel_automaticExtract, ID_extractAllIons, \
+    ID_extractSelectedIon, ID_extractNewIon, ID_overlayMZfromList, ID_overlayMZfromList1D, ID_overlayMZfromListRT, \
+    ID_ionPanel_automaticOverlay, ID_ionPanel_delete_selected, ID_ionPanel_delete_all, ID_ionPanel_clear_all, \
+    ID_ionPanel_clear_selected, ID_removeDuplicatesTable, ID_combineCEscansSelectedIons, ID_combineCEscans, \
+    ID_processSelectedIons, ID_processAllIons, ID_extractMSforCVs, ID_saveSelectIonListCSV, ID_saveIonListCSV, \
+    ID_exportSeletedAsImage_ion, ID_exportAllAsImage_ion, ID_exportSelectedAsCSV_ion, ID_exportAllAsCSV_ion, \
+    ID_processSaveMenu, ID_save2DImageDoc, ID_ionPanel_edit_selected, ID_ionPanel_edit_all, ID_window_ionList
+
+from styles import ListCtrl
+from utils.color import convertRGB255to1, determineFontColor, randomColorGenerator
+from utils.random import randomIntegerGenerator
 
 
 class panelMultipleIons(wx.Panel):
@@ -113,7 +132,6 @@ class panelMultipleIons(wx.Panel):
 
     def makeGUI(self):
         """ Make panel GUI """
-         # make toolbar
         toolbar = self.makeToolbar()
         self.makeListCtrl()
 
@@ -274,7 +292,6 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_document)
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_alpha)
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_mask)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_document)
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_label)
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_method)
         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_hideAll)
@@ -1925,13 +1942,12 @@ class panelMultipleIons(wx.Panel):
         if row is not None:
             self.peaklist.DeleteItem(row)
 
-
-class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
-    """ListCtrl"""
-
-    def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT):
-        wx.ListCtrl.__init__(self, parent, id, pos, size, style)
-        listmix.CheckListCtrlMixin.__init__(self)
+# class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
+#     """ListCtrl"""
+#
+#     def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT):
+#         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
+#         listmix.CheckListCtrlMixin.__init__(self)
 
 
 class panelExportData(wx.MiniFrame):

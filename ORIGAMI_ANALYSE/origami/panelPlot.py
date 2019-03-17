@@ -30,8 +30,8 @@ from styles import makeMenuItem
 from icons import IconContainer as icons
 from toolbox import (isempty, merge_two_dicts, convertRGB1to255, convertRGB255to1,
                              convertRGB1toHEX, dir_extra, randomColorGenerator)
-from dialogs import dlgBox
 from panelCustomisePlot import panelCustomisePlot
+from gui_elements.misc_dialogs import dlgBox
 
 
 class panelPlot(wx.Panel):

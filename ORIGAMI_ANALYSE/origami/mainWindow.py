@@ -85,6 +85,9 @@ from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
 from gui_elements.panel_exportSettings import panelExportSettings
 from gui_elements.misc_dialogs import dlgBox
 
+import logging
+logger = logging.getLogger("origami")
+
 
 class MyFrame(wx.Frame):
 
@@ -1033,9 +1036,10 @@ class MyFrame(wx.Frame):
                                            action='updateStatusbar')
                 msgDialog = panelNotifyNewVersion(self, self.presenter, webpage)
                 msgDialog.ShowModal()
-        except:
+        except Exception as e:
             self.presenter.onThreading(None, ('Could not check version number', 4),
                                        action='updateStatusbar')
+            logger.error(e)
 
     def on_whats_new(self, evt):
         try:

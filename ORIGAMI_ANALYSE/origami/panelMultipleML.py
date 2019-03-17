@@ -26,12 +26,23 @@ from operator import itemgetter
 from natsort import natsorted
 
 from styles import makeTooltip, makeMenuItem
-from ids import *
-from toolbox import (str2num, str2int, removeListDuplicates, convertRGB255to1,
-                             convertRGB1to255, isempty, mlen, determineFontColor,
-                             randomColorGenerator, roundRGB)
+from toolbox import (removeListDuplicates, convertRGB255to1,
+                     convertRGB1to255, mlen, determineFontColor,
+                     randomColorGenerator)
 from processing.spectra import interpolate
 from gui_elements.misc_dialogs import dlgBox
+from ids import ID_mmlPanel_addToDocument, ID_mmlPanel_assignColor, ID_mmlPanel_plot_DT, ID_mmlPanel_plot_MS, \
+    ID_mmlPanel_check_all, ID_mmlPanel_check_selected, ID_mmlPanel_delete_rightClick, ID_addFilesMenu, \
+    ID_removeFilesMenu, ID_overlayFilesMenu, ID_mmlPanel_annotateTool, ID_mmlPanel_processTool, \
+    ID_mmlPanel_changeColorBatch_color, ID_mmlPanel_changeColorBatch_palette, ID_mmlPanel_changeColorBatch_colormap, \
+    ID_mmlPanel_add_files_toCurrentDoc, ID_mmlPanel_add_files_toNewDoc, ID_mmlPanel_add_manualDoc, \
+    ID_mmlPanel_delete_selected, ID_mmlPanel_delete_all, ID_mmlPanel_clear_all, ID_mmlPanel_clear_selected, \
+    ID_mmlPanel_preprocess, ID_mmlPanel_showLegend, ID_mmlPanel_overlayWaterfall, ID_mmlPanel_overlayChargeStates, \
+    ID_mmlPanel_overlayMW, ID_mmlPanel_overlayProcessedSpectra, ID_mmlPanel_overlayFittedSpectra, \
+    ID_mmlPanel_overlayFoundPeaks, ID_mmlPanel_data_combineMS, ID_mmlPanel_batchRunUniDec, ID_mmlPanel_plot_combined_MS, \
+    ID_mmlPanel_table_filename, ID_mmlPanel_table_variable, ID_mmlPanel_table_document, ID_mmlPanel_table_label, \
+    ID_mmlPanel_table_hideAll, ID_mmlPanel_table_restoreAll
+from utils.converters import str2num
 
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 

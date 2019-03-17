@@ -4,7 +4,7 @@ import sys
 
 __all__ = ['set_logger_level', 'set_logger']
 
-logger = logging.getLogger("specML")
+logger = logging.getLogger("origami")
 
 LOGGING_TYPES = dict(DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WARNING, ERROR=logging.ERROR,
                      CRITICAL=logging.CRITICAL)
@@ -28,7 +28,7 @@ def set_logger(file_path=None):
         level=logging.DEBUG,
         format='[%(asctime)s] - %(levelname)s - %(message)s',
         handlers=handlers,
-        datefmt='%m/%d/%Y %I:%M:%S')
+        datefmt='%m/%d/%Y %H:%M:%S')
 
 
 def set_logger_level(verbose=None):
