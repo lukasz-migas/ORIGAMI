@@ -34,6 +34,7 @@ from gui_elements.dialog_panelAsk import panelAsk
 from gui_elements.misc_dialogs import dlgBox
 from utils.converters import str2num, str2int
 from ids import ID_ionPanel_addToDocument, ID_combinedCV_binMSCombinedMenu, ID_ionPanel_assignColor, \
+    ID_ionPanel_editItem, ID_highlightRectAllIons, ID_useInternalParamsCombinedMenu, ID_ionPanel_show_mobiligram, \
     ID_ionPanel_normalize1D, ID_overrideCombinedMenu, ID_useProcessedCombinedMenu, ID_ionPanel_check_selected, \
     ID_ionPanel_check_all, ID_ionPanel_show_zoom_in_MS, ID_ionPanel_delete_rightClick, ID_addIonsMenu, ID_removeIonsMenu, \
     ID_extractIonsMenu, ID_processIonsMenu, ID_saveIonsMenu, ID_showIonsMenu, ID_overlayIonsMenu, ID_selectOverlayMethod, \
