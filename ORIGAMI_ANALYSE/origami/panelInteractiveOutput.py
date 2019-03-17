@@ -61,8 +61,7 @@ from toolbox import (str2int, str2num, convertRGB1to255, convertRGB1toHEX, find_
                              find_limits_list, _replace_labels, remove_nan_from_list,
                              num2str, find_limits_all, merge_two_dicts, determineFontColor,
     convertHEXtoRGB255)
-from styles import makeStaticBox, makeStaticText, makeCheckbox, TEXT_STYLE_CV_R_L, makeMenuItem, validator
-import dialogs
+from styles import makeStaticBox, makeStaticText, makeCheckbox, makeMenuItem, validator
 from processing.spectra import linearize_data, crop_1D_data, normalize_1D
 
 # TODO: replace Dropdown with Select tool
@@ -73,6 +72,7 @@ from processing.spectra import linearize_data, crop_1D_data, normalize_1D
 # hv.extension('bokeh')
 
 import warnings
+from gui_elements.misc_dialogs import dlgBox, dlgAsk
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -1288,19 +1288,19 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # Add to grid sizer
         grid = wx.GridBagSizer(2, 2)
-        grid.Add(titleFontSize, wx.GBPosition(0, 0), wx.GBSpan(1, 2), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.titleSlider, wx.GBPosition(1, 0), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.titleBoldCheck, wx.GBPosition(1, 1), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
+        grid.Add(titleFontSize, wx.GBPosition(0, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.titleSlider, wx.GBPosition(1, 0), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.titleBoldCheck, wx.GBPosition(1, 1), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
 
-        grid.Add(labelFontSize, wx.GBPosition(0, 2), wx.GBSpan(1, 2), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.labelSlider, wx.GBPosition(1, 2), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.labelBoldCheck, wx.GBPosition(1, 3), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
+        grid.Add(labelFontSize, wx.GBPosition(0, 2), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.labelSlider, wx.GBPosition(1, 2), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.labelBoldCheck, wx.GBPosition(1, 3), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
 
-        grid.Add(tickFontSize, wx.GBPosition(2, 0), wx.GBSpan(1, 2), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.tickSlider, wx.GBPosition(3, 0), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(precision_label, wx.GBPosition(2, 2), wx.GBSpan(1, 2), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.tickPrecision, wx.GBPosition(3, 2), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.tickUseScientific, wx.GBPosition(3, 3), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
+        grid.Add(tickFontSize, wx.GBPosition(2, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.tickSlider, wx.GBPosition(3, 0), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(precision_label, wx.GBPosition(2, 2), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.tickPrecision, wx.GBPosition(3, 2), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.tickUseScientific, wx.GBPosition(3, 3), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
 
         mainSizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
         return mainSizer
@@ -1482,16 +1482,16 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(notationFontSize, wx.GBPosition(n, 0), wx.GBSpan(1, 2), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(interactive_annotation_color_label, wx.GBPosition(n, 2), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(interactive_annotation_background_color_label, wx.GBPosition(n, 3), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(interactive_transparency_label, wx.GBPosition(n, 4), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
+        grid.Add(notationFontSize, wx.GBPosition(n, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(interactive_annotation_color_label, wx.GBPosition(n, 2), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(interactive_annotation_background_color_label, wx.GBPosition(n, 3), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(interactive_transparency_label, wx.GBPosition(n, 4), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
         n = n + 1
-        grid.Add(self.notationSlider, wx.GBPosition(n, 0), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.notationBoldCheck, wx.GBPosition(n, 1), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.interactive_annotation_colorBtn, wx.GBPosition(n, 2), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.interactive_annotation_colorBackgroundBtn, wx.GBPosition(n, 3), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
-        grid.Add(self.rmsd_label_transparency, wx.GBPosition(n, 4), wx.GBSpan(1, 1), TEXT_STYLE_CV_R_L, 2)
+        grid.Add(self.notationSlider, wx.GBPosition(n, 0), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.notationBoldCheck, wx.GBPosition(n, 1), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.interactive_annotation_colorBtn, wx.GBPosition(n, 2), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.interactive_annotation_colorBackgroundBtn, wx.GBPosition(n, 3), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.rmsd_label_transparency, wx.GBPosition(n, 4), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
 
         rmsdSizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
         return rmsdSizer
@@ -1502,11 +1502,11 @@ class panelInteractiveOutput(wx.MiniFrame):
 #
 #         font = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 #
-#         availableTools_label = wx.StaticText(panel, -1, "Available tools", style=TEXT_STYLE_CV_R_L)
+#         availableTools_label = wx.StaticText(panel, -1, "Available tools", style=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
 #         availableTools_label.SetFont(font)
 #         availableTools_label.SetForegroundColour((34, 139, 34))
 #
-#         plotType_label = wx.StaticText(panel, -1, "Toolset:", style=TEXT_STYLE_CV_R_L)
+#         plotType_label = wx.StaticText(panel, -1, "Toolset:", style=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
 #         self.plotTypeToolsSelect_propView = wx.ComboBox(panel, -1, choices=[],
 #                                                         style=wx.CB_READONLY)
 #         msg = 'Name of the toolset. Select tools that you would like to add to toolset.'
@@ -1525,12 +1525,12 @@ class panelInteractiveOutput(wx.MiniFrame):
 #         self.reset_check = wx.CheckBox(panel, -1 , 'Reset', (15, 30))
 #         self.wheel_check = wx.CheckBox(panel, -1 , 'Wheel', (15, 30))
 #
-# #         wheelZoom_label = wx.StaticText(panel, -1, "Wheel Zoom", style=TEXT_STYLE_CV_R_L)
+# #         wheelZoom_label = wx.StaticText(panel, -1, "Wheel Zoom", style=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
 #         self.wheelZoom_combo = wx.ComboBox(panel, -1, choices=self.config.interactive_wheelZoom_choices,
 #                                           value='Wheel Zoom XY', style=wx.CB_READONLY)
 #
 #
-#         location_label = wx.StaticText(panel, -1, "Toolbar position", style=TEXT_STYLE_CV_R_L)
+#         location_label = wx.StaticText(panel, -1, "Toolbar position", style=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
 #         self.location_combo = wx.ComboBox(panel, -1, choices=self.config.interactive_toolbarPosition_choices,
 #                                           value=self.config.toolsLocation, style=wx.CB_READONLY)
 #         self.location_combo.Disable()
@@ -1538,7 +1538,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 #
 #
 #         availableActiveTools_label = wx.StaticText(panel, -1, "Active tools",
-#                                                    style=TEXT_STYLE_CV_R_L)
+#                                                    style=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
 #         availableActiveTools_label.SetFont(font)
 #         availableActiveTools_label.SetForegroundColour((34, 139, 34))
 #
@@ -2208,7 +2208,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def onClearPages(self, evt):
 
-        dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+        dlg = dlgBox(exceptionTitle='Are you sure?',
                              exceptionMsg="Are you sure you want to remove all pages?\nThis action is irreversible!",
                              type="Question")
         if dlg == wx.ID_NO:
@@ -2258,13 +2258,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.pageLayoutSelect_toolbar.SetStringSelection("None")
 
     def onAddPage(self, evt):
-        pageName = dialogs.dlgAsk('Please select page name.', defaultValue='')
+        pageName = dlgAsk('Please select page name.', defaultValue='')
         if pageName in ['', False]:
             self.presenter.onThreading(None, ("Incorrect name. Operation was cancelled", 4), action='updateStatusbar')
             return
         elif pageName == 'None':
                 msg = 'This name is reserved. Please try again.'
-                dialogs.dlgBox(exceptionTitle='Incorrect name',
+                dlgBox(exceptionTitle='Incorrect name',
                                exceptionMsg=msg,
                                type="Error")
                 return
@@ -2288,7 +2288,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 #             return
 #         elif toolName == '1D' or toolName == '2D' or toolName == 'Overlay':
 #                 msg = "'%s' name is reserved. Please try again." % (toolName)
-#                 dialogs.dlgBox(exceptionTitle='Incorrect name',
+#                 dlgBox(exceptionTitle='Incorrect name',
 #                                exceptionMsg=msg,
 #                                type="Error")
 #                 return
@@ -3812,7 +3812,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                   "   and execute same steps as in the above option.\n\n" + \
                   "ORIGAMI directory: {}".format(self.config.cwd)
 
-            dialogs.dlgBox(exceptionTitle='No JavaScript available',
+            dlgBox(exceptionTitle='No JavaScript available',
                            exceptionMsg=msg,
                            type="Error")
             self.config.interactive_custom_scripts = False
@@ -3869,7 +3869,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                   "   and execute same steps as in the above option.\n\n" + \
                   "ORIGAMI directory: {}".format(self.config.cwd)
 
-            dialogs.dlgBox(exceptionTitle='No JavaScript available',
+            dlgBox(exceptionTitle='No JavaScript available',
                            exceptionMsg=msg,
                            type="Error")
             self.config.interactive_custom_events = False
@@ -5507,7 +5507,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if len(set(yxlabels)) == 1:
             msg = 'Exporting RMSD Matrix to a HTML file is only possible with full list of x/y-axis labels.\n' + \
                   'Please add those to the file and try repeating.'
-            dialogs.dlgBox(exceptionTitle='No file name',
+            dlgBox(exceptionTitle='No file name',
                            exceptionMsg=msg,
                            type="Error")
             return None
@@ -7231,7 +7231,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if self.currentPath == None:
             try:
                 msg = 'Please select file name'
-                dialogs.dlgBox(exceptionTitle='No file name',
+                dlgBox(exceptionTitle='No file name',
                                exceptionMsg=msg,
                                type="Error")
                 self.onGetSavePath(evt=None)
@@ -7270,7 +7270,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         # check if user selected anything in the list
         if len(listOfPages) == 0:
             msg = 'Please select items to plot'
-            dialogs.dlgBox(exceptionTitle='No plots were selected',
+            dlgBox(exceptionTitle='No plots were selected',
                            exceptionMsg=msg,
                            type="Warning")
 
@@ -7441,7 +7441,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
                 else:
                     msg = "Cannot export '%s - %s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (overlayMethod[0], key, innerKey)
-                    dialogs.dlgBox(exceptionTitle='Not supported yet',
+                    dlgBox(exceptionTitle='Not supported yet',
                                    exceptionMsg=msg,
                                    type="Error")
                     continue
@@ -7457,7 +7457,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 annotated_ms_list = data.get("annotated_item_list", [])
                 if len(annotated_ms_list) == 0:
                     msg = "Cannot export '%s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (key, innerKey)
-                    dialogs.dlgBox(exceptionTitle='Not supported yet',
+                    dlgBox(exceptionTitle='Not supported yet',
                                    exceptionMsg=msg,
                                    type="Error")
                     continue
@@ -7466,7 +7466,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                     bokehPlot = self._add_plot_centroid_with_annotations(data, **bkh_kwargs)
             else:
                 msg = "Cannot export '%s (%s)' in an interactive format yet - it will be available in the future updates. For now, please deselect it in the table. LM" % (key, innerKey)
-                dialogs.dlgBox(exceptionTitle='Not supported yet',
+                dlgBox(exceptionTitle='Not supported yet',
                                exceptionMsg=msg,
                                type="Error")
                 continue
@@ -7577,7 +7577,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         outList.append(plotDict[pageKey][plot])
                 elif len(plotDict[pageKey]) == 0:
                     msg = "The list of plots is empty. Please select supported plots and try again."
-                    dialogs.dlgBox(exceptionTitle='Error',
+                    dlgBox(exceptionTitle='Error',
                                    exceptionMsg=msg,
                                    type="Error")
                     return
@@ -7711,7 +7711,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             save(obj=bokehOutput, filename=filename, title=self.currentDocumentName, resources=_resource)
         except IOError:
             msg = 'This file already exists and is currently in usage. Try selecting a different file name or closing the file first.'
-            dialogs.dlgBox(exceptionTitle='Wrong file name',
+            dlgBox(exceptionTitle='Wrong file name',
                            exceptionMsg=msg,
                            type="Error")
             return

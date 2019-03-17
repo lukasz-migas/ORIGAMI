@@ -35,10 +35,12 @@ from ids import (ID_processSettings_replotMS, ID_processSettings_processMS,
                  ID_processSettings_replotAll, ID_processSettings_restoreIsolatedAll,
                  ID_saveConfig)
 from help_documentation import OrigamiHelp
-from dialogs import panelHTMLViewer, panelPeakWidthTool, dlgBox
+from dialogs import dlgBox
 from gui_elements.dialog_customiseUniDecPlots import panelCustomiseParameters
 from readers.io_waters_raw import (rawMassLynx_MS_extract, rawMassLynx_RT_extract, rawMassLynx_DT_extract,
                                    rawMassLynx_2DT_extract)
+from gui_elements.panel_peakWidthTool import panelPeakWidthTool
+from gui_elements.panel_htmlViewer import panelHTMLViewer
 
 # TODO: UniDec - when picking peak and selecting G/L it gives the wrong value
 # TODO: UniDec - restrict how many points can be shown in a MW plot when finding peaks
@@ -259,7 +261,7 @@ class panelProcessData(wx.MiniFrame):
         self.mainBook.SetBackgroundColour((240, 240, 240))
 
     def makeStatusBar(self):
-        self.mainStatusbar = self.CreateStatusBar(4, wx.ST_SIZEGRIP | wx.ST_ELLIPSIZE_MIDDLE, wx.ID_ANY)
+        self.mainStatusbar = self.CreateStatusBar(4, wx.STB_SIZEGRIP | wx.ST_ELLIPSIZE_MIDDLE, wx.ID_ANY)
         self.mainStatusbar.SetStatusWidths([-1, 90, 120, 60])
         self.mainStatusbar.SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.NORMAL))
 

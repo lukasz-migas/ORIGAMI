@@ -17,8 +17,6 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-
-
 import itertools
 # needed to avoid annoying warnings to be printed on console
 import warnings
@@ -29,7 +27,7 @@ import matplotlib.cm as cm
 # import matplotlib.colors as mpl_colors
 import matplotlib.patches as patches
 import numpy as np
-from utilities.adjustText import adjust_text
+from utils.adjustText import adjust_text
 # import matplotlib as mpl
 # import matplotlib.pyplot as plt
 # from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
@@ -39,7 +37,6 @@ from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from seaborn import color_palette
 
-import dialogs
 from plottingWindow import plottingWindow
 from processing.heatmap import normalize_2D
 from processing.spectra import normalize_1D
@@ -47,6 +44,7 @@ from toolbox import (determineFontColor, convertRGB1to255,
                      find_limits_list, MidpointNormalize, merge_two_dicts,
                      str2num, str2int, randomColorGenerator, _replace_labels,
                      remove_nan_from_list, find_limits_all)
+from gui_elements.misc_dialogs import dlgBox
 
 # from mpl_toolkits.mplot3d import Axes3D
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -3290,7 +3288,7 @@ class plots(plottingWindow):
 
         # Plot RMSF data (top plot)
         if len(labelsX) != len(yvalsRMSF):
-                dialogs.dlgBox(exceptionTitle='Missing data',
+                dlgBox(exceptionTitle='Missing data',
                                exceptionMsg='Missing x-axis labels! Cannot execute this action!',
                                type="Error")
                 return

@@ -3,7 +3,7 @@ from copy import deepcopy
 import numpy as np
 
 import unidec_modules.unidectools as ud
-from utilities.multiplierz_lite.mzAPI import mzFile
+from utils.multiplierz_lite.mzAPI import mzFile
 from unidec_modules.mzMLimporter import merge_spectra
 
 

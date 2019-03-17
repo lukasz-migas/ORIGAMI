@@ -21,9 +21,12 @@ import wx, os, time
 import wx.lib.agw.multidirdialog as MDD
 
 from document import document as documents
-from dialogs import panelSelectDocument
 import readers.io_waters_raw as io_waters
 from toolbox import (getTime, randomColorGenerator, convertRGB1to255)
+from gui_elements.dialog_selectDocument import panelSelectDocument
+import processing.spectra as pr_spectra
+import numpy as np
+import pandas as pd
 
 
 class data_loading():

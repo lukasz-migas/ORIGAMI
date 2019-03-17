@@ -44,6 +44,8 @@ class MetaTextReader():
     def extract_data(self):
 
         plot_type = "multi-line"
+        fname = self.title
+
         plot_modifiers = {}
         if "title" in list(self.df.iloc[:, 0]):
             idx = list(self.df.iloc[:, 0]).index("title")
@@ -247,7 +249,8 @@ class MetaTextReader():
         if len(labels) != len(yvals):
             labels = [""] * len(yvals)
 
-        msg = "Item {} has: x-columns ({}), x-errors ({}), y-columns ({}), x-errors ({}), ".format(os.path.basename(fname), len(xvals), len(xvalsErr), len(yvals), len(yvalsErr)) + \
+        msg = "Item {} has: x-columns ({}), x-errors ({}), y-columns ({}), x-errors ({}), ".format(
+            os.path.basename(fname), len(xvals), len(xvalsErr), len(yvals), len(yvalsErr)) + \
               "labels ({}), colors ({})".format(len(labels), len(colors))
         print(msg)
 

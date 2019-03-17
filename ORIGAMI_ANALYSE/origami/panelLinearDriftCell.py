@@ -22,8 +22,8 @@ import wx.lib.mixins.listctrl as listmix
 from operator import itemgetter
 
 from ids import *
-import dialogs
 from toolbox import  str2num, str2int
+from gui_elements.misc_dialogs import dlgBox
 
 
 class panelLinearDriftCell(wx.Panel):
@@ -249,7 +249,7 @@ class topPanel(wx.Panel):
             self.peaklist.DeleteItem(self.currentItem)
         else:
             # Ask if you want to delete all items
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+            dlg = dlgBox(exceptionTitle='Are you sure?',
                                  exceptionMsg="Are you sure you would like to delete ALL RT peaks from the table?",
                                  type="Question")
             if dlg == wx.ID_NO:
@@ -268,7 +268,7 @@ class topPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+        dlg = dlgBox(exceptionTitle='Are you sure?',
                              exceptionMsg="Are you sure you would like to clear the table??",
                              type="Question")
         if dlg == wx.ID_NO:
@@ -549,7 +549,7 @@ class bottomPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+        dlg = dlgBox(exceptionTitle='Are you sure?',
                              exceptionMsg="Are you sure you would like to clear the table??",
                              type="Question")
         if dlg == wx.ID_NO:
@@ -620,7 +620,7 @@ class bottomPanel(wx.Panel):
             self.peaklist.DeleteItem(self.currentItem)
         else:
             # Ask if you want to delete all items
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+            dlg = dlgBox(exceptionTitle='Are you sure?',
                                  exceptionMsg="Are you sure you would like to delete ALL ions from the table?",
                                  type="Question")
             if dlg == wx.ID_NO:

@@ -20,7 +20,7 @@ from ctypes import c_double, c_int, byref, cdll
 import unidec_modules.unidecstructure
 
 try:
-    import unidec_modules.data_reader
+    import unidec_modules.data_reader as data_reader
 except ImportError:
     print("Could not import data reader: unidectools")
 import fnmatch

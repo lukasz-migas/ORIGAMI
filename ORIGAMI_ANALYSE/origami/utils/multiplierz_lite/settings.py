@@ -1,8 +1,3 @@
-import os
-from collections import defaultdict
-
-from utilities.multiplierz_lite import __version__, logger_message
-#  SettingsFile,
 
 defaultKeys = [('logger verbosity', int),
                ('format default', str),

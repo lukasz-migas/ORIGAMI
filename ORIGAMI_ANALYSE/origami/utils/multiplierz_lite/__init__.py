@@ -20,8 +20,6 @@ import logging
 import os
 import sys
 
-# from utilities.multiplierz_lite.settings import settings
-
 __author__ = 'Jignesh Parikh, James Webber, William Max Alexander'
 __version__ = '2.0.0'
 __all__ = ['mzAPI', 'logger_message', 'PY3']

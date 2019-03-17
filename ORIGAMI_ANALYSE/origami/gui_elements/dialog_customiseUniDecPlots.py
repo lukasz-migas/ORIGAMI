@@ -32,7 +32,7 @@ class panelCustomiseParameters(wx.Dialog):
     def __init__(self, parent, config, icons, **kwargs):
         wx.Dialog.__init__(self, parent, -1, 'Other parameters...', size=(-1, -1),
                               style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.config = config

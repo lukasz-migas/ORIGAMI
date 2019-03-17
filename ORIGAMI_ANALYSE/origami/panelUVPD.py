@@ -44,6 +44,7 @@ from ids import (ID_uvpd_laser_on_off_compare_chromatogam, ID_uvpd_laser_on_off_
 import processing.utils as pr_utils
 import readers.io_waters_raw as io_waters
 from dialogs import dlgBox
+from gui_elements.panel_htmlViewer import panelHTMLViewer
 
 
 class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
@@ -159,7 +160,6 @@ class panelUVPD(wx.MiniFrame):
         self.Destroy()
 
     def about(self, evt):
-        from dialogs import panelHTMLViewer
         msg = """ 
         <h3>About UVPD processing</h3>
         <p>This panel permits quick extraction of data from a very specific UVPD experiment where during the experiment a UV laser is switched on and off.</p>

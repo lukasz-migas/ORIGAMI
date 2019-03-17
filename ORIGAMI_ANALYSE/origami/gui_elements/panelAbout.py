@@ -17,10 +17,8 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-# load libs
 import wx
 
-# load modules
 from ids import (ID_helpCite, ID_helpGitHub, ID_helpReportBugs, ID_helpNewFeatures,
                          ID_helpHomepage, ID_helpAuthor)
 
@@ -50,7 +48,6 @@ class panelAbout(wx.MiniFrame):
 
     def makeGUI(self):
         """Make panel gui."""
-        BOLD_FONT = wx.Font(11, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         NORMAL_FONT = wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         # make elements
         panel = wx.Panel(self, -1)
@@ -70,8 +67,8 @@ class panelAbout(wx.MiniFrame):
         university = wx.StaticText(panel, -1, "University of Manchester")
         university.SetFont(wx.SMALL_FONT)
 
-        copyright = wx.StaticText(panel, -1, "(c) 2017-18 Lukasz G. Migas")
-        copyright.SetFont(NORMAL_FONT)
+        copyright_text = wx.StaticText(panel, -1, "(c) 2017-18 Lukasz G. Migas")
+        copyright_text.SetFont(NORMAL_FONT)
 
         homepageBtn = wx.Button(panel, ID_helpHomepage, "Homepage", size=(150, -1))
         homepageBtn.Bind(wx.EVT_BUTTON, self.parent.on_open_link)
@@ -115,7 +112,7 @@ class panelAbout(wx.MiniFrame):
         sizer.AddSpacer(10)
         sizer.Add(university, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
         sizer.AddSpacer(10)
-        sizer.Add(copyright, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
+        sizer.Add(copyright_text, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
         sizer.AddSpacer(10)
         sizer.Add(btn2_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 20)
         sizer.AddSpacer(10)

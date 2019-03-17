@@ -27,7 +27,6 @@ import wx.lib.mixins.listctrl as listmix
 from natsort import natsorted
 from numpy import arange
 
-from dialogs import panelAsk, panelSelectDocument
 from document import document as documents
 from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
 from ids import *
@@ -36,6 +35,9 @@ from toolbox import (convertRGB1to255, convertRGB255to1, determineFontColor,
                      getTime, isempty, literal_eval, merge_two_dicts,
                      randomColorGenerator, randomIntegerGenerator,
                      removeListDuplicates, roundRGB, str2int, str2num)
+from gui_elements.dialog_selectDocument import panelSelectDocument
+from gui_elements.dialog_panelAsk import panelAsk
+from gui_elements.misc_dialogs import dlgBox
 
 
 class panelMultipleTextFiles (wx.Panel):
@@ -721,7 +723,7 @@ class panelMultipleTextFiles (wx.Panel):
                 msg1 = "Missing x- and/or y-axis labels. Cannot continue!"
                 msg2 = "Add x- and/or y-axis labels to each file before continuing!"
                 msg = '\n'.join([msg1, msg2])
-                dialogs.dlgBox(exceptionTitle='Missing data',
+                dlgBox(exceptionTitle='Missing data',
                                exceptionMsg=msg,
                                type="Error")
                 return
@@ -900,7 +902,7 @@ class panelMultipleTextFiles (wx.Panel):
 
         elif evt.GetId() == ID_textPanel_delete_all:
             # Ask if you are sure to delete it!
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+            dlg = dlgBox(exceptionTitle='Are you sure?',
                                  exceptionMsg="Are you sure you would like to delete ALL text documents?",
                                  type="Question")
             if dlg == wx.ID_NO:
@@ -1008,7 +1010,7 @@ class panelMultipleTextFiles (wx.Panel):
                     self.filelist.DeleteItem(row)
                 row -= 1
         else:
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+            dlg = dlgBox(exceptionTitle='Are you sure?',
                                  exceptionMsg="Are you sure you would like to clear the table??",
                                  type="Question")
             if dlg == wx.ID_NO:

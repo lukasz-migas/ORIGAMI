@@ -17,7 +17,8 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import wx, csv, time
+import wx
+import csv
 import wx.lib.mixins.listctrl as listmix
 from ast import literal_eval
 from operator import itemgetter
@@ -26,14 +27,15 @@ from pandas import read_csv
 from natsort import natsorted
 
 from ids import *
-import dialogs
-from dialogs import panelAsk
 from gui_elements.panel_modifyIonSettings import panelModifyIonSettings
 from toolbox import (isempty, str2num, str2int, saveAsText, convertRGB1to255,
                              convertRGB255to1, randomIntegerGenerator, removeListDuplicates,
                              checkExtension, roundRGB, randomColorGenerator,
                              determineFontColor)
-from styles import gauge, makeMenuItem, makeTooltip
+from styles import makeMenuItem, makeTooltip
+from gui_elements.dialog_selectDocument import panelSelectDocument
+from gui_elements.dialog_panelAsk import panelAsk
+from gui_elements.misc_dialogs import dlgBox
 
 
 class panelMultipleIons(wx.Panel):
@@ -998,7 +1000,7 @@ class panelMultipleIons(wx.Panel):
 
         # Check if data was extracted
         if selectedItem == '':
-            dialogs.dlgBox(exceptionTitle='Extract data first',
+            dlgBox(exceptionTitle='Extract data first',
                            exceptionMsg="Please extract data first",
                            type="Error")
             return
@@ -1067,7 +1069,7 @@ class panelMultipleIons(wx.Panel):
             if isempty(xvals) or isempty(yvals) or xvals is "" or yvals is "":
                 msg = "Missing x/y-axis labels. Cannot continue! \nAdd x/y-axis labels to each file before continuing."
                 print(msg)
-                dialogs.dlgBox(exceptionTitle='Missing data',
+                dlgBox(exceptionTitle='Missing data',
                                exceptionMsg=msg,
                                type="Error")
                 return
@@ -1150,7 +1152,7 @@ class panelMultipleIons(wx.Panel):
 
         else:
         # Ask if you are sure to delete it!
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+            dlg = dlgBox(exceptionTitle='Are you sure?',
                                  exceptionMsg="Are you sure you would like to delete ALL ions?",
                                  type="Question")
             if dlg == wx.ID_NO:
@@ -1261,7 +1263,7 @@ class panelMultipleIons(wx.Panel):
                 row -= 1
         else:
             # Ask if you want to delete all items
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+            dlg = dlgBox(exceptionTitle='Are you sure?',
                                  exceptionMsg="Are you sure you would like to clear the table?",
                                  type="Question")
             if dlg == wx.ID_NO:
@@ -1704,7 +1706,7 @@ class panelMultipleIons(wx.Panel):
                 return
             elif len(docList) == 1: document_title = docList[0]
             else:
-                document_panel = dialogs.panelSelectDocument(self.presenter.view, self.presenter, docList, False)
+                document_panel = panelSelectDocument(self.presenter.view, self.presenter, docList, False)
                 if document_panel.ShowModal() == wx.ID_OK:
                     pass
 
@@ -1940,7 +1942,7 @@ class panelExportData(wx.MiniFrame):
     def __init__(self, parent, icons):
         wx.MiniFrame.__init__(self, parent , -1, 'Export', size=(400, 300),
                               style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.icons = icons
@@ -1953,12 +1955,10 @@ class panelExportData(wx.MiniFrame):
 
         # make panel
         peaklist = self.makePeaklistPanel()
-        gauge = self.makeGaugePanel()
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(peaklist, 0, wx.EXPAND, 0)
-        self.mainSizer.Add(gauge, 0, wx.EXPAND, 0)
 
         # fit layout
         self.mainSizer.Fit(self)
@@ -2074,25 +2074,6 @@ class panelExportData(wx.MiniFrame):
             dlg.Destroy()
             return
 
-    def makeGaugePanel(self):
-        """Make processing gauge."""
-
-        panel = wx.Panel(self, -1)
-
-        # make elements
-        self.gauge = gauge(panel, -1)
-
-        # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(self.gauge, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
-
-        return panel
-    # ----
-
 
 class panelDuplicateIons(wx.MiniFrame):
     """
@@ -2102,7 +2083,7 @@ class panelDuplicateIons(wx.MiniFrame):
     def __init__(self, parent, keyList):
         wx.MiniFrame.__init__(self, parent , -1, 'Duplicate...', size=(400, 300),
                               style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.RESIZE_BOX | wx.MAXIMIZE_BOX))
+                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.duplicateList = keyList

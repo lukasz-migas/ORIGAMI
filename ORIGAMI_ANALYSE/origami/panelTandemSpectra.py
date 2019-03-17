@@ -847,7 +847,7 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def make_statusbar(self):
 
-        statusbar = self.CreateStatusBar(1, wx.ST_SIZEGRIP, wx.ID_ANY)
+        statusbar = self.CreateStatusBar(1, wx.STB_SIZEGRIP, wx.ID_ANY)
         statusbar.SetStatusWidths([-1])
         statusbar.SetFont(wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.NORMAL))
 

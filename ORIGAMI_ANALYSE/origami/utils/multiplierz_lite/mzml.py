@@ -6,7 +6,7 @@ import struct
 import xml.etree.ElementTree as xml
 import zlib
 
-from utilities.multiplierz_lite.mzUtils import gzOptOpen
+from utils.multiplierz_lite.mzUtils import gzOptOpen
 
 namespace = '{http://psi.hupo.org/ms/mzml}'
 
@@ -69,7 +69,7 @@ def decodeBinaryFloats(binary, bit64=True, compression=True):
     output = []
     for i in range(0, len(hexary), iterinc):
         try:
-            output.append(struct.unpack(structtype, hexary[i:i+iterinc])[0])
+            output.append(struct.unpack(structtype, hexary[i:i + iterinc])[0])
         except struct.error as err:
             if len(hexary) - i < iterinc:
                 break
@@ -110,7 +110,7 @@ def makeSpectrumXML(specData):
     cvp(windowList, accession="MS:1000501", name="scan window lower limit",
         unitAccession="MS:1000040", unitName="m/z", value=specData['mz range'][0])
     cvp(windowList, accession="MS:1000500", name="scan window upper limit",
-        unitAccession="MS:1000040", unitName="m/z",  value=specData['mz range'][1])
+        unitAccession="MS:1000040", unitName="m/z", value=specData['mz range'][1])
 
     if specData['MS Level'] != 'MS1':
         # Not include this for MS1 scans?

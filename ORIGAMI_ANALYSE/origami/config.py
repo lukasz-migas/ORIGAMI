@@ -29,8 +29,8 @@ from collections import OrderedDict
 import numpy as np
 from matplotlib.pyplot import colormaps
 
-import dialogs
 from toolbox import str2bool, str2int, str2num
+from gui_elements.misc_dialogs import dlgBox
 
 
 class OrigamiConfig:
@@ -1283,7 +1283,7 @@ class OrigamiConfig:
         if not os.path.isdir(self.driftscopePath):
             print('Could not find Driftscope path')
             msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
-            dialogs.dlgBox(exceptionTitle='Could not find Driftscope',
+            dlgBox(exceptionTitle='Could not find Driftscope',
                            exceptionMsg=msg,
                            type="Warning")
             return False
@@ -1291,7 +1291,7 @@ class OrigamiConfig:
         if not os.path.isfile(self.driftscopePath + "\imextract.exe"):
             print('Could not find imextract.exe')
             msg = "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
-            dialogs.dlgBox(exceptionTitle='Could not find Driftscope',
+            dlgBox(exceptionTitle='Could not find Driftscope',
                            exceptionMsg=msg,
                            type="Warning")
             return False

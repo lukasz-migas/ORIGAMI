@@ -4,9 +4,9 @@
 #    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
 #
-#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#	 Cite : 10.1016/j.ijms.2017.08.014
+# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+# 	 Cite : 10.1016/j.ijms.2017.08.014
 #
 #    This program is free software. Feel free to redistribute it and/or
 #    modify it under the condition you cite and credit the authors whenever
@@ -29,7 +29,6 @@ from pandas import read_csv
 from pubsub import pub
 
 import processing.utils as pr_utils
-from dialogs import EditableListCtrl, dlgBox, panelAsk, panelSelectDocument
 from gui_elements.dialog_customiseUserAnnotations import \
     panelCustomiseParameters
 from help_documentation import OrigamiHelp
@@ -49,6 +48,8 @@ from styles import makeCheckbox, makeMenuItem, makeToggleBtn, validator
 from toolbox import (_replace_labels, checkExtension, convertRGB1to255,
                      convertRGB255to1, dir_extra, find_nearest,
                      merge_two_dicts, str2int, str2num)
+from gui_elements.dialog_panelAsk import panelAsk
+from gui_elements.misc_dialogs import dlgBox
 
 
 class panelAnnotatePeaks(wx.MiniFrame):
@@ -121,7 +122,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
         except:
             pass
 
-        print(("Startup took {:.3f} seconds".format(ttime()-tstart)))
+        print(("Startup took {:.3f} seconds".format(ttime() - tstart)))
     # ----
 
     def OnKey(self, evt):
@@ -284,7 +285,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
                      flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         btn_grid.Add(self.cancelBtn, (y, 5), wx.GBSpan(1, 1),
                      flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        y = y+1
+        y = y + 1
         btn_grid.Add(self.highlight_on_selection, (y, 0), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         btn_grid.Add(self.zoom_on_selection, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
@@ -301,28 +302,28 @@ class panelAnnotatePeaks(wx.MiniFrame):
         grid.Add(self.max_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(position_label, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.position_value, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y+1
+        y = y + 1
         grid.Add(charge_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.charge_value, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(intensity_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.intensity_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(color_label, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.colorBtn, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y+1
+        y = y + 1
         grid.Add(label_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_value, (y, 1), wx.GBSpan(1, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(label_format, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_format, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y+1
+        y = y + 1
         grid.Add(position_x_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.position_x_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(position_y_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.position_y_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(add_arrow_to_peak, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.add_arrow_to_peak, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y+1
+        y = y + 1
         grid.Add(horizontal_line, (y, 0), wx.GBSpan(1, 8), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         grid.Add(btn_grid, (y, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         mainSizer.Add(grid, 0, wx.EXPAND, 10)
@@ -374,7 +375,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
             # modify parameters
             for i in range(n_duplicates):
                 _annotation = copy.deepcopy(annotation)
-                _annotation["min"] = annotation["min"]-(0.001 * (i+1))
+                _annotation["min"] = annotation["min"] - (0.001 * (i + 1))
 
                 xmin = _annotation['min']
                 xmax = _annotation['max']
@@ -480,7 +481,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
 
     def onCustomiseParameters(self, evt):
 
-        dlg = panelCustomiseParameters(self,  self.config)
+        dlg = panelCustomiseParameters(self, self.config)
         dlg.ShowModal()
 
     def onFixIntensity(self, evt):
@@ -701,7 +702,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
                                              set_data_only=True)
 
     def onDeleteItems(self, evt):
-        rows = self.peaklist.GetItemCount()-1
+        rows = self.peaklist.GetItemCount() - 1
 
         if evt.GetId() == ID_annotPanel_deleteSelected_selected:
             while rows >= 0:
@@ -853,18 +854,18 @@ class panelAnnotatePeaks(wx.MiniFrame):
 
         # put a red patch around the peak of interest and zoom-in on the peak
         window_size = self.zoom_window_size.GetValue()
-        intensity = str2num(intensity)*1.5
+        intensity = str2num(intensity) * 1.5
 
         if self.highlight_on_selection.GetValue():
-            self.plot.plot_add_patch(str2num(position)-self.config.annotation_patch_width*0.5, 0,
+            self.plot.plot_add_patch(str2num(position) - self.config.annotation_patch_width * 0.5, 0,
                                      self.config.annotation_patch_width,
-                                     intensity*10,
+                                     intensity * 10,
                                      color="r",
                                      alpha=self.config.annotation_patch_transparency, add_temporary=True)
             self.plot.repaint()
 
         if self.zoom_on_selection.GetValue():
-            self.plot.on_zoom(str2num(min_value)-window_size, str2num(max_value)+window_size, intensity)
+            self.plot.on_zoom(str2num(min_value) - window_size, str2num(max_value) + window_size, intensity)
 
     def onPopulateTable(self):
 
@@ -1197,7 +1198,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
         # update intensity
         if self.config.annotation_zoom_y:
             try:
-                self.plot.on_zoom_y_axis(endY=amax(_ymax)*self.config.annotation_zoom_y_multiplier)
+                self.plot.on_zoom_y_axis(endY=amax(_ymax) * self.config.annotation_zoom_y_multiplier)
             except TypeError:
                 pass
 

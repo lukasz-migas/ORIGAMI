@@ -17,7 +17,7 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-from utilities.multiplierz_lite.mzAPI import raw
+from utils.multiplierz_lite.mzAPI import raw
 import numpy as np
 from toolbox import clean_filename
 

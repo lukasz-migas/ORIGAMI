@@ -30,10 +30,7 @@ import wx
 import wx.aui
 from pubsub import pub
 
-import dialogs
-from dialogs import (panelExportSettings, panelHTMLViewer,
-                     panelNotifyNewVersion, panelNotifyOpenDocuments,
-                     panelSequenceAnalysis)
+from gui_elements.panel_notifyOpenDocuments import panelNotifyOpenDocuments
 from gui_elements.panelAbout import panelAbout
 from panelCCScalibration import panelCCScalibration
 from panelDocumentTree import panelDocuments
@@ -82,6 +79,11 @@ from ids import ID_openMSFile, ID_open1DIMSFile, ID_open2DIMSFile, ID_fileMenu_M
     ID_openMassLynxRawFile, ID_window_controls, ID_documentRecent0, ID_documentRecent1, ID_documentRecent2, \
     ID_documentRecent3, ID_documentRecent4, ID_documentRecent5, ID_documentRecent6, ID_documentRecent7, \
     ID_documentRecent8, ID_documentRecent9, ID_fileMenu_clearRecent
+from gui_elements.panel_notifyNewVersion import panelNotifyNewVersion
+from gui_elements.panel_htmlViewer import panelHTMLViewer
+from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
+from gui_elements.panel_exportSettings import panelExportSettings
+from gui_elements.misc_dialogs import dlgBox
 
 
 class MyFrame(wx.Frame):
@@ -1016,7 +1018,7 @@ class MyFrame(wx.Frame):
             if not update:
                 try:
                     if evt.GetId() == ID_CHECK_VERSION:
-                        dialogs.dlgBox(exceptionTitle='ORIGAMI',
+                        dlgBox(exceptionTitle='ORIGAMI',
                                        exceptionMsg='You are using the most up to date version {}.'.format(
                                            self.config.version),
                                        type="Info")
@@ -2013,7 +2015,7 @@ class MyFrame(wx.Frame):
             self.panelProcessData.Show()
         except (ValueError, AttributeError, TypeError, KeyError, wx._core.PyAssertionError) as e:
             self.config.processParamsWindow_on_off = False
-            dialogs.dlgBox(exceptionTitle='Failed to open panel',
+            dlgBox(exceptionTitle='Failed to open panel',
                            exceptionMsg=str(e),
                            type="Error")
             return
@@ -2044,7 +2046,7 @@ class MyFrame(wx.Frame):
             self.panelImportExportParameters.Show()
         except (ValueError, AttributeError, TypeError, KeyError) as e:
             self.config.importExportParamsWindow_on_off = False
-            dialogs.dlgBox(exceptionTitle='Failed to open panel',
+            dlgBox(exceptionTitle='Failed to open panel',
                            exceptionMsg=str(e),
                            type="Error")
             return
@@ -2073,7 +2075,7 @@ class MyFrame(wx.Frame):
             self.interactivePanel.Show()
         except (ValueError, AttributeError, TypeError, KeyError, NameError) as e:
             self.config.interactiveParamsWindow_on_off = False
-            dialogs.dlgBox(exceptionTitle='Failed to open panel',
+            dlgBox(exceptionTitle='Failed to open panel',
                            exceptionMsg=str(e),
                            type="Error")
             return
@@ -2214,7 +2216,7 @@ class MyFrame(wx.Frame):
         self.config.logging = False
         if show_msg:
             msg = "Logging to file was temporarily disabled as there is a persistent bug that prevents it correct operation. Apologies, LM"
-            dialogs.dlgBox(exceptionTitle="Error",
+            dlgBox(exceptionTitle="Error",
                            exceptionMsg=msg,
                            type="Error")
         return
@@ -2247,7 +2249,7 @@ class MyFrame(wx.Frame):
     def onEnableDisableThreading(self, evt):
 
         if self.config.threading:
-            dialogs.dlgBox(exceptionTitle="Warning",
+            dlgBox(exceptionTitle="Warning",
                            exceptionMsg="Multi-threading is only an experimental feature for now! It might occasionally crash ORIGAMI, in which case you will lose your processed data!",
                            type="Warning")
         if evt != None:

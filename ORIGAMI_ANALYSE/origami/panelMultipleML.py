@@ -27,11 +27,11 @@ from natsort import natsorted
 
 from styles import makeTooltip, makeMenuItem
 from ids import *
-import dialogs
 from toolbox import (str2num, str2int, removeListDuplicates, convertRGB255to1,
                              convertRGB1to255, isempty, mlen, determineFontColor,
                              randomColorGenerator, roundRGB)
 from processing.spectra import interpolate
+from gui_elements.misc_dialogs import dlgBox
 
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 
@@ -560,7 +560,7 @@ class panelMML(wx.Panel):
                 xlimits = document.massSpectrum['xlimits']
                 name_kwargs = {"document":itemInfo['document'], "dataset": "Mass Spectrum"}
             except KeyError:
-                dialogs.dlgBox(exceptionTitle="Error",
+                dlgBox(exceptionTitle="Error",
                                exceptionMsg="Document does not have averaged mass spectrum",
                                type="Error")
                 return
@@ -585,7 +585,7 @@ class panelMML(wx.Panel):
 
             self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, full_repaint=True, set_page=True)
         except KeyError:
-            dialogs.dlgBox(exceptionTitle="Error",
+            dlgBox(exceptionTitle="Error",
                            exceptionMsg="No mobility data present for selected item",
                            type="Error")
             return
@@ -730,7 +730,7 @@ class panelMML(wx.Panel):
 
         else:
             # Ask if you want to delete all items
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+            dlg = dlgBox(exceptionTitle='Are you sure?',
                                  exceptionMsg="Are you sure you would like to delete ALL MassLynx files from the document?",
                                  type="Question")
             if dlg == wx.ID_NO:
@@ -767,7 +767,7 @@ class panelMML(wx.Panel):
                     self.filelist.DeleteItem(row)
                 row -= 1
         else:
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+            dlg = dlgBox(exceptionTitle='Are you sure?',
                                  exceptionMsg="Are you sure you would like to clear the table?",
                                  type="Question")
             if dlg == wx.ID_NO:

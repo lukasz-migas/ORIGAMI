@@ -1,0 +1,86 @@
+import wx
+from ids import ID_helpNewVersion
+
+
+class panelNotifyNewVersion(wx.Dialog):
+
+    def __init__(self, parent, presenter, message, **kwargs):
+        wx.Dialog.__init__(self, parent, -1, 'New version of ORIGAMI is available!', size=(-1, -1),
+                              style=wx.DEFAULT_FRAME_STYLE & ~
+                              (wx.MAXIMIZE_BOX))
+
+        self.parent = parent
+        self.presenter = presenter
+        self.icons = presenter.icons
+        self.message = message
+
+        self.makeGUI()
+        self.CentreOnParent()
+        self.Show(True)
+        self.SetFocus()
+        self.Raise()
+
+    def onClose(self, evt):
+        """Destroy this frame."""
+
+        self.Destroy()
+    # ----
+
+    def onOK(self, evt):
+
+        self.presenter.onLibraryLink(evt)
+        self.EndModal(wx.OK)
+
+    def makeGUI(self):
+
+        # make panel
+        panel = self.makePanel()
+
+        # pack element
+        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.mainSizer.Add(panel, 0, wx.EXPAND, 0)
+
+        # bind
+        self.goToDownload.Bind(wx.EVT_BUTTON, self.onOK, id=ID_helpNewVersion)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+
+        # fit layout
+        self.mainSizer.Fit(self)
+        self.SetSizer(self.mainSizer)
+
+    def makePanel(self):
+
+        panel = wx.Panel(self, -1)
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+
+        image = wx.StaticBitmap(panel, -1, self.icons.getLogo)
+
+        self.label_header = wx.html.HtmlWindow(panel, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.html.HW_SCROLLBAR_AUTO ,
+                                               size=(500, 400))
+        self.label_header.SetPage(self.message)
+
+        self.goToDownload = wx.Button(panel, ID_helpNewVersion, "Download Now", size=(-1, 22))
+        self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+
+        btn_grid = wx.GridBagSizer(1, 1)
+        btn_grid.Add(self.goToDownload, (0, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT)
+        btn_grid.Add(self.cancelBtn, (0, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT)
+
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        # pack elements
+        grid = wx.GridBagSizer(5, 5)
+        grid.Add(image, (0, 0), wx.GBSpan(1, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(horizontal_line_1, (1, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(self.label_header, (2, 0), wx.GBSpan(2, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(horizontal_line_2, (4, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(btn_grid, (5, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT)
+
+        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+
+        # fit layout
+        mainSizer.Fit(panel)
+        panel.SetSizer(mainSizer)
+
+        return panel

@@ -40,7 +40,6 @@ import wx.lib.agw.multidirdialog as MDD
 from numpy.ma import masked_array
 from scipy.stats import linregress
 
-import dialogs
 import mainWindow as mainWindow
 import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
@@ -52,12 +51,16 @@ import readers.io_waters_raw as io_waters
 import unidec as unidec
 from _codecs import encode
 from config import OrigamiConfig as config
-from dialogs import panelCalibrantDB, panelHTMLViewer, panelNotifyNewVersion, panelSelectDocument
 from document import document as documents
 from help_documentation import OrigamiHelp
 from icons import IconContainer as icons
 from ids import *
 from toolbox import *
+from gui_elements.panel_notifyNewVersion import panelNotifyNewVersion
+from gui_elements.panel_htmlViewer import panelHTMLViewer
+from gui_elements.panel_calibrantDB import panelCalibrantDB
+from gui_elements.dialog_selectDocument import panelSelectDocument
+from gui_elements.misc_dialogs import dlgBox, dlgAsk
 
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -216,7 +219,7 @@ class ORIGAMI(object):
             path = self.checkIfRawFile(dlg.GetPath())
             if path is None:
                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-                dialogs.dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
+                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
                                exceptionMsg=msg,
                                type="Error")
                 return
@@ -393,7 +396,7 @@ class ORIGAMI(object):
             self.config.lastDir = dlg.GetPath()
             if path is None:
                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-                dialogs.dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
+                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
                                exceptionMsg=msg,
                                type="Error")
                 return
@@ -464,7 +467,7 @@ class ORIGAMI(object):
             path = self.checkIfRawFile(dlg.GetPath())
             if path is None:
                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-                dialogs.dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
+                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
                                exceptionMsg=msg,
                                type="Error")
                 return
@@ -520,7 +523,7 @@ class ORIGAMI(object):
             path = self.checkIfRawFile(dlg.GetPath())
             if path is None:
                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-                dialogs.dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
+                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
                                exceptionMsg=msg,
                                type="Error")
                 return
@@ -641,7 +644,7 @@ class ORIGAMI(object):
 
         if path is None:
             msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-            dialogs.dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
+            dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
                            exceptionMsg=msg,
                            type="Error")
             return
@@ -1055,7 +1058,7 @@ class ORIGAMI(object):
             path = self.checkIfRawFile(dlg.GetPath())
             if path is None:
                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format."
-                dialogs.dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
+                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
                                exceptionMsg=msg,
                                type="Error")
                 return
@@ -1376,7 +1379,7 @@ class ORIGAMI(object):
                     xlabel_start, xlabel_end = "", ""
 
                     msg = "Missing x/y-axis labels for %s! Consider adding x/y-axis to your file to obtain full functionality." % (filename)
-                    dialogs.dlgBox(exceptionTitle='Missing data',
+                    dlgBox(exceptionTitle='Missing data',
                                    exceptionMsg=msg,
                                    type="Warning")
                 else:
@@ -1499,7 +1502,7 @@ class ORIGAMI(object):
                     msg = "Failed to open the file - most likely because this file no longer exists or has been moved.\n" + \
                           "You can change the document path by right-clicking on the document in the Document Tree and \n " + \
                           "selecting Notes, Information, Labels..."
-                    dialogs.dlgBox(exceptionTitle='Missing folder',
+                    dlgBox(exceptionTitle='Missing folder',
                                    exceptionMsg=msg, type="Error")
                     return
                 # RT
@@ -1593,7 +1596,7 @@ class ORIGAMI(object):
                                   "by updating the document path by right-clicking on the document and selecting\n" + \
                                   "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
                                   "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
-                            dialogs.dlgBox(exceptionTitle='Error',
+                            dlgBox(exceptionTitle='Error',
                                            exceptionMsg=msg,
                                            type="Error")
                             return
@@ -1971,7 +1974,7 @@ class ORIGAMI(object):
             # Check that data was extracted first
             if self.currentDoc == '':
                 msg = "Please extract data first"
-                dialogs.dlgBox(exceptionTitle='Extract data first',
+                dlgBox(exceptionTitle='Extract data first',
                                exceptionMsg=msg,
                                type="Warning")
                 continue
@@ -1983,7 +1986,7 @@ class ORIGAMI(object):
                 zvals = self.docs.IMS2Dions
             else:
                 msg = "Data was not extracted yet. Please extract before continuing."
-                dialogs.dlgBox(exceptionTitle='Missing data',
+                dlgBox(exceptionTitle='Missing data',
                                exceptionMsg=msg,
                                type="Error")
                 continue
@@ -2151,7 +2154,7 @@ class ORIGAMI(object):
                 msg = "With your current input, there would be too many scans in your file! " + \
                       "There are %s scans in your file and your settings suggest there should be %s" \
                       % (imsData2D[2], imsData2D[1])
-                dialogs.dlgBox(exceptionTitle='Are your settings correct?',
+                dlgBox(exceptionTitle='Are your settings correct?',
                                exceptionMsg=msg, type="Warning")
                 continue
 
@@ -2889,7 +2892,7 @@ class ORIGAMI(object):
         # Check whether the user selected at least two files (and no more than 2 for certain functions)
         if tempAccumulator < 2:
             msg = 'Please select at least two files'
-            dialogs.dlgBox(exceptionTitle='Error', exceptionMsg=msg, type="Error")
+            dlgBox(exceptionTitle='Error', exceptionMsg=msg, type="Error")
             return
 
         # Remove duplicates from list
@@ -2903,7 +2906,7 @@ class ORIGAMI(object):
         if ((zvalsIon1plot.shape != zvalsIon2plot.shape) and
             self.config.overlayMethod not in ["Grid (n x n)"]):
             msg = "Comparing ions: %s and %s. These files are NOT of identical shape!" % (name1, name2)
-            dialogs.dlgBox(exceptionTitle='Error', exceptionMsg=msg, type="Error")
+            dlgBox(exceptionTitle='Error', exceptionMsg=msg, type="Error")
             return
 
         defaultVals = ['Reds', 'Greens']
@@ -3028,7 +3031,7 @@ class ORIGAMI(object):
             elif n_grid in list(range(17, 26)): n_rows, n_cols = 5, 5
             elif n_grid in list(range(26, 37)): n_rows, n_cols = 6, 6
             else:
-                dialogs.dlgBox(exceptionTitle='Error',
+                dlgBox(exceptionTitle='Error',
                                exceptionMsg="Cannot plot grid larger than 6 x 6. You have selected".format(n_grid),
                                type="Error", exceptionPrint=True)
                 return
@@ -3072,7 +3075,7 @@ class ORIGAMI(object):
             if tempAccumulator > 2:
                 msg = "Currently only supporting an overlay of two ions.\n" + \
                       "Comparing: {} and {}.".format(compList[0], compList[1])
-                dialogs.dlgBox(exceptionTitle='Warning', exceptionMsg=msg, type="Warning")
+                dlgBox(exceptionTitle='Warning', exceptionMsg=msg, type="Warning")
                 print(msg)
 
             if self.config.overlayMethod == "Transparent":
@@ -4084,14 +4087,14 @@ class ORIGAMI(object):
             else:
                 return None
         elif not prefix:
-            saveFileName = dialogs.dlgAsk('Please enter a new filename for the images. Names will be appended with the item keyword.',
+            saveFileName = dlgAsk('Please enter a new filename for the images. Names will be appended with the item keyword.',
                                             defaultValue=defaultValue)
         else:
             if not csv:
-                saveFileName = dialogs.dlgAsk('Please enter a new prefix for the images. Names will be appended with the item keyword.',
+                saveFileName = dlgAsk('Please enter a new prefix for the images. Names will be appended with the item keyword.',
                                               defaultValue=defaultValue)
             else:
-                saveFileName = dialogs.dlgAsk('Please enter a new prefix for the output file. Names will be appended with the item keyword.',
+                saveFileName = dlgAsk('Please enter a new prefix for the output file. Names will be appended with the item keyword.',
                                               defaultValue=defaultValue)
 
         return saveFileName
@@ -4301,14 +4304,14 @@ class ORIGAMI(object):
             selectedText == 'Drift time (2D, processed, EIC)' or
             selectedText == 'Input data'):
             # Give an error
-            dialogs.dlgBox(exceptionTitle='Error',
+            dlgBox(exceptionTitle='Error',
                            exceptionMsg="Please select an ion in the Document Panel to assign a charge state",
                            type="Error")
             return
 
         currentCharge = self.view.panelDocuments.topP.documents.onGetItemData(dataType='charge')
 
-        charge = dialogs.dlgAsk('Assign charge state to selected item.',
+        charge = dlgAsk('Assign charge state to selected item.',
                                 defaultValue=str(currentCharge))
 
         if charge == '' or charge == 'None':
@@ -4520,7 +4523,7 @@ class ORIGAMI(object):
                 peaklist['m/z']
             except KeyError:
                 msg = "Please make sure your file contains headers. i.e. m/z | window | z (optional)"
-                dialogs.dlgBox(exceptionTitle='Incorrect input',
+                dlgBox(exceptionTitle='Incorrect input',
                                exceptionMsg=msg,
                                type="Error")
                 return
@@ -4534,7 +4537,7 @@ class ORIGAMI(object):
                         mzAdd = peaklist['window'][peak]
                     except KeyError:
                         msg = "Please make sure your file contains headers. i.e. m/z | window | z (optional)"
-                        dialogs.dlgBox(exceptionTitle='Incorrect input',
+                        dlgBox(exceptionTitle='Incorrect input',
                                        exceptionMsg=msg,
                                        type="Error")
                         return
@@ -4907,7 +4910,7 @@ class ORIGAMI(object):
                     return
                 elif charge == 0:
                     msg = "%s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (rangeName, filename)
-                    dialogs.dlgBox(exceptionTitle='Missing charge information',
+                    dlgBox(exceptionTitle='Missing charge information',
                                    exceptionMsg=msg,
                                    type="Warning")
                     continue
@@ -4931,7 +4934,7 @@ class ORIGAMI(object):
 
                 if (pusherFreq == 1 or not isnumber(pusherFreq)) and ylabel != 'Drift time (ms)':
                     msg = "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (filename, rangeName)
-                    dialogs.dlgBox(exceptionTitle='Missing data',
+                    dlgBox(exceptionTitle='Missing data',
                                    exceptionMsg=msg,
                                    type="Error")
                     continue
@@ -4983,7 +4986,7 @@ class ORIGAMI(object):
                                                                 format='Format: DataFrame')
                     if len(docList) == 0:
                         msg = "Cound not find calibration document or calibration file. Please create or load one in first"
-                        dialogs.dlgBox(exceptionTitle='Missing data',
+                        dlgBox(exceptionTitle='Missing data',
                                        exceptionMsg=msg,
                                        type="Error")
                         return
@@ -6546,13 +6549,13 @@ class ORIGAMI(object):
             if not os.path.isdir(self.config.driftscopePath):
                 print('Could not find Driftscope path')
                 msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
-                dialogs.dlgBox(exceptionTitle='Could not find Driftscope',
+                dlgBox(exceptionTitle='Could not find Driftscope',
                                exceptionMsg=msg, type="Warning")
 
             if not os.path.isfile(self.config.driftscopePath + "\imextract.exe"):
                 print('Could not find imextract.exe')
                 msg = "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
-                dialogs.dlgBox(exceptionTitle='Could not find Driftscope',
+                dlgBox(exceptionTitle='Could not find Driftscope',
                                exceptionMsg=msg, type="Warning")
         evt.Skip()
 
@@ -6567,7 +6570,7 @@ class ORIGAMI(object):
         try:
             os.startfile(path)
         except WindowsError:
-            dialogs.dlgBox(exceptionTitle='This folder does not exist',
+            dlgBox(exceptionTitle='This folder does not exist',
                            exceptionMsg="Could not open the directory - this folder does not exist",
                            type="Error")
             return
@@ -6591,7 +6594,7 @@ class ORIGAMI(object):
         # Get directory path
         self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
         document = self.documentsDict[self.currentDoc]
-        saveName = dialogs.dlgAsk('Save data as...', defaultValue='')
+        saveName = dlgAsk('Save data as...', defaultValue='')
         if saveName == '':
             self.view.SetStatusText('Please select a name first', 3)
             return
@@ -6678,7 +6681,7 @@ class ORIGAMI(object):
             try:
                 self.loadDocumentData(document=openObject(filename=file_path))
             except (ValueError, AttributeError, TypeError, IOError) as e:
-                dialogs.dlgBox(exceptionTitle='Failed to load document on load.',
+                dlgBox(exceptionTitle='Failed to load document on load.',
                                exceptionMsg=str(e),
                                type="Error")
                 return
@@ -7035,7 +7038,7 @@ class ORIGAMI(object):
         check = self.config.initlizePaths(return_check=True)
         if check:
             wx.Bell()
-            dialogs.dlgBox(exceptionTitle='DriftScope path looks good',
+            dlgBox(exceptionTitle='DriftScope path looks good',
                            exceptionMsg="Found DriftScope on your PC. You are good to go.",
                            type="Info")
             return
@@ -7050,7 +7053,7 @@ class ORIGAMI(object):
             if not update:
                 try:
                     if evt.GetId() == ID_CHECK_VERSION:
-                        dialogs.dlgBox(exceptionTitle='ORIGAMI',
+                        dlgBox(exceptionTitle='ORIGAMI',
                                        exceptionMsg='You are using the most up to date version %s.' % (self.config.version),
                                        type="Info")
                 except: pass
@@ -7077,6 +7080,7 @@ class ORIGAMI(object):
 
     def openHTMLViewer(self, evt):
         import HTMLHelp as htmlPages
+
         htmlPages = htmlPages()
         evtID = evt.GetId()
         if evtID == ID_help_UniDecInfo:

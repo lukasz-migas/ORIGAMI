@@ -3,8 +3,9 @@ import sqlite3
 import tempfile
 import warnings
 
-from utilities.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
-from utilities.multiplierz_lite.mzml import demarshal, mzmlToSqlite
+from utils.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
+from utils.multiplierz_lite.mzml import demarshal, mzmlToSqlite
+
 
 class mzFile(mzAPImzFile):
     """
@@ -74,7 +75,7 @@ class mzFile(mzAPImzFile):
         # Float inprecision spoils the exact value of RT keys when they
         # get into Python scope, requiring the addition of a tolerance factor.
         self.cursor.execute('SELECT ind, rt FROM spectra WHERE rt >= %s AND rt <= %s'
-                            % (time - (tolerance/2), time + (tolerance/2)))
+                            % (time - (tolerance / 2), time + (tolerance / 2)))
         return min(self.cursor.fetchall(), key=lambda x: abs(x[1] - time))[0]
 
     def time_for_scan(self, scan):

@@ -1,13 +1,13 @@
 from comtypes.client import CreateObject
 
 from comtypes import COMError
-from utilities.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
-from utilities.multiplierz_lite.mzAPI import mzScan
+from utils.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
 
 __author__ = 'William Max Alexander'
 
 
 class mzFile(mzAPImzFile):
+
     def __init__(self, file_name, *args, **kwargs):
         self.file_type = 'raw'
         self.data_file = file_name

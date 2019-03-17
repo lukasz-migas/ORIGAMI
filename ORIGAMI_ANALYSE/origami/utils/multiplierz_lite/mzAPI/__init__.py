@@ -61,7 +61,7 @@ def make_info_file(data_file, **kwargs):
 
     if file_type == 'mzml':
         pass
-#         from utilities.multiplierz_lite.mzAPI import mzML
+#         from utils.multiplierz_lite.mzAPI import mzML
 #         mzML.make_info_file(data_file)
     else:
         my_file = mzFile(data_file, **kwargs)
@@ -193,7 +193,7 @@ class mzFile(object):
             raise IOError("%s not found." % data_file)
 
         elif data_file.lower().endswith('.raw'):
-            from . import raw
+           utilsfrom . import raw
             self.__class__ = raw.mzFile
             self.format = 'raw'
             raw.mzFile.__init__(self, data_file, **kwargs)

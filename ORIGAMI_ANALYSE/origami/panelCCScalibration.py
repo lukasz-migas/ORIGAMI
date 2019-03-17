@@ -24,8 +24,8 @@ from operator import itemgetter
 
 from styles import validator, layout
 from toolbox import str2num, str2int, isnumber
-import dialogs
 from ids import *
+from gui_elements.misc_dialogs import dlgBox
 
 
 class panelCCScalibration(wx.Panel):
@@ -731,7 +731,7 @@ class topPanel(wx.Panel):
             except KeyError: pass
         else:
         # Ask if you are sure to delete it!
-            dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+            dlg = dlgBox(exceptionTitle='Are you sure?',
                                  exceptionMsg="Are you sure you would like to delete ALL text documents?",
                                  type="Question")
             if dlg == wx.ID_NO:
@@ -893,7 +893,7 @@ class topPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+        dlg = dlgBox(exceptionTitle='Are you sure?',
                              exceptionMsg="Are you sure you would like to clear the table??",
                              type="Question")
         if dlg == wx.ID_NO:
@@ -1287,7 +1287,7 @@ class bottomPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = dialogs.dlgBox(exceptionTitle='Are you sure?',
+        dlg = dlgBox(exceptionTitle='Are you sure?',
                              exceptionMsg="Are you sure you would like to clear the table??",
                              type="Question")
         if dlg == wx.ID_NO:
