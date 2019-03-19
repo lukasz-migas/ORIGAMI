@@ -1,4 +1,6 @@
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/00205444-c38d-4974-92a5-e4c543507157/deploy-status)](https://app.netlify.com/sites/origami/deploys)
+
 <p align="center">
   <img width="460" height="300" src="/webpage_content/origami_analyse_logo.png">
 </p>
