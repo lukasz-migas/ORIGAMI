@@ -25,13 +25,34 @@ import matplotlib.pyplot as plt
 from natsort import natsorted
 from pubsub import pub
 
-from ids import *
 from styles import makeMenuItem
 from icons import IconContainer as icons
-from toolbox import (isempty, merge_two_dicts, convertRGB1to255, convertRGB255to1,
-                             convertRGB1toHEX, dir_extra, randomColorGenerator)
 from panelCustomisePlot import panelCustomisePlot
 from gui_elements.misc_dialogs import dlgBox
+from ids import ID_clearPlot_MS, ID_smooth1DdataMS, ID_smooth1Ddata1DT, ID_smooth1DdataRT, ID_highlightRectAllIons, \
+    ID_pickMSpeaksDocument, ID_clearPlot_RT, ID_clearPlot_RT_MS, ID_clearPlot_1D, ID_clearPlot_1D_MS, ID_clearPlot_2D, \
+    ID_clearPlot_3D, ID_clearPlot_RMSF, ID_clearPlot_RMSD, ID_clearPlot_Matrix, ID_clearPlot_Overlay, \
+    ID_clearPlot_Watefall, ID_clearPlot_Calibration, ID_clearPlot_MZDT, ID_clearPlot_Waterfall, ID_clearPlot_other, \
+    ID_clearPlot_UniDec_MS, ID_clearPlot_UniDec_mwDistribution, ID_clearPlot_UniDec_mzGrid, ID_clearPlot_UniDec_mwGrid, \
+    ID_clearPlot_UniDec_pickedPeaks, ID_clearPlot_UniDec_barchart, ID_clearPlot_UniDec_chargeDistribution, \
+    ID_clearPlot_UniDec_all, ID_plotPanel_binMS, ID_plotPanel_lockPlot, ID_plots_rotate90, ID_plotPanel_resize, \
+    ID_plots_customisePlot_unidec_ms, ID_plots_customisePlot_unidec_mw, ID_plots_customisePlot_unidec_mz_v_charge, \
+    ID_plots_customisePlot, ID_plots_customisePlot_unidec_isolated_mz, ID_plots_customisePlot_unidec_mw_v_charge, \
+    ID_plots_customisePlot_unidec_ms_barchart, ID_plots_customisePlot_unidec_chargeDist, ID_saveOtherImage, \
+    ID_saveCompareMSImage, ID_plots_saveImage_unidec_ms, ID_plots_saveImage_unidec_mw, \
+    ID_plots_saveImage_unidec_mz_v_charge, ID_plots_saveImage_unidec_isolated_mz, ID_plots_saveImage_unidec_mw_v_charge, \
+    ID_plots_saveImage_unidec_ms_barchart, ID_plots_saveImage_unidec_chargeDist, ID_saveUniDecAll, ID_processSettings_MS, \
+    ID_processSettings_FindPeaks, ID_extraSettings_general_plot, ID_extraSettings_plot1D, ID_saveMSImage, \
+    ID_extraSettings_legend, ID_saveRTImage, ID_processSettings_2D, ID_save1DImage, ID_extraSettings_plot2D, \
+    ID_extraSettings_colorbar, ID_save2DImage, ID_saveMZDTImage, ID_extraSettings_plot3D, ID_save3DImage, \
+    ID_saveOverlayImage, ID_extraSettings_waterfall, ID_extraSettings_violin, ID_saveWaterfallImage, \
+    ID_extraSettings_rmsd, ID_saveRMSFImage, ID_saveRMSDmatrixImage, ID_saveMSImageDoc, ID_saveRTImageDoc, \
+    ID_save1DImageDoc, ID_save2DImageDoc, ID_save3DImageDoc, ID_saveWaterfallImageDoc, ID_saveRMSDImage, \
+    ID_saveRMSDImageDoc, ID_saveRMSFImageDoc, ID_saveOverlayImageDoc, ID_saveRMSDmatrixImageDoc, ID_saveMZDTImageDoc, \
+    ID_saveOtherImageDoc
+from utils.color import convertRGB1to255, convertRGB1toHEX, randomColorGenerator
+from toolbox import merge_two_dicts
+from utils.check import isempty
 
 
 class panelPlot(wx.Panel):
@@ -1921,7 +1942,8 @@ class panelPlot(wx.Panel):
             num += 1
 
         if len(legend_text) - 1 > plt_kwargs["maximum_shown_items"]:
-            msg = "Only showing {} out of {} items. If you would like to see more go to Processing -> UniDec -> Max shown".format(plt_kwargs["maximum_shown_items"], len(legend_text) - 1)
+            msg = "Only showing {} out of {} items.".format(plt_kwargs["maximum_shown_items"], len(legend_text) - 1) + \
+                " If you would like to see more go to Processing -> UniDec -> Max shown"
             self.presenter.onThreading(None, (msg, 4, 7), action='updateStatusbar')
 
         # Add legend
@@ -1964,14 +1986,11 @@ class panelPlot(wx.Panel):
         plt_kwargs['colormap_norm'] = cmapNorm
 
         self.plotUnidec_mwVsZ.clearPlot()
-        self.plotUnidec_mwVsZ.plot_2D_contour_unidec(xvals=xvals, yvals=yvals,
-                                                     zvals=zvals, xlabel="Mass (Da)",
-                                                     ylabel="Charge",
-                                                     axesSize=self.config._plotSettings['UniDec (MW vs Charge)']['axes_size'],
-                                                     plotType='MS', plotName="mwGrid", testX=True,
-                                                     speedy=kwargs.get('speedy', True),
-                                                     title="Mass vs Charge",
-                                                     **plt_kwargs)
+        self.plotUnidec_mwVsZ.plot_2D_contour_unidec(
+            xvals=xvals, yvals=yvals, zvals=zvals, xlabel="Mass (Da)",
+            ylabel="Charge", axesSize=self.config._plotSettings['UniDec (MW vs Charge)']['axes_size'],
+            plotType='MS', plotName="mwGrid", testX=True, speedy=kwargs.get('speedy', True),
+            title="Mass vs Charge", **plt_kwargs)
         # Show the mass spectrum
         self.plotUnidec_mwVsZ.repaint()
 
@@ -1999,8 +2018,8 @@ class panelPlot(wx.Panel):
             markers = replot['markers']
 
             if len(xvals) > plt_kwargs["maximum_shown_items"]:
-                msg = "Only showing {} out of {} items. If you would like to see more go to Processing -> UniDec -> Max shown".format(plt_kwargs["maximum_shown_items"],
-                                                                                                                                      len(xvals))
+                msg = "Only showing {} out of {} items.".format(plt_kwargs["maximum_shown_items"], len(xvals)) + \
+                    " If you would like to see more go to Processing -> UniDec -> Max shown"
                 self.presenter.onThreading(None, (msg, 4, 7), action='updateStatusbar')
 
             if len(xvals) >= plt_kwargs["maximum_shown_items"]:
@@ -2560,9 +2579,11 @@ class panelPlot(wx.Panel):
         self.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmapNorm=cmapNorm)
         if self.config.waterfall:
             if len(xvals) > 500:
+                msg = "There are {} scans in this dataset".format(len(xvals)) + \
+                    " (it could be slow to plot Waterfall plot...). Would you like to continue?"
                 dlg = dlgBox(
                     exceptionTitle='Would you like to continue?',
-                    exceptionMsg="There are {} scans in this dataset (it could be slow to plot Waterfall plot...). Would you like to continue?".format(len(xvals)),
+                    exceptionMsg=msg,
                     type="Question")
                 if dlg == wx.ID_YES:
                     self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
@@ -2602,13 +2623,17 @@ class panelPlot(wx.Panel):
                                                      plotName='1D',
                                                      **plt_kwargs)
             else:
-                self.presenter.onThreading(None, ("Selected item is too large to plot as violin. Plotting as waterfall instead.", 4, 10),
-                                           action='updateStatusbar')
+                self.presenter.onThreading(
+                    None, ("Selected item is too large to plot as violin. Plotting as waterfall instead.", 4, 10),
+                    action='updateStatusbar')
                 # check if there are more than 500 elements
                 if zvals.shape[1] > 500:
-                    dlg = dlgBox(exceptionTitle='Would you like to continue?',
-                                 exceptionMsg="There are {} scans in this dataset (this could be slow...). Would you like to continue?".format(len(xvals)),
-                                 type="Question")
+                    msg = "There are {} scans in this dataset".format(len(xvals)) + \
+                        " (this could be slow...). Would you like to continue?"
+                    dlg = dlgBox(
+                        exceptionTitle='Would you like to continue?',
+                        exceptionMsg=msg,
+                        type="Question")
                     if dlg == wx.ID_NO:
                         return
                 # plot

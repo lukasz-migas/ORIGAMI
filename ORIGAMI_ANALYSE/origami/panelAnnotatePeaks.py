@@ -45,11 +45,11 @@ from ids import (ID_annotPanel_addAnnotations,
                  ID_annotPanel_show_labelsAtIntensity,
                  ID_annotPanel_show_mzAndIntensity)
 from styles import makeCheckbox, makeMenuItem, makeToggleBtn, validator, ListCtrl
-from toolbox import (_replace_labels, checkExtension, convertRGB1to255,
-                     convertRGB255to1, dir_extra, find_nearest,
-                     merge_two_dicts, str2int, str2num)
+from toolbox import (_replace_labels, checkExtension)
 from gui_elements.dialog_panelAsk import panelAsk
 from gui_elements.misc_dialogs import dlgBox, dlgAsk
+from utils.color import convertRGB1to255, convertRGB255to1
+from utils.converters import str2num, str2int
 
 
 class panelAnnotatePeaks(wx.MiniFrame):

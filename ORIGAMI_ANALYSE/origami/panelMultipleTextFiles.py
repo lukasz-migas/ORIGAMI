@@ -245,7 +245,7 @@ class panelMultipleTextFiles (wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnOpenEditor, id=ID_textPanel_editItem)
         self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_textPanel_assignColor)
 
-        self.currentItem, __ = self.filelist.HitTest(evt.GetPosition())
+        self.currentItem = evt.GetIndex()
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_show_chromatogram,
                                      text='Show chromatogram',

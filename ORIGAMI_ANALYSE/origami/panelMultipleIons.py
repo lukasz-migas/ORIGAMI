@@ -92,6 +92,20 @@ class panelMultipleIons(wx.Panel):
 
         self.data_processing = self.view.data_processing
 
+        self._ionPanel_peaklist = {
+            0: {"name":"", "tag":"check", "type":"bool"},
+            1: {"name":"min m/z", "tag":"start", "type":"float"},
+            2: {"name":"max m/z", "tag":"end", "type":"float"},
+            3: {"name":"z", "tag":"charge", "type":"int"},
+            4: {"name":"% int", "tag":"intensity", "type":"float"},
+            5: {"name":"color", "tag":"color", "type":"str"},
+            6: {"name":"colormap", "tag":"colormap", "type":"str"},
+            7: {"name":"\N{GREEK SMALL LETTER ALPHA}", "tag":"alpha", "type":"float"},
+            8: {"name":"mask", "tag":"mask", "type":"float"},
+            9: {"name":"label", "tag":"label", "type":"float"},
+            10: {"name":"method", "tag":"method", "type":"str"},
+            11: {"name":"file", "tag":"filename", "type":"str"}}
+
         self.makeGUI()
 
         if self.plotAutomatically:
@@ -231,7 +245,7 @@ class panelMultipleIons(wx.Panel):
 
     def makeListCtrl(self):
 
-        self.peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
+        self.peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._ionPanel_peaklist)
         for item in self.config._peakListSettings:
             order = item['order']
             name = item['name']
@@ -241,12 +255,22 @@ class panelMultipleIons(wx.Panel):
                 width = 0
             self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
 
-        self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
-        self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
-        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.onItemActivated)
-        self.peaklist.Bind(wx.EVT_LIST_KEY_DOWN, self.onItemSelected)
-        self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click)
+#         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
+#         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.onItemActivated)
+#         self.peaklist.Bind(wx.EVT_LIST_KEY_DOWN, self.onItemSelected)
+#         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.onColumnRightClickMenu)
+
+    def on_activate_item(self, evt):
+        """Create annotation for activated peak."""
+
+        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
+        if self.currentItem != -1:
+            if not self.editItemDlg:
+                self.OnOpenEditor(evt=None)
+            else:
+                self.editItemDlg.onUpdateGUI(self.OnGetItemInformation(self.currentItem))
 
     def onItemActivated(self, evt):
         """Create annotation for activated peak."""
@@ -344,7 +368,7 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def OnRightClickMenu(self, evt):
+    def on_right_click(self, evt):
 
         # Menu events
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_zoom_in_MS)
@@ -356,7 +380,8 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_ionPanel_assignColor)
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_ionPanel_delete_rightClick)
 
-        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
+        self.currentItem = evt.GetIndex()
+
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_show_zoom_in_MS,
                                      text='Zoom in on the ion\tZ',
@@ -1316,8 +1341,6 @@ class panelMultipleIons(wx.Panel):
                    self.config.peaklistColNames['end'],
                    self.config.peaklistColNames['filename']]
         rows = self.peaklist.GetItemCount()
-
-        checkData = [mzStart, mzEnd, filename]
 
         # Iterate over row and columns to get data
         for row in range(rows):

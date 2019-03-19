@@ -18,12 +18,11 @@
 # __author__ lukasz.g.migas
 
 # Load libraries
-import wx, threading
+import wx
 import wx.lib.mixins.listctrl as listmix
 from natsort import natsorted
 from operator import itemgetter
 import numpy as np
-from copy import deepcopy
 from time import time as ttime
 from re import split as re_split
 

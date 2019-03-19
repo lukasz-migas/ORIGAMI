@@ -20,7 +20,6 @@
 # Import libraries
 import gc
 import os
-import random
 import logging
 import re
 import sys
@@ -28,7 +27,6 @@ import threading
 import time
 import warnings
 import webbrowser
-from copy import deepcopy
 from math import log, sqrt
 
 import matplotlib.cm as cm
@@ -49,19 +47,25 @@ import readers.io_document as io_document
 import readers.io_text_files as io_text
 import readers.io_waters_raw as io_waters
 import unidec as unidec
-from _codecs import encode
 from config import OrigamiConfig as config
 from document import document as documents
 from help_documentation import OrigamiHelp
 from icons import IconContainer as icons
 from ids import *
-from toolbox import *
 from gui_elements.panel_notifyNewVersion import panelNotifyNewVersion
 from gui_elements.panel_htmlViewer import panelHTMLViewer
 from gui_elements.panel_calibrantDB import panelCalibrantDB
 from gui_elements.dialog_selectDocument import panelSelectDocument
 from gui_elements.misc_dialogs import dlgBox, dlgAsk
 from utils.logging import set_logger, set_logger_level
+from utils.time import getTime
+from toolbox import detectPeaks, removeDuplicates, find_nearest, checkExtension, MidpointNormalize, saveObject, \
+    openObject
+from utils.converters import str2num, str2int
+from utils.random import randomIntegerGenerator
+from utils.color import convertRGB255to1, convertRGB1to255, combine_rgb, make_rgb, randomColorGenerator, \
+    determineFontColor
+from utils.check import isempty, isnumber, checkVersion, compareVersions
 
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)

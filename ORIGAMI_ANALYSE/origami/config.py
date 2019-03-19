@@ -20,7 +20,6 @@
 import glob
 import os.path
 import platform
-# import matplotlib.cm as cm
 import xml.dom.minidom
 import xml.parsers.expat
 from ast import literal_eval
@@ -29,8 +28,8 @@ from collections import OrderedDict
 import numpy as np
 from matplotlib.pyplot import colormaps
 
-from toolbox import str2bool, str2int, str2num
 from gui_elements.misc_dialogs import dlgBox
+from utils.converters import str2num, str2int, str2bool
 
 
 class OrigamiConfig:

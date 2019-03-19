@@ -17,15 +17,22 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import os
 import time
 import wx
 from wx.adv import BitmapComboBox
 
 from help_documentation import OrigamiHelp
-from ids import *
-from styles import layout, makeCheckbox, makeToggleBtn, makeSuperTip, makeStaticBox
-from toolbox import *
+from styles import makeCheckbox, makeToggleBtn, makeSuperTip, makeStaticBox
+from ids import ID_extraSettings_zoomCursorColor, ID_extraSettings_extractColor, ID_extraSettings_verticalColor, \
+    ID_extraSettings_horizontalColor, ID_extraSettings_boxColor, ID_extraSettings_instantPlot, \
+    ID_extraSettings_multiThreading, ID_extraSettings_logging, ID_extraSettings_autoSaveSettings, \
+    ID_extraSettings_lineColor_rmsd, ID_extraSettings_labelColor_rmsd, ID_extraSettings_underlineColor_rmsd, \
+    ID_extraSettings_lineColour_violin, ID_extraSettings_shadeColour_violin, ID_extraSettings_lineColour_waterfall, \
+    ID_extraSettings_shadeColour_waterfall, ID_extraSettings_lineColor_1D, ID_extraSettings_shadeUnderColor_1D, \
+    ID_extraSettings_markerColor_1D, ID_extraSettings_edgeMarkerColor_1D, ID_extraSettings_bar_edgeColor, \
+    ID_extraSettings_markerColor_3D, ID_extraSettings_edgeMarkerColor_3D, ID_saveConfig
+from utils.color import convertRGB1to255, convertRGB255to1
+from utils.converters import str2num, str2int
 
 
 class panelParametersEdit(wx.Panel):
@@ -690,7 +697,8 @@ class panelParametersEdit(wx.Panel):
         gui_staticBox.SetSize((-1, -1))
         gui_box_sizer = wx.StaticBoxSizer(gui_staticBox, wx.HORIZONTAL)
 
-        self.general_instantPlot_check = makeCheckbox(panel, "Instant plot when selected in Document Tree", ID=ID_extraSettings_instantPlot)
+        self.general_instantPlot_check = makeCheckbox(panel, "Instant plot when selected in Document Tree",
+                                                      ID=ID_extraSettings_instantPlot)
         self.general_instantPlot_check.SetValue(self.config.quickDisplay)
         self.general_instantPlot_check.Bind(wx.EVT_CHECKBOX, self.onApply)
         self.general_instantPlot_check.Bind(wx.EVT_CHECKBOX, self.onUpdateGUI)
@@ -699,17 +707,20 @@ class panelParametersEdit(wx.Panel):
         self.general_multiThreading_check = makeCheckbox(panel, "Multi-threading", ID=ID_extraSettings_multiThreading)
         self.general_multiThreading_check.SetValue(self.config.threading)
         self.general_multiThreading_check.Bind(wx.EVT_CHECKBOX, self.onUpdateGUI)
-        _general_multiThreading_check = makeSuperTip(self.general_multiThreading_check, **self.help.general_multiThreading)
+        _general_multiThreading_check = makeSuperTip(self.general_multiThreading_check,
+                                                     **self.help.general_multiThreading)
 
         self.general_logToFile_check = makeCheckbox(panel, "Log events to file", ID=ID_extraSettings_logging)
         self.general_logToFile_check.SetValue(self.config.logging)
         self.general_logToFile_check.Bind(wx.EVT_CHECKBOX, self.onUpdateGUI)
         _general_logToFile_check = makeSuperTip(self.general_logToFile_check, **self.help.general_logToFile)
 
-        self.general_autoSaveSettings_check = makeCheckbox(panel, "Auto-save settings", ID=ID_extraSettings_autoSaveSettings)
+        self.general_autoSaveSettings_check = makeCheckbox(panel, "Auto-save settings",
+                                                           ID=ID_extraSettings_autoSaveSettings)
         self.general_autoSaveSettings_check.SetValue(self.config.autoSaveSettings)
         self.general_autoSaveSettings_check.Bind(wx.EVT_CHECKBOX, self.onUpdateGUI)
-        _general_autoSaveSettings_check = makeSuperTip(self.general_autoSaveSettings_check, **self.help.general_autoSaveSettings)
+        _general_autoSaveSettings_check = makeSuperTip(self.general_autoSaveSettings_check,
+                                                       **self.help.general_autoSaveSettings)
 
         # add elements to grids
         axes_grid = wx.GridBagSizer(2, 2)
@@ -914,7 +925,8 @@ class panelParametersEdit(wx.Panel):
         self.rmsd_lineHatch_value = wx.Choice(panel, -1,
                                                choices=list(self.config.lineHatchDict.keys()),
                                                size=(-1, -1), name="rmsf")
-        self.rmsd_lineHatch_value.SetStringSelection(list(self.config.lineHatchDict.keys())[list(self.config.lineHatchDict.values()).index(self.config.rmsd_lineHatch)])
+        self.rmsd_lineHatch_value.SetStringSelection(list(self.config.lineHatchDict.keys())[
+            list(self.config.lineHatchDict.values()).index(self.config.rmsd_lineHatch)])
         self.rmsd_lineHatch_value.Bind(wx.EVT_CHOICE, self.onApply)
         self.rmsd_lineHatch_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
@@ -1310,20 +1322,19 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_colorShadeBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
 
         waterfall_shadeTransparency_label = wx.StaticText(panel, -1, "Shade transparency:")
-        self.waterfall_shadeTransparency_value = wx.SpinCtrlDouble(panel, -1,
-                                                                   value=str(self.config.waterfall_shade_under_transparency),
-                                                                   min=0, max=1,
-                                                                   initial=self.config.waterfall_shade_under_transparency,
-                                                                   inc=0.25, size=(90, -1), name="shade")
+        self.waterfall_shadeTransparency_value = wx.SpinCtrlDouble(
+            panel, -1, value=str(self.config.waterfall_shade_under_transparency),
+            min=0, max=1, initial=self.config.waterfall_shade_under_transparency,
+            inc=0.25, size=(90, -1), name="shade")
         self.waterfall_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         self.waterfall_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         waterfall_shadeLimit_label = wx.StaticText(panel, -1, "Shade limit:")
         self.waterfall_shadeLimit_value = wx.SpinCtrlDouble(panel, -1,
-                                                                   value=str(self.config.waterfall_shade_under_nlimit),
-                                                                   min=0, max=100,
-                                                                   initial=self.config.waterfall_shade_under_nlimit,
-                                                                   inc=5, size=(90, -1), name="shade")
+                                                            value=str(self.config.waterfall_shade_under_nlimit),
+                                                            min=0, max=100,
+                                                            initial=self.config.waterfall_shade_under_nlimit,
+                                                            inc=5, size=(90, -1), name="shade")
         self.waterfall_shadeLimit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
         waterfall_show_labels_label = wx.StaticText(panel, -1, "Show labels:")

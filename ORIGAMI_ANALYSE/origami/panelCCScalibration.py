@@ -23,9 +23,17 @@ from numpy import arange, round
 from operator import itemgetter
 
 from styles import validator, layout
-from toolbox import str2num, str2int, isnumber
-from ids import *
 from gui_elements.misc_dialogs import dlgBox
+from ids import ID_addCCScalibrantMenu, ID_removeCCScalibrantMenu, ID_saveCCScalibrantMenu, ID_extractCCScalibrantMenu, \
+    ID_processCCScalibrantMenu, ID_plotCCScalibrationMenu, ID_showHidePanelCCSMenu, ID_showHideListCCSMenu, \
+    ID_checkAllItems_caliMS, ID_selectCalibrant, ID_calibration_changeTD, ID_addCCScalibrantFile, \
+    ID_addNewCalibrationDoc, ID_openCCScalibrationDatabse, ID_openDocument, ID_removeCCScalibrantFiles, \
+    ID_removeCCScalibrantFile, ID_clearTableCaliMS, ID_saveCCScalibration, ID_buildCalibrationDataset, \
+    ID_extractCCScalibrantSelected, ID_extractCCScalibrantAll, ID_removeItemCCSCalibrantPopup, ID_calibrationPlot1D, \
+    ID_processApplyCCScalibrantMenu, ID_checkAllItems_caliApply, ID_removeApplyCCScalibrantMenu, \
+    ID_removeCCScalibrantBottomPanel, ID_removeCCScalibrantBottomPanelPopup, ID_applyCalibrationOnDataset
+from utils.check import isnumber
+from utils.converters import str2int, str2num
 
 
 class panelCCScalibration(wx.Panel):
@@ -243,7 +251,6 @@ class topPanel(wx.Panel):
 
         TEXT_SIZE = 240
         TEXT_SIZE_SMALL = 80
-        TEXT_SIZE_SMALL_LEFT = 100
         BTN_SIZE = 60
 
         file_label = wx.StaticText(self, -1, "File:")
@@ -650,7 +657,7 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.onPlot, id=ID_calibrationPlot1D)
         self.Bind(wx.EVT_MENU, self.presenter.onSelectProtein, id=ID_selectCalibrant)
 
-        self.currentItem, flags = self.peaklist.HitTest(evt.GetPosition())
+        self.currentItem = evt.GetIndex()
         self.menu = wx.Menu()
         self.menu.Append(ID_calibrationPlot1D, "Show 1D IM-MS plot")
         self.menu.Append(ID_selectCalibrant, "Select calibrant")
@@ -1081,7 +1088,7 @@ class bottomPanel(wx.Panel):
 
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeCCScalibrantBottomPanelPopup)
 
-        self.currentItem, flags = self.peaklist.HitTest(evt.GetPosition())
+        self.currentItem = evt.GetIndex()
         self.menu = wx.Menu()
 #         self.menu.Append(ID_calibrationPlot1D, "Show 1D IM-MS plot")
         self.menu.AppendSeparator()

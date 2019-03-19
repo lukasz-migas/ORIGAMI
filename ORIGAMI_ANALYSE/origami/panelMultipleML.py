@@ -376,7 +376,7 @@ class panelMML(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_combined_MS)
 
         # Capture which item was clicked
-        self.currentItem, __ = self.filelist.HitTest(evt.GetPosition())
+        self.currentItem = evt.GetIndex()
         # Create popup menu
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_plot_MS,

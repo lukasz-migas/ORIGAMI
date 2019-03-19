@@ -35,7 +35,7 @@ from ids import (ID_uvpd_laser_on_off_compare_chromatogam, ID_uvpd_laser_on_off_
                   ID_uvpd_laser_off_show_heatmap, ID_uvpd_laser_off_show_waterfall,
                  ID_uvpd_laser_on_show_chromatogram, ID_uvpd_laser_off_show_chromatogram,
                  ID_uvpd_laser_on_show_mobiligram, ID_uvpd_laser_off_show_mobiligram,
-                 ID_uvpd_monitor_remove, ID_uvpd_peaklist_remove,
+                 ID_uvpd_monitor_remove,
                  ID_uvpd_laser_on_save_heatmap, ID_uvpd_laser_off_save_heatmap,
                  ID_uvpd_laser_on_save_chromatogram, ID_uvpd_laser_off_save_chromatogram,
                  ID_uvpd_laser_on_save_mobiligram, ID_uvpd_laser_off_save_mobiligram,
@@ -205,7 +205,7 @@ class panelUVPD(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.on_plot_mobility_monitor, id=ID_uvpd_laser_on_off_mobiligram_show_chromatogram)
         self.Bind(wx.EVT_MENU, self.on_delete_monitorlist, id=ID_uvpd_monitor_remove)
 
-        self.currentItem, __ = self.monitorlist.HitTest(evt.GetPosition())
+        self.currentItem = evt.GetIndex()
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_uvpd_laser_on_off_mobiligram_show_chromatogram,
                                      text='Compare chromatograms',
@@ -249,7 +249,7 @@ class panelUVPD(wx.MiniFrame):
         save_laser_off.Append(ID_uvpd_laser_off_save_mobiligram, 'Save DATASET 2 mobiligram data to file')
         save_laser_off.Append(ID_uvpd_laser_off_save_heatmap, 'Save DATASET 2 heatmap data to file')
 
-        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
+        self.currentItem = evt.GetIndex()
         menu = wx.Menu()
 #         self.average_data =  menu.AppendCheckItem(-1, "Average/sum data when plotting",
 #                                                  help="When checked, data will be averaged.")

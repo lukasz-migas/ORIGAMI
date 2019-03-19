@@ -186,7 +186,13 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         self.reverse = False
         self.check = False
 
+        self.column_info = kwargs.get("column_info", None)
+
         self.Bind(wx.EVT_LIST_COL_CLICK, self.on_column_click, self)
+
+    def on_item_information(self):
+        if self.column_info is None:
+            return dict()
 
     def on_column_click(self, evt):
         column = evt.GetColumn()
