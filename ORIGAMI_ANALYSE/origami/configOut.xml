@@ -11,6 +11,7 @@
   </presets>
 
   <recent>
+    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thesis\compare_heatmaps.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Kamila\PRT_CIU" format="Text" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\mzml\Chimeric Protein CP04_Labelled (F048911).pickle" format="pickle" />
@@ -20,7 +21,6 @@
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\dt-ims\LM_20151006_7_B_DV45.raw" format="MassLynx" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\dt-ims\LM_20151006_7_B_DV45.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\aBeta_SID\AP_20151209_13.raw" format="ORIGAMI" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
   </recent>
 
   <presets_gui>
@@ -177,7 +177,7 @@
     <param name="unidec_mzBinSize" value="1.00" type="float" />
     <param name="unidec_gaussianFilter" value="0.00" type="float" />
     <param name="unidec_accelerationV" value="0.00" type="float" />
-    <param name="unidec_linearization" value="Linear interpolation" type="unicode" choices="[u'Linear resolution', u'Nonlinear', u'Linear interpolation', u'Linear resolution interpolation', u'Linear m/z']" />
+    <param name="unidec_linearization" value="Linear interpolation" type="unicode" choices="['Linear m/z', 'Linear resolution', 'Nonlinear', 'Linear interpolation', 'Linear resolution interpolation']" />
     <!-- UniDec engine parameters -->
     <param name="unidec_zStart" value="10" type="int" />
     <param name="unidec_zEnd" value="100" type="int" />
@@ -185,11 +185,11 @@
     <param name="unidec_mwEnd" value="500000.00" type="float" />
     <param name="unidec_mwFrequency" value="500.00" type="float" />
     <param name="unidec_peakWidth" value="120.79" type="float" />
-    <param name="unidec_peakFunction" value="Gaussian" type="unicode" choices="['Split G/L', 'Gaussian', 'Lorentzian']" />
+    <param name="unidec_peakFunction" value="Gaussian" type="unicode" choices="['Gaussian', 'Lorentzian', 'Split G/L']" />
     <!-- Peak picking parameters -->
     <param name="unidec_peakDetectionWidth" value="500.00" type="float" />
     <param name="unidec_peakDetectionThreshold" value="0.50" type="float" />
-    <param name="unidec_peakNormalization" value="Total" type="unicode" choices="['Max', 'None', 'Total']" />
+    <param name="unidec_peakNormalization" value="Total" type="unicode" choices="['None', 'Max', 'Total']" />
     <param name="unidec_lineSeparation" value="0.05" type="float" />
     <!-- Plotting parameters -->
     <param name="unidec_plot_panel_view" value="Tabbed view" type="unicode" />
@@ -379,8 +379,8 @@
     <param name="markerColor_1D" value="[0.0, 0.502, 1.0]" type="color" />
     <param name="markerTransparency_1D" value="0.30" type="float" />
     <param name="markerSize_1D" value="25.00" type="float" />
-    <param name="markerShape_1D" value="o" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
-    <param name="markerShapeTXT_1D" value="circle" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
+    <param name="markerShape_1D" value="o" type="unicode" choices="['square', 'circle', 'pentagon', 'star', 'diamond', 'cross', 'plus', 'point', 'vline', 'hline']" />
+    <param name="markerShapeTXT_1D" value="circle" type="unicode" choices="['square', 'circle', 'pentagon', 'star', 'diamond', 'cross', 'plus', 'point', 'vline', 'hline']" />
     <param name="axisOnOff_1D" value="True" type="bool" />
     <param name="annotationFontWeight_1D" value="False" type="bool" />
     <param name="annotationFontSize_1D" value="8.00" type="float" />
@@ -407,7 +407,7 @@
   <plot_presets_plot_2D>
     <param name="interpolation" value="None" type="unicode" choices="['None', 'nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']" />
     <param name="plotType" value="Image" type="unicode" choices="['Image', 'Contour']" />
-    <param name="currentCmap" value="coolwarm" type="unicode" choices="[u'Accent', u'Accent_r', u'Blues', u'Blues_r', u'BrBG', u'BrBG_r', u'BuGn', u'BuGn_r', u'BuPu', u'BuPu_r', u'CMRmap', u'CMRmap_r', u'Dark2', u'Dark2_r', u'GnBu', u'GnBu_r', u'Greens', u'Greens_r', u'Greys', u'Greys_r', u'OrRd', u'OrRd_r', u'Oranges', u'Oranges_r', u'PRGn', u'PRGn_r', u'Paired', u'Paired_r', u'Pastel1', u'Pastel1_r', u'Pastel2', u'Pastel2_r', u'PiYG', u'PiYG_r', u'PuBu', u'PuBuGn', u'PuBuGn_r', u'PuBu_r', u'PuOr', u'PuOr_r', u'PuRd', u'PuRd_r', u'Purples', u'Purples_r', u'RdBu', u'RdBu_r', u'RdGy', u'RdGy_r', u'RdPu', u'RdPu_r', u'RdYlBu', u'RdYlBu_r', u'RdYlGn', u'RdYlGn_r', u'Reds', u'Reds_r', u'Set1', u'Set1_r', u'Set2', u'Set2_r', u'Set3', u'Set3_r', u'Spectral', u'Spectral_r', u'Wistia', u'Wistia_r', u'YlGn', u'YlGnBu', u'YlGnBu_r', u'YlGn_r', u'YlOrBr', u'YlOrBr_r', u'YlOrRd', u'YlOrRd_r', u'afmhot', u'afmhot_r', u'autumn', u'autumn_r', u'binary', u'binary_r', u'bone', u'bone_r', u'brg', u'brg_r', u'bwr', u'bwr_r', 'cividis', 'cividis_r', u'cool', u'cool_r', u'coolwarm', u'coolwarm_r', u'copper', u'copper_r', u'cubehelix', u'cubehelix_r', u'flag', u'flag_r', u'gist_earth', u'gist_earth_r', u'gist_gray', u'gist_gray_r', u'gist_heat', u'gist_heat_r', u'gist_ncar', u'gist_ncar_r', u'gist_rainbow', u'gist_rainbow_r', u'gist_stern', u'gist_stern_r', u'gist_yarg', u'gist_yarg_r', u'gnuplot', u'gnuplot2', u'gnuplot2_r', u'gnuplot_r', u'gray', u'gray_r', u'hot', u'hot_r', u'hsv', u'hsv_r', 'icefire', 'icefire_r', 'inferno', 'inferno_r', u'jet', u'jet_r', 'magma', 'magma_r', 'mako', 'mako_r', u'nipy_spectral', u'nipy_spectral_r', u'ocean', u'ocean_r', u'pink', u'pink_r', 'plasma', 'plasma_r', u'prism', u'prism_r', u'rainbow', u'rainbow_r', 'rocket', 'rocket_r', u'seismic', u'seismic_r', u'spring', u'spring_r', u'summer', u'summer_r', u'tab10', u'tab10_r', u'tab20', u'tab20_r', u'tab20b', u'tab20b_r', u'tab20c', u'tab20c_r', u'terrain', u'terrain_r', 'viridis', 'viridis_r', 'vlag', 'vlag_r', u'winter', u'winter_r']" />
+    <param name="currentCmap" value="coolwarm" type="unicode" choices="['Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 'Pastel2_r', 'PiYG', 'PiYG_r', 'PuBu', 'PuBuGn', 'PuBuGn_r', 'PuBu_r', 'PuOr', 'PuOr_r', 'PuRd', 'PuRd_r', 'Purples', 'Purples_r', 'RdBu', 'RdBu_r', 'RdGy', 'RdGy_r', 'RdPu', 'RdPu_r', 'RdYlBu', 'RdYlBu_r', 'RdYlGn', 'RdYlGn_r', 'Reds', 'Reds_r', 'Set1', 'Set1_r', 'Set2', 'Set2_r', 'Set3', 'Set3_r', 'Spectral', 'Spectral_r', 'Wistia', 'Wistia_r', 'YlGn', 'YlGnBu', 'YlGnBu_r', 'YlGn_r', 'YlOrBr', 'YlOrBr_r', 'YlOrRd', 'YlOrRd_r', 'afmhot', 'afmhot_r', 'autumn', 'autumn_r', 'binary', 'binary_r', 'bone', 'bone_r', 'brg', 'brg_r', 'bwr', 'bwr_r', 'cividis', 'cividis_r', 'cool', 'cool_r', 'coolwarm', 'coolwarm_r', 'copper', 'copper_r', 'cubehelix', 'cubehelix_r', 'flag', 'flag_r', 'gist_earth', 'gist_earth_r', 'gist_gray', 'gist_gray_r', 'gist_heat', 'gist_heat_r', 'gist_ncar', 'gist_ncar_r', 'gist_rainbow', 'gist_rainbow_r', 'gist_stern', 'gist_stern_r', 'gist_yarg', 'gist_yarg_r', 'gnuplot', 'gnuplot2', 'gnuplot2_r', 'gnuplot_r', 'gray', 'gray_r', 'hot', 'hot_r', 'hsv', 'hsv_r', 'icefire', 'icefire_r', 'inferno', 'inferno_r', 'jet', 'jet_r', 'magma', 'magma_r', 'mako', 'mako_r', 'nipy_spectral', 'nipy_spectral_r', 'ocean', 'ocean_r', 'pink', 'pink_r', 'plasma', 'plasma_r', 'prism', 'prism_r', 'rainbow', 'rainbow_r', 'rocket', 'rocket_r', 'seismic', 'seismic_r', 'spring', 'spring_r', 'summer', 'summer_r', 'tab10', 'tab10_r', 'tab20', 'tab20_r', 'tab20b', 'tab20b_r', 'tab20c', 'tab20c_r', 'terrain', 'terrain_r', 'twilight', 'twilight_r', 'twilight_shifted', 'twilight_shifted_r', 'viridis', 'viridis_r', 'vlag', 'vlag_r', 'winter', 'winter_r']" />
     <param name="useCurrentCmap" value="False" type="bool" />
     <param name="minCmap" value="0.00" type="float" />
     <param name="midCmap" value="50.00" type="float" />
@@ -447,8 +447,8 @@
     <param name="markerColor_3D" value="(0, 0, 1)" type="color" />
     <param name="markerTransparency_3D" value="0.70" type="float" />
     <param name="markerSize_3D" value="50.00" type="float" />
-    <param name="markerShape_3D" value="o" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
-    <param name="markerShapeTXT_3D" value="circle" type="unicode" choices="['hline', 'square', 'star', 'vline', 'diamond', 'plus', 'circle', 'point', 'pentagon', 'cross']" />
+    <param name="markerShape_3D" value="o" type="unicode" choices="['square', 'circle', 'pentagon', 'star', 'diamond', 'cross', 'plus', 'point', 'vline', 'hline']" />
+    <param name="markerShapeTXT_3D" value="circle" type="unicode" choices="['square', 'circle', 'pentagon', 'star', 'diamond', 'cross', 'plus', 'point', 'vline', 'hline']" />
     <param name="markerEdgeColor_3D" value="(0, 0, 1)" type="color" />
     <param name="annotationFontWeight_3D" value="False" type="bool" />
     <param name="annotationFontSize_3D" value="8.00" type="float" />

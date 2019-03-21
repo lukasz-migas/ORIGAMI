@@ -44,8 +44,11 @@ temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
 # ##
 # USE DRIFTSCOPE
 # ##
-def rawMassLynx_MS_extract(path, bin_size=10000, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
-                           mz_start=0, mz_end=99999, driftscope_path='C:\DriftScope\lib', **kwargs):
+def rawMassLynx_MS_extract(path, bin_size=10000,
+                           rt_start=0, rt_end=99999.0,
+                           dt_start=1, dt_end=200,
+                           mz_start=0, mz_end=99999,
+                           driftscope_path='C:\DriftScope\lib', **kwargs):
     """
     Extract MS data from MassLynx (.raw) file that has IMS data
     @param path (str): path to MassLynx (.raw) file

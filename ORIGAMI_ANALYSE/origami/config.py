@@ -31,6 +31,9 @@ from matplotlib.pyplot import colormaps
 from gui_elements.misc_dialogs import dlgBox
 from utils.converters import str2num, str2int, str2bool
 
+import logging
+logger = logging.getLogger("origami")
+
 
 class OrigamiConfig:
 
@@ -68,6 +71,7 @@ class OrigamiConfig:
         self.configFile_name = 'configOut.xml'
         self.checkForDriftscopeAtStart = True
         self.driftscopePath = "C:\DriftScope\lib"
+        self.driftscopePath_dist = "readers/driftscope"
 
         self.import_duplicate_action = "merge"
         self.import_duplicate_ask = False
@@ -212,21 +216,22 @@ class OrigamiConfig:
                            '3D':6, 'RMSF':7, 'Comparison':8, 'Overlay':9,
                            'Calibration':10, 'UniDec':11, "Other":12}
 
-        self.peaklistColNames = {'start':0, 'end':1, 'charge':2, 'intensity':3,
-                                 'color':4, 'colormap':5, 'alpha':6, 'mask':7,
-                                 'label':8, 'method':9, 'filename':10}
+        self.peaklistColNames = {'check':0, 'start':1, 'end':2, 'charge':3, 'intensity':4,
+                                 'color':5, 'colormap':6, 'alpha':7, 'mask':8,
+                                 'label':9, 'method':10, 'filename':11}
 
-        self._peakListSettings = [{'name':'min m/z', 'order':0, 'width':65, 'show':True},
-                                  {'name':'max m/z', 'order':1, 'width':65, 'show':True},
-                                  {'name':'z', 'order':2, 'width':25, 'show':True},
-                                  {'name':'% int', 'order':3, 'width':60, 'show':True},
-                                  {'name':'color', 'order':4, 'width':60, 'show':True},
-                                  {'name':'colormap', 'order':5, 'width':70, 'show':True},
-                                  {'name':'\N{GREEK SMALL LETTER ALPHA}', 'order':6, 'width':35, 'show':True},
-                                  {'name':'mask', 'order':7, 'width':40, 'show':True},
-                                  {'name':'label', 'order':8, 'width':50, 'show':True},
-                                  {'name':'method', 'order':9, 'width':80, 'show':True},
-                                  {'name':'file', 'order':10, 'width':100, 'show':True}
+        self._peakListSettings = [{'name':'', 'order':0, 'width':25, 'show':True},
+                                  {'name':'min m/z', 'order':1, 'width':65, 'show':True},
+                                  {'name':'max m/z', 'order':2, 'width':65, 'show':True},
+                                  {'name':'z', 'order':3, 'width':25, 'show':True},
+                                  {'name':'% int', 'order':4, 'width':60, 'show':True},
+                                  {'name':'color', 'order':5, 'width':60, 'show':True},
+                                  {'name':'colormap', 'order':6, 'width':70, 'show':True},
+                                  {'name':'\N{GREEK SMALL LETTER ALPHA}', 'order':7, 'width':35, 'show':True},
+                                  {'name':'mask', 'order':8, 'width':40, 'show':True},
+                                  {'name':'label', 'order':9, 'width':50, 'show':True},
+                                  {'name':'method', 'order':10, 'width':80, 'show':True},
+                                  {'name':'file', 'order':11, 'width':100, 'show':True}
                                   ]
 
         self.driftTopColNames = {'start':0, 'end':1, 'scans':2, 'drift_voltage':4,
@@ -1278,14 +1283,19 @@ class OrigamiConfig:
     def initlizePaths(self, return_check=False):
         self.system = platform.system()
 
+        alternative_driftscope_path = os.path.join(self.cwd, self.driftscopePath_dist)
+        print(alternative_driftscope_path)
         # Check if driftscope exists
         if not os.path.isdir(self.driftscopePath):
-            print('Could not find Driftscope path')
-            msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
-            dlgBox(exceptionTitle='Could not find Driftscope',
-                           exceptionMsg=msg,
-                           type="Warning")
-            return False
+            if not os.path.isdir(alternative_driftscope_path):
+                print('Could not find Driftscope path')
+                msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
+                dlgBox(exceptionTitle='Could not find Driftscope',
+                               exceptionMsg=msg,
+                               type="Warning")
+                return False
+            else:
+                self.driftscopePath = alternative_driftscope_path
 
         if not os.path.isfile(self.driftscopePath + "\imextract.exe"):
             print('Could not find imextract.exe')
@@ -2161,13 +2171,14 @@ class OrigamiConfig:
 
         # save config file
         try:
-            save = file(path, 'w')
-            save.write(buff.encode("utf-8"))
+            save = open(path, 'w+')
+            save.write(buff)
             save.close()
-            if verbose:
-                print(('Saved configuration file in {}'.format(path)))
+            logger.info('Saved configuration parameters to {}'.format(path))
             return True
-        except:
+        except Exception as e:
+            logger.error("Failed to save configuration parameters")
+            logger.error(e)
             return False
 
     def loadConfigXML(self, path, evt=None):

@@ -43,12 +43,12 @@ from panelMultipleML import panelMML
 from panelMultipleTextFiles import panelMultipleTextFiles
 from panelPlot import panelPlot
 from panelProcess import panelProcessData
+from processing.data_handling import data_handling
 from processing.data_processing import data_processing
 from readers.io_text_files import check_file_type
 from styles import makeMenuItem
 from toolbox import (checkVersion, clean_directory, compareVersions,
-                     convertRGB1to255, convertRGB255to1, findPeakMax,
-                     getNarrow1Ddata, randomIntegerGenerator)
+                     findPeakMax, getNarrow1Ddata)
 from ids import ID_openMSFile, ID_open1DIMSFile, ID_open2DIMSFile, ID_fileMenu_MGF, ID_fileMenu_mzML, \
     ID_fileMenu_openRecent, ID_openDocument, ID_openORIGAMIRawFile, ID_openMultipleORIGAMIRawFiles, ID_addNewManualDoc, \
     ID_openMassLynxFiles, ID_addCCScalibrantFile, ID_openLinearDTRawFile, ID_openMassLynxFile, ID_fileMenu_thermoRAW, \
@@ -86,6 +86,8 @@ from gui_elements.panel_exportSettings import panelExportSettings
 from gui_elements.misc_dialogs import dlgBox
 
 import logging
+from utils.random import randomIntegerGenerator
+from utils.color import convertRGB255to1, convertRGB1to255
 logger = logging.getLogger("origami")
 
 
@@ -140,6 +142,7 @@ class MyFrame(wx.Frame):
 
         # add data processing
         self.data_processing = data_processing(self.presenter, self, self.config)
+        self.data_handling = data_handling(self.presenter, self, self.config)
 
         self.panelPlots = panelPlot(self, self.config, self.presenter)  # Plots
         self.panelMultipleIons = panelMultipleIons(
@@ -239,8 +242,8 @@ class MyFrame(wx.Frame):
 
         # Setup listeners
         pub.subscribe(self.on_motion, 'motion_xy')
-        pub.subscribe(self.extract_from_plot_1D, 'extract_from_plot_1D')
-        pub.subscribe(self.extract_from_plot_2D, 'extract_from_plot_2D')
+#         pub.subscribe(self.extract_from_plot_1D, 'extract_from_plot_1D')
+#         pub.subscribe(self.extract_from_plot_2D, 'extract_from_plot_2D')
         pub.subscribe(self.motion_range, 'motion_range')
         pub.subscribe(self.on_distance, 'startX')
         pub.subscribe(self.presenter.OnChangedRMSF, 'changedZoom')
@@ -852,9 +855,9 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.openSaveAsDlg, id=ID_saveAsInteractive)
 
         # UTILITIES
-        self.Bind(wx.EVT_MENU, self.panelDocuments.topP.documents.on_process_UVPD,
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_process_UVPD,
                   id=ID_docTree_plugin_UVPD)
-        self.Bind(wx.EVT_MENU, self.panelDocuments.topP.documents.on_open_MSMS_viewer,
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_MSMS_viewer,
                   id=ID_docTree_plugin_MSMS)
 
 #         self.Bind(wx.EVT_MENU, self.onSequenceEditor, id=ID_sequence_openGUI)
@@ -921,15 +924,15 @@ class MyFrame(wx.Frame):
         evtID = evt.GetId()
 
         if evtID == ID_fileMenu_MGF:
-            self.panelDocuments.topP.documents.on_open_MGF_file_fcn(None)
+            self.panelDocuments.documents.on_open_MGF_file_fcn(None)
         elif evtID == ID_fileMenu_mzML:
-            self.panelDocuments.topP.documents.on_open_mzML_file_fcn(None)
+            self.panelDocuments.documents.on_open_mzML_file_fcn(None)
 
     def on_open_thermo_file(self, evt):
-        self.panelDocuments.topP.documents.on_open_thermo_file_fcn(None)
+        self.panelDocuments.documents.on_open_thermo_file_fcn(None)
 
     def on_open_compare_MS_window(self, evt):
-        self.panelDocuments.topP.documents.onCompareMS(None)
+        self.panelDocuments.documents.onCompareMS(None)
 
     def on_import_configuration_file(self, evt, onStart=False):
         """
@@ -1188,7 +1191,7 @@ class MyFrame(wx.Frame):
             ["D", self.presenter.on_open_ML_2D, wx.ACCEL_CTRL],
             ["M", self.presenter.on_open_ML_binary_MS, wx.ACCEL_ALT],
             ["D", self.presenter.on_open_ML_binary_2D, wx.ACCEL_ALT],
-            ["I", self.panelDocuments.topP.documents.onOpenDocInfo, wx.ACCEL_CTRL],
+            ["I", self.panelDocuments.documents.onOpenDocInfo, wx.ACCEL_CTRL],
             ["W", self.presenter.on_open_multiple_text_2D, wx.ACCEL_CTRL],
             ["L", self.presenter.onOpenPeakListCSV, wx.ACCEL_CTRL],
             ["Z", self.openSaveAsDlg, wx.ACCEL_SHIFT],
@@ -1205,13 +1208,13 @@ class MyFrame(wx.Frame):
             ["E", self.presenter.on_extract_2D_from_mass_range_threaded, wx.ACCEL_ALT, ID_extractAllIons],
             ["Q", self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayMZfromList],
             ["W", self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayTextFromList],
-            ["S", self.panelDocuments.topP.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotDocument],
-            ["P", self.panelDocuments.topP.documents.onProcess, wx.ACCEL_ALT, ID_process2DDocument],
+            ["S", self.panelDocuments.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotDocument],
+            ["P", self.panelDocuments.documents.onProcess, wx.ACCEL_ALT, ID_process2DDocument],
             ["C", self.presenter.onCombineCEvoltagesMultiple, wx.ACCEL_ALT, ID_combineCEscans],
-            ["R", self.panelDocuments.topP.documents.onRenameItem, wx.ACCEL_ALT, ID_renameItem],
-            ["X", self.panelDocuments.topP.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotMSDocument],
+            ["R", self.panelDocuments.documents.onRenameItem, wx.ACCEL_ALT, ID_renameItem],
+            ["X", self.panelDocuments.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotMSDocument],
             ["Z", self.presenter.onChangeChargeState, wx.ACCEL_ALT, ID_assignChargeState],
-            ["V", self.panelDocuments.topP.documents.onSaveCSV, wx.ACCEL_ALT, ID_saveDataCSVDocument],
+            ["V", self.panelDocuments.documents.onSaveCSV, wx.ACCEL_ALT, ID_saveDataCSVDocument],
         ]
 
         for item in extraKeys:
@@ -1570,12 +1573,12 @@ class MyFrame(wx.Frame):
     def publisherOff(self):
         """ Unsubscribe from all events """
         pub.unsubscribe(self.on_motion, 'motion_xy')
-        pub.unsubscribe(self.extract_from_plot_1D, 'extract_from_plot_1D')
-        pub.unsubscribe(self.extract_from_plot_2D, 'extract_from_plot_2D')
+#         pub.unsubscribe(self.extract_from_plot_1D, 'extract_from_plot_1D')
+#         pub.unsubscribe(self.extract_from_plot_2D, 'extract_from_plot_2D')
         pub.unsubscribe(self.motion_range, 'motion_range')
         pub.unsubscribe(self.on_distance, 'startX')
         pub.unsubscribe(self.presenter.OnChangedRMSF, 'changedZoom')
-        pub.unsubscribe(self.onMode, 'motion_mode')  # update statusbar
+#         pub.unsubscribe(self.onMode, 'motion_mode')  # update statusbar
 
     def on_distance(self, startX):
         # Simple way of setting the start point
@@ -1737,7 +1740,7 @@ class MyFrame(wx.Frame):
             currentDoc = self.presenter.currentDoc
 
         # Get current document
-        currentDocument = self.presenter.view.panelDocuments.topP.documents.on_enable_document()
+        currentDocument = self.presenter.view.panelDocuments.documents.on_enable_document()
         if currentDocument == "Current documents":
             return
 

@@ -27,6 +27,7 @@ from natsort.natsort import natsorted
 import numpy as np
 from gui_elements.misc_dialogs import dlgBox
 import itertools
+from utils.color import convertRGB255to1
 
 # Sizes
 COMBO_SIZE = 120
@@ -190,9 +191,39 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.on_column_click, self)
 
-    def on_item_information(self):
+    def on_get_item_information(self, item_id):
         if self.column_info is None:
             return dict()
+
+        information = {}
+
+        for column in self.column_info:
+            item_tag = self.column_info[column]["tag"]
+            item_type = self.column_info[column]["type"]
+            if item_tag == "color":
+                item_value, color_1 = self.GetItemBackgroundColour(item_id)
+                information["color_255to1"] = color_1
+            else:
+                item_value = self._convert_type(
+                    self.GetItem(item_id, column).GetText(),
+                    item_type)
+            information[item_tag] = item_value
+
+        return information
+
+    @staticmethod
+    def _convert_type(item_value, item_type):
+        if item_type == "bool":
+            return bool(item_value)
+        elif item_type == "int":
+            return int(item_value)
+        elif item_type == "float":
+            return float(item_value)
+
+    @staticmethod
+    def _convert_color(color_255):
+        color_1 = convertRGB255to1(color_255, decimals=3)
+        return color_255, color_1
 
     def on_column_click(self, evt):
         column = evt.GetColumn()

@@ -34,23 +34,25 @@ from panelCompareMS import panelCompareMS
 from panelInformation import panelDocumentInfo
 from panelTandemSpectra import panelTandemSpectra
 from ids import *
-from toolbox import (str2num, saveAsText, convertRGB255to1, randomIntegerGenerator,
-                             randomColorGenerator, convertRGB1to255, str2int, convertHEXtoRGB1,
-                             merge_two_dicts, determineFontColor, _replace_labels)
+from toolbox import (saveAsText, merge_two_dicts, _replace_labels)
 from processing.spectra import normalize_1D, subtract_1D
 from readers.io_text_files import text_heatmap_open
 from styles import makeMenuItem
 import readers.io_mgf as io_mgf
 import readers.io_mzid as io_mzid
 import readers.io_mzml as io_mzml
-import readers.io_thermo_raw as io_thermo  # @UnresolvedImport
+import readers.io_thermo_raw as io_thermo
 from gui_elements.dialog_renameItem import dialogRenameItem
 from gui_elements.dialog_selectDataset import panelSelectDataset
 from gui_elements.misc_dialogs import dlgBox, dlgAsk
+
+from utils.color import convertRGB255to1, convertHEXtoRGB1, convertRGB1to255, determineFontColor
+from utils.random import randomIntegerGenerator
+from utils.converters import str2num, str2int
 # import readers.io_waters_raw_api as io_waters_raw_api
 
 
-class panelDocuments (wx.Panel):
+class panelDocuments(wx.Panel):
     """
     Make documents panel to store all information about open files
     """
@@ -64,14 +66,19 @@ class panelDocuments (wx.Panel):
         self.presenter = presenter
         self.icons = icons
 
+        self.makeTreeCtrl()
+
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.topP = topPanel(self, self.parent, self.icons, self.presenter, self.config)
-        self.sizer.Add(self.topP, 1, wx.EXPAND, 0)
+        self.sizer.Add(self.documents, 1, wx.EXPAND, 0)
         self.sizer.Fit(self)
         self.SetSizer(self.sizer)
 
     def __del__(self):
          pass
+
+    def makeTreeCtrl(self):
+        self.documents = documentsTree(
+            self, self.parent, self.presenter, self.icons, self.config, id=-1, size=(-1, -1))
 
 
 class documentsTree(wx.TreeCtrl):
@@ -5701,29 +5708,4 @@ class documentsTree(wx.TreeCtrl):
 
             self.presenter.OnUpdateDocument(document, 'document')
             print(("It took {:.4f} seconds to load {}".format(time.time() - tstart, document.title)))
-
-
-class topPanel(wx.Panel):
-
-    def __init__(self, parent, mainParent, icons, presenter, config):
-        wx.Panel.__init__(self, parent=parent)
-        self.parent = parent
-        self.mainParent = mainParent
-        self.icons = icons
-        self.presenter = presenter
-        self.config = config
-        self.makeTreeCtrl()
-
-        self.panelSizer = wx.BoxSizer(wx.VERTICAL)
-        self.panelSizer.Add(self.documents, 1, wx.EXPAND, 0)
-
-        self.SetSizer(self.panelSizer)
-
-    def makeTreeCtrl(self):
-        self.documents = documentsTree(self,
-                                       self.mainParent,
-                                       self.presenter,
-                                       self.icons,
-                                       self.config, -1,
-                                       size=(250, -1))
 

@@ -713,7 +713,7 @@ class topPanel(wx.Panel):
                     self.peaklist.DeleteItem(currentItems)
                     # Remove reference to calibrants if there are none remaining for the document
                     try:
-                        self.presenter.view.panelDocuments.topP.documents.addDocument(docData=self.presenter.documentsDict[selectedItem])
+                        self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[selectedItem])
                     except KeyError: pass
                     currentItems -= 1
                 else:
@@ -734,7 +734,7 @@ class topPanel(wx.Panel):
             self.peaklist.DeleteItem(self.currentItem)
             # Remove reference to calibrants if there are none remaining for the document
             try:
-                self.presenter.view.panelDocuments.topP.documents.addDocument(docData=self.presenter.documentsDict[selectedItem])
+                self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[selectedItem])
             except KeyError: pass
         else:
         # Ask if you are sure to delete it!
@@ -763,7 +763,7 @@ class topPanel(wx.Panel):
                         self.presenter.documentsDict[selectedItem].gotCalibration = False
                     except KeyError: pass
                     try:
-                        self.presenter.view.panelDocuments.topP.documents.addDocument(docData=self.presenter.documentsDict[selectedItem])
+                        self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[selectedItem])
                     except KeyError: pass
                     self.peaklist.DeleteItem(currentItems)
                     currentItems -= 1

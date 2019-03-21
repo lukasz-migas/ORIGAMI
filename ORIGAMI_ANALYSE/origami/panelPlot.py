@@ -93,12 +93,19 @@ class panelPlot(wx.Panel):
         # initilise pub
         pub.subscribe(self._update_label_position, 'update_text_position')  # update position of label
 
+    def _get_page_text(self):
+        self.on_get_current_page()
+        return self.currentPage
+
+    def _set_page(self, page_name):
+        self.mainBook.SetSelection(page_name)
+
     # TODO: arrow positions should be updated automatically
     def _update_label_position(self, text_obj):
         document_title, dataset_name, annotation_name, text_type = text_obj.obj_name.split('|-|')
 
         # get document
-        __, annotations = self.parent.panelDocuments.topP.documents.on_get_annotation_dataset(document_title, dataset_name)
+        __, annotations = self.parent.panelDocuments.documents.on_get_annotation_dataset(document_title, dataset_name)
         if text_type == "annotation":
             new_pos_x, new_pos_y = text_obj.get_position()
             annotations[annotation_name]['position_label_x'] = np.round(new_pos_x, 4)
@@ -124,7 +131,7 @@ class panelPlot(wx.Panel):
             except: pass
 
         # update annotation
-        self.parent.panelDocuments.topP.documents.onUpdateAnotations(
+        self.parent.panelDocuments.documents.onUpdateAnotations(
             annotations, document_title, dataset_name, set_data_only=True)
 
     def onPageChanged(self, evt):
@@ -2090,7 +2097,7 @@ class panelPlot(wx.Panel):
     def on_plot_other_1D(self, msX=None, msY=None, xlabel="", ylabel="",
                          xlimits=None, set_page=False, **kwargs):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Other'])
+        if set_page: self._set_page(self.config.panelNames['Other'])
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
@@ -2121,7 +2128,7 @@ class panelPlot(wx.Panel):
     def on_plot_other_overlay(self, xvals, yvals, xlabel, ylabel, colors, labels,
                               xlimits=None, set_page=False, **kwargs):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Other'])
+        if set_page: self._set_page(self.config.panelNames['Other'])
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
@@ -2145,7 +2152,7 @@ class panelPlot(wx.Panel):
     def on_plot_other_waterfall(self, xvals, yvals, zvals, xlabel, ylabel, colors=[],
                                 set_page=False, **kwargs):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Other'])
+        if set_page: self._set_page(self.config.panelNames['Other'])
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         waterfall_kwargs = self._buildPlotParameters(plotType='waterfall')
@@ -2179,7 +2186,7 @@ class panelPlot(wx.Panel):
     def on_plot_other_scatter(self, xvals, yvals, zvals, xlabel, ylabel, colors, labels,
                               xlimits=None, set_page=False, **kwargs):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Other'])
+        if set_page: self._set_page(self.config.panelNames['Other'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2205,7 +2212,7 @@ class panelPlot(wx.Panel):
     def on_plot_other_grid_1D(self, xvals, yvals, xlabel, ylabel, colors, labels,
                              set_page=False, **kwargs):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Other'])
+        if set_page: self._set_page(self.config.panelNames['Other'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2229,7 +2236,7 @@ class panelPlot(wx.Panel):
     def on_plot_other_grid_scatter(self, xvals, yvals, xlabel, ylabel, colors, labels,
                                    set_page=False, **kwargs):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Other'])
+        if set_page: self._set_page(self.config.panelNames['Other'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2253,7 +2260,7 @@ class panelPlot(wx.Panel):
     def on_plot_other_bars(self, xvals, yvals_min, yvals_max, xlabel, ylabel, colors,
                            set_page=False, **kwargs):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Other'])
+        if set_page: self._set_page(self.config.panelNames['Other'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2295,7 +2302,7 @@ class panelPlot(wx.Panel):
 
     def on_add_centroid_MS_and_labels(self, msX, msY, labels, full_labels, xlimits=None,
                                       title="", butterfly_plot=False, set_page=False, **kwargs):
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['MS'])
+        if set_page: self._set_page(self.config.panelNames['MS'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2350,7 +2357,7 @@ class panelPlot(wx.Panel):
 
     def on_plot_centroid_MS(self, msX, msY, msXY=None, xlimits=None, title="", repaint=True,
                             set_page=False, **kwargs):
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['MS'])
+        if set_page: self._set_page(self.config.panelNames['MS'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2400,7 +2407,7 @@ class panelPlot(wx.Panel):
             plot_size_key = 'MS (DT/RT)'
 
         # change page
-        if set_page: self.mainBook.SetSelection(window)
+        if set_page: self._set_page(window)
 
         if replot:
             msX, msY, xlimits = self.presenter._get_replot_data('MS')
@@ -2452,7 +2459,7 @@ class panelPlot(wx.Panel):
                    full_repaint=False, replot=False, e=None, set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['1D'])
+        if set_page: self._set_page(self.config.panelNames['1D'])
 
         if replot:
             dtX, dtY, xlabel = self.presenter._get_replot_data('1D')
@@ -2491,7 +2498,7 @@ class panelPlot(wx.Panel):
                    e=None, set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['RT'])
+        if set_page: self._set_page(self.config.panelNames['RT'])
 
         if replot:
             rtX, rtY, xlabel = self.presenter._get_replot_data('RT')
@@ -2596,7 +2603,7 @@ class panelPlot(wx.Panel):
     def on_plot_violin(self, data=None, set_page=False, **kwargs):
 
                 # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Waterfall'])
+        if set_page: self._set_page(self.config.panelNames['Waterfall'])
 
         # Unpack data
         if len(data) == 5:
@@ -2651,7 +2658,7 @@ class panelPlot(wx.Panel):
                      override=True, replot=False, e=None, set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['2D'])
+        if set_page: self._set_page(self.config.panelNames['2D'])
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -2726,7 +2733,7 @@ class panelPlot(wx.Panel):
                      set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['MZDT'])
+        if set_page: self._set_page(self.config.panelNames['MZDT'])
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -2783,7 +2790,7 @@ class panelPlot(wx.Panel):
                    cmapNorm=None, replot=False, set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['3D'])
+        if set_page: self._set_page(self.config.panelNames['3D'])
 
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
         plt3d_kwargs = self._buildPlotParameters(plotType='3D')
@@ -2837,7 +2844,7 @@ class panelPlot(wx.Panel):
                           set_page=False, **kwargs):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Waterfall'])
+        if set_page: self._set_page(self.config.panelNames['Waterfall'])
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         waterfall_kwargs = self._buildPlotParameters(plotType='waterfall')
@@ -2888,7 +2895,7 @@ class panelPlot(wx.Panel):
                                   labels=None, set_page=False, **kwargs):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Waterfall'])
+        if set_page: self._set_page(self.config.panelNames['Waterfall'])
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         waterfall_kwargs = self._buildPlotParameters(plotType='waterfall')
@@ -2919,7 +2926,7 @@ class panelPlot(wx.Panel):
                            set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['RT'])
+        if set_page: self._set_page(self.config.panelNames['RT'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2941,7 +2948,7 @@ class panelPlot(wx.Panel):
                            set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['1D'])
+        if set_page: self._set_page(self.config.panelNames['1D'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2965,7 +2972,7 @@ class panelPlot(wx.Panel):
         """
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Overlay'])
+        if set_page: self._set_page(self.config.panelNames['Overlay'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
         self.plotOverlay.clearPlot()
@@ -2989,7 +2996,7 @@ class panelPlot(wx.Panel):
                     ylabel=None, legend_text=None, set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['2D'])
+        if set_page: self._set_page(self.config.panelNames['2D'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
 
@@ -3009,7 +3016,7 @@ class panelPlot(wx.Panel):
         """
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['RMSF'])
+        if set_page: self._set_page(self.config.panelNames['RMSF'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
         rmsd_kwargs = self._buildPlotParameters(plotType='RMSF')
@@ -3061,7 +3068,7 @@ class panelPlot(wx.Panel):
                    override=True, replot=False, set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['RMSF'])
+        if set_page: self._set_page(self.config.panelNames['RMSF'])
 
         self.plotRMSF.clearPlot()
 
@@ -3117,7 +3124,7 @@ class panelPlot(wx.Panel):
                                   view_range=[]):  # onPlotMSDTCalibration
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Calibration'])
+        if set_page: self._set_page(self.config.panelNames['Calibration'])
 
         # MS plot
         if plotType == 'both' or plotType == 'MS':
@@ -3152,7 +3159,7 @@ class panelPlot(wx.Panel):
                                xlabel='Drift time (bins)', set_page=False):  # onPlot1DTCalibration
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Calibration'])
+        if set_page: self._set_page(self.config.panelNames['Calibration'])
 
         # Check yaxis labels
         ylabel = "Intensity"
@@ -3200,7 +3207,7 @@ class panelPlot(wx.Panel):
                        replot=False, set_page=False):
 
         # change page
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Comparison'])
+        if set_page: self._set_page(self.config.panelNames['Comparison'])
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -3245,7 +3252,7 @@ class panelPlot(wx.Panel):
     def on_plot_grid(self, zvals_1, zvals_2, zvals_cum, xvals, yvals, xlabel, ylabel,
                      cmap_1, cmap_2, set_page=False, **kwargs):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Overlay'])
+        if set_page: self._set_page(self.config.panelNames['Overlay'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
         rmsd_kwargs = self._buildPlotParameters(plotType='RMSD')
@@ -3273,7 +3280,7 @@ class panelPlot(wx.Panel):
     def on_plot_n_grid(self, n_zvals, cmap_list, title_list, xvals, yvals, xlabel,
                        ylabel, set_page=False):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['Overlay'])
+        if set_page: self._set_page(self.config.panelNames['Overlay'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
         self.plotOverlay.clearPlot()
@@ -3286,7 +3293,7 @@ class panelPlot(wx.Panel):
     def plot_compare(self, msX=None, msX_1=None, msX_2=None, msY_1=None, msY_2=None,
                      msY=None, xlimits=None, replot=False, override=True, set_page=True):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['MS'])
+        if set_page: self._set_page(self.config.panelNames['MS'])
 
         if replot:
             data = self.presenter._get_replot_data('compare_MS')
@@ -3459,15 +3466,15 @@ class panelPlot(wx.Panel):
         if plot == 'MS':
             self.plot1.onZoomIn(startX, endX, endY)
             self.plot1.repaint()
-            if set_page: self.mainBook.SetSelection(self.config.panelNames['MS'])
+            if set_page: self._set_page(self.config.panelNames['MS'])
         elif plot == 'CalibrationMS':
             self.topPlotMS.onZoomIn(startX, endX, endY)
             self.plot1.repaint()
-            if set_page: self.mainBook.SetSelection(self.config.panelNames['1D'])
+            if set_page: self._set_page(self.config.panelNames['1D'])
 
     def on_zoom_1D_x_axis(self, startX, endX, endY=None, set_page=False, plot="MS", repaint=True):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['MS'])
+        if set_page: self._set_page(self.config.panelNames['MS'])
 
         if plot == "MS":
             if endY is None:
@@ -3484,7 +3491,7 @@ class panelPlot(wx.Panel):
 
     def on_zoom_1D_xy_axis(self, startX, endX, startY, endY, set_page=False, plot="MS", repaint=True):
 
-        if set_page: self.mainBook.SetSelection(self.config.panelNames['MS'])
+        if set_page: self._set_page(self.config.panelNames['MS'])
 
         if plot == "MS":
             self.plot1.on_zoom_xy(startX, endX, startY, endY)

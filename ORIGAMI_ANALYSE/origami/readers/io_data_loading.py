@@ -34,7 +34,7 @@ class data_loading():
     def __init__(self, presenter, view, config, **kwargs):
         self.presenter = presenter
         self.view = view
-        self.documentTree = view.panelDocuments.topP.documents
+        self.documentTree = view.panelDocuments.documents
         self.config = config
 
     def on_create_document(self, name, path, **kwargs):

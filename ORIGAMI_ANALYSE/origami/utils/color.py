@@ -57,6 +57,13 @@ def convertRGB255toHEX(rgbList):
                                             int((np.float(rgbList[2]))))
 
 
+def convertHEXtoRGB1(hex, decimals=3):
+    hex = hex.lstrip('#')
+    hlen = len(hex)
+    rgb = tuple(int(hex[i:i + int(hlen / 3)], 16) for i in range(0, int(hlen), int(hlen / 3)))
+    return [np.round(rgb[0] / 255., decimals), np.round(rgb[1] / 255., decimals), np.round(rgb[2] / 255., decimals)]
+
+
 def determineFontColor(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):
     """
     This function determines the luminance of background and determines the

@@ -721,7 +721,7 @@ class panelMML(wx.Panel):
                     except KeyError: pass
                     self.filelist.DeleteItem(currentItems)
                 currentItems -= 1
-            try: self.presenter.view.panelDocuments.topP.documents.addDocument(docData=self.presenter.documentsDict[itemInfo['document']])
+            try: self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[itemInfo['document']])
             except KeyError: pass
 
         elif evt.GetId() == ID_mmlPanel_delete_rightClick:
@@ -734,7 +734,7 @@ class panelMML(wx.Panel):
                     self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
             except KeyError: pass
             self.filelist.DeleteItem(self.currentItem)
-            try: self.presenter.view.panelDocuments.topP.documents.addDocument(docData=self.presenter.documentsDict[itemInfo['document']])
+            try: self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[itemInfo['document']])
             except KeyError: pass
             # Combine mass spectra
             self.on_combine_mass_spectra(None, document_name=itemInfo['document'])
@@ -761,7 +761,7 @@ class panelMML(wx.Panel):
                 self.filelist.DeleteItem(currentItems)
                 currentItems -= 1
             # Update tree with new document
-            try: self.presenter.view.panelDocuments.topP.documents.addDocument(docData=self.presenter.documentsDict[itemInfo['document']])
+            try: self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[itemInfo['document']])
             except KeyError: pass
 
     def OnClearTable(self, evt):

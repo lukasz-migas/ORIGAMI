@@ -880,7 +880,7 @@ class panelMultipleTextFiles (wx.Panel):
                     itemInfo = self.OnGetItemInformation(itemID=currentItems)
                     # Delete selected document from dictionary + table
                     try:
-                        outcome = self.presenter.view.panelDocuments.topP.documents.removeDocument(
+                        outcome = self.presenter.view.panelDocuments.documents.removeDocument(
                             deleteItem=itemInfo['document'], evt=None)
                     except wx._core.PyAssertionError:
                         outcome = False
@@ -899,7 +899,7 @@ class panelMultipleTextFiles (wx.Panel):
             itemInfo = self.OnGetItemInformation(itemID=self.currentItem)
             # Delete selected document from dictionary + table
             try:
-                outcome = self.presenter.view.panelDocuments.topP.documents.removeDocument(deleteItem=itemInfo['document'],
+                outcome = self.presenter.view.panelDocuments.documents.removeDocument(deleteItem=itemInfo['document'],
                                                                                            evt=None)
             except wx._core.PyAssertionError:
                 outcome = False
@@ -926,7 +926,7 @@ class panelMultipleTextFiles (wx.Panel):
                     itemInfo = self.OnGetItemInformation(itemID=currentItems)
                     # Delete selected document from dictionary + table
                     try:
-                        outcome = self.presenter.view.panelDocuments.topP.documents.removeDocument(
+                        outcome = self.presenter.view.panelDocuments.documents.removeDocument(
                             deleteItem=itemInfo['document'], evt=None)
                     except wx._core.PyAssertionError:
                         outcome = True

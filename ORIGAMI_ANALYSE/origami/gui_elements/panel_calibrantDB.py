@@ -149,7 +149,7 @@ class panelCalibrantDB(wx.MiniFrame):
 
             # Now annotate item
             if len(self.dataOut) != 0:
-                self.parent.panelDocuments.topP.documents.panelInfo.onAnnotateProteinInfo(data=self.config.proteinData)
+                self.parent.panelDocuments.documents.panelInfo.onAnnotateProteinInfo(data=self.config.proteinData)
 
     def onPopulateTable(self):
 

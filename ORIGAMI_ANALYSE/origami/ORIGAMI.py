@@ -159,15 +159,14 @@ class ORIGAMI(object):
 
         # add data processing module
         self.data_processing = self.view.data_processing
+        self.data_handling = self.view.data_handling
 
         # Load protein/CCS database
         if self.config.loadCCSAtStart:
             self.onImportCCSDatabase(evt=None, onStart=True)
 
         gc.enable()
-#         # Setup logging
         self.on_start_logging()
-#         self.view.onEnableDisableLogging(evt=None, show_msg=False)
 
         # add binding to UniDec engine
         self.config.unidec_engine = unidec.UniDec()
@@ -179,7 +178,7 @@ class ORIGAMI(object):
             self.config.initlizePaths()
 
         # add dataprocessing
-        self.view.panelDocuments.topP.documents.set_data_processing()
+        self.view.panelDocuments.documents.set_data_processing()
 
 #         for file_path in [
 # #                         'Z:\###_PhD1_###\RebeccaBeveridge - P27 CdkCyclin Fdc1\p27_data_January2018\SynaptG2\LM_15012017_P27K56_2.pickle'
@@ -826,7 +825,7 @@ class ORIGAMI(object):
 
     def onReExtractDTMS(self, evt):
 
-        try: self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        try: self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except: return
         document = self.documentsDict[self.currentDoc]
         parameters = document.parameters
@@ -1301,7 +1300,7 @@ class ORIGAMI(object):
                                    self.docs.colormap])
 
             # Update documents tree
-            self.view.panelDocuments.topP.documents.addDocument(docData=self.docs)
+            self.view.panelDocuments.documents.addDocument(docData=self.docs)
 
     def on_open_text_2D(self, e=None, path=None):
 
@@ -1798,7 +1797,7 @@ class ORIGAMI(object):
         self.OnUpdateDocument(document, 'document')
 
     def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         if self.currentDoc == 'Current documents': return
         self.docs = self.documentsDict[self.currentDoc]
 
@@ -1834,7 +1833,7 @@ class ORIGAMI(object):
     def on_extract_MS_from_chromatogram(self, startScan=None, endScan=None, units="Scans"):
         """ Function to extract MS data for specified RT region """
 
-        document_title = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        document_title = self.view.panelDocuments.documents.enableCurrentDocument()
         if document_title == 'Current documents': return
         document = self.documentsDict[document_title]
 
@@ -1916,7 +1915,7 @@ class ORIGAMI(object):
                                    dtEnd=None, units_x="Scans", units_y="Drift time (bins)"):
         """ Function to extract MS data for specified DT/MS region """
 
-        document_title = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        document_title = self.view.panelDocuments.documents.enableCurrentDocument()
         if document_title == 'Current documents': return
         document = self.documentsDict[document_title]
 
@@ -2240,7 +2239,7 @@ class ORIGAMI(object):
         CV, binned and then summed together. These are then stored in the 
         document dictionary
         """
-        document_title = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        document_title = self.view.panelDocuments.documents.enableCurrentDocument()
         if document_title == 'Current documents': return
         document = self.documentsDict[document_title]
 
@@ -2320,7 +2319,7 @@ class ORIGAMI(object):
         self.OnUpdateDocument(document, 'mass_spectra')
 
     def onExtract2DimsOverMZrange(self, e):
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         if self.currentDoc == 'Current documents': return
         self.docs = self.documentsDict[self.currentDoc]
         dataType = self.docs.dataType
@@ -2393,7 +2392,7 @@ class ORIGAMI(object):
 
     def get_overlay_document(self):
         try:
-            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except: return
         if self.currentDoc == "Current documents": return
 
@@ -2447,7 +2446,7 @@ class ORIGAMI(object):
             add_data_to_document = self.view.panelMultipleText.addToDocument
             normalize_dataset = self.view.panelMultipleText.normalize1D
 
-        try: self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        try: self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except: return
         if self.currentDoc == "Current documents": return
 
@@ -2676,7 +2675,7 @@ class ORIGAMI(object):
 
         tempAccumulator = 0  # Keeps count of how many items are ticked
         try:
-            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except: return
         if self.currentDoc == "Current documents": return
 
@@ -3499,7 +3498,7 @@ class ORIGAMI(object):
         the input data and restore it to the file list - in this case text panel
         """
         try:
-            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except: return
         if self.currentDoc == "Current documents": return
 
@@ -3558,7 +3557,7 @@ class ORIGAMI(object):
         to form a 2D IM-MS map
         """
         try:
-            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except: return
         self.docs = self.documentsDict[self.currentDoc]
         if self.docs.dataType != 'Type: MANUAL':
@@ -3608,7 +3607,7 @@ class ORIGAMI(object):
             self.documentsDict[self.docs.title] = self.docs
 
             # Update documents tree
-            self.view.panelDocuments.topP.documents.addDocument(docData=self.docs)
+            self.view.panelDocuments.documents.addDocument(docData=self.docs)
 
     def checkIfRawFile(self, path):
         """
@@ -4003,7 +4002,7 @@ class ORIGAMI(object):
         self.OnUpdateDocument(self.docs, 'document')
 
     def reBinMSdata(self, evt):
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         self.docs = self.documentsDict[self.currentDoc]
 
         if self.docs.dataType == 'Type: MANUAL' and self.docs.gotMultipleMS:
@@ -4130,11 +4129,11 @@ class ORIGAMI(object):
 #
 #         # TODO Currently doesn't work for manual dataset (i.e. extracted/combined ions!)
 #         # Get current document info
-#         self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.topP.documents.enableCurrentDocument(getSelected=True)
-#         indent = self.view.panelDocuments.topP.documents.getItemIndent(selectedItem)
+#         self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(getSelected=True)
+#         indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
 #         selectedItemParentText = None
 #         if indent > 2:
-#             __, selectedItemParentText = self.view.panelDocuments.topP.documents.getParentItem(selectedItem,2,
+#             __, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(selectedItem,2,
 #                                                                                                getSelected=True)
 #         else: pass
 #         self.document = self.documentsDict[self.currentDoc]
@@ -4305,18 +4304,18 @@ class ORIGAMI(object):
 #
 #         # Try to plot that data
 #         try:
-#             self.view.panelDocuments.topP.documents.onShowPlot(evt=evtID)
+#             self.view.panelDocuments.documents.onShowPlot(evt=evtID)
 #         except: pass
 # # ---
 
     def onChangeChargeState(self, evt):
 
-        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.topP.documents.enableCurrentDocument(getSelected=True)
+        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(getSelected=True)
         if self.currentDoc is None or self.currentDoc == "Current documents": return
-        indent = self.view.panelDocuments.topP.documents.getItemIndent(selectedItem)
+        indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
         selectedItemParentText = ''
         if indent > 2:
-            __, selectedItemParentText = self.view.panelDocuments.topP.documents.getParentItem(selectedItem, 2,
+            __, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(selectedItem, 2,
                                                                                                                getSelected=True)
         else: pass
 
@@ -4333,7 +4332,7 @@ class ORIGAMI(object):
                            type="Error")
             return
 
-        currentCharge = self.view.panelDocuments.topP.documents.onGetItemData(dataType='charge')
+        currentCharge = self.view.panelDocuments.documents.onGetItemData(dataType='charge')
 
         charge = dlgAsk('Assign charge state to selected item.',
                                 defaultValue=str(currentCharge))
@@ -4587,7 +4586,7 @@ class ORIGAMI(object):
         """
         Updates colormap for current document
         """
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         if not self.currentDoc:
             document = None
         elif self.currentDoc == 'Current documents': return
@@ -4620,7 +4619,7 @@ class ORIGAMI(object):
     def onDocumentColour(self, evt):
         """Get new colour"""
         try:
-            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except: return None
         if self.currentDoc == 'Current documents': return
 
@@ -4645,7 +4644,7 @@ class ORIGAMI(object):
 
 #         self.view.panelControls.colorBtn.SetBackgroundColour(newColour)
         # Update plot
-        self.view.panelDocuments.topP.documents.onShowPlot()
+        self.view.panelDocuments.documents.onShowPlot()
 
     def onSelectProtein(self, evt):
         if evt.GetId() == ID_selectCalibrant:
@@ -4663,7 +4662,7 @@ class ORIGAMI(object):
         """
 
         # Figure out what is the current document
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         if self.currentDoc == 'Current documents': return
         document = self.documentsDict[self.currentDoc]
 
@@ -4731,7 +4730,7 @@ class ORIGAMI(object):
                              size=self.config.markerSize,
                              plot='CalibrationDT')
 
-        self.view.panelDocuments.topP.documents.addDocument(docData=document)
+        self.view.panelDocuments.documents.addDocument(docData=document)
         self.documentsDict[document.title] = document
         if tDout:
             return tD
@@ -4747,7 +4746,7 @@ class ORIGAMI(object):
         if tempList.GetItemCount() == 0:
             self.onThreading(None, ('Cannot build calibration curve as the calibration list is empty. Load data first.', 4), action='updateStatusbar')
         try:
-            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except: return
         if self.currentDoc == "Current documents": return
 
@@ -4902,7 +4901,7 @@ class ORIGAMI(object):
         # Append to list
         self.documentsDict[self.docs.title] = self.docs
         # Update documents tree
-        self.view.panelDocuments.topP.documents.addDocument(docData=self.docs)
+        self.view.panelDocuments.documents.addDocument(docData=self.docs)
 
         # Set current calibration parameters
         self.currentCalibrationParams = self.docs.calibrationParameters
@@ -5069,7 +5068,7 @@ class ORIGAMI(object):
                 self.documentsDict[document.title] = document
 
                 # Update documents tree
-                self.view.panelDocuments.topP.documents.addDocument(docData=document)
+                self.view.panelDocuments.documents.addDocument(docData=document)
 
         # Update status bar
         try:
@@ -5101,7 +5100,7 @@ class ORIGAMI(object):
         Save CCS calibration parameters to file
         """
         try:
-            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except: return
         if self.currentDoc == "Current documents": return
 
@@ -5269,7 +5268,7 @@ class ORIGAMI(object):
         - should be a dictionary with m/z, rts, charge
         """
         # Combine 1DT to array
-        initialDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        initialDoc = self.view.panelDocuments.documents.enableCurrentDocument()
 
         rtList = self.view.panelLinearDT.topP.peaklist  # List with MassLynx file information
         mzList = self.view.panelLinearDT.bottomP.peaklist  # List with m/z information
@@ -5282,7 +5281,7 @@ class ORIGAMI(object):
             mzEnd = str2num(mzList.GetItem(mz, 1).GetText())
             charge = str2num(mzList.GetItem(mz, 3).GetText())
             # Get document for the ion
-#             self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+#             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
             self.currentDoc = mzList.GetItem(mz, 4).GetText()
             document = self.documentsDict[self.currentDoc]
             path = document.path
@@ -5334,9 +5333,9 @@ class ORIGAMI(object):
                                                    'retTimes':retTimeList,
                                                    'xylimits':[mzStart, mzEnd, mzYMax]}
             self.documentsDict[self.currentDoc] = document
-            self.view.panelDocuments.topP.documents.addDocument(docData=document)
+            self.view.panelDocuments.documents.addDocument(docData=document)
         document = self.documentsDict[initialDoc]
-        self.view.panelDocuments.topP.documents.addDocument(docData=document)
+        self.view.panelDocuments.documents.addDocument(docData=document)
 
     def get2DdataFromDictionary(self, dictionary=None, dataType='plot',
                                 compact=False, plotType='2D'):
@@ -5561,10 +5560,10 @@ class ORIGAMI(object):
         """
         # Gather info about the file and document
         selectedItemParentText = None
-        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.topP.documents.enableCurrentDocument(getSelected=True)
-        indent = self.view.panelDocuments.topP.documents.getItemIndent(selectedItem)
+        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(getSelected=True)
+        indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
         if indent > 2:
-            __, selectedItemParentText = self.view.panelDocuments.topP.documents.getParentItem(selectedItem, 2,
+            __, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(selectedItem, 2,
                                                                                                                getSelected=True)
         else: pass
         self.docs = self.documentsDict[self.currentDoc]
@@ -5658,7 +5657,7 @@ class ORIGAMI(object):
     def process_2D(self, document=None, dataset=None, ionName=None):
         # new in 1.1.0
         if document == None or dataset == None:
-            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
             if self.currentDoc is None or self.currentDoc == "Current documents": return
             self.docs = self.documentsDict[self.currentDoc]
         else:
@@ -5813,7 +5812,7 @@ class ORIGAMI(object):
     def process_MS(self, document=None, dataset=None):
 
         if document == None or dataset == None:
-            self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
             if self.currentDoc is None or self.currentDoc == "Current documents": return
             self.docs = self.documentsDict[self.currentDoc]
         else:
@@ -6604,19 +6603,19 @@ class ORIGAMI(object):
         Function used to get the path to current document
         '''
         # Gather info about the file and document
-        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.topP.documents.enableCurrentDocument(getSelected=True)
-        indent = self.view.panelDocuments.topP.documents.getItemIndent(selectedItem)
+        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(getSelected=True)
+        indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
         if self.currentDoc == 'Current documents':
             return None, None
         elif indent > 2:
-            selectedItemParent, selectedItemParentText = self.view.panelDocuments.topP.documents.getParentItem(selectedItem, 2, getSelected=True)
+            selectedItemParent, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(selectedItem, 2, getSelected=True)
         else: pass
         document = self.documentsDict[self.currentDoc]
         return document.path, document.title
 
     def saveObjectData(self, objName, evt=None):
         # Get directory path
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         document = self.documentsDict[self.currentDoc]
         saveName = dlgAsk('Save data as...', defaultValue='')
         if saveName == '':
@@ -6634,7 +6633,7 @@ class ORIGAMI(object):
         fileType = "ORIGAMI Document File|*.pickle"
 
         # Save single document
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         if self.currentDoc == 'Current documents': return
         document = self.documentsDict[self.currentDoc]
 
@@ -6907,72 +6906,72 @@ class ORIGAMI(object):
                 self.view._mgr.Update()
 
         # Update documents tree
-        self.view.panelDocuments.topP.documents.addDocument(docData=document, expandAll=False)
-        self.currentDoc = self.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.view.panelDocuments.documents.addDocument(docData=document, expandAll=False)
+        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         self.docs = self.documentsDict[self.currentDoc]
 
     def OnUpdateDocument(self, document, expand_item='document', expand_item_title=None):
 
         if expand_item == 'document':
-            self.view.panelDocuments.topP.documents.addDocument(docData=document,
+            self.view.panelDocuments.documents.addDocument(docData=document,
                                                                 expandItem=document)
         elif expand_item == 'ions':
             if expand_item_title is None:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2Dions)
             else:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2Dions[expand_item_title])
         elif expand_item == 'combined_ions':
             if expand_item_title is None:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2DCombIons)
             else:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2DCombIons[expand_item_title])
 
         elif expand_item == 'processed_ions':
             if expand_item_title is None:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2DionsProcess)
             else:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2DionsProcess[expand_item_title])
 
         elif expand_item == 'ions_1D':
             if expand_item_title is None:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.multipleDT)
             else:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.multipleDT[expand_item_title])
 
         elif expand_item == 'comparison_data':
             if expand_item_title is None:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2DcompData)
             else:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2DcompData[expand_item_title])
 
         elif expand_item == 'mass_spectra':
             if expand_item_title is None:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.multipleMassSpectrum)
             else:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.multipleMassSpectrum[expand_item_title])
 
         elif expand_item == 'overlay':
             if expand_item_title is None:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2DoverlayData)
             else:
-                self.view.panelDocuments.topP.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.addDocument(docData=document,
                                                                     expandItem=document.IMS2DoverlayData[expand_item_title])
         # just set data
         elif expand_item == 'no_refresh':
-            self.view.panelDocuments.topP.documents.setDocument(document_old=self.documentsDict[document.title],
+            self.view.panelDocuments.documents.setDocument(document_old=self.documentsDict[document.title],
                                                                 document_new=document)
 
         # update dictionary

@@ -98,7 +98,7 @@ class panelMultipleIons(wx.Panel):
             2: {"name":"max m/z", "tag":"end", "type":"float"},
             3: {"name":"z", "tag":"charge", "type":"int"},
             4: {"name":"% int", "tag":"intensity", "type":"float"},
-            5: {"name":"color", "tag":"color", "type":"str"},
+            5: {"name":"color", "tag":"color", "type":"color"},
             6: {"name":"colormap", "tag":"colormap", "type":"str"},
             7: {"name":"\N{GREEK SMALL LETTER ALPHA}", "tag":"alpha", "type":"float"},
             8: {"name":"mask", "tag":"mask", "type":"float"},
@@ -1874,7 +1874,8 @@ class panelMultipleIons(wx.Panel):
             color = self.on_check_duplicate_colors(color)
 
         # add to peaklist
-        self.peaklist.Append([str(add_dict.get("mz_start", "")),
+        self.peaklist.Append(["",
+                              str(add_dict.get("mz_start", "")),
                               str(add_dict.get("mz_end", "")),
                               str(add_dict.get("charge", "")),
                               str(add_dict.get("mz_ymax", "")),

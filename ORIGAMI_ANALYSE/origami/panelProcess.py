@@ -94,7 +94,7 @@ class panelProcessData(wx.MiniFrame):
             self.currentDisplaySize = None
 
         # get document
-        self.currentDoc = self.presenter.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.currentDoc = self.presenter.view.panelDocuments.documents.enableCurrentDocument()
         try:
             document = self.presenter.documentsDict[self.currentDoc]
         except:
@@ -2147,7 +2147,7 @@ class panelProcessData(wx.MiniFrame):
 
     def onExtractData(self, evt):
         # get document
-        self.currentDoc = self.presenter.view.panelDocuments.topP.documents.enableCurrentDocument()
+        self.currentDoc = self.presenter.view.panelDocuments.documents.enableCurrentDocument()
         if self.currentDoc == 'Current documents': return
         document = self.presenter.documentsDict[self.currentDoc]
         parameters = document.parameters
