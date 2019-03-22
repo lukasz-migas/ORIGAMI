@@ -90,8 +90,6 @@ class panelMultipleIons(wx.Panel):
         self.useInternalParams = self.config.useInternalParamsCombine
         self.process = False
 
-        self.data_processing = self.view.data_processing
-
         self._ionPanel_peaklist = {
             0: {"name":"", "tag":"check", "type":"bool"},
             1: {"name":"min m/z", "tag":"start", "type":"float"},
@@ -104,7 +102,7 @@ class panelMultipleIons(wx.Panel):
             8: {"name":"mask", "tag":"mask", "type":"float"},
             9: {"name":"label", "tag":"label", "type":"float"},
             10: {"name":"method", "tag":"method", "type":"str"},
-            11: {"name":"file", "tag":"filename", "type":"str"}}
+            11: {"name":"file", "tag":"document", "type":"str"}}
 
         self.makeGUI()
 
@@ -144,6 +142,10 @@ class panelMultipleIons(wx.Panel):
         wx.EVT_MENU(self, ID_ionPanel_show_mobiligram, self.on_plot)
         wx.EVT_MENU(self, ID_ionPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_ionPanel_delete_rightClick, self.OnDeleteAll)
+
+    def _setup_handling_and_processing(self):
+        self.data_processing = self.view.data_processing
+        self.data_handling = self.view.data_handling
 
     def makeGUI(self):
         """ Make panel GUI """

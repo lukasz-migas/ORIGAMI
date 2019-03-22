@@ -3,10 +3,16 @@ import os
 from pubsub import pub
 import numpy as np
 
+import readers.io_text_files as io_text
+
+from document import document as documents
 from utils.converters import byte2str
 from utils.random import randomIntegerGenerator
 from utils.color import convertRGB255to1, convertRGB1to255
 from ids import ID_window_ionList, ID_window_multiFieldList
+from utils.check import isempty
+from gui_elements.misc_dialogs import dlgBox
+from utils.time import getTime
 
 
 class data_handling():
@@ -17,14 +23,14 @@ class data_handling():
         self.config = config
 
         # processing links
-        self.data_processing = self.presenter.data_processing
+        self.data_processing = self.view.data_processing
 
         # panel links
-        self.documentTree = view.panelDocuments.documents
+        self.documentTree = self.view.panelDocuments.documents
 
-        self.plotsPanel = self.view.plotsPanel
+        self.plotsPanel = self.view.panelPlots
 
-        self.ionPanel = self.view.panelMultipleIons()
+        self.ionPanel = self.view.panelMultipleIons
         self.ionList = self.ionPanel.peaklist
 
         self.textPanel = self.view.panelMultipleText
@@ -62,6 +68,75 @@ class data_handling():
             return path, fname
         else:
             return None, None
+
+    def on_update_document(self, document, expand_item='document', expand_item_title=None):
+
+        if expand_item == 'document':
+            self.documentTree.add_document(docData=document,
+
+                                                                expandItem=document)
+        elif expand_item == 'ions':
+            if expand_item_title is None:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2Dions)
+            else:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2Dions[expand_item_title])
+        elif expand_item == 'combined_ions':
+            if expand_item_title is None:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2DCombIons)
+            else:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2DCombIons[expand_item_title])
+
+        elif expand_item == 'processed_ions':
+            if expand_item_title is None:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2DionsProcess)
+            else:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2DionsProcess[expand_item_title])
+
+        elif expand_item == 'ions_1D':
+            if expand_item_title is None:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.multipleDT)
+            else:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.multipleDT[expand_item_title])
+
+        elif expand_item == 'comparison_data':
+            if expand_item_title is None:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2DcompData)
+            else:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2DcompData[expand_item_title])
+
+        elif expand_item == 'mass_spectra':
+            if expand_item_title is None:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.multipleMassSpectrum)
+            else:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.multipleMassSpectrum[expand_item_title])
+
+        elif expand_item == 'overlay':
+            if expand_item_title is None:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2DoverlayData)
+            else:
+                self.documentTree.add_document(docData=document,
+                                                                    expandItem=document.IMS2DoverlayData[expand_item_title])
+        # just set data
+        elif expand_item == 'no_refresh':
+            self.documentTree.set_document(document_old=self.documentsDict[document.title],
+                                           document_new=document)
+
+        # update dictionary
+        self.presenter.documentsDict[document.title] = document
+        self.presenter.currentDoc = document.title
 
     @staticmethod
     def get_path_and_fname(path, simple=False):
@@ -340,3 +415,83 @@ class data_handling():
             self.presenter.on_extract_MS_from_heatmap(xmin, xmax, ymin, ymax,
                                                       units_x=xlabel, units_y=ylabel)
         self.SetStatusText("", number=4)
+
+    def on_open_multiple_text_2D(self, evt):
+
+        self.view.onPaneOnOff(evt="text", check=True)
+
+        wildcard = "Text files with axis labels (*.txt, *.csv)| *.txt;*.csv"
+        dlg = wx.FileDialog(self.view, "Choose a text file. Make sure files contain x- and y-axis labels!",
+                            wildcard=wildcard , style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            pathlist = dlg.GetPaths()
+            filenames = dlg.GetFilenames()
+            for filepath, filename in zip(pathlist, filenames):
+                filepath = byte2str(filepath)
+                if self.textPanel.onCheckDuplicates(fileName=filename):
+                    continue
+
+                # Load data for each file
+                imsData2D, xAxisLabels, yAxisLabels = io_text.text_heatmap_open(path=filepath)
+                imsData1D = np.sum(imsData2D, axis=1).T
+                rtDataY = np.sum(imsData2D, axis=0)
+
+                # Try to extract labels from the text file
+                if isempty(xAxisLabels) or isempty(yAxisLabels):
+                    xAxisLabels, yAxisLabels = "", ""
+                    xlabel_start, xlabel_end = "", ""
+
+                    msg = "Missing x/y-axis labels for {}!".format(filename) + \
+                        " Consider adding x/y-axis to your file to obtain full functionality."
+                    dlgBox(exceptionTitle='Missing data', exceptionMsg=msg, type="Warning")
+                else:
+                    xlabel_start, xlabel_end = xAxisLabels[0], xAxisLabels[-1]
+
+                add_dict = {
+                    'energy_start':xlabel_start,
+                    'energy_end':xlabel_end,
+                    'charge':"",
+                    "color":self.config.customColors[randomIntegerGenerator(0, 15)],
+                    "colormap":self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
+                    'alpha':self.config.overlay_defaultMask,
+                    'mask':self.config.overlay_defaultAlpha,
+                    'label':"",
+                    'shape':imsData2D.shape,
+                    'document':filename}
+
+                color = self.textPanel.on_add_to_table(add_dict, return_color=True)
+                color = convertRGB255to1(color)
+
+                # Set XY limits
+#                 self.setXYlimitsRMSD2D(xAxisLabels, yAxisLabels)
+
+                # Split filename to get path
+                path, filename = self.get_path_and_fname(filepath, simple=True)
+                # Add data to document
+                document = documents()
+                document.title = filename
+                document.path = path
+                document.userParameters = self.config.userParameters
+                document.userParameters['date'] = getTime()
+                document.dataType = 'Type: 2D IM-MS'
+                document.fileFormat = 'Format: Text (.csv/.txt)'
+                document.got2DIMS = True
+                document.IMS2D = {'zvals':imsData2D,
+                                   'xvals':xAxisLabels,
+                                   'xlabels':'Collision Voltage (V)',
+                                   'yvals':yAxisLabels,
+                                   'yvals1D':imsData1D,
+                                   'yvalsRT':rtDataY,
+                                   'ylabels':'Drift time (bins)',
+                                   'cmap':self.config.currentCmap,
+                                   'mask':self.config.overlay_defaultMask,
+                                   'alpha':self.config.overlay_defaultAlpha,
+                                   'min_threshold':0,
+                                   'max_threshold':1,
+                                   'color':color}
+
+                # Update document
+                self.view.updateRecentFiles(path={'file_type':'Text', 'file_path':path})
+                self.on_update_document(document, 'document')
+        dlg.Destroy()

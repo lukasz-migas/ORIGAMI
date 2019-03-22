@@ -48,7 +48,7 @@ from gui_elements.misc_dialogs import dlgBox, dlgAsk
 
 from utils.color import convertRGB255to1, convertHEXtoRGB1, convertRGB1to255, determineFontColor
 from utils.random import randomIntegerGenerator
-from utils.converters import str2num, str2int
+from utils.converters import str2num, str2int, byte2str
 # import readers.io_waters_raw_api as io_waters_raw_api
 
 
@@ -91,7 +91,7 @@ class documentsTree(wx.TreeCtrl):
         wx.TreeCtrl.__init__(self, parent, id, size=size, style=style)
 
         self.parent = parent
-        self.mainParent = mainParent
+        self.view = mainParent
         self.presenter = presenter
         self.icons = icons
         self.config = config
@@ -132,8 +132,9 @@ class documentsTree(wx.TreeCtrl):
         if self.config.quickDisplay:
             self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChangePlot, id=wx.ID_ANY)
 
-    def set_data_processing(self):
-        self.data_processing = self.presenter.data_processing
+    def _setup_handling_and_processing(self):
+        self.data_processing = self.view.data_processing
+        self.data_handling = self.view.data_handling
 
     def onKey(self, evt):
         """ Shortcut to navigate through Document Tree """
@@ -1183,22 +1184,47 @@ class documentsTree(wx.TreeCtrl):
         self.presenter.documentsDict[currentDoc] = document
 
         # Update documents tree
-        self.addDocument(docData=document)
+        self.add_document(docData=document)
 
         # Expand item
 
-    def setDocument(self, document_old, document_new):
+#     def set_document(self, document_old, document_new):
+#         # try to get dataset object
+#         try: docItem = self.getItemByData(document_old)
+#         except: docItem = False
+#
+#         if docItem is not False:
+#             try:
+#                 self.SetPyData(docItem, document_new)
+#             except:
+#                 self.presenter.OnUpdateDocument(document_new, 'document')
+#         else:
+#             self.presenter.OnUpdateDocument(document_new, 'document')
+
+    def set_document(self, document_old, document_new):
+        """Replace old document data with new
+
+        Parameters
+        ----------
+        document_old: py object
+            old document (before any data changes)
+        document_new: py object
+            new document (after any data changes)
+        """
+
         # try to get dataset object
-        try: docItem = self.getItemByData(document_old)
-        except: docItem = False
+        try:
+            docItem = self.getItemByData(document_old)
+        except Exception:
+            docItem = False
 
         if docItem is not False:
             try:
                 self.SetPyData(docItem, document_new)
-            except:
-                self.presenter.OnUpdateDocument(document_new, 'document')
+            except Exception:
+                self.data_handling.on_update_document(document_new, 'document')
         else:
-            self.presenter.OnUpdateDocument(document_new, 'document')
+            self.data_handling.on_update_document(document_new, 'document')
 
     def onDeleteAllDocuments(self, evt):
         """ Alternative function to delete documents """
@@ -1820,7 +1846,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onAddToCCSTable, id=ID_add2CCStable2DDocument)
         self.Bind(wx.EVT_MENU, self.presenter.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.onShowSampleInfo, id=ID_showSampleInfo)
-        self.Bind(wx.EVT_MENU, self.mainParent.openSaveAsDlg, id=ID_saveAsInteractive)
+        self.Bind(wx.EVT_MENU, self.view.openSaveAsDlg, id=ID_saveAsInteractive)
         self.Bind(wx.EVT_MENU, self.presenter.restoreComparisonToList, id=ID_restoreComparisonData)
 
         self.Bind(wx.EVT_MENU, self.onCompareMS, id=ID_docTree_compareMS)
@@ -2999,8 +3025,8 @@ class documentsTree(wx.TreeCtrl):
     def onAddToTable(self, evt):
         evtID = evt.GetId()
 
-        filelist = self.presenter.view.panelMML.filelist
-        textlist = self.presenter.view.panelMultipleText.filelist
+        filelist = self.presenter.view.panelMML.peaklist
+        textlist = self.presenter.view.panelMultipleText.peaklist
         if evtID == ID_docTree_addToMMLTable:
             data = self.itemData.multipleMassSpectrum
             document_title = self.itemData.title
@@ -4882,13 +4908,14 @@ class documentsTree(wx.TreeCtrl):
 
         self.panelInfo.Show()
 
-    def addDocument(self, docData, expandAll=False, expandItem=None):
+    def add_document(self, docData, expandAll=False, expandItem=None):
         """
         Append document to tree
         expandItem : object data, to expand specified item
         """
         # Get title for added data
-        title = docData.title
+        title = byte2str(docData.title)
+
         if not title:
             title = 'Document'
         # Get root
@@ -5348,11 +5375,11 @@ class documentsTree(wx.TreeCtrl):
 #                     try: self.setCurrentDocument(text)
 #                     except: pass
                     self.presenter.currentDoc = text
-                    self.mainParent.SetTitle("ORIGAMI - v{} - {} ({})".format(self.config.version,
+                    self.view.SetTitle("ORIGAMI - v{} - {} ({})".format(self.config.version,
                                                                               text,
                                                                               self.itemData.dataType))
             except:
-                self.mainParent.SetTitle("ORIGAMI - v{}".format(self.config.version))
+                self.view.SetTitle("ORIGAMI - v{}".format(self.config.version))
 
             # status text
             try:
@@ -5423,9 +5450,9 @@ class documentsTree(wx.TreeCtrl):
 #                     try: self.setCurrentDocument(text)
 #                     except: pass
                     self.presenter.currentDoc = text
-                    self.mainParent.SetTitle("ORIGAMI - %s - %s (%s)" % (self.config.version, text, self.itemData.dataType))
+                    self.view.SetTitle("ORIGAMI - %s - %s (%s)" % (self.config.version, text, self.itemData.dataType))
             except:
-                self.mainParent.SetTitle(" - ".join(["ORIGAMI", self.config.version]))
+                self.view.SetTitle(" - ".join(["ORIGAMI", self.config.version]))
 
             # In case we also interested in selected item
             if getSelected:

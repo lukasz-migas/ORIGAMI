@@ -11,6 +11,7 @@
   </presets>
 
   <recent>
+    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files" format="Text" />
     <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thesis\compare_heatmaps.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Kamila\PRT_CIU" format="Text" />
@@ -20,7 +21,6 @@
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\mzml\BR3_CNTRL_ C_20150102.pickle" format="pickle" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\dt-ims\LM_20151006_7_B_DV45.raw" format="MassLynx" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\example_data\dt-ims\LM_20151006_7_B_DV45.raw" format="ORIGAMI" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\aBeta_SID\AP_20151209_13.raw" format="ORIGAMI" />
   </recent>
 
   <presets_gui>
@@ -83,7 +83,7 @@
     <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
-    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Toolbar" gripper="True" orientation="top" close_button="False" left_position="False" top_position="True" left_dockable="True" right_dockable="True" top_dockable="True" bottom_dockable="True" show="True" type="mixed" />
   </presets_gui_aui_settings>
 

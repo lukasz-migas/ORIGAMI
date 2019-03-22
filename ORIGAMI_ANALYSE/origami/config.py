@@ -240,28 +240,30 @@ class OrigamiConfig:
         self.driftBottomColNames = {'start':0, 'end':1, 'intensity':2, 'charge':4,
                                     'filename':5}
 
-        self.textlistColNames = {'start':0, 'end':1, 'charge':2, 'color':3,
-                                 'colormap':4, 'alpha':5, 'mask':6, 'label':7,
-                                 'shape':8, 'filename':9}
+        self.textlistColNames = {'check':0, 'start':1, 'end':2, 'charge':3, 'color':4,
+                                 'colormap':5, 'alpha':6, 'mask':7, 'label':8,
+                                 'shape':9, 'filename':10}
 
-        self._textlistSettings = [{'name':'min CE', 'order':0, 'width':65, 'show':True},
-                                  {'name':'max CE', 'order':1, 'width':65, 'show':True},
-                                  {'name':'z', 'order':2, 'width':25, 'show':True},
-                                  {'name':'color', 'order':3, 'width':60, 'show':True},
-                                  {'name':'colormap', 'order':4, 'width':70, 'show':True},
-                                  {'name':'\N{GREEK SMALL LETTER ALPHA}', 'order':5, 'width':35, 'show':True},
-                                  {'name':'mask', 'order':6, 'width':40, 'show':True},
-                                  {'name':'label', 'order':7, 'width':50, 'show':True},
-                                  {'name':'shape', 'order':8, 'width':70, 'show':True},
-                                  {'name':'file', 'order':9, 'width':100, 'show':True}
+        self._textlistSettings = [{'name':'', 'order':0, 'width':25, 'show':True},
+                                  {'name':'min CE', 'order':1, 'width':65, 'show':True},
+                                  {'name':'max CE', 'order':2, 'width':65, 'show':True},
+                                  {'name':'z', 'order':3, 'width':25, 'show':True},
+                                  {'name':'color', 'order':4, 'width':60, 'show':True},
+                                  {'name':'colormap', 'order':5, 'width':70, 'show':True},
+                                  {'name':'\N{GREEK SMALL LETTER ALPHA}', 'order':6, 'width':35, 'show':True},
+                                  {'name':'mask', 'order':7, 'width':40, 'show':True},
+                                  {'name':'label', 'order':8, 'width':50, 'show':True},
+                                  {'name':'shape', 'order':9, 'width':70, 'show':True},
+                                  {'name':'file', 'order':10, 'width':100, 'show':True}
                                   ]
 
         # column name 'energy' was changed to 'variable' as it might be more appropriate
-        self.multipleMLColNames = {'filename':0, 'energy':1, 'document':2, 'label':3}
-        self._multipleFilesSettings = [{'name':'filename', 'order':0, 'width':200, 'show':True},
-                                       {'name':'variable', 'order':1, 'width':50, 'show':True},
-                                       {'name':'document', 'order':2, 'width':80, 'show':True},
-                                       {'name':'label', 'order':3, 'width':100, 'show':True}
+        self.multipleMLColNames = {'check':0, 'filename':1, 'energy':2, 'document':3, 'label':4}
+        self._multipleFilesSettings = [{'name':'', 'order':0, 'width':25, 'show':True},
+                                       {'name':'filename', 'order':1, 'width':200, 'show':True},
+                                       {'name':'variable', 'order':2, 'width':50, 'show':True},
+                                       {'name':'document', 'order':3, 'width':80, 'show':True},
+                                       {'name':'label', 'order':4, 'width':100, 'show':True}
                                        ]
 
         self._interactiveSettings = [{'name':'', 'order':0, 'width':25, 'show':True},

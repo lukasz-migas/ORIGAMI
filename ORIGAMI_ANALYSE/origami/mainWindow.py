@@ -140,25 +140,22 @@ class MyFrame(wx.Frame):
         # Load panels
         self.panelDocuments = panelDocuments(self, self.config, self.icons, self.presenter)
 
-        # add data processing
-        self.data_processing = data_processing(self.presenter, self, self.config)
-        self.data_handling = data_handling(self.presenter, self, self.config)
-
-        self.panelPlots = panelPlot(self, self.config, self.presenter)  # Plots
+        self.panelPlots = panelPlot(self, self.config, self.presenter)
         self.panelMultipleIons = panelMultipleIons(
-            self, self.config, self.icons, self.help, self.presenter)  # List of ions
-        self.panelMultipleText = panelMultipleTextFiles(self, self.config, self.icons, self.presenter)  # List of files
-        self.panelMML = panelMML(self, self.config, self.icons, self.presenter)  # List of ML files
+            self, self.config, self.icons, self.help, self.presenter)
+        self.panelMultipleText = panelMultipleTextFiles(self, self.config, self.icons, self.presenter)
+        self.panelMML = panelMML(self, self.config, self.icons, self.presenter)
         self.panelLinearDT = panelLinearDriftCell(self, self.config, self.icons, self.presenter)
-        self.panelCCS = panelCCScalibration(self, self.config, self.icons, self.presenter)  # calibration panel
+        self.panelCCS = panelCCScalibration(self, self.config, self.icons, self.presenter)
         self.panelLog = panelLog(self, self.config, self.icons)
 
         kwargs = {'window': None}
         self.panelParametersEdit = panelParametersEdit(self, self.presenter, self.config, self.icons, **kwargs)
-#         self.panelAnnotatePeaks = panelAnnotatePeaks(self, self.panelDocuments, self.config,
-#                                                      self.icons, **kwargs)
 
-        # Toolbar
+        # add data processing
+        self.data_processing = data_processing(self.presenter, self, self.config)
+        self.data_handling = data_handling(self.presenter, self, self.config)
+
         self.makeToolbar()
 
         # Panel to store document information
@@ -344,7 +341,7 @@ class MyFrame(wx.Frame):
         '''
         Collection of all bindings for various functions
         '''
-        self.Bind(wx.EVT_TOOL, self.presenter.on_open_multiple_text_2D, id=ID_openTextFiles)
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_multiple_text_2D, id=ID_openTextFiles)
         self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_processTextFiles)
         self.Bind(wx.EVT_TOOL, self.presenter.on_overlay_2D, id=ID_overlayTextFromList)
         self.Bind(wx.EVT_TOOL, self.presenter.onExtractDToverMZrangeMultiple, id=ID_extractDriftVoltagesForEachIon)
@@ -798,7 +795,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_binary_1D, id=ID_open1DbinFile)
         self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_binary_2D, id=ID_open2DbinFile)
         self.Bind(wx.EVT_MENU, self.presenter.on_open_text_2D, id=ID_openIMStxtFile)
-        self.Bind(wx.EVT_MENU, self.presenter.on_open_multiple_text_2D, id=ID_openTextFilesMenu)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2D, id=ID_openTextFilesMenu)
         self.Bind(wx.EVT_MENU, self.presenter.onOpenDocument, id=ID_openDocument)
         self.Bind(wx.EVT_MENU, self.presenter.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.presenter.on_save_all_documents, id=ID_saveAllDocuments)
@@ -1192,7 +1189,7 @@ class MyFrame(wx.Frame):
             ["M", self.presenter.on_open_ML_binary_MS, wx.ACCEL_ALT],
             ["D", self.presenter.on_open_ML_binary_2D, wx.ACCEL_ALT],
             ["I", self.panelDocuments.documents.onOpenDocInfo, wx.ACCEL_CTRL],
-            ["W", self.presenter.on_open_multiple_text_2D, wx.ACCEL_CTRL],
+            ["W", self.data_handling.on_open_multiple_text_2D, wx.ACCEL_CTRL],
             ["L", self.presenter.onOpenPeakListCSV, wx.ACCEL_CTRL],
             ["Z", self.openSaveAsDlg, wx.ACCEL_SHIFT],
             ["G", self.presenter.openDirectory, wx.ACCEL_CTRL],

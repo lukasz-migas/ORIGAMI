@@ -53,7 +53,7 @@ class data_loading():
         # http://stackoverflow.com/questions/22520739/python-sort-a-dict-by-values-producing-a-list-how-to-sort-this-from-largest-to
 
         self.config.ciuMode = 'MANUAL'
-        tempList = self.view.panelMML.filelist
+        tempList = self.view.panelMML.peaklist
 
         tstart = time.clock()
         if len(pathlist) > 0:

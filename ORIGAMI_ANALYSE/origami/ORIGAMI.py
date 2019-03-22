@@ -178,7 +178,11 @@ class ORIGAMI(object):
             self.config.initlizePaths()
 
         # add dataprocessing
-        self.view.panelDocuments.documents.set_data_processing()
+        self.view.panelDocuments.documents._setup_handling_and_processing()
+        self.view.panelMultipleIons._setup_handling_and_processing()
+        self.view.panelMultipleText._setup_handling_and_processing()
+        self.view.panelMML._setup_handling_and_processing()
+        self.view.panelPlots._setup_handling_and_processing()
 
 #         for file_path in [
 # #                         'Z:\###_PhD1_###\RebeccaBeveridge - P27 CdkCyclin Fdc1\p27_data_January2018\SynaptG2\LM_15012017_P27K56_2.pickle'
@@ -1300,7 +1304,7 @@ class ORIGAMI(object):
                                    self.docs.colormap])
 
             # Update documents tree
-            self.view.panelDocuments.documents.addDocument(docData=self.docs)
+            self.view.panelDocuments.documents.add_document(docData=self.docs)
 
     def on_open_text_2D(self, e=None, path=None):
 
@@ -1318,7 +1322,7 @@ class ORIGAMI(object):
 
     def on2DTextFileFcn(self, path=None, e=None):
         self.view.onPaneOnOff(evt=ID_window_textList, check=True)
-        tempList = self.view.panelMultipleText.filelist
+        tempList = self.view.panelMultipleText.peaklist
 
         imsData2D, xAxisLabels, yAxisLabels = io_text.text_heatmap_open(path=path)
         imsData1D = np.sum(imsData2D, axis=1).T
@@ -1377,82 +1381,6 @@ class ORIGAMI(object):
         self.view.updateRecentFiles(path={'file_type':'Text',
                                           'file_path':path})
         self.OnUpdateDocument(self.docs, 'document')
-
-    def on_open_multiple_text_2D(self, evt):
-
-        self.view.onPaneOnOff(evt="text", check=True)
-
-        wildcard = "Text files with axis labels (*.txt, *.csv)| *.txt;*.csv"
-        dlg = wx.FileDialog(self.view, "Choose a text file. Make sure files contain x- and y-axis labels!",
-                            wildcard=wildcard , style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_OK:
-            pathlist = dlg.GetPaths()
-            filenames = dlg.GetFilenames()
-            for (filepath, filename) in zip(pathlist, filenames):
-                outcome = self.view.panelMultipleText.onCheckDuplicates(fileName=filename)
-                if outcome: continue
-                # Load data for each file
-                imsData2D, xAxisLabels, yAxisLabels = io_text.text_heatmap_open(path=filepath)
-                imsData1D = np.sum(imsData2D, axis=1).T
-                rtDataY = np.sum(imsData2D, axis=0)
-
-                # Try to extract labels from the text file
-                if isempty(xAxisLabels) or isempty(yAxisLabels):
-                    xAxisLabels, yAxisLabels = "", ""
-                    xlabel_start, xlabel_end = "", ""
-
-                    msg = "Missing x/y-axis labels for %s! Consider adding x/y-axis to your file to obtain full functionality." % (filename)
-                    dlgBox(exceptionTitle='Missing data',
-                                   exceptionMsg=msg,
-                                   type="Warning")
-                else:
-                    xlabel_start, xlabel_end = xAxisLabels[0], xAxisLabels[-1]
-
-                add_dict = {'energy_start':xlabel_start,
-                            'energy_end':xlabel_end,
-                            'charge':"",
-                            "color":self.config.customColors[randomIntegerGenerator(0, 15)],
-                            "colormap":self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
-                            'alpha':self.config.overlay_defaultMask,
-                            'mask':self.config.overlay_defaultAlpha,
-                            'label':"",
-                            'shape':imsData2D.shape,
-                            'document':filename}
-
-                color = self.view.panelMultipleText.on_add_to_table(add_dict, return_color=True)
-                color = convertRGB255to1(color)
-
-                # Set XY limits
-                self.setXYlimitsRMSD2D(xAxisLabels, yAxisLabels)
-                # Split filename to get path
-                path, __ = os.path.split(filepath)
-                # Add data to document
-                self.docs = documents()
-                self.docs.title = filename
-                self.docs.path = path
-                self.docs.userParameters = self.config.userParameters
-                self.docs.userParameters['date'] = getTime()
-                self.docs.dataType = 'Type: 2D IM-MS'
-                self.docs.fileFormat = 'Format: Text (.csv/.txt)'
-                self.docs.got2DIMS = True
-                self.docs.IMS2D = {'zvals':imsData2D,
-                                   'xvals':xAxisLabels,
-                                   'xlabels':'Collision Voltage (V)',
-                                   'yvals':yAxisLabels,
-                                   'yvals1D':imsData1D,
-                                   'yvalsRT':rtDataY,
-                                   'ylabels':'Drift time (bins)',
-                                   'cmap':self.config.currentCmap,
-                                   'mask':self.config.overlay_defaultMask,
-                                   'alpha':self.config.overlay_defaultAlpha,
-                                   'min_threshold':0,
-                                   'max_threshold':1,
-                                   'color':color}
-
-                # Update document
-                self.view.updateRecentFiles(path={'file_type':'Text', 'file_path':path})
-                self.OnUpdateDocument(self.docs, 'document')
-        dlg.Destroy()
 
     def on_extract_2D_from_mass_range(self, extract_type="all"):
         """ extract multiple ions = threaded """
@@ -1580,7 +1508,7 @@ class ORIGAMI(object):
             # Check if manual dataset
             elif document.dataType == 'Type: MANUAL':
                 # Shortcut to the file list
-                nameList = self.view.panelMML.filelist  # List with MassLynx file information
+                nameList = self.view.panelMML.peaklist  # List with MassLynx file information
                 # Sort data regardless of what user did
                 self.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
                 tempDict = {}
@@ -2442,7 +2370,7 @@ class ORIGAMI(object):
             add_data_to_document = self.view.panelMultipleIons.addToDocument
             normalize_dataset = self.view.panelMultipleIons.normalize1D
         elif source == "text":
-            tempList = self.view.panelMultipleText.filelist
+            tempList = self.view.panelMultipleText.peaklist
             add_data_to_document = self.view.panelMultipleText.addToDocument
             normalize_dataset = self.view.panelMultipleText.normalize1D
 
@@ -2668,7 +2596,7 @@ class ORIGAMI(object):
             add_data_to_document = self.view.panelMultipleIons.addToDocument
             self.config.overlayMethod = self.view.panelMultipleIons.combo.GetStringSelection()
         elif source == "text":
-            tempList = self.view.panelMultipleText.filelist
+            tempList = self.view.panelMultipleText.peaklist
             col_order = self.config.textlistColNames
             add_data_to_document = self.view.panelMultipleText.addToDocument
             self.config.overlayMethod = self.view.panelMultipleText.combo.GetStringSelection()
@@ -3510,7 +3438,7 @@ class ORIGAMI(object):
 #             self.view.mainToolbar.ToggleTool(id=ID_OnOff_textView, toggle=True)
 #             self.view._mgr.GetPane(self.view.panelMultipleText).Show()
 #             self.view._mgr.Update()
-            tempList = self.view.panelMultipleText.filelist
+            tempList = self.view.panelMultipleText.peaklist
             document = self.documentsDict[self.currentDoc]
             if document.gotComparisonData:
                 filename = document.title
@@ -3567,7 +3495,7 @@ class ORIGAMI(object):
 
         # Sort data in the dictionary first - if returns False then it hasn't done it!
         vals_sorted = self.view.panelMML.OnSortByColumn(column=1)
-        tempList = self.view.panelMML.filelist
+        tempList = self.view.panelMML.peaklist
         if not vals_sorted:
             return
         else:
@@ -3607,7 +3535,7 @@ class ORIGAMI(object):
             self.documentsDict[self.docs.title] = self.docs
 
             # Update documents tree
-            self.view.panelDocuments.documents.addDocument(docData=self.docs)
+            self.view.panelDocuments.documents.add_document(docData=self.docs)
 
     def checkIfRawFile(self, path):
         """
@@ -3731,7 +3659,7 @@ class ORIGAMI(object):
         # http://stackoverflow.com/questions/22520739/python-sort-a-dict-by-values-producing-a-list-how-to-sort-this-from-largest-to
 
         self.config.ciuMode = 'MANUAL'
-        tempList = self.view.panelMML.filelist
+        tempList = self.view.panelMML.peaklist
 
         tstart = time.clock()
         if len(pathlist) > 0:
@@ -4730,7 +4658,7 @@ class ORIGAMI(object):
                              size=self.config.markerSize,
                              plot='CalibrationDT')
 
-        self.view.panelDocuments.documents.addDocument(docData=document)
+        self.view.panelDocuments.documents.add_document(docData=document)
         self.documentsDict[document.title] = document
         if tDout:
             return tD
@@ -4901,7 +4829,7 @@ class ORIGAMI(object):
         # Append to list
         self.documentsDict[self.docs.title] = self.docs
         # Update documents tree
-        self.view.panelDocuments.documents.addDocument(docData=self.docs)
+        self.view.panelDocuments.documents.add_document(docData=self.docs)
 
         # Set current calibration parameters
         self.currentCalibrationParams = self.docs.calibrationParameters
@@ -5068,7 +4996,7 @@ class ORIGAMI(object):
                 self.documentsDict[document.title] = document
 
                 # Update documents tree
-                self.view.panelDocuments.documents.addDocument(docData=document)
+                self.view.panelDocuments.documents.add_document(docData=document)
 
         # Update status bar
         try:
@@ -5192,7 +5120,7 @@ class ORIGAMI(object):
         if evt.GetId() == ID_processAllTextFiles:
             self.view.panelMultipleText.OnCheckAllItems(evt=None, override=True)
 
-        tempList = self.view.panelMultipleText.filelist
+        tempList = self.view.panelMultipleText.peaklist
         try:
             for row in range(tempList.GetItemCount()):
                 itemInfo = self.view.panelMultipleText.OnGetItemInformation(itemID=row)
@@ -5333,9 +5261,9 @@ class ORIGAMI(object):
                                                    'retTimes':retTimeList,
                                                    'xylimits':[mzStart, mzEnd, mzYMax]}
             self.documentsDict[self.currentDoc] = document
-            self.view.panelDocuments.documents.addDocument(docData=document)
+            self.view.panelDocuments.documents.add_document(docData=document)
         document = self.documentsDict[initialDoc]
-        self.view.panelDocuments.documents.addDocument(docData=document)
+        self.view.panelDocuments.documents.add_document(docData=document)
 
     def get2DdataFromDictionary(self, dictionary=None, dataType='plot',
                                 compact=False, plotType='2D'):
@@ -6812,7 +6740,7 @@ class ORIGAMI(object):
             # Restore file list
             # if self.config.ciuMode == 'MANUAL':
             if document.dataType == 'Type: MANUAL':
-                tempList = self.view.panelMML.filelist
+                tempList = self.view.panelMML.peaklist
                 count = tempList.GetItemCount() + len(document.multipleMassSpectrum)
                 colors = self.view.panelPlots.onChangePalette(None, n_colors=count + 1, return_colors=True)
                 for i, key in enumerate(document.multipleMassSpectrum):
@@ -6906,72 +6834,72 @@ class ORIGAMI(object):
                 self.view._mgr.Update()
 
         # Update documents tree
-        self.view.panelDocuments.documents.addDocument(docData=document, expandAll=False)
+        self.view.panelDocuments.documents.add_document(docData=document, expandAll=False)
         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         self.docs = self.documentsDict[self.currentDoc]
 
     def OnUpdateDocument(self, document, expand_item='document', expand_item_title=None):
 
         if expand_item == 'document':
-            self.view.panelDocuments.documents.addDocument(docData=document,
+            self.view.panelDocuments.documents.add_document(docData=document,
                                                                 expandItem=document)
         elif expand_item == 'ions':
             if expand_item_title is None:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2Dions)
             else:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2Dions[expand_item_title])
         elif expand_item == 'combined_ions':
             if expand_item_title is None:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2DCombIons)
             else:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2DCombIons[expand_item_title])
 
         elif expand_item == 'processed_ions':
             if expand_item_title is None:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2DionsProcess)
             else:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2DionsProcess[expand_item_title])
 
         elif expand_item == 'ions_1D':
             if expand_item_title is None:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.multipleDT)
             else:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.multipleDT[expand_item_title])
 
         elif expand_item == 'comparison_data':
             if expand_item_title is None:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2DcompData)
             else:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2DcompData[expand_item_title])
 
         elif expand_item == 'mass_spectra':
             if expand_item_title is None:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.multipleMassSpectrum)
             else:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.multipleMassSpectrum[expand_item_title])
 
         elif expand_item == 'overlay':
             if expand_item_title is None:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2DoverlayData)
             else:
-                self.view.panelDocuments.documents.addDocument(docData=document,
+                self.view.panelDocuments.documents.add_document(docData=document,
                                                                     expandItem=document.IMS2DoverlayData[expand_item_title])
         # just set data
         elif expand_item == 'no_refresh':
-            self.view.panelDocuments.documents.setDocument(document_old=self.documentsDict[document.title],
+            self.view.panelDocuments.documents.set_document(document_old=self.documentsDict[document.title],
                                                                 document_new=document)
 
         # update dictionary

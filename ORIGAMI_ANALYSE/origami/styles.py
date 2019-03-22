@@ -28,6 +28,7 @@ import numpy as np
 from gui_elements.misc_dialogs import dlgBox
 import itertools
 from utils.color import convertRGB255to1
+from utils.converters import str2int, str2num, byte2str
 
 # Sizes
 COMBO_SIZE = 120
@@ -201,7 +202,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
             item_tag = self.column_info[column]["tag"]
             item_type = self.column_info[column]["type"]
             if item_tag == "color":
-                item_value, color_1 = self.GetItemBackgroundColour(item_id)
+                item_value, color_1 = self._convert_color(self.GetItemBackgroundColour(item_id))
                 information["color_255to1"] = color_1
             else:
                 item_value = self._convert_type(
@@ -213,12 +214,15 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
 
     @staticmethod
     def _convert_type(item_value, item_type):
+        print(item_value, item_type)
         if item_type == "bool":
             return bool(item_value)
         elif item_type == "int":
-            return int(item_value)
+            return str2int(item_value)
         elif item_type == "float":
-            return float(item_value)
+            return str2num(item_value)
+        else:
+            return byte2str(item_value)
 
     @staticmethod
     def _convert_color(color_255):
@@ -459,6 +463,28 @@ class SimpleListCtrl(wx.ListCtrl):
             print('The operation was cancelled')
             return
         self.DeleteAllItems()
+
+
+class EditableListCtrl(ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixin,
+                       listmix.ColumnSorterMixin):
+    """
+    Editable list
+    """
+
+    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
+                 size=wx.DefaultSize, style=0):
+        ListCtrl.__init__(self, parent, ID, pos, size, style)
+        listmix.TextEditMixin.__init__(self)
+        listmix.CheckListCtrlMixin.__init__(self)
+
+        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
+
+    def OnBeginLabelEdit(self, event):
+        # Block any attempts to change columns 0 and 1
+        if event.m_col == 0 or event.m_col == 2:
+            event.Veto()
+        else:
+            event.Skip()
 
 
 class bgrPanel(wx.Panel):

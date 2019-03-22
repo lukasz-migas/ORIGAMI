@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # -------------------------------------------------------------------------
 #    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
@@ -62,10 +61,9 @@ class panelPlot(wx.Panel):
                              size=wx.Size(800, 600), style=wx.TAB_TRAVERSAL)
 
         self.config = config
-        self.parent = parent
+        self.view = parent
         self.presenter = presenter
         self.icons = icons()
-        self.data_processing = self.parent.data_processing
 
         self.currentPage = None
         # Extract size of screen
@@ -93,6 +91,10 @@ class panelPlot(wx.Panel):
         # initilise pub
         pub.subscribe(self._update_label_position, 'update_text_position')  # update position of label
 
+    def _setup_handling_and_processing(self):
+        self.data_processing = self.view.data_processing
+        self.data_handling = self.view.data_handling
+
     def _get_page_text(self):
         self.on_get_current_page()
         return self.currentPage
@@ -105,7 +107,7 @@ class panelPlot(wx.Panel):
         document_title, dataset_name, annotation_name, text_type = text_obj.obj_name.split('|-|')
 
         # get document
-        __, annotations = self.parent.panelDocuments.documents.on_get_annotation_dataset(document_title, dataset_name)
+        __, annotations = self.view.panelDocuments.documents.on_get_annotation_dataset(document_title, dataset_name)
         if text_type == "annotation":
             new_pos_x, new_pos_y = text_obj.get_position()
             annotations[annotation_name]['position_label_x'] = np.round(new_pos_x, 4)
@@ -131,7 +133,7 @@ class panelPlot(wx.Panel):
             except: pass
 
         # update annotation
-        self.parent.panelDocuments.documents.onUpdateAnotations(
+        self.view.panelDocuments.documents.onUpdateAnotations(
             annotations, document_title, dataset_name, set_data_only=True)
 
     def onPageChanged(self, evt):
@@ -158,10 +160,10 @@ class panelPlot(wx.Panel):
 
         # update statusbars
         if self.config.processParamsWindow_on_off:
-            self.parent.panelProcessData.updateStatusbar()
+            self.view.panelProcessData.updateStatusbar()
 
         if self.config.extraParamsWindow_on_off:
-            self.parent.panelParametersEdit.updateStatusbar()
+            self.view.panelParametersEdit.updateStatusbar()
 
     def makeNotebook(self):
 		# Setup notebook
@@ -619,7 +621,7 @@ class panelPlot(wx.Panel):
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(self.config.resize)
-            if self.parent.plot_name == "compare_MS":
+            if self.view.plot_name == "compare_MS":
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveCompareMSImage, text=saveImageLabel,
                                              bitmap=self.icons.iconsLib['save16']))
             else:
@@ -629,7 +631,7 @@ class panelPlot(wx.Panel):
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearPlot_MS, text="Clear plot",
                                          bitmap=self.icons.iconsLib['clear_16']))
         elif self.currentPage == "RT":
-            if self.parent.plot_name == "MS":
+            if self.view.plot_name == "MS":
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearPlot_RT_MS, text="Clear plot",
                                              bitmap=self.icons.iconsLib['clear_16']))
             else:
@@ -665,7 +667,7 @@ class panelPlot(wx.Panel):
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearPlot_RT, text="Clear plot",
                                              bitmap=self.icons.iconsLib['clear_16']))
         elif self.currentPage == "1D":
-            if self.parent.plot_name == "MS":
+            if self.view.plot_name == "MS":
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearPlot_1D_MS, text="Clear plot",
                                              bitmap=self.icons.iconsLib['clear_16']))
             else:
@@ -880,13 +882,13 @@ class panelPlot(wx.Panel):
                                          bitmap=self.icons.iconsLib['panel_legend_16']))
             menu.AppendSeparator()
             evtID = None
-            if self.parent.plot_name == "MS": evtID = ID_plots_customisePlot_unidec_ms
-            elif self.parent.plot_name == "mwDistribution": evtID = ID_plots_customisePlot_unidec_mw
-            elif self.parent.plot_name == "mzGrid": evtID = ID_plots_customisePlot_unidec_mz_v_charge
-            elif self.parent.plot_name == "mwGrid": evtID = ID_plots_customisePlot_unidec_mw_v_charge
-            elif self.parent.plot_name == "pickedPeaks": evtID = ID_plots_customisePlot_unidec_isolated_mz
-            elif self.parent.plot_name == "Barchart": evtID = ID_plots_customisePlot_unidec_ms_barchart
-            elif self.parent.plot_name == "ChargeDistribution": evtID = ID_plots_customisePlot_unidec_chargeDist
+            if self.view.plot_name == "MS": evtID = ID_plots_customisePlot_unidec_ms
+            elif self.view.plot_name == "mwDistribution": evtID = ID_plots_customisePlot_unidec_mw
+            elif self.view.plot_name == "mzGrid": evtID = ID_plots_customisePlot_unidec_mz_v_charge
+            elif self.view.plot_name == "mwGrid": evtID = ID_plots_customisePlot_unidec_mw_v_charge
+            elif self.view.plot_name == "pickedPeaks": evtID = ID_plots_customisePlot_unidec_isolated_mz
+            elif self.view.plot_name == "Barchart": evtID = ID_plots_customisePlot_unidec_ms_barchart
+            elif self.view.plot_name == "ChargeDistribution": evtID = ID_plots_customisePlot_unidec_chargeDist
             if evtID is not None:
                 menu.AppendItem(makeMenuItem(parent=menu, id=evtID,
                                              text='Customise plot...',
@@ -896,26 +898,26 @@ class panelPlot(wx.Panel):
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(self.config.resize)
             evtID = None
-            if self.parent.plot_name == "MS": evtID = ID_clearPlot_UniDec_MS
-            elif self.parent.plot_name == "mwDistribution": evtID = ID_plots_saveImage_unidec_mw
-            elif self.parent.plot_name == "mzGrid": evtID = ID_plots_saveImage_unidec_mz_v_charge
-            elif self.parent.plot_name == "mwGrid": evtID = ID_plots_saveImage_unidec_mw_v_charge
-            elif self.parent.plot_name == "pickedPeaks": evtID = ID_plots_saveImage_unidec_isolated_mz
-            elif self.parent.plot_name == "Barchart": evtID = ID_plots_saveImage_unidec_ms_barchart
-            elif self.parent.plot_name == "ChargeDistribution": evtID = ID_plots_saveImage_unidec_chargeDist
+            if self.view.plot_name == "MS": evtID = ID_clearPlot_UniDec_MS
+            elif self.view.plot_name == "mwDistribution": evtID = ID_plots_saveImage_unidec_mw
+            elif self.view.plot_name == "mzGrid": evtID = ID_plots_saveImage_unidec_mz_v_charge
+            elif self.view.plot_name == "mwGrid": evtID = ID_plots_saveImage_unidec_mw_v_charge
+            elif self.view.plot_name == "pickedPeaks": evtID = ID_plots_saveImage_unidec_isolated_mz
+            elif self.view.plot_name == "Barchart": evtID = ID_plots_saveImage_unidec_ms_barchart
+            elif self.view.plot_name == "ChargeDistribution": evtID = ID_plots_saveImage_unidec_chargeDist
             if evtID is not None:
                 menu.AppendItem(makeMenuItem(parent=menu, id=evtID, text=saveImageLabel,
                                              bitmap=self.icons.iconsLib['save16']))
             menu.AppendMenu(wx.ID_ANY, 'Save figure...', saveUniDecMenu)
             menu.AppendSeparator()
             evtID = None
-            if self.parent.plot_name == "MS": evtID = ID_clearPlot_UniDec_MS
-            elif self.parent.plot_name == "mwDistribution": evtID = ID_clearPlot_UniDec_mwDistribution
-            elif self.parent.plot_name == "mzGrid": evtID = ID_clearPlot_UniDec_mzGrid
-            elif self.parent.plot_name == "mwGrid": evtID = ID_clearPlot_UniDec_mwGrid
-            elif self.parent.plot_name == "pickedPeaks": evtID = ID_clearPlot_UniDec_pickedPeaks
-            elif self.parent.plot_name == "Barchart": evtID = ID_clearPlot_UniDec_barchart
-            elif self.parent.plot_name == "ChargeDistribution": evtID = ID_clearPlot_UniDec_chargeDistribution
+            if self.view.plot_name == "MS": evtID = ID_clearPlot_UniDec_MS
+            elif self.view.plot_name == "mwDistribution": evtID = ID_clearPlot_UniDec_mwDistribution
+            elif self.view.plot_name == "mzGrid": evtID = ID_clearPlot_UniDec_mzGrid
+            elif self.view.plot_name == "mwGrid": evtID = ID_clearPlot_UniDec_mwGrid
+            elif self.view.plot_name == "pickedPeaks": evtID = ID_clearPlot_UniDec_pickedPeaks
+            elif self.view.plot_name == "Barchart": evtID = ID_clearPlot_UniDec_barchart
+            elif self.view.plot_name == "ChargeDistribution": evtID = ID_clearPlot_UniDec_chargeDistribution
             if evtID is not None:
                 menu.AppendItem(makeMenuItem(parent=menu, id=evtID, text="Clear plot",
                                              bitmap=self.icons.iconsLib['clear_16']))
@@ -1344,10 +1346,10 @@ class panelPlot(wx.Panel):
             self.presenter.onThreading(evt, args, action='updateStatusbar')
 
     def OnAddDataToMZTable(self, evt):
-        self.parent._mgr.GetPane(self.parent.panelMultipleIons).Show()
-        self.parent._mgr.Update()
+        self.view._mgr.GetPane(self.view.panelMultipleIons).Show()
+        self.view._mgr.Update()
         xmin, xmax = self.getPlotExtent(evt=None)
-        self.parent.panelMultipleIons.peaklist.Append([round(xmin, 2),
+        self.view.panelMultipleIons.peaklist.Append([round(xmin, 2),
                                                      round(xmax, 2),
                                                      ""])
 

@@ -603,7 +603,7 @@ class bottomPanel(wx.Panel):
                 else:
                     currentItems -= 1
             try:
-                self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[selectedItem])
+                self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[selectedItem])
             except KeyError: pass
         elif evt.GetId() == ID_removeSelectedPopupDT:
             selectedItem = self.peaklist.GetItem(self.currentItem, 4).GetText()
@@ -642,7 +642,7 @@ class bottomPanel(wx.Panel):
                 self.peaklist.DeleteItem(currentItems)
                 currentItems -= 1
                 try:
-                    self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[selectedItem])
+                    self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[selectedItem])
                 except KeyError: pass
 
         self.onReplotRectanglesDT_MZ(evt=None)

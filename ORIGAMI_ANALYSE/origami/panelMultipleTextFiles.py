@@ -21,7 +21,6 @@ import re
 from copy import deepcopy
 from operator import itemgetter
 from os.path import split
-
 import wx
 from natsort import natsorted
 from numpy import arange
@@ -72,9 +71,20 @@ class panelMultipleTextFiles (wx.Panel):
         self.normalize1D = True
         self.plotAutomatically = True
 
-        self.editItemDlg = None
+        self._textPanel_peaklist = {
+            0: {"name":"", "tag":"check", "type":"bool"},
+            1: {"name":"min CE", "tag":"start", "type":"float"},
+            2: {"name":"max CE", "tag":"end", "type":"float"},
+            3: {"name":"z", "tag":"charge", "type":"int"},
+            4: {"name":"color", "tag":"color", "type":"color"},
+            5: {"name":"colormap", "tag":"colormap", "type":"str"},
+            6: {"name":"\N{GREEK SMALL LETTER ALPHA}", "tag":"alpha", "type":"float"},
+            7: {"name":"mask", "tag":"mask", "type":"float"},
+            8: {"name":"label", "tag":"label", "type":"str"},
+            9: {"name":"shape", "tag":"shape", "type":"str"},
+            10: {"name":"file", "tag":"document", "type":"str"}}
 
-        self.data_processing = self.view.data_processing
+        self.editItemDlg = None
 
         self.makeGUI()
 
@@ -112,6 +122,10 @@ class panelMultipleTextFiles (wx.Panel):
     def __del__(self):
         pass
 
+    def _setup_handling_and_processing(self):
+        self.data_processing = self.view.data_processing
+        self.data_handling = self.view.data_handling
+
     def makeGUI(self):
         """ Make panel GUI """
         # make toolbar
@@ -120,7 +134,7 @@ class panelMultipleTextFiles (wx.Panel):
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(toolbar, 0, wx.EXPAND, 0)
-        self.mainSizer.Add(self.filelist, 1, wx.EXPAND, 0)
+        self.mainSizer.Add(self.peaklist, 1, wx.EXPAND, 0)
 
         # fit layout
         self.mainSizer.Fit(self)
@@ -130,7 +144,7 @@ class panelMultipleTextFiles (wx.Panel):
 
     def makeListCtrl(self):
 
-        self.filelist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
+        self.peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._textPanel_peaklist)
 
         for item in self.config._textlistSettings:
             order = item['order']
@@ -139,30 +153,28 @@ class panelMultipleTextFiles (wx.Panel):
                 width = item['width']
             else:
                 width = 0
-            self.filelist.InsertColumn(order, name, width=width,
+            self.peaklist.InsertColumn(order, name, width=width,
                                        format=wx.LIST_FORMAT_CENTER)
 
-        self.filelist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
-        self.filelist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
-        self.filelist.Bind(wx.EVT_LEFT_DCLICK, self.onItemActivated)
-        self.filelist.Bind(wx.EVT_LIST_KEY_DOWN, self.onItemSelected)
-        self.filelist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
-        self.filelist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.onColumnRightClickMenu)
+#         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
+        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.onItemActivated)
+        self.peaklist.Bind(wx.EVT_LIST_KEY_DOWN, self.onItemSelected)
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
+        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.onColumnRightClickMenu)
 
     def onItemActivated(self, evt):
-        self.currentItem, __ = self.filelist.HitTest(evt.GetPosition())
+        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
         if self.currentItem != -1:
             if not self.editItemDlg:
                 self.OnOpenEditor(evt=None)
             else:
-                self.editItemDlg.onUpdateGUI(self.OnGetItemInformation(self.currentItem))
+                self.editItemDlg.onUpdateGUI(self.peaklist.on_get_item_information(self.currentItem))
 
     def onItemSelected(self, evt):
         keyCode = evt.GetKeyCode()
         if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
-            self.currentItem = evt.m_itemIndex
-        else:
-            self.currentItem = evt.m_itemIndex
+            self.currentItem = evt.GetIndex()
 
         if evt != None:
             evt.Skip()
@@ -465,8 +477,8 @@ class panelMultipleTextFiles (wx.Panel):
     def onChangeColormap(self, evt):
         # get number of checked items
         check_count = 0
-        for row in range(self.filelist.GetItemCount()):
-            if self.filelist.IsChecked(index=row):
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
                 check_count += 1
 
         if check_count > len(self.config.narrowCmapList):
@@ -474,11 +486,11 @@ class panelMultipleTextFiles (wx.Panel):
         else:
             colormaps = self.config.narrowCmapList + self.config.cmaps2
 
-        for row in range(self.filelist.GetItemCount()):
-            if self.filelist.IsChecked(index=row):
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
                 self.currentItem = row
                 colormap = colormaps[row]
-                self.filelist.SetStringItem(row,
+                self.peaklist.SetStringItem(row,
                                             self.config.textlistColNames['colormap'],
                                             str(colormap))
 
@@ -491,8 +503,8 @@ class panelMultipleTextFiles (wx.Panel):
     def onChangeColorBatch(self, evt):
         # get number of checked items
         check_count = 0
-        for row in range(self.filelist.GetItemCount()):
-            if self.filelist.IsChecked(index=row):
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
                 check_count += 1
 
         if evt.GetId() == ID_textPanel_changeColorBatch_palette:
@@ -504,12 +516,12 @@ class panelMultipleTextFiles (wx.Panel):
             colors = self.presenter.view.panelPlots.onGetColormapList(n_colors=check_count)
 
         check_count = 0
-        for row in range(self.filelist.GetItemCount()):
+        for row in range(self.peaklist.GetItemCount()):
             self.currentItem = row
-            if self.filelist.IsChecked(index=row):
+            if self.peaklist.IsChecked(index=row):
                 color = colors[check_count]
-                self.filelist.SetItemBackgroundColour(row, convertRGB1to255(color))
-                self.filelist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color), return_rgb=True))
+                self.peaklist.SetItemBackgroundColour(row, convertRGB1to255(color))
+                self.peaklist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color), return_rgb=True))
                 check_count += 1
 
             self.onUpdateDocument(evt=None)
@@ -542,13 +554,13 @@ class panelMultipleTextFiles (wx.Panel):
             for i in range(len(self.config._textlistSettings)):
                 self.config._textlistSettings[i]['show'] = True
                 col_width = self.config._textlistSettings[i]['width']
-                self.filelist.SetColumnWidth(i, col_width)
+                self.peaklist.SetColumnWidth(i, col_width)
             return
         elif evtID == ID_textPanel_table_hideAll:
             for i in range(len(self.config._textlistSettings)):
                 self.config._textlistSettings[i]['show'] = False
                 col_width = 0
-                self.filelist.SetColumnWidth(i, col_width)
+                self.peaklist.SetColumnWidth(i, col_width)
             return
 
         # check values
@@ -559,12 +571,12 @@ class panelMultipleTextFiles (wx.Panel):
         else:
             col_width = 0
         # set new column width
-        self.filelist.SetColumnWidth(col_index, col_width)
+        self.peaklist.SetColumnWidth(col_index, col_width)
 
     def onChangeParameter(self, evt):
         """ Iterate over list to assign charge state """
 
-        rows = self.filelist.GetItemCount()
+        rows = self.peaklist.GetItemCount()
         if rows == 0:
             return
 
@@ -606,11 +618,11 @@ class panelMultipleTextFiles (wx.Panel):
             return
 
         for row in range(rows):
-            if self.filelist.IsChecked(index=row):
-                itemInfo = self.OnGetItemInformation(row)
+            if self.peaklist.IsChecked(index=row):
+                itemInfo = self.peaklist.on_get_item_information(row)
                 document = self.presenter.documentsDict[itemInfo['document']]
                 if not ask_kwargs['keyword'] in ['min_threshold', 'max_threshold']:
-                    self.filelist.SetStringItem(index=row,
+                    self.peaklist.SetStringItem(index=row,
                                                 col=self.config.textlistColNames[ask_kwargs['keyword']],
                                                 label=str(self.ask_value))
                 if document.got2DIMS:
@@ -656,8 +668,8 @@ class panelMultipleTextFiles (wx.Panel):
         """
         Check current item when letter S is pressed on the keyboard
         """
-        check = not self.filelist.IsChecked(index=self.currentItem)
-        self.filelist.CheckItem(self.currentItem, check=check)
+        check = not self.peaklist.IsChecked(index=self.currentItem)
+        self.peaklist.CheckItem(self.currentItem, check=check)
 
     def OnCheckAllItems(self, evt, check=True, override=False):
         """
@@ -667,7 +679,7 @@ class panelMultipleTextFiles (wx.Panel):
         check : boolean, sets items to specified state
         override : boolean, skips settings self.allChecked value
         """
-        rows = self.filelist.GetItemCount()
+        rows = self.peaklist.GetItemCount()
 
         if not override:
             if self.allChecked:
@@ -679,7 +691,7 @@ class panelMultipleTextFiles (wx.Panel):
 
         if rows > 0:
             for row in range(rows):
-                self.filelist.CheckItem(row, check=check)
+                self.peaklist.CheckItem(row, check=check)
 
     def on_plot(self, evt, itemID=None):
         """
@@ -689,7 +701,7 @@ class panelMultipleTextFiles (wx.Panel):
         if itemID is not None:
             self.currentItem = itemID
 
-        itemInfo = self.OnGetItemInformation(self.currentItem)
+        itemInfo = self.peaklist.on_get_item_information(self.currentItem)
 
         try:
             selectedItem = itemInfo['document']
@@ -748,16 +760,16 @@ class panelMultipleTextFiles (wx.Panel):
                 zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
 
     def onOverlayWaterfall(self, evt):
-        rows = self.filelist.GetItemCount()
+        rows = self.peaklist.GetItemCount()
 
         # Iterate over row and columns to get data
         xvals, yvals, zvals, colors, labels = [], [], [], [], []
         item_name = "Waterfall overlay:"
         for row in range(rows):
-            if not self.filelist.IsChecked(index=row):
+            if not self.peaklist.IsChecked(index=row):
                 continue
 
-            itemInfo = self.OnGetItemInformation(row)
+            itemInfo = self.peaklist.on_get_item_information(row)
             try:
                 ion_title = itemInfo['document']
                 document = self.presenter.documentsDict[ion_title]
@@ -874,10 +886,10 @@ class panelMultipleTextFiles (wx.Panel):
         """
 
         if evt.GetId() == ID_textPanel_delete_selected:
-            currentItems = self.filelist.GetItemCount() - 1
+            currentItems = self.peaklist.GetItemCount() - 1
             while (currentItems >= 0):
-                if self.filelist.IsChecked(index=currentItems):
-                    itemInfo = self.OnGetItemInformation(itemID=currentItems)
+                if self.peaklist.IsChecked(index=currentItems):
+                    itemInfo = self.peaklist.on_get_item_information(itemID=currentItems)
                     # Delete selected document from dictionary + table
                     try:
                         outcome = self.presenter.view.panelDocuments.documents.removeDocument(
@@ -896,7 +908,7 @@ class panelMultipleTextFiles (wx.Panel):
                 currentItems -= 1
 
         elif evt.GetId() == ID_textPanel_delete_rightClick:
-            itemInfo = self.OnGetItemInformation(itemID=self.currentItem)
+            itemInfo = self.peaklist.on_get_item_information(itemID=self.currentItem)
             # Delete selected document from dictionary + table
             try:
                 outcome = self.presenter.view.panelDocuments.documents.removeDocument(deleteItem=itemInfo['document'],
@@ -921,9 +933,9 @@ class panelMultipleTextFiles (wx.Panel):
                 self.presenter.onThreading(evt, ("Cancelled operation", 4, 3), action='updateStatusbar')
                 return
             else:
-                currentItems = self.filelist.GetItemCount() - 1
+                currentItems = self.peaklist.GetItemCount() - 1
                 while (currentItems >= 0):
-                    itemInfo = self.OnGetItemInformation(itemID=currentItems)
+                    itemInfo = self.peaklist.on_get_item_information(itemID=currentItems)
                     # Delete selected document from dictionary + table
                     try:
                         outcome = self.presenter.view.panelDocuments.documents.removeDocument(
@@ -939,13 +951,13 @@ class panelMultipleTextFiles (wx.Panel):
                         pass
                     currentItems -= 1
 
-        self.presenter.onThreading(evt, ("Remaining items {}".format(self.filelist.GetItemCount()), 4, 3),
+        self.presenter.onThreading(evt, ("Remaining items {}".format(self.peaklist.GetItemCount()), 4, 3),
                                    action='updateStatusbar')
 
     def onCheckDuplicates(self, fileName=None):
-        currentItems = self.filelist.GetItemCount() - 1
+        currentItems = self.peaklist.GetItemCount() - 1
         while (currentItems >= 0):
-            itemInfo = self.OnGetItemInformation(currentItems)
+            itemInfo = self.peaklist.on_get_item_information(currentItems)
             fileInTable = itemInfo['document']
             if fileInTable == fileName:
                 print(('File ' + fileInTable + ' already in the table'))
@@ -961,18 +973,18 @@ class panelMultipleTextFiles (wx.Panel):
         Its not very efficient!
         """
 
-        columns = self.filelist.GetColumnCount()
-        rows = self.filelist.GetItemCount()
+        columns = self.peaklist.GetColumnCount()
+        rows = self.peaklist.GetItemCount()
         tempData = []
         # Iterate over row and columns to get data
         for row in range(rows):
             tempRow = []
             for col in range(columns):
-                item = self.filelist.GetItem(itemId=row, col=col)
+                item = self.peaklist.GetItem(itemId=row, col=col)
                 tempRow.append(item.GetText())
-            tempRow.append(self.filelist.IsChecked(index=row))
-            tempRow.append(self.filelist.GetItemBackgroundColour(row))
-            tempRow.append(self.filelist.GetItemTextColour(row))
+            tempRow.append(self.peaklist.IsChecked(index=row))
+            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
+            tempRow.append(self.peaklist.GetItemTextColour(row))
             tempData.append(tempRow)
 
         # Remove duplicates
@@ -984,7 +996,7 @@ class panelMultipleTextFiles (wx.Panel):
                                         limitedCols=['filename'])
         rows = len(tempData)
         # Clear table
-        self.filelist.DeleteAllItems()
+        self.peaklist.DeleteAllItems()
 
         checkData, bg_rgb, fg_rgb = [], [], []
         for check in tempData:
@@ -998,10 +1010,10 @@ class panelMultipleTextFiles (wx.Panel):
         # Reinstate data
         rowList = arange(len(tempData))
         for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.filelist.Append(tempData[row])
-            self.filelist.CheckItem(row, check)
-            self.filelist.SetItemBackgroundColour(row, bg_rgb)
-            self.filelist.SetItemTextColour(row, fg_color)
+            self.peaklist.Append(tempData[row])
+            self.peaklist.CheckItem(row, check)
+            self.peaklist.SetItemBackgroundColour(row, bg_rgb)
+            self.peaklist.SetItemTextColour(row, fg_color)
 
         if evt is None:
             return
@@ -1016,10 +1028,10 @@ class panelMultipleTextFiles (wx.Panel):
         evtID = evt.GetId()
 
         if evtID == ID_textPanel_clear_selected:
-            row = self.filelist.GetItemCount() - 1
+            row = self.peaklist.GetItemCount() - 1
             while (row >= 0):
-                if self.filelist.IsChecked(index=row):
-                    self.filelist.DeleteItem(row)
+                if self.peaklist.IsChecked(index=row):
+                    self.peaklist.DeleteItem(row)
                 row -= 1
         else:
             dlg = dlgBox(exceptionTitle='Are you sure?',
@@ -1028,64 +1040,64 @@ class panelMultipleTextFiles (wx.Panel):
             if dlg == wx.ID_NO:
                 print('Cancelled operation')
                 return
-            self.filelist.DeleteAllItems()
+            self.peaklist.DeleteAllItems()
 
-    def OnGetColumnClick(self, evt):
-        self.OnSortByColumn(column=evt.GetColumn())
-
-    def OnSortByColumn(self, column):
-        """
-        Sort data in filelist based on pressed column
-        """
-        # Check if it should be reversed
-        if self.lastColumn == None:
-            self.lastColumn = column
-        elif self.lastColumn == column:
-            if self.reverse == True:
-                self.reverse = False
-            else:
-                self.reverse = True
-        else:
-            self.reverse = False
-            self.lastColumn = column
-
-        columns = self.filelist.GetColumnCount()
-        rows = self.filelist.GetItemCount()
-
-        tempData = []
-        # Iterate over row and columns to get data
-        for row in range(rows):
-            tempRow = []
-            for col in range(columns):
-                item = self.filelist.GetItem(itemId=row, col=col)
-                tempRow.append(item.GetText())
-            tempRow.append(self.filelist.IsChecked(index=row))
-            tempRow.append(self.filelist.GetItemBackgroundColour(row))
-            tempRow.append(self.filelist.GetItemTextColour(row))
-            tempData.append(tempRow)
-
-        # Sort data
-        tempData = natsorted(tempData, key=itemgetter(column), reverse=self.reverse)
-
-        # Clear table
-        self.filelist.DeleteAllItems()
-
-        checkData, bg_rgb, fg_rgb = [], [], []
-        for check in tempData:
-            fg_rgb.append(check[-1])
-            del check[-1]
-            bg_rgb.append(check[-1])
-            del check[-1]
-            checkData.append(check[-1])
-            del check[-1]
-
-        # Reinstate data
-        rowList = arange(len(tempData))
-        for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.filelist.Append(tempData[row])
-            self.filelist.CheckItem(row, check)
-            self.filelist.SetItemBackgroundColour(row, bg_rgb)
-            self.filelist.SetItemTextColour(row, fg_color)
+#     def OnGetColumnClick(self, evt):
+#         self.OnSortByColumn(column=evt.GetColumn())
+#
+#     def OnSortByColumn(self, column):
+#         """
+#         Sort data in filelist based on pressed column
+#         """
+#         # Check if it should be reversed
+#         if self.lastColumn == None:
+#             self.lastColumn = column
+#         elif self.lastColumn == column:
+#             if self.reverse == True:
+#                 self.reverse = False
+#             else:
+#                 self.reverse = True
+#         else:
+#             self.reverse = False
+#             self.lastColumn = column
+#
+#         columns = self.peaklist.GetColumnCount()
+#         rows = self.peaklist.GetItemCount()
+#
+#         tempData = []
+#         # Iterate over row and columns to get data
+#         for row in range(rows):
+#             tempRow = []
+#             for col in range(columns):
+#                 item = self.peaklist.GetItem(itemId=row, col=col)
+#                 tempRow.append(item.GetText())
+#             tempRow.append(self.peaklist.IsChecked(index=row))
+#             tempRow.append(self.peaklist.GetItemBackgroundColour(row))
+#             tempRow.append(self.peaklist.GetItemTextColour(row))
+#             tempData.append(tempRow)
+#
+#         # Sort data
+#         tempData = natsorted(tempData, key=itemgetter(column), reverse=self.reverse)
+#
+#         # Clear table
+#         self.peaklist.DeleteAllItems()
+#
+#         checkData, bg_rgb, fg_rgb = [], [], []
+#         for check in tempData:
+#             fg_rgb.append(check[-1])
+#             del check[-1]
+#             bg_rgb.append(check[-1])
+#             del check[-1]
+#             checkData.append(check[-1])
+#             del check[-1]
+#
+#         # Reinstate data
+#         rowList = arange(len(tempData))
+#         for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
+#             self.peaklist.Append(tempData[row])
+#             self.peaklist.CheckItem(row, check)
+#             self.peaklist.SetItemBackgroundColour(row, bg_rgb)
+#             self.peaklist.SetItemTextColour(row, fg_color)
 
     def onUpdateOverlayMethod(self, evt):
         self.config.overlayMethod = self.combo.GetStringSelection()
@@ -1096,23 +1108,23 @@ class panelMultipleTextFiles (wx.Panel):
     def OnGetItemInformation(self, itemID, return_list=False):
 
         # get item information
-        information = {'minCE': str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['start']).GetText()),
-                       'maxCE': str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['end']).GetText()),
-                       'charge': str2int(self.filelist.GetItem(itemID, self.config.textlistColNames['charge']).GetText()),
-                       'color': self.filelist.GetItemBackgroundColour(item=itemID),
-                       'color_255to1': convertRGB255to1(self.filelist.GetItemBackgroundColour(item=itemID), decimals=3),
-                       'colormap': self.filelist.GetItem(itemID, self.config.textlistColNames['colormap']).GetText(),
-                       'alpha': str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['alpha']).GetText()),
-                       'mask': str2num(self.filelist.GetItem(itemID, self.config.textlistColNames['mask']).GetText()),
-                       'label': self.filelist.GetItem(itemID, self.config.textlistColNames['label']).GetText(),
-                       'shape': self.filelist.GetItem(itemID, self.config.textlistColNames['shape']).GetText(),
-                       'document': self.filelist.GetItem(itemID, self.config.textlistColNames['filename']).GetText(),
-                       'select': self.filelist.IsChecked(itemID),
+        information = {'minCE': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['start']).GetText()),
+                       'maxCE': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['end']).GetText()),
+                       'charge': str2int(self.peaklist.GetItem(itemID, self.config.textlistColNames['charge']).GetText()),
+                       'color': self.peaklist.GetItemBackgroundColour(item=itemID),
+                       'color_255to1': convertRGB255to1(self.peaklist.GetItemBackgroundColour(item=itemID), decimals=3),
+                       'colormap': self.peaklist.GetItem(itemID, self.config.textlistColNames['colormap']).GetText(),
+                       'alpha': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['alpha']).GetText()),
+                       'mask': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['mask']).GetText()),
+                       'label': self.peaklist.GetItem(itemID, self.config.textlistColNames['label']).GetText(),
+                       'shape': self.peaklist.GetItem(itemID, self.config.textlistColNames['shape']).GetText(),
+                       'document': self.peaklist.GetItem(itemID, self.config.textlistColNames['filename']).GetText(),
+                       'select': self.peaklist.IsChecked(itemID),
                        'id': itemID}
 
         try:
             flag_error = False
-            self.docs = self.presenter.documentsDict[self.filelist.GetItem(itemID,
+            self.docs = self.presenter.documentsDict[self.peaklist.GetItem(itemID,
                                                                            self.config.textlistColNames['filename']).GetText()]
         except KeyError:
             flag_error = True
@@ -1154,7 +1166,7 @@ class panelMultipleTextFiles (wx.Panel):
     # ----
 
     def OnGetValue(self, value_type='color'):
-        information = self.OnGetItemInformation(self.currentItem)
+        information = self.peaklist.on_get_item_information(self.currentItem)
 
         if value_type == 'minCE':
             return information['minCE']
@@ -1177,7 +1189,6 @@ class panelMultipleTextFiles (wx.Panel):
         elif value_type == 'document':
             return information['document']
 
-    # ----
     def OnGetColor(self, evt):
         # Restore custom colors
         custom = wx.ColourData()
@@ -1222,11 +1233,11 @@ class panelMultipleTextFiles (wx.Panel):
             newColour = list(data.GetColour().Get())
             dlg.Destroy()
             # Assign color
-            self.filelist.SetStringItem(self.currentItem,
+            self.peaklist.SetStringItem(self.currentItem,
                                         self.config.textlistColNames['color'],
                                         str(convertRGB255to1(newColour)))
-            self.filelist.SetItemBackgroundColour(self.currentItem, newColour)
-            self.filelist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
+            self.peaklist.SetItemBackgroundColour(self.currentItem, newColour)
+            self.peaklist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
             # Retrieve custom colors
             for i in range(len(self.config.customColors)):
                 self.config.customColors[i] = data.GetCustomColour(i)
@@ -1242,10 +1253,10 @@ class panelMultipleTextFiles (wx.Panel):
             except:
                 newColour = self.config.customColors[randomIntegerGenerator(0, 15)]
             # Assign color
-            self.filelist.SetStringItem(self.currentItem, self.config.textlistColNames['color'],
+            self.peaklist.SetStringItem(self.currentItem, self.config.textlistColNames['color'],
                                         str(convertRGB255to1(newColour)))
-            self.filelist.SetItemBackgroundColour(self.currentItem, newColour)
-            self.filelist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
+            self.peaklist.SetItemBackgroundColour(self.currentItem, newColour)
+            self.peaklist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
             if give_value:
                 return newColour
 
@@ -1253,7 +1264,7 @@ class panelMultipleTextFiles (wx.Panel):
 
         # get item info
         if itemInfo == None:
-            itemInfo = self.OnGetItemInformation(self.currentItem)
+            itemInfo = self.peaklist.on_get_item_information(self.currentItem)
 
         keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold',
                     'max_threshold', 'charge', 'cmap']
@@ -1293,25 +1304,25 @@ class panelMultipleTextFiles (wx.Panel):
         else:
             evtID = evt.GetId()
 
-        rows = self.filelist.GetItemCount() - 1
+        rows = self.peaklist.GetItemCount() - 1
         if evtID == ID_textPanel_editItem:
             if self.currentItem < 0:
                 print('Please select item in the table first.')
                 return
-            dlg_kwargs = self.OnGetItemInformation(self.currentItem)
 
-            self.editItemDlg = panelModifyTextSettings(self,
-                                                       self.presenter,
-                                                       self.config,
-                                                       **dlg_kwargs)
+            dlg_kwargs = self.peaklist.on_get_item_information(self.currentItem)
+            print(dlg_kwargs)
+
+            self.editItemDlg = panelModifyTextSettings(
+                self, self.presenter, self.config, **dlg_kwargs)
             self.editItemDlg.Centre()
             self.editItemDlg.Show()
         elif evtID == ID_textPanel_edit_selected:
             while rows >= 0:
-                if self.filelist.IsChecked(rows):
-                    information = self.OnGetItemInformation(rows)
+                if self.peaklist.IsChecked(rows):
+                    information = self.peaklist.on_get_item_information(rows)
 
-                    dlg_kwargs = {'select': self.filelist.IsChecked(rows),
+                    dlg_kwargs = {'select': self.peaklist.IsChecked(rows),
                                   'color': information['color'],
                                   'title': information['document'],
                                   'min_threshold': information['min_threshold'],
@@ -1328,9 +1339,9 @@ class panelMultipleTextFiles (wx.Panel):
                 rows -= 1
         elif evtID == ID_ionPanel_edit_all:
             for row in range(rows):
-                information = self.OnGetItemInformation(row)
+                information = self.peaklist.on_get_item_information(row)
 
-                dlg_kwargs = {'select': self.filelist.IsChecked(row),
+                dlg_kwargs = {'select': self.peaklist.IsChecked(row),
                               'color': information['color'],
                               'title': information['document'],
                               'min_threshold': information['min_threshold'],
@@ -1349,14 +1360,14 @@ class panelMultipleTextFiles (wx.Panel):
         """
         @param document: title of the document to be removed from the list
         """
-        row = self.filelist.GetItemCount() - 1
+        row = self.peaklist.GetItemCount() - 1
         while (row >= 0):
-            info = self.OnGetItemInformation(itemID=row)
+            info = self.peaklist.on_get_item_information(itemID=row)
             if info['document'] == document:
-                self.filelist.DeleteItem(row)
+                self.peaklist.DeleteItem(row)
                 row -= 1
             elif document in info['document']:
-                self.filelist.DeleteItem(row)
+                self.peaklist.DeleteItem(row)
                 row -= 1
             else:
                 row -= 1
@@ -1375,10 +1386,10 @@ class panelMultipleTextFiles (wx.Panel):
         Check whether newly assigned color is already in the table and if so, 
         return a different one
         """
-        count = self.filelist.GetItemCount()
+        count = self.peaklist.GetItemCount()
         color_list = []
         for row in range(count):
-            color_list.append(self.filelist.GetItemBackgroundColour(item=row))
+            color_list.append(self.peaklist.GetItemBackgroundColour(item=row))
 
         if new_color in color_list:
             counter = len(self.config.customColors) - 1
@@ -1401,7 +1412,8 @@ class panelMultipleTextFiles (wx.Panel):
             color = self.on_check_duplicate_colors(color)
 
         # add to filelist
-        self.filelist.Append([str(add_dict.get("energy_start", "")),
+        self.peaklist.Append(["",
+                              str(add_dict.get("energy_start", "")),
                               str(add_dict.get("energy_end", "")),
                               str(add_dict.get("charge", "")),
                               str(roundRGB(convertRGB255to1(color))),
@@ -1411,11 +1423,11 @@ class panelMultipleTextFiles (wx.Panel):
                               str(add_dict.get("label", "")),
                               str(add_dict.get("shape", "")),
                               str(add_dict.get("document", ""))])
-        self.filelist.SetItemBackgroundColour(self.filelist.GetItemCount() - 1,
+        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1,
                                               color)
 
         font_color = determineFontColor(color, return_rgb=True)
-        self.filelist.SetItemTextColour(self.filelist.GetItemCount() - 1,
+        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1,
                                         font_color)
 
         if return_color:

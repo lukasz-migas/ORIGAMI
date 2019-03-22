@@ -4,7 +4,7 @@ __all__ = ["byte2str", "str2num", "num2str", "str2int", "float2int", "str2bool"]
 def byte2str(string):
     try:
         return string.decode()
-    except Exception:
+    except Exception as e:
         return string
 
 

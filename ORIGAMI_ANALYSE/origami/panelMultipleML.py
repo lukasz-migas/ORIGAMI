@@ -25,7 +25,7 @@ from os.path import splitext
 from operator import itemgetter
 from natsort import natsorted
 
-from styles import makeTooltip, makeMenuItem
+from styles import makeTooltip, makeMenuItem, EditableListCtrl
 from toolbox import (removeListDuplicates, convertRGB255to1,
                      convertRGB1to255, mlen, determineFontColor,
                      randomColorGenerator)
@@ -68,13 +68,18 @@ class panelMML(wx.Panel):
         self.preprocessMS = False
         self.showLegend = True
         self.addToDocument = False
-
-        self.makeGUI()
-
         self.reverse = False
         self.lastColumn = None
 
-        self.data_processing = self.view.data_processing
+        self._textPanel_peaklist = {
+            0: {"name":"", "tag":"check", "type":"bool"},
+            1: {"name":"filename", "tag":"filename", "type":"str"},
+            2: {"name":"variable", "tag":"energy", "type":"float"},
+            3: {"name":"document", "tag":"document", "type":"str"},
+            4: {"name":"label", "tag":"label", "type":"str"},
+            -1: {"name":"color", "tag":"color", "type":"color"}}
+
+        self.makeGUI()
 
         file_drop_target = DragAndDrop(self)
         self.SetDropTarget(file_drop_target)
@@ -99,6 +104,10 @@ class panelMML(wx.Panel):
         wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.OnDeleteAll)
         wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.onCheckTool)
 
+    def _setup_handling_and_processing(self):
+        self.data_processing = self.view.data_processing
+        self.data_handling = self.view.data_handling
+
     def makeGUI(self):
         """ Make panel GUI """
 
@@ -106,7 +115,7 @@ class panelMML(wx.Panel):
         self.makeListCtrl()
         panelSizer = wx.BoxSizer(wx.VERTICAL)
         panelSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
-        panelSizer.Add(self.filelist, 1, wx.EXPAND | wx.ALL, 5)
+        panelSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
         self.SetSizer(panelSizer)
         self.SetSize((300, -1))
         self.Layout()
@@ -115,13 +124,13 @@ class panelMML(wx.Panel):
          pass
 
     def on_check_selected(self, evt):
-        check = not self.filelist.IsChecked(index=self.currentItem)
-        self.filelist.CheckItem(self.currentItem, check)
+        check = not self.peaklist.IsChecked(index=self.currentItem)
+        self.peaklist.CheckItem(self.currentItem, check)
 
     def makeListCtrl(self):
 
         # init table
-        self.filelist = EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
+        self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
         for item in self.config._multipleFilesSettings:
             order = item['order']
             name = item['name']
@@ -129,18 +138,18 @@ class panelMML(wx.Panel):
                 width = item['width']
             else:
                 width = 0
-            self.filelist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
+            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
 
         filelistTooltip = makeTooltip(delay=3000, reshow=3000,
                                       text="""List of files and their respective energy values. This panel is relatively universal and can be used for aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.""")
-        self.filelist.SetToolTip(filelistTooltip)
+        self.peaklist.SetToolTip(filelistTooltip)
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
         self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.onStartEditingItem)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.onFinishEditingItem)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
-        self.filelist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.onColumnRightClickMenu)
+        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.onColumnRightClickMenu)
 
     def onItemSelected(self, evt):
         self.currentItem = evt.m_itemIndex
@@ -401,8 +410,8 @@ class panelMML(wx.Panel):
     def onChangeColorBatch(self, evt):
         # get number of checked items
         check_count = 0
-        for row in range(self.filelist.GetItemCount()):
-            if self.filelist.IsChecked(index=row):
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
                 check_count += 1
 
         if evt.GetId() == ID_mmlPanel_changeColorBatch_palette:
@@ -413,11 +422,11 @@ class panelMML(wx.Panel):
         else:
             colors = self.presenter.view.panelPlots.onGetColormapList(n_colors=check_count)
 
-        for row in range(self.filelist.GetItemCount()):
-            if self.filelist.IsChecked(index=row):
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
                 color = colors[row]
-                self.filelist.SetItemBackgroundColour(row, convertRGB1to255(color))
-                self.filelist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color),
+                self.peaklist.SetItemBackgroundColour(row, convertRGB1to255(color))
+                self.peaklist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color),
                                                                         return_rgb=True))
 
     # ----
@@ -444,8 +453,8 @@ class panelMML(wx.Panel):
 
     def onAutoUniDec(self, evt):
 
-        for row in range(self.filelist.GetItemCount()):
-            if not self.filelist.IsChecked(index=row):
+        for row in range(self.peaklist.GetItemCount()):
+            if not self.peaklist.IsChecked(index=row):
                 continue
             itemInfo = self.OnGetItemInformation(itemID=row)
 
@@ -459,16 +468,16 @@ class panelMML(wx.Panel):
                                                                                                 self.config.unidec_mzBinSize)))
 
     def onRenameItem(self, old_name, new_name, item_type="Document"):
-        for row in range(self.filelist.GetItemCount()):
+        for row in range(self.peaklist.GetItemCount()):
             itemInfo = self.OnGetItemInformation(itemID=row)
             if item_type == "document":
                 if itemInfo['document'] == old_name:
-                    self.filelist.SetStringItem(index=row,
+                    self.peaklist.SetStringItem(index=row,
                                                 col=self.config.multipleMLColNames['document'],
                                                 label=new_name)
             elif item_type == "filename":
                 if itemInfo['filename'] == old_name:
-                    self.filelist.SetStringItem(index=row,
+                    self.peaklist.SetStringItem(index=row,
                                                 col=self.config.multipleMLColNames['filename'],
                                                 label=new_name)
 
@@ -521,13 +530,13 @@ class panelMML(wx.Panel):
             for i in range(len(self.config._multipleFilesSettings)):
                 self.config._multipleFilesSettings[i]['show'] = True
                 col_width = self.config._multipleFilesSettings[i]['width']
-                self.filelist.SetColumnWidth(i, col_width)
+                self.peaklist.SetColumnWidth(i, col_width)
             return
         elif evtID == ID_mmlPanel_table_hideAll:
             for i in range(len(self.config._multipleFilesSettings)):
                 self.config._multipleFilesSettings[i]['show'] = False
                 col_width = 0
-                self.filelist.SetColumnWidth(i, col_width)
+                self.peaklist.SetColumnWidth(i, col_width)
             return
 
         # check values
@@ -536,7 +545,7 @@ class panelMML(wx.Panel):
         if col_check: col_width = self.config._multipleFilesSettings[col_index]['width']
         else: col_width = 0
         # set new column width
-        self.filelist.SetColumnWidth(col_index, col_width)
+        self.peaklist.SetColumnWidth(col_index, col_width)
 
     def onOpenFile_DnD(self, pathlist):
         self.presenter.on_open_multiple_ML_files(open_type="multiple_files_add",
@@ -612,7 +621,7 @@ class panelMML(wx.Panel):
         check : boolean, sets items to specified state
         override : boolean, skips settings self.allChecked value
         """
-        rows = self.filelist.GetItemCount()
+        rows = self.peaklist.GetItemCount()
 
         if not override:
             if self.allChecked:
@@ -624,7 +633,7 @@ class panelMML(wx.Panel):
 
         if rows > 0:
             for row in range(rows):
-                self.filelist.CheckItem(row, check=check)
+                self.peaklist.CheckItem(row, check=check)
 
     def OnSortByColumn(self, column, overrideReverse=False):
         """
@@ -647,25 +656,25 @@ class panelMML(wx.Panel):
             self.reverse = False
             self.lastColumn = column
 
-        columns = self.filelist.GetColumnCount()
-        rows = self.filelist.GetItemCount()
+        columns = self.peaklist.GetColumnCount()
+        rows = self.peaklist.GetItemCount()
         tempData = []
         # Iterate over row and columns to get data
         for row in range(rows):
             tempRow = []
             for col in range(columns):
-                item = self.filelist.GetItem(itemId=row, col=col)
+                item = self.peaklist.GetItem(itemId=row, col=col)
                 tempRow.append(item.GetText())
-            tempRow.append(self.filelist.IsChecked(index=row))
-            tempRow.append(self.filelist.GetItemBackgroundColour(row))
-            tempRow.append(self.filelist.GetItemTextColour(row))
+            tempRow.append(self.peaklist.IsChecked(index=row))
+            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
+            tempRow.append(self.peaklist.GetItemTextColour(row))
             tempData.append(tempRow)
 
         # Sort data (always by document + another variable
         tempData = natsorted(tempData, key=itemgetter(2, column), reverse=self.reverse)
 
         # Clear table
-        self.filelist.DeleteAllItems()
+        self.peaklist.DeleteAllItems()
 
         checkData, bg_rgb, fg_rgb = [], [], []
         for check in tempData:
@@ -679,18 +688,18 @@ class panelMML(wx.Panel):
         # Reinstate data
         rowList = np.arange(len(tempData))
         for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.filelist.Append(tempData[row])
-            self.filelist.CheckItem(row, check)
-            self.filelist.SetItemBackgroundColour(row, bg_rgb)
-            self.filelist.SetItemTextColour(row, fg_color)
+            self.peaklist.Append(tempData[row])
+            self.peaklist.CheckItem(row, check)
+            self.peaklist.SetItemBackgroundColour(row, bg_rgb)
+            self.peaklist.SetItemTextColour(row, fg_color)
 
         # Now insert it into the document
         for row in range(rows):
-            itemName = self.filelist.GetItem(itemId=row,
+            itemName = self.peaklist.GetItem(itemId=row,
                                              col=self.config.multipleMLColNames['filename']).GetText()
-            docName = self.filelist.GetItem(itemId=row,
+            docName = self.peaklist.GetItem(itemId=row,
                                             col=self.config.multipleMLColNames['document']).GetText()
-            trapCV = str2num(self.filelist.GetItem(itemId=row,
+            trapCV = str2num(self.peaklist.GetItem(itemId=row,
                                                    col=self.config.multipleMLColNames['energy']).GetText())
 
             self.presenter.documentsDict[docName].multipleMassSpectrum[itemName]['trap'] = trapCV
@@ -706,11 +715,11 @@ class panelMML(wx.Panel):
             currentDoc = itemInfo['document']
         except TypeError:
             pass
-        currentItems = self.filelist.GetItemCount() - 1
+        currentItems = self.peaklist.GetItemCount() - 1
         if evt.GetId() == ID_mmlPanel_delete_selected:
             while (currentItems >= 0):
                 itemInfo = self.OnGetItemInformation(itemID=currentItems)
-                item = self.filelist.IsChecked(index=currentItems)
+                item = self.peaklist.IsChecked(index=currentItems)
                 if item == True:
                     msg = "Deleted {} from {}".format(itemInfo['filename'], itemInfo['document'])
                     self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
@@ -719,9 +728,9 @@ class panelMML(wx.Panel):
                         if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0:
                             self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
                     except KeyError: pass
-                    self.filelist.DeleteItem(currentItems)
+                    self.peaklist.DeleteItem(currentItems)
                 currentItems -= 1
-            try: self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[itemInfo['document']])
+            try: self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[itemInfo['document']])
             except KeyError: pass
 
         elif evt.GetId() == ID_mmlPanel_delete_rightClick:
@@ -733,8 +742,8 @@ class panelMML(wx.Panel):
                 if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0:
                     self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
             except KeyError: pass
-            self.filelist.DeleteItem(self.currentItem)
-            try: self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[itemInfo['document']])
+            self.peaklist.DeleteItem(self.currentItem)
+            try: self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[itemInfo['document']])
             except KeyError: pass
             # Combine mass spectra
             self.on_combine_mass_spectra(None, document_name=itemInfo['document'])
@@ -758,10 +767,10 @@ class panelMML(wx.Panel):
                     if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0:
                         self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
                 except KeyError: pass
-                self.filelist.DeleteItem(currentItems)
+                self.peaklist.DeleteItem(currentItems)
                 currentItems -= 1
             # Update tree with new document
-            try: self.presenter.view.panelDocuments.documents.addDocument(docData=self.presenter.documentsDict[itemInfo['document']])
+            try: self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[itemInfo['document']])
             except KeyError: pass
 
     def OnClearTable(self, evt):
@@ -772,10 +781,10 @@ class panelMML(wx.Panel):
         evtID = evt.GetId()
 
         if evtID == ID_mmlPanel_clear_selected:
-            row = self.filelist.GetItemCount() - 1
+            row = self.peaklist.GetItemCount() - 1
             while (row >= 0):
-                if self.filelist.IsChecked(index=row):
-                    self.filelist.DeleteItem(row)
+                if self.peaklist.IsChecked(index=row):
+                    self.peaklist.DeleteItem(row)
                 row -= 1
         else:
             dlg = dlgBox(exceptionTitle='Are you sure?',
@@ -785,7 +794,7 @@ class panelMML(wx.Panel):
                 msg = 'Cancelled clearing operation'
                 self.presenter.view.SetStatusText(msg, 3)
                 return
-            self.filelist.DeleteAllItems()
+            self.peaklist.DeleteAllItems()
 
     def onRemoveDuplicates(self, evt, limitCols=False):
         """
@@ -793,15 +802,15 @@ class panelMML(wx.Panel):
         Its not very efficient!
         """
 
-        columns = self.filelist.GetColumnCount()
-        rows = self.filelist.GetItemCount()
+        columns = self.peaklist.GetColumnCount()
+        rows = self.peaklist.GetItemCount()
 
         tempData = []
         # Iterate over row and columns to get data
         for row in range(rows):
             tempRow = []
             for col in range(columns):
-                item = self.filelist.GetItem(itemId=row, col=col)
+                item = self.peaklist.GetItem(itemId=row, col=col)
 
                 #  We want to make sure certain columns are numbers
                 if col in [self.config.multipleMLColNames['energy']]:
@@ -810,9 +819,9 @@ class panelMML(wx.Panel):
                     tempRow.append(itemData)
                 else:
                     tempRow.append(item.GetText())
-            tempRow.append(self.filelist.IsChecked(index=row))
-            tempRow.append(self.filelist.GetItemBackgroundColour(row))
-            tempRow.append(self.filelist.GetItemTextColour(row))
+            tempRow.append(self.peaklist.IsChecked(index=row))
+            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
+            tempRow.append(self.peaklist.GetItemTextColour(row))
             tempData.append(tempRow)
 
         # Remove duplicates
@@ -821,7 +830,7 @@ class panelMML(wx.Panel):
                                         limitedCols=['filename', 'document'])
         rows = len(tempData)
         # Clear table
-        self.filelist.DeleteAllItems()
+        self.peaklist.DeleteAllItems()
 
         checkData, bg_rgb, fg_rgb = [], [], []
         for check in tempData:
@@ -835,10 +844,10 @@ class panelMML(wx.Panel):
         # Reinstate data
         rowList = np.arange(len(tempData))
         for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.filelist.Append(tempData[row])
-            self.filelist.CheckItem(row, check)
-            self.filelist.SetItemBackgroundColour(row, bg_rgb)
-            self.filelist.SetItemTextColour(row, fg_color)
+            self.peaklist.Append(tempData[row])
+            self.peaklist.CheckItem(row, check)
+            self.peaklist.SetItemBackgroundColour(row, bg_rgb)
+            self.peaklist.SetItemTextColour(row, fg_color)
 
         if evt is None: return
         else:
@@ -846,11 +855,11 @@ class panelMML(wx.Panel):
 
     def OnGetItemInformation(self, itemID, return_list=False):
         # get item information
-        information = {'filename':self.filelist.GetItem(itemID, self.config.multipleMLColNames['filename']).GetText(),
-                       'energy':str2num(self.filelist.GetItem(itemID, self.config.multipleMLColNames['energy']).GetText()),
-                       'document':self.filelist.GetItem(itemID, self.config.multipleMLColNames['document']).GetText(),
-                       'label':self.filelist.GetItem(itemID, self.config.multipleMLColNames['label']).GetText(),
-                       'color':self.filelist.GetItemBackgroundColour(item=itemID),
+        information = {'filename':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['filename']).GetText(),
+                       'energy':str2num(self.peaklist.GetItem(itemID, self.config.multipleMLColNames['energy']).GetText()),
+                       'document':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['document']).GetText(),
+                       'label':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['label']).GetText(),
+                       'color':self.peaklist.GetItemBackgroundColour(item=itemID),
                        }
 
         if return_list:
@@ -867,11 +876,11 @@ class panelMML(wx.Panel):
         """
         @param document: title of the document to be removed from the list
         """
-        row = self.filelist.GetItemCount() - 1
+        row = self.peaklist.GetItemCount() - 1
         while (row >= 0):
             info = self.OnGetItemInformation(itemID=row)
             if info['document'] == document:
-                self.filelist.DeleteItem(row)
+                self.peaklist.DeleteItem(row)
                 row -= 1
             else:
                 row -= 1
@@ -896,8 +905,8 @@ class panelMML(wx.Panel):
             newColour = list(data.GetColour().Get())
             dlg.Destroy()
             # Assign color
-            self.filelist.SetItemBackgroundColour(self.currentItem, newColour)
-            self.filelist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
+            self.peaklist.SetItemBackgroundColour(self.currentItem, newColour)
+            self.peaklist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
             # Retrieve custom colors
             for i in range(15):
                 self.config.customColors[i] = data.GetCustomColour(i)
@@ -941,8 +950,8 @@ class panelMML(wx.Panel):
         _interpolate = True
         show_legend = self.showLegend_check.IsChecked()
         names, colors, xvals_list, yvals_list = [], [], [], []
-        for row in range(self.filelist.GetItemCount()):
-            if not self.filelist.IsChecked(index=row): continue
+        for row in range(self.peaklist.GetItemCount()):
+            if not self.peaklist.IsChecked(index=row): continue
             itemInfo = self.OnGetItemInformation(itemID=row)
             names.append(itemInfo['label'])
             # get mass spectrum information
@@ -1074,12 +1083,12 @@ class panelMML(wx.Panel):
         Check whether newly assigned color is already in the table and if so, 
         return a different one
         """
-        count = self.filelist.GetItemCount()
+        count = self.peaklist.GetItemCount()
         color_list = []
         for row in range(count):
             itemInfo = self.OnGetItemInformation(itemID=row)
             if itemInfo['document'] == document_name:
-                color_list.append(self.filelist.GetItemBackgroundColour(item=row))
+                color_list.append(self.peaklist.GetItemBackgroundColour(item=row))
 
         if new_color in color_list:
             counter = len(self.config.customColors) - 1
@@ -1130,24 +1139,3 @@ class DragAndDrop(wx.FileDropTarget):
         if len(pathlist) > 0:
             self.window.onOpenFile_DnD(pathlist)
 
-
-class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixin,
-                       listmix.ColumnSorterMixin):
-    """
-    Editable list
-    """
-
-    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0):
-        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.TextEditMixin.__init__(self)
-        listmix.CheckListCtrlMixin.__init__(self)
-
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
-
-    def OnBeginLabelEdit(self, event):
-        # Block any attempts to change columns 0 and 1
-        if event.m_col == 0 or event.m_col == 2:
-            event.Veto()
-        else:
-            event.Skip()
