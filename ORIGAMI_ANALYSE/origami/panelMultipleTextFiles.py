@@ -19,19 +19,14 @@
 
 import re
 from copy import deepcopy
-from operator import itemgetter
 from os.path import split
 import wx
-from natsort import natsorted
 from numpy import arange
 
 from document import document as documents
 from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
 from styles import makeMenuItem, makeTooltip, ListCtrl
-from toolbox import (convertRGB1to255, convertRGB255to1, determineFontColor,
-                     getTime, isempty, literal_eval, merge_two_dicts,
-                     randomColorGenerator, randomIntegerGenerator,
-                     removeListDuplicates, roundRGB, str2int, str2num)
+from toolbox import (literal_eval, merge_two_dicts, removeListDuplicates, roundRGB)
 from gui_elements.dialog_selectDocument import panelSelectDocument
 from gui_elements.dialog_panelAsk import panelAsk
 from gui_elements.misc_dialogs import dlgBox
@@ -49,6 +44,13 @@ from ids import ID_textPanel_addToDocument, ID_textPanel_assignColor, ID_textPan
     ID_openTextFiles, ID_textPanel_table_endCE, ID_textPanel_table_charge, ID_textPanel_table_color, \
     ID_textPanel_table_colormap, ID_textPanel_table_alpha, ID_textPanel_table_mask, ID_textPanel_table_document, \
     ID_textPanel_table_label, ID_textPanel_table_shape, ID_textPanel_table_hideAll, ID_textPanel_table_restoreAll
+from utils.color import convertRGB1to255, determineFontColor, convertRGB255to1, randomColorGenerator
+from utils.check import isempty
+from utils.time import getTime
+from utils.random import randomIntegerGenerator
+
+import logging
+logger = logging.getLogger("origami")
 
 
 class panelMultipleTextFiles (wx.Panel):
@@ -62,7 +64,7 @@ class panelMultipleTextFiles (wx.Panel):
         self.presenter = presenter
         self.icons = icons
         self.currentItem = None
-#
+
         self.allChecked = True
         self.reverse = False
         self.lastColumn = None
@@ -108,12 +110,12 @@ class panelMultipleTextFiles (wx.Panel):
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
         wx.EVT_MENU(self, ID_textPanel_editItem, self.OnOpenEditor)
-        wx.EVT_MENU(self, ID_textPanel_check_all, self.OnCheckAllItems)
+#         wx.EVT_MENU(self, ID_textPanel_check_all, self.OnCheckAllItems)
         wx.EVT_MENU(self, ID_textPanel_assignColor, self.OnAssignColor)
-        wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.onCheckTool)
-        wx.EVT_MENU(self, ID_textPanel_automaticOverlay, self.onCheckTool)
-        wx.EVT_MENU(self, ID_textPanel_addToDocument, self.onCheckTool)
-        wx.EVT_MENU(self, ID_textPanel_normalize1D, self.onCheckTool)
+        wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.on_enable_disable_tools)
+        wx.EVT_MENU(self, ID_textPanel_automaticOverlay, self.on_enable_disable_tools)
+        wx.EVT_MENU(self, ID_textPanel_addToDocument, self.on_enable_disable_tools)
+        wx.EVT_MENU(self, ID_textPanel_normalize1D, self.on_enable_disable_tools)
         wx.EVT_MENU(self, ID_textPanel_show_heatmap, self.on_plot)
         wx.EVT_MENU(self, ID_textPanel_show_mobiligram, self.on_plot)
         wx.EVT_MENU(self, ID_textPanel_check_selected, self.on_check_selected)
@@ -169,7 +171,7 @@ class panelMultipleTextFiles (wx.Panel):
             if not self.editItemDlg:
                 self.OnOpenEditor(evt=None)
             else:
-                self.editItemDlg.onUpdateGUI(self.peaklist.on_get_item_information(self.currentItem))
+                self.editItemDlg.onUpdateGUI(self.OnGetItemInformation(self.currentItem))
 
     def onItemSelected(self, evt):
         keyCode = evt.GetKeyCode()
@@ -182,17 +184,11 @@ class panelMultipleTextFiles (wx.Panel):
     def makeToolbar(self):
 
         # Make bindings
-        self.Bind(wx.EVT_TOOL, self.onAddItems, id=ID_addTextFilesToList)
-        self.Bind(wx.EVT_TOOL, self.onAnnotateTool, id=ID_annotateTextFilesMenu)
-        self.Bind(wx.EVT_TOOL, self.onRemoveItems, id=ID_removeTextFilesMenu)
-        self.Bind(wx.EVT_TOOL, self.onProcessItems, id=ID_processTextFilesMenu)
-        self.Bind(wx.EVT_TOOL, self.OnCheckAllItems, id=ID_textPanel_check_all)
-        self.Bind(wx.EVT_TOOL, self.onOverlayTool, id=ID_overlayTextFilesMenu)
-
-        self.check_btn = wx.BitmapButton(
-            self, ID_textPanel_check_all, self.icons.iconsLib['check16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        self.check_btn.SetToolTip(makeTooltip("Check all items\tX"))
+        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_addTextFilesToList)
+        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_annotateTextFilesMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_removeTextFilesMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_processTextFilesMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_overlayTextFilesMenu)
 
         self.add_btn = wx.BitmapButton(
             self, ID_addTextFilesToList, self.icons.iconsLib['add16'],
@@ -223,25 +219,20 @@ class panelMultipleTextFiles (wx.Panel):
                                  size=(105, -1), choices=self.config.overlayChoices,
                                  style=wx.CB_READONLY)
 
-        vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
-
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
-        btn_grid_vert.Add(self.check_btn, (x, 0), wx.GBSpan(
+        btn_grid_vert.Add(self.add_btn, (x, 0), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(vertical_line_1, (x, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid_vert.Add(self.add_btn, (x, 2), wx.GBSpan(
+        btn_grid_vert.Add(self.remove_btn, (x, 1), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.remove_btn, (x, 3), wx.GBSpan(
+        btn_grid_vert.Add(self.annotate_btn, (x, 2), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.annotate_btn, (x, 4), wx.GBSpan(
+        btn_grid_vert.Add(self.process_btn, (x, 3), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.process_btn, (x, 5), wx.GBSpan(
+        btn_grid_vert.Add(self.overlay_btn, (x, 4), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.overlay_btn, (x, 6), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.combo, (x, 7), wx.GBSpan(
+        btn_grid_vert.Add(self.combo, (x, 5), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         return btn_grid_vert
@@ -284,7 +275,7 @@ class panelMultipleTextFiles (wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onAnnotateTool(self, evt):
+    def menu_annotate_tools(self, evt):
         self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignChargeStateText)
         self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignAlphaText)
         self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaskText)
@@ -332,7 +323,7 @@ class panelMultipleTextFiles (wx.Panel):
     def on_add_blank_document_overlay(self, evt):
         self.presenter.onAddBlankDocument(evt=None, document_type='overlay')
 
-    def onAddItems(self, evt):
+    def menu_add_tools(self, evt):
         self.Bind(wx.EVT_MENU, self.presenter.onAddBlankDocument, id=ID_addNewOverlayDoc)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
 
@@ -348,7 +339,7 @@ class panelMultipleTextFiles (wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onRemoveItems(self, evt):
+    def menu_remove_tools(self, evt):
 
         # Make bindings
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_textPanel_delete_all)
@@ -368,7 +359,7 @@ class panelMultipleTextFiles (wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onProcessItems(self, evt):
+    def menu_process_tools(self, evt):
 
         self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_processTextFiles)
         self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_processAllTextFiles)
@@ -380,34 +371,38 @@ class panelMultipleTextFiles (wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onOverlayTool(self, evt):
+    def menu_overlay_tools(self, evt):
 
         self.Bind(wx.EVT_TOOL, self.on_overlay_mobiligram, id=ID_overlayTextfromList1D)
         self.Bind(wx.EVT_TOOL, self.on_overlay_chromatogram, id=ID_overlayTextfromListRT)
         self.Bind(wx.EVT_TOOL, self.on_overlay_heatmap, id=ID_overlayTextFromList)
         self.Bind(wx.EVT_TOOL, self.onOverlayWaterfall, id=ID_overlayTextfromListWaterfall)
-        self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_useProcessedCombinedMenu)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_textPanel_addToDocument)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_textPanel_normalize1D)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_textPanel_automaticOverlay)
+        self.Bind(wx.EVT_MENU, self.on_enable_disable_tools, id=ID_useProcessedCombinedMenu)
+        self.Bind(wx.EVT_TOOL, self.on_enable_disable_tools, id=ID_textPanel_addToDocument)
+        self.Bind(wx.EVT_TOOL, self.on_enable_disable_tools, id=ID_textPanel_normalize1D)
+        self.Bind(wx.EVT_TOOL, self.on_enable_disable_tools, id=ID_textPanel_automaticOverlay)
 
         menu = wx.Menu()
-        self.addToDocument_check = menu.AppendCheckItem(ID_textPanel_addToDocument, "Add overlay plots to document\tA",
-                                                        help="Add overlay results to comparison document")
+        self.addToDocument_check = menu.AppendCheckItem(
+            ID_textPanel_addToDocument, "Add overlay plots to document\tA",
+            help="Add overlay results to comparison document")
         self.addToDocument_check.Check(self.addToDocument)
         menu.AppendSeparator()
-        self.normalize1D_check = menu.AppendCheckItem(ID_textPanel_normalize1D, "Normalize mobiligram/chromatogram dataset\tN",
-                                                      help="Normalize mobiligram/chromatogram before overlaying")
+        self.normalize1D_check = menu.AppendCheckItem(
+            ID_textPanel_normalize1D, "Normalize mobiligram/chromatogram dataset\tN",
+            help="Normalize mobiligram/chromatogram before overlaying")
         self.normalize1D_check.Check(self.normalize1D)
         menu.Append(ID_overlayTextfromList1D, "Overlay mobiligrams (selected)")
         menu.Append(ID_overlayTextfromListRT, "Overlay chromatograms (selected)")
         menu.AppendSeparator()
-        self.useProcessed_check = menu.AppendCheckItem(ID_useProcessedCombinedMenu, "Use processed data (when available)\tP",
-                                                       help="When checked, processed data is used in the overlay (2D) plots.")
+        self.useProcessed_check = menu.AppendCheckItem(
+            ID_useProcessedCombinedMenu, "Use processed data (when available)\tP",
+            help="When checked, processed data is used in the overlay (2D) plots.")
         self.useProcessed_check.Check(self.config.overlay_usedProcessed)
         menu.AppendSeparator()
-        self.automaticPlot_check = menu.AppendCheckItem(ID_textPanel_automaticOverlay, "Overlay automatically\tO",
-                                                        help="Ions will be extracted automatically")
+        self.automaticPlot_check = menu.AppendCheckItem(
+            ID_textPanel_automaticOverlay, "Overlay automatically\tO",
+            help="Ions will be extracted automatically")
         self.automaticPlot_check.Check(self.plotAutomatically)
         menu.Append(ID_overlayTextfromListWaterfall, "Overlay as waterfall (selected)")
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_overlayTextFromList,
@@ -614,12 +609,12 @@ class panelMultipleTextFiles (wx.Panel):
         if ask.ShowModal() == wx.ID_OK:
             pass
 
-        if self.ask_value == None:
+        if self.ask_value is None:
             return
 
         for row in range(rows):
             if self.peaklist.IsChecked(index=row):
-                itemInfo = self.peaklist.on_get_item_information(row)
+                itemInfo = self.OnGetItemInformation(row)
                 document = self.presenter.documentsDict[itemInfo['document']]
                 if not ask_kwargs['keyword'] in ['min_threshold', 'max_threshold']:
                     self.peaklist.SetStringItem(index=row,
@@ -633,35 +628,32 @@ class panelMultipleTextFiles (wx.Panel):
                 # update document
                 self.presenter.documentsDict[document.title] = document
 
-    def onCheckTool(self, evt):
+    def on_enable_disable_tools(self, evt):
         """ Check/uncheck menu item """
         evtID = evt.GetId()
 
         if evtID == ID_useProcessedCombinedMenu:
             self.config.overlay_usedProcessed = not self.config.overlay_usedProcessed
-            args = ("Peak list panel: Using processing data was switched to %s" % self.config.overlay_usedProcessed, 4)
-            self.presenter.onThreading(evt, args, action='updateStatusbar')
+            msg = "Peak list panel: Using processing data was switched to {}".format(self.config.overlay_usedProcessed)
 
         elif evtID == ID_textPanel_addToDocument:
             self.addToDocument = not self.addToDocument
-            args = ("Adding data to comparison document was set to: %s" % self.addToDocument, 4)
-            self.presenter.onThreading(evt, args, action='updateStatusbar')
+            msg = "Adding data to comparison document was set to: {}".format(self.addToDocument)
 
         if evtID == ID_textPanel_normalize1D:
             self.normalize1D = not self.normalize1D
-            args = ("Normalization of mobiligrams/chromatograms was set to: %s" % self.normalize1D, 4)
-            self.presenter.onThreading(evt, args, action='updateStatusbar')
+            msg = "Normalization of mobiligrams/chromatograms was set to: {}".format(self.normalize1D)
 
         if evtID == ID_textPanel_automaticOverlay:
             self.plotAutomatically = not self.plotAutomatically
-            args = ("Automatic 2D overlaying was set to: {}".format(self.plotAutomatically), 4)
-            self.presenter.onThreading(evt, args, action='updateStatusbar')
+            msg = "Automatic 2D overlaying was set to: {}".format(self.plotAutomatically)
 
             if self.plotAutomatically:
                 self.combo.Bind(wx.EVT_COMBOBOX, self.on_overlay_heatmap)
             else:
                 self.combo.Unbind(wx.EVT_COMBOBOX)
 
+        self.presenter.onThreading(evt, args=(msg, 4), action='updateStatusbar')
         wx.Bell()
 
     def on_check_selected(self, evt):
@@ -671,27 +663,27 @@ class panelMultipleTextFiles (wx.Panel):
         check = not self.peaklist.IsChecked(index=self.currentItem)
         self.peaklist.CheckItem(self.currentItem, check=check)
 
-    def OnCheckAllItems(self, evt, check=True, override=False):
-        """
-        Check/uncheck all items in the list
-        ===
-        Parameters:
-        check : boolean, sets items to specified state
-        override : boolean, skips settings self.allChecked value
-        """
-        rows = self.peaklist.GetItemCount()
-
-        if not override:
-            if self.allChecked:
-                self.allChecked = False
-                check = True
-            else:
-                self.allChecked = True
-                check = False
-
-        if rows > 0:
-            for row in range(rows):
-                self.peaklist.CheckItem(row, check=check)
+#     def OnCheckAllItems(self, evt, check=True, override=False):
+#         """
+#         Check/uncheck all items in the list
+#         ===
+#         Parameters:
+#         check : boolean, sets items to specified state
+#         override : boolean, skips settings self.allChecked value
+#         """
+#         rows = self.peaklist.GetItemCount()
+#
+#         if not override:
+#             if self.allChecked:
+#                 self.allChecked = False
+#                 check = True
+#             else:
+#                 self.allChecked = True
+#                 check = False
+#
+#         if rows > 0:
+#             for row in range(rows):
+#                 self.peaklist.CheckItem(row, check=check)
 
     def on_plot(self, evt, itemID=None):
         """
@@ -701,7 +693,7 @@ class panelMultipleTextFiles (wx.Panel):
         if itemID is not None:
             self.currentItem = itemID
 
-        itemInfo = self.peaklist.on_get_item_information(self.currentItem)
+        itemInfo = self.OnGetItemInformation(self.currentItem)
 
         try:
             selectedItem = itemInfo['document']
@@ -769,7 +761,7 @@ class panelMultipleTextFiles (wx.Panel):
             if not self.peaklist.IsChecked(index=row):
                 continue
 
-            itemInfo = self.peaklist.on_get_item_information(row)
+            itemInfo = self.OnGetItemInformation(row)
             try:
                 ion_title = itemInfo['document']
                 document = self.presenter.documentsDict[ion_title]
@@ -860,7 +852,7 @@ class panelMultipleTextFiles (wx.Panel):
                     pass
 
                 # Check that document exists
-                if self.presenter.currentDoc == None:
+                if self.presenter.currentDoc is None:
                     self.presenter.onThreading(None, ('Please select comparison document', 4),
                                                action='updateStatusbar')
                     return
@@ -889,7 +881,7 @@ class panelMultipleTextFiles (wx.Panel):
             currentItems = self.peaklist.GetItemCount() - 1
             while (currentItems >= 0):
                 if self.peaklist.IsChecked(index=currentItems):
-                    itemInfo = self.peaklist.on_get_item_information(itemID=currentItems)
+                    itemInfo = self.OnGetItemInformation(itemID=currentItems)
                     # Delete selected document from dictionary + table
                     try:
                         outcome = self.presenter.view.panelDocuments.documents.removeDocument(
@@ -908,7 +900,7 @@ class panelMultipleTextFiles (wx.Panel):
                 currentItems -= 1
 
         elif evt.GetId() == ID_textPanel_delete_rightClick:
-            itemInfo = self.peaklist.on_get_item_information(itemID=self.currentItem)
+            itemInfo = self.OnGetItemInformation(itemID=self.currentItem)
             # Delete selected document from dictionary + table
             try:
                 outcome = self.presenter.view.panelDocuments.documents.removeDocument(deleteItem=itemInfo['document'],
@@ -935,7 +927,7 @@ class panelMultipleTextFiles (wx.Panel):
             else:
                 currentItems = self.peaklist.GetItemCount() - 1
                 while (currentItems >= 0):
-                    itemInfo = self.peaklist.on_get_item_information(itemID=currentItems)
+                    itemInfo = self.OnGetItemInformation(itemID=currentItems)
                     # Delete selected document from dictionary + table
                     try:
                         outcome = self.presenter.view.panelDocuments.documents.removeDocument(
@@ -954,17 +946,15 @@ class panelMultipleTextFiles (wx.Panel):
         self.presenter.onThreading(evt, ("Remaining items {}".format(self.peaklist.GetItemCount()), 4, 3),
                                    action='updateStatusbar')
 
-    def onCheckDuplicates(self, fileName=None):
+    def onCheckDuplicates(self, fileName):
         currentItems = self.peaklist.GetItemCount() - 1
         while (currentItems >= 0):
-            itemInfo = self.peaklist.on_get_item_information(currentItems)
-            fileInTable = itemInfo['document']
-            if fileInTable == fileName:
-                print(('File ' + fileInTable + ' already in the table'))
+            itemInfo = self.OnGetItemInformation(currentItems)
+            if itemInfo['document'] == fileName:
+                logger.info("File {} already in the table - skipping".format(itemInfo['document']))
                 currentItems = 0
                 return True
-            else:
-                currentItems -= 1
+            currentItems -= 1
         return False
 
     def onRemoveDuplicates(self, evt):
@@ -1050,7 +1040,7 @@ class panelMultipleTextFiles (wx.Panel):
 #         Sort data in filelist based on pressed column
 #         """
 #         # Check if it should be reversed
-#         if self.lastColumn == None:
+#         if self.lastColumn is None:
 #             self.lastColumn = column
 #         elif self.lastColumn == column:
 #             if self.reverse == True:
@@ -1107,25 +1097,25 @@ class panelMultipleTextFiles (wx.Panel):
 
     def OnGetItemInformation(self, itemID, return_list=False):
 
-        # get item information
-        information = {'minCE': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['start']).GetText()),
-                       'maxCE': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['end']).GetText()),
-                       'charge': str2int(self.peaklist.GetItem(itemID, self.config.textlistColNames['charge']).GetText()),
-                       'color': self.peaklist.GetItemBackgroundColour(item=itemID),
-                       'color_255to1': convertRGB255to1(self.peaklist.GetItemBackgroundColour(item=itemID), decimals=3),
-                       'colormap': self.peaklist.GetItem(itemID, self.config.textlistColNames['colormap']).GetText(),
-                       'alpha': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['alpha']).GetText()),
-                       'mask': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['mask']).GetText()),
-                       'label': self.peaklist.GetItem(itemID, self.config.textlistColNames['label']).GetText(),
-                       'shape': self.peaklist.GetItem(itemID, self.config.textlistColNames['shape']).GetText(),
-                       'document': self.peaklist.GetItem(itemID, self.config.textlistColNames['filename']).GetText(),
-                       'select': self.peaklist.IsChecked(itemID),
-                       'id': itemID}
+        information = self.peaklist.on_get_item_information(itemID)
+#         # get item information
+#         information = {'minCE': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['start']).GetText()),
+#                        'maxCE': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['end']).GetText()),
+#                        'charge': str2int(self.peaklist.GetItem(itemID, self.config.textlistColNames['charge']).GetText()),
+#                        'color': self.peaklist.GetItemBackgroundColour(item=itemID),
+#                        'color_255to1': convertRGB255to1(self.peaklist.GetItemBackgroundColour(item=itemID), decimals=3),
+#                        'colormap': self.peaklist.GetItem(itemID, self.config.textlistColNames['colormap']).GetText(),
+#                        'alpha': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['alpha']).GetText()),
+#                        'mask': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['mask']).GetText()),
+#                        'label': self.peaklist.GetItem(itemID, self.config.textlistColNames['label']).GetText(),
+#                        'shape': self.peaklist.GetItem(itemID, self.config.textlistColNames['shape']).GetText(),
+#                        'document': self.peaklist.GetItem(itemID, self.config.textlistColNames['filename']).GetText(),
+#                        'select': self.peaklist.IsChecked(itemID),
+#                        'id': itemID}
 
         try:
             flag_error = False
-            self.docs = self.presenter.documentsDict[self.peaklist.GetItem(itemID,
-                                                                           self.config.textlistColNames['filename']).GetText()]
+            document = self.data_handling._on_get_document(information["document"])
         except KeyError:
             flag_error = True
             try:
@@ -1133,40 +1123,25 @@ class panelMultipleTextFiles (wx.Panel):
                 document = self.presenter.documentsDict[document_title]
             except ValueError:
                 return
+
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
 
         if not flag_error:
-            if self.docs.IMS2D:
-                min_threshold = self.docs.IMS2D.get('min_threshold', 0)
-                max_threshold = self.docs.IMS2D.get('max_threshold', 1)
+            if document.IMS2D:
+                min_threshold = document.IMS2D.get('min_threshold', 0)
+                max_threshold = document.IMS2D.get('max_threshold', 1)
             else:
-                min_threshold = self.docs.IMS2DcompData[ion_title].get('min_threshold', 0)
-                max_threshold = self.docs.IMS2DcompData[ion_title].get('max_threshold', 0)
+                min_threshold = document.IMS2DcompData[ion_title].get('min_threshold', 0)
+                max_threshold = document.IMS2DcompData[ion_title].get('max_threshold', 0)
 
         information['min_threshold'] = min_threshold
         information['max_threshold'] = max_threshold
 
-        if return_list:
-            minCE = information['minCE']
-            maxCE = information['maxCE']
-            charge = information['charge']
-            color = information['color']
-            colormap = information['colormap']
-            alpha = information['alpha']
-            mask = information['mask']
-            shape = information['shape']
-            label = information['label']
-            document = information['document']
-            min_threshold = information['min_threshold']
-            max_threshold = information['max_threshold']
-            return minCE, maxCE, charge, color, colormap, alpha, mask, shape, label, document, min_threshold, max_threshold
-
         return information
-    # ----
 
     def OnGetValue(self, value_type='color'):
-        information = self.peaklist.on_get_item_information(self.currentItem)
+        information = self.OnGetItemInformation(self.currentItem)
 
         if value_type == 'minCE':
             return information['minCE']
@@ -1263,8 +1238,8 @@ class panelMultipleTextFiles (wx.Panel):
     def onUpdateDocument(self, evt, itemInfo=None):
 
         # get item info
-        if itemInfo == None:
-            itemInfo = self.peaklist.on_get_item_information(self.currentItem)
+        if itemInfo is None:
+            itemInfo = self.OnGetItemInformation(self.currentItem)
 
         keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold',
                     'max_threshold', 'charge', 'cmap']
@@ -1299,7 +1274,7 @@ class panelMultipleTextFiles (wx.Panel):
 
     def OnOpenEditor(self, evt):
 
-        if evt == None:
+        if evt is None:
             evtID = ID_textPanel_editItem
         else:
             evtID = evt.GetId()
@@ -1310,7 +1285,7 @@ class panelMultipleTextFiles (wx.Panel):
                 print('Please select item in the table first.')
                 return
 
-            dlg_kwargs = self.peaklist.on_get_item_information(self.currentItem)
+            dlg_kwargs = self.OnGetItemInformation(self.currentItem)
             print(dlg_kwargs)
 
             self.editItemDlg = panelModifyTextSettings(
@@ -1320,7 +1295,7 @@ class panelMultipleTextFiles (wx.Panel):
         elif evtID == ID_textPanel_edit_selected:
             while rows >= 0:
                 if self.peaklist.IsChecked(rows):
-                    information = self.peaklist.on_get_item_information(rows)
+                    information = self.OnGetItemInformation(rows)
 
                     dlg_kwargs = {'select': self.peaklist.IsChecked(rows),
                                   'color': information['color'],
@@ -1339,7 +1314,7 @@ class panelMultipleTextFiles (wx.Panel):
                 rows -= 1
         elif evtID == ID_ionPanel_edit_all:
             for row in range(rows):
-                information = self.peaklist.on_get_item_information(row)
+                information = self.OnGetItemInformation(row)
 
                 dlg_kwargs = {'select': self.peaklist.IsChecked(row),
                               'color': information['color'],
@@ -1362,7 +1337,7 @@ class panelMultipleTextFiles (wx.Panel):
         """
         row = self.peaklist.GetItemCount() - 1
         while (row >= 0):
-            info = self.peaklist.on_get_item_information(itemID=row)
+            info = self.OnGetItemInformation(itemID=row)
             if info['document'] == document:
                 self.peaklist.DeleteItem(row)
                 row -= 1
@@ -1432,3 +1407,57 @@ class panelMultipleTextFiles (wx.Panel):
 
         if return_color:
             return color
+
+#     def on_delete_item(self, evt):
+#
+#         itemInfo = self.OnGetItemInformation(itemID=self.currentItem)
+#         msg = "Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
+#             itemInfo['ionName'], itemInfo['document'])
+#         dlg = dlgBox(type="Question",
+#                      exceptionMsg=msg)
+#         if dlg == wx.ID_NO:
+#             print("The operation was cancelled")
+#             return
+#
+#         document = self.data_handling._on_get_document(itemInfo['document'])
+#
+#         __, __ = self.view.panelDocuments.documents.on_delete_data__ions(
+#             document, itemInfo['document'], delete_type="ions.one",
+#             ion_name=itemInfo['ionName'])
+#
+#     def on_delete_selected(self, evt):
+#
+#         itemID = self.peaklist.GetItemCount() - 1
+#         while (itemID >= 0):
+#             if self.peaklist.IsChecked(index=itemID):
+#                 itemInfo = self.OnGetItemInformation(itemID=itemID)
+#                 msg = "Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
+#                     itemInfo['ionName'], itemInfo['document'])
+#                 dlg = dlgBox(exceptionMsg=msg, type="Question")
+#                 if dlg == wx.ID_NO:
+#                     print("The operation was cancelled")
+#                     continue
+#
+#                 document = self.data_handling._on_get_document(itemInfo['document'])
+#                 __, __ = self.view.panelDocuments.documents.on_delete_data__ions(
+#                     document, itemInfo['document'], delete_type="ions.one",
+#                     ion_name=itemInfo['ionName'])
+#             itemID -= 1
+#
+#     def on_delete_all(self, evt):
+#
+#         msg = "Are you sure you would like to delete all EICs from all documents?\nThis action cannot be undone."
+#         dlg = dlgBox(exceptionMsg=msg, type="Question")
+#         if dlg == wx.ID_NO:
+#             print("The operation was cancelled")
+#             return
+#
+#         itemID = self.peaklist.GetItemCount() - 1
+#         while (itemID >= 0):
+#             itemInfo = self.OnGetItemInformation(itemID=itemID)
+#             document = self.data_handling._on_get_document(itemInfo['document'])
+#             __, __ = self.view.panelDocuments.documents.on_delete_data__ions(
+#                 document, itemInfo['document'], delete_type="ions.one",
+#                 ion_name=itemInfo['ionName'])
+#             itemID -= 1
+

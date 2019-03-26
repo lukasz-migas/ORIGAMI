@@ -794,7 +794,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_binary_MS, id=ID_openMSbinFile)
         self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_binary_1D, id=ID_open1DbinFile)
         self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_binary_2D, id=ID_open2DbinFile)
-        self.Bind(wx.EVT_MENU, self.presenter.on_open_text_2D, id=ID_openIMStxtFile)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_text_2D_fcn, id=ID_openIMStxtFile)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2D, id=ID_openTextFilesMenu)
         self.Bind(wx.EVT_MENU, self.presenter.onOpenDocument, id=ID_openDocument)
         self.Bind(wx.EVT_MENU, self.presenter.on_save_document, id=ID_saveDocument)
@@ -1237,7 +1237,7 @@ class MyFrame(wx.Frame):
 
         # Bind events
         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_openORIGAMIRawFile)
-        self.Bind(wx.EVT_TOOL, self.presenter.on_open_text_2D, id=ID_openIMStxtFile)
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_text_2D_fcn, id=ID_openIMStxtFile)
         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_openMassLynxRawFile)
         self.Bind(wx.EVT_TOOL, self.on_open_source_menu, id=ID_mainPanel_openSourceFiles)
 
@@ -2154,7 +2154,7 @@ class MyFrame(wx.Frame):
         elif file_type == 'Infrared':
             self.presenter.onLoadOrigamiDataThreaded(path=file_path, evt=ID_openIRRawFile)
         elif file_type == 'Text':
-            self.presenter.on_open_text_2D(path=file_path, e=ID_openIMStxtFile)
+            self.data_handling.__on_add_text_2D(None, file_path)
         elif file_type == 'Text_MS':
             self.presenter.onMSTextFileFcn(path=file_path)
 
@@ -2167,7 +2167,7 @@ class MyFrame(wx.Frame):
         elif file_extension in ['.txt', '.csv', '.tab']:
             file_format = check_file_type(path=file_path)
             if file_format == "2D":
-                self.presenter.on_open_text_2D(path=file_path, e=ID_openIMStxtFile)
+                self.data_handling.__on_add_text_2D(None, file_path)
             else:
                 self.presenter.onMSTextFile(path=file_path, e=ID_openIMStxtFile)
 

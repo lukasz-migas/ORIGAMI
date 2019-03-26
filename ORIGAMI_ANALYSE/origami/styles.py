@@ -197,6 +197,8 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
             return dict()
 
         information = {}
+        information["id"] = item_id
+        information["select"] = self.IsChecked(item_id)
 
         for column in self.column_info:
             item_tag = self.column_info[column]["tag"]
@@ -214,7 +216,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
 
     @staticmethod
     def _convert_type(item_value, item_type):
-        print(item_value, item_type)
+
         if item_type == "bool":
             return bool(item_value)
         elif item_type == "int":

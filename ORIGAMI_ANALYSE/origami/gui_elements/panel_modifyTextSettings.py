@@ -229,16 +229,16 @@ class panelModifyTextSettings(wx.MiniFrame):
     def onApply(self, evt):
         self.onCheckID()
         if self.importEvent: return
-        self.parent.filelist.CheckItem(self.itemInfo['id'], self.text_select_value.GetValue())
-        self.parent.filelist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['charge'],
+        self.parent.peaklist.CheckItem(self.itemInfo['id'], self.text_select_value.GetValue())
+        self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['charge'],
                                            self.text_charge_value.GetValue())
-        self.parent.filelist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['colormap'],
+        self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['colormap'],
                                            self.text_colormap_value.GetStringSelection())
-        self.parent.filelist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['mask'],
+        self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['mask'],
                                            num2str(self.text_mask_value.GetValue()))
-        self.parent.filelist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['alpha'],
+        self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['alpha'],
                                            num2str(self.text_transparency_value.GetValue()))
-        self.parent.filelist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['label'],
+        self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['label'],
                                            self.text_label_value.GetValue())
 
         # update ion information
@@ -324,7 +324,7 @@ class panelModifyTextSettings(wx.MiniFrame):
             self.text_color_value.SetBackgroundColour(color)
         else:
             color = self.text_color_value.GetBackgroundColour()
-            self.parent.filelist.SetItemBackgroundColour(self.itemInfo['id'], color)
+            self.parent.peaklist.SetItemBackgroundColour(self.itemInfo['id'], color)
 
     def onRestrictCmaps(self, evt):
         """
@@ -350,7 +350,7 @@ class panelModifyTextSettings(wx.MiniFrame):
 
     def onGetNext(self, evt):
         self.onCheckID()
-        count = self.parent.filelist.GetItemCount() - 1
+        count = self.parent.peaklist.GetItemCount() - 1
         if self.itemInfo['id'] == count:
             new_id = 0
         else:
@@ -365,7 +365,7 @@ class panelModifyTextSettings(wx.MiniFrame):
 
     def onGetPrevious(self, evt):
         self.onCheckID()
-        count = self.parent.filelist.GetItemCount() - 1
+        count = self.parent.peaklist.GetItemCount() - 1
         if self.itemInfo['id'] == 0:
             new_id = count
         else:
@@ -385,7 +385,7 @@ class panelModifyTextSettings(wx.MiniFrame):
         if information['document'] == self.itemInfo['document']:
             return
         else:
-            count = self.parent.filelist.GetItemCount()
+            count = self.parent.peaklist.GetItemCount()
             for row in range(count):
                 information = self.parent.OnGetItemInformation(row)
                 if information['document'] == self.itemInfo['document']:

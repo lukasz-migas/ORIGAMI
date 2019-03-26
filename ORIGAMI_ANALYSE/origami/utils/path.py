@@ -2,7 +2,7 @@ import os
 from utils.converters import byte2str
 
 import logging
-logger = logging.getLogger("specML")
+logger = logging.getLogger("origami")
 
 __all__ = ["get_path_and_fname", "clean_up_folder", "check_waters_path"]
 
@@ -17,7 +17,7 @@ def get_path_and_fname(path, simple=False):
     """
 
     # strip file extension from path name
-    if path.endswith((".hdi", ".imzML", ".raw", ".pickle")):
+    if path.endswith((".hdi", ".imzML", ".raw", ".pickle", ".csv", ".txt", ".RAW", ".mzML", ".mgf")):
         path, _ = os.path.splitext(path)
 
     full_path = path
@@ -29,6 +29,10 @@ def get_path_and_fname(path, simple=False):
         return path, byte2str(fname)
 
     return full_path, path, fname, is_path
+
+
+def get_path_and_extension(path):
+    return os.path.splitext(path)
 
 
 def clean_up_folder(filepath):

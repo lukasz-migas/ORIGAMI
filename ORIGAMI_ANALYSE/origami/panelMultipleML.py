@@ -854,21 +854,22 @@ class panelMML(wx.Panel):
             evt.Skip()
 
     def OnGetItemInformation(self, itemID, return_list=False):
-        # get item information
-        information = {'filename':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['filename']).GetText(),
-                       'energy':str2num(self.peaklist.GetItem(itemID, self.config.multipleMLColNames['energy']).GetText()),
-                       'document':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['document']).GetText(),
-                       'label':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['label']).GetText(),
-                       'color':self.peaklist.GetItemBackgroundColour(item=itemID),
-                       }
-
-        if return_list:
-            filename = information['filename']
-            energy = information['energy']
-            document = information['document']
-            label = information['label']
-            color = information['color']
-            return filename, energy, document, label, color
+        return self.peaklist.on_get_item_information(itemID)
+#         # get item information
+#         information = {'filename':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['filename']).GetText(),
+#                        'energy':str2num(self.peaklist.GetItem(itemID, self.config.multipleMLColNames['energy']).GetText()),
+#                        'document':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['document']).GetText(),
+#                        'label':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['label']).GetText(),
+#                        'color':self.peaklist.GetItemBackgroundColour(item=itemID),
+#                        }
+#
+#         if return_list:
+#             filename = information['filename']
+#             energy = information['energy']
+#             document = information['document']
+#             label = information['label']
+#             color = information['color']
+#             return filename, energy, document, label, color
 
         return information
 

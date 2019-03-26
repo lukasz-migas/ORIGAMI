@@ -89,11 +89,14 @@ class panelPlot(wx.Panel):
         self.onPageChanged(evt=None)
 
         # initilise pub
-        pub.subscribe(self._update_label_position, 'update_text_position')  # update position of label
+        pub.subscribe(self._update_label_position, 'update_text_position')
 
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
+
+    def on_get_current_page(self):
+        self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
 
     def _get_page_text(self):
         self.on_get_current_page()
@@ -102,7 +105,6 @@ class panelPlot(wx.Panel):
     def _set_page(self, page_name):
         self.mainBook.SetSelection(page_name)
 
-    # TODO: arrow positions should be updated automatically
     def _update_label_position(self, text_obj):
         document_title, dataset_name, annotation_name, text_type = text_obj.obj_name.split('|-|')
 

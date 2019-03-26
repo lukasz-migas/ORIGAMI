@@ -1306,19 +1306,19 @@ class ORIGAMI(object):
             # Update documents tree
             self.view.panelDocuments.documents.add_document(docData=self.docs)
 
-    def on_open_text_2D(self, e=None, path=None):
-
-        if path is None:
-            dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.txt; *.csv" ,
-                               style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-            if dlg.ShowModal() == wx.ID_OK:
-                print("You chose %s" % dlg.GetPath())
-                path = dlg.GetPath()
-            dlg.Destroy()
-            if path is not None:
-                self.on2DTextFileFcn(path=path)
-        else:
-            self.on2DTextFileFcn(path=path)
+#     def on_open_text_2D(self, e=None, path=None):
+#
+#         if path is None:
+#             dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.txt; *.csv" ,
+#                                style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+#             if dlg.ShowModal() == wx.ID_OK:
+#                 print("You chose %s" % dlg.GetPath())
+#                 path = dlg.GetPath()
+#             dlg.Destroy()
+#             if path is not None:
+#                 self.on2DTextFileFcn(path=path)
+#         else:
+#             self.on2DTextFileFcn(path=path)
 
     def on2DTextFileFcn(self, path=None, e=None):
         self.view.onPaneOnOff(evt=ID_window_textList, check=True)

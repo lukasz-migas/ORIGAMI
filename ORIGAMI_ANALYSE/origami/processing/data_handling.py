@@ -1,18 +1,23 @@
 import wx
 import os
+import threading
 from pubsub import pub
 import numpy as np
 
 import readers.io_text_files as io_text
-
 from document import document as documents
+from ids import ID_window_ionList, ID_window_multiFieldList
+from gui_elements.misc_dialogs import dlgBox
+from utils.check import isempty
+from utils.time import getTime
+from utils.path import get_path_and_fname
 from utils.converters import byte2str
 from utils.random import randomIntegerGenerator
 from utils.color import convertRGB255to1, convertRGB1to255
-from ids import ID_window_ionList, ID_window_multiFieldList
-from utils.check import isempty
-from gui_elements.misc_dialogs import dlgBox
-from utils.time import getTime
+
+import logging
+
+logger = logging.getLogger("origami")
 
 
 class data_handling():
@@ -42,6 +47,26 @@ class data_handling():
         # Setup listeners
         pub.subscribe(self.extract_from_plot_1D, 'extract_from_plot_1D')
         pub.subscribe(self.extract_from_plot_2D, 'extract_from_plot_2D')
+
+    def on_threading(self, action, args):
+        """
+        Execute action using new thread
+        evt: wxPython event
+        args: function arguments
+        action: str
+            decides which action should be taken
+        """
+        if action == "load.text.heatmap":
+            th = threading.Thread(target=self.on_open_single_text_2D, args=args)
+
+        # Start thread
+        try:
+            if self.config.debug:
+                logger.info("Executing action using seperate thread")
+            th.start()
+        except Exception as e:
+            logger.warning('Failed to execute the operation in threaded mode. Consider switching it off?')
+            logger.error(e)
 
     def _on_get_document(self, document_title=None):
         if document_title is None:
@@ -138,32 +163,32 @@ class data_handling():
         self.presenter.documentsDict[document.title] = document
         self.presenter.currentDoc = document.title
 
-    @staticmethod
-    def get_path_and_fname(path, simple=False):
-        """
-        Retrieve file path and filename. Also check whether path exists.
-        path: str
-            file path
-        simple: bool
-            only return path (without filename) and filename
-        """
-
-        # strip file extension from path name
-        if path.endswith((".hdi", ".imzML", ".raw", ".pickle")):
-            path, _ = os.path.splitext(path)
-
-        full_path = path
-        path, fname = os.path.split(path)
-        fname, _ = os.path.splitext(fname)
-        is_path = os.path.isdir(path)
-
-        if simple:
-            return path, byte2str(fname)
-
-        return full_path, path, fname, is_path
+#     @staticmethod
+#     def get_path_and_fname(path, simple=False):
+#         """
+#         Retrieve file path and filename. Also check whether path exists.
+#         path: str
+#             file path
+#         simple: bool
+#             only return path (without filename) and filename
+#         """
+#
+#         # strip file extension from path name
+#         if path.endswith((".hdi", ".imzML", ".raw", ".pickle")):
+#             path, _ = os.path.splitext(path)
+#
+#         full_path = path
+#         path, fname = os.path.split(path)
+#         fname, _ = os.path.splitext(fname)
+#         is_path = os.path.isdir(path)
+#
+#         if simple:
+#             return path, byte2str(fname)
+#
+#         return full_path, path, fname, is_path
 
     def extract_from_plot_1D(self, xvalsMin, xvalsMax, yvalsMax, currentView=None, currentDoc=""):
-        self.currentPage = self.panelPlots._get_page_text()
+        self.currentPage = self.plotsPanel._get_page_text()
         self.SetStatusText("", number=4)
 
         document = self._on_get_document()
@@ -176,7 +201,7 @@ class data_handling():
 
         # Extract mass spectrum from mobiligram window
         elif self.currentPage == '1D':
-            dt_label = self.panelPlots.plot1D.plot_labels.get("xlabel", "Drift time (bins)")
+            dt_label = self.plotsPanel.plot1D.plot_labels.get("xlabel", "Drift time (bins)")
 
             if xvalsMin == None or xvalsMax == None:
                 args = ('Your extraction range was outside the window. Please try again', 4)
@@ -250,7 +275,7 @@ class data_handling():
                 self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
 
                 if self.config.showRectanges:
-                    self.panelPlots.on_plot_patches(mzStart, 0, (mzEnd - mzStart), 100000000000,
+                    self.plotsPanel.on_plot_patches(mzStart, 0, (mzEnd - mzStart), 100000000000,
                                                     color=color, alpha=self.config.markerTransparency_1D,
                                                     repaint=True)
 
@@ -269,7 +294,7 @@ class data_handling():
                                                             self.presenter.currentDoc])
 
                 if self.config.showRectanges:
-                    self.panelPlots.on_plot_patches(mzStart, 0, (mzEnd - mzStart), 100000000000,
+                    self.plotsPanel.on_plot_patches(mzStart, 0, (mzEnd - mzStart), 100000000000,
                                                     color=self.config.annotColor,
                                                     alpha=self.config.markerTransparency_1D,
                                                     repaint=True)
@@ -332,14 +357,14 @@ class data_handling():
                                                      xvalDiff, "",
                                                      self.presenter.currentDoc])
 
-            self.panelPlots.on_add_patch(xvalsMin, 0, (xvalsMax - xvalsMin), 100000000000,
+            self.plotsPanel.on_add_patch(xvalsMin, 0, (xvalsMax - xvalsMin), 100000000000,
                                          color=self.config.annotColor,
                                          alpha=(self.config.annotTransparency / 100),
                                          repaint=True, plot="RT")
 
         # Extract mass spectrum from chromatogram window
         elif self.currentPage == 'RT' and document.dataType != 'Type: Multifield Linear DT':
-            rt_label = self.panelPlots.plotRT.plot_labels.get("xlabel", "Scans")
+            rt_label = self.plotsPanel.plotRT.plot_labels.get("xlabel", "Scans")
 
             # Get values
             if xvalsMin == None or xvalsMax == None:
@@ -368,14 +393,14 @@ class data_handling():
             return
 
     def extract_from_plot_2D(self, dataOut):
-        self.currentPage = self.panelPlots.mainBook.GetPageText(self.panelPlots.mainBook.GetSelection())
+        self.currentPage = self.plotsPanel._get_page_text()
 
         if self.currentPage == "DT/MS":
-            xlabel = self.panelPlots.plotMZDT.plot_labels.get("xlabel", "m/z")
-            ylabel = self.panelPlots.plotMZDT.plot_labels.get("ylabel", "Drift time (bins)")
+            xlabel = self.plotsPanel.plotMZDT.plot_labels.get("xlabel", "m/z")
+            ylabel = self.plotsPanel.plotMZDT.plot_labels.get("ylabel", "Drift time (bins)")
         elif self.currentPage == "2D":
-            xlabel = self.panelPlots.plot2D.plot_labels.get("xlabel", "Scans")
-            ylabel = self.panelPlots.plot2D.plot_labels.get("ylabel", "Drift time (bins)")
+            xlabel = self.plotsPanel.plot2D.plot_labels.get("xlabel", "Scans")
+            ylabel = self.plotsPanel.plot2D.plot_labels.get("ylabel", "Drift time (bins)")
 
         xmin, xmax, ymin, ymax = dataOut
         if xmin == None or xmax == None or ymin == None or ymax == None:
@@ -416,6 +441,19 @@ class data_handling():
                                                       units_x=xlabel, units_y=ylabel)
         self.SetStatusText("", number=4)
 
+    def on_open_text_2D_fcn(self, evt):
+        if self.config.threading:
+            self.on_threading("load.text.heatmap", (evt,))
+
+    def on_open_single_text_2D(self, evt):
+        dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.txt; *.csv" ,
+                           style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+        if dlg.ShowModal() == wx.ID_OK:
+            filepath = dlg.GetPath()
+            __, filename = get_path_and_fname(filepath, simple=True)
+            self.__on_add_text_2D(filename, filepath)
+        dlg.Destroy()
+
     def on_open_multiple_text_2D(self, evt):
 
         self.view.onPaneOnOff(evt="text", check=True)
@@ -428,70 +466,76 @@ class data_handling():
             pathlist = dlg.GetPaths()
             filenames = dlg.GetFilenames()
             for filepath, filename in zip(pathlist, filenames):
-                filepath = byte2str(filepath)
-                if self.textPanel.onCheckDuplicates(fileName=filename):
-                    continue
+                self.__on_add_text_2D(filename, filepath)
 
-                # Load data for each file
-                imsData2D, xAxisLabels, yAxisLabels = io_text.text_heatmap_open(path=filepath)
-                imsData1D = np.sum(imsData2D, axis=1).T
-                rtDataY = np.sum(imsData2D, axis=0)
-
-                # Try to extract labels from the text file
-                if isempty(xAxisLabels) or isempty(yAxisLabels):
-                    xAxisLabels, yAxisLabels = "", ""
-                    xlabel_start, xlabel_end = "", ""
-
-                    msg = "Missing x/y-axis labels for {}!".format(filename) + \
-                        " Consider adding x/y-axis to your file to obtain full functionality."
-                    dlgBox(exceptionTitle='Missing data', exceptionMsg=msg, type="Warning")
-                else:
-                    xlabel_start, xlabel_end = xAxisLabels[0], xAxisLabels[-1]
-
-                add_dict = {
-                    'energy_start':xlabel_start,
-                    'energy_end':xlabel_end,
-                    'charge':"",
-                    "color":self.config.customColors[randomIntegerGenerator(0, 15)],
-                    "colormap":self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
-                    'alpha':self.config.overlay_defaultMask,
-                    'mask':self.config.overlay_defaultAlpha,
-                    'label':"",
-                    'shape':imsData2D.shape,
-                    'document':filename}
-
-                color = self.textPanel.on_add_to_table(add_dict, return_color=True)
-                color = convertRGB255to1(color)
-
-                # Set XY limits
-#                 self.setXYlimitsRMSD2D(xAxisLabels, yAxisLabels)
-
-                # Split filename to get path
-                path, filename = self.get_path_and_fname(filepath, simple=True)
-                # Add data to document
-                document = documents()
-                document.title = filename
-                document.path = path
-                document.userParameters = self.config.userParameters
-                document.userParameters['date'] = getTime()
-                document.dataType = 'Type: 2D IM-MS'
-                document.fileFormat = 'Format: Text (.csv/.txt)'
-                document.got2DIMS = True
-                document.IMS2D = {'zvals':imsData2D,
-                                   'xvals':xAxisLabels,
-                                   'xlabels':'Collision Voltage (V)',
-                                   'yvals':yAxisLabels,
-                                   'yvals1D':imsData1D,
-                                   'yvalsRT':rtDataY,
-                                   'ylabels':'Drift time (bins)',
-                                   'cmap':self.config.currentCmap,
-                                   'mask':self.config.overlay_defaultMask,
-                                   'alpha':self.config.overlay_defaultAlpha,
-                                   'min_threshold':0,
-                                   'max_threshold':1,
-                                   'color':color}
-
-                # Update document
-                self.view.updateRecentFiles(path={'file_type':'Text', 'file_path':path})
-                self.on_update_document(document, 'document')
         dlg.Destroy()
+
+    def __on_add_text_2D(self, filename, filepath):
+
+        if filename is None:
+            _, filename = get_path_and_fname(filepath, simple=True)
+
+        # Split filename to get path
+        path, filename = get_path_and_fname(filepath, simple=True)
+
+        filepath = byte2str(filepath)
+        if self.textPanel.onCheckDuplicates(filename):
+            return
+
+        # load heatmap information and split into individual components
+        array_2D, xAxisLabels, yAxisLabels = io_text.text_heatmap_open(path=filepath)
+        array_1D_mob = np.sum(array_2D, axis=1).T
+        array_1D_RT = np.sum(array_2D, axis=0)
+
+        # Try to extract labels from the text file
+        if isempty(xAxisLabels) or isempty(yAxisLabels):
+            xAxisLabels, yAxisLabels = "", ""
+            xlabel_start, xlabel_end = "", ""
+
+            msg = "Missing x/y-axis labels for {}!".format(filename) + \
+                " Consider adding x/y-axis to your file to obtain full functionality."
+            dlgBox(exceptionTitle='Missing data', exceptionMsg=msg, type="Warning")
+        else:
+            xlabel_start, xlabel_end = xAxisLabels[0], xAxisLabels[-1]
+
+        add_dict = {
+            'energy_start':xlabel_start,
+            'energy_end':xlabel_end,
+            'charge':"",
+            "color":self.config.customColors[randomIntegerGenerator(0, 15)],
+            "colormap":self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
+            'alpha':self.config.overlay_defaultMask,
+            'mask':self.config.overlay_defaultAlpha,
+            'label':"",
+            'shape':array_2D.shape,
+            'document':filename}
+
+        color = self.textPanel.on_add_to_table(add_dict, return_color=True)
+        color = convertRGB255to1(color)
+
+        # Add data to document
+        document = documents()
+        document.title = filename
+        document.path = path
+        document.userParameters = self.config.userParameters
+        document.userParameters['date'] = getTime()
+        document.dataType = 'Type: 2D IM-MS'
+        document.fileFormat = 'Format: Text (.csv/.txt)'
+        document.got2DIMS = True
+        document.IMS2D = {'zvals':array_2D,
+                           'xvals':xAxisLabels,
+                           'xlabels':'Collision Voltage (V)',
+                           'yvals':yAxisLabels,
+                           'yvals1D':array_1D_mob,
+                           'yvalsRT':array_1D_RT,
+                           'ylabels':'Drift time (bins)',
+                           'cmap':self.config.currentCmap,
+                           'mask':self.config.overlay_defaultMask,
+                           'alpha':self.config.overlay_defaultAlpha,
+                           'min_threshold':0,
+                           'max_threshold':1,
+                           'color':color}
+
+        # Update document
+        self.view.updateRecentFiles(path={'file_type':'Text', 'file_path':path})
+        self.on_update_document(document, 'document')
