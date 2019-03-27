@@ -397,7 +397,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
     def onActionTool(self, evt):
         label_format = self.label_format.GetStringSelection()
 
-        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_annotPanel_assignChargeState_selected)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_annotPanel_assignChargeState_selected)
         self.Bind(wx.EVT_MENU, self.onDeleteItems, id=ID_annotPanel_deleteSelected_selected)
         self.Bind(wx.EVT_MENU, self.onChangeColour, id=ID_annotPanel_assignColor_selected)
         self.Bind(wx.EVT_MENU, self.onFixIntensity, id=ID_annotPanel_fixIntensity_selected)
@@ -665,7 +665,7 @@ class panelAnnotatePeaks(wx.MiniFrame):
 
             dlg.Destroy()
 
-    def onChangeParameter(self, evt):
+    def on_change_item_parameter(self, evt):
         """ Iterate over list to assign charge state """
 
         rows = self.peaklist.GetItemCount()

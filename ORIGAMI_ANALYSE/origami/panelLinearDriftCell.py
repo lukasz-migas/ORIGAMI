@@ -329,7 +329,7 @@ class topPanel(wx.Panel):
 
         return information
 
-    def onClearItems(self, document):
+    def on_remove_deleted_item(self, document):
         """
         @param document: title of the document to be removed from the list
         """
@@ -703,7 +703,7 @@ class bottomPanel(wx.Panel):
 
         return information
 
-    def onClearItems(self, document):
+    def on_remove_deleted_item(self, document):
         """
         @param document: title of the document to be removed from the list
         """

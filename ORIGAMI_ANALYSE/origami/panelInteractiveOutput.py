@@ -1965,20 +1965,20 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def onColumnRightClickMenu(self, evt):
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_document)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_type)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_file)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_title)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_header)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_footnote)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_colormap)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_page)
-#         self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_tools)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_order)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_label)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_method)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_hideAll)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_interactivePanel_table_restoreAll)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_document)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_type)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_file)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_title)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_header)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_footnote)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_colormap)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_page)
+#         self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_tools)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_order)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_label)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_method)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_hideAll)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_interactivePanel_table_restoreAll)
 
         menu = wx.Menu()
         n = 1
@@ -2020,7 +2020,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
-    def onUpdateTable(self, evt):
+    def on_update_peaklist_table(self, evt):
         evtID = evt.GetId()
 
         # check which event was triggered

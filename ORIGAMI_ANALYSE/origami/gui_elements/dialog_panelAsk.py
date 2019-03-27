@@ -18,12 +18,20 @@ class panelAsk(wx.Dialog):
         self.item_value = kwargs['value_text']
         self.item_validator = kwargs['validator']
 
-        if kwargs['keyword'] == 'charge': self.SetTitle("Assign charge...")
-        elif kwargs['keyword'] == 'alpha': self.SetTitle("Assign transparency...")
-        elif kwargs['keyword'] == 'mask': self.SetTitle("Assign mask...")
-        elif kwargs['keyword'] == 'min_threshold': self.SetTitle("Assign minimum threshold...")
-        elif kwargs['keyword'] == 'max_threshold': self.SetTitle("Assign maximum threshold...")
-        elif kwargs['keyword'] == 'label': self.SetTitle("Assign label...")
+        self.return_value = None
+
+        if kwargs['keyword'] == 'charge':
+            self.SetTitle("Assign charge...")
+        elif kwargs['keyword'] == 'alpha':
+            self.SetTitle("Assign transparency...")
+        elif kwargs['keyword'] == 'mask':
+            self.SetTitle("Assign mask...")
+        elif kwargs['keyword'] == 'min_threshold':
+            self.SetTitle("Assign minimum threshold...")
+        elif kwargs['keyword'] == 'max_threshold':
+            self.SetTitle("Assign maximum threshold...")
+        elif kwargs['keyword'] == 'label':
+            self.SetTitle("Assign label...")
 
         # make gui items
         self.makeGUI()
@@ -44,12 +52,6 @@ class panelAsk(wx.Dialog):
     def onClose(self, evt):
         """Destroy this frame."""
 
-#         self.onApply(evt=None)
-#         if self.item_validator == 'integer':
-#             self.parent.ask_value = int(self.item_value)
-#         elif self.item_validator == 'float':
-#             self.parent.ask_value = float(self.item_value)
-
         self.parent.ask_value = None
         self.Destroy()
     # ----
@@ -58,11 +60,13 @@ class panelAsk(wx.Dialog):
         self.onApply(evt=None)
 
         if self.item_validator == 'integer':
-            self.parent.ask_value = int(self.item_value)
+            self.return_value = int(self.item_value)
         elif self.item_validator == 'float':
-            self.parent.ask_value = float(self.item_value)
+            self.return_value = float(self.item_value)
         elif self.item_validator == 'str':
-            self.parent.ask_value = self.item_value
+            self.return_value = self.item_value
+
+        self.parent.ask_value = self.return_value
 
         self.EndModal(wx.OK)
 
@@ -90,6 +94,7 @@ class panelAsk(wx.Dialog):
 
         self.input_label = wx.StaticText(panel, -1, "Enter value:")
         self.input_label.SetLabel(self.item_label)
+        self.input_label.SetFocus()
 
         if self.item_validator == 'integer':
             self.input_value = wx.SpinCtrlDouble(panel, -1,

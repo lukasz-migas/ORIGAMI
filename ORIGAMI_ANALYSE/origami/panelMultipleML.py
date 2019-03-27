@@ -62,7 +62,6 @@ class panelMML(wx.Panel):
         self.presenter = presenter
         self.icons = icons
 
-        self.currentItem = None
         self.editingItem = None
         self.allChecked = True
         self.preprocessMS = False
@@ -121,11 +120,11 @@ class panelMML(wx.Panel):
         self.Layout()
 
     def __del__(self):
-         pass
+        pass
 
     def on_check_selected(self, evt):
-        check = not self.peaklist.IsChecked(index=self.currentItem)
-        self.peaklist.CheckItem(self.currentItem, check)
+        check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
+        self.peaklist.CheckItem(self.peaklist.item_id, check)
 
     def makeListCtrl(self):
 
@@ -140,19 +139,25 @@ class panelMML(wx.Panel):
                 width = 0
             self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
 
-        filelistTooltip = makeTooltip(delay=3000, reshow=3000,
-                                      text="""List of files and their respective energy values. This panel is relatively universal and can be used for aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.""")
+        tooltip_text = \
+        """
+        List of files and their respective energy values. This panel is relatively universal and can be used for 
+        aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.
+        """
+
+        filelistTooltip = makeTooltip(delay=5000, reshow=3000,
+                                      text=tooltip_text)
         self.peaklist.SetToolTip(filelistTooltip)
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
         self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.onStartEditingItem)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.onFinishEditingItem)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
+#         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.onColumnRightClickMenu)
 
-    def onItemSelected(self, evt):
-        self.currentItem = evt.m_itemIndex
+#     def onItemSelected(self, evt):
+#         self.peaklist.item_id = evt.m_itemIndex
 
     def onStartEditingItem(self, evt):
         self.editingItem = evt.m_itemIndex
@@ -247,9 +252,9 @@ class panelMML(wx.Panel):
         return btn_grid_vert
 
     def onAnnotateTool(self, evt):
-        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_mmlPanel_changeColorBatch_color)
-        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_mmlPanel_changeColorBatch_palette)
-        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_mmlPanel_changeColorBatch_colormap)
+        self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_mmlPanel_changeColorBatch_color)
+        self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_mmlPanel_changeColorBatch_palette)
+        self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_mmlPanel_changeColorBatch_colormap)
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_changeColorBatch_color,
@@ -286,10 +291,10 @@ class panelMML(wx.Panel):
 
     def onRemoveTool(self, evt):
         # Make bindings
-        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_mmlPanel_delete_selected)
+        self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_selected, id=ID_mmlPanel_delete_selected)
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_mmlPanel_delete_all)
-        self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_mmlPanel_clear_all)
-        self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_mmlPanel_clear_selected)
+        self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_all, id=ID_mmlPanel_clear_all)
+        self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_selected, id=ID_mmlPanel_clear_selected)
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_clear_all,
@@ -385,7 +390,7 @@ class panelMML(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_combined_MS)
 
         # Capture which item was clicked
-        self.currentItem = evt.GetIndex()
+        self.peaklist.item_id = evt.GetIndex()
         # Create popup menu
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_plot_MS,
@@ -407,7 +412,7 @@ class panelMML(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onChangeColorBatch(self, evt):
+    def on_change_item_color_batch(self, evt):
         # get number of checked items
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):
@@ -482,12 +487,12 @@ class panelMML(wx.Panel):
                                                 label=new_name)
 
     def onColumnRightClickMenu(self, evt):
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_mmlPanel_table_filename)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_mmlPanel_table_variable)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_mmlPanel_table_document)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_mmlPanel_table_label)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_mmlPanel_table_hideAll)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_mmlPanel_table_restoreAll)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_filename)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_variable)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_document)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_label)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_hideAll)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_restoreAll)
 
         menu = wx.Menu()
         n = 0
@@ -514,7 +519,7 @@ class panelMML(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onUpdateTable(self, evt):
+    def on_update_peaklist_table(self, evt):
         evtID = evt.GetId()
 
         # check which event was triggered
@@ -556,7 +561,7 @@ class panelMML(wx.Panel):
         Function to plot selected MS in the mainWindow
         """
 
-        itemInfo = self.OnGetItemInformation(itemID=self.currentItem)
+        itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
         document = self.presenter.documentsDict[itemInfo['document']]
         if document == None:
             return
@@ -593,7 +598,7 @@ class panelMML(wx.Panel):
         """
         Function to plot selected 1DT in the mainWindow
         """
-        itemInfo = self.OnGetItemInformation(itemID=self.currentItem)
+        itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
         document = self.presenter.documentsDict[itemInfo['document']]
 
         if document == None: return
@@ -711,7 +716,7 @@ class panelMML(wx.Panel):
         """
 
         try:
-            itemInfo = self.OnGetItemInformation(self.currentItem)
+            itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
             currentDoc = itemInfo['document']
         except TypeError:
             pass
@@ -734,7 +739,7 @@ class panelMML(wx.Panel):
             except KeyError: pass
 
         elif evt.GetId() == ID_mmlPanel_delete_rightClick:
-            itemInfo = self.OnGetItemInformation(itemID=self.currentItem)
+            itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
             msg = "Deleted {} from {}".format(itemInfo['filename'], itemInfo['document'])
             self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
             try:
@@ -742,7 +747,7 @@ class panelMML(wx.Panel):
                 if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0:
                     self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
             except KeyError: pass
-            self.peaklist.DeleteItem(self.currentItem)
+            self.peaklist.DeleteItem(self.peaklist.item_id)
             try: self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[itemInfo['document']])
             except KeyError: pass
             # Combine mass spectra
@@ -772,29 +777,6 @@ class panelMML(wx.Panel):
             # Update tree with new document
             try: self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[itemInfo['document']])
             except KeyError: pass
-
-    def OnClearTable(self, evt):
-        """
-        This function clears the table without deleting any items from the document tree
-        """
-        # Ask if you want to delete all items
-        evtID = evt.GetId()
-
-        if evtID == ID_mmlPanel_clear_selected:
-            row = self.peaklist.GetItemCount() - 1
-            while (row >= 0):
-                if self.peaklist.IsChecked(index=row):
-                    self.peaklist.DeleteItem(row)
-                row -= 1
-        else:
-            dlg = dlgBox(exceptionTitle='Are you sure?',
-                                 exceptionMsg="Are you sure you would like to clear the table?",
-                                 type="Question")
-            if dlg == wx.ID_NO:
-                msg = 'Cancelled clearing operation'
-                self.presenter.view.SetStatusText(msg, 3)
-                return
-            self.peaklist.DeleteAllItems()
 
     def onRemoveDuplicates(self, evt, limitCols=False):
         """
@@ -854,26 +836,10 @@ class panelMML(wx.Panel):
             evt.Skip()
 
     def OnGetItemInformation(self, itemID, return_list=False):
-        return self.peaklist.on_get_item_information(itemID)
-#         # get item information
-#         information = {'filename':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['filename']).GetText(),
-#                        'energy':str2num(self.peaklist.GetItem(itemID, self.config.multipleMLColNames['energy']).GetText()),
-#                        'document':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['document']).GetText(),
-#                        'label':self.peaklist.GetItem(itemID, self.config.multipleMLColNames['label']).GetText(),
-#                        'color':self.peaklist.GetItemBackgroundColour(item=itemID),
-#                        }
-#
-#         if return_list:
-#             filename = information['filename']
-#             energy = information['energy']
-#             document = information['document']
-#             label = information['label']
-#             color = information['color']
-#             return filename, energy, document, label, color
-
+        information = self.peaklist.on_get_item_information(itemID)
         return information
 
-    def onClearItems(self, document):
+    def on_remove_deleted_item(self, document):
         """
         @param document: title of the document to be removed from the list
         """
@@ -906,8 +872,8 @@ class panelMML(wx.Panel):
             newColour = list(data.GetColour().Get())
             dlg.Destroy()
             # Assign color
-            self.peaklist.SetItemBackgroundColour(self.currentItem, newColour)
-            self.peaklist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
+            self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
+            self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
             # Retrieve custom colors
             for i in range(15):
                 self.config.customColors[i] = data.GetCustomColour(i)
@@ -928,7 +894,7 @@ class panelMML(wx.Panel):
         # get item info
         if itemInfo == None:
             if itemID == None:
-                itemInfo = self.OnGetItemInformation(self.currentItem)
+                itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
             else:
                 itemInfo = self.OnGetItemInformation(itemID)
 

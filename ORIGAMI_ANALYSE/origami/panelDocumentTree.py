@@ -17,18 +17,18 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-# TODO: Add converter of RT scale from scans to mins
-# TODO: Add converter of MS from m/z to m/z (Da) to m/z (kDa)
-# TODO: Fix on_enable_document
-
-import wx, gc, os, re, time, threading
+import wx
+import gc
+import os
+import re
+import time
+import threading
 import numpy as np
 import pandas as pd
 from operator import itemgetter
 from copy import deepcopy
 from natsort import natsorted
 
-from gui_elements.dialog_askOverride import dialogAskOverride
 from panelAnnotatePeaks import panelAnnotatePeaks
 from panelCompareMS import panelCompareMS
 from panelInformation import panelDocumentInfo
@@ -42,14 +42,16 @@ import readers.io_mgf as io_mgf
 import readers.io_mzid as io_mzid
 import readers.io_mzml as io_mzml
 import readers.io_thermo_raw as io_thermo
+from gui_elements.dialog_askOverride import dialogAskOverride
 from gui_elements.dialog_renameItem import dialogRenameItem
 from gui_elements.dialog_selectDataset import panelSelectDataset
 from gui_elements.misc_dialogs import dlgBox, dlgAsk
-
 from utils.color import convertRGB255to1, convertHEXtoRGB1, convertRGB1to255, determineFontColor
 from utils.random import randomIntegerGenerator
 from utils.converters import str2num, str2int, byte2str
-# import readers.io_waters_raw_api as io_waters_raw_api
+
+import logging
+logger = logging.getLogger("origami")
 
 
 class panelDocuments(wx.Panel):
@@ -74,7 +76,7 @@ class panelDocuments(wx.Panel):
         self.SetSizer(self.sizer)
 
     def __del__(self):
-         pass
+        pass
 
     def makeTreeCtrl(self):
         self.documents = documentsTree(
@@ -135,6 +137,17 @@ class documentsTree(wx.TreeCtrl):
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
+
+        self.plotsPanel = self.view.panelPlots
+
+        self.ionPanel = self.view.panelMultipleIons
+        self.ionList = self.ionPanel.peaklist
+
+        self.textPanel = self.view.panelMultipleText
+        self.textList = self.textPanel.peaklist
+
+        self.filesPanel = self.view.panelMML
+        self.filesList = self.filesPanel.peaklist
 
     def onKey(self, evt):
         """ Shortcut to navigate through Document Tree """
@@ -1185,21 +1198,6 @@ class documentsTree(wx.TreeCtrl):
 
         # Update documents tree
         self.add_document(docData=document)
-
-        # Expand item
-
-#     def set_document(self, document_old, document_new):
-#         # try to get dataset object
-#         try: docItem = self.getItemByData(document_old)
-#         except: docItem = False
-#
-#         if docItem is not False:
-#             try:
-#                 self.SetPyData(docItem, document_new)
-#             except:
-#                 self.presenter.OnUpdateDocument(document_new, 'document')
-#         else:
-#             self.presenter.OnUpdateDocument(document_new, 'document')
 
     def set_document(self, document_old, document_new):
         """Replace old document data with new
@@ -3434,13 +3432,13 @@ class documentsTree(wx.TreeCtrl):
                                                                              new_name,
                                                                              item_type="document")
                 except: pass
-#                 try: self.presenter.view.panelMultipleText.onClearItems(title)
+#                 try: self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
 #                 except: pass
-#                 try: self.presenter.view.panelMML.onClearItems(title)
+#                 try: self.presenter.view.panelMML.on_remove_deleted_item(title)
 #                 except: pass
-#                 try: self.presenter.view.panelLinearDT.topP.onClearItems(title)
+#                 try: self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
 #                 except: pass
-#                 try: self.presenter.view.panelLinearDT.bottomP.onClearItems(title)
+#                 try: self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
 #                 except: pass
 
             elif self.itemType == 'Statistical':
@@ -5269,15 +5267,15 @@ class documentsTree(wx.TreeCtrl):
                     # Remove data from dictionary if removing whole document
                     if evtID == ID_removeDocument  or evtID == None:
                         # make sure to clean-up various tables
-                        try: self.presenter.view.panelMultipleIons.onClearItems(title)
+                        try: self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
                         except: pass
-                        try: self.presenter.view.panelMultipleText.onClearItems(title)
+                        try: self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
                         except: pass
-                        try: self.presenter.view.panelMML.onClearItems(title)
+                        try: self.presenter.view.panelMML.on_remove_deleted_item(title)
                         except: pass
-                        try: self.presenter.view.panelLinearDT.topP.onClearItems(title)
+                        try: self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
                         except: pass
-                        try: self.presenter.view.panelLinearDT.bottomP.onClearItems(title)
+                        try: self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
                         except: pass
 
                         # delete document
@@ -5735,4 +5733,208 @@ class documentsTree(wx.TreeCtrl):
 
             self.presenter.OnUpdateDocument(document, 'document')
             print(("It took {:.4f} seconds to load {}".format(time.time() - tstart, document.title)))
+
+    def on_delete_data__ions(self, document, document_title,
+                             delete_type, ion_name=None,
+                             confirm_deletion=False):
+        """
+        Delete data from document tree and document
+
+        Parameters
+        ----------
+        document: py object
+            document object
+        document_title: str
+            name of the document - also found in document.title
+        delete_type: str
+            type of deletion. Accepted: `ions.all`, `ions.one`
+        ion_name: str
+            name of the EIC item to be deleted
+        confirm_deletion: bool
+            check whether all items should be deleted before performing the task
+
+
+        Returns
+        -------
+        document: py object
+            updated document object
+        outcome: bool
+            result of positive/negative deletion of document tree object
+        """
+
+        if confirm_deletion:
+            msg = "Are you sure you want to continue with this action?" + \
+                  "\nThis action cannot be undone."
+            dlg = dlgBox(exceptionMsg=msg, type="Question")
+            if dlg == wx.ID_NO:
+                logger.info("The operation was cancelled")
+                return document, True
+
+        docItem = False
+        main_docItem = self.getItemByData(document.ion2Dmaps)
+        # delete all ions
+        if delete_type == "ions.all":
+            docItem = self.getItemByData(document.ion2Dmaps)
+            self.ionPanel.on_remove_deleted_item(
+                list(document.ion2Dmaps.keys()), document_title)
+            document.ion2Dmaps = {}
+            document.gotIon2Dmaps = False
+        # delete one ion
+        elif delete_type == "ions.one":
+            self.ionPanel.on_remove_deleted_item([ion_name], document_title)
+            docItem = self.getItemByData(document.ion2Dmaps[ion_name])
+            try:
+                del document.ion2Dmaps[ion_name]
+            except KeyError:
+                msg = "Failed to delete {} from  2D (EIC) dictionary. ".format(ion_name) + \
+                      "You probably have reselect it in the document tree"
+                logger.warning(msg)
+
+        if len(document.ion2Dmaps) == 0:
+            document.gotIon2Dmaps = False
+            try:
+                self.Delete(main_docItem)
+            except Exception:
+                logger.warning("Failed to delete item: 2D (EIC) from the document tree")
+
+        if docItem is False:
+            return document, False
+        else:
+            self.Delete(docItem)
+            return document, True
+
+    def on_delete_data__text(self, document, document_title,
+                             delete_type, ion_name=None,
+                             confirm_deletion=False):
+        """
+        Delete data from document tree and document
+
+        Parameters
+        ----------
+        document: py object
+            document object
+        document_title: str
+            name of the document - also found in document.title
+        delete_type: str
+            type of deletion. Accepted: `ions.all`, `ions.one`
+        ion_name: str
+            name of the EIC item to be deleted
+        confirm_deletion: bool
+            check whether all items should be deleted before performing the task
+
+
+        Returns
+        -------
+        document: py object
+            updated document object
+        outcome: bool
+            result of positive/negative deletion of document tree object
+        """
+
+        if confirm_deletion:
+            msg = "Are you sure you want to continue with this action?" + \
+                  "\nThis action cannot be undone."
+            dlg = dlgBox(exceptionMsg=msg, type="Question")
+            if dlg == wx.ID_NO:
+                logger.info("The operation was cancelled")
+                return document, True
+
+        docItem = False
+        main_docItem = self.getItemByData(document.ion2Dmaps)
+        # delete all ions
+        if delete_type == "text.all":
+            docItem = self.getItemByData(document.ion2Dmaps)
+            self.ionPanel.on_remove_deleted_item(
+                list(document.ion2Dmaps.keys()), document_title)
+            document.ion2Dmaps = {}
+            document.gotIon2Dmaps = False
+        # delete one ion
+        elif delete_type == "text.one":
+            self.ionPanel.on_remove_deleted_item([ion_name], document_title)
+            docItem = self.getItemByData(document.ion2Dmaps[ion_name])
+            try:
+                del document.ion2Dmaps[ion_name]
+            except KeyError:
+                msg = "Failed to delete {} from  2D (EIC) dictionary. ".format(ion_name) + \
+                      "You probably have reselect it in the document tree"
+                logger.warning(msg)
+
+        if len(document.ion2Dmaps) == 0:
+            document.gotIon2Dmaps = False
+            try:
+                self.Delete(main_docItem)
+            except Exception:
+                logger.warning("Failed to delete item: 2D (EIC) from the document tree")
+
+        if docItem is False:
+            return document, False
+        else:
+            self.Delete(docItem)
+            return document, True
+
+    def on_delete_data__document(self, document_title, ask_permission=True):
+        """
+        Remove selected document from the document tree
+        """
+        document = self.data_handling._on_get_document(document_title)
+
+        if ask_permission:
+            dlg = dlgBox(exceptionTitle='Are you sure?',
+                         exceptionMsg="Are you sure you would like to delete {}".format(document_title),
+                         type="Question")
+            if dlg == wx.ID_NO:
+                self.presenter.onThreading(None, ('Cancelled operation', 4, 5)    , action='updateStatusbar')
+                return
+
+        main_docItem = self.getItemByData(document)
+
+        # Delete item from the list
+        if self.ItemHasChildren(main_docItem):
+            child, cookie = self.GetFirstChild(self.GetRootItem())
+            title = self.GetItemText(child)
+            iters = 0
+            while document_title != title and iters < 500:
+                child, cookie = self.GetNextChild(self.GetRootItem(), cookie)
+                try:
+                    title = self.GetItemText(child)
+                    iters += 1
+                except: pass
+
+            if document_title == title:
+                if child:
+                    print(("Deleted {}".format(document_title)))
+                    self.Delete(child)
+                    # make sure to clean-up various tables
+                    try:
+                        self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
+                    except:
+                        pass
+                    try:
+                        self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
+                    except:
+                        pass
+                    try:
+                        self.presenter.view.panelMML.on_remove_deleted_item(title)
+                    except:
+                        pass
+                    try:
+                        self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
+                    except:
+                        pass
+                    try:
+                        self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
+                    except:
+                        pass
+
+                    # delete document
+                    del self.presenter.documentsDict[document_title]
+                    self.presenter.currentDoc = None
+
+                    # go to the next document
+                    if len(self.presenter.documentsDict) > 0:
+                        self.presenter.currentDoc = list(self.presenter.documentsDict.keys())[0]
+                        self.on_enable_document()
+
+                    # collect garbage
+                    gc.collect()
 

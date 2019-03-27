@@ -184,6 +184,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         # specify that simpler sorter should be used to speed things up
         self.use_simple_sorter = kwargs.get("use_simple_sorter", False)
 
+        self.item_id = None
         self.old_column = None
         self.reverse = False
         self.check = False
@@ -191,6 +192,23 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         self.column_info = kwargs.get("column_info", None)
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.on_column_click, self)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item, self)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_activate_item, self)
+        self.Bind(wx.EVT_LIST_KEY_DOWN, self.on_key_select_item, self)
+
+    def on_select_item(self, evt):
+        self.item_id = evt.Index
+
+    def on_activate_item(self, evt):
+        self.item_id = evt.Index
+
+    def on_key_select_item(self, evt):
+        keyCode = evt.GetKeyCode()
+        if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
+            self.item_id = evt.GetIndex()
+
+        if evt != None:
+            evt.Skip()
 
     def on_get_item_information(self, item_id):
         if self.column_info is None:
@@ -474,16 +492,17 @@ class EditableListCtrl(ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMix
     """
 
     def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0):
+                 size=wx.DefaultSize, style=0, **kwargs):
         ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.TextEditMixin.__init__(self)
         listmix.CheckListCtrlMixin.__init__(self)
 
+        self.block_columns = kwargs.get("block_columns", [0, 2])
+
         self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
 
     def OnBeginLabelEdit(self, event):
-        # Block any attempts to change columns 0 and 1
-        if event.m_col == 0 or event.m_col == 2:
+        if event.m_col in self.block_columns:
             event.Veto()
         else:
             event.Skip()

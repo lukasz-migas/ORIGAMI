@@ -68,7 +68,6 @@ class panelMultipleIons(wx.Panel):
         self.config = config
         self.help = helpInfo
         self.presenter = presenter
-        self.currentItem = None
         self.icons = icons
 
         self.listOfSelected = []
@@ -84,7 +83,6 @@ class panelMultipleIons(wx.Panel):
         self.docs = None
         self.reverse = False
         self.lastColumn = None
-        self.currentItem = None
         self.ask_value = None
         self.flag = False  # flag to either show or hide annotation panel
         self.useInternalParams = self.config.useInternalParamsCombine
@@ -165,14 +163,14 @@ class panelMultipleIons(wx.Panel):
     def makeToolbar(self):
 
         # Make bindings
-        self.Bind(wx.EVT_TOOL, self.onAddTool, id=ID_addIonsMenu)
-        self.Bind(wx.EVT_TOOL, self.onRemoveTool, id=ID_removeIonsMenu)
-        self.Bind(wx.EVT_TOOL, self.onExtractTool, id=ID_extractIonsMenu)
-        self.Bind(wx.EVT_TOOL, self.onProcessTool, id=ID_processIonsMenu)
-        self.Bind(wx.EVT_TOOL, self.onSaveTool, id=ID_saveIonsMenu)
-        self.Bind(wx.EVT_TOOL, self.onAnnotateTool, id=ID_showIonsMenu)
-        self.Bind(wx.EVT_TOOL, self.onOverlayTool, id=ID_overlayIonsMenu)
-        self.Bind(wx.EVT_TOOL, self.OnCheckAllItems, id=ID_ionPanel_check_all)
+        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_addIonsMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_removeIonsMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_extract_tools, id=ID_extractIonsMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_processIonsMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_save__tools, id=ID_saveIonsMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_showIonsMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_overlayIonsMenu)
+        self.Bind(wx.EVT_BUTTON, self.OnCheckAllItems, id=ID_ionPanel_check_all)
 
         self.check_btn = wx.BitmapButton(
             self, ID_ionPanel_check_all, self.icons.iconsLib['check16'],
@@ -257,44 +255,19 @@ class panelMultipleIons(wx.Panel):
                 width = 0
             self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
 
+        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click)
-#         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
-#         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.onItemActivated)
-#         self.peaklist.Bind(wx.EVT_LIST_KEY_DOWN, self.onItemSelected)
-#         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
-        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.onColumnRightClickMenu)
+        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
 
-    def on_activate_item(self, evt):
+    def on_double_click_on_item(self, evt):
         """Create annotation for activated peak."""
 
-        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
-        if self.currentItem != -1:
+        if self.peaklist.item_id != -1:
             if not self.editItemDlg:
                 self.OnOpenEditor(evt=None)
             else:
-                self.editItemDlg.onUpdateGUI(self.OnGetItemInformation(self.currentItem))
+                self.editItemDlg.onUpdateGUI(self.OnGetItemInformation(self.peaklist.item_id))
 
-    def onItemActivated(self, evt):
-        """Create annotation for activated peak."""
-
-        self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
-        if self.currentItem != -1:
-            if not self.editItemDlg:
-                self.OnOpenEditor(evt=None)
-            else:
-                self.editItemDlg.onUpdateGUI(self.OnGetItemInformation(self.currentItem))
-
-    def onItemSelected(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
-            self.currentItem = evt.m_itemIndex
-        else:
-            self.currentItem = evt.m_itemIndex
-
-        if evt != None:
-            evt.Skip()
-
-    # ----
     def onRenameItem(self, old_name, new_name, item_type="Document"):
         for row in range(self.peaklist.GetItemCount()):
             itemInfo = self.OnGetItemInformation(itemID=row)
@@ -309,20 +282,20 @@ class panelMultipleIons(wx.Panel):
 #                                                 col=self.config.peaklistColNames['filename'],
 #                                                 label=new_name)
 
-    def onColumnRightClickMenu(self, evt):
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_startMS)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_endMS)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_color)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_colormap)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_charge)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_intensity)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_document)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_alpha)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_mask)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_label)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_method)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_hideAll)
-        self.Bind(wx.EVT_MENU, self.onUpdateTable, id=ID_ionPanel_table_restoreAll)
+    def menu_column_right_click(self, evt):
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_startMS)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_endMS)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_color)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_colormap)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_charge)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_intensity)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_document)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_alpha)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_mask)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_label)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_method)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_hideAll)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_restoreAll)
 
         menu = wx.Menu()
         n = 0
@@ -382,7 +355,7 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_ionPanel_assignColor)
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_ionPanel_delete_rightClick)
 
-        self.currentItem = evt.GetIndex()
+        self.peaklist.item_id = evt.GetIndex()
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_show_zoom_in_MS,
@@ -413,17 +386,17 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onAnnotateTool(self, evt):
+    def menu_annotate_tools(self, evt):
         self.Bind(wx.EVT_MENU, self.presenter.onShowExtractedIons, id=ID_highlightRectAllIons)
-        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignChargeStateIons)
-        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignAlphaIons)
-        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaskIons)
-        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMinThresholdIons)
-        self.Bind(wx.EVT_MENU, self.onChangeParameter, id=ID_assignMaxThresholdIons)
-        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_ionPanel_changeColorBatch_color)
-        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_ionPanel_changeColorBatch_palette)
-        self.Bind(wx.EVT_MENU, self.onChangeColorBatch, id=ID_ionPanel_changeColorBatch_colormap)
-        self.Bind(wx.EVT_MENU, self.onChangeColormap, id=ID_ionPanel_changeColormapBatch)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignChargeStateIons)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignAlphaIons)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignMaskIons)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignMinThresholdIons)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignMaxThresholdIons)
+        self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_ionPanel_changeColorBatch_color)
+        self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_ionPanel_changeColorBatch_palette)
+        self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_ionPanel_changeColorBatch_colormap)
+        self.Bind(wx.EVT_MENU, self.on_change_item_colormap, id=ID_ionPanel_changeColormapBatch)
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_highlightRectAllIons,
@@ -462,7 +435,7 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onAddTool(self, evt):
+    def menu_add_tools(self, evt):
 
         self.Bind(wx.EVT_MENU, self.onOpenPeakList, id=ID_addManyIonsCSV)
         self.Bind(wx.EVT_MENU, self.onDuplicateIons, id=ID_duplicateIons)
@@ -481,7 +454,7 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onExtractTool(self, evt):
+    def menu_extract_tools(self, evt):
 
         self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_ionPanel_automaticExtract)
         self.Bind(wx.EVT_MENU, self.on_extract_all, id=ID_extractAllIons)
@@ -500,7 +473,7 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onOverlayTool(self, evt):
+    def menu_overlay_tools(self, evt):
 
         self.Bind(wx.EVT_TOOL, self.on_overlay_heatmap, id=ID_overlayMZfromList)
         self.Bind(wx.EVT_TOOL, self.on_overlay_mobiligram, id=ID_overlayMZfromList1D)
@@ -535,12 +508,12 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onRemoveTool(self, evt):
+    def menu_remove_tools(self, evt):
         # Make bindings
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_ionPanel_delete_selected)
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_ionPanel_delete_all)
-        self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_ionPanel_clear_all)
-        self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_ionPanel_clear_selected)
+        self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_all, id=ID_ionPanel_clear_all)
+        self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_selected, id=ID_ionPanel_clear_selected)
         self.Bind(wx.EVT_MENU, self.onRemoveDuplicates, id=ID_removeDuplicatesTable)
 
         menu = wx.Menu()
@@ -556,7 +529,7 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onProcessTool(self, evt):
+    def menu_process_tools(self, evt):
 
         self.Bind(wx.EVT_MENU, self.presenter.onCombineCEvoltagesMultiple, id=ID_combineCEscansSelectedIons)
         self.Bind(wx.EVT_MENU, self.presenter.onCombineCEvoltagesMultiple, id=ID_combineCEscans)
@@ -591,7 +564,7 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onSaveTool(self, evt):
+    def menu_save__tools(self, evt):
         self.Bind(wx.EVT_MENU, self.OnSaveSelectedPeakList, id=ID_saveSelectIonListCSV)
         self.Bind(wx.EVT_MENU, self.OnSavePeakList, id=ID_saveIonListCSV)
 
@@ -681,7 +654,7 @@ class panelMultipleIons(wx.Panel):
             else:
                 self.combo.Unbind(wx.EVT_COMBOBOX)
 
-    def onUpdateTable(self, evt):
+    def on_update_peaklist_table(self, evt):
         evtID = evt.GetId()
 
         # check which event was triggered
@@ -756,7 +729,7 @@ class panelMultipleIons(wx.Panel):
         if evt != None:
             evt.Skip()
 
-    def onChangeParameter(self, evt):
+    def on_change_item_parameter(self, evt):
         """ Iterate over list to assign charge state """
 
         rows = self.peaklist.GetItemCount()
@@ -875,11 +848,11 @@ class panelMultipleIons(wx.Panel):
         # Apply all fields for item
         self.onAnnotateItems(evt=None)
         # Check item to recalculate
-        self.peaklist.CheckItem(self.currentItem, check=True)
+        self.peaklist.CheckItem(self.peaklist.item_id, check=True)
         # Recalculate
         self.presenter.onCombineCEvoltagesMultiple(evt=evt)
         # Uncheck item
-        self.peaklist.CheckItem(self.currentItem, check=False)
+        self.peaklist.CheckItem(self.peaklist.item_id, check=False)
 
     def onCheckForDuplicates(self, mzStart=None, mzEnd=None):
         """
@@ -1036,7 +1009,7 @@ class panelMultipleIons(wx.Panel):
         """
         This function extracts 2D array and plots it in 2D/3D
         """
-        itemInfo = self.OnGetItemInformation(self.currentItem)
+        itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
         mzStart = itemInfo['mzStart']
         mzEnd = itemInfo['mzEnd']
         intensity = itemInfo['intensity']
@@ -1162,10 +1135,10 @@ class panelMultipleIons(wx.Panel):
             except KeyError: pass
 
         elif evt.GetId() == ID_ionPanel_delete_rightClick:
-            itemInfo = self.OnGetItemInformation(itemID=self.currentItem)
+            itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
             msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
             self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-            itemID = [itemInfo['document'], itemInfo['ionName'], self.currentItem]
+            itemID = [itemInfo['document'], itemInfo['ionName'], self.peaklist.item_id]
             if itemID != None:
                 msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
                 self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
@@ -1190,7 +1163,7 @@ class panelMultipleIons(wx.Panel):
                     if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
                         self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
                 except KeyError: pass
-                self.peaklist.DeleteItem(self.currentItem)
+                self.peaklist.DeleteItem(self.peaklist.item_id)
                 # update document
                 try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
                 except KeyError: pass
@@ -1294,30 +1267,6 @@ class panelMultipleIons(wx.Panel):
         """
         print()
 
-    def OnClearTable(self, evt):
-        """
-        This function clears the table without deleting any items from the document tree
-        """
-        evtID = evt.GetId()
-
-        if evtID == ID_ionPanel_clear_selected:
-            row = self.peaklist.GetItemCount() - 1
-            while (row >= 0):
-                if self.peaklist.IsChecked(index=row):
-                    self.peaklist.DeleteItem(row)
-                row -= 1
-        else:
-            # Ask if you want to delete all items
-            dlg = dlgBox(exceptionTitle='Are you sure?',
-                                 exceptionMsg="Are you sure you would like to clear the table?",
-                                 type="Question")
-            if dlg == wx.ID_NO:
-                self.presenter.onThreading(evt, ('Cancelled operation', 4), action='updateStatusbar')
-                return
-            self.peaklist.DeleteAllItems()
-
-        self.on_replot_patch_on_MS(evt=None)
-
     def onDuplicateIons(self, evt):
 
         # Create a list of keys in the dictionary
@@ -1420,7 +1369,7 @@ class panelMultipleIons(wx.Panel):
     # ----
 
     def OnGetValue(self, value_type='color'):
-        information = self.OnGetItemInformation(self.currentItem)
+        information = self.OnGetItemInformation(self.peaklist.item_id)
 
         if value_type == 'mzStart':
             return information['mzStart']
@@ -1445,7 +1394,6 @@ class panelMultipleIons(wx.Panel):
         elif value_type == 'ionName':
             return information['ionName']
 
-    # ----
     def OnSetValue(self, value=None, value_type=None):
         itemID = self.peaklist.GetItemCount() - 1
 
@@ -1474,7 +1422,6 @@ class panelMultipleIons(wx.Panel):
         elif value_type == 'document':
             self.peaklist.SetStringItem(itemID, 10, str(value_type))
 
-    # ----
     def OnOpenEditor(self, evt):
 
         if evt == None:
@@ -1484,10 +1431,10 @@ class panelMultipleIons(wx.Panel):
 
         rows = self.peaklist.GetItemCount() - 1
         if evtID == ID_ionPanel_editItem:
-            if self.currentItem < 0:
+            if self.peaklist.item_id < 0:
                 print('Please select item in the table first.')
                 return
-            dlg_kwargs = self.OnGetItemInformation(self.currentItem)
+            dlg_kwargs = self.OnGetItemInformation(self.peaklist.item_id)
 
             self.editItemDlg = panelModifyIonSettings(self,
                                                       self.presenter,
@@ -1534,7 +1481,6 @@ class panelMultipleIons(wx.Panel):
                                                           **dlg_kwargs)
                 self.editItemDlg.Show()
 
-    # ----
     def OnAssignColor(self, evt, itemID=None, give_value=False):
         """
         @param itemID (int): value for item in table
@@ -1542,7 +1488,7 @@ class panelMultipleIons(wx.Panel):
         """
 
         if itemID != None:
-            self.currentItem = itemID
+            self.peaklist.item_id = itemID
 
         # Restore custom colors
         custom = wx.ColourData()
@@ -1558,11 +1504,11 @@ class panelMultipleIons(wx.Panel):
             newColour = list(data.GetColour().Get())
             dlg.Destroy()
             # Assign color
-            self.peaklist.SetStringItem(self.currentItem,
+            self.peaklist.SetStringItem(self.peaklist.item_id,
                                         self.config.peaklistColNames['color'],
                                         str(convertRGB255to1(newColour)))
-            self.peaklist.SetItemBackgroundColour(self.currentItem, newColour)
-            self.peaklist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
+            self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
+            self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
             # Retrieve custom colors
             for i in range(15):
                 self.config.customColors[i] = data.GetCustomColour(i)
@@ -1578,15 +1524,14 @@ class panelMultipleIons(wx.Panel):
             except:
                 newColour = self.config.customColors[randomIntegerGenerator(0, 15)]
             # Assign color
-            self.peaklist.SetStringItem(self.currentItem,
+            self.peaklist.SetStringItem(self.peaklist.item_id,
                                         self.config.peaklistColNames['color'],
                                         str(convertRGB255to1(newColour)))
-            self.peaklist.SetItemBackgroundColour(self.currentItem, newColour)
-            self.peaklist.SetItemTextColour(self.currentItem, determineFontColor(newColour, return_rgb=True))
+            self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
+            self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
             if give_value:
                 return newColour
 
-    # ----
     def OnGetColor(self, evt):
         # Restore custom colors
         custom = wx.ColourData()
@@ -1608,7 +1553,7 @@ class panelMultipleIons(wx.Panel):
 
             return convertRGB255to1(newColour)
 
-    def onChangeColormap(self, evt):
+    def on_change_item_colormap(self, evt):
         # get number of checked items
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):
@@ -1622,7 +1567,7 @@ class panelMultipleIons(wx.Panel):
 
         for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(index=row):
-                self.currentItem = row
+                self.peaklist.item_id = row
                 colormap = colormaps[row]
                 self.peaklist.SetStringItem(row,
                                             self.config.peaklistColNames['colormap'],
@@ -1634,7 +1579,7 @@ class panelMultipleIons(wx.Panel):
                 except TypeError:
                     print("Please select item")
 
-    def onChangeColorBatch(self, evt):
+    def on_change_item_color_batch(self, evt):
         # get number of checked items
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):
@@ -1652,12 +1597,12 @@ class panelMultipleIons(wx.Panel):
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(index=row):
-                self.currentItem = row
+                self.peaklist.item_id = row
                 color = colors[check_count]
                 self.peaklist.SetStringItem(row, self.config.peaklistColNames['color'],
                                             str(color))
                 self.peaklist.SetItemBackgroundColour(row, convertRGB1to255(color))
-                self.peaklist.SetItemTextColour(self.currentItem, determineFontColor(convertRGB1to255(color), return_rgb=True))
+                self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(convertRGB1to255(color), return_rgb=True))
                 check_count += 1
 
             # update document
@@ -1666,12 +1611,11 @@ class panelMultipleIons(wx.Panel):
             except TypeError:
                 print("Please select item")
 
-    # ----
     def onUpdateDocument(self, evt, itemInfo=None):
 
         # get item info
         if itemInfo == None:
-            itemInfo = self.OnGetItemInformation(self.currentItem)
+            itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
 
         # get item
         document = self.presenter.documentsDict[itemInfo['document']]
@@ -1716,7 +1660,7 @@ class panelMultipleIons(wx.Panel):
         # Update file list
         self.presenter.OnUpdateDocument(document, 'no_refresh')
 
-    def onClearItems(self, document):
+    def on_remove_deleted_item(self, document):
         """
         @param document: title of the document to be removed from the list
         """
@@ -1843,8 +1787,8 @@ class panelMultipleIons(wx.Panel):
         """
         Check current item when letter S is pressed on the keyboard
         """
-        check = not self.peaklist.IsChecked(index=self.currentItem)
-        self.peaklist.CheckItem(self.currentItem, check=check)
+        check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
+        self.peaklist.CheckItem(self.peaklist.item_id, check=check)
 
     def on_add_blank_document_overlay(self, evt):
         self.presenter.onAddBlankDocument(evt=None, document_type='overlay')
