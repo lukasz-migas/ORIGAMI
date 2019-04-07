@@ -745,7 +745,7 @@ class plots(plottingWindow):
                                     labelright=kwargs['tickLabels_right'],
                                     labeltop=kwargs['tickLabels_top'],
                                     labelbottom=kwargs['tickLabels_bottom'],
-#                                     length=5, width=kwargs['frame_width']
+                                    width=kwargs['frame_width']
                                     )
 
             self.plotMS.spines['left'].set_visible(kwargs['spines_left'])
@@ -821,7 +821,8 @@ class plots(plottingWindow):
                                 labelleft=kwargs['tickLabels_left'],
                                 labelright=kwargs['tickLabels_right'],
                                 labeltop=kwargs['tickLabels_top'],
-                                labelbottom=kwargs['tickLabels_bottom'])
+                                labelbottom=kwargs['tickLabels_bottom'],
+                                width=kwargs['frame_width'])
 
         for i, line in enumerate(self.plotMS.get_lines()):
             line.set_linewidth(kwargs['line_width'])

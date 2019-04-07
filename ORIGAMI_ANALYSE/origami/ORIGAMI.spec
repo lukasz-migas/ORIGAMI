@@ -28,6 +28,7 @@ import time
 import json
 import wx.lib.pubsub as pub
 import pymzml
+print("wxPython version: {}".format(wx.__version__))
 
 
 tstart_build = time.clock()
@@ -38,7 +39,7 @@ block_cipher = None
 # pyinstaller ORIGAMI.spec -y --clean
 
 # Set version number
-version = "1.2.1.4"
+version = "1.2.1.5"
 
 current_dir = os.getcwd()
 origami_dir_name = "ORIGAMI_v{}".format(version)
@@ -98,7 +99,8 @@ a = Analysis(['ORIGAMI.py'],
                  'wx.lib.pubsub.core.kwargs.topicargspecimpl',
                  'wx.lib.pubsub.core.kwargs.topicmgrimpl',
                  'six', "bokeh", "nodejs", "adjustText", "cmocean", "multiplierz",
-                 'pymzml.run', 'pymzml.obo'],
+                 'pymzml.run', 'pymzml.obo',
+                 'pandas._libs.tslibs.np_datetime','pandas._libs.tslibs.nattype','pandas._libs.skiplist'],
              hookspath=[],
              runtime_hooks=[],
              excludes=['IPython', 'Cython', 'statsmodels', 'pyQT5',

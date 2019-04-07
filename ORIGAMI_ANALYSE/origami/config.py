@@ -41,7 +41,7 @@ class OrigamiConfig:
         self.loggingFile_path = None
 
         self.document_version = "19-10-2018"
-        self.version = "1.2.0.4"
+        self.version = "1.2.5"
         self.unidec_engine = None
         self.links = {
             'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
@@ -585,6 +585,10 @@ class OrigamiConfig:
         self.extract_rtEnd = 999
         self.extract_dtStart = 1
         self.extract_dtEnd = 200
+
+        self.extract_dtms_mzStart = 0
+        self.extract_dtms_mzEnd = 0
+        self.extract_dtms_mzBinSize = 0.1
 
         # Peak fitting
         self.fit_addPeaks = True

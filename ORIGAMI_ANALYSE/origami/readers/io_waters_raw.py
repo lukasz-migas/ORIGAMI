@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 # -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas 
+#    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-# 
-#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#	 Cite : 10.1016/j.ijms.2017.08.014
 #
-#    This program is free software. Feel free to redistribute it and/or 
-#    modify it under the condition you cite and credit the authors whenever 
-#    appropriate. 
-#    The program is distributed in the hope that it will be useful but is 
+# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+# 	 Cite : 10.1016/j.ijms.2017.08.014
+#
+#    This program is free software. Feel free to redistribute it and/or
+#    modify it under the condition you cite and credit the authors whenever
+#    appropriate.
+#    The program is distributed in the hope that it will be useful but is
 #    provided WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
@@ -19,7 +19,7 @@
 
 import time
 import os.path
-from subprocess import call, Popen, CREATE_NEW_CONSOLE
+from subprocess import Popen, CREATE_NEW_CONSOLE
 import numpy as np
 from ctypes import cdll, c_float, byref
 
@@ -30,21 +30,18 @@ from io_utils import clean_up
 
 # Load C library
 # mlLib = cdll.LoadLibrary(os.path.join(os.getcwd(), "readers\MassLynxRaw.dll"))
-mlLib = cdll.LoadLibrary(os.path.join("MassLynxRaw.dll"))
+mass_lynx_raw_path = os.path.join(os.getcwd(), "MassLynxRaw.dll")
+print("MassLynx path: {}".format(mass_lynx_raw_path))
+mlLib = cdll.LoadLibrary(mass_lynx_raw_path)
 
 # create data holder
 temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
 
-# if not os.path.exists(temp_data_folder):
-#     print("Temporary data folder did not exist - create a new one: {}".format(temp_data_folder))
-#     os.makedirs(temp_data_folder)
+#  USE DRIFTSCOPE
 
 
-###
-## USE DRIFTSCOPE
-###
-def rawMassLynx_MS_extract(path, bin_size=10000, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200, 
-                           mz_start=0, mz_end=99999, driftscope_path='C:\DriftScope\lib', **kwargs):
+def rawMassLynx_MS_extract(path, bin_size=10000, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
+                           mz_start=0, mz_end=50000, driftscope_path='C:\DriftScope\lib', **kwargs):
     """
     Extract MS data from MassLynx (.raw) file that has IMS data
     @param path (str): path to MassLynx (.raw) file
@@ -60,37 +57,38 @@ def rawMassLynx_MS_extract(path, bin_size=10000, rt_start=0, rt_end=99999.0, dt_
     # check if data should be extracted to data folder OR temporary folder
     if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
-    else: 
+    else:
         out_path = path
-        
+
     # Write range file
     range_file = os.path.join(out_path, '__.1dMZ.inp')
     try:
         fileID = open(range_file, 'w')
     except IOError as err:
         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
-        return 
-    
+        return
+
     fileID.write("%s %s %s\n%s %s 1\n%s %s 1" % (mz_start, mz_end, bin_size, rt_start, rt_end, dt_start, dt_end))
     fileID.close()
 
     # Create command for execution
-    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "', out_path, 
+    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "', out_path,
                    '\output.1dMZ" -t mobilicube -p "', range_file, '"'])
+    print(cmd)
     # Extract command
-    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True), 
+    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True),
                        creationflags=CREATE_NEW_CONSOLE)
-    
+
     extractIMS.wait()
-        
+
     # return data
     if kwargs.get("return_data", False):
         msX, msY = rawMassLynx_MS_load(out_path)
         return msX, msY
     else:
         return None
-    # ------------ #
-    
+
+
 def rawMassLynx_MS_load(path=None, inputFile='output.1dMZ', normalize=True, **kwargs):
     datapath = os.path.join(path, inputFile)
     # Load data into array
@@ -111,20 +109,21 @@ def rawMassLynx_MS_load(path=None, inputFile='output.1dMZ', normalize=True, **kw
             msX = msX[0:(firstBadIdx[0][0] - 1)]
             msY = msY[0:(firstBadIdx[0][0] - 1)]
         except IndexError: pass
-        
+
     # clean-up filepath
     try: clean_up(datapath)
     except: pass
-        
+
     # Normalize MS data
-    if normalize: 
+    if normalize:
         msY = msY / max(msY)
 
     return msX, msY
     # ------------ #
-    
-def rawMassLynx_RT_extract(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200, 
-                           mz_start=0, mz_end=999999, driftscope_path='C:\DriftScope\lib', 
+
+
+def rawMassLynx_RT_extract(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
+                           mz_start=0, mz_end=50000, driftscope_path='C:\DriftScope\lib',
                            **kwargs):
     """
     Extract the retention time for specified (or not) mass range
@@ -132,41 +131,41 @@ def rawMassLynx_RT_extract(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt
     # check if data should be extracted to data folder OR temporary folder
     if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
-    else: 
+    else:
         out_path = path
-    
+
     # Create input file
     range_file = os.path.join(out_path, '__.1dRT.inp')
-    
+
     try:
         fileID = open(range_file, 'w')
     except IOError as err:
         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
-        return 
+        return
     fileID.write("{} {} 1\n0.0 9999.0 5000\n{} {} 1".format(mz_start, mz_end, dt_start, dt_end))
     fileID.close()
     # Create command for execution
-    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "', 
+    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "',
                    out_path, '\output.1dRT" -t mobilicube -p "', range_file, '"'])
 
-    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True), 
+    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True),
                        creationflags=CREATE_NEW_CONSOLE)
     extractIMS.wait()
-    
+
     # return data
     if kwargs.get("return_data", False):
         if kwargs.get("normalize", False):
             rtY, rtYnorm = rawMassLynx_RT_load(out_path, normalize=True)
-            rtX = np.arange(1,len(rtY)+1) 
+            rtX = np.arange(1, len(rtY) + 1)
             return rtX, rtY, rtYnorm
         else:
             rtY = rawMassLynx_RT_load(out_path)
-            rtX = np.arange(1,len(rtY)+1) 
+            rtX = np.arange(1, len(rtY) + 1)
             return rtX, rtY
     else:
         return None
-    # ------------ #
-    
+
+
 def rawMassLynx_RT_load(path=None, inputFile='output.1dRT', normalize=False, **kwargs):
     datapath = os.path.join(path, inputFile)
     rtData = np.fromfile(datapath, dtype=np.int32)
@@ -184,47 +183,49 @@ def rawMassLynx_RT_load(path=None, inputFile='output.1dRT', normalize=False, **k
         return rtData1D, rtData1DNorm
     else:
         return rtData1D
-    
-def rawMassLynx_DT_extract(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200, 
-                           mz_start=0, mz_end=999999, driftscope_path='C:\DriftScope\lib', **kwargs):
+
+
+def rawMassLynx_DT_extract(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
+                           mz_start=0, mz_end=50000, driftscope_path='C:\DriftScope\lib', **kwargs):
     """
     """
     # check if data should be extracted to data folder OR temporary folder
     if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
-    else: 
+    else:
         out_path = path
-        
+
     # Create input file
     range_file = os.path.join(out_path, '__.1dDT.inp')
     try:
         fileID = open(range_file, 'w')
     except IOError as err:
         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
-        return 
+        return
     fileID.write("{} {} 1\n{} {} 1\n1 200 200".format(mz_start, mz_end, rt_start, rt_end,))
     fileID.close()
-    
+
     # Create command for execution
-    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "', 
+    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "',
                    out_path, '\output.1dDT" -t mobilicube -p "', range_file, '"'])
-    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True), 
+    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True),
                        creationflags=CREATE_NEW_CONSOLE)
     extractIMS.wait()
-    
+
     # return data
     if kwargs.get("return_data", False):
         if kwargs.get("normalize", False):
             dtY, dtYnorm = rawMassLynx_DT_load(out_path, normalize=True)
-            dtX = np.arange(1,len(dtY)+1)
+            dtX = np.arange(1, len(dtY) + 1)
             return dtX, dtY, dtYnorm
         else:
             dtY = rawMassLynx_DT_load(out_path)
-            dtX = np.arange(1,len(dtY)+1)
+            dtX = np.arange(1, len(dtY) + 1)
             return dtX, dtY
     else:
         return None
-    # ------------ #
+
+
 def rawMassLynx_DT_load(path=None, inputFile='output.1dDT', normalize=False, **kwargs):
     """
     Load data for 1D IM-MS data
@@ -244,32 +245,33 @@ def rawMassLynx_DT_load(path=None, inputFile='output.1dDT', normalize=False, **k
         return imsData1DNorm
     else:
         return imsData1D
-    
-def rawMassLynx_2DT_extract(path=None, mz_start=0, mz_end=999999, rt_start=0, rt_end=99999.0, 
+
+
+def rawMassLynx_2DT_extract(path=None, mz_start=0, mz_end=50000, rt_start=0, rt_end=99999.0,
                             dt_start=1, dt_end=200, driftscope_path='C:\DriftScope\lib', **kwargs):
     # check if data should be extracted to data folder OR temporary folder
     if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
-    else: 
+    else:
         out_path = path
-    
+
     # Create input file
     range_file = os.path.join(out_path, '__.2dRTDT.inp')
     try:
         fileID = open(range_file, 'w')
     except IOError as err:
         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
-        return 
+        return
     fileID.write("{} {} 1\n{} {} 5000\n1 200 200".format(mz_start, mz_end, rt_start, rt_end))
     fileID.close()
     # Create command for execution
-    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "', out_path, 
+    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "', out_path,
                    '\output.2dRTDT" -t mobilicube -b 1 -scans 0 -p "', range_file, '"'])
-    
-    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True), 
+
+    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True),
                        creationflags=CREATE_NEW_CONSOLE)
     extractIMS.wait()
-        
+
     # return data
     if kwargs.get("return_data", False):
         if kwargs.get("normalize", False):
@@ -280,8 +282,8 @@ def rawMassLynx_2DT_extract(path=None, mz_start=0, mz_end=999999, rt_start=0, rt
             return dt
     else:
         return None
-    # ------------ #
-    
+
+
 def rawMassLynx_2DT_load(path=None, inputFile='output.2dRTDT', normalize=False, **kwargs):
     datapath = os.path.join(path, inputFile)
     imsData = np.fromfile(datapath, dtype=np.int32)
@@ -300,7 +302,7 @@ def rawMassLynx_2DT_load(path=None, inputFile='output.2dRTDT', normalize=False, 
 
     # Test to ensure all values are above 0 or below 1E8
     for value in imsDataSplit[:, -1]:
-        if value < 0: 
+        if value < 0:
             imsDataSplit[:, -1] = 0
         elif value > 10000000:
             imsDataSplit[:, -1] = 0
@@ -310,36 +312,37 @@ def rawMassLynx_2DT_load(path=None, inputFile='output.2dRTDT', normalize=False, 
     except: pass
 
     if normalize:
-        imsDataSplitNorm = normalize(imsDataSplit.astype(np.float64), axis=0, norm='max')  # Norm to 1 
+        imsDataSplitNorm = normalize(imsDataSplit.astype(np.float64), axis=0, norm='max')  # Norm to 1
         return imsDataSplit, imsDataSplitNorm
     else:
         return imsDataSplit
-    
-def rawMassLynx_MZDT_extract(path=None, mz_start=0, mz_end=999999, mz_nPoints=5000, dt_start=1, dt_end=200,
+
+
+def rawMassLynx_MZDT_extract(path=None, mz_start=0, mz_end=50000, mz_nPoints=5000, dt_start=1, dt_end=200,
                              silent_extract=True, driftscope_path='C:\DriftScope\lib', **kwargs):
     # check if data should be extracted to data folder OR temporary folder
     if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
-    else: 
+    else:
         out_path = path
-    
+
     # Create input file
     range_file = os.path.join(out_path, '__.2dDTMZ.inp')
     try:
         fileID = open(range_file, 'w')
     except IOError as err:
         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
-        return 
+        return
     fileID.write("{} {} {}\n0.0 9999.0 1\n{} {} 200".format(mz_start, mz_end, mz_nPoints, dt_start, dt_end))
     fileID.close()
-    
+
     # Create command for execution
-    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "', 
+    cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "',
                    out_path, '\output.2dDTMZ" -t mobilicube -p "', range_file, '"'])
-    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True), 
+    extractIMS = Popen(cmd, shell=kwargs.get("verbose", True),
                        creationflags=CREATE_NEW_CONSOLE)
     extractIMS.wait()
-    
+
     # return data
     if kwargs.get("return_data", False):
         if kwargs.get("normalize", False):
@@ -350,7 +353,7 @@ def rawMassLynx_MZDT_extract(path=None, mz_start=0, mz_end=999999, mz_nPoints=50
             return dt
     else:
         return None
-    # ------------ #
+
 
 def rawMassLynx_MZDT_load(path=None, inputFile='output.2dDTMZ', normalize=False, **kwargs):
     datapath = os.path.join(path, inputFile)
@@ -362,18 +365,17 @@ def rawMassLynx_MZDT_load(path=None, inputFile='output.2dDTMZ', normalize=False,
     # clean-up filepath
     try: clean_up(datapath)
     except: pass
-    
-    
+
     if normalize:
-        imsDataSplitNorm = normalize(imsDataSplit.astype(np.float64), axis=0, norm='max')  # Norm to 1 
+        imsDataSplitNorm = normalize(imsDataSplit.astype(np.float64), axis=0, norm='max')  # Norm to 1
         return imsDataSplit, imsDataSplitNorm
-    else: 
+    else:
         return imsDataSplit
-    # ------------ #
-    
-###
-## USE C READER
-###
+
+# ##
+# # USE C READER
+# ##
+
 
 def rawMassLynx_MS_bin(filename=None, startScan=0, endScan=-1, function=1,
                        mzStart=None, mzEnd=None, binsize=None, binData=False,
@@ -390,13 +392,13 @@ def rawMassLynx_MS_bin(filename=None, startScan=0, endScan=-1, function=1,
     except WindowsError as err:
         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
         return
-    
+
     # Setup scan reader
     dataPointer = mlLib.newCMassLynxRawScanReader(filePointer)
     # Extract number of scans available from the file
     nScans = mlLib.getScansInFunction(dataPointer, function)
     # Initilise pointers to data
-    xpoint = c_float() 
+    xpoint = c_float()
     ypoint = c_float()
     # Initilise empty lists
     msX = []
@@ -407,23 +409,23 @@ def rawMassLynx_MS_bin(filename=None, startScan=0, endScan=-1, function=1,
     if 'linearization_mode' in kwargs:
         if kwargs['linearization_mode'] == 'Raw':
             binData = False
-    
-    if binsize == 0.: binData = False        
-    
+
+    if binsize == 0.: binData = False
+
     if binData:
         if 'auto_range' in kwargs and kwargs['auto_range'] :
             mzStart = kwargs['mz_min']
             mzEnd = kwargs['mz_max']
-        
+
         if mzStart == None or mzEnd == None or binsize == None:
             print('Missing parameters')
             return
         elif kwargs['linearization_mode'] == "Binning":
-            msList = np.arange(mzStart, mzEnd+binsize, binsize)
-            msCentre = msList[:-1]+(binsize/2)
+            msList = np.arange(mzStart, mzEnd + binsize, binsize)
+            msCentre = msList[:-1] + (binsize / 2)
         else:
             msCentre = get_linearization_range(mzStart, mzEnd, binsize, kwargs['linearization_mode'])
-        
+
     msRange = np.arange(startScan, endScan) + 1
     # First extract data
     for scan in msRange:
@@ -436,13 +438,13 @@ def rawMassLynx_MS_bin(filename=None, startScan=0, endScan=-1, function=1,
         # Read spectrum
         mlLib.readSpectrum(dataPointer, function, scan, byref(mzP), byref(mzI))
         # Extract data from pointer and assign it to list
-        msX = np.ndarray((nPoints,), 'f', mzP, order='C')    
-        msY = np.ndarray((nPoints,), 'f', mzI, order='C') 
+        msX = np.ndarray((nPoints,), 'f', mzP, order='C')
+        msY = np.ndarray((nPoints,), 'f', mzI, order='C')
         if binData:
             if kwargs['linearization_mode'] == "Binning":
                 msYbin = bin_1D(x=msX, y=msY, bins=msList)
             else:
-                msCentre, msYbin = linearize(data=np.transpose([msX, msY]), 
+                msCentre, msYbin = linearize(data=np.transpose([msX, msY]),
                                             binsize=binsize, mode=kwargs['linearization_mode'],
                                             input_list=msCentre)
             msDict[scan] = [msCentre, msYbin]
@@ -450,6 +452,6 @@ def rawMassLynx_MS_bin(filename=None, startScan=0, endScan=-1, function=1,
             msDict[scan] = [msX, msY]
     tend = time.clock()
     print("It took {:.4f} seconds to process {} scans".format((tend - tstart), len(msRange)))
-    
+
     # Return data
     return msDict

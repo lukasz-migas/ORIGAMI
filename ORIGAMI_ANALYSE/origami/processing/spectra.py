@@ -110,11 +110,10 @@ def interpolate(x_short, y_short, x_long):
 
 
 def linearize_data(msX, msY, **kwargs):
-
     if 'auto_range' in kwargs:
         if kwargs['auto_range']:
             mzStart = msX[0]
-            mzEnd = msY[-1]
+            mzEnd = msX[-1]
         else:
             mzStart = kwargs['mz_min']
             mzEnd = kwargs['mz_max']
