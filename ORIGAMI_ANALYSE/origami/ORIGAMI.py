@@ -17,20 +17,31 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-# Import libraries
-import wx, os, sys, time, re, gc, path, threading, random, webbrowser
-import numpy as np
-from _codecs import encode
-from numpy.ma import masked_array # @UnresolvedImport
-from wx.lib.pubsub import setuparg1
-import wx.lib.agw.multidirdialog as MDD
-from copy import deepcopy
-import pandas as pd
-from ids import *
-from math import sqrt, log
-from scipy.stats import linregress # @UnresolvedImport
-
 import warnings
+from copy import deepcopy
+
+# Import libraries
+import gc
+import numpy as np
+import os
+import pandas as pd
+# import path
+import random
+import re
+import sys
+import threading
+import time
+import webbrowser
+import wx
+import wx.lib.agw.multidirdialog as MDD
+from _codecs import encode
+from math import sqrt, log
+from numpy.ma import masked_array  # @UnresolvedImport
+from scipy.stats import linregress  # @UnresolvedImport
+from wx.lib.pubsub import setuparg1
+
+from ids import *
+
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore",category=DeprecationWarning)
 warnings.filterwarnings("ignore",category=RuntimeWarning)

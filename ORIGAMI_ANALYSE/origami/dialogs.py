@@ -17,23 +17,24 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-# Load libraries
-import wx, itertools, os, webbrowser, wx.html
 from operator import itemgetter
-from numpy import arange, transpose, argmax, round, max, median, min, argmin
-from numpy import sum as npsum
-from wx.lib.pubsub import pub
-import wx.lib.mixins.listctrl as listmix
 
-from help import OrigamiHelp as help
-from icons import IconContainer as icons
+# Load libraries
+import itertools
+import os
+import webbrowser
+import wx
+import wx.html
+import wx.lib.mixins.listctrl as listmix
+from numpy import arange, transpose, argmax, min
+from numpy import sum as npsum
+
 import plots as plots
+from help import OrigamiHelp as help
 from ids import (ID_addNewOverlayDoc, ID_helpNewVersion, ID_saveAllDocuments)
-from styles import makeCheckbox, validator, makeSuperTip, makeStaticBox, makeToggleBtn
-from toolbox import (str2num, str2int, convertRGB1to255, convertRGB255to1, num2str,
-                             isnumber, getNarrow1Ddata, dir_extra, findPeakMax, find_nearest,
-                             MidpointNormalize)
-from unidec_modules.unidectools import make_peak_shape, isolated_peak_fit
+from styles import makeCheckbox, validator, makeSuperTip
+from toolbox import (str2num, str2int, getNarrow1Ddata)
+from unidec_modules.unidectools import isolated_peak_fit
 
 
 def dlgBox(exceptionTitle="", exceptionMsg="", type="Error", exceptionPrint=True):

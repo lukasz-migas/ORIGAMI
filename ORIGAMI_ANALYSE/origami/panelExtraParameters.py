@@ -17,13 +17,15 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import wx, os, time
+import os
+import time
+import wx
 from wx.combo import BitmapComboBox
 
-from toolbox import *
+from help import OrigamiHelp as help
 from ids import *
 from styles import layout, makeCheckbox, makeToggleBtn, makeSuperTip, makeStaticBox
-from help import OrigamiHelp as help
+from toolbox import *
 
 
 class panelParametersEdit(wx.Panel):
