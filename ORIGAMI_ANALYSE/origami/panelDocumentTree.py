@@ -4582,10 +4582,13 @@ class documentsTree(wx.TreeCtrl):
                 labels = ["DT"]
                 for label in xvals:
                     labels.append(label)
+
                 # Save 2D array
                 kwargs = {'default_name':defaultValue}
-                self.onSaveData(data=[saveData], labels=labels,
-                                data_format='%.2f', **kwargs)
+                self.onSaveData(data=saveData,
+                                labels=labels,
+                                data_format='%.2f',
+                                **kwargs)
 
         # Save 1D/2D - batch + single
         elif any(self.itemType in itemType for itemType in ['Drift time (2D)',

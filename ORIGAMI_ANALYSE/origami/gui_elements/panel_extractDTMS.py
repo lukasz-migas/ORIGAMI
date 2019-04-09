@@ -19,12 +19,18 @@ class panel_extractDTMS(wx.MiniFrame):
                               wx.RESIZE_BOX | wx.MAXIMIZE_BOX)
         self.view = parent
         self.presenter = presenter
+        self.documentTree = self.view.panelDocuments.topP.documents
         self.config = config
         self.icons = icons
 
         self.block_update = False
 
         self.make_gui()
+
+        # setup data storage
+        self.x_data = None
+        self.y_data = None
+        self.z_data = None
 
         # setup gui pview
         self.on_setup_gui()
@@ -86,17 +92,17 @@ class panel_extractDTMS(wx.MiniFrame):
         horizontal_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # add buttons
-        self.add_to_document_btn = wx.Button(panel, wx.ID_ANY, "Add to document...", size=(-1, 22))
-        self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
-
         self.extract_btn = wx.Button(panel, wx.ID_ANY, "Extract", size=(-1, 22))
         self.extract_btn.Bind(wx.EVT_BUTTON, self.on_extract_data)
 
-        self.plot_btn = wx.Button(panel, wx.ID_ANY, "Plot", size=(-1, 22))
-        self.plot_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
+        self.add_to_document_btn = wx.Button(panel, wx.ID_ANY, "Add to document...", size=(-1, 22))
+        self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
         self.save_to_file_btn = wx.Button(panel, wx.ID_ANY, "Save as...", size=(-1, 22))
-        self.save_to_file_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
+        self.save_to_file_btn.Bind(wx.EVT_BUTTON, self.on_save)
+
+        self.cancel_btn = wx.Button(panel, wx.ID_ANY, "Cancel", size=(-1, 22))
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
@@ -120,13 +126,13 @@ class panel_extractDTMS(wx.MiniFrame):
         n = n + 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.add_to_document_btn, (n, 0), wx.GBSpan(1, 1),
+        grid.Add(self.extract_btn, (n, 0), wx.GBSpan(1, 1),
                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.extract_btn, (n, 1), wx.GBSpan(1, 1),
+        grid.Add(self.add_to_document_btn, (n, 1), wx.GBSpan(1, 1),
                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.plot_btn, (n, 2), wx.GBSpan(1, 1),
+        grid.Add(self.save_to_file_btn, (n, 2), wx.GBSpan(1, 1),
                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.save_to_file_btn, (n, 3), wx.GBSpan(1, 1),
+        grid.Add(self.cancel_btn, (n, 3), wx.GBSpan(1, 1),
                  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
@@ -147,19 +153,43 @@ class panel_extractDTMS(wx.MiniFrame):
         parameters = document.parameters
         self.parameters = parameters
 
-        info = "Experimental mass range: {:.2f}-{:.2f}".format(parameters.get("startMS", "N/A"),
-                                                               parameters.get("endMS", "N/A"))
+        info = "Experimental mass range: {:.2f}-{:.2f}".format(
+            parameters.get("startMS", "N/A"), parameters.get("endMS", "N/A"))
         self.info_bar.SetLabel(info)
 
         # check if user has previously defined any values
         if self.config.extract_dtms_mzStart not in [0, "", None]:
-            self.mz_min_value.SetValue(str(self.config.extract_dtms_mzStart))
+            mz_min = self.config.extract_dtms_mzStart
+        else:
+            mz_min = self.parameters["startMS"]
+        self.mz_min_value.SetValue(str(mz_min))
+
         if self.config.extract_dtms_mzEnd not in [0, "", None]:
-            self.mz_max_value.SetValue(str(self.config.extract_dtms_mzEnd))
+            mz_max = self.config.extract_dtms_mzEnd
+        else:
+            mz_max = self.parameters["endMS"]
+        self.mz_max_value.SetValue(str(mz_max))
+
         if self.config.extract_dtms_mzBinSize not in [0, "", None]:
-            self.mz_bin_value.SetValue(str(self.config.extract_dtms_mzBinSize))
+            mz_bin_size = self.config.extract_dtms_mzBinSize
+        else:
+            mz_bin_size = 0.1
+        self.mz_bin_value.SetValue(str(mz_bin_size))
+
+    def _update_msg_bar(self):
+        try:
+            n_points = int(math.floor((self.config.extract_dtms_mzEnd - self.config.extract_dtms_mzStart) /
+                                      self.config.extract_dtms_mzBinSize))
+            if n_points > 0:
+                info = "Number of points: {}".format(n_points)
+            else:
+                info = ""
+        except (ZeroDivisionError, TypeError):
+            info = ""
+        self.msg_bar.SetLabel(info)
 
     def check_user_input(self):
+        """Check user input and if incorrect correct the values"""
         self.block_update = True
         if self.config.extract_dtms_mzStart in [0, "", None, "None"]:
             self.config.extract_dtms_mzStart = self.parameters["startMS"]
@@ -190,44 +220,63 @@ class panel_extractDTMS(wx.MiniFrame):
         self.block_update = False
 
     def on_apply(self, evt):
+        """Update values on event"""
         if self.block_update:
             return
 
         self.config.extract_dtms_mzStart = str2num(self.mz_min_value.GetValue())
         self.config.extract_dtms_mzEnd = str2num(self.mz_max_value.GetValue())
         self.config.extract_dtms_mzBinSize = str2num(self.mz_bin_value.GetValue())
-
-        try:
-            n_points = int(math.floor((self.config.extract_dtms_mzEnd - self.config.extract_dtms_mzStart) /
-                                      self.config.extract_dtms_mzBinSize))
-            if n_points > 0:
-                info = "Number of points: {}".format(n_points)
-            else:
-                info = ""
-        except (ZeroDivisionError, TypeError):
-            info = ""
-        self.msg_bar.SetLabel(info)
+        self._update_msg_bar()
 
         if evt is not None:
             evt.Skip()
 
-    def on_add_to_document(self, evt):
-        pass
+    def on_check_mass_range(self, mz_min, mz_max, shape):
+        """Check mass range
 
-    def on_extract_data(self, evt):
+        Parameters
+        ----------
+        mz_min: float
+        mz_max: float
+        shape: tuple
+        
+        Returns
+        -------
+        mz_x: 1D numpy array
+        """
+        mz_len = shape[1]
+        mz_x = np.linspace(mz_min, mz_max, mz_len, endpoint=True)
 
-        # check user input
-        self.check_user_input()
+        return mz_x
 
+    def on_check_data(self):
+        is_present = True
+        # check if data is already extracted
+        if self.x_data is None or self.y_data is None or self.z_data is None:
+            self.msg_bar.SetLabel("Data not present - make sure you extract it first.")
+            is_present = False
+
+        return is_present
+
+    def on_get_document(self):
         try:
             document_title = self.view.panelDocuments.topP.documents.enableCurrentDocument()
         except:
             return
 
         document = self.presenter.documentsDict[document_title]
-        path = document.path
+        return document, document_title
 
-        print(self.config.extract_dtms_mzStart, self.config.extract_dtms_mzEnd, self.config.extract_dtms_mzBinSize)
+    def on_extract_data(self, evt):
+        # clear previous msg
+        self._update_msg_bar()
+
+        # check user input
+        self.check_user_input()
+
+        document, document_title = self.on_get_document()
+        path = document.path
 
         # m/z spacing, default is 1 Da
         n_points = int(math.floor((self.config.extract_dtms_mzEnd - self.config.extract_dtms_mzStart) /
@@ -236,26 +285,56 @@ class panel_extractDTMS(wx.MiniFrame):
         # Extract and load data
         extract_kwargs = {'return_data':True}
         data = io_waters.rawMassLynx_MZDT_extract(path=path,
-                                                         driftscope_path=self.config.driftscopePath,
-                                                         mz_start=self.config.extract_dtms_mzStart,
-                                                         mz_end=self.config.extract_dtms_mzEnd,
-                                                         mz_nPoints=n_points,
-                                                         **extract_kwargs)
-        print(data.shape)
+                                                  driftscope_path=self.config.driftscopePath,
+                                                  mz_start=self.config.extract_dtms_mzStart,
+                                                  mz_end=self.config.extract_dtms_mzEnd,
+                                                  mz_nPoints=n_points,
+                                                  **extract_kwargs)
+        mz_x = self.on_check_mass_range(self.config.extract_dtms_mzStart, self.config.extract_dtms_mzEnd, data.shape)
+        dt_y = 1 + np.arange(data.shape[0])
 
-#         # Get x/y axis
-#         xlabelsMZDT = np.linspace(parameters['startMS'] - self.config.ms_dtmsBinSize,
-#                                   parameters['endMS'] + self.config.ms_dtmsBinSize,
-#                                   nPoints, endpoint=True)
-#         ylabelsMZDT = 1 + np.arange(len(imsDataMZDT[:, 1]))
-#
-#         # Plot
-#         self.view.panelPlots.on_plot_MSDT(imsDataMZDT, xlabelsMZDT, ylabelsMZDT,
-#                                           'm/z', 'Drift time (bins)')
-#
-#         document.gotDTMZ = True
-#         document.DTMZ = {'zvals':imsDataMZDT, 'xvals':xlabelsMZDT,
-#                           'yvals':ylabelsMZDT, 'xlabels':'m/z',
-#                           'ylabels':'Drift time (bins)',
-#                           'cmap':self.config.currentCmap}
-#         self.OnUpdateDocument(document, 'document')
+        # Plot
+        self.view.panelPlots.on_plot_MSDT(data, mz_x, dt_y, 'm/z', 'Drift time (bins)')
+
+        # add data
+        self.x_data = mz_x
+        self.y_data = dt_y
+        self.z_data = data
+
+    def on_add_to_document(self, evt):
+        if not self.on_check_data():
+            return
+
+        document, __ = self.on_get_document()
+
+        document.gotDTMZ = True
+        document.DTMZ = {'zvals': self.z_data,
+                         'xvals': self.x_data,
+                         'yvals': self.y_data,
+                         'xlabels': 'm/z',
+                         'ylabels': 'Drift time (bins)',
+                         'cmap': self.config.currentCmap}
+        self.presenter.OnUpdateDocument(document, 'document')
+
+    def on_save(self, evt):
+        if not self.on_check_data():
+            return
+
+        __, document_title = self.on_get_document()
+
+        zvals = self.z_data
+        xvals = self.x_data
+        yvals = self.y_data
+
+        defaultValue = "MSDT_{}{}".format(document_title, self.config.saveExtension)
+        saveData = np.vstack((yvals, zvals.T))
+        xvals = map(str, xvals.tolist())
+        labels = ["DT"]
+        for label in xvals:
+            labels.append(label)
+
+        # Save 2D array
+        kwargs = {'default_name':defaultValue}
+        self.documentTree.onSaveData(data=saveData, labels=labels,
+                                     data_format='%.2f', **kwargs)
+
