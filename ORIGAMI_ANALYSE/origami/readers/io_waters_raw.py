@@ -43,8 +43,6 @@ temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
 def rawMassLynx_MS_extract(path, bin_size=10000, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
                            mz_start=0, mz_end=50000, driftscope_path='C:\DriftScope\lib', **kwargs):
     """
-    Extract MS data from MassLynx (.raw) file that has IMS data
-    @param path (str): path to MassLynx (.raw) file
     @param bin_size (int): number of points in the m/z dimension
     @param rt_start (float): start retention time (minutes)
     @param rt_end (float): end retention time (minutes)
@@ -74,7 +72,6 @@ def rawMassLynx_MS_extract(path, bin_size=10000, rt_start=0, rt_end=99999.0, dt_
     # Create command for execution
     cmd = ''.join([driftscope_path, '\imextract.exe -d "', path, '" -f 1 -o "', out_path,
                    '\output.1dMZ" -t mobilicube -p "', range_file, '"'])
-    print(cmd)
     # Extract command
     extractIMS = Popen(cmd, shell=kwargs.get("verbose", True),
                        creationflags=CREATE_NEW_CONSOLE)

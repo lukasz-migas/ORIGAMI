@@ -176,16 +176,17 @@ class panel_extractDTMS(wx.MiniFrame):
             mz_bin_size = 0.1
         self.mz_bin_value.SetValue(str(mz_bin_size))
 
-    def _update_msg_bar(self):
-        try:
-            n_points = int(math.floor((self.config.extract_dtms_mzEnd - self.config.extract_dtms_mzStart) /
-                                      self.config.extract_dtms_mzBinSize))
-            if n_points > 0:
-                info = "Number of points: {}".format(n_points)
-            else:
+    def _update_msg_bar(self, info=None):
+        if info is None:
+            try:
+                n_points = int(math.floor((self.config.extract_dtms_mzEnd - self.config.extract_dtms_mzStart) /
+                                          self.config.extract_dtms_mzBinSize))
+                if n_points > 0:
+                    info = "Number of points: {}".format(n_points)
+                else:
+                    info = ""
+            except (ZeroDivisionError, TypeError):
                 info = ""
-        except (ZeroDivisionError, TypeError):
-            info = ""
         self.msg_bar.SetLabel(info)
 
     def check_user_input(self):
@@ -275,7 +276,7 @@ class panel_extractDTMS(wx.MiniFrame):
         # check user input
         self.check_user_input()
 
-        document, document_title = self.on_get_document()
+        document, __ = self.on_get_document()
         path = document.path
 
         # m/z spacing, default is 1 Da
@@ -300,6 +301,9 @@ class panel_extractDTMS(wx.MiniFrame):
         self.x_data = mz_x
         self.y_data = dt_y
         self.z_data = data
+
+        # notify the user that update was made
+        self._update_msg_bar("Data was extracted!")
 
     def on_add_to_document(self, evt):
         if not self.on_check_data():
@@ -327,14 +331,17 @@ class panel_extractDTMS(wx.MiniFrame):
         yvals = self.y_data
 
         defaultValue = "MSDT_{}{}".format(document_title, self.config.saveExtension)
-        saveData = np.vstack((yvals, zvals.T))
-        xvals = map(str, xvals.tolist())
+
+        saveData = np.vstack((xvals, zvals))
+        yvals = map(str, yvals.tolist())
         labels = ["DT"]
-        for label in xvals:
-            labels.append(label)
+        labels.extend(yvals)
+        fmts = ["%.4f"] + ["%i"] * len(yvals)
 
         # Save 2D array
         kwargs = {'default_name':defaultValue}
         self.documentTree.onSaveData(data=saveData, labels=labels,
-                                     data_format='%.2f', **kwargs)
+                                     data_format=fmts, **kwargs)
+
+        self._update_msg_bar("Data was saved to file!")
 

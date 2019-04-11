@@ -4577,17 +4577,17 @@ class documentsTree(wx.TreeCtrl):
 
             if evt.GetId() == ID_saveDataCSVDocument:
                 defaultValue = "MSDT_{}{}".format(basename, self.config.saveExtension)
-                saveData = np.vstack((yvals, zvals.T))
-                xvals = map(str, xvals.tolist())
+                saveData = np.vstack((xvals, zvals))
+                yvals = map(str, yvals.tolist())
                 labels = ["DT"]
-                for label in xvals:
-                    labels.append(label)
+                labels.extend(yvals)
+                fmts = ["%.4f"] + ["%i"] * len(yvals)
 
                 # Save 2D array
                 kwargs = {'default_name':defaultValue}
                 self.onSaveData(data=saveData,
                                 labels=labels,
-                                data_format='%.2f',
+                                data_format=fmts,
                                 **kwargs)
 
         # Save 1D/2D - batch + single
