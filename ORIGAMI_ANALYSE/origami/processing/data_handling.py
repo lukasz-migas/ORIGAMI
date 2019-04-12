@@ -16,7 +16,6 @@ from utils.random import randomIntegerGenerator
 from utils.color import convertRGB255to1, convertRGB1to255
 
 import logging
-
 logger = logging.getLogger("origami")
 
 
@@ -69,6 +68,7 @@ class data_handling():
             logger.error(e)
 
     def _on_get_document(self, document_title=None):
+
         if document_title is None:
             self.presenter.currentDoc = self.documentTree.on_enable_document()
         else:
@@ -80,6 +80,7 @@ class data_handling():
 
         self.presenter.currentDoc = byte2str(self.presenter.currentDoc)
         document = self.presenter.documentsDict[self.presenter.currentDoc]
+        print(">?")
 
         return document
 

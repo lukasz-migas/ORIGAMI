@@ -1851,7 +1851,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShowMassSpectra, id=ID_docTree_showMassSpectra)
         self.Bind(wx.EVT_MENU, self.onProcessMS, id=ID_docTree_processMS)
         self.Bind(wx.EVT_MENU, self.onProcess2D, id=ID_docTree_process2D)
-        self.Bind(wx.EVT_MENU, self.presenter.onReExtractDTMS, id=ID_docTree_extractDTMS)
+#         self.Bind(wx.EVT_MENU, self.presenter.onReExtractDTMS, id=ID_docTree_extractDTMS)
         self.Bind(wx.EVT_MENU, self.onProcessMS, id=ID_docTree_UniDec)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToMMLTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToMMLTable)
@@ -1863,6 +1863,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onAddAnnotation, id=ID_docTree_add_annotations)
         self.Bind(wx.EVT_MENU, self.onShowAnnotations, id=ID_docTree_show_annotations)
         self.Bind(wx.EVT_MENU, self.onDuplicateAnnotations, id=ID_docTree_duplicate_annotations)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_open_extractDTMS)
 
         self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_docTree_duplicate_document)
         self.Bind(wx.EVT_MENU, self.on_refresh_document, id=ID_docTree_show_refresh_document)
@@ -2602,8 +2603,11 @@ class documentsTree(wx.TreeCtrl):
                                          bitmap=self.icons.iconsLib['heatmap_16']))
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_process2D,
                                          text='Process...\tP', bitmap=self.icons.iconsLib['process_2d_16']))
-            menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_extractDTMS,
-                                         text='Re-extract data', bitmap=None))
+#             menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_extractDTMS,
+#                                          text='Re-extract data', bitmap=None))
+            menu.AppendSeparator()
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_open_extractDTMS,
+                                         text='Open extraction panel...', bitmap=None))
 
             menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, 'Set Y-axis label as...', ylabelDTMSMenu)
@@ -4605,14 +4609,17 @@ class documentsTree(wx.TreeCtrl):
 
             if evt.GetId() == ID_saveDataCSVDocument:
                 defaultValue = "MSDT_{}{}".format(basename, self.config.saveExtension)
-                saveData = np.vstack((yvals, zvals.T))
+                saveData = np.vstack((xvals, zvals))
                 xvals = list(map(str, xvals.tolist()))
                 labels = ["DT"]
-                for label in xvals: labels.append(label)
+                labels.extend(yvals)
+                fmts = ["%.4f"] + ["%i"] * len(yvals)
                 # Save 2D array
                 kwargs = {'default_name':defaultValue}
-                self.onSaveData(data=[saveData], labels=labels,
-                                data_format='%.2f', **kwargs)
+                self.onSaveData(data=[saveData],
+                                labels=labels,
+                                data_format=fmts,
+                                **kwargs)
 
         # Save 1D/2D - batch + single
         elif any(self.itemType in itemType for itemType in ['Drift time (2D)',
@@ -5626,6 +5633,14 @@ class documentsTree(wx.TreeCtrl):
                                    self.icons,
                                    **kwargs)
         self.panelUVPD.Show()
+
+    def on_open_extract_DTMS(self, evt):
+        from gui_elements.panel_extractDTMS import panel_extractDTMS
+        self.panel_extractDTMS = panel_extractDTMS(self.presenter.view,
+                                                   self.presenter,
+                                                   self.config,
+                                                   self.icons)
+        self.panel_extractDTMS .Show()
 
     def on_add_mzID_file(self, evt):
         document = self.data_processing._on_get_document()

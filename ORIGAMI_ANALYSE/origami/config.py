@@ -46,7 +46,7 @@ class OrigamiConfig:
         self.loggingFile_path = None
 
         self.document_version = "19-10-2018"
-        self.version = "1.2.1.5"
+        self.version = "1.3.0.0"
         self.unidec_engine = None
         self.links = {
             'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
@@ -647,6 +647,11 @@ class OrigamiConfig:
         self.rmsd_lineStyle = 'solid'
         self.rmsd_lineHatch = ' '
         self.rmsd_hspace = 0.1
+
+        # Extract DT/MS
+        self.extract_dtms_mzStart = 200
+        self.extract_dtms_mzEnd = 5000
+        self.extract_dtms_mzBinSize = 0.1
 
         # Process 2D
         self.plot2D_normalize = False

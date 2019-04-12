@@ -827,40 +827,40 @@ class ORIGAMI(object):
         # Update document
         self.OnUpdateDocument(self.docs, 'document')
 
-    def onReExtractDTMS(self, evt):
-
-        try: self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except: return
-        document = self.documentsDict[self.currentDoc]
-        parameters = document.parameters
-        path = document.path
-        # m/z spacing, default is 1 Da
-        nPoints = int((parameters['endMS'] - parameters['startMS']) / self.config.ms_dtmsBinSize)
-        # Extract and load data
-        extract_kwargs = {'return_data':True}
-        imsDataMZDT = io_waters.rawMassLynx_MZDT_extract(path=path,
-                                                         driftscope_path=self.config.driftscopePath,
-                                                         mz_start=parameters['startMS'],
-                                                         mz_end=parameters['endMS'],
-                                                         mz_nPoints=nPoints,
-                                                         **extract_kwargs)
-
-        # Get x/y axis
-        xlabelsMZDT = np.linspace(parameters['startMS'] - self.config.ms_dtmsBinSize,
-                                  parameters['endMS'] + self.config.ms_dtmsBinSize,
-                                  nPoints, endpoint=True)
-        ylabelsMZDT = 1 + np.arange(len(imsDataMZDT[:, 1]))
-
-        # Plot
-        self.view.panelPlots.on_plot_MSDT(imsDataMZDT, xlabelsMZDT, ylabelsMZDT,
-                                          'm/z', 'Drift time (bins)')
-
-        document.gotDTMZ = True
-        document.DTMZ = {'zvals':imsDataMZDT, 'xvals':xlabelsMZDT,
-                          'yvals':ylabelsMZDT, 'xlabels':'m/z',
-                          'ylabels':'Drift time (bins)',
-                          'cmap':self.config.currentCmap}
-        self.OnUpdateDocument(document, 'document')
+#     def onReExtractDTMS(self, evt):
+#
+#         try: self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#         except: return
+#         document = self.documentsDict[self.currentDoc]
+#         parameters = document.parameters
+#         path = document.path
+#         # m/z spacing, default is 1 Da
+#         nPoints = int((parameters['endMS'] - parameters['startMS']) / self.config.ms_dtmsBinSize)
+#         # Extract and load data
+#         extract_kwargs = {'return_data':True}
+#         imsDataMZDT = io_waters.rawMassLynx_MZDT_extract(path=path,
+#                                                          driftscope_path=self.config.driftscopePath,
+#                                                          mz_start=parameters['startMS'],
+#                                                          mz_end=parameters['endMS'],
+#                                                          mz_nPoints=nPoints,
+#                                                          **extract_kwargs)
+#
+#         # Get x/y axis
+#         xlabelsMZDT = np.linspace(parameters['startMS'] - self.config.ms_dtmsBinSize,
+#                                   parameters['endMS'] + self.config.ms_dtmsBinSize,
+#                                   nPoints, endpoint=True)
+#         ylabelsMZDT = 1 + np.arange(len(imsDataMZDT[:, 1]))
+#
+#         # Plot
+#         self.view.panelPlots.on_plot_MSDT(imsDataMZDT, xlabelsMZDT, ylabelsMZDT,
+#                                           'm/z', 'Drift time (bins)')
+#
+#         document.gotDTMZ = True
+#         document.DTMZ = {'zvals':imsDataMZDT, 'xvals':xlabelsMZDT,
+#                           'yvals':ylabelsMZDT, 'xlabels':'m/z',
+#                           'ylabels':'Drift time (bins)',
+#                           'cmap':self.config.currentCmap}
+#         self.OnUpdateDocument(document, 'document')
 
     def on_open_ML_binary_MS(self, path=None, evt=None):
         dlg = wx.FileDialog(self.view, "Choose a binary MS file:", wildcard="*.1dMZ" ,

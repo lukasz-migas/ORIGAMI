@@ -4,6 +4,8 @@ from icons import IconContainer as icons
 from styles import makeCheckbox, validator
 from toolbox import num2str
 
+# TODO: Add possibility to visualise heatmap as false-color image
+
 
 class panelModifyTextSettings(wx.MiniFrame):
     """
@@ -199,7 +201,8 @@ class panelModifyTextSettings(wx.MiniFrame):
         n = n + 1
         grid.Add(colormap_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.text_colormap_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.text_restrictColormap_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.text_restrictColormap_value, (n, 2), wx.GBSpan(1, 1),
+                 flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
         grid.Add(color_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.text_color_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
@@ -218,8 +221,6 @@ class panelModifyTextSettings(wx.MiniFrame):
         # fit layout
         mainSizer.Fit(panel)
         panel.SetSizerAndFit(mainSizer)
-
-        self.enableDisableBoxes(evt=None)
 
         return panel
 
@@ -272,7 +273,6 @@ class panelModifyTextSettings(wx.MiniFrame):
         self.text_min_threshold_value.SetValue(self.itemInfo['min_threshold'])
         self.text_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
 
-        self.enableDisableBoxes(evt=None)
         self.importEvent = False
 
     def onUpdateGUI(self, itemInfo):
@@ -293,7 +293,7 @@ class panelModifyTextSettings(wx.MiniFrame):
             self.itemInfo['colormap'] = self.config.currentCmap
 
         if self.itemInfo['color'][0] == -1:
-              self.itemInfo['color'] = (1, 1, 1, 255)
+            self.itemInfo['color'] = (1, 1, 1, 255)
 
         if self.itemInfo['charge'] in ['', None, 'None']:
             self.itemInfo['charge'] = ""
@@ -302,18 +302,6 @@ class panelModifyTextSettings(wx.MiniFrame):
         self.onSetupParameters(evt=None)
 
         self.SetFocus()
-
-    def enableDisableBoxes(self, evt):
-
-        enableList, disableList = [], []
-
-        for item in enableList:
-            item.Enable()
-        for item in disableList:
-            item.Disable()
-
-        if evt != None:
-            evt.Skip()
 
     def OnAssignColor(self, evt):
         self.onCheckID()
