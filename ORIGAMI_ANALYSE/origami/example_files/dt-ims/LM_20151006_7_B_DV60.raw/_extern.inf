@@ -1,0 +1,68 @@
+Parameters for C:\MassLynx\Qtof\tuneexp.exp
+ 
+Temperature Correction Is Disabled
+TDC Gain Control	0.0
+TDC Amp Edge Control	0.0
+Using 4 GHz TDC	YES
+Using TTP 4 GHz TDC	YES
+ 
+Instrument Parameters - Function 1:
+Polarity	ES+
+Calibration	Dynamic 2
+Capillary	1.66	1.66
+Cone	50	174
+Extractor	110	122
+RF Lens	1.30	7.94
+Source Temp (°C)	80	84
+Desolvation Temp (°C)	20	1020
+LM Resolution	4.9
+HM Resolution	4.5
+Collision Energy	10.0	8.9
+Ion Energy	2.0
+Steering	-0.47	-1.40
+Entrance	38.0	-37.9
+Pre-filter	4.1	6.2
+Transport	4.8	0.2
+Aperture2	12.0	-12.3
+Acceleration	200	-198
+Focus	0	-1
+Tube Lens	60	-59
+Guard	36.4	-36.6
+TOF (kV)	7.20	-7.27
+Reflectron	35.00	1.64
+Pusher Cycle Time (µs)	130
+Pusher Frequency (Hz)	7692.3077
+Multiplier	650	-645
+MCP	2000	1998
+Centroid Threshold	0.0
+Min Points	2.0
+Np Multiplier	1.00
+Resolution	5000.0
+Lock Mass	0.0000
+Mass Window +/-	1.0000
+Lteff	2103.0000
+Veff	7893.0000
+	1.0000
+TDC Start (mV)	600.0000
+TDC Stop (mV)	100.0000
+TDC Threshold	0.0000
+Pirani Pressure(mbar)	3.23e0
+Penning Pressure(mbar)	5.52e-3
+Tof Penning Pressure(mbar)	2.35e-7
+ 
+ 
+Function Parameters - Function 1 - TOF MS FUNCTION
+Start Mass				2500.0
+End Mass				5500.0
+Start Time (mins)			0.0
+End Time (mins)				0.0
+Data Format				Continuum
+Ion Mode				ES Mode
+Polarity				Positive
+Instrument Parameter Filename		C:\MassLynx\Default.pro\Acqudb\LM_2015_10_4.ipr
+Scans To Sum				1000000
+Scan Time (sec)				25.0
+Interscan Time (sec)			5.0
+Use Tune Page Cone Voltage		YES
+Cone Voltage (V)			35.0
+ 

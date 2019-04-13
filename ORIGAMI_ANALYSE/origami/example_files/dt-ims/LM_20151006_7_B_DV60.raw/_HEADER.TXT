@@ -1,0 +1,49 @@
+$$ Version: 01.00
+$$ Acquired Name: LM_20151006_7_B_DV60
+$$ Acquired Date: 07-Oct-2015
+$$ Acquired Time: 18:58:48
+$$ Job Code: 
+$$ Task Code: 
+$$ User Name: 
+$$ Instrument: QTOF
+$$ Conditions: 
+$$ Laboratory Name: 
+$$ Sample Description: Cdk:cyclin tip 27 (F,old), 200mM AmAc, DV 60
+$$ Solvent Delay: 0.0000
+$$ Submitter: 
+$$ SampleID: 
+$$ Bottle Number: 
+$$ Plate Desc: 
+$$ Cal MS1 Static: 0.000000000000000e0,T0
+$$ Cal MS2 Static: 0.000000000000000e0,T0
+$$ Associated Datafile: 
+$$ Cal MS1 Static Params: 0,0,0.00,0.00,0.0,0.0,0.0,,
+$$ Cal MS1 Dynamic Params: 0,0,0.00,0.00,0.0,0.0,0.0,,
+$$ Cal MS1 Fast Params: 0,0,0.00,0.00,0.0,0.0,0.0,,
+$$ Cal MS2 Static Params: 0,0,0.00,0.00,0.0,0.0,0.0,,
+$$ Cal MS2 Dynamic Params: 0,0,0.00,0.00,0.0,0.0,0.0,,
+$$ Cal MS2 Fast Params: 0,0,0.00,0.00,0.0,0.0,0.0,,
+$$ Cal Time: 10:25
+$$ Cal Date: 03/25/15
+$$ Analog Channel 1 Offset: 0.000
+$$ Analog Channel 2 Offset: 0.000
+$$ Analog Channel 3 Offset: 0.000
+$$ Analog Channel 4 Offset: 0.000
+$$ Mux Stream: 0
+$$ Cal Temperature: 0.0000000
+$$ Inlet Method: 
+$$ Inlet Prerun Method: 
+$$ Inlet Postrun Method: 
+$$ Inlet Switch Method: 
+$$ HPLC Method: 
+$$ MS Method: 
+$$ Tune Method: 
+$$ FractionLynx Method: 
+$$ Spare1: 
+$$ Spare2: 
+$$ Spare3: 
+$$ Spare4: 
+$$ Spare5: 
+$$ Cal Function 1: -2.229364596332996e-2,1.000974357791898e0,6.006953640547291e-5,-1.271778037359331e-6,1.030598876666530e-8,T1
+$$ Cal StdDev Function 1: 0.000000000000000e0
+$$ Cal CoVar 1: 0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0,0.000000000000000e0
