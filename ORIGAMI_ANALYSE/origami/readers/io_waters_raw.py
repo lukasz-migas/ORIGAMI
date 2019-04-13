@@ -30,15 +30,10 @@ from processing.spectra import bin_1D, get_linearization_range, linearize
 from toolbox import strictly_increasing
 
 # Load C library
-# mlLib = cdll.LoadLibrary(os.path.join(os.getcwd(), "readers\MassLynxRaw.dll"))
 mlLib = cdll.LoadLibrary(os.path.join("MassLynxRaw.dll"))
 
 # create data holder
 temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
-
-# if not os.path.exists(temp_data_folder):
-#     print("Temporary data folder did not exist - create a new one: {}".format(temp_data_folder))
-#     os.makedirs(temp_data_folder)
 
 
 # ##
@@ -401,7 +396,7 @@ def rawMassLynx_MZDT_load(path=None, inputFile='output.2dDTMZ', normalize=False,
 # ##
 
 
-def rawMassLynx_MS_bin(filename=None, startScan=0, endScan=-1, function=1,
+def rawMassLynx_MS_bin(filename, startScan=0, endScan=-1, function=1,
                        mzStart=None, mzEnd=None, binsize=None, binData=False,
                        **kwargs):
     """
@@ -411,11 +406,11 @@ def rawMassLynx_MS_bin(filename=None, startScan=0, endScan=-1, function=1,
     """
     tstart = time.clock()
     # Create pointer to the file
-    try:
-        filePointer = mlLib.newCMassLynxRawReader(filename)
-    except WindowsError as err:
-        dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
-        return
+#     try:
+    filePointer = mlLib.newCMassLynxRawReader(filename)
+#     except WindowsError as err:
+#         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
+#         return
 
     # Setup scan reader
     dataPointer = mlLib.newCMassLynxRawScanReader(filePointer)

@@ -41,7 +41,7 @@ from ids import ID_textPanel_addToDocument, ID_textPanel_assignColor, ID_textPan
     ID_textPanel_edit_selected, ID_textPanel_clear_selected, ID_textPanel_table_startCE, ID_textPanel_delete_all, \
     ID_textPanel_delete_selected, ID_textPanel_clear_all, ID_processTextFiles, ID_processAllTextFiles, \
     ID_overlayTextfromList1D, ID_overlayTextfromListRT, ID_overlayTextFromList, ID_overlayTextfromListWaterfall, \
-    ID_openTextFiles, ID_textPanel_table_endCE, ID_textPanel_table_charge, ID_textPanel_table_color, \
+    ID_load_multiple_text_2D, ID_textPanel_table_endCE, ID_textPanel_table_charge, ID_textPanel_table_color, \
     ID_textPanel_table_colormap, ID_textPanel_table_alpha, ID_textPanel_table_mask, ID_textPanel_table_document, \
     ID_textPanel_table_label, ID_textPanel_table_shape, ID_textPanel_table_hideAll, ID_textPanel_table_restoreAll
 from utils.color import convertRGB1to255, determineFontColor, convertRGB255to1, randomColorGenerator
@@ -314,7 +314,7 @@ class panelMultipleTextFiles (wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_openTextFiles,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_load_multiple_text_2D,
                                      text='Add files\tCtrl+W',
                                      bitmap=self.icons.iconsLib['file_csv_16']))
         menu.AppendSeparator()

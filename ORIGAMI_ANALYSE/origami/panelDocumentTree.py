@@ -537,10 +537,14 @@ class documentsTree(wx.TreeCtrl):
             filenames = dlg.GetFilenames()
             for path, fname in zip(pathlist, filenames):
                 if evtID == ID_docTree_add_MS_to_interactive:
-                    msDataX, msDataY, __, xlimits = self.presenter.onMSTextFileFcn(path=path, return_data=True)
+                    msDataX, msDataY, __, xlimits, extension = self.data_handling._get_text_spectrum_data(path=path)
                     document.gotMultipleMS = True
-                    data = {'xvals':msDataX, 'yvals':msDataY, 'xlabels':'m/z (Da)',
-                            'xlimits':xlimits, 'file_path':path}
+                    data = {'xvals': msDataX,
+                            'yvals': msDataY,
+                            'xlabels': 'm/z (Da)',
+                            'xlimits': xlimits,
+                            'file_path': path,
+                            'file_extension': extension}
 
                     if fname in document.multipleMassSpectrum:
                         if not self.config.import_duplicate_ask:
@@ -557,10 +561,15 @@ class documentsTree(wx.TreeCtrl):
                     document.multipleMassSpectrum[fname] = data
 
                 elif evtID == ID_docTree_add_RT_to_interactive:
-                    rtDataX, rtDataY, __, xlimits = self.presenter.onMSTextFileFcn(path=path, return_data=True)
+                    rtDataX, rtDataY, __, xlimits, extension = self.data_handling._get_text_spectrum_data(path=path)
                     document.gotMultipleRT = True
-                    data = {'xvals':rtDataX, 'yvals':rtDataY, 'xlabels':'Scans',
-                            'ylabels':'Intensity', 'xlimits':xlimits, 'file_path':path}
+                    data = {'xvals': rtDataX,
+                            'yvals': rtDataY,
+                            'xlabels': 'Scans',
+                            'ylabels': 'Intensity',
+                            'xlimits': xlimits,
+                            'file_path': path,
+                            'file_extension': extension}
 
                     if fname in document.multipleRT:
                         if not self.config.import_duplicate_ask:
@@ -577,9 +586,14 @@ class documentsTree(wx.TreeCtrl):
                     document.multipleRT[fname] = data
 
                 elif evtID == ID_docTree_add_DT_to_interactive:
-                    dtDataX, dtDataY, __, xlimits = self.presenter.onMSTextFileFcn(path=path, return_data=True)
-                    data = {'xvals':dtDataX, 'yvals':dtDataY, 'xlabels':'Drift time (bins)',
-                            'ylabels':'Intensity', 'xlimits':xlimits, 'file_path':path}
+                    dtDataX, dtDataY, __, xlimits, extension = self.data_handling._get_text_spectrum_data(path=path)
+                    data = {'xvals': dtDataX,
+                            'yvals': dtDataY,
+                            'xlabels': 'Drift time (bins)',
+                            'ylabels': 'Intensity',
+                            'xlimits': xlimits,
+                            'file_path': path,
+                            'file_extension': extension}
 
                     if fname in document.multipleDT:
                         if not self.config.import_duplicate_ask:

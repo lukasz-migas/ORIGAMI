@@ -49,11 +49,11 @@ from readers.io_text_files import check_file_type
 from styles import makeMenuItem
 from toolbox import (checkVersion, clean_directory, compareVersions,
                      findPeakMax, getNarrow1Ddata)
-from ids import ID_openMSFile, ID_open1DIMSFile, ID_open2DIMSFile, ID_fileMenu_MGF, ID_fileMenu_mzML, \
-    ID_fileMenu_openRecent, ID_openDocument, ID_openORIGAMIRawFile, ID_openMultipleORIGAMIRawFiles, ID_addNewManualDoc, \
-    ID_openMassLynxFiles, ID_addCCScalibrantFile, ID_openLinearDTRawFile, ID_openMassLynxFile, ID_fileMenu_thermoRAW, \
-    ID_addNewOverlayDoc, ID_addNewInteractiveDoc, ID_openMStxtFile, ID_openIMStxtFile, ID_openTextFilesMenu, \
-    ID_getSpectrumFromClipboard, ID_saveDocument, ID_saveAllDocuments, ID_quit, ID_processSettings_ExtractData, \
+from ids import ID_fileMenu_MGF, ID_fileMenu_mzML, \
+    ID_fileMenu_openRecent, ID_openDocument, ID_load_origami_masslynx_raw, ID_load_multiple_origami_masslynx_raw, \
+    ID_load_multiple_masslynx_raw, ID_addCCScalibrantFile, ID_openLinearDTRawFile, ID_load_masslynx_raw_ms_only, \
+    ID_addNewOverlayDoc, ID_addNewInteractiveDoc, ID_load_text_MS, ID_load_text_2D, ID_addNewManualDoc, \
+    ID_load_clipboard_spectrum, ID_saveDocument, ID_saveAllDocuments, ID_quit, ID_processSettings_ExtractData, \
     ID_processSettings_ORIGAMI, ID_processSettings_MS, ID_processSettings_2D, ID_processSettings_FindPeaks, \
     ID_processSettings_UniDec, ID_extraSettings_general_plot, ID_extraSettings_plot1D, ID_extraSettings_plot2D, \
     ID_extraSettings_plot3D, ID_extraSettings_colorbar, ID_extraSettings_legend, ID_extraSettings_rmsd, \
@@ -69,16 +69,16 @@ from ids import ID_openMSFile, ID_open1DIMSFile, ID_open2DIMSFile, ID_fileMenu_M
     ID_help_page_overlay, ID_help_page_Interactive, ID_help_page_annotatingMassSpectra, ID_help_page_OtherData, \
     ID_helpGuide, ID_helpGuideLocal, ID_helpYoutube, ID_helpNewVersion, ID_helpCite, ID_helpNewFeatures, \
     ID_helpReportBugs, ID_CHECK_VERSION, ID_WHATS_NEW, ID_SHOW_ABOUT, ID_helpAuthor, ID_RESET_ORIGAMI, \
-    ID_help_page_gettingStarted, ID_help_page_CCScalibration, ID_help_page_linearDT, ID_openIRRawFile, ID_openMSbinFile, \
-    ID_open1DbinFile, ID_open2DbinFile, ID_openIRTextile, ID_saveOverlayImage, ID_saveMSImage, ID_saveMZDTImage, \
+    ID_help_page_gettingStarted, ID_help_page_CCScalibration, ID_help_page_linearDT, ID_openIRRawFile, \
+    ID_openIRTextile, ID_saveOverlayImage, ID_saveMSImage, ID_saveMZDTImage, \
     ID_saveRTImage, ID_save1DImage, ID_save2DImage, ID_save3DImage, ID_saveWaterfallImage, ID_saveRMSDImage, \
-    ID_saveRMSFImage, ID_saveRMSDmatrixImage, ID_openTextFiles, ID_processTextFiles, ID_overlayTextFromList, \
+    ID_saveRMSFImage, ID_saveRMSDmatrixImage, ID_load_multiple_text_2D, ID_processTextFiles, ID_overlayTextFromList, \
     ID_extractDriftVoltagesForEachIon, ID_helpHomepage, ID_helpGitHub, ID_helpHTMLEditor, ID_overlayMZfromList, \
     ID_extractAllIons, ID_showPlotDocument, ID_process2DDocument, ID_combineCEscans, ID_renameItem, \
     ID_showPlotMSDocument, ID_assignChargeState, ID_saveDataCSVDocument, ID_mainPanel_openSourceFiles, \
-    ID_openMassLynxRawFile, ID_window_controls, ID_documentRecent0, ID_documentRecent1, ID_documentRecent2, \
+    ID_load_masslynx_raw, ID_window_controls, ID_documentRecent0, ID_documentRecent1, ID_documentRecent2, \
     ID_documentRecent3, ID_documentRecent4, ID_documentRecent5, ID_documentRecent6, ID_documentRecent7, \
-    ID_documentRecent8, ID_documentRecent9, ID_fileMenu_clearRecent
+    ID_documentRecent8, ID_documentRecent9, ID_fileMenu_clearRecent, ID_fileMenu_thermoRAW
 from gui_elements.panel_notifyNewVersion import panelNotifyNewVersion
 from gui_elements.panel_htmlViewer import panelHTMLViewer
 from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
@@ -250,7 +250,7 @@ class MyFrame(wx.Frame):
         self._mgr.Update()
         self.makeBindings()
         self.statusBar()
-        self.makeMenubar()
+        self.make_menubar()
         self.SetMenuBar(self.mainMenubar)
         self.makeShortcuts()
         self.Maximize(True)
@@ -263,7 +263,6 @@ class MyFrame(wx.Frame):
         self._onUpdateWindowSettings()
         self.onPaneOnOff(evt=None)
         self._onToggleOnStart()
-#         self.onSetupMenu(None)
 
     def _onUpdateWindowSettings(self):
         self.config._windowSettings['Documents']['id'] = ID_window_documentList
@@ -300,7 +299,7 @@ class MyFrame(wx.Frame):
                 _xscale = xshape / np.max(_data[1])
                 self.plot_data['2D'] = _data[0]
                 self.plot_scale['2D'] = [_yscale, _xscale]
-            except:
+            except Exception:
                 pass
         elif plot_type == 'DT/MS':
             _data = self.presenter._get_replot_data(data_format='DT/MS')
@@ -324,7 +323,7 @@ class MyFrame(wx.Frame):
         try:
             evtID = self.onCheckToggleID(panel=evt.GetPane().caption)
             self.onPaneOnOff(evt=evtID)
-        except:
+        except Exception:
             pass
 
     def pageRestored(self, evt):
@@ -334,14 +333,14 @@ class MyFrame(wx.Frame):
         self.onPaneOnOff(evt=evtID)
         # fire-up events
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def makeBindings(self):
         '''
         Collection of all bindings for various functions
         '''
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_multiple_text_2D, id=ID_openTextFiles)
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_multiple_text_2D, id=ID_load_multiple_text_2D)
         self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_processTextFiles)
         self.Bind(wx.EVT_TOOL, self.presenter.on_overlay_2D, id=ID_overlayTextFromList)
         self.Bind(wx.EVT_TOOL, self.presenter.onExtractDToverMZrangeMultiple, id=ID_extractDriftVoltagesForEachIon)
@@ -391,18 +390,18 @@ class MyFrame(wx.Frame):
         self.SetCursor(myCursor)
         self.SetStatusText("{}".format(self.mode), number=5)
 
-    def makeMenubar(self):
+    def make_menubar(self):
         self.mainMenubar = wx.MenuBar()
 
         # setup recent sub-menu
         self.menuRecent = wx.Menu()
         self.updateRecentFiles()
 
-        # setup binary sub-menu
-        openBinaryMenu = wx.Menu()
-        openBinaryMenu.Append(ID_openMSFile, 'Open MS from MassLynx file (MS .1dMZ)\tCtrl+M')
-        openBinaryMenu.Append(ID_open1DIMSFile, 'Open 1D IM-MS from MassLynx file (1D IM-MS, .1dDT)')
-        openBinaryMenu.Append(ID_open2DIMSFile, 'Open 2D IM-MS from MassLynx file (2D IM-MS, .2dRTDT)\tCtrl+D')
+#         # setup binary sub-menu
+#         openBinaryMenu = wx.Menu()
+#         openBinaryMenu.Append(ID_openMSFile, 'Open MS from MassLynx file (MS .1dMZ)\tCtrl+M')
+#         openBinaryMenu.Append(ID_open1DIMSFile, 'Open 1D IM-MS from MassLynx file (1D IM-MS, .1dDT)')
+#         openBinaryMenu.Append(ID_open2DIMSFile, 'Open 2D IM-MS from MassLynx file (2D IM-MS, .2dRTDT)\tCtrl+D')
 
         openCommunityMenu = wx.Menu()
         openCommunityMenu.Append(ID_fileMenu_MGF, 'Open Mascot Generic Format file (.mgf) [MS/MS]')
@@ -415,25 +414,24 @@ class MyFrame(wx.Frame):
                                          text='Open ORIGAMI Document file (.pickle)\tCtrl+Shift+P',
                                          bitmap=self.icons.iconsLib['open_project_16']))
         menuFile.AppendSeparator()
-        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openORIGAMIRawFile,
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_load_origami_masslynx_raw,
                                          text='Open ORIGAMI MassLynx (.raw) file [CIU]\tCtrl+R',
                                          bitmap=self.icons.iconsLib['open_origami_16']))
 
-        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openMultipleORIGAMIRawFiles,
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_load_multiple_origami_masslynx_raw,
                                          text='Open multiple ORIGAMI MassLynx (.raw) files [CIU]\tCtrl+Shift+Q',
                                          bitmap=self.icons.iconsLib['open_origamiMany_16']))
         menuFile.AppendSeparator()
         menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_addNewManualDoc,
                                          text='Create blank MANUAL document [CIU]',
                                          bitmap=self.icons.iconsLib['guide_16']))
-        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openMassLynxFiles,
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_load_multiple_masslynx_raw,
                                          text='Open multiple MassLynx (.raw) files [CIU]\tCtrl+Shift+R',
                                          bitmap=self.icons.iconsLib['open_masslynxMany_16']))
         menuFile.AppendSeparator()
         menuFile.Append(ID_addCCScalibrantFile, 'Open MassLynx (.raw) file [Calibration]\tCtrl+C')
         menuFile.Append(ID_openLinearDTRawFile, 'Open MassLynx (.raw) file [Linear DT]\tCtrl+F')
-        menuFile.Append(ID_openMassLynxFile, 'Open MassLynx (no IM-MS, .raw) file\tCtrl+Shift+M')
-        menuFile.AppendMenu(wx.ID_ANY, 'Open MassLynx...', openBinaryMenu)
+        menuFile.Append(ID_load_masslynx_raw_ms_only, 'Open MassLynx (no IM-MS, .raw) file\tCtrl+Shift+M')
         menuFile.AppendSeparator()
         menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_fileMenu_thermoRAW,
                                          text='Open Thermo (.RAW) file\tCtrl+Shift+Y',
@@ -448,17 +446,17 @@ class MyFrame(wx.Frame):
                                          text='Create blank INTERACTIVE document',
                                          bitmap=self.icons.iconsLib['bokehLogo_16']))
         menuFile.AppendSeparator()
-        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openMStxtFile,
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_load_text_MS,
                                          text='Open MS Text file',
                                          bitmap=None))
-        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openIMStxtFile,
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_load_text_2D,
                                          text='Open IM-MS Text file [CIU]\tCtrl+T',
                                          bitmap=self.icons.iconsLib['open_text_16']))
-        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_openTextFilesMenu,
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_load_multiple_text_2D,
                                          text='Open multiple IM-MS text files [CIU]\tCtrl+Shift+T',
                                          bitmap=self.icons.iconsLib['open_textMany_16']))
         menuFile.AppendSeparator()
-        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_getSpectrumFromClipboard,
+        menuFile.AppendItem(makeMenuItem(parent=menuFile, id=ID_load_clipboard_spectrum,
                                          text='Grab MS spectrum from clipboard\tCtrl+V',
                                          bitmap=self.icons.iconsLib['filelist_16']))
 
@@ -783,31 +781,30 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_HTML_guide, id=ID_help_page_annotatingMassSpectra)
 
         # FILE MENU
-        self.Bind(wx.EVT_MENU, self.presenter.onOrigamiRawDirectory, id=ID_openORIGAMIRawFile)
-        self.Bind(wx.EVT_MENU, self.presenter.onOrigamiRawDirectory, id=ID_openIRRawFile)
-        self.Bind(wx.EVT_MENU, self.presenter.on_open_multiple_ORIGAMI_files, id=ID_openMultipleORIGAMIRawFiles)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_text_2D_fcn, id=ID_load_text_2D)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2D_fcn, id=ID_load_multiple_text_2D)
+
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_load_origami_masslynx_raw)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_openIRRawFile)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_MassLynx_raw_fcn,
+                  id=ID_load_multiple_origami_masslynx_raw)
+
         self.Bind(wx.EVT_MENU, self.presenter.onCalibrantRawDirectory, id=ID_addCCScalibrantFile)
         self.Bind(wx.EVT_MENU, self.presenter.onLinearDTirectory, id=ID_openLinearDTRawFile)
-        self.Bind(wx.EVT_MENU, self.presenter.onMSDirectory, id=ID_openMSFile)
-        self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_1D, id=ID_open1DIMSFile)
-        self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_2D, id=ID_open2DIMSFile)
-        self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_binary_MS, id=ID_openMSbinFile)
-        self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_binary_1D, id=ID_open1DbinFile)
-        self.Bind(wx.EVT_MENU, self.presenter.on_open_ML_binary_2D, id=ID_open2DbinFile)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_text_2D_fcn, id=ID_openIMStxtFile)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2D, id=ID_openTextFilesMenu)
+
         self.Bind(wx.EVT_MENU, self.presenter.onOpenDocument, id=ID_openDocument)
         self.Bind(wx.EVT_MENU, self.presenter.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.presenter.on_save_all_documents, id=ID_saveAllDocuments)
         self.Bind(wx.EVT_MENU, self.presenter.onIRTextFile, id=ID_openIRTextile)
-        self.Bind(wx.EVT_MENU, self.presenter.onOpenMS, id=ID_openMassLynxFile)
-        self.Bind(wx.EVT_MENU, self.presenter.onMSTextFile, id=ID_openMStxtFile)
-        self.Bind(wx.EVT_MENU, self.presenter.onMSFromClipboard, id=ID_getSpectrumFromClipboard)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_MS_only_fcn,
+                  id=ID_load_masslynx_raw_ms_only)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_text_MS_fcn, id=ID_load_text_MS)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_clipboard_MS, id=ID_load_clipboard_spectrum)
         self.Bind(wx.EVT_MENU, self.OnClose, id=ID_quit)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_interactive, id=ID_addNewInteractiveDoc)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_manual, id=ID_addNewManualDoc)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
-        self.Bind(wx.EVT_TOOL, self.on_open_multiple_files, id=ID_openMassLynxFiles)
+        self.Bind(wx.EVT_TOOL, self.on_open_multiple_files, id=ID_load_multiple_masslynx_raw)
         self.Bind(wx.EVT_TOOL, self.on_open_community_file, id=ID_fileMenu_MGF)
         self.Bind(wx.EVT_TOOL, self.on_open_community_file, id=ID_fileMenu_mzML)
         self.Bind(wx.EVT_TOOL, self.on_open_thermo_file, id=ID_fileMenu_thermoRAW)
@@ -856,8 +853,6 @@ class MyFrame(wx.Frame):
                   id=ID_docTree_plugin_UVPD)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_MSMS_viewer,
                   id=ID_docTree_plugin_MSMS)
-
-#         self.Bind(wx.EVT_MENU, self.onSequenceEditor, id=ID_sequence_openGUI)
 
         # CONFIG MENU
         self.Bind(wx.EVT_MENU, self.on_export_configuration_file, id=ID_saveConfig)
@@ -1008,11 +1003,11 @@ class MyFrame(wx.Frame):
             self.presenter.onThreading(None, ("Opening a link in your default internet browser", 4),
                                        action='updateStatusbar')
             webbrowser.open(link, autoraise=1)
-        except:
+        except Exception:
             pass
 
     def on_check_ORIGAMI_version(self, evt=None):
-        """ 
+        """
         Simple function to check whether this is the newest version available
         """
         try:
@@ -1022,10 +1017,10 @@ class MyFrame(wx.Frame):
                 try:
                     if evt.GetId() == ID_CHECK_VERSION:
                         dlgBox(exceptionTitle='ORIGAMI',
-                                       exceptionMsg='You are using the most up to date version {}.'.format(
-                                           self.config.version),
-                                       type="Info")
-                except:
+                               exceptionMsg='You are using the most up to date version {}.'.format(
+                                   self.config.version),
+                               type="Info")
+                except Exception:
                     pass
             else:
                 webpage = checkVersion(get_webpage=True)
@@ -1046,11 +1041,11 @@ class MyFrame(wx.Frame):
             webpage = checkVersion(get_webpage=True)
             msgDialog = panelNotifyNewVersion(self, self.presenter, webpage)
             msgDialog.ShowModal()
-        except:
+        except Exception:
             pass
 
     def onOpenUserGuide(self, evt):
-        """ 
+        """
         Opens PDF viewer
         """
 #         try:
@@ -1062,7 +1057,7 @@ class MyFrame(wx.Frame):
             self.presenter.onThreading(None, ("Opening local documentation in your browser...", 4),
                                        action='updateStatusbar')
             webbrowser.open(link, autoraise=1)
-        except:
+        except Exception:
             pass
 
     def on_open_HTML_guide(self, evt):
@@ -1125,7 +1120,7 @@ class MyFrame(wx.Frame):
                 self.presenter.onThreading(None, ("Opening local documentation in your browser...", 4),
                                            action='updateStatusbar')
                 webbrowser.open(link, autoraise=1)
-            except:
+            except Exception:
                 pass
 
     def onCheckToggle(self, evt):
@@ -1147,7 +1142,7 @@ class MyFrame(wx.Frame):
         try:
             msg = self.GetMenuBar().FindItemById(itemID).GetHelp()
             self.SetStatusText(msg, number=4)
-        except:
+        except Exception:
             self.SetStatusText("", number=4)
 
     def onWindowMaximize(self, evt):
@@ -1184,10 +1179,6 @@ class MyFrame(wx.Frame):
         """
         # Setup shortcuts. Format: 'KEY', 'FUNCTION', 'MODIFIER'
         ctrlkeys = [
-            ["M", self.presenter.onMSDirectory, wx.ACCEL_CTRL],
-            ["D", self.presenter.on_open_ML_2D, wx.ACCEL_CTRL],
-            ["M", self.presenter.on_open_ML_binary_MS, wx.ACCEL_ALT],
-            ["D", self.presenter.on_open_ML_binary_2D, wx.ACCEL_ALT],
             ["I", self.panelDocuments.documents.onOpenDocInfo, wx.ACCEL_CTRL],
             ["W", self.data_handling.on_open_multiple_text_2D, wx.ACCEL_CTRL],
             ["L", self.presenter.onOpenPeakListCSV, wx.ACCEL_CTRL],
@@ -1236,85 +1227,118 @@ class MyFrame(wx.Frame):
     def makeToolbar(self):
 
         # Bind events
-        self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_openORIGAMIRawFile)
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_text_2D_fcn, id=ID_openIMStxtFile)
-        self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_openMassLynxRawFile)
-        self.Bind(wx.EVT_TOOL, self.on_open_source_menu, id=ID_mainPanel_openSourceFiles)
+        #         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_load_origami_masslynx_raw)
+        #         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_text_2D_fcn, id=ID_load_text_2D)
+        #         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_load_masslynx_raw)
+        #         self.Bind(wx.EVT_TOOL, self.on_open_source_menu, id=ID_mainPanel_openSourceFiles)
 
         # Create toolbar
         self.mainToolbar_horizontal = self.CreateToolBar((wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT))
         self.mainToolbar_horizontal.SetToolBitmapSize((12, 12))
 
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_openDocument, "", self.icons.iconsLib['open_project_16'], shortHelp="Open project file")
+            ID_openDocument, "", self.icons.iconsLib['open_project_16'],
+            shortHelp="Open project file")
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_saveDocument, "", self.icons.iconsLib['save16'], shortHelp="Save project file")
+            ID_saveDocument, "", self.icons.iconsLib['save16'],
+            shortHelp="Save project file")
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_openORIGAMIRawFile, "", self.icons.iconsLib['open_origami_16'], shortHelp="Open ORIGAMI MassLynx file")
+            ID_load_origami_masslynx_raw, "", self.icons.iconsLib['open_origami_16'],
+            shortHelp="Open MassLynx file (.raw)")
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_openORIGAMIRawFile, "", self.icons.iconsLib['open_masslynx_16'], shortHelp="Open MassLynx file (IM-MS)")
+            ID_load_origami_masslynx_raw, "", self.icons.iconsLib['open_masslynx_16'],
+            shortHelp="Open MassLynx file (IM-MS)")
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_openMassLynxFiles, "", self.icons.iconsLib['open_masslynxMany_16'], shortHelp="Open multiple MassLynx files")
+            ID_load_multiple_masslynx_raw, "", self.icons.iconsLib['open_masslynxMany_16'],
+            shortHelp="Open multiple MassLynx files (e.g. CIU/SID)")
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_openIMStxtFile, "", self.icons.iconsLib['open_text_16'], shortHelp="Open text file")
+            ID_load_text_2D, "", self.icons.iconsLib['open_text_16'],
+            shortHelp="Open text files (2D)")
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_openTextFiles, "", self.icons.iconsLib['open_textMany_16'], shortHelp="Open multiple text files")
-        self.mainToolbar_horizontal.AddSeparator()
-        self.mainToolbar_horizontal.AddLabelTool(ID_mainPanel_openSourceFiles, "", self.icons.iconsLib['ms16'], shortHelp="Open MS/MS files...")
-        self.mainToolbar_horizontal.AddSeparator()
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_documentList, "", self.icons.iconsLib['panel_doc_16'], shortHelp="Enable/Disable documents panel")
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_ionList, "", self.icons.iconsLib['panel_ion_16'], shortHelp="Enable/Disable multi ion panel")
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_textList, "", self.icons.iconsLib['panel_text_16'], shortHelp="Enable/Disable multi text panel")
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_multipleMLList, "", self.icons.iconsLib['panel_mll__16'], shortHelp="Enable/Disable multi MassLynx panel")
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_multiFieldList, "", self.icons.iconsLib['panel_dt_16'], shortHelp="Enable/Disable linear DT panel")
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_ccsList, "", self.icons.iconsLib['panel_ccs_16'], shortHelp="Enable/Disable CCS calibration panel")
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_logWindow, "", self.icons.iconsLib['panel_log_16'], shortHelp="Enable/Disable Log panel")
+            ID_load_multiple_text_2D, "", self.icons.iconsLib['open_textMany_16'],
+            shortHelp="Open multiple text files (2D)")
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_general_plot, "", self.icons.iconsLib['panel_plot_general_16'], shortHelp="Settings: General plot")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_plot1D, "", self.icons.iconsLib['panel_plot1D_16'], shortHelp="Settings: Plot 1D panel")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_plot2D, "", self.icons.iconsLib['panel_plot2D_16'], shortHelp="Settings: Plot 2D panel")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_plot3D, "", self.icons.iconsLib['panel_plot3D_16'], shortHelp="Settings: Plot 3D panel")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_colorbar, "", self.icons.iconsLib['panel_colorbar_16'], shortHelp="Settings: Colorbar panel")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_legend, "", self.icons.iconsLib['panel_legend_16'], shortHelp="Settings: Legend panel")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_rmsd, "", self.icons.iconsLib['panel_rmsd_16'], shortHelp="Settings: RMSD panel")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_waterfall, "", self.icons.iconsLib['panel_waterfall_16'], shortHelp="Settings: Waterfall panel")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_violin, "", self.icons.iconsLib['panel_violin_16'], shortHelp="Settings: Violin panel")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_extraSettings_general, "", self.icons.iconsLib['panel_general2_16'], shortHelp="Settings: Extra panel")
+            ID_mainPanel_openSourceFiles, "", self.icons.iconsLib['ms16'],
+            shortHelp="Open MS/MS files...")
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_documentList, "", self.icons.iconsLib['panel_doc_16'],
+            shortHelp="Enable/Disable documents panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_ionList, "", self.icons.iconsLib['panel_ion_16'],
+            shortHelp="Enable/Disable multi ion panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_textList, "", self.icons.iconsLib['panel_text_16'],
+            shortHelp="Enable/Disable multi text panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_multipleMLList, "", self.icons.iconsLib['panel_mll__16'],
+            shortHelp="Enable/Disable multi MassLynx panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_multiFieldList, "", self.icons.iconsLib['panel_dt_16'],
+            shortHelp="Enable/Disable linear DT panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_ccsList, "", self.icons.iconsLib['panel_ccs_16'],
+            shortHelp="Enable/Disable CCS calibration panel")
+        self.mainToolbar_horizontal.AddCheckTool(
+            ID_window_logWindow, "", self.icons.iconsLib['panel_log_16'],
+            shortHelp="Enable/Disable Log panel")
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_ExtractData, "", self.icons.iconsLib['process_extract_16'], shortHelp="Settings: &Extract data\tShift+1")
+            ID_extraSettings_general_plot, "", self.icons.iconsLib['panel_plot_general_16'],
+            shortHelp="Settings: General plot")
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_ORIGAMI, "", self.icons.iconsLib['process_origami_16'], shortHelp="Settings: &ORIGAMI\tShift+2")
+            ID_extraSettings_plot1D, "", self.icons.iconsLib['panel_plot1D_16'],
+            shortHelp="Settings: Plot 1D panel")
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_MS, "", self.icons.iconsLib['process_ms_16'], shortHelp="Settings: &Process mass spectra\tShift+3")
+            ID_extraSettings_plot2D, "", self.icons.iconsLib['panel_plot2D_16'],
+            shortHelp="Settings: Plot 2D panel")
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_2D, "", self.icons.iconsLib['process_2d_16'], shortHelp="Settings: Process &2D heatmaps\tShift+4")
+            ID_extraSettings_plot3D, "", self.icons.iconsLib['panel_plot3D_16'],
+            shortHelp="Settings: Plot 3D panel")
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_FindPeaks, "", self.icons.iconsLib['process_fit_16'], shortHelp="Settings: Peak &fitting\tShift+5")
+            ID_extraSettings_colorbar, "", self.icons.iconsLib['panel_colorbar_16'],
+            shortHelp="Settings: Colorbar panel")
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_UniDec, "", self.icons.iconsLib['process_unidec_16'], shortHelp="Settings: &UniDec\tShift+6")
+            ID_extraSettings_legend, "", self.icons.iconsLib['panel_legend_16'],
+            shortHelp="Settings: Legend panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_rmsd, "", self.icons.iconsLib['panel_rmsd_16'],
+            shortHelp="Settings: RMSD panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_waterfall, "", self.icons.iconsLib['panel_waterfall_16'],
+            shortHelp="Settings: Waterfall panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_violin, "", self.icons.iconsLib['panel_violin_16'],
+            shortHelp="Settings: Violin panel")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_extraSettings_general, "", self.icons.iconsLib['panel_general2_16'],
+            shortHelp="Settings: Extra panel")
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_saveAsInteractive, "", self.icons.iconsLib['bokehLogo_16'], shortHelp="Open interactive output panel")
+            ID_processSettings_ExtractData, "", self.icons.iconsLib['process_extract_16'],
+            shortHelp="Settings: &Extract data\tShift+1")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_ORIGAMI, "", self.icons.iconsLib['process_origami_16'],
+            shortHelp="Settings: &ORIGAMI\tShift+2")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_MS, "", self.icons.iconsLib['process_ms_16'],
+            shortHelp="Settings: &Process mass spectra\tShift+3")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_2D, "", self.icons.iconsLib['process_2d_16'],
+            shortHelp="Settings: Process &2D heatmaps\tShift+4")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_FindPeaks, "", self.icons.iconsLib['process_fit_16'],
+            shortHelp="Settings: Peak &fitting\tShift+5")
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_processSettings_UniDec, "", self.icons.iconsLib['process_unidec_16'],
+            shortHelp="Settings: &UniDec\tShift+6")
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_saveAsInteractive, "", self.icons.iconsLib['bokehLogo_16'],
+            shortHelp="Open interactive output panel")
 
         # Actually realise the toolbar
         self.mainToolbar_horizontal.Realize()
@@ -1335,7 +1359,7 @@ class MyFrame(wx.Frame):
         if not self.panelCCS.IsShown():
             self.ccsTable.Check(False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onPaneOnOff(self, evt, check=None):
@@ -1358,12 +1382,12 @@ class MyFrame(wx.Frame):
             elif evt == "log":
                 evtID = ID_window_logWindow
 
-        elif evt != None:
+        elif evt is not None:
             evtID = evt.GetId()
         else:
             evtID = None
 
-        if evtID != None:
+        if evtID is not None:
             if evtID == ID_window_documentList:
                 if not self.panelDocuments.IsShown() or not self.documentsPage.IsChecked():
                     self._mgr.GetPane(self.panelDocuments).Show()
@@ -1523,21 +1547,21 @@ class MyFrame(wx.Frame):
         try:
             path = os.path.join(self.config.cwd, 'configOut.xml')
             self.config.saveConfigXML(path=path, evt=None)
-        except:
+        except Exception:
             print("Could not save configuration file")
             pass
 
         # Try unsubscribing events
         try:
             self.publisherOff()
-        except:
+        except Exception:
             print("Could not disable publisher")
             pass
 
         # Try killing window manager
         try:
             self._mgr.UnInit()
-        except:
+        except Exception:
             print("Could not uninitilize window manager")
             pass
 
@@ -1546,7 +1570,7 @@ class MyFrame(wx.Frame):
             for title in self.presenter.documentsDict:
                 del self.presenter.documentsDict[title]
                 print(("Deleted {}".format(title)))
-        except:
+        except Exception:
             pass
 
         # Clear-up temporary data directory
@@ -1562,7 +1586,7 @@ class MyFrame(wx.Frame):
         try:
             p = psutil.Process(self.config._processID)
             p.terminate()
-        except:
+        except Exception:
             pass
 
         self.Destroy()
@@ -1624,7 +1648,7 @@ class MyFrame(wx.Frame):
                             yIdx = int(ypos * self.plot_scale['DT/MS'][0]) - 1
                             xIdx = int(xpos * self.plot_scale['DT/MS'][1]) - 1
                             int_value = self.plot_data['DT/MS'][yIdx, xIdx]
-                        except:
+                        except Exception:
                             int_value = 0.
                         self.SetStatusText("m/z={:.4f} dt={:.4f} int={:.2f}".format(xpos, ypos, int_value), number=0)
                     else:
@@ -1640,12 +1664,12 @@ class MyFrame(wx.Frame):
                                 yIdx = int(ypos * self.plot_scale['2D'][0]) - 1
                                 xIdx = int(xpos * self.plot_scale['2D'][1]) - 1
                                 int_value = self.plot_data['2D'][yIdx, xIdx]
-                            except:
+                            except Exception:
                                 int_value = ""
                             self.SetStatusText("x=%.2f dt=%.2f int=%.2f" % (xpos, ypos, int_value), number=0)
                         else:
                             self.SetStatusText("x=%.2f dt=%.2f" % (xpos, ypos), number=0)
-                    except:
+                    except Exception:
                         self.SetStatusText("x=%.2f dt=%.2f" % (xpos, ypos), number=0)
                 elif plotname == "zGrid":
                     self.SetStatusText("x=%.2f charge=%.0f" % (xpos, ypos), number=0)
@@ -1690,7 +1714,7 @@ class MyFrame(wx.Frame):
             ylabel = self.panelPlots.plot2D.plot_labels.get("ylabel", "Drift time (bins)")
 
         xmin, xmax, ymin, ymax = dataOut
-        if xmin == None or xmax == None or ymin == None or ymax == None:
+        if xmin is None or xmax is None or ymin is None or ymax is None:
             self.SetStatusText("Extraction range was from outside of the plot area. Try again", number=4)
             return
 
@@ -1752,7 +1776,7 @@ class MyFrame(wx.Frame):
         elif self.currentPage == '1D':
             dt_label = self.panelPlots.plot1D.plot_labels.get("xlabel", "Drift time (bins)")
 
-            if xvalsMin == None or xvalsMax == None:
+            if xvalsMin is None or xvalsMax is None:
                 args = ('Your extraction range was outside the window. Please try again', 4)
                 self.presenter.onThreading(None, args, action='updateStatusbar')
                 return
@@ -1772,7 +1796,7 @@ class MyFrame(wx.Frame):
 
         # Extract heatmap from mass spectrum window
         elif self.currentPage == "MS" or currentView == "MS":
-            if xvalsMin == None or xvalsMax == None:
+            if xvalsMin is None or xvalsMax is None:
                 self.SetStatusText('Your extraction range was outside the window. Please try again', 3)
                 return
 
@@ -1814,9 +1838,13 @@ class MyFrame(wx.Frame):
                         return outcome
                     return
 
-                _add_to_table = {"mz_start": mzStart, "mz_end": mzEnd, "charge": charge,
-                                 "mz_ymax": mzYMax, "color": convertRGB1to255(color),
-                                 "colormap": self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
+                _add_to_table = {"mz_start": mzStart,
+                                 "mz_end": mzEnd,
+                                 "charge": charge,
+                                 "mz_ymax": mzYMax,
+                                 "color": convertRGB1to255(color),
+                                 "colormap": self.config.overlay_cmaps[randomIntegerGenerator(0,
+                                                                                              len(self.config.overlay_cmaps) - 1)],
                                  "alpha": self.config.overlay_defaultAlpha,
                                  "mask": self.config.overlay_defaultMask,
                                  "document": currentDoc}
@@ -1861,7 +1889,7 @@ class MyFrame(wx.Frame):
                 return
             # Check if value already present
             outcome = self.panelCCS.topP.onCheckForDuplicates(mzCentre=str(mzVal))
-            if outcome == True:
+            if outcome:
                 return
             self._mgr.GetPane(self.panelCCS).Show()
             self.ccsTable.Check(True)
@@ -1898,7 +1926,7 @@ class MyFrame(wx.Frame):
             # Check if value already present
             outcome = self.panelLinearDT.topP.onCheckForDuplicates(rtStart=str(xvalsMin),
                                                                    rtEnd=str(xvalsMax))
-            if outcome == True:
+            if outcome:
                 return
             xvalDiff = xvalsMax - xvalsMin.astype(int)
             self.panelLinearDT.topP.peaklist.Append([xvalsMin, xvalsMax,
@@ -1915,7 +1943,7 @@ class MyFrame(wx.Frame):
             rt_label = self.panelPlots.plotRT.plot_labels.get("xlabel", "Scans")
 
             # Get values
-            if xvalsMin == None or xvalsMax == None:
+            if xvalsMin is None or xvalsMax is None:
                 self.SetStatusText("Extraction range was from outside of the plot area. Try again",
                                    number=4)
                 return
@@ -2020,8 +2048,8 @@ class MyFrame(wx.Frame):
         except (ValueError, AttributeError, TypeError, KeyError, wx._core.PyAssertionError) as e:
             self.config.processParamsWindow_on_off = False
             dlgBox(exceptionTitle='Failed to open panel',
-                           exceptionMsg=str(e),
-                           type="Error")
+                   exceptionMsg=str(e),
+                   type="Error")
             return
 
     def onExportParameters(self, evt):
@@ -2051,8 +2079,8 @@ class MyFrame(wx.Frame):
         except (ValueError, AttributeError, TypeError, KeyError) as e:
             self.config.importExportParamsWindow_on_off = False
             dlgBox(exceptionTitle='Failed to open panel',
-                           exceptionMsg=str(e),
-                           type="Error")
+                   exceptionMsg=str(e),
+                   type="Error")
             return
 
     def onSequenceEditor(self, evt):
@@ -2070,7 +2098,7 @@ class MyFrame(wx.Frame):
                 args = ("An instance of this panel is already open", 4)
                 self.presenter.onThreading(evt, args, action='updateStatusbar')
                 return
-        except:
+        except Exception:
             pass
 
         try:
@@ -2080,8 +2108,8 @@ class MyFrame(wx.Frame):
         except (ValueError, AttributeError, TypeError, KeyError, NameError) as e:
             self.config.interactiveParamsWindow_on_off = False
             dlgBox(exceptionTitle='Failed to open panel',
-                           exceptionMsg=str(e),
-                           type="Error")
+                   exceptionMsg=str(e),
+                   type="Error")
             return
 
     def updateRecentFiles(self, path=None):
@@ -2148,50 +2176,59 @@ class MyFrame(wx.Frame):
         if file_type == 'pickle':
             self.presenter.onOpenDocument(file_path=file_path, evt=None)
         elif file_type == 'MassLynx':
-            self.presenter.onLoadOrigamiDataThreaded(path=file_path, evt=ID_openMassLynxRawFile)
+            self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_load_masslynx_raw)
         elif file_type == 'ORIGAMI':
-            self.presenter.onLoadOrigamiDataThreaded(path=file_path, evt=ID_openORIGAMIRawFile)
+            self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_load_origami_masslynx_raw)
         elif file_type == 'Infrared':
-            self.presenter.onLoadOrigamiDataThreaded(path=file_path, evt=ID_openIRRawFile)
+            self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_openIRRawFile)
         elif file_type == 'Text':
             self.data_handling.__on_add_text_2D(None, file_path)
         elif file_type == 'Text_MS':
-            self.presenter.onMSTextFileFcn(path=file_path)
+            self.data_handling.on_open_single_text_MS(path=file_path)
 
     def onOpenFile_DnD(self, file_path, file_extension):
         # open file
         if file_extension in ['.pickle', '.pkl']:
             self.presenter.onOpenDocument(file_path=file_path, evt=None)
         elif file_extension == '.raw':
-            self.presenter.onLoadOrigamiDataThreaded(path=file_path, evt=ID_openORIGAMIRawFile)
+            self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_load_origami_masslynx_raw)
         elif file_extension in ['.txt', '.csv', '.tab']:
             file_format = check_file_type(path=file_path)
             if file_format == "2D":
                 self.data_handling.__on_add_text_2D(None, file_path)
             else:
-                self.presenter.onMSTextFile(path=file_path, e=ID_openIMStxtFile)
+                self.data_handling.__on_add_text_MS(path=file_path)
 
     def updateStatusbar(self, msg, position, delay=3, modify_msg=True, print_msg=True):
         """
         Out of thread statusbar display
-        ------
-        @param msg (str): message to be displayed for specified amount of time
-        @param position (int): which statusbar box the msg should be displayed in
-        @param delay (int): number of seconds for which the msg should be displayed for
+
+        Parameters
+        ----------
+        msg: str
+            message to be displayed for specified amount of time
+        position: int
+            which statusbar box the msg should be displayed in
+        delay: int
+            number of seconds for which the msg should be displayed for
+        modify_msg: bool
+            determines whether text should be wrapped between >> TEXT <<
+        print_msg: bool
+            determines whether message should be printed to console
         """
         # modify message
         if modify_msg:
             msg = ">> %s <<" % msg
 
         if print_msg:
-            print(msg)
+            logger.info(msg)
 
         try:
             self.SetStatusText(msg, number=position)
             sleep(delay)
             self.SetStatusText("", number=position)
-        except:
-            pass
+        except Exception as e:
+            logger.warning("Could not update statusbar :: {}".format(e))
 
     def updatePlots(self, evt):
         """
@@ -2212,7 +2249,7 @@ class MyFrame(wx.Frame):
                            }
         pub.sendMessage('plot_parameters', plot_parameters=plot_parameters)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableLogging(self, evt, show_msg=True):
@@ -2221,8 +2258,8 @@ class MyFrame(wx.Frame):
         if show_msg:
             msg = "Logging to file was temporarily disabled as there is a persistent bug that prevents it correct operation. Apologies, LM"
             dlgBox(exceptionTitle="Error",
-                           exceptionMsg=msg,
-                           type="Error")
+                   exceptionMsg=msg,
+                   type="Error")
         return
 
         log_directory = os.path.join(self.config.cwd, "logs")
@@ -2247,16 +2284,17 @@ class MyFrame(wx.Frame):
             sys.stdout = self.config.stdout
             sys.stderr = self.config.stderr
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableThreading(self, evt):
 
         if self.config.threading:
-            dlgBox(exceptionTitle="Warning",
-                           exceptionMsg="Multi-threading is only an experimental feature for now! It might occasionally crash ORIGAMI, in which case you will lose your processed data!",
-                           type="Warning")
-        if evt != None:
+            dlgBox(
+                exceptionTitle="Warning",
+                exceptionMsg="Multi-threading is only an experimental feature for now! It might occasionally crash ORIGAMI, in which case you will lose your processed data!",
+                type="Warning")
+        if evt is not None:
             evt.Skip()
 
 
@@ -2281,7 +2319,7 @@ class DragAndDrop(wx.FileDropTarget):
             if file_extension in ['.raw', '.pickle', '.pkl', '.txt', '.csv', '.tab']:
                 try:
                     self.window.onOpenFile_DnD(filename, file_extension)
-                except:
+                except Exception:
                     print(("Failed to open {}".format(filename)))
                     continue
             else:

@@ -490,7 +490,7 @@ ID_saveMZDTImage = NewId()
 ID_assignToolsSelected_HTML = NewId()
 ID_assignColormapSelected_HTML = NewId()
 
-ID_openMassLynxFile = NewId()
+ID_load_masslynx_raw_ms_only = NewId()
 
 ID_OnOff_ccsView = NewId()
 ID_OnOff_dtView = NewId()
@@ -716,27 +716,14 @@ ID_xlabel_RT_retTime_min = NewId()
 ID_xlabel_RT_restore = NewId()
 
 #===============================================================================
-# # File Menu
-#===============================================================================
-# From MassLynx file
-ID_openMSFile = NewId()
-ID_open1DIMSFile = NewId()
-ID_open2DIMSFile = NewId()
-#===============================================================================
-# # From binary file
-#===============================================================================
-ID_openMSbinFile = NewId()
-ID_open1DbinFile = NewId()
-ID_open2DbinFile = NewId()
-#===============================================================================
 # # Other
 #===============================================================================
-ID_openORIGAMIRawFile = NewId()
-ID_openMassLynxRawFile = NewId()
+ID_load_origami_masslynx_raw = NewId()
+ID_load_masslynx_raw = NewId()
 ID_openLinearDTRawFile = NewId()
 ID_openRawFile = NewId()
-ID_openMStxtFile = NewId()
-ID_openIMStxtFile = NewId()
+ID_load_text_MS = NewId()
+ID_load_text_2D = NewId()
 
 #===============================================================================
 # # Save
@@ -788,9 +775,9 @@ ID_removeAllMZfromList = NewId()
 #===============================================================================
 # # Right panel toolbar (multiple text files)
 #===============================================================================
-ID_openTextFiles = NewId()
-ID_getSpectrumFromClipboard = NewId()
-ID_openTextFilesMenu = NewId()
+ID_load_multiple_text_2D = NewId()
+ID_load_clipboard_spectrum = NewId()
+ID_load_multiple_text_2D = NewId()
 ID_addTextFilesToList = NewId()
 ID_processTextFiles = NewId()
 ID_textSelectOverlayMethod = NewId()
@@ -860,9 +847,9 @@ ID_exportSeletedAsImage_ion = NewId()
 #===============================================================================
 # # Right panel toolbar (multiple MassLynx files)
 #===============================================================================
-ID_openMultipleORIGAMIRawFiles = NewId()
+ID_load_multiple_origami_masslynx_raw = NewId()
 ID_combineMassLynxFiles = NewId()
-ID_openMassLynxFiles = NewId()
+ID_load_multiple_masslynx_raw = NewId()
 #===============================================================================
 # # Right panel toolbar (multifield MassLynx linear file)
 #===============================================================================

@@ -219,7 +219,6 @@ class ORIGAMI(object):
         self.currentDoc = None
         self.currentCalibrationParams = []
         self.currentPath = None
-# ---
 
     def on_create_document(self, name, path, **kwargs):
         """
@@ -235,367 +234,6 @@ class ORIGAMI(object):
         document.fileFormat = kwargs.get("file_format", "Format: Other")
 
         return document
-
-    def onMSDirectory(self, e=None):
-        dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-                           style=wx.DD_DEFAULT_STYLE)
-
-        if dlg.ShowModal() == wx.ID_OK:
-            print("You chose %s" % dlg.GetPath())
-            # Check whether appropriate calibration file was selected
-            path = self.checkIfRawFile(dlg.GetPath())
-            if path is None:
-                msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
-                               exceptionMsg=msg,
-                               type="Error")
-                return
-            # Update statusbar
-            self.onThreading(None, ("Loaded {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-            # Extract MS file
-            extract_kwargs = {'return_data':True}
-            msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=dlg.GetPath(),
-                                                                driftscope_path=self.config.driftscopePath,
-                                                                **extract_kwargs)
-            # Get experimental parameters
-            parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
-            xlimits = [parameters['startMS'], parameters['endMS']]
-            # Update status bar with MS range
-            self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
-            self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
-
-            # Add data to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.path = dlg.GetPath()
-            self.docs.parameters = parameters
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.dataType = 'Type: MS'
-            self.docs.fileFormat = 'Format: Waters (.raw)'
-            self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals':msDataX,
-                                      'yvals':msDataY,
-                                      'xlabels':'m/z (Da)',
-                                      'xlimits':xlimits}
-
-            # Plot
-            name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
-            self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-
-            # Update document
-            self.view.updateRecentFiles(path={'file_type':'ORIGAMI_MS',
-                                              'file_path':dlg.GetPath()})
-            self.OnUpdateDocument(self.docs, 'document')
-        dlg.Destroy()
-        return None
-
-    def onMSTextFile(self, e=None, path=None):
-
-        if path is None:
-            wildcard = "Text file (*.txt, *.csv, *.tab)| *.txt;*.csv;*.tab"
-            dlg = wx.FileDialog(self.view, "Choose MS text file...",
-                                wildcard=wildcard,
-                                style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR | wx.FD_MULTIPLE)
-
-            if dlg.ShowModal() == wx.ID_OK:
-                pathlist = dlg.GetPaths()
-                for path in pathlist:
-                    print("You chose %s" % path)
-    #             dlg.Destroy()
-                    if path is not None:
-                        self.onMSTextFileFcn(path=path)
-            dlg.Destroy()
-        else:
-            self.onMSTextFileFcn(path=path)
-
-    def onMSTextFileFcn(self, path=None, e=None, return_data=False):
-           # Update statusbar
-           self.view.SetStatusText(path, number=4)
-
-           # Extract MS file
-           msDataX, msDataY, dirname, extension = io_text.text_spectrum_open(path=path)
-
-           xlimits = [np.min(msDataX), np.max(msDataX)]
-           if return_data:
-               return msDataX, msDataY, dirname, xlimits
-           # Add data to document
-           __, idName = os.path.split(path)
-           idName = (''.join([idName])).encode('ascii', 'replace')
-
-           document = documents()
-           document.title = idName
-           self.currentDoc = idName  # Currently plotted document
-           document.path = dirname
-           document.userParameters = self.config.userParameters
-           document.userParameters['date'] = getTime()
-           document.dataType = 'Type: MS'
-           document.fileFormat = 'Format: Text ({})'.format(extension)
-           document.gotMS = True
-           document.massSpectrum = {'xvals':msDataX,
-                                     'yvals':msDataY,
-                                     'xlabels':'m/z (Da)',
-                                     'xlimits':xlimits}
-
-           # Plot
-           name_kwargs = {"document":document.title, "dataset": "Mass Spectrum"}
-           self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-
-           # Update document
-           self.view.updateRecentFiles(path={'file_type':'Text_MS',
-                                             'file_path':path})
-           self.OnUpdateDocument(document, 'document')
-
-    def onMSFromClipboard(self, evt):
-        """
-        Get spectrum (n x 2) from clipboard
-        """
-        try:
-            wx.TheClipboard.Open()
-            textObj = wx.TextDataObject()
-            wx.TheClipboard.GetData(textObj)
-            wx.TheClipboard.Close()
-            text = textObj.GetText()
-            text = text.splitlines()
-            data = []
-            for t in text:
-                line = t.split()
-                if len(line) == 2:
-                    try:
-                        mz = float(line[0])
-                        intensity = float(line[1])
-                        data.append([mz, intensity])
-                    except (ValueError, TypeError): pass
-            data = np.array(data)
-            msDataX = data[:, 0]
-            msDataY = data[:, 1]
-            xlimits = [np.min(msDataX), np.max(msDataX)]
-
-           # Add data to document
-            dlg = wx.FileDialog(self.view, "Please select a name for the comparison document",
-                                 "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-            dlg.CentreOnParent()
-            if dlg.ShowModal() == wx.ID_OK:
-                path = dlg.GetPath()
-                __, idName = os.path.split(path)
-                idName = (''.join([idName])).encode('ascii', 'replace')
-
-                document = documents()
-                document.title = idName
-                self.currentDoc = idName  # Currently plotted document
-                document.path = os.path.dirname(path)
-                document.userParameters = self.config.userParameters
-                document.userParameters['date'] = getTime()
-                document.dataType = 'Type: MS'
-                document.fileFormat = 'Format: Text ({})'.format("Clipboard")
-                document.gotMS = True
-                document.massSpectrum = {'xvals':msDataX,
-                                         'yvals':msDataY,
-                                         'xlabels':'m/z (Da)',
-                                         'xlimits':xlimits}
-
-                # Plot
-                name_kwargs = {"document":document.title, "dataset": "Mass Spectrum"}
-                self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-
-                # Update document
-                self.view.updateRecentFiles(path={'file_type':'Text_MS',
-                                                  'file_path':path})
-                self.OnUpdateDocument(document, 'document')
-        except:
-            print("Failed to get spectrum from the clipboard")
-            return
-
-    def onOpenMS(self, e=None):
-        """ open MS file (without IMS) """
-
-        dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-                           style=wx.DD_DEFAULT_STYLE)
-
-        if dlg.ShowModal() == wx.ID_OK:
-            print("You chose %s" % dlg.GetPath())
-            # Check whether appropriate calibration file was selected
-            path = self.checkIfRawFile(dlg.GetPath())
-            self.config.lastDir = dlg.GetPath()
-            if path is None:
-                msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
-                               exceptionMsg=msg,
-                               type="Error")
-                return
-            # Update statusbar
-            self.view.SetStatusText(dlg.GetPath(), number=4)
-
-            # Get experimental parameters
-            parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
-            xlimits = [parameters['startMS'], parameters['endMS']]
-            # Extract MS data
-            kwargs = {'auto_range':self.config.ms_auto_range,
-                      'mz_min':xlimits[0], 'mz_max':xlimits[1],
-                      'linearization_mode':self.config.ms_linearization_mode}
-            msDict = io_waters.rawMassLynx_MS_bin(filename=str(dlg.GetPath()),
-                                                  function=1,
-                                                  binData=self.config.import_binOnImport,
-                                                  mzStart=self.config.ms_mzStart,
-                                                  mzEnd=self.config.ms_mzEnd,
-                                                  binsize=self.config.ms_mzBinSize,
-                                                  **kwargs)
-
-            # Sum MS data
-            msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
-            # Sum MS to get RT data
-            rtX, rtY = pr_spectra.sum_spectrum_to_chromatogram(ydict=msDict)
-
-            # Add data to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.path = dlg.GetPath()
-            self.docs.parameters = parameters
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.dataType = 'Type: MS'
-            self.docs.fileFormat = 'Format: Waters (.raw)'
-            self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals':msX, 'yvals':msY,
-                                      'xlabels':'m/z (Da)', 'xlimits':xlimits}
-            self.docs.got1RT = True
-            self.docs.RT = {'xvals':rtX, 'yvals':rtY, 'xlabels':'Scans'}
-
-            # Plot
-            name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
-            self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
-            self.view.panelPlots.on_plot_RT(rtX, rtY, 'Scans')
-
-            # Update document
-            self.view.updateRecentFiles(path={'file_type':'MassLynx',
-                                              'file_path':dlg.GetPath()})
-            self.OnUpdateDocument(self.docs, 'document')
-
-        dlg.Destroy()
-        return None
-
-    def on_open_ML_1D(self, e=None):
-
-        # FIXME this function doesnt take into account normalization
-        dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-                           style=wx.DD_DEFAULT_STYLE)
-
-        if dlg.ShowModal() == wx.ID_OK:
-            print("You chose %s" % dlg.GetPath())
-            # Check whether appropriate calibration file was selected
-            path = self.checkIfRawFile(dlg.GetPath())
-            if path is None:
-                msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
-                               exceptionMsg=msg,
-                               type="Error")
-                return
-            # Update statusbar
-            self.onThreading(None, ("Loaded {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-            # Extract 1D IMS data
-            extract_kwargs = {'return_data':True}
-            xvalsDT, yvalsDT = io_waters.rawMassLynx_DT_extract(path=dlg.GetPath(),
-                                                                driftscope_path=self.config.driftscopePath,
-                                                                **extract_kwargs)
-            # Get experimental parameters
-            parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
-
-            # Add data to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.path = dlg.GetPath()
-            self.docs.parameters = parameters
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.dataType = 'Type: 1D IM-MS'
-            self.docs.fileFormat = 'Format: Waters (.raw)'
-            self.docs.got1DT = True
-            self.docs.DT = {'xvals':xvalsDT,
-                            'yvals':yvalsDT,
-                            'xlabels':'Drift time (bins)',
-                            'ylabels':'Intensity'}
-
-            # Plot
-            self.view.panelPlots.on_plot_1D(xvalsDT, yvalsDT, 'Drift time (bins)', self.config.lineColour_1D)
-
-            # Update document
-            self.view.updateRecentFiles(path={'file_type':'ORIGAMI_1D',
-                                              'file_path':dlg.GetPath()})
-            self.OnUpdateDocument(self.docs, 'document')
-        dlg.Destroy()
-
-    def on_open_ML_2D(self, e=None):
-        dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-                           style=wx.DD_DEFAULT_STYLE)
-        if self.config.dirname == '':
-            pass
-        else:
-            dlg.SetPath(self.config.dirname)
-
-        if dlg.ShowModal() == wx.ID_OK:
-            print("You chose %s" % dlg.GetPath())
-            # Check whether appropriate calibration file was selected
-            path = self.checkIfRawFile(dlg.GetPath())
-            if path is None:
-                msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
-                               exceptionMsg=msg,
-                               type="Error")
-                return
-
-            # Update statusbar
-            self.onThreading(None, ("Loaded {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-            # Extract 1D IMS data
-            extract_kwargs = {'return_data':True}
-            imsData2D = io_waters.rawMassLynx_2DT_extract(path=dlg.GetPath(),
-                                                          driftscope_path=self.config.driftscopePath,
-                                                          **extract_kwargs)
-            xlabels = 1 + np.arange(len(imsData2D[1, :]))
-            ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-            # Get experimental parameters
-            parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
-
-            # Add data to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.path = dlg.GetPath()
-            self.docs.parameters = parameters
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.dataType = 'Type: 2D IM-MS'
-            self.docs.fileFormat = 'Format: Waters (.raw)'
-            self.docs.got2DIMS = True
-            self.docs.IMS2D = {'zvals':imsData2D,
-                                'xvals':xlabels,
-                                'xlabels':'Scans',
-                                'yvals':ylabels,
-#                                 'yvals1D':imsData1D,
-                                'ylabels':'Drift time (bins)',
-                                'cmap':self.docs.colormap}
-
-            # Plot
-            self.view.panelPlots.on_plot_2D(imsData2D, xlabels, ylabels, 'Scans', 'Drift time (bins)',
-                              cmap=self.docs.colormap)
-
-            # Update document
-            self.view.updateRecentFiles(path={'file_type':'ORIGAMI_2D', 'file_path':dlg.GetPath()})
-            self.OnUpdateDocument(self.docs, 'document')
-        dlg.Destroy()
 
     def onThreading(self, evt, args, action='loadOrigami'):
         # Setup thread
@@ -623,363 +261,8 @@ class ORIGAMI(object):
         # Start thread
         try:
             th.start()
-        except:
+        except Exception:
             print('Failed to execute the operation in threaded mode. Consider switching it off?')
-
-    def onOrigamiRawDirectory(self, evt):
-
-        # Reset arrays
-        dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-                           style=wx.DD_DEFAULT_STYLE)
-
-        if dlg.ShowModal() == wx.ID_OK:
-            if not self.config.threading:
-                self.onLoadOrigamiDataThreaded(dlg.GetPath(), evt)
-            else:
-                args = dlg.GetPath()
-                self.onThreading(evt, args, action='loadOrigami')
-
-        dlg.Destroy()
-        return None
-
-    def onLoadOrigamiDataThreaded(self, path, evt, mode=None):
-        """ Load data = threaded """
-        tstart = time.clock()
-
-        # get event id
-        if isinstance(evt, int):
-            evtID = evt
-        else:
-            evtID = evt.GetId()
-
-        # Assign datatype. Have to do it here otherwise the evt value is incorrect for some unknown reason!
-        if evtID == ID_openORIGAMIRawFile:
-            dataType = 'Type: ORIGAMI'
-        elif evtID == ID_openMassLynxRawFile:
-            dataType = 'Type: MassLynx'
-        elif evtID == ID_openIRRawFile:
-            dataType = 'Type: Infrared'
-        else:
-            dataType = 'Type: ORIGAMI'
-
-        if mode != None: dataType = mode
-
-        path = self.checkIfRawFile(path)
-        self.config.lastDir = path
-        __, idName = os.path.split(path)
-        idName = (''.join([idName])).encode('ascii', 'replace')
-
-        if path is None:
-            msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format"
-            dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
-                           exceptionMsg=msg,
-                           type="Error")
-            return
-        # Get experimental parameters
-        parameters = self.config.importMassLynxInfFile(path=path)
-        xlimits = [parameters['startMS'], parameters['endMS']]
-
-        fileInfo = self.config.importMassLynxHeaderFile(path=path)
-
-        # Update statusbar
-        self.onThreading(None, ("Loaded {}".format(path), 4), action='updateStatusbar')
-        try:
-            extract_kwargs = {'return_data':True}
-            msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=path,
-                                                                driftscope_path=self.config.driftscopePath,
-                                                                **extract_kwargs)
-            self.onThreading(None, ("Extracted mass spectrum", 4), action='updateStatusbar')
-        except IOError:
-            # Failed to open document because it does not have IM-MS data
-            dataType = 'Type: MS'
-            evtID = None
-            # Extract MS data
-            kwargs = {'auto_range':self.config.ms_auto_range,
-                      'mz_min':xlimits[0], 'mz_max':xlimits[1],
-                      'linearization_mode':self.config.ms_linearization_mode}
-            msDict = io_waters.rawMassLynx_MS_bin(filename=str(path),
-                                                  function=1,
-                                                  binData=self.config.import_binOnImport,
-                                                  mzStart=self.config.ms_mzStart,
-                                                  mzEnd=self.config.ms_mzEnd,
-                                                  binsize=self.config.ms_mzBinSize,
-                                                  **kwargs)
-
-            # Sum MS data
-            msDataX, msDataY = pr_spectra.sum_1D_dictionary(ydict=msDict)
-
-            # Sum MS to get RT data
-            rtDataY, rtDataYnorm = pr_spectra.sum_spectrum_to_chromatogram(ydict=msDict)
-            xvalsRT = np.arange(1, len(rtDataY) + 1)
-
-        if dataType != 'Type: MS':
-            # RT
-            extract_kwargs = {'return_data':True, 'normalize':True}
-            xvalsRT, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(path=path,
-                                                                             driftscope_path=self.config.driftscopePath,
-                                                                             **extract_kwargs)
-            self.onThreading(None, ("Extracted chromatogram", 4), action='updateStatusbar')
-
-            # DT
-            extract_kwargs = {'return_data':True}
-            xvalsDT, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
-                                                                  driftscope_path=self.config.driftscopePath,
-                                                                  **extract_kwargs)
-            self.onThreading(None, ("Extracted mobiligram", 4), action='updateStatusbar')
-
-            # 2D
-            extract_kwargs = {'return_data':True}
-            imsData2D = io_waters.rawMassLynx_2DT_extract(path=path,
-                                                          driftscope_path=self.config.driftscopePath,
-                                                          **extract_kwargs)
-            xlabels = 1 + np.arange(len(imsData2D[1, :]))
-            ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-            self.onThreading(None, ("Extracted heatmap", 4), action='updateStatusbar')
-
-            # Plot MZ vs DT
-            if self.config.showMZDT:
-                # m/z spacing, default is 1 Da
-                nPoints = int((parameters['endMS'] - parameters['startMS']) / self.config.ms_dtmsBinSize)
-                # Extract and load data
-                extract_kwargs = {'return_data':True}
-                imsDataMZDT = io_waters.rawMassLynx_MZDT_extract(path=path,
-                                                                 driftscope_path=self.config.driftscopePath,
-                                                                 mz_start=parameters['startMS'],
-                                                                 mz_end=parameters['endMS'],
-                                                                 mz_nPoints=nPoints,
-                                                                 **extract_kwargs)
-                # Get x/y axis
-                xlabelsMZDT = np.linspace(parameters['startMS'] - self.config.ms_dtmsBinSize,
-                                          parameters['endMS'] + self.config.ms_dtmsBinSize,
-                                          nPoints, endpoint=True)
-                ylabelsMZDT = 1 + np.arange(len(imsDataMZDT[:, 1]))
-
-                # Plot
-                self.view.panelPlots.on_plot_MSDT(imsDataMZDT, xlabelsMZDT, ylabelsMZDT,
-                                                  'm/z', 'Drift time (bins)')
-
-        # Update status bar with MS range
-            self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
-            self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
-        tend = time.clock()
-        self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4),
-                         action='updateStatusbar')
-
-        # Add info to document and data to file
-
-        self.docs = documents()
-        self.docs.title = idName
-        self.currentDoc = idName  # Currently plotted document
-        self.docs.path = path
-        self.docs.dataType = dataType
-        self.docs.fileFormat = 'Format: Waters (.raw)'
-        self.docs.fileInformation = fileInfo
-        self.docs.parameters = parameters
-        self.docs.userParameters = self.config.userParameters
-        self.docs.userParameters['date'] = getTime()
-
-        # add mass spectrum data
-        self.docs.gotMS = True
-        self.docs.massSpectrum = {'xvals':msDataX,
-                                  'yvals':msDataY,
-                                  'xlabels':'m/z (Da)',
-                                  'xlimits':xlimits}
-        name_kwargs = {"document":idName, "dataset": "Mass Spectrum"}
-        self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-
-        # add chromatogram data
-        self.docs.got1RT = True
-        self.docs.RT = {'xvals':xvalsRT, 'yvals':rtDataYnorm, 'xlabels':'Scans'}
-        self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
-
-        if dataType != 'Type: MS':
-            # add mobiligram data
-            self.docs.got1DT = True
-            self.docs.DT = {'xvals':xvalsDT, 'yvals':imsData1D,
-                            'xlabels':'Drift time (bins)', 'ylabels':'Intensity'}
-            self.view.panelPlots.on_plot_1D(xvalsDT, imsData1D, 'Drift time (bins)')
-
-            # add 2D mobiligram data
-            self.docs.got2DIMS = True
-            self.docs.IMS2D = {'zvals':imsData2D, 'xvals':xlabels,
-                               'xlabels':'Scans', 'yvals':ylabels,
-                               'yvals1D':imsData1D, 'ylabels':'Drift time (bins)',
-                               'cmap':self.config.currentCmap, 'charge':1}
-            self.view.panelPlots.on_plot_2D_data(data=[imsData2D, xlabels, 'Scans', ylabels, 'Drift time (bins)'])
-
-            # add DT/MS data
-            if self.config.showMZDT:
-                self.docs.gotDTMZ = True
-                self.docs.DTMZ = {'zvals':imsDataMZDT, 'xvals':xlabelsMZDT,
-                                  'yvals':ylabelsMZDT, 'xlabels':'m/z',
-                                  'ylabels':'Drift time (bins)',
-                                  'cmap':self.config.currentCmap}
-
-        if evtID == ID_openORIGAMIRawFile:
-            self.view.updateRecentFiles(path={'file_type':'ORIGAMI', 'file_path':path})
-        elif evtID == ID_openMassLynxRawFile:
-            self.view.updateRecentFiles(path={'file_type':'MassLynx', 'file_path':path})
-        elif evtID == ID_openIRRawFile:
-            self.view.updateRecentFiles(path={'file_type':'Infrared', 'file_path':path})
-        else:
-            self.view.updateRecentFiles(path={'file_type':'MassLynx', 'file_path':path})
-
-        # Update document
-        self.OnUpdateDocument(self.docs, 'document')
-
-#     def onReExtractDTMS(self, evt):
-#
-#         try: self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#         except: return
-#         document = self.documentsDict[self.currentDoc]
-#         parameters = document.parameters
-#         path = document.path
-#         # m/z spacing, default is 1 Da
-#         nPoints = int((parameters['endMS'] - parameters['startMS']) / self.config.ms_dtmsBinSize)
-#         # Extract and load data
-#         extract_kwargs = {'return_data':True}
-#         imsDataMZDT = io_waters.rawMassLynx_MZDT_extract(path=path,
-#                                                          driftscope_path=self.config.driftscopePath,
-#                                                          mz_start=parameters['startMS'],
-#                                                          mz_end=parameters['endMS'],
-#                                                          mz_nPoints=nPoints,
-#                                                          **extract_kwargs)
-#
-#         # Get x/y axis
-#         xlabelsMZDT = np.linspace(parameters['startMS'] - self.config.ms_dtmsBinSize,
-#                                   parameters['endMS'] + self.config.ms_dtmsBinSize,
-#                                   nPoints, endpoint=True)
-#         ylabelsMZDT = 1 + np.arange(len(imsDataMZDT[:, 1]))
-#
-#         # Plot
-#         self.view.panelPlots.on_plot_MSDT(imsDataMZDT, xlabelsMZDT, ylabelsMZDT,
-#                                           'm/z', 'Drift time (bins)')
-#
-#         document.gotDTMZ = True
-#         document.DTMZ = {'zvals':imsDataMZDT, 'xvals':xlabelsMZDT,
-#                           'yvals':ylabelsMZDT, 'xlabels':'m/z',
-#                           'ylabels':'Drift time (bins)',
-#                           'cmap':self.config.currentCmap}
-#         self.OnUpdateDocument(document, 'document')
-
-    def on_open_ML_binary_MS(self, path=None, evt=None):
-        dlg = wx.FileDialog(self.view, "Choose a binary MS file:", wildcard="*.1dMZ" ,
-                           style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_OK:
-            print("You chose %s" % dlg.GetPath())
-            # For now this is read as TRUE - need to add other normalization methods
-            extract_kwargs = {'return_data':True}
-            msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=dlg.GetPath(),
-                                                                driftscope_path=self.config.driftscopePath,
-                                                                **extract_kwargs)
-            parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
-            xlimits = [parameters['startMS'], parameters['endMS']]
-            # Update status bar with MS range
-            self.config.msStart = np.min(msDataX)
-            self.config.msEnd = np.max(msDataX)
-            self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
-            self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-            # Add data to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.path = os.path.dirname(dlg.GetPath())
-            self.docs.dataType = 'Type: MS'
-            self.docs.fileFormat = 'Format: Waters Binary File (.1dMZ)'
-            self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals':msDataX,
-                                      'yvals':msDataY,
-                                      'xlabels':'m/z (Da)',
-                                      'xlimits':xlimits}
-
-            # Plot
-            name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
-            self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-
-            # Update document
-            self.OnUpdateDocument(self.docs, 'document')
-
-        dlg.Destroy()
-
-    def on_open_ML_binary_1D(self, e):
-        dlg = wx.FileDialog(self.view, "Choose a binary MS file:", wildcard="*.1dDT" ,
-                           style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_OK:
-            print("You chose %s" % dlg.GetPath())
-            extract_kwargs = {'return_data':True}
-            xvalsDT, imsData1D = io_waters.rawMassLynx_DT_extract(path=dlg.GetPath(),
-                                                                  driftscope_path=self.config.driftscopePath,
-                                                                  **extract_kwargs)
-            # Update statusbar
-            self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-            # Add data to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.path = os.path.dirname(dlg.GetPath())
-            self.docs.dataType = 'Type: 1D IM-MS'
-            self.docs.fileFormat = 'Format: Waters Binary File (.1dDT)'
-            self.docs.got1DT = True
-            self.docs.DT = {'xvals':xvalsDT,
-                            'yvals':imsData1D,
-                            'xlabels':'Drift time (bins)',
-                            'ylabels':'Intensity'}
-
-            self.view.panelPlots.on_plot_1D(xvalsDT, imsData1D, 'Drift time (bins)')
-
-            # Update document
-            self.OnUpdateDocument(self.docs, 'document')
-
-        dlg.Destroy()
-
-    def on_open_ML_binary_2D(self, e):
-        dlg = wx.FileDialog(self.view, "Choose a binary MS file:", wildcard="*.2dRTDT" ,
-                           style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_OK:
-            print("You chose %s" % dlg.GetPath())
-            extract_kwargs = {'return_data':True}
-            imsData2D = io_waters.rawMassLynx_2DT_extract(path=dlg.GetPath(),
-                                                          driftscope_path=self.config.driftscopePath,
-                                                          **extract_kwargs)
-            xlabels = 1 + np.arange(len(imsData2D[1, :]))
-            ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-            # Pre-set data for other calculations
-            self.view.panelPlots.on_plot_2D_data(data=[imsData2D, xlabels, 'Scans', ylabels, 'Drift time (bins)'])
-            # Update statusbar
-            self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4),
-                             action='updateStatusbar')
-
-            # Add data to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.path = os.path.dirname(dlg.GetPath())
-            self.docs.dataType = 'Type: 2D IM-MS'
-            self.docs.fileFormat = 'Format: Waters Binary File (.2dRTDT)'
-            self.docs.got2DIMS = True
-            self.docs.IMS2D = {'zvals':imsData2D,
-                                'xvals':xlabels,
-                                'xlabels':'Scans',
-                                'yvals':ylabels,
-                                'ylabels':'Drift time (bins)',
-                                'cmap':self.docs.colormap}
-
-            # Update document
-            self.OnUpdateDocument(self.docs, 'document')
-
-        dlg.Destroy()
 
     def onLinearDTirectory(self, e=None):
         # self.config.ciuMode = 'LinearDT'
@@ -1002,19 +285,19 @@ class ORIGAMI(object):
             parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
             xlimits = [parameters['startMS'], parameters['endMS']]
             # Mass spectra
-            extract_kwargs = {'return_data':True}
+            extract_kwargs = {'return_data': True}
             msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=dlg.GetPath(),
                                                                 driftscope_path=self.config.driftscopePath,
                                                                 **extract_kwargs)
 
             # RT
-            extract_kwargs = {'return_data':True, 'normalize':True}
+            extract_kwargs = {'return_data': True, 'normalize': True}
             xvalsRT, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(path=dlg.GetPath(),
                                                                              driftscope_path=self.config.driftscopePath,
                                                                              **extract_kwargs)
 
             # 2D
-            extract_kwargs = {'return_data':True}
+            extract_kwargs = {'return_data': True}
             imsData2D = io_waters.rawMassLynx_2DT_extract(path=dlg.GetPath(),
                                                           driftscope_path=self.config.driftscopePath,
                                                           **extract_kwargs)
@@ -1042,26 +325,26 @@ class ORIGAMI(object):
             self.docs.fileFormat = 'Format: MassLynx (.raw)'
             # Add data
             self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals':msDataX,
-                                      'yvals':msDataY,
-                                      'xlabels':'m/z (Da)',
-                                      'xlimits':xlimits}
+            self.docs.massSpectrum = {'xvals': msDataX,
+                                      'yvals': msDataY,
+                                      'xlabels': 'm/z (Da)',
+                                      'xlimits': xlimits}
             self.docs.got1RT = True
-            self.docs.RT = {'xvals':xvalsRT,
-                            'yvals':rtDataYnorm,
-                            'xlabels':'Scans'}
+            self.docs.RT = {'xvals': xvalsRT,
+                            'yvals': rtDataYnorm,
+                            'xlabels': 'Scans'}
             self.docs.got2DIMS = True
             # Format: zvals, xvals, xlabel, yvals, ylabel
-            self.docs.IMS2D = {'zvals':imsData2D,
-                                'xvals':xlabels,
-                                'xlabels':'Scans',
-                                'yvals':ylabels,
-                                'ylabels':'Drift time (bins)',
-                                'cmap':self.docs.colormap}
+            self.docs.IMS2D = {'zvals': imsData2D,
+                               'xvals': xlabels,
+                                'xlabels': 'Scans',
+                                'yvals': ylabels,
+                                'ylabels': 'Drift time (bins)',
+                                'cmap': self.docs.colormap}
 
             # Plots
             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
-            name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
+            name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
 
             # Update document
@@ -1086,8 +369,8 @@ class ORIGAMI(object):
             if path is None:
                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format."
                 dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
-                               exceptionMsg=msg,
-                               type="Error")
+                       exceptionMsg=msg,
+                       type="Error")
                 return
             print("You chose %s" % dlg.GetPath())
             # Update statusbar
@@ -1096,18 +379,18 @@ class ORIGAMI(object):
             parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
             xlimits = [parameters['startMS'], parameters['endMS']]
             # Mass spectra
-            extract_kwargs = {'return_data':True}
+            extract_kwargs = {'return_data': True}
             msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=dlg.GetPath(),
                                                                 driftscope_path=self.config.driftscopePath,
                                                                 **extract_kwargs)
             # RT
-            extract_kwargs = {'return_data':True, 'normalize':True}
+            extract_kwargs = {'return_data': True, 'normalize': True}
             xvalsRT, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(path=dlg.GetPath(),
                                                                              driftscope_path=self.config.driftscopePath,
                                                                              **extract_kwargs)
 
             # DT
-            extract_kwargs = {'return_data':True}
+            extract_kwargs = {'return_data': True}
             xvalsDT, imsData1D = io_waters.rawMassLynx_DT_extract(path=dlg.GetPath(),
                                                                   driftscope_path=self.config.driftscopePath,
                                                                   **extract_kwargs)
@@ -1134,19 +417,19 @@ class ORIGAMI(object):
             self.docs.corrC = parameters['corrC']
             # Add data
             self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals':msDataX,
-                                      'yvals':msDataY,
-                                      'xlabels':'m/z (Da)',
-                                      'xlimits':xlimits}
+            self.docs.massSpectrum = {'xvals': msDataX,
+                                      'yvals': msDataY,
+                                      'xlabels': 'm/z (Da)',
+                                      'xlimits': xlimits}
             self.docs.got1RT = True
-            self.docs.RT = {'xvals':xvalsRT,
-                            'yvals':rtDataYnorm,
-                            'xlabels':'Scans'}
+            self.docs.RT = {'xvals': xvalsRT,
+                            'yvals': rtDataYnorm,
+                            'xlabels': 'Scans'}
             self.docs.got1DT = True
-            self.docs.DT = {'xvals':xvalsDT,
-                            'yvals':imsData1D,
-                            'xlabels':'Drift time (bins)',
-                            'ylabels':'Intensity'}
+            self.docs.DT = {'xvals': xvalsDT,
+                            'yvals': imsData1D,
+                            'xlabels': 'Drift time (bins)',
+                            'ylabels': 'Intensity'}
 
             # Add plots
             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
@@ -1170,7 +453,8 @@ class ORIGAMI(object):
 
         tempList = self.view.panelCCS.topP.peaklist
         for row in range(tempList.GetItemCount()):
-            if evt.GetId() == ID_extractCCScalibrantAll: pass
+            if evt.GetId() == ID_extractCCScalibrantAll:
+                pass
             elif evt.GetId() == ID_extractCCScalibrantSelected:
                 if not tempList.IsChecked(index=row):
                     continue
@@ -1187,7 +471,7 @@ class ORIGAMI(object):
                 print(('Skipping %s as this is a DataFrame document.' % rangeName))
                 continue
 
-            extract_kwargs = {'return_data':True}
+            extract_kwargs = {'return_data': True}
             __, yvalsDT = io_waters.rawMassLynx_DT_extract(path=document.path,
                                                            driftscope_path=self.config.driftscopePath,
                                                            **extract_kwargs)
@@ -1195,8 +479,10 @@ class ORIGAMI(object):
             # Get pusher
             pusherFreq = document.parameters.get('pusherFreq', 1)
 
-            if pusherFreq != 1: xlabel = 'Drift time (ms)'
-            else: xlabel = 'Drift time (bins)'
+            if pusherFreq != 1:
+                xlabel = 'Drift time (ms)'
+            else:
+                xlabel = 'Drift time (bins)'
             # Create x-labels in ms
             xvalsDT = (np.arange(1, len(yvalsDT) + 1) * pusherFreq) / 1000
 
@@ -1226,17 +512,17 @@ class ORIGAMI(object):
             protein = document.moleculeDetails.get('protein', None)
 
             document.gotCalibration = True
-            document.calibration[rangeName] = {'xrange':[mzStart, mzEnd],
-                                               'xvals':xvalsDT,
-                                               'yvals':yvalsDT,
-                                               'xcentre':((mzEnd + mzStart) / 2),
-                                               'protein':protein,
-                                               'charge':charge,
-                                               'ccs':CCS, 'tD':tD,
-                                               'gas':gas,
-                                               'xlabels':xlabel,
+            document.calibration[rangeName] = {'xrange': [mzStart, mzEnd],
+                                               'xvals': xvalsDT,
+                                               'yvals': yvalsDT,
+                                               'xcentre': ((mzEnd + mzStart) / 2),
+                                               'protein': protein,
+                                               'charge': charge,
+                                               'ccs': CCS, 'tD': tD,
+                                               'gas': gas,
+                                               'xlabels': xlabel,
                                                'peak': [tD, yval],
-                                               'mw':mw
+                                               'mw': mw
                                                }
             # Plot
             self.onPlot1DTCalibration(dtX=xvalsDT,
@@ -1256,16 +542,16 @@ class ORIGAMI(object):
             self.OnUpdateDocument(document, 'document')
 
     def onIRTextFile(self, evt):
-        dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.txt; *.csv" ,
-                           style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+        dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.txt; *.csv",
+                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
             print("You chose %s" % dlg.GetPath())
             imsData2D, xAxisLabels, yAxisLabels = None, None, None
             imsData2D, xAxisLabels, yAxisLabels = io_text.text_infrared_open(path=dlg.GetPath())
-            dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT = pr_origami.origami_combine_infrared(inputData=imsData2D,
-                                                                                     threshold=2000, noiseLevel=500)
+            dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT = pr_origami.origami_combine_infrared(
+                inputData=imsData2D, threshold=2000, noiseLevel=500)
 
-             # Add data to document
+            # Add data to document
             __, idName = os.path.split(dlg.GetPath())
             idName = (''.join([idName])).encode('ascii', 'replace')
             self.docs = documents()
@@ -1278,109 +564,39 @@ class ORIGAMI(object):
             self.docs.fileFormat = 'Format: Text (.csv/.txt)'
 
             self.docs.got1RT = True
-            self.docs.RT = {'xvals':yAxisLabels,  # bins
-                            'yvals':dataRT,
-                            'xlabels':'Wavenumber (cm⁻¹)'}
+            self.docs.RT = {'xvals': yAxisLabels,  # bins
+                            'yvals': dataRT,
+                            'xlabels': 'Wavenumber (cm⁻¹)'}
             self.docs.got1DT = True
-            self.docs.DT = {'xvals':xAxisLabels,
-                            'yvals':data1DT,
-                            'xlabels':'Drift time (bins)',
-                            'ylabels':'Intensity'}
+            self.docs.DT = {'xvals': xAxisLabels,
+                            'yvals': data1DT,
+                            'xlabels': 'Drift time (bins)',
+                            'ylabels': 'Intensity'}
 
             self.docs.got2DIMS = True
-            self.docs.IMS2D = {'zvals':dataSplit,
-                               'xvals':xAxisLabels,
-                               'xlabels':'Wavenumber (cm⁻¹)',
-                               'yvals':yAxisLabels,
-                               'ylabels':'Drift time (bins)',
-                               'cmap':self.docs.colormap}
+            self.docs.IMS2D = {'zvals': dataSplit,
+                               'xvals': xAxisLabels,
+                               'xlabels': 'Wavenumber (cm⁻¹)',
+                               'yvals': yAxisLabels,
+                               'ylabels': 'Drift time (bins)',
+                               'cmap': self.docs.colormap}
             # Append to list
             self.documentsDict[idName] = self.docs
 
             # Plots
             self.view.panelPlots.on_plot_1D(yAxisLabels, data1DT, 'Drift time (bins)')
             self.view.panelPlots.on_plot_RT(xAxisLabels, dataRT, 'Wavenumber (cm⁻¹)')
-            self.view.panelPlots.on_plot_2D_data(data=[dataSplit, xAxisLabels, 'Wavenumber (cm⁻¹)', yAxisLabels, 'Drift time (bins)',
-                                   self.docs.colormap])
+            self.view.panelPlots.on_plot_2D_data(
+                data=[
+        dataSplit,
+        xAxisLabels,
+        'Wavenumber (cm⁻¹)',
+        yAxisLabels,
+        'Drift time (bins)',
+        self.docs.colormap])
 
             # Update documents tree
             self.view.panelDocuments.documents.add_document(docData=self.docs)
-
-#     def on_open_text_2D(self, e=None, path=None):
-#
-#         if path is None:
-#             dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.txt; *.csv" ,
-#                                style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-#             if dlg.ShowModal() == wx.ID_OK:
-#                 print("You chose %s" % dlg.GetPath())
-#                 path = dlg.GetPath()
-#             dlg.Destroy()
-#             if path is not None:
-#                 self.on2DTextFileFcn(path=path)
-#         else:
-#             self.on2DTextFileFcn(path=path)
-
-    def on2DTextFileFcn(self, path=None, e=None):
-        self.view.onPaneOnOff(evt=ID_window_textList, check=True)
-        tempList = self.view.panelMultipleText.peaklist
-
-        imsData2D, xAxisLabels, yAxisLabels = io_text.text_heatmap_open(path=path)
-        imsData1D = np.sum(imsData2D, axis=1).T
-        rtDataY = np.sum(imsData2D, axis=0)
-        # get filename
-        __, idName = os.path.split(path)
-        idName = (''.join([idName])).encode('ascii', 'replace')
-
-        # Update limits
-        self.setXYlimitsRMSD2D(xAxisLabels, yAxisLabels)
-
-        # Update statusbar
-        self.onThreading(None, ("Opened: {}".format(path), 4), action='updateStatusbar')
-        # Add to table
-        color = self.view.panelMultipleText.on_check_duplicate_colors(self.config.customColors[randomIntegerGenerator(0, 15)])
-        color = convertRGB255to1(color)
-        outcome = self.view.panelMultipleText.onCheckDuplicates(fileName=idName)
-        if not outcome:
-            tempList.Append([xAxisLabels[0], xAxisLabels[-1], "", color,
-                             self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
-                             self.config.overlay_defaultMask,
-                             self.config.overlay_defaultAlpha, "",
-                             imsData2D.shape, idName])
-            tempList.SetItemBackgroundColour(tempList.GetItemCount() - 1,
-                                             convertRGB1to255(color))
-
-        # Plots
-        self.view.panelPlots.on_plot_2D_data(data=[imsData2D, xAxisLabels,
-                                                   'Collision Voltage (V)', yAxisLabels,
-                                                   'Drift time (bins)', self.config.currentCmap])
-
-        # Add data to document
-        self.docs = documents()
-        self.docs.title = idName
-        self.docs.path = path
-        self.docs.userParameters = self.config.userParameters
-        self.docs.userParameters['date'] = getTime()
-        self.docs.dataType = 'Type: 2D IM-MS'
-        self.docs.fileFormat = 'Format: Text (.csv/.txt)'
-        self.docs.got2DIMS = True
-        self.docs.IMS2D = {'zvals':imsData2D,
-                            'xvals':xAxisLabels,
-                            'xlabels':'Collision Voltage (V)',
-                            'yvals':yAxisLabels,
-                            'ylabels':'Drift time (bins)',
-                            'yvals1D':imsData1D,
-                            'yvalsRT':rtDataY,
-                            'cmap':self.docs.colormap,
-                            'mask':self.config.overlay_defaultMask,
-                            'alpha':self.config.overlay_defaultAlpha,
-                            'min_threshold':0, 'max_threshold':1,
-                            'color':color
-                            }
-
-        # Update document
-        self.view.updateRecentFiles(path={'file_type':'Text',
-                                          'file_path':path})
-        self.OnUpdateDocument(self.docs, 'document')
 
     def on_extract_2D_from_mass_range(self, extract_type="all"):
         """ extract multiple ions = threaded """
@@ -1393,10 +609,15 @@ class ORIGAMI(object):
             filename = itemInfo['document']
             # Check if the ion has been assigned a filename
             if filename == '':
-                self.onThreading(None, ('File name column was empty. Using the current document name instead', 4), action='updateStatusbar')
+                self.onThreading(
+                    None,
+                    ('File name column was empty. Using the current document name instead',
+     4),
+                    action='updateStatusbar')
                 tempList.SetStringItem(index=row, col=self.config.peaklistColNames['filename'], label=self.currentDoc)
                 filename = self.currentDoc
-            else: pass
+            else:
+                pass
             document = self.documentsDict[filename]
             # Extract information from the table
             mzStart = itemInfo['mzStart']
@@ -1404,7 +625,8 @@ class ORIGAMI(object):
             label = itemInfo['label']
             charge = itemInfo['charge']
 
-            if charge == None: charge = 'None'
+            if charge is None:
+                charge = 'None'
             path = document.path
 
             # Create range name
@@ -1413,7 +635,8 @@ class ORIGAMI(object):
             # Check that the mzStart/mzEnd are above the acquire MZ value
             if mzStart < min(document.massSpectrum['xvals']):
                 tempList.ToggleItem(index=row)
-                msg = "Ion: {} was below the minimum value in the mass spectrum. Consider removing it from the list.".format(rangeName)
+                msg = "Ion: {} was below the minimum value in the mass spectrum. Consider removing it from the list.".format(
+                    rangeName)
                 self.onThreading(None, (msg, 4), action='updateStatusbar')
                 continue
 
@@ -1424,7 +647,8 @@ class ORIGAMI(object):
                         self.onThreading(None, ("Data was already extracted for the : {} ion".format(rangeName), 4),
                                          action='updateStatusbar')
                         continue
-                except KeyError: pass
+                except KeyError:
+                    pass
 
             elif extract_type == 'new' and document.gotCombinedExtractedIons:
                 try:
@@ -1444,7 +668,7 @@ class ORIGAMI(object):
             if document.dataType == 'Type: ORIGAMI':
                 # 1D
                 try:
-                    extract_kwargs = {'return_data':True}
+                    extract_kwargs = {'return_data': True}
                     __, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
                                                                      driftscope_path=self.config.driftscopePath,
                                                                      mz_start=mzStart, mz_end=mzEnd,
@@ -1454,16 +678,14 @@ class ORIGAMI(object):
                           "You can change the document path by right-clicking on the document in the Document Tree and \n " + \
                           "selecting Notes, Information, Labels..."
                     dlgBox(exceptionTitle='Missing folder',
-                                   exceptionMsg=msg, type="Error")
+                           exceptionMsg=msg, type="Error")
                     return
                 # RT
-                extract_kwargs = {'return_data':True, 'normalize':True}
-                xvalsRT, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(path=path,
-                                                                                 driftscope_path=self.config.driftscopePath,
-                                                                                 mz_start=mzStart, mz_end=mzEnd,
-                                                                                 **extract_kwargs)
+                extract_kwargs = {'return_data': True, 'normalize': True}
+                xvalsRT, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(
+                    path=path, driftscope_path=self.config.driftscopePath, mz_start=mzStart, mz_end=mzEnd, **extract_kwargs)
                 # 2D
-                extract_kwargs = {'return_data':True}
+                extract_kwargs = {'return_data': True}
                 imsData2D = io_waters.rawMassLynx_2DT_extract(path=path,
                                                               driftscope_path=self.config.driftscopePath,
                                                               mz_start=mzStart, mz_end=mzEnd,
@@ -1480,27 +702,28 @@ class ORIGAMI(object):
 
                 # Add data to document object
                 document.gotExtractedIons = True
-                document.IMS2Dions[rangeName] = {'zvals':imsData2D,
-                                                  'xvals':xlabels,
-                                                  'xlabels':'Scans',
-                                                  'yvals':ylabels,
-                                                  'ylabels':'Drift time (bins)',
-                                                  'cmap':itemInfo.get('colormap', self.config.currentCmap),
-                                                  'yvals1D':imsData1D,
-                                                  'yvalsRT':rtDataY,
-                                                  'title':label,
-                                                  'label':label,
-                                                  'charge':charge,
-                                                  'alpha':itemInfo['alpha'],
-                                                  'mask':itemInfo['mask'],
-                                                  'color':itemInfo['color'],
-                                                  'min_threshold':itemInfo['min_threshold'],
-                                                  'max_threshold':itemInfo['max_threshold'],
-                                                  'xylimits':[mzStart, mzEnd, mzYMax]}
+                document.IMS2Dions[rangeName] = {'zvals': imsData2D,
+                                                 'xvals': xlabels,
+                                                  'xlabels': 'Scans',
+                                                  'yvals': ylabels,
+                                                  'ylabels': 'Drift time (bins)',
+                                                  'cmap': itemInfo.get('colormap', self.config.currentCmap),
+                                                  'yvals1D': imsData1D,
+                                                  'yvalsRT': rtDataY,
+                                                  'title': label,
+                                                  'label': label,
+                                                  'charge': charge,
+                                                  'alpha': itemInfo['alpha'],
+                                                  'mask': itemInfo['mask'],
+                                                  'color': itemInfo['color'],
+                                                  'min_threshold': itemInfo['min_threshold'],
+                                                  'max_threshold': itemInfo['max_threshold'],
+                                                  'xylimits': [mzStart, mzEnd, mzYMax]}
                 # Update document
                 # if auto extract is enabled and the user extracts items rapidly it can
                 # cause an issue so its a small hack to fix that
-                try: self.OnUpdateDocument(document, 'ions', expand_item_title=rangeName)
+                try:
+                    self.OnUpdateDocument(document, 'ions', expand_item_title=rangeName)
                 except wx.PyAssertionError:
                     time.sleep(0.1)
                     self.OnUpdateDocument(document, 'ions')
@@ -1512,12 +735,13 @@ class ORIGAMI(object):
                 # Sort data regardless of what user did
                 self.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
                 tempDict = {}
-                extract_kwargs = {'return_data':True}
+                extract_kwargs = {'return_data': True}
                 for item in range(nameList.GetItemCount()):
                     # Determine whether the title of the document matches the title of the item in the table
                     # if it does not, skip the row
                     docValue = nameList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
-                    if docValue != document.title: continue
+                    if docValue != document.title:
+                        continue
 
                     nameValue = nameList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
                     try:
@@ -1542,14 +766,14 @@ class ORIGAMI(object):
                                                                              mz_start=mzStart, mz_end=mzEnd,
                                                                              **extract_kwargs)
                             document.multipleMassSpectrum[nameValue]['path'] = pathValue
-                        except:
+                        except Exception:
                             msg = "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
                                   "by updating the document path by right-clicking on the document and selecting\n" + \
                                   "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
                                   "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
                             dlgBox(exceptionTitle='Error',
-                                           exceptionMsg=msg,
-                                           type="Error")
+                                   exceptionMsg=msg,
+                                   type="Error")
                             return
 
 #                     imsData1D =  io_waters.rawMassLynx_DT_load(path=pathValue)
@@ -1572,13 +796,13 @@ class ORIGAMI(object):
                     document.gotExtractedDriftTimes = True
                     labelX1D = 'Drift time (bins)'
                     xvals1D = 1 + np.arange(len(imsData1D))
-                    document.IMS1DdriftTimes[newName] = {'xvals':xvals1D,
-                                                          'yvals':imsData1D,
-                                                          'xlabels':labelX1D,
-                                                          'ylabels':'Intensity',
-                                                          'charge':charge,
-                                                          'xylimits':[mzStart, mzEnd, mzYMax],
-                                                          'filename':nameValue}
+                    document.IMS1DdriftTimes[newName] = {'xvals': xvals1D,
+                                                         'yvals': imsData1D,
+                                                          'xlabels': labelX1D,
+                                                          'ylabels': 'Intensity',
+                                                          'charge': charge,
+                                                          'xylimits': [mzStart, mzEnd, mzYMax],
+                                                          'filename': nameValue}
 
                 # Combine the contents in the dictionary - assumes they are ordered!
                 counter = 0  # needed to start off
@@ -1615,35 +839,35 @@ class ORIGAMI(object):
                 self.setXYlimitsRMSD2D(xlabels, ylabels)
                 # Add data to the document
                 document.gotCombinedExtractedIons = True
-                document.IMS2DCombIons[rangeName] = {'zvals':imsData2D,
-                                                      'xvals':xlabels,
-                                                      'xlabels':'Collision Voltage (V)',
-                                                      'yvals':ylabels,
-                                                      'ylabels':'Drift time (bins)',
-                                                      'yvals1D':imsData1D,
-                                                      'yvalsRT':rtDataY,
-                                                      'cmap':document.colormap,
-                                                      'title':label,
-                                                      'label':label,
-                                                      'charge':charge,
-                                                      'alpha':itemInfo['alpha'],
-                                                      'mask':itemInfo['mask'],
-                                                      'color':itemInfo['color'],
-                                                      'min_threshold':itemInfo['min_threshold'],
-                                                      'max_threshold':itemInfo['max_threshold'],
-                                                      'xylimits':[mzStart, mzEnd, mzYMax]}
+                document.IMS2DCombIons[rangeName] = {'zvals': imsData2D,
+                                                     'xvals': xlabels,
+                                                      'xlabels': 'Collision Voltage (V)',
+                                                      'yvals': ylabels,
+                                                      'ylabels': 'Drift time (bins)',
+                                                      'yvals1D': imsData1D,
+                                                      'yvalsRT': rtDataY,
+                                                      'cmap': document.colormap,
+                                                      'title': label,
+                                                      'label': label,
+                                                      'charge': charge,
+                                                      'alpha': itemInfo['alpha'],
+                                                      'mask': itemInfo['mask'],
+                                                      'color': itemInfo['color'],
+                                                      'min_threshold': itemInfo['min_threshold'],
+                                                      'max_threshold': itemInfo['max_threshold'],
+                                                      'xylimits': [mzStart, mzEnd, mzYMax]}
 
                 # Update document
                 self.OnUpdateDocument(document, 'combined_ions')
             elif document.dataType == 'Type: Infrared':
                 # 2D
-                extract_kwargs = {'return_data':True}
+                extract_kwargs = {'return_data': True}
                 imsData2D = io_waters.rawMassLynx_2DT_extract(path=path,
                                                               driftscope_path=self.config.driftscopePath,
                                                               **extract_kwargs)
 
-                dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT = pr_origami.origami_combine_infrared(inputData=imsData2D,
-                                                                                                            threshold=2000, noiseLevel=500)
+                dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT = pr_origami.origami_combine_infrared(
+                    inputData=imsData2D, threshold=2000, noiseLevel=500)
 
                 # Get height of the peak
                 ms = document.massSpectrum
@@ -1652,23 +876,23 @@ class ORIGAMI(object):
                 tempList.SetStringItem(index=row, col=7, label=str(mzYMax))
                 # Add data to document object
                 document.gotExtractedIons = True
-                document.IMS2Dions[rangeName] = {'zvals':dataSplit,
-                                                  'xvals':xAxisLabels,
-                                                  'xlabels':'Wavenumber (cm⁻¹)',
-                                                  'yvals':yAxisLabels,
-                                                  'ylabels':'Drift time (bins)',
-                                                  'cmap':document.colormap,
-                                                  'yvals1D':data1DT,
-                                                  'yvalsRT':dataRT,
-                                                  'title':label,
-                                                  'label':label,
-                                                  'charge':charge,
-                                                  'alpha':itemInfo['alpha'],
-                                                  'mask':itemInfo['mask'],
-                                                  'color':itemInfo['color'],
-                                                  'min_threshold':itemInfo['min_threshold'],
-                                                  'max_threshold':itemInfo['max_threshold'],
-                                                  'xylimits':[mzStart, mzEnd, mzYMax]}
+                document.IMS2Dions[rangeName] = {'zvals': dataSplit,
+                                                 'xvals': xAxisLabels,
+                                                  'xlabels': 'Wavenumber (cm⁻¹)',
+                                                  'yvals': yAxisLabels,
+                                                  'ylabels': 'Drift time (bins)',
+                                                  'cmap': document.colormap,
+                                                  'yvals1D': data1DT,
+                                                  'yvalsRT': dataRT,
+                                                  'title': label,
+                                                  'label': label,
+                                                  'charge': charge,
+                                                  'alpha': itemInfo['alpha'],
+                                                  'mask': itemInfo['mask'],
+                                                  'color': itemInfo['color'],
+                                                  'min_threshold': itemInfo['min_threshold'],
+                                                  'max_threshold': itemInfo['max_threshold'],
+                                                  'xylimits': [mzStart, mzEnd, mzYMax]}
                 # Update document
                 self.OnUpdateDocument(document, 'ions')
             else:
@@ -1703,7 +927,7 @@ class ORIGAMI(object):
             dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
 
         # Load data
-        extract_kwargs = {'return_data':True, 'normalize':False}
+        extract_kwargs = {'return_data': True, 'normalize': False}
         rtDataX, rtDataY = io_waters.rawMassLynx_RT_extract(path=document.path,
                                                             driftscope_path=self.config.driftscopePath,
                                                             mz_start=mzStart, mz_end=mzEnd,
@@ -1712,10 +936,10 @@ class ORIGAMI(object):
         self.view.panelPlots.on_plot_RT(rtDataX, rtDataY, 'Scans')
 
         itemName = "Ion: {}-{} | Drift time: {}-{}".format(np.round(mzStart, 2), np.round(mzEnd),
-                                                   np.round(dtStart, 2), np.round(dtEnd))
-        document.multipleRT[itemName] = {'xvals':rtDataX,
-                                         'yvals':rtDataY,
-                                         'xlabels':'Scans'}
+                                                           np.round(dtStart, 2), np.round(dtEnd))
+        document.multipleRT[itemName] = {'xvals': rtDataX,
+                                         'yvals': rtDataY,
+                                         'xlabels': 'Scans'}
         document.gotMultipleRT = True
 
         msg = "Extracted RT data for m/z: %s-%s | dt: %s-%s" % (mzStart, mzEnd, dtStart, dtEnd)
@@ -1726,7 +950,8 @@ class ORIGAMI(object):
 
     def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        if self.currentDoc == 'Current documents': return
+        if self.currentDoc == 'Current documents':
+            return
         self.docs = self.documentsDict[self.currentDoc]
 
         # convert from miliseconds to bins
@@ -1736,7 +961,7 @@ class ORIGAMI(object):
             dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
 
         # Extract data
-        extract_kwargs = {'return_data':True}
+        extract_kwargs = {'return_data': True}
         msX, msY = io_waters.rawMassLynx_MS_extract(path=self.docs.path,
                                                     driftscope_path=self.config.driftscopePath,
                                                     dt_start=dtStart, dt_end=dtEnd,
@@ -1747,13 +972,13 @@ class ORIGAMI(object):
         itemName = "Drift time: {}-{}".format(dtStart, dtEnd)
 
         self.docs.gotMultipleMS = True
-        self.docs.multipleMassSpectrum[itemName] = {'xvals':msX, 'yvals':msY,
-                                                    'range':[dtStart, dtEnd],
-                                                    'xlabels':'m/z (Da)',
-                                                    'xlimits':xlimits}
+        self.docs.multipleMassSpectrum[itemName] = {'xvals': msX, 'yvals': msY,
+                                                    'range': [dtStart, dtEnd],
+                                                    'xlabels': 'm/z (Da)',
+                                                    'xlimits': xlimits}
 
         # Plot MS
-        name_kwargs = {"document":self.docs.title, "dataset": itemName}
+        name_kwargs = {"document": self.docs.title, "dataset": itemName}
         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="1D", **name_kwargs)
         # Update document
         self.OnUpdateDocument(self.docs, 'mass_spectra')
@@ -1762,19 +987,25 @@ class ORIGAMI(object):
         """ Function to extract MS data for specified RT region """
 
         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-        if document_title == 'Current documents': return
+        if document_title == 'Current documents':
+            return
         document = self.documentsDict[document_title]
 
-        try: scantime = document.parameters['scanTime']
-        except: scantime = None
-
-        try: xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+        try:
+            scantime = document.parameters['scanTime']
         except:
-            try: xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-            except: pass
+            scantime = None
+
+        try:
+            xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+        except Exception:
+            try:
+                xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
+            except:
+                pass
             xlimits = None
 
-        if not self.config.ms_enable_in_RT and scantime != None:
+        if not self.config.ms_enable_in_RT and scantime is not None:
             if units == "Scans":
                 rtStart = round(startScan * (scantime / 60), 2)
                 rtEnd = round(endScan * (scantime / 60), 2)
@@ -1785,7 +1016,7 @@ class ORIGAMI(object):
 
             # Mass spectra
             try:
-                extract_kwargs = {'return_data':True}
+                extract_kwargs = {'return_data': True}
                 msX, msY = io_waters.rawMassLynx_MS_extract(path=document.path,
                                                             driftscope_path=self.config.driftscopePath,
                                                             rt_start=rtStart, rt_end=rtEnd,
@@ -1793,22 +1024,23 @@ class ORIGAMI(object):
                 if xlimits is None:
                     xlimits = [np.min(msX), np.max(msX)]
             except (IOError, ValueError):
-                kwargs = {'auto_range':self.config.ms_auto_range,
-                          'mz_min':xlimits[0], 'mz_max':xlimits[1],
-                          'linearization_mode':self.config.ms_linearization_mode}
+                kwargs = {'auto_range': self.config.ms_auto_range,
+                          'mz_min': xlimits[0], 'mz_max': xlimits[1],
+                          'linearization_mode': self.config.ms_linearization_mode}
                 msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path), function=1,
                                                       startScan=startScan, endScan=endScan,
                                                       binData=self.config.import_binOnImport,
-                                                      mzStart=xlimits[0], mzEnd=xlimits[1],  # override any settings as this is a accidental extraction
+                                                      # override any settings as this is a accidental extraction
+                                                      mzStart=xlimits[0], mzEnd=xlimits[1],
                                                       binsize=self.config.ms_mzBinSize,
                                                       **kwargs)
                 msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
 
             xlimits = [np.min(msX), np.max(msX)]
         else:
-            kwargs = {'auto_range':self.config.ms_auto_range,
-                      'mz_min':xlimits[0], 'mz_max':xlimits[1],
-                      'linearization_mode':self.config.ms_linearization_mode}
+            kwargs = {'auto_range': self.config.ms_auto_range,
+                      'mz_min': xlimits[0], 'mz_max': xlimits[1],
+                      'linearization_mode': self.config.ms_linearization_mode}
             msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path),
                                                   function=1,
                                                   startScan=startScan, endScan=endScan,
@@ -1825,15 +1057,15 @@ class ORIGAMI(object):
         itemName = "Scans: {}-{}".format(startScan, endScan)
 
         document.gotMultipleMS = True
-        document.multipleMassSpectrum[itemName] = {'xvals':msX,
-                                                    'yvals':msY,
-                                                    'range':[startScan, endScan],
-                                                    'xlabels':'m/z (Da)',
-                                                    'xlimits':xlimits}
+        document.multipleMassSpectrum[itemName] = {'xvals': msX,
+                                                   'yvals': msY,
+                                                    'range': [startScan, endScan],
+                                                    'xlabels': 'm/z (Da)',
+                                                    'xlimits': xlimits}
 
         self.OnUpdateDocument(document, 'mass_spectra', expand_item_title=itemName)
         # Plot MS
-        name_kwargs = {"document":document.title, "dataset": itemName}
+        name_kwargs = {"document": document.title, "dataset": itemName}
         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="RT", **name_kwargs)
         # Set status
         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
@@ -1844,38 +1076,49 @@ class ORIGAMI(object):
         """ Function to extract MS data for specified DT/MS region """
 
         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-        if document_title == 'Current documents': return
+        if document_title == 'Current documents':
+            return
         document = self.documentsDict[document_title]
 
-        try: scanTime = document.parameters['scanTime']
-        except: scanTime = None
-
-        try: pusherFreq = document.parameters['pusherFreq']
-        except: pusherFreq = None
-
-        try: xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+        try:
+            scanTime = document.parameters['scanTime']
         except:
-            try: xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-            except: return
+            scanTime = None
+
+        try:
+            pusherFreq = document.parameters['pusherFreq']
+        except:
+            pusherFreq = None
+
+        try:
+            xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+        except Exception:
+            try:
+                xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
+            except:
+                return
 
         if units_x == "Scans":
-            if scanTime is None: return
+            if scanTime is None:
+                return
             rtStart = round(startScan * (scanTime / 60), 2)
             rtEnd = round(endScan * (scanTime / 60), 2)
         elif units_x in ['Time (min)', 'Retention time (min)']:
             rtStart, rtEnd = startScan, endScan
-            if scanTime is None: return
+            if scanTime is None:
+                return
             startScan = np.ceil(((startScan / scanTime) * 60)).astype(int)
             endScan = np.ceil(((endScan / scanTime) * 60)).astype(int)
 
         if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
-            if pusherFreq is None: return
+            if pusherFreq is None:
+                return
             dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
             dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
 
         # Mass spectra
         try:
-            extract_kwargs = {'return_data':True}
+            extract_kwargs = {'return_data': True}
             msX, msY = io_waters.rawMassLynx_MS_extract(path=document.path,
                                                         driftscope_path=self.config.driftscopePath,
                                                         rt_start=rtStart, rt_end=rtEnd,
@@ -1891,15 +1134,15 @@ class ORIGAMI(object):
                                                              dtStart, dtEnd)
 
         document.gotMultipleMS = True
-        document.multipleMassSpectrum[itemName] = {'xvals':msX,
-                                                   'yvals':msY,
-                                                   'range':[startScan, endScan],
-                                                   'xlabels':'m/z (Da)',
-                                                   'xlimits':xlimits}
+        document.multipleMassSpectrum[itemName] = {'xvals': msX,
+                                                   'yvals': msY,
+                                                   'range': [startScan, endScan],
+                                                   'xlabels': 'm/z (Da)',
+                                                   'xlimits': xlimits}
 
         self.OnUpdateDocument(document, 'mass_spectra', expand_item_title=itemName)
         # Plot MS
-        name_kwargs = {"document":document.title, "dataset": itemName}
+        name_kwargs = {"document": document.title, "dataset": itemName}
         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
         # Set status
         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
@@ -1915,7 +1158,8 @@ class ORIGAMI(object):
         for row in range(tempList.GetItemCount()):
 
             # Check which mode was selected
-            if evt.GetId() == ID_combineCEscans: pass
+            if evt.GetId() == ID_combineCEscans:
+                pass
             elif evt.GetId() == ID_combineCEscansSelectedIons:
                 if not tempList.IsChecked(index=row):
                     continue
@@ -1926,20 +1170,20 @@ class ORIGAMI(object):
             if self.currentDoc == '':
                 msg = "Please extract data first"
                 dlgBox(exceptionTitle='Extract data first',
-                               exceptionMsg=msg,
-                               type="Warning")
+                       exceptionMsg=msg,
+                       type="Warning")
                 continue
             # Get document
             self.docs = self.documentsDict[self.currentDoc]
 
             # Check that this data was opened in ORIGAMI mode and has extracted data
-            if self.docs.dataType == 'Type: ORIGAMI' and self.docs.gotExtractedIons == True:
+            if self.docs.dataType == 'Type: ORIGAMI' and self.docs.gotExtractedIons:
                 zvals = self.docs.IMS2Dions
             else:
                 msg = "Data was not extracted yet. Please extract before continuing."
                 dlgBox(exceptionTitle='Missing data',
-                               exceptionMsg=msg,
-                               type="Error")
+                       exceptionMsg=msg,
+                       type="Error")
                 continue
 
             # Extract ion name
@@ -1951,18 +1195,18 @@ class ORIGAMI(object):
             if self.config.origami_acquisition == 'Linear':
                 # Check that the user filled in appropriate parameters
                 if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-                     and self.docs.gotCombinedExtractedIons):
+                        and self.docs.gotCombinedExtractedIons):
                     try:
                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
                         self.config.origami_startVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['startV']
                         self.config.origami_endVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['endV']
                         self.config.origami_stepVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['stepV']
                         self.config.origami_spv = self.docs.IMS2DCombIons[selectedItem]['parameters']['spv']
-                    except:
+                    except Exception:
                         pass
                 # Ensure that config is not missing variabels
                 elif not any([self.config.origami_startScan, self.config.origami_startVoltage, self.config.origami_endVoltage,
-                        self.config.origami_stepVoltage, self.config.origami_spv]):
+                              self.config.origami_stepVoltage, self.config.origami_spv]):
                     msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
                     self.onThreading(None, (msg, 3), action='updateStatusbar')
                     return
@@ -1980,30 +1224,32 @@ class ORIGAMI(object):
                     continue
                 # Combine data
                 imsData2D, scanList, parameters = pr_origami.origami_combine_linear(imsDataInput=zvals[selectedItem]['zvals'],
-                                                              firstVoltage=self.config.origami_startScan,
-                                                              startVoltage=self.config.origami_startVoltage,
-                                                              endVoltage=self.config.origami_endVoltage,
-                                                              stepVoltage=self.config.origami_stepVoltage,
-                                                              scansPerVoltage=self.config.origami_spv)
+                                                                                    firstVoltage=self.config.origami_startScan,
+                                                                                    startVoltage=self.config.origami_startVoltage,
+                                                                                    endVoltage=self.config.origami_endVoltage,
+                                                                                    stepVoltage=self.config.origami_stepVoltage,
+                                                                                    scansPerVoltage=self.config.origami_spv)
             # EXPONENTIAL METHOD
             elif self.config.origami_acquisition == 'Exponential':
                 # Check that the user filled in appropriate parameters
                 if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-                     and self.docs.gotCombinedExtractedIons):
+                        and self.docs.gotCombinedExtractedIons):
                     try:
                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
                         self.config.origami_startVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['startV']
                         self.config.origami_endVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['endV']
                         self.config.origami_stepVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['stepV']
                         self.config.origami_spv = self.docs.IMS2DCombIons[selectedItem]['parameters']['spv']
-                        self.config.origami_exponentialIncrement = self.docs.IMS2DCombIons[selectedItem]['parameters']['expIncrement']
-                        self.config.origami_exponentialPercentage = self.docs.IMS2DCombIons[selectedItem]['parameters']['expPercent']
-                    except:
+                        self.config.origami_exponentialIncrement = self.docs.IMS2DCombIons[
+                            selectedItem]['parameters']['expIncrement']
+                        self.config.origami_exponentialPercentage = self.docs.IMS2DCombIons[
+                            selectedItem]['parameters']['expPercent']
+                    except Exception:
                         pass
                 # Ensure that config is not missing variabels
                 elif not any([self.config.origami_startScan, self.config.origami_startVoltage, self.config.origami_endVoltage,
-                        self.config.origami_stepVoltage, self.config.origami_spv, self.config.origami_exponentialIncrement,
-                        self.config.origami_exponentialPercentage]):
+                              self.config.origami_stepVoltage, self.config.origami_spv, self.config.origami_exponentialIncrement,
+                              self.config.origami_exponentialPercentage]):
                     msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
                     self.onThreading(None, (msg, 3), action='updateStatusbar')
                     return
@@ -2018,7 +1264,8 @@ class ORIGAMI(object):
                 # Check if using internal parameters and item is checked
                 elif self.config.useInternalParamsCombine and tempList.IsChecked(index=row):
                     pass
-                else: continue  # skip
+                else:
+                    continue  # skip
                 imsData2D, scanList, parameters = pr_origami.origami_combine_exponential(imsDataInput=zvals[selectedItem]['zvals'],
                                                                                          firstVoltage=self.config.origami_startScan,
                                                                                          startVoltage=self.config.origami_startVoltage,
@@ -2031,7 +1278,7 @@ class ORIGAMI(object):
             elif self.config.origami_acquisition == 'Fitted':
                 # Check that the user filled in appropriate parameters
                 if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-                     and self.docs.gotCombinedExtractedIons):
+                        and self.docs.gotCombinedExtractedIons):
                     try:
                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
                         self.config.origami_startVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['startV']
@@ -2039,11 +1286,11 @@ class ORIGAMI(object):
                         self.config.origami_stepVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['stepV']
                         self.config.origami_spv = self.docs.IMS2DCombIons[selectedItem]['parameters']['spv']
                         self.config.origami_boltzmannOffset = self.docs.IMS2DCombIons[selectedItem]['parameters']['dx']
-                    except:
+                    except Exception:
                         pass
                 # Ensure that config is not missing variabels
                 elif not any([self.config.origami_startScan, self.config.origami_startVoltage, self.config.origami_endVoltage,
-                        self.config.origami_stepVoltage, self.config .scansPerVoltage, self.config.origami_boltzmannOffset]):
+                              self.config.origami_stepVoltage, self.config .scansPerVoltage, self.config.origami_boltzmannOffset]):
                     msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
                     self.onThreading(None, (msg, 3), action='updateStatusbar')
                     return
@@ -2058,7 +1305,8 @@ class ORIGAMI(object):
                 # Check if using internal parameters and item is checked
                 elif self.config.useInternalParamsCombine and tempList.IsChecked(index=row):
                     pass
-                else: continue  # skip
+                else:
+                    continue  # skip
                 imsData2D, scanList, parameters = pr_origami.origami_combine_boltzmann(imsDataInput=zvals[selectedItem]['zvals'],
                                                                                        firstVoltage=self.config.origami_startScan,
                                                                                        startVoltage=self.config.origami_startVoltage,
@@ -2075,12 +1323,15 @@ class ORIGAMI(object):
                     try:
                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
                         self.config.origamiList = self.docs.IMS2DCombIons[selectedItem]['parameters']['inputList']
-                    except:
+                    except Exception:
                         pass
                 # Ensure that config is not missing variabels
-                elif len(self.config.origamiList) == 0: errorMsg = "Please load a text file with ORIGAMI parameters"
-                elif not self.config.origami_startScan: errorMsg = "The first scan is incorect (currently: %s)" % self.config.origami_startScan
-                elif self.config.origamiList[:, 0].shape != self.config.origamiList[:, 1].shape: errorMsg = "The collision voltage list is of incorrect shape."
+                elif len(self.config.origamiList) == 0:
+                    errorMsg = "Please load a text file with ORIGAMI parameters"
+                elif not self.config.origami_startScan:
+                    errorMsg = "The first scan is incorect (currently: %s)" % self.config.origami_startScan
+                elif self.config.origamiList[:, 0].shape != self.config.origamiList[:, 1].shape:
+                    errorMsg = "The collision voltage list is of incorrect shape."
 
                 if errorMsg is not None:
                     self.onThreading(None, (errorMsg, 3), action='updateStatusbar')
@@ -2096,17 +1347,17 @@ class ORIGAMI(object):
                 # Check if using internal parameters and item is checked
                 elif self.config.useInternalParamsCombine and tempList.IsChecked(index=row):
                     pass
-                else: continue  # skip
-                imsData2D, xlabels, scanList, parameters = pr_origami.origami_combine_userDefined(imsDataInput=zvals[selectedItem]['zvals'],
-                                                                                                  firstVoltage=self.config.origami_startScan,
-                                                                                                  inputList=self.config.origamiList)
+                else:
+                    continue  # skip
+                imsData2D, xlabels, scanList, parameters = pr_origami.origami_combine_userDefined(
+    imsDataInput=zvals[selectedItem]['zvals'], firstVoltage=self.config.origami_startScan, inputList=self.config.origamiList)
 
             if imsData2D[0] is None:
                 msg = "With your current input, there would be too many scans in your file! " + \
                       "There are %s scans in your file and your settings suggest there should be %s" \
                       % (imsData2D[2], imsData2D[1])
                 dlgBox(exceptionTitle='Are your settings correct?',
-                               exceptionMsg=msg, type="Warning")
+                       exceptionMsg=msg, type="Warning")
                 continue
 
             # Add x-axis and y-axis labels
@@ -2132,30 +1383,30 @@ class ORIGAMI(object):
 
             # Add 2D data to document object
             self.docs.gotCombinedExtractedIons = True
-            self.docs.IMS2DCombIons[selectedItem] = {'zvals':imsData2D,
-                                                     'xvals':xlabels,
-                                                     'xlabels':'Collision Voltage (V)',
-                                                     'yvals':ylabels,
-                                                     'ylabels':'Drift time (bins)',
-                                                     'yvals1D':imsData1D,
-                                                     'yvalsRT':yvalsRT,
-                                                     'cmap':cmap,
-                                                     'xylimits':zvals[selectedItem]['xylimits'],
-                                                     'charge':charge,
-                                                     'label':label,
-                                                     'alpha':alpha,
-                                                     'mask':mask,
-                                                     'color':color,
-                                                     'min_threshold':min_threshold,
-                                                     'max_threshold':max_threshold,
-                                                     'scanList':scanList,
-                                                     'parameters':parameters}
+            self.docs.IMS2DCombIons[selectedItem] = {'zvals': imsData2D,
+                                                     'xvals': xlabels,
+                                                     'xlabels': 'Collision Voltage (V)',
+                                                     'yvals': ylabels,
+                                                     'ylabels': 'Drift time (bins)',
+                                                     'yvals1D': imsData1D,
+                                                     'yvalsRT': yvalsRT,
+                                                     'cmap': cmap,
+                                                     'xylimits': zvals[selectedItem]['xylimits'],
+                                                     'charge': charge,
+                                                     'label': label,
+                                                     'alpha': alpha,
+                                                     'mask': mask,
+                                                     'color': color,
+                                                     'min_threshold': min_threshold,
+                                                     'max_threshold': max_threshold,
+                                                     'scanList': scanList,
+                                                     'parameters': parameters}
             self.docs.combineIonsList = scanList
             # Add 1D data to document object
             self.docs.gotCombinedExtractedIonsRT = True
-            self.docs.IMSRTCombIons[selectedItem] = {'xvals':xlabels,
-                                                     'yvals':np.sum(imsData2D, axis=0),
-                                                     'xlabels':'Collision Voltage (V)'}
+            self.docs.IMSRTCombIons[selectedItem] = {'xvals': xlabels,
+                                                     'yvals': np.sum(imsData2D, axis=0),
+                                                     'xlabels': 'Collision Voltage (V)'}
 
             # Update document
             self.OnUpdateDocument(self.docs, 'combined_ions')
@@ -2163,12 +1414,13 @@ class ORIGAMI(object):
     def onExtractMSforEachCollVoltage(self, evt):
         """
         This function extracts 'binned' msX and msY values for each collision
-        voltage. The values are extracted for each scan range for particular 
-        CV, binned and then summed together. These are then stored in the 
+        voltage. The values are extracted for each scan range for particular
+        CV, binned and then summed together. These are then stored in the
         document dictionary
         """
         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-        if document_title == 'Current documents': return
+        if document_title == 'Current documents':
+            return
         document = self.documentsDict[document_title]
 
         # Make sure the document is of correct type.
@@ -2180,14 +1432,18 @@ class ORIGAMI(object):
             self.onThreading(None, ('Please combine collision voltages first', 3), action='updateStatusbar')
             return
         # Check that appropriate values were filled in
-        if (self.config.ms_mzStart == None or self.config.ms_mzEnd == None
-            or self.config.binCVdata == None):
-            self.onThreading(None, ('Please fill in appopriate fields: MS start, MS end and MS bin size', 3), action='updateStatusbar')
+        if (self.config.ms_mzStart is None or self.config.ms_mzEnd is None
+                or self.config.binCVdata == None):
+            self.onThreading(
+                None,
+                ('Please fill in appopriate fields: MS start, MS end and MS bin size',
+     3),
+                action='updateStatusbar')
             return
 
         try:
             scantime = self.docs.parameters['scanTime']
-        except:
+        except Exception:
             scantime = None
 
         # Do actual work
@@ -2197,13 +1453,13 @@ class ORIGAMI(object):
         document.gotMultipleMS = True
 
         xlimits = [document.parameters['startMS'], document.parameters['endMS']]
-        kwargs = {'auto_range':self.config.ms_auto_range,
-                  'mz_min':xlimits[0], 'mz_max':xlimits[1],
-                  'linearization_mode':self.config.ms_linearization_mode}
+        kwargs = {'auto_range': self.config.ms_auto_range,
+                  'mz_min': xlimits[0], 'mz_max': xlimits[1],
+                  'linearization_mode': self.config.ms_linearization_mode}
 
         for counter, item in enumerate(splitlist):
             itemName = "Scans: %s-%s | CV: %s V" % (item[0], item[1], item[2])
-            if self.config.binCVdata or scantime == None:
+            if self.config.binCVdata or scantime is None:
                 msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path),
                                                       function=1,
                                                       startScan=item[0], endScan=item[1],
@@ -2214,22 +1470,22 @@ class ORIGAMI(object):
                                                       **kwargs)
                 msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
                 xlimits = [self.config.ms_mzStart, self.config.ms_mzEnd]
-            elif not self.config.binCVdata and scantime != None:
+            elif not self.config.binCVdata and scantime is not None:
                 # Mass spectra
                 rtStart = round(item[0] * (scantime / 60), 2)
                 rtEnd = round(item[1] * (scantime / 60), 2)
-                extract_kwargs = {'return_data':True}
+                extract_kwargs = {'return_data': True}
                 msX, msY = io_waters.rawMassLynx_MS_extract(path=document.path,
                                                             driftscope_path=self.config.driftscopePath,
                                                             rt_start=rtStart, rt_end=rtEnd,
                                                             **extract_kwargs)
                 xlimits = [document.parameters['startMS'], document.parameters['endMS']]
             # Add data to document
-            document.multipleMassSpectrum[itemName] = {'trap':item[2],
-                                                        'xvals':msX,
-                                                        'yvals':msY,
-                                                        'xlabels':'m/z (Da)',
-                                                        'xlimits':xlimits}
+            document.multipleMassSpectrum[itemName] = {'trap': item[2],
+                                                       'xvals': msX,
+                                                        'yvals': msY,
+                                                        'xlabels': 'm/z (Da)',
+                                                        'xlimits': xlimits}
             msFilenames.append(str(item[2]))
             if counter == 0:
                 tempArray = msY
@@ -2248,7 +1504,8 @@ class ORIGAMI(object):
 
     def onExtract2DimsOverMZrange(self, e):
         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        if self.currentDoc == 'Current documents': return
+        if self.currentDoc == 'Current documents':
+            return
         self.docs = self.documentsDict[self.currentDoc]
         dataType = self.docs.dataType
         path = self.docs.path
@@ -2270,23 +1527,24 @@ class ORIGAMI(object):
             # Check if this data is already present - if so it stops here
             outcome = self.view.Add2Table(xvalsMin=mzStart, xvalsMax=mzEnd, yvalsMax=0,
                                           currentView='MS', currentDoc=self.currentDoc)
-            if outcome: return
+            if outcome:
+                return
             # 1D IMMS
-            extract_kwargs = {'return_data':True}
+            extract_kwargs = {'return_data': True}
             __, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
                                                              driftscope_path=self.config.driftscopePath,
                                                              mz_start=mzStart, mz_end=mzEnd,
                                                              **extract_kwargs)
 
             # RT
-            extract_kwargs = {'return_data':True, 'normalize':True}
+            extract_kwargs = {'return_data': True, 'normalize': True}
             rtDataX, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(path=path,
                                                                              driftscope_path=self.config.driftscopePath,
                                                                              mz_start=mzStart, mz_end=mzEnd,
                                                                              **extract_kwargs)
 
             # 2D IMMS
-            extract_kwargs = {'return_data':True}
+            extract_kwargs = {'return_data': True}
             imsData2D = io_waters.rawMassLynx_2DT_extract(path=path,
                                                           driftscope_path=self.config.driftscopePath,
                                                           mz_start=mzStart, mz_end=mzEnd,
@@ -2295,7 +1553,14 @@ class ORIGAMI(object):
             ylabels = 1 + np.arange(len(imsData2D[:, 1]))
 
             imsData1D = np.sum(imsData2D, axis=1).T  # 'yvals1D':imsData1D,
-            self.view.panelPlots.on_plot_2D_data(data=[imsData2D, xlabels, 'Scans', ylabels, 'Drift time (bins)', self.docs.colormap])
+            self.view.panelPlots.on_plot_2D_data(
+                data=[
+        imsData2D,
+        xlabels,
+        'Scans',
+        ylabels,
+        'Drift time (bins)',
+        self.docs.colormap])
             tend = time.clock()
             self.onThreading(None, ('Total time to extract ion: %.2gs' % (tend - tstart), 3), action='updateStatusbar')
 
@@ -2305,15 +1570,15 @@ class ORIGAMI(object):
             self.docs.gotExtractedIons = True
             rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
             self.docs.currentExtractRange = rangeName
-            self.docs.IMS2Dions[rangeName] = {'zvals':imsData2D,
-                                               'xvals':xlabels,
-                                               'xlabels':'Scans',
-                                               'yvals':ylabels,
-                                               'yvals1D':imsData1D,
-                                               'yvalsRT':rtDataY,
-                                               'ylabels':'Drift time (bins)',
-                                               'cmap':self.docs.colormap,
-                                               'charge':"None"}
+            self.docs.IMS2Dions[rangeName] = {'zvals': imsData2D,
+                                              'xvals': xlabels,
+                                               'xlabels': 'Scans',
+                                               'yvals': ylabels,
+                                               'yvals1D': imsData1D,
+                                               'yvalsRT': rtDataY,
+                                               'ylabels': 'Drift time (bins)',
+                                               'cmap': self.docs.colormap,
+                                               'charge': "None"}
 
         # Update document
         self.OnUpdateDocument(self.docs, 'ions')
@@ -2321,23 +1586,33 @@ class ORIGAMI(object):
     def get_overlay_document(self):
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except: return
-        if self.currentDoc == "Current documents": return
+        except Exception:
+            return
+        if self.currentDoc == "Current documents":
+            return
 
         # Check if current document is a comparison document
         # If so, it will be used
         if self.documentsDict[self.currentDoc].dataType == 'Type: Comparison':
             document = self.documentsDict[self.currentDoc]
-            self.onThreading(None, ('Using document: ' + document.title.encode('ascii', 'replace'), 4), action='updateStatusbar')
+            self.onThreading(
+                None,
+                ('Using document: ' +
+     document.title.encode(
+        'ascii',
+        'replace'),
+        4),
+                action='updateStatusbar')
         else:
             docList = self.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
             if len(docList) == 0:
                 print('Did not find appropriate document.')
                 dlg = wx.FileDialog(self.view, "Please select a name for the comparison document",
-                                     "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                    "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                 if dlg.ShowModal() == wx.ID_OK:
                     path, idName = os.path.split(dlg.GetPath())
-                else: return
+                else:
+                    return
                 # Create document
                 document = documents()
                 document.title = idName
@@ -2352,16 +1627,23 @@ class ORIGAMI(object):
                     pass
 
                 # Check that document exists
-                if self.currentDoc == None:
+                if self.currentDoc is None:
                     self.onThreading(None, ('Please select comparison document', 4), action='updateStatusbar')
                     return
                 document = self.documentsDict[self.currentDoc]
-                self.onThreading(None, ('Using document: ' + document.title.encode('ascii', 'replace'), 4), action='updateStatusbar')
+                self.onThreading(
+                    None,
+                    ('Using document: ' +
+     document.title.encode(
+        'ascii',
+        'replace'),
+        4),
+                    action='updateStatusbar')
 
         return document
 
     def on_overlay_1D(self, source, plot_type):
-        """ 
+        """
         This function enables overlaying of multiple ions together - 1D and RT
         """
         # Check what is the ID
@@ -2374,24 +1656,35 @@ class ORIGAMI(object):
             add_data_to_document = self.view.panelMultipleText.addToDocument
             normalize_dataset = self.view.panelMultipleText.normalize1D
 
-        try: self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except: return
-        if self.currentDoc == "Current documents": return
+        try:
+            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+        except:
+            return
+        if self.currentDoc == "Current documents":
+            return
 
         # Check if current document is a comparison document
         # If so, it will be used
         if add_data_to_document:
             if self.documentsDict[self.currentDoc].dataType == 'Type: Comparison':
                 self.docs = self.documentsDict[self.currentDoc]
-                self.onThreading(None, ('Using document: ' + self.docs.title.encode('ascii', 'replace'), 4), action='updateStatusbar')
+                self.onThreading(
+                    None,
+                    ('Using document: ' +
+     self.docs.title.encode(
+        'ascii',
+        'replace'),
+        4),
+                    action='updateStatusbar')
             else:
                 docList = self.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
                 if len(docList) == 0:
                     dlg = wx.FileDialog(self.view, "Please select a name for the comparison document",
-                                         "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                        "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                     if dlg.ShowModal() == wx.ID_OK:
                         path, idName = os.path.split(dlg.GetPath())
-                    else: return
+                    else:
+                        return
                     # Create document
                     self.docs = documents()
                     self.docs.title = idName
@@ -2406,11 +1699,18 @@ class ORIGAMI(object):
                         pass
 
                     # Check that document exists
-                    if self.currentDoc == None:
+                    if self.currentDoc is None:
                         self.onThreading(None, ('Please select comparison document', 4), action='updateStatusbar')
                         return
                     self.docs = self.documentsDict[self.currentDoc]
-                    self.onThreading(None, ('Using document: ' + self.docs.title.encode('ascii', 'replace'), 4), action='updateStatusbar')
+                    self.onThreading(
+                        None,
+                        ('Using document: ' +
+     self.docs.title.encode(
+        'ascii',
+        'replace'),
+        4),
+                        action='updateStatusbar')
 
         # Empty lists
         xlist, ylist, colorlist, legend = [], [], [], []
@@ -2435,24 +1735,34 @@ class ORIGAMI(object):
 
                     # ORIGAMI dataset
                     if dataType == 'Type: ORIGAMI' and document.gotCombinedExtractedIons:
-                        try: data = document.IMS2DCombIons[selectedItem]
+                        try:
+                            data = document.IMS2DCombIons[selectedItem]
                         except KeyError:
-                            try: data = document.IMS2Dions[selectedItem]
-                            except KeyError: continue
-                    elif dataType == 'Type: ORIGAMI' and not  document.gotCombinedExtractedIons:
-                        try: data = document.IMS2Dions[selectedItem]
-                        except KeyError: continue
+                            try:
+                                data = document.IMS2Dions[selectedItem]
+                            except KeyError:
+                                continue
+                    elif dataType == 'Type: ORIGAMI' and not document.gotCombinedExtractedIons:
+                        try:
+                            data = document.IMS2Dions[selectedItem]
+                        except KeyError:
+                            continue
 
                     # MANUAL dataset
                     if dataType == 'Type: MANUAL' and document.gotCombinedExtractedIons:
-                        try: data = document.IMS2DCombIons[selectedItem]
+                        try:
+                            data = document.IMS2DCombIons[selectedItem]
                         except KeyError:
-                            try: data = document.IMS2Dions[selectedItem]
-                            except KeyError: continue
+                            try:
+                                data = document.IMS2Dions[selectedItem]
+                            except KeyError:
+                                continue
 
                     # Add new label
-                    if idName == "": idName = itemName
-                    else: idName = "%s, %s" % (idName, itemName)
+                    if idName == "":
+                        idName = itemName
+                    else:
+                        idName = "%s, %s" % (idName, itemName)
 
                     # Add depending which event was triggered
                     if plot_type == "mobiligram":
@@ -2480,7 +1790,7 @@ class ORIGAMI(object):
                     legend.append(label)
                 elif source == "text":
                     __, __, charge, color, colormap, alpha, mask, __, \
-                    label, filename, min_threshold, max_threshold \
+                        label, filename, min_threshold, max_threshold \
  = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
                     try:
@@ -2488,7 +1798,7 @@ class ORIGAMI(object):
                         comparison_flag = False
                         selectedItem = filename
                         itemName = "file=%s" % filename
-                    except:
+                    except Exception:
                         comparison_flag = True
                         filename, ion_name = re.split(': ', filename)
                         document = self.documentsDict[filename]
@@ -2501,19 +1811,20 @@ class ORIGAMI(object):
                     if comparison_flag:
                         try:
                             data = document.IMS2DcompData[ion_name]
-                        except:
+                        except Exception:
                             data = document.IMS2Dions[ion_name]
                     else:
                         try:
                             data = document.IMS2D
-                        except:
+                        except Exception:
                             self.onThreading(None, ('No data for selected file', 3), action='updateStatusbar')
                             continue
 
                     # Add new label
                     if idName == "":
                         idName = itemName
-                    else: idName = "%s, %s" % (idName, itemName)
+                    else:
+                        idName = "%s, %s" % (idName, itemName)
 
                     # Add depending which event was triggered
                     if plot_type == "mobiligram":
@@ -2567,12 +1878,12 @@ class ORIGAMI(object):
         # Add data to dictionary
         if add_data_to_document:
             self.docs.gotOverlay = True
-            self.docs.IMS2DoverlayData[idName] = {'xvals':xlist,
-                                                  'yvals':ylist,
-                                                  'xlabel':xlabels,
-                                                  'colors':colorlist,
-                                                  'xlimits':xlimits,
-                                                  'labels':legend
+            self.docs.IMS2DoverlayData[idName] = {'xvals': xlist,
+                                                  'yvals': ylist,
+                                                  'xlabel': xlabels,
+                                                  'colors': colorlist,
+                                                  'xlimits': xlimits,
+                                                  'labels': legend
                                                   }
             self.currentDoc = self.docs.title
             self.OnUpdateDocument(self.docs, 'comparison_data')
@@ -2604,15 +1915,24 @@ class ORIGAMI(object):
         tempAccumulator = 0  # Keeps count of how many items are ticked
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except: return
-        if self.currentDoc == "Current documents": return
+        except Exception:
+            return
+        if self.currentDoc == "Current documents":
+            return
 
         # Check if current document is a comparison document
         # If so, it will be used
         if add_data_to_document:
             if self.documentsDict[self.currentDoc].dataType == 'Type: Comparison':
                 self.docs = self.documentsDict[self.currentDoc]
-                self.onThreading(None, ('Using document: ' + self.docs.title.encode('ascii', 'replace'), 4), action='updateStatusbar')
+                self.onThreading(
+                    None,
+                    ('Using document: ' +
+     self.docs.title.encode(
+        'ascii',
+        'replace'),
+        4),
+                    action='updateStatusbar')
                 if self.docs.gotComparisonData:
                     compDict = self.docs.IMS2DcompData
                     compList = []
@@ -2624,9 +1944,10 @@ class ORIGAMI(object):
                 self.onThreading(None, ("Checking if there is a comparison document", 4), action='updateStatusbar')
                 docList = self.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
                 if len(docList) == 0:
-                    self.onThreading(None, ("Did not find appropriate document. Creating a new one", 4), action='updateStatusbar')
+                    self.onThreading(
+                        None, ("Did not find appropriate document. Creating a new one", 4), action='updateStatusbar')
                     dlg = wx.FileDialog(self.view, "Please select a name for the comparison document",
-                                         "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                        "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                     if dlg.ShowModal() == wx.ID_OK:
                         path, idName = os.path.split(dlg.GetPath())
                     else:
@@ -2644,16 +1965,24 @@ class ORIGAMI(object):
                     compDict, compList = {}, []
                 else:
                     self.selectDocDlg = panelSelectDocument(self.view, self, docList)
-                    if self.selectDocDlg.ShowModal() == wx.ID_OK: pass
+                    if self.selectDocDlg.ShowModal() == wx.ID_OK:
+                        pass
 
                     # Check that document exists
-                    if self.currentDoc == None:
+                    if self.currentDoc is None:
                         msg = 'Please select comparison document'
                         self.onThreading(None, (msg, 4), action='updateStatusbar')
                         return
 
                     self.docs = self.documentsDict[self.currentDoc]
-                    self.onThreading(None, ('Using document: ' + self.docs.title.encode('ascii', 'replace'), 4), action='updateStatusbar')
+                    self.onThreading(
+                        None,
+                        ('Using document: ' +
+     self.docs.title.encode(
+        'ascii',
+        'replace'),
+        4),
+                        action='updateStatusbar')
                     if self.docs.gotComparisonData:
                         compDict = self.docs.IMS2DcompData
                         compList = []
@@ -2671,7 +2000,7 @@ class ORIGAMI(object):
                 if source == "ion":
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, label, \
-                    self.currentDoc, ionName, min_threshold, max_threshold \
+                        self.currentDoc, ionName, min_threshold, max_threshold \
  = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
 
                     # processed name
@@ -2688,28 +2017,41 @@ class ORIGAMI(object):
                     # ORIGAMI dataset
                     if dataType in ['Type: ORIGAMI', 'Type: MANUAL'] and document.gotCombinedExtractedIons:
                         if self.config.overlay_usedProcessed:
-                            try: dataIn = document.IMS2DCombIons[ionNameProcessed]
+                            try:
+                                dataIn = document.IMS2DCombIons[ionNameProcessed]
                             except KeyError:
-                                try: dataIn = document.IMS2DCombIons[ionName]
+                                try:
+                                    dataIn = document.IMS2DCombIons[ionName]
                                 except KeyError:
-                                    try: dataIn = document.IMS2Dions[ionNameProcessed]
+                                    try:
+                                        dataIn = document.IMS2Dions[ionNameProcessed]
                                     except KeyError:
-                                        try: dataIn = document.IMS2Dions[ionName]
-                                        except KeyError: continue
+                                        try:
+                                            dataIn = document.IMS2Dions[ionName]
+                                        except KeyError:
+                                            continue
                         else:
-                            try: dataIn = document.IMS2DCombIons[ionName]
+                            try:
+                                dataIn = document.IMS2DCombIons[ionName]
                             except KeyError:
-                                try: dataIn = document.IMS2Dions[ionName]
-                                except KeyError: continue
+                                try:
+                                    dataIn = document.IMS2Dions[ionName]
+                                except KeyError:
+                                    continue
                     elif dataType in ['Type: ORIGAMI', 'Type: MANUAL'] and not document.gotCombinedExtractedIons:
                         if self.config.overlay_usedProcessed:
-                            try: dataIn = document.IMS2Dions[ionNameProcessed]
+                            try:
+                                dataIn = document.IMS2Dions[ionNameProcessed]
                             except KeyError:
-                                try: dataIn = document.IMS2Dions[ionName]
-                                except KeyError: continue
+                                try:
+                                    dataIn = document.IMS2Dions[ionName]
+                                except KeyError:
+                                    continue
                         else:
-                            try: dataIn = document.IMS2Dions[ionName]
-                            except KeyError: continue
+                            try:
+                                dataIn = document.IMS2Dions[ionName]
+                            except KeyError:
+                                continue
 
 #                     # MANUAL dataset
 #                     if dataType == 'Type: MANUAL' and document.gotCombinedExtractedIons:
@@ -2720,22 +2062,25 @@ class ORIGAMI(object):
 
                     # INFRARED dataset
                     if dataType == 'Type: Infrared' and document.gotCombinedExtractedIons:
-                        try: dataIn = document.IMS2DCombIons
+                        try:
+                            dataIn = document.IMS2DCombIons
                         except KeyError:
-                            try: dataIn = document.IMS2Dions
-                            except KeyError: continue
+                            try:
+                                dataIn = document.IMS2Dions
+                            except KeyError:
+                                continue
                     tempAccumulator = tempAccumulator + 1
 
                     selectedItemUnique = "ion=%s (%s)" % (ionName, self.currentDoc)
-                    zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, cmap = self.get2DdataFromDictionary(dictionary=dataIn,
-                                                                                                         dataType='plot', compact=False)
+                    zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, cmap = self.get2DdataFromDictionary(
+                        dictionary=dataIn, dataType='plot', compact=False)
 
                 elif source == "text":
                     tempAccumulator += 1
                     comparisonFlag = False  # used only in case the user reloaded comparison document
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, __, \
-                    label, filename, min_threshold, max_threshold \
+                        label, filename, min_threshold, max_threshold \
  = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
                     try:
@@ -2745,14 +2090,14 @@ class ORIGAMI(object):
                             if document.got2Dprocess:
                                 try:
                                     tempData = document.IMS2Dprocess
-                                except:
+                                except Exception:
                                     tempData = document.IMS2D
                             else:
                                 tempData = document.IMS2D
                         else:
                             try:
                                 tempData = document.IMS2D
-                            except:
+                            except Exception:
                                 self.onThreading(None, ('No data for selected file', 4), action='updateStatusbar')
                                 continue
 
@@ -2763,14 +2108,16 @@ class ORIGAMI(object):
                         ylabel = tempData['ylabels']
                         ionName = filename
                         # Populate x-axis labels
-                        if type(xaxisLabels) is list: pass
+                        if isinstance(xaxisLabels, list):
+                            pass
                         elif xaxisLabels is "":
                             startX = tempList.GetItem(itemId=row,
                                                       col=self.config.textlistColNames['startX']).GetText()
                             endX = tempList.GetItem(itemId=row,
                                                     col=self.config.textlistColNames['endX']).GetText()
                             stepsX = len(zvals[0])
-                            if startX == "" or endX == "": pass
+                            if startX == "" or endX == "":
+                                pass
                             else:
                                 xaxisLabels = self.onPopulateXaxisTextLabels(startVal=str2num(startX),
                                                                              endVal=str2num(endX),
@@ -2780,7 +2127,7 @@ class ORIGAMI(object):
                         if not comparisonFlag:
                             selectedItemUnique = "file:%s" % filename
                     # only triggered when using data from comparison document
-                    except:
+                    except Exception:
                         try:
                             comparisonFlag = True
                             dpcument_filename, selectedItemUnique = re.split(': ', filename)
@@ -2794,7 +2141,7 @@ class ORIGAMI(object):
                             ylabel = tempData['ylabels']
                             xlabel = tempData['xlabels']
                         # triggered when using data from interactive document
-                        except:
+                        except Exception:
                             comparisonFlag = False
                             dpcument_filename, selectedItemUnique = re.split(': ', filename)
                             document = self.documentsDict[dpcument_filename]
@@ -2808,7 +2155,8 @@ class ORIGAMI(object):
                             xlabel = tempData['xlabels']
 
                 if not comparisonFlag:
-                    if label == '' or label == None: label = ""
+                    if label == '' or label is None:
+                        label = ""
                     compList.insert(0, selectedItemUnique)
                     # Check if exists. We need to extract labels (header...)
                     checkExist = compDict.get(selectedItemUnique, None)
@@ -2818,25 +2166,25 @@ class ORIGAMI(object):
                         footnote = compDict[selectedItemUnique].get('footnote', "")
                     else:
                         title, header, footnote = "", "", ""
-                    compDict[selectedItemUnique] = {'zvals':zvals,
-                                                    'ion_name':ionName,
-                                                    'cmap':colormap,
-                                                    'color':color,
-                                                    'alpha':str2num(alpha),
-                                                    'mask':str2num(mask),
-                                                    'xvals':xaxisLabels,
-                                                    'xlabels':xlabel,
-                                                    'yvals':yaxisLabels,
-                                                    'charge':charge,
-                                                    'min_threshold':min_threshold,
-                                                    'max_threshold':max_threshold,
-                                                    'ylabels':ylabel,
-                                                    'index':row,
-                                                    'shape':zvals.shape,
-                                                    'label':label,
-                                                    'title':title,
-                                                    'header':header,
-                                                    'footnote':footnote}
+                    compDict[selectedItemUnique] = {'zvals': zvals,
+                                                    'ion_name': ionName,
+                                                    'cmap': colormap,
+                                                    'color': color,
+                                                    'alpha': str2num(alpha),
+                                                    'mask': str2num(mask),
+                                                    'xvals': xaxisLabels,
+                                                    'xlabels': xlabel,
+                                                    'yvals': yaxisLabels,
+                                                    'charge': charge,
+                                                    'min_threshold': min_threshold,
+                                                    'max_threshold': max_threshold,
+                                                    'ylabels': ylabel,
+                                                    'index': row,
+                                                    'shape': zvals.shape,
+                                                    'label': label,
+                                                    'title': title,
+                                                    'header': header,
+                                                    'footnote': footnote}
                 else:
                     compDict[selectedItemUnique] = tempData
 
@@ -2855,7 +2203,7 @@ class ORIGAMI(object):
         name2 = compList[1]
         # Check if text files are of identical size
         if ((zvalsIon1plot.shape != zvalsIon2plot.shape) and
-            self.config.overlayMethod not in ["Grid (n x n)"]):
+                self.config.overlayMethod not in ["Grid (n x n)"]):
             msg = "Comparing ions: %s and %s. These files are NOT of identical shape!" % (name1, name2)
             dlgBox(exceptionTitle='Error', exceptionMsg=msg, type="Error")
             return
@@ -2884,14 +2232,14 @@ class ORIGAMI(object):
         defaultVals_mask = [0.25, 0.25]
 
         # Check if the user set value of transparency (alpha)
-        if compDict[compList[0]]['alpha'] == '' or compDict[compList[0]]['alpha'] == None:
+        if compDict[compList[0]]['alpha'] == '' or compDict[compList[0]]['alpha'] is None:
             alphaIon1 = defaultVals_alpha[0]
             compDict[compList[0]]['alpha'] = alphaIon1
             tempList.SetStringItem(index=compDict[compList[0]]['index'], col=col_order['alpha'], label=str(alphaIon1))
         else:
             alphaIon1 = str2num(compDict[compList[0]]['alpha'])
 
-        if compDict[compList[1]]['alpha'] == '' or compDict[compList[1]]['alpha'] == None:
+        if compDict[compList[1]]['alpha'] == '' or compDict[compList[1]]['alpha'] is None:
             alphaIon2 = defaultVals_alpha[1]
             compDict[compList[1]]['alpha'] = alphaIon2
             tempList.SetStringItem(index=compDict[compList[1]]['index'], col=col_order['alpha'], label=str(alphaIon2))
@@ -2899,14 +2247,14 @@ class ORIGAMI(object):
             alphaIon2 = str2num(compDict[compList[1]]['alpha'])
 
         # Check if the user set value of transparency (mask)
-        if compDict[compList[0]]['mask'] == '' or compDict[compList[0]]['mask'] == None:
+        if compDict[compList[0]]['mask'] == '' or compDict[compList[0]]['mask'] is None:
             maskIon1 = defaultVals_mask[0]
             compDict[compList[0]]['mask'] = maskIon1
             tempList.SetStringItem(index=compDict[compList[0]]['index'], col=col_order['mask'], label=str(maskIon1))
         else:
             maskIon1 = str2num(compDict[compList[0]]['mask'])
 
-        if compDict[compList[1]]['mask'] == '' or compDict[compList[1]]['mask'] == None:
+        if compDict[compList[1]]['mask'] == '' or compDict[compList[1]]['mask'] is None:
             maskIon2 = defaultVals_mask[1]
             compDict[compList[1]]['mask'] = maskIon2
             tempList.SetStringItem(index=compDict[compList[1]]['index'], col=col_order['mask'], label=str(maskIon2))
@@ -2918,7 +2266,7 @@ class ORIGAMI(object):
             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Overlay'])
 
             pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot,
-                                              inputData2=zvalsIon2plot)
+                                                          inputData2=zvalsIon2plot)
             rmsdLabel = "RMSD: %2.2f" % pRMSD
             self.onThreading(None, ("RMSD: %2.2f" % pRMSD, 4), action='updateStatusbar')
             self.setXYlimitsRMSD2D(xaxisLabels, yaxisLabels)
@@ -2927,7 +2275,7 @@ class ORIGAMI(object):
 
 #             # Add RMSD label
             rmsdXpos, rmsdYpos = self.onCalculateRMSDposition(xlist=xaxisLabels, ylist=yaxisLabels)
-            if rmsdXpos != None and rmsdYpos != None:
+            if rmsdXpos is not None and rmsdYpos is not None:
                 self.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot='Grid')
 
             # Add data to the dictionary (overlay data)
@@ -2945,19 +2293,19 @@ class ORIGAMI(object):
                 else:
                     title, header, footnote = "", "", ""
 
-                self.docs.IMS2DoverlayData[idName] = {'zvals_1':zvalsIon1plot,
-                                                      'zvals_2':zvalsIon2plot,
-                                                      'zvals_cum':tempArray,
-                                                      'cmap_1':cmapIon1,
-                                                      'cmap_2':cmapIon2,
-                                                      'xvals':xaxisLabels,
-                                                      'xlabels':xlabel,
-                                                      'yvals':yaxisLabels,
-                                                      'ylabels':ylabel,
-                                                      'rmsdLabel':rmsdLabel,
-                                                      'title':title,
-                                                      'header':header,
-                                                      'footnote':footnote}
+                self.docs.IMS2DoverlayData[idName] = {'zvals_1': zvalsIon1plot,
+                                                      'zvals_2': zvalsIon2plot,
+                                                      'zvals_cum': tempArray,
+                                                      'cmap_1': cmapIon1,
+                                                      'cmap_2': cmapIon2,
+                                                      'xvals': xaxisLabels,
+                                                      'xlabels': xlabel,
+                                                      'yvals': yaxisLabels,
+                                                      'ylabels': ylabel,
+                                                      'rmsdLabel': rmsdLabel,
+                                                      'title': title,
+                                                      'header': header,
+                                                      'footnote': footnote}
         elif self.config.overlayMethod == "Grid (n x n)":
             zvals_list, xvals_list, yvals_list, cmap_list, title_list, idName = [], [], [], [], [], ""
             for row in range(tempAccumulator):
@@ -2969,22 +2317,32 @@ class ORIGAMI(object):
                 yvals_list.append(compDict[key]['yvals'])
 
                 # Add new label
-                if idName == "": idName = compList[row]
-                else: idName = "%s, %s" % (idName, compList[row])
+                if idName == "":
+                    idName = compList[row]
+                else:
+                    idName = "%s, %s" % (idName, compList[row])
 
             n_grid = len(zvals_list)
-            if n_grid in [2]: n_rows, n_cols = 1, 2
-            elif n_grid in [3, 4]: n_rows, n_cols = 2, 2
-            elif n_grid in [5, 6]: n_rows, n_cols = 2, 3
-            elif n_grid in [7, 8, 9]: n_rows, n_cols = 3, 3
-            elif n_grid in [10, 11, 12]: n_rows, n_cols = 3, 4
-            elif n_grid in [13, 14, 15, 16]: n_rows, n_cols = 4, 4
-            elif n_grid in list(range(17, 26)): n_rows, n_cols = 5, 5
-            elif n_grid in list(range(26, 37)): n_rows, n_cols = 6, 6
+            if n_grid in [2]:
+                n_rows, n_cols = 1, 2
+            elif n_grid in [3, 4]:
+                n_rows, n_cols = 2, 2
+            elif n_grid in [5, 6]:
+                n_rows, n_cols = 2, 3
+            elif n_grid in [7, 8, 9]:
+                n_rows, n_cols = 3, 3
+            elif n_grid in [10, 11, 12]:
+                n_rows, n_cols = 3, 4
+            elif n_grid in [13, 14, 15, 16]:
+                n_rows, n_cols = 4, 4
+            elif n_grid in list(range(17, 26)):
+                n_rows, n_cols = 5, 5
+            elif n_grid in list(range(26, 37)):
+                n_rows, n_cols = 6, 6
             else:
                 dlgBox(exceptionTitle='Error',
-                               exceptionMsg="Cannot plot grid larger than 6 x 6. You have selected".format(n_grid),
-                               type="Error", exceptionPrint=True)
+                       exceptionMsg="Cannot plot grid larger than 6 x 6. You have selected".format(n_grid),
+                       type="Error", exceptionPrint=True)
                 return
 
             checkExist = compDict.get(selectedItemUnique, None)
@@ -3006,19 +2364,19 @@ class ORIGAMI(object):
                                                 yvals_list, xlabel, ylabel)
             if add_data_to_document:
                 self.docs.gotOverlay = True
-                self.docs.IMS2DoverlayData[idName] = {'zvals_list':zvals_list,
-                                                      'cmap_list':cmap_list,
-                                                      'title_list':title_list,
-                                                      'plot_parameters':{'n_grid':n_grid,
-                                                                         'n_rows':n_rows,
-                                                                         'n_cols':n_cols},
-                                                      'xvals':xvals_list,
-                                                      'xlabels':xlabel,
-                                                      'yvals':yvals_list,
-                                                      'ylabels':ylabel,
-                                                      'title':title,
-                                                      'header':header,
-                                                      'footnote':footnote}
+                self.docs.IMS2DoverlayData[idName] = {'zvals_list': zvals_list,
+                                                      'cmap_list': cmap_list,
+                                                      'title_list': title_list,
+                                                      'plot_parameters': {'n_grid': n_grid,
+                                                                          'n_rows': n_rows,
+                                                                          'n_cols': n_cols},
+                                                      'xvals': xvals_list,
+                                                      'xlabels': xlabel,
+                                                      'yvals': yvals_list,
+                                                      'ylabels': ylabel,
+                                                      'title': title,
+                                                      'header': header,
+                                                      'footnote': footnote}
 
         elif self.config.overlayMethod in ["Transparent", "Mask", "RMSD", "RMSF"]:
 
@@ -3081,7 +2439,7 @@ class ORIGAMI(object):
                     xaxisLabels, yaxisLabels = xvals, yvals
 
                 pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot,
-                                                  inputData2=zvalsIon2plot)
+                                                              inputData2=zvalsIon2plot)
                 rmsdLabel = "RMSD: %2.2f" % pRMSD
                 self.onThreading(None, ("RMSD: %2.2f" % pRMSD, 4), action='updateStatusbar')
 
@@ -3092,13 +2450,14 @@ class ORIGAMI(object):
                                                   set_page=True)
                 # Add RMSD label
                 rmsdXpos, rmsdYpos = self.onCalculateRMSDposition(xlist=xaxisLabels, ylist=yaxisLabels)
-                if rmsdXpos != None and rmsdYpos != None:
+                if rmsdXpos is not None and rmsdYpos is not None:
                     self.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0)
                 try:
                     self.view.panelPlots.on_plot_3D(zvals=tempArray, labelsX=xaxisLabels, labelsY=yaxisLabels,
                                                     xlabel=xlabel, ylabel=ylabel, zlabel='Intensity',
                                                     cmap=self.config.currentCmap)
-                except: pass
+                except Exception:
+                    pass
 
             elif self.config.overlayMethod == "RMSF":
                 """ Compute RMSF of two selected files """
@@ -3140,7 +2499,7 @@ class ORIGAMI(object):
                 # Add RMSD label
                 rmsdXpos, rmsdYpos = self.onCalculateRMSDposition(xlist=xaxisLabels,
                                                                   ylist=yaxisLabels)
-                if rmsdXpos != None and rmsdYpos != None:
+                if rmsdXpos is not None and rmsdYpos is not None:
                     self.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot='RMSF')
 
             # Add data to the dictionary (overlay data)
@@ -3157,53 +2516,54 @@ class ORIGAMI(object):
                     title = self.docs.IMS2DoverlayData[idName].get('header', "")
                     header = self.docs.IMS2DoverlayData[idName].get('header', "")
                     footnote = self.docs.IMS2DoverlayData[idName].get('footnote', "")
-                else: title, header, footnote = "", "", ""
+                else:
+                    title, header, footnote = "", "", ""
                 # Add data to dictionary
                 if self.config.overlayMethod in ["Mask", "Transparent"]:
-                    self.docs.IMS2DoverlayData[idName] = {'zvals1':zvalsIon1plot,
-                                                          'zvals2':zvalsIon2plot,
-                                                          'cmap1':cmapIon1,
-                                                          'cmap2':cmapIon2,
-                                                          'alpha1':alphaIon1,
-                                                          'alpha2':alphaIon2,
-                                                          'mask1':maskIon1,
-                                                          'mask2':maskIon2,
-                                                          'xvals':xaxisLabels,
-                                                          'xlabels':xlabel,
-                                                          'yvals':yaxisLabels,
-                                                          'ylabels':ylabel,
-                                                          'file1':compList[0],
-                                                          'file2':compList[1],
-                                                          'label1':compDict[compList[0]]['label'],
-                                                          'label2':compDict[compList[1]]['label'],
-                                                          'title':title,
-                                                          'header':header,
-                                                          'footnote':footnote}
+                    self.docs.IMS2DoverlayData[idName] = {'zvals1': zvalsIon1plot,
+                                                          'zvals2': zvalsIon2plot,
+                                                          'cmap1': cmapIon1,
+                                                          'cmap2': cmapIon2,
+                                                          'alpha1': alphaIon1,
+                                                          'alpha2': alphaIon2,
+                                                          'mask1': maskIon1,
+                                                          'mask2': maskIon2,
+                                                          'xvals': xaxisLabels,
+                                                          'xlabels': xlabel,
+                                                          'yvals': yaxisLabels,
+                                                          'ylabels': ylabel,
+                                                          'file1': compList[0],
+                                                          'file2': compList[1],
+                                                          'label1': compDict[compList[0]]['label'],
+                                                          'label2': compDict[compList[1]]['label'],
+                                                          'title': title,
+                                                          'header': header,
+                                                          'footnote': footnote}
                 elif self.config.overlayMethod == "RMSF":
-                    self.docs.IMS2DoverlayData[idName] = {'yvalsRMSF':pRMSFlist,
-                                                          'zvals':tempArray,
-                                                          'xvals':xaxisLabels,
-                                                          'yvals':yaxisLabels,
-                                                          'ylabelRMSF':ylabelRMSF,
-                                                          'xlabelRMSD':xLabel,
-                                                          'ylabelRMSD':yLabel,
-                                                          'rmsdLabel':rmsdLabel,
-                                                          'colorRMSF':self.config.lineColour_1D,
-                                                          'cmapRMSF':self.config.currentCmap,
-                                                          'title':title,
-                                                          'header':header,
-                                                          'footnote':footnote}
+                    self.docs.IMS2DoverlayData[idName] = {'yvalsRMSF': pRMSFlist,
+                                                          'zvals': tempArray,
+                                                          'xvals': xaxisLabels,
+                                                          'yvals': yaxisLabels,
+                                                          'ylabelRMSF': ylabelRMSF,
+                                                          'xlabelRMSD': xLabel,
+                                                          'ylabelRMSD': yLabel,
+                                                          'rmsdLabel': rmsdLabel,
+                                                          'colorRMSF': self.config.lineColour_1D,
+                                                          'cmapRMSF': self.config.currentCmap,
+                                                          'title': title,
+                                                          'header': header,
+                                                          'footnote': footnote}
                 elif self.config.overlayMethod == "RMSD":
-                    self.docs.IMS2DoverlayData[idName] = {'zvals':tempArray,
-                                                          'xvals':xaxisLabels,
-                                                          'yvals':yaxisLabels,
-                                                          'xlabel':xlabel,
-                                                          'ylabel':ylabel,
-                                                          'rmsdLabel':rmsdLabel,
-                                                          'cmap':self.config.currentCmap,
-                                                          'title':title,
-                                                          'header':header,
-                                                          'footnote':footnote}
+                    self.docs.IMS2DoverlayData[idName] = {'zvals': tempArray,
+                                                          'xvals': xaxisLabels,
+                                                          'yvals': yaxisLabels,
+                                                          'xlabel': xlabel,
+                                                          'ylabel': ylabel,
+                                                          'rmsdLabel': rmsdLabel,
+                                                          'cmap': self.config.currentCmap,
+                                                          'title': title,
+                                                          'header': header,
+                                                          'footnote': footnote}
 
         elif any(self.config.overlayMethod in method for method in ["Mean", "Standard Deviation", "Variance"]):
             meanData = []
@@ -3227,7 +2587,14 @@ class ORIGAMI(object):
                 """ Computes variance of selected files """
                 zvals = pr_activation.compute_variance(inputData=meanData)
             # Plot
-            self.view.panelPlots.on_plot_2D_data(data=[zvals, xAxisLabels, xlabel, yAxisLabels, ylabel, self.config.currentCmap])
+            self.view.panelPlots.on_plot_2D_data(
+                data=[
+        zvals,
+        xAxisLabels,
+        xlabel,
+        yAxisLabels,
+        ylabel,
+        self.config.currentCmap])
             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
             if add_data_to_document:
                 self.docs.gotStatsData = True
@@ -3237,21 +2604,22 @@ class ORIGAMI(object):
                     title = self.docs.IMS2DstatsData[self.config.overlayMethod].get('header', "")
                     header = self.docs.IMS2DstatsData[self.config.overlayMethod].get('header', "")
                     footnote = self.docs.IMS2DstatsData[self.config.overlayMethod].get('footnote', "")
-                else: title, header, footnote = "", "", ""
+                else:
+                    title, header, footnote = "", "", ""
 
                 # add label
                 idName = '%s, %s' % (compList[0], compList[1])
                 idName = "%s: %s" % (self.config.overlayMethod, idName)
 
-                self.docs.IMS2DstatsData[idName] = {'zvals':zvals,
-                                                    'xvals':xAxisLabels,
-                                                    'xlabels':xlabel,
-                                                    'yvals':yAxisLabels,
-                                                    'ylabels':ylabel,
-                                                    'cmap':self.config.currentCmap,
-                                                    'title':title,
-                                                    'header':header,
-                                                    'footnote':footnote}
+                self.docs.IMS2DstatsData[idName] = {'zvals': zvals,
+                                                    'xvals': xAxisLabels,
+                                                    'xlabels': xlabel,
+                                                    'yvals': yAxisLabels,
+                                                    'ylabels': ylabel,
+                                                    'cmap': self.config.currentCmap,
+                                                    'title': title,
+                                                    'header': header,
+                                                    'footnote': footnote}
         elif self.config.overlayMethod == "RMSD Matrix":
             """ Compute RMSD matrix for selected files """
             zvals = np.zeros([tempAccumulator, tempAccumulator])
@@ -3265,7 +2633,7 @@ class ORIGAMI(object):
                     zvalsIon1plot = compDict[compList[row]]['zvals']
                     zvalsIon2plot = compDict[compList[row2]]['zvals']
                     pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot,
-                                                      inputData2=zvalsIon2plot)
+                                                                  inputData2=zvalsIon2plot)
                     zvals[row, row2] = np.round(pRMSD, 2)
             self.view.panelPlots.on_plot_matrix(zvals=zvals, xylabels=tickLabels, cmap=self.docs.colormap)
             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Comparison'])
@@ -3277,13 +2645,14 @@ class ORIGAMI(object):
                     title = self.docs.IMS2DstatsData[self.config.overlayMethod].get('header', "")
                     header = self.docs.IMS2DstatsData[self.config.overlayMethod].get('header', "")
                     footnote = self.docs.IMS2DstatsData[self.config.overlayMethod].get('footnote', "")
-                else: title, header, footnote = "", "", ""
-                self.docs.IMS2DstatsData[self.config.overlayMethod] = {'zvals':zvals,
-                                                                       'cmap':self.config.currentCmap,
-                                                                       'matrixLabels':tickLabels,
-                                                                       'title':title,
-                                                                       'header':header,
-                                                                       'footnote':footnote}
+                else:
+                    title, header, footnote = "", "", ""
+                self.docs.IMS2DstatsData[self.config.overlayMethod] = {'zvals': zvals,
+                                                                       'cmap': self.config.currentCmap,
+                                                                       'matrixLabels': tickLabels,
+                                                                       'title': title,
+                                                                       'header': header,
+                                                                       'footnote': footnote}
 
         elif self.config.overlayMethod == "RGB":
             data_list, idName = [], ""
@@ -3305,8 +2674,10 @@ class ORIGAMI(object):
                 rgb = make_rgb(data, color)
                 data_list.append(rgb)
                 # Add new label
-                if idName == "": idName = compList[row]
-                else: idName = "%s, %s" % (idName, compList[row])
+                if idName == "":
+                    idName = compList[row]
+                else:
+                    idName = "%s, %s" % (idName, compList[row])
             xAxisLabels = compDict[key]['xvals']
             xlabel = compDict[key]['xlabels']
             yAxisLabels = compDict[key]['yvals']
@@ -3339,16 +2710,16 @@ class ORIGAMI(object):
                     idName = idName.replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "")
                     idName = idName[:500]
 
-                self.docs.IMS2DoverlayData[idName] = {'zvals':rgb_plot,
-                                                      'xvals':xaxisLabels,
-                                                      'xlabels':xlabel,
-                                                      'yvals':yaxisLabels,
-                                                      'ylabels':ylabel,
-                                                      'rgb_list':data_list,
-                                                      'legend_text':legend_text,
-                                                      'title':title,
-                                                      'header':header,
-                                                      'footnote':footnote}
+                self.docs.IMS2DoverlayData[idName] = {'zvals': rgb_plot,
+                                                      'xvals': xaxisLabels,
+                                                      'xlabels': xlabel,
+                                                      'yvals': yaxisLabels,
+                                                      'ylabels': ylabel,
+                                                      'rgb_list': data_list,
+                                                      'legend_text': legend_text,
+                                                      'title': title,
+                                                      'header': header,
+                                                      'footnote': footnote}
 
         # Add data to document
         if add_data_to_document:
@@ -3379,13 +2750,13 @@ class ORIGAMI(object):
 
 #         print(xmin, xmax, ymin, ymax)
 
-        if xmin == None:
+        if xmin is None:
             xmin = xvals[0]
-        if xmax == None:
+        if xmax is None:
             xmax = xvals[-1]
-        if ymin == None:
+        if ymin is None:
             ymin = xvals[0]
-        if ymax == None:
+        if ymax is None:
             ymax = xvals[-1]
 
         # Find nearest values
@@ -3420,15 +2791,17 @@ class ORIGAMI(object):
         return zvals, xvals, yvals
 
     def restoreComparisonToList(self, evt=None):
-        """ 
-        Once comparison document was made and has been pickled, the data is not 
+        """
+        Once comparison document was made and has been pickled, the data is not
         easily accesible (apart from replotting). This function is to help retreive
         the input data and restore it to the file list - in this case text panel
         """
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except: return
-        if self.currentDoc == "Current documents": return
+        except Exception:
+            return
+        if self.currentDoc == "Current documents":
+            return
 
         # Make sure the document is of comparison type
         if self.documentsDict[self.currentDoc].dataType == 'Type: Comparison':
@@ -3481,12 +2854,13 @@ class ORIGAMI(object):
 
     def onCombineMultipleMLFiles(self, e=None):
         """
-        This function takes the multiple ML dictionary, sorts it and combines it 
+        This function takes the multiple ML dictionary, sorts it and combines it
         to form a 2D IM-MS map
         """
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except: return
+        except Exception:
+            return
         self.docs = self.documentsDict[self.currentDoc]
         if self.docs.dataType != 'Type: MANUAL':
             msg = 'Make sure you select the correct dataset - MANUAL'
@@ -3519,17 +2893,17 @@ class ORIGAMI(object):
             xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
             ylabels = 1 + np.arange(len(imsData2D[:, 1]))
             self.view.panelPlots.on_plot_2D_data(data=[imsData2D, xlabels,
-                                   'Collision Voltage (V)', ylabels,
-                                   'Drift time (bins)',
-                                   self.docs.colormap])
+                                                       'Collision Voltage (V)', ylabels,
+                                                       'Drift time (bins)',
+                                                       self.docs.colormap])
 
             self.docs.got2DIMS = True
-            self.docs.IMS2D = {'zvals':imsData2D,
-                               'xvals':xlabels,
-                               'xlabels':'Collision Voltage (V)',
-                               'yvals':ylabels,
-                               'ylabels':'Drift time (bins)',
-                               'cmap':self.docs.colormap}
+            self.docs.IMS2D = {'zvals': imsData2D,
+                               'xvals': xlabels,
+                               'xlabels': 'Collision Voltage (V)',
+                               'yvals': ylabels,
+                               'ylabels': 'Drift time (bins)',
+                               'cmap': self.docs.colormap}
 
             # Append to list
             self.documentsDict[self.docs.title] = self.docs
@@ -3558,9 +2932,11 @@ class ORIGAMI(object):
             if self.currentDoc == '':
                 self.onThreading(None, ('Please extract data first', 4), action='updateStatusbar')
                 continue
-            if evt.GetId() == ID_processAllIons: pass
+            if evt.GetId() == ID_processAllIons:
+                pass
             elif evt.GetId() == ID_processSelectedIons:
-                if not tempList.IsChecked(index=row): continue
+                if not tempList.IsChecked(index=row):
+                    continue
             # Extract ion name
             mzStart = tempList.GetItem(itemId=row, col=self.config.peaklistColNames['start']).GetText()
             mzEnd = tempList.GetItem(itemId=row, col=self.config.peaklistColNames['end']).GetText()
@@ -3576,83 +2952,55 @@ class ORIGAMI(object):
 
             # process data
             if (dataType in ['Type: ORIGAMI', 'Type: Infrared', 'Type: MANUAL'] and
-                self.docs.gotCombinedExtractedIons == True):
+                    self.docs.gotCombinedExtractedIons):
                 try:
                     tempData = self.docs.IMS2DCombIons[selectedItem]
                     imsData2D, params = self.data_processing.on_process_2D(zvals=tempData['zvals'].copy(),
                                                                            return_all=True)
                     imsData1D = np.sum(imsData2D, axis=1).T
                     rtDataY = np.sum(imsData2D, axis=0)
-                    self.docs.IMS2DCombIons[new_dataset] = {'zvals':imsData2D,
-                                                            'xvals':tempData['xvals'],
-                                                            'xlabels':tempData['xlabels'],
-                                                            'yvals':tempData['yvals'],
-                                                            'ylabels':tempData['ylabels'],
-                                                            'yvals1D':imsData1D, 'yvalsRT':rtDataY,
-                                                            'cmap':tempData.get('cmap', self.config.currentCmap),
-                                                            'xylimits':tempData['xylimits'],
-                                                            'charge':tempData.get('charge', None),
-                                                            'label':tempData.get('label', None),
-                                                            'alpha':tempData.get('alpha', None),
-                                                            'mask':tempData.get('alpha', None),
-                                                            'process_parameters':params}
-                except:
+                    self.docs.IMS2DCombIons[new_dataset] = {'zvals': imsData2D,
+                                                            'xvals': tempData['xvals'],
+                                                            'xlabels': tempData['xlabels'],
+                                                            'yvals': tempData['yvals'],
+                                                            'ylabels': tempData['ylabels'],
+                                                            'yvals1D': imsData1D, 'yvalsRT': rtDataY,
+                                                            'cmap': tempData.get('cmap', self.config.currentCmap),
+                                                            'xylimits': tempData['xylimits'],
+                                                            'charge': tempData.get('charge', None),
+                                                            'label': tempData.get('label', None),
+                                                            'alpha': tempData.get('alpha', None),
+                                                            'mask': tempData.get('alpha', None),
+                                                            'process_parameters': params}
+                except Exception:
                     pass
 
             if (dataType in ['Type: ORIGAMI', 'Type: Infrared'] and
-                self.docs.gotExtractedIons == True):
+                    self.docs.gotExtractedIons):
                 try:
                     tempData = self.docs.IMS2Dions[selectedItem]
                     imsData2D, params = self.data_processing.on_process_2D(zvals=tempData['zvals'].copy(),
                                                                            return_all=True)
                     imsData1D = np.sum(imsData2D, axis=1).T
                     rtDataY = np.sum(imsData2D, axis=0)
-                    self.docs.IMS2Dions[new_dataset] = {'zvals':imsData2D,
-                                                        'xvals':tempData['xvals'],
-                                                        'xlabels':tempData['xlabels'],
-                                                        'yvals':tempData['yvals'],
-                                                        'ylabels':tempData['ylabels'],
-                                                        'yvals1D':imsData1D, 'yvalsRT':rtDataY,
-                                                        'cmap':tempData.get('cmap', self.config.currentCmap),
-                                                        'xylimits':tempData['xylimits'],
-                                                        'charge':tempData.get('charge', None),
-                                                        'label':tempData.get('label', None),
-                                                        'alpha':tempData.get('alpha', None),
-                                                        'mask':tempData.get('alpha', None),
-                                                        'process_parameters':params}
-                except:
+                    self.docs.IMS2Dions[new_dataset] = {'zvals': imsData2D,
+                                                        'xvals': tempData['xvals'],
+                                                        'xlabels': tempData['xlabels'],
+                                                        'yvals': tempData['yvals'],
+                                                        'ylabels': tempData['ylabels'],
+                                                        'yvals1D': imsData1D, 'yvalsRT': rtDataY,
+                                                        'cmap': tempData.get('cmap', self.config.currentCmap),
+                                                        'xylimits': tempData['xylimits'],
+                                                        'charge': tempData.get('charge', None),
+                                                        'label': tempData.get('label', None),
+                                                        'alpha': tempData.get('alpha', None),
+                                                        'mask': tempData.get('alpha', None),
+                                                        'process_parameters': params}
+                except Exception:
                     pass
 
             # Update file list
             self.OnUpdateDocument(self.docs, 'combined_ions')
-
-    def on_open_multiple_ORIGAMI_files(self, evt):
-
-        # self.config.ciuMode = 'ORIGAMI'
-        wildcard = "Open MassLynx files (*.raw)| ;*.raw"
-
-        if self.config.lastDir == None or not os.path.isdir(self.config.lastDir):
-            self.config.lastDir = os.getcwd()
-
-        dlg = MDD.MultiDirDialog(self.view, title="Choose MassLynx files to open:",
-                                 defaultPath=self.config.lastDir,
-                                 agwStyle=MDD.DD_MULTIPLE | MDD.DD_DIR_MUST_EXIST)
-
-        if dlg.ShowModal() == wx.ID_OK:
-            pathlist = dlg.GetPaths()
-
-            for file in pathlist:
-                path = self.checkIfRawFile(file)
-                if path is None: pass
-                else:
-                    pathSplit = path.encode('ascii', 'replace').split(':)')
-                    start = pathSplit[0].split('(')
-                    start = start[-1]
-                    path = ''.join([start, ':', pathSplit[1]])
-                    temp, rawfile = os.path.split(path)
-                    # Update lastDir with current path
-                    self.config.lastDir = path
-                    self.onLoadOrigamiDataThreaded(path, evt=evt, mode='Type: ORIGAMI')
 
     def on_open_multiple_ML_files(self, open_type, pathlist=[]):
         # http://stackoverflow.com/questions/1252481/sort-dictionary-by-another-dictionary
@@ -3665,7 +3013,7 @@ class ORIGAMI(object):
         if len(pathlist) > 0:
             dlg = None
         else:
-            if self.config.lastDir == None or not os.path.isdir(self.config.lastDir):
+            if self.config.lastDir is None or not os.path.isdir(self.config.lastDir):
                 self.config.lastDir = os.getcwd()
 
             dlg = MDD.MultiDirDialog(self.view, title="Choose MassLynx files to open:",
@@ -3677,7 +3025,7 @@ class ORIGAMI(object):
 
         if len(pathlist) == 0:
             self.onThreading(None, ("Please select at least one file in order to continue.", 4),
-                                    action='updateStatusbar')
+                             action='updateStatusbar')
             return
 
         if open_type == "multiple_files_add":
@@ -3689,10 +3037,11 @@ class ORIGAMI(object):
                 self.onThreading(None, ("Did not find appropriate document. Creating a new one...", 4),
                                  action='updateStatusbar')
                 dlg = wx.FileDialog(self.view, "Please select a name for the document",
-                                     "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                    "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                 if dlg.ShowModal() == wx.ID_OK:
                     path, idName = os.path.split(dlg.GetPath())
-                else: return
+                else:
+                    return
                 # Create document
                 self.docs = documents()
                 self.docs.title = idName
@@ -3705,7 +3054,7 @@ class ORIGAMI(object):
                     pass
 
                 # Check that document exists
-                if self.currentDoc == None:
+                if self.currentDoc is None:
                     self.onThreading(None, ('Please select a document', 4), action='updateStatusbar')
                     return
                 self.docs = self.documentsDict[self.currentDoc]
@@ -3714,10 +3063,11 @@ class ORIGAMI(object):
 
         elif open_type == "multiple_files_new_document":
             dlg = wx.FileDialog(self.view, "Please select a name for the document",
-                                 "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             if dlg.ShowModal() == wx.ID_OK:
                 path, idName = os.path.split(dlg.GetPath())
-            else: return
+            else:
+                return
             # Create document
             self.docs = documents()
             self.docs.title = idName
@@ -3742,17 +3092,21 @@ class ORIGAMI(object):
                 self.config.lastDir = path
                 parameters = self.config.importMassLynxInfFile(path=path, manual=True)
                 xlimits = [parameters['startMS'], parameters['endMS']]
-                extract_kwargs = {'return_data':True}
+                extract_kwargs = {'return_data': True}
                 msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=path,
                                                                     driftscope_path=self.config.driftscopePath,
                                                                     **extract_kwargs)
-                extract_kwargs = {'return_data':True}
+                extract_kwargs = {'return_data': True}
                 xvalsDT, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
-                                                                 driftscope_path=self.config.driftscopePath,
-                                                                 **extract_kwargs)
-                if i <= 15: color = self.config.customColors[i]
-                else: color = randomColorGenerator(True)
-                color = convertRGB255to1(self.view.panelMML.on_check_duplicate_colors(color, document_name=self.docs.title))
+                                                                      driftscope_path=self.config.driftscopePath,
+                                                                      **extract_kwargs)
+                if i <= 15:
+                    color = self.config.customColors[i]
+                else:
+                    color = randomColorGenerator(True)
+                color = convertRGB255to1(
+                    self.view.panelMML.on_check_duplicate_colors(
+        color, document_name=self.docs.title))
 
                 tempList.Append([rawfile,
                                  str(parameters['trapCE']),
@@ -3762,27 +3116,28 @@ class ORIGAMI(object):
                                                  convertRGB1to255(color))
 
                 self.docs.gotMultipleMS = True
-                self.docs.multipleMassSpectrum[rawfile] = {'trap':parameters['trapCE'],
-                                                           'xvals':msDataX, 'yvals':msDataY,
-                                                           'ims1D':imsData1D, 'ims1DX':xvalsDT,
-                                                           'xlabel':'Drift time (bins)',
-                                                           'xlabels':'m/z (Da)',
-                                                           'path': path, 'color':color,
-                                                           'parameters':parameters,
-                                                           'xlimits':xlimits}
+                self.docs.multipleMassSpectrum[rawfile] = {'trap': parameters['trapCE'],
+                                                           'xvals': msDataX, 'yvals': msDataY,
+                                                           'ims1D': imsData1D, 'ims1DX': xvalsDT,
+                                                           'xlabel': 'Drift time (bins)',
+                                                           'xlabels': 'm/z (Da)',
+                                                           'path': path, 'color': color,
+                                                           'parameters': parameters,
+                                                           'xlimits': xlimits}
         # Sum all mass spectra into one
         if self.config.ms_enable_in_MML_start:
 
-            kwargs = {'auto_range':False,
-                      'mz_min':self.config.ms_mzStart,
-                      'mz_max':self.config.ms_mzEnd,
-                      'mz_bin':self.config.ms_mzBinSize,
-                      'linearization_mode':self.config.ms_linearization_mode}
-            msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(self.config.ms_linearization_mode,
-                                                                                                      self.config.ms_mzStart,
-                                                                                                      self.config.ms_mzEnd,
-                                                                                                      self.config.ms_mzBinSize,
-                                                                                                      self.config.ms_auto_range)
+            kwargs = {'auto_range': False,
+                      'mz_min': self.config.ms_mzStart,
+                      'mz_max': self.config.ms_mzEnd,
+                      'mz_bin': self.config.ms_mzBinSize,
+                      'linearization_mode': self.config.ms_linearization_mode}
+            msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
+                self.config.ms_linearization_mode,
+                self.config.ms_mzStart,
+                self.config.ms_mzEnd,
+                self.config.ms_mzBinSize,
+                self.config.ms_auto_range)
             self.onThreading(None, (msg, 4), action='updateStatusbar')
 
             # check the min/max values in the mass spectrum
@@ -3791,8 +3146,10 @@ class ORIGAMI(object):
                 self.config.ms_mzStart = mzStart
                 self.config.ms_mzEnd = mzEnd
                 kwargs.update(mz_min=mzStart, mz_max=mzEnd)
-                try: self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
-                except: pass
+                try:
+                    self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
+                except:
+                    pass
 
             msFilenames = ["m/z"]
             counter = 0
@@ -3828,9 +3185,9 @@ class ORIGAMI(object):
             self.docs.gotMSSaveData = True
             self.docs.massSpectraSave = msSaveData  # pandas dataframe that can be exported as csv
             self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals':msDataX, 'yvals':msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
+            self.docs.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
             # Plot
-            name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
+            name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
 
         # Update status bar with MS range
@@ -3849,7 +3206,8 @@ class ORIGAMI(object):
         self.view.panelMML.onRemoveDuplicates(evt=None)
 
         tend = time.clock()
-        self.onThreading(None, ('Total time to extract %d files was: %.3gs' % (len(pathlist), tend - tstart), 4), action='updateStatusbar')
+        self.onThreading(None, ('Total time to extract %d files was: %.3gs' %
+                                (len(pathlist), tend - tstart), 4), action='updateStatusbar')
 
     def on_combine_mass_spectra(self, document_name=None):
 
@@ -3858,16 +3216,17 @@ class ORIGAMI(object):
         else:
             self.docs = self.documentsDict[document_name]
 
-        kwargs = {'auto_range':False,
-                  'mz_min':self.config.ms_mzStart,
-                  'mz_max':self.config.ms_mzEnd,
-                  'mz_bin':self.config.ms_mzBinSize,
-                  'linearization_mode':self.config.ms_linearization_mode}
-        msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(self.config.ms_linearization_mode,
-                                                                                                  self.config.ms_mzStart,
-                                                                                                  self.config.ms_mzEnd,
-                                                                                                  self.config.ms_mzBinSize,
-                                                                                                  self.config.ms_auto_range)
+        kwargs = {'auto_range': False,
+                  'mz_min': self.config.ms_mzStart,
+                  'mz_max': self.config.ms_mzEnd,
+                  'mz_bin': self.config.ms_mzBinSize,
+                  'linearization_mode': self.config.ms_linearization_mode}
+        msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
+            self.config.ms_linearization_mode,
+            self.config.ms_mzStart,
+            self.config.ms_mzEnd,
+            self.config.ms_mzBinSize,
+            self.config.ms_auto_range)
         self.onThreading(None, (msg, 4), action='updateStatusbar')
 
         if len(list(self.docs.multipleMassSpectrum.keys())) > 0:
@@ -3877,8 +3236,10 @@ class ORIGAMI(object):
                 self.config.ms_mzStart = mzStart
                 self.config.ms_mzEnd = mzEnd
                 kwargs.update(mz_min=mzStart, mz_max=mzEnd)
-                try: self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
-                except: pass
+                try:
+                    self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
+                except:
+                    pass
 
             msFilenames = ["m/z"]
             counter = 0
@@ -3911,9 +3272,9 @@ class ORIGAMI(object):
 
             # Add data
             self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals':msDataX, 'yvals':msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
+            self.docs.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
             # Plot
-            name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
+            name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
 
             # Update status bar with MS range
@@ -3962,13 +3323,13 @@ class ORIGAMI(object):
             msDataY = pr_spectra.normalize_1D(inputData=msDataY)
             xlimits = self.docs.massSpectrum['xlimits']
             # Add info to document
-            self.docs.massSpectrum = {'xvals':msCentre,
-                                      'yvals':msDataY,
-                                      'xlabels':'m/z (Da)',
-                                      'xlimits':xlimits}
+            self.docs.massSpectrum = {'xvals': msCentre,
+                                      'yvals': msDataY,
+                                      'xlabels': 'm/z (Da)',
+                                      'xlimits': xlimits}
             self.OnUpdateDocument(self.docs, 'document')
             # Plot
-            name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
+            name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
             self.view.panelPlots.on_plot_MS(msCentre, msDataY, xlimits=xlimits, **name_kwargs)
         evt.Skip()
 
@@ -3986,11 +3347,13 @@ class ORIGAMI(object):
             tempList = self.view.panelMultipleIons.peaklist
         elif self.docs.dataType == 'Type: Multifield Linear DT':
             tempList = self.view.panelLinearDT.bottomP.peaklist
-        else: return
+        else:
+            return
 
-        if not self.docs.gotMS: return
+        if not self.docs.gotMS:
+            return
 
-        name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
+        name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
         self.view.panelPlots.on_plot_MS(self.docs.massSpectrum['xvals'],
                                         self.docs.massSpectrum['yvals'],
                                         xlimits=self.docs.massSpectrum['xlimits'],
@@ -4003,7 +3366,8 @@ class ORIGAMI(object):
         for item in range(tempList.GetItemCount()):
             itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=item)
             filename = itemInfo['document']
-            if filename != self.currentDoc: continue
+            if filename != self.currentDoc:
+                continue
             xmin = itemInfo['mzStart']
             width = itemInfo['mzEnd'] - xmin
             color = convertRGB255to1(itemInfo['color'])
@@ -4019,18 +3383,18 @@ class ORIGAMI(object):
                                                      repaint=False)
 
     def getImageFilename(self, prefix=False, csv=False, defaultValue='',
-                          withPath=False, extension=None):
+                         withPath=False, extension=None):
         """
         Set-up a new filename for saved images
         """
 
         if withPath:
-            if extension == None:
+            if extension is None:
                 fileType = "Text file|*%s" % self.config.saveExtension
             else:
                 fileType = extension
             dlg = wx.FileDialog(self.view, "Save data to file...", "", "", fileType,
-                                    wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             dlg.SetFilename(defaultValue)
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()
@@ -4038,15 +3402,18 @@ class ORIGAMI(object):
             else:
                 return None
         elif not prefix:
-            saveFileName = dlgAsk('Please enter a new filename for the images. Names will be appended with the item keyword.',
-                                            defaultValue=defaultValue)
+            saveFileName = dlgAsk(
+                'Please enter a new filename for the images. Names will be appended with the item keyword.',
+                defaultValue=defaultValue)
         else:
             if not csv:
-                saveFileName = dlgAsk('Please enter a new prefix for the images. Names will be appended with the item keyword.',
-                                              defaultValue=defaultValue)
+                saveFileName = dlgAsk(
+                    'Please enter a new prefix for the images. Names will be appended with the item keyword.',
+                    defaultValue=defaultValue)
             else:
-                saveFileName = dlgAsk('Please enter a new prefix for the output file. Names will be appended with the item keyword.',
-                                              defaultValue=defaultValue)
+                saveFileName = dlgAsk(
+                    'Please enter a new prefix for the output file. Names will be appended with the item keyword.',
+                    defaultValue=defaultValue)
 
         return saveFileName
 
@@ -4238,14 +3605,17 @@ class ORIGAMI(object):
 
     def onChangeChargeState(self, evt):
 
-        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(getSelected=True)
-        if self.currentDoc is None or self.currentDoc == "Current documents": return
+        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(
+            getSelected=True)
+        if self.currentDoc is None or self.currentDoc == "Current documents":
+            return
         indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
         selectedItemParentText = ''
         if indent > 2:
             __, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(selectedItem, 2,
-                                                                                                               getSelected=True)
-        else: pass
+                                                                                          getSelected=True)
+        else:
+            pass
 
         self.document = self.documentsDict[self.currentDoc]
 
@@ -4253,39 +3623,39 @@ class ORIGAMI(object):
         if (selectedText == 'Drift time (2D, EIC)' or
             selectedText == 'Drift time (2D, combined voltages, EIC)' or
             selectedText == 'Drift time (2D, processed, EIC)' or
-            selectedText == 'Input data'):
+                selectedText == 'Input data'):
             # Give an error
             dlgBox(exceptionTitle='Error',
-                           exceptionMsg="Please select an ion in the Document Panel to assign a charge state",
-                           type="Error")
+                   exceptionMsg="Please select an ion in the Document Panel to assign a charge state",
+                   type="Error")
             return
 
         currentCharge = self.view.panelDocuments.documents.onGetItemData(dataType='charge')
 
         charge = dlgAsk('Assign charge state to selected item.',
-                                defaultValue=str(currentCharge))
+                        defaultValue=str(currentCharge))
 
         if charge == '' or charge == 'None':
             return
 
         # Replace data in the dictionary
-        if selectedText == None:
+        if selectedText is None:
             self.document.IMS2D['charge'] = str2int(charge)
         elif selectedText == 'Drift time (2D)':
             self.document.IMS2D['charge'] = str2int(charge)
         elif selectedText == 'Drift time (2D, processed)':
             self.document.IMS2Dprocess['charge'] = str2int(charge)
-        elif selectedItemParentText == 'Drift time (2D, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (2D, EIC)' and selectedText is not None:
             self.document.IMS2Dions[selectedText]['charge'] = str2int(charge)
-        elif selectedItemParentText == 'Drift time (2D, combined voltages, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (2D, combined voltages, EIC)' and selectedText is not None:
             self.document.IMS2DCombIons[selectedText]['charge'] = str2int(charge)
-        elif selectedItemParentText == 'Drift time (2D, processed, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (2D, processed, EIC)' and selectedText is not None:
             self.document.IMS2DionsProcess[selectedText]['charge'] = str2int(charge)
-        elif selectedItemParentText == 'Input data' and selectedText != None:
+        elif selectedItemParentText == 'Input data' and selectedText is not None:
             self.document.IMS2DcompData[selectedText]['charge'] = str2int(charge)
-        elif selectedItemParentText == 'Chromatograms (combined voltages, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Chromatograms (combined voltages, EIC)' and selectedText is not None:
             self.document.IMSRTCombIons[selectedText]['charge'] = str2int(charge)
-        elif selectedItemParentText == 'Drift time (1D, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (1D, EIC)' and selectedText is not None:
             self.document.IMS1DdriftTimes[selectedText]['charge'] = str2int(charge)
         else:
             self.document.IMS2D
@@ -4317,10 +3687,10 @@ class ORIGAMI(object):
             if self.document.dataType == 'Type: ORIGAMI' or self.document.dataType == 'Type: MANUAL':
                 splitText = re.split('-| |,|', selectedText)
                 row = self.view.panelMultipleIons.findItem(splitText[0], splitText[1], self.currentDoc)
-                if row != None:
+                if row is not None:
                     self.view.panelMultipleIons.peaklist.SetStringItem(index=row,
-                                                col=self.config.peaklistColNames['charge'],
-                                                label=str(charge))
+                                                                       col=self.config.peaklistColNames['charge'],
+                                                                       label=str(charge))
 
         # Append to list
         self.documentsDict[self.document.title] = self.document
@@ -4463,8 +3833,9 @@ class ORIGAMI(object):
         """
         dlg = wx.FileDialog(self.view, "Choose a text file (m/z, window size, charge):",
                             wildcard="*.csv;*.txt",
-                           style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_CANCEL: return
+                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+        if dlg.ShowModal() == wx.ID_CANCEL:
+            return
         else:
             # Create shortcut
             tempList = self.view.panelMultipleIons.peaklist
@@ -4475,8 +3846,8 @@ class ORIGAMI(object):
             except KeyError:
                 msg = "Please make sure your file contains headers. i.e. m/z | window | z (optional)"
                 dlgBox(exceptionTitle='Incorrect input',
-                               exceptionMsg=msg,
-                               type="Error")
+                       exceptionMsg=msg,
+                       type="Error")
                 return
             for peak in range(len(peaklist)):
 
@@ -4489,8 +3860,8 @@ class ORIGAMI(object):
                     except KeyError:
                         msg = "Please make sure your file contains headers. i.e. m/z | window | z (optional)"
                         dlgBox(exceptionTitle='Incorrect input',
-                                       exceptionMsg=msg,
-                                       type="Error")
+                               exceptionMsg=msg,
+                               type="Error")
                         return
                 # Generate mz start/end
                 mzMin = np.round((peaklist['m/z'][peak] - mzAdd), 2)
@@ -4498,16 +3869,18 @@ class ORIGAMI(object):
                 # Get charge of ion
                 try:
                     charge = peaklist['z'][peak]
-                except KeyError: charge = ''
+                except KeyError:
+                    charge = ''
                 # Get label of the ion
                 try:
                     label = peaklist['label'][peak]
-                except KeyError: label = ''
+                except KeyError:
+                    label = ''
                 tempList.Append([str(mzMin), str(mzMax), str(charge), '', '', '', '', '', str(label)])
         self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
         dlg.Destroy()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onUpdateColormap(self, evt=None):
@@ -4517,7 +3890,8 @@ class ORIGAMI(object):
         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         if not self.currentDoc:
             document = None
-        elif self.currentDoc == 'Current documents': return
+        elif self.currentDoc == 'Current documents':
+            return
         else:
             document = self.documentsDict[self.currentDoc]
         # Return
@@ -4529,12 +3903,18 @@ class ORIGAMI(object):
         to adjust their size
         """
         if not hasattr(values, "__len__"):
-            if 10000 < values <= 1000000: divider = 1000
-            elif values > 1000000: divider = 1000000
-            else: divider = 1
-        elif 10000 < max(values) <= 1000000: divider = 1000
-        elif  max(values) > 1000000: divider = 1000000
-        else: divider = 1
+            if 10000 < values <= 1000000:
+                divider = 1000
+            elif values > 1000000:
+                divider = 1000000
+            else:
+                divider = 1
+        elif 10000 < max(values) <= 1000000:
+            divider = 1000
+        elif  max(values) > 1000000:
+            divider = 1000000
+        else:
+            divider = 1
         return divider
 
     def config2memory(self, e=None):
@@ -4548,8 +3928,10 @@ class ORIGAMI(object):
         """Get new colour"""
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except: return None
-        if self.currentDoc == 'Current documents': return
+        except Exception:
+            return None
+        if self.currentDoc == 'Current documents':
+            return
 
         document = self.documentsDict[self.currentDoc]
         # Check document
@@ -4591,19 +3973,22 @@ class ORIGAMI(object):
 
         # Figure out what is the current document
         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        if self.currentDoc == 'Current documents': return
+        if self.currentDoc == 'Current documents':
+            return
         document = self.documentsDict[self.currentDoc]
 
         # Determine the m/z range to extract
-        extract_kwargs = {'return_data':True}
+        extract_kwargs = {'return_data': True}
         __, yvalsDT = io_waters.rawMassLynx_DT_extract(path=path,
                                                        driftscope_path=self.config.driftscopePath,
                                                        mz_start=mzStart, mz_end=mzEnd
                                                        ** extract_kwargs)
         mphValue = (max(yvalsDT)) * 0.2  # 20 % cutoff
 
-        if pusherFreq != 1: xlabel = 'Drift time (ms)'
-        else: xlabel = 'Drift time (bins)'
+        if pusherFreq != 1:
+            xlabel = 'Drift time (ms)'
+        else:
+            xlabel = 'Drift time (bins)'
         # Create x-labels in ms
         xvalsDT = (np.arange(1, len(yvalsDT) + 1) * pusherFreq) / 1000
 
@@ -4631,18 +4016,18 @@ class ORIGAMI(object):
 
         document.gotCalibration = True
         rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
-        document.calibration[rangeName] = {'xrange':[mzStart, mzEnd],
-                                           'xvals':xvalsDT,
-                                           'yvals':yvalsDT,
-                                           'xcentre':((mzEnd + mzStart) / 2),
-                                           'protein':protein,
-                                           'charge':charge,
-                                           'ccs':CCS,
-                                           'tD':tD,
-                                           'gas':gas,
-                                           'xlabels':xlabel,
+        document.calibration[rangeName] = {'xrange': [mzStart, mzEnd],
+                                           'xvals': xvalsDT,
+                                           'yvals': yvalsDT,
+                                           'xcentre': ((mzEnd + mzStart) / 2),
+                                           'protein': protein,
+                                           'charge': charge,
+                                           'ccs': CCS,
+                                           'tD': tD,
+                                           'gas': gas,
+                                           'xlabels': xlabel,
                                            'peak': [tD, yval],
-                                           'mw':mw
+                                           'mw': mw
                                            }
         # Plot
         self.onPlot1DTCalibration(dtX=xvalsDT,
@@ -4672,15 +4057,21 @@ class ORIGAMI(object):
         # Shortcut to the table
         tempList = self.view.panelCCS.topP.peaklist
         if tempList.GetItemCount() == 0:
-            self.onThreading(None, ('Cannot build calibration curve as the calibration list is empty. Load data first.', 4), action='updateStatusbar')
+            self.onThreading(
+                None,
+                ('Cannot build calibration curve as the calibration list is empty. Load data first.',
+     4),
+                action='updateStatusbar')
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except: return
-        if self.currentDoc == "Current documents": return
+        except Exception:
+            return
+        if self.currentDoc == "Current documents":
+            return
 
         # Check if the currently selected document is Calibration dataframe file
         if (self.documentsDict[self.currentDoc].dataType == 'Type: CALIBRANT' and
-            self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
+                self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
             self.docs = self.documentsDict[self.currentDoc]
             self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
         else:
@@ -4688,12 +4079,17 @@ class ORIGAMI(object):
             docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
                                                         format='Format: DataFrame')
             if len(docList) == 0:
-                self.onThreading(None, ('Did not find appropriate document. Creating a new one...', 4), action='updateStatusbar')
+                self.onThreading(
+                    None,
+                    ('Did not find appropriate document. Creating a new one...',
+     4),
+                    action='updateStatusbar')
                 dlg = wx.FileDialog(self.view, "Please select a name for the calibration document",
-                                     "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                    "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
                 if dlg.ShowModal() == wx.ID_OK:
                     path, idName = os.path.split(dlg.GetPath())
-                else: return
+                else:
+                    return
 
                 # Create document
                 self.docs = documents()
@@ -4709,7 +4105,7 @@ class ORIGAMI(object):
                     pass
 
                 # Check that document exists
-                if self.currentDoc == None:
+                if self.currentDoc is None:
                     self.view.SetStatusText('Please select CCS calibration document', 3)
                     return
 
@@ -4737,7 +4133,7 @@ class ORIGAMI(object):
             self.view.SetStatusText('The calibration dictionary was empty. Select items in the table first', 3)
             return
 
-        if selectedIon == None:
+        if selectedIon is None:
             self.view.SetStatusText('Please select items in the table - otherwise CCS calibration cannot be created', 3)
             return
 
@@ -4747,7 +4143,8 @@ class ORIGAMI(object):
 
         # Determine the c correction factor
         if isempty(self.docs.corrC):
-            self.view.SetStatusText('Missing TOF correction factor - you can modify the value in the Document Information Panel', 3)
+            self.view.SetStatusText(
+                'Missing TOF correction factor - you can modify the value in the Document Information Panel', 3)
             return
 
         # Build dataframe
@@ -4765,8 +4162,9 @@ class ORIGAMI(object):
             else:
                 if isnumber(calibrationDict[key]['mw']):
                     xcentre = ((self.config.elementalMass['Hydrogen'] * charge) +
-                                calibrationDict[key]['mw'] / charge)
-                else: xcentre = calibrationDict[key]['xcentre']
+                               calibrationDict[key]['mw'] / charge)
+                else:
+                    xcentre = calibrationDict[key]['xcentre']
                 df['m/z'].loc[i] = xcentre
                 df['z'].loc[i] = charge
                 df['CCS'].loc[i] = ccs
@@ -4779,7 +4177,8 @@ class ORIGAMI(object):
             return
 
         # Compute variables
-        df['MW'] = (df['m/z'] - (self.config.elementalMass['Hydrogen'] * df['z'])) * df['z']  # calculate molecular weight
+        df['MW'] = (df['m/z'] - (self.config.elementalMass['Hydrogen'] * df['z'])) * \
+        df['z']  # calculate molecular weight
         df['RedMass'] = ((df['MW'] * self.docs.gas) / (df['MW'] + self.docs.gas))  # calculate reduced mass
         df['tDd'] = (df['tD'] - ((self.docs.corrC * df['m/z'].apply(sqrt)) / 1000))  # corrected drift time
         df['CCSd'] = df['CCS'] / (df['z'] * (1 / df['RedMass']).apply(sqrt))  # corrected ccs
@@ -4804,20 +4203,20 @@ class ORIGAMI(object):
 
         df.fillna('')
         calibrationParams = {'linear': [slopeLinear, interceptLinear, r2Linear],
-                             'power' : [slopePower, interceptPower, r2Power],
-                             'powerParms' : [slope, intercept],
+                             'power': [slopePower, interceptPower, r2Power],
+                             'powerParms': [slope, intercept],
                              'gas': gas}
 
         # Add calibration DataFrame to document
         self.docs.gotCalibrationParameters = True
-        self.docs.calibrationParameters = {'dataframe':df,
-                                           'parameters':calibrationParams}
+        self.docs.calibrationParameters = {'dataframe': df,
+                                           'parameters': calibrationParams}
 
         # Calibration fit line
         xvalsLinear, yvalsLinear = pr_spectra.abline(np.asarray((df.tDd.min(), df.tDd.max())),
-                                          slopeLinear, interceptLinear)
+                                                     slopeLinear, interceptLinear)
         xvalsPower, yvalsPower = pr_spectra.abline(np.asarray((df.tDdd.min(), df.tDdd.max())),
-                                          slopePower, interceptPower)
+                                                   slopePower, interceptPower)
         # Plot data
         # TODO: need to check this is correct
 #         self.onPlotCalibrationCurve(xvals1=df['tDd'], yvals1=df['CCSd'], label1='Linear',
@@ -4860,10 +4259,11 @@ class ORIGAMI(object):
                     self.view.SetStatusText(msg, 3)
                     return
                 elif charge == 0:
-                    msg = "%s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (rangeName, filename)
+                    msg = "%s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (
+                        rangeName, filename)
                     dlgBox(exceptionTitle='Missing charge information',
-                                   exceptionMsg=msg,
-                                   type="Warning")
+                           exceptionMsg=msg,
+                           type="Warning")
                     continue
                 # Get document object based on the filename
                 document = self.documentsDict[filename]
@@ -4877,17 +4277,17 @@ class ORIGAMI(object):
                     data = document.IMS2DionsProcess[rangeName]
 
                 # Unpack data
-                zvals, xvals, xlabel, yvals, ylabel, charge, mw, mzCentre = self.get2DdataFromDictionary(dictionary=data,
-                                                                                                         dataType='calibration',
-                                                                                                         compact=False)
+                zvals, xvals, xlabel, yvals, ylabel, charge, mw, mzCentre = self.get2DdataFromDictionary(
+                    dictionary=data, dataType='calibration', compact=False)
                 # Check that the object has pusher frequency
                 pusherFreq = document.parameters.get('pusherFreq', 1)
 
                 if (pusherFreq == 1 or not isnumber(pusherFreq)) and ylabel != 'Drift time (ms)':
-                    msg = "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (filename, rangeName)
+                    msg = "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (
+                        filename, rangeName)
                     dlgBox(exceptionTitle='Missing data',
-                                   exceptionMsg=msg,
-                                   type="Error")
+                           exceptionMsg=msg,
+                           type="Error")
                     continue
                 # Check if ylabel is in ms
                 if ylabel != 'Drift time (ms)':
@@ -4899,7 +4299,7 @@ class ORIGAMI(object):
                         yvals = yvals * (pusherFreq / 1000)
 
                 # Check for TOF correction factor
-                if isempty(document.corrC) and document.parameters.get('corrC', None) == None:
+                if isempty(document.corrC) and document.parameters.get('corrC', None) is None:
                     msg = 'Missing TOF correction factor'
                     self.view.SetStatusText(msg, 3)
                     return
@@ -4931,21 +4331,22 @@ class ORIGAMI(object):
                 except (IndexError, KeyError):
                     calibrationParameters = None
 
-                if calibrationParameters == None:
+                if calibrationParameters is None:
                     # TODO: add function to search for calibration document
                     docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
                                                                 format='Format: DataFrame')
                     if len(docList) == 0:
                         msg = "Cound not find calibration document or calibration file. Please create or load one in first"
                         dlgBox(exceptionTitle='Missing data',
-                                       exceptionMsg=msg,
-                                       type="Error")
+                               exceptionMsg=msg,
+                               type="Error")
                         return
                     else:
                         self.selectDocDlg = panelSelectDocument(self.view, self, docList, allowNewDoc=False)
                         if self.selectDocDlg.ShowModal() == wx.ID_OK:
                             calibrationParameters = self.currentCalibrationParams.get('parameters', None)
-                            if calibrationParameters == None: return
+                            if calibrationParameters is None:
+                                return
                         return
 
                 # Get parameters
@@ -5003,7 +4404,7 @@ class ORIGAMI(object):
             self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear, 4)),
                                              ' | R² (power): ', str(np.round(r2Power, 4)),
                                              ' | Used: ', calibrationMode, ' mode']), 3)
-        except: pass
+        except Exception:            pass
 
     def OnAddDataToCCSTable(self, filename=None, mzStart=None, mzEnd=None,
                             mzCentre=None, charge=None, protein=None,
@@ -5029,12 +4430,13 @@ class ORIGAMI(object):
         """
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except: return
-        if self.currentDoc == "Current documents": return
+        except Exception:            return
+        if self.currentDoc == "Current documents":
+            return
 
         # Check if the currently selected document is Calibration dataframe file
         if (self.documentsDict[self.currentDoc].dataType == 'Type: CALIBRANT' and
-            self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
+                self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
             self.docs = self.documentsDict[self.currentDoc]
             self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
         else:
@@ -5049,7 +4451,7 @@ class ORIGAMI(object):
                     pass
 
                 # Check that document exists
-                if self.currentDoc == None:
+                if self.currentDoc is None:
                     self.view.SetStatusText('Please select CCS calibration document', 3)
                     return
 
@@ -5065,7 +4467,7 @@ class ORIGAMI(object):
         # Save parameters
         fileType = "ORIGAMI Document File|*.pickle"
         dlg = wx.FileDialog(self.view, "Save CCS calibration to file...", "", "", fileType,
-                                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         defaultFilename = self.docs.title.split(".")
         defaultFilename = "".join([defaultFilename[0], '_CCScaliParams'])
         dlg.SetFilename(defaultFilename)
@@ -5074,11 +4476,12 @@ class ORIGAMI(object):
             saveFileName = dlg.GetPath()
             # Save
             saveObject(filename=saveFileName, saveFile=self.currentCalibrationParams)
-        else: return
+        else:
+            return
 
     def rescaleValue(self, oldList, newList, old_value):
-        """ 
-        Simple rescaling function to convert values from a list of certain range to 
+        """
+        Simple rescaling function to convert values from a list of certain range to
         a new range. For instance to convert large numbers to a 0-255 range of colormap
         """
 
@@ -5091,8 +4494,8 @@ class ORIGAMI(object):
 
     def onUserDefinedListImport(self, evt):
         """ Load a csv file with CV/SPV values for the List/User-defined method"""
-        dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.csv" ,
-                           style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+        dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.csv",
+                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
         if dlg.ShowModal() == wx.ID_OK:
             print("You chose %s" % dlg.GetPath())
 
@@ -5104,8 +4507,8 @@ class ORIGAMI(object):
     def onImportCCSDatabase(self, evt, onStart=False):
 
         if not onStart:
-            dlg = wx.FileDialog(self.view, "Choose a CCS database file:", wildcard="*.csv" ,
-                               style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+            dlg = wx.FileDialog(self.view, "Choose a CCS database file:", wildcard="*.csv",
+                                style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
             if dlg.ShowModal() == wx.ID_OK:
                 print("You chose %s" % dlg.GetPath())
 
@@ -5129,24 +4532,25 @@ class ORIGAMI(object):
                     imsData2D = self.data_processing.on_process_2D(zvals=self.docs.IMS2D['zvals'].copy(),
                                                                    return_data=True)
                     self.docs.got2Dprocess = True
-                    self.docs.IMS2Dprocess = {'zvals':imsData2D,
-                                              'xvals':self.docs.IMS2D['xvals'],
-                                              'xlabels':self.docs.IMS2D['xlabels'],
-                                              'yvals':self.docs.IMS2D['yvals'],
-                                              'ylabels':self.docs.IMS2D['ylabels'],
-                                              'cmap':itemInfo['colormap'],
-                                              'label':itemInfo['label'],
-                                              'charge':itemInfo['charge'],
-                                              'alpha':itemInfo['alpha'],
-                                              'mask':itemInfo['mask'],
-                                              'color':itemInfo['color'],
-                                              'min_threshold':itemInfo['min_threshold'],
-                                              'max_threshold':itemInfo['max_threshold']}
+                    self.docs.IMS2Dprocess = {'zvals': imsData2D,
+                                              'xvals': self.docs.IMS2D['xvals'],
+                                              'xlabels': self.docs.IMS2D['xlabels'],
+                                              'yvals': self.docs.IMS2D['yvals'],
+                                              'ylabels': self.docs.IMS2D['ylabels'],
+                                              'cmap': itemInfo['colormap'],
+                                              'label': itemInfo['label'],
+                                              'charge': itemInfo['charge'],
+                                              'alpha': itemInfo['alpha'],
+                                              'mask': itemInfo['mask'],
+                                              'color': itemInfo['color'],
+                                              'min_threshold': itemInfo['min_threshold'],
+                                              'max_threshold': itemInfo['max_threshold']}
 
                     # Update file list
                     self.OnUpdateDocument(self.docs, 'document')
-                else: pass
-        except:
+                else:
+                    pass
+        except Exception:
             print("Cannot process selected items. These belong to Comparison document")
             return
 
@@ -5154,7 +4558,7 @@ class ORIGAMI(object):
             self.view.panelMultipleText.OnCheckAllItems(evt=None, check=False, override=True)
 
     def onPopulateXaxisTextLabels(self, startVal=None, endVal=None, shapeVal=None):
-        """ 
+        """
         This function will check whether specified file has x-axis labels
         present in the dictionary. If not, it will check if x-axis values are
         present in the table. If true, it will generate x-axis labels based
@@ -5165,12 +4569,12 @@ class ORIGAMI(object):
 
     def checkIfAnyDocumentsAreOfType(self, type=None, format=None):
         """
-        This helper function checkes whether any of the documents in the 
+        This helper function checkes whether any of the documents in the
         document tree/ dictionary are of specified type
         """
         listOfDocs = []
         for key in self.documentsDict:
-            if self.documentsDict[key].dataType == type and format == None:
+            if self.documentsDict[key].dataType == type and format is None:
                 listOfDocs.append(key)
 
             elif (self.documentsDict[key].dataType == type and
@@ -5190,7 +4594,7 @@ class ORIGAMI(object):
         # TODO:
         """
         Currently this function is not working well. IT doesn't store data in the correct format
-        i.e. it only saves ONE RT per charge state which is useless 
+        i.e. it only saves ONE RT per charge state which is useless
         Need to do:
         - add to document object to have a sub-tree with each RT for each MZ
         - should be a dictionary with m/z, rts, charge
@@ -5233,11 +4637,14 @@ class ORIGAMI(object):
                 rtEnd = round(rtEnd * (scantime / 60), 2)
                 filename = rtList.GetItem(rt, 4).GetText()
                 driftVoltage = str2num(rtList.GetItem(rt, 3).GetText())
-                if driftVoltage == None: driftVoltage = 0
-                if filename != document.title: continue
-                self.view.SetStatusText(''.join(['RT(s): ', str(rtStart), '-', str(rtEnd), ', MS: ', str(mzStart), '-', str(mzEnd)]), 3)
+                if driftVoltage is None:
+                    driftVoltage = 0
+                if filename != document.title:
+                    continue
+                self.view.SetStatusText(
+                    ''.join(['RT(s): ', str(rtStart), '-', str(rtEnd), ', MS: ', str(mzStart), '-', str(mzEnd)]), 3)
                 # Load output
-                extract_kwargs = {'return_data':True}
+                extract_kwargs = {'return_data': True}
                 __, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
                                                                  driftscope_path=self.config.driftscopePath,
                                                                  mz_start=mzStart, mz_end=mzEnd,
@@ -5252,14 +4659,14 @@ class ORIGAMI(object):
             imsData1D = np.sum(ims1Darray, axis=0)
             document.gotExtractedDriftTimes = True
             rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
-            document.IMS1DdriftTimes[rangeName] = {'xvals':xvals,
-                                                   'yvals':ims1Darray,
-                                                   'yvalsSum':imsData1D,
-                                                   'xlabels':xlabel,
-                                                   'charge':charge,
-                                                   'driftVoltage':driftList,
-                                                   'retTimes':retTimeList,
-                                                   'xylimits':[mzStart, mzEnd, mzYMax]}
+            document.IMS1DdriftTimes[rangeName] = {'xvals': xvals,
+                                                   'yvals': ims1Darray,
+                                                   'yvalsSum': imsData1D,
+                                                   'xlabels': xlabel,
+                                                   'charge': charge,
+                                                   'driftVoltage': driftList,
+                                                   'retTimes': retTimeList,
+                                                   'xylimits': [mzStart, mzEnd, mzYMax]}
             self.documentsDict[self.currentDoc] = document
             self.view.panelDocuments.documents.add_document(docData=document)
         document = self.documentsDict[initialDoc]
@@ -5267,7 +4674,7 @@ class ORIGAMI(object):
 
     def get2DdataFromDictionary(self, dictionary=None, dataType='plot',
                                 compact=False, plotType='2D'):
-        """ 
+        """
         This is a helper function to extract relevant data from dictionary
         Params:
         dictionary: dictionary with 2D data to be examined
@@ -5275,7 +4682,8 @@ class ORIGAMI(object):
                 - plot: only return the minimum required parameters
                 - process: plotting + charge state
         """
-        if dictionary is None: return
+        if dictionary is None:
+            return
         if plotType == '2D':
             # These are always there
             zvals = dictionary['zvals'].copy()
@@ -5305,22 +4713,26 @@ class ORIGAMI(object):
                 return zvals, xvals, xlabels, yvals, ylabels, charge, mw, mzCentre
         if plotType == '1D':
             xvals = dictionary['xvals']
-            try: xlabels = dictionary['xlabels']
-            except: xlabels = dictionary['xlabel']
+            try:
+                xlabels = dictionary['xlabels']
+            except:
+                xlabels = dictionary['xlabel']
             yvals = dictionary['yvals']
             try:
                 cmap = dictionary['cmap']
             except KeyError:
                 cmap = [0, 0, 0]
 
-            try: xlimits = dictionary['xlimits']
+            try:
+                xlimits = dictionary['xlimits']
             except KeyError:
                 xlimits = None
             if dataType == 'plot':
                 if compact:
                     data = xvals, yvals, xlabels, cmap
                     return data
-                else: return xvals, yvals, xlabels, cmap
+                else:
+                    return xvals, yvals, xlabels, cmap
         elif plotType == 'Overlay':
             zvals1 = dictionary['zvals1']
             zvals2 = dictionary['zvals2']
@@ -5384,7 +4796,7 @@ class ORIGAMI(object):
             return xvals, yvals, xlabels, colors, labels, xlimits
 
     def getOverlayDataFromDictionary(self, dictionary=None, dataType='plot', compact=False):
-        """ 
+        """
         This is a helper function to extract relevant data from dictionary
         Params:
         dictionary: dictionary with 2D data to be examined
@@ -5393,7 +4805,8 @@ class ORIGAMI(object):
                 - process: plotting + charge state
                 - all: return you got
         """
-        if dictionary is None: return
+        if dictionary is None:
+            return
         # These are always there
         zvals1 = dictionary['zvals1']
         zvals2 = dictionary['zvals2']
@@ -5438,10 +4851,10 @@ class ORIGAMI(object):
             self.view.panelProcessData.onSetupValues(evt=None)
 
         # Smooth data
-        if self.config.plot2D_smooth_mode != None:
+        if self.config.plot2D_smooth_mode is not None:
             if self.config.plot2D_smooth_mode == 'Gaussian':
                 zvals = pr_heatmap.smooth_gaussian_2D(inputData=zvals.copy(),
-                                              sigma=self.config.plot2D_smooth_sigma)
+                                                      sigma=self.config.plot2D_smooth_sigma)
             elif self.config.plot2D_smooth_mode == 'Savitzky-Golay':
                 zvals = pr_heatmap.smooth_savgol_2D(inputData=zvals,
                                                     polyOrder=self.config.plot2D_smooth_polynomial,
@@ -5452,7 +4865,7 @@ class ORIGAMI(object):
         zvals = pr_heatmap.remove_noise_2D(inputData=zvals.copy(),
                                            threshold=self.config.plot2D_threshold)
         # Normalize
-        if self.config.plot2D_normalize == True:
+        if self.config.plot2D_normalize:
             zvals = pr_heatmap.normalize_2D(inputData=zvals.copy(),
                                             mode=self.config.plot2D_normalize_mode)
 
@@ -5462,7 +4875,7 @@ class ORIGAMI(object):
                 self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
                 if self.config.waterfall:
                     self.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
-                                         xlabel=xlabel, ylabel=ylabel)
+                                                           xlabel=xlabel, ylabel=ylabel)
                 self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
                                                 xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
                 if not self.config.waterfall:
@@ -5475,11 +4888,11 @@ class ORIGAMI(object):
             return zvals
 
         if return_all:
-            parameters = {'smooth_mode':self.config.plot2D_smooth_mode,
-                          'sigma':self.config.plot2D_smooth_sigma,
-                          'polyOrder':self.config.plot2D_smooth_polynomial,
-                          'windowSize':self.config.plot2D_smooth_window,
-                          'threshold':self.config.plot2D_threshold}
+            parameters = {'smooth_mode': self.config.plot2D_smooth_mode,
+                          'sigma': self.config.plot2D_smooth_sigma,
+                          'polyOrder': self.config.plot2D_smooth_polynomial,
+                          'windowSize': self.config.plot2D_smooth_window,
+                          'threshold': self.config.plot2D_threshold}
             return zvals, parameters
 
     def process2Ddata2(self, zvals=None, labelsX=None, e=None, mode='2D'):
@@ -5488,12 +4901,14 @@ class ORIGAMI(object):
         """
         # Gather info about the file and document
         selectedItemParentText = None
-        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(getSelected=True)
+        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(
+            getSelected=True)
         indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
         if indent > 2:
             __, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(selectedItem, 2,
-                                                                                                               getSelected=True)
-        else: pass
+                                                                                          getSelected=True)
+        else:
+            pass
         self.docs = self.documentsDict[self.currentDoc]
 
         # Clear current data
@@ -5508,24 +4923,24 @@ class ORIGAMI(object):
                                                                                      dataType='plot', compact=False)
 
         elif selectedItemParentText == 'Drift time (2D, EIC)' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.IMS2Dions[selectedText],
-                                                                                     dataType='plot', compact=False)
+            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+                dictionary=self.docs.IMS2Dions[selectedText], dataType='plot', compact=False)
 
         elif selectedItemParentText == 'Drift time (2D, processed, EIC)' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.IMS2DionsProcess[selectedText],
-                                                                                     dataType='plot', compact=False)
+            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+                dictionary=self.docs.IMS2DionsProcess[selectedText], dataType='plot', compact=False)
 
         elif selectedItemParentText == 'Drift time (2D, combined voltages, EIC)' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.IMS2DCombIons[selectedText],
-                                                                                     dataType='plot', compact=False)
+            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+                dictionary=self.docs.IMS2DCombIons[selectedText], dataType='plot', compact=False)
 
         elif selectedItemParentText == 'Input data' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.IMS2DcompData[selectedText],
-                                                                                     dataType='plot', compact=False)
+            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+                dictionary=self.docs.IMS2DcompData[selectedText], dataType='plot', compact=False)
 
         elif selectedItemParentText == 'Statistical' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.IMS2DstatsData[selectedText],
-                                                                                     dataType='plot', compact=False)
+            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+                dictionary=self.docs.IMS2DstatsData[selectedText], dataType='plot', compact=False)
         elif selectedText == 'MS vs DT' and indent == 2:
             zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.DTMZ,
                                                                                      dataType='plot', compact=False)
@@ -5536,11 +4951,13 @@ class ORIGAMI(object):
             self.view.SetStatusText('Sorry, missing data - cannot perform action', 3)
             try:
                 self.checkWhatIsMissing2D(zvals, xvals, xlabel, yvals, ylabel, cmap)
-            except UnboundLocalError: return
+            except UnboundLocalError:
+                return
             return
 
         # Smooth data
-        if self.config.smoothMode == "None" or self.config.smoothMode == False: pass
+        if self.config.smoothMode == "None" or self.config.smoothMode == False:
+            pass
         elif self.config.smoothMode == "Gaussian":
             sigma = str2num(self.config.gaussSigma.encode('ascii', 'replace'))
             zvals = pr_heatmap.smooth_gaussian_2D(inputData=zvals, sigma=sigma)
@@ -5548,19 +4965,21 @@ class ORIGAMI(object):
             savgolPoly = str2int(self.config.savGolPolyOrder.encode('ascii', 'replace'))
             savgolWindow = str2int(self.config.savGolWindowSize.encode('ascii', 'replace'))
             zvals = pr_heatmap.smooth_savgol_2D(inputData=zvals,
-                                        polyOrder=savgolPoly,
-                                        windowSize=savgolWindow)
-        else: pass
+                                                polyOrder=savgolPoly,
+                                                windowSize=savgolWindow)
+        else:
+            pass
         # Threshold data
         threshold = str2num(self.config.threshold.encode('ascii', 'replace'))
 
-        if isempty(threshold) or threshold == None or threshold == '': pass
+        if isempty(threshold) or threshold is None or threshold == '':
+            pass
         else:
-           zvals = pr_heatmap.remove_noise_2D(inputData=zvals, threshold=threshold)
-           threshold = None
+            zvals = pr_heatmap.remove_noise_2D(inputData=zvals, threshold=threshold)
+            threshold = None
 
         # Normalize data - following previous actions!
-        if self.config.normalize == True:
+        if self.config.normalize:
             zvals = pr_heatmap.normalize_2D(inputData=zvals, mode=self.config.normMode)
 
         # Check and change colormap if necessary
@@ -5568,15 +4987,15 @@ class ORIGAMI(object):
                                             min=self.config.minCmap,
                                             mid=self.config.midCmap,
                                             max=self.config.maxCmap,
-#                                             cbarLimits=self.config.colorbarRange
+                                            #                                             cbarLimits=self.config.colorbarRange
                                             )
 
         # Plot data
         if mode == '2D':
             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, cmapNorm=cmapNorm)
             if self.config.waterfall:
-                    self.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
-                                         xlabel=xlabel, ylabel=ylabel)
+                self.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
+                                                       xlabel=xlabel, ylabel=ylabel)
             self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
                                             xlabel=xlabel, ylabel=ylabel, zlabel='Intensity', cmap=cmap)
         elif mode == 'MSDT':
@@ -5584,9 +5003,10 @@ class ORIGAMI(object):
 
     def process_2D(self, document=None, dataset=None, ionName=None):
         # new in 1.1.0
-        if document == None or dataset == None:
+        if document is None or dataset is None:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-            if self.currentDoc is None or self.currentDoc == "Current documents": return
+            if self.currentDoc is None or self.currentDoc == "Current documents":
+                return
             self.docs = self.documentsDict[self.currentDoc]
         else:
             self.docs = self.documentsDict[document]
@@ -5619,7 +5039,7 @@ class ORIGAMI(object):
         zvals, params = self.data_processing.on_process_2D(zvals=zvals.copy(), return_all=True)
 
         # strip any processed string from the title
-        if ionName != None:
+        if ionName is not None:
             if "(processed)" in ionName:
                 dataset = ionName.split(" (")[0]
             new_dataset = "%s (processed)" % ionName
@@ -5688,23 +5108,23 @@ class ORIGAMI(object):
             self.view.panelProcessData.onSetupValues(evt=None)
 
         if self.config.ms_process_crop:
-            kwargs = {'min':self.config.ms_crop_min,
-                      'max':self.config.ms_crop_max}
+            kwargs = {'min': self.config.ms_crop_min,
+                      'max': self.config.ms_crop_max}
             msX, msY = pr_spectra.crop_1D_data(msX, msY, **kwargs)
 
         if self.config.ms_process_linearize and msX is not None:
-            kwargs = {'auto_range':self.config.ms_auto_range,
-                      'mz_min':self.config.ms_mzStart,
-                      'mz_max':self.config.ms_mzEnd,
-                      'mz_bin':self.config.ms_mzBinSize,
-                      'linearization_mode':self.config.ms_linearization_mode}
+            kwargs = {'auto_range': self.config.ms_auto_range,
+                      'mz_min': self.config.ms_mzStart,
+                      'mz_max': self.config.ms_mzEnd,
+                      'mz_bin': self.config.ms_mzBinSize,
+                      'linearization_mode': self.config.ms_linearization_mode}
             msX, msY = pr_spectra.linearize_data(msX, msY, **kwargs)
 
         if self.config.ms_process_smooth:
             # Smooth data
-            kwargs = {'sigma':self.config.ms_smooth_sigma,
-                      'polyOrder':self.config.ms_smooth_polynomial,
-                      'windowSize':self.config.ms_smooth_window}
+            kwargs = {'sigma': self.config.ms_smooth_sigma,
+                      'polyOrder': self.config.ms_smooth_polynomial,
+                      'windowSize': self.config.ms_smooth_window}
             msY = pr_spectra.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **kwargs)
 
         if self.config.ms_process_threshold:
@@ -5730,18 +5150,19 @@ class ORIGAMI(object):
                 return msY
 
         if return_all:
-            parameters = {'smooth_mode':self.config.ms_smooth_mode,
-                          'sigma':self.config.ms_smooth_sigma,
-                          'polyOrder':self.config.ms_smooth_polynomial,
-                          'windowSize':self.config.ms_smooth_window,
-                          'threshold':self.config.ms_threshold}
+            parameters = {'smooth_mode': self.config.ms_smooth_mode,
+                          'sigma': self.config.ms_smooth_sigma,
+                          'polyOrder': self.config.ms_smooth_polynomial,
+                          'windowSize': self.config.ms_smooth_window,
+                          'threshold': self.config.ms_threshold}
             return msX, msY, parameters
 
     def process_MS(self, document=None, dataset=None):
 
-        if document == None or dataset == None:
+        if document is None or dataset is None:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-            if self.currentDoc is None or self.currentDoc == "Current documents": return
+            if self.currentDoc is None or self.currentDoc == "Current documents":
+                return
             self.docs = self.documentsDict[self.currentDoc]
         else:
             self.docs = self.documentsDict[document]
@@ -5763,12 +5184,12 @@ class ORIGAMI(object):
         footnote = data.get('footnote', "")
         msX, msY, params = self.processMSdata(msX=msX, msY=msY, return_all=True)
         xlimits = [np.min(msX), np.max(msX)]
-        ms_data = {'xvals':msX, 'yvals':msY,
-                   'xlabels':'m/z (Da)',
-                   'parameters':params,
-                   'annotations':annotations, 'title':title,
-                   'header':header, 'footnote':footnote,
-                   'xlimits':xlimits}
+        ms_data = {'xvals': msX, 'yvals': msY,
+                   'xlabels': 'm/z (Da)',
+                   'parameters': params,
+                   'annotations': annotations, 'title': title,
+                   'header': header, 'footnote': footnote,
+                   'xlimits': xlimits}
 
         # add data to dictionary
         if dataset == 'Mass Spectrum':
@@ -5783,7 +5204,7 @@ class ORIGAMI(object):
             self.docs.multipleMassSpectrum[new_dataset] = ms_data
 
         # Plot processed MS
-        name_kwargs = {"document":self.docs.title, "dataset": new_dataset}
+        name_kwargs = {"document": self.docs.title, "dataset": new_dataset}
         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
         self.OnUpdateDocument(self.docs, 'document')
 
@@ -5795,7 +5216,7 @@ class ORIGAMI(object):
         if data_format == '2D':
             get_data = self.config.replotData.get('2D', None)
             zvals, xvals, yvals, xlabel, ylabel = None, None, None, None, None
-            if get_data != None:
+            if get_data is not None:
                 zvals = get_data['zvals'].copy()
                 xvals = get_data['xvals']
                 yvals = get_data['yvals']
@@ -5805,7 +5226,7 @@ class ORIGAMI(object):
         elif data_format == 'RMSF':
             get_data = self.config.replotData.get('RMSF', None)
             zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF = None, None, None, None, None, None
-            if get_data != None:
+            if get_data is not None:
                 zvals = get_data['zvals'].copy()
                 xvals = get_data['xvals']
                 yvals = get_data['yvals']
@@ -5816,7 +5237,7 @@ class ORIGAMI(object):
         elif data_format == 'DT/MS':
             get_data = self.config.replotData.get('DT/MS', None)
             zvals, xvals, yvals, xlabel, ylabel = None, None, None, None, None
-            if get_data != None:
+            if get_data is not None:
                 zvals = get_data['zvals'].copy()
                 xvals = get_data['xvals']
                 yvals = get_data['yvals']
@@ -5826,7 +5247,7 @@ class ORIGAMI(object):
         elif data_format == 'MS':
             get_data = self.config.replotData.get('MS', None)
             xvals, yvals, xlimits = None, None, None
-            if get_data != None:
+            if get_data is not None:
                 xvals = get_data.get('xvals', None)
                 yvals = get_data.get('yvals', None)
                 xlimits = get_data.get('xlimits', None)
@@ -5834,7 +5255,7 @@ class ORIGAMI(object):
         elif data_format == 'RT':
             get_data = self.config.replotData.get('RT', None)
             xvals, yvals, xlabel = None, None, None
-            if get_data != None:
+            if get_data is not None:
                 xvals = get_data.get('xvals', None)
                 yvals = get_data.get('yvals', None)
                 xlabel = get_data.get('xlabel', None)
@@ -5842,7 +5263,7 @@ class ORIGAMI(object):
         elif data_format == '1D':
             get_data = self.config.replotData.get('1D', None)
             xvals, yvals, xlabel = None, None, None
-            if get_data != None:
+            if get_data is not None:
                 xvals = get_data.get('xvals', None)
                 yvals = get_data.get('yvals', None)
                 xlabel = get_data.get('xlabel', None)
@@ -5850,24 +5271,30 @@ class ORIGAMI(object):
         elif data_format == 'Matrix':
             get_data = self.config.replotData.get('Matrix', None)
             zvals, xylabels, cmap = None, None, None
-            if get_data != None:
+            if get_data is not None:
                 zvals = get_data.get('zvals', None)
                 xylabels = get_data.get('xylabels', None)
                 cmap = get_data.get('cmap', None)
             return zvals, xylabels, cmap
 
     def checkWhatIsMissing2D(self, zvals, xvals, xlabel, yvals, ylabel, cmap):
-        if isempty(zvals): self.view.SetStatusText("Missing 2D array", 3)
+        if isempty(zvals):
+            self.view.SetStatusText("Missing 2D array", 3)
 
-        if isempty(xvals): self.view.SetStatusText("Missing x-axis labels", 3)
+        if isempty(xvals):
+            self.view.SetStatusText("Missing x-axis labels", 3)
 
-        if isempty(xlabel): self.view.SetStatusText("Missing x-axis label", 3)
+        if isempty(xlabel):
+            self.view.SetStatusText("Missing x-axis label", 3)
 
-        if isempty(yvals): self.view.SetStatusText("Missing y-axis labels", 3)
+        if isempty(yvals):
+            self.view.SetStatusText("Missing y-axis labels", 3)
 
-        if isempty(ylabel): self.view.SetStatusText("Missing y-axis label", 3)
+        if isempty(ylabel):
+            self.view.SetStatusText("Missing y-axis label", 3)
 
-        if isempty(cmap): self.view.SetStatusText("Missing colormap", 3)
+        if isempty(cmap):
+            self.view.SetStatusText("Missing colormap", 3)
 
     def plot_compareMS(self, msX=None, msY_1=None, msY_2=None, msY=None, xlimits=None,
                        replot=False, override=True, evt=None):
@@ -5903,10 +5330,10 @@ class ORIGAMI(object):
                                                plotType='MS',
                                                **plt_kwargs)
             if override:
-                self.config.replotData['compare_MS'] = {'xvals':msX,
-                                                        'yvals':msY,
-                                                        'xlimits':xlimits,
-                                                        'subtract':subtract}
+                self.config.replotData['compare_MS'] = {'xvals': msX,
+                                                        'yvals': msY,
+                                                        'xlimits': xlimits,
+                                                        'subtract': subtract}
         else:
             self.view.panelPlots.plot1.plot_1D_compare(xvals=msX,
                                                        yvals1=msY_1, yvals2=msY_2,
@@ -5919,12 +5346,12 @@ class ORIGAMI(object):
                                                        plotType='compare',
                                                        **plt_kwargs)
             if override:
-                self.config.replotData['compare_MS'] = {'xvals':msX,
-                                                        'yvals1':msY_1,
-                                                        'yvals2':msY_2,
-                                                        'xlimits':xlimits,
-                                                        'legend':legend,
-                                                        'subtract':subtract}
+                self.config.replotData['compare_MS'] = {'xvals': msX,
+                                                        'yvals1': msY_1,
+                                                        'yvals2': msY_2,
+                                                        'xlimits': xlimits,
+                                                        'legend': legend,
+                                                        'subtract': subtract}
         # Show the mass spectrum
         self.view.panelPlots.plot1.repaint()
 
@@ -5961,19 +5388,22 @@ class ORIGAMI(object):
             try:
                 self.view.panelPlots.plot1.plot_1D_update(**plt_kwargs)
                 self.view.panelPlots.plot1.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         if plotName in ['all', 'RT']:
             try:
                 self.view.panelPlots.plotRT.plot_1D_update(**plt_kwargs)
                 self.view.panelPlots.plotRT.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         if plotName in ['all', '1D']:
             try:
                 self.view.panelPlots.plot1D.plot_1D_update(**plt_kwargs)
                 self.view.panelPlots.plot1D.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
     def plot_2D_update(self, plotName='all', evt=None):
         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='2D')
@@ -5990,7 +5420,8 @@ class ORIGAMI(object):
 
                 self.view.panelPlots.plot2D.plot_2D_update(**plt_kwargs)
                 self.view.panelPlots.plot2D.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         if plotName in ['all', 'DT/MS']:
             try:
@@ -6003,7 +5434,8 @@ class ORIGAMI(object):
                 plt_kwargs['colormap_norm'] = cmapNorm
                 self.view.panelPlots.plotMZDT.plot_2D_update(**plt_kwargs)
                 self.view.panelPlots.plotMZDT.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
     def plot_3D_update(self, plotName='all', evt=None):
         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='3D')
@@ -6012,7 +5444,8 @@ class ORIGAMI(object):
             try:
                 self.view.panelPlots.plot3D.plot_3D_update(**plt_kwargs)
                 self.view.panelPlots.plot3D.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
     def plot_update_axes(self, plotName, evt=None):
 
@@ -6105,13 +5538,13 @@ class ORIGAMI(object):
             # get kwargs
             plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='1D')
             self.view.panelPlots.topPlotMS.plot_1D(xvals=msX,
-                                                yvals=msY,
-                                                xlabel="m/z",
-                                                ylabel="Intensity",
-                                                xlimits=xlimits,
-                                                axesSize=self.config._plotSettings['Calibration (MS)']['axes_size'],
-                                                plotType='1D',
-                                               **plt_kwargs)
+                                                   yvals=msY,
+                                                   xlabel="m/z",
+                                                   ylabel="Intensity",
+                                                   xlimits=xlimits,
+                                                   axesSize=self.config._plotSettings['Calibration (MS)']['axes_size'],
+                                                   plotType='1D',
+                                                   **plt_kwargs)
             # Show the mass spectrum
             self.view.panelPlots.topPlotMS.repaint()
 
@@ -6121,11 +5554,14 @@ class ORIGAMI(object):
             self.view.panelPlots.bottomPlot1DT.clearPlot()
             # get kwargs
             plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='1D')
-            self.view.panelPlots.bottomPlot1DT.plot_1D(xvals=dtX, yvals=dtY,
-                                                       xlabel=xlabelDT, ylabel=ylabel,
-                                                       axesSize=self.config._plotSettings['Calibration (DT)']['axes_size'],
-                                                       plotType='CalibrationDT',
-                                                       **plt_kwargs)
+            self.view.panelPlots.bottomPlot1DT.plot_1D(
+                xvals=dtX,
+                yvals=dtY,
+                xlabel=xlabelDT,
+                ylabel=ylabel,
+                axesSize=self.config._plotSettings['Calibration (DT)']['axes_size'],
+                plotType='CalibrationDT',
+                **plt_kwargs)
             self.view.panelPlots.bottomPlot1DT.repaint()
 
     def onPlot1DTCalibration(self, dtX=None, dtY=None, color=None,
@@ -6149,12 +5585,21 @@ class ORIGAMI(object):
                                color, marker, markerSize=5, e=None):
 
         self.view.panelPlots.bottomPlot1DT.clearPlot()
-        self.view.panelPlots.bottomPlot1DT.plotScatter_2plot(xvals1, yvals1, label1,
-                                                             xvalsLinear, yvalsLinear,
-                                                             xvals2, yvals2, label2,
-                                                             xvalsPower, yvalsPower,
-                                                             color, marker, markerSize=5,
-                                                             axesSize=self.config._plotSettings['Calibration (DT)']['axes_size'])
+        self.view.panelPlots.bottomPlot1DT.plotScatter_2plot(
+            xvals1,
+            yvals1,
+            label1,
+            xvalsLinear,
+            yvalsLinear,
+            xvals2,
+            yvals2,
+            label2,
+            xvalsPower,
+            yvalsPower,
+            color,
+            marker,
+            markerSize=5,
+            axesSize=self.config._plotSettings['Calibration (DT)']['axes_size'])
         self.view.panelPlots.bottomPlot1DT.repaint()
 
 #     def onPlotWaterfall(self, xvals, yvals, zvals, xlabel, ylabel,e=None):
@@ -6189,10 +5634,10 @@ class ORIGAMI(object):
             self.view.panelPlots.plot1.repaint()
         elif plot == 'RT':
             self.view.panelPlots.plotRT.onAddMarker(xval=xvals,
-                                                   yval=yvals,
-                                                   color=color,
-                                                   marker=marker,
-                                                   size=size)
+                                                    yval=yvals,
+                                                    color=color,
+                                                    marker=marker,
+                                                    size=size)
             self.view.panelPlots.plotRT.repaint()
         elif plot == 'CalibrationMS':
             self.view.panelPlots.topPlotMS.onAddMarker(xval=xvals,
@@ -6214,26 +5659,29 @@ class ORIGAMI(object):
 
         if plot == 'MS':
             self.view.panelPlots.plot1.addRectangle(x, y, width,
-                                                height, color=color,
-                                                alpha=alpha)
-            if not repaint: return
+                                                    height, color=color,
+                                                    alpha=alpha)
+            if not repaint:
+                return
             else:
                 self.view.panelPlots.plot1.repaint()
         elif plot == 'CalibrationMS':
             self.view.panelPlots.topPlotMS.addRectangle(x, y, width,
-                                                height, color=color,
-                                                alpha=alpha)
-            if not repaint: return
+                                                        height, color=color,
+                                                        alpha=alpha)
+            if not repaint:
+                return
             else:
                 self.view.panelPlots.topPlotMS.repaint()
 
     def addRectRT(self, x, y, width, height, color='r', alpha=0.5, repaint=False):
         self.view.panelPlots.plotRT.addRectangle(x, y,
-                                                width,
-                                                height,
-                                                color=color,
-                                                alpha=alpha)
-        if not repaint: return
+                                                 width,
+                                                 height,
+                                                 color=color,
+                                                 alpha=alpha)
+        if not repaint:
+            return
         else:
             self.view.panelPlots.plotRT.repaint()
 
@@ -6245,9 +5693,9 @@ class ORIGAMI(object):
 
         if plot == 'RMSD':
             self.view.panelPlots.plotRMSF.addText(x, y, text, rotation,
-                                                color=self.config.rmsd_color,
-                                                fontsize=self.config.rmsd_fontSize,
-                                                weight=self.config.rmsd_fontWeight)
+                                                  color=self.config.rmsd_color,
+                                                  fontsize=self.config.rmsd_fontSize,
+                                                  weight=self.config.rmsd_fontWeight)
             self.view.panelPlots.plotRMSF.repaint()
         elif plot == 'RMSF':
             self.view.panelPlots.plotRMSF.addText(x, y, text, rotation,
@@ -6264,7 +5712,7 @@ class ORIGAMI(object):
             self.view.panelPlots.plotOverlay.repaint()
 
     def onAddMarker1D(self, xval=None, yval=None, color='r', marker='o'):
-        """ 
+        """
         This function adds marker to 1D plot
         """
         # Check yaxis labels
@@ -6316,7 +5764,8 @@ class ORIGAMI(object):
 
     def onZoom2D(self, evt):
         if self.config.restrictXYrange:
-            if len(self.config.xyLimits) != 4: return
+            if len(self.config.xyLimits) != 4:
+                return
 
             startX, endX, startY, endY = self.config.xyLimits
 
@@ -6430,13 +5879,14 @@ class ORIGAMI(object):
         if not onStart:
             if evt.GetId() == ID_openConfig:
                 config_path = os.path.join(self.config.cwd, 'configOut.xml')
-                self.onThreading(None, ("Imported configuration file: {}".format(config_path), 4), action='updateStatusbar')
+                self.onThreading(None, ("Imported configuration file: {}".format(
+                    config_path), 4), action='updateStatusbar')
                 self.config.loadConfigXML(path=config_path, evt=None)
                 self.view.updateRecentFiles()
                 return
             elif evt.GetId() == ID_openAsConfig:
-                dlg = wx.FileDialog(self.view, "Open Configuration File", wildcard="*.xml" ,
-                                   style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+                dlg = wx.FileDialog(self.view, "Open Configuration File", wildcard="*.xml",
+                                    style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
                 if dlg.ShowModal() == wx.ID_OK:
                     fileName = dlg.GetPath()
                     self.config.loadConfigXML(path=fileName, evt=None)
@@ -6466,8 +5916,8 @@ class ORIGAMI(object):
                 except TypeError:
                     pass
         elif evtID == ID_saveAsConfig:
-            dlg = wx.FileDialog(self.view, "Save As Configuration File", wildcard="*.xml" ,
-                               style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg = wx.FileDialog(self.view, "Save As Configuration File", wildcard="*.xml",
+                                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             dlg.SetFilename('configOut.xml')
             if dlg.ShowModal() == wx.ID_OK:
                 fileName = dlg.GetPath()
@@ -6482,7 +5932,7 @@ class ORIGAMI(object):
         try:
             if os.path.isdir(self.config.driftscopePath):
                 dlg.SetPath(self.config.driftscopePath)
-        except: pass
+        except Exception:            pass
 
         if dlg.ShowModal() == wx.ID_OK:
             if os.path.basename(dlg.GetPath()) == "lib":
@@ -6494,27 +5944,28 @@ class ORIGAMI(object):
 
             self.config.driftscopePath = path
 
-            self.onThreading(None, ("Driftscope path was set to {}".format(self.config.driftscopePath), 4), action='updateStatusbar')
+            self.onThreading(None, ("Driftscope path was set to {}".format(
+                self.config.driftscopePath), 4), action='updateStatusbar')
 
             # Check if driftscope exists
             if not os.path.isdir(self.config.driftscopePath):
                 print('Could not find Driftscope path')
                 msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
                 dlgBox(exceptionTitle='Could not find Driftscope',
-                               exceptionMsg=msg, type="Warning")
+                       exceptionMsg=msg, type="Warning")
 
             if not os.path.isfile(self.config.driftscopePath + "\imextract.exe"):
                 print('Could not find imextract.exe')
                 msg = "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
                 dlgBox(exceptionTitle='Could not find Driftscope',
-                               exceptionMsg=msg, type="Warning")
+                       exceptionMsg=msg, type="Warning")
         evt.Skip()
 
     def openDirectory(self, path=None, evt=None):
 
         if path is None:
             path, title = self.getCurrentDocumentPath()
-            if path == None or title == None:
+            if path is None or title is None:
                 self.view.SetStatusText('Please select a document')
                 return
 
@@ -6522,8 +5973,8 @@ class ORIGAMI(object):
             os.startfile(path)
         except WindowsError:
             dlgBox(exceptionTitle='This folder does not exist',
-                           exceptionMsg="Could not open the directory - this folder does not exist",
-                           type="Error")
+                   exceptionMsg="Could not open the directory - this folder does not exist",
+                   type="Error")
             return
 
     def getCurrentDocumentPath(self):
@@ -6531,13 +5982,16 @@ class ORIGAMI(object):
         Function used to get the path to current document
         '''
         # Gather info about the file and document
-        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(getSelected=True)
+        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(
+            getSelected=True)
         indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
         if self.currentDoc == 'Current documents':
             return None, None
         elif indent > 2:
-            selectedItemParent, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(selectedItem, 2, getSelected=True)
-        else: pass
+            selectedItemParent, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(
+                selectedItem, 2, getSelected=True)
+        else:
+            pass
         document = self.documentsDict[self.currentDoc]
         return document.path, document.title
 
@@ -6562,11 +6016,12 @@ class ORIGAMI(object):
 
         # Save single document
         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        if self.currentDoc == 'Current documents': return
+        if self.currentDoc == 'Current documents':
+            return
         document = self.documentsDict[self.currentDoc]
 
         dlg = wx.FileDialog(self.view, "Save document to file...", "", "", fileType,
-                                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         defaultFilename = document.title.split(".")
         dlg.SetFilename(defaultFilename[0])
 
@@ -6574,10 +6029,11 @@ class ORIGAMI(object):
             saveFileName = dlg.GetPath()
             # Save
             io_document.save_py_object(filename=saveFileName, saveFile=document)
-            self.view.updateRecentFiles(path={'file_type':'pickle',
+            self.view.updateRecentFiles(path={'file_type': 'pickle',
                                               'file_path': saveFileName})
 
-        else: return
+        else:
+            return
 
     def on_save_all_documents(self, evt):
         """
@@ -6586,7 +6042,7 @@ class ORIGAMI(object):
         fileType = "ORIGAMI Document File|*.pickle"
         for document in self.documentsDict:
             dlg = wx.FileDialog(self.view, "Save document to file...", "", "", fileType,
-                                    wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             defaultFilename = self.documentsDict[document].title.split(".")
             print(("Saving {}".format(defaultFilename[0])))
             dlg.SetFilename(defaultFilename[0])
@@ -6595,9 +6051,10 @@ class ORIGAMI(object):
                 saveFileName = dlg.GetPath()
                 # Save
                 io_document.save_py_object(filename=saveFileName, saveFile=self.documentsDict[document])
-                self.view.updateRecentFiles(path={'file_type':'pickle',
+                self.view.updateRecentFiles(path={'file_type': 'pickle',
                                                   'file_path': saveFileName})
-            else: continue
+            else:
+                continue
 
     def onOpenDocument(self, evt, file_path=None):
         """
@@ -6606,9 +6063,9 @@ class ORIGAMI(object):
 
         dlg = None
 
-        if file_path == None:
+        if file_path is None:
             wildcard = "ORIGAMI document (*.pickle, *.pkl)| *.pickle;*.pkl"
-            dlg = wx.FileDialog(self.view, "Open Document File", wildcard=wildcard ,
+            dlg = wx.FileDialog(self.view, "Open Document File", wildcard=wildcard,
                                 style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
 
         if hasattr(dlg, 'ShowModal'):
@@ -6625,19 +6082,20 @@ class ORIGAMI(object):
                     tend = time.clock()
                     msg = "Opened {}. It took: {} seconds.".format(file_name, np.round(tend - tstart, 2))
                     self.onThreading(None, (msg, 4), action='updateStatusbar')
-                    self.view.updateRecentFiles(path={'file_type':'pickle',
+                    self.view.updateRecentFiles(path={'file_type': 'pickle',
                                                       'file_path': file_path})
-            else: return
-        elif file_path != None:
+            else:
+                return
+        elif file_path is not None:
             try:
                 self.loadDocumentData(document=openObject(filename=file_path))
             except (ValueError, AttributeError, TypeError, IOError) as e:
                 dlgBox(exceptionTitle='Failed to load document on load.',
-                               exceptionMsg=str(e),
-                               type="Error")
+                       exceptionMsg=str(e),
+                       type="Error")
                 return
 
-            self.view.updateRecentFiles(path={'file_type':'pickle', 'file_path':file_path})
+            self.view.updateRecentFiles(path={'file_type': 'pickle', 'file_path': file_path})
 
         else:
             return
@@ -6647,7 +6105,7 @@ class ORIGAMI(object):
         Function to iterate over the whole document to ensure complete loading of the data
         Once document is re-loaded, data and GUI are restored to appropriate format
         """
-        if document != None:
+        if document is not None:
             idName = document.title
             self.documentsDict[idName] = document
 
@@ -6656,15 +6114,16 @@ class ORIGAMI(object):
                 msX = document.massSpectrum['xvals']
                 msY = document.massSpectrum['yvals']
                 color = document.lineColour
-                try: xlimits = document.massSpectrum['xlimits']
+                try:
+                    xlimits = document.massSpectrum['xlimits']
                 except KeyError:
                     xlimits = [document.parameters['startMS'], document.parameters['endMS']]
                 if document.dataType != 'Type: CALIBRANT':
-                    name_kwargs = {"document":document.title, "dataset": "Mass Spectrum"}
+                    name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
                     self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
                 else:
                     self.onPlotMSDTCalibration(msX=msX, msY=msY, color=color, xlimits=xlimits,
-                                                     plotType='MS')
+                                               plotType='MS')
             if document.got1DT:
                 self.onThreading(None, ("Loaded mobiligrams (1D)", 4), action='updateStatusbar')
                 dtX = document.DT['xvals']
@@ -6687,14 +6146,14 @@ class ORIGAMI(object):
             if document.got2DIMS:
                 self.onThreading(None, ("Loaded mobiligrams (2D)", 4), action='updateStatusbar')
                 dataOut = self.get2DdataFromDictionary(dictionary=document.IMS2D,
-                                                                 dataType='plot',
-                                                                 compact=True)
+                                                       dataType='plot',
+                                                       compact=True)
                 self.view.panelPlots.on_plot_2D_data(data=dataOut)
 
             # Restore ion list
             if (any([document.gotExtractedIons, document.got2DprocessIons,
-                    document.gotCombinedExtractedIonsRT, document.gotCombinedExtractedIons])
-                and document.dataType != 'Type: Interactive'):
+                     document.gotCombinedExtractedIonsRT, document.gotCombinedExtractedIons])
+                    and document.dataType != 'Type: Interactive'):
                 tempList = self.view.panelMultipleIons.peaklist
                 if len(document.IMS2DCombIons) > 0:
                     dataset = document.IMS2DCombIons
@@ -6711,16 +6170,18 @@ class ORIGAMI(object):
                         mask = dataset[key].get('mask', 0.25)
                         cmap = dataset[key].get('cmap', self.config.currentCmap)
                         color = dataset[key].get('color', randomColorGenerator())
-                        if isinstance(color, wx.Colour): color = convertRGB255to1(color)
-                        elif np.sum(color) > 4: color = convertRGB255to1(color)
+                        if isinstance(color, wx.Colour):
+                            color = convertRGB255to1(color)
+                        elif np.sum(color) > 4:
+                            color = convertRGB255to1(color)
                         xylimits = dataset[key].get('xylimits', "")
-                        if xylimits != None:
+                        if xylimits is not None:
                             xylimits = xylimits[2]
 
                         method = dataset[key].get('parameters', None)
-                        if method != None:
+                        if method is not None:
                             method = method.get('method', "")
-                        elif method == None and document.dataType == 'Type: MANUAL':
+                        elif method is None and document.dataType == 'Type: MANUAL':
                             method = 'Manual'
                         else:
                             method = ""
@@ -6748,8 +6209,10 @@ class ORIGAMI(object):
                     if 'color' in document.multipleMassSpectrum[key]:
                         color = document.multipleMassSpectrum[key]['color']
                     else:
-                        try: color = colors[count + 1]
-                        except: color = randomColorGenerator()
+                        try:
+                            color = colors[count + 1]
+                        except:
+                            color = randomColorGenerator()
                         document.multipleMassSpectrum[key]['color'] = color
 
                     if 'label' in document.multipleMassSpectrum[key]:
@@ -6784,7 +6247,8 @@ class ORIGAMI(object):
                 elif document.fileFormat == 'Format: DataFrame':
                     try:
                         self.currentCalibrationParams = document.calibrationParameters
-                    except KeyError: pass
+                    except KeyError:
+                        pass
                     for key in document.calibration:
                         tempList.Append([document.title,
                                          str(document.calibration[key]['xrange'][0]),
@@ -6801,7 +6265,7 @@ class ORIGAMI(object):
 
             # Restore ion list
             if document.dataType == 'Type: Multifield Linear DT':
-            # if self.config.ciuMode == 'LinearDT':
+                # if self.config.ciuMode == 'LinearDT':
                 rtList = self.view.panelLinearDT.topP.peaklist  # List with MassLynx file information
                 mzList = self.view.panelLinearDT.bottomP.peaklist  # List with m/z information
                 for key in document.IMS1DdriftTimes:
@@ -6842,65 +6306,65 @@ class ORIGAMI(object):
 
         if expand_item == 'document':
             self.view.panelDocuments.documents.add_document(docData=document,
-                                                                expandItem=document)
+                                                            expandItem=document)
         elif expand_item == 'ions':
             if expand_item_title is None:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2Dions)
+                                                                expandItem=document.IMS2Dions)
             else:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2Dions[expand_item_title])
+                                                                expandItem=document.IMS2Dions[expand_item_title])
         elif expand_item == 'combined_ions':
             if expand_item_title is None:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2DCombIons)
+                                                                expandItem=document.IMS2DCombIons)
             else:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2DCombIons[expand_item_title])
+                                                                expandItem=document.IMS2DCombIons[expand_item_title])
 
         elif expand_item == 'processed_ions':
             if expand_item_title is None:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2DionsProcess)
+                                                                expandItem=document.IMS2DionsProcess)
             else:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2DionsProcess[expand_item_title])
+                                                                expandItem=document.IMS2DionsProcess[expand_item_title])
 
         elif expand_item == 'ions_1D':
             if expand_item_title is None:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.multipleDT)
+                                                                expandItem=document.multipleDT)
             else:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.multipleDT[expand_item_title])
+                                                                expandItem=document.multipleDT[expand_item_title])
 
         elif expand_item == 'comparison_data':
             if expand_item_title is None:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2DcompData)
+                                                                expandItem=document.IMS2DcompData)
             else:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2DcompData[expand_item_title])
+                                                                expandItem=document.IMS2DcompData[expand_item_title])
 
         elif expand_item == 'mass_spectra':
             if expand_item_title is None:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.multipleMassSpectrum)
+                                                                expandItem=document.multipleMassSpectrum)
             else:
-                self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.multipleMassSpectrum[expand_item_title])
+                self.view.panelDocuments.documents.add_document(
+    docData=document, expandItem=document.multipleMassSpectrum[expand_item_title])
 
         elif expand_item == 'overlay':
             if expand_item_title is None:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2DoverlayData)
+                                                                expandItem=document.IMS2DoverlayData)
             else:
                 self.view.panelDocuments.documents.add_document(docData=document,
-                                                                    expandItem=document.IMS2DoverlayData[expand_item_title])
+                                                                expandItem=document.IMS2DoverlayData[expand_item_title])
         # just set data
         elif expand_item == 'no_refresh':
             self.view.panelDocuments.documents.set_document(document_old=self.documentsDict[document.title],
-                                                                document_new=document)
+                                                            document_new=document)
 
         # update dictionary
         self.documentsDict[document.title] = document
@@ -6909,16 +6373,17 @@ class ORIGAMI(object):
     def onAddBlankDocument(self, evt, document_type=None):
         """
         Adds blank document of specific type
-        
+
         @param evt: wxPython event
         @return: None
         """
 
         dlg = wx.FileDialog(self.view, "Please add name and select path for the document",
-                             "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                            "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             itemPath, idName = os.path.split(dlg.GetPath())
-        else: return
+        else:
+            return
 
         if evt is None:
             evtID = None
@@ -6969,8 +6434,8 @@ class ORIGAMI(object):
             evtID = evt.GetId()
 
         # set link
-        links = {ID_helpHomepage : 'home', ID_helpGitHub : 'github',
-                 ID_helpCite : 'cite', ID_helpNewVersion : 'newVersion',
+        links = {ID_helpHomepage: 'home', ID_helpGitHub: 'github',
+                 ID_helpCite: 'cite', ID_helpNewVersion: 'newVersion',
                  ID_helpYoutube: 'youtube', ID_helpGuide: 'guide',
                  ID_helpHTMLEditor: 'htmlEditor', ID_helpNewFeatures: 'newFeatures',
                  ID_helpReportBugs: 'reportBugs'}
@@ -6982,7 +6447,7 @@ class ORIGAMI(object):
             self.onThreading(None, ("Opening a link in your default internet browser", 4),
                              action='updateStatusbar')
             webbrowser.open(link, autoraise=1)
-        except: pass
+        except Exception:            pass
 
     def onCheckPath(self, evt=None):
 
@@ -6990,12 +6455,12 @@ class ORIGAMI(object):
         if check:
             wx.Bell()
             dlgBox(exceptionTitle='DriftScope path looks good',
-                           exceptionMsg="Found DriftScope on your PC. You are good to go.",
-                           type="Info")
+                   exceptionMsg="Found DriftScope on your PC. You are good to go.",
+                   type="Info")
             return
 
     def onCheckVersion(self, evt=None):
-        """ 
+        """
         Simple function to check whether this is the newest version available
         """
         try:
@@ -7005,9 +6470,9 @@ class ORIGAMI(object):
                 try:
                     if evt.GetId() == ID_CHECK_VERSION:
                         dlgBox(exceptionTitle='ORIGAMI',
-                                       exceptionMsg='You are using the most up to date version %s.' % (self.config.version),
-                                       type="Info")
-                except: pass
+                               exceptionMsg='You are using the most up to date version %s.' % (self.config.version),
+                               type="Info")
+                except Exception:                    pass
             else:
                 webpage = checkVersion(get_webpage=True)
                 wx.Bell()
@@ -7023,12 +6488,12 @@ class ORIGAMI(object):
             logger.error(e)
 
     def onOpenUserGuide(self, evt):
-        """ 
+        """
         Opens PDF viewer
         """
         try:
             os.startfile('UserGuide_ANALYSE.pdf')
-        except:
+        except Exception:
             return
 
     def openHTMLViewer(self, evt):

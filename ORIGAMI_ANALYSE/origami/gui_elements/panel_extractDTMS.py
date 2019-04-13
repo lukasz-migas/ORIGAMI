@@ -149,7 +149,7 @@ class panel_extractDTMS(wx.MiniFrame):
 
     def on_setup_gui(self):
 
-        document = self.on_get_document()
+        document, __ = self.on_get_document()
         parameters = document.parameters
         self.parameters = parameters
 
@@ -247,7 +247,9 @@ class panel_extractDTMS(wx.MiniFrame):
         mz_x: 1D numpy array
         """
         mz_len = shape[1]
-        mz_x = np.linspace(mz_min, mz_max, mz_len, endpoint=True)
+        mz_x = np.linspace(mz_min - self.config.extract_dtms_mzBinSize,
+                           mz_max + self.config.extract_dtms_mzBinSize,
+                           mz_len, endpoint=True)
 
         return mz_x
 
@@ -263,10 +265,8 @@ class panel_extractDTMS(wx.MiniFrame):
     def on_get_document(self):
 #         try:
         document = self.data_handling._on_get_document()
-#         except:
-#             return None
 
-        return document
+        return document, document.title
 
     def on_extract_data(self, evt):
         # clear previous msg
@@ -275,23 +275,15 @@ class panel_extractDTMS(wx.MiniFrame):
         # check user input
         self.check_user_input()
 
-        document = self.on_get_document()
+        document, __ = self.on_get_document()
         path = document.path
 
-        # m/z spacing, default is 1 Da
-        n_points = int(math.floor((self.config.extract_dtms_mzEnd - self.config.extract_dtms_mzStart) /
-                                  self.config.extract_dtms_mzBinSize))
-
         # Extract and load data
-        extract_kwargs = {'return_data':True}
-        data = io_waters.rawMassLynx_MZDT_extract(path=path,
-                                                  driftscope_path=self.config.driftscopePath,
-                                                  mz_start=self.config.extract_dtms_mzStart,
-                                                  mz_end=self.config.extract_dtms_mzEnd,
-                                                  mz_nPoints=n_points,
-                                                  **extract_kwargs)
-        mz_x = self.on_check_mass_range(self.config.extract_dtms_mzStart, self.config.extract_dtms_mzEnd, data.shape)
-        dt_y = 1 + np.arange(data.shape[0])
+        mz_x, dt_y, data = self.data_handling._get_driftscope_mobility_vs_spectrum_data(
+            path,
+            self.config.extract_dtms_mzStart,
+            self.config.extract_dtms_mzEnd,
+            self.config.extract_dtms_mzBinSize)
 
         # Plot
         self.view.panelPlots.on_plot_MSDT(data, mz_x, dt_y, 'm/z', 'Drift time (bins)')
@@ -332,7 +324,7 @@ class panel_extractDTMS(wx.MiniFrame):
         defaultValue = "MSDT_{}{}".format(document_title, self.config.saveExtension)
 
         saveData = np.vstack((xvals, zvals))
-        yvals = map(str, yvals.tolist())
+        yvals = list(map(str, yvals.tolist()))
         labels = ["DT"]
         labels.extend(yvals)
         fmts = ["%.4f"] + ["%i"] * len(yvals)
