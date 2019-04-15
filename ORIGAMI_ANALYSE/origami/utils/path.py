@@ -4,7 +4,7 @@ from utils.converters import byte2str
 import logging
 logger = logging.getLogger("origami")
 
-__all__ = ["get_path_and_fname", "clean_up_folder", "check_waters_path"]
+__all__ = ["get_path_and_fname", "clean_up_folder", "check_waters_path", "check_path_exists", "check_file_exists"]
 
 
 def get_path_and_fname(path, simple=False):
@@ -47,3 +47,23 @@ def check_waters_path(filepath):
         filepath = filepath + ".raw"
 
     return filepath
+
+
+def check_path_exists(path):
+    return os.path.isdir(path)
+
+
+def check_file_exists(path):
+    return os.path.isfile(path)
+
+
+def clean_up_MDD_path(path):
+    """The path(s) that return from MDD panel are not standard hence need to be cleaned-up"""
+    try:
+        path_split = path.split(':)')
+        drive = path_split[0].split('(')
+        drive = drive[-1]
+        path = "{}:{}".format(drive, path_split[1])
+    except IndexError:
+        path = path
+    return path

@@ -832,7 +832,7 @@ class panelUVPD(wx.MiniFrame):
 
                 extract_kwargs = {'return_data':True}
                 path = self.document.path
-                ion_data = io_waters.rawMassLynx_2DT_extract(
+                ion_data = io_waters.driftscope_extract_2D(
                     path=path, driftscope_path=self.config.driftscopePath,
                     mz_start=mzStart, mz_end=mzEnd, **extract_kwargs)
 

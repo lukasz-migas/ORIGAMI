@@ -1,6 +1,6 @@
 """Test converters in utils.converters.py"""
 
-from utils.converters import str2num, num2str, str2int, float2int, str2bool, byte2str, check_value_order
+from utils.converters import str2num, num2str, str2int, float2int, str2bool, byte2str
 
 
 def test_byte2str():
@@ -85,10 +85,3 @@ def test_str2bool_fail():
     return_value = str2bool(True)
 
     assert expected_value != return_value
-
-
-def test_check_value_order():
-    expected_value_min, expected_value_max = 24, 42
-    return_value_min, return_value_max = check_value_order(42, 24)
-
-    assert expected_value_min == return_value_min and expected_value_max == return_value_max

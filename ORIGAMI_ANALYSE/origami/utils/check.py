@@ -11,6 +11,13 @@ def check_type(value, value_type):
         return False
 
 
+def check_value_order(value_min, value_max):
+    if value_max < value_min:
+        value_max, value_min = value_min, value_max
+
+    return value_min, value_max
+
+
 def check_range(value, range_min, range_max):
     # check if range values are supplied in correct order
     if range_min > range_max:

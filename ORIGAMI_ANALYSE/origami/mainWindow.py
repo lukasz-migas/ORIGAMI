@@ -85,9 +85,9 @@ from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
 from gui_elements.panel_exportSettings import panelExportSettings
 from gui_elements.misc_dialogs import dlgBox
 
-import logging
 from utils.random import randomIntegerGenerator
 from utils.color import convertRGB255to1, convertRGB1to255
+import logging
 logger = logging.getLogger("origami")
 
 
@@ -910,7 +910,7 @@ class MyFrame(wx.Frame):
         self.presenter.onAddBlankDocument(evt=None, document_type='overlay')
 
     def on_open_multiple_files(self, evt):
-        self.presenter.on_open_multiple_ML_files(open_type="multiple_files_new_document")
+        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_new_document")
 
     def on_open_community_file(self, evt):
         evtID = evt.GetId()

@@ -9,3 +9,6 @@ def getTime():
 def ttime():
     return time.time()
 
+
+def tsleep(duration=0.1):
+    time.sleep(duration)

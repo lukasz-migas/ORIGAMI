@@ -36,8 +36,8 @@ from ids import (ID_processSettings_replotMS, ID_processSettings_processMS,
                  ID_saveConfig)
 from help_documentation import OrigamiHelp
 from gui_elements.dialog_customiseUniDecPlots import panelCustomiseParameters
-from readers.io_waters_raw import (rawMassLynx_MS_extract, rawMassLynx_RT_extract, rawMassLynx_DT_extract,
-                                   rawMassLynx_2DT_extract)
+from readers.io_waters_raw import (driftscope_extract_MS, driftscope_extract_RT, driftscope_extract_DT,
+                                   driftscope_extract_2D)
 from gui_elements.panel_peakWidthTool import panelPeakWidthTool
 from gui_elements.panel_htmlViewer import panelHTMLViewer
 from gui_elements.misc_dialogs import dlgBox
@@ -2223,7 +2223,7 @@ class panelProcessData(wx.MiniFrame):
                 dt_title = "dt=all"
             try:
                 extract_kwargs = {'return_data':True}
-                xvals_MS, yvals_MS = rawMassLynx_MS_extract(path=document.path,
+                xvals_MS, yvals_MS = driftscope_extract_MS(path=document.path,
                                                             mz_start=mzStart, mz_end=mzEnd,
                                                             rt_start=rtStart, rt_end=rtEnd,
                                                             dt_start=dtStart, dt_end=dtEnd,
@@ -2251,7 +2251,7 @@ class panelProcessData(wx.MiniFrame):
                 dt_title = "dt=all"
             try:
                 extract_kwargs = {'return_data':True}
-                xvals_RT, yvals_RT = rawMassLynx_RT_extract(path=document.path,
+                xvals_RT, yvals_RT = driftscope_extract_RT(path=document.path,
                                                             mz_start=mzStart, mz_end=mzEnd,
                                                             dt_start=dtStart, dt_end=dtEnd,
                                                             driftscope_path=self.config.driftscopePath,
@@ -2282,7 +2282,7 @@ class panelProcessData(wx.MiniFrame):
                 rt_title = "rt=all"
             try:
                 extract_kwargs = {'return_data':True}
-                xvals_DT, yvals_DT = rawMassLynx_DT_extract(path=document.path,
+                xvals_DT, yvals_DT = driftscope_extract_DT(path=document.path,
                                                             mz_start=mzStart, mz_end=mzEnd,
                                                             rt_start=rtStart, rt_end=rtEnd,
                                                             driftscope_path=self.config.driftscopePath,
@@ -2315,7 +2315,7 @@ class panelProcessData(wx.MiniFrame):
                 rt_title = "rt=all"
             try:
                 extract_kwargs = {'return_data':True}
-                zvals_2D = rawMassLynx_2DT_extract(path=document.path,
+                zvals_2D = driftscope_extract_2D(path=document.path,
                                                    mz_start=mzStart, mz_end=mzEnd,
                                                    rt_start=rtStart, rt_end=rtEnd,
                                                    driftscope_path=self.config.driftscopePath,

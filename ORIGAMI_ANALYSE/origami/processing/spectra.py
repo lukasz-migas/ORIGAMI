@@ -19,7 +19,6 @@
 
 import math
 import numpy as np
-from sklearn.preprocessing import normalize
 from scipy.interpolate import interp1d
 from bisect import bisect_left
 from scipy.signal import savgol_filter

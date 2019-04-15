@@ -1291,7 +1291,6 @@ class plots(plottingWindow):
         Plots MS and 1DT data
         """
 
-        print(kwargs)
         # Setup parameters
         self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom

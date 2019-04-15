@@ -1,4 +1,6 @@
 import wx
+from ids import ID_addNewOverlayDoc
+
 
 class panelSelectDocument(wx.Dialog):
     """
@@ -54,7 +56,7 @@ class panelSelectDocument(wx.Dialog):
         panel = wx.Panel(self, -1)
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        documentList_label = wx.StaticText(panel, -1, "Select document:")
+        documentList_label = wx.StaticText(panel, -1, "Choose document:")
         self.documentList_choice = wx.Choice(panel, -1, choices=self.documentList, size=(300, -1))
         self.documentList_choice.Select(0)
 
@@ -63,8 +65,10 @@ class panelSelectDocument(wx.Dialog):
         self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
 
         # In some cases, we don't want to be able to create new document!
-        if not self.allowNewDoc: self.addBtn.Disable()
-        else: self.addBtn.Enable()
+        if not self.allowNewDoc:
+            self.addBtn.Disable()
+        else:
+            self.addBtn.Enable()
 
         GRIDBAG_VSPACE = 7
         GRIDBAG_HSPACE = 5

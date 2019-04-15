@@ -132,11 +132,11 @@ class data_loading():
                 parameters = self.config.importMassLynxInfFile(path=path, manual=True)
                 xlimits = [parameters['startMS'], parameters['endMS']]
                 extract_kwargs = {'return_data':True}
-                msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=path,
+                msDataX, msDataY = io_waters.driftscope_extract_MS(path=path,
                                                                     driftscope_path=self.config.driftscopePath,
                                                                     **extract_kwargs)
                 extract_kwargs = {'return_data':True}
-                xvalsDT, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
+                xvalsDT, imsData1D = io_waters.driftscope_extract_DT(path=path,
                                                                  driftscope_path=self.config.driftscopePath,
                                                                  **extract_kwargs)
                 if i <= 15: color = self.config.customColors[i]

@@ -1794,13 +1794,13 @@ class panelMultipleIons(wx.Panel):
         self.presenter.onAddBlankDocument(evt=None, document_type='overlay')
 
     def on_extract_all(self, evt):
-        self.presenter.on_extract_2D_from_mass_range_threaded(None, extract_type="all")
+        self.data_handling.on_extract_2D_from_mass_range_fcn(None, extract_type="all")
 
     def on_extract_selected(self, evt):
-        self.presenter.on_extract_2D_from_mass_range_threaded(None, extract_type="selected")
+        self.data_handling.on_extract_2D_from_mass_range_fcn(None, extract_type="selected")
 
     def on_extract_new(self, evt):
-        self.presenter.on_extract_2D_from_mass_range_threaded(None, extract_type="new")
+        self.data_handling.on_extract_2D_from_mass_range_fcn(None, extract_type="new")
 
     def on_overlay_mobiligram(self, evt):
         self.presenter.on_overlay_1D(source="ion", plot_type="mobiligram")
@@ -1834,7 +1834,6 @@ class panelMultipleIons(wx.Panel):
                               str(add_dict.get("document", ""))])
         self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1,
                                               color)
-
         self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1,
                                         determineFontColor(color, return_rgb=True))
 

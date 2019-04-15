@@ -49,13 +49,6 @@ def str2bool(s):
         return False  # raise ValueError
 
 
-def check_value_order(val_min, val_max):
-    if val_min > val_max:
-        val_min, val_max = val_max, val_min
-
-    return val_min, val_max
-
-
 def convert_type(value):
     if isinstance(value, str):
         return str(value)

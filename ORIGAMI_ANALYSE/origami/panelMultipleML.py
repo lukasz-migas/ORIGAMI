@@ -19,13 +19,12 @@
 
 import wx
 
-import wx.lib.mixins.listctrl as listmix
 import numpy as np
 from os.path import splitext
 from operator import itemgetter
 from natsort import natsorted
 
-from styles import makeTooltip, makeMenuItem, EditableListCtrl
+from styles import makeTooltip, makeMenuItem, EditableListCtrl, ListCtrl
 from toolbox import (removeListDuplicates, convertRGB255to1,
                      convertRGB1to255, mlen, determineFontColor,
                      randomColorGenerator)
@@ -43,6 +42,7 @@ from ids import ID_mmlPanel_addToDocument, ID_mmlPanel_assignColor, ID_mmlPanel_
     ID_mmlPanel_table_filename, ID_mmlPanel_table_variable, ID_mmlPanel_table_document, ID_mmlPanel_table_label, \
     ID_mmlPanel_table_hideAll, ID_mmlPanel_table_restoreAll
 from utils.converters import str2num
+from utils.random import randomIntegerGenerator
 
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 
@@ -70,7 +70,7 @@ class panelMML(wx.Panel):
         self.reverse = False
         self.lastColumn = None
 
-        self._textPanel_peaklist = {
+        self._filePanel_peaklist = {
             0: {"name":"", "tag":"check", "type":"bool"},
             1: {"name":"filename", "tag":"filename", "type":"str"},
             2: {"name":"variable", "tag":"energy", "type":"float"},
@@ -98,7 +98,7 @@ class panelMML(wx.Panel):
         wx.EVT_MENU(self, ID_mmlPanel_assignColor, self.OnAssignColor)
         wx.EVT_MENU(self, ID_mmlPanel_plot_MS, self.on_plot_MS)
         wx.EVT_MENU(self, ID_mmlPanel_plot_DT, self.on_plot_1D)
-        wx.EVT_MENU(self, ID_mmlPanel_check_all, self.OnCheckAllItems)
+#         wx.EVT_MENU(self, ID_mmlPanel_check_all, self.OnCheckAllItems)
         wx.EVT_MENU(self, ID_mmlPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.OnDeleteAll)
         wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.onCheckTool)
@@ -129,7 +129,9 @@ class panelMML(wx.Panel):
     def makeListCtrl(self):
 
         # init table
-        self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
+        self.peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES,
+                                column_info=self._filePanel_peaklist
+                                 )  # EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
         for item in self.config._multipleFilesSettings:
             order = item['order']
             name = item['name']
@@ -193,17 +195,17 @@ class panelMML(wx.Panel):
 
     def makeToolbar(self):
 
-        self.Bind(wx.EVT_TOOL, self.onAddTool, id=ID_addFilesMenu)
-        self.Bind(wx.EVT_TOOL, self.onRemoveTool, id=ID_removeFilesMenu)
-        self.Bind(wx.EVT_TOOL, self.OnCheckAllItems, id=ID_mmlPanel_check_all)
-        self.Bind(wx.EVT_TOOL, self.onOverlayTool, id=ID_overlayFilesMenu)
-        self.Bind(wx.EVT_TOOL, self.onAnnotateTool, id=ID_mmlPanel_annotateTool)
-        self.Bind(wx.EVT_TOOL, self.onProcessTool, id=ID_mmlPanel_processTool)
+        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_addFilesMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_removeFilesMenu)
+#         self.Bind(wx.EVT_BUTTON, self.OnCheckAllItems, id=ID_mmlPanel_check_all)
+        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_overlayFilesMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_mmlPanel_annotateTool)
+        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_mmlPanel_processTool)
 
-        self.check_btn = wx.BitmapButton(
-            self, ID_mmlPanel_check_all, self.icons.iconsLib['check16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        self.check_btn.SetToolTip(makeTooltip("Check all items\tX"))
+#         self.check_btn = wx.BitmapButton(
+#             self, ID_mmlPanel_check_all, self.icons.iconsLib['check16'],
+#             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+#         self.check_btn.SetToolTip(makeTooltip("Check all items\tX"))
 
         self.add_btn = wx.BitmapButton(
             self, ID_addFilesMenu, self.icons.iconsLib['add16'],
@@ -235,23 +237,23 @@ class panelMML(wx.Panel):
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
-        btn_grid_vert.Add(self.check_btn, (x, 0), wx.GBSpan(
+#         btn_grid_vert.Add(self.check_btn, (x, 0), wx.GBSpan(
+#             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(vertical_line_1, (x, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid_vert.Add(self.add_btn, (x, 1), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(vertical_line_1, (x, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid_vert.Add(self.add_btn, (x, 2), wx.GBSpan(
+        btn_grid_vert.Add(self.remove_btn, (x, 2), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.remove_btn, (x, 3), wx.GBSpan(
+        btn_grid_vert.Add(self.annotate_btn, (x, 3), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.annotate_btn, (x, 4), wx.GBSpan(
+        btn_grid_vert.Add(self.process_btn, (x, 4), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.process_btn, (x, 5), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.overlay_btn, (x, 6), wx.GBSpan(
+        btn_grid_vert.Add(self.overlay_btn, (x, 5), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         return btn_grid_vert
 
-    def onAnnotateTool(self, evt):
+    def menu_annotate_tools(self, evt):
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_mmlPanel_changeColorBatch_color)
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_mmlPanel_changeColorBatch_palette)
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_mmlPanel_changeColorBatch_colormap)
@@ -270,7 +272,7 @@ class panelMML(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onAddTool(self, evt):
+    def menu_add_tools(self, evt):
 
         self.Bind(wx.EVT_TOOL, self.on_open_multiple_files_add, id=ID_mmlPanel_add_files_toCurrentDoc)
         self.Bind(wx.EVT_TOOL, self.on_open_multiple_files, id=ID_mmlPanel_add_files_toNewDoc)
@@ -289,7 +291,7 @@ class panelMML(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onRemoveTool(self, evt):
+    def menu_remove_tools(self, evt):
         # Make bindings
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_selected, id=ID_mmlPanel_delete_selected)
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_mmlPanel_delete_all)
@@ -308,7 +310,7 @@ class panelMML(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onOverlayTool(self, evt):
+    def menu_overlay_tools(self, evt):
 
         self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_mmlPanel_preprocess)
         self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_mmlPanel_addToDocument)
@@ -355,7 +357,7 @@ class panelMML(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onProcessTool(self, evt):
+    def menu_process_tools(self, evt):
         self.Bind(wx.EVT_TOOL, self.on_combine_mass_spectra, id=ID_mmlPanel_data_combineMS)
         self.Bind(wx.EVT_TOOL, self.onAutoUniDec, id=ID_mmlPanel_batchRunUniDec)
 
@@ -434,7 +436,6 @@ class panelMML(wx.Panel):
                 self.peaklist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color),
                                                                         return_rgb=True))
 
-    # ----
     def OnGetColor(self, evt):
         # Restore custom colors
         custom = wx.ColourData()
@@ -553,8 +554,8 @@ class panelMML(wx.Panel):
         self.peaklist.SetColumnWidth(col_index, col_width)
 
     def onOpenFile_DnD(self, pathlist):
-        self.presenter.on_open_multiple_ML_files(open_type="multiple_files_add",
-                                                 pathlist=pathlist)
+        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_add",
+                                                         pathlist=pathlist)
 
     def on_plot_MS(self, evt):
         """
@@ -668,7 +669,7 @@ class panelMML(wx.Panel):
         for row in range(rows):
             tempRow = []
             for col in range(columns):
-                item = self.peaklist.GetItem(itemId=row, col=col)
+                item = self.peaklist.GetItem(row, col)
                 tempRow.append(item.GetText())
             tempRow.append(self.peaklist.IsChecked(index=row))
             tempRow.append(self.peaklist.GetItemBackgroundColour(row))
@@ -700,12 +701,12 @@ class panelMML(wx.Panel):
 
         # Now insert it into the document
         for row in range(rows):
-            itemName = self.peaklist.GetItem(itemId=row,
-                                             col=self.config.multipleMLColNames['filename']).GetText()
-            docName = self.peaklist.GetItem(itemId=row,
-                                            col=self.config.multipleMLColNames['document']).GetText()
-            trapCV = str2num(self.peaklist.GetItem(itemId=row,
-                                                   col=self.config.multipleMLColNames['energy']).GetText())
+            itemName = self.peaklist.GetItem(row,
+                                             self.config.multipleMLColNames['filename']).GetText()
+            docName = self.peaklist.GetItem(row,
+                                            self.config.multipleMLColNames['document']).GetText()
+            trapCV = str2num(self.peaklist.GetItem(row,
+                                                   self.config.multipleMLColNames['energy']).GetText())
 
             self.presenter.documentsDict[docName].multipleMassSpectrum[itemName]['trap'] = trapCV
 
@@ -792,7 +793,7 @@ class panelMML(wx.Panel):
         for row in range(rows):
             tempRow = []
             for col in range(columns):
-                item = self.peaklist.GetItem(itemId=row, col=col)
+                item = self.peaklist.GetItem(row, col)
 
                 #  We want to make sure certain columns are numbers
                 if col in [self.config.multipleMLColNames['energy']]:
@@ -1069,13 +1070,34 @@ class panelMML(wx.Panel):
         return new_color
 
     def on_open_multiple_files(self, evt):
-        self.presenter.on_open_multiple_ML_files(open_type="multiple_files_new_document")
+        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_new_document")
 
     def on_open_multiple_files_add(self, evt):
-        self.presenter.on_open_multiple_ML_files(open_type="multiple_files_add")
+        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_add")
 
     def on_combine_mass_spectra(self, evt, document_name=None):
         self.presenter.on_combine_mass_spectra(document_name=document_name)
+
+    def on_add_to_table(self, add_dict, check_color=True):
+
+        # get color
+        color = add_dict.get("color", self.config.customColors[randomIntegerGenerator(0, 15)])
+        document_title = add_dict.get("document", None)
+        # check for duplicate color
+        if check_color:
+            color = self.on_check_duplicate_colors(color, document_title)
+
+        # add to peaklist
+        self.peaklist.Append(["",
+                              str(add_dict.get("filename", "")),
+                              str(add_dict.get("variable", "")),
+                              str(add_dict.get("document", "")),
+                              str(add_dict.get("label", ""))
+                              ])
+        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1,
+                                              color)
+        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1,
+                                        determineFontColor(color, return_rgb=True))
 
 
 class DragAndDrop(wx.FileDropTarget):

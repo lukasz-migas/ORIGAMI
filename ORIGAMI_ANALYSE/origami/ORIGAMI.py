@@ -286,19 +286,19 @@ class ORIGAMI(object):
             xlimits = [parameters['startMS'], parameters['endMS']]
             # Mass spectra
             extract_kwargs = {'return_data': True}
-            msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=dlg.GetPath(),
+            msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
                                                                 driftscope_path=self.config.driftscopePath,
                                                                 **extract_kwargs)
 
             # RT
             extract_kwargs = {'return_data': True, 'normalize': True}
-            xvalsRT, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(path=dlg.GetPath(),
+            xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
                                                                              driftscope_path=self.config.driftscopePath,
                                                                              **extract_kwargs)
 
             # 2D
             extract_kwargs = {'return_data': True}
-            imsData2D = io_waters.rawMassLynx_2DT_extract(path=dlg.GetPath(),
+            imsData2D = io_waters.driftscope_extract_2D(path=dlg.GetPath(),
                                                           driftscope_path=self.config.driftscopePath,
                                                           **extract_kwargs)
             xlabels = 1 + np.arange(len(imsData2D[1, :]))
@@ -380,18 +380,18 @@ class ORIGAMI(object):
             xlimits = [parameters['startMS'], parameters['endMS']]
             # Mass spectra
             extract_kwargs = {'return_data': True}
-            msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=dlg.GetPath(),
+            msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
                                                                 driftscope_path=self.config.driftscopePath,
                                                                 **extract_kwargs)
             # RT
             extract_kwargs = {'return_data': True, 'normalize': True}
-            xvalsRT, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(path=dlg.GetPath(),
+            xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
                                                                              driftscope_path=self.config.driftscopePath,
                                                                              **extract_kwargs)
 
             # DT
             extract_kwargs = {'return_data': True}
-            xvalsDT, imsData1D = io_waters.rawMassLynx_DT_extract(path=dlg.GetPath(),
+            xvalsDT, imsData1D = io_waters.driftscope_extract_DT(path=dlg.GetPath(),
                                                                   driftscope_path=self.config.driftscopePath,
                                                                   **extract_kwargs)
 
@@ -472,7 +472,7 @@ class ORIGAMI(object):
                 continue
 
             extract_kwargs = {'return_data': True}
-            __, yvalsDT = io_waters.rawMassLynx_DT_extract(path=document.path,
+            __, yvalsDT = io_waters.driftscope_extract_DT(path=document.path,
                                                            driftscope_path=self.config.driftscopePath,
                                                            **extract_kwargs)
             mphValue = (max(yvalsDT)) * 0.2  # 20 % cutoff
@@ -669,7 +669,7 @@ class ORIGAMI(object):
                 # 1D
                 try:
                     extract_kwargs = {'return_data': True}
-                    __, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
+                    __, imsData1D = io_waters.driftscope_extract_DT(path=path,
                                                                      driftscope_path=self.config.driftscopePath,
                                                                      mz_start=mzStart, mz_end=mzEnd,
                                                                      **extract_kwargs)
@@ -682,11 +682,11 @@ class ORIGAMI(object):
                     return
                 # RT
                 extract_kwargs = {'return_data': True, 'normalize': True}
-                xvalsRT, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(
+                xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(
                     path=path, driftscope_path=self.config.driftscopePath, mz_start=mzStart, mz_end=mzEnd, **extract_kwargs)
                 # 2D
                 extract_kwargs = {'return_data': True}
-                imsData2D = io_waters.rawMassLynx_2DT_extract(path=path,
+                imsData2D = io_waters.driftscope_extract_2D(path=path,
                                                               driftscope_path=self.config.driftscopePath,
                                                               mz_start=mzStart, mz_end=mzEnd,
                                                               **extract_kwargs)
@@ -746,22 +746,22 @@ class ORIGAMI(object):
                     nameValue = nameList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
                     try:
                         pathValue = document.multipleMassSpectrum[nameValue]['path']
-                        __, imsData1D = io_waters.rawMassLynx_DT_extract(path=pathValue,
+                        __, imsData1D = io_waters.driftscope_extract_DT(path=pathValue,
                                                                          driftscope_path=self.config.driftscopePath,
                                                                          mz_start=mzStart, mz_end=mzEnd,
                                                                          **extract_kwargs)
 #
-#                         io_waters.rawMassLynx_DT_extract(path=pathValue,
+#                         io_waters.driftscope_extract_DT(path=pathValue,
 #                                                          driftscope_path=self.config.driftscopePath,
 #                                                          mz_start=mzStart, mz_end=mzEnd)
                     # if the files were moved, we can at least try to with the document path
                     except IOError:
                         try:
                             pathValue = os.path.join(document.path, nameValue)
-#                             io_waters.rawMassLynx_DT_extract(path=pathValue,
+#                             io_waters.driftscope_extract_DT(path=pathValue,
 #                                                              driftscope_path=self.config.driftscopePath,
 #                                                              mz_start=mzStart, mz_end=mzEnd)
-                            __, imsData1D = io_waters.rawMassLynx_DT_extract(path=pathValue,
+                            __, imsData1D = io_waters.driftscope_extract_DT(path=pathValue,
                                                                              driftscope_path=self.config.driftscopePath,
                                                                              mz_start=mzStart, mz_end=mzEnd,
                                                                              **extract_kwargs)
@@ -777,7 +777,7 @@ class ORIGAMI(object):
                             return
 
 #                     imsData1D =  io_waters.rawMassLynx_DT_load(path=pathValue)
-#                     io_waters.rawMassLynx_DT_extract(path=pathValue,
+#                     io_waters.driftscope_extract_DT(path=pathValue,
 #                                                      driftscope_path=self.config.driftscopePath)
                     # Get height of the peak
                     ms = document.massSpectrum
@@ -862,7 +862,7 @@ class ORIGAMI(object):
             elif document.dataType == 'Type: Infrared':
                 # 2D
                 extract_kwargs = {'return_data': True}
-                imsData2D = io_waters.rawMassLynx_2DT_extract(path=path,
+                imsData2D = io_waters.driftscope_extract_2D(path=path,
                                                               driftscope_path=self.config.driftscopePath,
                                                               **extract_kwargs)
 
@@ -928,7 +928,7 @@ class ORIGAMI(object):
 
         # Load data
         extract_kwargs = {'return_data': True, 'normalize': False}
-        rtDataX, rtDataY = io_waters.rawMassLynx_RT_extract(path=document.path,
+        rtDataX, rtDataY = io_waters.driftscope_extract_RT(path=document.path,
                                                             driftscope_path=self.config.driftscopePath,
                                                             mz_start=mzStart, mz_end=mzEnd,
                                                             dt_start=dtStart, dt_end=dtEnd,
@@ -962,7 +962,7 @@ class ORIGAMI(object):
 
         # Extract data
         extract_kwargs = {'return_data': True}
-        msX, msY = io_waters.rawMassLynx_MS_extract(path=self.docs.path,
+        msX, msY = io_waters.driftscope_extract_MS(path=self.docs.path,
                                                     driftscope_path=self.config.driftscopePath,
                                                     dt_start=dtStart, dt_end=dtEnd,
                                                     **extract_kwargs)
@@ -1017,7 +1017,7 @@ class ORIGAMI(object):
             # Mass spectra
             try:
                 extract_kwargs = {'return_data': True}
-                msX, msY = io_waters.rawMassLynx_MS_extract(path=document.path,
+                msX, msY = io_waters.driftscope_extract_MS(path=document.path,
                                                             driftscope_path=self.config.driftscopePath,
                                                             rt_start=rtStart, rt_end=rtEnd,
                                                             **extract_kwargs)
@@ -1119,7 +1119,7 @@ class ORIGAMI(object):
         # Mass spectra
         try:
             extract_kwargs = {'return_data': True}
-            msX, msY = io_waters.rawMassLynx_MS_extract(path=document.path,
+            msX, msY = io_waters.driftscope_extract_MS(path=document.path,
                                                         driftscope_path=self.config.driftscopePath,
                                                         rt_start=rtStart, rt_end=rtEnd,
                                                         dt_start=dtStart, dt_end=dtEnd,
@@ -1475,7 +1475,7 @@ class ORIGAMI(object):
                 rtStart = round(item[0] * (scantime / 60), 2)
                 rtEnd = round(item[1] * (scantime / 60), 2)
                 extract_kwargs = {'return_data': True}
-                msX, msY = io_waters.rawMassLynx_MS_extract(path=document.path,
+                msX, msY = io_waters.driftscope_extract_MS(path=document.path,
                                                             driftscope_path=self.config.driftscopePath,
                                                             rt_start=rtStart, rt_end=rtEnd,
                                                             **extract_kwargs)
@@ -1531,21 +1531,21 @@ class ORIGAMI(object):
                 return
             # 1D IMMS
             extract_kwargs = {'return_data': True}
-            __, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
+            __, imsData1D = io_waters.driftscope_extract_DT(path=path,
                                                              driftscope_path=self.config.driftscopePath,
                                                              mz_start=mzStart, mz_end=mzEnd,
                                                              **extract_kwargs)
 
             # RT
             extract_kwargs = {'return_data': True, 'normalize': True}
-            rtDataX, rtDataY, rtDataYnorm = io_waters.rawMassLynx_RT_extract(path=path,
+            rtDataX, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=path,
                                                                              driftscope_path=self.config.driftscopePath,
                                                                              mz_start=mzStart, mz_end=mzEnd,
                                                                              **extract_kwargs)
 
             # 2D IMMS
             extract_kwargs = {'return_data': True}
-            imsData2D = io_waters.rawMassLynx_2DT_extract(path=path,
+            imsData2D = io_waters.driftscope_extract_2D(path=path,
                                                           driftscope_path=self.config.driftscopePath,
                                                           mz_start=mzStart, mz_end=mzEnd,
                                                           **extract_kwargs)
@@ -3002,212 +3002,212 @@ class ORIGAMI(object):
             # Update file list
             self.OnUpdateDocument(self.docs, 'combined_ions')
 
-    def on_open_multiple_ML_files(self, open_type, pathlist=[]):
-        # http://stackoverflow.com/questions/1252481/sort-dictionary-by-another-dictionary
-        # http://stackoverflow.com/questions/22520739/python-sort-a-dict-by-values-producing-a-list-how-to-sort-this-from-largest-to
-
-        self.config.ciuMode = 'MANUAL'
-        tempList = self.view.panelMML.peaklist
-
-        tstart = time.clock()
-        if len(pathlist) > 0:
-            dlg = None
-        else:
-            if self.config.lastDir is None or not os.path.isdir(self.config.lastDir):
-                self.config.lastDir = os.getcwd()
-
-            dlg = MDD.MultiDirDialog(self.view, title="Choose MassLynx files to open:",
-                                     defaultPath=self.config.lastDir,
-                                     agwStyle=MDD.DD_MULTIPLE | MDD.DD_DIR_MUST_EXIST)
-
-            if dlg.ShowModal() == wx.ID_OK:
-                pathlist = dlg.GetPaths()
-
-        if len(pathlist) == 0:
-            self.onThreading(None, ("Please select at least one file in order to continue.", 4),
-                             action='updateStatusbar')
-            return
-
-        if open_type == "multiple_files_add":
-            # Check if current document is a comparison document
-            # If so, it will be used
-            docList = self.checkIfAnyDocumentsAreOfType(type='Type: MANUAL')
-
-            if len(docList) == 0:
-                self.onThreading(None, ("Did not find appropriate document. Creating a new one...", 4),
-                                 action='updateStatusbar')
-                dlg = wx.FileDialog(self.view, "Please select a name for the document",
-                                    "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-                if dlg.ShowModal() == wx.ID_OK:
-                    path, idName = os.path.split(dlg.GetPath())
-                else:
-                    return
-                # Create document
-                self.docs = documents()
-                self.docs.title = idName
-                self.docs.path = path
-                self.docs.userParameters = self.config.userParameters
-                self.docs.userParameters['date'] = getTime()
-            else:
-                self.selectDocDlg = panelSelectDocument(self.view, self, docList)
-                if self.selectDocDlg.ShowModal() == wx.ID_OK:
-                    pass
-
-                # Check that document exists
-                if self.currentDoc is None:
-                    self.onThreading(None, ('Please select a document', 4), action='updateStatusbar')
-                    return
-                self.docs = self.documentsDict[self.currentDoc]
-                self.onThreading(None, ('Using document: ' + self.docs.title.encode('ascii', 'replace'), 4),
-                                 action='updateStatusbar')
-
-        elif open_type == "multiple_files_new_document":
-            dlg = wx.FileDialog(self.view, "Please select a name for the document",
-                                "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-            if dlg.ShowModal() == wx.ID_OK:
-                path, idName = os.path.split(dlg.GetPath())
-            else:
-                return
-            # Create document
-            self.docs = documents()
-            self.docs.title = idName
-            self.docs.path = path
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-
-        for i, file_path in enumerate(pathlist):
-            path = self.checkIfRawFile(file_path)
-            if path is None:
-                continue
-            else:
-                try:
-                    pathSplit = path.encode('ascii', 'replace').split(':)')
-                    start = pathSplit[0].split('(')
-                    start = start[-1]
-                    path = ''.join([start, ':', pathSplit[1]])
-                except IndexError:
-                    path = path
-                temp, rawfile = os.path.split(path)
-                # Update lastDir with current path
-                self.config.lastDir = path
-                parameters = self.config.importMassLynxInfFile(path=path, manual=True)
-                xlimits = [parameters['startMS'], parameters['endMS']]
-                extract_kwargs = {'return_data': True}
-                msDataX, msDataY = io_waters.rawMassLynx_MS_extract(path=path,
-                                                                    driftscope_path=self.config.driftscopePath,
-                                                                    **extract_kwargs)
-                extract_kwargs = {'return_data': True}
-                xvalsDT, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
-                                                                      driftscope_path=self.config.driftscopePath,
-                                                                      **extract_kwargs)
-                if i <= 15:
-                    color = self.config.customColors[i]
-                else:
-                    color = randomColorGenerator(True)
-                color = convertRGB255to1(
-                    self.view.panelMML.on_check_duplicate_colors(
-        color, document_name=self.docs.title))
-
-                tempList.Append([rawfile,
-                                 str(parameters['trapCE']),
-                                 self.docs.title,
-                                 os.path.splitext(rawfile)[0]])  # name as initial label
-                tempList.SetItemBackgroundColour(tempList.GetItemCount() - 1,
-                                                 convertRGB1to255(color))
-
-                self.docs.gotMultipleMS = True
-                self.docs.multipleMassSpectrum[rawfile] = {'trap': parameters['trapCE'],
-                                                           'xvals': msDataX, 'yvals': msDataY,
-                                                           'ims1D': imsData1D, 'ims1DX': xvalsDT,
-                                                           'xlabel': 'Drift time (bins)',
-                                                           'xlabels': 'm/z (Da)',
-                                                           'path': path, 'color': color,
-                                                           'parameters': parameters,
-                                                           'xlimits': xlimits}
-        # Sum all mass spectra into one
-        if self.config.ms_enable_in_MML_start:
-
-            kwargs = {'auto_range': False,
-                      'mz_min': self.config.ms_mzStart,
-                      'mz_max': self.config.ms_mzEnd,
-                      'mz_bin': self.config.ms_mzBinSize,
-                      'linearization_mode': self.config.ms_linearization_mode}
-            msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
-                self.config.ms_linearization_mode,
-                self.config.ms_mzStart,
-                self.config.ms_mzEnd,
-                self.config.ms_mzBinSize,
-                self.config.ms_auto_range)
-            self.onThreading(None, (msg, 4), action='updateStatusbar')
-
-            # check the min/max values in the mass spectrum
-            if self.config.ms_auto_range:
-                mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=self.docs.multipleMassSpectrum)
-                self.config.ms_mzStart = mzStart
-                self.config.ms_mzEnd = mzEnd
-                kwargs.update(mz_min=mzStart, mz_max=mzEnd)
-                try:
-                    self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
-                except:
-                    pass
-
-            msFilenames = ["m/z"]
-            counter = 0
-            for key in self.docs.multipleMassSpectrum:
-                msFilenames.append(key)
-                if counter == 0:
-                    msDataX, tempArray = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
-                                                                   self.docs.multipleMassSpectrum[key]['yvals'],
-                                                                   **kwargs)
-                    msList = tempArray
-                else:
-                    msDataX, msList = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
-                                                                self.docs.multipleMassSpectrum[key]['yvals'],
-                                                                **kwargs)
-                    tempArray = np.concatenate((tempArray, msList), axis=0)
-                counter += 1
-
-            # Reshape the list
-            combMS = tempArray.reshape((len(msList), int(counter)), order='F')
-
-            # Sum y-axis data
-            msDataY = np.sum(combMS, axis=1)
-            msDataY = pr_spectra.normalize_1D(inputData=msDataY)
-            xlimits = [parameters['startMS'], parameters['endMS']]
-
-            # Form pandas dataframe
-            combMSOut = np.concatenate((msDataX, tempArray), axis=0)
-            combMSOut = combMSOut.reshape((len(msList), int(counter + 1)), order='F')
-
-            msSaveData = pd.DataFrame(data=combMSOut, columns=msFilenames)
-
-            # Add data
-            self.docs.gotMSSaveData = True
-            self.docs.massSpectraSave = msSaveData  # pandas dataframe that can be exported as csv
-            self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
-            # Plot
-            name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
-            self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-
-        # Update status bar with MS range
-        self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
-        self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
-
-        # Add info to document
-        self.docs.parameters = parameters
-        self.docs.dataType = 'Type: MANUAL'
-        self.docs.fileFormat = 'Format: MassLynx (.raw)'
-        self.OnUpdateDocument(self.docs, 'document')
-
-        # Show panel
-        self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
-        # Removing duplicates
-        self.view.panelMML.onRemoveDuplicates(evt=None)
-
-        tend = time.clock()
-        self.onThreading(None, ('Total time to extract %d files was: %.3gs' %
-                                (len(pathlist), tend - tstart), 4), action='updateStatusbar')
+#     def on_open_multiple_ML_files(self, open_type, pathlist=[]):
+#         # http://stackoverflow.com/questions/1252481/sort-dictionary-by-another-dictionary
+#         # http://stackoverflow.com/questions/22520739/python-sort-a-dict-by-values-producing-a-list-how-to-sort-this-from-largest-to
+#
+#         self.config.ciuMode = 'MANUAL'
+#         tempList = self.view.panelMML.peaklist
+#
+#         tstart = time.clock()
+#         if len(pathlist) > 0:
+#             dlg = None
+#         else:
+#             if self.config.lastDir is None or not os.path.isdir(self.config.lastDir):
+#                 self.config.lastDir = os.getcwd()
+#
+#             dlg = MDD.MultiDirDialog(self.view, title="Choose MassLynx files to open:",
+#                                      defaultPath=self.config.lastDir,
+#                                      agwStyle=MDD.DD_MULTIPLE | MDD.DD_DIR_MUST_EXIST)
+#
+#             if dlg.ShowModal() == wx.ID_OK:
+#                 pathlist = dlg.GetPaths()
+#
+#         if len(pathlist) == 0:
+#             self.onThreading(None, ("Please select at least one file in order to continue.", 4),
+#                              action='updateStatusbar')
+#             return
+#
+#         if open_type == "multiple_files_add":
+#             # Check if current document is a comparison document
+#             # If so, it will be used
+#             docList = self.checkIfAnyDocumentsAreOfType(type='Type: MANUAL')
+#
+#             if len(docList) == 0:
+#                 self.onThreading(None, ("Did not find appropriate document. Creating a new one...", 4),
+#                                  action='updateStatusbar')
+#                 dlg = wx.FileDialog(self.view, "Please select a name for the document",
+#                                     "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+#                 if dlg.ShowModal() == wx.ID_OK:
+#                     path, idName = os.path.split(dlg.GetPath())
+#                 else:
+#                     return
+#                 # Create document
+#                 self.docs = documents()
+#                 self.docs.title = idName
+#                 self.docs.path = path
+#                 self.docs.userParameters = self.config.userParameters
+#                 self.docs.userParameters['date'] = getTime()
+#             else:
+#                 self.selectDocDlg = panelSelectDocument(self.view, self, docList)
+#                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
+#                     pass
+#
+#                 # Check that document exists
+#                 if self.currentDoc is None:
+#                     self.onThreading(None, ('Please select a document', 4), action='updateStatusbar')
+#                     return
+#                 self.docs = self.documentsDict[self.currentDoc]
+#                 self.onThreading(None, ('Using document: ' + self.docs.title.encode('ascii', 'replace'), 4),
+#                                  action='updateStatusbar')
+#
+#         elif open_type == "multiple_files_new_document":
+#             dlg = wx.FileDialog(self.view, "Please select a name for the document",
+#                                 "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+#             if dlg.ShowModal() == wx.ID_OK:
+#                 path, idName = os.path.split(dlg.GetPath())
+#             else:
+#                 return
+#             # Create document
+#             self.docs = documents()
+#             self.docs.title = idName
+#             self.docs.path = path
+#             self.docs.userParameters = self.config.userParameters
+#             self.docs.userParameters['date'] = getTime()
+#
+#         for i, file_path in enumerate(pathlist):
+#             path = self.checkIfRawFile(file_path)
+#             if path is None:
+#                 continue
+#             else:
+#                 try:
+#                     pathSplit = path.encode('ascii', 'replace').split(':)')
+#                     start = pathSplit[0].split('(')
+#                     start = start[-1]
+#                     path = ''.join([start, ':', pathSplit[1]])
+#                 except IndexError:
+#                     path = path
+#                 temp, rawfile = os.path.split(path)
+#                 # Update lastDir with current path
+#                 self.config.lastDir = path
+#                 parameters = self.config.importMassLynxInfFile(path=path, manual=True)
+#                 xlimits = [parameters['startMS'], parameters['endMS']]
+#                 extract_kwargs = {'return_data': True}
+#                 msDataX, msDataY = io_waters.driftscope_extract_MS(path=path,
+#                                                                     driftscope_path=self.config.driftscopePath,
+#                                                                     **extract_kwargs)
+#                 extract_kwargs = {'return_data': True}
+#                 xvalsDT, imsData1D = io_waters.driftscope_extract_DT(path=path,
+#                                                                       driftscope_path=self.config.driftscopePath,
+#                                                                       **extract_kwargs)
+#                 if i <= 15:
+#                     color = self.config.customColors[i]
+#                 else:
+#                     color = randomColorGenerator(True)
+#                 color = convertRGB255to1(
+#                     self.view.panelMML.on_check_duplicate_colors(
+#         color, document_name=self.docs.title))
+#
+#                 tempList.Append([rawfile,
+#                                  str(parameters['trapCE']),
+#                                  self.docs.title,
+#                                  os.path.splitext(rawfile)[0]])  # name as initial label
+#                 tempList.SetItemBackgroundColour(tempList.GetItemCount() - 1,
+#                                                  convertRGB1to255(color))
+#
+#                 self.docs.gotMultipleMS = True
+#                 self.docs.multipleMassSpectrum[rawfile] = {'trap': parameters['trapCE'],
+#                                                            'xvals': msDataX, 'yvals': msDataY,
+#                                                            'ims1D': imsData1D, 'ims1DX': xvalsDT,
+#                                                            'xlabel': 'Drift time (bins)',
+#                                                            'xlabels': 'm/z (Da)',
+#                                                            'path': path, 'color': color,
+#                                                            'parameters': parameters,
+#                                                            'xlimits': xlimits}
+#         # Sum all mass spectra into one
+#         if self.config.ms_enable_in_MML_start:
+#
+#             kwargs = {'auto_range': False,
+#                       'mz_min': self.config.ms_mzStart,
+#                       'mz_max': self.config.ms_mzEnd,
+#                       'mz_bin': self.config.ms_mzBinSize,
+#                       'linearization_mode': self.config.ms_linearization_mode}
+#             msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
+#                 self.config.ms_linearization_mode,
+#                 self.config.ms_mzStart,
+#                 self.config.ms_mzEnd,
+#                 self.config.ms_mzBinSize,
+#                 self.config.ms_auto_range)
+#             self.onThreading(None, (msg, 4), action='updateStatusbar')
+#
+#             # check the min/max values in the mass spectrum
+#             if self.config.ms_auto_range:
+#                 mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=self.docs.multipleMassSpectrum)
+#                 self.config.ms_mzStart = mzStart
+#                 self.config.ms_mzEnd = mzEnd
+#                 kwargs.update(mz_min=mzStart, mz_max=mzEnd)
+#                 try:
+#                     self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
+#                 except:
+#                     pass
+#
+#             msFilenames = ["m/z"]
+#             counter = 0
+#             for key in self.docs.multipleMassSpectrum:
+#                 msFilenames.append(key)
+#                 if counter == 0:
+#                     msDataX, tempArray = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
+#                                                                    self.docs.multipleMassSpectrum[key]['yvals'],
+#                                                                    **kwargs)
+#                     msList = tempArray
+#                 else:
+#                     msDataX, msList = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
+#                                                                 self.docs.multipleMassSpectrum[key]['yvals'],
+#                                                                 **kwargs)
+#                     tempArray = np.concatenate((tempArray, msList), axis=0)
+#                 counter += 1
+#
+#             # Reshape the list
+#             combMS = tempArray.reshape((len(msList), int(counter)), order='F')
+#
+#             # Sum y-axis data
+#             msDataY = np.sum(combMS, axis=1)
+#             msDataY = pr_spectra.normalize_1D(inputData=msDataY)
+#             xlimits = [parameters['startMS'], parameters['endMS']]
+#
+#             # Form pandas dataframe
+#             combMSOut = np.concatenate((msDataX, tempArray), axis=0)
+#             combMSOut = combMSOut.reshape((len(msList), int(counter + 1)), order='F')
+#
+#             msSaveData = pd.DataFrame(data=combMSOut, columns=msFilenames)
+#
+#             # Add data
+#             self.docs.gotMSSaveData = True
+#             self.docs.massSpectraSave = msSaveData  # pandas dataframe that can be exported as csv
+#             self.docs.gotMS = True
+#             self.docs.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
+#             # Plot
+#             name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
+#             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+#
+#         # Update status bar with MS range
+#         self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
+#         self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
+#
+#         # Add info to document
+#         self.docs.parameters = parameters
+#         self.docs.dataType = 'Type: MANUAL'
+#         self.docs.fileFormat = 'Format: MassLynx (.raw)'
+#         self.OnUpdateDocument(self.docs, 'document')
+#
+#         # Show panel
+#         self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
+#         # Removing duplicates
+#         self.view.panelMML.onRemoveDuplicates(evt=None)
+#
+#         tend = time.clock()
+#         self.onThreading(None, ('Total time to extract %d files was: %.3gs' %
+#                                 (len(pathlist), tend - tstart), 4), action='updateStatusbar')
 
     def on_combine_mass_spectra(self, document_name=None):
 
@@ -3979,7 +3979,7 @@ class ORIGAMI(object):
 
         # Determine the m/z range to extract
         extract_kwargs = {'return_data': True}
-        __, yvalsDT = io_waters.rawMassLynx_DT_extract(path=path,
+        __, yvalsDT = io_waters.driftscope_extract_DT(path=path,
                                                        driftscope_path=self.config.driftscopePath,
                                                        mz_start=mzStart, mz_end=mzEnd
                                                        ** extract_kwargs)
@@ -4645,7 +4645,7 @@ class ORIGAMI(object):
                     ''.join(['RT(s): ', str(rtStart), '-', str(rtEnd), ', MS: ', str(mzStart), '-', str(mzEnd)]), 3)
                 # Load output
                 extract_kwargs = {'return_data': True}
-                __, imsData1D = io_waters.rawMassLynx_DT_extract(path=path,
+                __, imsData1D = io_waters.driftscope_extract_DT(path=path,
                                                                  driftscope_path=self.config.driftscopePath,
                                                                  mz_start=mzStart, mz_end=mzEnd,
                                                                  rt_start=rtStart, rt_end=rtEnd
