@@ -147,7 +147,7 @@ class panelMultipleIons(wx.Panel):
 
     def makeGUI(self):
         """ Make panel GUI """
-        toolbar = self.makeToolbar()
+        toolbar = self.make_toolbar()
         self.makeListCtrl()
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -160,14 +160,14 @@ class panelMultipleIons(wx.Panel):
         self.SetSize((300, -1))
         self.Layout()
 
-    def makeToolbar(self):
+    def make_toolbar(self):
 
         # Make bindings
         self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_addIonsMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_removeIonsMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_extract_tools, id=ID_extractIonsMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_processIonsMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_save__tools, id=ID_saveIonsMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_save_tools, id=ID_saveIonsMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_showIonsMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_overlayIonsMenu)
         self.Bind(wx.EVT_BUTTON, self.OnCheckAllItems, id=ID_ionPanel_check_all)
@@ -564,7 +564,7 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def menu_save__tools(self, evt):
+    def menu_save_tools(self, evt):
         self.Bind(wx.EVT_MENU, self.OnSaveSelectedPeakList, id=ID_saveSelectIonListCSV)
         self.Bind(wx.EVT_MENU, self.OnSavePeakList, id=ID_saveIonListCSV)
 
@@ -1911,13 +1911,6 @@ class panelMultipleIons(wx.Panel):
         row = self.findItem(mz_start, mz_end, document)
         if row is not None:
             self.peaklist.DeleteItem(row)
-
-# class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
-#     """ListCtrl"""
-#
-#     def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT):
-#         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
-#         listmix.CheckListCtrlMixin.__init__(self)
 
 
 class panelExportData(wx.MiniFrame):

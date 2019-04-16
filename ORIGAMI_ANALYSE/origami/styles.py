@@ -368,7 +368,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
 
         self._set_list_data(tempData, checkData, bg_rgb, fg_rgb)
 
-    def _get_list_data(self):
+    def _get_list_data(self, include_color=True):
         columns = self.GetColumnCount()
         rows = self.GetItemCount()
 
@@ -408,6 +408,10 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
             self.CheckItem(row, check)
             self.SetItemBackgroundColour(row, bg_color)
             self.SetItemTextColour(row, fg_color)
+
+    @staticmethod
+    def _convert_color_to_list(color):
+        return list(color)
 
 
 class SimpleListCtrl(wx.ListCtrl):

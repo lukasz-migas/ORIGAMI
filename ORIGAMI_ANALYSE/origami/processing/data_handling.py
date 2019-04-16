@@ -301,9 +301,7 @@ class data_handling():
     def on_update_document(self, document, expand_item='document', expand_item_title=None):
 
         if expand_item == 'document':
-            self.documentTree.add_document(docData=document,
-
-                                           expandItem=document)
+            self.documentTree.add_document(docData=document, expandItem=document)
         elif expand_item == 'ions':
             if expand_item_title is None:
                 self.documentTree.add_document(docData=document,
@@ -360,7 +358,7 @@ class data_handling():
                                                expandItem=document.IMS2DoverlayData[expand_item_title])
         # just set data
         elif expand_item == 'no_refresh':
-            self.documentTree.set_document(document_old=self.documentsDict[document.title],
+            self.documentTree.set_document(document_old=self.presenter.documentsDict[document.title],
                                            document_new=document)
 
         # update dictionary
@@ -1010,8 +1008,9 @@ class data_handling():
         xvals, yvals, zvals = self._get_driftscope_mobility_data(path, **kwargs)
 
         # Add data to document object
-        document.gotExtractedIons = True
-        document.IMS2Dions[ion_name] = {'zvals': zvals,
+#         document.gotExtractedIons = True
+#         document.IMS2Dions[ion_name]
+        ion_data = {'zvals': zvals,
                                          'xvals': xvals,
                                           'xlabels': 'Scans',
                                           'yvals': yvals,
@@ -1028,6 +1027,9 @@ class data_handling():
                                           'min_threshold': item_information['min_threshold'],
                                           'max_threshold': item_information['max_threshold'],
                                           'xylimits': [mz_start, mz_end, mz_y_max]}
+
+        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.raw")
+
         # Update document
         # if auto extract is enabled and the user extracts items rapidly it can
         # cause an issue so its a small hack to fix that
@@ -1041,7 +1043,6 @@ class data_handling():
 
         self.filesPanel.OnSortByColumn(column=1, overrideReverse=True)
         tempDict = {}
-        extract_kwargs = {'return_data': True}
         for item in range(self.filesList.GetItemCount()):
             # Determine whether the title of the document matches the title of the item in the table
             # if it does not, skip the row
@@ -1051,20 +1052,14 @@ class data_handling():
 
             nameValue = self.filesList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
             try:
-                pathValue = document.multipleMassSpectrum[nameValue]['path']
-                __, imsData1D = io_waters.driftscope_extract_DT(path=pathValue,
-                                                                 driftscope_path=self.config.driftscopePath,
-                                                                 mz_start=mz_start, mz_end=mz_end,
-                                                                 **extract_kwargs)
+                path = document.multipleMassSpectrum[nameValue]['path']
+                dt_x, dt_y = self._get_driftscope_mobiligram_data(path, mz_start=mz_start, mz_end=mz_end)
             # if the files were moved, we can at least try to with the document path
             except IOError:
                 try:
-                    pathValue = os.path.join(document.path, nameValue)
-                    __, imsData1D = io_waters.driftscope_extract_DT(path=pathValue,
-                                                                     driftscope_path=self.config.driftscopePath,
-                                                                     mz_start=mz_start, mz_end=mz_end,
-                                                                     **extract_kwargs)
-                    document.multipleMassSpectrum[nameValue]['path'] = pathValue
+                    path = os.path.join(document.path, nameValue)
+                    dt_x, dt_y = self._get_driftscope_mobiligram_data(path, mz_start=mz_start, mz_end=mz_end)
+                    document.multipleMassSpectrum[nameValue]['path'] = path
                 except Exception:
                     msg = "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
                           "by updating the document path by right-clicking on the document and selecting\n" + \
@@ -1078,77 +1073,76 @@ class data_handling():
             # Get height of the peak
             self.ionList.SetStringItem(ion_id, self.config.peaklistColNames['method'], 'Manual')
             # Create temporary dictionary for all IMS data
-            tempDict[nameValue] = [imsData1D]
+            tempDict[nameValue] = [dt_y]
             # Add 1D data to 1D data container
             newName = "{}, File: {}".format(ion_name, nameValue)
 
-            labelX1D = 'Drift time (bins)'
-            xvals1D = 1 + np.arange(len(imsData1D))
-
-            document.gotExtractedDriftTimes = True
-            document.IMS1DdriftTimes[newName] = {'xvals': xvals1D,
-                                                 'yvals': imsData1D,
-                                                  'xlabels': labelX1D,
-                                                  'ylabels': 'Intensity',
-                                                  'charge': charge,
-                                                  'xylimits': [mz_start, mz_end, mz_y_max],
-                                                  'filename': nameValue}
+            ion_data = {'xvals': dt_x,
+                        'yvals': dt_y,
+                        'xlabels': 'Drift time (bins)',
+                        'ylabels': 'Intensity',
+                        'charge': charge,
+                        'xylimits': [mz_start, mz_end, mz_y_max],
+                        'filename': nameValue}
+            self.documentTree.on_update_data(ion_data, newName, document, data_type="ion.mobiligram")
 
         # Combine the contents in the dictionary - assumes they are ordered!
         counter = 0  # needed to start off
         xlabelsActual = []
-        for item in range(self.filesList.GetItemCount()):
+        for counter, item in enumerate(range(self.filesList.GetItemCount()), 1):
             # Determine whether the title of the document matches the title of the item in the table
             # if it does not, skip the row
             docValue = self.filesList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
             if docValue != document.title:
                 continue
             key = self.filesList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
-            if counter == 0:
+            if counter == 1:
                 tempArray = tempDict[key][0]
                 xLabelLow = document.multipleMassSpectrum[key]['trap']  # first iteration so first value
                 xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
-                counter += 1
             else:
                 imsList = tempDict[key][0]
                 tempArray = np.concatenate((tempArray, imsList), axis=0)
                 xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
-                counter += 1
 
         # Reshape data to form a 2D array of size 200 x number of files
-        imsData2D = None
-        imsData2D = tempArray.reshape((200, int(counter)), order='F')
+        imsData2D = tempArray.reshape((200, counter), order='F')
+
         # Combine 2D array into 1D
         rtDataY = np.sum(imsData2D, axis=0)
         imsData1D = np.sum(imsData2D, axis=1).T
+
         # Get the x-axis labels
         xLabelHigh = document.multipleMassSpectrum[key]['trap']  # after the loop has finished, so last value
-        xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
-        ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-        # Update limits
-        self.setXYlimitsRMSD2D(xlabels, ylabels)
-        # Add data to the document
-        document.gotCombinedExtractedIons = True
-        document.IMS2DCombIons[ion_name] = {'zvals': imsData2D,
-                                             'xvals': xlabels,
-                                              'xlabels': 'Collision Voltage (V)',
-                                              'yvals': ylabels,
-                                              'ylabels': 'Drift time (bins)',
-                                              'yvals1D': imsData1D,
-                                              'yvalsRT': rtDataY,
-                                              'cmap': document.colormap,
-                                              'title': label,
-                                              'label': label,
-                                              'charge': charge,
-                                              'alpha': item_information['alpha'],
-                                              'mask': item_information['mask'],
-                                              'color': item_information['color'],
-                                              'min_threshold': item_information['min_threshold'],
-                                              'max_threshold': item_information['max_threshold'],
-                                              'xylimits': [mz_start, mz_end, mz_y_max]}
+        if xLabelLow in [None, "None"] or xLabelHigh in [None, "None"]:
+            msg = "The user-specified labels appear to be 'None'. Rather than failing to generate x-axis labels" + \
+                  " a list of 1-n values is created."
+            logger.warning(msg)
+            xlabels = np.arange(1, counter)
+        else:
+            xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
+        ylabels = 1 + np.arange(imsData1D.shape[0])
 
-        # Update document
-        self.on_update_document(document, 'combined_ions')
+        # Add data to the document
+        ion_data = {'zvals': imsData2D,
+                    'xvals': xlabels,
+                    'xlabels': 'Collision Voltage (V)',
+                    'yvals': ylabels,
+                    'ylabels': 'Drift time (bins)',
+                    'yvals1D': imsData1D,
+                    'yvalsRT': rtDataY,
+                    'cmap': document.colormap,
+                    'title': label,
+                    'label': label,
+                    'charge': charge,
+                    'alpha': item_information['alpha'],
+                    'mask': item_information['mask'],
+                    'color': item_information['color'],
+                    'min_threshold': item_information['min_threshold'],
+                    'max_threshold': item_information['max_threshold'],
+                    'xylimits': [mz_start, mz_end, mz_y_max]}
+
+        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.combined")
 
     def __add_ion_IR(self, item_information, document, path, mz_start, mz_end, ion_name, ion_id, charge, label):
         # 2D
@@ -1277,10 +1271,15 @@ class data_handling():
             self.__update_statusbar("Please select at least one file in order to continue.", 4)
             return
 
-#         if not self.config.threading:
-        self.on_open_multiple_ML_files(open_type, pathlist)
-#         else:
-#             self.on_threading("load.multiple.raw.masslynx", (open_type, pathlist,))
+        if open_type == "multiple_files_add":
+            document = self._get_document_of_type('Type: MANUAL')
+        elif open_type == "multiple_files_new_document":
+            document = self.__create_new_document()
+
+        if not self.config.threading:
+            self.on_open_multiple_ML_files(document, open_type, pathlist)
+        else:
+            self.on_threading("load.multiple.raw.masslynx", (document, open_type, pathlist,))
 
     def __get_document_list_of_type(self, document_type, document_format=None):
         """
@@ -1289,10 +1288,10 @@ class data_handling():
         """
         document_list = []
         for document_title in self.presenter.documentsDict:
-            if self.presenter.documentsDict[document_title].dataType == type and format is None:
+            if self.presenter.documentsDict[document_title].dataType == document_type and document_format is None:
                 document_list.append(document_title)
-            elif (self.presenter.documentsDict[document_title].dataType == type and
-                  self.presenter.documentsDict[document_title].fileFormat == format):
+            elif (self.presenter.documentsDict[document_title].dataType == document_type and
+                  self.presenter.documentsDict[document_title].fileFormat == document_format):
                 document_list.append(document_title)
 
         return document_list
@@ -1305,7 +1304,7 @@ class data_handling():
             document = self.__create_new_document()
         else:
             dlg = panelSelectDocument(self.view, self, document_list)
-            if dlg.ShowModal() != wx.ID_OK:
+            if dlg.ShowModal() == wx.ID_OK:
                 return
 
             document_title = dlg.current_document
@@ -1336,16 +1335,15 @@ class data_handling():
 
         return document
 
-    def on_open_multiple_ML_files(self, open_type, pathlist=[]):
+    def on_open_multiple_ML_files(self, document, open_type, pathlist=[]):
         # http://stackoverflow.com/questions/1252481/sort-dictionary-by-another-dictionary
         # http://stackoverflow.com/questions/22520739/python-sort-a-dict-by-values-producing-a-list-how-to-sort-this-from-largest-to
 
         tstart = ttime()
-        print(open_type)
-        if open_type == "multiple_files_add":
-            document = self._get_document_of_type('Type: MANUAL')
-        elif open_type == "multiple_files_new_document":
-            document = self.__create_new_document()
+
+        if document is None:
+            logger.warning("Document was not selected.")
+            return
 
         for i, file_path in enumerate(pathlist):
             path = check_waters_path(file_path)
@@ -1361,12 +1359,14 @@ class data_handling():
             ms_x, ms_y = self._get_driftscope_spectrum_data(path)
             dt_x, dt_y = self._get_driftscope_mobiligram_data(path)
 
-            if i <= 15:
+            try:
                 color = self.config.customColors[i]
-            else:
+            except KeyError:
                 color = randomColorGenerator(return_as_255=True)
+            print("pre", color)
             color = convertRGB255to1(
                 self.filesPanel.on_check_duplicate_colors(color, document_name=document.title))
+            print("post", color)
             label = os.path.splitext(file_name)[0]
 
             add_dict = {"filename": file_name,
@@ -1444,12 +1444,11 @@ class data_handling():
 
         # Show panel
         self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
-        # Removing duplicates
-        self.filesPanel.onRemoveDuplicates(evt=None)
+        self.filesList.on_remove_duplicates()
 
         # Update status bar with MS range
         self.__update_statusbar("Data extraction took {:.4f} seconds for {} files.".format(
-            ttime() - tstart, i))
+            ttime() - tstart, i + 1), 4)
         self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
         self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
 

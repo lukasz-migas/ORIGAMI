@@ -100,7 +100,7 @@ class panelMML(wx.Panel):
         wx.EVT_MENU(self, ID_mmlPanel_plot_DT, self.on_plot_1D)
 #         wx.EVT_MENU(self, ID_mmlPanel_check_all, self.OnCheckAllItems)
         wx.EVT_MENU(self, ID_mmlPanel_check_selected, self.on_check_selected)
-        wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.OnDeleteAll)
+        wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.on_delete_item)
         wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.onCheckTool)
 
     def _setup_handling_and_processing(self):
@@ -110,7 +110,7 @@ class panelMML(wx.Panel):
     def makeGUI(self):
         """ Make panel GUI """
 
-        self.toolbar = self.makeToolbar()
+        self.toolbar = self.make_toolbar()
         self.makeListCtrl()
         panelSizer = wx.BoxSizer(wx.VERTICAL)
         panelSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
@@ -152,14 +152,11 @@ class panelMML(wx.Panel):
         self.peaklist.SetToolTip(filelistTooltip)
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
-        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click_menu)
         self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.onStartEditingItem)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.onFinishEditingItem)
 #         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
-        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.onColumnRightClickMenu)
-
-#     def onItemSelected(self, evt):
-#         self.peaklist.item_id = evt.m_itemIndex
+        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
 
     def onStartEditingItem(self, evt):
         self.editingItem = evt.m_itemIndex
@@ -188,12 +185,12 @@ class panelMML(wx.Panel):
         wx.EVT_MENU(self, ID_mmlPanel_plot_DT, self.on_plot_1D)
         wx.EVT_MENU(self, ID_mmlPanel_check_all, self.OnCheckAllItems)
         wx.EVT_MENU(self, ID_mmlPanel_check_selected, self.on_check_selected)
-        wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.OnDeleteAll)
+        wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.on_delete_item)
         wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.onCheckTool)
 
         wx.CallAfter(self._updateTable)
 
-    def makeToolbar(self):
+    def make_toolbar(self):
 
         self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_addFilesMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_removeFilesMenu)
@@ -232,14 +229,9 @@ class panelMML(wx.Panel):
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.overlay_btn.SetToolTip(makeTooltip("Visualise mass spectra..."))
 
-        vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
-
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
-#         btn_grid_vert.Add(self.check_btn, (x, 0), wx.GBSpan(
-#             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(vertical_line_1, (x, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
         btn_grid_vert.Add(self.add_btn, (x, 1), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         btn_grid_vert.Add(self.remove_btn, (x, 2), wx.GBSpan(
@@ -293,10 +285,11 @@ class panelMML(wx.Panel):
 
     def menu_remove_tools(self, evt):
         # Make bindings
-        self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_selected, id=ID_mmlPanel_delete_selected)
-        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_mmlPanel_delete_all)
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_all, id=ID_mmlPanel_clear_all)
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_selected, id=ID_mmlPanel_clear_selected)
+
+        self.Bind(wx.EVT_MENU, self.on_delete_all, id=ID_mmlPanel_delete_all)
+        self.Bind(wx.EVT_MENU, self.on_delete_selected, id=ID_mmlPanel_delete_selected)
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_clear_all,
@@ -383,11 +376,11 @@ class panelMML(wx.Panel):
             self.addToDocument = self.addToDocument_check.IsChecked()
             self.addToDocument_check.Check(self.addToDocument)
 
-    def OnRightClickMenu(self, evt):
+    def on_right_click_menu(self, evt):
 
         self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_MS)
         self.Bind(wx.EVT_MENU, self.on_plot_1D, id=ID_mmlPanel_plot_DT)
-        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_mmlPanel_delete_rightClick)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_mmlPanel_delete_rightClick)
         self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_mmlPanel_assignColor)
         self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_combined_MS)
 
@@ -487,7 +480,7 @@ class panelMML(wx.Panel):
                                                 col=self.config.multipleMLColNames['filename'],
                                                 label=new_name)
 
-    def onColumnRightClickMenu(self, evt):
+    def menu_column_right_click(self, evt):
         self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_filename)
         self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_variable)
         self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_document)
@@ -710,75 +703,6 @@ class panelMML(wx.Panel):
 
             self.presenter.documentsDict[docName].multipleMassSpectrum[itemName]['trap'] = trapCV
 
-    def OnDeleteAll(self, evt, ticked=False, selected=False, itemID=None):
-        """ 
-        This function removes selected or all MassLynx files from the 
-        combined document
-        """
-
-        try:
-            itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
-            currentDoc = itemInfo['document']
-        except TypeError:
-            pass
-        currentItems = self.peaklist.GetItemCount() - 1
-        if evt.GetId() == ID_mmlPanel_delete_selected:
-            while (currentItems >= 0):
-                itemInfo = self.OnGetItemInformation(itemID=currentItems)
-                item = self.peaklist.IsChecked(index=currentItems)
-                if item == True:
-                    msg = "Deleted {} from {}".format(itemInfo['filename'], itemInfo['document'])
-                    self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-                    try:
-                        del self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum[itemInfo['filename']]
-                        if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0:
-                            self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
-                    except KeyError: pass
-                    self.peaklist.DeleteItem(currentItems)
-                currentItems -= 1
-            try: self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[itemInfo['document']])
-            except KeyError: pass
-
-        elif evt.GetId() == ID_mmlPanel_delete_rightClick:
-            itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
-            msg = "Deleted {} from {}".format(itemInfo['filename'], itemInfo['document'])
-            self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-            try:
-                del self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum[itemInfo['filename']]
-                if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0:
-                    self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
-            except KeyError: pass
-            self.peaklist.DeleteItem(self.peaklist.item_id)
-            try: self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[itemInfo['document']])
-            except KeyError: pass
-            # Combine mass spectra
-            self.on_combine_mass_spectra(None, document_name=itemInfo['document'])
-
-        else:
-            # Ask if you want to delete all items
-            dlg = dlgBox(exceptionTitle='Are you sure?',
-                                 exceptionMsg="Are you sure you would like to delete ALL MassLynx files from the document?",
-                                 type="Question")
-            if dlg == wx.ID_NO:
-                msg = 'Cancelled deletion operation'
-                self.presenter.view.SetStatusText(msg, 3)
-                return
-            # Iterate over all items
-            while (currentItems >= 0):
-                itemInfo = self.OnGetItemInformation(currentItems)
-                msg = "Deleted {} from {}".format(itemInfo['filename'], itemInfo['document'])
-                self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-                try:
-                    del self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum[itemInfo['filename']]
-                    if len(list(self.presenter.documentsDict[itemInfo['document']].multipleMassSpectrum.keys())) == 0:
-                        self.presenter.documentsDict[itemInfo['document']].gotMultipleMS = False
-                except KeyError: pass
-                self.peaklist.DeleteItem(currentItems)
-                currentItems -= 1
-            # Update tree with new document
-            try: self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[itemInfo['document']])
-            except KeyError: pass
-
     def onRemoveDuplicates(self, evt, limitCols=False):
         """
         This function removes duplicates from the list
@@ -842,7 +766,6 @@ class panelMML(wx.Panel):
 
     def on_remove_deleted_item(self, document):
         """
-        @param document: title of the document to be removed from the list
         """
         row = self.peaklist.GetItemCount() - 1
         while (row >= 0):
@@ -1098,6 +1021,74 @@ class panelMML(wx.Panel):
                                               color)
         self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1,
                                         determineFontColor(color, return_rgb=True))
+
+    def delete_row_from_table(self, delete_item_name=None, delete_document_title=None):
+
+        rows = self.peaklist.GetItemCount() - 1
+        while rows >= 0:
+            itemInfo = self.OnGetItemInformation(rows)
+
+            if itemInfo['filename'] == delete_item_name and itemInfo['document'] == delete_document_title:
+                self.peaklist.DeleteItem(rows)
+                rows = 0
+                return
+            elif delete_item_name is None and itemInfo['document'] == delete_document_title:
+                self.peaklist.DeleteItem(rows)
+            rows -= 1
+
+    def on_delete_item(self, evt):
+
+        itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
+        dlg = dlgBox(
+            type="Question",
+            exceptionMsg="Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
+                itemInfo['filename'],
+                itemInfo['document']))
+        if dlg == wx.ID_NO:
+            print("The operation was cancelled")
+            return
+
+        document = self.data_handling._on_get_document(itemInfo['document'])
+
+        __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
+            document, itemInfo['document'], delete_type="spectrum.one",
+            spectrum_name=itemInfo['filename'])
+
+    def on_delete_selected(self, evt):
+
+        itemID = self.peaklist.GetItemCount() - 1
+        while (itemID >= 0):
+            if self.peaklist.IsChecked(index=itemID):
+                itemInfo = self.OnGetItemInformation(itemID=itemID)
+                msg = "Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
+                    itemInfo['filename'], itemInfo['document'])
+                dlg = dlgBox(exceptionMsg=msg, type="Question")
+                if dlg == wx.ID_NO:
+                    print("The operation was cancelled")
+                    continue
+
+                document = self.data_handling._on_get_document(itemInfo['document'])
+                __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
+                    document, itemInfo['document'], delete_type="spectrum.one",
+                    spectrum_name=itemInfo['filename'])
+            itemID -= 1
+
+    def on_delete_all(self, evt):
+
+        msg = "Are you sure you would like to delete all classifiers from all documents?\nThis action cannot be undone."
+        dlg = dlgBox(exceptionMsg=msg, type="Question")
+        if dlg == wx.ID_NO:
+            print("The operation was cancelled")
+            return
+
+        itemID = self.peaklist.GetItemCount() - 1
+        while (itemID >= 0):
+            itemInfo = self.OnGetItemInformation(itemID=itemID)
+            document = self.data_handling._on_get_document(itemInfo['document'])
+            __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
+                document, itemInfo['document'], delete_type="spectrum.one",
+                spectrum_name=itemInfo['filename'])
+            itemID -= 1
 
 
 class DragAndDrop(wx.FileDropTarget):

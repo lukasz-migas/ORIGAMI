@@ -9,49 +9,49 @@ class panelSelectDocument(wx.Dialog):
 
     def __init__(self, parent, presenter, keyList, allowNewDoc=True):
         wx.Dialog.__init__(self, parent, -1, 'Select document...', size=(400, 300),
-                              style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+                           style=wx.DEFAULT_FRAME_STYLE & ~
+                           (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.presenter = presenter
         self.documentList = keyList
         self.allowNewDoc = allowNewDoc
+        self.current_document = None
 
         # make gui items
         self.makeGUI()
         self.CentreOnParent()
         self.SetFocus()
 
-        wx.EVT_CLOSE(self, self.onClose)
+        wx.EVT_CLOSE(self, self.on_close)
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         # If pressed Close, return nothing of value
         self.presenter.currentDoc = None
         self.current_document = None
 
         self.Destroy()
-    # ----
 
     def makeGUI(self):
 
         # make panel
-        panel = self.makeSelectionPanel()
+        panel = self.make_panel()
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(panel, 0, wx.EXPAND, 0)
 
         # bind
-        self.okBtn.Bind(wx.EVT_BUTTON, self.onSelectDocument, id=wx.ID_ANY)
-        self.addBtn.Bind(wx.EVT_BUTTON, self.onNewDocument, id=ID_addNewOverlayDoc)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.okBtn.Bind(wx.EVT_BUTTON, self.on_select_document, id=wx.ID_ANY)
+        self.addBtn.Bind(wx.EVT_BUTTON, self.on_new_document, id=ID_addNewOverlayDoc)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
 
-    def makeSelectionPanel(self):
+    def make_panel(self):
 
         panel = wx.Panel(self, -1)
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -92,13 +92,12 @@ class panelSelectDocument(wx.Dialog):
 
         return panel
 
-    def onSelectDocument(self, evt):
+    def on_select_document(self, evt):
 
         docName = self.documentList_choice.GetStringSelection()
-        self.presenter.currentDoc = docName
         self.current_document = docName
         self.EndModal(wx.OK)
 
-    def onNewDocument(self, evt):
+    def on_new_document(self, evt):
         self.presenter.onAddBlankDocument(evt=evt)
         self.EndModal(wx.OK)
