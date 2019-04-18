@@ -100,7 +100,8 @@ class panelMultipleIons(wx.Panel):
             8: {"name":"mask", "tag":"mask", "type":"float"},
             9: {"name":"label", "tag":"label", "type":"float"},
             10: {"name":"method", "tag":"method", "type":"str"},
-            11: {"name":"file", "tag":"document", "type":"str"}}
+            11: {"name":"file", "tag":"document", "type":"str"},
+            }
 
         self.makeGUI()
 
@@ -139,7 +140,7 @@ class panelMultipleIons(wx.Panel):
         wx.EVT_MENU(self, ID_ionPanel_show_zoom_in_MS, self.on_plot)
         wx.EVT_MENU(self, ID_ionPanel_show_mobiligram, self.on_plot)
         wx.EVT_MENU(self, ID_ionPanel_check_selected, self.on_check_selected)
-        wx.EVT_MENU(self, ID_ionPanel_delete_rightClick, self.OnDeleteAll)
+        wx.EVT_MENU(self, ID_ionPanel_delete_rightClick, self.on_delete_item)
 
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
@@ -353,7 +354,7 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_process_heatmap)
         self.Bind(wx.EVT_MENU, self.OnOpenEditor, id=ID_ionPanel_editItem)
         self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_ionPanel_assignColor)
-        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_ionPanel_delete_rightClick)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_ionPanel_delete_rightClick)
 
         self.peaklist.item_id = evt.GetIndex()
 
@@ -510,8 +511,8 @@ class panelMultipleIons(wx.Panel):
 
     def menu_remove_tools(self, evt):
         # Make bindings
-        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_ionPanel_delete_selected)
-        self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_ionPanel_delete_all)
+        self.Bind(wx.EVT_MENU, self.on_delete_selected, id=ID_ionPanel_delete_selected)
+        self.Bind(wx.EVT_MENU, self.on_delete_all, id=ID_ionPanel_delete_all)
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_all, id=ID_ionPanel_clear_all)
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_selected, id=ID_ionPanel_clear_selected)
         self.Bind(wx.EVT_MENU, self.onRemoveDuplicates, id=ID_removeDuplicatesTable)
@@ -861,69 +862,13 @@ class panelMultipleIons(wx.Panel):
         currentItems = self.peaklist.GetItemCount() - 1
         while (currentItems >= 0):
             itemInfo = self.OnGetItemInformation(currentItems)
-            if itemInfo['mzStart'] == mzStart and itemInfo['mzEnd'] == mzEnd:
+            if itemInfo['start'] == mzStart and itemInfo['end'] == mzEnd:
                 print('Ion already in the table')
                 currentItems = 0
                 return True
             else:
                 currentItems -= 1
         return False
-
-    def OnGetColumnClick(self, evt):
-        self.OnSortByColumn(column=evt.GetColumn())
-
-    def OnSortByColumn(self, column):
-        """
-        Sort data in peaklist based on pressed column
-        """
-        # Check if it should be reversed
-        if self.lastColumn == None:
-            self.lastColumn = column
-        elif self.lastColumn == column:
-            if self.reverse == True:
-                self.reverse = False
-            else:
-                self.reverse = True
-        else:
-            self.reverse = False
-            self.lastColumn = column
-
-        columns = self.peaklist.GetColumnCount()
-        rows = self.peaklist.GetItemCount()
-
-        tempData = []
-        # Iterate over row and columns to get data
-        for row in range(rows):
-            tempRow = []
-            for col in range(columns):
-                item = self.peaklist.GetItem(itemId=row, col=col)
-                tempRow.append(item.GetText())
-            tempRow.append(self.peaklist.IsChecked(index=row))
-            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
-            tempRow.append(self.peaklist.GetItemTextColour(row))
-            tempData.append(tempRow)
-
-        # Sort data
-        tempData = natsorted(tempData, key=itemgetter(column), reverse=self.reverse)
-        # Clear table
-        self.peaklist.DeleteAllItems()
-
-        checkData, bg_rgb, fg_rgb = [], [], []
-        for check in tempData:
-            fg_rgb.append(check[-1])
-            del check[-1]
-            bg_rgb.append(check[-1])
-            del check[-1]
-            checkData.append(check[-1])
-            del check[-1]
-
-        # Reinstate data
-        rowList = arange(len(tempData))
-        for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.peaklist.Append(tempData[row])
-            self.peaklist.CheckItem(row, check)
-            self.peaklist.SetItemBackgroundColour(row, bg_rgb)
-            self.peaklist.SetItemTextColour(row, fg_color)
 
     def onRemoveDuplicates(self, evt, limitCols=False):
         """
@@ -1010,8 +955,8 @@ class panelMultipleIons(wx.Panel):
         This function extracts 2D array and plots it in 2D/3D
         """
         itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
-        mzStart = itemInfo['mzStart']
-        mzEnd = itemInfo['mzEnd']
+        mzStart = itemInfo['start']
+        mzEnd = itemInfo['end']
         intensity = itemInfo['intensity']
         selectedItem = itemInfo['document']
         rangeName = itemInfo['ionName']
@@ -1096,125 +1041,6 @@ class panelMultipleIons(wx.Panel):
                 zvals = self.data_processing.on_process_2D(zvals=zvals, return_data=True)
             # Plot data
             self.presenter.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
-
-    def OnDeleteAll(self, evt, ticked=False, selected=False, itemID=None):
-        """ 
-        This function removes selected or all text documents
-        """
-        if evt.GetId() == ID_ionPanel_delete_selected:
-            currentItems = self.peaklist.GetItemCount() - 1
-            while (currentItems >= 0):
-                if self.peaklist.IsChecked(index=currentItems):
-                    itemInfo = self.OnGetItemInformation(itemID=currentItems)
-                    msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
-                    self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-                    try:
-                        del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
-                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0:
-                            self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
-                    except KeyError: pass
-                    try:
-                        del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
-                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0:
-                            self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
-                    except KeyError: pass
-                    try:
-                        del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
-                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0:
-                            self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
-                    except KeyError: pass
-                    try:
-                        del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
-                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
-                            self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
-                    except KeyError: pass
-                    self.peaklist.DeleteItem(currentItems)
-                currentItems -= 1
-            # update document
-            try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
-            except KeyError: pass
-
-        elif evt.GetId() == ID_ionPanel_delete_rightClick:
-            itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
-            msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
-            self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-            itemID = [itemInfo['document'], itemInfo['ionName'], self.peaklist.item_id]
-            if itemID != None:
-                msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
-                self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-                # Delete selected document from dictionary + table
-                try:
-                    del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
-                    if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0:
-                        self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
-                except KeyError: pass
-                try:
-                    del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
-                    if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0:
-                        self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
-                except KeyError: pass
-                try:
-                    del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
-                    if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0:
-                        self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
-                except KeyError: pass
-                try:
-                    del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
-                    if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
-                        self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
-                except KeyError: pass
-                self.peaklist.DeleteItem(self.peaklist.item_id)
-                # update document
-                try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
-                except KeyError: pass
-
-        else:
-        # Ask if you are sure to delete it!
-            dlg = dlgBox(exceptionTitle='Are you sure?',
-                                 exceptionMsg="Are you sure you would like to delete ALL ions?",
-                                 type="Question")
-            if dlg == wx.ID_NO:
-                self.presenter.onThreading(evt, ("Cancelled operation", 4, 3), action='updateStatusbar')
-                return
-            else:
-                currentItems = self.peaklist.GetItemCount() - 1
-                while (currentItems >= 0):
-                    itemInfo = self.OnGetItemInformation(itemID=currentItems)
-                    msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
-                    if not self.config.logging:
-                        self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-                    try:
-                        del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
-                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0:
-                            self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
-                    except KeyError:
-                        pass
-                    try:
-                        del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
-                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0:
-                            self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
-                    except KeyError:
-                        pass
-                    try:
-                        del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
-                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0:
-                            self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
-                    except KeyError:
-                        pass
-                    try:
-                        del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
-                        if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
-                            self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
-                    except KeyError:
-                        pass
-                    self.peaklist.DeleteItem(currentItems)
-                    currentItems -= 1
-
-                # update document
-                try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
-                except KeyError: pass
-
-        self.on_replot_patch_on_MS(evt=None)
 
     def OnSavePeakList(self, evt):
         """
@@ -1308,73 +1134,44 @@ class panelMultipleIons(wx.Panel):
         return None
 
     def OnGetItemInformation(self, itemID, return_list=False):
+        information = self.peaklist.on_get_item_information(itemID)
 
-        # get item information
-        information = {'mzStart':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['start']).GetText()),
-                       'mzEnd':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['end']).GetText()),
-                       'intensity':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['intensity']).GetText()),
-                       'charge':str2int(self.peaklist.GetItem(itemID, self.config.peaklistColNames['charge']).GetText()),
-                       'color':self.peaklist.GetItemBackgroundColour(item=itemID),
-                       'color_255to1':convertRGB255to1(self.peaklist.GetItemBackgroundColour(item=itemID), decimals=3),
-                       'colormap':self.peaklist.GetItem(itemID, self.config.peaklistColNames['colormap']).GetText(),
-                       'alpha':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['alpha']).GetText()),
-                       'mask':str2num(self.peaklist.GetItem(itemID, self.config.peaklistColNames['mask']).GetText()),
-                       'document':self.peaklist.GetItem(itemID, self.config.peaklistColNames['filename']).GetText(),
-                       'method':self.peaklist.GetItem(itemID, self.config.peaklistColNames['method']).GetText(),
-                       'label':self.peaklist.GetItem(itemID, self.config.peaklistColNames['label']).GetText(),
-                       'select':self.peaklist.IsChecked(itemID),
-                       'id':itemID}
-        information['ionName'] = "%s-%s" % (information['mzStart'], information['mzEnd'])
+        # add additional data
+        information['ionName'] = "{}-{}".format(information['start'], information['end'])
+        information['color_255to1'] = convertRGB255to1(information['color'], decimals=3)
 
-        try:
-            self.docs = self.presenter.documentsDict[self.peaklist.GetItem(itemID, self.config.peaklistColNames['filename']).GetText()]
-        except KeyError:
-            pass
+        # get document
+        document = self.data_handling._on_get_document(information["document"])
+
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
         try:
-            if information['ionName'] in self.docs.IMS2Dions:
-                min_threshold = self.docs.IMS2Dions[information['ionName']].get('min_threshold', 0)
-                max_threshold = self.docs.IMS2Dions[information['ionName']].get('max_threshold', 1)
-        except AttributeError: pass
+            if information['ionName'] in document.IMS2Dions:
+                min_threshold = document.IMS2Dions[information['ionName']].get('min_threshold', 0)
+                max_threshold = document.IMS2Dions[information['ionName']].get('max_threshold', 1)
+        except AttributeError:
+            pass
 
         information['min_threshold'] = min_threshold
         information['max_threshold'] = max_threshold
 
         # Check whether the ion has combined ions
         parameters = None
-        if hasattr(self.docs, 'gotCombinedExtractedIons'):
-            try:
-                parameters = self.docs.IMS2DCombIons[information['ionName']].get('parameters', None)
-            except KeyError:
-                pass
+        try:
+            parameters = document.IMS2DCombIons[information['ionName']].get('parameters', None)
+        except (KeyError, AttributeError):
+            pass
         information['parameters'] = parameters
 
-        if return_list:
-            mzStart = information['mzStart']
-            mzEnd = information['mzEnd']
-            charge = information['charge']
-            color = information['color']
-            colormap = information['colormap']
-            alpha = information['alpha']
-            mask = information['mask']
-            label = information['label']
-            document = information['document']
-            ionName = information['ionName']
-            min_threshold = information['min_threshold']
-            max_threshold = information['max_threshold']
-            return mzStart, mzEnd, charge, color, colormap, alpha, mask, label, document, ionName, min_threshold, max_threshold
-
         return information
-    # ----
 
     def OnGetValue(self, value_type='color'):
         information = self.OnGetItemInformation(self.peaklist.item_id)
 
-        if value_type == 'mzStart':
-            return information['mzStart']
-        elif value_type == 'mzEnd':
-            return information['mzEnd']
+        if value_type == 'start':
+            return information['start']
+        elif value_type == 'end':
+            return information['end']
         elif value_type == 'color':
             return information['color']
         elif value_type == 'charge':
@@ -1394,33 +1191,32 @@ class panelMultipleIons(wx.Panel):
         elif value_type == 'ionName':
             return information['ionName']
 
-    def OnSetValue(self, value=None, value_type=None):
-        itemID = self.peaklist.GetItemCount() - 1
+    def on_update_value_in_peaklist(self, item_id, value_type, value):
 
-        if value_type == 'mzStart':
-            self.peaklist.SetStringItem(itemID, 0, str(value_type))
-        elif value_type == 'mzEnd':
-            self.peaklist.SetStringItem(itemID, 1, str(value_type))
+        if value_type == 'start':
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["start"], str(value))
+        elif value_type == 'end':
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["end"], str(value))
         elif value_type == 'charge':
-            self.peaklist.SetStringItem(itemID, 2, str(value_type))
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["charge"], str(value))
         elif value_type == 'intensity':
-            self.peaklist.SetStringItem(itemID, 3, str(value_type))
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["intensity"], str(value))
         elif value_type == 'color_text':
-            self.peaklist.SetItemBackgroundColour(itemID, value)
-            self.peaklist.SetStringItem(itemID, 4, str(value))
-            self.peaklist.SetItemTextColour(itemID, determineFontColor(value, return_rgb=True))
+            self.peaklist.SetItemBackgroundColour(item_id, value)
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["color"], str(value))
+            self.peaklist.SetItemTextColour(item_id, determineFontColor(value, return_rgb=True))
         elif value_type == 'colormap':
-            self.peaklist.SetStringItem(itemID, 5, str(value_type))
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["colormap"], str(value))
         elif value_type == 'alpha':
-            self.peaklist.SetStringItem(itemID, 6, str(value_type))
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["alpha"], str(value))
         elif value_type == 'mask':
-            self.peaklist.SetStringItem(itemID, 7, str(value_type))
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["mask"], str(value))
         elif value_type == 'label':
-            self.peaklist.SetStringItem(itemID, 8, str(value_type))
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["label"], str(value))
         elif value_type == 'method':
-            self.peaklist.SetStringItem(itemID, 9, str(value_type))
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["method"], str(value))
         elif value_type == 'document':
-            self.peaklist.SetStringItem(itemID, 10, str(value_type))
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["filename"], str(value))
 
     def OnOpenEditor(self, evt):
 
@@ -1894,8 +1690,8 @@ class panelMultipleIons(wx.Panel):
         # Iterate over the list and plot rectangle one by one
         for row in range(count):
             itemInfo = self.OnGetItemInformation(itemID=row)
-            xmin = itemInfo['mzStart']
-            xmax = itemInfo['mzEnd']
+            xmin = itemInfo['start']
+            xmax = itemInfo['end']
             color = itemInfo['color_255to1']
             width = xmax - xmin
             if row == last:
@@ -1907,10 +1703,192 @@ class panelMultipleIons(wx.Panel):
                                                                alpha=self.config.markerTransparency_1D, plot="MS",
                                                                repaint=False)
 
-    def on_delete_item(self, mz_start, mz_end, document):
-        row = self.findItem(mz_start, mz_end, document)
-        if row is not None:
-            self.peaklist.DeleteItem(row)
+#     def OnDeleteAll(self, evt, ticked=False, selected=False, itemID=None):
+#         """
+#         This function removes selected or all text documents
+#         """
+#         if evt.GetId() == ID_ionPanel_delete_selected:
+#             currentItems = self.peaklist.GetItemCount() - 1
+#             while (currentItems >= 0):
+#                 if self.peaklist.IsChecked(index=currentItems):
+#                     itemInfo = self.OnGetItemInformation(itemID=currentItems)
+#                     msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
+#                     self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
+#                     try:
+#                         del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
+#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0:
+#                             self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
+#                     except KeyError: pass
+#                     try:
+#                         del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
+#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0:
+#                             self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
+#                     except KeyError: pass
+#                     try:
+#                         del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
+#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0:
+#                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
+#                     except KeyError: pass
+#                     try:
+#                         del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
+#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
+#                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
+#                     except KeyError: pass
+#                     self.peaklist.DeleteItem(currentItems)
+#                 currentItems -= 1
+#             # update document
+#             try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
+#             except KeyError: pass
+#
+#         elif evt.GetId() == ID_ionPanel_delete_rightClick:
+#             itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
+#             msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
+#             self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
+#             itemID = [itemInfo['document'], itemInfo['ionName'], self.peaklist.item_id]
+#             if itemID != None:
+#                 msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
+#                 self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
+#                 # Delete selected document from dictionary + table
+#                 try:
+#                     del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
+#                     if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0:
+#                         self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
+#                 except KeyError: pass
+#                 try:
+#                     del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
+#                     if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0:
+#                         self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
+#                 except KeyError: pass
+#                 try:
+#                     del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
+#                     if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0:
+#                         self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
+#                 except KeyError: pass
+#                 try:
+#                     del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
+#                     if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
+#                         self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
+#                 except KeyError: pass
+#                 self.peaklist.DeleteItem(self.peaklist.item_id)
+#                 # update document
+#                 try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
+#                 except KeyError: pass
+#
+#         else:
+#         # Ask if you are sure to delete it!
+#             dlg = dlgBox(exceptionTitle='Are you sure?',
+#                                  exceptionMsg="Are you sure you would like to delete ALL ions?",
+#                                  type="Question")
+#             if dlg == wx.ID_NO:
+#                 self.presenter.onThreading(evt, ("Cancelled operation", 4, 3), action='updateStatusbar')
+#                 return
+#             else:
+#                 currentItems = self.peaklist.GetItemCount() - 1
+#                 while (currentItems >= 0):
+#                     itemInfo = self.OnGetItemInformation(itemID=currentItems)
+#                     msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
+#                     if not self.config.logging:
+#                         self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
+#                     try:
+#                         del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
+#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0:
+#                             self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
+#                     except KeyError:
+#                         pass
+#                     try:
+#                         del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
+#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0:
+#                             self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
+#                     except KeyError:
+#                         pass
+#                     try:
+#                         del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
+#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0:
+#                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
+#                     except KeyError:
+#                         pass
+#                     try:
+#                         del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
+#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
+#                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
+#                     except KeyError:
+#                         pass
+#                     self.peaklist.DeleteItem(currentItems)
+#                     currentItems -= 1
+#
+#                 # update document
+#                 try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
+#                 except KeyError: pass
+
+        self.on_replot_patch_on_MS(evt=None)
+
+    def on_delete_item(self, evt):
+
+        itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
+        dlg = dlgBox(
+            type="Question",
+            exceptionMsg="Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
+                itemInfo['ionName'],
+                itemInfo['document']))
+        if dlg == wx.ID_NO:
+            print("The operation was cancelled")
+            return
+
+        document = self.data_handling._on_get_document(itemInfo['document'])
+
+        __, __ = self.view.panelDocuments.documents.on_delete_data__heatmap(
+            document, itemInfo['document'], delete_type="heatmap.all.one",
+            ion_name=itemInfo['ionName'])
+
+    def on_delete_selected(self, evt):
+
+        itemID = self.peaklist.GetItemCount() - 1
+        while (itemID >= 0):
+            if self.peaklist.IsChecked(index=itemID):
+                itemInfo = self.OnGetItemInformation(itemID=itemID)
+                msg = "Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
+                    itemInfo['ionName'], itemInfo['document'])
+                dlg = dlgBox(exceptionMsg=msg, type="Question")
+                if dlg == wx.ID_NO:
+                    print("The operation was cancelled")
+                    continue
+
+                document = self.data_handling._on_get_document(itemInfo['document'])
+                __, __ = self.view.panelDocuments.documents.on_delete_data__heatmap(
+                    document, itemInfo['document'], delete_type="heatmap.all.one",
+                    ion_name=itemInfo['ionName'])
+            itemID -= 1
+
+    def on_delete_all(self, evt):
+
+        msg = "Are you sure you would like to delete all classifiers from all documents?\nThis action cannot be undone."
+        dlg = dlgBox(exceptionMsg=msg, type="Question")
+        if dlg == wx.ID_NO:
+            print("The operation was cancelled")
+            return
+
+        itemID = self.peaklist.GetItemCount() - 1
+        while (itemID >= 0):
+            itemInfo = self.OnGetItemInformation(itemID=itemID)
+            document = self.data_handling._on_get_document(itemInfo['document'])
+            __, __ = self.view.panelDocuments.documents.on_delete_data__heatmap(
+                document, itemInfo['document'], delete_type="heatmap.all.all",
+                ion_name=itemInfo['ionName'])
+            itemID -= 1
+
+    def delete_row_from_table(self, delete_item_name=None, delete_document_title=None):
+
+        rows = self.peaklist.GetItemCount() - 1
+        while rows >= 0:
+            itemInfo = self.OnGetItemInformation(rows)
+
+            if itemInfo['ionName'] == delete_item_name and itemInfo['document'] == delete_document_title:
+                self.peaklist.DeleteItem(rows)
+                rows = 0
+                return
+            elif delete_item_name is None and itemInfo['document'] == delete_document_title:
+                self.peaklist.DeleteItem(rows)
+            rows -= 1
 
 
 class panelExportData(wx.MiniFrame):

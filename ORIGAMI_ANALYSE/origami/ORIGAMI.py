@@ -620,8 +620,8 @@ class ORIGAMI(object):
                 pass
             document = self.documentsDict[filename]
             # Extract information from the table
-            mzStart = itemInfo['mzStart']
-            mzEnd = itemInfo['mzEnd']
+            mzStart = itemInfo['start']
+            mzEnd = itemInfo['end']
             label = itemInfo['label']
             charge = itemInfo['charge']
 
@@ -698,7 +698,9 @@ class ORIGAMI(object):
                 # Get height of the peak
                 ms = np.transpose(np.array([document.massSpectrum['xvals'], document.massSpectrum['yvals']]))
                 mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
-                tempList.SetStringItem(index=row, col=self.config.peaklistColNames['intensity'], label=str(mzYMax))
+                tempList.SetStringItem(row,
+                                       self.config.peaklistColNames['intensity'],
+                                       str(mzYMax))
 
                 # Add data to document object
                 document.gotExtractedIons = True
@@ -1041,14 +1043,15 @@ class ORIGAMI(object):
             kwargs = {'auto_range': self.config.ms_auto_range,
                       'mz_min': xlimits[0], 'mz_max': xlimits[1],
                       'linearization_mode': self.config.ms_linearization_mode}
-            msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path),
-                                                  function=1,
-                                                  startScan=startScan, endScan=endScan,
-                                                  binData=self.config.import_binOnImport,
-                                                  mzStart=self.config.ms_mzStart,
-                                                  mzEnd=self.config.ms_mzEnd,
-                                                  binsize=self.config.ms_mzBinSize,
-                                                  **kwargs)
+            msDict = io_waters.rawMassLynx_MS_bin(
+                filename=str(document.path),
+                function=1,
+                startScan=startScan, endScan=endScan,
+                binData=self.config.import_binOnImport,
+                mzStart=self.config.ms_mzStart,
+                mzEnd=self.config.ms_mzEnd,
+                binsize=self.config.ms_mzBinSize,
+                **kwargs)
 
             msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
             xlimits = [np.min(msX), np.max(msX)]
@@ -3368,8 +3371,8 @@ class ORIGAMI(object):
             filename = itemInfo['document']
             if filename != self.currentDoc:
                 continue
-            xmin = itemInfo['mzStart']
-            width = itemInfo['mzEnd'] - xmin
+            xmin = itemInfo['start']
+            width = itemInfo['end'] - xmin
             color = convertRGB255to1(itemInfo['color'])
             if np.sum(color) <= 0:
                 color = self.config.markerColor_1D

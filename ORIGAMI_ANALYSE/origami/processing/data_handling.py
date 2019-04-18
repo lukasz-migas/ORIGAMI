@@ -98,16 +98,15 @@ class data_handling():
     def _on_get_document(self, document_title=None):
 
         if document_title is None:
-            self.presenter.currentDoc = self.documentTree.on_enable_document()
+            document_title = self.documentTree.on_enable_document()
         else:
-            self.presenter.currentDoc = byte2str(document_title)
+            document_title = byte2str(document_title)
 
-        if self.presenter.currentDoc is None or \
-                self.presenter.currentDoc == "Current documents":
+        if document_title is None or document_title == "Current documents":
             return None
 
-        self.presenter.currentDoc = byte2str(self.presenter.currentDoc)
-        document = self.presenter.documentsDict[self.presenter.currentDoc]
+        document_title = byte2str(document_title)
+        document = self.presenter.documentsDict[document_title]
 
         return document
 
@@ -121,6 +120,322 @@ class data_handling():
             return path, fname
         else:
             return None, None
+
+    def _get_driftscope_spectrum_data(self, path, **kwargs):
+        kwargs.update({'return_data': True})
+        ms_x, ms_y = io_waters.driftscope_extract_MS(
+            path=path, driftscope_path=self.config.driftscopePath, **kwargs)
+
+        return ms_x, ms_y
+
+    def _get_driftscope_chromatography_data(self, path, **kwargs):
+        kwargs.update({'return_data': True, 'normalize': True})
+        xvals_RT, yvals_RT, yvals_RT_norm = io_waters.driftscope_extract_RT(
+            path=path, driftscope_path=self.config.driftscopePath, **kwargs)
+
+        return xvals_RT, yvals_RT, yvals_RT_norm
+
+    def _get_driftscope_mobiligram_data(self, path, **kwargs):
+        kwargs.update({'return_data': True})
+        xvals_DT, yvals_DT = io_waters.driftscope_extract_DT(
+            path=path, driftscope_path=self.config.driftscopePath, **kwargs)
+
+        return xvals_DT, yvals_DT
+
+    def _get_driftscope_mobility_data(self, path, **kwargs):
+        kwargs.update({'return_data': True})
+        zvals = io_waters.driftscope_extract_2D(
+            path=path, driftscope_path=self.config.driftscopePath, **kwargs)
+        y_size, x_size = zvals.shape
+        xvals = 1 + np.arange(x_size)
+        yvals = 1 + np.arange(y_size)
+
+        return xvals, yvals, zvals
+
+    def _get_driftscope_mobility_vs_spectrum_data(self, path, mz_min, mz_max, mz_binsize=None, **kwargs):
+        import math
+
+        if mz_binsize is None:
+            mz_binsize = self.config.ms_dtmsBinSize
+
+        # m/z spacing, default is 1 Da
+        n_points = int(math.floor((mz_max - mz_min) / mz_binsize))
+
+        # Extract and load data
+        kwargs.update({'return_data': True})
+        zvals_MSDT = io_waters.driftscope_extract_MZDT(
+            path=path,
+            driftscope_path=self.config.driftscopePath,
+            mz_start=mz_min,
+            mz_end=mz_max,
+            mz_nPoints=n_points,
+            **kwargs)
+
+        y_size, __ = zvals_MSDT.shape
+        # Get x/y axis
+        xvals_MSDT = np.linspace(
+            mz_min - mz_binsize,
+            mz_max + mz_binsize,
+            n_points, endpoint=True)
+        yvals_MSDT = 1 + np.arange(y_size)
+
+        return xvals_MSDT, yvals_MSDT, zvals_MSDT
+
+    def _get_masslynx_spectrum_data(self, path, mz_min, mz_max):
+        kwargs = {'auto_range': self.config.ms_auto_range,
+                  'mz_min': mz_min, 'mz_max': mz_max,
+                  'linearization_mode': self.config.ms_linearization_mode}
+        ms_dict = io_waters.rawMassLynx_MS_bin(
+            filename=path,
+            function=1,
+            binData=self.config.import_binOnImport,
+            mzStart=self.config.ms_mzStart,
+            mzEnd=self.config.ms_mzEnd,
+            binsize=self.config.ms_mzBinSize,
+            **kwargs)
+
+        # Sum MS data
+        ms_x, ms_y = pr_spectra.sum_1D_dictionary(ydict=ms_dict)
+
+        return ms_x, ms_y, ms_dict
+
+    def _get_text_spectrum_data(self, path):
+        # Extract MS file
+        xvals, yvals, dirname, extension = io_text.text_spectrum_open(path=path)
+        xlimits = get_min_max(xvals)
+
+        return xvals, yvals, dirname, xlimits, extension
+
+    def __get_document_list_of_type(self, document_type, document_format=None):
+        """
+        This helper function checkes whether any of the documents in the
+        document tree/ dictionary are of specified type
+        """
+        document_list = []
+        for document_title in self.presenter.documentsDict:
+            if self.presenter.documentsDict[document_title].dataType == document_type and document_format is None:
+                document_list.append(document_title)
+            elif (self.presenter.documentsDict[document_title].dataType == document_type and
+                  self.presenter.documentsDict[document_title].fileFormat == document_format):
+                document_list.append(document_title)
+
+        return document_list
+
+    def _get_document_of_type(self, document_type):
+        document_list = self.__get_document_list_of_type(document_type=document_type)
+
+        if len(document_list) == 0:
+            self.__update_statusbar("Did not find appropriate document. Creating a new one...", 4)
+            document = self.__create_new_document()
+        else:
+            dlg = panelSelectDocument(self.view, self, document_list)
+            if dlg.ShowModal() == wx.ID_OK:
+                return
+
+            document_title = dlg.current_document
+            if document_title is None:
+                self.__update_statusbar("Please select document", 4)
+                return
+
+            document = self._on_get_document(document_title)
+            self.__update_statusbar("Will be using {} document".format(document_title), 4)
+
+        return document
+
+    def __create_new_document(self):
+        dlg = wx.FileDialog(self.view, "Please select a name for the document",
+                            "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        if dlg.ShowModal() == wx.ID_OK:
+            path, document_title = os.path.split(dlg.GetPath())
+            document_title = byte2str(document_title)
+        else:
+            return
+
+        # Create document
+        document = documents()
+        document.title = document_title
+        document.path = path
+        document.userParameters = self.config.userParameters
+        document.userParameters['date'] = getTime()
+
+        return document
+
+    def __on_add_ion_ORIGAMI(self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge):
+        kwargs = dict(mz_start=mz_start, mz_end=mz_end)
+        # 1D
+        try:
+            __, yvals_DT = self._get_driftscope_mobiligram_data(path, **kwargs)
+        except IOError:
+            msg = "Failed to open the file - most likely because this file no longer exists" + \
+                  " or has been moved. You can change the document path by right-clicking\n" + \
+                  " on the document in the Document Tree and \n" + \
+                  " selecting Notes, Information, Labels..."
+            dlgBox(exceptionTitle='Missing folder', exceptionMsg=msg, type="Error")
+            return
+        # RT
+        __, yvals_RT, __ = self._get_driftscope_chromatography_data(path, **kwargs)
+
+        # 2D
+        xvals, yvals, zvals = self._get_driftscope_mobility_data(path, **kwargs)
+
+        # Add data to document object
+#         document.gotExtractedIons = True
+#         document.IMS2Dions[ion_name]
+        ion_data = {'zvals': zvals,
+                    'xvals': xvals,
+                    'xlabels': 'Scans',
+                    'yvals': yvals,
+                    'ylabels': 'Drift time (bins)',
+                    'cmap': item_information.get('colormap', self.config.currentCmap),
+                    'yvals1D': yvals_DT,
+                    'yvalsRT': yvals_RT,
+                    'title': label,
+                    'label': label,
+                    'charge': charge,
+                    'alpha': item_information['alpha'],
+                    'mask': item_information['mask'],
+                    'color': item_information['color'],
+                    'min_threshold': item_information['min_threshold'],
+                    'max_threshold': item_information['max_threshold'],
+                    'xylimits': [mz_start, mz_end, mz_y_max]}
+
+        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.raw")
+
+    def __on_add_ion_MANUAL(self, item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label):
+
+        self.filesList.on_sort(2, True)
+        tempDict = {}
+        for item in range(self.filesList.GetItemCount()):
+            # Determine whether the title of the document matches the title of the item in the table
+            # if it does not, skip the row
+            docValue = self.filesList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
+            if docValue != document.title:
+                continue
+
+            nameValue = self.filesList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
+            try:
+                path = document.multipleMassSpectrum[nameValue]['path']
+                dt_x, dt_y = self._get_driftscope_mobiligram_data(path, mz_start=mz_start, mz_end=mz_end)
+            # if the files were moved, we can at least try to with the document path
+            except IOError:
+                try:
+                    path = os.path.join(document.path, nameValue)
+                    dt_x, dt_y = self._get_driftscope_mobiligram_data(path, mz_start=mz_start, mz_end=mz_end)
+                    document.multipleMassSpectrum[nameValue]['path'] = path
+                except Exception:
+                    msg = "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
+                          "by updating the document path by right-clicking on the document and selecting\n" + \
+                          "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
+                          "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
+                    dlgBox(exceptionTitle='Error',
+                           exceptionMsg=msg,
+                           type="Error")
+                    return
+
+            # Get height of the peak
+            self.ionPanel.on_update_value_in_peaklist(ion_id, "method", "Manual")
+
+            # Create temporary dictionary for all IMS data
+            tempDict[nameValue] = [dt_y]
+            # Add 1D data to 1D data container
+            newName = "{}, File: {}".format(ion_name, nameValue)
+
+            ion_data = {'xvals': dt_x,
+                        'yvals': dt_y,
+                        'xlabels': 'Drift time (bins)',
+                        'ylabels': 'Intensity',
+                        'charge': charge,
+                        'xylimits': [mz_start, mz_end, mz_y_max],
+                        'filename': nameValue}
+            self.documentTree.on_update_data(ion_data, newName, document, data_type="ion.mobiligram")
+
+        # Combine the contents in the dictionary - assumes they are ordered!
+        counter = 0  # needed to start off
+        xlabelsActual = []
+        for counter, item in enumerate(range(self.filesList.GetItemCount()), 1):
+            # Determine whether the title of the document matches the title of the item in the table
+            # if it does not, skip the row
+            docValue = self.filesList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
+            if docValue != document.title:
+                continue
+            key = self.filesList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
+            if counter == 1:
+                tempArray = tempDict[key][0]
+                xLabelLow = document.multipleMassSpectrum[key]['trap']  # first iteration so first value
+                xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
+            else:
+                imsList = tempDict[key][0]
+                tempArray = np.concatenate((tempArray, imsList), axis=0)
+                xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
+
+        # Reshape data to form a 2D array of size 200 x number of files
+        imsData2D = tempArray.reshape((200, counter), order='F')
+
+        # Combine 2D array into 1D
+        rtDataY = np.sum(imsData2D, axis=0)
+        imsData1D = np.sum(imsData2D, axis=1).T
+
+        # Get the x-axis labels
+        xLabelHigh = document.multipleMassSpectrum[key]['trap']  # after the loop has finished, so last value
+        if xLabelLow in [None, "None"] or xLabelHigh in [None, "None"]:
+            msg = "The user-specified labels appear to be 'None'. Rather than failing to generate x-axis labels" + \
+                  " a list of 1-n values is created."
+            logger.warning(msg)
+            xlabels = np.arange(1, counter)
+        else:
+            xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
+        ylabels = 1 + np.arange(imsData1D.shape[0])
+
+        # Add data to the document
+        ion_data = {'zvals': imsData2D,
+                    'xvals': xlabels,
+                    'xlabels': 'Collision Voltage (V)',
+                    'yvals': ylabels,
+                    'ylabels': 'Drift time (bins)',
+                    'yvals1D': imsData1D,
+                    'yvalsRT': rtDataY,
+                    'cmap': document.colormap,
+                    'title': label,
+                    'label': label,
+                    'charge': charge,
+                    'alpha': item_information['alpha'],
+                    'mask': item_information['mask'],
+                    'color': item_information['color'],
+                    'min_threshold': item_information['min_threshold'],
+                    'max_threshold': item_information['max_threshold'],
+                    'xylimits': [mz_start, mz_end, mz_y_max]}
+
+        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.combined")
+
+    def __on_add_ion_IR(self, item_information, document, path, mz_start, mz_end, ion_name, ion_id, charge, label):
+        # 2D
+        __, __, zvals = self._get_driftscope_mobility_data(path)
+
+        dataSplit, xvals, yvals, yvals_RT, yvals_DT = pr_origami.origami_combine_infrared(
+            inputData=zvals, threshold=2000, noiseLevel=500)
+
+        mz_y_max = item_information['intensity']
+        # Add data to document object
+        ion_data = {'zvals': dataSplit,
+                    'xvals': xvals,
+                    'xlabels': 'Wavenumber (cm⁻¹)',
+                    'yvals': yvals,
+                    'ylabels': 'Drift time (bins)',
+                    'cmap': self.config.currentCmap,
+                    'yvals1D': yvals_DT,
+                    'yvalsRT': yvals_RT,
+                    'title': label,
+                    'label': label,
+                    'charge': charge,
+                    'alpha': item_information['alpha'],
+                    'mask': item_information['mask'],
+                    'color': item_information['color'],
+                    'min_threshold': item_information['min_threshold'],
+                    'max_threshold': item_information['max_threshold'],
+                    'xylimits': [mz_start, mz_end, mz_y_max]}
+        # Update document
+        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.raw")
+        self.on_update_document(document, 'ions')
 
     def __on_add_text_2D(self, filename, filepath):
 
@@ -219,84 +534,6 @@ class data_handling():
         # Update document
         self.view.updateRecentFiles(path={'file_type': 'Text_MS', 'file_path': path})
         self.on_update_document(document, 'document')
-
-    def _get_driftscope_spectrum_data(self, path, **kwargs):
-        kwargs.update({'return_data': True})
-        ms_x, ms_y = io_waters.driftscope_extract_MS(
-            path=path, driftscope_path=self.config.driftscopePath, **kwargs)
-
-        return ms_x, ms_y
-
-    def _get_driftscope_chromatography_data(self, path, **kwargs):
-        kwargs.update({'return_data': True, 'normalize': True})
-        xvals_RT, yvals_RT, yvals_RT_norm = io_waters.driftscope_extract_RT(
-            path=path, driftscope_path=self.config.driftscopePath, **kwargs)
-
-        return xvals_RT, yvals_RT, yvals_RT_norm
-
-    def _get_driftscope_mobiligram_data(self, path, **kwargs):
-        kwargs.update({'return_data': True})
-        xvals_DT, yvals_DT = io_waters.driftscope_extract_DT(
-            path=path, driftscope_path=self.config.driftscopePath, **kwargs)
-
-        return xvals_DT, yvals_DT
-
-    def _get_driftscope_mobility_data(self, path, **kwargs):
-        kwargs.update({'return_data': True})
-        zvals = io_waters.driftscope_extract_2D(
-            path=path, driftscope_path=self.config.driftscopePath, **kwargs)
-        y_size, x_size = zvals.shape
-        xvals = 1 + np.arange(x_size)
-        yvals = 1 + np.arange(y_size)
-
-        return xvals, yvals, zvals
-
-    def _get_driftscope_mobility_vs_spectrum_data(self, path, mz_min, mz_max, mz_binsize=None, **kwargs):
-        import math
-
-        if mz_binsize is None:
-            mz_binsize = self.config.ms_dtmsBinSize
-
-        # m/z spacing, default is 1 Da
-        n_points = int(math.floor((mz_max - mz_min) / mz_binsize))
-
-        # Extract and load data
-        kwargs.update({'return_data': True})
-        zvals_MSDT = io_waters.driftscope_extract_MZDT(
-            path=path,
-            driftscope_path=self.config.driftscopePath,
-            mz_start=mz_min,
-            mz_end=mz_max,
-            mz_nPoints=n_points,
-            **kwargs)
-
-        y_size, __ = zvals_MSDT.shape
-        # Get x/y axis
-        xvals_MSDT = np.linspace(
-            mz_min - mz_binsize,
-            mz_max + mz_binsize,
-            n_points, endpoint=True)
-        yvals_MSDT = 1 + np.arange(y_size)
-
-        return xvals_MSDT, yvals_MSDT, zvals_MSDT
-
-    def _get_masslynx_spectrum_data(self, path, mz_min, mz_max):
-        kwargs = {'auto_range': self.config.ms_auto_range,
-                  'mz_min': mz_min, 'mz_max': mz_max,
-                  'linearization_mode': self.config.ms_linearization_mode}
-        ms_dict = io_waters.rawMassLynx_MS_bin(
-            filename=path,
-            function=1,
-            binData=self.config.import_binOnImport,
-            mzStart=self.config.ms_mzStart,
-            mzEnd=self.config.ms_mzEnd,
-            binsize=self.config.ms_mzBinSize,
-            **kwargs)
-
-        # Sum MS data
-        ms_x, ms_y = pr_spectra.sum_1D_dictionary(ydict=ms_dict)
-
-        return ms_x, ms_y, ms_dict
 
     def on_update_document(self, document, expand_item='document', expand_item_title=None):
 
@@ -432,8 +669,8 @@ class data_handling():
             if document.dataType in ['Type: ORIGAMI', 'Type: MANUAL', 'Type: Infrared']:
                 self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
                 # Check if value already present
-                outcome = self.ionPanel.onCheckForDuplicates(mzStart=str(mz_start),
-                                                             mzEnd=str(mz_end))
+                outcome = self.ionPanel.onCheckForDuplicates(
+                    mzStart=str(mz_start), mzEnd=str(mz_end))
                 if outcome:
                     self.SetStatusText('Selected range already in the table', 3)
                     if currentView == "MS":
@@ -448,7 +685,7 @@ class data_handling():
                                  "colormap": colormap,
                                  "alpha": self.config.overlay_defaultAlpha,
                                  "mask": self.config.overlay_defaultMask,
-                                 "document": currentDoc}
+                                 "document": document_title}
                 self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
 
                 if self.config.showRectanges:
@@ -535,7 +772,7 @@ class data_handling():
             xvalDiff = xvalsMax - xvalsMin.astype(int)
             self.view.panelLinearDT.topP.peaklist.Append([xvalsMin, xvalsMax,
                                                           xvalDiff, "",
-                                                          self.presenter.currentDoc])
+                                                          document_title])
 
             self.plotsPanel.on_add_patch(xvalsMin, 0, (xvalsMax - xvalsMin), 100000000000,
                                          color=self.config.annotColor,
@@ -561,7 +798,7 @@ class data_handling():
 
             # Check if difference between the two values is large enough
             if (xvalsMax - xvalsMin) < 1 and rt_label == "Scans":
-                self.SetStatusText('The scan range you selected was too small. Please choose wider range', 3)
+                self.view.SetStatusText('The scan range you selected was too small. Please choose wider range', 3)
                 return
             # Extract data
             if document.fileFormat == "Format: Thermo (.RAW)":
@@ -829,13 +1066,6 @@ class data_handling():
         self.on_threading(args=("Opened file in {:.4f} seconds".format(ttime() - tstart), 4),
                           action='statusbar.update')
 
-    def _get_text_spectrum_data(self, path):
-        # Extract MS file
-        xvals, yvals, dirname, extension = io_text.text_spectrum_open(path=path)
-        xlimits = get_min_max(xvals)
-
-        return xvals, yvals, dirname, xlimits, extension
-
     def on_open_single_text_MS_fcn(self, evt):
         wildcard = "Text file (*.txt, *.csv, *.tab)| *.txt;*.csv;*.tab"
         dlg = wx.FileDialog(self.view, "Choose MS text file...",
@@ -989,204 +1219,21 @@ class data_handling():
             args = (evt,)
             self.on_threading(action='extract.heatmap', args=args)
 
-    def __add_ion_ORIGAMI(self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge):
-        kwargs = dict(mz_start=mz_start, mz_end=mz_end)
-        # 1D
-        try:
-            __, yvals_DT = self._get_driftscope_mobiligram_data(path, **kwargs)
-        except IOError:
-            msg = "Failed to open the file - most likely because this file no longer exists" + \
-                  " or has been moved. You can change the document path by right-clicking\n" + \
-                  " on the document in the Document Tree and \n" + \
-                  " selecting Notes, Information, Labels..."
-            dlgBox(exceptionTitle='Missing folder', exceptionMsg=msg, type="Error")
-            return
-        # RT
-        __, yvals_RT, __ = self._get_driftscope_chromatography_data(path, **kwargs)
-
-        # 2D
-        xvals, yvals, zvals = self._get_driftscope_mobility_data(path, **kwargs)
-
-        # Add data to document object
-#         document.gotExtractedIons = True
-#         document.IMS2Dions[ion_name]
-        ion_data = {'zvals': zvals,
-                                         'xvals': xvals,
-                                          'xlabels': 'Scans',
-                                          'yvals': yvals,
-                                          'ylabels': 'Drift time (bins)',
-                                          'cmap': item_information.get('colormap', self.config.currentCmap),
-                                          'yvals1D': yvals_DT,
-                                          'yvalsRT': yvals_RT,
-                                          'title': label,
-                                          'label': label,
-                                          'charge': charge,
-                                          'alpha': item_information['alpha'],
-                                          'mask': item_information['mask'],
-                                          'color': item_information['color'],
-                                          'min_threshold': item_information['min_threshold'],
-                                          'max_threshold': item_information['max_threshold'],
-                                          'xylimits': [mz_start, mz_end, mz_y_max]}
-
-        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.raw")
-
-        # Update document
-        # if auto extract is enabled and the user extracts items rapidly it can
-        # cause an issue so its a small hack to fix that
-        try:
-            self.on_update_document(document, 'ions', expand_item_title=ion_name)
-        except wx.PyAssertionError:
-            tsleep(0.1)
-            self.on_update_document(document, 'ions')
-
-    def __add_ion_MANUAL(self, item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label):
-
-        self.filesPanel.OnSortByColumn(column=1, overrideReverse=True)
-        tempDict = {}
-        for item in range(self.filesList.GetItemCount()):
-            # Determine whether the title of the document matches the title of the item in the table
-            # if it does not, skip the row
-            docValue = self.filesList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
-            if docValue != document.title:
-                continue
-
-            nameValue = self.filesList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
-            try:
-                path = document.multipleMassSpectrum[nameValue]['path']
-                dt_x, dt_y = self._get_driftscope_mobiligram_data(path, mz_start=mz_start, mz_end=mz_end)
-            # if the files were moved, we can at least try to with the document path
-            except IOError:
-                try:
-                    path = os.path.join(document.path, nameValue)
-                    dt_x, dt_y = self._get_driftscope_mobiligram_data(path, mz_start=mz_start, mz_end=mz_end)
-                    document.multipleMassSpectrum[nameValue]['path'] = path
-                except Exception:
-                    msg = "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
-                          "by updating the document path by right-clicking on the document and selecting\n" + \
-                          "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
-                          "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
-                    dlgBox(exceptionTitle='Error',
-                           exceptionMsg=msg,
-                           type="Error")
-                    return
-
-            # Get height of the peak
-            self.ionList.SetStringItem(ion_id, self.config.peaklistColNames['method'], 'Manual')
-            # Create temporary dictionary for all IMS data
-            tempDict[nameValue] = [dt_y]
-            # Add 1D data to 1D data container
-            newName = "{}, File: {}".format(ion_name, nameValue)
-
-            ion_data = {'xvals': dt_x,
-                        'yvals': dt_y,
-                        'xlabels': 'Drift time (bins)',
-                        'ylabels': 'Intensity',
-                        'charge': charge,
-                        'xylimits': [mz_start, mz_end, mz_y_max],
-                        'filename': nameValue}
-            self.documentTree.on_update_data(ion_data, newName, document, data_type="ion.mobiligram")
-
-        # Combine the contents in the dictionary - assumes they are ordered!
-        counter = 0  # needed to start off
-        xlabelsActual = []
-        for counter, item in enumerate(range(self.filesList.GetItemCount()), 1):
-            # Determine whether the title of the document matches the title of the item in the table
-            # if it does not, skip the row
-            docValue = self.filesList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
-            if docValue != document.title:
-                continue
-            key = self.filesList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
-            if counter == 1:
-                tempArray = tempDict[key][0]
-                xLabelLow = document.multipleMassSpectrum[key]['trap']  # first iteration so first value
-                xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
-            else:
-                imsList = tempDict[key][0]
-                tempArray = np.concatenate((tempArray, imsList), axis=0)
-                xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
-
-        # Reshape data to form a 2D array of size 200 x number of files
-        imsData2D = tempArray.reshape((200, counter), order='F')
-
-        # Combine 2D array into 1D
-        rtDataY = np.sum(imsData2D, axis=0)
-        imsData1D = np.sum(imsData2D, axis=1).T
-
-        # Get the x-axis labels
-        xLabelHigh = document.multipleMassSpectrum[key]['trap']  # after the loop has finished, so last value
-        if xLabelLow in [None, "None"] or xLabelHigh in [None, "None"]:
-            msg = "The user-specified labels appear to be 'None'. Rather than failing to generate x-axis labels" + \
-                  " a list of 1-n values is created."
-            logger.warning(msg)
-            xlabels = np.arange(1, counter)
-        else:
-            xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
-        ylabels = 1 + np.arange(imsData1D.shape[0])
-
-        # Add data to the document
-        ion_data = {'zvals': imsData2D,
-                    'xvals': xlabels,
-                    'xlabels': 'Collision Voltage (V)',
-                    'yvals': ylabels,
-                    'ylabels': 'Drift time (bins)',
-                    'yvals1D': imsData1D,
-                    'yvalsRT': rtDataY,
-                    'cmap': document.colormap,
-                    'title': label,
-                    'label': label,
-                    'charge': charge,
-                    'alpha': item_information['alpha'],
-                    'mask': item_information['mask'],
-                    'color': item_information['color'],
-                    'min_threshold': item_information['min_threshold'],
-                    'max_threshold': item_information['max_threshold'],
-                    'xylimits': [mz_start, mz_end, mz_y_max]}
-
-        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.combined")
-
-    def __add_ion_IR(self, item_information, document, path, mz_start, mz_end, ion_name, ion_id, charge, label):
-        # 2D
-        __, __, zvals = self._get_driftscope_mobility_data(path)
-
-        dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT = pr_origami.origami_combine_infrared(
-            inputData=zvals, threshold=2000, noiseLevel=500)
-
-        mz_y_max = item_information['intensity']
-        # Add data to document object
-        document.gotExtractedIons = True
-        document.IMS2Dions[ion_name] = {'zvals': dataSplit,
-                                         'xvals': xAxisLabels,
-                                          'xlabels': 'Wavenumber (cm⁻¹)',
-                                          'yvals': yAxisLabels,
-                                          'ylabels': 'Drift time (bins)',
-                                          'cmap': document.colormap,
-                                          'yvals1D': data1DT,
-                                          'yvalsRT': dataRT,
-                                          'title': label,
-                                          'label': label,
-                                          'charge': charge,
-                                          'alpha': item_information['alpha'],
-                                          'mask': item_information['mask'],
-                                          'color': item_information['color'],
-                                          'min_threshold': item_information['min_threshold'],
-                                          'max_threshold': item_information['max_threshold'],
-                                          'xylimits': [mz_start, mz_end, mz_y_max]}
-        # Update document
-        self.on_update_document(document, 'ions')
-
     def on_extract_2D_from_mass_range(self, extract_type="all"):
         """ extract multiple ions = threaded """
 
         for ion_id in range(self.ionList.GetItemCount()):
             # Extract ion name
-            item_information = self.view.panelMultipleIons.OnGetItemInformation(itemID=ion_id)
+            item_information = self.ionPanel.OnGetItemInformation(itemID=ion_id)
             document_title = item_information['document']
+            print("doc", document_title)
+
             # Check if the ion has been assigned a filename
             if document_title == '':
                 self.__update_statusbar('File name column was empty. Using the current document name instead', 4)
                 document = self._on_get_document()
                 document_title = document.title
-                self.ionList.SetStringItem(ion_id, self.config.peaklistColNames['filename'], document_title)
+                self.ionPanel.on_update_value_in_peaklist(ion_id, "document", document_title)
 
             document = self._on_get_document(document_title)
             path = document.path
@@ -1196,8 +1243,8 @@ class data_handling():
                 return
 
             # Extract information from the table
-            mz_start = item_information['mzStart']
-            mz_end = item_information['mzEnd']
+            mz_start = item_information['start']
+            mz_end = item_information['end']
             mz_y_max = item_information['intensity']
             label = item_information['label']
             charge = item_information['charge']
@@ -1220,8 +1267,7 @@ class data_handling():
             if extract_type == 'new' and document.gotExtractedIons:
                 try:
                     if document.IMS2Dions[ion_name]:
-                        self.onThreading(None, ("Data was already extracted for the : {} ion".format(ion_name), 4),
-                                         action='updateStatusbar')
+                        self.__update_statusbar("Data was already extracted for the : {} ion".format(ion_name), 4)
                         continue
                 except KeyError:
                     pass
@@ -1239,16 +1285,16 @@ class data_handling():
                 continue
 
             if document.dataType == 'Type: ORIGAMI':
-                self.__add_ion_ORIGAMI(
+                self.__on_add_ion_ORIGAMI(
                     item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge)
 
             # Check if manual dataset
             elif document.dataType == 'Type: MANUAL':
-                self.__add_ion_MANUAL(
+                self.__on_add_ion_MANUAL(
                     item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label)
 
             elif document.dataType == 'Type: Infrared':
-                self.__add_ion_IR(
+                self.__on_add_ion_IR(
                     item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label)
             else:
                 return
@@ -1280,60 +1326,6 @@ class data_handling():
             self.on_open_multiple_ML_files(document, open_type, pathlist)
         else:
             self.on_threading("load.multiple.raw.masslynx", (document, open_type, pathlist,))
-
-    def __get_document_list_of_type(self, document_type, document_format=None):
-        """
-        This helper function checkes whether any of the documents in the
-        document tree/ dictionary are of specified type
-        """
-        document_list = []
-        for document_title in self.presenter.documentsDict:
-            if self.presenter.documentsDict[document_title].dataType == document_type and document_format is None:
-                document_list.append(document_title)
-            elif (self.presenter.documentsDict[document_title].dataType == document_type and
-                  self.presenter.documentsDict[document_title].fileFormat == document_format):
-                document_list.append(document_title)
-
-        return document_list
-
-    def _get_document_of_type(self, document_type):
-        document_list = self.__get_document_list_of_type(document_type=document_type)
-
-        if len(document_list) == 0:
-            self.__update_statusbar("Did not find appropriate document. Creating a new one...", 4)
-            document = self.__create_new_document()
-        else:
-            dlg = panelSelectDocument(self.view, self, document_list)
-            if dlg.ShowModal() == wx.ID_OK:
-                return
-
-            document_title = dlg.current_document
-            if document_title is None:
-                self.__update_statusbar("Please select document", 4)
-                return
-
-            document = self._on_get_document(document_title)
-            self.__update_statusbar("Will be using {} document".format(document_title), 4)
-
-        return document
-
-    def __create_new_document(self):
-        dlg = wx.FileDialog(self.view, "Please select a name for the document",
-                            "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        if dlg.ShowModal() == wx.ID_OK:
-            path, document_title = os.path.split(dlg.GetPath())
-            document_title = byte2str(document_title)
-        else:
-            return
-
-        # Create document
-        document = documents()
-        document.title = document_title
-        document.path = path
-        document.userParameters = self.config.userParameters
-        document.userParameters['date'] = getTime()
-
-        return document
 
     def on_open_multiple_ML_files(self, document, open_type, pathlist=[]):
         # http://stackoverflow.com/questions/1252481/sort-dictionary-by-another-dictionary

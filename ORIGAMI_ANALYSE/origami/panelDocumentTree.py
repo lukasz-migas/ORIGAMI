@@ -5138,6 +5138,7 @@ class documentsTree(wx.TreeCtrl):
                 annotsItem = self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2Dions[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
+
         if docData.gotCombinedExtractedIons == True:
             docIonItem = self.AppendItem(docItem, 'Drift time (2D, combined voltages, EIC)')
             self.SetItemImage(docIonItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
@@ -5982,6 +5983,165 @@ class documentsTree(wx.TreeCtrl):
                     # collect garbage
                     gc.collect()
 
+    def on_delete_data__heatmap(self, document, document_title,
+                                delete_type, ion_name=None,
+                                confirm_deletion=False):
+        """
+        Delete data from document tree and document
+
+        Parameters
+        ----------
+        document: py object
+            document object
+        document_title: str
+            name of the document - also found in document.title
+        delete_type: str
+            type of deletion. Accepted: `file.all`, `file.one`
+        ion_name: str
+            name of the unsupervised item to be deleted
+        confirm_deletion: bool
+            check whether all items should be deleted before performing the task
+
+
+        Returns
+        -------
+        document: py object
+            updated document object
+        outcome: bool
+            result of positive/negative deletion of document tree object
+        """
+
+        if confirm_deletion:
+            msg = "Are you sure you want to continue with this action?" + \
+                  "\nThis action cannot be undone."
+            dlg = dlgBox(exceptionMsg=msg, type="Question")
+            if dlg == wx.ID_NO:
+                logger.info("The operation was cancelled")
+                return document, True
+
+        docItem = False
+        if delete_type == "heatmap.all.one":
+            delete_types = ["heatmap.raw.one", "heatmap.processed.one", "heatmap.combined.one", "heatmap.rt.one"]
+        elif delete_type == "heatmap.all.all":
+            delete_types = ["heatmap.raw.all", "heatmap.processed.all", "heatmap.combined.all", "heatmap.rt.all"]
+        else:
+            delete_types = [delete_type]
+
+        # delete all classes
+        if delete_type.endswith(".all"):
+            for delete_type in delete_types:
+                if delete_type == "heatmap.raw.all":
+                    docItem = self.getItemByData(document.IMS2Dions)
+                    document.IMS2Dions = {}
+                    document.gotExtractedIons = False
+                elif delete_type == "heatmap.processed.all":
+                    docItem = self.getItemByData(document.IMS2DionsProcess)
+                    document.IMS2DionsProcess = {}
+                    document.got2DprocessIons = False
+                elif delete_type == "heatmap.rt.all":
+                    docItem = self.getItemByData(document.IMSRTCombIons)
+                    document.IMSRTCombIons = {}
+                    document.gotCombinedExtractedIonsRT = False
+                elif delete_type == "heatmap.combined.all":
+                    docItem = self.getItemByData(document.IMS2DCombIons)
+                    document.IMS2DCombIons = {}
+                    document.gotCombinedExtractedIons = False
+
+                try:
+                    self.Delete(docItem)
+                except:
+                    logger.warning("Failed to delete: {}".format(delete_type))
+
+            self.ionPanel.delete_row_from_table(
+                delete_item_name=None,
+                delete_document_title=document_title)
+
+        elif delete_type.endswith(".one"):
+            for delete_type in delete_types:
+                if delete_type == "heatmap.raw.one":
+                    main_docItem = self.getItemByData(document.IMS2Dions)
+                    docItem = self.getItemByData(document.IMS2Dions.get(ion_name, "N/A"))
+                    if docItem not in ["N/A", None, False]:
+                        try:
+                            del document.IMS2Dions[ion_name]
+                        except KeyError:
+                            logger.warning("Failed to delete {}: {} from {}.".format(
+                                delete_type, ion_name, document_title))
+                        if len(document.IMS2Dions) == 0:
+                            document.gotExtractedIons = False
+                            try:
+                                self.Delete(main_docItem)
+                            except Exception:
+                                pass
+                elif delete_type == "heatmap.processed.one":
+                    main_docItem = self.getItemByData(document.IMS2DionsProcess)
+                    docItem = self.getItemByData(document.IMS2DionsProcess.get(ion_name, "N/A"))
+                    if docItem not in ["N/A", None, False]:
+                        try:
+                            del document.IMS2DionsProcess[ion_name]
+                        except KeyError:
+                            logger.warning("Failed to delete {}: {} from {}.".format(
+                                delete_type, ion_name, document_title))
+                        if len(document.IMS2DionsProcess) == 0:
+                            document.got2DprocessIons = False
+                            try:
+                                self.Delete(main_docItem)
+                            except Exception:
+                                pass
+                elif delete_type == "heatmap.rt.one":
+                    main_docItem = self.getItemByData(document.IMSRTCombIons)
+                    docItem = self.getItemByData(document.IMSRTCombIons.get(ion_name, "N/A"))
+                    if docItem not in ["N/A", None, False]:
+                        try:
+                            del document.IMSRTCombIons[ion_name]
+                        except KeyError:
+                            logger.warning("Failed to delete {}: {} from {}.".format(
+                                delete_type, ion_name, document_title))
+                        if len(document.IMSRTCombIons) == 0:
+                            document.gotCombinedExtractedIonsRT = False
+                            try:
+                                self.Delete(main_docItem)
+                            except Exception:
+                                pass
+                elif delete_type == "heatmap.combined.one":
+                    main_docItem = self.getItemByData(document.IMS2DCombIons)
+                    docItem = self.getItemByData(document.IMS2DCombIons.get(ion_name, "N/A"))
+                    if docItem not in ["N/A", None, False]:
+                        try:
+                            del document.IMS2DCombIons[ion_name]
+                        except KeyError:
+                            logger.warning("Failed to delete {}: {} from {}.".format(
+                                delete_type, ion_name, document_title))
+                        if len(document.IMS2DCombIons) == 0:
+                            document.gotCombinedExtractedIons = False
+                            try:
+                                self.Delete(main_docItem)
+                            except Exception:
+                                pass
+
+                try:
+                    self.Delete(docItem)
+                    docItem = False
+                except Exception:
+                    pass
+
+            self.ionPanel.delete_row_from_table(
+                delete_item_name=ion_name,
+                delete_document_title=document_title)
+
+#         if len(document.multipleMassSpectrum) == 0:
+#             document.gotMultipleMS = False
+#             try:
+#                 self.Delete(main_docItem)
+#             except Exception:
+#                 logger.warning("Failed to delete item: Mass Spectra from the document tree")
+
+        if docItem is False:
+            return document, False
+        else:
+            self.Delete(docItem)
+            return document, True
+
     def on_delete_data__mass_spectra(self, document, document_title,
                                      delete_type, spectrum_name=None,
                                      confirm_deletion=False):
@@ -6073,11 +6233,6 @@ class documentsTree(wx.TreeCtrl):
             document.gotMultipleMS = True
             document.multipleMassSpectrum[item_name] = item_data
 
-        elif data_type == "ion.heatmap.combined":
-            item = self.getItemByData(document.IMS2DCombIons)
-            document.gotCombinedExtractedIons = True
-            document.IMS2DCombIons[item_name] = item_data
-
         elif data_type == "ion.mobiligram":
             item = self.getItemByData(document.IMS1DdriftTimes)
             document.gotExtractedDriftTimes = True
@@ -6088,22 +6243,28 @@ class documentsTree(wx.TreeCtrl):
             document.gotExtractedIons = True
             document.IMS2Dions[item_name] = item_data
 
+        elif data_type == "ion.heatmap.combined":
+            item = self.getItemByData(document.IMS2DCombIons)
+            document.gotCombinedExtractedIons = True
+            document.IMS2DCombIons[item_name] = item_data
+
         if item is not False and not set_data_only:
             if data_type == "spectrum":
                 self.append_one_data(item, document.multipleMassSpectrum[item_name], item_name,
-                                     image=data_type)
-            # add CIU-style data
-            elif data_type == "ion.heatmap.combined":
-                self.append_one_data(item, document.IMS2DCombIons[item_name], item_name,
-                                     image=data_type)
-            # add heatmap-raw data
-            elif data_type == "ion.heatmap.raw":
-                self.append_one_data(item, document.IMS2Dions[item_name], item_name,
                                      image=data_type)
             # add mobiligram data
             elif data_type == "ion.mobiligram":
                 self.append_one_data(item, document.IMS1DdriftTimes[item_name], item_name,
                                      image=data_type)
+            # add heatmap-raw data
+            elif data_type == "ion.heatmap.raw":
+                self.append_one_data(item, document.IMS2Dions[item_name], item_name,
+                                     image=data_type)
+            # add CIU-style data
+            elif data_type == "ion.heatmap.combined":
+                self.append_one_data(item, document.IMS2DCombIons[item_name], item_name,
+                                     image=data_type)
+            # add data to document without updating it
             self.data_handling.on_update_document(document, 'no_refresh')
         else:
             self.data_handling.on_update_document(document, 'document')

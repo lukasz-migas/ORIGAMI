@@ -54,7 +54,6 @@ class panelModifyIonSettings(wx.MiniFrame):
 
         # fire-up events
         self.onSetupParameters(evt=None)
-    # ----
 
     def OnKey(self, evt):
         keyCode = evt.GetKeyCode()
@@ -66,12 +65,18 @@ class panelModifyIonSettings(wx.MiniFrame):
     def onClose(self, evt):
         """Destroy this frame."""
         self.Destroy()
-    # ----
 
     def onSelect(self, evt):
         self.OnAssignColor(evt=None)
         self.parent.onUpdateDocument(itemInfo=self.itemInfo, evt=None)
         self.Destroy()
+
+    @staticmethod
+    def __check_label(input_value):
+        if input_value is None:
+            return ""
+        else:
+            return str(input_value)
 
     def makeGUI(self):
 
@@ -101,11 +106,10 @@ class panelModifyIonSettings(wx.MiniFrame):
         ion_label = wx.StaticText(panel, wx.ID_ANY, "Ion:")
         self.origami_ion_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
 
-        label_label = wx.StaticText(panel, wx.ID_ANY,
-                                    "Label:", wx.DefaultPosition,
+        label_label = wx.StaticText(panel, wx.ID_ANY, "Label:", wx.DefaultPosition,
                                     wx.DefaultSize, wx.ALIGN_LEFT)
         self.origami_label_value = wx.TextCtrl(panel, -1, "", size=(90, -1))
-        self.origami_label_value.SetValue(self.itemInfo['label'])
+        self.origami_label_value.SetValue(self.__check_label(self.itemInfo['label']))
         self.origami_label_value.Bind(wx.EVT_TEXT, self.onApply)
 
         charge_label = wx.StaticText(panel, wx.ID_ANY, "Charge:")
@@ -355,7 +359,7 @@ class panelModifyIonSettings(wx.MiniFrame):
         # update ion value
         try:
             charge = str2int(self.itemInfo['charge'])
-            ion_centre = (str2num(self.itemInfo['mzStart']) + str2num(self.itemInfo['mzEnd'])) / 2
+            ion_centre = (str2num(self.itemInfo['start']) + str2num(self.itemInfo['end'])) / 2
             mw = (ion_centre - self.config.elementalMass['Hydrogen'] * charge) * charge
             ion_value = ("%s  ~%.2f Da") % (self.itemInfo['ionName'], mw)
             self.origami_ion_value.SetValue(ion_value)
@@ -375,15 +379,15 @@ class panelModifyIonSettings(wx.MiniFrame):
 
         try:
             charge = str2int(self.itemInfo['charge'])
-            ion_centre = (str2num(self.itemInfo['mzStart']) + str2num(self.itemInfo['mzEnd'])) / 2
+            ion_centre = (str2num(self.itemInfo['start']) + str2num(self.itemInfo['end'])) / 2
             mw = (ion_centre - self.config.elementalMass['Hydrogen'] * charge) * charge
             ion_value = ("%s  ~%.2f Da") % (self.itemInfo['ionName'], mw)
             self.origami_ion_value.SetValue(ion_value)
         except Exception:
-            self.origami_ion_value.SetValue(self.itemInfo['ionName'])
+            self.origami_ion_value.SetValue(self.__check_label(self.itemInfo['ionName']))
 
         self.origami_charge_value.SetValue(str(self.itemInfo['charge']))
-        self.origami_label_value.SetValue(self.itemInfo['label'])
+        self.origami_label_value.SetValue(self.__check_label(self.itemInfo['label']))
         self.origami_colormap_value.SetStringSelection(self.itemInfo['colormap'])
         self.origami_mask_value.SetValue(self.itemInfo['mask'])
         self.origami_transparency_value.SetValue(self.itemInfo['alpha'])

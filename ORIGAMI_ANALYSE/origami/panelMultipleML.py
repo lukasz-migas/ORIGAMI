@@ -24,8 +24,8 @@ from os.path import splitext
 from operator import itemgetter
 from natsort import natsorted
 
-from styles import makeTooltip, makeMenuItem, EditableListCtrl, ListCtrl
-from toolbox import (removeListDuplicates, convertRGB255to1,
+from styles import makeTooltip, makeMenuItem, ListCtrl
+from toolbox import (convertRGB255to1,
                      convertRGB1to255, mlen, determineFontColor,
                      randomColorGenerator)
 from processing.spectra import interpolate
@@ -41,7 +41,6 @@ from ids import ID_mmlPanel_addToDocument, ID_mmlPanel_assignColor, ID_mmlPanel_
     ID_mmlPanel_overlayFoundPeaks, ID_mmlPanel_data_combineMS, ID_mmlPanel_batchRunUniDec, ID_mmlPanel_plot_combined_MS, \
     ID_mmlPanel_table_filename, ID_mmlPanel_table_variable, ID_mmlPanel_table_document, ID_mmlPanel_table_label, \
     ID_mmlPanel_table_hideAll, ID_mmlPanel_table_restoreAll
-from utils.converters import str2num
 from utils.random import randomIntegerGenerator
 
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
@@ -76,9 +75,10 @@ class panelMML(wx.Panel):
             2: {"name":"variable", "tag":"energy", "type":"float"},
             3: {"name":"document", "tag":"document", "type":"str"},
             4: {"name":"label", "tag":"label", "type":"str"},
-            -1: {"name":"color", "tag":"color", "type":"color"}}
+            -1: {"name":"color", "tag":"color", "type":"color"}
+            }
 
-        self.makeGUI()
+        self.make_gui()
 
         file_drop_target = DragAndDrop(self)
         self.SetDropTarget(file_drop_target)
@@ -98,20 +98,22 @@ class panelMML(wx.Panel):
         wx.EVT_MENU(self, ID_mmlPanel_assignColor, self.OnAssignColor)
         wx.EVT_MENU(self, ID_mmlPanel_plot_MS, self.on_plot_MS)
         wx.EVT_MENU(self, ID_mmlPanel_plot_DT, self.on_plot_1D)
-#         wx.EVT_MENU(self, ID_mmlPanel_check_all, self.OnCheckAllItems)
         wx.EVT_MENU(self, ID_mmlPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.on_delete_item)
         wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.onCheckTool)
+
+    def __del__(self):
+        pass
 
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
 
-    def makeGUI(self):
+    def make_gui(self):
         """ Make panel GUI """
 
         self.toolbar = self.make_toolbar()
-        self.makeListCtrl()
+        self.make_peaklist()
         panelSizer = wx.BoxSizer(wx.VERTICAL)
         panelSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
         panelSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
@@ -119,82 +121,14 @@ class panelMML(wx.Panel):
         self.SetSize((300, -1))
         self.Layout()
 
-    def __del__(self):
-        pass
-
     def on_check_selected(self, evt):
         check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
         self.peaklist.CheckItem(self.peaklist.item_id, check)
-
-    def makeListCtrl(self):
-
-        # init table
-        self.peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES,
-                                column_info=self._filePanel_peaklist
-                                 )  # EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
-        for item in self.config._multipleFilesSettings:
-            order = item['order']
-            name = item['name']
-            if item['show']:
-                width = item['width']
-            else:
-                width = 0
-            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
-
-        tooltip_text = \
-        """
-        List of files and their respective energy values. This panel is relatively universal and can be used for 
-        aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.
-        """
-
-        filelistTooltip = makeTooltip(delay=5000, reshow=3000,
-                                      text=tooltip_text)
-        self.peaklist.SetToolTip(filelistTooltip)
-
-        self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
-        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click_menu)
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.onStartEditingItem)
-        self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.onFinishEditingItem)
-#         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
-        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
-
-    def onStartEditingItem(self, evt):
-        self.editingItem = evt.m_itemIndex
-
-        # unbind shortcuts
-        self.SetAcceleratorTable(wx.AcceleratorTable([]))
-
-    def _updateTable(self):
-        self.onUpdateDocument(None, itemID=self.editingItem)
-
-    def onFinishEditingItem(self, evt):
-        # bind events
-        accelerators = [
-            (wx.ACCEL_NORMAL, ord('A'), ID_mmlPanel_addToDocument),
-            (wx.ACCEL_NORMAL, ord('C'), ID_mmlPanel_assignColor),
-            (wx.ACCEL_NORMAL, ord('D'), ID_mmlPanel_plot_DT),
-            (wx.ACCEL_NORMAL, ord('M'), ID_mmlPanel_plot_MS),
-            (wx.ACCEL_NORMAL, ord('X'), ID_mmlPanel_check_all),
-            (wx.ACCEL_NORMAL, ord('S'), ID_mmlPanel_check_selected),
-            (wx.ACCEL_NORMAL, wx.WXK_DELETE, ID_mmlPanel_delete_rightClick),
-            ]
-        self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
-
-        wx.EVT_MENU(self, ID_mmlPanel_assignColor, self.OnAssignColor)
-        wx.EVT_MENU(self, ID_mmlPanel_plot_MS, self.on_plot_MS)
-        wx.EVT_MENU(self, ID_mmlPanel_plot_DT, self.on_plot_1D)
-        wx.EVT_MENU(self, ID_mmlPanel_check_all, self.OnCheckAllItems)
-        wx.EVT_MENU(self, ID_mmlPanel_check_selected, self.on_check_selected)
-        wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.on_delete_item)
-        wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.onCheckTool)
-
-        wx.CallAfter(self._updateTable)
 
     def make_toolbar(self):
 
         self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_addFilesMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_removeFilesMenu)
-#         self.Bind(wx.EVT_BUTTON, self.OnCheckAllItems, id=ID_mmlPanel_check_all)
         self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_overlayFilesMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_mmlPanel_annotateTool)
         self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_mmlPanel_processTool)
@@ -245,6 +179,65 @@ class panelMML(wx.Panel):
 
         return btn_grid_vert
 
+    def make_peaklist(self):
+
+        # init table
+        self.peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES,
+                                column_info=self._filePanel_peaklist
+                                 )  # EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
+        for item in self.config._multipleFilesSettings:
+            order = item['order']
+            name = item['name']
+            if item['show']:
+                width = item['width']
+            else:
+                width = 0
+            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
+
+        tooltip_text = \
+        """
+        List of files and their respective energy values. This panel is relatively universal and can be used for 
+        aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.
+        """
+
+        filelistTooltip = makeTooltip(delay=5000, reshow=3000,
+                                      text=tooltip_text)
+        self.peaklist.SetToolTip(filelistTooltip)
+
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click_menu)
+        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
+
+    def on_right_click_menu(self, evt):
+
+        self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_MS)
+        self.Bind(wx.EVT_MENU, self.on_plot_1D, id=ID_mmlPanel_plot_DT)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_mmlPanel_delete_rightClick)
+        self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_mmlPanel_assignColor)
+        self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_combined_MS)
+
+        # Capture which item was clicked
+        self.peaklist.item_id = evt.GetIndex()
+        # Create popup menu
+        menu = wx.Menu()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_plot_MS,
+                                     text='Show mass spectrum\tM',
+                                     bitmap=self.icons.iconsLib['mass_spectrum_16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_plot_DT,
+                                     text='Show mobiligram\tD',
+                                     bitmap=self.icons.iconsLib['mobiligram_16']))
+        menu.Append(ID_mmlPanel_plot_combined_MS, "Show mass spectrum (average)")
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_assignColor,
+                                     text='Assign new color\tC',
+                                     bitmap=self.icons.iconsLib['color_panel_16']))
+        menu.AppendSeparator()
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_delete_rightClick,
+                                     text='Remove item\tDelete',
+                                     bitmap=self.icons.iconsLib['bin16']))
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
     def menu_annotate_tools(self, evt):
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_mmlPanel_changeColorBatch_color)
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_mmlPanel_changeColorBatch_palette)
@@ -267,7 +260,7 @@ class panelMML(wx.Panel):
     def menu_add_tools(self, evt):
 
         self.Bind(wx.EVT_TOOL, self.on_open_multiple_files_add, id=ID_mmlPanel_add_files_toCurrentDoc)
-        self.Bind(wx.EVT_TOOL, self.on_open_multiple_files, id=ID_mmlPanel_add_files_toNewDoc)
+        self.Bind(wx.EVT_TOOL, self.on_open_multiple_files_new, id=ID_mmlPanel_add_files_toNewDoc)
         self.Bind(wx.EVT_TOOL, self.on_add_blank_document_manual, id=ID_mmlPanel_add_manualDoc)
 
         menu = wx.Menu()
@@ -363,6 +356,39 @@ class panelMML(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
+    def menu_column_right_click(self, evt):
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_filename)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_variable)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_document)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_label)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_hideAll)
+        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_restoreAll)
+
+        menu = wx.Menu()
+        n = 0
+        self.table_filename = menu.AppendCheckItem(ID_mmlPanel_table_filename, 'Table: Filename')
+        self.table_filename.Check(self.config._multipleFilesSettings[n]['show'])
+        n = n + 1
+        self.table_variable = menu.AppendCheckItem(ID_mmlPanel_table_variable, 'Table: Variable')
+        self.table_variable.Check(self.config._multipleFilesSettings[n]['show'])
+        n = n + 1
+        self.table_document = menu.AppendCheckItem(ID_mmlPanel_table_document, 'Table: Document')
+        self.table_document.Check(self.config._multipleFilesSettings[n]['show'])
+        n = n + 1
+        self.table_label = menu.AppendCheckItem(ID_mmlPanel_table_label, 'Table: Label')
+        self.table_label.Check(self.config._multipleFilesSettings[n]['show'])
+        menu.AppendSeparator()
+        self.table_hide = menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_table_hideAll,
+                                     text='Table: Hide all',
+                                     bitmap=self.icons.iconsLib['hide_table_16']))
+        self.table_restore = menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_table_restoreAll,
+                                     text='Table: Restore all',
+                                     bitmap=self.icons.iconsLib['show_table_16']))
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
     def onCheckTool(self, evt):
         evtID = evt.GetId()
 
@@ -376,36 +402,8 @@ class panelMML(wx.Panel):
             self.addToDocument = self.addToDocument_check.IsChecked()
             self.addToDocument_check.Check(self.addToDocument)
 
-    def on_right_click_menu(self, evt):
-
-        self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_MS)
-        self.Bind(wx.EVT_MENU, self.on_plot_1D, id=ID_mmlPanel_plot_DT)
-        self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_mmlPanel_delete_rightClick)
-        self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_mmlPanel_assignColor)
-        self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_combined_MS)
-
-        # Capture which item was clicked
-        self.peaklist.item_id = evt.GetIndex()
-        # Create popup menu
-        menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_plot_MS,
-                                     text='Show mass spectrum\tM',
-                                     bitmap=self.icons.iconsLib['mass_spectrum_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_plot_DT,
-                                     text='Show mobiligram\tD',
-                                     bitmap=self.icons.iconsLib['mobiligram_16']))
-        menu.Append(ID_mmlPanel_plot_combined_MS, "Show mass spectrum (average)")
-        menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_assignColor,
-                                     text='Assign new color\tC',
-                                     bitmap=self.icons.iconsLib['color_panel_16']))
-        menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_delete_rightClick,
-                                     text='Remove item\tDelete',
-                                     bitmap=self.icons.iconsLib['bin16']))
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
+    def _updateTable(self):
+        self.onUpdateDocument(None, itemID=self.editingItem)
 
     def on_change_item_color_batch(self, evt):
         # get number of checked items
@@ -480,39 +478,6 @@ class panelMML(wx.Panel):
                                                 col=self.config.multipleMLColNames['filename'],
                                                 label=new_name)
 
-    def menu_column_right_click(self, evt):
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_filename)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_variable)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_document)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_label)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_hideAll)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_restoreAll)
-
-        menu = wx.Menu()
-        n = 0
-        self.table_filename = menu.AppendCheckItem(ID_mmlPanel_table_filename, 'Table: Filename')
-        self.table_filename.Check(self.config._multipleFilesSettings[n]['show'])
-        n = n + 1
-        self.table_variable = menu.AppendCheckItem(ID_mmlPanel_table_variable, 'Table: Variable')
-        self.table_variable.Check(self.config._multipleFilesSettings[n]['show'])
-        n = n + 1
-        self.table_document = menu.AppendCheckItem(ID_mmlPanel_table_document, 'Table: Document')
-        self.table_document.Check(self.config._multipleFilesSettings[n]['show'])
-        n = n + 1
-        self.table_label = menu.AppendCheckItem(ID_mmlPanel_table_label, 'Table: Label')
-        self.table_label.Check(self.config._multipleFilesSettings[n]['show'])
-        menu.AppendSeparator()
-        self.table_hide = menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_table_hideAll,
-                                     text='Table: Hide all',
-                                     bitmap=self.icons.iconsLib['hide_table_16']))
-        self.table_restore = menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_table_restoreAll,
-                                     text='Table: Restore all',
-                                     bitmap=self.icons.iconsLib['show_table_16']))
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
     def on_update_peaklist_table(self, evt):
         evtID = evt.GetId()
 
@@ -547,8 +512,8 @@ class panelMML(wx.Panel):
         self.peaklist.SetColumnWidth(col_index, col_width)
 
     def onOpenFile_DnD(self, pathlist):
-        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_add",
-                                                         pathlist=pathlist)
+        self.data_handling.on_open_multiple_ML_files_fcn(
+            open_type="multiple_files_add", pathlist=pathlist)
 
     def on_plot_MS(self, evt):
         """
@@ -609,172 +574,9 @@ class panelMML(wx.Panel):
                            type="Error")
             return
 
-    def OnGetColumnClick(self, evt):
-        self.OnSortByColumn(column=evt.GetColumn())
-
-    def OnCheckAllItems(self, evt, check=True, override=False):
-        """
-        Check/uncheck all items in the list
-        ===
-        Parameters:
-        check : boolean, sets items to specified state
-        override : boolean, skips settings self.allChecked value
-        """
-        rows = self.peaklist.GetItemCount()
-
-        if not override:
-            if self.allChecked:
-                self.allChecked = False
-                check = True
-            else:
-                self.allChecked = True
-                check = False
-
-        if rows > 0:
-            for row in range(rows):
-                self.peaklist.CheckItem(row, check=check)
-
-    def OnSortByColumn(self, column, overrideReverse=False):
-        """
-        Sort data in filelist based on pressed column
-        """
-
-        # Override reverse
-        if overrideReverse:
-            self.reverse = True
-
-        # Check if it should be reversed
-        if self.lastColumn == None:
-            self.lastColumn = column
-        elif self.lastColumn == column:
-            if self.reverse == True:
-                self.reverse = False
-            else:
-                self.reverse = True
-        else:
-            self.reverse = False
-            self.lastColumn = column
-
-        columns = self.peaklist.GetColumnCount()
-        rows = self.peaklist.GetItemCount()
-        tempData = []
-        # Iterate over row and columns to get data
-        for row in range(rows):
-            tempRow = []
-            for col in range(columns):
-                item = self.peaklist.GetItem(row, col)
-                tempRow.append(item.GetText())
-            tempRow.append(self.peaklist.IsChecked(index=row))
-            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
-            tempRow.append(self.peaklist.GetItemTextColour(row))
-            tempData.append(tempRow)
-
-        # Sort data (always by document + another variable
-        tempData = natsorted(tempData, key=itemgetter(2, column), reverse=self.reverse)
-
-        # Clear table
-        self.peaklist.DeleteAllItems()
-
-        checkData, bg_rgb, fg_rgb = [], [], []
-        for check in tempData:
-            fg_rgb.append(check[-1])
-            del check[-1]
-            bg_rgb.append(check[-1])
-            del check[-1]
-            checkData.append(check[-1])
-            del check[-1]
-
-        # Reinstate data
-        rowList = np.arange(len(tempData))
-        for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.peaklist.Append(tempData[row])
-            self.peaklist.CheckItem(row, check)
-            self.peaklist.SetItemBackgroundColour(row, bg_rgb)
-            self.peaklist.SetItemTextColour(row, fg_color)
-
-        # Now insert it into the document
-        for row in range(rows):
-            itemName = self.peaklist.GetItem(row,
-                                             self.config.multipleMLColNames['filename']).GetText()
-            docName = self.peaklist.GetItem(row,
-                                            self.config.multipleMLColNames['document']).GetText()
-            trapCV = str2num(self.peaklist.GetItem(row,
-                                                   self.config.multipleMLColNames['energy']).GetText())
-
-            self.presenter.documentsDict[docName].multipleMassSpectrum[itemName]['trap'] = trapCV
-
-    def onRemoveDuplicates(self, evt, limitCols=False):
-        """
-        This function removes duplicates from the list
-        Its not very efficient!
-        """
-
-        columns = self.peaklist.GetColumnCount()
-        rows = self.peaklist.GetItemCount()
-
-        tempData = []
-        # Iterate over row and columns to get data
-        for row in range(rows):
-            tempRow = []
-            for col in range(columns):
-                item = self.peaklist.GetItem(row, col)
-
-                #  We want to make sure certain columns are numbers
-                if col in [self.config.multipleMLColNames['energy']]:
-                    itemData = str2num(item.GetText())
-                    if itemData == None: itemData = 0
-                    tempRow.append(itemData)
-                else:
-                    tempRow.append(item.GetText())
-            tempRow.append(self.peaklist.IsChecked(index=row))
-            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
-            tempRow.append(self.peaklist.GetItemTextColour(row))
-            tempData.append(tempRow)
-
-        # Remove duplicates
-        tempData = removeListDuplicates(input=tempData,
-                                        columnsIn=['filename', 'energy', 'document', 'label', 'check', 'rgb', 'rgb_fg'],
-                                        limitedCols=['filename', 'document'])
-        rows = len(tempData)
-        # Clear table
-        self.peaklist.DeleteAllItems()
-
-        checkData, bg_rgb, fg_rgb = [], [], []
-        for check in tempData:
-            fg_rgb.append(check[-1])
-            del check[-1]
-            bg_rgb.append(check[-1])
-            del check[-1]
-            checkData.append(check[-1])
-            del check[-1]
-
-        # Reinstate data
-        rowList = np.arange(len(tempData))
-        for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.peaklist.Append(tempData[row])
-            self.peaklist.CheckItem(row, check)
-            self.peaklist.SetItemBackgroundColour(row, bg_rgb)
-            self.peaklist.SetItemTextColour(row, fg_color)
-
-        if evt is None: return
-        else:
-            evt.Skip()
-
     def OnGetItemInformation(self, itemID, return_list=False):
         information = self.peaklist.on_get_item_information(itemID)
         return information
-
-    def on_remove_deleted_item(self, document):
-        """
-        """
-        row = self.peaklist.GetItemCount() - 1
-        while (row >= 0):
-            info = self.OnGetItemInformation(itemID=row)
-            if info['document'] == document:
-                self.peaklist.DeleteItem(row)
-                row -= 1
-            else:
-                row -= 1
 
     def OnAssignColor(self, evt):
         """
@@ -834,6 +636,18 @@ class panelMML(wx.Panel):
         # Update file list
         self.presenter.OnUpdateDocument(document, expand_item='mass_spectra',
                                         expand_item_title=itemInfo['filename'])
+
+    def on_remove_deleted_item(self, document):
+        """
+        """
+        row = self.peaklist.GetItemCount() - 1
+        while (row >= 0):
+            info = self.OnGetItemInformation(itemID=row)
+            if info['document'] == document:
+                self.peaklist.DeleteItem(row)
+                row -= 1
+            else:
+                row -= 1
 
     def on_overlay_plots(self, evt):
         evtID = evt.GetId()
@@ -992,11 +806,13 @@ class panelMML(wx.Panel):
             return randomColorGenerator(True)
         return new_color
 
-    def on_open_multiple_files(self, evt):
-        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_new_document")
+    def on_open_multiple_files_new(self, evt):
+        self.data_handling.on_open_multiple_ML_files_fcn(
+            open_type="multiple_files_new_document")
 
     def on_open_multiple_files_add(self, evt):
-        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_add")
+        self.data_handling.on_open_multiple_ML_files_fcn(
+            open_type="multiple_files_add")
 
     def on_combine_mass_spectra(self, evt, document_name=None):
         self.presenter.on_combine_mass_spectra(document_name=document_name)
@@ -1086,7 +902,7 @@ class panelMML(wx.Panel):
             itemInfo = self.OnGetItemInformation(itemID=itemID)
             document = self.data_handling._on_get_document(itemInfo['document'])
             __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
-                document, itemInfo['document'], delete_type="spectrum.one",
+                document, itemInfo['document'], delete_type="spectrum.all",
                 spectrum_name=itemInfo['filename'])
             itemID -= 1
 

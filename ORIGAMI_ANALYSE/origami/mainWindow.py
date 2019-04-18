@@ -239,8 +239,6 @@ class MyFrame(wx.Frame):
 
         # Setup listeners
         pub.subscribe(self.on_motion, 'motion_xy')
-#         pub.subscribe(self.extract_from_plot_1D, 'extract_from_plot_1D')
-#         pub.subscribe(self.extract_from_plot_2D, 'extract_from_plot_2D')
         pub.subscribe(self.motion_range, 'motion_range')
         pub.subscribe(self.on_distance, 'startX')
         pub.subscribe(self.presenter.OnChangedRMSF, 'changedZoom')
@@ -1594,12 +1592,9 @@ class MyFrame(wx.Frame):
     def publisherOff(self):
         """ Unsubscribe from all events """
         pub.unsubscribe(self.on_motion, 'motion_xy')
-#         pub.unsubscribe(self.extract_from_plot_1D, 'extract_from_plot_1D')
-#         pub.unsubscribe(self.extract_from_plot_2D, 'extract_from_plot_2D')
         pub.unsubscribe(self.motion_range, 'motion_range')
         pub.unsubscribe(self.on_distance, 'startX')
         pub.unsubscribe(self.presenter.OnChangedRMSF, 'changedZoom')
-#         pub.unsubscribe(self.onMode, 'motion_mode')  # update statusbar
 
     def on_distance(self, startX):
         # Simple way of setting the start point
