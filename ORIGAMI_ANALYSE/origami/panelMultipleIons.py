@@ -20,19 +20,16 @@
 import wx
 import csv
 from ast import literal_eval
-from operator import itemgetter
-from numpy import arange, vstack, insert
 from pandas import read_csv
-from natsort import natsorted
 
 from gui_elements.panel_modifyIonSettings import panelModifyIonSettings
-from toolbox import isempty, saveAsText, convertRGB1to255, removeListDuplicates, \
-                     checkExtension, roundRGB
+from gui_elements.dialog_colorSelector import dialogColorSelector
+from toolbox import isempty, checkExtension, roundRGB
 from styles import makeMenuItem, makeTooltip
 from gui_elements.dialog_selectDocument import panelSelectDocument
 from gui_elements.dialog_panelAsk import panelAsk
 from gui_elements.misc_dialogs import dlgBox
-from utils.converters import str2num, str2int
+from utils.converters import str2num
 from ids import ID_ionPanel_addToDocument, ID_combinedCV_binMSCombinedMenu, ID_ionPanel_assignColor, \
     ID_ionPanel_editItem, ID_highlightRectAllIons, ID_useInternalParamsCombinedMenu, ID_ionPanel_show_mobiligram, \
     ID_ionPanel_normalize1D, ID_overrideCombinedMenu, ID_useProcessedCombinedMenu, ID_ionPanel_check_selected, \
@@ -48,13 +45,13 @@ from ids import ID_ionPanel_addToDocument, ID_combinedCV_binMSCombinedMenu, ID_i
     ID_addManyIonsCSV, ID_duplicateIons, ID_addNewOverlayDoc, ID_ionPanel_automaticExtract, ID_extractAllIons, \
     ID_extractSelectedIon, ID_extractNewIon, ID_overlayMZfromList, ID_overlayMZfromList1D, ID_overlayMZfromListRT, \
     ID_ionPanel_automaticOverlay, ID_ionPanel_delete_selected, ID_ionPanel_delete_all, ID_ionPanel_clear_all, \
-    ID_ionPanel_clear_selected, ID_removeDuplicatesTable, ID_combineCEscansSelectedIons, ID_combineCEscans, \
+    ID_ionPanel_clear_selected, ID_combineCEscansSelectedIons, ID_combineCEscans, \
     ID_processSelectedIons, ID_processAllIons, ID_extractMSforCVs, ID_saveSelectIonListCSV, ID_saveIonListCSV, \
     ID_exportSeletedAsImage_ion, ID_exportAllAsImage_ion, ID_exportSelectedAsCSV_ion, ID_exportAllAsCSV_ion, \
-    ID_processSaveMenu, ID_save2DImageDoc, ID_ionPanel_edit_selected, ID_ionPanel_edit_all, ID_window_ionList
+    ID_processSaveMenu, ID_ionPanel_edit_selected, ID_ionPanel_edit_all, ID_window_ionList
 
 from styles import ListCtrl
-from utils.color import convertRGB255to1, determineFontColor, randomColorGenerator
+from utils.color import convertRGB255to1, determineFontColor, randomColorGenerator, convertRGB1to255
 from utils.random import randomIntegerGenerator
 
 
@@ -515,7 +512,7 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_delete_all, id=ID_ionPanel_delete_all)
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_all, id=ID_ionPanel_clear_all)
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_selected, id=ID_ionPanel_clear_selected)
-        self.Bind(wx.EVT_MENU, self.onRemoveDuplicates, id=ID_removeDuplicatesTable)
+#         self.Bind(wx.EVT_MENU, self.onRemoveDuplicates, id=ID_removeDuplicatesTable)
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_clear_all,
@@ -523,7 +520,7 @@ class panelMultipleIons(wx.Panel):
                                      bitmap=self.icons.iconsLib['clear_16']))
         menu.Append(ID_ionPanel_clear_selected, "Clear selected")
         menu.AppendSeparator()
-        menu.Append(ID_removeDuplicatesTable, "Remove duplicates")
+#         menu.Append(ID_removeDuplicatesTable, "Remove duplicates")
         menu.Append(ID_ionPanel_delete_selected, "Remove selected ions")
         menu.Append(ID_ionPanel_delete_all, "Remove all ions")
         self.PopupMenu(menu)
@@ -547,17 +544,23 @@ class panelMultipleIons(wx.Panel):
         menu.Append(ID_processSelectedIons, "Process selected ions")
         menu.Append(ID_processAllIons, "Process all ions")
         menu.AppendSeparator()
-        self.override_check = menu.AppendCheckItem(ID_overrideCombinedMenu, "Overwrite results\tO",
-                                                   help="When checked, any previous results for the selected item(s) will be overwritten based on the current parameters.")
+        help_msg = "When checked, any previous results for the selected item(s) will be overwritten" + \
+                   " based on the current parameters."
+        self.override_check = menu.AppendCheckItem(
+            ID_overrideCombinedMenu, "Overwrite results\tO",
+            help=help_msg)
         self.override_check.Check(self.config.overrideCombine)
-        self.useInternalParams_check = menu.AppendCheckItem(ID_useInternalParamsCombinedMenu, "Use internal parameters\tI",
-                                                            help="When checked, collision voltage scans will be combined based on parameters present in the ORIGAMI document.")
+        help_msg = "When checked, collision voltage scans will be combined based on parameters present" + \
+                   " in the ORIGAMI document."
+        self.useInternalParams_check = menu.AppendCheckItem(
+            ID_useInternalParamsCombinedMenu, "Use internal parameters\tI",
+            help=help_msg)
         self.useInternalParams_check.Check(self.config.useInternalParamsCombine)
         menu.Append(ID_combineCEscansSelectedIons, "Combine collision voltages for selected ions (ORIGAMI)")
         menu.Append(ID_combineCEscans, "Combine collision voltages for all ions (ORIGAMI)\tAlt+C")
         menu.AppendSeparator()
-        self.binCombinedCV_MS_check = menu.AppendCheckItem(ID_combinedCV_binMSCombinedMenu, "Bin mass spectra during extraction\tB",
-                                                            help="")
+        self.binCombinedCV_MS_check = menu.AppendCheckItem(
+            ID_combinedCV_binMSCombinedMenu, "Bin mass spectra during extraction\tB", help="")
         self.binCombinedCV_MS_check.Check(self.config.binCVdata)
         menu.Append(ID_extractMSforCVs, "Extract mass spectra for each collision voltage (ORIGAMI)")
 
@@ -566,13 +569,14 @@ class panelMultipleIons(wx.Panel):
         self.SetFocus()
 
     def menu_save_tools(self, evt):
+        # TODO: Move all the saveAsData functions to data_handling panel!
         self.Bind(wx.EVT_MENU, self.OnSaveSelectedPeakList, id=ID_saveSelectIonListCSV)
         self.Bind(wx.EVT_MENU, self.OnSavePeakList, id=ID_saveIonListCSV)
 
-        self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportSeletedAsImage_ion)
-        self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportAllAsImage_ion)
-        self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportSelectedAsCSV_ion)
-        self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportAllAsCSV_ion)
+#         self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportSeletedAsImage_ion)
+#         self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportAllAsImage_ion)
+#         self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportSelectedAsCSV_ion)
+#         self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportAllAsCSV_ion)
 
         self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_processSaveMenu)
 
@@ -737,30 +741,37 @@ class panelMultipleIons(wx.Panel):
         if rows == 0: return
 
         if evt.GetId() == ID_assignChargeStateIons:
-            ask_kwargs = {'static_text':'Assign charge state to selected items.',
-                          'value_text':"",
-                          'validator':'integer',
-                          'keyword':'charge'}
+            ask_kwargs = {
+                'static_text': 'Assign charge state to selected items.',
+                'value_text': "",
+                'validator':'integer',
+                'keyword':'charge'}
         elif evt.GetId() == ID_assignAlphaIons:
-            ask_kwargs = {'static_text':'Assign new transparency value to selected items \nTypical transparency values: 0.5\nRange 0-1',
-                          'value_text':0.5,
-                          'validator':'float',
-                          'keyword':'alpha'}
+            static_text = "Assign new transparency value to selected items \nTypical transparency values: 0.5" + \
+                          "\nRange 0-1"
+            ask_kwargs = {
+                'static_text':static_text,
+                'value_text':0.5,
+                'validator':'float',
+                'keyword':'alpha'}
         elif evt.GetId() == ID_assignMaskIons:
-            ask_kwargs = {'static_text':'Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1',
-                          'value_text':0.25,
-                          'validator':'float',
-                          'keyword':'mask'}
+            ask_kwargs = {
+                'static_text':'Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1',
+                'value_text':0.25,
+                'validator':'float',
+                'keyword':'mask'}
         elif evt.GetId() == ID_assignMinThresholdIons:
-            ask_kwargs = {'static_text':'Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1',
-                          'value_text':0.0,
-                          'validator':'float',
-                          'keyword':'min_threshold'}
+            ask_kwargs = {
+                'static_text':'Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1',
+                'value_text':0.0,
+                'validator':'float',
+                'keyword':'min_threshold'}
         elif evt.GetId() == ID_assignMaxThresholdIons:
-            ask_kwargs = {'static_text':'Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1',
-                          'value_text':1.0,
-                          'validator':'float',
-                          'keyword':'max_threshold'}
+            ask_kwargs = {
+                'static_text':'Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1',
+                'value_text':1.0,
+                'validator':'float',
+                'keyword':'max_threshold'}
 
         ask = panelAsk(self, self.presenter, **ask_kwargs)
         if ask.ShowModal() == wx.ID_OK:
@@ -791,59 +802,58 @@ class panelMultipleIons(wx.Panel):
                 # update document
                 self.presenter.documentsDict[document.title] = document
 
-    def onSaveAsData(self, evt):
-        count = self.peaklist.GetItemCount()
-        self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
-        for ion in range(count):
-            if evt.GetId() == ID_exportAllAsCSV_ion or evt.GetId() == ID_exportAllAsImage_ion:
-                pass
-            else:
-                if self.peaklist.IsChecked(index=ion): pass
-                else: continue
-            # Get names
-            itemInfo = self.OnGetItemInformation(ion)
-            rangeName = itemInfo['ionName']
-            filename = itemInfo['document']
-            # Get data
-            currentDocument = self.presenter.documentsDict[filename]
-
-            # Check whether its ORIGAMI or MANUAL data type
-            if currentDocument.dataType == 'Type: ORIGAMI':
-                if currentDocument.gotCombinedExtractedIons == True:
-                    data = currentDocument.IMS2DCombIons
-                elif currentDocument.gotExtractedIons == True:
-                    data = currentDocument.IMS2Dions
-            elif currentDocument.dataType == 'Type: MANUAL':
-                if currentDocument.gotCombinedExtractedIons == True:
-                    data = currentDocument.IMS2DCombIons
-            else: continue
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data[rangeName],
-                                                                                               dataType='plot', compact=False)
-            if self.process:
-                zvals = self.data_processing.on_process_2D(zvals=zvals, return_data=True)
-#                 zvals = self.presenter.process2Ddata(zvals=zvals, return_data=True)
-
-            # Save CSV
-            if evt.GetId() == ID_exportAllAsCSV_ion or evt.GetId() == ID_exportSelectedAsCSV_ion:
-                savename = ''.join([currentDocument.path, '/DT_2D_', rangeName, self.config.saveExtension])
-                # Y-axis labels need a value for [0,0]
-                yvals = insert(yvals, 0, 0)  # array, index, value
-                # Combine x-axis with data
-                saveData = vstack((xvals, zvals))
-                saveData = vstack((yvals, saveData.T))
-                # Save 2D array
-                saveAsText(filename=savename,
-                           data=saveData,
-                           format='%.2f',
-                           delimiter=self.config.saveDelimiter,
-                           header="")
-            # Save Image
-            elif evt.GetId() == ID_exportAllAsImage_ion or evt.GetId() == ID_exportSeletedAsImage_ion:
-                saveFileName = 'DT_2D_'
-                self.presenter.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True)
-                save_kwargs = {'image_name':"{}_{}".format(saveFileName, rangeName)}
-                self.presenter.view.panelPlots.save_images(evt=ID_save2DImageDoc, **save_kwargs)
-        self.presenter.onThreading(evt, ('Finished saving data', 4), action='updateStatusbar')
+#     def onSaveAsData(self, evt):
+#         count = self.peaklist.GetItemCount()
+#         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+#         for ion in range(count):
+#             if evt.GetId() == ID_exportAllAsCSV_ion or evt.GetId() == ID_exportAllAsImage_ion:
+#                 pass
+#             else:
+#                 if self.peaklist.IsChecked(index=ion): pass
+#                 else: continue
+#             # Get names
+#             itemInfo = self.OnGetItemInformation(ion)
+#             rangeName = itemInfo['ionName']
+#             filename = itemInfo['document']
+#             # Get data
+#             currentDocument = self.presenter.documentsDict[filename]
+#
+#             # Check whether its ORIGAMI or MANUAL data type
+#             if currentDocument.dataType == 'Type: ORIGAMI':
+#                 if currentDocument.gotCombinedExtractedIons == True:
+#                     data = currentDocument.IMS2DCombIons
+#                 elif currentDocument.gotExtractedIons == True:
+#                     data = currentDocument.IMS2Dions
+#             elif currentDocument.dataType == 'Type: MANUAL':
+#                 if currentDocument.gotCombinedExtractedIons == True:
+#                     data = currentDocument.IMS2DCombIons
+#             else: continue
+#             zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(
+#                 dictionary=data[rangeName], dataType='plot', compact=False)
+#             if self.process:
+#                 zvals = self.data_processing.on_process_2D(zvals=zvals, return_data=True)
+#
+#             # Save CSV
+#             if evt.GetId() == ID_exportAllAsCSV_ion or evt.GetId() == ID_exportSelectedAsCSV_ion:
+#                 savename = ''.join([currentDocument.path, '/DT_2D_', rangeName, self.config.saveExtension])
+#                 # Y-axis labels need a value for [0,0]
+#                 yvals = np.insert(yvals, 0, 0)  # array, index, value
+#                 # Combine x-axis with data
+#                 saveData = np.vstack((xvals, zvals))
+#                 saveData = np.vstack((yvals, saveData.T))
+#                 # Save 2D array
+#                 saveAsText(filename=savename,
+#                            data=saveData,
+#                            format='%.2f',
+#                            delimiter=self.config.saveDelimiter,
+#                            header="")
+#             # Save Image
+#             elif evt.GetId() == ID_exportAllAsImage_ion or evt.GetId() == ID_exportSeletedAsImage_ion:
+#                 saveFileName = 'DT_2D_'
+#                 self.presenter.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True)
+#                 save_kwargs = {'image_name':"{}_{}".format(saveFileName, rangeName)}
+#                 self.presenter.view.panelPlots.save_images(evt=ID_save2DImageDoc, **save_kwargs)
+#         self.presenter.onThreading(evt, ('Finished saving data', 4), action='updateStatusbar')
 
     def onRecalculateCombinedORIGAMI(self, evt):
         # Apply all fields for item
@@ -870,71 +880,71 @@ class panelMultipleIons(wx.Panel):
                 currentItems -= 1
         return False
 
-    def onRemoveDuplicates(self, evt, limitCols=False):
-        """
-        This function removes duplicates from the list
-        Its not very efficient!
-        """
-
-        columns = self.peaklist.GetColumnCount()
-        rows = self.peaklist.GetItemCount()
-
-        tempData = []
-        # Iterate over row and columns to get data
-        for row in range(rows):
-            tempRow = []
-            for col in range(columns):
-                item = self.peaklist.GetItem(itemId=row, col=col)
-                #  We want to make sure certain columns are numbers
-                if col in [self.config.peaklistColNames['start'],
-                           self.config.peaklistColNames['end'],
-                           self.config.peaklistColNames['intensity'],
-                           self.config.peaklistColNames['alpha'],
-                           self.config.peaklistColNames['mask']]:
-                    itemData = str2num(item.GetText())
-                    if itemData == None: itemData = 0
-                    tempRow.append(itemData)
-                elif col == self.config.peaklistColNames['charge']:
-                    itemData = str2int(item.GetText())
-                    if itemData == None: itemData = 0
-                    tempRow.append(itemData)
-                else:
-                    tempRow.append(item.GetText())
-            tempRow.append(self.peaklist.IsChecked(index=row))
-            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
-            tempRow.append(self.peaklist.GetItemTextColour(row))
-            tempData.append(tempRow)
-
-        # Remove duplicates
-        tempData = removeListDuplicates(input=tempData,
-                                        columnsIn=['start', 'end', 'charge', 'intensity',
-                                        'color', 'colormap', 'alpha', 'mask',
-                                        'label', 'method', 'filename', 'check', 'rgb', 'font_color'],
-                                         limitedCols=['start', 'end', 'filename'])
-        rows = len(tempData)
-        # Clear table
-        self.peaklist.DeleteAllItems()
-
-        checkData, bg_rgb, fg_rgb = [], [], []
-        for check in tempData:
-            fg_rgb.append(check[-1])
-            del check[-1]
-            bg_rgb.append(check[-1])
-            del check[-1]
-            checkData.append(check[-1])
-            del check[-1]
-
-        # Reinstate data
-        rowList = arange(len(tempData))
-        for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.peaklist.Append(tempData[row])
-            self.peaklist.CheckItem(row, check)
-            self.peaklist.SetItemBackgroundColour(row, bg_rgb)
-            self.peaklist.SetItemTextColour(row, fg_color)
-
-        if evt is None: return
-        else:
-            evt.Skip()
+#     def onRemoveDuplicates(self, evt, limitCols=False):
+#         """
+#         This function removes duplicates from the list
+#         Its not very efficient!
+#         """
+#
+#         columns = self.peaklist.GetColumnCount()
+#         rows = self.peaklist.GetItemCount()
+#
+#         tempData = []
+#         # Iterate over row and columns to get data
+#         for row in range(rows):
+#             tempRow = []
+#             for col in range(columns):
+#                 item = self.peaklist.GetItem(itemId=row, col=col)
+#                 #  We want to make sure certain columns are numbers
+#                 if col in [self.config.peaklistColNames['start'],
+#                            self.config.peaklistColNames['end'],
+#                            self.config.peaklistColNames['intensity'],
+#                            self.config.peaklistColNames['alpha'],
+#                            self.config.peaklistColNames['mask']]:
+#                     itemData = str2num(item.GetText())
+#                     if itemData == None: itemData = 0
+#                     tempRow.append(itemData)
+#                 elif col == self.config.peaklistColNames['charge']:
+#                     itemData = str2int(item.GetText())
+#                     if itemData == None: itemData = 0
+#                     tempRow.append(itemData)
+#                 else:
+#                     tempRow.append(item.GetText())
+#             tempRow.append(self.peaklist.IsChecked(index=row))
+#             tempRow.append(self.peaklist.GetItemBackgroundColour(row))
+#             tempRow.append(self.peaklist.GetItemTextColour(row))
+#             tempData.append(tempRow)
+#
+#         # Remove duplicates
+#         tempData = removeListDuplicates(input=tempData,
+#                                         columnsIn=['start', 'end', 'charge', 'intensity',
+#                                         'color', 'colormap', 'alpha', 'mask',
+#                                         'label', 'method', 'filename', 'check', 'rgb', 'font_color'],
+#                                          limitedCols=['start', 'end', 'filename'])
+#         rows = len(tempData)
+#         # Clear table
+#         self.peaklist.DeleteAllItems()
+#
+#         checkData, bg_rgb, fg_rgb = [], [], []
+#         for check in tempData:
+#             fg_rgb.append(check[-1])
+#             del check[-1]
+#             bg_rgb.append(check[-1])
+#             del check[-1]
+#             checkData.append(check[-1])
+#             del check[-1]
+#
+#         # Reinstate data
+#         rowList = arange(len(tempData))
+#         for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
+#             self.peaklist.Append(tempData[row])
+#             self.peaklist.CheckItem(row, check)
+#             self.peaklist.SetItemBackgroundColour(row, bg_rgb)
+#             self.peaklist.SetItemTextColour(row, fg_color)
+#
+#         if evt is None: return
+#         else:
+#             evt.Skip()
 
     def on_check_duplicate(self, mz_min, mz_max, document):
         rows = self.peaklist.GetItemCount()
@@ -1019,14 +1029,15 @@ class panelMultipleIons(wx.Panel):
             if endY == 0: endY = 1.001
             try: self.presenter.view.panelPlots.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
             except AttributeError:
-                self.presenter.onThreading(evt, ("Failed to zoom-in on the ion. Please replot the mass spectrum and try again.", 4, 3),
-                                           action='updateStatusbar')
+                self.presenter.onThreading(evt, (
+                    "Failed to zoom-in on the ion. Please replot the mass spectrum and try again.", 4, 3),
+                    action='updateStatusbar')
                 return
 
         else:
             # Unpack data
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data[rangeName],
-                                                                                               dataType='plot', compact=False)
+            zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(
+                dictionary=data[rangeName], dataType='plot', compact=False)
 
             # Warning in case  there is missing data
             if isempty(xvals) or isempty(yvals) or xvals is "" or yvals is "":
@@ -1040,7 +1051,8 @@ class panelMultipleIons(wx.Panel):
             if evt.GetId() == ID_ionPanel_show_process_heatmap:
                 zvals = self.data_processing.on_process_2D(zvals=zvals, return_data=True)
             # Plot data
-            self.presenter.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
+            self.presenter.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True,
+                                                      set_page=True)
 
     def OnSavePeakList(self, evt):
         """
@@ -1098,10 +1110,12 @@ class panelMultipleIons(wx.Panel):
         # Create a list of keys in the dictionary
         keyList = []
         if len(self.presenter.documentsDict) == 0:
-            self.presenter.onThreading(None, ('There are no documents to copy peaks to!', 4), action='updateStatusbar')
+            self.presenter.onThreading(None, ('There are no documents to copy peaks to!', 4),
+                                       action='updateStatusbar')
             return
         elif self.peaklist.GetItemCount() == 0:
-            self.presenter.onThreading(None, ('There are no peaks in the table. Try adding some first!', 4), action='updateStatusbar')
+            self.presenter.onThreading(None, ('There are no peaks in the table. Try adding some first!', 4),
+                                       action='updateStatusbar')
             return
 
         keyList.append('all')
@@ -1201,9 +1215,15 @@ class panelMultipleIons(wx.Panel):
             self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["charge"], str(value))
         elif value_type == 'intensity':
             self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["intensity"], str(value))
+        elif value_type == 'color':
+            color_255, color_1, font_color = value
+            self.peaklist.SetItemBackgroundColour(item_id, color_255)
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["color"], str(color_1))
+            self.peaklist.SetItemTextColour(item_id, font_color)
         elif value_type == 'color_text':
             self.peaklist.SetItemBackgroundColour(item_id, value)
-            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["color"], str(value))
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["color"],
+                                        str(convertRGB255to1(value)))
             self.peaklist.SetItemTextColour(item_id, determineFontColor(value, return_rgb=True))
         elif value_type == 'colormap':
             self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["colormap"], str(value))
@@ -1279,75 +1299,47 @@ class panelMultipleIons(wx.Panel):
 
     def OnAssignColor(self, evt, itemID=None, give_value=False):
         """
-        @param itemID (int): value for item in table
-        @param give_value (bool): should/not return color
+        evt: wxPython event
+            unused
+        itemID: int
+            value for item in table
+        give_value: bool
+            should/not return color
         """
-
-        if itemID != None:
+        if itemID is not None:
             self.peaklist.item_id = itemID
 
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.Centre()
-        dlg.GetColourData().SetChooseFull(True)
+        if itemID is None:
+            itemID = self.peaklist.item_id
 
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-            # Assign color
-            self.peaklist.SetStringItem(self.peaklist.item_id,
-                                        self.config.peaklistColNames['color'],
-                                        str(convertRGB255to1(newColour)))
-            self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
-            self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
-            # Retrieve custom colors
-            for i in range(15):
-                self.config.customColors[i] = data.GetCustomColour(i)
+        dlg = dialogColorSelector(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, font_color = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
+            self.on_update_value_in_peaklist(itemID, "color", [color_255, color_1, font_color])
 
             # update document
             self.onUpdateDocument(evt=None)
-
+#
             if give_value:
-                return newColour
+                return color_255
         else:
             try:
-                newColour = convertRGB1to255(literal_eval(self.OnGetValue(value_type='color')), 3)
+                color_255 = convertRGB1to255(literal_eval(self.OnGetValue(value_type='color')), 3)
             except:
-                newColour = self.config.customColors[randomIntegerGenerator(0, 15)]
-            # Assign color
-            self.peaklist.SetStringItem(self.peaklist.item_id,
-                                        self.config.peaklistColNames['color'],
-                                        str(convertRGB255to1(newColour)))
-            self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
-            self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
+                color_255 = self.config.customColors[randomIntegerGenerator(0, 15)]
+
+            self.on_update_value_in_peaklist(itemID, "color_text", color_255)
             if give_value:
-                return newColour
+                return color_255
 
     def OnGetColor(self, evt):
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.Centre()
-        dlg.GetColourData().SetChooseFull(True)
+        dlg = dialogColorSelector(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, font_color = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
 
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-
-            # Retrieve custom colors
-            for i in range(len(self.config.customColors)):
-                self.config.customColors[i] = data.GetCustomColour(i)
-
-            return convertRGB255to1(newColour)
+            return color_255, color_1, font_color
 
     def on_change_item_colormap(self, evt):
         # get number of checked items
@@ -1383,10 +1375,11 @@ class panelMultipleIons(wx.Panel):
                 check_count += 1
 
         if evt.GetId() == ID_ionPanel_changeColorBatch_palette:
-            colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=check_count, return_colors=True)
+            colors = self.presenter.view.panelPlots.onChangePalette(
+                None, n_colors=check_count, return_colors=True)
         elif evt.GetId() == ID_ionPanel_changeColorBatch_color:
-            color = self.OnGetColor(None)
-            colors = [color] * check_count
+            __, color_1, __ = self.OnGetColor(None)
+            colors = [color_1] * check_count
         else:
             colors = self.presenter.view.panelPlots.onGetColormapList(n_colors=check_count)
 
@@ -1394,18 +1387,21 @@ class panelMultipleIons(wx.Panel):
         for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(index=row):
                 self.peaklist.item_id = row
-                color = colors[check_count]
-                self.peaklist.SetStringItem(row, self.config.peaklistColNames['color'],
-                                            str(color))
-                self.peaklist.SetItemBackgroundColour(row, convertRGB1to255(color))
-                self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(convertRGB1to255(color), return_rgb=True))
+                color_255 = convertRGB1to255(colors[check_count])
+                self.on_update_value_in_peaklist(row, "color_text", color_255)
                 check_count += 1
 
             # update document
             try:
                 self.onUpdateDocument(evt=None)
             except TypeError:
-                print("Please select item")
+                print("Please select an item")
+
+    @staticmethod
+    def __check_keyword(keyword_name):
+        if keyword_name == 'colormap':
+            keyword_name = 'cmap'
+        return keyword_name
 
     def onUpdateDocument(self, evt, itemInfo=None):
 
@@ -1417,38 +1413,32 @@ class panelMultipleIons(wx.Panel):
         document = self.presenter.documentsDict[itemInfo['document']]
 
         processed_name = "{} (processed)".format(itemInfo['ionName'])
-        keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold',
-                    'max_threshold', 'charge']
+        keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold', 'max_threshold', 'charge']
+
         if itemInfo['ionName'] in document.IMS2Dions:
             for keyword in keywords:
-                if keyword == 'colormap': keyword_name = 'cmap'
-                else: keyword_name = keyword
+                keyword_name = self.__check_keyword(keyword)
                 document.IMS2Dions[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
                 try: document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
                 except: pass
 
         if itemInfo['ionName'] in document.IMS2DCombIons:
             for keyword in keywords:
-                if keyword == 'colormap': keyword_name = 'cmap'
-                else: keyword_name = keyword
+                keyword_name = self.__check_keyword(keyword)
                 document.IMS2DCombIons[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
                 try: document.IMS2DCombIons[processed_name][keyword_name] = itemInfo[keyword]
                 except: pass
 
         if itemInfo['ionName'] in document.IMS2DionsProcess:
             for keyword in keywords:
-                if keyword == 'colormap': keyword_name = 'cmap'
-                else: keyword_name = keyword
+                keyword_name = self.__check_keyword(keyword)
                 document.IMS2DionsProcess[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
                 try: document.IMS2DionsProcess[processed_name][keyword_name] = itemInfo[keyword]
                 except: pass
 
         if itemInfo['ionName'] in document.IMSRTCombIons:
             for keyword in keywords:
-                if keyword == 'colormap':
-                    keyword_name = 'cmap'
-                    itemInfo['colormap'] = convertRGB255to1(itemInfo['color'])
-                else: keyword_name = keyword
+                keyword_name = self.__check_keyword(keyword)
                 document.IMSRTCombIons[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
                 try: document.IMSRTCombIons[processed_name][keyword_name] = itemInfo[keyword]
                 except: pass
@@ -1558,17 +1548,18 @@ class panelMultipleIons(wx.Panel):
                     except:pass
                 else: color_value = colors[peak]
 
-                self.peaklist.Append([str(min_value),
-                                      str(max_value),
-                                      str(charge_value),
-                                      "",
-                                      str(roundRGB(color_value)),
-                                      self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps))],
-                                      str(self.config.overlay_defaultAlpha),
-                                      str(self.config.overlay_defaultMask),
-                                      str(label_value),
-                                      '',
-                                      document_title])
+                self.peaklist.Append([
+                    str(min_value),
+                    str(max_value),
+                    str(charge_value),
+                    "",
+                    str(roundRGB(color_value)),
+                    self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps))],
+                    str(self.config.overlay_defaultAlpha),
+                    str(self.config.overlay_defaultMask),
+                    str(label_value),
+                    '',
+                    document_title])
                 try:
                     color_value = convertRGB1to255(color_value)
                     self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1,
@@ -1703,123 +1694,6 @@ class panelMultipleIons(wx.Panel):
                                                                alpha=self.config.markerTransparency_1D, plot="MS",
                                                                repaint=False)
 
-#     def OnDeleteAll(self, evt, ticked=False, selected=False, itemID=None):
-#         """
-#         This function removes selected or all text documents
-#         """
-#         if evt.GetId() == ID_ionPanel_delete_selected:
-#             currentItems = self.peaklist.GetItemCount() - 1
-#             while (currentItems >= 0):
-#                 if self.peaklist.IsChecked(index=currentItems):
-#                     itemInfo = self.OnGetItemInformation(itemID=currentItems)
-#                     msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
-#                     self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
-#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0:
-#                             self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
-#                     except KeyError: pass
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
-#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0:
-#                             self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
-#                     except KeyError: pass
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
-#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0:
-#                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
-#                     except KeyError: pass
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
-#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
-#                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
-#                     except KeyError: pass
-#                     self.peaklist.DeleteItem(currentItems)
-#                 currentItems -= 1
-#             # update document
-#             try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
-#             except KeyError: pass
-#
-#         elif evt.GetId() == ID_ionPanel_delete_rightClick:
-#             itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
-#             msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
-#             self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-#             itemID = [itemInfo['document'], itemInfo['ionName'], self.peaklist.item_id]
-#             if itemID != None:
-#                 msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
-#                 self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-#                 # Delete selected document from dictionary + table
-#                 try:
-#                     del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
-#                     if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0:
-#                         self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
-#                 except KeyError: pass
-#                 try:
-#                     del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
-#                     if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0:
-#                         self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
-#                 except KeyError: pass
-#                 try:
-#                     del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
-#                     if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0:
-#                         self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
-#                 except KeyError: pass
-#                 try:
-#                     del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
-#                     if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
-#                         self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
-#                 except KeyError: pass
-#                 self.peaklist.DeleteItem(self.peaklist.item_id)
-#                 # update document
-#                 try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
-#                 except KeyError: pass
-#
-#         else:
-#         # Ask if you are sure to delete it!
-#             dlg = dlgBox(exceptionTitle='Are you sure?',
-#                                  exceptionMsg="Are you sure you would like to delete ALL ions?",
-#                                  type="Question")
-#             if dlg == wx.ID_NO:
-#                 self.presenter.onThreading(evt, ("Cancelled operation", 4, 3), action='updateStatusbar')
-#                 return
-#             else:
-#                 currentItems = self.peaklist.GetItemCount() - 1
-#                 while (currentItems >= 0):
-#                     itemInfo = self.OnGetItemInformation(itemID=currentItems)
-#                     msg = "Deleted {} from {}".format(itemInfo['ionName'], itemInfo['document'])
-#                     if not self.config.logging:
-#                         self.presenter.onThreading(evt, (msg, 4, 3), action='updateStatusbar')
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']].IMS2Dions[itemInfo['ionName']]
-#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2Dions.keys())) == 0:
-#                             self.presenter.documentsDict[itemInfo['document']].gotExtractedIons = False
-#                     except KeyError:
-#                         pass
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess[itemInfo['ionName']]
-#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DionsProcess.keys())) == 0:
-#                             self.presenter.documentsDict[itemInfo['document']].got2DprocessIons = False
-#                     except KeyError:
-#                         pass
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons[itemInfo['ionName']]
-#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMSRTCombIons.keys())) == 0:
-#                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIonsRT = False
-#                     except KeyError:
-#                         pass
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons[itemInfo['ionName']]
-#                         if len(list(self.presenter.documentsDict[itemInfo['document']].IMS2DCombIons.keys())) == 0:
-#                             self.presenter.documentsDict[itemInfo['document']].gotCombinedExtractedIons = False
-#                     except KeyError:
-#                         pass
-#                     self.peaklist.DeleteItem(currentItems)
-#                     currentItems -= 1
-#
-#                 # update document
-#                 try: self.presenter.OnUpdateDocument(self.presenter.documentsDict[itemInfo['document']], expand_item='ions')
-#                 except KeyError: pass
-
         self.on_replot_patch_on_MS(evt=None)
 
     def on_delete_item(self, evt):
@@ -1872,8 +1746,7 @@ class panelMultipleIons(wx.Panel):
             itemInfo = self.OnGetItemInformation(itemID=itemID)
             document = self.data_handling._on_get_document(itemInfo['document'])
             __, __ = self.view.panelDocuments.documents.on_delete_data__heatmap(
-                document, itemInfo['document'], delete_type="heatmap.all.all",
-                ion_name=itemInfo['ionName'])
+                document, itemInfo['document'], delete_type="heatmap.all.all")
             itemID -= 1
 
     def delete_row_from_table(self, delete_item_name=None, delete_document_title=None):

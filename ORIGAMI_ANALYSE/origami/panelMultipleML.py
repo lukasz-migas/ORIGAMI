@@ -21,13 +21,9 @@ import wx
 
 import numpy as np
 from os.path import splitext
-from operator import itemgetter
-from natsort import natsorted
 
 from styles import makeTooltip, makeMenuItem, ListCtrl
-from toolbox import (convertRGB255to1,
-                     convertRGB1to255, mlen, determineFontColor,
-                     randomColorGenerator)
+
 from processing.spectra import interpolate
 from gui_elements.misc_dialogs import dlgBox
 from ids import ID_mmlPanel_addToDocument, ID_mmlPanel_assignColor, ID_mmlPanel_plot_DT, ID_mmlPanel_plot_MS, \
@@ -42,7 +38,11 @@ from ids import ID_mmlPanel_addToDocument, ID_mmlPanel_assignColor, ID_mmlPanel_
     ID_mmlPanel_table_filename, ID_mmlPanel_table_variable, ID_mmlPanel_table_document, ID_mmlPanel_table_label, \
     ID_mmlPanel_table_hideAll, ID_mmlPanel_table_restoreAll
 from utils.random import randomIntegerGenerator
+from gui_elements.panel_modifyManualFiles import panelModifyManualFiles
 
+import logging
+from utils.color import randomColorGenerator, convertRGB1to255, determineFontColor, convertRGB255to1
+logger = logging.getLogger("origami")
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 
 """
@@ -204,8 +204,13 @@ class panelMML(wx.Panel):
                                       text=tooltip_text)
         self.peaklist.SetToolTip(filelistTooltip)
 
-        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click_menu)
+        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click_menu)
         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
+
+    def on_double_click_on_item(self, evt):
+        if self.peaklist.item_id != -1:
+            self.on_open_editor(evt=None)
 
     def on_right_click_menu(self, evt):
 
@@ -264,10 +269,10 @@ class panelMML(wx.Panel):
         self.Bind(wx.EVT_TOOL, self.on_add_blank_document_manual, id=ID_mmlPanel_add_manualDoc)
 
         menu = wx.Menu()
+        menu.Append(ID_mmlPanel_add_files_toCurrentDoc, "Add files to current MANUAL document")
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_add_files_toNewDoc,
                                      text='Add files to blank MANUAL document',
                                      bitmap=self.icons.iconsLib['new_document_16']))
-        menu.Append(ID_mmlPanel_add_files_toCurrentDoc, "Add files to current MANUAL document")
         menu.AppendSeparator()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_add_manualDoc,
                                      text='Create blank MANUAL document',
@@ -285,13 +290,13 @@ class panelMML(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_delete_selected, id=ID_mmlPanel_delete_selected)
 
         menu = wx.Menu()
+        menu.Append(ID_mmlPanel_clear_selected, "Clear selected items")
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_clear_all,
-                                     text='Clear table',
+                                     text='Clear all items',
                                      bitmap=self.icons.iconsLib['clear_16']))
-        menu.Append(ID_mmlPanel_clear_selected, "Clear selected")
         menu.AppendSeparator()
-        menu.Append(ID_mmlPanel_delete_selected, "Remove selected file")
-        menu.Append(ID_mmlPanel_delete_all, "Remove all files")
+        menu.Append(ID_mmlPanel_delete_selected, "Delete selected items")
+        menu.Append(ID_mmlPanel_delete_all, "Delete all items")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -426,27 +431,6 @@ class panelMML(wx.Panel):
                 self.peaklist.SetItemBackgroundColour(row, convertRGB1to255(color))
                 self.peaklist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color),
                                                                         return_rgb=True))
-
-    def OnGetColor(self, evt):
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.Centre()
-        dlg.GetColourData().SetChooseFull(True)
-
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-
-            # Retrieve custom colors
-            for i in range(len(self.config.customColors)):
-                self.config.customColors[i] = data.GetCustomColour(i)
-
-            return convertRGB255to1(newColour)
 
     def onAutoUniDec(self, evt):
 
@@ -607,6 +591,27 @@ class panelMML(wx.Panel):
             # update document
             self.onUpdateDocument(evt=None)
 
+    def OnGetColor(self, evt):
+        # Restore custom colors
+        custom = wx.ColourData()
+        for key in self.config.customColors:
+            custom.SetCustomColour(key, self.config.customColors[key])
+        dlg = wx.ColourDialog(self, custom)
+        dlg.Centre()
+        dlg.GetColourData().SetChooseFull(True)
+
+        # Show dialog and get new colour
+        if dlg.ShowModal() == wx.ID_OK:
+            data = dlg.GetColourData()
+            newColour = list(data.GetColour().Get())
+            dlg.Destroy()
+
+            # Retrieve custom colors
+            for i in range(len(self.config.customColors)):
+                self.config.customColors[i] = data.GetCustomColour(i)
+
+            return convertRGB255to1(newColour)
+
     def onUpdateDocument(self, evt, itemInfo=None, itemID=None):
         """
         evt : wxPython event
@@ -636,18 +641,6 @@ class panelMML(wx.Panel):
         # Update file list
         self.presenter.OnUpdateDocument(document, expand_item='mass_spectra',
                                         expand_item_title=itemInfo['filename'])
-
-    def on_remove_deleted_item(self, document):
-        """
-        """
-        row = self.peaklist.GetItemCount() - 1
-        while (row >= 0):
-            info = self.OnGetItemInformation(itemID=row)
-            if info['document'] == document:
-                self.peaklist.DeleteItem(row)
-                row -= 1
-            else:
-                row -= 1
 
     def on_overlay_plots(self, evt):
         evtID = evt.GetId()
@@ -819,8 +812,16 @@ class panelMML(wx.Panel):
 
     def on_add_to_table(self, add_dict, check_color=True):
 
+        # check if item already exists
+        if self._check_item_in_table(add_dict):
+            logger.info("Item {}:{} is already present in the document".format(
+                add_dict["document"], add_dict["filename"]))
+            return
+
         # get color
         color = add_dict.get("color", self.config.customColors[randomIntegerGenerator(0, 15)])
+        color = convertRGB1to255(color)
+
         document_title = add_dict.get("document", None)
         # check for duplicate color
         if check_color:
@@ -833,10 +834,19 @@ class panelMML(wx.Panel):
                               str(add_dict.get("document", "")),
                               str(add_dict.get("label", ""))
                               ])
-        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1,
-                                              color)
+        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
         self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1,
                                         determineFontColor(color, return_rgb=True))
+
+    def _check_item_in_table(self, add_dict):
+        count = self.peaklist.GetItemCount()
+        for row in range(count):
+            item_info = self.OnGetItemInformation(itemID=row)
+            if add_dict["filename"] == item_info["filename"] and \
+                add_dict["document"] == item_info["document"]:
+                return True
+
+        return False
 
     def delete_row_from_table(self, delete_item_name=None, delete_document_title=None):
 
@@ -897,14 +907,33 @@ class panelMML(wx.Panel):
             print("The operation was cancelled")
             return
 
-        itemID = self.peaklist.GetItemCount() - 1
-        while (itemID >= 0):
-            itemInfo = self.OnGetItemInformation(itemID=itemID)
+        item_count = self.peaklist.GetItemCount() - 1
+        while (item_count >= 0):
+            itemInfo = self.OnGetItemInformation(itemID=item_count)
             document = self.data_handling._on_get_document(itemInfo['document'])
             __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
-                document, itemInfo['document'], delete_type="spectrum.all",
+                document, itemInfo['document'], delete_type="spectrum.one",
                 spectrum_name=itemInfo['filename'])
-            itemID -= 1
+            item_count -= 1
+
+    def on_remove_deleted_item(self, document):
+        row = self.peaklist.GetItemCount() - 1
+        while (row >= 0):
+            info = self.OnGetItemInformation(itemID=row)
+            if info['document'] == document:
+                self.peaklist.DeleteItem(row)
+                row -= 1
+            else:
+                row -= 1
+
+    def on_open_editor(self, evt):
+        information = self.OnGetItemInformation(self.peaklist.item_id)
+
+        dlg = panelModifyManualFiles(self,
+                                     self.presenter,
+                                     self.config,
+                                     **information)
+        dlg.Show()
 
 
 class DragAndDrop(wx.FileDropTarget):

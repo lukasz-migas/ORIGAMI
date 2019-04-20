@@ -50,6 +50,8 @@ def check_waters_path(filepath):
 
 
 def check_path_exists(path):
+    if path is None:
+        return False
     return os.path.isdir(path)
 
 
@@ -67,3 +69,7 @@ def clean_up_MDD_path(path):
     except IndexError:
         path = path
     return path
+
+
+def get_base_path(filepath):
+    return os.path.dirname(filepath)

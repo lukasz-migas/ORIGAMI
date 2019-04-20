@@ -11,16 +11,16 @@
   </presets>
 
   <recent>
+    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
+    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files" format="Text" />
+    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files\MS_p27-FL-K31.csv" format="Text_MS" />
+    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\dt-ims\LM_20151006_7_B_DV30.raw" format="ORIGAMI" />
     <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\dt-ims\LM_20151006_7_B_DV60.raw" format="ORIGAMI" />
     <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\dt-ims\LM_20151006_7_B_DV20.raw" format="ORIGAMI" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files\2_Exponential_IMS2D_5140.48-5164.36.csv" format="Text_MS" />
     <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files\abc" format="Text_MS" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files\MS_p27-FL-K31.csv" format="Text_MS" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files" format="Text" />
     <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files\1_Linear_IMS2D_5140.73-5169.41.csv" format="Text" />
     <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thesis\compare_heatmaps.pickle" format="pickle" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\Kamila\PRT_CIU" format="Text" />
   </recent>
 
   <presets_gui>
@@ -78,7 +78,7 @@
     <param title="Import/Export parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />

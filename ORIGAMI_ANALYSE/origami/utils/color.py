@@ -32,15 +32,20 @@ def convertRGB255to1(rgbList, decimals=3):
     return rgbList
 
 
-def convertRGB1to255(rgbList, decimals=3, as_int=False):
-    rgbList = list([np.round((np.float(rgbList[0]) * 255), decimals),
-                    np.round((np.float(rgbList[1]) * 255), decimals),
-                    np.round((np.float(rgbList[2]) * 255), decimals)])
+def convertRGB1to255(rgbList, decimals=3, as_int=True):
+
+    color_out = list([np.round((np.float(rgbList[0]) * 255), decimals),
+                      np.round((np.float(rgbList[1]) * 255), decimals),
+                      np.round((np.float(rgbList[2]) * 255), decimals)])
+
+    # checks whether value was not already in the 255 range
+    if np.sum(color_out) > 3 * 255:
+        color_out = rgbList
 
     if as_int:
-        return [int(rgbList[0]), int(rgbList[1]), int(rgbList[2])]
+        return [int(color_out[0]), int(color_out[1]), int(color_out[2])]
     else:
-        return rgbList
+        return color_out
 
 
 def convertRGB1toHEX(rgbList):

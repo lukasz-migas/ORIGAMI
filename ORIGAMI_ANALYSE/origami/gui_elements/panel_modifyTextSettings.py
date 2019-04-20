@@ -2,7 +2,7 @@ import wx
 
 from icons import IconContainer as icons
 from styles import makeCheckbox, validator
-from toolbox import num2str
+from utils.converters import num2str
 
 # TODO: Add possibility to visualise heatmap as false-color image
 
@@ -42,42 +42,41 @@ class panelModifyTextSettings(wx.MiniFrame):
             self.itemInfo['charge'] = ""
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
 
         self.Centre()
         self.Layout()
         self.SetFocus()
 
         # bind
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_keyboard_event)
 
         # fire-up events
-        self.onSetupParameters(evt=None)
+        self.on_setup_gui(evt=None)
     # ----
 
-    def OnKey(self, evt):
+    def on_keyboard_event(self, evt):
         keyCode = evt.GetKeyCode()
         if keyCode == wx.WXK_ESCAPE:
-            self.onClose(evt=None)
+            self.on_close(evt=None)
 
         evt.Skip()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
-    # ----
 
-    def onSelect(self, evt):
-        self.onCheckID()
-        self.OnAssignColor(evt=None)
+    def on_select(self, evt):
+        self.on_check_id()
+        self.on_assign_color(evt=None)
         self.parent.onUpdateDocument(itemInfo=self.itemInfo, evt=None)
         self.Destroy()
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
-        panel = self.makePanel()
+        panel = self.make_panel()
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -87,14 +86,14 @@ class panelModifyTextSettings(wx.MiniFrame):
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
 
-    def makePanel(self):
+    def make_panel(self):
 
         panel = wx.Panel(self, -1, size=(-1, -1))
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         select_label = wx.StaticText(panel, wx.ID_ANY, "Select:")
         self.text_select_value = makeCheckbox(panel, "")
-        self.text_select_value.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.text_select_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         filename_label = wx.StaticText(panel, wx.ID_ANY, "Filename:")
         self.text_filename_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
@@ -107,54 +106,54 @@ class panelModifyTextSettings(wx.MiniFrame):
                                     wx.DefaultSize, wx.ALIGN_LEFT)
         self.text_label_value = wx.TextCtrl(panel, -1, "", size=(90, -1))
         self.text_label_value.SetValue(self.itemInfo['label'])
-        self.text_label_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.text_label_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         charge_label = wx.StaticText(panel, wx.ID_ANY, "Charge:")
         self.text_charge_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                           validator=validator('intPos'))
-        self.text_charge_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.text_charge_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         min_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Min threshold:")
         self.text_min_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                             value="1", min=0.0, max=1.0,
                                             initial=1.0, inc=0.05, size=(60, -1))
         self.text_min_threshold_value.SetValue(self.itemInfo['min_threshold'])
-        self.text_min_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.text_min_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         max_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Max threshold:")
         self.text_max_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                             value="1", min=0.0, max=1.0,
                                             initial=1.0, inc=0.05, size=(60, -1))
         self.text_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
-        self.text_max_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.text_max_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         mask_label = wx.StaticText(panel, wx.ID_ANY, "Mask:")
         self.text_mask_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                             value="1", min=0.0, max=1.0,
                                             initial=1.0, inc=0.05, size=(60, -1))
         self.text_mask_value.SetValue(self.itemInfo['mask'])
-        self.text_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.text_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparency:")
         self.text_transparency_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
                                                     value="1", min=0.0, max=1.0,
                                                     initial=1.0, inc=0.05, size=(60, -1))
-        self.text_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.text_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.text_colormap_value = wx.Choice(panel, -1,
                                                choices=self.config.cmaps2,
                                                size=(-1, -1))
-        self.text_colormap_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.text_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         self.text_restrictColormap_value = makeCheckbox(panel, "")
-        self.text_restrictColormap_value.Bind(wx.EVT_CHECKBOX, self.onRestrictCmaps)
+        self.text_restrictColormap_value.Bind(wx.EVT_CHECKBOX, self.on_restrict_colormaps)
 
         color_label = wx.StaticText(panel, -1, "Color:")
         self.text_color_value = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition,
                                           wx.Size(26, 26), 0)
         self.text_color_value.SetBackgroundColour(self.itemInfo['color'])
-        self.text_color_value.Bind(wx.EVT_BUTTON, self.OnAssignColor)
+        self.text_color_value.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
@@ -163,10 +162,10 @@ class panelModifyTextSettings(wx.MiniFrame):
         self.nextBtn = wx.Button(panel, wx.ID_OK, "Next", size=(-1, 22))
         self.cancelBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
 
-        self.showBtn.Bind(wx.EVT_BUTTON, self.onShow)
-        self.nextBtn.Bind(wx.EVT_BUTTON, self.onGetNext)
-        self.previousBtn.Bind(wx.EVT_BUTTON, self.onGetPrevious)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.showBtn.Bind(wx.EVT_BUTTON, self.on_show)
+        self.nextBtn.Bind(wx.EVT_BUTTON, self.on_get_next)
+        self.previousBtn.Bind(wx.EVT_BUTTON, self.on_get_previous)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -224,12 +223,13 @@ class panelModifyTextSettings(wx.MiniFrame):
 
         return panel
 
-    def onShow(self, evt):
+    def on_show(self, evt):
         self.parent.on_plot(evt=None, itemID=self.itemInfo['id'])
 
-    def onApply(self, evt):
-        self.onCheckID()
-        if self.importEvent: return
+    def on_apply(self, evt):
+        self.on_check_id()
+        if self.importEvent:
+            return
         self.parent.peaklist.CheckItem(self.itemInfo['id'], self.text_select_value.GetValue())
         self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.textlistColNames['charge'],
                                            self.text_charge_value.GetValue())
@@ -253,13 +253,13 @@ class panelModifyTextSettings(wx.MiniFrame):
 
         # update ion value
 
-        self.OnAssignColor(evt=None)
+        self.on_assign_color(evt=None)
         self.parent.onUpdateDocument(itemInfo=self.itemInfo, evt=None)
 
         if evt != None:
             evt.Skip()
 
-    def onSetupParameters(self, evt):
+    def on_setup_gui(self, evt):
         self.importEvent = True
         self.text_select_value.SetValue(self.itemInfo['select'])
         self.text_filename_value.SetValue(self.itemInfo['document'])
@@ -275,7 +275,7 @@ class panelModifyTextSettings(wx.MiniFrame):
 
         self.importEvent = False
 
-    def onUpdateGUI(self, itemInfo):
+    def on_update_gui(self, itemInfo):
         """
         @param itemInfo (dict): updating GUI with new item information
         """
@@ -299,14 +299,14 @@ class panelModifyTextSettings(wx.MiniFrame):
             self.itemInfo['charge'] = ""
 
         # setup values
-        self.onSetupParameters(evt=None)
+        self.on_setup_gui(evt=None)
 
         self.SetFocus()
 
-    def OnAssignColor(self, evt):
-        self.onCheckID()
+    def on_assign_color(self, evt):
+        self.on_check_id()
         if evt:
-            color = self.parent.OnAssignColor(evt=None,
+            color = self.parent.on_assign_color(evt=None,
                                               itemID=self.itemInfo['id'],
                                               give_value=True)
             self.text_color_value.SetBackgroundColour(color)
@@ -314,7 +314,7 @@ class panelModifyTextSettings(wx.MiniFrame):
             color = self.text_color_value.GetBackgroundColour()
             self.parent.peaklist.SetItemBackgroundColour(self.itemInfo['id'], color)
 
-    def onRestrictCmaps(self, evt):
+    def on_restrict_colormaps(self, evt):
         """
         The cmap list will be restricted to more limited selection
         """
@@ -336,8 +336,8 @@ class panelModifyTextSettings(wx.MiniFrame):
                 self.text_colormap_value.Append(item)
             self.text_colormap_value.SetStringSelection(currentCmap)
 
-    def onGetNext(self, evt):
-        self.onCheckID()
+    def on_get_next(self, evt):
+        self.on_check_id()
         count = self.parent.peaklist.GetItemCount() - 1
         if self.itemInfo['id'] == count:
             new_id = 0
@@ -347,12 +347,12 @@ class panelModifyTextSettings(wx.MiniFrame):
         # get new information
         self.itemInfo = self.parent.OnGetItemInformation(new_id)
         # update table
-        self.onSetupParameters(None)
+        self.on_setup_gui(None)
         # update title
         self.SetTitle(self.itemInfo['document'])
 
-    def onGetPrevious(self, evt):
-        self.onCheckID()
+    def on_get_previous(self, evt):
+        self.on_check_id()
         count = self.parent.peaklist.GetItemCount() - 1
         if self.itemInfo['id'] == 0:
             new_id = count
@@ -362,11 +362,11 @@ class panelModifyTextSettings(wx.MiniFrame):
         # get new information
         self.itemInfo = self.parent.OnGetItemInformation(new_id)
         # update table
-        self.onSetupParameters(None)
+        self.on_setup_gui(None)
         # update title
         self.SetTitle(self.itemInfo['document'])
 
-    def onCheckID(self):
+    def on_check_id(self):
         # check whether ID is still correct
         information = self.parent.OnGetItemInformation(self.itemInfo['id'])
 

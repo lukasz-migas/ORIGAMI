@@ -991,31 +991,18 @@ class panelMultipleTextFiles (wx.Panel):
     def OnGetItemInformation(self, itemID, return_list=False):
 
         information = self.peaklist.on_get_item_information(itemID)
-#         # get item information
-#         information = {'minCE': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['start']).GetText()),
-#                        'maxCE': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['end']).GetText()),
-#                        'charge': str2int(self.peaklist.GetItem(itemID, self.config.textlistColNames['charge']).GetText()),
-#                        'color': self.peaklist.GetItemBackgroundColour(item=itemID),
-#                        'color_255to1': convertRGB255to1(self.peaklist.GetItemBackgroundColour(item=itemID), decimals=3),
-#                        'colormap': self.peaklist.GetItem(itemID, self.config.textlistColNames['colormap']).GetText(),
-#                        'alpha': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['alpha']).GetText()),
-#                        'mask': str2num(self.peaklist.GetItem(itemID, self.config.textlistColNames['mask']).GetText()),
-#                        'label': self.peaklist.GetItem(itemID, self.config.textlistColNames['label']).GetText(),
-#                        'shape': self.peaklist.GetItem(itemID, self.config.textlistColNames['shape']).GetText(),
-#                        'document': self.peaklist.GetItem(itemID, self.config.textlistColNames['filename']).GetText(),
-#                        'select': self.peaklist.IsChecked(itemID),
-#                        'id': itemID}
 
         try:
             flag_error = False
             document = self.data_handling._on_get_document(information["document"])
-        except KeyError:
+        except KeyError as e:
+            logger.error("File: {} is missing. Error: {}".format(information["document"], e))
             flag_error = True
             try:
                 document_title, ion_title = re.split(': ', information['document'])
                 document = self.presenter.documentsDict[document_title]
             except ValueError:
-                return
+                return information
 
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
@@ -1179,7 +1166,6 @@ class panelMultipleTextFiles (wx.Panel):
                 return
 
             dlg_kwargs = self.OnGetItemInformation(self.peaklist.item_id)
-            print(dlg_kwargs)
 
             self.editItemDlg = panelModifyTextSettings(
                 self, self.presenter, self.config, **dlg_kwargs)

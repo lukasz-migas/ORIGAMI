@@ -177,7 +177,7 @@ class ORIGAMI(object):
         if self.config.checkForDriftscopeAtStart:
             self.config.initlizePaths()
 
-        # add dataprocessing
+        # add data handling and processing modules
         self.view.panelDocuments.documents._setup_handling_and_processing()
         self.view.panelMultipleIons._setup_handling_and_processing()
         self.view.panelMultipleText._setup_handling_and_processing()
@@ -200,7 +200,7 @@ class ORIGAMI(object):
 
         # Generate filename
         if self.config.loggingFile_path is None:
-            file_path = "specML_%s.log" % self.config.startTime
+            file_path = "origami_{}.log".format(self.config.startTime)
             self.config.loggingFile_path = os.path.join(
                 log_directory, file_path)
 
@@ -6500,9 +6500,9 @@ class ORIGAMI(object):
             return
 
     def openHTMLViewer(self, evt):
-        import HTMLHelp as htmlPages
+        from help_documentation import HTMLHelp
 
-        htmlPages = htmlPages()
+        htmlPages = HTMLHelp()
         evtID = evt.GetId()
         if evtID == ID_help_UniDecInfo:
             kwargs = htmlPages.page_UniDec_info

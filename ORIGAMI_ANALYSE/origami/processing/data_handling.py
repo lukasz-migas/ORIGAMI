@@ -3,8 +3,9 @@ import os
 import threading
 from pubsub import pub
 import numpy as np
-import wx.lib.agw.multidirdialog as MDD
+# import wx.lib.agw.multidirdialog as MDD
 
+from gui_elements.dialog_multiDirSelector import dialogMultiDirSelector
 import readers.io_text_files as io_text
 import readers.io_waters_raw as io_waters
 import processing.spectra as pr_spectra
@@ -14,7 +15,7 @@ from ids import ID_window_ionList, ID_window_multiFieldList, ID_load_origami_mas
 from gui_elements.misc_dialogs import dlgBox
 from utils.check import isempty, check_value_order
 from utils.time import getTime, ttime, tsleep
-from utils.path import get_path_and_fname, check_waters_path, check_path_exists, clean_up_MDD_path
+from utils.path import get_path_and_fname, check_waters_path, check_path_exists, clean_up_MDD_path, get_base_path
 from utils.converters import byte2str
 from utils.random import randomIntegerGenerator
 from utils.color import convertRGB255to1, convertRGB1to255, randomColorGenerator
@@ -488,24 +489,25 @@ class data_handling():
         document.userParameters['date'] = getTime()
         document.dataType = 'Type: 2D IM-MS'
         document.fileFormat = 'Format: Text (.csv/.txt)'
-        document.got2DIMS = True
-        document.IMS2D = {'zvals': array_2D,
-                          'xvals': xAxisLabels,
-                          'xlabels': 'Collision Voltage (V)',
-                          'yvals': yAxisLabels,
-                          'yvals1D': array_1D_mob,
-                          'yvalsRT': array_1D_RT,
-                          'ylabels': 'Drift time (bins)',
-                          'cmap': self.config.currentCmap,
-                          'mask': self.config.overlay_defaultMask,
-                          'alpha': self.config.overlay_defaultAlpha,
-                          'min_threshold': 0,
-                          'max_threshold': 1,
-                          'color': color}
+        self.on_update_document(document, 'document')
+
+        data = {'zvals': array_2D,
+                'xvals': xAxisLabels,
+                'xlabels': 'Collision Voltage (V)',
+                'yvals': yAxisLabels,
+                'yvals1D': array_1D_mob,
+                'yvalsRT': array_1D_RT,
+                'ylabels': 'Drift time (bins)',
+                'cmap': self.config.currentCmap,
+                'mask': self.config.overlay_defaultMask,
+                'alpha': self.config.overlay_defaultAlpha,
+                'min_threshold': 0,
+                'max_threshold': 1,
+                'color': color}
+        self.documentTree.on_update_data(data, "", document, data_type="main.heatmap")
 
         # Update document
         self.view.updateRecentFiles(path={'file_type': 'Text', 'file_path': path})
-        self.on_update_document(document, 'document')
 
     def __on_add_text_MS(self, path):
         # Update statusbar
@@ -521,11 +523,12 @@ class data_handling():
         document.userParameters['date'] = getTime()
         document.dataType = 'Type: MS'
         document.fileFormat = 'Format: Text ({})'.format(extension)
-        document.gotMS = True
-        document.massSpectrum = {'xvals': ms_x,
-                                 'yvals': ms_y,
-                                 'xlabels': 'm/z (Da)',
-                                 'xlimits': xlimits}
+        # add document
+        self.on_update_document(document, 'document')
+
+        data = {'xvals': ms_x, 'yvals': ms_y, 'xlabels': 'm/z (Da)', 'xlimits': xlimits}
+
+        self.documentTree.on_update_data(data, "", document, data_type="main.spectrum")
 
         # Plot
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
@@ -533,7 +536,6 @@ class data_handling():
 
         # Update document
         self.view.updateRecentFiles(path={'file_type': 'Text_MS', 'file_path': path})
-        self.on_update_document(document, 'document')
 
     def on_update_document(self, document, expand_item='document', expand_item_title=None):
 
@@ -895,11 +897,14 @@ class data_handling():
 
     def on_open_multiple_MassLynx_raw_fcn(self, evt):
 
-        dlg = MDD.MultiDirDialog(self.view,
-                                 title="Choose Waters (.raw) files to open...",
-                                 agwStyle=MDD.DD_MULTIPLE | MDD.DD_DIR_MUST_EXIST)
+        if not check_path_exists(self.config.lastDir):
+            self.config.lastDir = os.getcwd()
 
-        if dlg.ShowModal() == wx.ID_OK:
+        dlg = dialogMultiDirSelector(self.view,
+                                     title="Choose Waters (.raw) files to open...",
+                                     default_path=self.config.lastDir)
+
+        if dlg.ShowModal() == "ok":  # wx.ID_OK:
             pathlist = dlg.GetPaths()
             data_type = 'Type: ORIGAMI'
             for path in pathlist:
@@ -1303,24 +1308,35 @@ class data_handling():
 
     def on_open_multiple_ML_files_fcn(self, open_type, pathlist=[]):
 
-        if self.config.lastDir is None or not os.path.isdir(self.config.lastDir):
+        if not check_path_exists(self.config.lastDir):
             self.config.lastDir = os.getcwd()
 
-        dlg = MDD.MultiDirDialog(self.view, title="Choose Waters (.raw) files to open...",
-                                 defaultPath=self.config.lastDir,
-                                 agwStyle=MDD.DD_MULTIPLE | MDD.DD_DIR_MUST_EXIST)
-
-        if dlg.ShowModal() == wx.ID_OK:
+        dlg = dialogMultiDirSelector(self.view,
+                                     title="Choose Waters (.raw) files to open...",
+                                     default_path=self.config.lastDir)
+#
+        if dlg.ShowModal() == "ok":
             pathlist = dlg.GetPaths()
 
         if len(pathlist) == 0:
             self.__update_statusbar("Please select at least one file in order to continue.", 4)
             return
 
+        # update lastdir
+        self.config.lastDir = get_base_path(pathlist[0])
+
         if open_type == "multiple_files_add":
             document = self._get_document_of_type('Type: MANUAL')
         elif open_type == "multiple_files_new_document":
             document = self.__create_new_document()
+
+        if document is None:
+            logger.warning("Document was not selected.")
+            return
+
+        # setup parameters
+        document.dataType = 'Type: MANUAL'
+        document.fileFormat = 'Format: MassLynx (.raw)'
 
         if not self.config.threading:
             self.on_open_multiple_ML_files(document, open_type, pathlist)
@@ -1333,53 +1349,64 @@ class data_handling():
 
         tstart = ttime()
 
-        if document is None:
-            logger.warning("Document was not selected.")
-            return
+        enumerate_start = 0
+        if open_type == "multiple_files_add":
+            enumerate_start = len(document.multipleMassSpectrum)
 
-        for i, file_path in enumerate(pathlist):
+        data_was_added = False
+        for i, file_path in enumerate(pathlist, start=enumerate_start):
             path = check_waters_path(file_path)
-            path = clean_up_MDD_path(path)
             if not check_path_exists(path):
                 logger.warning("File with path: {} does not exist".format(path))
                 continue
 
-            # add data to document
             __, file_name = os.path.split(path)
+
+            add_dict = {"filename": file_name, "document": document.title}
+            # check if item already exists
+            if self.filesPanel._check_item_in_table(add_dict):
+                logger.info("Item {}:{} is already present in the document".format(
+                    add_dict["document"], add_dict["filename"]))
+                continue
+
+            # add data to document
             parameters = self.config.importMassLynxInfFile(path=path, manual=True)
             xlimits = [parameters['startMS'], parameters['endMS']]
             ms_x, ms_y = self._get_driftscope_spectrum_data(path)
             dt_x, dt_y = self._get_driftscope_mobiligram_data(path)
-
             try:
                 color = self.config.customColors[i]
             except KeyError:
                 color = randomColorGenerator(return_as_255=True)
-            print("pre", color)
+
             color = convertRGB255to1(
                 self.filesPanel.on_check_duplicate_colors(color, document_name=document.title))
-            print("post", color)
             label = os.path.splitext(file_name)[0]
 
-            add_dict = {"filename": file_name,
-                        "variable": parameters["trapCE"],
-                        "document": document.title,
-                        "label": label,
-                        "color": color}
-            self.filesPanel.on_add_to_table(add_dict)
+            add_dict.update({"variable": parameters["trapCE"],
+                             "label": label,
+                             "color": color})
 
-            document.gotMultipleMS = True
-            document.multipleMassSpectrum[file_name] = {'trap': parameters['trapCE'],
-                                                        'xvals': ms_x,
-                                                        'yvals': ms_y,
-                                                        'ims1D': dt_y,
-                                                        'ims1DX': dt_x,
-                                                        'xlabel': 'Drift time (bins)',
-                                                        'xlabels': 'm/z (Da)',
-                                                        'path': path,
-                                                        'color': color,
-                                                        'parameters': parameters,
-                                                        'xlimits': xlimits}
+            self.filesPanel.on_add_to_table(add_dict, check_color=False)
+
+            data = {'trap': parameters['trapCE'],
+                    'xvals': ms_x,
+                    'yvals': ms_y,
+                    'ims1D': dt_y,
+                    'ims1DX': dt_x,
+                    'xlabel': 'Drift time (bins)',
+                    'xlabels': 'm/z (Da)',
+                    'path': path,
+                    'color': color,
+                    'parameters': parameters,
+                    'xlimits': xlimits}
+
+            self.documentTree.on_update_data(data, file_name, document, data_type="extracted.spectrum")
+            data_was_added = True
+
+        # check if any data was added to the document
+        if not data_was_added:
+            return
 
         kwargs = {'auto_range': False,
                   'mz_min': self.config.ms_mzStart,
@@ -1419,20 +1446,18 @@ class data_handling():
                 ms_y_sum += ms_y
 
         xlimits = [parameters['startMS'], parameters['endMS']]
-        document.gotMS = True
-        document.massSpectrum = {'xvals': ms_x,
-                                 'yvals': ms_y_sum,
-                                 'xlabels':'m/z (Da)',
-                                 'xlimits':xlimits}
+        data = {'xvals': ms_x,
+                'yvals': ms_y_sum,
+                'xlabels':'m/z (Da)',
+                'xlimits':xlimits}
+        self.documentTree.on_update_data(data, "", document, data_type="main.spectrum")
         # Plot
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
         self.view.panelPlots.on_plot_MS(ms_x, ms_y_sum, xlimits=xlimits, **name_kwargs)
 
         # Add info to document
         document.parameters = parameters
-        document.dataType = 'Type: MANUAL'
-        document.fileFormat = 'Format: MassLynx (.raw)'
-        self.on_update_document(document, 'document')
+        self.on_update_document(document, 'no_refresh')
 
         # Show panel
         self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)

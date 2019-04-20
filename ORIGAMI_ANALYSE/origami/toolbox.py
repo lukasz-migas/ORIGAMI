@@ -725,6 +725,7 @@ def convertRGB255to1(rgbList, decimals=3):
 
 
 def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
+    print("rgb2", rgbList)
     if not as_integer:
         rgbList = list([np.round((np.float(rgbList[0]) * 255), decimals),
                         np.round((np.float(rgbList[1]) * 255), decimals),

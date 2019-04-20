@@ -1115,12 +1115,21 @@ class documentsTree(wx.TreeCtrl):
 
         elif self.itemType == 'Chromatograms (combined voltages, EIC)':
             if self.extractData == 'Chromatograms (combined voltages, EIC)':
-                self.presenter.documentsDict[currentDoc].IMSRTCombIons = {}
-                self.presenter.documentsDict[currentDoc].gotCombinedExtractedIonsRT = False
+                document, delete_outcome = self.on_delete_data__heatmap(
+                    document, document_title,
+                    delete_type="heatmap.rt.all")
             else:
-                del self.presenter.documentsDict[currentDoc].IMSRTCombIons[self.extractData]
-                if len(self.presenter.documentsDict[currentDoc].IMSRTCombIons) == 0:
-                    self.presenter.documentsDict[currentDoc].gotCombinedExtractedIonsRT = False
+                document, delete_outcome = self.on_delete_data__heatmap(
+                    document, document_title,
+                    delete_type="heatmap.rt.one",
+                    ion_name=self.extractData)
+#             if self.extractData == 'Chromatograms (combined voltages, EIC)':
+#                 self.presenter.documentsDict[currentDoc].IMSRTCombIons = {}
+#                 self.presenter.documentsDict[currentDoc].gotCombinedExtractedIonsRT = False
+#             else:
+#                 del self.presenter.documentsDict[currentDoc].IMSRTCombIons[self.extractData]
+#                 if len(self.presenter.documentsDict[currentDoc].IMSRTCombIons) == 0:
+#                     self.presenter.documentsDict[currentDoc].gotCombinedExtractedIonsRT = False
 
         elif self.itemType == 'Chromatograms (EIC)':
             if self.extractData == 'Chromatograms (EIC)':
@@ -1142,30 +1151,49 @@ class documentsTree(wx.TreeCtrl):
 
         elif self.itemType == 'Drift time (2D, EIC)':
             if self.extractData == 'Drift time (2D, EIC)':
-                self.presenter.documentsDict[currentDoc].IMS2Dions = {}
-                self.presenter.documentsDict[currentDoc].gotExtractedIons = False
+                document, delete_outcome = self.on_delete_data__heatmap(
+                    document, document_title,
+                    delete_type="heatmap.raw.all")
             else:
-                del self.presenter.documentsDict[currentDoc].IMS2Dions[self.extractData]
-                if len(self.presenter.documentsDict[currentDoc].IMS2Dions) == 0:
-                    self.presenter.documentsDict[currentDoc].gotExtractedIons = False
+                document, delete_outcome = self.on_delete_data__heatmap(
+                    document, document_title,
+                    delete_type="heatmap.raw.one",
+                    ion_name=self.extractData)
 
         elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
             if self.extractData == 'Drift time (2D, combined voltages, EIC)':
-                self.presenter.documentsDict[currentDoc].IMS2DCombIons = {}
-                self.presenter.documentsDict[currentDoc].gotCombinedExtractedIons = False
+                document, delete_outcome = self.on_delete_data__heatmap(
+                    document, document_title,
+                    delete_type="heatmap.combined.all")
             else:
-                del self.presenter.documentsDict[currentDoc].IMS2DCombIons[self.extractData]
-                if len(self.presenter.documentsDict[currentDoc].IMS2DCombIons) == 0:
-                    self.presenter.documentsDict[currentDoc].gotCombinedExtractedIons = False
+                document, delete_outcome = self.on_delete_data__heatmap(
+                    document, document_title,
+                    delete_type="heatmap.combined.one",
+                    ion_name=self.extractData)
+#
+#                 self.presenter.documentsDict[currentDoc].IMS2DCombIons = {}
+#                 self.presenter.documentsDict[currentDoc].gotCombinedExtractedIons = False
+#             else:
+#                 del self.presenter.documentsDict[currentDoc].IMS2DCombIons[self.extractData]
+#                 if len(self.presenter.documentsDict[currentDoc].IMS2DCombIons) == 0:
+#                     self.presenter.documentsDict[currentDoc].gotCombinedExtractedIons = False
 
         elif self.itemType == 'Drift time (2D, processed, EIC)':
             if self.extractData == 'Drift time (2D, processed, EIC)':
-                self.presenter.documentsDict[currentDoc].IMS2DionsProcess = {}
-                self.presenter.documentsDict[currentDoc].got2DprocessIons = False
+                document, delete_outcome = self.on_delete_data__heatmap(
+                    document, document_title,
+                    delete_type="heatmap.processed.all")
             else:
-                del self.presenter.documentsDict[currentDoc].IMS2DionsProcess[self.extractData]
-                if len(self.presenter.documentsDict[currentDoc].IMS2DionsProcess) == 0:
-                    self.presenter.documentsDict[currentDoc].got2DprocessIons = False
+                document, delete_outcome = self.on_delete_data__heatmap(
+                    document, document_title,
+                    delete_type="heatmap.processed.one",
+                    ion_name=self.extractData)
+#                 self.presenter.documentsDict[currentDoc].IMS2DionsProcess = {}
+#                 self.presenter.documentsDict[currentDoc].got2DprocessIons = False
+#             else:
+#                 del self.presenter.documentsDict[currentDoc].IMS2DionsProcess[self.extractData]
+#                 if len(self.presenter.documentsDict[currentDoc].IMS2DionsProcess) == 0:
+#                     self.presenter.documentsDict[currentDoc].got2DprocessIons = False
 
         elif self.itemType == 'Input data':
             if self.extractData == 'Input data':
@@ -6129,18 +6157,7 @@ class documentsTree(wx.TreeCtrl):
                 delete_item_name=ion_name,
                 delete_document_title=document_title)
 
-#         if len(document.multipleMassSpectrum) == 0:
-#             document.gotMultipleMS = False
-#             try:
-#                 self.Delete(main_docItem)
-#             except Exception:
-#                 logger.warning("Failed to delete item: Mass Spectra from the document tree")
-
-        if docItem is False:
-            return document, False
-        else:
-            self.Delete(docItem)
-            return document, True
+        return document, True
 
     def on_delete_data__mass_spectra(self, document, document_title,
                                      delete_type, spectrum_name=None,
@@ -6228,15 +6245,35 @@ class documentsTree(wx.TreeCtrl):
             specify whether data should be added with full refresh or just set
         """
         # get object
-        if data_type == "spectrum":
+        if data_type == "main.spectrum":
+            item = self.getItemByData(document.massSpectrum)
+            document.gotMS = True
+            document.massSpectrum = item_data
+
+        elif data_type == "extracted.spectrum":
             item = self.getItemByData(document.multipleMassSpectrum)
             document.gotMultipleMS = True
             document.multipleMassSpectrum[item_name] = item_data
+
+        elif data_type == "main.mobiligram":
+            item = self.getItemByData(document.DT)
+            document.got1DT = True
+            document.DT = item_data
 
         elif data_type == "ion.mobiligram":
             item = self.getItemByData(document.IMS1DdriftTimes)
             document.gotExtractedDriftTimes = True
             document.IMS1DdriftTimes[item_name] = item_data
+
+        elif data_type == "main.chromatogram":
+            item = self.getItemByData(document.RT)
+            document.got1RT = True
+            document.RT = item_data
+
+        elif data_type == "main.heatmap":
+            item = self.getItemByData(document.IMS2D)
+            document.got2DIMS = True
+            document.IMS2D = item_data
 
         elif data_type == "ion.heatmap.raw":
             item = self.getItemByData(document.IMS2Dions)
@@ -6249,27 +6286,47 @@ class documentsTree(wx.TreeCtrl):
             document.IMS2DCombIons[item_name] = item_data
 
         if item is not False and not set_data_only:
-            if data_type == "spectrum":
-                self.append_one_data(item, document.multipleMassSpectrum[item_name], item_name,
-                                     image=data_type)
+            # add main spectrum
+            if data_type == "main.spectrum":
+                self.update_one_item(item, document.massSpectrum, image=data_type)
+            # add base heatmap
+            elif data_type == "main.heatmap":
+                self.update_one_item(item, document.IMS2D, image=data_type)
+            # add extracted spectrum
+            elif data_type == "extracted.spectrum":
+                self.add_one_to_group(item, document.multipleMassSpectrum[item_name], item_name,
+                                      image=data_type)
             # add mobiligram data
             elif data_type == "ion.mobiligram":
-                self.append_one_data(item, document.IMS1DdriftTimes[item_name], item_name,
-                                     image=data_type)
+                self.add_one_to_group(item, document.IMS1DdriftTimes[item_name], item_name,
+                                      image=data_type)
+
             # add heatmap-raw data
             elif data_type == "ion.heatmap.raw":
-                self.append_one_data(item, document.IMS2Dions[item_name], item_name,
-                                     image=data_type)
+                self.add_one_to_group(item, document.IMS2Dions[item_name], item_name,
+                                      image=data_type)
             # add CIU-style data
             elif data_type == "ion.heatmap.combined":
-                self.append_one_data(item, document.IMS2DCombIons[item_name], item_name,
-                                     image=data_type)
+                self.add_one_to_group(item, document.IMS2DCombIons[item_name], item_name,
+                                      image=data_type)
             # add data to document without updating it
             self.data_handling.on_update_document(document, 'no_refresh')
         else:
             self.data_handling.on_update_document(document, 'document')
 
-    def append_one_data(self, item, data, name, image, expand=True):
+    def get_item_image(self, image_type):
+        if image_type in ["main.spectrum", "extracted.spectrum"]:
+            image = self.bulets_dict["mass_spec_on"]
+        elif image_type == ["ion.heatmap.combined", "ion.heatmap.raw", "ion.heatmap.processed", "main.heatmap"]:
+            image = self.bulets_dict["heatmap_on"]
+        elif image_type == "ion.mobiligram":
+            image = self.bulets_dict["drift_time_on"]
+        else:
+            image = self.bulets_dict["heatmap_on"]
+
+        return image
+
+    def add_one_to_group(self, item, data, name, image, expand=True):
         """
         Append data to the docoument
         ----------
@@ -6284,15 +6341,7 @@ class documentsTree(wx.TreeCtrl):
         expand : bool
             specify if tree item should be expanded
         """
-        if image == "spectrum":
-            image = self.bulets_dict["mass_spec_on"]
-        elif image == "ion.heatmap.combined":
-            image = self.bulets_dict["heatmap_on"]
-        elif image == "ion.mobiligram":
-            image = self.bulets_dict["drift_time_on"]
-        else:
-            image = self.bulets_dict["heatmap_on"]
-
+        image = self.get_item_image(image)
         child, cookie = self.GetFirstChild(item)
         while child.IsOk():
             if self.GetItemText(child) == name:
@@ -6308,3 +6357,8 @@ class documentsTree(wx.TreeCtrl):
 
         if expand:
             self.Expand(itemClass)
+
+    def update_one_item(self, item, data, image):
+        image = self.get_item_image(image)
+        self.SetPyData(item, data)
+        self.SetItemImage(item, image, wx.TreeItemIcon_Normal)
