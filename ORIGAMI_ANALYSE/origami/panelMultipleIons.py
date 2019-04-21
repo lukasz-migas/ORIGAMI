@@ -54,6 +54,9 @@ from styles import ListCtrl
 from utils.color import convertRGB255to1, determineFontColor, randomColorGenerator, convertRGB1to255
 from utils.random import randomIntegerGenerator
 
+import logging
+logger = logging.getLogger("origami")
+
 
 class panelMultipleIons(wx.Panel):
 
@@ -133,7 +136,7 @@ class panelMultipleIons(wx.Panel):
         wx.EVT_MENU(self, ID_combinedCV_binMSCombinedMenu, self.onCheckTool)
         wx.EVT_MENU(self, ID_highlightRectAllIons, self.presenter.onShowExtractedIons)
         wx.EVT_MENU(self, ID_ionPanel_check_all, self.OnCheckAllItems)
-        wx.EVT_MENU(self, ID_ionPanel_assignColor, self.OnAssignColor)
+        wx.EVT_MENU(self, ID_ionPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_ionPanel_show_zoom_in_MS, self.on_plot)
         wx.EVT_MENU(self, ID_ionPanel_show_mobiligram, self.on_plot)
         wx.EVT_MENU(self, ID_ionPanel_check_selected, self.on_check_selected)
@@ -350,7 +353,7 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_heatmap)
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_process_heatmap)
         self.Bind(wx.EVT_MENU, self.OnOpenEditor, id=ID_ionPanel_editItem)
-        self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_ionPanel_assignColor)
+        self.Bind(wx.EVT_MENU, self.on_assign_color, id=ID_ionPanel_assignColor)
         self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_ionPanel_delete_rightClick)
 
         self.peaklist.item_id = evt.GetIndex()
@@ -1245,6 +1248,10 @@ class panelMultipleIons(wx.Panel):
         else:
             evtID = evt.GetId()
 
+        if self.peaklist.item_id is None:
+            logger.warning("Please select an item")
+            return
+
         rows = self.peaklist.GetItemCount() - 1
         if evtID == ID_ionPanel_editItem:
             if self.peaklist.item_id < 0:
@@ -1297,7 +1304,7 @@ class panelMultipleIons(wx.Panel):
                                                           **dlg_kwargs)
                 self.editItemDlg.Show()
 
-    def OnAssignColor(self, evt, itemID=None, give_value=False):
+    def on_assign_color(self, evt, itemID=None, give_value=False):
         """
         evt: wxPython event
             unused
@@ -1320,7 +1327,7 @@ class panelMultipleIons(wx.Panel):
 
             # update document
             self.onUpdateDocument(evt=None)
-#
+
             if give_value:
                 return color_255
         else:
@@ -1397,12 +1404,6 @@ class panelMultipleIons(wx.Panel):
             except TypeError:
                 print("Please select an item")
 
-    @staticmethod
-    def __check_keyword(keyword_name):
-        if keyword_name == 'colormap':
-            keyword_name = 'cmap'
-        return keyword_name
-
     def onUpdateDocument(self, evt, itemInfo=None):
 
         # get item info
@@ -1410,7 +1411,7 @@ class panelMultipleIons(wx.Panel):
             itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
 
         # get item
-        document = self.presenter.documentsDict[itemInfo['document']]
+        document = self.data_handling._on_get_document(itemInfo['document'])
 
         processed_name = "{} (processed)".format(itemInfo['ionName'])
         keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold', 'max_threshold', 'charge']
@@ -1419,8 +1420,10 @@ class panelMultipleIons(wx.Panel):
             for keyword in keywords:
                 keyword_name = self.__check_keyword(keyword)
                 document.IMS2Dions[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
-                try: document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
-                except: pass
+                try:
+                    document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
+                except KeyError:
+                    pass
 
         if itemInfo['ionName'] in document.IMS2DCombIons:
             for keyword in keywords:
@@ -1433,18 +1436,21 @@ class panelMultipleIons(wx.Panel):
             for keyword in keywords:
                 keyword_name = self.__check_keyword(keyword)
                 document.IMS2DionsProcess[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
-                try: document.IMS2DionsProcess[processed_name][keyword_name] = itemInfo[keyword]
-                except: pass
-
+                try:
+                    document.IMS2DionsProcess[processed_name][keyword_name] = itemInfo[keyword]
+                except KeyError:
+                    pass
         if itemInfo['ionName'] in document.IMSRTCombIons:
             for keyword in keywords:
                 keyword_name = self.__check_keyword(keyword)
                 document.IMSRTCombIons[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
-                try: document.IMSRTCombIons[processed_name][keyword_name] = itemInfo[keyword]
-                except: pass
+                try:
+                    document.IMSRTCombIons[processed_name][keyword_name] = itemInfo[keyword]
+                except KeyError:
+                    pass
 
-        # Update file list
-        self.presenter.OnUpdateDocument(document, 'no_refresh')
+        # Update document
+        self.data_handling.on_update_document(document, "no_refresh")
 
     def on_remove_deleted_item(self, document):
         """
@@ -1762,6 +1768,12 @@ class panelMultipleIons(wx.Panel):
             elif delete_item_name is None and itemInfo['document'] == delete_document_title:
                 self.peaklist.DeleteItem(rows)
             rows -= 1
+
+    @staticmethod
+    def __check_keyword(keyword_name):
+        if keyword_name == 'colormap':
+            keyword_name = 'cmap'
+        return keyword_name
 
 
 class panelExportData(wx.MiniFrame):

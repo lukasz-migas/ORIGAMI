@@ -4,6 +4,13 @@ from distutils.version import LooseVersion
 import re
 
 
+def check_value(value):
+    if value is None:
+        return ""
+    else:
+        return str(value)
+
+
 def check_type(value, value_type):
     if isinstance(value, value_type):
         return True

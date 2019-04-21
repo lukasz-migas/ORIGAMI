@@ -504,9 +504,8 @@ class panelModifyIonSettings(wx.MiniFrame):
     def on_assign_color(self, evt):
         self.on_check_id()
         if evt:
-            color = self.parent.on_assign_color(evt=None,
-                                              itemID=self.itemInfo['id'],
-                                              give_value=True)
+            color = self.parent.on_assign_color(
+                evt=None, itemID=self.itemInfo['id'], give_value=True)
             self.origami_color_value.SetBackgroundColour(color)
         else:
             color = self.origami_color_value.GetBackgroundColour()

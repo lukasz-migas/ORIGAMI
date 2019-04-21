@@ -42,6 +42,7 @@ from gui_elements.panel_modifyManualFiles import panelModifyManualFiles
 
 import logging
 from utils.color import randomColorGenerator, convertRGB1to255, determineFontColor, convertRGB255to1
+from gui_elements.dialog_colorSelector import dialogColorSelector
 logger = logging.getLogger("origami")
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 
@@ -95,7 +96,7 @@ class panelMML(wx.Panel):
             ]
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
-        wx.EVT_MENU(self, ID_mmlPanel_assignColor, self.OnAssignColor)
+        wx.EVT_MENU(self, ID_mmlPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_mmlPanel_plot_MS, self.on_plot_MS)
         wx.EVT_MENU(self, ID_mmlPanel_plot_DT, self.on_plot_1D)
         wx.EVT_MENU(self, ID_mmlPanel_check_selected, self.on_check_selected)
@@ -123,7 +124,7 @@ class panelMML(wx.Panel):
 
     def on_check_selected(self, evt):
         check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
-        self.peaklist.CheckItem(self.peaklist.item_id, check)
+        self.on_update_value_in_peaklist(self.peaklist.item_id, "check", check)
 
     def make_toolbar(self):
 
@@ -217,7 +218,7 @@ class panelMML(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_MS)
         self.Bind(wx.EVT_MENU, self.on_plot_1D, id=ID_mmlPanel_plot_DT)
         self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_mmlPanel_delete_rightClick)
-        self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_mmlPanel_assignColor)
+        self.Bind(wx.EVT_MENU, self.on_assign_color, id=ID_mmlPanel_assignColor)
         self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_combined_MS)
 
         # Capture which item was clicked
@@ -408,7 +409,7 @@ class panelMML(wx.Panel):
             self.addToDocument_check.Check(self.addToDocument)
 
     def _updateTable(self):
-        self.onUpdateDocument(None, itemID=self.editingItem)
+        self.onUpdateDocument(itemID=self.editingItem)
 
     def on_change_item_color_batch(self, evt):
         # get number of checked items
@@ -506,7 +507,7 @@ class panelMML(wx.Panel):
 
         itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
         document = self.presenter.documentsDict[itemInfo['document']]
-        if document == None:
+        if document is None:
             return
 
         if evt.GetId() == ID_mmlPanel_plot_MS:
@@ -544,7 +545,7 @@ class panelMML(wx.Panel):
         itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
         document = self.presenter.documentsDict[itemInfo['document']]
 
-        if document == None: return
+        if document is None: return
         try:
             itemName = itemInfo['filename']
             dtX = document.multipleMassSpectrum[itemName]['ims1DX']
@@ -561,35 +562,6 @@ class panelMML(wx.Panel):
     def OnGetItemInformation(self, itemID, return_list=False):
         information = self.peaklist.on_get_item_information(itemID)
         return information
-
-    def OnAssignColor(self, evt):
-        """
-        @param itemID (int): value for item in table
-        @param give_value (bool): should/not return color
-        """
-
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.Centre()
-        dlg.GetColourData().SetChooseFull(True)
-
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-            # Assign color
-            self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
-            self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
-            # Retrieve custom colors
-            for i in range(15):
-                self.config.customColors[i] = data.GetCustomColour(i)
-
-            # update document
-            self.onUpdateDocument(evt=None)
 
     def OnGetColor(self, evt):
         # Restore custom colors
@@ -612,7 +584,7 @@ class panelMML(wx.Panel):
 
             return convertRGB255to1(newColour)
 
-    def onUpdateDocument(self, evt, itemInfo=None, itemID=None):
+    def onUpdateDocument(self, itemInfo=None, itemID=None):
         """
         evt : wxPython event
             unused
@@ -623,24 +595,21 @@ class panelMML(wx.Panel):
         """
 
         # get item info
-        if itemInfo == None:
-            if itemID == None:
+        if itemInfo is None:
+            if itemID is None:
                 itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
             else:
                 itemInfo = self.OnGetItemInformation(itemID)
 
         # get item
-        document = self.presenter.documentsDict[itemInfo['document']]
+        document = self.data_handling._on_get_document(itemInfo['document'])
 
         keywords = ['color', 'energy', 'label']
         for keyword in keywords:
-            if keyword == 'energy': keyword_name = 'trap'
-            else: keyword_name = keyword
+            keyword_name = self.__check_keyword(keyword)
             document.multipleMassSpectrum[itemInfo['filename']][keyword_name] = itemInfo[keyword]
 
-        # Update file list
-        self.presenter.OnUpdateDocument(document, expand_item='mass_spectra',
-                                        expand_item_title=itemInfo['filename'])
+        self.data_handling.on_update_document(document, "no_refresh")
 
     def on_overlay_plots(self, evt):
         evtID = evt.GetId()
@@ -934,6 +903,52 @@ class panelMML(wx.Panel):
                                      self.config,
                                      **information)
         dlg.Show()
+
+    def on_update_value_in_peaklist(self, item_id, value_type, value):
+
+        if value_type == 'check':
+            self.peaklist.CheckItem(item_id, value)
+        elif value_type == 'filename':
+            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["filename"], str(value))
+        elif value_type == 'energy':
+            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["energy"], str(value))
+        elif value_type == 'color':
+            color_255, color_1, font_color = value
+            self.peaklist.SetItemBackgroundColour(item_id, color_255)
+            self.peaklist.SetItemTextColour(item_id, font_color)
+        elif value_type == 'color_text':
+            self.peaklist.SetItemBackgroundColour(item_id, value)
+            self.peaklist.SetItemTextColour(item_id, determineFontColor(value, return_rgb=True))
+        elif value_type == 'label':
+            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["label"], str(value))
+        elif value_type == 'document':
+            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["filename"], str(value))
+
+    def on_assign_color(self, evt, itemID, return_value=False):
+        """
+        @param itemID (int): value for item in table
+        @param return_value (bool): should/not return color
+        """
+        if itemID is not None:
+            self.peaklist.item_id = itemID
+
+        if itemID is None:
+            itemID = self.peaklist.item_id
+
+        dlg = dialogColorSelector(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, font_color = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
+            self.on_update_value_in_peaklist(itemID, "color", [color_255, color_1, font_color])
+
+            if return_value:
+                return color_255
+
+    @staticmethod
+    def __check_keyword(keyword_name):
+        if keyword_name == 'energy':
+            keyword_name = 'trap'
+        return keyword_name
 
 
 class DragAndDrop(wx.FileDropTarget):

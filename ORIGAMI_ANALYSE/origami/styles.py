@@ -217,6 +217,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         information = {}
         information["id"] = item_id
         information["select"] = self.IsChecked(item_id)
+        information["check"] = self.IsChecked(item_id)
 
         for column in self.column_info:
             item_tag = self.column_info[column]["tag"]
