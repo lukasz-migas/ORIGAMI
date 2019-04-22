@@ -13,17 +13,20 @@ from document import document as documents
 from ids import ID_window_ionList, ID_window_multiFieldList, ID_load_origami_masslynx_raw, ID_load_masslynx_raw, \
     ID_openIRRawFile, ID_window_multipleMLList
 from gui_elements.misc_dialogs import dlgBox
-from utils.check import isempty, check_value_order
+from utils.check import isempty, check_value_order, check_axes_spacing
 from utils.time import getTime, ttime, tsleep
-from utils.path import get_path_and_fname, check_waters_path, check_path_exists, clean_up_MDD_path, get_base_path
-from utils.converters import byte2str
+from utils.path import get_path_and_fname, check_waters_path, check_path_exists, get_base_path
+from utils.converters import byte2str, str2num
 from utils.random import randomIntegerGenerator
 from utils.color import convertRGB255to1, convertRGB1to255, randomColorGenerator
 from utils.ranges import get_min_max
 from processing.utils import get_maximum_value_in_range
 import processing.origami_ms as pr_origami
-import logging
 from gui_elements.dialog_selectDocument import panelSelectDocument
+from processing.heatmap import interpolate_2D
+from gui_elements.dialog_messagePopup import dialogMsgPopup
+
+import logging
 logger = logging.getLogger("origami")
 
 # TODO: on_open_MassLynx_raw_MS_only: This function is currently broken: OSError: [WinError -529697949] Windows Error 0xe06d7363
@@ -228,6 +231,8 @@ class data_handling():
         if len(document_list) == 0:
             self.__update_statusbar("Did not find appropriate document. Creating a new one...", 4)
             document = self.__create_new_document()
+        elif len(document_list) == 1:
+            document = self._on_get_document(document_list[0])
         else:
             dlg = panelSelectDocument(self.view, self, document_list)
             if dlg.ShowModal() == wx.ID_OK:
@@ -261,7 +266,8 @@ class data_handling():
 
         return document
 
-    def __on_add_ion_ORIGAMI(self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge):
+    def __on_add_ion_ORIGAMI(self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name,
+                             label, charge):
         kwargs = dict(mz_start=mz_start, mz_end=mz_end)
         # 1D
         try:
@@ -302,9 +308,10 @@ class data_handling():
 
         self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.raw")
 
-    def __on_add_ion_MANUAL(self, item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label):
+    def __on_add_ion_MANUAL(self, item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id,
+                            charge, label):
 
-        self.filesList.on_sort(2, True)
+        self.filesList.on_sort(2, False)
         tempDict = {}
         for item in range(self.filesList.GetItemCount()):
             # Determine whether the title of the document matches the title of the item in the table
@@ -324,13 +331,12 @@ class data_handling():
                     dt_x, dt_y = self._get_driftscope_mobiligram_data(path, mz_start=mz_start, mz_end=mz_end)
                     document.multipleMassSpectrum[nameValue]['path'] = path
                 except Exception:
-                    msg = "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
-                          "by updating the document path by right-clicking on the document and selecting\n" + \
-                          "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
-                          "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
-                    dlgBox(exceptionTitle='Error',
-                           exceptionMsg=msg,
-                           type="Error")
+                    msg = \
+                    "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
+                    "by updating the document path by right-clicking on the document and selecting\n" + \
+                    "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
+                    "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
+                    dlgBox(exceptionTitle='Error', exceptionMsg=msg, type="Error")
                     return
 
             # Get height of the peak
@@ -360,41 +366,54 @@ class data_handling():
             if docValue != document.title:
                 continue
             key = self.filesList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
+            energy = str2num(document.multipleMassSpectrum[key]['trap'])
             if counter == 1:
                 tempArray = tempDict[key][0]
-                xLabelLow = document.multipleMassSpectrum[key]['trap']  # first iteration so first value
-                xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
             else:
                 imsList = tempDict[key][0]
                 tempArray = np.concatenate((tempArray, imsList), axis=0)
-                xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
+            xlabelsActual.append(energy)
 
         # Reshape data to form a 2D array of size 200 x number of files
-        imsData2D = tempArray.reshape((200, counter), order='F')
+        zvals = tempArray.reshape((200, counter), order='F')
 
-        # Combine 2D array into 1D
-        rtDataY = np.sum(imsData2D, axis=0)
-        imsData1D = np.sum(imsData2D, axis=1).T
+        try:
+            xLabelHigh = np.max(xlabelsActual)
+            xLabelLow = np.min(xlabelsActual)
+        except:
+            xLabelLow, xLabelHigh = None, None
 
         # Get the x-axis labels
-        xLabelHigh = document.multipleMassSpectrum[key]['trap']  # after the loop has finished, so last value
         if xLabelLow in [None, "None"] or xLabelHigh in [None, "None"]:
             msg = "The user-specified labels appear to be 'None'. Rather than failing to generate x-axis labels" + \
                   " a list of 1-n values is created."
             logger.warning(msg)
-            xlabels = np.arange(1, counter)
+            xvals = np.arange(1, counter)
         else:
-            xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
-        ylabels = 1 + np.arange(imsData1D.shape[0])
+            xvals = xlabelsActual  # np.linspace(xLabelLow, xLabelHigh, num=counter)
+
+        yvals = 1 + np.arange(200)
+        if not check_axes_spacing(xvals):
+            msg = \
+                "The spacing between the energy variables is not even. Linear interpolation will be performed to" + \
+                " ensure even spacing between values."
+            self.__update_statusbar(msg, field=4)
+            logger.warning(msg)
+
+            xvals, yvals, zvals = interpolate_2D(xvals, yvals, zvals)
+
+        # Combine 2D array into 1D
+        rt_y = np.sum(zvals, axis=0)
+        dt_y = np.sum(zvals, axis=1).T
 
         # Add data to the document
-        ion_data = {'zvals': imsData2D,
-                    'xvals': xlabels,
+        ion_data = {'zvals': zvals,
+                    'xvals': xvals,
                     'xlabels': 'Collision Voltage (V)',
-                    'yvals': ylabels,
+                    'yvals': yvals,
                     'ylabels': 'Drift time (bins)',
-                    'yvals1D': imsData1D,
-                    'yvalsRT': rtDataY,
+                    'yvals1D': dt_y,
+                    'yvalsRT': rt_y,
                     'cmap': document.colormap,
                     'title': label,
                     'label': label,

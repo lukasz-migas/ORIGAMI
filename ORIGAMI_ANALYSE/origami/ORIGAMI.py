@@ -4523,7 +4523,7 @@ class ORIGAMI(object):
 
     def onProcessMultipleTextFiles(self, evt):
 
-        if evt.GetId() == ID_processAllTextFiles:
+        if evt.GetId() == ID_textPanel_process_all:
             self.view.panelMultipleText.OnCheckAllItems(evt=None, override=True)
 
         tempList = self.view.panelMultipleText.peaklist
@@ -4557,7 +4557,7 @@ class ORIGAMI(object):
             print("Cannot process selected items. These belong to Comparison document")
             return
 
-        if evt.GetId() == ID_processAllTextFiles:
+        if evt.GetId() == ID_textPanel_process_all:
             self.view.panelMultipleText.OnCheckAllItems(evt=None, check=False, override=True)
 
     def onPopulateXaxisTextLabels(self, startVal=None, endVal=None, shapeVal=None):

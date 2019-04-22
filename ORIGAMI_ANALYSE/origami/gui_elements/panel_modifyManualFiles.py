@@ -1,8 +1,7 @@
 import wx
 
 from icons import IconContainer as icons
-from styles import makeCheckbox, validator
-from utils.converters import num2str
+from styles import makeCheckbox
 from utils.check import check_value
 
 
@@ -205,7 +204,7 @@ class panelModifyManualFiles(wx.MiniFrame):
     def on_setup_gui(self):
         self.importEvent = True
 
-        self.check_value.SetValue(self.itemInfo["check"])
+        self.check_value.SetValue(self.itemInfo["select"])
         self.document_value.SetLabel(self.itemInfo["document"])
         self.filename_value.SetLabel(self.itemInfo["filename"])
         self.label_value.SetLabel(check_value(self.itemInfo['label']))

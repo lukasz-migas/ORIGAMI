@@ -2,7 +2,7 @@ import wx
 
 from icons import IconContainer as icons
 from styles import makeCheckbox, validator, makeStaticBox
-from toolbox import num2str, str2int, str2num
+from utils.converters import num2str, str2num, str2int
 
 # TODO: Add possibility to visualise heatmap as false-color image
 
@@ -70,13 +70,6 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.on_assign_color(evt=None)
         self.parent.onUpdateDocument(itemInfo=self.itemInfo, evt=None)
         self.Destroy()
-
-    @staticmethod
-    def __check_label(input_value):
-        if input_value is None:
-            return ""
-        else:
-            return str(input_value)
 
     def make_gui(self):
 
@@ -579,3 +572,10 @@ class panelModifyIonSettings(wx.MiniFrame):
                     else:
                         self.itemInfo['id'] = information['id']
                         return
+
+    @staticmethod
+    def __check_label(input_value):
+        if input_value is None:
+            return ""
+        else:
+            return str(input_value)

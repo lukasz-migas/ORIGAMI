@@ -4,6 +4,14 @@ from distutils.version import LooseVersion
 import re
 
 
+def check_axes_spacing(values):
+    spacing = np.diff(values)
+    if len(np.unique(spacing)) > 1:
+        return False
+    else:
+        return True
+
+
 def check_value(value):
     if value is None:
         return ""

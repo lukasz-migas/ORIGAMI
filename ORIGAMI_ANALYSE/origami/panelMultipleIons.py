@@ -39,8 +39,8 @@ from ids import ID_ionPanel_addToDocument, ID_combinedCV_binMSCombinedMenu, ID_i
     ID_ionPanel_table_charge, ID_ionPanel_table_intensity, ID_ionPanel_table_document, ID_ionPanel_table_alpha, \
     ID_ionPanel_table_mask, ID_ionPanel_table_label, ID_ionPanel_table_method, ID_ionPanel_table_hideAll, \
     ID_ionPanel_table_restoreAll, ID_ionPanel_show_chromatogram, ID_ionPanel_show_heatmap, \
-    ID_ionPanel_show_process_heatmap, ID_assignChargeStateIons, ID_assignAlphaIons, ID_assignMaskIons, \
-    ID_assignMinThresholdIons, ID_assignMaxThresholdIons, ID_ionPanel_changeColorBatch_color, \
+    ID_ionPanel_show_process_heatmap, ID_ionPanel_annotate_charge_state, ID_ionPanel_annotate_alpha, ID_ionPanel_annotate_mask, \
+    ID_ionPanel_annotate_min_threshold, ID_ionPanel_annotate_max_threshold, ID_ionPanel_changeColorBatch_color, \
     ID_ionPanel_changeColorBatch_palette, ID_ionPanel_changeColorBatch_colormap, ID_ionPanel_changeColormapBatch, \
     ID_addManyIonsCSV, ID_duplicateIons, ID_addNewOverlayDoc, ID_ionPanel_automaticExtract, ID_extractAllIons, \
     ID_extractSelectedIon, ID_extractNewIon, ID_overlayMZfromList, ID_overlayMZfromList1D, ID_overlayMZfromListRT, \
@@ -48,7 +48,7 @@ from ids import ID_ionPanel_addToDocument, ID_combinedCV_binMSCombinedMenu, ID_i
     ID_ionPanel_clear_selected, ID_combineCEscansSelectedIons, ID_combineCEscans, \
     ID_processSelectedIons, ID_processAllIons, ID_extractMSforCVs, ID_saveSelectIonListCSV, ID_saveIonListCSV, \
     ID_exportSeletedAsImage_ion, ID_exportAllAsImage_ion, ID_exportSelectedAsCSV_ion, ID_exportAllAsCSV_ion, \
-    ID_processSaveMenu, ID_ionPanel_edit_selected, ID_ionPanel_edit_all, ID_window_ionList
+    ID_processSaveMenu, ID_ionPanel_edit_selected, ID_ionPanel_edit_all, ID_window_ionList, ID_ionPanel_about_info
 
 from styles import ListCtrl
 from utils.color import convertRGB255to1, determineFontColor, randomColorGenerator, convertRGB1to255
@@ -146,10 +146,13 @@ class panelMultipleIons(wx.Panel):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
 
+    def on_open_info_panel(self, evt):
+        pass
+
     def makeGUI(self):
         """ Make panel GUI """
         toolbar = self.make_toolbar()
-        self.makeListCtrl()
+        self.make_listctrl()
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.mainSizer.Add(toolbar, 0, wx.EXPAND, 0)
@@ -171,12 +174,7 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.menu_save_tools, id=ID_saveIonsMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_showIonsMenu)
         self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_overlayIonsMenu)
-        self.Bind(wx.EVT_BUTTON, self.OnCheckAllItems, id=ID_ionPanel_check_all)
-
-        self.check_btn = wx.BitmapButton(
-            self, ID_ionPanel_check_all, self.icons.iconsLib['check16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        self.check_btn.SetToolTip(makeTooltip("Check all items\tX"))
+        self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, id=ID_ionPanel_about_info)
 
         self.add_btn = wx.BitmapButton(
             self, ID_addIonsMenu, self.icons.iconsLib['add16'],
@@ -211,6 +209,7 @@ class panelMultipleIons(wx.Panel):
         self.combo = wx.ComboBox(self, ID_selectOverlayMethod,
                                  size=(105, -1), choices=self.config.overlayChoices,
                                  style=wx.CB_READONLY)
+        self.combo.SetStringSelection(self.config.overlayMethod)
 
         self.save_btn = wx.BitmapButton(
             self, ID_saveIonsMenu, self.icons.iconsLib['save16'],
@@ -219,32 +218,37 @@ class panelMultipleIons(wx.Panel):
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
+        self.info_btn = wx.BitmapButton(
+            self, ID_ionPanel_about_info, self.icons.iconsLib['info16'],
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        self.info_btn.SetToolTip(makeTooltip("Information..."))
+
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
-        btn_grid_vert.Add(self.check_btn, (x, 0), wx.GBSpan(
+        btn_grid_vert.Add(self.add_btn, (x, 0), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(vertical_line_1, (x, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid_vert.Add(self.add_btn, (x, 2), wx.GBSpan(
+        btn_grid_vert.Add(self.remove_btn, (x, 1), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.remove_btn, (x, 3), wx.GBSpan(
+        btn_grid_vert.Add(self.annotate_btn, (x, 3), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.annotate_btn, (x, 4), wx.GBSpan(
+        btn_grid_vert.Add(self.extract_btn, (x, 4), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.extract_btn, (x, 5), wx.GBSpan(
+        btn_grid_vert.Add(self.process_btn, (x, 5), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.process_btn, (x, 6), wx.GBSpan(
+        btn_grid_vert.Add(self.overlay_btn, (x, 6), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.overlay_btn, (x, 7), wx.GBSpan(
+        btn_grid_vert.Add(self.combo, (x, 7), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.combo, (x, 8), wx.GBSpan(
+        btn_grid_vert.Add(self.save_btn, (x, 8), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.save_btn, (x, 9), wx.GBSpan(
+        btn_grid_vert.Add(vertical_line_1, (x, 9), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid_vert.Add(self.info_btn, (x, 10), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         return btn_grid_vert
 
-    def makeListCtrl(self):
+    def make_listctrl(self):
 
         self.peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._ionPanel_peaklist)
         for item in self.config._peakListSettings:
@@ -389,11 +393,11 @@ class panelMultipleIons(wx.Panel):
 
     def menu_annotate_tools(self, evt):
         self.Bind(wx.EVT_MENU, self.presenter.onShowExtractedIons, id=ID_highlightRectAllIons)
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignChargeStateIons)
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignAlphaIons)
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignMaskIons)
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignMinThresholdIons)
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignMaxThresholdIons)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_charge_state)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_alpha)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_mask)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_min_threshold)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_max_threshold)
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_ionPanel_changeColorBatch_color)
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_ionPanel_changeColorBatch_palette)
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_ionPanel_changeColorBatch_colormap)
@@ -403,19 +407,19 @@ class panelMultipleIons(wx.Panel):
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_highlightRectAllIons,
                                      text='Highlight extracted items on MS plot\tH',
                                      bitmap=self.icons.iconsLib['highlight_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignChargeStateIons,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_annotate_charge_state,
                                      text='Assign charge state to selected ions',
                                      bitmap=self.icons.iconsLib['assign_charge_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignAlphaIons,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_annotate_alpha,
                                      text='Assign transparency value to selected ions',
                                      bitmap=self.icons.iconsLib['transparency_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaskIons,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_annotate_mask,
                                      text='Assign mask value to selected ions',
                                      bitmap=self.icons.iconsLib['mask_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMinThresholdIons,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_annotate_min_threshold,
                                      text='Assign minimum threshold to selected ions',
                                      bitmap=self.icons.iconsLib['min_threshold_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaxThresholdIons,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_annotate_max_threshold,
                                      text='Assign maximum threshold to selected ions',
                                      bitmap=self.icons.iconsLib['max_threshold_16']))
         menu.AppendSeparator()
@@ -524,8 +528,8 @@ class panelMultipleIons(wx.Panel):
         menu.Append(ID_ionPanel_clear_selected, "Clear selected")
         menu.AppendSeparator()
 #         menu.Append(ID_removeDuplicatesTable, "Remove duplicates")
-        menu.Append(ID_ionPanel_delete_selected, "Remove selected ions")
-        menu.Append(ID_ionPanel_delete_all, "Remove all ions")
+        menu.Append(ID_ionPanel_delete_selected, "Delete selected ions")
+        menu.Append(ID_ionPanel_delete_all, "Delete all ions")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -743,13 +747,13 @@ class panelMultipleIons(wx.Panel):
         rows = self.peaklist.GetItemCount()
         if rows == 0: return
 
-        if evt.GetId() == ID_assignChargeStateIons:
+        if evt.GetId() == ID_ionPanel_annotate_charge_state:
             ask_kwargs = {
                 'static_text': 'Assign charge state to selected items.',
                 'value_text': "",
                 'validator':'integer',
                 'keyword':'charge'}
-        elif evt.GetId() == ID_assignAlphaIons:
+        elif evt.GetId() == ID_ionPanel_annotate_alpha:
             static_text = "Assign new transparency value to selected items \nTypical transparency values: 0.5" + \
                           "\nRange 0-1"
             ask_kwargs = {
@@ -757,19 +761,19 @@ class panelMultipleIons(wx.Panel):
                 'value_text':0.5,
                 'validator':'float',
                 'keyword':'alpha'}
-        elif evt.GetId() == ID_assignMaskIons:
+        elif evt.GetId() == ID_ionPanel_annotate_mask:
             ask_kwargs = {
                 'static_text':'Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1',
                 'value_text':0.25,
                 'validator':'float',
                 'keyword':'mask'}
-        elif evt.GetId() == ID_assignMinThresholdIons:
+        elif evt.GetId() == ID_ionPanel_annotate_min_threshold:
             ask_kwargs = {
                 'static_text':'Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1',
                 'value_text':0.0,
                 'validator':'float',
                 'keyword':'min_threshold'}
-        elif evt.GetId() == ID_assignMaxThresholdIons:
+        elif evt.GetId() == ID_ionPanel_annotate_max_threshold:
             ask_kwargs = {
                 'static_text':'Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1',
                 'value_text':1.0,

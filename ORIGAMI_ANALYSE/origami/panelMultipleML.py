@@ -27,8 +27,8 @@ from styles import makeTooltip, makeMenuItem, ListCtrl
 from processing.spectra import interpolate
 from gui_elements.misc_dialogs import dlgBox
 from ids import ID_mmlPanel_addToDocument, ID_mmlPanel_assignColor, ID_mmlPanel_plot_DT, ID_mmlPanel_plot_MS, \
-    ID_mmlPanel_check_all, ID_mmlPanel_check_selected, ID_mmlPanel_delete_rightClick, ID_addFilesMenu, \
-    ID_removeFilesMenu, ID_overlayFilesMenu, ID_mmlPanel_annotateTool, ID_mmlPanel_processTool, \
+    ID_mmlPanel_check_all, ID_mmlPanel_check_selected, ID_mmlPanel_delete_rightClick, ID_mmlPanel_add_menu, \
+    ID_mmlPanel_remove_menu, ID_mmlPanel_overlay_menu, ID_mmlPanel_annotateTool, ID_mmlPanel_processTool, \
     ID_mmlPanel_changeColorBatch_color, ID_mmlPanel_changeColorBatch_palette, ID_mmlPanel_changeColorBatch_colormap, \
     ID_mmlPanel_add_files_toCurrentDoc, ID_mmlPanel_add_files_toNewDoc, ID_mmlPanel_add_manualDoc, \
     ID_mmlPanel_delete_selected, ID_mmlPanel_delete_all, ID_mmlPanel_clear_all, ID_mmlPanel_clear_selected, \
@@ -36,7 +36,7 @@ from ids import ID_mmlPanel_addToDocument, ID_mmlPanel_assignColor, ID_mmlPanel_
     ID_mmlPanel_overlayMW, ID_mmlPanel_overlayProcessedSpectra, ID_mmlPanel_overlayFittedSpectra, \
     ID_mmlPanel_overlayFoundPeaks, ID_mmlPanel_data_combineMS, ID_mmlPanel_batchRunUniDec, ID_mmlPanel_plot_combined_MS, \
     ID_mmlPanel_table_filename, ID_mmlPanel_table_variable, ID_mmlPanel_table_document, ID_mmlPanel_table_label, \
-    ID_mmlPanel_table_hideAll, ID_mmlPanel_table_restoreAll
+    ID_mmlPanel_table_hideAll, ID_mmlPanel_table_restoreAll, ID_mmlPanel_about_info
 from utils.random import randomIntegerGenerator
 from gui_elements.panel_modifyManualFiles import panelModifyManualFiles
 
@@ -126,26 +126,25 @@ class panelMML(wx.Panel):
         check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
         self.on_update_value_in_peaklist(self.peaklist.item_id, "check", check)
 
+    def on_open_info_panel(self, evt):
+        pass
+
     def make_toolbar(self):
 
-        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_addFilesMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_removeFilesMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_overlayFilesMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_mmlPanel_add_menu)
+        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_mmlPanel_remove_menu)
+        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_mmlPanel_overlay_menu)
         self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_mmlPanel_annotateTool)
         self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_mmlPanel_processTool)
-
-#         self.check_btn = wx.BitmapButton(
-#             self, ID_mmlPanel_check_all, self.icons.iconsLib['check16'],
-#             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-#         self.check_btn.SetToolTip(makeTooltip("Check all items\tX"))
+        self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, id=ID_mmlPanel_about_info)
 
         self.add_btn = wx.BitmapButton(
-            self, ID_addFilesMenu, self.icons.iconsLib['add16'],
+            self, ID_mmlPanel_add_menu, self.icons.iconsLib['add16'],
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.add_btn.SetToolTip(makeTooltip("Add..."))
 
         self.remove_btn = wx.BitmapButton(
-            self, ID_removeFilesMenu, self.icons.iconsLib['remove16'],
+            self, ID_mmlPanel_remove_menu, self.icons.iconsLib['remove16'],
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.remove_btn.SetToolTip(makeTooltip("Remove..."))
 
@@ -160,22 +159,32 @@ class panelMML(wx.Panel):
         self.process_btn.SetToolTip(makeTooltip("Process..."))
 
         self.overlay_btn = wx.BitmapButton(
-            self, ID_overlayFilesMenu, self.icons.iconsLib['overlay16'],
+            self, ID_mmlPanel_overlay_menu, self.icons.iconsLib['overlay16'],
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.overlay_btn.SetToolTip(makeTooltip("Visualise mass spectra..."))
+
+        vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
+
+        self.info_btn = wx.BitmapButton(
+            self, ID_mmlPanel_about_info, self.icons.iconsLib['info16'],
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        self.info_btn.SetToolTip(makeTooltip("Information..."))
 
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
-        btn_grid_vert.Add(self.add_btn, (x, 1), wx.GBSpan(
+        btn_grid_vert.Add(self.add_btn, (x, 0), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.remove_btn, (x, 2), wx.GBSpan(
+        btn_grid_vert.Add(self.remove_btn, (x, 1), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.annotate_btn, (x, 3), wx.GBSpan(
+        btn_grid_vert.Add(self.annotate_btn, (x, 2), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.process_btn, (x, 4), wx.GBSpan(
+        btn_grid_vert.Add(self.process_btn, (x, 3), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.overlay_btn, (x, 5), wx.GBSpan(
+        btn_grid_vert.Add(self.overlay_btn, (x, 4), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(vertical_line_1, (x, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid_vert.Add(self.info_btn, (x, 6), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         return btn_grid_vert
@@ -924,7 +933,7 @@ class panelMML(wx.Panel):
         elif value_type == 'document':
             self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["filename"], str(value))
 
-    def on_assign_color(self, evt, itemID, return_value=False):
+    def on_assign_color(self, evt, itemID=None, return_value=False):
         """
         @param itemID (int): value for item in table
         @param return_value (bool): should/not return color

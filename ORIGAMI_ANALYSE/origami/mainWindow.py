@@ -72,7 +72,7 @@ from ids import ID_fileMenu_MGF, ID_fileMenu_mzML, \
     ID_help_page_gettingStarted, ID_help_page_CCScalibration, ID_help_page_linearDT, ID_openIRRawFile, \
     ID_openIRTextile, ID_saveOverlayImage, ID_saveMSImage, ID_saveMZDTImage, \
     ID_saveRTImage, ID_save1DImage, ID_save2DImage, ID_save3DImage, ID_saveWaterfallImage, ID_saveRMSDImage, \
-    ID_saveRMSFImage, ID_saveRMSDmatrixImage, ID_load_multiple_text_2D, ID_processTextFiles, ID_overlayTextFromList, \
+    ID_saveRMSFImage, ID_saveRMSDmatrixImage, ID_load_multiple_text_2D, ID_textPanel_process_selected, ID_overlayTextFromList, \
     ID_extractDriftVoltagesForEachIon, ID_helpHomepage, ID_helpGitHub, ID_helpHTMLEditor, ID_overlayMZfromList, \
     ID_extractAllIons, ID_showPlotDocument, ID_process2DDocument, ID_combineCEscans, ID_renameItem, \
     ID_showPlotMSDocument, ID_assignChargeState, ID_saveDataCSVDocument, ID_mainPanel_openSourceFiles, \
@@ -339,7 +339,7 @@ class MyFrame(wx.Frame):
         Collection of all bindings for various functions
         '''
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_multiple_text_2D, id=ID_load_multiple_text_2D)
-        self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_processTextFiles)
+        self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_textPanel_process_selected)
         self.Bind(wx.EVT_TOOL, self.presenter.on_overlay_2D, id=ID_overlayTextFromList)
         self.Bind(wx.EVT_TOOL, self.presenter.onExtractDToverMZrangeMultiple, id=ID_extractDriftVoltagesForEachIon)
 

@@ -32,18 +32,19 @@ from gui_elements.dialog_panelAsk import panelAsk
 from gui_elements.misc_dialogs import dlgBox
 from ids import ID_textPanel_addToDocument, ID_textPanel_assignColor, ID_textPanel_editItem, ID_textPanel_show_heatmap, \
     ID_textPanel_show_mobiligram, ID_textPanel_normalize1D, ID_useProcessedCombinedMenu, ID_textPanel_automaticOverlay, \
-    ID_textPanel_check_selected, ID_textPanel_check_all, ID_textPanel_delete_rightClick, ID_addTextFilesToList, \
-    ID_annotateTextFilesMenu, ID_removeTextFilesMenu, ID_processTextFilesMenu, ID_overlayTextFilesMenu, \
+    ID_textPanel_check_selected, ID_textPanel_check_all, ID_textPanel_delete_rightClick, ID_textPanel_add_menu, \
+    ID_textPanel_annotate_menu, ID_textPanel_remove_menu, ID_textPanel_process_menu, ID_textPanel_overlay_menu, \
     ID_textSelectOverlayMethod, ID_textPanel_show_chromatogram, ID_textPanel_show_process_heatmap, \
-    ID_assignChargeStateText, ID_assignAlphaText, ID_assignMaskText, ID_assignMinThresholdText, \
-    ID_assignMaxThresholdText, ID_textPanel_changeColorBatch_color, ID_textPanel_changeColorBatch_palette, \
+    ID_textPanel_annotate_charge_state, ID_textPanel_annotate_alpha, ID_textPanel_annotate_mask, ID_textPanel_annotate_min_threshold, \
+    ID_textPanel_annotate_max_threshold, ID_textPanel_changeColorBatch_color, ID_textPanel_changeColorBatch_palette, \
     ID_textPanel_changeColorBatch_colormap, ID_textPanel_changeColormapBatch, ID_addNewOverlayDoc, ID_ionPanel_edit_all, \
     ID_textPanel_edit_selected, ID_textPanel_clear_selected, ID_textPanel_table_startCE, ID_textPanel_delete_all, \
-    ID_textPanel_delete_selected, ID_textPanel_clear_all, ID_processTextFiles, ID_processAllTextFiles, \
+    ID_textPanel_delete_selected, ID_textPanel_clear_all, ID_textPanel_process_selected, ID_textPanel_process_all, \
     ID_overlayTextfromList1D, ID_overlayTextfromListRT, ID_overlayTextFromList, ID_overlayTextfromListWaterfall, \
     ID_load_multiple_text_2D, ID_textPanel_table_endCE, ID_textPanel_table_charge, ID_textPanel_table_color, \
     ID_textPanel_table_colormap, ID_textPanel_table_alpha, ID_textPanel_table_mask, ID_textPanel_table_document, \
-    ID_textPanel_table_label, ID_textPanel_table_shape, ID_textPanel_table_hideAll, ID_textPanel_table_restoreAll
+    ID_textPanel_table_label, ID_textPanel_table_shape, ID_textPanel_table_hideAll, ID_textPanel_table_restoreAll, \
+    ID_textPanel_about_info
 from utils.color import convertRGB1to255, determineFontColor, convertRGB255to1, randomColorGenerator
 from utils.check import isempty
 from utils.time import getTime
@@ -129,7 +130,7 @@ class panelMultipleTextFiles (wx.Panel):
     def make_panel_gui(self):
         """ Make panel GUI """
         # make toolbar
-        toolbar = self.make_panel_toolbar()
+        toolbar = self.make_toolbar()
         self.makeListCtrl()
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -170,43 +171,50 @@ class panelMultipleTextFiles (wx.Panel):
     def on_add_blank_document_overlay(self, evt):
         self.presenter.onAddBlankDocument(evt=None, document_type='overlay')
 
-    def make_panel_toolbar(self):
+    def make_toolbar(self):
 
         # Make bindings
-        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_addTextFilesToList)
-        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_annotateTextFilesMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_removeTextFilesMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_processTextFilesMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_overlayTextFilesMenu)
+        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_textPanel_add_menu)
+        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_textPanel_annotate_menu)
+        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_textPanel_remove_menu)
+        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_textPanel_process_menu)
+        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_textPanel_overlay_menu)
 
         self.add_btn = wx.BitmapButton(
-            self, ID_addTextFilesToList, self.icons.iconsLib['add16'],
+            self, ID_textPanel_add_menu, self.icons.iconsLib['add16'],
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.add_btn.SetToolTip(makeTooltip("Add..."))
 
         self.remove_btn = wx.BitmapButton(
-            self, ID_removeTextFilesMenu, self.icons.iconsLib['remove16'],
+            self, ID_textPanel_remove_menu, self.icons.iconsLib['remove16'],
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.remove_btn.SetToolTip(makeTooltip("Remove..."))
 
         self.annotate_btn = wx.BitmapButton(
-            self, ID_annotateTextFilesMenu, self.icons.iconsLib['annotate16'],
+            self, ID_textPanel_annotate_menu, self.icons.iconsLib['annotate16'],
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.annotate_btn.SetToolTip(makeTooltip("Annotate..."))
 
         self.process_btn = wx.BitmapButton(
-            self, ID_processTextFilesMenu, self.icons.iconsLib['process16'],
+            self, ID_textPanel_process_menu, self.icons.iconsLib['process16'],
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.process_btn.SetToolTip(makeTooltip("Process..."))
 
         self.overlay_btn = wx.BitmapButton(
-            self, ID_overlayTextFilesMenu, self.icons.iconsLib['overlay16'],
+            self, ID_textPanel_overlay_menu, self.icons.iconsLib['overlay16'],
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.overlay_btn.SetToolTip(makeTooltip("Overlay selected ions..."))
 
         self.combo = wx.ComboBox(self, ID_textSelectOverlayMethod,
                                  size=(105, -1), choices=self.config.overlayChoices,
                                  style=wx.CB_READONLY)
+
+        vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
+
+        self.info_btn = wx.BitmapButton(
+            self, ID_textPanel_about_info, self.icons.iconsLib['info16'],
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        self.info_btn.SetToolTip(makeTooltip("Information..."))
 
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
@@ -222,6 +230,9 @@ class panelMultipleTextFiles (wx.Panel):
         btn_grid_vert.Add(self.overlay_btn, (x, 4), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         btn_grid_vert.Add(self.combo, (x, 5), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(vertical_line_1, (x, 6), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid_vert.Add(self.info_btn, (x, 7), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         return btn_grid_vert
@@ -265,30 +276,30 @@ class panelMultipleTextFiles (wx.Panel):
         self.SetFocus()
 
     def menu_annotate_tools(self, evt):
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignChargeStateText)
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignAlphaText)
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignMaskText)
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignMinThresholdText)
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_assignMaxThresholdText)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_textPanel_annotate_charge_state)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_textPanel_annotate_alpha)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_textPanel_annotate_mask)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_textPanel_annotate_min_threshold)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_textPanel_annotate_max_threshold)
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_textPanel_changeColorBatch_color)
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_textPanel_changeColorBatch_palette)
         self.Bind(wx.EVT_MENU, self.on_change_item_color_batch, id=ID_textPanel_changeColorBatch_colormap)
         self.Bind(wx.EVT_MENU, self.on_change_item_colormap, id=ID_textPanel_changeColormapBatch)
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignChargeStateText,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_charge_state,
                                      text='Assign charge state to selected items',
                                      bitmap=self.icons.iconsLib['assign_charge_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignAlphaText,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_alpha,
                                      text='Assign transparency value to selected ions',
                                      bitmap=self.icons.iconsLib['transparency_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaskText,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_mask,
                                      text='Assign mask value to selected items',
                                      bitmap=self.icons.iconsLib['mask_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMinThresholdText,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_min_threshold,
                                      text='Assign minimum threshold to selected items',
                                      bitmap=self.icons.iconsLib['min_threshold_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_assignMaxThresholdText,
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_max_threshold,
                                      text='Assign maximum threshold to selected items',
                                      bitmap=self.icons.iconsLib['max_threshold_16']))
         menu.AppendSeparator()
@@ -339,20 +350,20 @@ class panelMultipleTextFiles (wx.Panel):
                                      bitmap=self.icons.iconsLib['clear_16']))
         menu.Append(ID_textPanel_clear_selected, "Clear selected")
         menu.AppendSeparator()
-        menu.Append(ID_textPanel_delete_selected, "Remove selected files")
-        menu.Append(ID_textPanel_delete_all, "Remove all files")
+        menu.Append(ID_textPanel_delete_selected, "Delete selected files")
+        menu.Append(ID_textPanel_delete_all, "Delete all files")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
 
     def menu_process_tools(self, evt):
 
-        self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_processTextFiles)
-        self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_processAllTextFiles)
+        self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_textPanel_process_selected)
+        self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_textPanel_process_all)
 
         menu = wx.Menu()
-        menu.Append(ID_processTextFiles, "Process selected files")
-        menu.Append(ID_processAllTextFiles, "Process all files")
+        menu.Append(ID_textPanel_process_selected, "Process selected files")
+        menu.Append(ID_textPanel_process_all, "Process all files")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -559,7 +570,7 @@ class panelMultipleTextFiles (wx.Panel):
         if rows == 0:
             return
 
-        if evt.GetId() == ID_assignChargeStateText:
+        if evt.GetId() == ID_textPanel_annotate_charge_state:
             static_text = 'Assign charge state to selected items.'
             ask_kwargs = {
                 'static_text': static_text,
@@ -567,7 +578,7 @@ class panelMultipleTextFiles (wx.Panel):
                 'validator': 'integer',
                 'keyword': 'charge'}
 
-        elif evt.GetId() == ID_assignAlphaText:
+        elif evt.GetId() == ID_textPanel_annotate_alpha:
             static_text = "Assign new transparency value to selected items \n" + \
                           "Typical transparency values: 0.5\nRange 0-1"
             ask_kwargs = {'static_text': static_text,
@@ -575,21 +586,21 @@ class panelMultipleTextFiles (wx.Panel):
                           'validator': 'float',
                           'keyword': 'alpha'}
 
-        elif evt.GetId() == ID_assignMaskText:
+        elif evt.GetId() == ID_textPanel_annotate_mask:
             static_text = 'Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1'
             ask_kwargs = {'static_text': static_text,
                           'value_text': 0.25,
                           'validator': 'float',
                           'keyword': 'mask'}
 
-        elif evt.GetId() == ID_assignMinThresholdText:
+        elif evt.GetId() == ID_textPanel_annotate_min_threshold:
             static_text = 'Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1'
             ask_kwargs = {'static_text': static_text,
                           'value_text': 0.0,
                           'validator': 'float',
                           'keyword': 'min_threshold'}
 
-        elif evt.GetId() == ID_assignMaxThresholdText:
+        elif evt.GetId() == ID_textPanel_annotate_max_threshold:
             static_text = 'Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1'
             ask_kwargs = {'static_text': static_text,
                           'value_text': 1.0,

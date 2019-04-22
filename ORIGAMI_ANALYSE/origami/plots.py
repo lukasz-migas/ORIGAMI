@@ -199,14 +199,22 @@ class plots(plottingWindow):
 
     def _check_n_grid_dimensions(self, n_grid):
 
-        if n_grid in [2]: n_rows, n_cols, y_label_pos, x_label_pos = 1, 2, 1, 1
-        elif n_grid in [3, 4]: n_rows, n_cols, y_label_pos, x_label_pos = 2, 2, 1, 1
-        elif n_grid in [5, 6]: n_rows, n_cols, y_label_pos, x_label_pos = 2, 3, 1, 2
-        elif n_grid in [7, 8, 9]: n_rows, n_cols, y_label_pos, x_label_pos = 3, 3, 2, 2
-        elif n_grid in [10, 11, 12]: n_rows, n_cols, y_label_pos, x_label_pos = 3, 4, 2, 1
-        elif n_grid in [13, 14, 15, 16]: n_rows, n_cols, y_label_pos, x_label_pos = 4, 4, 1, 1
-        elif n_grid in list(range(17, 26)): n_rows, n_cols, y_label_pos, x_label_pos = 5, 5, 3, 3
-        elif n_grid in list(range(26, 37)): n_rows, n_cols, y_label_pos, x_label_pos = 6, 6, 1, 1
+        if n_grid in [2]:
+            n_rows, n_cols, y_label_pos, x_label_pos = 1, 2, 1, 1
+        elif n_grid in [3, 4]:
+            n_rows, n_cols, y_label_pos, x_label_pos = 2, 2, 1, 1
+        elif n_grid in [5, 6]:
+            n_rows, n_cols, y_label_pos, x_label_pos = 2, 3, 1, 2
+        elif n_grid in [7, 8, 9]:
+            n_rows, n_cols, y_label_pos, x_label_pos = 3, 3, 2, 2
+        elif n_grid in [10, 11, 12]:
+            n_rows, n_cols, y_label_pos, x_label_pos = 3, 4, 2, 1
+        elif n_grid in [13, 14, 15, 16]:
+            n_rows, n_cols, y_label_pos, x_label_pos = 4, 4, 1, 1
+        elif n_grid in list(range(17, 26)):
+            n_rows, n_cols, y_label_pos, x_label_pos = 5, 5, 3, 3
+        elif n_grid in list(range(26, 37)):
+            n_rows, n_cols, y_label_pos, x_label_pos = 6, 6, 1, 1
 
         return n_rows, n_cols
 
@@ -234,7 +242,6 @@ class plots(plottingWindow):
     def extents(self, f):
         delta = f[1] - f[0]
         return [f[0] - delta / 2, f[-1] + delta / 2]
-    #-----
 
     def get_xylimits(self):
         xmin, xmax = self.plotMS.get_xlim()
