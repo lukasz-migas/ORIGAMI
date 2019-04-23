@@ -124,7 +124,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_TREE_KEY_DOWN, self.onKey, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_enable_document, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.on_enable_document, id=wx.ID_ANY)
-        self.Bind(wx.EVT_TREE_ITEM_MENU, self.OnRightClickMenu, id=wx.ID_ANY)
+        self.Bind(wx.EVT_TREE_ITEM_MENU, self.on_right_click, id=wx.ID_ANY)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
 
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_enable_document, id=wx.ID_ANY)
@@ -359,6 +359,30 @@ class documentsTree(wx.TreeCtrl):
 
         # Return data
         return dataOut
+
+    def on_save_as_document(self, evt):
+        """
+        Save current document. With asking for path.
+        """
+        document_title = self.itemData.title
+        self.data_handling.on_save_document_fcn(document_title)
+
+    def on_save_document(self, evt):
+        """
+        Save current document. Without asking for path.
+        """
+        document_title = self.itemData.title
+        wx.CallAfter(self.data_handling.on_save_document_fcn,
+                     document_title, save_as=False)
+#         self.data_handling.on_save_document_fcn(document_title, save_as=False)
+
+    def on_save_all_documents(self, evt):
+        """
+        Save all currently opened documents and save them to file.
+        """
+
+        for document_title in self.presenter.documentsDict:
+            self.data_handling.on_save_document_fcn(document_title)
 
     def on_refresh_document(self, evt=None):
         document = self.presenter.documentsDict.get(self.title, None)
@@ -1679,11 +1703,11 @@ class documentsTree(wx.TreeCtrl):
 
         plot_obj.repaint()
 
-    def OnRightClickMenu(self, evt):
+    def on_right_click(self, evt):
         """ Create and show up popup menu"""
 
         # Make some bindings
-        self.Bind(wx.EVT_MENU, self.presenter.on_save_all_documents, id=ID_saveAllDocuments)
+        self.Bind(wx.EVT_MENU, self.on_save_all_documents, id=ID_saveAllDocuments)
         self.Bind(wx.EVT_MENU, self.onDeleteAllDocuments, id=ID_removeAllDocuments)
 
         # Get selected item
@@ -1897,7 +1921,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_duplicateItem)
         self.Bind(wx.EVT_MENU, self.presenter.saveCCScalibrationToPickle, id=ID_saveDataCCSCalibrantDocument)
         self.Bind(wx.EVT_MENU, self.onAddToCCSTable, id=ID_add2CCStable2DDocument)
-        self.Bind(wx.EVT_MENU, self.presenter.on_save_document, id=ID_saveDocument)
+        self.Bind(wx.EVT_MENU, self.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.onShowSampleInfo, id=ID_showSampleInfo)
         self.Bind(wx.EVT_MENU, self.view.openSaveAsDlg, id=ID_saveAsInteractive)
         self.Bind(wx.EVT_MENU, self.presenter.restoreComparisonToList, id=ID_restoreComparisonData)

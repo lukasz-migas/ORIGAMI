@@ -110,7 +110,7 @@ class panelMultipleTextFiles (wx.Panel):
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
         wx.EVT_MENU(self, ID_textPanel_editItem, self.OnOpenEditor)
-        wx.EVT_MENU(self, ID_textPanel_assignColor, self.OnAssignColor)
+        wx.EVT_MENU(self, ID_textPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.on_enable_disable_tools)
         wx.EVT_MENU(self, ID_textPanel_automaticOverlay, self.on_enable_disable_tools)
         wx.EVT_MENU(self, ID_textPanel_addToDocument, self.on_enable_disable_tools)
@@ -246,7 +246,7 @@ class panelMultipleTextFiles (wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_textPanel_show_process_heatmap)
         self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_textPanel_delete_rightClick)
         self.Bind(wx.EVT_MENU, self.OnOpenEditor, id=ID_textPanel_editItem)
-        self.Bind(wx.EVT_MENU, self.OnAssignColor, id=ID_textPanel_assignColor)
+        self.Bind(wx.EVT_MENU, self.on_assign_color, id=ID_textPanel_assignColor)
 
         self.peaklist.item_id = evt.GetIndex()
         menu = wx.Menu()
@@ -851,84 +851,6 @@ class panelMultipleTextFiles (wx.Panel):
         self.presenter.onThreading(None, args, action='updateStatusbar')
         return document
 
-#     def OnDeleteAll(self, evt):
-#         """
-#         This function removes files from the document tree, dictionary and table
-#         Parameters:
-#         ----------
-#         evt : Wxpython event
-#             Normal event from toolbar or context menu
-#         """
-#
-#         if evt.GetId() == ID_textPanel_delete_selected:
-#             currentItems = self.peaklist.GetItemCount() - 1
-#             while (currentItems >= 0):
-#                 if self.peaklist.IsChecked(index=currentItems):
-#                     itemInfo = self.OnGetItemInformation(itemID=currentItems)
-#                     # Delete selected document from dictionary + table
-#                     try:
-#                         outcome = self.presenter.view.panelDocuments.documents.removeDocument(
-#                             deleteItem=itemInfo['document'], evt=None)
-#                     except wx._core.PyAssertionError:
-#                         outcome = False
-#                     if not outcome:
-#                         self.presenter.onThreading(evt, ("Failed to delete {}".format(itemInfo['document']), 4, 3),
-#                                                    action='updateStatusbar')
-#                         return
-#                     # Delete from dictionary
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']]
-#                     except KeyError:
-#                         pass
-#                 currentItems -= 1
-#
-#         elif evt.GetId() == ID_textPanel_delete_rightClick:
-#             itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
-#             # Delete selected document from dictionary + table
-#             try:
-#                 outcome = self.presenter.view.panelDocuments.documents.removeDocument(deleteItem=itemInfo['document'],
-#                                                                                            evt=None)
-#             except wx._core.PyAssertionError:
-#                 outcome = False
-#             if not outcome:
-#                 self.presenter.onThreading(evt, ("Failed to delete {}".format(itemInfo['document']), 4, 3),
-#                                            action='updateStatusbar')
-#                 return
-#             try:
-#                 del self.presenter.documentsDict[itemInfo['document']]
-#             except KeyError:
-#                 pass
-#
-#         elif evt.GetId() == ID_textPanel_delete_all:
-#             # Ask if you are sure to delete it!
-#             dlg = dlgBox(exceptionTitle='Are you sure?',
-#                                  exceptionMsg="Are you sure you would like to delete ALL text documents?",
-#                                  type="Question")
-#             if dlg == wx.ID_NO:
-#                 self.presenter.onThreading(evt, ("Cancelled operation", 4, 3), action='updateStatusbar')
-#                 return
-#             else:
-#                 currentItems = self.peaklist.GetItemCount() - 1
-#                 while (currentItems >= 0):
-#                     itemInfo = self.OnGetItemInformation(itemID=currentItems)
-#                     # Delete selected document from dictionary + table
-#                     try:
-#                         outcome = self.presenter.view.panelDocuments.documents.removeDocument(
-#                             deleteItem=itemInfo['document'], evt=None)
-#                     except wx._core.PyAssertionError:
-#                         outcome = True
-#                     if not outcome:
-#                         print('Failed to delete the item')
-#                         return
-#                     try:
-#                         del self.presenter.documentsDict[itemInfo['document']]
-#                     except KeyError:
-#                         pass
-#                     currentItems -= 1
-#
-#         self.presenter.onThreading(evt, ("Remaining items {}".format(self.peaklist.GetItemCount()), 4, 3),
-#                                    action='updateStatusbar')
-
     def onCheckDuplicates(self, fileName):
         currentItems = self.peaklist.GetItemCount() - 1
         while (currentItems >= 0):
@@ -1076,7 +998,7 @@ class panelMultipleTextFiles (wx.Panel):
 
             return convertRGB255to1(newColour)
 
-    def OnAssignColor(self, evt, itemID=None, give_value=False):
+    def on_assign_color(self, evt, itemID=None, give_value=False):
         """
         @param itemID (int): value for item in table
         @param give_value (bool): should/not return color
@@ -1329,9 +1251,13 @@ class panelMultipleTextFiles (wx.Panel):
                 if dlg == wx.ID_NO:
                     print("The operation was cancelled")
                     continue
+                try:
+                    self.view.panelDocuments.documents.on_delete_data__document(
+                        itemInfo['document'], ask_permission=False)
+                # item does not exist
+                except KeyError:
+                    self.on_remove_deleted_item(itemInfo['document'])
 
-                self.view.panelDocuments.documents.on_delete_data__document(
-                    itemInfo['document'], ask_permission=False)
             itemID -= 1
 
     def on_delete_all(self, evt):

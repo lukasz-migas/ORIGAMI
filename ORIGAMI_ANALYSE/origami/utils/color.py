@@ -32,20 +32,26 @@ def convertRGB255to1(rgbList, decimals=3):
     return rgbList
 
 
-def convertRGB1to255(rgbList, decimals=3, as_int=True):
-
-    color_out = list([np.round((np.float(rgbList[0]) * 255), decimals),
-                      np.round((np.float(rgbList[1]) * 255), decimals),
-                      np.round((np.float(rgbList[2]) * 255), decimals)])
-
-    # checks whether value was not already in the 255 range
-    if np.sum(color_out) > 3 * 255:
-        color_out = rgbList
-
-    if as_int:
-        return [int(color_out[0]), int(color_out[1]), int(color_out[2])]
+def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
+    if not as_integer:
+        rgbList = list([np.round((np.float(rgbList[0]) * 255), decimals),
+                        np.round((np.float(rgbList[1]) * 255), decimals),
+                        np.round((np.float(rgbList[2]) * 255), decimals)])
     else:
-        return color_out
+        try:
+            rgbList = list([int((np.float(rgbList[0]) * 255)),
+                            int((np.float(rgbList[1]) * 255)),
+                            int((np.float(rgbList[2]) * 255))])
+        except ValueError:
+            rgbList = eval(rgbList)
+            rgbList = list([int((np.float(rgbList[0]) * 255)),
+                            int((np.float(rgbList[1]) * 255)),
+                            int((np.float(rgbList[2]) * 255))])
+
+    if not as_tuple:
+        return rgbList
+    else:
+        return tuple(rgbList)
 
 
 def convertRGB1toHEX(rgbList):
@@ -67,6 +73,12 @@ def convertHEXtoRGB1(hex, decimals=3):
     hlen = len(hex)
     rgb = tuple(int(hex[i:i + int(hlen / 3)], 16) for i in range(0, int(hlen), int(hlen / 3)))
     return [np.round(rgb[0] / 255., decimals), np.round(rgb[1] / 255., decimals), np.round(rgb[2] / 255., decimals)]
+
+
+def convertHEXtoRGB255(hex, decimals=3):
+    hex = hex.lstrip('#')
+    hlen = len(hex)
+    return tuple(int(hex[i:i + int(hlen / 3)], 16) for i in range(0, hlen, int(hlen / 3)))
 
 
 def determineFontColor(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):

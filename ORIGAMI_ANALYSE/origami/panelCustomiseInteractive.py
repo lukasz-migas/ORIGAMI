@@ -22,7 +22,8 @@ from time import time as ttime
 from copy import deepcopy
 from styles import (makeCheckbox, makeStaticBox, makeStaticText, validator)
 from help_documentation import OrigamiHelp
-from toolbox import str2num, convertRGB1to255, convertRGB255to1
+from utils.color import convertRGB1to255, convertRGB255to1
+from utils.converters import str2num
 
 
 class panelCustomiseInteractive(wx.MiniFrame):

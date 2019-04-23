@@ -69,6 +69,7 @@ def text_infrared_open(path=None, normalize=None):  # textOpenIRData
     return zvals, xvals, yvals
 
 
+# TODO: remove pandas dependency
 def text_heatmap_open(path=None, normalize=None):  # textOpen2DIMSdata
 
 #     outName = path.encode('ascii', 'replace')
@@ -78,37 +79,36 @@ def text_heatmap_open(path=None, normalize=None):  # textOpen2DIMSdata
 
     # Get data using pandas df
     df = pd.read_csv(path, sep='\t|,| ', engine='python', index_col=False)
+
     # First value at 0,0 is equal to zero
     df.rename(columns={'0.00':'', '0.00.1':'0.00'}, inplace=True)
 
     # Get xvalues
-    xvals = df.columns.tolist()
-    XaxisLabels = list(map(float, remove_non_digits_from_list(xvals)))
+    xvals_list = df.columns.tolist()
+    xvals = list(map(float, remove_non_digits_from_list(xvals_list)))
 
     # Remove NaNs
     df.dropna(axis=1, how="all", inplace=True)  # remove entire column that has NaNs
     df.fillna(value=0, inplace=True)
 
     # Convert df to matrix
-    zvals = df.as_matrix()
-    imsDataText = zvals[:, 1::]
+    df_array = df.as_matrix()
+    zvals = df_array[:, 1::]
     # Get yvalues
-    YaxisLabels = zvals[:, 0]
+    yvals = df_array[:, 0]
 
-    if (len(XaxisLabels) == (imsDataText.shape[1] + 1) and
-        XaxisLabels[0] == 0):
-        XaxisLabels = XaxisLabels[1::]
+    if (len(xvals) == (zvals.shape[1] + 1) and
+        xvals[0] == 0):
+        xvals = xvals[1::]
 
-    print(('Labels size: {} x {} Array size: {} x {}'.format(len(XaxisLabels),
-                                                            len(YaxisLabels),
-                                                            len(imsDataText[0, :]),
-                                                            len(imsDataText[:, 0]))))
+    print(('Labels size: {} x {} Array size: {} x {}'.format(
+        len(xvals), len(yvals), len(zvals[0, :]), len(zvals[:, 0]))))
 
     if normalize:
-        imsDataTextNorm = normalize(imsDataText, axis=0, norm='max')  # Norm to 1
-        return imsDataText, imsDataTextNorm, XaxisLabels, YaxisLabels
+        zvals_norm = normalize(zvals, axis=0, norm='max')  # Norm to 1
+        return zvals, zvals_norm, xvals, yvals
     else:
-        return imsDataText, XaxisLabels, YaxisLabels
+        return zvals, xvals, yvals
 
 
 def text_spectrum_open(path=None):  # textOpenMSData

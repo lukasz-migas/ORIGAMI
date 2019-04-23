@@ -4,8 +4,9 @@ from help_documentation import OrigamiHelp
 import plots
 from styles import makeSuperTip, validator
 from unidec_modules.fitting import isolated_peak_fit
-from toolbox import getNarrow1Ddata, str2num
 from gui_elements.misc_dialogs import dlgBox
+from utils.converters import str2num
+from processing.utils import get_narrow_data_range
 
 
 class panelPeakWidthTool(wx.MiniFrame):
@@ -132,7 +133,7 @@ class panelPeakWidthTool(wx.MiniFrame):
     def on_crop_data(self):
         xlimits = self.plotMS.plotMS.get_xlim()
         ms_spectrum = np.transpose([self.kwargs['xvals'], self.kwargs['yvals']])
-        ms_narrow = getNarrow1Ddata(data=ms_spectrum, mzRange=xlimits)
+        ms_narrow = get_narrow_data_range(data=ms_spectrum, mzRange=xlimits)
         return ms_narrow, xlimits
 
     def on_fit_peak(self, evt):

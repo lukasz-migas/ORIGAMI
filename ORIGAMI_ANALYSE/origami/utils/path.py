@@ -23,6 +23,7 @@ def get_path_and_fname(path, simple=False):
     full_path = path
     path, fname = os.path.split(path)
     fname, _ = os.path.splitext(fname)
+
     is_path = os.path.isdir(path)
 
     if simple:

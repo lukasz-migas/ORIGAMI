@@ -790,9 +790,9 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.presenter.onCalibrantRawDirectory, id=ID_addCCScalibrantFile)
         self.Bind(wx.EVT_MENU, self.presenter.onLinearDTirectory, id=ID_openLinearDTRawFile)
 
-        self.Bind(wx.EVT_MENU, self.presenter.onOpenDocument, id=ID_openDocument)
-        self.Bind(wx.EVT_MENU, self.presenter.on_save_document, id=ID_saveDocument)
-        self.Bind(wx.EVT_MENU, self.presenter.on_save_all_documents, id=ID_saveAllDocuments)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_document_fcn, id=ID_openDocument)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_document, id=ID_saveDocument)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_all_documents, id=ID_saveAllDocuments)
         self.Bind(wx.EVT_MENU, self.presenter.onIRTextFile, id=ID_openIRTextile)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_MS_only_fcn,
                   id=ID_load_masslynx_raw_ms_only)
@@ -2096,16 +2096,16 @@ class MyFrame(wx.Frame):
         except Exception:
             pass
 
-        try:
-            self.config.interactiveParamsWindow_on_off = True
-            self.interactivePanel = panelInteractive(self, self.icons, self.presenter, self.config)
-            self.interactivePanel.Show()
-        except (ValueError, AttributeError, TypeError, KeyError, NameError) as e:
-            self.config.interactiveParamsWindow_on_off = False
-            dlgBox(exceptionTitle='Failed to open panel',
-                   exceptionMsg=str(e),
-                   type="Error")
-            return
+#         try:
+        self.config.interactiveParamsWindow_on_off = True
+        self.interactivePanel = panelInteractive(self, self.icons, self.presenter, self.config)
+        self.interactivePanel.Show()
+#         except (ValueError, AttributeError, TypeError, KeyError, NameError) as e:
+#             self.config.interactiveParamsWindow_on_off = False
+#             dlgBox(exceptionTitle='Failed to open panel',
+#                    exceptionMsg=str(e),
+#                    type="Error")
+#             return
 
     def updateRecentFiles(self, path=None):
         """
@@ -2169,7 +2169,7 @@ class MyFrame(wx.Frame):
 
         # open file
         if file_type == 'pickle':
-            self.presenter.onOpenDocument(file_path=file_path, evt=None)
+            self.data_handling.on_open_document_fcn(file_path=file_path, evt=None)
         elif file_type == 'MassLynx':
             self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_load_masslynx_raw)
         elif file_type == 'ORIGAMI':
@@ -2184,7 +2184,7 @@ class MyFrame(wx.Frame):
     def onOpenFile_DnD(self, file_path, file_extension):
         # open file
         if file_extension in ['.pickle', '.pkl']:
-            self.presenter.onOpenDocument(file_path=file_path, evt=None)
+            self.data_handling.on_open_document_fcn(file_path=file_path, evt=None)
         elif file_extension == '.raw':
             self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_load_origami_masslynx_raw)
         elif file_extension in ['.txt', '.csv', '.tab']:

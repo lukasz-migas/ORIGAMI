@@ -20,8 +20,7 @@
 import numpy as np
 from operator import itemgetter
 from itertools import groupby
-from time import time as ttime
-from scipy.signal import find_peaks  # @UnresolvedImport
+from scipy.signal import find_peaks
 
 
 def detect_peaks_chromatogram(data, threshold, add_buffer=0):  # detectPeaksRT

@@ -68,18 +68,6 @@ def normalize_1D(inputData=None, mode="Maximum"):  # normalizeMS
 
     return normData
 
-# def normalize_spectrum(inputData=None, mode='Maximum'): # normalize1D
-#     # Normalize data to maximum intensity of 1
-#
-#     if mode == 'Maximum':
-#         normData = np.divide(inputData.astype(np.float64), np.max(inputData))
-#     elif mode == 'tic':
-#         normData = np.divide(inputData.astype(np.float64), np.sum(inputData))
-#         normData = np.divide(normData.astype(np.float64), np.max(normData))
-#
-#     return normData
-# # ------------ #
-
 
 def check_mass_range(ms_list=None, ms_dict=None):
     """

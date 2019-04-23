@@ -184,6 +184,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         # specify that simpler sorter should be used to speed things up
         self.use_simple_sorter = kwargs.get("use_simple_sorter", False)
 
+        self.parent = parent
         self.item_id = None
         self.old_column = None
         self.reverse = False
@@ -199,6 +200,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
     def on_select_item(self, evt):
         self.item_id = evt.Index
 
+#
     def on_activate_item(self, evt):
         self.item_id = evt.Index
 

@@ -11,16 +11,16 @@
   </presets>
 
   <recent>
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files" format="Text" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files\MS_p27-FL-K31.csv" format="Text_MS" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\dt-ims\LM_20151006_7_B_DV30.raw" format="ORIGAMI" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\dt-ims\LM_20151006_7_B_DV60.raw" format="ORIGAMI" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\dt-ims\LM_20151006_7_B_DV20.raw" format="ORIGAMI" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files\2_Exponential_IMS2D_5140.48-5164.36.csv" format="Text_MS" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files\abc" format="Text_MS" />
-    <path value="D:\GitHub\ORIGAMI\ORIGAMI_ANALYSE\origami\example_files\text_files\1_Linear_IMS2D_5140.73-5169.41.csv" format="Text" />
-    <path value="Z:\###_PhD2_###\CIU\PythonCIU\_DATA\thesis\compare_heatmaps.pickle" format="pickle" />
+    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_832_5653_832_6017_idx_188420_188428_dt_85_100.pickle" format="pickle" />
+    <path value="D:\GitHub\bruker_imaging_file_reader" format="Text" />
+    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_762_5826_762_6175_idx_172740_172748_dt_87_102.pickle" format="pickle" />
+    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_762_5826_762_6175_idx_172740_172748_dt_106_122.pickle" format="pickle" />
+    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_xy_20000px.pickle" format="pickle" />
+    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_xy_10000px.pickle" format="pickle" />
+    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_xy_500px.pickle" format="pickle" />
+    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_xy_1000px.pickle" format="pickle" />
+    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_784_5605_784_6047_idx_177739_177749_dt_50_97.pickle" format="pickle" />
+    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_784_5605_784_6047_idx_177739_177749_dt_102_120.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -78,12 +78,12 @@
     <param title="Import/Export parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
-    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
     <param title="Toolbar" gripper="True" orientation="top" close_button="False" left_position="False" top_position="True" left_dockable="True" right_dockable="True" top_dockable="True" bottom_dockable="True" show="True" type="mixed" />
   </presets_gui_aui_settings>
 
@@ -280,8 +280,8 @@
     <param name="plot2D_smooth_mode" value="None" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
     <param name="plot2D_smooth_polynomial" value="1" type="int" />
     <param name="plot2D_smooth_window" value="3" type="int" />
-    <param name="plot2D_smooth_sigma" value="2.00" type="float" />
-    <param name="plot2D_threshold" value="0.00" type="float" />
+    <param name="plot2D_smooth_sigma" value="1.00" type="float" />
+    <param name="plot2D_threshold" value="100.00" type="float" />
   </process_presets_plot2D>
 
   <plot_presets_rmsd>
@@ -302,7 +302,7 @@
   </plot_presets_rmsd>
 
   <plot_presets_waterfall>
-    <param name="waterfall" value="True" type="bool" />
+    <param name="waterfall" value="False" type="bool" />
     <param name="waterfallOffset" value="0.00" type="float" />
     <param name="waterfall_increment" value="0.53" type="float" />
     <param name="waterfall_reverse" value="False" type="bool" />
@@ -317,7 +317,7 @@
     <param name="waterfall_shade_under" value="True" type="bool" />
     <param name="waterfall_shade_under_transparency" value="0.25" type="float" />
     <param name="waterfall_shade_under_nlimit" value="50" type="int" />
-    <param name="waterfall_labels_frequency" value="5.00" type="float" />
+    <param name="waterfall_labels_frequency" value="1.00" type="float" />
     <param name="waterfall_labels_x_offset" value="0.01" type="float" />
     <param name="waterfall_labels_y_offset" value="0.05" type="float" />
     <param name="waterfall_label_fontSize" value="12.00" type="float" />
@@ -357,7 +357,7 @@
     <param name="legendColumns" value="1" type="int" />
     <param name="legendNumberMarkers" value="1" type="int" />
     <param name="legendMarkerSize" value="3.00" type="float" />
-    <param name="legendAlpha" value="0.00" type="float" />
+    <param name="legendAlpha" value="1.00" type="float" />
     <param name="legendLineWidth" value="4.00" type="float" />
   </plot_presets_legend>
 
@@ -484,8 +484,10 @@
 
   <presets_interactive_pageLayouts>
     <!-- layout_choices="['Individual', 'Columns', 'Rows', 'Grid']" -->
+    <param page_name="762.5826" name="762.5826" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="784.5605" name="784.5605" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
+    <param page_name="832.5663" name="832.5663" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Columns" name="Columns" layout="Columns" rows="None" columns="None" grid_share_tools="True" type="mixed" />
-    <param page_name="MS/MS" name="MS/MS" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="None" name="None" layout="Individual" rows="None" columns="None" grid_share_tools="True" type="mixed" />
     <param page_name="Rows" name="Rows" layout="Rows" rows="None" columns="None" grid_share_tools="True" type="mixed" />
   </presets_interactive_pageLayouts>

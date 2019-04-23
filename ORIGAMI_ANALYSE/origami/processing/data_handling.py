@@ -3,7 +3,6 @@ import os
 import threading
 from pubsub import pub
 import numpy as np
-# import wx.lib.agw.multidirdialog as MDD
 
 from gui_elements.dialog_multiDirSelector import dialogMultiDirSelector
 import readers.io_text_files as io_text
@@ -11,14 +10,14 @@ import readers.io_waters_raw as io_waters
 import processing.spectra as pr_spectra
 from document import document as documents
 from ids import ID_window_ionList, ID_window_multiFieldList, ID_load_origami_masslynx_raw, ID_load_masslynx_raw, \
-    ID_openIRRawFile, ID_window_multipleMLList
+    ID_openIRRawFile, ID_window_multipleMLList, ID_window_ccsList
 from gui_elements.misc_dialogs import dlgBox
 from utils.check import isempty, check_value_order, check_axes_spacing
 from utils.time import getTime, ttime, tsleep
 from utils.path import get_path_and_fname, check_waters_path, check_path_exists, get_base_path
-from utils.converters import byte2str, str2num
+from utils.converters import byte2str, str2num, str2int
 from utils.random import randomIntegerGenerator
-from utils.color import convertRGB255to1, convertRGB1to255, randomColorGenerator
+from utils.color import convertRGB255to1, convertRGB1to255, randomColorGenerator, determineFontColor
 from utils.ranges import get_min_max
 from processing.utils import get_maximum_value_in_range
 import processing.origami_ms as pr_origami
@@ -27,6 +26,8 @@ from processing.heatmap import interpolate_2D
 from gui_elements.dialog_messagePopup import dialogMsgPopup
 
 import logging
+from readers.io_document import save_py_object, open_py_object
+import re
 logger = logging.getLogger("origami")
 
 # TODO: on_open_MassLynx_raw_MS_only: This function is currently broken: OSError: [WinError -529697949] Windows Error 0xe06d7363
@@ -88,6 +89,10 @@ class data_handling():
             th = threading.Thread(target=self.on_extract_2D_from_mass_range, args=args)
         elif action == "load.multiple.raw.masslynx":
             th = threading.Thread(target=self.on_open_multiple_ML_files, args=args)
+        elif action == "save.document":
+            th = threading.Thread(target=self.on_save_document, args=args)
+        elif action == "load.document":
+            th = threading.Thread(target=self.on_open_document, args=args)
 
         # Start thread
         try:
@@ -491,8 +496,8 @@ class data_handling():
             'charge': "",
             "color": self.config.customColors[randomIntegerGenerator(0, 15)],
             "colormap": self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
-            'alpha': self.config.overlay_defaultMask,
-            'mask': self.config.overlay_defaultAlpha,
+            'alpha': self.config.overlay_defaultAlpha,
+            'mask': self.config.overlay_defaultMask,
             'label': "",
             'shape': array_2D.shape,
             'document': filename}
@@ -551,7 +556,7 @@ class data_handling():
 
         # Plot
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-        self.view.panelPlots.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
+        self.plotsPanel.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
 
         # Update document
         self.view.updateRecentFiles(path={'file_type': 'Text_MS', 'file_path': path})
@@ -1154,7 +1159,7 @@ class data_handling():
 
                 # Plot
                 name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-                self.view.panelPlots.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
+                self.plotsPanel.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
 
                 # Update document
                 self.on_update_document(document, 'document')
@@ -1221,8 +1226,8 @@ class data_handling():
 
         # Plot
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-        self.view.panelPlots.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
-        self.view.panelPlots.on_plot_RT(rtX, rtY, 'Scans')
+        self.plotsPanel.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
+        self.plotsPanel.on_plot_RT(rtX, rtY, 'Scans')
 
         # Update document
         self.view.updateRecentFiles(path={'file_type': 'MassLynx', 'file_path': path})
@@ -1472,7 +1477,7 @@ class data_handling():
         self.documentTree.on_update_data(data, "", document, data_type="main.spectrum")
         # Plot
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-        self.view.panelPlots.on_plot_MS(ms_x, ms_y_sum, xlimits=xlimits, **name_kwargs)
+        self.plotsPanel.on_plot_MS(ms_x, ms_y_sum, xlimits=xlimits, **name_kwargs)
 
         # Add info to document
         document.parameters = parameters
@@ -1508,7 +1513,7 @@ class data_handling():
 #                                                             mz_start=mzStart, mz_end=mzEnd,
 #                                                             dt_start=dtStart, dt_end=dtEnd,
 #                                                             **extract_kwargs)
-#         self.view.panelPlots.on_plot_RT(rtDataX, rtDataY, 'Scans')
+#         self.plotsPanel.on_plot_RT(rtDataX, rtDataY, 'Scans')
 #
 #         itemName = "Ion: {}-{} | Drift time: {}-{}".format(np.round(mzStart, 2), np.round(mzEnd),
 #                                                            np.round(dtStart, 2), np.round(dtEnd))
@@ -1518,7 +1523,7 @@ class data_handling():
 #         document.gotMultipleRT = True
 #
 #         msg = "Extracted RT data for m/z: %s-%s | dt: %s-%s" % (mzStart, mzEnd, dtStart, dtEnd)
-#         self.onThreading(None, (msg, 3), action='updateStatusbar')
+#         self.__update_statusbar(msg, 3)
 #
 #         # Update document
 #         self.on_update_document(document, 'document')
@@ -1554,7 +1559,7 @@ class data_handling():
 #
 #         # Plot MS
 #         name_kwargs = {"document": self.docs.title, "dataset": itemName}
-#         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="1D", **name_kwargs)
+#         self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="1D", **name_kwargs)
 #         # Update document
 #         self.on_update_document(self.docs, 'mass_spectra')
 #
@@ -1641,10 +1646,10 @@ class data_handling():
 #         self.on_update_document(document, 'mass_spectra', expand_item_title=itemName)
 #         # Plot MS
 #         name_kwargs = {"document": document.title, "dataset": itemName}
-#         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="RT", **name_kwargs)
+#         self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="RT", **name_kwargs)
 #         # Set status
 #         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
-#         self.onThreading(None, (msg, 3), action='updateStatusbar')
+#         self.__update_statusbar(msg, 3)
 #
 #     def on_extract_MS_from_heatmap(self, startScan=None, endScan=None, dtStart=None,
 #                                    dtEnd=None, units_x="Scans", units_y="Drift time (bins)"):
@@ -1718,10 +1723,10 @@ class data_handling():
 #         self.on_update_document(document, 'mass_spectra', expand_item_title=itemName)
 #         # Plot MS
 #         name_kwargs = {"document": document.title, "dataset": itemName}
-#         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
+#         self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
 #         # Set status
 #         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
-#         self.onThreading(None, (msg, 3), action='updateStatusbar')
+#         self.__update_statusbar(msg, 3)
 #
 #     def onCombineCEvoltagesMultiple(self, evt):
 #         # self.config.extractMode = 'multipleIons'
@@ -1783,7 +1788,7 @@ class data_handling():
 #                 elif not any([self.config.origami_startScan, self.config.origami_startVoltage, self.config.origami_endVoltage,
 #                               self.config.origami_stepVoltage, self.config.origami_spv]):
 #                     msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
-#                     self.onThreading(None, (msg, 3), action='updateStatusbar')
+#                     self.__update_statusbar(msg, 3)
 #                     return
 #
 #                 # Check if ion/file has specified ORIGAMI method
@@ -1826,7 +1831,7 @@ class data_handling():
 #                               self.config.origami_stepVoltage, self.config.origami_spv, self.config.origami_exponentialIncrement,
 #                               self.config.origami_exponentialPercentage]):
 #                     msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
-#                     self.onThreading(None, (msg, 3), action='updateStatusbar')
+#                     self.__update_statusbar(msg, 3)
 #                     return
 #
 #                 # Check if ion/file has specified ORIGAMI method
@@ -1867,7 +1872,7 @@ class data_handling():
 #                 elif not any([self.config.origami_startScan, self.config.origami_startVoltage, self.config.origami_endVoltage,
 #                               self.config.origami_stepVoltage, self.config .scansPerVoltage, self.config.origami_boltzmannOffset]):
 #                     msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
-#                     self.onThreading(None, (msg, 3), action='updateStatusbar')
+#                     self.__update_statusbar(msg, 3)
 #                     return
 #
 #                 # Check if ion/file has specified ORIGAMI method
@@ -1909,7 +1914,7 @@ class data_handling():
 #                     errorMsg = "The collision voltage list is of incorrect shape."
 #
 #                 if errorMsg is not None:
-#                     self.onThreading(None, (errorMsg, 3), action='updateStatusbar')
+#                     self.__update_statusbar(errorMsg, 3)
 #                     return
 #
 #                 # Check if ion/file has specified ORIGAMI method
@@ -1985,4 +1990,355 @@ class data_handling():
 #
 #             # Update document
 #             self.on_update_document(self.docs, 'combined_ions')
+
+    def on_save_document_fcn(self, document_title, save_as=True):
+
+        if self.config.threading:
+            self.on_threading((document_title, save_as,), action="save.document")
+        else:
+            self.on_save_document(document_title, save_as)
+
+    def on_save_document(self, document_title, save_as, **kwargs):
+        """
+        Save document to file.
+        ---
+        document_title: str
+            name of the document to be retrieved from the document dictionary
+        save_as: bool
+            check whether document should be saved as (select new path/name) or
+            as is
+        """
+        document = self._on_get_document(document_title)
+        document_path = document.path
+        document_title = document.title
+
+        if document_title not in document_path:
+            document_path = document_path + "\\" + document_title
+
+        try:
+            full_path, __, fname, is_path = self.get_path_and_fname(
+                document_path)
+        except Exception:
+            full_path = None
+            fname = byte2str(document.title.split("."))
+
+        if is_path:
+            document_path = full_path + "\\" + document_title
+
+        if not save_as and is_path:
+            save_path = full_path
+            if not save_path.endswith(".pickle"):
+                save_path = save_path + ".pickle"
+        else:
+            dlg = wx.FileDialog(self.view, "Please select a name for the file",
+                                "", "",
+                                wildcard="ORIGAMI Document File (*.pickle)|*.pickle",
+                                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            dlg.CentreOnParent()
+
+            try:
+                if full_path is not None and is_path:
+                    dlg.SetPath(full_path)
+                else:
+                    dlg.SetFilename(fname)
+            except Exception as e:
+                logger.warning(e)
+
+            if dlg.ShowModal() == wx.ID_OK:
+                save_path = dlg.GetPath()
+            else:
+                return
+
+        self.view.SetStatusText("Saving data, please wait...", number=4)
+
+        # update filepath
+        path, _ = os.path.splitext(save_path)
+        document.path = path
+
+        # save document
+        save_py_object(save_path, document)
+        # update recent files
+        self.view.updateRecentFiles(
+            path={'file_type': 'pickle', 'file_path': save_path})
+
+    def on_open_document_fcn(self, evt, file_path=None):
+
+        dlg = None
+        if file_path is None:
+            wildcard = \
+                "All accepted formats |*.pkl;*.pickle|" + \
+                "ORIGAMI document file (*.pkl; *.pickle)|*.pkl;*.pickle"
+
+            dlg = wx.FileDialog(self.view, "Open Document File",
+                                wildcard=wildcard,
+                                style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
+
+        if hasattr(dlg, "ShowModal"):
+            if dlg.ShowModal() == wx.ID_OK:
+                file_path = dlg.GetPaths()
+
+        if self.config.threading:
+            self.on_threading("load.document", (file_path,))
+        else:
+            self.on_open_document(file_path)
+
+    def on_open_document(self, file_paths):
+        if isinstance(file_paths, str):
+            file_path = [file_paths]
+
+        for file_path in file_paths:
+            try:
+                self._load_document_data(document=open_py_object(filename=file_path))
+            except (ValueError, AttributeError, TypeError, IOError) as e:
+                dlgBox(exceptionTitle="Failed to load document on load.", exceptionMsg=str(e), type="Error")
+                return
+
+        self.view.updateRecentFiles(path={"file_type": "pickle", "file_path": file_path})
+
+    def _load_document_data(self, document=None):
+        """
+        Function to iterate over the whole document to ensure complete loading of the data
+        Once document is re-loaded, data and GUI are restored to appropriate format
+        """
+        if document is not None:
+            document_title = document.title
+            self.presenter.documentsDict[document_title] = document
+
+            if document.gotMS:
+                self.__update_statusbar("Loaded mass spectra", 4)
+                msX = document.massSpectrum['xvals']
+                msY = document.massSpectrum['yvals']
+                color = document.lineColour
+                try:
+                    xlimits = document.massSpectrum['xlimits']
+                except KeyError:
+                    xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+                if document.dataType != 'Type: CALIBRANT':
+                    name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
+                    self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
+                else:
+                    self.onPlotMSDTCalibration(msX=msX, msY=msY, color=color, xlimits=xlimits,
+                                               plotType='MS')
+            if document.got1DT:
+                self.__update_statusbar("Loaded mobiligrams (1D)", 4)
+                dtX = document.DT['xvals']
+                dtY = document.DT['yvals']
+                xlabel = document.DT['xlabels']
+                color = document.lineColour
+                if document.dataType != 'Type: CALIBRANT':
+                    self.plotsPanel.on_plot_1D(dtX, dtY, xlabel)
+                else:
+                    self.onPlotMSDTCalibration(dtX=dtX, dtY=dtY, color=color,
+                                               xlabelDT=xlabel, plotType='1DT')
+            if document.got1RT:
+                self.__update_statusbar("Loaded chromatograms", 4)
+                rtX = document.RT['xvals']
+                rtY = document.RT['yvals']
+                xlabel = document.RT['xlabels']
+                color = document.lineColour
+                self.plotsPanel.on_plot_RT(rtX, rtY, xlabel)
+
+            if document.got2DIMS:
+                data = document.IMS2D
+                zvals = data["zvals"]
+                xvals = data["xvals"]
+
+                if document.dataType == "Type: 2D IM-MS":
+                    if self.textPanel.onCheckDuplicates(document_title):
+                        return
+
+                    add_dict = {
+                        'energy_start': xvals[0],
+                        'energy_end': xvals[-1],
+                        'charge': "",
+                        "color": data.get("color",
+                                          self.config.customColors[randomIntegerGenerator(0, 15)]),
+                        "colormap": data.get(
+                            "cmap", self.config.overlay_cmaps[randomIntegerGenerator(
+                                0, len(self.config.overlay_cmaps) - 1)]),
+                        'alpha': data.get("alpha", self.config.overlay_defaultAlpha),
+                        'mask': data.get("mask", self.config.overlay_defaultMask),
+                        'label': data.get("label", ""),
+                        'shape': zvals.shape,
+                        'document': document_title}
+
+                    self.textPanel.on_add_to_table(add_dict, return_color=False)
+
+                self.__update_statusbar("Loaded mobiligrams (2D)", 4)
+
+                self.plotsPanel.on_plot_2D_data(data=[zvals,
+                                                      xvals,
+                                                      data["xlabels"],
+                                                      data["yvals"],
+                                                      data["ylabels"]])
+
+            # Restore ion list
+            if (any([document.gotExtractedIons, document.got2DprocessIons,
+                     document.gotCombinedExtractedIonsRT, document.gotCombinedExtractedIons])
+                    and document.dataType != 'Type: Interactive'):
+                if len(document.IMS2DCombIons) > 0:
+                    dataset = document.IMS2DCombIons
+                elif len(document.IMS2DCombIons) == 0:
+                    dataset = document.IMS2Dions
+                elif len(document.IMS2Dions) == 0:
+                    dataset = {}
+
+                for i, key in enumerate(dataset):
+                    mz_split = re.split('-| |,|', key)
+                    mz_start = mz_split[0]
+                    mz_end = mz_split[1]
+                    charge = dataset[key].get('charge', "")
+                    label = dataset[key].get('label', "")
+                    alpha = dataset[key].get('alpha', 0.5)
+                    mask = dataset[key].get('mask', 0.25)
+                    colormap = dataset[key].get('cmap', self.config.currentCmap)
+                    color = dataset[key].get('color', randomColorGenerator())
+                    if isinstance(color, wx.Colour):
+                        color = convertRGB255to1(color)
+                    elif np.sum(color) > 4:
+                        color = convertRGB255to1(color)
+                    mz_y_max = dataset[key].get('xylimits', "")
+                    if mz_y_max is not None:
+                        mz_y_max = mz_y_max[2]
+
+                    method = dataset[key].get('parameters', None)
+                    if method is not None:
+                        method = method.get('method', "")
+                    elif method is None and document.dataType == 'Type: MANUAL':
+                        method = 'Manual'
+                    else:
+                        method = ""
+
+                    _add_to_table = {"mz_start": mz_start,
+                                     "mz_end": mz_end,
+                                     "charge": charge,
+                                     "mz_ymax": mz_y_max,
+                                     "color": convertRGB1to255(color),
+                                     "colormap": colormap,
+                                     "alpha": alpha,
+                                     "mask": mask,
+                                     "document": document_title}
+                    self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
+
+#                     tempList.Append([out[0], out[1], charge, str(xylimits),
+#                                      color, cmap, str(alpha), str(mask),
+#                                      str(label), method, document.title])
+#                     color = convertRGB1to255(color)
+#                     list_count = tempList.GetItemCount() - 1
+#                     tempList.SetItemBackgroundColour(list_count, color)
+#                     tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
+
+                    # Update aui manager
+                    self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
+                self.view.panelMultipleIons.onRemoveDuplicates(evt=None, limitCols=False)
+
+            # Restore file list
+            # if self.config.ciuMode == 'MANUAL':
+            if document.dataType == 'Type: MANUAL':
+                count = self.filesList.GetItemCount() + len(document.multipleMassSpectrum)
+                colors = self.plotsPanel.onChangePalette(None, n_colors=count + 1, return_colors=True)
+                for i, key in enumerate(document.multipleMassSpectrum):
+                    energy = document.multipleMassSpectrum[key]['trap']
+                    if 'color' in document.multipleMassSpectrum[key]:
+                        color = document.multipleMassSpectrum[key]['color']
+                    else:
+                        try:
+                            color = colors[count + 1]
+                        except:
+                            color = randomColorGenerator()
+                        document.multipleMassSpectrum[key]['color'] = color
+
+                    if 'label' in document.multipleMassSpectrum[key]:
+                        label = document.multipleMassSpectrum[key]['label']
+                    else:
+                        label = os.path.splitext(key)[0]
+                        document.multipleMassSpectrum[key]['label'] = label
+
+                    add_dict = {"filename": key,
+                                "document": document.title,
+                                "variable": energy,
+                                "label": label,
+                                "color": color}
+
+                    self.filesPanel.on_add_to_table(add_dict, check_color=False)
+#
+#                     tempList.Append([key, energy, document.title, label])
+#                     color = convertRGB1to255(color)
+#                     list_count = tempList.GetItemCount() - 1
+#                     tempList.SetItemBackgroundColour(list_count, color)
+#                     tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
+
+                self.view.panelMML.onRemoveDuplicates(evt=None, limitCols=False)
+                # Update aui manager
+                self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
+
+            # Restore calibration list
+            if document.dataType == 'Type: CALIBRANT':
+                tempList = self.view.panelCCS.topP.peaklist
+                if document.fileFormat == 'Format: MassLynx (.raw)':
+                    for key in document.calibration:
+                        tempList.Append([document.title,
+                                         str(document.calibration[key]['xrange'][0]),
+                                         str(document.calibration[key]['xrange'][1]),
+                                         document.calibration[key]['protein'],
+                                         str(document.calibration[key]['charge']),
+                                         str(document.calibration[key]['ccs']),
+                                         str(document.calibration[key]['tD']),
+                                         ])
+                elif document.fileFormat == 'Format: DataFrame':
+                    try:
+                        self.currentCalibrationParams = document.calibrationParameters
+                    except KeyError:
+                        pass
+                    for key in document.calibration:
+                        tempList.Append([document.title,
+                                         str(document.calibration[key]['xrange'][0]),
+                                         str(document.calibration[key]['xrange'][1]),
+                                         document.calibration[key]['protein'],
+                                         str(document.calibration[key]['charge']),
+                                         str(document.calibration[key]['ccs']),
+                                         str(document.calibration[key]['tD']),
+                                         ])
+                # Check for duplicates
+                self.view.panelCCS.topP.onRemoveDuplicates(evt=None)
+                # Update aui manager
+                self.view.onPaneOnOff(evt=ID_window_ccsList, check=True)
+
+            # Restore ion list
+            if document.dataType == 'Type: Multifield Linear DT':
+                # if self.config.ciuMode == 'LinearDT':
+                rtList = self.view.panelLinearDT.topP.peaklist  # List with MassLynx file information
+                mzList = self.view.panelLinearDT.bottomP.peaklist  # List with m/z information
+                for key in document.IMS1DdriftTimes:
+                    retTimes = document.IMS1DdriftTimes[key]['retTimes']
+                    driftVoltages = document.IMS1DdriftTimes[key]['driftVoltage']
+                    mzVals = document.IMS1DdriftTimes[key]['xylimits']
+                    mzStart = mzVals[0]
+                    mzEnd = mzVals[1]
+                    mzYmax = mzVals[2]
+                    charge = str2int(document.IMS1DdriftTimes[key]['charge'])
+                    for row in range(len(retTimes)):
+                        rtStart = str2int(retTimes[row][0])
+                        rtEnd = str2int(retTimes[row][1])
+                        rtDiff = str2int(rtEnd - rtStart)
+                        driftVoltage = driftVoltages[row]
+                        rtList.Append([str2int(rtStart),
+                                       str2int(rtEnd),
+                                       str2int(rtDiff),
+                                       str(driftVoltage),
+                                       document.title])
+                    self.view.panelLinearDT.topP.onRemoveDuplicates(evt=None)
+                    mzList.Append([str(mzStart),
+                                   str(mzEnd),
+                                   str(mzYmax),
+                                   str(charge),
+                                   document.title])
+                self.view.panelLinearDT.bottomP.onRemoveDuplicates(evt=None)
+
+                self.view.onPaneOnOff(evt=ID_window_multiFieldList, check=True)
+                self.view._mgr.Update()
+
+        # Update documents tree
+        self.documentTree.add_document(docData=document, expandAll=False)
+        self.presenter.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
 

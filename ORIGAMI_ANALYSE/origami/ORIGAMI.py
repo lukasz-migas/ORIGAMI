@@ -2082,9 +2082,16 @@ class ORIGAMI(object):
                     tempAccumulator += 1
                     comparisonFlag = False  # used only in case the user reloaded comparison document
                     # Get data for each ion
-                    __, __, charge, color, colormap, alpha, mask, __, \
-                        label, filename, min_threshold, max_threshold \
- = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
+                    itemInfo = self.view.panelMultipleText.OnGetItemInformation(itemID=row)
+                    charge = itemInfo["charge"]
+                    color = itemInfo["color"]
+                    colormap = itemInfo["colormap"]
+                    alpha = itemInfo["alpha"]
+                    mask = itemInfo["mask"]
+                    label = itemInfo["label"]
+                    filename = itemInfo["document"]
+                    min_threshold = itemInfo["min_threshold"]
+                    max_threshold = itemInfo["max_threshold"]
                     # get document
                     try:
                         document = self.documentsDict[filename]
@@ -5998,312 +6005,312 @@ class ORIGAMI(object):
         document = self.documentsDict[self.currentDoc]
         return document.path, document.title
 
-    def saveObjectData(self, objName, evt=None):
-        # Get directory path
-        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        document = self.documentsDict[self.currentDoc]
-        saveName = dlgAsk('Save data as...', defaultValue='')
-        if saveName == '':
-            self.view.SetStatusText('Please select a name first', 3)
-            return
-        # Prep classification filename
-        saveFileName = document.path + '/' + saveName + '.pickle'
-        # Save
-        saveObject(filename=saveFileName, saveFile=objName)
-
-    def on_save_document(self, evt):
-        """
-        Save ORIGAMI document as pickled object
-        """
-        fileType = "ORIGAMI Document File|*.pickle"
-
-        # Save single document
-        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        if self.currentDoc == 'Current documents':
-            return
-        document = self.documentsDict[self.currentDoc]
-
-        dlg = wx.FileDialog(self.view, "Save document to file...", "", "", fileType,
-                            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        defaultFilename = document.title.split(".")
-        dlg.SetFilename(defaultFilename[0])
-
-        if dlg.ShowModal() == wx.ID_OK:
-            saveFileName = dlg.GetPath()
-            # Save
-            io_document.save_py_object(filename=saveFileName, saveFile=document)
-            self.view.updateRecentFiles(path={'file_type': 'pickle',
-                                              'file_path': saveFileName})
-
-        else:
-            return
-
-    def on_save_all_documents(self, evt):
-        """
-        Save all ORIGAMI documents as pickled objects
-        """
-        fileType = "ORIGAMI Document File|*.pickle"
-        for document in self.documentsDict:
-            dlg = wx.FileDialog(self.view, "Save document to file...", "", "", fileType,
-                                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-            defaultFilename = self.documentsDict[document].title.split(".")
-            print(("Saving {}".format(defaultFilename[0])))
-            dlg.SetFilename(defaultFilename[0])
-
-            if dlg.ShowModal() == wx.ID_OK:
-                saveFileName = dlg.GetPath()
-                # Save
-                io_document.save_py_object(filename=saveFileName, saveFile=self.documentsDict[document])
-                self.view.updateRecentFiles(path={'file_type': 'pickle',
-                                                  'file_path': saveFileName})
-            else:
-                continue
-
-    def onOpenDocument(self, evt, file_path=None):
-        """
-        This function opens whole document to a pickled directory
-        """
-
-        dlg = None
-
-        if file_path is None:
-            wildcard = "ORIGAMI document (*.pickle, *.pkl)| *.pickle;*.pkl"
-            dlg = wx.FileDialog(self.view, "Open Document File", wildcard=wildcard,
-                                style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
-
-        if hasattr(dlg, 'ShowModal'):
-            if dlg.ShowModal() == wx.ID_OK:
-                pathlist = dlg.GetPaths()
-                filenames = dlg.GetFilenames()
-                for (file_path, file_name) in zip(pathlist, filenames):
-                    tstart = time.clock()
-                    document = openObject(filename=file_path)
-                    if document is None:
-                        self.onThreading(None, ("Could not load {}".format(file_path), 4), action='updateStatusbar')
-                        continue
-                    self.loadDocumentData(document=document)
-                    tend = time.clock()
-                    msg = "Opened {}. It took: {} seconds.".format(file_name, np.round(tend - tstart, 2))
-                    self.onThreading(None, (msg, 4), action='updateStatusbar')
-                    self.view.updateRecentFiles(path={'file_type': 'pickle',
-                                                      'file_path': file_path})
-            else:
-                return
-        elif file_path is not None:
-            try:
-                self.loadDocumentData(document=openObject(filename=file_path))
-            except (ValueError, AttributeError, TypeError, IOError) as e:
-                dlgBox(exceptionTitle='Failed to load document on load.',
-                       exceptionMsg=str(e),
-                       type="Error")
-                return
-
-            self.view.updateRecentFiles(path={'file_type': 'pickle', 'file_path': file_path})
-
-        else:
-            return
-
-    def loadDocumentData(self, document=None):
-        """
-        Function to iterate over the whole document to ensure complete loading of the data
-        Once document is re-loaded, data and GUI are restored to appropriate format
-        """
-        if document is not None:
-            idName = document.title
-            self.documentsDict[idName] = document
-
-            if document.gotMS:
-                self.onThreading(None, ("Loaded mass spectra", 4), action='updateStatusbar')
-                msX = document.massSpectrum['xvals']
-                msY = document.massSpectrum['yvals']
-                color = document.lineColour
-                try:
-                    xlimits = document.massSpectrum['xlimits']
-                except KeyError:
-                    xlimits = [document.parameters['startMS'], document.parameters['endMS']]
-                if document.dataType != 'Type: CALIBRANT':
-                    name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-                    self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
-                else:
-                    self.onPlotMSDTCalibration(msX=msX, msY=msY, color=color, xlimits=xlimits,
-                                               plotType='MS')
-            if document.got1DT:
-                self.onThreading(None, ("Loaded mobiligrams (1D)", 4), action='updateStatusbar')
-                dtX = document.DT['xvals']
-                dtY = document.DT['yvals']
-                xlabel = document.DT['xlabels']
-                color = document.lineColour
-                if document.dataType != 'Type: CALIBRANT':
-                    self.view.panelPlots.on_plot_1D(dtX, dtY, xlabel)
-                else:
-                    self.onPlotMSDTCalibration(dtX=dtX, dtY=dtY, color=color,
-                                               xlabelDT=xlabel, plotType='1DT')
-            if document.got1RT:
-                self.onThreading(None, ("Loaded chromatograms", 4), action='updateStatusbar')
-                rtX = document.RT['xvals']
-                rtY = document.RT['yvals']
-                xlabel = document.RT['xlabels']
-                color = document.lineColour
-                self.view.panelPlots.on_plot_RT(rtX, rtY, xlabel)
-
-            if document.got2DIMS:
-                self.onThreading(None, ("Loaded mobiligrams (2D)", 4), action='updateStatusbar')
-                dataOut = self.get2DdataFromDictionary(dictionary=document.IMS2D,
-                                                       dataType='plot',
-                                                       compact=True)
-                self.view.panelPlots.on_plot_2D_data(data=dataOut)
-
-            # Restore ion list
-            if (any([document.gotExtractedIons, document.got2DprocessIons,
-                     document.gotCombinedExtractedIonsRT, document.gotCombinedExtractedIons])
-                    and document.dataType != 'Type: Interactive'):
-                tempList = self.view.panelMultipleIons.peaklist
-                if len(document.IMS2DCombIons) > 0:
-                    dataset = document.IMS2DCombIons
-                elif len(document.IMS2DCombIons) == 0:
-                    dataset = document.IMS2Dions
-                elif len(document.IMS2Dions) == 0:
-                    dataset = {}
-                if len(dataset) > 0:
-                    for i, key in enumerate(dataset):
-                        out = re.split('-| |,|', key)
-                        charge = dataset[key].get('charge', "")
-                        label = dataset[key].get('label', "")
-                        alpha = dataset[key].get('alpha', 0.5)
-                        mask = dataset[key].get('mask', 0.25)
-                        cmap = dataset[key].get('cmap', self.config.currentCmap)
-                        color = dataset[key].get('color', randomColorGenerator())
-                        if isinstance(color, wx.Colour):
-                            color = convertRGB255to1(color)
-                        elif np.sum(color) > 4:
-                            color = convertRGB255to1(color)
-                        xylimits = dataset[key].get('xylimits', "")
-                        if xylimits is not None:
-                            xylimits = xylimits[2]
-
-                        method = dataset[key].get('parameters', None)
-                        if method is not None:
-                            method = method.get('method', "")
-                        elif method is None and document.dataType == 'Type: MANUAL':
-                            method = 'Manual'
-                        else:
-                            method = ""
-
-                        tempList.Append([out[0], out[1], charge, str(xylimits),
-                                         color, cmap, str(alpha), str(mask),
-                                         str(label), method, document.title])
-                        color = convertRGB1to255(color)
-                        list_count = tempList.GetItemCount() - 1
-                        tempList.SetItemBackgroundColour(list_count, color)
-                        tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
-
-                    # Update aui manager
-                    self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
-                self.view.panelMultipleIons.onRemoveDuplicates(evt=None, limitCols=False)
-
-            # Restore file list
-            # if self.config.ciuMode == 'MANUAL':
-            if document.dataType == 'Type: MANUAL':
-                tempList = self.view.panelMML.peaklist
-                count = tempList.GetItemCount() + len(document.multipleMassSpectrum)
-                colors = self.view.panelPlots.onChangePalette(None, n_colors=count + 1, return_colors=True)
-                for i, key in enumerate(document.multipleMassSpectrum):
-                    energy = document.multipleMassSpectrum[key]['trap']
-                    if 'color' in document.multipleMassSpectrum[key]:
-                        color = document.multipleMassSpectrum[key]['color']
-                    else:
-                        try:
-                            color = colors[count + 1]
-                        except:
-                            color = randomColorGenerator()
-                        document.multipleMassSpectrum[key]['color'] = color
-
-                    if 'label' in document.multipleMassSpectrum[key]:
-                        label = document.multipleMassSpectrum[key]['label']
-                    else:
-                        label = os.path.splitext(key)[0]
-                        document.multipleMassSpectrum[key]['label'] = label
-
-                    tempList.Append([key, energy, document.title, label])
-                    color = convertRGB1to255(color)
-                    list_count = tempList.GetItemCount() - 1
-                    tempList.SetItemBackgroundColour(list_count, color)
-                    tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
-
-                self.view.panelMML.onRemoveDuplicates(evt=None, limitCols=False)
-                # Update aui manager
-                self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
-
-            # Restore calibration list
-            if document.dataType == 'Type: CALIBRANT':
-                tempList = self.view.panelCCS.topP.peaklist
-                if document.fileFormat == 'Format: MassLynx (.raw)':
-                    for key in document.calibration:
-                        tempList.Append([document.title,
-                                         str(document.calibration[key]['xrange'][0]),
-                                         str(document.calibration[key]['xrange'][1]),
-                                         document.calibration[key]['protein'],
-                                         str(document.calibration[key]['charge']),
-                                         str(document.calibration[key]['ccs']),
-                                         str(document.calibration[key]['tD']),
-                                         ])
-                elif document.fileFormat == 'Format: DataFrame':
-                    try:
-                        self.currentCalibrationParams = document.calibrationParameters
-                    except KeyError:
-                        pass
-                    for key in document.calibration:
-                        tempList.Append([document.title,
-                                         str(document.calibration[key]['xrange'][0]),
-                                         str(document.calibration[key]['xrange'][1]),
-                                         document.calibration[key]['protein'],
-                                         str(document.calibration[key]['charge']),
-                                         str(document.calibration[key]['ccs']),
-                                         str(document.calibration[key]['tD']),
-                                         ])
-                # Check for duplicates
-                self.view.panelCCS.topP.onRemoveDuplicates(evt=None)
-                # Update aui manager
-                self.view.onPaneOnOff(evt=ID_window_ccsList, check=True)
-
-            # Restore ion list
-            if document.dataType == 'Type: Multifield Linear DT':
-                # if self.config.ciuMode == 'LinearDT':
-                rtList = self.view.panelLinearDT.topP.peaklist  # List with MassLynx file information
-                mzList = self.view.panelLinearDT.bottomP.peaklist  # List with m/z information
-                for key in document.IMS1DdriftTimes:
-                    retTimes = document.IMS1DdriftTimes[key]['retTimes']
-                    driftVoltages = document.IMS1DdriftTimes[key]['driftVoltage']
-                    mzVals = document.IMS1DdriftTimes[key]['xylimits']
-                    mzStart = mzVals[0]
-                    mzEnd = mzVals[1]
-                    mzYmax = mzVals[2]
-                    charge = str2int(document.IMS1DdriftTimes[key]['charge'])
-                    for row in range(len(retTimes)):
-                        rtStart = str2int(retTimes[row][0])
-                        rtEnd = str2int(retTimes[row][1])
-                        rtDiff = str2int(rtEnd - rtStart)
-                        driftVoltage = driftVoltages[row]
-                        rtList.Append([str2int(rtStart),
-                                       str2int(rtEnd),
-                                       str2int(rtDiff),
-                                       str(driftVoltage),
-                                       document.title])
-                    self.view.panelLinearDT.topP.onRemoveDuplicates(evt=None)
-                    mzList.Append([str(mzStart),
-                                   str(mzEnd),
-                                   str(mzYmax),
-                                   str(charge),
-                                   document.title])
-                self.view.panelLinearDT.bottomP.onRemoveDuplicates(evt=None)
-
-                self.view.onPaneOnOff(evt=ID_window_multiFieldList, check=True)
-                self.view._mgr.Update()
-
-        # Update documents tree
-        self.view.panelDocuments.documents.add_document(docData=document, expandAll=False)
-        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        self.docs = self.documentsDict[self.currentDoc]
+#     def saveObjectData(self, objName, evt=None):
+#         # Get directory path
+#         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#         document = self.documentsDict[self.currentDoc]
+#         saveName = dlgAsk('Save data as...', defaultValue='')
+#         if saveName == '':
+#             self.view.SetStatusText('Please select a name first', 3)
+#             return
+#         # Prep classification filename
+#         saveFileName = document.path + '/' + saveName + '.pickle'
+#         # Save
+#         saveObject(filename=saveFileName, saveFile=objName)
+#
+#     def on_save_document(self, evt):
+#         """
+#         Save ORIGAMI document as pickled object
+#         """
+#         fileType = "ORIGAMI Document File|*.pickle"
+#
+#         # Save single document
+#         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#         if self.currentDoc == 'Current documents':
+#             return
+#         document = self.documentsDict[self.currentDoc]
+#
+#         dlg = wx.FileDialog(self.view, "Save document to file...", "", "", fileType,
+#                             wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+#         defaultFilename = document.title.split(".")
+#         dlg.SetFilename(defaultFilename[0])
+#
+#         if dlg.ShowModal() == wx.ID_OK:
+#             saveFileName = dlg.GetPath()
+#             # Save
+#             io_document.save_py_object(filename=saveFileName, saveFile=document)
+#             self.view.updateRecentFiles(path={'file_type': 'pickle',
+#                                               'file_path': saveFileName})
+#
+#         else:
+#             return
+#
+#     def on_save_all_documents(self, evt):
+#         """
+#         Save all ORIGAMI documents as pickled objects
+#         """
+#         fileType = "ORIGAMI Document File|*.pickle"
+#         for document in self.documentsDict:
+#             dlg = wx.FileDialog(self.view, "Save document to file...", "", "", fileType,
+#                                 wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+#             defaultFilename = self.documentsDict[document].title.split(".")
+#             print(("Saving {}".format(defaultFilename[0])))
+#             dlg.SetFilename(defaultFilename[0])
+#
+#             if dlg.ShowModal() == wx.ID_OK:
+#                 saveFileName = dlg.GetPath()
+#                 # Save
+#                 io_document.save_py_object(filename=saveFileName, saveFile=self.documentsDict[document])
+#                 self.view.updateRecentFiles(path={'file_type': 'pickle',
+#                                                   'file_path': saveFileName})
+#             else:
+#                 continue
+#
+#     def onOpenDocument(self, evt, file_path=None):
+#         """
+#         This function opens whole document to a pickled directory
+#         """
+#
+#         dlg = None
+#
+#         if file_path is None:
+#             wildcard = "ORIGAMI document (*.pickle, *.pkl)| *.pickle;*.pkl"
+#             dlg = wx.FileDialog(self.view, "Open Document File", wildcard=wildcard,
+#                                 style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR)
+#
+#         if hasattr(dlg, 'ShowModal'):
+#             if dlg.ShowModal() == wx.ID_OK:
+#                 pathlist = dlg.GetPaths()
+#                 filenames = dlg.GetFilenames()
+#                 for (file_path, file_name) in zip(pathlist, filenames):
+#                     tstart = time.clock()
+#                     document = openObject(filename=file_path)
+#                     if document is None:
+#                         self.onThreading(None, ("Could not load {}".format(file_path), 4), action='updateStatusbar')
+#                         continue
+#                     self.loadDocumentData(document=document)
+#                     tend = time.clock()
+#                     msg = "Opened {}. It took: {} seconds.".format(file_name, np.round(tend - tstart, 2))
+#                     self.onThreading(None, (msg, 4), action='updateStatusbar')
+#                     self.view.updateRecentFiles(path={'file_type': 'pickle',
+#                                                       'file_path': file_path})
+#             else:
+#                 return
+#         elif file_path is not None:
+#             try:
+#                 self.loadDocumentData(document=openObject(filename=file_path))
+#             except (ValueError, AttributeError, TypeError, IOError) as e:
+#                 dlgBox(exceptionTitle='Failed to load document on load.',
+#                        exceptionMsg=str(e),
+#                        type="Error")
+#                 return
+#
+#             self.view.updateRecentFiles(path={'file_type': 'pickle', 'file_path': file_path})
+#
+#         else:
+#             return
+#
+#     def loadDocumentData(self, document=None):
+#         """
+#         Function to iterate over the whole document to ensure complete loading of the data
+#         Once document is re-loaded, data and GUI are restored to appropriate format
+#         """
+#         if document is not None:
+#             idName = document.title
+#             self.documentsDict[idName] = document
+#
+#             if document.gotMS:
+#                 self.onThreading(None, ("Loaded mass spectra", 4), action='updateStatusbar')
+#                 msX = document.massSpectrum['xvals']
+#                 msY = document.massSpectrum['yvals']
+#                 color = document.lineColour
+#                 try:
+#                     xlimits = document.massSpectrum['xlimits']
+#                 except KeyError:
+#                     xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+#                 if document.dataType != 'Type: CALIBRANT':
+#                     name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
+#                     self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
+#                 else:
+#                     self.onPlotMSDTCalibration(msX=msX, msY=msY, color=color, xlimits=xlimits,
+#                                                plotType='MS')
+#             if document.got1DT:
+#                 self.onThreading(None, ("Loaded mobiligrams (1D)", 4), action='updateStatusbar')
+#                 dtX = document.DT['xvals']
+#                 dtY = document.DT['yvals']
+#                 xlabel = document.DT['xlabels']
+#                 color = document.lineColour
+#                 if document.dataType != 'Type: CALIBRANT':
+#                     self.view.panelPlots.on_plot_1D(dtX, dtY, xlabel)
+#                 else:
+#                     self.onPlotMSDTCalibration(dtX=dtX, dtY=dtY, color=color,
+#                                                xlabelDT=xlabel, plotType='1DT')
+#             if document.got1RT:
+#                 self.onThreading(None, ("Loaded chromatograms", 4), action='updateStatusbar')
+#                 rtX = document.RT['xvals']
+#                 rtY = document.RT['yvals']
+#                 xlabel = document.RT['xlabels']
+#                 color = document.lineColour
+#                 self.view.panelPlots.on_plot_RT(rtX, rtY, xlabel)
+#
+#             if document.got2DIMS:
+#                 self.onThreading(None, ("Loaded mobiligrams (2D)", 4), action='updateStatusbar')
+#                 dataOut = self.get2DdataFromDictionary(dictionary=document.IMS2D,
+#                                                        dataType='plot',
+#                                                        compact=True)
+#                 self.view.panelPlots.on_plot_2D_data(data=dataOut)
+#
+#             # Restore ion list
+#             if (any([document.gotExtractedIons, document.got2DprocessIons,
+#                      document.gotCombinedExtractedIonsRT, document.gotCombinedExtractedIons])
+#                     and document.dataType != 'Type: Interactive'):
+#                 tempList = self.view.panelMultipleIons.peaklist
+#                 if len(document.IMS2DCombIons) > 0:
+#                     dataset = document.IMS2DCombIons
+#                 elif len(document.IMS2DCombIons) == 0:
+#                     dataset = document.IMS2Dions
+#                 elif len(document.IMS2Dions) == 0:
+#                     dataset = {}
+#                 if len(dataset) > 0:
+#                     for i, key in enumerate(dataset):
+#                         out = re.split('-| |,|', key)
+#                         charge = dataset[key].get('charge', "")
+#                         label = dataset[key].get('label', "")
+#                         alpha = dataset[key].get('alpha', 0.5)
+#                         mask = dataset[key].get('mask', 0.25)
+#                         cmap = dataset[key].get('cmap', self.config.currentCmap)
+#                         color = dataset[key].get('color', randomColorGenerator())
+#                         if isinstance(color, wx.Colour):
+#                             color = convertRGB255to1(color)
+#                         elif np.sum(color) > 4:
+#                             color = convertRGB255to1(color)
+#                         xylimits = dataset[key].get('xylimits', "")
+#                         if xylimits is not None:
+#                             xylimits = xylimits[2]
+#
+#                         method = dataset[key].get('parameters', None)
+#                         if method is not None:
+#                             method = method.get('method', "")
+#                         elif method is None and document.dataType == 'Type: MANUAL':
+#                             method = 'Manual'
+#                         else:
+#                             method = ""
+#
+#                         tempList.Append([out[0], out[1], charge, str(xylimits),
+#                                          color, cmap, str(alpha), str(mask),
+#                                          str(label), method, document.title])
+#                         color = convertRGB1to255(color)
+#                         list_count = tempList.GetItemCount() - 1
+#                         tempList.SetItemBackgroundColour(list_count, color)
+#                         tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
+#
+#                     # Update aui manager
+#                     self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
+#                 self.view.panelMultipleIons.onRemoveDuplicates(evt=None, limitCols=False)
+#
+#             # Restore file list
+#             # if self.config.ciuMode == 'MANUAL':
+#             if document.dataType == 'Type: MANUAL':
+#                 tempList = self.view.panelMML.peaklist
+#                 count = tempList.GetItemCount() + len(document.multipleMassSpectrum)
+#                 colors = self.view.panelPlots.onChangePalette(None, n_colors=count + 1, return_colors=True)
+#                 for i, key in enumerate(document.multipleMassSpectrum):
+#                     energy = document.multipleMassSpectrum[key]['trap']
+#                     if 'color' in document.multipleMassSpectrum[key]:
+#                         color = document.multipleMassSpectrum[key]['color']
+#                     else:
+#                         try:
+#                             color = colors[count + 1]
+#                         except:
+#                             color = randomColorGenerator()
+#                         document.multipleMassSpectrum[key]['color'] = color
+#
+#                     if 'label' in document.multipleMassSpectrum[key]:
+#                         label = document.multipleMassSpectrum[key]['label']
+#                     else:
+#                         label = os.path.splitext(key)[0]
+#                         document.multipleMassSpectrum[key]['label'] = label
+#
+#                     tempList.Append([key, energy, document.title, label])
+#                     color = convertRGB1to255(color)
+#                     list_count = tempList.GetItemCount() - 1
+#                     tempList.SetItemBackgroundColour(list_count, color)
+#                     tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
+#
+#                 self.view.panelMML.onRemoveDuplicates(evt=None, limitCols=False)
+#                 # Update aui manager
+#                 self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
+#
+#             # Restore calibration list
+#             if document.dataType == 'Type: CALIBRANT':
+#                 tempList = self.view.panelCCS.topP.peaklist
+#                 if document.fileFormat == 'Format: MassLynx (.raw)':
+#                     for key in document.calibration:
+#                         tempList.Append([document.title,
+#                                          str(document.calibration[key]['xrange'][0]),
+#                                          str(document.calibration[key]['xrange'][1]),
+#                                          document.calibration[key]['protein'],
+#                                          str(document.calibration[key]['charge']),
+#                                          str(document.calibration[key]['ccs']),
+#                                          str(document.calibration[key]['tD']),
+#                                          ])
+#                 elif document.fileFormat == 'Format: DataFrame':
+#                     try:
+#                         self.currentCalibrationParams = document.calibrationParameters
+#                     except KeyError:
+#                         pass
+#                     for key in document.calibration:
+#                         tempList.Append([document.title,
+#                                          str(document.calibration[key]['xrange'][0]),
+#                                          str(document.calibration[key]['xrange'][1]),
+#                                          document.calibration[key]['protein'],
+#                                          str(document.calibration[key]['charge']),
+#                                          str(document.calibration[key]['ccs']),
+#                                          str(document.calibration[key]['tD']),
+#                                          ])
+#                 # Check for duplicates
+#                 self.view.panelCCS.topP.onRemoveDuplicates(evt=None)
+#                 # Update aui manager
+#                 self.view.onPaneOnOff(evt=ID_window_ccsList, check=True)
+#
+#             # Restore ion list
+#             if document.dataType == 'Type: Multifield Linear DT':
+#                 # if self.config.ciuMode == 'LinearDT':
+#                 rtList = self.view.panelLinearDT.topP.peaklist  # List with MassLynx file information
+#                 mzList = self.view.panelLinearDT.bottomP.peaklist  # List with m/z information
+#                 for key in document.IMS1DdriftTimes:
+#                     retTimes = document.IMS1DdriftTimes[key]['retTimes']
+#                     driftVoltages = document.IMS1DdriftTimes[key]['driftVoltage']
+#                     mzVals = document.IMS1DdriftTimes[key]['xylimits']
+#                     mzStart = mzVals[0]
+#                     mzEnd = mzVals[1]
+#                     mzYmax = mzVals[2]
+#                     charge = str2int(document.IMS1DdriftTimes[key]['charge'])
+#                     for row in range(len(retTimes)):
+#                         rtStart = str2int(retTimes[row][0])
+#                         rtEnd = str2int(retTimes[row][1])
+#                         rtDiff = str2int(rtEnd - rtStart)
+#                         driftVoltage = driftVoltages[row]
+#                         rtList.Append([str2int(rtStart),
+#                                        str2int(rtEnd),
+#                                        str2int(rtDiff),
+#                                        str(driftVoltage),
+#                                        document.title])
+#                     self.view.panelLinearDT.topP.onRemoveDuplicates(evt=None)
+#                     mzList.Append([str(mzStart),
+#                                    str(mzEnd),
+#                                    str(mzYmax),
+#                                    str(charge),
+#                                    document.title])
+#                 self.view.panelLinearDT.bottomP.onRemoveDuplicates(evt=None)
+#
+#                 self.view.onPaneOnOff(evt=ID_window_multiFieldList, check=True)
+#                 self.view._mgr.Update()
+#
+#         # Update documents tree
+#         self.view.panelDocuments.documents.add_document(docData=document, expandAll=False)
+#         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#         self.docs = self.documentsDict[self.currentDoc]
 
     def OnUpdateDocument(self, document, expand_item='document', expand_item_title=None):
 
