@@ -16,31 +16,31 @@ class dialogRenameItem(wx.Dialog):
         self.new_name = None
         self.kwargs = kwargs
         # make gui items
-        self.makeGUI()
+        self.make_gui()
 
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
         self.Centre()
         self.Layout()
 
     # ----
 
-    def OnKey(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_ESCAPE:  # key = esc
-            self.onClose(evt=None)
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(evt=None)
 
         if evt != None:
             evt.Skip()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.new_name = None
         self.Destroy()
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makeSelectionPanel()
@@ -52,7 +52,7 @@ class dialogRenameItem(wx.Dialog):
         # bind
         self.newName_value.Bind(wx.EVT_TEXT_ENTER, self.onFinishLabelChanging)
         self.okBtn.Bind(wx.EVT_BUTTON, self.onChangeLabel)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
         self.mainSizer.Fit(self)

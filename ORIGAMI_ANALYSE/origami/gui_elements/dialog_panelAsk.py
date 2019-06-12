@@ -34,22 +34,22 @@ class panelAsk(wx.Dialog):
             self.SetTitle("Assign label...")
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
 
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
-    def OnKey(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_ESCAPE:
-            self.onClose(None)
-        elif keyCode in [wx.WXK_RETURN, 370]:  # enter or enter on numpad
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:
+            self.on_close(None)
+        elif key_code in [wx.WXK_RETURN, 370]:  # enter or enter on numpad
             self.onOK(None)
 
         if evt != None:
             evt.Skip()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
 
         self.parent.ask_value = None
@@ -70,7 +70,7 @@ class panelAsk(wx.Dialog):
 
         self.EndModal(wx.OK)
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()
@@ -81,7 +81,7 @@ class panelAsk(wx.Dialog):
 
         # bind
         self.okBtn.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
         self.mainSizer.Fit(self)

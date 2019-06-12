@@ -24,17 +24,17 @@ class panelPeakWidthTool(wx.MiniFrame):
         self.kwargs = kwargs
         self.help = OrigamiHelp()
         # make gui items
-        self.makeGUI()
+        self.make_gui()
         self.on_plot_MS(kwargs['xvals'], kwargs['yvals'])
         self.SetFocus()
-        wx.EVT_CLOSE(self, self.onClose)
+        wx.EVT_CLOSE(self, self.on_close)
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
         # make panel
         panel = self.makeSelectionPanel()
 
@@ -43,7 +43,7 @@ class panelPeakWidthTool(wx.MiniFrame):
         self.mainSizer.Add(panel, 0, wx.EXPAND, 0)
 
         # bind events
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
         self.fitBtn.Bind(wx.EVT_BUTTON, self.on_fit_peak)
         self.okBtn.Bind(wx.EVT_BUTTON, self.on_OK)
 

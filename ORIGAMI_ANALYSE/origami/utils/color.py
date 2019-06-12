@@ -43,7 +43,7 @@ def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
                             int((np.float(rgbList[1]) * 255)),
                             int((np.float(rgbList[2]) * 255))])
         except ValueError:
-            rgbList = eval(rgbList)
+            rgbList = literal_eval(rgbList)
             rgbList = list([int((np.float(rgbList[0]) * 255)),
                             int((np.float(rgbList[1]) * 255)),
                             int((np.float(rgbList[2]) * 255))])
@@ -69,16 +69,16 @@ def convertRGB255toHEX(rgbList):
 
 
 def convertHEXtoRGB1(hex, decimals=3):
-    hex = hex.lstrip('#')
-    hlen = len(hex)
-    rgb = tuple(int(hex[i:i + int(hlen / 3)], 16) for i in range(0, int(hlen), int(hlen / 3)))
+    hex_color = hex.lstrip('#')
+    hlen = len(hex_color)
+    rgb = tuple(int(hex_color[i:i + int(hlen / 3)], 16) for i in range(0, int(hlen), int(hlen / 3)))
     return [np.round(rgb[0] / 255., decimals), np.round(rgb[1] / 255., decimals), np.round(rgb[2] / 255., decimals)]
 
 
 def convertHEXtoRGB255(hex, decimals=3):
-    hex = hex.lstrip('#')
+    hex_color = hex.lstrip('#')
     hlen = len(hex)
-    return tuple(int(hex[i:i + int(hlen / 3)], 16) for i in range(0, hlen, int(hlen / 3)))
+    return tuple(int(hex_color[i:i + int(hlen / 3)], 16) for i in range(0, hlen, int(hlen / 3)))
 
 
 def determineFontColor(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):

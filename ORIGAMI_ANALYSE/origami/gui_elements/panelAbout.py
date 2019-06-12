@@ -36,8 +36,8 @@ class panelAbout(wx.MiniFrame):
         self.config = config
         self.icons = icons
         # make gui items
-        sizer = self.makeGUI()
-        wx.EVT_CLOSE(self, self.onClose)
+        sizer = self.make_gui()
+        wx.EVT_CLOSE(self, self.on_close)
 
         # fit layout
         self.Layout()
@@ -46,7 +46,7 @@ class panelAbout(wx.MiniFrame):
         self.SetMinSize(self.GetSize())
         self.Centre()
 
-    def makeGUI(self):
+    def make_gui(self):
         """Make panel gui."""
         NORMAL_FONT = wx.Font(10, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         # make elements
@@ -125,7 +125,7 @@ class panelAbout(wx.MiniFrame):
         return sizer
     # ----
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
     # ----

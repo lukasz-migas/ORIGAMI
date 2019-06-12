@@ -49,7 +49,7 @@ class panelLog(wx.Panel):
         logSizer.Add(self.log, 1, wx.EXPAND)
         self.SetSizer(logSizer) 
         
-        wx.EVT_CLOSE(self, self.onClose)
+        wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClickMenu)
 
 #     def saveLogDataThreaded(self, evt):
@@ -102,7 +102,7 @@ class panelLog(wx.Panel):
             savefile.write(self.log.GetValue())
             savefile.close()
         
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.config._windowSettings['Log']['show'] = False
         self.parent._mgr.GetPane(self).Hide()

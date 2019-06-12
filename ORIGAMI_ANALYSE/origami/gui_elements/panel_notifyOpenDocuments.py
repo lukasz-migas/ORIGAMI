@@ -12,10 +12,10 @@ class panelNotifyOpenDocuments(wx.Dialog):
         self.presenter = presenter
         self.message = message
 
-        self.makeGUI()
+        self.make_gui()
         self.CentreOnParent()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.EndModal(wx.ID_NO)
     # ----
@@ -27,7 +27,7 @@ class panelNotifyOpenDocuments(wx.Dialog):
         self.presenter.on_save_all_documents(ID_saveAllDocuments)
         self.EndModal(wx.OK)
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()
@@ -39,7 +39,7 @@ class panelNotifyOpenDocuments(wx.Dialog):
         # bind
         self.saveAllBtn.Bind(wx.EVT_BUTTON, self.onSaveDocument, id=ID_saveAllDocuments)
         self.continueBtn.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose, id=wx.ID_CANCEL)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close, id=wx.ID_CANCEL)
 
         # fit layout
         self.mainSizer.Fit(self)

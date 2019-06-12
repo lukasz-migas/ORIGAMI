@@ -133,7 +133,7 @@ class topPanel(wx.Panel):
         self.reverse = False
         self.lastColumn = None
 
-        self.makeGUI()
+        self.make_gui()
 
     def makeListCtrl(self):
 
@@ -161,7 +161,7 @@ class topPanel(wx.Panel):
 
         evt.Skip()
 
-    def makeGUI(self):
+    def make_gui(self):
         """ Make panel GUI """
          # make toolbar
         toolbar = self.makeToolbar()

@@ -47,8 +47,8 @@ class panelModifyManualFiles(wx.MiniFrame):
         return title
 
     def on_keyboard_event(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_ESCAPE:
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:
             self.on_close(evt=None)
 
         evt.Skip()

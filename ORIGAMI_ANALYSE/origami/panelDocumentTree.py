@@ -29,8 +29,8 @@ from operator import itemgetter
 from copy import deepcopy
 from natsort import natsorted
 
-from panelAnnotatePeaks import panelAnnotatePeaks
-from panelCompareMS import panelCompareMS
+from panel_peak_annotation_editor import panel_peak_annotation_editor
+from panel_signal_comparison_viewer import panel_signal_comparison_viewer
 from panelInformation import panelDocumentInfo
 from panelTandemSpectra import panelTandemSpectra
 from ids import *
@@ -376,13 +376,13 @@ class documentsTree(wx.TreeCtrl):
                      document_title, save_as=False)
 #         self.data_handling.on_save_document_fcn(document_title, save_as=False)
 
-    def on_save_all_documents(self, evt):
-        """
-        Save all currently opened documents and save them to file.
-        """
-
-        for document_title in self.presenter.documentsDict:
-            self.data_handling.on_save_document_fcn(document_title)
+#     def on_save_all_documents(self, evt):
+#         """
+#         Save all currently opened documents and save them to file.
+#         """
+#
+#         for document_title in self.presenter.documentsDict:
+#             self.data_handling.on_save_document_fcn(document_title)
 
     def on_refresh_document(self, evt=None):
         document = self.presenter.documentsDict.get(self.title, None)
@@ -1422,7 +1422,7 @@ class documentsTree(wx.TreeCtrl):
                   "data":data, "plot":plot,
                   "annotations":annotations}
 
-        self.annotateDlg = panelAnnotatePeaks(self.parent, self, self.config,
+        self.annotateDlg = panel_peak_annotation_editor(self.parent, self, self.config,
                                               self.icons, **kwargs)
         self.annotateDlg.Show()
 
@@ -1707,7 +1707,8 @@ class documentsTree(wx.TreeCtrl):
         """ Create and show up popup menu"""
 
         # Make some bindings
-        self.Bind(wx.EVT_MENU, self.on_save_all_documents, id=ID_saveAllDocuments)
+#         self.Bind(wx.EVT_MENU, self.on_save_all_documents, id=ID_saveAllDocuments)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_save_all_documents_fcn, id=ID_saveAllDocuments)
         self.Bind(wx.EVT_MENU, self.onDeleteAllDocuments, id=ID_removeAllDocuments)
 
         # Get selected item
@@ -3167,7 +3168,7 @@ class documentsTree(wx.TreeCtrl):
                 if np.sum(color) > 4: color = convertRGB255to1(color)
                 minCE, maxCE = np.min(data[key]['xvals']), np.max(data[key]['xvals'])
                 document_label = "{}: {}".format(document_title, key)
-                textlist.Append([minCE, maxCE, data[key].get('charge', ""), color, data[key]['cmap'],
+                textlist.Append(["", minCE, maxCE, data[key].get('charge', ""), color, data[key]['cmap'],
                                  data[key]['alpha'], data[key]['mask'], label, data[key]['zvals'].shape,
                                  document_label])
             color = convertRGB1to255(color)
@@ -3258,7 +3259,7 @@ class documentsTree(wx.TreeCtrl):
                   'document_list':document_list,
                   'document_spectrum_list':document_spectrum_list}
 
-        self.compareMSDlg = panelCompareMS(self.parent,
+        self.compareMSDlg = panel_signal_comparison_viewer(self.parent,
                                            self.presenter,
                                            self.config,
                                            self.icons,
@@ -4121,7 +4122,8 @@ class documentsTree(wx.TreeCtrl):
                                                           set_page=True)
                 return
             elif evtID == ID_showPlotRTDocument:
-                self.presenter.view.panelPlots.on_plot_RT(data['xvals'], data['yvalsRT'],
+                self.presenter.view.panelPlots.on_plot_RT(data['xvals'][:-1],  # TEMPORARY FIX
+                                                          data['yvalsRT'],
                                                           data['xlabels'], set_page=True)
                 return
             elif evtID == ID_showPlotDocument_violin:

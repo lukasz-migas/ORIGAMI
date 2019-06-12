@@ -19,29 +19,29 @@ class panelSequenceAnalysis(wx.MiniFrame):
         self.help = OrigamiHelp()
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
 
         self.Centre()
         self.Layout()
         self.SetFocus()
 
         # bind
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
     # ----
 
-    def OnKey(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_ESCAPE:  # key = esc
-            self.onClose(evt=None)
-        elif keyCode == 83:  # key = s
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(evt=None)
+        elif key_code == 83:  # key = s
             self.onSelect(evt=None)
-        elif keyCode == 85:  # key = u
+        elif key_code == 85:  # key = u
             self.onPlot(evt=None)
 
         evt.Skip()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
 
         self.Destroy()
@@ -57,7 +57,7 @@ class panelSequenceAnalysis(wx.MiniFrame):
         """
         pass
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()
@@ -123,7 +123,7 @@ class panelSequenceAnalysis(wx.MiniFrame):
 
         self.calculateBtn.Bind(wx.EVT_BUTTON, self.onSelect)
         self.plotBtn.Bind(wx.EVT_BUTTON, self.onPlot)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(5, 5)
         y = 0

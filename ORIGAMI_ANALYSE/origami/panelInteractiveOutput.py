@@ -578,8 +578,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             except: print('Failed to execute the operation in threaded mode. Consider switching it off?')
 
     def on_keyboard_event(self, evt=None):
-        keyCode = evt.GetKeyCode()
-        if keyCode == 344:  # F5
+        key_code = evt.GetKeyCode()
+        if key_code == 344:  # F5
             self.on_update_list()
 
         if evt != None:
@@ -7160,8 +7160,8 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # Sort the list based on which page each item belongs to
         if self.config.interactive_sort_before_saving:
-            self.peaklist.on_sort(column=self.config.interactiveColNames['order'],
-                                sort_direction=False)
+            self.peaklist.on_sort(self.config.interactiveColNames['order'],
+                                  False)
 
         # check if user selected anything in the list
         if len(listOfPages) == 0:

@@ -205,8 +205,10 @@ class panelMultipleTextFiles (wx.Panel):
             size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         self.overlay_btn.SetToolTip(makeTooltip("Overlay selected ions..."))
 
-        self.combo = wx.ComboBox(self, ID_textSelectOverlayMethod,
-                                 size=(105, -1), choices=self.config.overlayChoices,
+        self.combo = wx.ComboBox(self,
+                                 ID_textSelectOverlayMethod,
+                                 size=(105, -1),
+                                 choices=self.config.overlayChoices,
                                  style=wx.CB_READONLY)
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
@@ -875,7 +877,7 @@ class panelMultipleTextFiles (wx.Panel):
         for row in range(rows):
             tempRow = []
             for col in range(columns):
-                item = self.peaklist.GetItem(itemId=row, col=col)
+                item = self.peaklist.GetItem(row, col=col)
                 tempRow.append(item.GetText())
             tempRow.append(self.peaklist.IsChecked(index=row))
             tempRow.append(self.peaklist.GetItemBackgroundColour(row))
@@ -884,7 +886,7 @@ class panelMultipleTextFiles (wx.Panel):
 
         # Remove duplicates
         tempData = removeListDuplicates(input=tempData,
-                                        columnsIn=['start', 'end', 'charge',
+                                        columnsIn=["check", 'start', 'end', 'charge',
                                                    'color', 'colormap', 'alpha', 'mask',
                                                    'label', 'shape', 'filename', 'check', 'rgb',
                                                    'font_color'],
@@ -1164,10 +1166,10 @@ class panelMultipleTextFiles (wx.Panel):
             row -= 1
 
     def on_overlay_mobiligram(self, evt):
-        self.presenter.on_overlay_1D(source="text", plot_type="mobiligram")
+        self.data_handling.on_overlay_1D(source="text", plot_type="mobiligram")
 
     def on_overlay_chromatogram(self, evt):
-        self.presenter.on_overlay_1D(source="text", plot_type="chromatogram")
+        self.data_handling.on_overlay_1D(source="text", plot_type="chromatogram")
 
     def on_overlay_heatmap(self, evt):
         self.presenter.on_overlay_2D(source="text")

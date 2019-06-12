@@ -30,19 +30,19 @@ class dialogAskOverride(wx.Dialog):
 
         self.parent = parent
         self.config = config
-        self.makeGUI()
+        self.make_gui()
         self.CentreOnParent()
 
         if msg is None:
             msg = "Item already exists in the document. What would you like to do?"
         self.msg.SetValue(msg)
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()

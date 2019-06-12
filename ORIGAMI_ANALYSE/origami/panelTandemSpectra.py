@@ -92,7 +92,7 @@ class panelTandemSpectra(wx.MiniFrame):
         self.butterfly_plot = False
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
         self.Centre()
         self.Show(True)
         self.SetFocus()
@@ -109,7 +109,7 @@ class panelTandemSpectra(wx.MiniFrame):
             self.on_populate_table()
 
         # bind events
-        wx.EVT_CLOSE(self, self.onClose)
+        wx.EVT_CLOSE(self, self.on_close)
 
     def onThreading(self, evt, args, action):
         if action == "annotate_fragments":
@@ -152,7 +152,7 @@ class panelTandemSpectra(wx.MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
 
@@ -310,7 +310,7 @@ class panelTandemSpectra(wx.MiniFrame):
     def _update_status_(self, msg, duration=5):
         self.presenter.onThreading(None, (msg, 4, duration), action='updateStatusbar')
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()
@@ -848,7 +848,7 @@ class panelTandemSpectra(wx.MiniFrame):
 
         statusbar = self.CreateStatusBar(1, wx.STB_SIZEGRIP, wx.ID_ANY)
         statusbar.SetStatusWidths([-1])
-        statusbar.SetFont(wx.Font(8, wx.DEFAULT, wx.NORMAL, wx.NORMAL))
+        statusbar.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
 
         return statusbar
 
@@ -874,8 +874,8 @@ class panelTandemSpectra(wx.MiniFrame):
         self.SetFocus()
 
     def on_select_fragments(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_UP or key_code == wx.WXK_DOWN:
             self.frag_currentItem = evt.m_itemIndex
         else:
             self.frag_currentItem = evt.m_itemIndex
@@ -884,9 +884,9 @@ class panelTandemSpectra(wx.MiniFrame):
             evt.Skip()
 
     def on_select_peaklist_all(self, evt):
-        keyCode = evt.GetKeyCode()
+        key_code = evt.GetKeyCode()
 
-        if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
+        if key_code == wx.WXK_UP or key_code == wx.WXK_DOWN:
             self.currentItem = evt.m_itemIndex
         else:
             self.currentItem = evt.m_itemIndex

@@ -91,6 +91,9 @@ class data_handling():
             th = threading.Thread(target=self.on_open_multiple_ML_files, args=args)
         elif action == "save.document":
             th = threading.Thread(target=self.on_save_document, args=args)
+        elif action == "save.all.document":
+            th = threading.Thread(target=self.on_save_all_documents, args=args)
+
         elif action == "load.document":
             th = threading.Thread(target=self.on_open_document, args=args)
 
@@ -113,6 +116,8 @@ class data_handling():
 
         if document_title is None or document_title == "Current documents":
             return None
+
+        print(self.presenter.documentsDict.keys())
 
         document_title = byte2str(document_title)
         document = self.presenter.documentsDict[document_title]
@@ -475,20 +480,20 @@ class data_handling():
             return
 
         # load heatmap information and split into individual components
-        array_2D, xAxisLabels, yAxisLabels = io_text.text_heatmap_open(path=filepath)
+        array_2D, xvals, yvals = io_text.text_heatmap_open(path=filepath)
         array_1D_mob = np.sum(array_2D, axis=1).T
         array_1D_RT = np.sum(array_2D, axis=0)
 
         # Try to extract labels from the text file
-        if isempty(xAxisLabels) or isempty(yAxisLabels):
-            xAxisLabels, yAxisLabels = "", ""
+        if isempty(xvals) or isempty(yvals):
+            xvals, yvals = "", ""
             xlabel_start, xlabel_end = "", ""
 
             msg = "Missing x/y-axis labels for {}!".format(filename) + \
                 " Consider adding x/y-axis to your file to obtain full functionality."
             dlgBox(exceptionTitle='Missing data', exceptionMsg=msg, type="Warning")
         else:
-            xlabel_start, xlabel_end = xAxisLabels[0], xAxisLabels[-1]
+            xlabel_start, xlabel_end = xvals[0], xvals[-1]
 
         add_dict = {
             'energy_start': xlabel_start,
@@ -516,9 +521,9 @@ class data_handling():
         self.on_update_document(document, 'document')
 
         data = {'zvals': array_2D,
-                'xvals': xAxisLabels,
+                'xvals': xvals,
                 'xlabels': 'Collision Voltage (V)',
-                'yvals': yAxisLabels,
+                'yvals': yvals,
                 'yvals1D': array_1D_mob,
                 'yvalsRT': array_1D_RT,
                 'ylabels': 'Drift time (bins)',
@@ -1365,7 +1370,7 @@ class data_handling():
         if not self.config.threading:
             self.on_open_multiple_ML_files(document, open_type, pathlist)
         else:
-            self.on_threading("load.multiple.raw.masslynx", (document, open_type, pathlist,))
+            self.on_threading(action="load.multiple.raw.masslynx", args=(document, open_type, pathlist,))
 
     def on_open_multiple_ML_files(self, document, open_type, pathlist=[]):
         # http://stackoverflow.com/questions/1252481/sort-dictionary-by-another-dictionary
@@ -1529,10 +1534,10 @@ class data_handling():
 #         self.on_update_document(document, 'document')
 #
 #     def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
-#         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#         if self.currentDoc == 'Current documents':
+#         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
+#         if document_title == 'Current documents':
 #             return
-#         self.docs = self.documentsDict[self.currentDoc]
+#         self.docs = self.documentsDict[document_title]
 #
 #         # convert from miliseconds to bins
 #         if units in ["Drift time (ms)", "Arrival time (ms)"]:
@@ -1744,17 +1749,17 @@ class data_handling():
 #                 if not tempList.IsChecked(index=row):
 #                     continue
 #
-#             self.currentDoc = tempList.GetItem(itemId=row,
+#             document_title = tempList.GetItem(itemId=row,
 #                                                col=self.config.peaklistColNames['filename']).GetText()
 #             # Check that data was extracted first
-#             if self.currentDoc == '':
+#             if document_title == '':
 #                 msg = "Please extract data first"
 #                 dlgBox(exceptionTitle='Extract data first',
 #                        exceptionMsg=msg,
 #                        type="Warning")
 #                 continue
 #             # Get document
-#             self.docs = self.documentsDict[self.currentDoc]
+#             self.docs = self.documentsDict[document_title]
 #
 #             # Check that this data was opened in ORIGAMI mode and has extracted data
 #             if self.docs.dataType == 'Type: ORIGAMI' and self.docs.gotExtractedIons:
@@ -1991,10 +1996,21 @@ class data_handling():
 #             # Update document
 #             self.on_update_document(self.docs, 'combined_ions')
 
+    def on_save_all_documents_fcn(self, evt):
+        if self.config.threading:
+            self.on_threading(action="save.all.document", args=())
+        else:
+            self.on_save_all_documents()
+
+    def on_save_all_documents(self):
+
+        for document_title in self.presenter.documentsDict:
+            self.on_save_document(document_title, False)
+
     def on_save_document_fcn(self, document_title, save_as=True):
 
         if self.config.threading:
-            self.on_threading((document_title, save_as,), action="save.document")
+            self.on_threading(action="save.document", args=(document_title, save_as,))
         else:
             self.on_save_document(document_title, save_as)
 
@@ -2021,6 +2037,7 @@ class data_handling():
         except Exception:
             full_path = None
             fname = byte2str(document.title.split("."))
+            is_path = False
 
         if is_path:
             document_path = full_path + "\\" + document_title
@@ -2040,6 +2057,8 @@ class data_handling():
                 if full_path is not None and is_path:
                     dlg.SetPath(full_path)
                 else:
+                    if isinstance(fname, list) and len(fname) == 1:
+                        fname = fname[0]
                     dlg.SetFilename(fname)
             except Exception as e:
                 logger.warning(e)
@@ -2078,7 +2097,7 @@ class data_handling():
                 file_path = dlg.GetPaths()
 
         if self.config.threading:
-            self.on_threading("load.document", (file_path,))
+            self.on_threading(action="load.document", args=(file_path,))
         else:
             self.on_open_document(file_path)
 
@@ -2341,4 +2360,207 @@ class data_handling():
         # Update documents tree
         self.documentTree.add_document(docData=document, expandAll=False)
         self.presenter.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+
+    def on_overlay_1D(self, source, plot_type):
+        """
+        This function enables overlaying of multiple ions together - 1D and RT
+        """
+        # Check what is the ID
+        if source == "ion":
+            tempList = self.ionList
+            add_data_to_document = self.view.panelMultipleIons.addToDocument
+            normalize_dataset = self.view.panelMultipleIons.normalize1D
+        elif source == "text":
+            tempList = self.textList
+            add_data_to_document = self.view.panelMultipleText.addToDocument
+            normalize_dataset = self.view.panelMultipleText.normalize1D
+
+        if add_data_to_document:
+            document = self._get_document_of_type('Type: Comparison')
+            document_title = document.title
+
+        # Empty lists
+        xlist, ylist, colorlist, legend = [], [], [], []
+        idName = ""
+        # Get data for the dataset
+        for row in range(tempList.GetItemCount()):
+            if tempList.IsChecked(index=row):
+                if source == "ion":
+                    # Get current document
+                    itemInfo = self.ionPanel.OnGetItemInformation(itemID=row)
+                    document_title = itemInfo['document']
+                    # Check that data was extracted first
+                    if document_title == '':
+#                         self.onThreading(None, ('Please extract data first', 3), action='updateStatusbar')
+                        continue
+                    document = self._on_get_document(document_title)
+                    dataType = document.dataType
+                    selectedItem = itemInfo['ionName']
+                    label = itemInfo['label']
+                    color = convertRGB255to1(itemInfo['color'])
+                    itemName = "ion={} ({})".format(selectedItem, document_title)
+
+                    # ORIGAMI dataset
+                    if dataType == 'Type: ORIGAMI' and document.gotCombinedExtractedIons:
+                        try:
+                            data = document.IMS2DCombIons[selectedItem]
+                        except KeyError:
+                            try:
+                                data = document.IMS2Dions[selectedItem]
+                            except KeyError:
+                                continue
+                    elif dataType == 'Type: ORIGAMI' and not document.gotCombinedExtractedIons:
+                        try:
+                            data = document.IMS2Dions[selectedItem]
+                        except KeyError:
+                            continue
+
+                    # MANUAL dataset
+                    if dataType == 'Type: MANUAL' and document.gotCombinedExtractedIons:
+                        try:
+                            data = document.IMS2DCombIons[selectedItem]
+                        except KeyError:
+                            try:
+                                data = document.IMS2Dions[selectedItem]
+                            except KeyError:
+                                continue
+
+                    # Add new label
+                    if idName == "":
+                        idName = itemName
+                    else:
+                        idName = "%s, %s" % (idName, itemName)
+
+                    # Add depending which event was triggered
+                    if plot_type == "mobiligram":
+                        xvals = data['yvals']  # normally this would be the y-axis
+                        yvals = data['yvals1D']
+                        if normalize_dataset:
+                            yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
+                            yvals = pr_spectra.normalize_1D(inputData=yvals)
+                        xlabels = data['ylabels']  # data was rotated so using ylabel for xlabel
+
+                    elif plot_type == "chromatogram":
+                        xvals = data['xvals']
+                        yvals = data['yvalsRT']
+                        if normalize_dataset:
+                            yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
+                            yvals = pr_spectra.normalize_1D(inputData=yvals)
+                        xlabels = data['xlabels']
+
+                    # Append data to list
+                    xlist.append(xvals)
+                    ylist.append(yvals)
+                    colorlist.append(color)
+                    if label == "":
+                        label = selectedItem
+                    legend.append(label)
+                elif source == "text":
+                    itemInfo = self.textPanel.OnGetItemInformation(itemID=row)
+                    document_title = itemInfo['document']
+                    label = itemInfo["label"]
+                    color = itemInfo["color"]
+                    color = convertRGB255to1(itemInfo["color"])
+                    # get document
+                    try:
+                        document = self._on_get_document(document_title)
+                        comparison_flag = False
+                        selectedItem = document_title
+                        itemName = "file={}".format(document_title)
+                    except Exception as e:
+                        comparison_flag = True
+                        document_title, ion_name = re.split(': ', document_title)
+                        document = self._on_get_document(document_title)
+                        selectedItem = ion_name
+                        itemName = "file={}".format(ion_name)
+
+                    # Text dataset
+                    if comparison_flag:
+                        try:
+                            data = document.IMS2DcompData[ion_name]
+                        except Exception:
+                            data = document.IMS2Dions[ion_name]
+                    else:
+                        try:
+                            data = document.IMS2D
+                        except Exception:
+                            self.onThreading(None, ('No data for selected file', 3), action='updateStatusbar')
+                            continue
+
+                    # Add new label
+                    if idName == "":
+                        idName = itemName
+                    else:
+                        idName = "%s, %s" % (idName, itemName)
+
+                    # Add depending which event was triggered
+                    if plot_type == "mobiligram":
+                        xvals = data['yvals']  # normally this would be the y-axis
+                        try:
+                            yvals = data['yvals1D']
+                        except KeyError:
+                            yvals = np.sum(data['zvals'], axis=1).T
+                        if normalize_dataset:
+                            yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
+                            yvals = pr_spectra.normalize_1D(inputData=yvals)
+                        xlabels = data['ylabels']  # data was rotated so using ylabel for xlabel
+
+                    elif plot_type == "chromatogram":
+                        xvals = data['xvals'][:-1]  # TEMPORARY FIX
+                        try:
+                            yvals = data['yvalsRT']
+                        except KeyError:
+                            yvals = np.sum(data['zvals'], axis=0)
+                        if normalize_dataset:
+                            yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
+                            yvals = pr_spectra.normalize_1D(inputData=yvals)
+                        xlabels = data['xlabels']
+
+                    # Append data to list
+                    xlist.append(xvals)
+                    ylist.append(yvals)
+                    colorlist.append(color)
+                    if label == "":
+                        label = selectedItem
+                    legend.append(label)
+
+        # Modify the name to include ion tags
+        if plot_type == "mobiligram":
+            idName = "1D: %s" % idName
+        elif plot_type == "chromatogram":
+            idName = "RT: %s" % idName
+
+        # remove unnecessary file extensions from filename
+        if len(idName) > 511:
+            self.onThreading(None, ("Filename is too long. Reducing...", 4), action='updateStatusbar')
+            idName = idName.replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "")
+            idName = idName[:500]
+
+        # Determine x-axis limits for the zoom function
+        try:
+            xlimits = [min(xvals), max(xvals)]
+        except UnboundLocalError:
+            self.onThreading(None, ("Please select at least one item in the table.", 4), action='updateStatusbar')
+            return
+        # Add data to dictionary
+        if add_data_to_document:
+            document = self._get_document_of_type('Type: Comparison')
+            document.gotOverlay = True
+            document.IMS2DoverlayData[idName] = {'xvals': xlist,
+                                                  'yvals': ylist,
+                                                  'xlabel': xlabels,
+                                                  'colors': colorlist,
+                                                  'xlimits': xlimits,
+                                                  'labels': legend
+                                                  }
+            document_title = document.title
+            self.on_update_document(document, 'comparison_data')
+
+        # Plot
+        if plot_type == "mobiligram":
+            self.plotsPanel.on_plot_overlay_DT(xvals=xlist, yvals=ylist, xlabel=xlabels, colors=colorlist,
+                                               xlimits=xlimits, labels=legend, set_page=True)
+        elif plot_type == "chromatogram":
+            self.plotsPanel.on_plot_overlay_RT(xvals=xlist, yvals=ylist, xlabel=xlabels, colors=colorlist,
+                                                    xlimits=xlimits, labels=legend, set_page=True)
 

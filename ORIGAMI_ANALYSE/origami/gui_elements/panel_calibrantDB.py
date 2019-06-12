@@ -27,10 +27,10 @@ class panelCalibrantDB(wx.MiniFrame):
         self.lastColumn = None
         self.dataOut = None
         # make gui items
-        self.makeGUI()
+        self.make_gui()
         # Populate the table
         self.onPopulateTable()
-        wx.EVT_CLOSE(self, self.onClose)
+        wx.EVT_CLOSE(self, self.on_close)
 
         self.Centre()
         self.Layout()
@@ -39,7 +39,7 @@ class panelCalibrantDB(wx.MiniFrame):
         self.peaklist.SetFocus()
         self.CentreOnParent()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
 
         if self.dataOut == None:
@@ -49,7 +49,7 @@ class panelCalibrantDB(wx.MiniFrame):
 
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makeDatabasePanel()
@@ -97,7 +97,7 @@ class panelCalibrantDB(wx.MiniFrame):
         self.cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
 
         self.selectBtn.Bind(wx.EVT_BUTTON, self.onSelect)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         GRIDBAG_VSPACE = 7
         GRIDBAG_HSPACE = 5

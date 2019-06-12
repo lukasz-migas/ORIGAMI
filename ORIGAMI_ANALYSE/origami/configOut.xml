@@ -11,16 +11,16 @@
   </presets>
 
   <recent>
-    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_832_5653_832_6017_idx_188420_188428_dt_85_100.pickle" format="pickle" />
-    <path value="D:\GitHub\bruker_imaging_file_reader" format="Text" />
-    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_762_5826_762_6175_idx_172740_172748_dt_87_102.pickle" format="pickle" />
-    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_762_5826_762_6175_idx_172740_172748_dt_106_122.pickle" format="pickle" />
-    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_xy_20000px.pickle" format="pickle" />
-    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_xy_10000px.pickle" format="pickle" />
-    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_xy_500px.pickle" format="pickle" />
-    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_xy_1000px.pickle" format="pickle" />
-    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_784_5605_784_6047_idx_177739_177749_dt_50_97.pickle" format="pickle" />
-    <path value="D:\GitHub\bruker_imaging_file_reader\brainUnwashed\pickles\mz_784_5605_784_6047_idx_177739_177749_dt_102_120.pickle" format="pickle" />
+    <path value="D:\surfdrive\ASMS\poster_data\asms_2019.pickle" format="pickle" />
+    <path value="F:\DATA\2019_05_21_MousePup_multivariate\to_compress" format="Text" />
+    <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_alignment" format="Text" />
+    <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_1000" format="Text" />
+    <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_250" format="Text" />
+    <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_2500\mz_832_5653_832_6017_idx_188420_188428_DT_profiles_aligned.pickle" format="pickle" />
+    <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_2500\mz_832_5653_832_6017_idx_188420_188428_DT_profiles.pickle" format="pickle" />
+    <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_2500\mz_815_6753_815_7204_idx_184698_184708_DT_profiles_aligned.pickle" format="pickle" />
+    <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_2500\mz_815_6753_815_7204_idx_184698_184708_DT_profiles.pickle" format="pickle" />
+    <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_2500\mz_784_5605_784_6047_idx_177739_177749_DT_profiles_aligned.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -33,7 +33,7 @@
     <param name="checkForDriftscopeAtStart" value="True" type="bool" />
     <param name="overrideCombine" value="True" type="bool" />
     <param name="useInternalParamsCombine" value="False" type="bool" />
-    <param name="overlay_usedProcessed" value="True" type="bool" />
+    <param name="overlay_usedProcessed" value="False" type="bool" />
     <param name="import_duplicate_action" value="merge" type="unicode" choices="['override', 'merge', 'duplicate']" />
     <param name="import_duplicate_ask" value="True" type="bool" />
   </presets_gui>
@@ -53,7 +53,7 @@
     <param name="Other (Barplot)" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="other_barplot" type="float" />
     <param name="Other (Grid-1D)" left_axes="0.15" bottom_axes="0.10" width_axes="0.75" height_axes="0.85" left_save="0.15" bottom_save="0.10" width_save="0.75" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="other_grid1D" type="float" />
     <param name="Other (Line)" left_axes="0.15" bottom_axes="0.45" width_axes="0.75" height_axes="0.50" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="4.00" width_gui="10.00" height_gui="6.00" default_name="other_line" type="float" />
-    <param name="Other (Multi-line)" left_axes="0.15" bottom_axes="0.20" width_axes="0.70" height_axes="0.70" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="6.00" width_gui="6.00" height_gui="3.00" default_name="other_multiline" type="float" />
+    <param name="Other (Multi-line)" left_axes="0.15" bottom_axes="0.20" width_axes="0.80" height_axes="0.50" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="6.00" width_gui="6.00" height_gui="3.00" default_name="other_multiline" type="float" />
     <param name="Other (Scatter)" left_axes="0.15" bottom_axes="0.15" width_axes="0.75" height_axes="0.80" left_save="0.15" bottom_save="0.15" width_save="0.75" height_save="0.80" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="other_scatter" type="float" />
     <param name="Other (Waterfall)" left_axes="0.10" bottom_axes="0.15" width_axes="0.80" height_axes="0.80" left_save="0.10" bottom_save="0.15" width_save="0.80" height_save="0.80" width_resize="10.00" height_resize="10.00" width_gui="6.00" height_gui="6.00" default_name="other_waterfall" type="float" />
     <param name="Overlay" left_axes="0.10" bottom_axes="0.10" width_axes="0.80" height_axes="0.85" left_save="0.10" bottom_save="0.10" width_save="0.80" height_save="0.85" width_resize="10.00" height_resize="10.00" width_gui="8.00" height_gui="8.00" default_name="overlay" type="float" />
@@ -78,9 +78,9 @@
     <param title="Import/Export parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
-    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
-    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
+    <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
+    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="True" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
@@ -302,9 +302,9 @@
   </plot_presets_rmsd>
 
   <plot_presets_waterfall>
-    <param name="waterfall" value="False" type="bool" />
-    <param name="waterfallOffset" value="0.00" type="float" />
-    <param name="waterfall_increment" value="0.53" type="float" />
+    <param name="waterfall" value="True" type="bool" />
+    <param name="waterfallOffset" value="0.05" type="float" />
+    <param name="waterfall_increment" value="0.30" type="float" />
     <param name="waterfall_reverse" value="False" type="bool" />
     <param name="waterfall_lineWidth" value="1.00" type="float" />
     <param name="waterfall_lineStyle" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
@@ -313,10 +313,10 @@
     <param name="waterfall_normalize" value="True" type="bool" />
     <param name="waterfall_label_format" value="String" type="unicode" choices="['String', 'Float', 'Integer']" />
     <param name="waterfall_color_value" value="Same color" type="unicode" choices="['Same color', 'Colormap', 'Color palette', 'Random']" />
-    <param name="waterfall_add_labels" value="True" type="bool" />
+    <param name="waterfall_add_labels" value="False" type="bool" />
     <param name="waterfall_shade_under" value="True" type="bool" />
     <param name="waterfall_shade_under_transparency" value="0.25" type="float" />
-    <param name="waterfall_shade_under_nlimit" value="50" type="int" />
+    <param name="waterfall_shade_under_nlimit" value="100" type="int" />
     <param name="waterfall_labels_frequency" value="1.00" type="float" />
     <param name="waterfall_labels_x_offset" value="0.01" type="float" />
     <param name="waterfall_labels_y_offset" value="0.05" type="float" />
@@ -348,10 +348,10 @@
   </plot_presets_bar>
 
   <plot_presets_legend>
-    <param name="legend" value="True" type="bool" />
-    <param name="legendFancyBox" value="True" type="bool" />
+    <param name="legend" value="False" type="bool" />
+    <param name="legendFancyBox" value="False" type="bool" />
     <param name="legendMarkerFirst" value="True" type="bool" />
-    <param name="legendFrame" value="True" type="bool" />
+    <param name="legendFrame" value="False" type="bool" />
     <param name="legendPosition" value="upper right" type="unicode" choices="['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center']" />
     <param name="legendFontSize" value="x-large" type="unicode" choices="['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large']" />
     <param name="legendColumns" value="1" type="int" />
@@ -362,7 +362,7 @@
   </plot_presets_legend>
 
   <plot_presets_colorbar>
-    <param name="colorbar" value="True" type="bool" />
+    <param name="colorbar" value="False" type="bool" />
     <param name="colorbarPosition" value="right" type="unicode" choices="['left', 'right', 'top', 'bottom']" />
     <param name="colorbarMinPoints" value="5" type="int" />
     <param name="colorbarWidth" value="3.00" type="float" />
@@ -372,7 +372,7 @@
 
   <plot_presets_plot_1D>
     <param name="lineColour_1D" value="[0.0, 0.0, 0.0]" type="color" />
-    <param name="lineWidth_1D" value="1.00" type="float" />
+    <param name="lineWidth_1D" value="2.50" type="float" />
     <param name="frameWidth_1D" value="2" type="float" />
     <param name="labelPad_1D" value="0" type="float" />
     <param name="lineStyle_1D" value="solid" type="unicode" choices="['solid', 'dashed', 'dashdot', 'dotted']" />
@@ -407,8 +407,8 @@
   <plot_presets_plot_2D>
     <param name="interpolation" value="None" type="unicode" choices="['None', 'nearest', 'bilinear', 'bicubic', 'spline16', 'spline36', 'hanning', 'hamming', 'hermite', 'kaiser', 'quadric', 'catrom', 'gaussian', 'bessel', 'mitchell', 'sinc', 'lanczos']" />
     <param name="plotType" value="Image" type="unicode" choices="['Image', 'Contour']" />
-    <param name="currentCmap" value="coolwarm" type="unicode" choices="['Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 'Pastel2_r', 'PiYG', 'PiYG_r', 'PuBu', 'PuBuGn', 'PuBuGn_r', 'PuBu_r', 'PuOr', 'PuOr_r', 'PuRd', 'PuRd_r', 'Purples', 'Purples_r', 'RdBu', 'RdBu_r', 'RdGy', 'RdGy_r', 'RdPu', 'RdPu_r', 'RdYlBu', 'RdYlBu_r', 'RdYlGn', 'RdYlGn_r', 'Reds', 'Reds_r', 'Set1', 'Set1_r', 'Set2', 'Set2_r', 'Set3', 'Set3_r', 'Spectral', 'Spectral_r', 'Wistia', 'Wistia_r', 'YlGn', 'YlGnBu', 'YlGnBu_r', 'YlGn_r', 'YlOrBr', 'YlOrBr_r', 'YlOrRd', 'YlOrRd_r', 'afmhot', 'afmhot_r', 'autumn', 'autumn_r', 'binary', 'binary_r', 'bone', 'bone_r', 'brg', 'brg_r', 'bwr', 'bwr_r', 'cividis', 'cividis_r', 'cool', 'cool_r', 'coolwarm', 'coolwarm_r', 'copper', 'copper_r', 'cubehelix', 'cubehelix_r', 'flag', 'flag_r', 'gist_earth', 'gist_earth_r', 'gist_gray', 'gist_gray_r', 'gist_heat', 'gist_heat_r', 'gist_ncar', 'gist_ncar_r', 'gist_rainbow', 'gist_rainbow_r', 'gist_stern', 'gist_stern_r', 'gist_yarg', 'gist_yarg_r', 'gnuplot', 'gnuplot2', 'gnuplot2_r', 'gnuplot_r', 'gray', 'gray_r', 'hot', 'hot_r', 'hsv', 'hsv_r', 'icefire', 'icefire_r', 'inferno', 'inferno_r', 'jet', 'jet_r', 'magma', 'magma_r', 'mako', 'mako_r', 'nipy_spectral', 'nipy_spectral_r', 'ocean', 'ocean_r', 'pink', 'pink_r', 'plasma', 'plasma_r', 'prism', 'prism_r', 'rainbow', 'rainbow_r', 'rocket', 'rocket_r', 'seismic', 'seismic_r', 'spring', 'spring_r', 'summer', 'summer_r', 'tab10', 'tab10_r', 'tab20', 'tab20_r', 'tab20b', 'tab20b_r', 'tab20c', 'tab20c_r', 'terrain', 'terrain_r', 'twilight', 'twilight_r', 'twilight_shifted', 'twilight_shifted_r', 'viridis', 'viridis_r', 'vlag', 'vlag_r', 'winter', 'winter_r']" />
-    <param name="useCurrentCmap" value="False" type="bool" />
+    <param name="currentCmap" value="viridis" type="unicode" choices="['Accent', 'Accent_r', 'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', 'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Greens', 'Greens_r', 'Greys', 'Greys_r', 'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', 'Pastel1_r', 'Pastel2', 'Pastel2_r', 'PiYG', 'PiYG_r', 'PuBu', 'PuBuGn', 'PuBuGn_r', 'PuBu_r', 'PuOr', 'PuOr_r', 'PuRd', 'PuRd_r', 'Purples', 'Purples_r', 'RdBu', 'RdBu_r', 'RdGy', 'RdGy_r', 'RdPu', 'RdPu_r', 'RdYlBu', 'RdYlBu_r', 'RdYlGn', 'RdYlGn_r', 'Reds', 'Reds_r', 'Set1', 'Set1_r', 'Set2', 'Set2_r', 'Set3', 'Set3_r', 'Spectral', 'Spectral_r', 'Wistia', 'Wistia_r', 'YlGn', 'YlGnBu', 'YlGnBu_r', 'YlGn_r', 'YlOrBr', 'YlOrBr_r', 'YlOrRd', 'YlOrRd_r', 'afmhot', 'afmhot_r', 'autumn', 'autumn_r', 'binary', 'binary_r', 'bone', 'bone_r', 'brg', 'brg_r', 'bwr', 'bwr_r', 'cividis', 'cividis_r', 'cool', 'cool_r', 'coolwarm', 'coolwarm_r', 'copper', 'copper_r', 'cubehelix', 'cubehelix_r', 'flag', 'flag_r', 'gist_earth', 'gist_earth_r', 'gist_gray', 'gist_gray_r', 'gist_heat', 'gist_heat_r', 'gist_ncar', 'gist_ncar_r', 'gist_rainbow', 'gist_rainbow_r', 'gist_stern', 'gist_stern_r', 'gist_yarg', 'gist_yarg_r', 'gnuplot', 'gnuplot2', 'gnuplot2_r', 'gnuplot_r', 'gray', 'gray_r', 'hot', 'hot_r', 'hsv', 'hsv_r', 'icefire', 'icefire_r', 'inferno', 'inferno_r', 'jet', 'jet_r', 'magma', 'magma_r', 'mako', 'mako_r', 'nipy_spectral', 'nipy_spectral_r', 'ocean', 'ocean_r', 'pink', 'pink_r', 'plasma', 'plasma_r', 'prism', 'prism_r', 'rainbow', 'rainbow_r', 'rocket', 'rocket_r', 'seismic', 'seismic_r', 'spring', 'spring_r', 'summer', 'summer_r', 'tab10', 'tab10_r', 'tab20', 'tab20_r', 'tab20b', 'tab20b_r', 'tab20c', 'tab20c_r', 'terrain', 'terrain_r', 'twilight', 'twilight_r', 'twilight_shifted', 'twilight_shifted_r', 'viridis', 'viridis_r', 'vlag', 'vlag_r', 'winter', 'winter_r']" />
+    <param name="useCurrentCmap" value="True" type="bool" />
     <param name="minCmap" value="0.00" type="float" />
     <param name="midCmap" value="50.00" type="float" />
     <param name="maxCmap" value="100.00" type="float" />
@@ -461,11 +461,11 @@
   </plot_presets_plot_3D>
 
   <exportParams>
-    <param name="dpi" value="100" type="int" />
+    <param name="dpi" value="200" type="int" />
     <param name="imageWidthInch" value="8" type="int" />
     <param name="imageHeightInch" value="8" type="int" />
     <param name="transparent" value="False" type="bool" />
-    <param name="colorbar" value="True" type="bool" />
+    <param name="colorbar" value="False" type="bool" />
     <param name="imageFormat" value="png" type="unicode" choices="['png', 'svg', 'svgz', 'ps', 'raw', 'eps', 'jpeg', 'tiff', 'pdf']" />
     <param name="saveDelimiterTXT" value="comma" type="unicode" choices="['comma', 'tab', 'space']" />
     <param name="normalizeMultipleMS" value="True" type="bool" />

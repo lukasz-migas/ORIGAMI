@@ -19,7 +19,7 @@ class panelSelectDocument(wx.Dialog):
         self.current_document = None
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
         self.CentreOnParent()
         self.SetFocus()
 
@@ -33,7 +33,7 @@ class panelSelectDocument(wx.Dialog):
 
         self.Destroy()
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.make_panel()

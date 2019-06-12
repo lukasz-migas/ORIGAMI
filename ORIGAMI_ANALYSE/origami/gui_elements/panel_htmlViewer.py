@@ -57,7 +57,7 @@ class panelHTMLViewer(wx.MiniFrame):
         self.Show(True)
         self.CentreOnParent()
         self.SetFocus()
-        wx.EVT_CLOSE(self, self.onClose)
+        wx.EVT_CLOSE(self, self.on_close)
 
         # reset working directory
         os.chdir(cwd)
@@ -67,7 +67,7 @@ class panelHTMLViewer(wx.MiniFrame):
         webbrowser.open(link.GetHref())
         return
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
 
         self.Destroy()

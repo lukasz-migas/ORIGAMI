@@ -44,8 +44,10 @@ def check_file_type(path=None, fileName=None):
     elif extension in ['.txt', '.tab']:
         ms = pd.read_csv(path, delim_whitespace=True, header=None)
 
-    if ms.shape[0] > 1000: return "MS"
-    else: return "2D"
+    if ms.shape[0] > 1000:
+        return "MS"
+    else:
+        return "2D"
 
 
 def text_infrared_open(path=None, normalize=None):  # textOpenIRData
@@ -72,7 +74,7 @@ def text_infrared_open(path=None, normalize=None):  # textOpenIRData
 # TODO: remove pandas dependency
 def text_heatmap_open(path=None, normalize=None):  # textOpen2DIMSdata
 
-#     outName = path.encode('ascii', 'replace')
+    #     outName = path.encode('ascii', 'replace')
     # Determine what file type it is
     fileNameExt = str.split(path, '.')
     fileNameExt = fileNameExt[-1]
@@ -81,7 +83,7 @@ def text_heatmap_open(path=None, normalize=None):  # textOpen2DIMSdata
     df = pd.read_csv(path, sep='\t|,| ', engine='python', index_col=False)
 
     # First value at 0,0 is equal to zero
-    df.rename(columns={'0.00':'', '0.00.1':'0.00'}, inplace=True)
+    df.rename(columns={'0.00': '', '0.00.1': '0.00'}, inplace=True)
 
     # Get xvalues
     xvals_list = df.columns.tolist()
@@ -98,7 +100,7 @@ def text_heatmap_open(path=None, normalize=None):  # textOpen2DIMSdata
     yvals = df_array[:, 0]
 
     if (len(xvals) == (zvals.shape[1] + 1) and
-        xvals[0] == 0):
+            xvals[0] == 0):
         xvals = xvals[1::]
 
     print(('Labels size: {} x {} Array size: {} x {}'.format(
@@ -143,12 +145,13 @@ def text_spectrum_open(path=None):  # textOpenMSData
     return xvals, yvals, dirname, extension  # , n_rows
 
 
-def text_ccsDatabase_open(filename=None):
+def text_ccs_database_open(filename):
     """ imports formated CCS database """
 
     try:
         df = pd.read_csv(filepath_or_buffer=filename, sep=',')
         df.fillna(0, inplace=True)
-    except IOError: return None
+    except IOError:
+        return None
 
     return df

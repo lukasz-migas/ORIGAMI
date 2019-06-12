@@ -54,15 +54,15 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self._checkInteractiveParameters()
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
         self.Layout()
         self.SetSize((521, 550))
         self.SetMinSize((521, 550))
         self.SetFocus()
 
         # bind
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
         self.onEnableDisable_widgets(None)
 
@@ -77,16 +77,16 @@ class panelCustomiseInteractive(wx.MiniFrame):
             self.document_title, self.item_type, self.item_title, ttime() - tstart)
         print(msg)
 
-    def OnKey(self, evt):
+    def on_key_event(self, evt):
         """Respond to key press"""
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_ESCAPE:  # key = esc
-            self.onClose(evt=None)
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(evt=None)
 
         if evt != None:
             evt.Skip()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
 
@@ -170,7 +170,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.parent.onUpdateItemParameters(
             self.document_title, self.item_type, self.item_title, self.kwargs)
 
-    def makeGUI(self):
+    def make_gui(self):
 
         allowed_windows = self._check_allowed_windows()
 

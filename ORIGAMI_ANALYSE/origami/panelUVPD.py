@@ -92,7 +92,7 @@ class panelUVPD(wx.MiniFrame):
         self.reverse_monitorlist = False
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
         self.Centre()
         self.Show(True)
         self.SetFocus()
@@ -104,7 +104,7 @@ class panelUVPD(wx.MiniFrame):
             pass
 
         # bind events
-        wx.EVT_CLOSE(self, self.onClose)
+        wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self.onKey, id=wx.ID_ANY)
 
         self.set_accelerators()
@@ -142,7 +142,7 @@ class panelUVPD(wx.MiniFrame):
 
 #         if key == 67: # chromatogram
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         # save data to the app dataset
         if self.document is not None:
@@ -324,7 +324,7 @@ class panelUVPD(wx.MiniFrame):
             self.extract_features.Enable()
             self.monitor_features.Enable()
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()
@@ -544,8 +544,8 @@ class panelUVPD(wx.MiniFrame):
         return panel
 
     def onSelectItem_peaklist(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_UP or key_code == wx.WXK_DOWN:
             self.currentItem = evt.m_itemIndex
         else:
             self.currentItem = evt.m_itemIndex

@@ -2934,7 +2934,7 @@ class panelPlot(wx.Panel):
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
-
+        print(colors)
         self.plotRT.clearPlot()
         self.plotRT.plot_1D_overlay(xvals=xvals, yvals=yvals,
                                     title="", xlabel=xlabel,

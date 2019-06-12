@@ -21,7 +21,8 @@ import bokeh.core
 import bokeh.events
 import bokeh.server
 import bokeh
-import scipy, scipy.stats
+import scipy
+import scipy.stats
 from shutil import copy
 import wx
 import time
@@ -45,6 +46,7 @@ origami_dir_name = "ORIGAMI_v{}".format(version)
 dist_dir = os.path.join(current_dir, "dist\\{}".format(origami_dir_name))
 print("Creating executable in {}".format(dist_dir))
 
+
 def collect_pkg_data(package, include_py_files=False, subdir=None):
     # Accept only strings as packages.
     if type(package) is not str:
@@ -66,6 +68,7 @@ def collect_pkg_data(package, include_py_files=False, subdir=None):
 
     return data_toc
 
+
 def dir_files(path, rel):
     ret = []
     for p, d, f in os.walk(path):
@@ -75,37 +78,38 @@ def dir_files(path, rel):
                         os.path.join(p, fname), 'DATA'))
     return ret
 
+
 pkg_data = collect_pkg_data('jinja2')
 
 a = Analysis(['ORIGAMI.py'],
              pathex=[os.getcwd()],
              binaries=[],
-             datas=[#(r'C:\\Program Files\\Anaconda\\Lib\\site-packages\\bokeh\\core\\_templates', '_templates'), 
-                    #(r'C:\\Program Files\\Anaconda\\site-packages\\bokeh\\server', 'server')],
-                    ],
-             hiddenimports=[
-                 "scipy.sparse.csgraph._validation", 
-                 "scipy.linalg.cython_blas", "scipy.linalg.*","scipy.integrate", 
-                 "scipy.special", "scipy", "scipy.special._ufuncs_cxx", 
-                 "scipy.special.*", "scipy.special._ufuncs", "scipy.stats", 
+             datas=[  # (r'C:\\Program Files\\Anaconda\\Lib\\site-packages\\bokeh\\core\\_templates', '_templates'),
+    # (r'C:\\Program Files\\Anaconda\\site-packages\\bokeh\\server', 'server')],
+],
+    hiddenimports=[
+                 "scipy.sparse.csgraph._validation",
+                 "scipy.linalg.cython_blas", "scipy.linalg.*", "scipy.integrate",
+                 "scipy.special", "scipy", "scipy.special._ufuncs_cxx",
+                 "scipy.special.*", "scipy.special._ufuncs", "scipy.stats",
                  'scipy._lib.messagestream',
-                 "pkg_resources", 'wx.lib.pubsub', 
+                 "pkg_resources", 'wx.lib.pubsub',
                  'wx.lib',
-                 'wx.lib.pubsub', 'wx.lib.pubsub.core.publisherbase', 
+                 'wx.lib.pubsub', 'wx.lib.pubsub.core.publisherbase',
                  'wx.lib.pubsub.core.kwargs', 'wx.lib.pubsub.core.kwargs.publisher',
                  'wx.lib.pubsub.core.kwargs.listenerimpl', 'wx.lib.pubsub.core.kwargs.publishermixin',
-                 'wx.lib.pubsub.core.listenerbase', 'wx.lib.pubsub.core', 
+                 'wx.lib.pubsub.core.listenerbase', 'wx.lib.pubsub.core',
                  'wx.lib.pubsub.core.kwargs.topicargspecimpl',
                  'wx.lib.pubsub.core.kwargs.topicmgrimpl',
                  'six', "bokeh", "nodejs", "adjustText", "cmocean", "multiplierz",
                  'pymzml.run', 'pymzml.obo'],
-             hookspath=[],
-             runtime_hooks=[],
-             excludes=['IPython', 'Cython', 'statsmodels', 'pyQT5',
-                       'GdkPixbuf', 'pyQT4', 'pygobject', 'pygtk', 'pyside'],
-             win_no_prefer_redirects=False,
-             win_private_assemblies=False,
-             cipher=block_cipher)
+    hookspath=[],
+    runtime_hooks=[],
+    excludes=['IPython', 'Cython', 'statsmodels', 'pyQT5',
+              'GdkPixbuf', 'pyQT4', 'pygobject', 'pygtk', 'pyside'],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher)
 a.datas.extend(dir_files(os.path.join(os.path.dirname(pymzml.__file__), 'obo'), 'obo'))
 # a.datas.extend(dir_files("multiplierz", 'multiplierz'))
 
@@ -118,7 +122,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=True, 
+          console=True,
           icon='icon.ico')
 coll = COLLECT(exe,
                a.binaries,
@@ -134,35 +138,37 @@ tend_build = time.clock()
 print("Build ORIGAMI in {} seconds\n".format(tend_build-tstart_build))
 
 # Copy additional files
-filelist = ['icon.ico', 'MassLynxRaw.dll', 'calibrantDB.csv',
-            'calibrantDB.xlsx', 'cacert.pem', 'node-v10.14.1-x64.msi']
+filelist = ['icon.ico',
+            'MassLynxRaw.dll',
+            'example_files\\calibrantDB.csv',
+            'example_files\\calibrantDB.xlsx',
+            'certificates\\cacert.pem',
+            'js_exe\\node-v10.14.1-x64.msi']
 
 tstart_copy = time.clock()
-savePath = path.path(''.join([dist_dir,'\\']))
+savePath = path.path(''.join([dist_dir, '\\']))
 for file in filelist:
-  try:
-      copy(file, savePath)
-      print("Copied file: {}".format(file))
-  except:
-    print("Skipped file: {}".format(file))
-  
+    try:
+        copy(file, savePath)
+        print("Copied file: {}".format(file))
+    except:
+        print("Skipped file: {}".format(file))
+
 # Copy additional folders
 dirlist = ['licences', 'unidec_bin', 'images', 'example_files', 'docs'
            # r'C:\\Program Files\\Anaconda\\Lib\\site-packages\\bokeh\\core\\_templates',
            # r'C:\\Program Files\\Anaconda\\Lib\\site-packages\\bokeh\\server'
            ]
-           
+
 for directory in dirlist:
-  try:
-    tstart_copying = time.clock()
-    saveDir = path.path(''.join([dist_dir,'\\', directory]))
-    copy_tree(directory, saveDir)
-    print("Copied directory: {}. It took {:.4f} seconds.".format(directory, time.clock()-tstart_copying))
-  except:
-    print('Skipped directory: {}'.format(directory))
-    pass
+    try:
+        tstart_copying = time.clock()
+        saveDir = path.path(''.join([dist_dir, '\\', directory]))
+        copy_tree(directory, saveDir)
+        print("Copied directory: {}. It took {:.4f} seconds.".format(directory, time.clock()-tstart_copying))
+    except:
+        print('Skipped directory: {}'.format(directory))
+        pass
 
 print("Copied files in {} seconds.\n".format(time.clock()-tstart_copy))
 print("ORIGAMI was compiled in {:.4f} seconds.\n".format(time.clock()-tstart_build))
-
-

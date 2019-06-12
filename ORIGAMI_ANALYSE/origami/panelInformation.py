@@ -49,9 +49,9 @@ class panelDocumentInfo(wx.MiniFrame):
         self.plot2Dtitle = "None"
 
         # make gui items
-        self.makeGUI()
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        self.make_gui()
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
        # select default tool
         self.onToolSelected(tool=self.currentTool, evt=None)
@@ -59,20 +59,20 @@ class panelDocumentInfo(wx.MiniFrame):
         self.CentreOnScreen()
         self.SetFocus()
 
-    def OnKey(self, evt):
-        keyCode = evt.GetKeyCode()
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
 
-        if keyCode == wx.WXK_ESCAPE:  # key = esc
-            self.onClose(evt=None)
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(evt=None)
 
         evt.Skip()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
         """Make panel gui."""
 
         # make toolbar
@@ -210,7 +210,7 @@ class panelDocumentInfo(wx.MiniFrame):
         # Bind
         applyBtn.Bind(wx.EVT_BUTTON, self.onApply)
         self.plotBtn.Bind(wx.EVT_BUTTON, self.onReplot)
-        cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         return panel
 

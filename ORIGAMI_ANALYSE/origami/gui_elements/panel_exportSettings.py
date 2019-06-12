@@ -21,13 +21,13 @@ class panelExportSettings(wx.MiniFrame):
                             'Files':(310, 140)}
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
         self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         self.mainBook.SetSelection(self.config.importExportParamsWindow[kwargs['window']])
 
         # bind
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
         self.mainSizer.Fit(self)
         self.Centre()
@@ -39,10 +39,10 @@ class panelExportSettings(wx.MiniFrame):
         self.onPageChanged(evt=None)
         self.enableDisableBoxes(evt=None)
 
-    def OnKey(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_ESCAPE:  # key = esc
-            self.onClose(evt=None)
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(evt=None)
 
         if evt != None:
             evt.Skip()
@@ -59,13 +59,13 @@ class panelExportSettings(wx.MiniFrame):
     def onSelect(self, evt):
         self.Destroy()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.config.importExportParamsWindow_on_off = False
         self.Destroy()
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         # Setup notebook

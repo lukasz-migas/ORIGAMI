@@ -12,7 +12,7 @@ class panelInformation(wx.MiniFrame):
         self.parent = parent
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
 
         self.Centre()
         self.SetSize((450, 140))
@@ -27,25 +27,25 @@ class panelInformation(wx.MiniFrame):
             self.information.Wrap(425)
 
         # bind
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
     # ----
 
-    def OnKey(self, evt):
-        keyCode = evt.GetKeyCode()
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
 
-        if keyCode == wx.WXK_ESCAPE:  # key = esc
-            self.onClose(evt=None)
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(evt=None)
 
         evt.Skip()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
 
         self.Destroy()
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()
@@ -68,7 +68,7 @@ class panelInformation(wx.MiniFrame):
 
         # make buttons
         self.okBtn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
-        self.okBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.okBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(5, 5)
         y = 0

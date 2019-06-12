@@ -57,7 +57,7 @@ class panelParametersEdit(wx.Panel):
                             'Violin':(540, 415), 'Extra':(540, 640)}
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
 #         self.makeStatusBar()
 
         self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
@@ -88,18 +88,18 @@ class panelParametersEdit(wx.Panel):
 #         self.updateStatusbar()
         print(("Startup took {:.3f} seconds".format(time.time() - tstart)))
 
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
-    def OnKey(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_ESCAPE:  # key = esc
-            self.onClose(evt=None)
-        elif keyCode == 49:
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(evt=None)
+        elif key_code == 49:
             self.onReplot1D(evt=None)
-        elif keyCode == 50:
+        elif key_code == 50:
             self.onReplot2D(evt=None)
-        elif keyCode == 51:
+        elif key_code == 51:
             self.onReplot3D(evt=None)
 
         if evt != None:
@@ -125,7 +125,7 @@ class panelParametersEdit(wx.Panel):
         self.mainBook.SetSelection(self.config.extraParamsWindow[kwargs['window']])
         self.onPageChanged(evt=None)
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.config._windowSettings['Plot parameters']['show'] = False
         self.config.extraParamsWindow_on_off = False
@@ -133,7 +133,7 @@ class panelParametersEdit(wx.Panel):
         self.parent._mgr.Update()
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         # Setup notebook
@@ -202,17 +202,6 @@ class panelParametersEdit(wx.Panel):
         # setup color
         self.mainBook.SetBackgroundColour((240, 240, 240))
 
-#     def makeStatusBar(self):
-#         self.mainStatusbar = self.CreateStatusBar(4, wx.ST_SIZEGRIP|wx.ST_ELLIPSIZE_MIDDLE, wx.ID_ANY)
-#         self.mainStatusbar.SetStatusWidths([-1, 90, 120, 60])
-#         self.mainStatusbar.SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.NORMAL))
-#
-#     def updateStatusbar(self):
-#         # update status bar
-#         self.SetStatusText('Updating plots:', 0)
-#         self.SetStatusText('Plot 1D: %s' % self.parent.panelPlots.window_plot1D, 1)
-#         self.SetStatusText('Plot 2D: %s' % self.parent.panelPlots.window_plot2D, 2)
-#         self.SetStatusText('Plot 3D: %s' % self.parent.panelPlots.window_plot3D, 3)
 
     def onUpdateValues(self):
         # general
@@ -564,7 +553,6 @@ class panelParametersEdit(wx.Panel):
         self.general_height_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightPlot_inch)
 
-########
         style_staticBox = makeStaticBox(panel, "Style parameters", size=(-1, -1), color=wx.BLACK)
         style_staticBox.SetSize((-1, -1))
         style_box_sizer = wx.StaticBoxSizer(style_staticBox, wx.HORIZONTAL)
@@ -691,8 +679,7 @@ class panelParametersEdit(wx.Panel):
                                                        size=(CTRL_SIZE, -1))
         self.zoom_sensitivity_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_zoom)
         _zoom_sensitivity_value = makeSuperTip(zoom_sensitivity_label, **self.help.general_zoom_crossover)
-
-########
+        
         gui_staticBox = makeStaticBox(panel, "Graphical User Interface parameters", size=(-1, -1), color=wx.BLACK)
         gui_staticBox.SetSize((-1, -1))
         gui_box_sizer = wx.StaticBoxSizer(gui_staticBox, wx.HORIZONTAL)
@@ -911,7 +898,6 @@ class panelParametersEdit(wx.Panel):
                                            wx.Size(26, 26), 0)
         self.rmsd_colorLineBtn.SetBackgroundColour(convertRGB1to255(self.config.rmsd_lineColour))
         self.rmsd_colorLineBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
-#         self.rmsd_colorLineBtn.Bind(wx.EVT_BUTTON, self.onUpdate2D)
 
         rmsd_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
         self.rmsd_lineStyle_value = wx.Choice(panel, -1,

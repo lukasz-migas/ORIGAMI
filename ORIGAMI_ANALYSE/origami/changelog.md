@@ -1,5 +1,27 @@
 # Changelog
 
+### v2.0.0
+![](img/changed.png) Migrated ORIGAMI from python 2 to python 3 as well as from wxPython 3 to wxPython 4
+- this won't affect you, but makes my life a little easier
+![](img/changed.png) I've modified the structure of ORIGAMI to improve the development environment
+* all processing functions have been moved away from ORIGAMI.py module into individual (appropriate)
+side modules.
+* clean-up a lot of code to make it easier to understand as some functions were too big and not easy
+to debug
+* all small modules that were previously added as small patches have been moved to individual modules,
+and act as widgets/plugins. This will make addition of future tools a lot easier as it will simply require
+an idea, a new panel/miniframe and a necessary code
+
+
+### v1.2.2.0
+
+#### DT/MS
+![](img/added.png) Added new data processing pipeline, where you can select m/z range and bin size for 
+the DT/MS datatype. To activate, you simply right-click on the DT/MS instance in the Document view
+and select "Open extraction panel..." which will open a new window. The previous method of extracting data
+via the Menu -> Process -> ... was removed as it was very confusing.
+
+
 ### v1.2.1 (n.a)
 #### Documentation:
 ![](img/added.png) Added online [documentation](https://lukasz-migas.github.io/ORIGAMI/)

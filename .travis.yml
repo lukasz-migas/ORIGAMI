@@ -1,0 +1,69 @@
+language: python
+
+cache:
+  pip: true
+  apt: true
+  
+python:
+  - "3.6"
+  
+addons:
+  apt:
+    packages:
+    # These are all for wxPython 4
+    - libwebkitgtk-3.0-dev
+    - libjpeg-dev
+    - libtiff-dev
+    - libgtk2.0-dev
+    - libsdl1.2-dev
+    - libgstreamer-plugins-base0.10-dev
+    - freeglut3
+    - freeglut3-dev
+    - libnotify-dev
+
+sudo: false
+
+matrix:
+  include:
+    - env: TEST=standard
+      os: linux
+    - env: TEST=flake
+      os: linux
+    # - evt: TEST=standard
+    #   os: osx
+  allow_failures:
+    - env: TEST=flake
+
+before_install:
+  - "pip install -U pip"
+  - "export PYTHONPATH=$PYTHONPATH:$(pwd)"
+  - SRC_DIR=$(pwd)
+  - echo $SRC_DIR
+  - ls
+
+install:
+  - pip install -U pip wheel
+  - pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython
+  - pip install -r specml_requirements.txt
+  # install test dependencies
+  - if [ "${TEST}" == "standard" ]; then
+    pip install codecov pytest pytest-cov pytest-sugar pytest-travis-fold;
+    fi;
+  - cd ${SRC_DIR}
+  - cd specML/
+  - # pip install -e .
+
+script:
+    - if [[ "${TEST}" == "standard" ]]; then
+          py.test --cov;
+      elif [[ "${TEST}" == "flake" ]]; then
+          flake8;
+      fi;
+
+notifications:
+  email: false
+
+after_success:
+    - if [ "${TEST}" == "standard" ]; then
+        codecov --token=ca29633c-c0bf-43dc-a681-06dca25cfac1;
+      fi

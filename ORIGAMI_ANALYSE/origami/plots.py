@@ -1229,7 +1229,7 @@ class plots(plottingWindow):
         extent = self.extents(xvals) + self.extents(yvals)
 
         self.cax.set_data(zvals)
-        self.cax.set_norm(kwargs['colormap_norm'])
+        self.cax.set_norm(kwargs.get('colormap_norm', None))
         self.cax.set_extent(extent)
         self.cax.set_cmap(kwargs['colormap'])
         self.cax.set_interpolation(kwargs['interpolation'])
@@ -3590,7 +3590,7 @@ class plots(plottingWindow):
         extent = self.extents(xvals) + self.extents(yvals)
 
         # Add imshow
-        self.cax = self.plotMS.imshow(zvals, extent=extent,
+        self.cax = self.plotMS.imshow(zvals.T, extent=extent,
                                       cmap=kwargs['colormap'],
                                       interpolation=kwargs['interpolation'],
                                       norm=kwargs['colormap_norm'],

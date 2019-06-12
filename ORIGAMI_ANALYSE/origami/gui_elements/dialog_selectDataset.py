@@ -16,7 +16,7 @@ class panelSelectDataset(wx.Dialog):
         self.datasetList = dataList
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
         if "set_document" in kwargs:
             self.documentList_choice.SetStringSelection(kwargs['set_document'])
         else:
@@ -26,9 +26,9 @@ class panelSelectDataset(wx.Dialog):
         self.CentreOnParent()
         self.SetFocus()
 
-        wx.EVT_CLOSE(self, self.onClose)
+        wx.EVT_CLOSE(self, self.on_close)
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
 
         # If pressed Close, return nothing of value
@@ -38,7 +38,7 @@ class panelSelectDataset(wx.Dialog):
         self.Destroy()
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makeSelectionPanel()
@@ -49,7 +49,7 @@ class panelSelectDataset(wx.Dialog):
 
         # bind
         self.okBtn.Bind(wx.EVT_BUTTON, self.onSelectDocument, id=wx.ID_OK)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
         self.mainSizer.Fit(self)

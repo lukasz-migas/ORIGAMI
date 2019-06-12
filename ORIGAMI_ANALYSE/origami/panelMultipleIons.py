@@ -103,7 +103,7 @@ class panelMultipleIons(wx.Panel):
             11: {"name":"file", "tag":"document", "type":"str"},
             }
 
-        self.makeGUI()
+        self.make_gui()
 
         if self.plotAutomatically:
             self.combo.Bind(wx.EVT_COMBOBOX, self.on_overlay_heatmap)
@@ -149,7 +149,7 @@ class panelMultipleIons(wx.Panel):
     def on_open_info_panel(self, evt):
         pass
 
-    def makeGUI(self):
+    def make_gui(self):
         """ Make panel GUI """
         toolbar = self.make_toolbar()
         self.make_listctrl()
@@ -1794,10 +1794,10 @@ class panelExportData(wx.MiniFrame):
         self.icons = icons
 
         # make gui items
-        self.makeGUI()
-        wx.EVT_CLOSE(self, self.onClose)
+        self.make_gui()
+        wx.EVT_CLOSE(self, self.on_close)
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         peaklist = self.makePeaklistPanel()
@@ -1811,7 +1811,7 @@ class panelExportData(wx.MiniFrame):
         self.SetSizer(self.mainSizer)
         self.Center()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
 
         self.Destroy()
@@ -1935,17 +1935,17 @@ class panelDuplicateIons(wx.MiniFrame):
         self.duplicateList = keyList
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
 
-        wx.EVT_CLOSE(self, self.onClose)
+        wx.EVT_CLOSE(self, self.on_close)
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
 
         self.Destroy()
     # ----
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makeDuplicatePanel()
@@ -1956,7 +1956,7 @@ class panelDuplicateIons(wx.MiniFrame):
 
         # bind
         self.okBtn.Bind(wx.EVT_BUTTON, self.onDuplicate)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
         self.mainSizer.Fit(self)

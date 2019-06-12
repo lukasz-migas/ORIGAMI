@@ -105,7 +105,7 @@ class panelProcessData(wx.MiniFrame):
             self.parameters = {}
 
         # make gui items
-        self.makeGUI()
+        self.make_gui()
         self.makeStatusBar()
         self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         self.mainBook.SetSelection(self.config.processParamsWindow[kwargs['window']])
@@ -117,8 +117,8 @@ class panelProcessData(wx.MiniFrame):
             self.SetTitle(kwargs['title'])
 
         # bind
-        wx.EVT_CLOSE(self, self.onClose)
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
         self.mainSizer.Fit(self)
         self.Centre()
@@ -169,14 +169,14 @@ class panelProcessData(wx.MiniFrame):
         except:
             pass
 
-    def OnKey(self, evt):
-        keyCode = evt.GetKeyCode()
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
 #         print(self.currentPage)
-        if keyCode == wx.WXK_ESCAPE:  # key = esc
-            self.onClose(evt=None)
-        elif keyCode == 65:  # key = a
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(evt=None)
+        elif key_code == 65:  # key = a
             self.onApply(evt=None)
-        elif keyCode == 70 and self.currentPage == "Peak fitting":  # key = a
+        elif key_code == 70 and self.currentPage == "Peak fitting":  # key = a
             self.onPickPeaksThreaded(evt=None)
 
         if evt != None:
@@ -212,7 +212,7 @@ class panelProcessData(wx.MiniFrame):
         self.onUpdateKwargs(data_type=kwargs['processKwargs'].get('update_mode', None),
                             **kwargs['processKwargs'])
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.config.processParamsWindow_on_off = False
         self.Destroy()
@@ -221,7 +221,7 @@ class panelProcessData(wx.MiniFrame):
     def onSelect(self, evt):
         self.Destroy()
 
-    def makeGUI(self):
+    def make_gui(self):
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         # Setup notebook
@@ -263,7 +263,7 @@ class panelProcessData(wx.MiniFrame):
     def makeStatusBar(self):
         self.mainStatusbar = self.CreateStatusBar(4, wx.STB_SIZEGRIP | wx.ST_ELLIPSIZE_MIDDLE, wx.ID_ANY)
         self.mainStatusbar.SetStatusWidths([-1, 90, 120, 60])
-        self.mainStatusbar.SetFont(wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.NORMAL))
+        self.mainStatusbar.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
 
     def updateStatusbar(self):
         # update status bar
@@ -663,7 +663,7 @@ class panelProcessData(wx.MiniFrame):
         self.unidec_runAll.Bind(wx.EVT_BUTTON, self.onRunUnidecThreaded)
         self.unidec_detectPeaks.Bind(wx.EVT_BUTTON, self.onRunUnidecThreaded)
         self.unidec_autorun.Bind(wx.EVT_BUTTON, self.onRunUnidecThreaded)
-        self.unidec_cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.unidec_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
         self.unidec_info.Bind(wx.EVT_BUTTON, self.openHTMLViewer)
         self.unidec_peakTool.Bind(wx.EVT_BUTTON, self.openWidthTool)
         self.unidec_customise_Btn.Bind(wx.EVT_BUTTON, self.onCustomiseUniDecParameters)
@@ -836,7 +836,7 @@ class panelProcessData(wx.MiniFrame):
         self.fit_findPeaksBtn.Bind(wx.EVT_BUTTON, self.onPickPeaksThreaded)
 
         self.fit_cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
-        self.fit_cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.fit_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -978,7 +978,7 @@ class panelProcessData(wx.MiniFrame):
 #         self.origami_applyBtn.Bind(wx.EVT_BUTTON, self.onProcessMS)
 #
 #         self.origami_cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
-#         self.origami_cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+#         self.origami_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
@@ -1160,7 +1160,7 @@ class panelProcessData(wx.MiniFrame):
 
         self.ms_applyBtn.Bind(wx.EVT_BUTTON, self.onProcessMS)
         self.ms_processBtn.Bind(wx.EVT_BUTTON, self.onProcessMS)
-        self.ms_cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.ms_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         steps_staticBox = makeStaticBox(panel, "Processing steps...", size=(-1, -1), color=wx.BLACK)
         steps_staticBox.SetSize((-1, -1))
@@ -1336,7 +1336,7 @@ class panelProcessData(wx.MiniFrame):
 
         self.plot2D_applyBtn.Bind(wx.EVT_BUTTON, self.onProcess2D)
         self.plot2D_processBtn.Bind(wx.EVT_BUTTON, self.onProcess2D)
-        self.plot2D_cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.plot2D_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
@@ -1375,7 +1375,7 @@ class panelProcessData(wx.MiniFrame):
         return panel
 
     def makePanel_ExtractData(self, panel):
-        BOLD_STYLE = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+        BOLD_STYLE = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         extractData_sep_label = wx.StaticText(panel, -1, "Extract data")
@@ -1537,7 +1537,7 @@ class panelProcessData(wx.MiniFrame):
         self.extract_cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
 
         self.extract_extractBtn.Bind(wx.EVT_BUTTON, self.onExtractData)
-        self.extract_cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.extract_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)

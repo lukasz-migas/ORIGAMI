@@ -14,13 +14,13 @@ class panelNotifyNewVersion(wx.Dialog):
         self.icons = presenter.icons
         self.message = message
 
-        self.makeGUI()
+        self.make_gui()
         self.CentreOnParent()
         self.Show(True)
         self.SetFocus()
         self.Raise()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
 
         self.Destroy()
@@ -31,7 +31,7 @@ class panelNotifyNewVersion(wx.Dialog):
         self.presenter.onLibraryLink(evt)
         self.EndModal(wx.OK)
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()
@@ -42,7 +42,7 @@ class panelNotifyNewVersion(wx.Dialog):
 
         # bind
         self.goToDownload.Bind(wx.EVT_BUTTON, self.onOK, id=ID_helpNewVersion)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
         self.mainSizer.Fit(self)

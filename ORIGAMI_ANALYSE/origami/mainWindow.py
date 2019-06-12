@@ -792,7 +792,7 @@ class MyFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_document_fcn, id=ID_openDocument)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_document, id=ID_saveDocument)
-        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_all_documents, id=ID_saveAllDocuments)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_save_all_documents_fcn, id=ID_saveAllDocuments)
         self.Bind(wx.EVT_MENU, self.presenter.onIRTextFile, id=ID_openIRTextile)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_MS_only_fcn,
                   id=ID_load_masslynx_raw_ms_only)

@@ -43,10 +43,7 @@ PANEL_SPACE_MAIN = 10
 LISTCTRL_STYLE_MULTI = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES | wx.SUNKEN_BORDER
 LISTCTRL_SORT = 1
 
-# SLIDER_STYLE = wx.SL_HORIZONTAL|wx.SL_AUTOTICKS|wx.SL_LABELS
 SLIDER_STYLE = wx.SL_HORIZONTAL | wx.SL_MIN_MAX_LABELS | wx.SL_VALUE_LABEL
-
-# font = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD)
 
 
 def makeMenuItem(parent, text, id=-1, bitmap=None, help_text=None,
@@ -64,7 +61,7 @@ def makeMenuItem(parent, text, id=-1, bitmap=None, help_text=None,
 
 def makeStaticBox(parent, title, size, color, id=-1):
     staticBox = wx.StaticBox(parent, id, title, size=size, style=wx.SB_FLAT)
-    font = wx.Font(9, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+    font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
     staticBox.SetForegroundColour(color)
     staticBox.SetFont(font)
 
@@ -77,7 +74,7 @@ def makeToggleBtn(parent, text, colorOff, name="other", size=(40, -1)):
                                 size,
                                 style=wx.ALIGN_CENTER_VERTICAL,
                                 name=name)
-    font = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.BOLD)
+    font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
     toggleBtn.SetFont(font)
     toggleBtn.SetForegroundColour(colorOff)
 
@@ -205,8 +202,8 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         self.item_id = evt.Index
 
     def on_key_select_item(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_UP or keyCode == wx.WXK_DOWN:
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_UP or key_code == wx.WXK_DOWN:
             self.item_id = evt.GetIndex()
 
         if evt != None:

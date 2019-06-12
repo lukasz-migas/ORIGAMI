@@ -38,10 +38,10 @@ class panelCustomiseParameters(wx.Dialog):
         self.config = config
         self.icons = icons
 
-        self.makeGUI()
+        self.make_gui()
         self.CentreOnParent()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
     # ----
@@ -49,7 +49,7 @@ class panelCustomiseParameters(wx.Dialog):
     def onOK(self, evt):
         self.EndModal(wx.OK)
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()

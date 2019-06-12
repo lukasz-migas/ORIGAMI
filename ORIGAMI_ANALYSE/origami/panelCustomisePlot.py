@@ -19,6 +19,7 @@
 
 import wx, os
 import matplotlib.ticker as ticker
+import numpy as np
 
 from styles import makeCheckbox, validator
 from toolbox import MidpointNormalize, _replace_labels
@@ -43,7 +44,7 @@ class panelCustomisePlot(wx.Dialog):
         self.kwargs = kwargs
         self.loading = True
 
-        self.makeGUI()
+        self.make_gui()
         self.CentreOnParent()
         self.onPopulatePanel()
         self.onCheckTools()
@@ -52,17 +53,17 @@ class panelCustomisePlot(wx.Dialog):
         if "window_title" in kwargs:
             self.SetTitle("Customising - {}".format(kwargs.pop("window_title")))
 
-        self.Bind(wx.EVT_CHAR_HOOK, self.OnKey)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
-    def OnKey(self, evt):
-        keyCode = evt.GetKeyCode()
-        if keyCode == wx.WXK_ESCAPE:  # key = esc
-            self.onClose(evt=None)
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(evt=None)
 
         if evt != None:
             evt.Skip()
 
-    def onClose(self, evt):
+    def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
     # ----
@@ -70,7 +71,7 @@ class panelCustomisePlot(wx.Dialog):
     def onOK(self, evt):
         self.EndModal(wx.OK)
 
-    def makeGUI(self):
+    def make_gui(self):
 
         # make panel
         panel = self.makePanel()
@@ -83,7 +84,7 @@ class panelCustomisePlot(wx.Dialog):
         self.resetBtn.Bind(wx.EVT_BUTTON, self.onReset)
 
         self.saveImageBtn.Bind(wx.EVT_BUTTON, self.saveImage)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.onClose)
+        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
         self.mainSizer.Fit(self)
@@ -594,7 +595,7 @@ class panelCustomisePlot(wx.Dialog):
         if hasattr(self.plot, "plot_data"):
             if 'zvals' in self.plot.plot_data:
                 # normalize
-                zvals_max = max(self.plot.plot_data['zvals'])
+                zvals_max = np.max(self.plot.plot_data['zvals'])
                 cmap_min = (zvals_max * cmap_min) / 100.
                 cmap_mid = (zvals_max * cmap_mid) / 100.
                 cmap_max = (zvals_max * cmap_max) / 100.
