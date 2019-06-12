@@ -4,6 +4,11 @@ from distutils.version import LooseVersion
 import re
 
 
+def is_prime(a):
+    """Check whether value is a prime number"""
+    return all(a % i for i in range(2, a))
+
+
 def check_axes_spacing(values):
     spacing = np.diff(values)
     if len(np.unique(spacing)) > 1:

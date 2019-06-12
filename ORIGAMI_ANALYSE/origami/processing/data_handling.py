@@ -19,10 +19,10 @@ from utils.converters import byte2str, str2num, str2int
 from utils.random import randomIntegerGenerator
 from utils.color import convertRGB255to1, convertRGB1to255, randomColorGenerator, determineFontColor
 from utils.ranges import get_min_max
-from processing.utils import get_maximum_value_in_range
+from processing.utils import get_maximum_value_in_range, find_nearest_value
 import processing.origami_ms as pr_origami
 from gui_elements.dialog_selectDocument import panelSelectDocument
-from processing.heatmap import interpolate_2D
+import processing.heatmap as pr_heatmap
 from gui_elements.dialog_messagePopup import dialogMsgPopup
 
 import logging
@@ -185,12 +185,19 @@ class data_handling():
             mz_nPoints=n_points,
             **kwargs)
 
+        # in cases when the bin size is very small, the number of points in the zvals might not match those in the xvals
+        # hence this should be resampled
+        if n_points != zvals_MSDT.shape[1]:
+            n_points = zvals_MSDT.shape[1]
+
         y_size, __ = zvals_MSDT.shape
-        # Get x/y axis
+        # calculate m/z values
         xvals_MSDT = np.linspace(
             mz_min - mz_binsize,
             mz_max + mz_binsize,
-            n_points, endpoint=True)
+            n_points,
+            endpoint=True)
+        # calculate DT bins
         yvals_MSDT = 1 + np.arange(y_size)
 
         return xvals_MSDT, yvals_MSDT, zvals_MSDT
@@ -410,7 +417,7 @@ class data_handling():
             self.__update_statusbar(msg, field=4)
             logger.warning(msg)
 
-            xvals, yvals, zvals = interpolate_2D(xvals, yvals, zvals)
+            xvals, yvals, zvals = pr_heatmap.interpolate_2D(xvals, yvals, zvals)
 
         # Combine 2D array into 1D
         rt_y = np.sum(zvals, axis=0)
@@ -2563,4 +2570,31 @@ class data_handling():
         elif plot_type == "chromatogram":
             self.plotsPanel.on_plot_overlay_RT(xvals=xlist, yvals=ylist, xlabel=xlabels, colors=colorlist,
                                                     xlimits=xlimits, labels=legend, set_page=True)
+
+    def on_update_DTMS_zoom(self, xmin, xmax, ymin, ymax):
+        xvals = self.config.replotData['DT/MS'].get("xvals", None)
+        yvals = self.config.replotData['DT/MS'].get("yvals", None)
+        zvals = self.config.replotData['DT/MS'].get("zvals", None)
+        xmin_idx, xmax_idx = find_nearest_value(xvals, xmin), find_nearest_value(xvals, xmax)
+        ymin_idx, ymax_idx = find_nearest_value(yvals, ymin), find_nearest_value(yvals, ymax)
+        zvals = zvals[ymin_idx:ymax_idx, xmin_idx:xmax_idx]
+        xvals = xvals[xmin_idx:xmax_idx]
+        yvals = yvals[ymin_idx:ymax_idx]
+        data, xvals = self.downsample_array(xvals, zvals)
+
+        self.view.panelPlots.on_plot_MSDT(data, xvals, yvals, 'm/z', 'Drift time (bins)',
+                                          override=False, update_extents=False)
+
+    def downsample_array(self, xvals, zvals):
+        """Downsample MS/DT array"""
+        __, x_dim = zvals.shape
+
+        division_factors, division_factor = pr_heatmap.calculate_division_factors(x_dim)
+        print(division_factors, division_factor)
+        if not division_factors:
+            data, mz_x = pr_heatmap.subsample_array(zvals, xvals, division_factor)
+        else:
+            data, mz_x = pr_heatmap.bin_sum_array(zvals, xvals, division_factor)
+
+        return data, mz_x
 

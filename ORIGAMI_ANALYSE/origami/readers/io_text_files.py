@@ -70,8 +70,9 @@ def text_infrared_open(path=None, normalize=None):  # textOpenIRData
 
     return zvals, xvals, yvals
 
-
 # TODO: remove pandas dependency
+
+
 def text_heatmap_open(path=None, normalize=None):  # textOpen2DIMSdata
 
     #     outName = path.encode('ascii', 'replace')

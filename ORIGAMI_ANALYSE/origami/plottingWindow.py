@@ -123,8 +123,10 @@ class plottingWindow(wx.Window):
         ZoomBox.update_y_extents(self.zoom, y_min, y_max)
 
     def _on_mark_annotation(self, state):
-        try: ZoomBox.update_mark_state(self.zoom, state)
-        except TypeError: pass
+        try:
+            ZoomBox.update_mark_state(self.zoom, state)
+        except TypeError:
+            pass
 
     def onRebootZoomKeys(self, evt):
         """

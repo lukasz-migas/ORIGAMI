@@ -21,6 +21,7 @@ import numpy as np
 from operator import itemgetter
 from itertools import groupby
 from scipy.signal import find_peaks
+from utils.check import check_value_order
 
 
 def detect_peaks_chromatogram(data, threshold, add_buffer=0):  # detectPeaksRT
@@ -136,12 +137,16 @@ def find_peak_maximum_1D(yvals, fail_value=1):
     return ymax
 
 
+def find_nearest_value(data, value):
+    return np.argmin(np.abs(data - value))
+
+
 def get_narrow_data_range(data, mzRange=None):  # getNarrow1Ddata
     """ Find and return a narrow data range """
-    start = np.argmin(np.abs(data[:, 0] - mzRange[0]))
-    end = np.argmin(np.abs(data[:, 0] - mzRange[1]))
+    start = find_nearest_value(data[:, 0], mzRange[0])  # np.argmin(np.abs(data[:, 0] - mzRange[0]))
+    end = find_nearest_value(data[:, 0], mzRange[1])  # np.argmin(np.abs(data[:, 0] - mzRange[1]))
 
-    if start > end: end, start = start, end
+    start, end = check_value_order(start, end)
 
     dataOut = data[start:end, :]
     return dataOut

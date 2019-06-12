@@ -242,7 +242,8 @@ class MyFrame(wx.Frame):
         pub.subscribe(self.motion_range, 'motion_range')
         pub.subscribe(self.on_distance, 'startX')
         pub.subscribe(self.presenter.OnChangedRMSF, 'changedZoom')
-        pub.subscribe(self.onMode, 'motion_mode')  # update statusbar
+        pub.subscribe(self.onMode, 'motion_mode')
+        pub.subscribe(self.data_handling.on_update_DTMS_zoom, 'change_zoom_dtms')
 
         # Load other parts
         self._mgr.Update()

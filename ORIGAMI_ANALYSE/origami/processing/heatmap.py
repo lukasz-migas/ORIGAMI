@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # -------------------------------------------------------------------------
 #    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
@@ -22,6 +21,7 @@ from scipy.signal import savgol_filter
 from scipy.ndimage import gaussian_filter
 from sklearn.preprocessing import normalize
 from gui_elements.misc_dialogs import dlgBox
+from utils.check import is_prime
 
 
 def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.0):  # threshold2D
@@ -161,3 +161,55 @@ def interpolate_2D(xvals, yvals, zvals, new_xvals=None, new_yvals=None):
     new_zvals = fcn(new_xvals, new_yvals)
 
     return new_xvals, yvals, new_zvals
+
+
+def calculate_division_factors(value, min_division=1, max_division=20, interpolation_default=5):
+    """Calculate division factor(s) for DT/MS dataset"""
+    division_factors = []
+    if is_prime(value):
+        print("The x-dimension is a prime number so I cannot bin it. Will downsample with `{}` instead.".format(
+            interpolation_default))
+        return [], interpolation_default
+    else:
+        for i in range(max_division, min_division, -1):
+            if value % i == 0:
+                division_factors.append(i)
+        if not division_factors:
+            print("Failed to find division factor in the range {}-{}. Will downsample with `{}` instead".format(
+                min_division, max_division, interpolation_default))
+            return [], interpolation_default
+        return division_factors, np.max(division_factors)
+
+
+def subsample_array(data, xvals, division_factor):
+    """Downsample array by sampling every n signals"""
+    return data[:, ::division_factor], xvals[::division_factor]
+
+
+def bin_sum_array(data, xvals, division_factor):
+    """Downsample array by binning and subsequently summing multiple signals"""
+    y_dim, x_dim = data.shape
+    new_shape = (y_dim, int(x_dim / division_factor), division_factor)
+    if np.prod(new_shape) != data.size:
+        raise ValueError(
+            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) + \
+            " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
+        )
+    return np.reshape(data, new_shape).sum(axis=2), bin_mean_1D_array(xvals, new_shape)
+
+
+def bin_mean_array(data, xvals, division_factor):
+    """Downsample array by binning and subsequently averaging multiple signals"""
+    y_dim, x_dim = data.shape
+    new_shape = (y_dim, int(x_dim / division_factor), division_factor)
+    if np.prod(new_shape) != data.size:
+        raise ValueError(
+            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) + \
+            " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
+        )
+    return np.reshape(data, new_shape).mean(axis=2), bin_mean_1D_array(xvals, new_shape)
+
+
+def bin_mean_1D_array(xvals, new_shape):
+    xvals = np.reshape(xvals, (1, new_shape[1], new_shape[2])).mean(axis=2)
+    return np.reshape(xvals, (new_shape[1],))

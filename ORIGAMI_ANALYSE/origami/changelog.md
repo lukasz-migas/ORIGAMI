@@ -1,5 +1,11 @@
 # Changelog
 
+## TODO
+### MS/DT
+
+* Add support for multi-zoom of MS/DT dataset. It should be low-res when zoomed out and higher resolution as we zoom in
+* Add better normalization formats = quantile, rms, 
+
 ### v2.0.0
 ![](img/changed.png) Migrated ORIGAMI from python 2 to python 3 as well as from wxPython 3 to wxPython 4
 - this won't affect you, but makes my life a little easier

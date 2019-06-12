@@ -1239,8 +1239,9 @@ class plots(plottingWindow):
         self.plotMS.set_ylim(ymin, ymax)  # -0.5)
 
         extent = [xmin, ymin, xmax, ymax]
-        self.update_extents(extent)
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+        if kwargs.get("update_extents", True):
+            self.update_extents(extent)
+            self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         self.plotMS.set_xlabel(xlabel, fontsize=kwargs['label_size'],
                                weight=kwargs['label_weight'])
@@ -1250,7 +1251,8 @@ class plots(plottingWindow):
         try:
             leg = self.plotMS.axes.get_legend()
             leg.remove()
-        except: pass
+        except:
+            pass
 
         # add data
         self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
@@ -1288,7 +1290,8 @@ class plots(plottingWindow):
 
                 # setup other parameters
                 self.cbar.tick_params(labelsize=kwargs['colorbar_label_size'])
-        except: pass
+        except:
+            pass
 
     def plot_1D(self, xvals=None, yvals=None, title="", xlabel="",
                 ylabel="", label="", xlimits=None, color="black",

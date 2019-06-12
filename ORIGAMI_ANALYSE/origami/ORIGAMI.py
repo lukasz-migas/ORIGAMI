@@ -29,12 +29,10 @@ import warnings
 import webbrowser
 from math import log, sqrt
 
-import matplotlib.cm as cm
 import matplotlib.colors as colors
 import numpy as np
 import pandas as pd
 import wx
-import wx.lib.agw.multidirdialog as MDD
 from numpy.ma import masked_array
 from scipy.stats import linregress
 
@@ -43,7 +41,6 @@ import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
 import processing.origami_ms as pr_origami
 import processing.spectra as pr_spectra
-import readers.io_document as io_document
 import readers.io_text_files as io_text
 import readers.io_waters_raw as io_waters
 import unidec as unidec
@@ -58,10 +55,13 @@ from help_documentation import OrigamiHelp
 from icons import IconContainer as icons
 from ids import *
 from toolbox import (MidpointNormalize, checkExtension, detectPeaks,
-                     find_nearest, openObject, removeDuplicates, saveObject)
+                     find_nearest,
+                     removeDuplicates, saveObject)
 from utils.check import checkVersion, compareVersions, isempty, isnumber
-from utils.color import (combine_rgb, convertRGB1to255, convertRGB255to1,
-                         determineFontColor, make_rgb, randomColorGenerator)
+from utils.color import (combine_rgb,
+                         convertRGB255to1,
+                         make_rgb,
+                         )
 from utils.converters import str2int, str2num
 from utils.logging import set_logger, set_logger_level
 from utils.random import randomIntegerGenerator
@@ -3312,7 +3312,6 @@ class ORIGAMI(object):
         # Append to list
         self.documentsDict[self.document.title] = self.document
 
-
     def onCmapNormalization(self, data, min=0, mid=50, max=100, cbarLimits=None):
         """
         This function alters the colormap intensities
@@ -4021,9 +4020,9 @@ class ORIGAMI(object):
                 print("You chose %s" % dlg.GetPath())
 
                 # Open database
-                self.config.ccsDB = io_text.text_ccsDatabase_open(dlg.GetPath())
+                self.config.ccsDB = io_text.text_ccs_database_open(dlg.GetPath())
         else:
-            self.config.ccsDB = io_text.text_ccsDatabase_open(
+            self.config.ccsDB = io_text.text_ccs_database_open(
                 filename=os.path.join(self.config.cwd, "example_files", "calibrantDB.csv"))
             print('Loaded CCS database')
 
@@ -5503,7 +5502,6 @@ class ORIGAMI(object):
             pass
         document = self.documentsDict[self.currentDoc]
         return document.path, document.title
-
 
     def OnUpdateDocument(self, document, expand_item='document', expand_item_title=None):
 

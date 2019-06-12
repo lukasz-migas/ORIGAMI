@@ -2734,10 +2734,11 @@ class panelPlot(wx.Panel):
 
     def on_plot_MSDT(self, zvals=None, xvals=None, yvals=None, xlabel=None, ylabel=None,
                      cmap=None, cmapNorm=None, plotType=None, override=True, replot=False,
-                     set_page=False):
+                     set_page=False, **kwargs):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['MZDT'])
+        if set_page:
+            self._set_page(self.config.panelNames['MZDT'])
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -2746,46 +2747,58 @@ class panelPlot(wx.Panel):
                 return
 
         # Check if cmap should be overwritten
-        if self.config.useCurrentCmap:
-            cmap = self.config.currentCmap
-        elif cmap == None:
+        if self.config.useCurrentCmap or cmap is None:
             cmap = self.config.currentCmap
 
         # Check that cmap modifier is included
         if cmapNorm == None:
             cmapNorm = self.presenter.onCmapNormalization(zvals,
-                                                min=self.config.minCmap,
-                                                mid=self.config.midCmap,
-                                                max=self.config.maxCmap,
-                                                )
+                                                          min=self.config.minCmap,
+                                                          mid=self.config.midCmap,
+                                                          max=self.config.maxCmap,
+                                                          )
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
         plt_kwargs['colormap'] = cmap
         plt_kwargs['colormap_norm'] = cmapNorm
+        plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
+
+        try:
+            self.plotMZDT.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals,
+                                              **plt_kwargs)
+            self.plotMZDT.repaint()
+            if override:
+                self.config.replotData['DT/MS'] = {'zvals': zvals, 'xvals': xvals,
+                                                   'yvals': yvals, 'xlabels': xlabel,
+                                                   'ylabels': ylabel, 'cmap': cmap,
+                                                   'cmapNorm': cmapNorm}
+            return
+        except:
+            pass
 
         # Plot 2D dataset
         self.plotMZDT.clearPlot()
         if self.config.plotType == 'Image':
             self.plotMZDT.plot_2D_surface(zvals, xvals, yvals, xlabel, ylabel,
-                                                          axesSize=self.config._plotSettings['DT/MS']['axes_size'],
-                                                          plotName='MSDT',
-                                                          **plt_kwargs)
+                                          axesSize=self.config._plotSettings['DT/MS']['axes_size'],
+                                          plotName='MSDT',
+                                          **plt_kwargs)
 
         elif self.config.plotType == 'Contour':
             self.plotMZDT.plot_2D_contour(zvals, xvals, yvals, xlabel, ylabel,
-                                                          axesSize=self.config._plotSettings['DT/MS']['axes_size'],
-                                                          plotName='MSDT',
-                                                          **plt_kwargs)
+                                          axesSize=self.config._plotSettings['DT/MS']['axes_size'],
+                                          plotName='MSDT',
+                                          **plt_kwargs)
 
         # Show the mass spectrum
         self.plotMZDT.repaint()
 
         if override:
-            self.config.replotData['DT/MS'] = {'zvals':zvals, 'xvals':xvals,
-                                              'yvals':yvals, 'xlabels':xlabel,
-                                              'ylabels':ylabel, 'cmap':cmap,
-                                              'cmapNorm':cmapNorm}
+            self.config.replotData['DT/MS'] = {'zvals': zvals, 'xvals': xvals,
+                                               'yvals': yvals, 'xlabels': xlabel,
+                                               'ylabels': ylabel, 'cmap': cmap,
+                                               'cmapNorm': cmapNorm}
         # update plot data
         self.presenter.view._onUpdatePlotData(plot_type='DT/MS')
 

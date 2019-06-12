@@ -4,8 +4,8 @@ import math
 
 from styles import validator
 
-import readers.io_waters_raw as io_waters
 from utils.converters import str2num
+import processing.heatmap as pr_heatmap
 
 import logging
 logger = logging.getLogger("origami")
@@ -41,6 +41,7 @@ class panel_extractDTMS(wx.MiniFrame):
 
         self.CentreOnScreen()
         self.Show(True)
+        self.SetFocus()
 
         # bind events
         wx.EVT_CLOSE(self, self.on_close)
@@ -294,7 +295,7 @@ class panel_extractDTMS(wx.MiniFrame):
         self.z_data = data
 
         # notify the user that update was made
-        self._update_msg_bar("Data was extracted!")
+        self._update_msg_bar("Data was extracted! It had dimensions {} x {}".format(dt_y.shape[0], mz_x.shape[0]))
 
     def on_add_to_document(self, evt):
         if not self.on_check_data():
@@ -335,3 +336,17 @@ class panel_extractDTMS(wx.MiniFrame):
                                      data_format=fmts, **kwargs)
 
         self._update_msg_bar("Data was saved to file!")
+
+    def downsample_array(self):
+        """Downsample MS/DT array"""
+        __, x_dim = self.z_data.shape
+
+        division_factors, division_factor = pr_heatmap.calculate_division_factors(x_dim)
+        if not division_factors:
+            data, mz_x = pr_heatmap.subsample_array(self.z_data, self.x_data, division_factor)
+        else:
+            data, mz_x = pr_heatmap.bin_sum_array(self.z_data, self.x_data, division_factor)
+            self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
+            data, mz_x = pr_heatmap.bin_mean_array(self.z_data, self.x_data, division_factor)
+            self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
+

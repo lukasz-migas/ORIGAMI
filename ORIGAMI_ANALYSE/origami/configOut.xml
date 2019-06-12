@@ -11,6 +11,7 @@
   </presets>
 
   <recent>
+    <path value="D:\Data\ORIGAMI\origami_ms\ORIGAMI_ConA_z20.raw" format="ORIGAMI" />
     <path value="D:\surfdrive\ASMS\poster_data\asms_2019.pickle" format="pickle" />
     <path value="F:\DATA\2019_05_21_MousePup_multivariate\to_compress" format="Text" />
     <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_alignment" format="Text" />
@@ -20,7 +21,6 @@
     <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_2500\mz_832_5653_832_6017_idx_188420_188428_DT_profiles.pickle" format="pickle" />
     <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_2500\mz_815_6753_815_7204_idx_184698_184708_DT_profiles_aligned.pickle" format="pickle" />
     <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_2500\mz_815_6753_815_7204_idx_184698_184708_DT_profiles.pickle" format="pickle" />
-    <path value="D:\Data\BRUKER\190417_RatBrain_unwashed\extracted_data\mobility_shift\every_2500\mz_784_5605_784_6047_idx_177739_177749_DT_profiles_aligned.pickle" format="pickle" />
   </recent>
 
   <presets_gui>
@@ -80,10 +80,10 @@
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="True" type="mixed" />
+    <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
-    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Text files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Toolbar" gripper="True" orientation="top" close_button="False" left_position="False" top_position="True" left_dockable="True" right_dockable="True" top_dockable="True" bottom_dockable="True" show="True" type="mixed" />
   </presets_gui_aui_settings>
 
@@ -303,7 +303,7 @@
 
   <plot_presets_waterfall>
     <param name="waterfall" value="True" type="bool" />
-    <param name="waterfallOffset" value="0.05" type="float" />
+    <param name="waterfallOffset" value="0.00" type="float" />
     <param name="waterfall_increment" value="0.30" type="float" />
     <param name="waterfall_reverse" value="False" type="bool" />
     <param name="waterfall_lineWidth" value="1.00" type="float" />
@@ -362,7 +362,7 @@
   </plot_presets_legend>
 
   <plot_presets_colorbar>
-    <param name="colorbar" value="False" type="bool" />
+    <param name="colorbar" value="True" type="bool" />
     <param name="colorbarPosition" value="right" type="unicode" choices="['left', 'right', 'top', 'bottom']" />
     <param name="colorbarMinPoints" value="5" type="int" />
     <param name="colorbarWidth" value="3.00" type="float" />
@@ -465,7 +465,7 @@
     <param name="imageWidthInch" value="8" type="int" />
     <param name="imageHeightInch" value="8" type="int" />
     <param name="transparent" value="False" type="bool" />
-    <param name="colorbar" value="False" type="bool" />
+    <param name="colorbar" value="True" type="bool" />
     <param name="imageFormat" value="png" type="unicode" choices="['png', 'svg', 'svgz', 'ps', 'raw', 'eps', 'jpeg', 'tiff', 'pdf']" />
     <param name="saveDelimiterTXT" value="comma" type="unicode" choices="['comma', 'tab', 'space']" />
     <param name="normalizeMultipleMS" value="True" type="bool" />

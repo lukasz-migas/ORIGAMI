@@ -2683,8 +2683,6 @@ class documentsTree(wx.TreeCtrl):
                                          bitmap=self.icons.iconsLib['heatmap_16']))
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_process2D,
                                          text='Process...\tP', bitmap=self.icons.iconsLib['process_2d_16']))
-#             menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_extractDTMS,
-#                                          text='Re-extract data', bitmap=None))
             menu.AppendSeparator()
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_open_extractDTMS,
                                          text='Open extraction panel...', bitmap=None))

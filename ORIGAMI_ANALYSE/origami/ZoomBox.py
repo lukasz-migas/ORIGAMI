@@ -860,6 +860,8 @@ class ZoomBox:
 
             if self.plotName == 'RMSF':
                 pub.sendMessage('changedZoom', xmin=xmin, xmax=xmax)
+            elif self.plotName == "MSDT":
+                pub.sendMessage('change_zoom_dtms', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
             self.canvas.draw()
             return
@@ -971,6 +973,8 @@ class ZoomBox:
 
         if self.plotName == 'RMSF':
             pub.sendMessage('changedZoom', xmin=xmin, xmax=xmax)
+        elif self.plotName == "MSDT":
+            pub.sendMessage('change_zoom_dtms', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
         self.canvas.draw()
 
