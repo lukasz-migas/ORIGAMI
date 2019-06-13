@@ -139,6 +139,7 @@ class documentsTree(wx.TreeCtrl):
         self.data_handling = self.view.data_handling
 
         self.plotsPanel = self.view.panelPlots
+        
 
         self.ionPanel = self.view.panelMultipleIons
         self.ionList = self.ionPanel.peaklist
@@ -408,7 +409,7 @@ class documentsTree(wx.TreeCtrl):
             return
 
         # clear all plots
-        self.presenter.view.panelPlots.on_clear_all_plots()
+        self.plotsPanel.on_clear_all_plots()
 
         if mass_spectrum:
             try:
@@ -417,7 +418,7 @@ class documentsTree(wx.TreeCtrl):
                 try: xlimits = document.massSpectrum['xlimits']
                 except KeyError: xlimits = [document.parameters['startMS'], document.parameters['endMS']]
                 name_kwargs = {"document":document.title, "dataset": "Mass Spectrum"}
-                self.presenter.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, set_page=False, **name_kwargs)
+                self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, set_page=False, **name_kwargs)
             except: pass
 
         if chromatogram:
@@ -425,7 +426,7 @@ class documentsTree(wx.TreeCtrl):
                 rtX = document.RT['xvals']
                 rtY = document.RT['yvals']
                 xlabel = document.RT['xlabels']
-                self.presenter.view.panelPlots.on_plot_RT(rtX, rtY, xlabel, set_page=False)
+                self.plotsPanel.on_plot_RT(rtX, rtY, xlabel, set_page=False)
             except: pass
 
         if mobiligram:
@@ -436,7 +437,7 @@ class documentsTree(wx.TreeCtrl):
                     try: dtY = document.DT['yvalsSum']
                     except KeyError: pass
                 xlabel = document.DT['xlabels']
-                self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, set_page=False)
+                self.plotsPanel.on_plot_1D(dtX, dtY, xlabel, set_page=False)
             except: pass
 
         if heatmap:
@@ -446,11 +447,11 @@ class documentsTree(wx.TreeCtrl):
                 yvals = document.IMS2D['yvals']
                 xlabel = document.IMS2D['xlabels']
                 ylabel = document.IMS2D['ylabels']
-                self.presenter.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=True)
+                self.plotsPanel.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=True)
             except: pass
 
         # go to page
-        self.presenter.view.panelPlots.mainBook.SetSelection(go_to_page)
+        self.plotsPanel.mainBook.SetSelection(go_to_page)
 
     def on_check_xlabels_RT(self):
 
@@ -928,7 +929,7 @@ class documentsTree(wx.TreeCtrl):
 
         # check if we need to add any metadata
         if len(colors) == 0 or len(colors) < len(yvals):
-            colors = self.presenter.view.panelPlots.onChangePalette(None,
+            colors = self.plotsPanel.onChangePalette(None,
                                                                     n_colors=len(yvals),
                                                                     return_colors=True)
 
@@ -1313,7 +1314,7 @@ class documentsTree(wx.TreeCtrl):
             self.presenter.onThreading(None, ('Cancelled operation', 4, 5)    , action='updateStatusbar')
             return
         else:
-            self.presenter.onClearAllPlots()
+            self.plotsPanel.on_clear_all_plots()
             doc_keys = list(self.presenter.documentsDict.keys())
             for document in doc_keys:
                 try:
@@ -1398,7 +1399,7 @@ class documentsTree(wx.TreeCtrl):
         # waterfall plot
         if ("Waterfall (Raw):" in self.extractData):
             data = None
-            plot = self.presenter.view.panelPlots.plotWaterfallIMS
+            plot = self.plotsPanel.plotWaterfallIMS
         # Annotated data
         elif ("Multi-line: " in self.extractData or "Multi-line: " in self.extractParent or
               "V-bar: " in self.extractData or "V-bar: " in self.extractParent or
@@ -1407,11 +1408,11 @@ class documentsTree(wx.TreeCtrl):
               "Waterfall: " in self.extractData or "Waterfall: " in self.extractParent or
               "Line: " in self.extractData or "Line: " in self.extractParent):
             data = None
-            plot = self.presenter.view.panelPlots.plotOther
+            plot = self.plotsPanel.plotOther
         # mass spectra
         else:
             data = np.transpose([data["xvals"], data["yvals"]])
-            plot = self.presenter.view.panelPlots.plot1
+            plot = self.plotsPanel.plot1
 
         _plot_types = {"multi-line":"Multi-line", "scatter":"Scatter",
                        "line":"Line", "waterfall":"Waterfall",
@@ -1626,7 +1627,7 @@ class documentsTree(wx.TreeCtrl):
             unused
         """
         document = self.presenter.documentsDict[self.itemData.title]
-        plot_obj = self.presenter.view.panelPlots.plot1
+        plot_obj = self.plotsPanel.plot1
         if self.itemType == "Mass Spectrum":
             annotations = document.massSpectrum['annotations']
         elif self.itemType == "Mass Spectrum (processed)":
@@ -1638,12 +1639,12 @@ class documentsTree(wx.TreeCtrl):
                "V-bar: " in self.extractParent or "H-bar: " in self.extractParent or
                "Scatter: " in self.extractParent or "Line: " in self.extractParent)):
             annotations = document.other_data[self.extractParent]['annotations']
-            plot_obj = self.presenter.view.panelPlots.plotOther
+            plot_obj = self.plotsPanel.plotOther
 
         plot_obj.plot_remove_text_and_lines()
         _ymax = []
 
-        label_kwargs = self.presenter.view.panelPlots._buildPlotParameters(plotType="label")
+        label_kwargs = self.plotsPanel._buildPlotParameters(plotType="label")
         for key in annotations:
             annotation = annotations[key]
             intensity = str2num(annotation['intensity'])
@@ -1911,7 +1912,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotRTDocument)
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotMSDocument)
         self.Bind(wx.EVT_MENU, self.onProcess, id=ID_process2DDocument)
-        self.Bind(wx.EVT_MENU, self.presenter.onDocumentColour, id=ID_getNewColour)
+        # self.Bind(wx.EVT_MENU, self.presenter.onDocumentColour, id=ID_getNewColour)
         self.Bind(wx.EVT_MENU, self.presenter.onChangeChargeState, id=ID_assignChargeState)
         self.Bind(wx.EVT_MENU, self.onGoToDirectory, id=ID_goToDirectory)
         self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveDataCSVDocument)
@@ -1920,8 +1921,8 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveAsDataCSVDocument1D)
         self.Bind(wx.EVT_MENU, self.onRenameItem, id=ID_renameItem)
         self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_duplicateItem)
-        self.Bind(wx.EVT_MENU, self.presenter.saveCCScalibrationToPickle, id=ID_saveDataCCSCalibrantDocument)
-        self.Bind(wx.EVT_MENU, self.onAddToCCSTable, id=ID_add2CCStable2DDocument)
+        # self.Bind(wx.EVT_MENU, self.presenter.saveCCScalibrationToPickle, id=ID_saveDataCCSCalibrantDocument)
+        # self.Bind(wx.EVT_MENU, self.onAddToCCSTable, id=ID_add2CCStable2DDocument)
         self.Bind(wx.EVT_MENU, self.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.onShowSampleInfo, id=ID_showSampleInfo)
         self.Bind(wx.EVT_MENU, self.view.openSaveAsDlg, id=ID_saveAsInteractive)
@@ -2630,7 +2631,7 @@ class documentsTree(wx.TreeCtrl):
                                              bitmap=self.icons.iconsLib['clear_16']))
         elif itemType == 'Calibration Parameters':
             menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
-            menu.Append(ID_saveDataCCSCalibrantDocument, "Save CCS calibration to file")
+            # menu.Append(ID_saveDataCCSCalibrantDocument, "Save CCS calibration to file")
             menu.Append(ID_removeItemDocument, 'Delete item')
         elif (itemType == 'Calibration peaks' or
               itemType == 'Calibrants'):
@@ -3110,7 +3111,7 @@ class documentsTree(wx.TreeCtrl):
             data = self.itemData.multipleMassSpectrum
             document_title = self.itemData.title
             n_rows = len(data)
-            colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=n_rows, return_colors=True)
+            colors = self.plotsPanel.onChangePalette(None, n_colors=n_rows, return_colors=True)
             for i, key in enumerate(data):
                 count = filelist.GetItemCount()
                 label = data[key].get('label', os.path.splitext(key)[0])
@@ -3124,7 +3125,7 @@ class documentsTree(wx.TreeCtrl):
         elif evtID == ID_docTree_addOneToMMLTable:
             data = self.itemData.multipleMassSpectrum
             count = filelist.GetItemCount()
-            colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=count + 1, return_colors=True)
+            colors = self.plotsPanel.onChangePalette(None, n_colors=count + 1, return_colors=True)
             key = self.extractData
             document_title = self.itemData.title
             label = data.get('label', key)
@@ -3139,7 +3140,7 @@ class documentsTree(wx.TreeCtrl):
             data = self.itemData.IMS2DcompData
             document_title = self.itemData.title
             n_rows = len(data)
-            colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=n_rows, return_colors=True)
+            colors = self.plotsPanel.onChangePalette(None, n_colors=n_rows, return_colors=True)
             for i, key in enumerate(data):
                 count = textlist.GetItemCount()
                 label = data[key].get('label', os.path.splitext(key)[0])
@@ -3158,7 +3159,7 @@ class documentsTree(wx.TreeCtrl):
             data = self.itemData.IMS2Dions
             document_title = self.itemData.title
             n_rows = len(data)
-            colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=n_rows, return_colors=True)
+            colors = self.plotsPanel.onChangePalette(None, n_colors=n_rows, return_colors=True)
             for i, key in enumerate(data):
                 count = textlist.GetItemCount()
                 label = data[key].get('label', os.path.splitext(key)[0])
@@ -3212,7 +3213,7 @@ class documentsTree(wx.TreeCtrl):
             names.append(key)
 
         kwargs = {'show_y_labels':True, 'labels':names}
-        self.presenter.view.panelPlots.on_plot_waterfall(xvals_list, yvals_list, None, colors=[],
+        self.plotsPanel.on_plot_waterfall(xvals_list, yvals_list, None, colors=[],
                                                          xlabel="m/z", ylabel="", set_page=True,
                                                          **kwargs)
 
@@ -3320,11 +3321,11 @@ class documentsTree(wx.TreeCtrl):
                                                             'Drift time (2D, processed, EIC)',
                                                             'Input data', 'Statistical']):
             self.presenter.process2Ddata2()
-            self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+            self.plotsPanel.mainBook.SetSelection(self.config.panelNames['2D'])
 
         elif self.itemType == 'DT/MS':
             self.presenter.process2Ddata2(mode='MSDT')
-            self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
+            self.plotsPanel.mainBook.SetSelection(self.config.panelNames['MZDT'])
 
     def updateComparisonMS(self, evt):
         msg = "Comparing {} ({}) vs {} ({})".format(self.compareMSDlg.output["spectrum_1"][1],
@@ -3396,7 +3397,7 @@ class documentsTree(wx.TreeCtrl):
             if self.config.compare_massSpectrumParams['normalize']:
                 self.config.compare_massSpectrumParams['subtract'] = False
                 msY_1, msY_2 = subtract_1D(msY_1, msY_2)
-                self.presenter.view.panelPlots.plot_compare(msX=msX,
+                self.plotsPanel.plot_compare(msX=msX,
                                                             msY_1=msY_1,
                                                             msY_2=msY_2,
                                                             xlimits=None)
@@ -3406,7 +3407,7 @@ class documentsTree(wx.TreeCtrl):
                 self.presenter.plot_compareMS(msX=msX, msY=msY,
                                               msY_1=msY_1, msY_2=msY_2)
         else:
-            self.presenter.view.panelPlots.plot_compare(msX_1=msX_1,
+            self.plotsPanel.plot_compare(msX_1=msX_1,
                                                         msX_2=msX_2,
                                                         msY_1=msY_1,
                                                         msY_2=msY_2,
@@ -3578,7 +3579,7 @@ class documentsTree(wx.TreeCtrl):
         '''
         Go to selected directory
         '''
-        self.presenter.openDirectory()
+        self.presenter.on_open_directory()
 
     def onSaveUnidec(self, evt, data_type="all"):
         basename = os.path.splitext(self.itemData.title)[0]
@@ -3777,27 +3778,27 @@ class documentsTree(wx.TreeCtrl):
                   'set_page':change_page}
 
         # change page
-        self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['UniDec'])
+        self.plotsPanel.mainBook.SetSelection(self.config.panelNames['UniDec'])
 
         if plot_type == "all":
-            self.presenter.view.panelPlots.on_clear_unidec()
+            self.plotsPanel.on_clear_unidec()
 
         if plot_type in ["all", "Fitted", "Processed"]:
             try:
-                self.presenter.view.panelPlots.on_plot_unidec_MS_v_Fit(replot=unidec_engine_data['Fitted'],
+                self.plotsPanel.on_plot_unidec_MS_v_Fit(replot=unidec_engine_data['Fitted'],
                                                                        **kwargs)
             except:
                 print("Failed to plot MS vs Fit plot")
-                try: self.presenter.view.panelPlots.on_plot_unidec_MS(replot=unidec_engine_data['Processed'],
+                try: self.plotsPanel.on_plot_unidec_MS(replot=unidec_engine_data['Processed'],
                                                                       **kwargs)
                 except: print("Failed to plot MS plot")
 
         if plot_type in ["all", "MW distribution"]:
             try:
-                self.presenter.view.panelPlots.on_plot_unidec_mwDistribution(replot=unidec_engine_data['MW distribution'],
+                self.plotsPanel.on_plot_unidec_mwDistribution(replot=unidec_engine_data['MW distribution'],
                                                                              **kwargs)
                 try:
-                    self.presenter.view.panelPlots.on_plot_unidec_MW_add_markers(unidec_engine_data['m/z with isolated species'],
+                    self.plotsPanel.on_plot_unidec_MW_add_markers(unidec_engine_data['m/z with isolated species'],
                                                                                  unidec_engine_data['MW distribution'],
                                                                                  **kwargs)
                 except: pass
@@ -3805,29 +3806,29 @@ class documentsTree(wx.TreeCtrl):
 
         if plot_type in ["all", "m/z vs Charge"]:
             try:
-                self.presenter.view.panelPlots.on_plot_unidec_mzGrid(replot=unidec_engine_data['m/z vs Charge'],
+                self.plotsPanel.on_plot_unidec_mzGrid(replot=unidec_engine_data['m/z vs Charge'],
                                                                      **kwargs)
             except: print("Failed to plot m/z vs charge plot")
 
         if plot_type in ["all", "m/z with isolated species"]:
             try:
-                self.presenter.view.panelPlots.on_plot_unidec_individualPeaks(replot=unidec_engine_data['m/z with isolated species'],
+                self.plotsPanel.on_plot_unidec_individualPeaks(replot=unidec_engine_data['m/z with isolated species'],
                                                                               **kwargs)
             except: print("Failed to plot individual MS plot")
 
         if plot_type in ["all", "MW vs Charge"]:
-            try: self.presenter.view.panelPlots.on_plot_unidec_MW_v_Charge(replot=unidec_engine_data['MW vs Charge'],
+            try: self.plotsPanel.on_plot_unidec_MW_v_Charge(replot=unidec_engine_data['MW vs Charge'],
                                                                            **kwargs)
             except: print("Failed to plot MW vs charge plot")
 
         if plot_type in ["all", "Barchart"]:
-            try: self.presenter.view.panelPlots.on_plot_unidec_barChart(replot=unidec_engine_data['Barchart'],
+            try: self.plotsPanel.on_plot_unidec_barChart(replot=unidec_engine_data['Barchart'],
                                                                         **kwargs)
             except: print("Failed to plot barplot")
 
         if plot_type in ["all", "Charge information"]:
             try:
-                self.presenter.view.panelPlots.on_plot_unidec_ChargeDistribution(unidec_engine_data['Charge information'][:, 0],
+                self.plotsPanel.on_plot_unidec_ChargeDistribution(unidec_engine_data['Charge information'][:, 0],
                                                                                  unidec_engine_data['Charge information'][:, 1],
                                                                                   **kwargs)
             except: print("Failed to plot charge distribution")
@@ -3875,35 +3876,35 @@ class documentsTree(wx.TreeCtrl):
                           "xlabels":data['xlabels'], "ylabels":data["ylabels"]}
 
             if plot_type == "scatter":
-                self.presenter.view.panelPlots.on_plot_other_scatter(xvals, yvals, zvals, xlabel, ylabel, colors, labels,
+                self.plotsPanel.on_plot_other_scatter(xvals, yvals, zvals, xlabel, ylabel, colors, labels,
                                                                      set_page=True, **kwargs)
             elif plot_type == "waterfall":
                 kwargs = {"labels":labels}
-                self.presenter.view.panelPlots.on_plot_other_waterfall(xvals, yvals, None, xlabel, ylabel, colors=colors,
+                self.plotsPanel.on_plot_other_waterfall(xvals, yvals, None, xlabel, ylabel, colors=colors,
                                                                        set_page=True, **kwargs)
             elif plot_type == "multi-line":
-                self.presenter.view.panelPlots.on_plot_other_overlay(xvals, yvals, xlabel, ylabel, colors=colors,
+                self.plotsPanel.on_plot_other_overlay(xvals, yvals, xlabel, ylabel, colors=colors,
                                                                      set_page=True, labels=labels)
             elif plot_type == "line":
                 kwargs = {"line_color":colors[0], "shade_under_color":colors[0],
                           "plot_modifiers": data["plot_modifiers"]}
-                self.presenter.view.panelPlots.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
+                self.plotsPanel.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
             elif plot_type == "grid-line":
-                self.presenter.view.panelPlots.on_plot_other_grid_1D(xvals, yvals, xlabel, ylabel, colors=colors,
+                self.plotsPanel.on_plot_other_grid_1D(xvals, yvals, xlabel, ylabel, colors=colors,
                                                                      labels=labels, set_page=True, **kwargs)
             elif plot_type == "grid-scatter":
-                self.presenter.view.panelPlots.on_plot_other_grid_scatter(xvals, yvals, xlabel, ylabel, colors=colors,
+                self.plotsPanel.on_plot_other_grid_scatter(xvals, yvals, xlabel, ylabel, colors=colors,
                                                                           labels=labels, set_page=True, **kwargs)
 
             elif plot_type in ["vertical-bar", "horizontal-bar"]:
                 kwargs.update(orientation=plot_type)
-                self.presenter.view.panelPlots.on_plot_other_bars(xvals, data['yvals_min'], data['yvals_max'],
+                self.plotsPanel.on_plot_other_bars(xvals, data['yvals_min'], data['yvals_max'],
                                                                   xlabel, ylabel, colors, set_page=True, **kwargs)
             elif plot_type in ['matrix']:
                 zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                plotType='Matrix',
                                                                                compact=False)
-                self.presenter.view.panelPlots.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap,
+                self.plotsPanel.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap,
                                                               set_page=True)
             else:
                 msg = "Plot: {} is not supported yet. Please contact Lukasz Migas \n".format(plot_type) + \
@@ -3916,7 +3917,7 @@ class documentsTree(wx.TreeCtrl):
             if save_image:
                 defaultValue = "Custom_{}_{}".format(basename, os.path.splitext(self.extractData)[0]).replace(":", "").replace(" ", "")
                 save_kwargs = {'image_name':defaultValue}
-                self.presenter.view.panelPlots.save_images(evt=ID_saveOtherImageDoc, **save_kwargs)
+                self.plotsPanel.save_images(evt=ID_saveOtherImageDoc, **save_kwargs)
 
         elif self.itemType == "Tandem Mass Spectra":
             if self.extractData == "Tandem Mass Spectra":
@@ -3930,7 +3931,7 @@ class documentsTree(wx.TreeCtrl):
             title = "Precursor: {:.4f} [{}]".format(data['scan_info']['precursor_mz'],
                                                 data['scan_info']['precursor_charge'])
 
-            self.presenter.view.panelPlots.on_plot_centroid_MS(data['xvals'], data['yvals'], title=title)
+            self.plotsPanel.on_plot_centroid_MS(data['xvals'], data['yvals'], title=title)
         #=======================================================================
         #  MASS SPECTRUM
         #=======================================================================
@@ -3960,7 +3961,7 @@ class documentsTree(wx.TreeCtrl):
 
             # plot
             if self.itemData.dataType != 'Type: CALIBRANT':
-                self.presenter.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, set_page=True, **name_kwargs)
+                self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, set_page=True, **name_kwargs)
                 if save_image:
                     if self.itemType == 'Mass Spectrum':
                         defaultValue = "MS_{}".format(basename)
@@ -3969,9 +3970,9 @@ class documentsTree(wx.TreeCtrl):
                     elif self.itemType == 'Mass Spectra' and self.extractData != self.itemType:
                         defaultValue = "MS_{}_{}".format(basename, os.path.splitext(self.extractData)[0]).replace(":", "")
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_saveMSImage, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_saveMSImage, **save_kwargs)
             else:
-                self.presenter.view.panelPlots.on_plot_MS_DT_calibration(msX=msX, msY=msY, xlimits=xlimits,
+                self.plotsPanel.on_plot_MS_DT_calibration(msX=msX, msY=msY, xlimits=xlimits,
                                                                          plotType='MS', set_page=True)
         #=======================================================================
         # 1D IM-MS
@@ -4013,7 +4014,7 @@ class documentsTree(wx.TreeCtrl):
                     endX = (data['xylimits'][1] + self.config.zoomWindowX)
                     endY = ((self.config.zoomWindowY + data['xylimits'][2]) / 100)
                 except KeyError: pass
-                self.presenter.view.panelPlots.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
+                self.plotsPanel.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
                 return
             # extract x/y axis values
             dtX = data['xvals']
@@ -4023,14 +4024,14 @@ class documentsTree(wx.TreeCtrl):
                 except KeyError: pass
             xlabel = data['xlabels']
             if self.itemData.dataType != 'Type: CALIBRANT':
-                self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, set_page=True)
+                self.plotsPanel.on_plot_1D(dtX, dtY, xlabel, set_page=True)
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_save1DImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_save1DImageDoc, **save_kwargs)
             else:
-                self.presenter.view.panelPlots.on_plot_MS_DT_calibration(dtX=dtX, dtY=dtY, xlabelDT=xlabel,
+                self.plotsPanel.on_plot_MS_DT_calibration(dtX=dtX, dtY=dtY, xlabelDT=xlabel,
                                                                          plotType='1DT', set_page=True)
-                self.presenter.view.panelPlots.on_add_marker(xvals=data['peak'][0],
+                self.plotsPanel.on_add_marker(xvals=data['peak'][0],
                                                              yvals=data['peak'][1],
                                                              color=self.config.annotColor,
                                                              marker=self.config.markerShape,
@@ -4059,10 +4060,10 @@ class documentsTree(wx.TreeCtrl):
             rtY = data['yvals']
             xlabel = data['xlabels']
             # Change panel and plot
-            self.presenter.view.panelPlots.on_plot_RT(rtX, rtY, xlabel, set_page=True)
+            self.plotsPanel.on_plot_RT(rtX, rtY, xlabel, set_page=True)
             if save_image:
                 save_kwargs = {'image_name':defaultValue}
-                self.presenter.view.panelPlots.save_images(evt=ID_saveRTImageDoc, **save_kwargs)
+                self.plotsPanel.save_images(evt=ID_saveRTImageDoc, **save_kwargs)
         #=======================================================================
         #  2D IM-MS
         #=======================================================================
@@ -4111,22 +4112,22 @@ class documentsTree(wx.TreeCtrl):
                     endX = (data['xylimits'][1] + self.config.zoomWindowX)
                     endY = (data['xylimits'][2] / 100)
                 except KeyError: pass
-                self.presenter.view.panelPlots.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
+                self.plotsPanel.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
                 return
             elif evtID == ID_showPlot1DDocument:
-                self.presenter.view.panelPlots.on_plot_1D(data['yvals'],  # normally this would be the y-axis
+                self.plotsPanel.on_plot_1D(data['yvals'],  # normally this would be the y-axis
                                                           data['yvals1D'],
                                                           data['ylabels'],  # data was rotated so using ylabel for xlabel
                                                           set_page=True)
                 return
             elif evtID == ID_showPlotRTDocument:
-                self.presenter.view.panelPlots.on_plot_RT(data['xvals'][:-1],  # TEMPORARY FIX
+                self.plotsPanel.on_plot_RT(data['xvals'][:-1],  # TEMPORARY FIX
                                                           data['yvalsRT'],
                                                           data['xlabels'], set_page=True)
                 return
             elif evtID == ID_showPlotDocument_violin:
                 dataOut = self.presenter.get2DdataFromDictionary(dictionary=data, dataType='plot', compact=True)
-                self.presenter.view.panelPlots.on_plot_violin(data=dataOut, set_page=True)
+                self.plotsPanel.on_plot_violin(data=dataOut, set_page=True)
                 return
             elif evtID == ID_showPlotDocument_waterfall:
                 zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data, dataType='plot', compact=False)
@@ -4137,7 +4138,7 @@ class documentsTree(wx.TreeCtrl):
                     if dlg == wx.ID_NO:
                         return
 
-                self.presenter.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
+                self.plotsPanel.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
                                                                 xlabel=xlabel, ylabel=ylabel, set_page=True)
                 return
             else: pass
@@ -4147,12 +4148,12 @@ class documentsTree(wx.TreeCtrl):
 
             dataOut = self.presenter.get2DdataFromDictionary(dictionary=data, dataType='plot', compact=True)
             # Change panel and plot data
-            self.presenter.view.panelPlots.on_plot_2D_data(data=dataOut)
+            self.plotsPanel.on_plot_2D_data(data=dataOut)
             if not self.config.waterfall:
-                self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+                self.plotsPanel.mainBook.SetSelection(self.config.panelNames['2D'])
             if save_image:
                 save_kwargs = {'image_name':defaultValue}
-                self.presenter.view.panelPlots.save_images(evt=ID_save2DImageDoc, **save_kwargs)
+                self.plotsPanel.save_images(evt=ID_save2DImageDoc, **save_kwargs)
         #=======================================================================
         #  OVERLAY PLOTS
         #=======================================================================
@@ -4169,7 +4170,7 @@ class documentsTree(wx.TreeCtrl):
                         data = self.itemData.IMS2DoverlayData.get(self.extractData, {})
             if out[0] == "Grid (n x n)":
                 defaultValue = "Overlay_Grid_NxN_{}".format(basename)
-                self.presenter.view.panelPlots.on_plot_n_grid(data['zvals_list'],
+                self.plotsPanel.on_plot_n_grid(data['zvals_list'],
                                                               data['cmap_list'],
                                                               data['title_list'],
                                                               data['xvals'],
@@ -4179,10 +4180,10 @@ class documentsTree(wx.TreeCtrl):
                                                               set_page=True)
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
             elif out[0] == "Grid (2":
                 defaultValue = "Overlay_Grid_2to1_{}".format(basename)
-                self.presenter.view.panelPlots.on_plot_grid(data['zvals_1'],
+                self.plotsPanel.on_plot_grid(data['zvals_1'],
                                                             data['zvals_2'],
                                                             data['zvals_cum'],
                                                             data['xvals'],
@@ -4200,14 +4201,14 @@ class documentsTree(wx.TreeCtrl):
 
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
             elif (out[0] == 'Mask'  or out[0] == 'Transparent'):
                 zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, __, __, xvals, yvals, xlabels, ylabels = self.presenter.getOverlayDataFromDictionary(dictionary=data,
                                                                                                                                            dataType='plot',
                                                                                                                                            compact=False)
                 if out[0] == 'Mask':
                     defaultValue = "Overlay_mask_{}".format(basename)
-                    self.presenter.view.panelPlots.on_plot_overlay_2D(zvalsIon1=zvals1, cmapIon1=cmap1,
+                    self.plotsPanel.on_plot_overlay_2D(zvalsIon1=zvals1, cmapIon1=cmap1,
                                                                       alphaIon1=1, zvalsIon2=zvals2,
                                                                       cmapIon2=cmap2, alphaIon2=1,
                                                                       xvals=xvals, yvals=yvals,
@@ -4215,7 +4216,7 @@ class documentsTree(wx.TreeCtrl):
                                                                       flag='Text', set_page=True)
                 elif out[0] == 'Transparent':
                     defaultValue = "Overlay_transparent_{}".format(basename)
-                    self.presenter.view.panelPlots.on_plot_overlay_2D(zvalsIon1=zvals1, cmapIon1=cmap1,
+                    self.plotsPanel.on_plot_overlay_2D(zvalsIon1=zvals1, cmapIon1=cmap1,
                                                                      alphaIon1=alpha1, zvalsIon2=zvals2,
                                                                      cmapIon2=cmap2, alphaIon2=alpha2,
                                                                      xvals=xvals, yvals=yvals,
@@ -4224,14 +4225,14 @@ class documentsTree(wx.TreeCtrl):
                 # Change window view
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
 
             elif out[0] == 'RMSF':
                 zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                                                               plotType='RMSF',
                                                                                                                               compact=True)
                 defaultValue = "Overlay_RMSF_{}".format(basename)
-                self.presenter.view.panelPlots.on_plot_RMSDF(yvalsRMSF=yvalsRMSF,
+                self.plotsPanel.on_plot_RMSDF(yvalsRMSF=yvalsRMSF,
                                                              zvals=zvals,
                                                              xvals=xvals,
                                                              yvals=yvals,
@@ -4249,7 +4250,7 @@ class documentsTree(wx.TreeCtrl):
 
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_saveRMSFImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_saveRMSFImageDoc, **save_kwargs)
 
             elif out[0] == 'RGB':
                 defaultValue = "Overlay_RGB_{}".format(basename)
@@ -4257,20 +4258,20 @@ class documentsTree(wx.TreeCtrl):
                 rgb_plot, xAxisLabels, xlabel, yAxisLabels, ylabel, __ = \
                 self.presenter.get2DdataFromDictionary(dictionary=data, plotType='2D', compact=False)
                 legend_text = data['legend_text']
-                self.presenter.view.panelPlots.on_plot_rgb(rgb_plot, xAxisLabels, yAxisLabels, xlabel,
+                self.plotsPanel.on_plot_rgb(rgb_plot, xAxisLabels, yAxisLabels, xlabel,
                                                           ylabel, legend_text, set_page=True)
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_save2DImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_save2DImageDoc, **save_kwargs)
 
             elif out[0] == 'RMSD':
                 defaultValue = "Overlay_RMSD_{}".format(basename)
                 zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, rmsdLabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                                                           plotType='RMSD',
                                                                                                                           compact=True)
-                self.presenter.view.panelPlots.on_plot_RMSD(zvals, xaxisLabels, yaxisLabels, xlabel, ylabel,
+                self.plotsPanel.on_plot_RMSD(zvals, xaxisLabels, yaxisLabels, xlabel, ylabel,
                                                              cmap, plotType="RMSD", set_page=True)
-                self.presenter.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xaxisLabels, labelsY=yaxisLabels,
+                self.plotsPanel.on_plot_3D(zvals=zvals, labelsX=xaxisLabels, labelsY=yaxisLabels,
                                                           xlabel=xlabel, ylabel=ylabel, zlabel='Intensity',
                                                           cmap=cmap)
                 # Add RMSD label
@@ -4281,7 +4282,7 @@ class documentsTree(wx.TreeCtrl):
 
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_saveRMSDImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_saveRMSDImageDoc, **save_kwargs)
 
             elif out[0] in ["Waterfall (Raw)", "Waterfall (Processed)", "Waterfall (Fitted)",
                             "Waterfall (Deconvoluted MW)", "Waterfall (Charge states)"]:
@@ -4296,7 +4297,7 @@ class documentsTree(wx.TreeCtrl):
                 elif out[0] == "Waterfall (Charge states)":
                     defaultValue = "MS_Waterfall_charges_{}".format(basename)
 
-                self.presenter.view.panelPlots.on_plot_waterfall(data['xvals'],
+                self.plotsPanel.on_plot_waterfall(data['xvals'],
                                                                  data['yvals'], None,
                                                                  colors=data['colors'],
                                                                  xlabel=data['xlabel'],
@@ -4305,17 +4306,17 @@ class documentsTree(wx.TreeCtrl):
                                                                  **data['waterfall_kwargs'])
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
 
             elif out[0] == "Waterfall overlay":
-                self.presenter.view.panelPlots.on_plot_waterfall_overlay(data['xvals'], data['yvals'],
+                self.plotsPanel.on_plot_waterfall_overlay(data['xvals'], data['yvals'],
                                                                          data['zvals'], data['colors'],
                                                                          data['xlabel'], data['ylabel'],
                                                                          data['labels'], set_page=True)
                 if save_image:
                     defaultValue = "Waterfall_overlay_{}".format(basename)
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
 
             # Overlayed 1D data
             elif out[0] == '1D' or out[0] == 'RT':
@@ -4324,18 +4325,18 @@ class documentsTree(wx.TreeCtrl):
                                                                                                         compact=True)
                 if out[0] == '1D':
                     defaultValue = "Overlay_DT_1D_{}".format(basename)
-                    self.presenter.view.panelPlots.on_plot_overlay_DT(xvals=xvals, yvals=yvals, xlabel=xlabels, colors=colors,
+                    self.plotsPanel.on_plot_overlay_DT(xvals=xvals, yvals=yvals, xlabel=xlabels, colors=colors,
                                                                       xlimits=xlimits, labels=labels, set_page=True)
                     if save_image:
                         save_kwargs = {'image_name':defaultValue}
-                        self.presenter.view.panelPlots.save_images(evt=ID_save1DImageDoc, **save_kwargs)
+                        self.plotsPanel.save_images(evt=ID_save1DImageDoc, **save_kwargs)
                 elif out[0] == 'RT':
                     defaultValue = "Overlay_RT_{}".format(basename)
-                    self.presenter.view.panelPlots.on_plot_overlay_RT(xvals=xvals, yvals=yvals, xlabel=xlabels, colors=colors,
+                    self.plotsPanel.on_plot_overlay_RT(xvals=xvals, yvals=yvals, xlabel=xlabels, colors=colors,
                                                                       xlimits=xlimits, labels=labels, set_page=True)
                     if save_image:
                         save_kwargs = {'image_name':defaultValue}
-                        self.presenter.view.panelPlots.save_images(evt=ID_saveRTImageDoc, **save_kwargs)
+                        self.plotsPanel.save_images(evt=ID_saveRTImageDoc, **save_kwargs)
 
         elif self.itemType == 'Statistical':
             if self.extractData == 'Statistical': return
@@ -4356,28 +4357,32 @@ class documentsTree(wx.TreeCtrl):
                                                                  dataType='plot',
                                                                  compact=True)
                 # Change panel and plot data
-                self.presenter.view.panelPlots.on_plot_2D_data(data=dataOut)
-                self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+                self.plotsPanel.on_plot_2D_data(data=dataOut)
+                self.plotsPanel.mainBook.SetSelection(self.config.panelNames['2D'])
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_save2DImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_save2DImageDoc, **save_kwargs)
 
             elif out[0] == 'RMSD Matrix':
                 defaultValue = "Overlay_matrix_{}".format(basename)
                 zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                plotType='Matrix',
                                                                                compact=False)
-                self.presenter.view.panelPlots.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
+                self.plotsPanel.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.presenter.view.panelPlots.save_images(evt=ID_saveRMSDmatrixImageDoc, **save_kwargs)
+                    self.plotsPanel.save_images(evt=ID_saveRMSDmatrixImageDoc, **save_kwargs)
         elif self.itemType == 'DT/MS' or evtID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_restore]:
             defaultValue = "DTMS_{}".format(basename)
             data = self.GetPyData(self.currentItem)
-            self.presenter.view.panelPlots.on_plot_MSDT(data['zvals'], data['xvals'], data['yvals'],
-                                                        data['xlabels'], data['ylabels'], set_page=True)
+            xvals = data['xvals']
+            zvals = data['zvals']
+            xvals, zvals = self.data_handling.downsample_array(xvals, zvals)
+            self.plotsPanel.on_plot_MSDT(zvals, xvals, data['yvals'],
+                                                        data['xlabels'], data['ylabels'], set_page=True,
+                                                        full_data=dict(zvals=data["zvals"], xvals=data["xvals"]))
             if save_image:
-                self.presenter.view.panelPlots.save_images(evt=ID_saveMZDTImageDoc, **save_kwargs)
+                self.plotsPanel.save_images(evt=ID_saveMZDTImageDoc, **save_kwargs)
         else:
             return
 
@@ -4879,78 +4884,78 @@ class documentsTree(wx.TreeCtrl):
         else:
             return
 
-    def onAddToCCSTable(self, evt):
-        """
-        Add currently selected item to the CCS calibration window
-        """
-        if self.itemData == None:
-            return
+    # def onAddToCCSTable(self, evt):
+    #     """
+    #     Add currently selected item to the CCS calibration window
+    #     """
+    #     if self.itemData == None:
+    #         return
 
-        label, item_format, batchMode = None, None, False
-        if self.itemType == 'Drift time (2D, EIC)':
-            if self.extractData != 'Drift time (2D, EIC)':
-                data = self.itemData.IMS2Dions[self.extractData]
-            else:
-                data = self.itemData.IMS2Dions
-                batchMode = True
-            item_format = '2D, extracted'
-        elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
-            if self.extractData != 'Drift time (2D, combined voltages, EIC)':
-                data = self.itemData.IMS2DCombIons[self.extractData]
-            else:
-                data = self.itemData.IMS2DCombIons
-                batchMode = True
-            item_format = '2D, combined'
-        elif self.itemType == 'Drift time (2D, processed, EIC)':
-            if self.extractData != 'Drift time (2D, processed, EIC)':
-                data = self.itemData.IMS2DionsProcess[self.extractData]
-            else:
-                data = self.itemData.IMS2DionsProcess
-                batchMode = True
-            item_format = '2D, processed'
-        elif self.itemType == 'Input data':
-            if self.extractData != 'Input data':
-                data = self.itemData.IMS2DcompData[self.extractData]
-            else:
-                data = self.itemData.IMS2DcompData
-                batchMode = True
-            item_format = '2D'
-        else:
-            return
+    #     label, item_format, batchMode = None, None, False
+    #     if self.itemType == 'Drift time (2D, EIC)':
+    #         if self.extractData != 'Drift time (2D, EIC)':
+    #             data = self.itemData.IMS2Dions[self.extractData]
+    #         else:
+    #             data = self.itemData.IMS2Dions
+    #             batchMode = True
+    #         item_format = '2D, extracted'
+    #     elif self.itemType == 'Drift time (2D, combined voltages, EIC)':
+    #         if self.extractData != 'Drift time (2D, combined voltages, EIC)':
+    #             data = self.itemData.IMS2DCombIons[self.extractData]
+    #         else:
+    #             data = self.itemData.IMS2DCombIons
+    #             batchMode = True
+    #         item_format = '2D, combined'
+    #     elif self.itemType == 'Drift time (2D, processed, EIC)':
+    #         if self.extractData != 'Drift time (2D, processed, EIC)':
+    #             data = self.itemData.IMS2DionsProcess[self.extractData]
+    #         else:
+    #             data = self.itemData.IMS2DionsProcess
+    #             batchMode = True
+    #         item_format = '2D, processed'
+    #     elif self.itemType == 'Input data':
+    #         if self.extractData != 'Input data':
+    #             data = self.itemData.IMS2DcompData[self.extractData]
+    #         else:
+    #             data = self.itemData.IMS2DcompData
+    #             batchMode = True
+    #         item_format = '2D'
+    #     else:
+    #         return
 
-        # If in batch mode (i.e. add all from within the header)
-        if not batchMode:
-            label = self.extractData
+    #     # If in batch mode (i.e. add all from within the header)
+    #     if not batchMode:
+    #         label = self.extractData
 
-            # Split label
-            mz = label.replace('-', ' ').split(' ')
-            mzStart, mzEnd = float(mz[0]), float(mz[1])
-            mzCentre = round((mzStart + mzEnd) / 2, 2)
-            charge = data.get('charge', None)
-            protein = data.get('protein', None)
+    #         # Split label
+    #         mz = label.replace('-', ' ').split(' ')
+    #         mzStart, mzEnd = float(mz[0]), float(mz[1])
+    #         mzCentre = round((mzStart + mzEnd) / 2, 2)
+    #         charge = data.get('charge', None)
+    #         protein = data.get('protein', None)
 
-            self.itemData.moleculeDetails.get('molWeight', None)
+    #         self.itemData.moleculeDetails.get('molWeight', None)
 
-            self.presenter.OnAddDataToCCSTable(filename=self.itemData.title,
-                                               format=item_format, mzStart=mzStart,
-                                               mzEnd=mzEnd, mzCentre=mzCentre,
-                                               charge=charge, protein=protein)
-        else:
-            for key in data:
-                label = key
-                # Split label
-                mz = label.replace('-', ' ').split(' ')
-                mzStart, mzEnd = float(mz[0]), float(mz[1])
-                mzCentre = round((mzStart + mzEnd) / 2, 2)
-                charge = data[key].get('charge', None)
-                protein = data[key].get('protein', None)
+    #         self.presenter.OnAddDataToCCSTable(filename=self.itemData.title,
+    #                                            format=item_format, mzStart=mzStart,
+    #                                            mzEnd=mzEnd, mzCentre=mzCentre,
+    #                                            charge=charge, protein=protein)
+    #     else:
+    #         for key in data:
+    #             label = key
+    #             # Split label
+    #             mz = label.replace('-', ' ').split(' ')
+    #             mzStart, mzEnd = float(mz[0]), float(mz[1])
+    #             mzCentre = round((mzStart + mzEnd) / 2, 2)
+    #             charge = data[key].get('charge', None)
+    #             protein = data[key].get('protein', None)
 
-                self.itemData.moleculeDetails.get('molWeight', None)
+    #             self.itemData.moleculeDetails.get('molWeight', None)
 
-                self.presenter.OnAddDataToCCSTable(filename=self.itemData.title,
-                                                   format=item_format, mzStart=mzStart,
-                                                   mzEnd=mzEnd, mzCentre=mzCentre,
-                                                   charge=charge, protein=protein)
+    #             self.presenter.OnAddDataToCCSTable(filename=self.itemData.title,
+    #                                                format=item_format, mzStart=mzStart,
+    #                                                mzEnd=mzEnd, mzCentre=mzCentre,
+    #                                                charge=charge, protein=protein)
 
     def onOpenDocInfo(self, evt):
 
@@ -5332,7 +5337,7 @@ class documentsTree(wx.TreeCtrl):
 
             # Clear all plotsf
             if self.presenter.currentDoc == deleteItem:
-                self.presenter.onClearAllPlots()
+                self.plotsPanel.on_clear_all_plots()
                 self.presenter.currentDoc = None
 
         if deleteItem == '': return
@@ -5649,7 +5654,7 @@ class documentsTree(wx.TreeCtrl):
 
             title = "Precursor: {:.4f} [{}]".format(data["Scan 1"]['scan_info']['precursor_mz'],
                                                     data["Scan 1"]['scan_info']['precursor_charge'])
-            self.presenter.view.panelPlots.on_plot_centroid_MS(data["Scan 1"]['xvals'],
+            self.plotsPanel.on_plot_centroid_MS(data["Scan 1"]['xvals'],
                                                                data["Scan 1"]['yvals'],
                                                                title=title)
 
@@ -5684,7 +5689,7 @@ class documentsTree(wx.TreeCtrl):
 
             title = "Precursor: {:.4f} [{}]".format(data["Scan 1"]['scan_info']['precursor_mz'],
                                                     data["Scan 1"]['scan_info']['precursor_charge'])
-            self.presenter.view.panelPlots.on_plot_centroid_MS(data["Scan 1"]['xvals'],
+            self.plotsPanel.on_plot_centroid_MS(data["Scan 1"]['xvals'],
                                                                data["Scan 1"]['yvals'],
                                                                title=title)
 
@@ -5794,7 +5799,7 @@ class documentsTree(wx.TreeCtrl):
 
             # get chromatogram
             rtX, rtY = reader.get_tic()
-            self.presenter.view.panelPlots.on_plot_RT(rtX, rtY, "Time (min)", set_page=False)
+            self.plotsPanel.on_plot_RT(rtX, rtY, "Time (min)", set_page=False)
 
             mass_spectra = reader.get_spectrum_for_each_filter()
             chromatograms = reader.get_chromatogram_for_each_filter()
@@ -5804,7 +5809,7 @@ class documentsTree(wx.TreeCtrl):
             msX, msY = reader.get_average_spectrum()
             xlimits = [np.min(msX), np.max(msX)]
             name_kwargs = {"document":None, "dataset": None}
-            self.presenter.view.panelPlots.on_plot_MS(
+            self.plotsPanel.on_plot_MS(
                 msX, msY, xlimits=xlimits, set_page=True, **name_kwargs)
 
             basename = os.path.basename(path)

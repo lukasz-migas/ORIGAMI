@@ -25,9 +25,11 @@ from gui_elements.dialog_selectDocument import panelSelectDocument
 import processing.heatmap as pr_heatmap
 from gui_elements.dialog_messagePopup import dialogMsgPopup
 
-import logging
 from readers.io_document import save_py_object, open_py_object
 import re
+import copy
+
+import logging
 logger = logging.getLogger("origami")
 
 # TODO: on_open_MassLynx_raw_MS_only: This function is currently broken: OSError: [WinError -529697949] Windows Error 0xe06d7363
@@ -754,42 +756,42 @@ class data_handling():
                                                     alpha=self.config.markerTransparency_1D,
                                                     repaint=True)
 
-        # Extract data from calibration window
-        if self.plot_page == "Calibration":
-            # Check whether the current document is of correct type!
-            if (document.fileFormat != 'Format: MassLynx (.raw)' or document.dataType != 'Type: CALIBRANT'):
-                print('Please select the correct document file in document window!')
-                return
-            mzVal = np.round((xvalsMax + xvalsMin) / 2, 2)
-            # prevents extraction if value is below 50. This assumes (wrongly!)
-            # that the m/z range will never be below 50.
-            if xvalsMax < 50:
-                self.SetStatusText('Make sure you are extracting in the MS window.', 3)
-                return
-            # Check if value already present
-            outcome = self.panelCCS.topP.onCheckForDuplicates(mzCentre=str(mzVal))
-            if outcome:
-                return
-            self.view._mgr.GetPane(self.panelCCS).Show()
-            self.ccsTable.Check(True)
-            self.view._mgr.Update()
-            if yvalsMax <= 1:
-                tD = self.presenter.onAddCalibrant(path=document.path,
-                                                   mzCentre=mzVal,
-                                                   mzStart=np.round(xvalsMin, 2),
-                                                   mzEnd=np.round(xvalsMax, 2),
-                                                   pusherFreq=document.parameters['pusherFreq'],
-                                                   tDout=True)
+        # # Extract data from calibration window
+        # if self.plot_page == "Calibration":
+        #     # Check whether the current document is of correct type!
+        #     if (document.fileFormat != 'Format: MassLynx (.raw)' or document.dataType != 'Type: CALIBRANT'):
+        #         print('Please select the correct document file in document window!')
+        #         return
+        #     mzVal = np.round((xvalsMax + xvalsMin) / 2, 2)
+        #     # prevents extraction if value is below 50. This assumes (wrongly!)
+        #     # that the m/z range will never be below 50.
+        #     if xvalsMax < 50:
+        #         self.SetStatusText('Make sure you are extracting in the MS window.', 3)
+        #         return
+        #     # Check if value already present
+        #     outcome = self.panelCCS.topP.onCheckForDuplicates(mzCentre=str(mzVal))
+        #     if outcome:
+        #         return
+        #     self.view._mgr.GetPane(self.panelCCS).Show()
+        #     self.ccsTable.Check(True)
+        #     self.view._mgr.Update()
+        #     if yvalsMax <= 1:
+        #         tD = self.presenter.onAddCalibrant(path=document.path,
+        #                                            mzCentre=mzVal,
+        #                                            mzStart=np.round(xvalsMin, 2),
+        #                                            mzEnd=np.round(xvalsMax, 2),
+        #                                            pusherFreq=document.parameters['pusherFreq'],
+        #                                            tDout=True)
 
-                self.panelCCS.topP.peaklist.Append([document_title,
-                                                    np.round(xvalsMin, 2),
-                                                    np.round(xvalsMax, 2),
-                                                    "", "", "", str(tD)])
-                if self.config.showRectanges:
-                    self.presenter.addRectMS(xvalsMin, 0, (xvalsMax - xvalsMin), 1.0,
-                                             color=self.config.annotColor,
-                                             alpha=(self.config.annotTransparency / 100),
-                                             repaint=True, plot='CalibrationMS')
+        #         self.panelCCS.topP.peaklist.Append([document_title,
+        #                                             np.round(xvalsMin, 2),
+        #                                             np.round(xvalsMax, 2),
+        #                                             "", "", "", str(tD)])
+        #         if self.config.showRectanges:
+        #             self.presenter.addRectMS(xvalsMin, 0, (xvalsMax - xvalsMin), 1.0,
+        #                                      color=self.config.annotColor,
+        #                                      alpha=(self.config.annotTransparency / 100),
+        #                                      repaint=True, plot='CalibrationMS')
 
         # Extract mass spectrum from chromatogram window - Linear DT files
         elif self.plot_page == "RT" and document.dataType == 'Type: Multifield Linear DT':
@@ -1028,8 +1030,8 @@ class data_handling():
                 xvals_MSDT, yvals_MSDT, zvals_MSDT = self._get_driftscope_mobility_vs_spectrum_data(
                     path, parameters["startMS"], parameters["endMS"])
                 # Plot
-                self.plotsPanel.on_plot_MSDT(
-                    zvals_MSDT, xvals_MSDT, yvals_MSDT, 'm/z', 'Drift time (bins)')
+                xvals_MSDT, zvals_MSDT = self.downsample_array(xvals_MSDT, zvals_MSDT)
+                self.plotsPanel.on_plot_MSDT(zvals_MSDT, xvals_MSDT, yvals_MSDT, 'm/z', 'Drift time (bins)')
 
         # Update status bar with MS range
             self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
@@ -2572,29 +2574,87 @@ class data_handling():
                                                     xlimits=xlimits, labels=legend, set_page=True)
 
     def on_update_DTMS_zoom(self, xmin, xmax, ymin, ymax):
-        xvals = self.config.replotData['DT/MS'].get("xvals", None)
-        yvals = self.config.replotData['DT/MS'].get("yvals", None)
-        zvals = self.config.replotData['DT/MS'].get("zvals", None)
+        """Event driven data sub-sampling
+        
+        Parameters
+        ----------
+        xmin: float
+            mouse-event minimum in x-axis
+        xmax: float
+            mouse-event maximum in x-axis
+        ymin: float
+            mouse-event minimum in y-axis
+        ymax: float
+            mouse-event maximum in y-axis
+        """
+        tstart = ttime()
+        # get data
+        xvals = copy.deepcopy(self.config.replotData['DT/MS'].get("xvals", None))
+        yvals = copy.deepcopy(self.config.replotData['DT/MS'].get("yvals", None))
+        zvals = copy.deepcopy(self.config.replotData['DT/MS'].get("zvals", None))
+        xlabel = copy.deepcopy(self.config.replotData['DT/MS'].get("xlabels", None))
+        ylabel = copy.deepcopy(self.config.replotData['DT/MS'].get("ylabels", None))
+        # check if data type is correct
+        if zvals is None:
+            logger.error("Cannot complete action as plotting data is empty")
+            return
+
+        # reduce size of the array to match data extraction window
         xmin_idx, xmax_idx = find_nearest_value(xvals, xmin), find_nearest_value(xvals, xmax)
         ymin_idx, ymax_idx = find_nearest_value(yvals, ymin), find_nearest_value(yvals, ymax)
         zvals = zvals[ymin_idx:ymax_idx, xmin_idx:xmax_idx]
         xvals = xvals[xmin_idx:xmax_idx]
-        yvals = yvals[ymin_idx:ymax_idx]
-        data, xvals = self.downsample_array(xvals, zvals)
+        yvals = yvals[ymin_idx:ymax_idx + 1]
 
-        self.view.panelPlots.on_plot_MSDT(data, xvals, yvals, 'm/z', 'Drift time (bins)',
+        # check if user enabled smart zoom (ON by default)
+        if self.config.smart_zoom_enable:
+            xvals, zvals = self.downsample_array(xvals, zvals)
+
+        # check if selection window is large enough
+        if np.prod(zvals.shape) == 0:
+            logger.error("You must select wider dt/mz range to continue")
+            return
+        # replot
+        self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel,
                                           override=False, update_extents=False)
+        logger.info("Sub-sampling took {:.4f}".format(ttime() - tstart))
 
     def downsample_array(self, xvals, zvals):
-        """Downsample MS/DT array"""
+        """Downsample MS/DT array
+        
+        Parameters
+        ----------
+        xvals: np.array
+            x-axis array (eg m/z)
+        zvals: np.array
+            2D array (e.g. m/z vs DT)
+        """
         __, x_dim = zvals.shape
+        # determine whether soft/hard maximum was breached
+        if x_dim > self.config.smart_zoom_soft_max or x_dim > self.config.smart_zoom_hard_max:
+            original_shape = zvals.shape
+            # calculate division factor(s)
+            division_factors, division_factor = pr_heatmap.calculate_division_factors(
+                x_dim,
+                min_division=self.config.smart_zoom_min_search,
+                max_division=self.config.smart_zoom_max_search,
+                subsampling_default=self.config.smart_zoom_subsample_default)
+            # subsample array
+            if not division_factors or self.config.smart_zoom_downsampling_method == "Sub-sampled":
+                zvals, xvals = pr_heatmap.subsample_array(zvals, xvals, division_factor)
+            else:
+                if self.config.smart_zoom_downsampling_method in ["Auto", "Binned (summed)"]:
+                    zvals, xvals = pr_heatmap.bin_sum_array(zvals, xvals, division_factor)
+                else:
+                    zvals, xvals = pr_heatmap.bin_mean_array(zvals, xvals, division_factor)
 
-        division_factors, division_factor = pr_heatmap.calculate_division_factors(x_dim)
-        print(division_factors, division_factor)
-        if not division_factors:
-            data, mz_x = pr_heatmap.subsample_array(zvals, xvals, division_factor)
-        else:
-            data, mz_x = pr_heatmap.bin_sum_array(zvals, xvals, division_factor)
+            logger.info("Downsampled from {} to {}".format(original_shape, zvals.shape))
 
-        return data, mz_x
+            # check whether hard maximum was breached
+            if zvals.shape[1] > self.config.smart_zoom_hard_max:
+                logger.warning("Sub-sampled data is larger than the hard-maximum. Sub-sampling again")
+                while zvals.shape[1] > self.config.smart_zoom_hard_max:
+                    xvals, zvals = self.downsample_array(xvals, zvals)
+
+        return xvals, zvals
 

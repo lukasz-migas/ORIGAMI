@@ -3593,7 +3593,7 @@ class plots(plottingWindow):
         extent = self.extents(xvals) + self.extents(yvals)
 
         # Add imshow
-        self.cax = self.plotMS.imshow(zvals.T, extent=extent,
+        self.cax = self.plotMS.imshow(zvals, extent=extent,
                                       cmap=kwargs['colormap'],
                                       interpolation=kwargs['interpolation'],
                                       norm=kwargs['colormap_norm'],

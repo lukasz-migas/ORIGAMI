@@ -89,7 +89,7 @@ class panelLog(wx.Panel):
         Go to selected directory
         '''
         path = os.path.join(self.config.cwd, "logs")
-        self.parent.presenter.openDirectory(path=path)
+        self.parent.presenter.on_open_directory(path=path)
         
     def saveLogDataAs(self, evt):
         dlg = wx.FileDialog(self, "Save log file...", wildcard = "*.log" ,

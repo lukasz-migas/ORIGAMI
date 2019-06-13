@@ -941,7 +941,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # make bindings
         saveBtn.Bind(wx.EVT_BUTTON, self.on_generate_html_fcn)
-        openHTMLWebBtn.Bind(wx.EVT_BUTTON, self.presenter.onLibraryLink)
+        openHTMLWebBtn.Bind(wx.EVT_BUTTON, self.presenter.on_open_weblink)
         cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
         pathBtn.Bind(wx.EVT_BUTTON, self.on_get_path)
 

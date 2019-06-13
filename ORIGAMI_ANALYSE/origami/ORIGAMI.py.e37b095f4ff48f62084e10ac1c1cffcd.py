@@ -3136,6 +3136,10 @@ class ORIGAMI(object):
             self.view.panelPlots.on_plot_MS(msCentre, msDataY, xlimits=xlimits, **name_kwargs)
         evt.Skip()
 
+#===============================================================================
+#  INTERACTIVE FUNCTIONS
+#===============================================================================
+
     def on_highlight_selected_ions(self, evt):
         """
         This function adds rectanges and markers to the m/z window

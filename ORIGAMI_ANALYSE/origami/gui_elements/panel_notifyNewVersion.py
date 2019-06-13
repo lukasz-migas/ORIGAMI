@@ -28,7 +28,7 @@ class panelNotifyNewVersion(wx.Dialog):
 
     def onOK(self, evt):
 
-        self.presenter.onLibraryLink(evt)
+        self.presenter.on_open_weblink(evt)
         self.EndModal(wx.OK)
 
     def make_gui(self):

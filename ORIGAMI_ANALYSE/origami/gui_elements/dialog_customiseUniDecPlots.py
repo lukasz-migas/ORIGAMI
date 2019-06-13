@@ -21,10 +21,9 @@ import wx
 from wx.adv import BitmapComboBox
 
 from ids import (ID_unidecPanel_fitLineColor, ID_unidecPanel_barEdgeColor)
-from toolbox import (str2num, str2int, convertRGB1to255, convertRGB255to1,
-                             num2str)
 from styles import makeStaticBox, makeCheckbox
 from gui_elements.misc_dialogs import dlgBox
+from utils.color import convertRGB1to255, convertRGB255to1
 
 
 class panelCustomiseParameters(wx.Dialog):

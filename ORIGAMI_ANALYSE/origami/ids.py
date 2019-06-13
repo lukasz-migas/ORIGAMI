@@ -67,6 +67,7 @@ ID_plots_customisePlot_unidec_mw_v_charge = NewId()
 ID_plots_customisePlot_unidec_ms_barchart = NewId()
 ID_plots_customisePlot_unidec_chargeDist = NewId()
 ID_plots_rotate90 = NewId()
+ID_plots_customise_smart_zoom = NewId()
 
 ID_plots_saveImage_unidec_ms = NewId()
 ID_plots_saveImage_unidec_mw = NewId()

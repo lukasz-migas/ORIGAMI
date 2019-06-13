@@ -619,8 +619,8 @@ class topPanel(wx.Panel):
         menu = wx.Menu()
 #         menu.Append(ID_saveCCScalibrantFilelist, "Save file list")
 
-        self.Bind(wx.EVT_MENU, self.presenter.saveCCScalibrationToPickle,
-                  id=ID_saveCCScalibration)
+        # self.Bind(wx.EVT_MENU, self.presenter.saveCCScalibrationToPickle,
+        #           id=ID_saveCCScalibration)
 
         menu.Append(ID_saveCCScalibration, "Save CCS calibration to file")
 #         menu.Append(ID_saveCCScalibrationCSV, "Save as .csv")
@@ -630,10 +630,10 @@ class topPanel(wx.Panel):
 
     def onProcessTool(self, evt):
 
-        self.Bind(wx.EVT_MENU, self.presenter.OnBuildCCSCalibrationDataset, id=ID_buildCalibrationDataset)
+        # self.Bind(wx.EVT_MENU, self.presenter.OnBuildCCSCalibrationDataset, id=ID_buildCalibrationDataset)
 
         menu = wx.Menu()
-        menu.Append(ID_buildCalibrationDataset, "Build calibration curve (selected items)")
+        # menu.Append(ID_buildCalibrationDataset, "Build calibration curve (selected items)")
 #         menu.AppendSeparator()
         self.PopupMenu(menu)
         menu.Destroy()
@@ -1104,8 +1104,8 @@ class bottomPanel(wx.Panel):
 #         self.Bind(wx.EVT_MENU, self.onPrepareDataFrame, id=ID_prepareCCSCalibrant)
 #         self.Bind(wx.EVT_MENU, self.presenter.OnBuildCCSCalibrationDataset,
 #                   id=ID_buildApplyCalibrationDataset)
-        self.Bind(wx.EVT_MENU, self.presenter.OnApplyCCSCalibrationToSelectedIons,
-                  id=ID_applyCalibrationOnDataset)
+        # self.Bind(wx.EVT_MENU, self.presenter.OnApplyCCSCalibrationToSelectedIons,
+                #   id=ID_applyCalibrationOnDataset)
 #         self.Bind(wx.EVT_MENU, self.onCCSCalibrate, id=ID_calibranteCCScalibrant)
 
         menu = wx.Menu()

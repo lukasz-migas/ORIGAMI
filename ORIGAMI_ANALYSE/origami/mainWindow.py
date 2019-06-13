@@ -47,7 +47,7 @@ from processing.data_handling import data_handling
 from processing.data_processing import data_processing
 from readers.io_text_files import check_file_type
 from styles import makeMenuItem
-from toolbox import (checkVersion, clean_directory, compareVersions,
+from toolbox import (get_latest_version, clean_directory, compare_versions,
                      findPeakMax, getNarrow1Ddata)
 from ids import ID_fileMenu_MGF, ID_fileMenu_mzML, \
     ID_fileMenu_openRecent, ID_openDocument, ID_load_origami_masslynx_raw, ID_load_multiple_origami_masslynx_raw, \
@@ -551,7 +551,7 @@ class MyFrame(wx.Frame):
 
         menuPlot.AppendSeparator()
         menuPlot.Append(ID_plots_showCursorGrid, 'Update plot parameters')
-        menuPlot.Append(ID_plots_resetZoom, 'Reset zoom tool\tF12')
+        # menuPlot.Append(ID_plots_resetZoom, 'Reset zoom tool\tF12')
         self.mainMenubar.Append(menuPlot, '&Plot settings')
 
         # VIEW
@@ -827,7 +827,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_waterfall)
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_violin)
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_general)
-        self.Bind(wx.EVT_MENU, self.presenter.onRebootZoom, id=ID_plots_resetZoom)
+        # self.Bind(wx.EVT_MENU, self.presenter.onRebootZoom, id=ID_plots_resetZoom)
         self.Bind(wx.EVT_MENU, self.updatePlots, id=ID_plots_showCursorGrid)
 
         self.Bind(wx.EVT_MENU, self.on_customise_annotation_plot_parameters, id=ID_annotPanel_otherSettings)
@@ -858,8 +858,8 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_export_configuration_file, id=ID_saveAsConfig)
         self.Bind(wx.EVT_MENU, self.on_import_configuration_file, id=ID_openConfig)
         self.Bind(wx.EVT_MENU, self.on_import_configuration_file, id=ID_openAsConfig)
-        self.Bind(wx.EVT_MENU, self.presenter.onSetupDriftScope, id=ID_setDriftScopeDir)
-        self.Bind(wx.EVT_MENU, self.presenter.onCheckPath, id=ID_check_Driftscope)
+        self.Bind(wx.EVT_MENU, self.on_setup_driftscope, id=ID_setDriftScopeDir)
+        self.Bind(wx.EVT_MENU, self.on_check_driftscope_path, id=ID_check_Driftscope)
         self.Bind(wx.EVT_MENU, self.presenter.onSelectProtein, id=ID_selectCalibrant)
         self.Bind(wx.EVT_MENU, self.presenter.onImportCCSDatabase, id=ID_openCCScalibrationDatabse)
         self.Bind(wx.EVT_MENU, self.onExportParameters, id=ID_importExportSettings_peaklist)
@@ -880,7 +880,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onWindowMaximize, id=ID_windowMaximize)
         self.Bind(wx.EVT_MENU, self.onWindowIconize, id=ID_windowMinimize)
         self.Bind(wx.EVT_MENU, self.onWindowFullscreen, id=ID_windowFullscreen)
-        self.Bind(wx.EVT_MENU, self.presenter.onClearAllPlots, id=ID_clearAllPlots)
+        self.Bind(wx.EVT_MENU, self.panelPlots.on_clear_all_plots, id=ID_clearAllPlots)
 #         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_top)
 #         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_bottom)
 #         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_left)
@@ -1010,8 +1010,8 @@ class MyFrame(wx.Frame):
         Simple function to check whether this is the newest version available
         """
         try:
-            newVersion = checkVersion(link=self.config.links['newVersion'])
-            update = compareVersions(newVersion, self.config.version)
+            newVersion = get_latest_version(link=self.config.links['newVersion'])
+            update = compare_versions(newVersion, self.config.version)
             if not update:
                 try:
                     if evt.GetId() == ID_CHECK_VERSION:
@@ -1022,7 +1022,7 @@ class MyFrame(wx.Frame):
                 except Exception:
                     pass
             else:
-                webpage = checkVersion(get_webpage=True)
+                webpage = get_latest_version(get_webpage=True)
                 wx.Bell()
                 message = "Version {} is now available for download.\nYou are currently using version {}.".format(
                     newVersion, self.config.version)
@@ -1037,7 +1037,7 @@ class MyFrame(wx.Frame):
 
     def on_whats_new(self, evt):
         try:
-            webpage = checkVersion(get_webpage=True)
+            webpage = get_latest_version(get_webpage=True)
             msgDialog = panelNotifyNewVersion(self, self.presenter, webpage)
             msgDialog.ShowModal()
         except Exception:
@@ -1182,7 +1182,7 @@ class MyFrame(wx.Frame):
             ["W", self.data_handling.on_open_multiple_text_2D, wx.ACCEL_CTRL],
             ["L", self.presenter.onOpenPeakListCSV, wx.ACCEL_CTRL],
             ["Z", self.openSaveAsDlg, wx.ACCEL_SHIFT],
-            ["G", self.presenter.openDirectory, wx.ACCEL_CTRL],
+            ["G", self.presenter.on_open_directory, wx.ACCEL_CTRL],
         ]
         keyIDs = [wx.NewId() for a in ctrlkeys]
         ctrllist = []
@@ -1871,42 +1871,42 @@ class MyFrame(wx.Frame):
                                                     alpha=self.config.markerTransparency_1D,
                                                     repaint=True)
 
-        # Extract data from calibration window
-        if self.currentPage == "Calibration":
-            # Check whether the current document is of correct type!
-            if (document.fileFormat != 'Format: MassLynx (.raw)' or document.dataType != 'Type: CALIBRANT'):
-                print('Please select the correct document file in document window!')
-                return
-            mzVal = np.round((xvalsMax + xvalsMin) / 2, 2)
-            # prevents extraction if value is below 50. This assumes (wrongly!)
-            # that the m/z range will never be below 50.
-            if xvalsMax < 50:
-                self.SetStatusText('Make sure you are extracting in the MS window.', 3)
-                return
-            # Check if value already present
-            outcome = self.panelCCS.topP.onCheckForDuplicates(mzCentre=str(mzVal))
-            if outcome:
-                return
-            self._mgr.GetPane(self.panelCCS).Show()
-            self.ccsTable.Check(True)
-            self._mgr.Update()
-            if yvalsMax <= 1:
-                tD = self.presenter.onAddCalibrant(path=document.path,
-                                                   mzCentre=mzVal,
-                                                   mzStart=np.round(xvalsMin, 2),
-                                                   mzEnd=np.round(xvalsMax, 2),
-                                                   pusherFreq=document.parameters['pusherFreq'],
-                                                   tDout=True)
+        # # Extract data from calibration window
+        # if self.currentPage == "Calibration":
+        #     # Check whether the current document is of correct type!
+        #     if (document.fileFormat != 'Format: MassLynx (.raw)' or document.dataType != 'Type: CALIBRANT'):
+        #         print('Please select the correct document file in document window!')
+        #         return
+        #     mzVal = np.round((xvalsMax + xvalsMin) / 2, 2)
+        #     # prevents extraction if value is below 50. This assumes (wrongly!)
+        #     # that the m/z range will never be below 50.
+        #     if xvalsMax < 50:
+        #         self.SetStatusText('Make sure you are extracting in the MS window.', 3)
+        #         return
+        #     # Check if value already present
+        #     outcome = self.panelCCS.topP.onCheckForDuplicates(mzCentre=str(mzVal))
+        #     if outcome:
+        #         return
+        #     self._mgr.GetPane(self.panelCCS).Show()
+        #     self.ccsTable.Check(True)
+        #     self._mgr.Update()
+        #     if yvalsMax <= 1:
+        #         tD = self.presenter.onAddCalibrant(path=document.path,
+        #                                            mzCentre=mzVal,
+        #                                            mzStart=np.round(xvalsMin, 2),
+        #                                            mzEnd=np.round(xvalsMax, 2),
+        #                                            pusherFreq=document.parameters['pusherFreq'],
+        #                                            tDout=True)
 
-                self.panelCCS.topP.peaklist.Append([currentDocument,
-                                                    np.round(xvalsMin, 2),
-                                                    np.round(xvalsMax, 2),
-                                                    "", "", "", str(tD)])
-                if self.config.showRectanges:
-                    self.presenter.addRectMS(xvalsMin, 0, (xvalsMax - xvalsMin), 1.0,
-                                             color=self.config.annotColor,
-                                             alpha=(self.config.annotTransparency / 100),
-                                             repaint=True, plot='CalibrationMS')
+        #         self.panelCCS.topP.peaklist.Append([currentDocument,
+        #                                             np.round(xvalsMin, 2),
+        #                                             np.round(xvalsMax, 2),
+        #                                             "", "", "", str(tD)])
+        #         if self.config.showRectanges:
+        #             self.presenter.addRectMS(xvalsMin, 0, (xvalsMax - xvalsMin), 1.0,
+        #                                      color=self.config.annotColor,
+        #                                      alpha=(self.config.annotTransparency / 100),
+        #                                      repaint=True, plot='CalibrationMS')
 
         # Extract mass spectrum from chromatogram window - Linear DT files
         elif self.currentPage == "RT" and document.dataType == 'Type: Multifield Linear DT':
@@ -2080,7 +2080,6 @@ class MyFrame(wx.Frame):
             return
 
     def onSequenceEditor(self, evt):
-
         self.panelSequenceAnalysis = panelSequenceAnalysis(self,
                                                            self.presenter,
                                                            self.config,
@@ -2144,15 +2143,11 @@ class MyFrame(wx.Frame):
         if self.config.autoSaveSettings:
             self.on_export_configuration_file(evt=ID_saveConfig, verbose=False)
 
-    # ----
-
     def onDocumentClearRecent(self, evt):
         """Clear recent items."""
 
         self.config.previousFiles = []
         self.updateRecentFiles()
-
-    # ----
 
     def onDocumentRecent(self, evt):
         """Open recent document."""
@@ -2293,10 +2288,56 @@ class MyFrame(wx.Frame):
         if evt is not None:
             evt.Skip()
 
+    def on_setup_driftscope(self, evt):
+        """
+        This function sets the Driftscope directory
+        """
+        dlg = wx.DirDialog(self.view, "Choose Driftscope path. Usually at C:\DriftScope\lib",
+                           style=wx.DD_DEFAULT_STYLE)
+        try:
+            if os.path.isdir(self.config.driftscopePath):
+                dlg.SetPath(self.config.driftscopePath)
+        except Exception:            pass
+
+        if dlg.ShowModal() == wx.ID_OK:
+            if os.path.basename(dlg.GetPath()) == "lib":
+                path = dlg.GetPath()
+            elif os.path.basename(dlg.GetPath()) == "DriftScope":
+                path = os.path.join(dlg.GetPath(), "lib")
+            else:
+                path = dlg.GetPath()
+
+            self.config.driftscopePath = path
+
+            self.onThreading(None, ("Driftscope path was set to {}".format(
+                self.config.driftscopePath), 4), action='updateStatusbar')
+
+            # Check if driftscope exists
+            if not os.path.isdir(self.config.driftscopePath):
+                print('Could not find Driftscope path')
+                msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
+                dlgBox(exceptionTitle='Could not find Driftscope',
+                       exceptionMsg=msg, type="Warning")
+
+            if not os.path.isfile(self.config.driftscopePath + "\imextract.exe"):
+                print('Could not find imextract.exe')
+                msg = "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
+                dlgBox(exceptionTitle='Could not find Driftscope',
+                       exceptionMsg=msg, type="Warning")
+        evt.Skip()
+
+    def on_check_driftscope_path(self, evt=None):
+        check = self.config.initlizePaths(return_check=True)
+        if check:
+            wx.Bell()
+            dlgBox(exceptionTitle='DriftScope path looks good',
+                   exceptionMsg="Found DriftScope on your PC. You are good to go.",
+                   type="Info")
+            return
+
 
 class DragAndDrop(wx.FileDropTarget):
 
-    # ----------------------------------------------------------------------
     def __init__(self, window):
         """Constructor"""
         wx.FileDropTarget.__init__(self)

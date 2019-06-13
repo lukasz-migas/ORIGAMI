@@ -163,21 +163,21 @@ def interpolate_2D(xvals, yvals, zvals, new_xvals=None, new_yvals=None):
     return new_xvals, yvals, new_zvals
 
 
-def calculate_division_factors(value, min_division=1, max_division=20, interpolation_default=5):
+def calculate_division_factors(value, min_division=1, max_division=20, subsampling_default=5):
     """Calculate division factor(s) for DT/MS dataset"""
     division_factors = []
     if is_prime(value):
         print("The x-dimension is a prime number so I cannot bin it. Will downsample with `{}` instead.".format(
-            interpolation_default))
-        return [], interpolation_default
+            subsampling_default))
+        return [], subsampling_default
     else:
         for i in range(max_division, min_division, -1):
             if value % i == 0:
                 division_factors.append(i)
         if not division_factors:
             print("Failed to find division factor in the range {}-{}. Will downsample with `{}` instead".format(
-                min_division, max_division, interpolation_default))
-            return [], interpolation_default
+                min_division, max_division, subsampling_default))
+            return [], subsampling_default
         return division_factors, np.max(division_factors)
 
 

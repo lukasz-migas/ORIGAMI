@@ -134,7 +134,7 @@ class panelMultipleIons(wx.Panel):
         wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.onCheckTool)
         wx.EVT_MENU(self, ID_ionPanel_normalize1D, self.onCheckTool)
         wx.EVT_MENU(self, ID_combinedCV_binMSCombinedMenu, self.onCheckTool)
-        wx.EVT_MENU(self, ID_highlightRectAllIons, self.presenter.onShowExtractedIons)
+        wx.EVT_MENU(self, ID_highlightRectAllIons, self.presenter.on_highlight_selected_ions)
         wx.EVT_MENU(self, ID_ionPanel_check_all, self.OnCheckAllItems)
         wx.EVT_MENU(self, ID_ionPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_ionPanel_show_zoom_in_MS, self.on_plot)
@@ -392,7 +392,7 @@ class panelMultipleIons(wx.Panel):
         self.SetFocus()
 
     def menu_annotate_tools(self, evt):
-        self.Bind(wx.EVT_MENU, self.presenter.onShowExtractedIons, id=ID_highlightRectAllIons)
+        self.Bind(wx.EVT_MENU, self.presenter.on_highlight_selected_ions, id=ID_highlightRectAllIons)
         self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_charge_state)
         self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_alpha)
         self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_mask)

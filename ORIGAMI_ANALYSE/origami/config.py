@@ -494,6 +494,18 @@ class OrigamiConfig:
         self.label_fontweight_list = ["ultralight", "light", "normal", "regular", "medium", "bold", "heavy"]
         self.label_font_orientation_list = ['horizontal', 'vertical']
 
+        # Smart zoom
+        self.smart_zoom_enable = True  # new in v1.3.0.0
+        self.smart_zoom_soft_max = 15000  # new in v1.3.0.0
+        self.smart_zoom_hard_max = 100000  # new in v1.3.0.0
+        self.smart_zoom_downsampling_method_choices = ["Auto", "Binned (summed)", "Binned (mean)", "Sub-sampled"]  # new in v1.3.0.0
+        self.smart_zoom_downsampling_method = "Auto"  # new in v1.3.0.0
+        self.smart_zoom_subsample_default = 5  # new in v1.3.0.0
+        self.smart_zoom_view_mode_choices = ["One-view (2D-only)", "Three-view (DT, MS, 2D)"]  # new in v1.3.0.0
+        self.smart_zoom_view_mode = "One-view (2D-only)"  # new in v1.3.0.0
+        self.smart_zoom_min_search = 1  # new in v1.3.0.0
+        self.smart_zoom_max_search = 20  # new in v1.3.0.0
+
         # Annotation
         self.annotation_charge_std_dev = 0.05
 

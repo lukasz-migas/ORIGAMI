@@ -48,7 +48,7 @@ from ids import ID_clearPlot_MS, ID_smooth1DdataMS, ID_smooth1Ddata1DT, ID_smoot
     ID_extraSettings_rmsd, ID_saveRMSFImage, ID_saveRMSDmatrixImage, ID_saveMSImageDoc, ID_saveRTImageDoc, \
     ID_save1DImageDoc, ID_save2DImageDoc, ID_save3DImageDoc, ID_saveWaterfallImageDoc, ID_saveRMSDImage, \
     ID_saveRMSDImageDoc, ID_saveRMSFImageDoc, ID_saveOverlayImageDoc, ID_saveRMSDmatrixImageDoc, ID_saveMZDTImageDoc, \
-    ID_saveOtherImageDoc
+    ID_saveOtherImageDoc, ID_plots_customise_smart_zoom
 from utils.color import convertRGB1to255, convertRGB1toHEX, randomColorGenerator
 from toolbox import merge_two_dicts
 from utils.check import isempty
@@ -523,7 +523,7 @@ class panelPlot(wx.Panel):
         self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1DdataMS)
         self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1DdataRT)
         self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1Ddata1DT)
-        self.Bind(wx.EVT_MENU, self.presenter.onShowExtractedIons, id=ID_highlightRectAllIons)
+        self.Bind(wx.EVT_MENU, self.presenter.on_highlight_selected_ions, id=ID_highlightRectAllIons)
         self.Bind(wx.EVT_MENU, self.data_processing.on_pick_peaks, id=ID_pickMSpeaksDocument)
         self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_MS)
         self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_RT)
@@ -574,6 +574,8 @@ class panelPlot(wx.Panel):
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_plots_saveImage_unidec_ms_barchart)
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_plots_saveImage_unidec_chargeDist)
         self.Bind(wx.EVT_MENU, self.save_unidec_images, id=ID_saveUniDecAll)
+
+        self.Bind(wx.EVT_MENU, self.on_customise_smart_zoom, id=ID_plots_customise_smart_zoom)
 
         saveImageLabel = ''.join(['Save figure (.', self.config.imageFormat, ')'])
 
@@ -744,6 +746,11 @@ class panelPlot(wx.Panel):
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_plots_rotate90,
                                          text='Rotate 90°',
                                          bitmap=self.icons.iconsLib['blank_16']))
+            menu.AppendSeparator()
+            menu.AppendItem(makeMenuItem(parent=menu,
+                                         id=ID_plots_customise_smart_zoom,
+                                         text="Customise smart zoom....",
+                                         bitmap=self.icons.iconsLib['zoom_16']))
             menu.AppendSeparator()
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_extraSettings_general_plot,
                                          text='Edit general parameters...',
@@ -1152,6 +1159,11 @@ class panelPlot(wx.Panel):
 
     def on_resize_check(self, evt):
         self.config.resize = not self.config.resize
+
+    def on_customise_smart_zoom(self, evt):
+        from gui_elements.dialog_customise_smart_zoom import dialog_customise_smart_zoom
+        dlg = dialog_customise_smart_zoom(self, self.presenter, self.config)
+        dlg.ShowModal()
 
     def customisePlot(self, evt):
         open_window, title = True, ""
@@ -1989,7 +2001,7 @@ class panelPlot(wx.Panel):
             zvals = unidec_eng_data.massgrid
 
         # Check that cmap modifier is included
-        cmapNorm = self.presenter.onCmapNormalization(zvals,
+        cmapNorm = self.presenter.normalize_colormap(zvals,
                                                       min=self.config.minCmap,
                                                       mid=self.config.midCmap,
                                                       max=self.config.maxCmap,
@@ -2581,7 +2593,7 @@ class panelPlot(wx.Panel):
             zvals, xvals, xlabel, yvals, ylabel, cmap = data
 
         # Check and change colormap if necessary
-        cmapNorm = self.presenter.onCmapNormalization(zvals,
+        cmapNorm = self.presenter.normalize_colormap(zvals,
                                                       min=self.config.minCmap,
                                                       mid=self.config.midCmap,
                                                       max=self.config.maxCmap)
@@ -2679,14 +2691,14 @@ class panelPlot(wx.Panel):
 
         # Check that cmap modifier is included
         if cmapNorm == None and plotType != "RMSD":
-            cmapNorm = self.presenter.onCmapNormalization(zvals,
+            cmapNorm = self.presenter.normalize_colormap(zvals,
                                                           min=self.config.minCmap,
                                                           mid=self.config.midCmap,
                                                           max=self.config.maxCmap,
                                                           )
 
         elif cmapNorm == None and plotType == "RMSD":
-            cmapNorm = self.presenter.onCmapNormalization(zvals,
+            cmapNorm = self.presenter.normalize_colormap(zvals,
                                                           min=-100, mid=0, max=100,
                                                           )
 
@@ -2752,7 +2764,7 @@ class panelPlot(wx.Panel):
 
         # Check that cmap modifier is included
         if cmapNorm == None:
-            cmapNorm = self.presenter.onCmapNormalization(zvals,
+            cmapNorm = self.presenter.normalize_colormap(zvals,
                                                           min=self.config.minCmap,
                                                           mid=self.config.midCmap,
                                                           max=self.config.maxCmap,
@@ -2794,6 +2806,12 @@ class panelPlot(wx.Panel):
         # Show the mass spectrum
         self.plotMZDT.repaint()
 
+        # since we always sub-sample this dataset, it is makes sense to keep track of the full dataset before it was
+        # subsampled - this way, when we replot data it will always use the full information
+        if kwargs.get("full_data", False):
+            xvals = kwargs["full_data"].pop("xvals", xvals)
+            zvals = kwargs["full_data"].pop("zvals", zvals)
+
         if override:
             self.config.replotData['DT/MS'] = {'zvals': zvals, 'xvals': xvals,
                                                'yvals': yvals, 'xlabels': xlabel,
@@ -2824,7 +2842,7 @@ class panelPlot(wx.Panel):
 
         # Check that cmap modifier is included
         if cmapNorm == None:
-            cmapNorm = self.presenter.onCmapNormalization(zvals,
+            cmapNorm = self.presenter.normalize_colormap(zvals,
                                                           min=self.config.minCmap,
                                                           mid=self.config.midCmap,
                                                           max=self.config.maxCmap,
@@ -3052,7 +3070,7 @@ class panelPlot(wx.Panel):
             cmap = self.config.currentCmap
 
         if cmapNorm == None and plotType == "RMSD":
-            cmapNorm = self.presenter.onCmapNormalization(zvals, min=-100, mid=0, max=100)
+            cmapNorm = self.presenter.normalize_colormap(zvals, min=-100, mid=0, max=100)
 
         # update kwargs
         plt_kwargs['colormap'] = cmap
@@ -3104,7 +3122,7 @@ class panelPlot(wx.Panel):
 
         # Check that cmap modifier is included
         if cmapNorm == None and plotType == "RMSD":
-            cmapNorm = self.presenter.onCmapNormalization(zvals, min=-100, mid=0, max=100)
+            cmapNorm = self.presenter.normalize_colormap(zvals, min=-100, mid=0, max=100)
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -3277,15 +3295,15 @@ class panelPlot(wx.Panel):
         plt_kwargs['colormap_1'] = cmap_1
         plt_kwargs['colormap_2'] = cmap_2
 
-        plt_kwargs['cmap_norm_1'] = self.presenter.onCmapNormalization(zvals_1,
+        plt_kwargs['cmap_norm_1'] = self.presenter.normalize_colormap(zvals_1,
                                                          min=self.config.minCmap,
                                                          mid=self.config.midCmap,
                                                          max=self.config.maxCmap)
-        plt_kwargs['cmap_norm_2'] = self.presenter.onCmapNormalization(zvals_2,
+        plt_kwargs['cmap_norm_2'] = self.presenter.normalize_colormap(zvals_2,
                                                          min=self.config.minCmap,
                                                          mid=self.config.midCmap,
                                                          max=self.config.maxCmap)
-        plt_kwargs['cmap_norm_cum'] = self.presenter.onCmapNormalization(zvals_cum,
+        plt_kwargs['cmap_norm_cum'] = self.presenter.normalize_colormap(zvals_cum,
                                                          min=-100, mid=0, max=100)
         self.plotOverlay.clearPlot()
         self.plotOverlay.plot_grid_2D_overlay(zvals_1, zvals_2, zvals_cum, xvals, yvals,

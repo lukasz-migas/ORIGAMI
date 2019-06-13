@@ -242,7 +242,7 @@ def merge_two_dicts(dict_1, dict_2):
     return combined_dict
 
 
-def checkVersion(link=None, get_webpage=False):
+def get_latest_version(link=None, get_webpage=False):
 
     if not get_webpage:
         # Search website for all versions
@@ -267,7 +267,7 @@ def checkVersion(link=None, get_webpage=False):
         return webpage.read().decode('utf-8')
 
 
-def compareVersions(newVersion, oldVersion):
+def compare_versions(newVersion, oldVersion):
     return LooseVersion(newVersion) > LooseVersion(oldVersion)
 
 
