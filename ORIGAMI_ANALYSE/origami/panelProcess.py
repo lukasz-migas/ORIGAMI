@@ -35,7 +35,7 @@ from ids import (ID_processSettings_replotMS, ID_processSettings_processMS,
                  ID_processSettings_replotAll, ID_processSettings_restoreIsolatedAll,
                  ID_saveConfig)
 from help_documentation import OrigamiHelp
-from gui_elements.dialog_customiseUniDecPlots import panelCustomiseParameters
+from gui_elements.dialog_customise_unidec_visuals import dialog_customise_unidec_visuals
 from readers.io_waters_raw import (driftscope_extract_MS, driftscope_extract_RT, driftscope_extract_DT,
                                    driftscope_extract_2D)
 from gui_elements.panel_peakWidthTool import panelPeakWidthTool
@@ -2560,6 +2560,6 @@ class panelProcessData(wx.MiniFrame):
 
     def onCustomiseUniDecParameters(self, evt):
 
-        dlg = panelCustomiseParameters(self, self.config, self.icons)
+        dlg = dialog_customise_unidec_visuals(self, self.config, self.icons)
         dlg.ShowModal()
 

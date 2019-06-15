@@ -122,7 +122,7 @@ class ORIGAMI(object):
         self.onImportConfig(evt=None, onStart=True)
 
         # Setup variables
-        self.makeVariables()
+        self.initilize_state()
         self.view = mainWindow.MyFrame(self,
                                        config=self.config,
                                        icons=self.icons,
@@ -161,9 +161,9 @@ class ORIGAMI(object):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
 
-        # Load protein/CCS database
-        if self.config.loadCCSAtStart:
-            self.onImportCCSDatabase(evt=None, onStart=True)
+#         # Load protein/CCS database
+#         if self.config.loadCCSAtStart:
+#             self.onImportCCSDatabase(evt=None, onStart=True)
 
         gc.enable()
         self.on_start_logging()
@@ -209,7 +209,7 @@ class ORIGAMI(object):
 
         logger.info("Logs can be found in {}".format(self.config.loggingFile_path))
 
-    def makeVariables(self):
+    def initilize_state(self):
         """
         Pre-set variables
         """
@@ -237,16 +237,16 @@ class ORIGAMI(object):
 
     def onThreading(self, evt, args, action='loadOrigami'):
         # Setup thread
-        if action == 'loadOrigami':
-            th = threading.Thread(target=self.onLoadOrigamiDataThreaded, args=(args, evt))
+#         if action == 'loadOrigami':
+#             th = threading.Thread(target=self.onLoadOrigamiDataThreaded, args=(args, evt))
 
-        elif action == 'saveFigs':
+        if action == 'saveFigs':
             target, path, kwargs = args
             th = threading.Thread(target=target.saveFigure2, args=(path,), kwargs=kwargs)
 
-        elif action == 'extractIons':
-            extract_type = args
-            th = threading.Thread(target=self.on_extract_2D_from_mass_range, args=(extract_type,))
+#         elif action == 'extractIons':
+#             extract_type = args
+#             th = threading.Thread(target=self.on_extract_2D_from_mass_range, args=(extract_type,))
 
         elif action == 'updateStatusbar':
             if len(args) == 2:
@@ -264,892 +264,888 @@ class ORIGAMI(object):
         except Exception:
             print('Failed to execute the operation in threaded mode. Consider switching it off?')
 
-    def onLinearDTirectory(self, e=None):
-        # self.config.ciuMode = 'LinearDT'
-        # self.config.extractMode = 'singleIon'
-
-        # Reset arrays
-        imsData2D = np.array([])
-        dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-                           style=wx.DD_DEFAULT_STYLE)
-        if self.config.dirname == '':
-            pass
-        else:
-            dlg.SetPath(self.config.dirname)
-        if dlg.ShowModal() == wx.ID_OK:
-            tstart = time.clock()
-            print("You chose %s" % dlg.GetPath())
-            # Update statusbar
-            self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-            # Get experimental parameters
-            parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
-            xlimits = [parameters['startMS'], parameters['endMS']]
-            # Mass spectra
-            extract_kwargs = {'return_data': True}
-            msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
-                                                                driftscope_path=self.config.driftscopePath,
-                                                                **extract_kwargs)
-
-            # RT
-            extract_kwargs = {'return_data': True, 'normalize': True}
-            xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
-                                                                             driftscope_path=self.config.driftscopePath,
-                                                                             **extract_kwargs)
-
-            # 2D
-            extract_kwargs = {'return_data': True}
-            imsData2D = io_waters.driftscope_extract_2D(path=dlg.GetPath(),
-                                                          driftscope_path=self.config.driftscopePath,
-                                                          **extract_kwargs)
-            xlabels = 1 + np.arange(len(imsData2D[1, :]))
-            ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-
-            # Update status bar with MS range
-            self.view.SetStatusText("{}-{}".format(parameters.get('startMS', ""), parameters.get('endMS', "")), 1)
-            self.view.SetStatusText("MSMS: {}".format(parameters.get('setMS', "")), 2)
-
-            tend = time.clock()
-            self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4), action='updateStatusbar')
-
-            # Add info to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.path = dlg.GetPath()
-            self.docs.parameters = parameters
-            self.docs.dataType = 'Type: Multifield Linear DT'
-            self.docs.fileFormat = 'Format: MassLynx (.raw)'
-            # Add data
-            self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals': msDataX,
-                                      'yvals': msDataY,
-                                      'xlabels': 'm/z (Da)',
-                                      'xlimits': xlimits}
-            self.docs.got1RT = True
-            self.docs.RT = {'xvals': xvalsRT,
-                            'yvals': rtDataYnorm,
-                            'xlabels': 'Scans'}
-            self.docs.got2DIMS = True
-            # Format: zvals, xvals, xlabel, yvals, ylabel
-            self.docs.IMS2D = {'zvals': imsData2D,
-                               'xvals': xlabels,
-                                'xlabels': 'Scans',
-                                'yvals': ylabels,
-                                'ylabels': 'Drift time (bins)',
-                                'cmap': self.docs.colormap}
-
-            # Plots
-            self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
-            name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
-            self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-
-            # Update document
-            self.OnUpdateDocument(self.docs, 'document')
-
-        dlg.Destroy()
-        return None
-
-    def onCalibrantRawDirectory(self, e=None):
-        """
-        This function opens calibrant file
-        """
-
-        # Reset arrays
-        dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-                           style=wx.DD_DEFAULT_STYLE)
-
-        if dlg.ShowModal() == wx.ID_OK:
-            tstart = time.clock()
-            # Check whether appropriate calibration file was selected
-            path = self.checkIfRawFile(dlg.GetPath())
-            if path is None:
-                msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format."
-                dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
-                       exceptionMsg=msg,
-                       type="Error")
-                return
-            print("You chose %s" % dlg.GetPath())
-            # Update statusbar
-            self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-            # Get experimental parameters
-            parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
-            xlimits = [parameters['startMS'], parameters['endMS']]
-            # Mass spectra
-            extract_kwargs = {'return_data': True}
-            msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
-                                                                driftscope_path=self.config.driftscopePath,
-                                                                **extract_kwargs)
-            # RT
-            extract_kwargs = {'return_data': True, 'normalize': True}
-            xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
-                                                                             driftscope_path=self.config.driftscopePath,
-                                                                             **extract_kwargs)
-
-            # DT
-            extract_kwargs = {'return_data': True}
-            xvalsDT, imsData1D = io_waters.driftscope_extract_DT(path=dlg.GetPath(),
-                                                                  driftscope_path=self.config.driftscopePath,
-                                                                  **extract_kwargs)
-
-            # Update status bar with MS range
-            self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
-            self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
-            tend = time.clock()
-            self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4),
-                             action='updateStatusbar')
-
-            # Add info to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.path = dlg.GetPath()
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.parameters = parameters
-            self.docs.dataType = 'Type: CALIBRANT'
-            self.docs.fileFormat = 'Format: MassLynx (.raw)'
-            self.docs.corrC = parameters['corrC']
-            # Add data
-            self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals': msDataX,
-                                      'yvals': msDataY,
-                                      'xlabels': 'm/z (Da)',
-                                      'xlimits': xlimits}
-            self.docs.got1RT = True
-            self.docs.RT = {'xvals': xvalsRT,
-                            'yvals': rtDataYnorm,
-                            'xlabels': 'Scans'}
-            self.docs.got1DT = True
-            self.docs.DT = {'xvals': xvalsDT,
-                            'yvals': imsData1D,
-                            'xlabels': 'Drift time (bins)',
-                            'ylabels': 'Intensity'}
-
-            # Add plots
-            self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
-            self.onPlotMSDTCalibration(msX=msDataX,
-                                       msY=msDataY,
-                                       xlimits=xlimits,
-                                       dtX=xvalsDT,
-                                       dtY=imsData1D,
-                                       xlabelDT='Drift time (bins)',
-                                       color=self.docs.lineColour)
-
-            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Calibration'])
-
-            # Update document
-            self.OnUpdateDocument(self.docs, 'document')
-
-        dlg.Destroy()
-        return None
-
-    def onAddCalibrantMultiple(self, evt):
-
-        tempList = self.view.panelCCS.topP.peaklist
-        for row in range(tempList.GetItemCount()):
-            if evt.GetId() == ID_extractCCScalibrantAll:
-                pass
-            elif evt.GetId() == ID_extractCCScalibrantSelected:
-                if not tempList.IsChecked(index=row):
-                    continue
-
-            # Get values
-            filename = tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['filename']).GetText()
-            mzStart = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['start']).GetText())
-            mzEnd = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['end']).GetText())
-            rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
-
-            # Get the document
-            document = self.documentsDict[filename]
-            if document.fileFormat == 'Format: DataFrame':
-                print(('Skipping %s as this is a DataFrame document.' % rangeName))
-                continue
-
-            extract_kwargs = {'return_data': True}
-            __, yvalsDT = io_waters.driftscope_extract_DT(path=document.path,
-                                                           driftscope_path=self.config.driftscopePath,
-                                                           **extract_kwargs)
-            mphValue = (max(yvalsDT)) * 0.2  # 20 % cutoff
-            # Get pusher
-            pusherFreq = document.parameters.get('pusherFreq', 1)
-
-            if pusherFreq != 1:
-                xlabel = 'Drift time (ms)'
-            else:
-                xlabel = 'Drift time (bins)'
-            # Create x-labels in ms
-            xvalsDT = (np.arange(1, len(yvalsDT) + 1) * pusherFreq) / 1000
-
-            # Detect peak
-            ind = detectPeaks(x=yvalsDT, mph=mphValue)
-            if len(ind) > 1:
-                self.view.SetStatusText('Found more than one peak. Selected the first one', 3)
-                tD = np.round(xvalsDT[ind[0]], 2)
-                print((ind[0], tD))
-                yval = np.round(yvalsDT[ind[0]], 2)
-                yval = pr_spectra.normalize_1D(yval)
-            elif len(ind) == 0:
-                self.view.SetStatusText('Found no peaks', 3)
-                tD = ""
-            else:
-                self.view.SetStatusText('Found one peak', 3)
-                tD = np.round(xvalsDT[ind[0]], 2)
-#                 print(ind[0], tD)
-                yval = np.round(yvalsDT[ind[0]], 2)
-                yval = pr_spectra.normalize_1D(yval)
-
-            # Add data to document
-            protein, charge, CCS, gas, mw = None, None, None, None, None
-
-            # Check whether the document has molecular weight
-            mw = document.moleculeDetails.get('molWeight', None)
-            protein = document.moleculeDetails.get('protein', None)
-
-            document.gotCalibration = True
-            document.calibration[rangeName] = {'xrange': [mzStart, mzEnd],
-                                               'xvals': xvalsDT,
-                                               'yvals': yvalsDT,
-                                               'xcentre': ((mzEnd + mzStart) / 2),
-                                               'protein': protein,
-                                               'charge': charge,
-                                               'ccs': CCS, 'tD': tD,
-                                               'gas': gas,
-                                               'xlabels': xlabel,
-                                               'peak': [tD, yval],
-                                               'mw': mw
-                                               }
-            # Plot
-            self.onPlot1DTCalibration(dtX=xvalsDT,
-                                      dtY=yvalsDT,
-                                      xlabel=xlabel,
-                                      color=document.lineColour)
-
-            if tD != "":
-                self.addMarkerMS(xvals=tD,
-                                 yvals=yval,
-                                 color=self.config.annotColor,
-                                 marker=self.config.markerShape,
-                                 size=self.config.markerSize,
-                                 plot='CalibrationDT')
-
-            # Update document
-            self.OnUpdateDocument(document, 'document')
-
-    def onIRTextFile(self, evt):
-        dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.txt; *.csv",
-                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_OK:
-            print("You chose %s" % dlg.GetPath())
-            imsData2D, xAxisLabels, yAxisLabels = None, None, None
-            imsData2D, xAxisLabels, yAxisLabels = io_text.text_infrared_open(path=dlg.GetPath())
-            dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT = pr_origami.origami_combine_infrared(
-                inputData=imsData2D, threshold=2000, noiseLevel=500)
-
-            # Add data to document
-            __, idName = os.path.split(dlg.GetPath())
-            idName = (''.join([idName])).encode('ascii', 'replace')
-            self.docs = documents()
-            self.docs.title = idName
-            self.currentDoc = idName  # Currently plotted document
-            self.docs.path = os.path.dirname(dlg.GetPath())
-            self.docs.userParameters = self.config.userParameters
-            self.docs.userParameters['date'] = getTime()
-            self.docs.dataType = 'Type: IR IM-MS'
-            self.docs.fileFormat = 'Format: Text (.csv/.txt)'
-
-            self.docs.got1RT = True
-            self.docs.RT = {'xvals': yAxisLabels,  # bins
-                            'yvals': dataRT,
-                            'xlabels': 'Wavenumber (cm⁻¹)'}
-            self.docs.got1DT = True
-            self.docs.DT = {'xvals': xAxisLabels,
-                            'yvals': data1DT,
-                            'xlabels': 'Drift time (bins)',
-                            'ylabels': 'Intensity'}
-
-            self.docs.got2DIMS = True
-            self.docs.IMS2D = {'zvals': dataSplit,
-                               'xvals': xAxisLabels,
-                               'xlabels': 'Wavenumber (cm⁻¹)',
-                               'yvals': yAxisLabels,
-                               'ylabels': 'Drift time (bins)',
-                               'cmap': self.docs.colormap}
-            # Append to list
-            self.documentsDict[idName] = self.docs
-
-            # Plots
-            self.view.panelPlots.on_plot_1D(yAxisLabels, data1DT, 'Drift time (bins)')
-            self.view.panelPlots.on_plot_RT(xAxisLabels, dataRT, 'Wavenumber (cm⁻¹)')
-            self.view.panelPlots.on_plot_2D_data(
-                data=[
-        dataSplit,
-        xAxisLabels,
-        'Wavenumber (cm⁻¹)',
-        yAxisLabels,
-        'Drift time (bins)',
-        self.docs.colormap])
-
-            # Update documents tree
-            self.view.panelDocuments.documents.add_document(docData=self.docs)
-
-    def on_extract_2D_from_mass_range(self, extract_type="all"):
-        """ extract multiple ions = threaded """
-
-        # self.config.extractMode = 'multipleIons'
-        tempList = self.view.panelMultipleIons.peaklist  # shortcut
-        for row in range(tempList.GetItemCount()):
-            # Extract ion name
-            itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=row)
-            filename = itemInfo['document']
-            # Check if the ion has been assigned a filename
-            if filename == '':
-                self.onThreading(
-                    None,
-                    ('File name column was empty. Using the current document name instead',
-     4),
-                    action='updateStatusbar')
-                tempList.SetStringItem(index=row, col=self.config.peaklistColNames['filename'], label=self.currentDoc)
-                filename = self.currentDoc
-            else:
-                pass
-            document = self.documentsDict[filename]
-            # Extract information from the table
-            mzStart = itemInfo['start']
-            mzEnd = itemInfo['end']
-            label = itemInfo['label']
-            charge = itemInfo['charge']
-
-            if charge is None:
-                charge = 'None'
-            path = document.path
-
-            # Create range name
-            rangeName = itemInfo['ionName']
-
-            # Check that the mzStart/mzEnd are above the acquire MZ value
-            if mzStart < min(document.massSpectrum['xvals']):
-                tempList.ToggleItem(index=row)
-                msg = "Ion: {} was below the minimum value in the mass spectrum. Consider removing it from the list.".format(
-                    rangeName)
-                self.onThreading(None, (msg, 4), action='updateStatusbar')
-                continue
-
-            # Check whether this ion was already extracted
-            if extract_type == 'new' and document.gotExtractedIons:
-                try:
-                    if document.IMS2Dions[rangeName]:
-                        self.onThreading(None, ("Data was already extracted for the : {} ion".format(rangeName), 4),
-                                         action='updateStatusbar')
-                        continue
-                except KeyError:
-                    pass
-
-            elif extract_type == 'new' and document.gotCombinedExtractedIons:
-                try:
-                    if document.IMS2DCombIons[rangeName]:
-                        self.onThreading(None, ("Data was already extracted for the : {} ion".format(rangeName), 4),
-                                         action='updateStatusbar')
-                        continue
-                except KeyError:
-                    pass
-
-            # Extract selected ions
-            if extract_type == 'selected' and not tempList.IsChecked(index=row):
-                continue
-
-            msg = "Extracted: {}/{}".format((row + 1), tempList.GetItemCount())
-
-            if document.dataType == 'Type: ORIGAMI':
-                # 1D
-                try:
-                    extract_kwargs = {'return_data': True}
-                    __, imsData1D = io_waters.driftscope_extract_DT(path=path,
-                                                                     driftscope_path=self.config.driftscopePath,
-                                                                     mz_start=mzStart, mz_end=mzEnd,
-                                                                     **extract_kwargs)
-                except IOError:
-                    msg = "Failed to open the file - most likely because this file no longer exists or has been moved.\n" + \
-                          "You can change the document path by right-clicking on the document in the Document Tree and \n " + \
-                          "selecting Notes, Information, Labels..."
-                    dlgBox(exceptionTitle='Missing folder',
-                           exceptionMsg=msg, type="Error")
-                    return
-                # RT
-                extract_kwargs = {'return_data': True, 'normalize': True}
-                xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(
-                    path=path, driftscope_path=self.config.driftscopePath, mz_start=mzStart, mz_end=mzEnd, **extract_kwargs)
-                # 2D
-                extract_kwargs = {'return_data': True}
-                imsData2D = io_waters.driftscope_extract_2D(path=path,
-                                                              driftscope_path=self.config.driftscopePath,
-                                                              mz_start=mzStart, mz_end=mzEnd,
-                                                              **extract_kwargs)
-                xlabels = 1 + np.arange(len(imsData2D[1, :]))
-                ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-                # Update limits
-                self.setXYlimitsRMSD2D(xlabels, ylabels)
-
-                # Get height of the peak
-                ms = np.transpose(np.array([document.massSpectrum['xvals'], document.massSpectrum['yvals']]))
-                mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
-                tempList.SetStringItem(row,
-                                       self.config.peaklistColNames['intensity'],
-                                       str(mzYMax))
-
-                # Add data to document object
-                document.gotExtractedIons = True
-                document.IMS2Dions[rangeName] = {'zvals': imsData2D,
-                                                 'xvals': xlabels,
-                                                  'xlabels': 'Scans',
-                                                  'yvals': ylabels,
-                                                  'ylabels': 'Drift time (bins)',
-                                                  'cmap': itemInfo.get('colormap', self.config.currentCmap),
-                                                  'yvals1D': imsData1D,
-                                                  'yvalsRT': rtDataY,
-                                                  'title': label,
-                                                  'label': label,
-                                                  'charge': charge,
-                                                  'alpha': itemInfo['alpha'],
-                                                  'mask': itemInfo['mask'],
-                                                  'color': itemInfo['color'],
-                                                  'min_threshold': itemInfo['min_threshold'],
-                                                  'max_threshold': itemInfo['max_threshold'],
-                                                  'xylimits': [mzStart, mzEnd, mzYMax]}
-                # Update document
-                # if auto extract is enabled and the user extracts items rapidly it can
-                # cause an issue so its a small hack to fix that
-                try:
-                    self.OnUpdateDocument(document, 'ions', expand_item_title=rangeName)
-                except wx.PyAssertionError:
-                    time.sleep(0.1)
-                    self.OnUpdateDocument(document, 'ions')
-
-            # Check if manual dataset
-            elif document.dataType == 'Type: MANUAL':
-                # Shortcut to the file list
-                nameList = self.view.panelMML.peaklist  # List with MassLynx file information
-                # Sort data regardless of what user did
-                self.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
-                tempDict = {}
-                extract_kwargs = {'return_data': True}
-                for item in range(nameList.GetItemCount()):
-                    # Determine whether the title of the document matches the title of the item in the table
-                    # if it does not, skip the row
-                    docValue = nameList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
-                    if docValue != document.title:
-                        continue
-
-                    nameValue = nameList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
-                    try:
-                        pathValue = document.multipleMassSpectrum[nameValue]['path']
-                        __, imsData1D = io_waters.driftscope_extract_DT(path=pathValue,
-                                                                         driftscope_path=self.config.driftscopePath,
-                                                                         mz_start=mzStart, mz_end=mzEnd,
-                                                                         **extract_kwargs)
+#     def onLinearDTirectory(self, e=None):
+#         # self.config.ciuMode = 'LinearDT'
+#         # self.config.extractMode = 'singleIon'
 #
-#                         io_waters.driftscope_extract_DT(path=pathValue,
-#                                                          driftscope_path=self.config.driftscopePath,
-#                                                          mz_start=mzStart, mz_end=mzEnd)
-                    # if the files were moved, we can at least try to with the document path
-                    except IOError:
-                        try:
-                            pathValue = os.path.join(document.path, nameValue)
-#                             io_waters.driftscope_extract_DT(path=pathValue,
-#                                                              driftscope_path=self.config.driftscopePath,
-#                                                              mz_start=mzStart, mz_end=mzEnd)
-                            __, imsData1D = io_waters.driftscope_extract_DT(path=pathValue,
-                                                                             driftscope_path=self.config.driftscopePath,
-                                                                             mz_start=mzStart, mz_end=mzEnd,
-                                                                             **extract_kwargs)
-                            document.multipleMassSpectrum[nameValue]['path'] = pathValue
-                        except Exception:
-                            msg = "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
-                                  "by updating the document path by right-clicking on the document and selecting\n" + \
-                                  "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
-                                  "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
-                            dlgBox(exceptionTitle='Error',
-                                   exceptionMsg=msg,
-                                   type="Error")
-                            return
-
-#                     imsData1D =  io_waters.rawMassLynx_DT_load(path=pathValue)
-#                     io_waters.driftscope_extract_DT(path=pathValue,
-#                                                      driftscope_path=self.config.driftscopePath)
-                    # Get height of the peak
-                    ms = document.massSpectrum
-                    ms = np.transpose([ms['xvals'], ms['yvals']])
-                    mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
-                    tempList.SetStringItem(index=row,
-                                           col=self.config.peaklistColNames['intensity'],
-                                           label=str(mzYMax))
-                    tempList.SetStringItem(index=row,
-                                           col=self.config.peaklistColNames['method'],
-                                           label='Manual')
-                    # Create temporary dictionary for all IMS data
-                    tempDict[nameValue] = [imsData1D]
-                    # Add 1D data to 1D data container
-                    newName = ''.join([rangeName, ', File: ', nameValue])
-                    document.gotExtractedDriftTimes = True
-                    labelX1D = 'Drift time (bins)'
-                    xvals1D = 1 + np.arange(len(imsData1D))
-                    document.IMS1DdriftTimes[newName] = {'xvals': xvals1D,
-                                                         'yvals': imsData1D,
-                                                          'xlabels': labelX1D,
-                                                          'ylabels': 'Intensity',
-                                                          'charge': charge,
-                                                          'xylimits': [mzStart, mzEnd, mzYMax],
-                                                          'filename': nameValue}
-
-                # Combine the contents in the dictionary - assumes they are ordered!
-                counter = 0  # needed to start off
-                xlabelsActual = []
-                for item in range(nameList.GetItemCount()):
-                    # Determine whether the title of the document matches the title of the item in the table
-                    # if it does not, skip the row
-                    docValue = nameList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
-                    if docValue != document.title:
-                        continue
-                    key = nameList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
-                    if counter == 0:
-                        tempArray = tempDict[key][0]
-                        xLabelLow = document.multipleMassSpectrum[key]['trap']  # first iteration so first value
-                        xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
-                        counter += 1
-                    else:
-                        imsList = tempDict[key][0]
-                        tempArray = np.concatenate((tempArray, imsList), axis=0)
-                        xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
-                        counter += 1
-
-                # Reshape data to form a 2D array of size 200 x number of files
-                imsData2D = None
-                imsData2D = tempArray.reshape((200, int(counter)), order='F')
-                # Combine 2D array into 1D
-                rtDataY = np.sum(imsData2D, axis=0)
-                imsData1D = np.sum(imsData2D, axis=1).T
-                # Get the x-axis labels
-                xLabelHigh = document.multipleMassSpectrum[key]['trap']  # after the loop has finished, so last value
-                xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
-                ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-                # Update limits
-                self.setXYlimitsRMSD2D(xlabels, ylabels)
-                # Add data to the document
-                document.gotCombinedExtractedIons = True
-                document.IMS2DCombIons[rangeName] = {'zvals': imsData2D,
-                                                     'xvals': xlabels,
-                                                      'xlabels': 'Collision Voltage (V)',
-                                                      'yvals': ylabels,
-                                                      'ylabels': 'Drift time (bins)',
-                                                      'yvals1D': imsData1D,
-                                                      'yvalsRT': rtDataY,
-                                                      'cmap': document.colormap,
-                                                      'title': label,
-                                                      'label': label,
-                                                      'charge': charge,
-                                                      'alpha': itemInfo['alpha'],
-                                                      'mask': itemInfo['mask'],
-                                                      'color': itemInfo['color'],
-                                                      'min_threshold': itemInfo['min_threshold'],
-                                                      'max_threshold': itemInfo['max_threshold'],
-                                                      'xylimits': [mzStart, mzEnd, mzYMax]}
-
-                # Update document
-                self.OnUpdateDocument(document, 'combined_ions')
-            elif document.dataType == 'Type: Infrared':
-                # 2D
-                extract_kwargs = {'return_data': True}
-                imsData2D = io_waters.driftscope_extract_2D(path=path,
-                                                              driftscope_path=self.config.driftscopePath,
-                                                              **extract_kwargs)
-
-                dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT = pr_origami.origami_combine_infrared(
-                    inputData=imsData2D, threshold=2000, noiseLevel=500)
-
-                # Get height of the peak
-                ms = document.massSpectrum
-                ms = np.transpose(np.array([ms['xvals'], ms['yvals']]))
-                mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
-                tempList.SetStringItem(index=row, col=7, label=str(mzYMax))
-                # Add data to document object
-                document.gotExtractedIons = True
-                document.IMS2Dions[rangeName] = {'zvals': dataSplit,
-                                                 'xvals': xAxisLabels,
-                                                  'xlabels': 'Wavenumber (cm⁻¹)',
-                                                  'yvals': yAxisLabels,
-                                                  'ylabels': 'Drift time (bins)',
-                                                  'cmap': document.colormap,
-                                                  'yvals1D': data1DT,
-                                                  'yvalsRT': dataRT,
-                                                  'title': label,
-                                                  'label': label,
-                                                  'charge': charge,
-                                                  'alpha': itemInfo['alpha'],
-                                                  'mask': itemInfo['mask'],
-                                                  'color': itemInfo['color'],
-                                                  'min_threshold': itemInfo['min_threshold'],
-                                                  'max_threshold': itemInfo['max_threshold'],
-                                                  'xylimits': [mzStart, mzEnd, mzYMax]}
-                # Update document
-                self.OnUpdateDocument(document, 'ions')
-            else:
-                return
-            self.onThreading(None, (msg, 4), action='updateStatusbar')
-
-    def on_extract_2D_from_mass_range_threaded(self, evt, extract_type="all"):
-        """
-        Extract 2D array for each m/z range specified in the table
-        """
-        if evt is None:
-            evt = extract_type
-        else:
-            evt = "all"
-
-        if not self.config.threading:
-            self.on_extract_2D_from_mass_range(evt)
-        else:
-            args = (evt)
-            self.onThreading(evt, args, action='extractIons')
-
-    def on_extract_RT_from_mzdt(self, mzStart, mzEnd, dtStart, dtEnd, units_x="m/z",
-                                units_y="Drift time (bins)"):  # onExtractRTforMZDTrange
-        """ Function to extract RT data for specified MZ/DT region """
-
-        document = self.data_processing._on_get_document()
-
-        # convert from miliseconds to bins
-        if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
-            pusherFreq = self.docs.parameters.get('pusherFreq', 1000)
-            dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
-            dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
-
-        # Load data
-        extract_kwargs = {'return_data': True, 'normalize': False}
-        rtDataX, rtDataY = io_waters.driftscope_extract_RT(path=document.path,
-                                                            driftscope_path=self.config.driftscopePath,
-                                                            mz_start=mzStart, mz_end=mzEnd,
-                                                            dt_start=dtStart, dt_end=dtEnd,
-                                                            **extract_kwargs)
-        self.view.panelPlots.on_plot_RT(rtDataX, rtDataY, 'Scans')
-
-        itemName = "Ion: {}-{} | Drift time: {}-{}".format(np.round(mzStart, 2), np.round(mzEnd),
-                                                           np.round(dtStart, 2), np.round(dtEnd))
-        document.multipleRT[itemName] = {'xvals': rtDataX,
-                                         'yvals': rtDataY,
-                                         'xlabels': 'Scans'}
-        document.gotMultipleRT = True
-
-        msg = "Extracted RT data for m/z: %s-%s | dt: %s-%s" % (mzStart, mzEnd, dtStart, dtEnd)
-        self.onThreading(None, (msg, 3), action='updateStatusbar')
-
-        # Update document
-        self.OnUpdateDocument(document, 'document')
-
-    def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
-        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        if self.currentDoc == 'Current documents':
-            return
-        self.docs = self.documentsDict[self.currentDoc]
-
-        # convert from miliseconds to bins
-        if units in ["Drift time (ms)", "Arrival time (ms)"]:
-            pusherFreq = self.docs.parameters.get('pusherFreq', 1000)
-            dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
-            dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
-
-        # Extract data
-        extract_kwargs = {'return_data': True}
-        msX, msY = io_waters.driftscope_extract_MS(path=self.docs.path,
-                                                    driftscope_path=self.config.driftscopePath,
-                                                    dt_start=dtStart, dt_end=dtEnd,
-                                                    **extract_kwargs)
-        xlimits = [self.docs.parameters['startMS'], self.docs.parameters['endMS']]
-
-        # Add data to dictionary
-        itemName = "Drift time: {}-{}".format(dtStart, dtEnd)
-
-        self.docs.gotMultipleMS = True
-        self.docs.multipleMassSpectrum[itemName] = {'xvals': msX, 'yvals': msY,
-                                                    'range': [dtStart, dtEnd],
-                                                    'xlabels': 'm/z (Da)',
-                                                    'xlimits': xlimits}
-
-        # Plot MS
-        name_kwargs = {"document": self.docs.title, "dataset": itemName}
-        self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="1D", **name_kwargs)
-        # Update document
-        self.OnUpdateDocument(self.docs, 'mass_spectra')
-
-    def on_extract_MS_from_chromatogram(self, startScan=None, endScan=None, units="Scans"):
-        """ Function to extract MS data for specified RT region """
-
-        document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-        if document_title == 'Current documents':
-            return
-        document = self.documentsDict[document_title]
-
-        try:
-            scantime = document.parameters['scanTime']
-        except:
-            scantime = None
-
-        try:
-            xlimits = [document.parameters['startMS'], document.parameters['endMS']]
-        except Exception:
-            try:
-                xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-            except:
-                pass
-            xlimits = None
-
-        if not self.config.ms_enable_in_RT and scantime is not None:
-            if units == "Scans":
-                rtStart = round(startScan * (scantime / 60), 2)
-                rtEnd = round(endScan * (scantime / 60), 2)
-            elif units in ['Time (min)', 'Retention time (min)']:
-                rtStart, rtEnd = startScan, endScan
-                startScan = np.ceil(((startScan / scantime) * 60)).astype(int)
-                endScan = np.ceil(((endScan / scantime) * 60)).astype(int)
-
-            # Mass spectra
-            try:
-                extract_kwargs = {'return_data': True}
-                msX, msY = io_waters.driftscope_extract_MS(path=document.path,
-                                                            driftscope_path=self.config.driftscopePath,
-                                                            rt_start=rtStart, rt_end=rtEnd,
-                                                            **extract_kwargs)
-                if xlimits is None:
-                    xlimits = [np.min(msX), np.max(msX)]
-            except (IOError, ValueError):
-                kwargs = {'auto_range': self.config.ms_auto_range,
-                          'mz_min': xlimits[0], 'mz_max': xlimits[1],
-                          'linearization_mode': self.config.ms_linearization_mode}
-                msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path), function=1,
-                                                      startScan=startScan, endScan=endScan,
-                                                      binData=self.config.import_binOnImport,
-                                                      # override any settings as this is a accidental extraction
-                                                      mzStart=xlimits[0], mzEnd=xlimits[1],
-                                                      binsize=self.config.ms_mzBinSize,
-                                                      **kwargs)
-                msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
-
-            xlimits = [np.min(msX), np.max(msX)]
-        else:
-            kwargs = {'auto_range': self.config.ms_auto_range,
-                      'mz_min': xlimits[0], 'mz_max': xlimits[1],
-                      'linearization_mode': self.config.ms_linearization_mode}
-            msDict = io_waters.rawMassLynx_MS_bin(
-                filename=str(document.path),
-                function=1,
-                startScan=startScan, endScan=endScan,
-                binData=self.config.import_binOnImport,
-                mzStart=self.config.ms_mzStart,
-                mzEnd=self.config.ms_mzEnd,
-                binsize=self.config.ms_mzBinSize,
-                **kwargs)
-
-            msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
-            xlimits = [np.min(msX), np.max(msX)]
-
-        # Add data to dictionary
-        itemName = "Scans: {}-{}".format(startScan, endScan)
-
-        document.gotMultipleMS = True
-        document.multipleMassSpectrum[itemName] = {'xvals': msX,
-                                                   'yvals': msY,
-                                                    'range': [startScan, endScan],
-                                                    'xlabels': 'm/z (Da)',
-                                                    'xlimits': xlimits}
-
-        self.OnUpdateDocument(document, 'mass_spectra', expand_item_title=itemName)
-        # Plot MS
-        name_kwargs = {"document": document.title, "dataset": itemName}
-        self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="RT", **name_kwargs)
-        # Set status
-        msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
-        self.onThreading(None, (msg, 3), action='updateStatusbar')
-
-    def on_extract_MS_from_heatmap(self, startScan=None, endScan=None, dtStart=None,
-                                   dtEnd=None, units_x="Scans", units_y="Drift time (bins)"):
-        """ Function to extract MS data for specified DT/MS region """
-
-        document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-        if document_title == 'Current documents':
-            return
-        document = self.documentsDict[document_title]
-
-        try:
-            scanTime = document.parameters['scanTime']
-        except:
-            scanTime = None
-
-        try:
-            pusherFreq = document.parameters['pusherFreq']
-        except:
-            pusherFreq = None
-
-        try:
-            xlimits = [document.parameters['startMS'], document.parameters['endMS']]
-        except Exception:
-            try:
-                xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-            except:
-                return
-
-        if units_x == "Scans":
-            if scanTime is None:
-                return
-            rtStart = round(startScan * (scanTime / 60), 2)
-            rtEnd = round(endScan * (scanTime / 60), 2)
-        elif units_x in ['Time (min)', 'Retention time (min)']:
-            rtStart, rtEnd = startScan, endScan
-            if scanTime is None:
-                return
-            startScan = np.ceil(((startScan / scanTime) * 60)).astype(int)
-            endScan = np.ceil(((endScan / scanTime) * 60)).astype(int)
-
-        if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
-            if pusherFreq is None:
-                return
-            dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
-            dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
-
-        # Mass spectra
-        try:
-            extract_kwargs = {'return_data': True}
-            msX, msY = io_waters.driftscope_extract_MS(path=document.path,
-                                                        driftscope_path=self.config.driftscopePath,
-                                                        rt_start=rtStart, rt_end=rtEnd,
-                                                        dt_start=dtStart, dt_end=dtEnd,
-                                                        **extract_kwargs)
-            if xlimits is None:
-                xlimits = [np.min(msX), np.max(msX)]
-        except (IOError, ValueError):
-            return
-
-        # Add data to dictionary
-        itemName = "Scans: {}-{} | Drift time: {}-{}".format(startScan, endScan,
-                                                             dtStart, dtEnd)
-
-        document.gotMultipleMS = True
-        document.multipleMassSpectrum[itemName] = {'xvals': msX,
-                                                   'yvals': msY,
-                                                   'range': [startScan, endScan],
-                                                   'xlabels': 'm/z (Da)',
-                                                   'xlimits': xlimits}
-
-        self.OnUpdateDocument(document, 'mass_spectra', expand_item_title=itemName)
-        # Plot MS
-        name_kwargs = {"document": document.title, "dataset": itemName}
-        self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
-        # Set status
-        msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
-        self.onThreading(None, (msg, 3), action='updateStatusbar')
+#         # Reset arrays
+#         imsData2D = np.array([])
+#         dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
+#                            style=wx.DD_DEFAULT_STYLE)
+#         if self.config.dirname == '':
+#             pass
+#         else:
+#             dlg.SetPath(self.config.dirname)
+#         if dlg.ShowModal() == wx.ID_OK:
+#             tstart = time.clock()
+#             print("You chose %s" % dlg.GetPath())
+#             # Update statusbar
+#             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
+#             # Get experimental parameters
+#             parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
+#             xlimits = [parameters['startMS'], parameters['endMS']]
+#             # Mass spectra
+#             extract_kwargs = {'return_data': True}
+#             msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
+#                                                                 driftscope_path=self.config.driftscopePath,
+#                                                                 **extract_kwargs)
+#
+#             # RT
+#             extract_kwargs = {'return_data': True, 'normalize': True}
+#             xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
+#                                                                              driftscope_path=self.config.driftscopePath,
+#                                                                              **extract_kwargs)
+#
+#             # 2D
+#             extract_kwargs = {'return_data': True}
+#             imsData2D = io_waters.driftscope_extract_2D(path=dlg.GetPath(),
+#                                                           driftscope_path=self.config.driftscopePath,
+#                                                           **extract_kwargs)
+#             xlabels = 1 + np.arange(len(imsData2D[1, :]))
+#             ylabels = 1 + np.arange(len(imsData2D[:, 1]))
+#
+#             # Update status bar with MS range
+#             self.view.SetStatusText("{}-{}".format(parameters.get('startMS', ""), parameters.get('endMS', "")), 1)
+#             self.view.SetStatusText("MSMS: {}".format(parameters.get('setMS', "")), 2)
+#
+#             tend = time.clock()
+#             self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4), action='updateStatusbar')
+#
+#             # Add info to document
+#             __, idName = os.path.split(dlg.GetPath())
+#             idName = (''.join([idName])).encode('ascii', 'replace')
+#             self.docs = documents()
+#             self.docs.title = idName
+#             self.currentDoc = idName  # Currently plotted document
+#             self.docs.userParameters = self.config.userParameters
+#             self.docs.userParameters['date'] = getTime()
+#             self.docs.path = dlg.GetPath()
+#             self.docs.parameters = parameters
+#             self.docs.dataType = 'Type: Multifield Linear DT'
+#             self.docs.fileFormat = 'Format: MassLynx (.raw)'
+#             # Add data
+#             self.docs.gotMS = True
+#             self.docs.massSpectrum = {'xvals': msDataX,
+#                                       'yvals': msDataY,
+#                                       'xlabels': 'm/z (Da)',
+#                                       'xlimits': xlimits}
+#             self.docs.got1RT = True
+#             self.docs.RT = {'xvals': xvalsRT,
+#                             'yvals': rtDataYnorm,
+#                             'xlabels': 'Scans'}
+#             self.docs.got2DIMS = True
+#             # Format: zvals, xvals, xlabel, yvals, ylabel
+#             self.docs.IMS2D = {'zvals': imsData2D,
+#                                'xvals': xlabels,
+#                                 'xlabels': 'Scans',
+#                                 'yvals': ylabels,
+#                                 'ylabels': 'Drift time (bins)',
+#                                 'cmap': self.docs.colormap}
+#
+#             # Plots
+#             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
+#             name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
+#             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+#
+#             # Update document
+#             self.OnUpdateDocument(self.docs, 'document')
+#
+#         dlg.Destroy()
+#         return None
+#
+#     def onCalibrantRawDirectory(self, e=None):
+#         """
+#         This function opens calibrant file
+#         """
+#
+#         # Reset arrays
+#         dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
+#                            style=wx.DD_DEFAULT_STYLE)
+#
+#         if dlg.ShowModal() == wx.ID_OK:
+#             tstart = time.clock()
+#             # Check whether appropriate calibration file was selected
+#             path = self.checkIfRawFile(dlg.GetPath())
+#             if path is None:
+#                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format."
+#                 dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
+#                        exceptionMsg=msg,
+#                        type="Error")
+#                 return
+#             print("You chose %s" % dlg.GetPath())
+#             # Update statusbar
+#             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
+#             # Get experimental parameters
+#             parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
+#             xlimits = [parameters['startMS'], parameters['endMS']]
+#             # Mass spectra
+#             extract_kwargs = {'return_data': True}
+#             msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
+#                                                                 driftscope_path=self.config.driftscopePath,
+#                                                                 **extract_kwargs)
+#             # RT
+#             extract_kwargs = {'return_data': True, 'normalize': True}
+#             xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
+#                                                                              driftscope_path=self.config.driftscopePath,
+#                                                                              **extract_kwargs)
+#
+#             # DT
+#             extract_kwargs = {'return_data': True}
+#             xvalsDT, imsData1D = io_waters.driftscope_extract_DT(path=dlg.GetPath(),
+#                                                                   driftscope_path=self.config.driftscopePath,
+#                                                                   **extract_kwargs)
+#
+#             # Update status bar with MS range
+#             self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
+#             self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
+#             tend = time.clock()
+#             self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4),
+#                              action='updateStatusbar')
+#
+#             # Add info to document
+#             __, idName = os.path.split(dlg.GetPath())
+#             idName = (''.join([idName])).encode('ascii', 'replace')
+#             self.docs = documents()
+#             self.docs.title = idName
+#             self.currentDoc = idName  # Currently plotted document
+#             self.docs.path = dlg.GetPath()
+#             self.docs.userParameters = self.config.userParameters
+#             self.docs.userParameters['date'] = getTime()
+#             self.docs.parameters = parameters
+#             self.docs.dataType = 'Type: CALIBRANT'
+#             self.docs.fileFormat = 'Format: MassLynx (.raw)'
+#             self.docs.corrC = parameters['corrC']
+#             # Add data
+#             self.docs.gotMS = True
+#             self.docs.massSpectrum = {'xvals': msDataX,
+#                                       'yvals': msDataY,
+#                                       'xlabels': 'm/z (Da)',
+#                                       'xlimits': xlimits}
+#             self.docs.got1RT = True
+#             self.docs.RT = {'xvals': xvalsRT,
+#                             'yvals': rtDataYnorm,
+#                             'xlabels': 'Scans'}
+#             self.docs.got1DT = True
+#             self.docs.DT = {'xvals': xvalsDT,
+#                             'yvals': imsData1D,
+#                             'xlabels': 'Drift time (bins)',
+#                             'ylabels': 'Intensity'}
+#
+#             # Add plots
+#             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
+#             self.onPlotMSDTCalibration(msX=msDataX,
+#                                        msY=msDataY,
+#                                        xlimits=xlimits,
+#                                        dtX=xvalsDT,
+#                                        dtY=imsData1D,
+#                                        xlabelDT='Drift time (bins)',
+#                                        color=self.docs.lineColour)
+#
+#             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Calibration'])
+#
+#             # Update document
+#             self.OnUpdateDocument(self.docs, 'document')
+#
+#         dlg.Destroy()
+#         return None
+#
+#     def onAddCalibrantMultiple(self, evt):
+#
+#         tempList = self.view.panelCCS.topP.peaklist
+#         for row in range(tempList.GetItemCount()):
+#             if evt.GetId() == ID_extractCCScalibrantAll:
+#                 pass
+#             elif evt.GetId() == ID_extractCCScalibrantSelected:
+#                 if not tempList.IsChecked(index=row):
+#                     continue
+#
+#             # Get values
+#             filename = tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['filename']).GetText()
+#             mzStart = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['start']).GetText())
+#             mzEnd = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['end']).GetText())
+#             rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
+#
+#             # Get the document
+#             document = self.documentsDict[filename]
+#             if document.fileFormat == 'Format: DataFrame':
+#                 print(('Skipping %s as this is a DataFrame document.' % rangeName))
+#                 continue
+#
+#             extract_kwargs = {'return_data': True}
+#             __, yvalsDT = io_waters.driftscope_extract_DT(path=document.path,
+#                                                            driftscope_path=self.config.driftscopePath,
+#                                                            **extract_kwargs)
+#             mphValue = (max(yvalsDT)) * 0.2  # 20 % cutoff
+#             # Get pusher
+#             pusherFreq = document.parameters.get('pusherFreq', 1)
+#
+#             if pusherFreq != 1:
+#                 xlabel = 'Drift time (ms)'
+#             else:
+#                 xlabel = 'Drift time (bins)'
+#             # Create x-labels in ms
+#             xvalsDT = (np.arange(1, len(yvalsDT) + 1) * pusherFreq) / 1000
+#
+#             # Detect peak
+#             ind = detectPeaks(x=yvalsDT, mph=mphValue)
+#             if len(ind) > 1:
+#                 self.view.SetStatusText('Found more than one peak. Selected the first one', 3)
+#                 tD = np.round(xvalsDT[ind[0]], 2)
+#                 print((ind[0], tD))
+#                 yval = np.round(yvalsDT[ind[0]], 2)
+#                 yval = pr_spectra.normalize_1D(yval)
+#             elif len(ind) == 0:
+#                 self.view.SetStatusText('Found no peaks', 3)
+#                 tD = ""
+#             else:
+#                 self.view.SetStatusText('Found one peak', 3)
+#                 tD = np.round(xvalsDT[ind[0]], 2)
+# #                 print(ind[0], tD)
+#                 yval = np.round(yvalsDT[ind[0]], 2)
+#                 yval = pr_spectra.normalize_1D(yval)
+#
+#             # Add data to document
+#             protein, charge, CCS, gas, mw = None, None, None, None, None
+#
+#             # Check whether the document has molecular weight
+#             mw = document.moleculeDetails.get('molWeight', None)
+#             protein = document.moleculeDetails.get('protein', None)
+#
+#             document.gotCalibration = True
+#             document.calibration[rangeName] = {'xrange': [mzStart, mzEnd],
+#                                                'xvals': xvalsDT,
+#                                                'yvals': yvalsDT,
+#                                                'xcentre': ((mzEnd + mzStart) / 2),
+#                                                'protein': protein,
+#                                                'charge': charge,
+#                                                'ccs': CCS, 'tD': tD,
+#                                                'gas': gas,
+#                                                'xlabels': xlabel,
+#                                                'peak': [tD, yval],
+#                                                'mw': mw
+#                                                }
+#             # Plot
+#             self.onPlot1DTCalibration(dtX=xvalsDT,
+#                                       dtY=yvalsDT,
+#                                       xlabel=xlabel,
+#                                       color=document.lineColour)
+#
+#             if tD != "":
+#                 self.addMarkerMS(xvals=tD,
+#                                  yvals=yval,
+#                                  color=self.config.annotColor,
+#                                  marker=self.config.markerShape,
+#                                  size=self.config.markerSize,
+#                                  plot='CalibrationDT')
+#
+#             # Update document
+#             self.OnUpdateDocument(document, 'document')
+#
+#     def onIRTextFile(self, evt):
+#         dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.txt; *.csv",
+#                             style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+#         if dlg.ShowModal() == wx.ID_OK:
+#             print("You chose %s" % dlg.GetPath())
+#             imsData2D, xAxisLabels, yAxisLabels = None, None, None
+#             imsData2D, xAxisLabels, yAxisLabels = io_text.text_infrared_open(path=dlg.GetPath())
+#             dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT = pr_origami.origami_combine_infrared(
+#                 inputData=imsData2D, threshold=2000, noiseLevel=500)
+#
+#             # Add data to document
+#             __, idName = os.path.split(dlg.GetPath())
+#             idName = (''.join([idName])).encode('ascii', 'replace')
+#             self.docs = documents()
+#             self.docs.title = idName
+#             self.currentDoc = idName  # Currently plotted document
+#             self.docs.path = os.path.dirname(dlg.GetPath())
+#             self.docs.userParameters = self.config.userParameters
+#             self.docs.userParameters['date'] = getTime()
+#             self.docs.dataType = 'Type: IR IM-MS'
+#             self.docs.fileFormat = 'Format: Text (.csv/.txt)'
+#
+#             self.docs.got1RT = True
+#             self.docs.RT = {'xvals': yAxisLabels,  # bins
+#                             'yvals': dataRT,
+#                             'xlabels': 'Wavenumber (cm⁻¹)'}
+#             self.docs.got1DT = True
+#             self.docs.DT = {'xvals': xAxisLabels,
+#                             'yvals': data1DT,
+#                             'xlabels': 'Drift time (bins)',
+#                             'ylabels': 'Intensity'}
+#
+#             self.docs.got2DIMS = True
+#             self.docs.IMS2D = {'zvals': dataSplit,
+#                                'xvals': xAxisLabels,
+#                                'xlabels': 'Wavenumber (cm⁻¹)',
+#                                'yvals': yAxisLabels,
+#                                'ylabels': 'Drift time (bins)',
+#                                'cmap': self.docs.colormap}
+#             # Append to list
+#             self.documentsDict[idName] = self.docs
+#
+#             # Plots
+#             self.view.panelPlots.on_plot_1D(yAxisLabels, data1DT, 'Drift time (bins)')
+#             self.view.panelPlots.on_plot_RT(xAxisLabels, dataRT, 'Wavenumber (cm⁻¹)')
+#             self.view.panelPlots.on_plot_2D_data(
+#                 data=[
+#         dataSplit,
+#         xAxisLabels,
+#         'Wavenumber (cm⁻¹)',
+#         yAxisLabels,
+#         'Drift time (bins)',
+#         self.docs.colormap])
+#
+#             # Update documents tree
+#             self.view.panelDocuments.documents.add_document(docData=self.docs)
+#
+#     def on_extract_2D_from_mass_range(self, extract_type="all"):
+#         """ extract multiple ions = threaded """
+#
+#         # self.config.extractMode = 'multipleIons'
+#         tempList = self.view.panelMultipleIons.peaklist  # shortcut
+#         for row in range(tempList.GetItemCount()):
+#             # Extract ion name
+#             itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=row)
+#             filename = itemInfo['document']
+#             # Check if the ion has been assigned a filename
+#             if filename == '':
+#                 self.onThreading(None, ('File name column was empty. Using the current document name instead', 4),
+#                                  action='updateStatusbar')
+#                 tempList.SetStringItem(index=row, col=self.config.peaklistColNames['filename'], label=self.currentDoc)
+#                 filename = self.currentDoc
+#             else:
+#                 pass
+#             document = self.documentsDict[filename]
+#             # Extract information from the table
+#             mzStart = itemInfo['start']
+#             mzEnd = itemInfo['end']
+#             label = itemInfo['label']
+#             charge = itemInfo['charge']
+#
+#             if charge is None:
+#                 charge = 'None'
+#             path = document.path
+#
+#             # Create range name
+#             rangeName = itemInfo['ionName']
+#
+#             # Check that the mzStart/mzEnd are above the acquire MZ value
+#             if mzStart < min(document.massSpectrum['xvals']):
+#                 tempList.ToggleItem(index=row)
+#                 msg = "Ion: {} was below the minimum value in the mass spectrum. Consider removing it from the list.".format(
+#                     rangeName)
+#                 self.onThreading(None, (msg, 4), action='updateStatusbar')
+#                 continue
+#
+#             # Check whether this ion was already extracted
+#             if extract_type == 'new' and document.gotExtractedIons:
+#                 try:
+#                     if document.IMS2Dions[rangeName]:
+#                         self.onThreading(None, ("Data was already extracted for the : {} ion".format(rangeName), 4),
+#                                          action='updateStatusbar')
+#                         continue
+#                 except KeyError:
+#                     pass
+#
+#             elif extract_type == 'new' and document.gotCombinedExtractedIons:
+#                 try:
+#                     if document.IMS2DCombIons[rangeName]:
+#                         self.onThreading(None, ("Data was already extracted for the : {} ion".format(rangeName), 4),
+#                                          action='updateStatusbar')
+#                         continue
+#                 except KeyError:
+#                     pass
+#
+#             # Extract selected ions
+#             if extract_type == 'selected' and not tempList.IsChecked(index=row):
+#                 continue
+#
+#             msg = "Extracted: {}/{}".format((row + 1), tempList.GetItemCount())
+#
+#             if document.dataType == 'Type: ORIGAMI':
+#                 # 1D
+#                 try:
+#                     extract_kwargs = {'return_data': True}
+#                     __, imsData1D = io_waters.driftscope_extract_DT(path=path,
+#                                                                      driftscope_path=self.config.driftscopePath,
+#                                                                      mz_start=mzStart, mz_end=mzEnd,
+#                                                                      **extract_kwargs)
+#                 except IOError:
+#                     msg = "Failed to open the file - most likely because this file no longer exists or has been moved.\n" + \
+#                           "You can change the document path by right-clicking on the document in the Document Tree and \n " + \
+#                           "selecting Notes, Information, Labels..."
+#                     dlgBox(exceptionTitle='Missing folder',
+#                            exceptionMsg=msg, type="Error")
+#                     return
+#                 # RT
+#                 extract_kwargs = {'return_data': True, 'normalize': True}
+#                 xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(
+#                     path=path, driftscope_path=self.config.driftscopePath, mz_start=mzStart, mz_end=mzEnd, **extract_kwargs)
+#                 # 2D
+#                 extract_kwargs = {'return_data': True}
+#                 imsData2D = io_waters.driftscope_extract_2D(path=path,
+#                                                               driftscope_path=self.config.driftscopePath,
+#                                                               mz_start=mzStart, mz_end=mzEnd,
+#                                                               **extract_kwargs)
+#                 xlabels = 1 + np.arange(len(imsData2D[1, :]))
+#                 ylabels = 1 + np.arange(len(imsData2D[:, 1]))
+#                 # Update limits
+#                 self.setXYlimitsRMSD2D(xlabels, ylabels)
+#
+#                 # Get height of the peak
+#                 ms = np.transpose(np.array([document.massSpectrum['xvals'], document.massSpectrum['yvals']]))
+#                 mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
+#                 tempList.SetStringItem(row,
+#                                        self.config.peaklistColNames['intensity'],
+#                                        str(mzYMax))
+#
+#                 # Add data to document object
+#                 document.gotExtractedIons = True
+#                 document.IMS2Dions[rangeName] = {'zvals': imsData2D,
+#                                                  'xvals': xlabels,
+#                                                   'xlabels': 'Scans',
+#                                                   'yvals': ylabels,
+#                                                   'ylabels': 'Drift time (bins)',
+#                                                   'cmap': itemInfo.get('colormap', self.config.currentCmap),
+#                                                   'yvals1D': imsData1D,
+#                                                   'yvalsRT': rtDataY,
+#                                                   'title': label,
+#                                                   'label': label,
+#                                                   'charge': charge,
+#                                                   'alpha': itemInfo['alpha'],
+#                                                   'mask': itemInfo['mask'],
+#                                                   'color': itemInfo['color'],
+#                                                   'min_threshold': itemInfo['min_threshold'],
+#                                                   'max_threshold': itemInfo['max_threshold'],
+#                                                   'xylimits': [mzStart, mzEnd, mzYMax]}
+#                 # Update document
+#                 # if auto extract is enabled and the user extracts items rapidly it can
+#                 # cause an issue so its a small hack to fix that
+#                 try:
+#                     self.OnUpdateDocument(document, 'ions', expand_item_title=rangeName)
+#                 except wx.PyAssertionError:
+#                     time.sleep(0.1)
+#                     self.OnUpdateDocument(document, 'ions')
+#
+#             # Check if manual dataset
+#             elif document.dataType == 'Type: MANUAL':
+#                 # Shortcut to the file list
+#                 nameList = self.view.panelMML.peaklist  # List with MassLynx file information
+#                 # Sort data regardless of what user did
+#                 self.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
+#                 tempDict = {}
+#                 extract_kwargs = {'return_data': True}
+#                 for item in range(nameList.GetItemCount()):
+#                     # Determine whether the title of the document matches the title of the item in the table
+#                     # if it does not, skip the row
+#                     docValue = nameList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
+#                     if docValue != document.title:
+#                         continue
+#
+#                     nameValue = nameList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
+#                     try:
+#                         pathValue = document.multipleMassSpectrum[nameValue]['path']
+#                         __, imsData1D = io_waters.driftscope_extract_DT(path=pathValue,
+#                                                                          driftscope_path=self.config.driftscopePath,
+#                                                                          mz_start=mzStart, mz_end=mzEnd,
+#                                                                          **extract_kwargs)
+# #
+# #                         io_waters.driftscope_extract_DT(path=pathValue,
+# #                                                          driftscope_path=self.config.driftscopePath,
+# #                                                          mz_start=mzStart, mz_end=mzEnd)
+#                     # if the files were moved, we can at least try to with the document path
+#                     except IOError:
+#                         try:
+#                             pathValue = os.path.join(document.path, nameValue)
+# #                             io_waters.driftscope_extract_DT(path=pathValue,
+# #                                                              driftscope_path=self.config.driftscopePath,
+# #                                                              mz_start=mzStart, mz_end=mzEnd)
+#                             __, imsData1D = io_waters.driftscope_extract_DT(path=pathValue,
+#                                                                              driftscope_path=self.config.driftscopePath,
+#                                                                              mz_start=mzStart, mz_end=mzEnd,
+#                                                                              **extract_kwargs)
+#                             document.multipleMassSpectrum[nameValue]['path'] = pathValue
+#                         except Exception:
+#                             msg = "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
+#                                   "by updating the document path by right-clicking on the document and selecting\n" + \
+#                                   "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
+#                                   "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
+#                             dlgBox(exceptionTitle='Error',
+#                                    exceptionMsg=msg,
+#                                    type="Error")
+#                             return
+#
+# #                     imsData1D =  io_waters.rawMassLynx_DT_load(path=pathValue)
+# #                     io_waters.driftscope_extract_DT(path=pathValue,
+# #                                                      driftscope_path=self.config.driftscopePath)
+#                     # Get height of the peak
+#                     ms = document.massSpectrum
+#                     ms = np.transpose([ms['xvals'], ms['yvals']])
+#                     mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
+#                     tempList.SetStringItem(index=row,
+#                                            col=self.config.peaklistColNames['intensity'],
+#                                            label=str(mzYMax))
+#                     tempList.SetStringItem(index=row,
+#                                            col=self.config.peaklistColNames['method'],
+#                                            label='Manual')
+#                     # Create temporary dictionary for all IMS data
+#                     tempDict[nameValue] = [imsData1D]
+#                     # Add 1D data to 1D data container
+#                     newName = ''.join([rangeName, ', File: ', nameValue])
+#                     document.gotExtractedDriftTimes = True
+#                     labelX1D = 'Drift time (bins)'
+#                     xvals1D = 1 + np.arange(len(imsData1D))
+#                     document.IMS1DdriftTimes[newName] = {'xvals': xvals1D,
+#                                                          'yvals': imsData1D,
+#                                                           'xlabels': labelX1D,
+#                                                           'ylabels': 'Intensity',
+#                                                           'charge': charge,
+#                                                           'xylimits': [mzStart, mzEnd, mzYMax],
+#                                                           'filename': nameValue}
+#
+#                 # Combine the contents in the dictionary - assumes they are ordered!
+#                 counter = 0  # needed to start off
+#                 xlabelsActual = []
+#                 for item in range(nameList.GetItemCount()):
+#                     # Determine whether the title of the document matches the title of the item in the table
+#                     # if it does not, skip the row
+#                     docValue = nameList.GetItem(item, self.config.multipleMLColNames['document']).GetText()
+#                     if docValue != document.title:
+#                         continue
+#                     key = nameList.GetItem(item, self.config.multipleMLColNames['filename']).GetText()
+#                     if counter == 0:
+#                         tempArray = tempDict[key][0]
+#                         xLabelLow = document.multipleMassSpectrum[key]['trap']  # first iteration so first value
+#                         xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
+#                         counter += 1
+#                     else:
+#                         imsList = tempDict[key][0]
+#                         tempArray = np.concatenate((tempArray, imsList), axis=0)
+#                         xlabelsActual.append(document.multipleMassSpectrum[key]['trap'])
+#                         counter += 1
+#
+#                 # Reshape data to form a 2D array of size 200 x number of files
+#                 imsData2D = None
+#                 imsData2D = tempArray.reshape((200, int(counter)), order='F')
+#                 # Combine 2D array into 1D
+#                 rtDataY = np.sum(imsData2D, axis=0)
+#                 imsData1D = np.sum(imsData2D, axis=1).T
+#                 # Get the x-axis labels
+#                 xLabelHigh = document.multipleMassSpectrum[key]['trap']  # after the loop has finished, so last value
+#                 xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
+#                 ylabels = 1 + np.arange(len(imsData2D[:, 1]))
+#                 # Update limits
+#                 self.setXYlimitsRMSD2D(xlabels, ylabels)
+#                 # Add data to the document
+#                 document.gotCombinedExtractedIons = True
+#                 document.IMS2DCombIons[rangeName] = {'zvals': imsData2D,
+#                                                      'xvals': xlabels,
+#                                                       'xlabels': 'Collision Voltage (V)',
+#                                                       'yvals': ylabels,
+#                                                       'ylabels': 'Drift time (bins)',
+#                                                       'yvals1D': imsData1D,
+#                                                       'yvalsRT': rtDataY,
+#                                                       'cmap': document.colormap,
+#                                                       'title': label,
+#                                                       'label': label,
+#                                                       'charge': charge,
+#                                                       'alpha': itemInfo['alpha'],
+#                                                       'mask': itemInfo['mask'],
+#                                                       'color': itemInfo['color'],
+#                                                       'min_threshold': itemInfo['min_threshold'],
+#                                                       'max_threshold': itemInfo['max_threshold'],
+#                                                       'xylimits': [mzStart, mzEnd, mzYMax]}
+#
+#                 # Update document
+#                 self.OnUpdateDocument(document, 'combined_ions')
+#             elif document.dataType == 'Type: Infrared':
+#                 # 2D
+#                 extract_kwargs = {'return_data': True}
+#                 imsData2D = io_waters.driftscope_extract_2D(path=path,
+#                                                               driftscope_path=self.config.driftscopePath,
+#                                                               **extract_kwargs)
+#
+#                 dataSplit, xAxisLabels, yAxisLabels, dataRT, data1DT = pr_origami.origami_combine_infrared(
+#                     inputData=imsData2D, threshold=2000, noiseLevel=500)
+#
+#                 # Get height of the peak
+#                 ms = document.massSpectrum
+#                 ms = np.transpose(np.array([ms['xvals'], ms['yvals']]))
+#                 mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
+#                 tempList.SetStringItem(index=row, col=7, label=str(mzYMax))
+#                 # Add data to document object
+#                 document.gotExtractedIons = True
+#                 document.IMS2Dions[rangeName] = {'zvals': dataSplit,
+#                                                  'xvals': xAxisLabels,
+#                                                   'xlabels': 'Wavenumber (cm⁻¹)',
+#                                                   'yvals': yAxisLabels,
+#                                                   'ylabels': 'Drift time (bins)',
+#                                                   'cmap': document.colormap,
+#                                                   'yvals1D': data1DT,
+#                                                   'yvalsRT': dataRT,
+#                                                   'title': label,
+#                                                   'label': label,
+#                                                   'charge': charge,
+#                                                   'alpha': itemInfo['alpha'],
+#                                                   'mask': itemInfo['mask'],
+#                                                   'color': itemInfo['color'],
+#                                                   'min_threshold': itemInfo['min_threshold'],
+#                                                   'max_threshold': itemInfo['max_threshold'],
+#                                                   'xylimits': [mzStart, mzEnd, mzYMax]}
+#                 # Update document
+#                 self.OnUpdateDocument(document, 'ions')
+#             else:
+#                 return
+#             self.onThreading(None, (msg, 4), action='updateStatusbar')
+#
+#     def on_extract_2D_from_mass_range_threaded(self, evt, extract_type="all"):
+#         """
+#         Extract 2D array for each m/z range specified in the table
+#         """
+#         if evt is None:
+#             evt = extract_type
+#         else:
+#             evt = "all"
+#
+#         if not self.config.threading:
+#             self.on_extract_2D_from_mass_range(evt)
+#         else:
+#             args = (evt)
+#             self.onThreading(evt, args, action='extractIons')
+#
+#     def on_extract_RT_from_mzdt(self, mzStart, mzEnd, dtStart, dtEnd, units_x="m/z",
+#                                 units_y="Drift time (bins)"):  # onExtractRTforMZDTrange
+#         """ Function to extract RT data for specified MZ/DT region """
+#
+#         document = self.data_processing._on_get_document()
+#
+#         # convert from miliseconds to bins
+#         if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
+#             pusherFreq = self.docs.parameters.get('pusherFreq', 1000)
+#             dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
+#             dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
+#
+#         # Load data
+#         extract_kwargs = {'return_data': True, 'normalize': False}
+#         rtDataX, rtDataY = io_waters.driftscope_extract_RT(path=document.path,
+#                                                             driftscope_path=self.config.driftscopePath,
+#                                                             mz_start=mzStart, mz_end=mzEnd,
+#                                                             dt_start=dtStart, dt_end=dtEnd,
+#                                                             **extract_kwargs)
+#         self.view.panelPlots.on_plot_RT(rtDataX, rtDataY, 'Scans')
+#
+#         itemName = "Ion: {}-{} | Drift time: {}-{}".format(np.round(mzStart, 2), np.round(mzEnd),
+#                                                            np.round(dtStart, 2), np.round(dtEnd))
+#         document.multipleRT[itemName] = {'xvals': rtDataX,
+#                                          'yvals': rtDataY,
+#                                          'xlabels': 'Scans'}
+#         document.gotMultipleRT = True
+#
+#         msg = "Extracted RT data for m/z: %s-%s | dt: %s-%s" % (mzStart, mzEnd, dtStart, dtEnd)
+#         self.onThreading(None, (msg, 3), action='updateStatusbar')
+#
+#         # Update document
+#         self.OnUpdateDocument(document, 'document')#
+#     def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
+#         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#         if self.currentDoc == 'Current documents':
+#             return
+#         self.docs = self.documentsDict[self.currentDoc]
+#
+#         # convert from miliseconds to bins
+#         if units in ["Drift time (ms)", "Arrival time (ms)"]:
+#             pusherFreq = self.docs.parameters.get('pusherFreq', 1000)
+#             dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
+#             dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
+#
+#         # Extract data
+#         extract_kwargs = {'return_data': True}
+#         msX, msY = io_waters.driftscope_extract_MS(path=self.docs.path,
+#                                                     driftscope_path=self.config.driftscopePath,
+#                                                     dt_start=dtStart, dt_end=dtEnd,
+#                                                     **extract_kwargs)
+#         xlimits = [self.docs.parameters['startMS'], self.docs.parameters['endMS']]
+#
+#         # Add data to dictionary
+#         itemName = "Drift time: {}-{}".format(dtStart, dtEnd)
+#
+#         self.docs.gotMultipleMS = True
+#         self.docs.multipleMassSpectrum[itemName] = {'xvals': msX, 'yvals': msY,
+#                                                     'range': [dtStart, dtEnd],
+#                                                     'xlabels': 'm/z (Da)',
+#                                                     'xlimits': xlimits}
+#
+#         # Plot MS
+#         name_kwargs = {"document": self.docs.title, "dataset": itemName}
+#         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="1D", **name_kwargs)
+#         # Update document
+#         self.OnUpdateDocument(self.docs, 'mass_spectra')
+#
+#     def on_extract_MS_from_chromatogram(self, startScan=None, endScan=None, units="Scans"):
+#         """ Function to extract MS data for specified RT region """
+#
+#         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
+#         if document_title == 'Current documents':
+#             return
+#         document = self.documentsDict[document_title]
+#
+#         try:
+#             scantime = document.parameters['scanTime']
+#         except:
+#             scantime = None
+#
+#         try:
+#             xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+#         except Exception:
+#             try:
+#                 xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
+#             except:
+#                 pass
+#             xlimits = None
+#
+#         if not self.config.ms_enable_in_RT and scantime is not None:
+#             if units == "Scans":
+#                 rtStart = round(startScan * (scantime / 60), 2)
+#                 rtEnd = round(endScan * (scantime / 60), 2)
+#             elif units in ['Time (min)', 'Retention time (min)']:
+#                 rtStart, rtEnd = startScan, endScan
+#                 startScan = np.ceil(((startScan / scantime) * 60)).astype(int)
+#                 endScan = np.ceil(((endScan / scantime) * 60)).astype(int)
+#
+#             # Mass spectra
+#             try:
+#                 extract_kwargs = {'return_data': True}
+#                 msX, msY = io_waters.driftscope_extract_MS(path=document.path,
+#                                                             driftscope_path=self.config.driftscopePath,
+#                                                             rt_start=rtStart, rt_end=rtEnd,
+#                                                             **extract_kwargs)
+#                 if xlimits is None:
+#                     xlimits = [np.min(msX), np.max(msX)]
+#             except (IOError, ValueError):
+#                 kwargs = {'auto_range': self.config.ms_auto_range,
+#                           'mz_min': xlimits[0], 'mz_max': xlimits[1],
+#                           'linearization_mode': self.config.ms_linearization_mode}
+#                 msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path), function=1,
+#                                                       startScan=startScan, endScan=endScan,
+#                                                       binData=self.config.import_binOnImport,
+#                                                       # override any settings as this is a accidental extraction
+#                                                       mzStart=xlimits[0], mzEnd=xlimits[1],
+#                                                       binsize=self.config.ms_mzBinSize,
+#                                                       **kwargs)
+#                 msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
+#
+#             xlimits = [np.min(msX), np.max(msX)]
+#         else:
+#             kwargs = {'auto_range': self.config.ms_auto_range,
+#                       'mz_min': xlimits[0], 'mz_max': xlimits[1],
+#                       'linearization_mode': self.config.ms_linearization_mode}
+#             msDict = io_waters.rawMassLynx_MS_bin(
+#                 filename=str(document.path),
+#                 function=1,
+#                 startScan=startScan, endScan=endScan,
+#                 binData=self.config.import_binOnImport,
+#                 mzStart=self.config.ms_mzStart,
+#                 mzEnd=self.config.ms_mzEnd,
+#                 binsize=self.config.ms_mzBinSize,
+#                 **kwargs)
+#
+#             msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
+#             xlimits = [np.min(msX), np.max(msX)]
+#
+#         # Add data to dictionary
+#         itemName = "Scans: {}-{}".format(startScan, endScan)
+#
+#         document.gotMultipleMS = True
+#         document.multipleMassSpectrum[itemName] = {'xvals': msX,
+#                                                    'yvals': msY,
+#                                                     'range': [startScan, endScan],
+#                                                     'xlabels': 'm/z (Da)',
+#                                                     'xlimits': xlimits}
+#
+#         self.OnUpdateDocument(document, 'mass_spectra', expand_item_title=itemName)
+#         # Plot MS
+#         name_kwargs = {"document": document.title, "dataset": itemName}
+#         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="RT", **name_kwargs)
+#         # Set status
+#         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
+#         self.onThreading(None, (msg, 3), action='updateStatusbar')
+#
+# #     def on_extract_MS_from_heatmap(self, startScan=None, endScan=None, dtStart=None,
+# #                                    dtEnd=None, units_x="Scans", units_y="Drift time (bins)"):
+# #         """ Function to extract MS data for specified DT/MS region """
+# #
+# #         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
+# #         if document_title == 'Current documents':
+# #             return
+# #         document = self.documentsDict[document_title]
+# #
+# #         try:
+# #             scanTime = document.parameters['scanTime']
+# #         except:
+# #             scanTime = None
+# #
+# #         try:
+# #             pusherFreq = document.parameters['pusherFreq']
+# #         except:
+# #             pusherFreq = None
+# #
+# #         try:
+# #             xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+# #         except Exception:
+# #             try:
+# #                 xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
+# #             except:
+# #                 return
+# #
+# #         if units_x == "Scans":
+# #             if scanTime is None:
+# #                 return
+# #             rtStart = round(startScan * (scanTime / 60), 2)
+# #             rtEnd = round(endScan * (scanTime / 60), 2)
+# #         elif units_x in ['Time (min)', 'Retention time (min)']:
+# #             rtStart, rtEnd = startScan, endScan
+# #             if scanTime is None:
+# #                 return
+# #             startScan = np.ceil(((startScan / scanTime) * 60)).astype(int)
+# #             endScan = np.ceil(((endScan / scanTime) * 60)).astype(int)
+# #
+# #         if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
+# #             if pusherFreq is None:
+# #                 return
+# #             dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
+# #             dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
+# #
+# #         # Mass spectra
+# #         try:
+# #             extract_kwargs = {'return_data': True}
+# #             msX, msY = io_waters.driftscope_extract_MS(path=document.path,
+# #                                                         driftscope_path=self.config.driftscopePath,
+# #                                                         rt_start=rtStart, rt_end=rtEnd,
+# #                                                         dt_start=dtStart, dt_end=dtEnd,
+# #                                                         **extract_kwargs)
+# #             if xlimits is None:
+# #                 xlimits = [np.min(msX), np.max(msX)]
+# #         except (IOError, ValueError):
+# #             return
+# #
+# #         # Add data to dictionary
+# #         itemName = "Scans: {}-{} | Drift time: {}-{}".format(startScan, endScan,
+# #                                                              dtStart, dtEnd)
+# #
+# #         document.gotMultipleMS = True
+# #         document.multipleMassSpectrum[itemName] = {'xvals': msX,
+# #                                                    'yvals': msY,
+# #                                                    'range': [startScan, endScan],
+# #                                                    'xlabels': 'm/z (Da)',
+# #                                                    'xlimits': xlimits}
+# #
+# #         self.OnUpdateDocument(document, 'mass_spectra', expand_item_title=itemName)
+# #         # Plot MS
+# #         name_kwargs = {"document": document.title, "dataset": itemName}
+# #         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
+# #         # Set status
+# #         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
+# #         self.onThreading(None, (msg, 3), action='updateStatusbar')
 
     def onCombineCEvoltagesMultiple(self, evt):
         # self.config.extractMode = 'multipleIons'
@@ -2862,64 +2858,64 @@ class ORIGAMI(object):
 
         return rmsdXpos, rmsdYpos
 
-    def onCombineMultipleMLFiles(self, e=None):
-        """
-        This function takes the multiple ML dictionary, sorts it and combines it
-        to form a 2D IM-MS map
-        """
-        try:
-            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except Exception:
-            return
-        self.docs = self.documentsDict[self.currentDoc]
-        if self.docs.dataType != 'Type: MANUAL':
-            msg = 'Make sure you select the correct dataset - MANUAL'
-            self.onThreading(None, (msg, 4), action='updateStatusbar')
-            return
-
-        # Sort data in the dictionary first - if returns False then it hasn't done it!
-        vals_sorted = self.view.panelMML.OnSortByColumn(column=1)
-        tempList = self.view.panelMML.peaklist
-        if not vals_sorted:
-            return
-        else:
-            counter = 0
-            for item in range(tempList.GetItemCount()):
-                key = tempList.GetItem(item, 0).GetText()
-#                 trapCV = str2num(tempList.GetItem(item,1).GetText())
-                if counter == 0:
-                    tempArray = self.docs.multipleMassSpectrum[key]['ims1D']
-                    xLabelLow = self.docs.multipleMassSpectrum[key]['trap']  # first iteration so first value
-                    counter = counter + 1
-                else:
-                    imsList = self.docs.multipleMassSpectrum[key]['ims1D']
-                    tempArray = np.concatenate((tempArray, imsList), axis=0)
-                    counter = counter + 1
-
-            # Reshape data to form a 2D array of size 200 x number of files
-            imsData2D = tempArray.reshape((200, int(counter)), order='F')
-            # Get the x-axis labels
-            xLabelHigh = self.docs.multipleMassSpectrum[key]['trap']  # after the loop has finished, so last value
-            xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
-            ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-            self.view.panelPlots.on_plot_2D_data(data=[imsData2D, xlabels,
-                                                       'Collision Voltage (V)', ylabels,
-                                                       'Drift time (bins)',
-                                                       self.docs.colormap])
-
-            self.docs.got2DIMS = True
-            self.docs.IMS2D = {'zvals': imsData2D,
-                               'xvals': xlabels,
-                               'xlabels': 'Collision Voltage (V)',
-                               'yvals': ylabels,
-                               'ylabels': 'Drift time (bins)',
-                               'cmap': self.docs.colormap}
-
-            # Append to list
-            self.documentsDict[self.docs.title] = self.docs
-
-            # Update documents tree
-            self.view.panelDocuments.documents.add_document(docData=self.docs)
+#     def onCombineMultipleMLFiles(self, e=None):
+#         """
+#         This function takes the multiple ML dictionary, sorts it and combines it
+#         to form a 2D IM-MS map
+#         """
+#         try:
+#             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#         except Exception:
+#             return
+#         self.docs = self.documentsDict[self.currentDoc]
+#         if self.docs.dataType != 'Type: MANUAL':
+#             msg = 'Make sure you select the correct dataset - MANUAL'
+#             self.onThreading(None, (msg, 4), action='updateStatusbar')
+#             return
+#
+#         # Sort data in the dictionary first - if returns False then it hasn't done it!
+#         vals_sorted = self.view.panelMML.OnSortByColumn(column=1)
+#         tempList = self.view.panelMML.peaklist
+#         if not vals_sorted:
+#             return
+#         else:
+#             counter = 0
+#             for item in range(tempList.GetItemCount()):
+#                 key = tempList.GetItem(item, 0).GetText()
+# #                 trapCV = str2num(tempList.GetItem(item,1).GetText())
+#                 if counter == 0:
+#                     tempArray = self.docs.multipleMassSpectrum[key]['ims1D']
+#                     xLabelLow = self.docs.multipleMassSpectrum[key]['trap']  # first iteration so first value
+#                     counter = counter + 1
+#                 else:
+#                     imsList = self.docs.multipleMassSpectrum[key]['ims1D']
+#                     tempArray = np.concatenate((tempArray, imsList), axis=0)
+#                     counter = counter + 1
+#
+#             # Reshape data to form a 2D array of size 200 x number of files
+#             imsData2D = tempArray.reshape((200, int(counter)), order='F')
+#             # Get the x-axis labels
+#             xLabelHigh = self.docs.multipleMassSpectrum[key]['trap']  # after the loop has finished, so last value
+#             xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
+#             ylabels = 1 + np.arange(len(imsData2D[:, 1]))
+#             self.view.panelPlots.on_plot_2D_data(data=[imsData2D, xlabels,
+#                                                        'Collision Voltage (V)', ylabels,
+#                                                        'Drift time (bins)',
+#                                                        self.docs.colormap])
+#
+#             self.docs.got2DIMS = True
+#             self.docs.IMS2D = {'zvals': imsData2D,
+#                                'xvals': xlabels,
+#                                'xlabels': 'Collision Voltage (V)',
+#                                'yvals': ylabels,
+#                                'ylabels': 'Drift time (bins)',
+#                                'cmap': self.docs.colormap}
+#
+#             # Append to list
+#             self.documentsDict[self.docs.title] = self.docs
+#
+#             # Update documents tree
+#             self.view.panelDocuments.documents.add_document(docData=self.docs)
 
     def checkIfRawFile(self, path):
         """
@@ -3012,129 +3008,129 @@ class ORIGAMI(object):
             # Update file list
             self.OnUpdateDocument(self.docs, 'combined_ions')
 
-    def on_combine_mass_spectra(self, document_name=None):
+#     def on_combine_mass_spectra(self, document_name=None):
+#
+#         if document_name is None:
+#             self.docs = self.data_processing._on_get_document()
+#         else:
+#             self.docs = self.documentsDict[document_name]
+#
+#         kwargs = {'auto_range': False,
+#                   'mz_min': self.config.ms_mzStart,
+#                   'mz_max': self.config.ms_mzEnd,
+#                   'mz_bin': self.config.ms_mzBinSize,
+#                   'linearization_mode': self.config.ms_linearization_mode}
+#         msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
+#             self.config.ms_linearization_mode,
+#             self.config.ms_mzStart,
+#             self.config.ms_mzEnd,
+#             self.config.ms_mzBinSize,
+#             self.config.ms_auto_range)
+#         self.onThreading(None, (msg, 4), action='updateStatusbar')
+#
+#         if len(list(self.docs.multipleMassSpectrum.keys())) > 0:
+#             # check the min/max values in the mass spectrum
+#             if self.config.ms_auto_range:
+#                 mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=self.docs.multipleMassSpectrum)
+#                 self.config.ms_mzStart = mzStart
+#                 self.config.ms_mzEnd = mzEnd
+#                 kwargs.update(mz_min=mzStart, mz_max=mzEnd)
+#                 try:
+#                     self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
+#                 except:
+#                     pass
+#
+#             msFilenames = ["m/z"]
+#             counter = 0
+#             for key in self.docs.multipleMassSpectrum:
+#                 msFilenames.append(key)
+#                 if counter == 0:
+#                     msDataX, tempArray = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
+#                                                                    self.docs.multipleMassSpectrum[key]['yvals'],
+#                                                                    **kwargs)
+#                     msList = tempArray
+#                 else:
+#                     msDataX, msList = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
+#                                                                 self.docs.multipleMassSpectrum[key]['yvals'],
+#                                                                 **kwargs)
+#                     tempArray = np.concatenate((tempArray, msList), axis=0)
+#                 counter += 1
+#
+#             # Reshape the list
+#             combMS = tempArray.reshape((len(msList), int(counter)), order='F')
+#
+#             # Sum y-axis data
+#             msDataY = np.sum(combMS, axis=1)
+#             msDataY = pr_spectra.normalize_1D(inputData=msDataY)
+#             xlimits = [self.docs.parameters['startMS'],
+#                        self.docs.parameters['endMS']]
+#
+#             # Form pandas dataframe
+#             combMSOut = np.concatenate((msDataX, tempArray), axis=0)
+#             combMSOut = combMSOut.reshape((len(msList), int(counter + 1)), order='F')
+#
+#             # Add data
+#             self.docs.gotMS = True
+#             self.docs.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
+#             # Plot
+#             name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
+#             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+#
+#             # Update status bar with MS range
+#             self.view.SetStatusText("{}-{}".format(self.docs.parameters['startMS'],
+#                                                    self.docs.parameters['endMS']), 1)
+#             self.view.SetStatusText("MSMS: {}".format(self.docs.parameters['setMS']), 2)
+#         else:
+#             self.docs.gotMS = False
+#             self.docs.massSpectrum = {}
+#             self.view.SetStatusText("", 1)
+#             self.view.SetStatusText("", 2)
+#
+#         # Add info to document
+#         self.OnUpdateDocument(self.docs, 'document')
 
-        if document_name is None:
-            self.docs = self.data_processing._on_get_document()
-        else:
-            self.docs = self.documentsDict[document_name]
-
-        kwargs = {'auto_range': False,
-                  'mz_min': self.config.ms_mzStart,
-                  'mz_max': self.config.ms_mzEnd,
-                  'mz_bin': self.config.ms_mzBinSize,
-                  'linearization_mode': self.config.ms_linearization_mode}
-        msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
-            self.config.ms_linearization_mode,
-            self.config.ms_mzStart,
-            self.config.ms_mzEnd,
-            self.config.ms_mzBinSize,
-            self.config.ms_auto_range)
-        self.onThreading(None, (msg, 4), action='updateStatusbar')
-
-        if len(list(self.docs.multipleMassSpectrum.keys())) > 0:
-            # check the min/max values in the mass spectrum
-            if self.config.ms_auto_range:
-                mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=self.docs.multipleMassSpectrum)
-                self.config.ms_mzStart = mzStart
-                self.config.ms_mzEnd = mzEnd
-                kwargs.update(mz_min=mzStart, mz_max=mzEnd)
-                try:
-                    self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
-                except:
-                    pass
-
-            msFilenames = ["m/z"]
-            counter = 0
-            for key in self.docs.multipleMassSpectrum:
-                msFilenames.append(key)
-                if counter == 0:
-                    msDataX, tempArray = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
-                                                                   self.docs.multipleMassSpectrum[key]['yvals'],
-                                                                   **kwargs)
-                    msList = tempArray
-                else:
-                    msDataX, msList = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
-                                                                self.docs.multipleMassSpectrum[key]['yvals'],
-                                                                **kwargs)
-                    tempArray = np.concatenate((tempArray, msList), axis=0)
-                counter += 1
-
-            # Reshape the list
-            combMS = tempArray.reshape((len(msList), int(counter)), order='F')
-
-            # Sum y-axis data
-            msDataY = np.sum(combMS, axis=1)
-            msDataY = pr_spectra.normalize_1D(inputData=msDataY)
-            xlimits = [self.docs.parameters['startMS'],
-                       self.docs.parameters['endMS']]
-
-            # Form pandas dataframe
-            combMSOut = np.concatenate((msDataX, tempArray), axis=0)
-            combMSOut = combMSOut.reshape((len(msList), int(counter + 1)), order='F')
-
-            # Add data
-            self.docs.gotMS = True
-            self.docs.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
-            # Plot
-            name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
-            self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-
-            # Update status bar with MS range
-            self.view.SetStatusText("{}-{}".format(self.docs.parameters['startMS'],
-                                                   self.docs.parameters['endMS']), 1)
-            self.view.SetStatusText("MSMS: {}".format(self.docs.parameters['setMS']), 2)
-        else:
-            self.docs.gotMS = False
-            self.docs.massSpectrum = {}
-            self.view.SetStatusText("", 1)
-            self.view.SetStatusText("", 2)
-
-        # Add info to document
-        self.OnUpdateDocument(self.docs, 'document')
-
-    def reBinMSdata(self, evt):
-        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        self.docs = self.documentsDict[self.currentDoc]
-
-        if self.docs.dataType == 'Type: MANUAL' and self.docs.gotMultipleMS:
-            # Sum all mass spectra into one
-            counter = 0
-            # Bin MS data
-            binsize = self.config.binMSbinsize
-            msBinList = np.arange(self.docs.parameters['startMS'],
-                                  self.docs.parameters['endMS'] + binsize,
-                                  binsize)
-
-            msCentre = msBinList[:-1] + (binsize / 2)
-            for key in self.docs.multipleMassSpectrum:
-                if counter == 0:
-                    tempArray = pr_spectra.bin_1D(x=self.docs.multipleMassSpectrum[key]['xvals'],
-                                                  y=self.docs.multipleMassSpectrum[key]['yvals'],
-                                                  bins=msBinList)
-                    counter = counter + 1
-                else:
-                    msList = pr_spectra.bin_1D(x=self.docs.multipleMassSpectrum[key]['xvals'],
-                                               y=self.docs.multipleMassSpectrum[key]['yvals'],
-                                               bins=msBinList)
-                    tempArray = np.concatenate((tempArray, msList), axis=0)
-                    counter = counter + 1
-            # Reshape the list
-            combMS = tempArray.reshape((len(msList), int(counter)), order='F')
-            # Sum y-axis data
-            msDataY = np.sum(combMS, axis=1)
-            msDataY = pr_spectra.normalize_1D(inputData=msDataY)
-            xlimits = self.docs.massSpectrum['xlimits']
-            # Add info to document
-            self.docs.massSpectrum = {'xvals': msCentre,
-                                      'yvals': msDataY,
-                                      'xlabels': 'm/z (Da)',
-                                      'xlimits': xlimits}
-            self.OnUpdateDocument(self.docs, 'document')
-            # Plot
-            name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
-            self.view.panelPlots.on_plot_MS(msCentre, msDataY, xlimits=xlimits, **name_kwargs)
-        evt.Skip()
+#     def reBinMSdata(self, evt):
+#         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#         self.docs = self.documentsDict[self.currentDoc]
+#
+#         if self.docs.dataType == 'Type: MANUAL' and self.docs.gotMultipleMS:
+#             # Sum all mass spectra into one
+#             counter = 0
+#             # Bin MS data
+#             binsize = self.config.binMSbinsize
+#             msBinList = np.arange(self.docs.parameters['startMS'],
+#                                   self.docs.parameters['endMS'] + binsize,
+#                                   binsize)
+#
+#             msCentre = msBinList[:-1] + (binsize / 2)
+#             for key in self.docs.multipleMassSpectrum:
+#                 if counter == 0:
+#                     tempArray = pr_spectra.bin_1D(x=self.docs.multipleMassSpectrum[key]['xvals'],
+#                                                   y=self.docs.multipleMassSpectrum[key]['yvals'],
+#                                                   bins=msBinList)
+#                     counter = counter + 1
+#                 else:
+#                     msList = pr_spectra.bin_1D(x=self.docs.multipleMassSpectrum[key]['xvals'],
+#                                                y=self.docs.multipleMassSpectrum[key]['yvals'],
+#                                                bins=msBinList)
+#                     tempArray = np.concatenate((tempArray, msList), axis=0)
+#                     counter = counter + 1
+#             # Reshape the list
+#             combMS = tempArray.reshape((len(msList), int(counter)), order='F')
+#             # Sum y-axis data
+#             msDataY = np.sum(combMS, axis=1)
+#             msDataY = pr_spectra.normalize_1D(inputData=msDataY)
+#             xlimits = self.docs.massSpectrum['xlimits']
+#             # Add info to document
+#             self.docs.massSpectrum = {'xvals': msCentre,
+#                                       'yvals': msDataY,
+#                                       'xlabels': 'm/z (Da)',
+#                                       'xlimits': xlimits}
+#             self.OnUpdateDocument(self.docs, 'document')
+#             # Plot
+#             name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
+#             self.view.panelPlots.on_plot_MS(msCentre, msDataY, xlimits=xlimits, **name_kwargs)
+#         evt.Skip()
 
     def on_highlight_selected_ions(self, evt):
         """
@@ -3452,14 +3448,15 @@ class ORIGAMI(object):
 #         # Update plot
 #         self.view.panelDocuments.documents.onShowPlot()
 
-    def onSelectProtein(self, evt):
-        if evt.GetId() == ID_selectCalibrant:
-            mode = 'calibrants'
-        else:
-            mode = 'proteins'
-
-        self.selectProteinDlg = panelCalibrantDB(self.view, self, self.config, mode)
-        self.selectProteinDlg.Show()
+    # TODOO: move to another panel
+#     def onSelectProtein(self, evt):
+#         if evt.GetId() == ID_selectCalibrant:
+#             mode = 'calibrants'
+#         else:
+#             mode = 'proteins'
+#
+#         self.selectProteinDlg = panelCalibrantDB(self.view, self, self.config, mode)
+#         self.selectProteinDlg.Show()
 
     # def onAddCalibrant(self, path=None, mzStart=None, mzEnd=None, mzCentre=None,
     #                    pusherFreq=None, tDout=False, e=None):
@@ -3987,20 +3984,20 @@ class ORIGAMI(object):
 
         dlg.Destroy()
 
-    def onImportCCSDatabase(self, evt, onStart=False):
-
-        if not onStart:
-            dlg = wx.FileDialog(self.view, "Choose a CCS database file:", wildcard="*.csv",
-                                style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-            if dlg.ShowModal() == wx.ID_OK:
-                print("You chose %s" % dlg.GetPath())
-
-                # Open database
-                self.config.ccsDB = io_text.text_ccs_database_open(dlg.GetPath())
-        else:
-            self.config.ccsDB = io_text.text_ccs_database_open(
-                filename=os.path.join(self.config.cwd, "example_files", "calibrantDB.csv"))
-            print('Loaded CCS database')
+#     def onImportCCSDatabase(self, evt, onStart=False):
+#
+#         if not onStart:
+#             dlg = wx.FileDialog(self.view, "Choose a CCS database file:", wildcard="*.csv",
+#                                 style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+#             if dlg.ShowModal() == wx.ID_OK:
+#                 print("You chose %s" % dlg.GetPath())
+#
+#                 # Open database
+#                 self.config.ccsDB = io_text.text_ccs_database_open(dlg.GetPath())
+#         else:
+#             self.config.ccsDB = io_text.text_ccs_database_open(
+#                 filename=os.path.join(self.config.cwd, "example_files", "calibrantDB.csv"))
+#             print('Loaded CCS database')
 
     def onProcessMultipleTextFiles(self, evt):
 
@@ -4070,12 +4067,8 @@ class ORIGAMI(object):
 
         return listOfDocs
 
-#===============================================================================
-#  LINEAR DT
-#===============================================================================
-
     def onExtractDToverMZrangeMultiple(self, e):
-        # TODO:
+        # TODO: move this function to data_handling
         """
         Currently this function is not working well. IT doesn't store data in the correct format
         i.e. it only saves ONE RT per charge state which is useless
@@ -4314,383 +4307,383 @@ class ORIGAMI(object):
             else:
                 return zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, mask1, mask2, xvals, yvals, xlabels, ylabels
 
-    def process2Ddata(self, zvals=None, replot=False, replot_type='2D',
-                      return_data=False, return_all=False, e=None):
-        """
-        Process data - smooth, threshold and normalize 2D data
-        """
-
-        # new in 1.1.0
-        if replot:
-            data = self._get_replot_data(replot_type)
-            zvals = data[0]
-
-        # make sure any data was retrieved
-        if zvals is None:
-            return
-
-        # Check values
-        self.config.onCheckValues(data_type='process')
-        if self.config.processParamsWindow_on_off:
-            self.view.panelProcessData.onSetupValues(evt=None)
-
-        # Smooth data
-        if self.config.plot2D_smooth_mode is not None:
-            if self.config.plot2D_smooth_mode == 'Gaussian':
-                zvals = pr_heatmap.smooth_gaussian_2D(inputData=zvals.copy(),
-                                                      sigma=self.config.plot2D_smooth_sigma)
-            elif self.config.plot2D_smooth_mode == 'Savitzky-Golay':
-                zvals = pr_heatmap.smooth_savgol_2D(inputData=zvals,
-                                                    polyOrder=self.config.plot2D_smooth_polynomial,
-                                                    windowSize=self.config.plot2D_smooth_window)
-        else:
-            pass
-        # Threshold
-        zvals = pr_heatmap.remove_noise_2D(inputData=zvals.copy(),
-                                           threshold=self.config.plot2D_threshold)
-        # Normalize
-        if self.config.plot2D_normalize:
-            zvals = pr_heatmap.normalize_2D(inputData=zvals.copy(),
-                                            mode=self.config.plot2D_normalize_mode)
-
-        if replot:
-            xvals, yvals, xlabel, ylabel = data[1::]
-            if replot_type == '2D':
-                self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
-                if self.config.waterfall:
-                    self.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
-                                                           xlabel=xlabel, ylabel=ylabel)
-                self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
-                                                xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
-                if not self.config.waterfall:
-                    self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
-            elif replot_type == 'DT/MS':
-                self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, override=False)
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
-
-        if return_data:
-            return zvals
-
-        if return_all:
-            parameters = {'smooth_mode': self.config.plot2D_smooth_mode,
-                          'sigma': self.config.plot2D_smooth_sigma,
-                          'polyOrder': self.config.plot2D_smooth_polynomial,
-                          'windowSize': self.config.plot2D_smooth_window,
-                          'threshold': self.config.plot2D_threshold}
-            return zvals, parameters
-
-    def process2Ddata2(self, zvals=None, labelsX=None, e=None, mode='2D'):
-        """
-        Process 2D data - smooth, threshold and normalize 2D data
-        """
-        # Gather info about the file and document
-        selectedItemParentText = None
-        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(
-            getSelected=True)
-        indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
-        if indent > 2:
-            __, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(selectedItem, 2,
-                                                                                          getSelected=True)
-        else:
-            pass
-        self.docs = self.documentsDict[self.currentDoc]
-
-        # Clear current data
-        zvals = None
-        # Based on the selection and indent, data is selected
-        if selectedText == 'Drift time (2D)' and indent == 2:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.IMS2D,
-                                                                                     dataType='plot', compact=False)
-
-        elif selectedText == 'Drift time (processed)' and indent == 2:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.IMS2Dprocess,
-                                                                                     dataType='plot', compact=False)
-
-        elif selectedItemParentText == 'Drift time (2D, EIC)' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
-                dictionary=self.docs.IMS2Dions[selectedText], dataType='plot', compact=False)
-
-        elif selectedItemParentText == 'Drift time (2D, processed, EIC)' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
-                dictionary=self.docs.IMS2DionsProcess[selectedText], dataType='plot', compact=False)
-
-        elif selectedItemParentText == 'Drift time (2D, combined voltages, EIC)' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
-                dictionary=self.docs.IMS2DCombIons[selectedText], dataType='plot', compact=False)
-
-        elif selectedItemParentText == 'Input data' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
-                dictionary=self.docs.IMS2DcompData[selectedText], dataType='plot', compact=False)
-
-        elif selectedItemParentText == 'Statistical' and indent == 3:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
-                dictionary=self.docs.IMS2DstatsData[selectedText], dataType='plot', compact=False)
-        elif selectedText == 'MS vs DT' and indent == 2:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.DTMZ,
-                                                                                     dataType='plot', compact=False)
-        else:
-            self.view.SetStatusText('Not implemented yet', 3)
-
-        if (isempty(zvals) or isempty(xvals) or isempty(xlabel) or isempty(yvals) or isempty(ylabel)):
-            self.view.SetStatusText('Sorry, missing data - cannot perform action', 3)
-            try:
-                self.checkWhatIsMissing2D(zvals, xvals, xlabel, yvals, ylabel, cmap)
-            except UnboundLocalError:
-                return
-            return
-
-        # Smooth data
-        if self.config.smoothMode == "None" or self.config.smoothMode == False:
-            pass
-        elif self.config.smoothMode == "Gaussian":
-            sigma = str2num(self.config.gaussSigma.encode('ascii', 'replace'))
-            zvals = pr_heatmap.smooth_gaussian_2D(inputData=zvals, sigma=sigma)
-        elif self.config.smoothMode == "Savitzky-Golay":
-            savgolPoly = str2int(self.config.savGolPolyOrder.encode('ascii', 'replace'))
-            savgolWindow = str2int(self.config.savGolWindowSize.encode('ascii', 'replace'))
-            zvals = pr_heatmap.smooth_savgol_2D(inputData=zvals,
-                                                polyOrder=savgolPoly,
-                                                windowSize=savgolWindow)
-        else:
-            pass
-        # Threshold data
-        threshold = str2num(self.config.threshold.encode('ascii', 'replace'))
-
-        if isempty(threshold) or threshold is None or threshold == '':
-            pass
-        else:
-            zvals = pr_heatmap.remove_noise_2D(inputData=zvals, threshold=threshold)
-            threshold = None
-
-        # Normalize data - following previous actions!
-        if self.config.normalize:
-            zvals = pr_heatmap.normalize_2D(inputData=zvals, mode=self.config.normMode)
-
-        # Check and change colormap if necessary
-        cmapNorm = self.normalize_colormap(zvals,
-                                            min=self.config.minCmap,
-                                            mid=self.config.midCmap,
-                                            max=self.config.maxCmap,
-                                            #                                             cbarLimits=self.config.colorbarRange
-                                            )
-
-        # Plot data
-        if mode == '2D':
-            self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, cmapNorm=cmapNorm)
-            if self.config.waterfall:
-                self.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
-                                                       xlabel=xlabel, ylabel=ylabel)
-            self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
-                                            xlabel=xlabel, ylabel=ylabel, zlabel='Intensity', cmap=cmap)
-        elif mode == 'MSDT':
-            self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, cmap, cmapNorm=cmapNorm)
-
-    def process_2D(self, document=None, dataset=None, ionName=None):
-        # new in 1.1.0
-        if document is None or dataset is None:
-            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-            if self.currentDoc is None or self.currentDoc == "Current documents":
-                return
-            self.docs = self.documentsDict[self.currentDoc]
-        else:
-            self.docs = self.documentsDict[document]
-
-        # get data
-        if dataset == "Drift time (2D)":
-            data = self.docs.IMS2D
-        elif dataset == "Drift time (2D, processed)":
-            data = self.docs.IMS2Dprocess
-        elif dataset == "Drift time (2D, EIC)":
-            data = self.docs.IMS2Dions[ionName]
-        elif dataset == "Drift time (2D, processed, EIC)":
-            data = self.docs.IMS2DionsProcess[ionName]
-        elif dataset == "Drift time (2D, combined voltages, EIC)":
-            data = self.docs.IMS2DCombIons[ionName]
-        elif dataset == "Input data":
-            data = self.docs.IMS2DcompData[ionName]
-        elif dataset == "Statistical":
-            data = self.docs.IMS2DstatsData[ionName]
-        elif dataset == "DT/MS":
-            data = self.docs.DTMZ
-
-        # unpact data
-        zvals = data['zvals']
-        xvals = data['xvals']
-        yvals = data['yvals']
-        xlabel = data['xlabels']
-        ylabel = data['ylabels']
-
-        zvals, params = self.data_processing.on_process_2D(zvals=zvals.copy(), return_all=True)
-
-        # strip any processed string from the title
-        if ionName is not None:
-            if "(processed)" in ionName:
-                dataset = ionName.split(" (")[0]
-            new_dataset = "%s (processed)" % ionName
-
-        if dataset == "Drift time (2D)":
-            self.docs.got2Dprocess = True
-            self.docs.IMS2Dprocess = self.docs.IMS2D.copy()
-            self.docs.IMS2Dprocess['zvals'] = zvals
-            self.docs.IMS2Dprocess['process_parameters'] = params
-            self.docs.IMS2D['process_parameters'] = params
-        if dataset == "Drift time (2D, EIC)":
-            self.docs.IMS2Dions[new_dataset] = self.docs.IMS2Dions[ionName].copy()
-            self.docs.IMS2Dions[new_dataset]['zvals'] = zvals
-            self.docs.IMS2Dions[new_dataset]['process_parameters'] = params
-        elif dataset == "Drift time (2D, processed, EIC)":
-            self.docs.IMS2DionsProcess[new_dataset] = self.docs.IMS2DionsProcess[ionName].copy()
-            self.docs.IMS2DionsProcess[new_dataset]['zvals'] = zvals
-            self.docs.IMS2DionsProcess[new_dataset]['process_parameters'] = params
-        elif dataset == "Drift time (2D, combined voltages, EIC)":
-            self.docs.IMS2DCombIons[new_dataset] = self.docs.IMS2DCombIons[ionName].copy()
-            self.docs.IMS2DCombIons[new_dataset]['zvals'] = zvals
-            self.docs.IMS2DCombIons[new_dataset]['process_parameters'] = params
-        elif dataset == "Input data":
-            self.docs.IMS2DcompData[new_dataset] = self.docs.IMS2DcompData[ionName].copy()
-            self.docs.IMS2DcompData[new_dataset]['zvals'] = zvals
-            self.docs.IMS2DcompData[new_dataset]['process_parameters'] = params
-        elif dataset == "Statistical":
-            self.docs.IMS2DstatsData[new_dataset] = self.docs.IMS2DstatsData[ionName].copy()
-            self.docs.IMS2DstatsData[new_dataset]['zvals'] = zvals
-            self.docs.IMS2DstatsData[new_dataset]['process_parameters'] = params
-        elif dataset == "DT/MS":
-            self.docs.DTMZ['zvals'] = zvals
-            self.docs.DTMZ['process_parameters'] = params
-
-        # replot
-        if dataset in ['Drift time (2D)', 'Drift time (2D, processed)',
-                       'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
-                       'Drift time (2D, processed, EIC)', 'Input data', 'Statistical']:
-            self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
-            if self.config.waterfall:
-                self.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
-                                                       xlabel=xlabel, ylabel=ylabel)
-            self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
-                                            xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
-            # change to correct plot window
-            if not self.config.waterfall:
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
-        elif dataset == "DT/MS":
-            self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel)
-            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
-
-        # Update file list
-        self.OnUpdateDocument(self.docs, 'document')
-
-    def processMSdata(self, replot=False, msX=None, msY=None, return_data=False,
-                      return_all=False, evt=None):
-        # new in 1.1.0
-        if replot:
-            msX, msY, xlimits = self._get_replot_data('MS')
-            if msX is None or msY is None:
-                return
-
-        # Check values
-        self.config.onCheckValues(data_type='process')
-        if self.config.processParamsWindow_on_off:
-            self.view.panelProcessData.onSetupValues(evt=None)
-
-        if self.config.ms_process_crop:
-            kwargs = {'min': self.config.ms_crop_min,
-                      'max': self.config.ms_crop_max}
-            msX, msY = pr_spectra.crop_1D_data(msX, msY, **kwargs)
-
-        if self.config.ms_process_linearize and msX is not None:
-            kwargs = {'auto_range': self.config.ms_auto_range,
-                      'mz_min': self.config.ms_mzStart,
-                      'mz_max': self.config.ms_mzEnd,
-                      'mz_bin': self.config.ms_mzBinSize,
-                      'linearization_mode': self.config.ms_linearization_mode}
-            msX, msY = pr_spectra.linearize_data(msX, msY, **kwargs)
-
-        if self.config.ms_process_smooth:
-            # Smooth data
-            kwargs = {'sigma': self.config.ms_smooth_sigma,
-                      'polyOrder': self.config.ms_smooth_polynomial,
-                      'windowSize': self.config.ms_smooth_window}
-            msY = pr_spectra.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **kwargs)
-
-        if self.config.ms_process_threshold:
-            # Threshold data
-            msY = pr_spectra.remove_noise_1D(inputData=msY, threshold=self.config.ms_threshold)
-
-        if self.config.ms_process_normalize:
-            # Normalize data
-            if self.config.ms_normalize:
-                msY = pr_spectra.normalize_1D(inputData=np.asarray(msY),
-                                              mode=self.config.ms_normalize_mode)
-
-        if replot:
-            # Plot data
-            kwargsMS = {}
-            self.view.panelPlots.on_plot_MS(msX=msX, msY=msY,
-                                            override=False, **kwargsMS)
-
-        if return_data:
-            if msX is not None:
-                return msX, msY
-            else:
-                return msY
-
-        if return_all:
-            parameters = {'smooth_mode': self.config.ms_smooth_mode,
-                          'sigma': self.config.ms_smooth_sigma,
-                          'polyOrder': self.config.ms_smooth_polynomial,
-                          'windowSize': self.config.ms_smooth_window,
-                          'threshold': self.config.ms_threshold}
-            return msX, msY, parameters
-
-    def process_MS(self, document=None, dataset=None):
-
-        if document is None or dataset is None:
-            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-            if self.currentDoc is None or self.currentDoc == "Current documents":
-                return
-            self.docs = self.documentsDict[self.currentDoc]
-        else:
-            self.docs = self.documentsDict[document]
-
-        # select dataset
-        if dataset == 'Mass Spectrum':
-            if self.docs.gotMS:
-                data = self.docs.massSpectrum
-        else:
-            if self.docs.gotMultipleMS:
-                data = self.docs.multipleMassSpectrum[dataset]
-
-        # retrieve plot data
-        msX = data['xvals']
-        msY = data['yvals']
-        annotations = data.get('annotations', {})
-        title = data.get('header', "")
-        header = data.get('header', "")
-        footnote = data.get('footnote', "")
-        msX, msY, params = self.processMSdata(msX=msX, msY=msY, return_all=True)
-        xlimits = [np.min(msX), np.max(msX)]
-        ms_data = {'xvals': msX, 'yvals': msY,
-                   'xlabels': 'm/z (Da)',
-                   'parameters': params,
-                   'annotations': annotations, 'title': title,
-                   'header': header, 'footnote': footnote,
-                   'xlimits': xlimits}
-
-        # add data to dictionary
-        if dataset == 'Mass Spectrum':
-            self.docs.gotSmoothMS = True
-            self.docs.smoothMS = ms_data
-            new_dataset = "Mass Spectrum (processed)"
-        else:
-            # strip any processed string from the title
-            if "(processed)" in dataset:
-                dataset = dataset.split(" (")[0]
-            new_dataset = "%s (processed)" % dataset
-            self.docs.multipleMassSpectrum[new_dataset] = ms_data
-
-        # Plot processed MS
-        name_kwargs = {"document": self.docs.title, "dataset": new_dataset}
-        self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
-        self.OnUpdateDocument(self.docs, 'document')
+#     def process2Ddata(self, zvals=None, replot=False, replot_type='2D',
+#                       return_data=False, return_all=False, e=None):
+#         """
+#         Process data - smooth, threshold and normalize 2D data
+#         """
+#
+#         # new in 1.1.0
+#         if replot:
+#             data = self._get_replot_data(replot_type)
+#             zvals = data[0]
+#
+#         # make sure any data was retrieved
+#         if zvals is None:
+#             return
+#
+#         # Check values
+#         self.config.onCheckValues(data_type='process')
+#         if self.config.processParamsWindow_on_off:
+#             self.view.panelProcessData.onSetupValues(evt=None)
+#
+#         # Smooth data
+#         if self.config.plot2D_smooth_mode is not None:
+#             if self.config.plot2D_smooth_mode == 'Gaussian':
+#                 zvals = pr_heatmap.smooth_gaussian_2D(inputData=zvals.copy(),
+#                                                       sigma=self.config.plot2D_smooth_sigma)
+#             elif self.config.plot2D_smooth_mode == 'Savitzky-Golay':
+#                 zvals = pr_heatmap.smooth_savgol_2D(inputData=zvals,
+#                                                     polyOrder=self.config.plot2D_smooth_polynomial,
+#                                                     windowSize=self.config.plot2D_smooth_window)
+#         else:
+#             pass
+#         # Threshold
+#         zvals = pr_heatmap.remove_noise_2D(inputData=zvals.copy(),
+#                                            threshold=self.config.plot2D_threshold)
+#         # Normalize
+#         if self.config.plot2D_normalize:
+#             zvals = pr_heatmap.normalize_2D(inputData=zvals.copy(),
+#                                             mode=self.config.plot2D_normalize_mode)
+#
+#         if replot:
+#             xvals, yvals, xlabel, ylabel = data[1::]
+#             if replot_type == '2D':
+#                 self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
+#                 if self.config.waterfall:
+#                     self.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
+#                                                            xlabel=xlabel, ylabel=ylabel)
+#                 self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
+#                                                 xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
+#                 if not self.config.waterfall:
+#                     self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+#             elif replot_type == 'DT/MS':
+#                 self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, override=False)
+#                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
+#
+#         if return_data:
+#             return zvals
+#
+#         if return_all:
+#             parameters = {'smooth_mode': self.config.plot2D_smooth_mode,
+#                           'sigma': self.config.plot2D_smooth_sigma,
+#                           'polyOrder': self.config.plot2D_smooth_polynomial,
+#                           'windowSize': self.config.plot2D_smooth_window,
+#                           'threshold': self.config.plot2D_threshold}
+#             return zvals, parameters
+#
+#     def process2Ddata2(self, zvals=None, labelsX=None, e=None, mode='2D'):
+#         """
+#         Process 2D data - smooth, threshold and normalize 2D data
+#         """
+#         # Gather info about the file and document
+#         selectedItemParentText = None
+#         self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(
+#             getSelected=True)
+#         indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
+#         if indent > 2:
+#             __, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(selectedItem, 2,
+#                                                                                           getSelected=True)
+#         else:
+#             pass
+#         self.docs = self.documentsDict[self.currentDoc]
+#
+#         # Clear current data
+#         zvals = None
+#         # Based on the selection and indent, data is selected
+#         if selectedText == 'Drift time (2D)' and indent == 2:
+#             zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.IMS2D,
+#                                                                                      dataType='plot', compact=False)
+#
+#         elif selectedText == 'Drift time (processed)' and indent == 2:
+#             zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.IMS2Dprocess,
+#                                                                                      dataType='plot', compact=False)
+#
+#         elif selectedItemParentText == 'Drift time (2D, EIC)' and indent == 3:
+#             zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+#                 dictionary=self.docs.IMS2Dions[selectedText], dataType='plot', compact=False)
+#
+#         elif selectedItemParentText == 'Drift time (2D, processed, EIC)' and indent == 3:
+#             zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+#                 dictionary=self.docs.IMS2DionsProcess[selectedText], dataType='plot', compact=False)
+#
+#         elif selectedItemParentText == 'Drift time (2D, combined voltages, EIC)' and indent == 3:
+#             zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+#                 dictionary=self.docs.IMS2DCombIons[selectedText], dataType='plot', compact=False)
+#
+#         elif selectedItemParentText == 'Input data' and indent == 3:
+#             zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+#                 dictionary=self.docs.IMS2DcompData[selectedText], dataType='plot', compact=False)
+#
+#         elif selectedItemParentText == 'Statistical' and indent == 3:
+#             zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(
+#                 dictionary=self.docs.IMS2DstatsData[selectedText], dataType='plot', compact=False)
+#         elif selectedText == 'MS vs DT' and indent == 2:
+#             zvals, xvals, xlabel, yvals, ylabel, cmap = self.get2DdataFromDictionary(dictionary=self.docs.DTMZ,
+#                                                                                      dataType='plot', compact=False)
+#         else:
+#             self.view.SetStatusText('Not implemented yet', 3)
+#
+#         if (isempty(zvals) or isempty(xvals) or isempty(xlabel) or isempty(yvals) or isempty(ylabel)):
+#             self.view.SetStatusText('Sorry, missing data - cannot perform action', 3)
+#             try:
+#                 self.checkWhatIsMissing2D(zvals, xvals, xlabel, yvals, ylabel, cmap)
+#             except UnboundLocalError:
+#                 return
+#             return
+#
+#         # Smooth data
+#         if self.config.smoothMode == "None" or self.config.smoothMode == False:
+#             pass
+#         elif self.config.smoothMode == "Gaussian":
+#             sigma = str2num(self.config.gaussSigma.encode('ascii', 'replace'))
+#             zvals = pr_heatmap.smooth_gaussian_2D(inputData=zvals, sigma=sigma)
+#         elif self.config.smoothMode == "Savitzky-Golay":
+#             savgolPoly = str2int(self.config.savGolPolyOrder.encode('ascii', 'replace'))
+#             savgolWindow = str2int(self.config.savGolWindowSize.encode('ascii', 'replace'))
+#             zvals = pr_heatmap.smooth_savgol_2D(inputData=zvals,
+#                                                 polyOrder=savgolPoly,
+#                                                 windowSize=savgolWindow)
+#         else:
+#             pass
+#         # Threshold data
+#         threshold = str2num(self.config.threshold.encode('ascii', 'replace'))
+#
+#         if isempty(threshold) or threshold is None or threshold == '':
+#             pass
+#         else:
+#             zvals = pr_heatmap.remove_noise_2D(inputData=zvals, threshold=threshold)
+#             threshold = None
+#
+#         # Normalize data - following previous actions!
+#         if self.config.normalize:
+#             zvals = pr_heatmap.normalize_2D(inputData=zvals, mode=self.config.normMode)
+#
+#         # Check and change colormap if necessary
+#         cmapNorm = self.normalize_colormap(zvals,
+#                                             min=self.config.minCmap,
+#                                             mid=self.config.midCmap,
+#                                             max=self.config.maxCmap,
+#                                             #                                             cbarLimits=self.config.colorbarRange
+#                                             )
+#
+#         # Plot data
+#         if mode == '2D':
+#             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, cmapNorm=cmapNorm)
+#             if self.config.waterfall:
+#                 self.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
+#                                                        xlabel=xlabel, ylabel=ylabel)
+#             self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
+#                                             xlabel=xlabel, ylabel=ylabel, zlabel='Intensity', cmap=cmap)
+#         elif mode == 'MSDT':
+#             self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, cmap, cmapNorm=cmapNorm)
+#
+#     def process_2D(self, document=None, dataset=None, ionName=None):
+#         # new in 1.1.0
+#         if document is None or dataset is None:
+#             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#             if self.currentDoc is None or self.currentDoc == "Current documents":
+#                 return
+#             self.docs = self.documentsDict[self.currentDoc]
+#         else:
+#             self.docs = self.documentsDict[document]
+#
+#         # get data
+#         if dataset == "Drift time (2D)":
+#             data = self.docs.IMS2D
+#         elif dataset == "Drift time (2D, processed)":
+#             data = self.docs.IMS2Dprocess
+#         elif dataset == "Drift time (2D, EIC)":
+#             data = self.docs.IMS2Dions[ionName]
+#         elif dataset == "Drift time (2D, processed, EIC)":
+#             data = self.docs.IMS2DionsProcess[ionName]
+#         elif dataset == "Drift time (2D, combined voltages, EIC)":
+#             data = self.docs.IMS2DCombIons[ionName]
+#         elif dataset == "Input data":
+#             data = self.docs.IMS2DcompData[ionName]
+#         elif dataset == "Statistical":
+#             data = self.docs.IMS2DstatsData[ionName]
+#         elif dataset == "DT/MS":
+#             data = self.docs.DTMZ
+#
+#         # unpact data
+#         zvals = data['zvals']
+#         xvals = data['xvals']
+#         yvals = data['yvals']
+#         xlabel = data['xlabels']
+#         ylabel = data['ylabels']
+#
+#         zvals, params = self.data_processing.on_process_2D(zvals=zvals.copy(), return_all=True)
+#
+#         # strip any processed string from the title
+#         if ionName is not None:
+#             if "(processed)" in ionName:
+#                 dataset = ionName.split(" (")[0]
+#             new_dataset = "%s (processed)" % ionName
+#
+#         if dataset == "Drift time (2D)":
+#             self.docs.got2Dprocess = True
+#             self.docs.IMS2Dprocess = self.docs.IMS2D.copy()
+#             self.docs.IMS2Dprocess['zvals'] = zvals
+#             self.docs.IMS2Dprocess['process_parameters'] = params
+#             self.docs.IMS2D['process_parameters'] = params
+#         if dataset == "Drift time (2D, EIC)":
+#             self.docs.IMS2Dions[new_dataset] = self.docs.IMS2Dions[ionName].copy()
+#             self.docs.IMS2Dions[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2Dions[new_dataset]['process_parameters'] = params
+#         elif dataset == "Drift time (2D, processed, EIC)":
+#             self.docs.IMS2DionsProcess[new_dataset] = self.docs.IMS2DionsProcess[ionName].copy()
+#             self.docs.IMS2DionsProcess[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2DionsProcess[new_dataset]['process_parameters'] = params
+#         elif dataset == "Drift time (2D, combined voltages, EIC)":
+#             self.docs.IMS2DCombIons[new_dataset] = self.docs.IMS2DCombIons[ionName].copy()
+#             self.docs.IMS2DCombIons[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2DCombIons[new_dataset]['process_parameters'] = params
+#         elif dataset == "Input data":
+#             self.docs.IMS2DcompData[new_dataset] = self.docs.IMS2DcompData[ionName].copy()
+#             self.docs.IMS2DcompData[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2DcompData[new_dataset]['process_parameters'] = params
+#         elif dataset == "Statistical":
+#             self.docs.IMS2DstatsData[new_dataset] = self.docs.IMS2DstatsData[ionName].copy()
+#             self.docs.IMS2DstatsData[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2DstatsData[new_dataset]['process_parameters'] = params
+#         elif dataset == "DT/MS":
+#             self.docs.DTMZ['zvals'] = zvals
+#             self.docs.DTMZ['process_parameters'] = params
+#
+#         # replot
+#         if dataset in ['Drift time (2D)', 'Drift time (2D, processed)',
+#                        'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
+#                        'Drift time (2D, processed, EIC)', 'Input data', 'Statistical']:
+#             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
+#             if self.config.waterfall:
+#                 self.view.panelPlots.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
+#                                                        xlabel=xlabel, ylabel=ylabel)
+#             self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
+#                                             xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
+#             # change to correct plot window
+#             if not self.config.waterfall:
+#                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+#         elif dataset == "DT/MS":
+#             self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel)
+#             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
+#
+#         # Update file list
+#         self.OnUpdateDocument(self.docs, 'document')
+#
+#     def processMSdata(self, replot=False, msX=None, msY=None, return_data=False,
+#                       return_all=False, evt=None):
+#         # new in 1.1.0
+#         if replot:
+#             msX, msY, xlimits = self._get_replot_data('MS')
+#             if msX is None or msY is None:
+#                 return
+#
+#         # Check values
+#         self.config.onCheckValues(data_type='process')
+#         if self.config.processParamsWindow_on_off:
+#             self.view.panelProcessData.onSetupValues(evt=None)
+#
+#         if self.config.ms_process_crop:
+#             kwargs = {'min': self.config.ms_crop_min,
+#                       'max': self.config.ms_crop_max}
+#             msX, msY = pr_spectra.crop_1D_data(msX, msY, **kwargs)
+#
+#         if self.config.ms_process_linearize and msX is not None:
+#             kwargs = {'auto_range': self.config.ms_auto_range,
+#                       'mz_min': self.config.ms_mzStart,
+#                       'mz_max': self.config.ms_mzEnd,
+#                       'mz_bin': self.config.ms_mzBinSize,
+#                       'linearization_mode': self.config.ms_linearization_mode}
+#             msX, msY = pr_spectra.linearize_data(msX, msY, **kwargs)
+#
+#         if self.config.ms_process_smooth:
+#             # Smooth data
+#             kwargs = {'sigma': self.config.ms_smooth_sigma,
+#                       'polyOrder': self.config.ms_smooth_polynomial,
+#                       'windowSize': self.config.ms_smooth_window}
+#             msY = pr_spectra.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **kwargs)
+#
+#         if self.config.ms_process_threshold:
+#             # Threshold data
+#             msY = pr_spectra.remove_noise_1D(inputData=msY, threshold=self.config.ms_threshold)
+#
+#         if self.config.ms_process_normalize:
+#             # Normalize data
+#             if self.config.ms_normalize:
+#                 msY = pr_spectra.normalize_1D(inputData=np.asarray(msY),
+#                                               mode=self.config.ms_normalize_mode)
+#
+#         if replot:
+#             # Plot data
+#             kwargsMS = {}
+#             self.view.panelPlots.on_plot_MS(msX=msX, msY=msY,
+#                                             override=False, **kwargsMS)
+#
+#         if return_data:
+#             if msX is not None:
+#                 return msX, msY
+#             else:
+#                 return msY
+#
+#         if return_all:
+#             parameters = {'smooth_mode': self.config.ms_smooth_mode,
+#                           'sigma': self.config.ms_smooth_sigma,
+#                           'polyOrder': self.config.ms_smooth_polynomial,
+#                           'windowSize': self.config.ms_smooth_window,
+#                           'threshold': self.config.ms_threshold}
+#             return msX, msY, parameters
+#
+#     def process_MS(self, document=None, dataset=None):
+#
+#         if document is None or dataset is None:
+#             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#             if self.currentDoc is None or self.currentDoc == "Current documents":
+#                 return
+#             self.docs = self.documentsDict[self.currentDoc]
+#         else:
+#             self.docs = self.documentsDict[document]
+#
+#         # select dataset
+#         if dataset == 'Mass Spectrum':
+#             if self.docs.gotMS:
+#                 data = self.docs.massSpectrum
+#         else:
+#             if self.docs.gotMultipleMS:
+#                 data = self.docs.multipleMassSpectrum[dataset]
+#
+#         # retrieve plot data
+#         msX = data['xvals']
+#         msY = data['yvals']
+#         annotations = data.get('annotations', {})
+#         title = data.get('header', "")
+#         header = data.get('header', "")
+#         footnote = data.get('footnote', "")
+#         msX, msY, params = self.processMSdata(msX=msX, msY=msY, return_all=True)
+#         xlimits = [np.min(msX), np.max(msX)]
+#         ms_data = {'xvals': msX, 'yvals': msY,
+#                    'xlabels': 'm/z (Da)',
+#                    'parameters': params,
+#                    'annotations': annotations, 'title': title,
+#                    'header': header, 'footnote': footnote,
+#                    'xlimits': xlimits}
+#
+#         # add data to dictionary
+#         if dataset == 'Mass Spectrum':
+#             self.docs.gotSmoothMS = True
+#             self.docs.smoothMS = ms_data
+#             new_dataset = "Mass Spectrum (processed)"
+#         else:
+#             # strip any processed string from the title
+#             if "(processed)" in dataset:
+#                 dataset = dataset.split(" (")[0]
+#             new_dataset = "%s (processed)" % dataset
+#             self.docs.multipleMassSpectrum[new_dataset] = ms_data
+#
+#         # Plot processed MS
+#         name_kwargs = {"document": self.docs.title, "dataset": new_dataset}
+#         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
+#         self.OnUpdateDocument(self.docs, 'document')
 
     def _get_replot_data(self, data_format):
         """
@@ -4780,6 +4773,7 @@ class ORIGAMI(object):
         if isempty(cmap):
             self.view.SetStatusText("Missing colormap", 3)
 
+    # TODO: move this function to panelPlots or else
     def plot_compareMS(self, msX=None, msY_1=None, msY_2=None, msY=None, xlimits=None,
                        replot=False, override=True, evt=None):
 
@@ -5162,19 +5156,19 @@ class ORIGAMI(object):
 #                                                        marker=marker)
 #         self.view.panelPlots.bottomPlot1DT.repaint()
 
-    def getXYlimits2D(self, xvals, yvals, zvals=None):
+#     def getXYlimits2D(self, xvals, yvals, zvals=None):
+#
+#         # Get min/max values
+#         xmin, xmax = xvals[0], xvals[-1]
+#         ymin, ymax = yvals[0], yvals[-1]
+#         self.config.xyLimits = [xmin, xmax, ymin, ymax]
+#         if zvals is not None:
+#             self.config.colorbarRange = [np.min(zvals), np.max(zvals)]
 
-        # Get min/max values
-        xmin, xmax = xvals[0], xvals[-1]
-        ymin, ymax = yvals[0], yvals[-1]
-        self.config.xyLimits = [xmin, xmax, ymin, ymax]
-        if zvals is not None:
-            self.config.colorbarRange = [np.min(zvals), np.max(zvals)]
-
-    def getIntensityLimits2D(self, zvals):
-        minVal, maxVal = np.min(zvals), np.max(zvals)
-        self.config.colorbarRange = [minVal, maxVal]
-#         self.view.panelControls.onUpdateColorbarLimits(evt=None)
+#     def getIntensityLimits2D(self, zvals):
+#         minVal, maxVal = np.min(zvals), np.max(zvals)
+#         self.config.colorbarRange = [minVal, maxVal]
+# #         self.view.panelControls.onUpdateColorbarLimits(evt=None)
 
     def setXYlimitsRMSD2D(self, xvals, yvals):
         # Get min/max values
@@ -5182,14 +5176,15 @@ class ORIGAMI(object):
         ymin, ymax = yvals[0], yvals[-1]
         self.config.xyLimitsRMSD = [xmin, xmax, ymin, ymax]
 
-    def onZoomMS(self, startX, endX, endY, plot='MS'):
+#     def onZoomMS(self, startX, endX, endY, plot='MS'):
+#
+#         if plot == 'MS':
+#             self.view.panelPlots.plot1.onZoomIn(startX, endX, endY)
+#             self.view.panelPlots.plot1.repaint()
+#         elif plot == 'CalibrationMS':
+#             self.view.panelPlots.topPlotMS.onZoomIn(startX, endX, endY)
 
-        if plot == 'MS':
-            self.view.panelPlots.plot1.onZoomIn(startX, endX, endY)
-            self.view.panelPlots.plot1.repaint()
-        elif plot == 'CalibrationMS':
-            self.view.panelPlots.topPlotMS.onZoomIn(startX, endX, endY)
-
+    # TODO: move this function to panelplots
     def OnChangedRMSF(self, xmin, xmax):
         """
         Receives a message about change in RMSF plot
@@ -5197,23 +5192,23 @@ class ORIGAMI(object):
 
         self.view.panelPlots.plotRMSF.onZoomRMSF(xmin, xmax)
 
-    def onZoom2D(self, evt):
-        if self.config.restrictXYrange:
-            if len(self.config.xyLimits) != 4:
-                return
-
-            startX, endX, startY, endY = self.config.xyLimits
-
-            msg = ' '.join(['Zoomed in: X:', str(startX), '-', str(endX),
-                            'Y:', str(startY), '-', str(endY)])
-            self.view.SetStatusText(msg, 3)
-            self.view.panelPlots.plot2D.onZoom2D(startX, endX, startY, endY)
-            self.view.panelPlots.plot2D.repaint()
-            if self.config.waterfall:
-                # Axes are rotated so using yaxis limits
-                self.view.panelPlots.plotWaterfallIMS.onZoom1D(startY, endY)
-                self.view.panelPlots.plotWaterfallIMS.repaint()
-
+#     def onZoom2D(self, evt):
+#         if self.config.restrictXYrange:
+#             if len(self.config.xyLimits) != 4:
+#                 return
+#
+#             startX, endX, startY, endY = self.config.xyLimits
+#
+#             msg = ' '.join(['Zoomed in: X:', str(startX), '-', str(endX),
+#                             'Y:', str(startY), '-', str(endY)])
+#             self.view.SetStatusText(msg, 3)
+#             self.view.panelPlots.plot2D.onZoom2D(startX, endX, startY, endY)
+#             self.view.panelPlots.plot2D.repaint()
+#             if self.config.waterfall:
+#                 # Axes are rotated so using yaxis limits
+#                 self.view.panelPlots.plotWaterfallIMS.onZoom1D(startY, endY)
+#                 self.view.panelPlots.plotWaterfallIMS.repaint()
+#
 #     def onRebootZoom(self, evt):
 #         plotList = [self.view.panelPlots.plot1,
 #                     self.view.panelPlots.plotRT,

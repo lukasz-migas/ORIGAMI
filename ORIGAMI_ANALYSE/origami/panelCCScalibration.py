@@ -337,8 +337,7 @@ class topPanel(wx.Panel):
 
         # bind
         self.applyBtn.Bind(wx.EVT_BUTTON, self.onAnnotateItems)
-        self.selectBtn.Bind(wx.EVT_BUTTON, self.presenter.onSelectProtein,
-                            id=ID_selectCalibrant)
+        # self.selectBtn.Bind(wx.EVT_BUTTON, self.presenter.onSelectProtein, id=ID_selectCalibrant)
 
         self.tD_value.Bind(wx.EVT_TEXT_ENTER, self.onAnnotateItems,
                            id=ID_calibration_changeTD)
@@ -579,8 +578,7 @@ class topPanel(wx.Panel):
 
     def onAddTool(self, evt):
 
-        self.Bind(wx.EVT_MENU, self.presenter.onCalibrantRawDirectory,
-                  id=ID_addCCScalibrantFile)
+        # self.Bind(wx.EVT_MENU, self.presenter.onCalibrantRawDirectory, id=ID_addCCScalibrantFile)
         self.Bind(wx.EVT_MENU, self.presenter.onAddBlankDocument,
                   id=ID_addNewCalibrationDoc)
         self.Bind(wx.EVT_MENU, self.presenter.onImportCCSDatabase,
@@ -641,8 +639,8 @@ class topPanel(wx.Panel):
 
     def onExtractTool(self, evt):
 
-        self.Bind(wx.EVT_MENU, self.presenter.onAddCalibrantMultiple, id=ID_extractCCScalibrantSelected)
-        self.Bind(wx.EVT_MENU, self.presenter.onAddCalibrantMultiple, id=ID_extractCCScalibrantAll)
+        # self.Bind(wx.EVT_MENU, self.presenter.onAddCalibrantMultiple, id=ID_extractCCScalibrantSelected)
+        # self.Bind(wx.EVT_MENU, self.presenter.onAddCalibrantMultiple, id=ID_extractCCScalibrantAll)
 
         menu = wx.Menu()
         menu.Append(ID_extractCCScalibrantSelected, "Extract 1D IM-MS for selected ion")
@@ -655,7 +653,7 @@ class topPanel(wx.Panel):
 
         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeItemCCSCalibrantPopup)
         self.Bind(wx.EVT_MENU, self.onPlot, id=ID_calibrationPlot1D)
-        self.Bind(wx.EVT_MENU, self.presenter.onSelectProtein, id=ID_selectCalibrant)
+        # self.Bind(wx.EVT_MENU, self.presenter.onSelectProtein, id=ID_selectCalibrant)
 
         self.currentItem = evt.GetIndex()
         self.menu = wx.Menu()

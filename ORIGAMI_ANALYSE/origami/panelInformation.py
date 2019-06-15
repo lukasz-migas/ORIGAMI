@@ -383,9 +383,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.selectBtn = wx.Button(panel, ID_selectProtein, "...",
                                    wx.DefaultPosition, wx.Size(25, -1), 0)
 
-        self.selectBtn.Bind(wx.EVT_BUTTON,
-                            self.presenter.onSelectProtein,
-                            id=ID_selectProtein)
+        # self.selectBtn.Bind(wx.EVT_BUTTON, self.presenter.onSelectProtein, id=ID_selectProtein) 
 
         molWeight_label = wx.StaticText(panel, -1, "Molecular weight (Da):")
         self.molWeight_value = wx.TextCtrl(panel, -1, "", size=(180, -1))

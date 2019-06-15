@@ -674,7 +674,7 @@ class data_handling():
             if dtEnd < dtStart:
                 dtEnd, dtStart = dtStart, dtEnd
 
-            self.presenter.on_extract_MS_from_mobiligram(dtStart=dtStart, dtEnd=dtEnd, units=dt_label)
+            self.on_extract_MS_from_mobiligram(dtStart=dtStart, dtEnd=dtEnd, units=dt_label)
 
         # Extract heatmap from mass spectrum window
         elif self.plot_page == "MS" or currentView == "MS":
@@ -844,7 +844,7 @@ class data_handling():
             if document.fileFormat == "Format: Thermo (.RAW)":
                 return
             else:
-                self.presenter.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
+                self.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
 
         else:
             return
@@ -891,11 +891,9 @@ class data_handling():
 
         # Extract data
         if self.plot_page == "DT/MS":
-            self.presenter.on_extract_RT_from_mzdt(xmin, xmax, ymin, ymax,
-                                                   units_x=xlabel, units_y=ylabel)
+            self.on_extract_RT_from_mzdt(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
         elif self.plot_page == "2D":
-            self.presenter.on_extract_MS_from_heatmap(xmin, xmax, ymin, ymax,
-                                                      units_x=xlabel, units_y=ylabel)
+            self.on_extract_MS_from_heatmap(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
         self.SetStatusText("", number=4)
 
     def on_open_text_2D_fcn(self, evt):
@@ -1507,240 +1505,231 @@ class data_handling():
         self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
         self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
 
-#
-#     def on_extract_RT_from_mzdt(self, mzStart, mzEnd, dtStart, dtEnd, units_x="m/z",
-#                                 units_y="Drift time (bins)"):  # onExtractRTforMZDTrange
-#         """ Function to extract RT data for specified MZ/DT region """
-#
-#         document = self.data_processing._on_get_document()
-#
-#         # convert from miliseconds to bins
-#         if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
-#             pusherFreq = self.docs.parameters.get('pusherFreq', 1000)
-#             dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
-#             dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
-#
-#         # Load data
-#         extract_kwargs = {'return_data': True, 'normalize': False}
-#         rtDataX, rtDataY = io_waters.driftscope_extract_RT(path=document.path,
-#                                                             driftscope_path=self.config.driftscopePath,
-#                                                             mz_start=mzStart, mz_end=mzEnd,
-#                                                             dt_start=dtStart, dt_end=dtEnd,
-#                                                             **extract_kwargs)
-#         self.plotsPanel.on_plot_RT(rtDataX, rtDataY, 'Scans')
-#
-#         itemName = "Ion: {}-{} | Drift time: {}-{}".format(np.round(mzStart, 2), np.round(mzEnd),
-#                                                            np.round(dtStart, 2), np.round(dtEnd))
-#         document.multipleRT[itemName] = {'xvals': rtDataX,
-#                                          'yvals': rtDataY,
-#                                          'xlabels': 'Scans'}
-#         document.gotMultipleRT = True
-#
-#         msg = "Extracted RT data for m/z: %s-%s | dt: %s-%s" % (mzStart, mzEnd, dtStart, dtEnd)
-#         self.__update_statusbar(msg, 3)
-#
-#         # Update document
-#         self.on_update_document(document, 'document')
-#
-#     def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
-#         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-#         if document_title == 'Current documents':
-#             return
-#         self.docs = self.documentsDict[document_title]
-#
-#         # convert from miliseconds to bins
-#         if units in ["Drift time (ms)", "Arrival time (ms)"]:
-#             pusherFreq = self.docs.parameters.get('pusherFreq', 1000)
-#             dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
-#             dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
-#
-#         # Extract data
-#         extract_kwargs = {'return_data': True}
-#         msX, msY = io_waters.driftscope_extract_MS(path=self.docs.path,
-#                                                     driftscope_path=self.config.driftscopePath,
-#                                                     dt_start=dtStart, dt_end=dtEnd,
-#                                                     **extract_kwargs)
-#         xlimits = [self.docs.parameters['startMS'], self.docs.parameters['endMS']]
-#
-#         # Add data to dictionary
-#         itemName = "Drift time: {}-{}".format(dtStart, dtEnd)
-#
-#         self.docs.gotMultipleMS = True
-#         self.docs.multipleMassSpectrum[itemName] = {'xvals': msX, 'yvals': msY,
-#                                                     'range': [dtStart, dtEnd],
-#                                                     'xlabels': 'm/z (Da)',
-#                                                     'xlimits': xlimits}
-#
-#         # Plot MS
-#         name_kwargs = {"document": self.docs.title, "dataset": itemName}
-#         self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="1D", **name_kwargs)
-#         # Update document
-#         self.on_update_document(self.docs, 'mass_spectra')
-#
-#     def on_extract_MS_from_chromatogram(self, startScan=None, endScan=None, units="Scans"):
-#         """ Function to extract MS data for specified RT region """
-#
-#         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-#         if document_title == 'Current documents':
-#             return
-#         document = self.documentsDict[document_title]
-#
-#         try:
-#             scantime = document.parameters['scanTime']
-#         except:
-#             scantime = None
-#
-#         try:
-#             xlimits = [document.parameters['startMS'], document.parameters['endMS']]
-#         except Exception:
-#             try:
-#                 xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-#             except:
-#                 pass
-#             xlimits = None
-#
-#         if not self.config.ms_enable_in_RT and scantime is not None:
-#             if units == "Scans":
-#                 rtStart = round(startScan * (scantime / 60), 2)
-#                 rtEnd = round(endScan * (scantime / 60), 2)
-#             elif units in ['Time (min)', 'Retention time (min)']:
-#                 rtStart, rtEnd = startScan, endScan
-#                 startScan = np.ceil(((startScan / scantime) * 60)).astype(int)
-#                 endScan = np.ceil(((endScan / scantime) * 60)).astype(int)
-#
-#             # Mass spectra
-#             try:
-#                 extract_kwargs = {'return_data': True}
-#                 msX, msY = io_waters.driftscope_extract_MS(path=document.path,
-#                                                             driftscope_path=self.config.driftscopePath,
-#                                                             rt_start=rtStart, rt_end=rtEnd,
-#                                                             **extract_kwargs)
-#                 if xlimits is None:
-#                     xlimits = [np.min(msX), np.max(msX)]
-#             except (IOError, ValueError):
-#                 kwargs = {'auto_range': self.config.ms_auto_range,
-#                           'mz_min': xlimits[0], 'mz_max': xlimits[1],
-#                           'linearization_mode': self.config.ms_linearization_mode}
-#                 msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path), function=1,
-#                                                       startScan=startScan, endScan=endScan,
-#                                                       binData=self.config.import_binOnImport,
-#                                                       # override any settings as this is a accidental extraction
-#                                                       mzStart=xlimits[0], mzEnd=xlimits[1],
-#                                                       binsize=self.config.ms_mzBinSize,
-#                                                       **kwargs)
-#                 msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
-#
-#             xlimits = [np.min(msX), np.max(msX)]
-#         else:
-#             kwargs = {'auto_range': self.config.ms_auto_range,
-#                       'mz_min': xlimits[0], 'mz_max': xlimits[1],
-#                       'linearization_mode': self.config.ms_linearization_mode}
-#             msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path),
-#                                                   function=1,
-#                                                   startScan=startScan, endScan=endScan,
-#                                                   binData=self.config.import_binOnImport,
-#                                                   mzStart=self.config.ms_mzStart,
-#                                                   mzEnd=self.config.ms_mzEnd,
-#                                                   binsize=self.config.ms_mzBinSize,
-#                                                   **kwargs)
-#
-#             msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
-#             xlimits = [np.min(msX), np.max(msX)]
-#
-#         # Add data to dictionary
-#         itemName = "Scans: {}-{}".format(startScan, endScan)
-#
-#         document.gotMultipleMS = True
-#         document.multipleMassSpectrum[itemName] = {'xvals': msX,
-#                                                    'yvals': msY,
-#                                                     'range': [startScan, endScan],
-#                                                     'xlabels': 'm/z (Da)',
-#                                                     'xlimits': xlimits}
-#
-#         self.on_update_document(document, 'mass_spectra', expand_item_title=itemName)
-#         # Plot MS
-#         name_kwargs = {"document": document.title, "dataset": itemName}
-#         self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="RT", **name_kwargs)
-#         # Set status
-#         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
-#         self.__update_statusbar(msg, 3)
-#
-#     def on_extract_MS_from_heatmap(self, startScan=None, endScan=None, dtStart=None,
-#                                    dtEnd=None, units_x="Scans", units_y="Drift time (bins)"):
-#         """ Function to extract MS data for specified DT/MS region """
-#
-#         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-#         if document_title == 'Current documents':
-#             return
-#         document = self.documentsDict[document_title]
-#
-#         try:
-#             scanTime = document.parameters['scanTime']
-#         except:
-#             scanTime = None
-#
-#         try:
-#             pusherFreq = document.parameters['pusherFreq']
-#         except:
-#             pusherFreq = None
-#
-#         try:
-#             xlimits = [document.parameters['startMS'], document.parameters['endMS']]
-#         except Exception:
-#             try:
-#                 xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-#             except:
-#                 return
-#
-#         if units_x == "Scans":
-#             if scanTime is None:
-#                 return
-#             rtStart = round(startScan * (scanTime / 60), 2)
-#             rtEnd = round(endScan * (scanTime / 60), 2)
-#         elif units_x in ['Time (min)', 'Retention time (min)']:
-#             rtStart, rtEnd = startScan, endScan
-#             if scanTime is None:
-#                 return
-#             startScan = np.ceil(((startScan / scanTime) * 60)).astype(int)
-#             endScan = np.ceil(((endScan / scanTime) * 60)).astype(int)
-#
-#         if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
-#             if pusherFreq is None:
-#                 return
-#             dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
-#             dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
-#
-#         # Mass spectra
-#         try:
-#             extract_kwargs = {'return_data': True}
-#             msX, msY = io_waters.driftscope_extract_MS(path=document.path,
-#                                                         driftscope_path=self.config.driftscopePath,
-#                                                         rt_start=rtStart, rt_end=rtEnd,
-#                                                         dt_start=dtStart, dt_end=dtEnd,
-#                                                         **extract_kwargs)
-#             if xlimits is None:
-#                 xlimits = [np.min(msX), np.max(msX)]
-#         except (IOError, ValueError):
-#             return
-#
-#         # Add data to dictionary
-#         itemName = "Scans: {}-{} | Drift time: {}-{}".format(startScan, endScan,
-#                                                              dtStart, dtEnd)
-#
-#         document.gotMultipleMS = True
-#         document.multipleMassSpectrum[itemName] = {'xvals': msX,
-#                                                    'yvals': msY,
-#                                                    'range': [startScan, endScan],
-#                                                    'xlabels': 'm/z (Da)',
-#                                                    'xlimits': xlimits}
-#
-#         self.on_update_document(document, 'mass_spectra', expand_item_title=itemName)
-#         # Plot MS
-#         name_kwargs = {"document": document.title, "dataset": itemName}
-#         self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
-#         # Set status
-#         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
-#         self.__update_statusbar(msg, 3)
+    # TODO: check this function works
+    def on_extract_RT_from_mzdt(self, mzStart, mzEnd, dtStart, dtEnd, units_x="m/z",
+                                units_y="Drift time (bins)"):
+        """Function to extract RT data for specified MZ/DT region """
+
+        document = self._on_get_document()
+
+        # convert from miliseconds to bins
+        if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
+            pusherFreq = document.parameters.get('pusherFreq', 1000)
+            dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
+            dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
+
+        # Load data
+        extract_kwargs = {'return_data': True, 'normalize': False}
+        rtDataX, rtDataY = io_waters.driftscope_extract_RT(path=document.path,
+                                                            driftscope_path=self.config.driftscopePath,
+                                                            mz_start=mzStart, mz_end=mzEnd,
+                                                            dt_start=dtStart, dt_end=dtEnd,
+                                                            **extract_kwargs)
+        self.plotsPanel.on_plot_RT(rtDataX, rtDataY, 'Scans')
+
+        itemName = "Ion: {}-{} | Drift time: {}-{}".format(np.round(mzStart, 2), np.round(mzEnd),
+                                                           np.round(dtStart, 2), np.round(dtEnd))
+        document.multipleRT[itemName] = {'xvals': rtDataX, 'yvals': rtDataY, 'xlabels': 'Scans'}
+        document.gotMultipleRT = True
+
+        msg = f"Extracted RT data for m/z: {mzStart}-{mzEnd} | dt: {dtStart}-{dtEnd}"
+        self.__update_statusbar(msg, 3)
+
+        # Update document
+        self.on_update_document(document, 'document')
+
+    def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
+        document = self._on_get_document()
+
+        # convert from miliseconds to bins
+        if units in ["Drift time (ms)", "Arrival time (ms)"]:
+            pusherFreq = document.parameters.get('pusherFreq', 1000)
+            dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
+            dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
+
+        # Extract data
+        extract_kwargs = {'return_data': True}
+        msX, msY = io_waters.driftscope_extract_MS(path=document.path,
+                                                    driftscope_path=self.config.driftscopePath,
+                                                    dt_start=dtStart, dt_end=dtEnd,
+                                                    **extract_kwargs)
+        xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+
+        # Add data to dictionary
+        itemName = "Drift time: {}-{}".format(dtStart, dtEnd)
+
+        document.gotMultipleMS = True
+        document.multipleMassSpectrum[itemName] = {'xvals': msX, 'yvals': msY,
+                                                    'range': [dtStart, dtEnd],
+                                                    'xlabels': 'm/z (Da)',
+                                                    'xlimits': xlimits}
+
+        # Plot MS
+        name_kwargs = {"document": document.title, "dataset": itemName}
+        self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="1D", **name_kwargs)
+        # Update document
+        self.on_update_document(document, 'mass_spectra')
+
+    # TODO: check this function works
+    def on_extract_MS_from_chromatogram(self, startScan=None, endScan=None, units="Scans"):
+        """ Function to extract MS data for specified RT region """
+
+        document = self._on_get_document()
+
+        try:
+            scantime = document.parameters['scanTime']
+        except:
+            scantime = None
+
+        try:
+            xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+        except Exception:
+            try:
+                xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
+            except:
+                pass
+            xlimits = None
+
+        if not self.config.ms_enable_in_RT and scantime is not None:
+            if units == "Scans":
+                rtStart = round(startScan * (scantime / 60), 2)
+                rtEnd = round(endScan * (scantime / 60), 2)
+            elif units in ['Time (min)', 'Retention time (min)']:
+                rtStart, rtEnd = startScan, endScan
+                startScan = np.ceil(((startScan / scantime) * 60)).astype(int)
+                endScan = np.ceil(((endScan / scantime) * 60)).astype(int)
+
+            # Mass spectra
+            try:
+                extract_kwargs = {'return_data': True}
+                msX, msY = io_waters.driftscope_extract_MS(path=document.path,
+                                                            driftscope_path=self.config.driftscopePath,
+                                                            rt_start=rtStart, rt_end=rtEnd,
+                                                            **extract_kwargs)
+                if xlimits is None:
+                    xlimits = [np.min(msX), np.max(msX)]
+            except (IOError, ValueError):
+                kwargs = {'auto_range': self.config.ms_auto_range,
+                          'mz_min': xlimits[0], 'mz_max': xlimits[1],
+                          'linearization_mode': self.config.ms_linearization_mode}
+                msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path), function=1,
+                                                      startScan=startScan, endScan=endScan,
+                                                      binData=self.config.import_binOnImport,
+                                                      # override any settings as this is a accidental extraction
+                                                      mzStart=xlimits[0], mzEnd=xlimits[1],
+                                                      binsize=self.config.ms_mzBinSize,
+                                                      **kwargs)
+                msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
+
+            xlimits = [np.min(msX), np.max(msX)]
+        else:
+            kwargs = {'auto_range': self.config.ms_auto_range,
+                      'mz_min': xlimits[0], 'mz_max': xlimits[1],
+                      'linearization_mode': self.config.ms_linearization_mode}
+            msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path),
+                                                  function=1,
+                                                  startScan=startScan, endScan=endScan,
+                                                  binData=self.config.import_binOnImport,
+                                                  mzStart=self.config.ms_mzStart,
+                                                  mzEnd=self.config.ms_mzEnd,
+                                                  binsize=self.config.ms_mzBinSize,
+                                                  **kwargs)
+
+            msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
+            xlimits = [np.min(msX), np.max(msX)]
+
+        # Add data to dictionary
+        itemName = "Scans: {}-{}".format(startScan, endScan)
+
+        document.gotMultipleMS = True
+        document.multipleMassSpectrum[itemName] = {'xvals': msX,
+                                                   'yvals': msY,
+                                                    'range': [startScan, endScan],
+                                                    'xlabels': 'm/z (Da)',
+                                                    'xlimits': xlimits}
+
+        self.on_update_document(document, 'mass_spectra', expand_item_title=itemName)
+        # Plot MS
+        name_kwargs = {"document": document.title, "dataset": itemName}
+        self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="RT", **name_kwargs)
+        # Set status
+        msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
+        self.__update_statusbar(msg, 3)
+
+    # TODO: check this function works
+    def on_extract_MS_from_heatmap(self, startScan=None, endScan=None, dtStart=None,
+                                   dtEnd=None, units_x="Scans", units_y="Drift time (bins)"):
+        """ Function to extract MS data for specified DT/MS region """
+
+        document = self._on_get_document()
+
+        try:
+            scanTime = document.parameters['scanTime']
+        except:
+            scanTime = None
+
+        try:
+            pusherFreq = document.parameters['pusherFreq']
+        except:
+            pusherFreq = None
+
+        try:
+            xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+        except Exception:
+            try:
+                xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
+            except:
+                return
+
+        if units_x == "Scans":
+            if scanTime is None:
+                return
+            rtStart = round(startScan * (scanTime / 60), 2)
+            rtEnd = round(endScan * (scanTime / 60), 2)
+        elif units_x in ['Time (min)', 'Retention time (min)']:
+            rtStart, rtEnd = startScan, endScan
+            if scanTime is None:
+                return
+            startScan = np.ceil(((startScan / scanTime) * 60)).astype(int)
+            endScan = np.ceil(((endScan / scanTime) * 60)).astype(int)
+
+        if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
+            if pusherFreq is None:
+                return
+            dtStart = np.ceil(((dtStart / pusherFreq) * 1000)).astype(int)
+            dtEnd = np.ceil(((dtEnd / pusherFreq) * 1000)).astype(int)
+
+        # Mass spectra
+        try:
+            extract_kwargs = {'return_data': True}
+            msX, msY = io_waters.driftscope_extract_MS(path=document.path,
+                                                        driftscope_path=self.config.driftscopePath,
+                                                        rt_start=rtStart, rt_end=rtEnd,
+                                                        dt_start=dtStart, dt_end=dtEnd,
+                                                        **extract_kwargs)
+            if xlimits is None:
+                xlimits = [np.min(msX), np.max(msX)]
+        except (IOError, ValueError):
+            return
+
+        # Add data to dictionary
+        itemName = "Scans: {}-{} | Drift time: {}-{}".format(startScan, endScan,
+                                                             dtStart, dtEnd)
+
+        document.gotMultipleMS = True
+        document.multipleMassSpectrum[itemName] = {'xvals': msX,
+                                                   'yvals': msY,
+                                                   'range': [startScan, endScan],
+                                                   'xlabels': 'm/z (Da)',
+                                                   'xlimits': xlimits}
+
+        self.on_update_document(document, 'mass_spectra', expand_item_title=itemName)
+        # Plot MS
+        name_kwargs = {"document": document.title, "dataset": itemName}
+        self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
+        # Set status
+        msg = f"Extracted MS data for rt: {startScan}-{endScan}"
+        self.__update_statusbar(msg, 3)
 #
 #     def onCombineCEvoltagesMultiple(self, evt):
 #         # self.config.extractMode = 'multipleIons'
@@ -1768,11 +1757,11 @@ class data_handling():
 #                        type="Warning")
 #                 continue
 #             # Get document
-#             self.docs = self.documentsDict[document_title]
+#             document = self.documentsDict[document_title]
 #
 #             # Check that this data was opened in ORIGAMI mode and has extracted data
-#             if self.docs.dataType == 'Type: ORIGAMI' and self.docs.gotExtractedIons:
-#                 zvals = self.docs.IMS2Dions
+#             if document.dataType == 'Type: ORIGAMI' and document.gotExtractedIons:
+#                 zvals = document.IMS2Dions
 #             else:
 #                 msg = "Data was not extracted yet. Please extract before continuing."
 #                 dlgBox(exceptionTitle='Missing data',
@@ -1789,13 +1778,13 @@ class data_handling():
 #             if self.config.origami_acquisition == 'Linear':
 #                 # Check that the user filled in appropriate parameters
 #                 if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-#                         and self.docs.gotCombinedExtractedIons):
+#                         and document.gotCombinedExtractedIons):
 #                     try:
-#                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
-#                         self.config.origami_startVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['startV']
-#                         self.config.origami_endVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['endV']
-#                         self.config.origami_stepVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['stepV']
-#                         self.config.origami_spv = self.docs.IMS2DCombIons[selectedItem]['parameters']['spv']
+#                         self.config.origami_startScan = document.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
+#                         self.config.origami_startVoltage = document.IMS2DCombIons[selectedItem]['parameters']['startV']
+#                         self.config.origami_endVoltage = document.IMS2DCombIons[selectedItem]['parameters']['endV']
+#                         self.config.origami_stepVoltage = document.IMS2DCombIons[selectedItem]['parameters']['stepV']
+#                         self.config.origami_spv = document.IMS2DCombIons[selectedItem]['parameters']['spv']
 #                     except Exception:
 #                         pass
 #                 # Ensure that config is not missing variabels
@@ -1827,16 +1816,16 @@ class data_handling():
 #             elif self.config.origami_acquisition == 'Exponential':
 #                 # Check that the user filled in appropriate parameters
 #                 if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-#                         and self.docs.gotCombinedExtractedIons):
+#                         and document.gotCombinedExtractedIons):
 #                     try:
-#                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
-#                         self.config.origami_startVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['startV']
-#                         self.config.origami_endVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['endV']
-#                         self.config.origami_stepVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['stepV']
-#                         self.config.origami_spv = self.docs.IMS2DCombIons[selectedItem]['parameters']['spv']
-#                         self.config.origami_exponentialIncrement = self.docs.IMS2DCombIons[
+#                         self.config.origami_startScan = document.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
+#                         self.config.origami_startVoltage = document.IMS2DCombIons[selectedItem]['parameters']['startV']
+#                         self.config.origami_endVoltage = document.IMS2DCombIons[selectedItem]['parameters']['endV']
+#                         self.config.origami_stepVoltage = document.IMS2DCombIons[selectedItem]['parameters']['stepV']
+#                         self.config.origami_spv = document.IMS2DCombIons[selectedItem]['parameters']['spv']
+#                         self.config.origami_exponentialIncrement = document.IMS2DCombIons[
 #                             selectedItem]['parameters']['expIncrement']
-#                         self.config.origami_exponentialPercentage = self.docs.IMS2DCombIons[
+#                         self.config.origami_exponentialPercentage = document.IMS2DCombIons[
 #                             selectedItem]['parameters']['expPercent']
 #                     except Exception:
 #                         pass
@@ -1872,14 +1861,14 @@ class data_handling():
 #             elif self.config.origami_acquisition == 'Fitted':
 #                 # Check that the user filled in appropriate parameters
 #                 if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-#                         and self.docs.gotCombinedExtractedIons):
+#                         and document.gotCombinedExtractedIons):
 #                     try:
-#                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
-#                         self.config.origami_startVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['startV']
-#                         self.config.origami_endVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['endV']
-#                         self.config.origami_stepVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['stepV']
-#                         self.config.origami_spv = self.docs.IMS2DCombIons[selectedItem]['parameters']['spv']
-#                         self.config.origami_boltzmannOffset = self.docs.IMS2DCombIons[selectedItem]['parameters']['dx']
+#                         self.config.origami_startScan = document.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
+#                         self.config.origami_startVoltage = document.IMS2DCombIons[selectedItem]['parameters']['startV']
+#                         self.config.origami_endVoltage = document.IMS2DCombIons[selectedItem]['parameters']['endV']
+#                         self.config.origami_stepVoltage = document.IMS2DCombIons[selectedItem]['parameters']['stepV']
+#                         self.config.origami_spv = document.IMS2DCombIons[selectedItem]['parameters']['spv']
+#                         self.config.origami_boltzmannOffset = document.IMS2DCombIons[selectedItem]['parameters']['dx']
 #                     except Exception:
 #                         pass
 #                 # Ensure that config is not missing variabels
@@ -1915,8 +1904,8 @@ class data_handling():
 #                 # Check that the user filled in appropriate parameters
 #                 if evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine:
 #                     try:
-#                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
-#                         self.config.origamiList = self.docs.IMS2DCombIons[selectedItem]['parameters']['inputList']
+#                         self.config.origami_startScan = document.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
+#                         self.config.origamiList = document.IMS2DCombIons[selectedItem]['parameters']['inputList']
 #                     except Exception:
 #                         pass
 #                 # Ensure that config is not missing variabels
@@ -1976,8 +1965,8 @@ class data_handling():
 #             max_threshold = zvals[selectedItem].get('max_threshold', 1)
 #
 #             # Add 2D data to document object
-#             self.docs.gotCombinedExtractedIons = True
-#             self.docs.IMS2DCombIons[selectedItem] = {'zvals': imsData2D,
+#             document.gotCombinedExtractedIons = True
+#             document.IMS2DCombIons[selectedItem] = {'zvals': imsData2D,
 #                                                      'xvals': xlabels,
 #                                                      'xlabels': 'Collision Voltage (V)',
 #                                                      'yvals': ylabels,
@@ -1995,15 +1984,15 @@ class data_handling():
 #                                                      'max_threshold': max_threshold,
 #                                                      'scanList': scanList,
 #                                                      'parameters': parameters}
-#             self.docs.combineIonsList = scanList
+#             document.combineIonsList = scanList
 #             # Add 1D data to document object
-#             self.docs.gotCombinedExtractedIonsRT = True
-#             self.docs.IMSRTCombIons[selectedItem] = {'xvals': xlabels,
+#             document.gotCombinedExtractedIonsRT = True
+#             document.IMSRTCombIons[selectedItem] = {'xvals': xlabels,
 #                                                      'yvals': np.sum(imsData2D, axis=0),
 #                                                      'xlabels': 'Collision Voltage (V)'}
 #
 #             # Update document
-#             self.on_update_document(self.docs, 'combined_ions')
+#             self.on_update_document(document, 'combined_ions')
 
     def on_save_all_documents_fcn(self, evt):
         if self.config.threading:
@@ -2657,4 +2646,145 @@ class data_handling():
                     xvals, zvals = self.downsample_array(xvals, zvals)
 
         return xvals, zvals
+
+    def on_combine_mass_spectra(self, document_name=None):
+
+        document = self._on_get_document(document_name)
+
+        kwargs = {'auto_range': False,
+                  'mz_min': self.config.ms_mzStart,
+                  'mz_max': self.config.ms_mzEnd,
+                  'mz_bin': self.config.ms_mzBinSize,
+                  'linearization_mode': self.config.ms_linearization_mode}
+        msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
+            self.config.ms_linearization_mode,
+            self.config.ms_mzStart,
+            self.config.ms_mzEnd,
+            self.config.ms_mzBinSize,
+            self.config.ms_auto_range)
+        self.onThreading(None, (msg, 4), action='updateStatusbar')
+
+        if len(list(document.multipleMassSpectrum.keys())) > 0:
+            # check the min/max values in the mass spectrum
+            if self.config.ms_auto_range:
+                mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=document.multipleMassSpectrum)
+                self.config.ms_mzStart = mzStart
+                self.config.ms_mzEnd = mzEnd
+                kwargs.update(mz_min=mzStart, mz_max=mzEnd)
+                try:
+                    self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
+                except:
+                    pass
+
+            msFilenames = ["m/z"]
+            counter = 0
+            for key in document.multipleMassSpectrum:
+                msFilenames.append(key)
+                if counter == 0:
+                    msDataX, tempArray = pr_spectra.linearize_data(document.multipleMassSpectrum[key]['xvals'],
+                                                                   document.multipleMassSpectrum[key]['yvals'],
+                                                                   **kwargs)
+                    msList = tempArray
+                else:
+                    msDataX, msList = pr_spectra.linearize_data(document.multipleMassSpectrum[key]['xvals'],
+                                                                document.multipleMassSpectrum[key]['yvals'],
+                                                                **kwargs)
+                    tempArray = np.concatenate((tempArray, msList), axis=0)
+                counter += 1
+
+            # Reshape the list
+            combMS = tempArray.reshape((len(msList), int(counter)), order='F')
+
+            # Sum y-axis data
+            msDataY = np.sum(combMS, axis=1)
+            msDataY = pr_spectra.normalize_1D(inputData=msDataY)
+            xlimits = [document.parameters['startMS'],
+                       document.parameters['endMS']]
+
+            # Form pandas dataframe
+            combMSOut = np.concatenate((msDataX, tempArray), axis=0)
+            combMSOut = combMSOut.reshape((len(msList), int(counter + 1)), order='F')
+
+            # Add data
+            document.gotMS = True
+            document.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
+            # Plot
+            name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
+            self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+
+            # Update status bar with MS range
+            self.view.SetStatusText("{}-{}".format(document.parameters['startMS'],
+                                                   document.parameters['endMS']), 1)
+            self.view.SetStatusText("MSMS: {}".format(document.parameters['setMS']), 2)
+        else:
+            document.gotMS = False
+            document.massSpectrum = {}
+            self.view.SetStatusText("", 1)
+            self.view.SetStatusText("", 2)
+
+        # Add info to document
+        self.on_update_document(document, 'document')
+
+    def _process_spectrum(self, replot=False, msX=None, msY=None, return_data=False,
+                          return_all=False):  # processMSdata
+        if replot:
+            msX, msY, __ = self.presenter._get_replot_data('MS')
+
+        if msX is None or msY is None:
+            return
+
+        # Check values
+        self.config.onCheckValues(data_type='process')
+        if self.config.processParamsWindow_on_off:
+            self.view.panelProcessData.onSetupValues(evt=None)
+
+        if self.config.ms_process_crop:
+            kwargs = {'min': self.config.ms_crop_min,
+                      'max': self.config.ms_crop_max}
+            msX, msY = pr_spectra.crop_1D_data(msX, msY, **kwargs)
+
+        if self.config.ms_process_linearize and msX is not None:
+            kwargs = {'auto_range': self.config.ms_auto_range,
+                      'mz_min': self.config.ms_mzStart,
+                      'mz_max': self.config.ms_mzEnd,
+                      'mz_bin': self.config.ms_mzBinSize,
+                      'linearization_mode': self.config.ms_linearization_mode}
+            msX, msY = pr_spectra.linearize_data(msX, msY, **kwargs)
+
+        if self.config.ms_process_smooth:
+            # Smooth data
+            kwargs = {'sigma': self.config.ms_smooth_sigma,
+                      'polyOrder': self.config.ms_smooth_polynomial,
+                      'windowSize': self.config.ms_smooth_window}
+            msY = pr_spectra.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **kwargs)
+
+        if self.config.ms_process_threshold:
+            # Threshold data
+            msY = pr_spectra.remove_noise_1D(inputData=msY, threshold=self.config.ms_threshold)
+
+        if self.config.ms_process_normalize:
+            # Normalize data
+            if self.config.ms_normalize:
+                msY = pr_spectra.normalize_1D(inputData=np.asarray(msY),
+                                              mode=self.config.ms_normalize_mode)
+
+        if replot:
+            # Plot data
+            kwargsMS = {}
+            self.view.panelPlots.on_plot_MS(msX=msX, msY=msY,
+                                            override=False, **kwargsMS)
+
+        if return_data:
+            if msX is not None:
+                return msX, msY
+            else:
+                return msY
+
+        if return_all:
+            parameters = {'smooth_mode': self.config.ms_smooth_mode,
+                          'sigma': self.config.ms_smooth_sigma,
+                          'polyOrder': self.config.ms_smooth_polynomial,
+                          'windowSize': self.config.ms_smooth_window,
+                          'threshold': self.config.ms_threshold}
+            return msX, msY, parameters
 

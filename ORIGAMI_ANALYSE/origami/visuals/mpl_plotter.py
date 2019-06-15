@@ -35,7 +35,7 @@ from PIL import Image, ImageChops
 from gui_elements.misc_dialogs import dlgBox
 
 
-class plottingWindow(wx.Window):
+class mpl_plotter(wx.Window):
 
     def __init__(self, *args, **kwargs):
 

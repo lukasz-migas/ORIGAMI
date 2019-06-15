@@ -18,16 +18,15 @@
 # __author__ lukasz.g.migas
 import wx
 
-from toolbox import (str2num, str2int, convertRGB1to255, convertRGB255to1, num2str)
 from styles import makeCheckbox
 
 
-class panelCustomiseParameters(wx.Dialog):
+class dialog_customise_user_annotations(wx.Dialog):
 
     def __init__(self, parent, config, **kwargs):
-        wx.Dialog.__init__(self, parent, -1, 'Other parameters...', size=(-1, -1),
-                              style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+        wx.Dialog.__init__(self, parent, -1, 'Annotation...', size=(-1, -1),
+                           style=wx.DEFAULT_FRAME_STYLE & ~
+                           (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.config = config
@@ -38,7 +37,6 @@ class panelCustomiseParameters(wx.Dialog):
     def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
-    # ----
 
     def onOK(self, evt):
         self.EndModal(wx.OK)

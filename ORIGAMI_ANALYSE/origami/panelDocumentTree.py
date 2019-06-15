@@ -139,7 +139,6 @@ class documentsTree(wx.TreeCtrl):
         self.data_handling = self.view.data_handling
 
         self.plotsPanel = self.view.panelPlots
-        
 
         self.ionPanel = self.view.panelMultipleIons
         self.ionList = self.ionPanel.peaklist
@@ -3314,18 +3313,20 @@ class documentsTree(wx.TreeCtrl):
         if self.itemData == None:
             return
 
-        if self.itemType == 'Mass Spectrum': pass
-        elif any(self.itemType in itemType for itemType in ['Drift time (2D)', 'Drift time (2D, processed)',
-                                                            'Drift time (2D, EIC)',
-                                                            'Drift time (2D, combined voltages, EIC)',
-                                                            'Drift time (2D, processed, EIC)',
-                                                            'Input data', 'Statistical']):
-            self.presenter.process2Ddata2()
-            self.plotsPanel.mainBook.SetSelection(self.config.panelNames['2D'])
+        # TODO: This function needs to be fixed before next release
 
-        elif self.itemType == 'DT/MS':
-            self.presenter.process2Ddata2(mode='MSDT')
-            self.plotsPanel.mainBook.SetSelection(self.config.panelNames['MZDT'])
+#         if self.itemType == 'Mass Spectrum': pass
+#         elif any(self.itemType in itemType for itemType in ['Drift time (2D)', 'Drift time (2D, processed)',
+#                                                             'Drift time (2D, EIC)',
+#                                                             'Drift time (2D, combined voltages, EIC)',
+#                                                             'Drift time (2D, processed, EIC)',
+#                                                             'Input data', 'Statistical']):
+#             self.presenter.process2Ddata2()
+#             self.plotsPanel.mainBook.SetSelection(self.config.panelNames['2D'])
+#
+#         elif self.itemType == 'DT/MS':
+#             self.presenter.process2Ddata2(mode='MSDT')
+#             self.plotsPanel.mainBook.SetSelection(self.config.panelNames['MZDT'])
 
     def updateComparisonMS(self, evt):
         msg = "Comparing {} ({}) vs {} ({})".format(self.compareMSDlg.output["spectrum_1"][1],

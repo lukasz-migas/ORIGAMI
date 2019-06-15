@@ -247,7 +247,7 @@ class MyFrame(wx.Frame):
 
         # Load other parts
         self._mgr.Update()
-        self.makeBindings()
+        # self.makeBindings()
         self.statusBar()
         self.make_menubar()
         self.SetMenuBar(self.mainMenubar)
@@ -335,14 +335,14 @@ class MyFrame(wx.Frame):
         if evt is not None:
             evt.Skip()
 
-    def makeBindings(self):
-        '''
-        Collection of all bindings for various functions
-        '''
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_multiple_text_2D, id=ID_load_multiple_text_2D)
-        self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_textPanel_process_selected)
-        self.Bind(wx.EVT_TOOL, self.presenter.on_overlay_2D, id=ID_overlayTextFromList)
-        self.Bind(wx.EVT_TOOL, self.presenter.onExtractDToverMZrangeMultiple, id=ID_extractDriftVoltagesForEachIon)
+    # def makeBindings(self):
+    #     '''
+    #     Collection of all bindings for various functions
+    #     '''
+    #     self.Bind(wx.EVT_TOOL, self.data_handling.on_open_multiple_text_2D, id=ID_load_multiple_text_2D)
+    #     self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_textPanel_process_selected)
+    #     self.Bind(wx.EVT_TOOL, self.presenter.on_overlay_2D, id=ID_overlayTextFromList)
+    #     self.Bind(wx.EVT_TOOL, self.presenter.onExtractDToverMZrangeMultiple, id=ID_extractDriftVoltagesForEachIon)
 
     def statusBar(self):
 
@@ -788,13 +788,13 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_MassLynx_raw_fcn,
                   id=ID_load_multiple_origami_masslynx_raw)
 
-        self.Bind(wx.EVT_MENU, self.presenter.onCalibrantRawDirectory, id=ID_addCCScalibrantFile)
-        self.Bind(wx.EVT_MENU, self.presenter.onLinearDTirectory, id=ID_openLinearDTRawFile)
+        # self.Bind(wx.EVT_MENU, self.presenter.onCalibrantRawDirectory, id=ID_addCCScalibrantFile)
+        # self.Bind(wx.EVT_MENU, self.presenter.onLinearDTirectory, id=ID_openLinearDTRawFile)
 
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_document_fcn, id=ID_openDocument)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.data_handling.on_save_all_documents_fcn, id=ID_saveAllDocuments)
-        self.Bind(wx.EVT_MENU, self.presenter.onIRTextFile, id=ID_openIRTextile)
+        # self.Bind(wx.EVT_MENU, self.presenter.onIRTextFile, id=ID_openIRTextile)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_MS_only_fcn,
                   id=ID_load_masslynx_raw_ms_only)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_text_MS_fcn, id=ID_load_text_MS)
@@ -860,8 +860,8 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_import_configuration_file, id=ID_openAsConfig)
         self.Bind(wx.EVT_MENU, self.on_setup_driftscope, id=ID_setDriftScopeDir)
         self.Bind(wx.EVT_MENU, self.on_check_driftscope_path, id=ID_check_Driftscope)
-        self.Bind(wx.EVT_MENU, self.presenter.onSelectProtein, id=ID_selectCalibrant)
-        self.Bind(wx.EVT_MENU, self.presenter.onImportCCSDatabase, id=ID_openCCScalibrationDatabse)
+#         self.Bind(wx.EVT_MENU, self.presenter.onSelectProtein, id=ID_selectCalibrant)
+#         self.Bind(wx.EVT_MENU, self.presenter.onImportCCSDatabase, id=ID_openCCScalibrationDatabse)
         self.Bind(wx.EVT_MENU, self.onExportParameters, id=ID_importExportSettings_peaklist)
         self.Bind(wx.EVT_MENU, self.onExportParameters, id=ID_importExportSettings_image)
         self.Bind(wx.EVT_MENU, self.onExportParameters, id=ID_importExportSettings_file)
@@ -888,15 +888,15 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_compare_MS_window, id=ID_docTree_compareMS)
 
     def on_customise_annotation_plot_parameters(self, evt):
-        from gui_elements.dialog_customiseUserAnnotations import panelCustomiseParameters as panelCustomiseParameters_annotations
+        from gui_elements.dialog_customise_user_annotations import dialog_customise_user_annotations
 
-        dlg = panelCustomiseParameters_annotations(self, self.config)
+        dlg = dialog_customise_user_annotations(self, self.config)
         dlg.ShowModal()
 
     def on_customise_unidec_plot_parameters(self, evt):
-        from gui_elements.dialog_customiseUniDecPlots import panelCustomiseParameters as panelCustomiseParameters_unidec
+        from gui_elements.dialog_customise_unidec_visuals import dialog_customise_unidec_visuals
 
-        dlg = panelCustomiseParameters_unidec(self, self.config, self.icons)
+        dlg = dialog_customise_unidec_visuals(self, self.config, self.icons)
         dlg.ShowModal()
 
     def on_add_blank_document_manual(self, evt):
@@ -1192,7 +1192,7 @@ class MyFrame(wx.Frame):
 
         # Add more shortcuts with known IDs
         extraKeys = [
-            ["E", self.presenter.on_extract_2D_from_mass_range_threaded, wx.ACCEL_ALT, ID_extractAllIons],
+#             ["E", self.presenter.on_extract_2D_from_mass_range_threaded, wx.ACCEL_ALT, ID_extractAllIons],
             ["Q", self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayMZfromList],
             ["W", self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayTextFromList],
             ["S", self.panelDocuments.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotDocument],
@@ -1741,10 +1741,9 @@ class MyFrame(wx.Frame):
 
         # Extract data
         if self.currentPage == "DT/MS":
-            self.presenter.on_extract_RT_from_mzdt(xmin, xmax, ymin, ymax,
-                                                   units_x=xlabel, units_y=ylabel)
+            self.data_handling.on_extract_RT_from_mzdt(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
         elif self.currentPage == "2D":
-            self.presenter.on_extract_MS_from_heatmap(xmin, xmax, ymin, ymax,
+            self.data_handling.on_extract_MS_from_heatmap(xmin, xmax, ymin, ymax,
                                                       units_x=xlabel, units_y=ylabel)
         self.SetStatusText("", number=4)
 
@@ -1788,7 +1787,7 @@ class MyFrame(wx.Frame):
             if dtEnd < dtStart:
                 dtEnd, dtStart = dtStart, dtEnd
 
-            self.presenter.on_extract_MS_from_mobiligram(dtStart=dtStart, dtEnd=dtEnd, units=dt_label)
+            self.data_handling.on_extract_MS_from_mobiligram(dtStart=dtStart, dtEnd=dtEnd, units=dt_label)
 
         # Extract heatmap from mass spectrum window
         elif self.currentPage == "MS" or currentView == "MS":
@@ -1959,7 +1958,7 @@ class MyFrame(wx.Frame):
             if document.fileFormat == "Format: Thermo (.RAW)":
                 return
             else:
-                self.presenter.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
+                self.data_handling.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
 
         else:
             return
@@ -2030,7 +2029,8 @@ class MyFrame(wx.Frame):
         if self.config.processParamsWindow_on_off:
             args = ("An instance of this panel is already open - changing page to: %s" % kwargs['window'], 4)
             self.presenter.onThreading(evt, args, action='updateStatusbar')
-            self.panelProcessData.onSetPage(**kwargs)
+            if hasattr(self, "panelProcessData"):
+                self.panelProcessData.onSetPage(**kwargs)
             return
 
         try:

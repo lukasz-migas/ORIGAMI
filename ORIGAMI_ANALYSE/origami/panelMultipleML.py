@@ -359,7 +359,7 @@ class panelMML(wx.Panel):
         self.SetFocus()
 
     def menu_process_tools(self, evt):
-        self.Bind(wx.EVT_TOOL, self.on_combine_mass_spectra, id=ID_mmlPanel_data_combineMS)
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_combine_mass_spectra, id=ID_mmlPanel_data_combineMS)
         self.Bind(wx.EVT_TOOL, self.onAutoUniDec, id=ID_mmlPanel_batchRunUniDec)
 
         menu = wx.Menu()
@@ -648,9 +648,7 @@ class panelMML(wx.Panel):
                 xvals = document.multipleMassSpectrum[itemInfo["filename"]]['xvals'].copy()
                 yvals = document.multipleMassSpectrum[itemInfo["filename"]]['yvals'].copy()
                 if self.preprocessMS:
-                    xvals, yvals = self.presenter.processMSdata(msX=xvals,
-                                                                msY=yvals,
-                                                                return_data=True)
+                    xvals, yvals = self.data_handling._process_spectrum(msX=xvals, msY=yvals, return_data=True)
 
             elif evtID == ID_mmlPanel_overlayMW:
                 xvals = data['unidec']['MW distribution']['xvals']
@@ -786,7 +784,7 @@ class panelMML(wx.Panel):
             open_type="multiple_files_add")
 
     def on_combine_mass_spectra(self, evt, document_name=None):
-        self.presenter.on_combine_mass_spectra(document_name=document_name)
+        self.data_handling.on_combine_mass_spectra(document_name=document_name)
 
     def on_add_to_table(self, add_dict, check_color=True):
 

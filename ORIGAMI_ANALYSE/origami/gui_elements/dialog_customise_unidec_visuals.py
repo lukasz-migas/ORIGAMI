@@ -26,7 +26,7 @@ from gui_elements.misc_dialogs import dlgBox
 from utils.color import convertRGB1to255, convertRGB255to1
 
 
-class panelCustomiseParameters(wx.Dialog):
+class dialog_customise_unidec_visuals(wx.Dialog):
 
     def __init__(self, parent, config, icons, **kwargs):
         wx.Dialog.__init__(self, parent, -1, 'Other parameters...', size=(-1, -1),

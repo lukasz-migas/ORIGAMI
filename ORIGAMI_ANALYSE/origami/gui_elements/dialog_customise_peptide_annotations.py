@@ -18,11 +18,11 @@
 # __author__ lukasz.g.migas
 import wx
 
-from toolbox import (str2num, str2int, convertRGB1to255, convertRGB255to1, num2str)
 from styles import (makeCheckbox, makeTooltip)
+from utils.color import convertRGB255to1, convertRGB1to255
 
 
-class panelCustomiseParameters(wx.Dialog):
+class dialog_customise_peptide_annotations(wx.Dialog):
 
     def __init__(self, parent, config, **kwargs):
         wx.Dialog.__init__(self, parent, -1, 'Other parameters...', size=(-1, -1),

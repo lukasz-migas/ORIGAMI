@@ -37,7 +37,7 @@ from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from seaborn import color_palette
 
-from plottingWindow import plottingWindow
+from visuals.mpl_plotter import mpl_plotter
 from processing.heatmap import normalize_2D
 from processing.spectra import normalize_1D
 from toolbox import (determineFontColor, convertRGB1to255,
@@ -51,12 +51,12 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
-class plots(plottingWindow):
+class plots(mpl_plotter):
 
     def __init__(self, *args, **kwargs):
         self._axes = kwargs.get("axes_size", [0.1, 0.1, 0.8, 0.8])  # keep track of axes size
 
-        plottingWindow.__init__(self, *args, **kwargs)
+        mpl_plotter.__init__(self, *args, **kwargs)
         self.plotflag = False
 
         # obj containers

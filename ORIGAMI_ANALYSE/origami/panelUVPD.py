@@ -28,7 +28,7 @@ from re import split as re_split
 
 from toolbox import (str2int, str2num, saveAsText)
 from styles import (makeCheckbox, makeStaticBox, makeMenuItem, validator)
-from gui_elements.dialog_customisePeptideAnnotations import panelCustomiseParameters
+from gui_elements.dialog_customise_peptide_annotations import dialog_customise_peptide_annotations
 from ids import (ID_uvpd_laser_on_off_compare_chromatogam, ID_uvpd_laser_on_off_compare_mobiligram,
                  ID_uvpd_laser_on_off_mobiligram_show_chromatogram,
                  ID_uvpd_laser_on_show_heatmap, ID_uvpd_laser_on_show_waterfall,
@@ -296,7 +296,7 @@ class panelUVPD(wx.MiniFrame):
 
     def onCustomiseParameters(self, evt):
 
-        dlg = panelCustomiseParameters(self, self.config)
+        dlg = dialog_customise_peptide_annotations(self, self.config)
         dlg.ShowModal()
 
     def populate_table(self):

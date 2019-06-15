@@ -730,8 +730,10 @@ class panelMultipleTextFiles (wx.Panel):
                 return
 
             # Process data
+            # TODO: this function is temporarily disabled! Needs to be fixed before next release 
             if evtID == ID_textPanel_show_process_heatmap:
-                zvals = self.presenter.process2Ddata(zvals=zvals.copy(), return_data=True)
+                pass
+                # zvals = self.presenter.process2Ddata(zvals=zvals.copy(), return_data=True)
 
             self.presenter.view.panelPlots.on_plot_2D(
                 zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)

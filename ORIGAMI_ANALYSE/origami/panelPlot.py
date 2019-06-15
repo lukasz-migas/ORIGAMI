@@ -19,7 +19,7 @@
 import wx, time, math, matplotlib, os
 import numpy as np
 import seaborn as sns
-import plots as plots
+from visuals import mpl_plots
 import matplotlib.pyplot as plt
 from natsort import natsorted
 from pubsub import pub
@@ -50,7 +50,7 @@ from ids import ID_clearPlot_MS, ID_smooth1DdataMS, ID_smooth1Ddata1DT, ID_smoot
     ID_saveRMSDImageDoc, ID_saveRMSFImageDoc, ID_saveOverlayImageDoc, ID_saveRMSDmatrixImageDoc, ID_saveMZDTImageDoc, \
     ID_saveOtherImageDoc, ID_plots_customise_smart_zoom
 from utils.color import convertRGB1to255, convertRGB1toHEX, randomColorGenerator
-from toolbox import merge_two_dicts
+from toolbox import merge_two_dicts, MidpointNormalize
 from utils.check import isempty
 
 
@@ -176,7 +176,7 @@ class panelPlot(wx.Panel):
                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelMS, "MS", False)
 
-        self.plot1 = plots.plots(self.panelMS,
+        self.plot1 = mpl_plots(self.panelMS,
                                  figsize=self.config._plotSettings["MS"]['gui_size'],
                                  config=self.config)
 
@@ -191,7 +191,7 @@ class panelPlot(wx.Panel):
 
         # Create two panels for each dataset
         self.topPanelRT_RT = wx.Panel(self.panelRT)
-        self.plotRT = plots.plots(self.topPanelRT_RT,
+        self.plotRT = mpl_plots(self.topPanelRT_RT,
                                   figsize=self.config._plotSettings["RT"]['gui_size'],
                                   config=self.config)
         boxTopPanelRT = wx.BoxSizer(wx.VERTICAL)
@@ -199,7 +199,7 @@ class panelPlot(wx.Panel):
         self.topPanelRT_RT.SetSizer(boxTopPanelRT)
 
         self.bottomPanelRT_MS = wx.Panel(self.panelRT)
-        self.plotRT_MS = plots.plots(self.bottomPanelRT_MS,
+        self.plotRT_MS = mpl_plots(self.bottomPanelRT_MS,
                                      figsize=self.config._plotSettings["MS (DT/RT)"]['gui_size'],
                                      config=self.config)
         boxBottomPanelMS = wx.BoxSizer(wx.VERTICAL)
@@ -219,7 +219,7 @@ class panelPlot(wx.Panel):
 
         # Create two panels for each dataset
         self.topPanel1D_1D = wx.Panel(self.panel1D)
-        self.plot1D = plots.plots(self.topPanel1D_1D,
+        self.plot1D = mpl_plots(self.topPanel1D_1D,
                                   figsize=self.config._plotSettings["DT"]['gui_size'],
                                   config=self.config)
         boxTopPanelMS = wx.BoxSizer(wx.VERTICAL)
@@ -227,7 +227,7 @@ class panelPlot(wx.Panel):
         self.topPanel1D_1D.SetSizer(boxTopPanelMS)
 
         self.bottomPanel1D_MS = wx.Panel(self.panel1D)
-        self.plot1D_MS = plots.plots(self.bottomPanel1D_MS,
+        self.plot1D_MS = mpl_plots(self.bottomPanel1D_MS,
                                      figsize=self.config._plotSettings["MS (DT/RT)"]['gui_size'],
                                      config=self.config)
         boxBottomPanel1DT = wx.BoxSizer(wx.VERTICAL)
@@ -244,7 +244,7 @@ class panelPlot(wx.Panel):
         self.panel2D = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panel2D, "2D", False)
 
-        self.plot2D = plots.plots(self.panel2D,
+        self.plot2D = mpl_plots(self.panel2D,
                                   figsize=self.config._plotSettings["2D"]['gui_size'],
                                   config=self.config)
 
@@ -257,7 +257,7 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelMZDT, "DT/MS", False)
 
-        self.plotMZDT = plots.plots(self.panelMZDT,
+        self.plotMZDT = mpl_plots(self.panelMZDT,
                                     figsize=self.config._plotSettings["DT/MS"]['gui_size'],
                                     config=self.config)
 
@@ -270,7 +270,7 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.waterfallIMS, "Waterfall", False)
 
-        self.plotWaterfallIMS = plots.plots(self.waterfallIMS,
+        self.plotWaterfallIMS = mpl_plots(self.waterfallIMS,
                                             figsize=self.config._plotSettings["Waterfall"]['gui_size'],
                                             config=self.config)
 
@@ -283,7 +283,7 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panel3D, "3D", False)
 
-        self.plot3D = plots.plots(self.panel3D,
+        self.plot3D = mpl_plots(self.panel3D,
                                   figsize=self.config._plotSettings["3D"]['gui_size'],
                                   config=self.config)
 
@@ -296,7 +296,7 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelRMSF, "RMSF", False)
 
-        self.plotRMSF = plots.plots(self.panelRMSF,
+        self.plotRMSF = mpl_plots(self.panelRMSF,
                                     figsize=self.config._plotSettings["RMSF"]['gui_size'],
                                     config=self.config)
         boxsizer_RMSF = wx.BoxSizer(wx.VERTICAL)
@@ -308,7 +308,7 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelCompare, "Comparison", False)
 
-        self.plotCompare = plots.plots(self.panelCompare,
+        self.plotCompare = mpl_plots(self.panelCompare,
                                        figsize=self.config._plotSettings["Comparison"]['gui_size'],
                                        config=self.config)
         boxsizer_compare = wx.BoxSizer(wx.VERTICAL)
@@ -320,7 +320,7 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelOverlay, "Overlay", False)
 
-        self.plotOverlay = plots.plots(self.panelOverlay,
+        self.plotOverlay = mpl_plots(self.panelOverlay,
                                        figsize=self.config._plotSettings["Overlay"]['gui_size'],
                                        config=self.config)
 
@@ -345,7 +345,7 @@ class panelPlot(wx.Panel):
         self.mainBook.AddPage(self.panelCCSCalibration, "Calibration", False)
 
         # Plot MS
-        self.topPlotMS = plots.plots(self.topPanelMS,
+        self.topPlotMS = mpl_plots(self.topPanelMS,
                                      figsize=self.config._plotSettings["Calibration (MS)"]['gui_size'],
                                      config=self.config)
         boxTopPanelMS = wx.BoxSizer(wx.VERTICAL)
@@ -353,7 +353,7 @@ class panelPlot(wx.Panel):
         self.topPanelMS.SetSizer(boxTopPanelMS)
 
         # Plot 1DT
-        self.bottomPlot1DT = plots.plots(self.bottomPanel1DT,
+        self.bottomPlot1DT = mpl_plots(self.bottomPanel1DT,
                                          figsize=self.config._plotSettings["Calibration (DT)"]['gui_size'],
                                          config=self.config)
         boxBottomPanel1DT = wx.BoxSizer(wx.VERTICAL)
@@ -366,25 +366,25 @@ class panelPlot(wx.Panel):
             self.panelUniDec.SetupScrolling()
             self.mainBook.AddPage(self.panelUniDec, "UniDec", False)
             figsize = self.config._plotSettings["UniDec (MS)"]['gui_size']
-            self.plotUnidec_MS = plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
+            self.plotUnidec_MS = mpl_plots(self.panelUniDec, config=self.config, figsize=figsize)
 
             figsize = self.config._plotSettings["UniDec (m/z vs Charge)"]['gui_size']
-            self.plotUnidec_mzGrid = plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
+            self.plotUnidec_mzGrid = mpl_plots(self.panelUniDec, config=self.config, figsize=figsize)
 
             figsize = self.config._plotSettings["UniDec (MW)"]['gui_size']
-            self.plotUnidec_mwDistribution = plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
+            self.plotUnidec_mwDistribution = mpl_plots(self.panelUniDec, config=self.config, figsize=figsize)
 
             figsize = self.config._plotSettings["UniDec (Isolated MS)"]['gui_size']
-            self.plotUnidec_individualPeaks = plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
+            self.plotUnidec_individualPeaks = mpl_plots(self.panelUniDec, config=self.config, figsize=figsize)
 
             figsize = self.config._plotSettings["UniDec (MW vs Charge)"]['gui_size']
-            self.plotUnidec_mwVsZ = plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
+            self.plotUnidec_mwVsZ = mpl_plots(self.panelUniDec, config=self.config, figsize=figsize)
 
             figsize = self.config._plotSettings["UniDec (Barplot)"]['gui_size']
-            self.plotUnidec_barChart = plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
+            self.plotUnidec_barChart = mpl_plots(self.panelUniDec, config=self.config, figsize=figsize)
 
             figsize = self.config._plotSettings["UniDec (Charge Distribution)"]['gui_size']
-            self.plotUnidec_chargeDistribution = plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
+            self.plotUnidec_chargeDistribution = mpl_plots(self.panelUniDec, config=self.config, figsize=figsize)
 
             plotUnidecSizer = wx.GridBagSizer(10, 10)
             plotUnidecSizer.Add(self.plotUnidec_MS, (0, 0), span=(1, 1), flag=wx.EXPAND)
@@ -407,7 +407,7 @@ class panelPlot(wx.Panel):
                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_MS, "MS", False)
             figsize = self.config._plotSettings["UniDec (MS)"]['gui_size']
-            self.plotUnidec_MS = plots.plots(self.unidec_MS, config=self.config, figsize=figsize)
+            self.plotUnidec_MS = mpl_plots(self.unidec_MS, config=self.config, figsize=figsize)
             boxsizer_unidec_MS = wx.BoxSizer(wx.VERTICAL)
             boxsizer_unidec_MS.Add(self.plotUnidec_MS, 1, wx.EXPAND)
             self.unidec_MS.SetSizer(boxsizer_unidec_MS)
@@ -416,7 +416,7 @@ class panelPlot(wx.Panel):
                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_mzGrid, "m/z vs Charge", False)
             figsize = self.config._plotSettings["UniDec (m/z vs Charge)"]['gui_size']
-            self.plotUnidec_mzGrid = plots.plots(self.unidec_mzGrid, config=self.config, figsize=figsize)
+            self.plotUnidec_mzGrid = mpl_plots(self.unidec_mzGrid, config=self.config, figsize=figsize)
             boxsizer_unidec_mzGrid = wx.BoxSizer(wx.VERTICAL)
             boxsizer_unidec_mzGrid.Add(self.plotUnidec_mzGrid, 1, wx.EXPAND)
             self.unidec_mzGrid.SetSizer(boxsizer_unidec_mzGrid)
@@ -425,7 +425,7 @@ class panelPlot(wx.Panel):
                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_mwVsZ, "MW vs Charge", False)
             figsize = self.config._plotSettings["UniDec (MW vs Charge)"]['gui_size']
-            self.plotUnidec_mwVsZ = plots.plots(self.unidec_mwVsZ, config=self.config, figsize=figsize)
+            self.plotUnidec_mwVsZ = mpl_plots(self.unidec_mwVsZ, config=self.config, figsize=figsize)
             boxsizer_unidec__mwVsZ = wx.BoxSizer(wx.VERTICAL)
             boxsizer_unidec__mwVsZ.Add(self.plotUnidec_mwVsZ, 1, wx.EXPAND)
             self.unidec_mwVsZ.SetSizer(boxsizer_unidec__mwVsZ)
@@ -434,7 +434,7 @@ class panelPlot(wx.Panel):
                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_mwDistribution, "MW", False)
             figsize = self.config._plotSettings["UniDec (MW)"]['gui_size']
-            self.plotUnidec_mwDistribution = plots.plots(self.unidec_mwDistribution, config=self.config, figsize=figsize)
+            self.plotUnidec_mwDistribution = mpl_plots(self.unidec_mwDistribution, config=self.config, figsize=figsize)
             boxsizer_unidec_mwDistribution = wx.BoxSizer(wx.VERTICAL)
             boxsizer_unidec_mwDistribution.Add(self.plotUnidec_mwDistribution, 1, wx.EXPAND)
             self.unidec_mwDistribution.SetSizer(boxsizer_unidec_mwDistribution)
@@ -443,7 +443,7 @@ class panelPlot(wx.Panel):
                                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_individualPeaks, "Isolated MS", False)
             figsize = self.config._plotSettings["UniDec (Isolated MS)"]['gui_size']
-            self.plotUnidec_individualPeaks = plots.plots(self.unidec_individualPeaks, config=self.config, figsize=figsize)
+            self.plotUnidec_individualPeaks = mpl_plots(self.unidec_individualPeaks, config=self.config, figsize=figsize)
             boxsizer_unidec_individualPeaks = wx.BoxSizer(wx.VERTICAL)
             boxsizer_unidec_individualPeaks.Add(self.plotUnidec_individualPeaks, 1, wx.EXPAND)
             self.unidec_individualPeaks.SetSizer(boxsizer_unidec_individualPeaks)
@@ -452,7 +452,7 @@ class panelPlot(wx.Panel):
                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_barChart, "Barplot", False)
             figsize = self.config._plotSettings["UniDec (Barplot)"]['gui_size']
-            self.plotUnidec_barChart = plots.plots(self.unidec_barChart,
+            self.plotUnidec_barChart = mpl_plots(self.unidec_barChart,
                                                    config=self.config,
                                                    figsize=figsize)
             boxsizer_unidec_barChart = wx.BoxSizer(wx.VERTICAL)
@@ -463,7 +463,7 @@ class panelPlot(wx.Panel):
                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_chargeDistribution, "Charge distribution", False)
             figsize = self.config._plotSettings["UniDec (Charge Distribution)"]['gui_size']
-            self.plotUnidec_chargeDistribution = plots.plots(self.unidec_chargeDistribution,
+            self.plotUnidec_chargeDistribution = mpl_plots(self.unidec_chargeDistribution,
                                                              config=self.config,
                                                              figsize=figsize)
             boxsizer_unidec_chargeDistribution = wx.BoxSizer(wx.VERTICAL)
@@ -479,7 +479,7 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelOther, "Other", False)
 
-        self.plotOther = plots.plots(self.panelOther,
+        self.plotOther = mpl_plots(self.panelOther,
                                      figsize=self.config._plotSettings["2D"]['gui_size'],
                                      config=self.config)
 
@@ -2001,7 +2001,7 @@ class panelPlot(wx.Panel):
             zvals = unidec_eng_data.massgrid
 
         # Check that cmap modifier is included
-        cmapNorm = self.presenter.normalize_colormap(zvals,
+        cmapNorm = self.normalize_colormap(zvals,
                                                       min=self.config.minCmap,
                                                       mid=self.config.midCmap,
                                                       max=self.config.maxCmap,
@@ -2593,7 +2593,7 @@ class panelPlot(wx.Panel):
             zvals, xvals, xlabel, yvals, ylabel, cmap = data
 
         # Check and change colormap if necessary
-        cmapNorm = self.presenter.normalize_colormap(zvals,
+        cmapNorm = self.normalize_colormap(zvals,
                                                       min=self.config.minCmap,
                                                       mid=self.config.midCmap,
                                                       max=self.config.maxCmap)
@@ -2683,7 +2683,7 @@ class panelPlot(wx.Panel):
                 return
 
         # Update values
-        self.presenter.getXYlimits2D(xvals, yvals, zvals)
+        # self.presenter.getXYlimits2D(xvals, yvals, zvals)
 
         # Check if cmap should be overwritten
         if self.config.useCurrentCmap:
@@ -2691,14 +2691,14 @@ class panelPlot(wx.Panel):
 
         # Check that cmap modifier is included
         if cmapNorm == None and plotType != "RMSD":
-            cmapNorm = self.presenter.normalize_colormap(zvals,
+            cmapNorm = self.normalize_colormap(zvals,
                                                           min=self.config.minCmap,
                                                           mid=self.config.midCmap,
                                                           max=self.config.maxCmap,
                                                           )
 
         elif cmapNorm == None and plotType == "RMSD":
-            cmapNorm = self.presenter.normalize_colormap(zvals,
+            cmapNorm = self.normalize_colormap(zvals,
                                                           min=-100, mid=0, max=100,
                                                           )
 
@@ -2764,7 +2764,7 @@ class panelPlot(wx.Panel):
 
         # Check that cmap modifier is included
         if cmapNorm == None:
-            cmapNorm = self.presenter.normalize_colormap(zvals,
+            cmapNorm = self.normalize_colormap(zvals,
                                                           min=self.config.minCmap,
                                                           mid=self.config.midCmap,
                                                           max=self.config.maxCmap,
@@ -2842,7 +2842,7 @@ class panelPlot(wx.Panel):
 
         # Check that cmap modifier is included
         if cmapNorm == None:
-            cmapNorm = self.presenter.normalize_colormap(zvals,
+            cmapNorm = self.normalize_colormap(zvals,
                                                           min=self.config.minCmap,
                                                           mid=self.config.midCmap,
                                                           max=self.config.maxCmap,
@@ -3064,13 +3064,13 @@ class panelPlot(wx.Panel):
                 return
 
         # Update values
-        self.presenter.getXYlimits2D(xvals, yvals, zvals)
+        # self.presenter.getXYlimits2D(xvals, yvals, zvals)
 
         if self.config.useCurrentCmap:
             cmap = self.config.currentCmap
 
         if cmapNorm == None and plotType == "RMSD":
-            cmapNorm = self.presenter.normalize_colormap(zvals, min=-100, mid=0, max=100)
+            cmapNorm = self.normalize_colormap(zvals, min=-100, mid=0, max=100)
 
         # update kwargs
         plt_kwargs['colormap'] = cmap
@@ -3114,7 +3114,7 @@ class panelPlot(wx.Panel):
                 return
 
         # Update values
-        self.presenter.getXYlimits2D(xvals, yvals, zvals)
+        # self.presenter.getXYlimits2D(xvals, yvals, zvals)
 
         # Check if cmap should be overwritten
         if self.config.useCurrentCmap:
@@ -3122,7 +3122,7 @@ class panelPlot(wx.Panel):
 
         # Check that cmap modifier is included
         if cmapNorm == None and plotType == "RMSD":
-            cmapNorm = self.presenter.normalize_colormap(zvals, min=-100, mid=0, max=100)
+            cmapNorm = self.normalize_colormap(zvals, min=-100, mid=0, max=100)
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -3295,15 +3295,15 @@ class panelPlot(wx.Panel):
         plt_kwargs['colormap_1'] = cmap_1
         plt_kwargs['colormap_2'] = cmap_2
 
-        plt_kwargs['cmap_norm_1'] = self.presenter.normalize_colormap(zvals_1,
+        plt_kwargs['cmap_norm_1'] = self.normalize_colormap(zvals_1,
                                                          min=self.config.minCmap,
                                                          mid=self.config.midCmap,
                                                          max=self.config.maxCmap)
-        plt_kwargs['cmap_norm_2'] = self.presenter.normalize_colormap(zvals_2,
+        plt_kwargs['cmap_norm_2'] = self.normalize_colormap(zvals_2,
                                                          min=self.config.minCmap,
                                                          mid=self.config.midCmap,
                                                          max=self.config.maxCmap)
-        plt_kwargs['cmap_norm_cum'] = self.presenter.normalize_colormap(zvals_cum,
+        plt_kwargs['cmap_norm_cum'] = self.normalize_colormap(zvals_cum,
                                                          min=-100, mid=0, max=100)
         self.plotOverlay.clearPlot()
         self.plotOverlay.plot_grid_2D_overlay(zvals_1, zvals_2, zvals_cum, xvals, yvals,
@@ -3853,4 +3853,26 @@ class panelPlot(wx.Panel):
 
         # return kwargs
         return plt_kwargs
+
+    def normalize_colormap(self, data, min=0, mid=50, max=100, cbarLimits=None):
+        """
+        This function alters the colormap intensities
+        """
+        # Check if cbarLimits have been adjusted
+        if cbarLimits is not None and self.config.colorbar:
+            maxValue = self.config.colorbarRange[1]
+        else:
+            maxValue = np.max(data)
+
+        # Determine what are normalization values
+        # Convert from % to number
+        cmapMin = (maxValue * min) / 100
+        cmapMid = (maxValue * mid) / 100
+        cmapMax = (maxValue * max) / 100
+
+        cmapNormalization = MidpointNormalize(midpoint=cmapMid,
+                                              vmin=cmapMin,
+                                              vmax=cmapMax,
+                                              clip=False)
+        return cmapNormalization
 

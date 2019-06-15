@@ -1,7 +1,7 @@
 import wx
 import numpy as np
 from help_documentation import OrigamiHelp
-import plots
+from visuals import mpl_plots
 from styles import makeSuperTip, validator
 from unidec_modules.fitting import isolated_peak_fit
 from gui_elements.misc_dialogs import dlgBox
@@ -56,17 +56,17 @@ class panelPeakWidthTool(wx.MiniFrame):
         panel = wx.Panel(self, -1)
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.plotMS = plots.plots(panel, figsize=(6, 3), config=self.config)
+        self.plotMS = mpl_plots(panel, figsize=(6, 3), config=self.config)
 
         unidec_peakShape_label = wx.StaticText(panel, wx.ID_ANY, "Peak Shape:")
         self.unidec_peakFcn_choice = wx.Choice(panel, -1, choices=list(self.config.unidec_peakFunction_choices.keys()),
-                                          size=(-1, -1))
+                                               size=(-1, -1))
         self.unidec_peakFcn_choice.SetStringSelection(self.config.unidec_peakFunction)
         self.unidec_peakFcn_choice.Bind(wx.EVT_CHOICE, self.on_fit_peak)
 
         unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")
         self.unidec_fit_peakWidth_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
+                                                      validator=validator('floatPos'))
         _tip = makeSuperTip(self.unidec_fit_peakWidth_value, **self.help.unidec_peak_FWHM)
 
         unidec_error_label = wx.StaticText(panel, wx.ID_ANY, "Error:")
@@ -78,9 +78,9 @@ class panelPeakWidthTool(wx.MiniFrame):
         msg = "To determine peak width, please zoom-in on a desired peak, \n" + \
               "select peak shape and press fit. When you are finished, press on \n" + \
               "OK and continue."
-        help_peak = {'help_title':'Peak width fitting', 'help_msg':msg,
-                                 'header_img': None, 'header_line':True,
-                                 'footer_line':False}
+        help_peak = {'help_title': 'Peak width fitting', 'help_msg': msg,
+                     'header_img': None, 'header_line': True,
+                     'footer_line': False}
         _tip = makeSuperTip(self.fitBtn, **help_peak)
 
         self.okBtn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
@@ -183,7 +183,7 @@ class panelPeakWidthTool(wx.MiniFrame):
         # Plot MS
         self.plotMS.clearPlot()
         self.plotMS.plot_1D(xvals=xvals, yvals=yvals,
-#                             xlimits=xlimits,
+                            #                             xlimits=xlimits,
                             xlabel="m/z",
                             ylabel="Intensity",
                             axesSize=[0.1, 0.2, 0.8, 0.75],
@@ -194,4 +194,3 @@ class panelPeakWidthTool(wx.MiniFrame):
 
         self.plotMS.plotMS.set_xlim(xlimits)
         self.plotMS.repaint()
-

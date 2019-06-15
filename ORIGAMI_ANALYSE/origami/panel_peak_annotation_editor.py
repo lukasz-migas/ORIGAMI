@@ -29,8 +29,8 @@ from pandas import read_csv
 from pubsub import pub
 
 import processing.utils as pr_utils
-from gui_elements.dialog_customiseUserAnnotations import \
-    panelCustomiseParameters
+from gui_elements.dialog_customise_user_annotations import \
+    dialog_customise_user_annotations
 from help_documentation import OrigamiHelp
 from ids import (ID_annotPanel_addAnnotations,
                  ID_annotPanel_assignChargeState_selected,
@@ -480,7 +480,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
 
     def onCustomiseParameters(self, evt):
 
-        dlg = panelCustomiseParameters(self, self.config)
+        dlg = dialog_customise_user_annotations(self, self.config)
         dlg.ShowModal()
 
     def onFixIntensity(self, evt):

@@ -28,7 +28,7 @@ from re import split as re_split
 
 from toolbox import (str2num, str2int, str2bool, removeListDuplicates)
 from styles import (makeCheckbox, makeStaticBox, makeMenuItem)
-from gui_elements.dialog_customisePeptideAnnotations import panelCustomiseParameters
+from gui_elements.dialog_customise_peptide_annotations import dialog_customise_peptide_annotations
 from gui_elements.misc_dialogs import dlgBox
 from ids import (ID_tandemPanel_otherSettings, ID_tandemPanel_showPTMs,
                  ID_tandemPanel_peaklist_show_selected,
@@ -158,7 +158,7 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def onCustomiseParameters(self, evt):
 
-        dlg = panelCustomiseParameters(self, self.config)
+        dlg = dialog_customise_peptide_annotations(self, self.config)
         dlg.ShowModal()
 
     def on_show_PTMs_peaklist(self, evt):
