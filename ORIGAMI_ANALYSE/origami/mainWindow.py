@@ -1197,7 +1197,7 @@ class MyFrame(wx.Frame):
             ["W", self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayTextFromList],
             ["S", self.panelDocuments.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotDocument],
             ["P", self.panelDocuments.documents.onProcess, wx.ACCEL_ALT, ID_process2DDocument],
-            ["C", self.presenter.onCombineCEvoltagesMultiple, wx.ACCEL_ALT, ID_combineCEscans],
+            # ["C", self.presenter.onCombineCEvoltagesMultiple, wx.ACCEL_ALT, ID_combineCEscans],
             ["R", self.panelDocuments.documents.onRenameItem, wx.ACCEL_ALT, ID_renameItem],
             ["X", self.panelDocuments.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotMSDocument],
             ["Z", self.presenter.onChangeChargeState, wx.ACCEL_ALT, ID_assignChargeState],

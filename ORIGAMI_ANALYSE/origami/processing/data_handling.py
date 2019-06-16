@@ -10,7 +10,7 @@ import readers.io_waters_raw as io_waters
 import processing.spectra as pr_spectra
 from document import document as documents
 from ids import ID_window_ionList, ID_window_multiFieldList, ID_load_origami_masslynx_raw, ID_load_masslynx_raw, \
-    ID_openIRRawFile, ID_window_multipleMLList, ID_window_ccsList
+    ID_openIRRawFile, ID_window_multipleMLList, ID_window_ccsList, ID_combineCEscansSelectedIons, ID_recalculateORIGAMI
 from gui_elements.misc_dialogs import dlgBox
 from utils.check import isempty, check_value_order, check_axes_spacing
 from utils.time import getTime, ttime, tsleep
@@ -1570,7 +1570,8 @@ class data_handling():
         # Update document
         self.on_update_document(document, 'mass_spectra')
 
-    # TODO: check this function works
+    # TODO: optimise this function
+    # FIX: This function throws an error
     def on_extract_MS_from_chromatogram(self, startScan=None, endScan=None, units="Scans"):
         """ Function to extract MS data for specified RT region """
 
@@ -2788,3 +2789,195 @@ class data_handling():
                           'threshold': self.config.ms_threshold}
             return msX, msY, parameters
 
+    def __combine_origami_linear(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage):
+        if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage]):
+            msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
+            self.onThreading(None, (msg, 3), action='updateStatusbar')
+            return
+
+        zvals, scan_list, parameters = pr_origami.origami_combine_linear(
+            zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage)
+        return zvals, scan_list, parameters
+
+    def __combine_origami_exponential(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage,
+                                      expIncrement, expPercentage):
+        if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, expIncrement, expPercentage]):
+            msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
+            self.onThreading(None, (msg, 3), action='updateStatusbar')
+            return
+
+        zvals, scan_list, parameters = pr_origami.origami_combine_exponential(
+            zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, expIncrement, expPercentage)
+        return zvals, scan_list, parameters
+
+    def __combine_origami_fitted(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx):
+        if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx]):
+            msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
+            self.onThreading(None, (msg, 3), action='updateStatusbar')
+            return
+
+        zvals, scan_list, parameters = pr_origami.origami_combine_boltzmann(
+            zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx)
+        return zvals, scan_list, parameters
+
+    def __combine_origami_user_defined(self, zvals, startScan, scanList):
+        # Ensure that config is not missing variabels
+        if len(self.config.origamiList) == 0:
+            errorMsg = "Please load a text file with ORIGAMI parameters"
+        elif not self.config.origami_startScan:
+            errorMsg = "The first scan is incorect (currently: %s)" % self.config.origami_startScan
+        elif self.config.origamiList[:, 0].shape != self.config.origamiList[:, 1].shape:
+            errorMsg = "The collision voltage list is of incorrect shape."
+
+        if errorMsg is not None:
+            self.onThreading(None, (errorMsg, 3), action='updateStatusbar')
+            return
+
+        zvals, xlabels, scan_list, parameters = pr_origami.origami_combine_userDefined(
+            zvals, startScan, scanList)
+
+        return zvals, xlabels, scan_list, parameters
+
+    def on_combine_origami_collision_voltages(self, evt):
+
+        extract_mode = "all"
+        # Check which mode was selected
+        if evt.GetId() == ID_combineCEscansSelectedIons:
+            extract_mode = "selected"
+
+        # Make a list of current documents
+        for ion_id in range(self.ionList.GetItemCount()):
+            if extract_mode == "selected" and not self.ionList.IsChecked(ion_id):
+                continue
+
+            itemInfo = self.ionPanel.OnGetItemInformation(itemID=ion_id)
+            print(itemInfo)
+            document_title = itemInfo["document"]
+            document = self._on_get_document(document_title)
+
+            recalculate_mode = False
+            if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
+                and document.gotCombinedExtractedIons):
+                recalculate_mode = True
+
+            # Check that this data was opened in ORIGAMI mode and has extracted data
+            if document.dataType == 'Type: ORIGAMI' and document.gotExtractedIons:
+                data = document.IMS2Dions
+            else:
+                msg = "Data was not extracted yet. Please extract before continuing."
+                dlgBox(exceptionTitle='Missing data',
+                       exceptionMsg=msg,
+                       type="Error")
+                continue
+
+            # Extract ion name
+            ion_name = itemInfo['ionName']
+            method = itemInfo['method']
+            zvals = data[ion_name]['zvals']
+
+            if method == '':
+                self.ionList.SetStringItem(
+                    ion_id, self.config.peaklistColNames['method'], self.config.origami_acquisition)
+
+            if recalculate_mode:
+                try:
+                    startScan = document.IMS2DCombIons[ion_name]['parameters']['firstVoltage']
+                    startVoltage = document.IMS2DCombIons[ion_name]['parameters']['startV']
+                    endVoltage = document.IMS2DCombIons[ion_name]['parameters']['endV']
+                    stepVoltage = document.IMS2DCombIons[ion_name]['parameters']['stepV']
+                    scansPerVoltage = document.IMS2DCombIons[ion_name]['parameters']['spv']
+                    expIncrement = document.IMS2DCombIons[ion_name]['parameters']['expIncrement']
+                    expPercentage = document.IMS2DCombIons[ion_name]['parameters']['expPercent']
+                    boltzmannOffset = document.IMS2DCombIons[ion_name]['parameters']['dx']
+                    scanList = document.IMS2DCombIons[ion_name]['parameters']['inputList']
+                except Exception:
+                    pass
+            else:
+                startScan = self.config.origami_startScan
+                startVoltage = self.config.origami_startVoltage
+                endVoltage = self.config.origami_endVoltage
+                stepVoltage = self.config.origami_stepVoltage
+                scansPerVoltage = self.config.origami_spv
+                expIncrement = self.config.origami_exponentialIncrement
+                expPercentage = self.config.origami_exponentialPercentage
+                boltzmannOffset = self.config.origami_boltzmannOffset
+                scanList = self.config.origamiList
+
+            # LINEAR METHOD
+            if method == 'Linear':
+                zvals, scan_list, parameters = self.__combine_origami_linear(
+                    zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage)
+
+            # EXPONENTIAL METHOD
+            elif method == 'Exponential':
+                zvals, scan_list, parameters = self.__combine_origami_exponential(
+                    zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage,
+                    expIncrement, expPercentage)
+
+            # FITTED/BOLTZMANN METHOD
+            elif method == 'Fitted':
+                zvals, scan_list, parameters = self.__combine_origami_fitted(
+                    zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, boltzmannOffset)
+
+            # USER-DEFINED/LIST METHOD
+            elif method == 'User-defined':
+                self.__combine_origami_user_defined(zvals, startScan, scanList)
+
+            if zvals[0] is None:
+                msg = "With your current input, there would be too many scans in your file! " + \
+                      "There are %s scans in your file and your settings suggest there should be %s" \
+                      % (zvals[2], zvals[1])
+                dlgBox(exceptionTitle='Are your settings correct?',
+                       exceptionMsg=msg, type="Warning")
+                continue
+
+            # Add x-axis and y-axis labels
+            if  method != 'User-defined':
+                xlabels = np.arange(self.config.origami_startVoltage,
+                                    (self.config.origami_endVoltage + self.config.origami_stepVoltage),
+                                    self.config.origami_stepVoltage)
+
+            # Y-axis is bins by default
+            ylabels = np.arange(1, 201, 1)
+            # Combine 2D array into 1D
+            imsData1D = np.sum(zvals, axis=1).T
+            yvalsRT = np.sum(zvals, axis=0)
+            # Check if item has labels, alpha, charge
+            charge = data[ion_name].get('charge', None)
+            cmap = data[ion_name].get('cmap', self.config.overlay_cmaps[randomIntegerGenerator(0, 5)])
+            color = data[ion_name].get('color', self.config.customColors[randomIntegerGenerator(0, 15)])
+            label = data[ion_name].get('label', None)
+            alpha = data[ion_name].get('alpha', self.config.overlay_defaultAlpha)
+            mask = data[ion_name].get('mask', self.config.overlay_defaultMask)
+            min_threshold = data[ion_name].get('min_threshold', 0)
+            max_threshold = data[ion_name].get('max_threshold', 1)
+
+            # Add 2D data to document object
+            document.gotCombinedExtractedIons = True
+            document.IMS2DCombIons[ion_name] = {'zvals': zvals,
+                                                'xvals': xlabels,
+                                                'xlabels': 'Collision Voltage (V)',
+                                                'yvals': ylabels,
+                                                'ylabels': 'Drift time (bins)',
+                                                'yvals1D': imsData1D,
+                                                'yvalsRT': yvalsRT,
+                                                'cmap': cmap,
+                                                'xylimits': data[ion_name]['xylimits'],
+                                                'charge': charge,
+                                                'label': label,
+                                                'alpha': alpha,
+                                                'mask': mask,
+                                                'color': color,
+                                                'min_threshold': min_threshold,
+                                                'max_threshold': max_threshold,
+                                                'scanList': scanList,
+                                                'parameters': parameters}
+            document.combineIonsList = scanList
+            # Add 1D data to document object
+            document.gotCombinedExtractedIonsRT = True
+            document.IMSRTCombIons[ion_name] = {'xvals': xlabels,
+                                                'yvals': yvalsRT,
+                                                'xlabels': 'Collision Voltage (V)'}
+
+            # Update document
+            self.on_update_document(document, 'combined_ions')

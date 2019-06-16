@@ -56,7 +56,7 @@ class panelPeakWidthTool(wx.MiniFrame):
         panel = wx.Panel(self, -1)
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.plotMS = mpl_plots(panel, figsize=(6, 3), config=self.config)
+        self.plotMS = mpl_plots.plots(panel, figsize=(6, 3), config=self.config)
 
         unidec_peakShape_label = wx.StaticText(panel, wx.ID_ANY, "Peak Shape:")
         self.unidec_peakFcn_choice = wx.Choice(panel, -1, choices=list(self.config.unidec_peakFunction_choices.keys()),
