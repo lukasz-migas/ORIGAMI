@@ -164,7 +164,7 @@ class topPanel(wx.Panel):
     def make_gui(self):
         """ Make panel GUI """
          # make toolbar
-        toolbar = self.makeToolbar()
+        toolbar = self.make_toolbar()
         self.makeListCtrl()
         self.calibrationSubPanel = self.makeCalibrationSubPanel()
 
@@ -180,7 +180,7 @@ class topPanel(wx.Panel):
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
 
-    def makeToolbar(self):
+    def make_toolbar(self):
 
         # Make bindings
         self.Bind(wx.EVT_TOOL, self.onAddTool, id=ID_addCCScalibrantMenu)
@@ -923,10 +923,10 @@ class bottomPanel(wx.Panel):
         self.listOfSelected = []
         self.reverse = False
         self.lastColumn = None
-        self.makeToolbar()
+        self.make_toolbar()
         self.makeListCtrl()
 
-    def makeToolbar(self):
+    def make_toolbar(self):
 
         self.Bind(wx.EVT_TOOL, self.onProcessTool, id=ID_processApplyCCScalibrantMenu)
         self.Bind(wx.EVT_TOOL, self.OnCheckAllItems, id=ID_checkAllItems_caliApply)

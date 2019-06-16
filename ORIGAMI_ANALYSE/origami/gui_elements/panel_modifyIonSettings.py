@@ -124,19 +124,6 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.origami_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
         self.origami_max_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        mask_label = wx.StaticText(panel, wx.ID_ANY, "Mask:")
-        self.origami_mask_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value="1", min=0.0, max=1.0,
-                                            initial=1.0, inc=0.05, size=(60, -1))
-        self.origami_mask_value.SetValue(self.itemInfo['mask'])
-        self.origami_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
-        transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparency:")
-        self.origami_transparency_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                    value="1", min=0.0, max=1.0,
-                                                    initial=1.0, inc=0.05, size=(60, -1))
-        self.origami_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.origami_colormap_value = wx.Choice(panel, -1,
                                                choices=self.config.cmaps2,
@@ -152,94 +139,107 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.origami_color_value.SetBackgroundColour(self.itemInfo['color'])
         self.origami_color_value.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        origami_staticBox = makeStaticBox(panel, "Collision voltage parameters", size=(-1, -1), color=wx.BLACK)
-        origami_staticBox.SetSize((-1, -1))
-        origami_box_sizer = wx.StaticBoxSizer(origami_staticBox, wx.HORIZONTAL)
+        mask_label = wx.StaticText(panel, wx.ID_ANY, "Mask:")
+        self.origami_mask_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
+                                            value="1", min=0.0, max=1.0,
+                                            initial=1.0, inc=0.05, size=(60, -1))
+        self.origami_mask_value.SetValue(self.itemInfo['mask'])
+        self.origami_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        method_label = wx.StaticText(panel, -1, "Acquisition method:")
-        self.origami_method_value = wx.Choice(panel, -1,
-                                             choices=self.config.origami_acquisition_choices,
-                                             size=(-1, -1))
-        self.origami_method_value.SetStringSelection(self.itemInfo['method'])
-        self.origami_method_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
-        self.origami_method_value.Bind(wx.EVT_CHOICE, self.on_apply)
+        transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparency:")
+        self.origami_transparency_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
+                                                    value="1", min=0.0, max=1.0,
+                                                    initial=1.0, inc=0.05, size=(60, -1))
+        self.origami_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-#         self.origami_loadParams = wx.BitmapButton(panel, wx.ID_ANY,
-#                                                   self.icons.iconsLib['load16'],
-#                                                   size=(26, 26),
-#                                                   style=wx.BORDER_DOUBLE | wx.ALIGN_CENTER_VERTICAL)
-
-        spv_label = wx.StaticText(panel, wx.ID_ANY, "Scans per voltage:")
-        self.origami_scansPerVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('intPos'))
-        self.origami_scansPerVoltage_value.SetValue(str(self.config.origami_spv))
-        self.origami_scansPerVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        scan_label = wx.StaticText(panel, wx.ID_ANY, "First scan:")
-        self.origami_startScan_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('intPos'))
-        self.origami_startScan_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        startVoltage_label = wx.StaticText(panel, wx.ID_ANY, "First voltage:")
-        self.origami_startVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_startVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        endVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Final voltage:")
-        self.origami_endVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_endVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        stepVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Voltage step:")
-        self.origami_stepVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_stepVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        boltzmann_label = wx.StaticText(panel, wx.ID_ANY, "Boltzmann offset:")
-        self.origami_boltzmannOffset_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                                         validator=validator('floatPos'))
-        self.origami_boltzmannOffset_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        exponentialPercentage_label = wx.StaticText(panel, wx.ID_ANY, "Exponential percentage:")
-        self.origami_exponentialPercentage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_exponentialPercentage_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        exponentialIncrement_label = wx.StaticText(panel, wx.ID_ANY, "Exponential increment:")
-        self.origami_exponentialIncrement_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_exponentialIncrement_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        origami_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        origami_grid.Add(method_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        origami_grid.Add(self.origami_method_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         origami_grid.Add(self.origami_loadParams, (n,2), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-        n = n + 1
-        origami_grid.Add(spv_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        origami_grid.Add(self.origami_scansPerVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        origami_grid.Add(scan_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        origami_grid.Add(self.origami_startScan_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        origami_grid.Add(startVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        origami_grid.Add(self.origami_startVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        origami_grid.Add(endVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        origami_grid.Add(self.origami_endVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        origami_grid.Add(stepVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        origami_grid.Add(self.origami_stepVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        origami_grid.Add(boltzmann_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        origami_grid.Add(self.origami_boltzmannOffset_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        origami_grid.Add(exponentialPercentage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        origami_grid.Add(self.origami_exponentialPercentage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        origami_grid.Add(exponentialIncrement_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        origami_grid.Add(self.origami_exponentialIncrement_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        origami_box_sizer.Add(origami_grid, 0, wx.EXPAND, 10)
+#         origami_staticBox = makeStaticBox(panel, "Collision voltage parameters", size=(-1, -1), color=wx.BLACK)
+#         origami_staticBox.SetSize((-1, -1))
+#         origami_box_sizer = wx.StaticBoxSizer(origami_staticBox, wx.HORIZONTAL)
+#
+#         method_label = wx.StaticText(panel, -1, "Acquisition method:")
+#         self.origami_method_value = wx.Choice(panel, -1,
+#                                              choices=self.config.origami_acquisition_choices,
+#                                              size=(-1, -1))
+#         self.origami_method_value.SetStringSelection(self.itemInfo['method'])
+#         self.origami_method_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
+#         self.origami_method_value.Bind(wx.EVT_CHOICE, self.on_apply)
+#
+# #         self.origami_loadParams = wx.BitmapButton(panel, wx.ID_ANY,
+# #                                                   self.icons.iconsLib['load16'],
+# #                                                   size=(26, 26),
+# #                                                   style=wx.BORDER_DOUBLE | wx.ALIGN_CENTER_VERTICAL)
+#
+#         spv_label = wx.StaticText(panel, wx.ID_ANY, "Scans per voltage:")
+#         self.origami_scansPerVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('intPos'))
+#         self.origami_scansPerVoltage_value.SetValue(str(self.config.origami_spv))
+#         self.origami_scansPerVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
+#
+#         scan_label = wx.StaticText(panel, wx.ID_ANY, "First scan:")
+#         self.origami_startScan_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('intPos'))
+#         self.origami_startScan_value.Bind(wx.EVT_TEXT, self.on_apply)
+#
+#         startVoltage_label = wx.StaticText(panel, wx.ID_ANY, "First voltage:")
+#         self.origami_startVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_startVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
+#
+#         endVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Final voltage:")
+#         self.origami_endVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_endVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
+#
+#         stepVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Voltage step:")
+#         self.origami_stepVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_stepVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
+#
+#         boltzmann_label = wx.StaticText(panel, wx.ID_ANY, "Boltzmann offset:")
+#         self.origami_boltzmannOffset_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                                          validator=validator('floatPos'))
+#         self.origami_boltzmannOffset_value.Bind(wx.EVT_TEXT, self.on_apply)
+#
+#         exponentialPercentage_label = wx.StaticText(panel, wx.ID_ANY, "Exponential percentage:")
+#         self.origami_exponentialPercentage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_exponentialPercentage_value.Bind(wx.EVT_TEXT, self.on_apply)
+#
+#         exponentialIncrement_label = wx.StaticText(panel, wx.ID_ANY, "Exponential increment:")
+#         self.origami_exponentialIncrement_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_exponentialIncrement_value.Bind(wx.EVT_TEXT, self.on_apply)
+#
+#         origami_grid = wx.GridBagSizer(2, 2)
+#         n = 0
+#         origami_grid.Add(method_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         origami_grid.Add(self.origami_method_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+# #         origami_grid.Add(self.origami_loadParams, (n,2), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
+#         n = n + 1
+#         origami_grid.Add(spv_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         origami_grid.Add(self.origami_scansPerVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         origami_grid.Add(scan_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         origami_grid.Add(self.origami_startScan_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         origami_grid.Add(startVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         origami_grid.Add(self.origami_startVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         origami_grid.Add(endVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         origami_grid.Add(self.origami_endVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         origami_grid.Add(stepVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         origami_grid.Add(self.origami_stepVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         origami_grid.Add(boltzmann_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         origami_grid.Add(self.origami_boltzmannOffset_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         origami_grid.Add(exponentialPercentage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         origami_grid.Add(self.origami_exponentialPercentage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         origami_grid.Add(exponentialIncrement_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         origami_grid.Add(self.origami_exponentialIncrement_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         origami_box_sizer.Add(origami_grid, 0, wx.EXPAND, 10)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
@@ -296,8 +296,8 @@ class panelModifyIonSettings(wx.MiniFrame):
         n = n + 1
         grid.Add(transparency_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_transparency_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(origami_box_sizer, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+#         n = n + 1
+#         grid.Add(origami_box_sizer, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
         grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
@@ -324,21 +324,21 @@ class panelModifyIonSettings(wx.MiniFrame):
                                            num2str(self.origami_mask_value.GetValue()))
         self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.peaklistColNames['alpha'],
                                            num2str(self.origami_transparency_value.GetValue()))
-        self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.peaklistColNames['method'],
-                                           self.origami_method_value.GetStringSelection())
+#         self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.peaklistColNames['method'],
+#                                            self.origami_method_value.GetStringSelection())
         self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.peaklistColNames['label'],
                                            self.origami_label_value.GetValue())
 
-        if self.itemInfo['parameters'] == None:
-            self.itemInfo['parameters'] = {}
-        self.itemInfo['parameters']['firstVoltage'] = str2int(self.origami_startScan_value.GetValue())
-        self.itemInfo['parameters']['startV'] = str2num(self.origami_startVoltage_value.GetValue())
-        self.itemInfo['parameters']['endV'] = str2num(self.origami_endVoltage_value.GetValue())
-        self.itemInfo['parameters']['stepV'] = str2num(self.origami_stepVoltage_value.GetValue())
-        self.itemInfo['parameters']['spv'] = str2int(self.origami_scansPerVoltage_value.GetValue())
-        self.itemInfo['parameters']['expIncrement'] = str2num(self.origami_exponentialIncrement_value.GetValue())
-        self.itemInfo['parameters']['expPercent'] = str2num(self.origami_exponentialPercentage_value.GetValue())
-        self.itemInfo['parameters']['dx'] = str2num(self.origami_boltzmannOffset_value.GetValue())
+#         if self.itemInfo['parameters'] == None:
+#             self.itemInfo['parameters'] = {}
+#         self.itemInfo['parameters']['firstVoltage'] = str2int(self.origami_startScan_value.GetValue())
+#         self.itemInfo['parameters']['startV'] = str2num(self.origami_startVoltage_value.GetValue())
+#         self.itemInfo['parameters']['endV'] = str2num(self.origami_endVoltage_value.GetValue())
+#         self.itemInfo['parameters']['stepV'] = str2num(self.origami_stepVoltage_value.GetValue())
+#         self.itemInfo['parameters']['spv'] = str2int(self.origami_scansPerVoltage_value.GetValue())
+#         self.itemInfo['parameters']['expIncrement'] = str2num(self.origami_exponentialIncrement_value.GetValue())
+#         self.itemInfo['parameters']['expPercent'] = str2num(self.origami_exponentialPercentage_value.GetValue())
+#         self.itemInfo['parameters']['dx'] = str2num(self.origami_boltzmannOffset_value.GetValue())
 
         # update ion information
         self.itemInfo['charge'] = self.origami_charge_value.GetValue()
@@ -388,29 +388,29 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.origami_min_threshold_value.SetValue(self.itemInfo['min_threshold'])
         self.origami_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
 
-        if self.itemInfo['parameters'] != None:
-            self.origami_method_value.SetStringSelection(self.itemInfo['parameters']['method'])
-            self.origami_startScan_value.SetValue(str(self.itemInfo['parameters'].get('firstVoltage', '')))
-            self.origami_scansPerVoltage_value.SetValue(str(self.itemInfo['parameters'].get('spv', '')))
-            self.origami_startVoltage_value.SetValue(str(self.itemInfo['parameters'].get('startV', '')))
-            self.origami_endVoltage_value.SetValue(str(self.itemInfo['parameters'].get('endV', '')))
-            self.origami_stepVoltage_value.SetValue(str(self.itemInfo['parameters'].get('stepV', '')))
-            self.origami_exponentialIncrement_value.SetValue(str(self.itemInfo['parameters'].get('expIncrement', '')))
-            self.origami_exponentialPercentage_value.SetValue(str(self.itemInfo['parameters'].get('expPercent', '')))
-            self.origami_boltzmannOffset_value.SetValue(str(self.itemInfo['parameters'].get('dx', '')))
-        else:
-            self.origami_startScan_value.SetValue(str(self.config.origami_startScan))
-            self.origami_scansPerVoltage_value.SetValue(str(self.config.origami_spv))
-            self.origami_startVoltage_value.SetValue(str(self.config.origami_startVoltage))
-            self.origami_endVoltage_value.SetValue(str(self.config.origami_endVoltage))
-            self.origami_stepVoltage_value.SetValue(str(self.config.origami_stepVoltage))
-            self.origami_exponentialIncrement_value.SetValue(str(self.config.origami_exponentialIncrement))
-            self.origami_exponentialPercentage_value.SetValue(str(self.config.origami_exponentialPercentage))
-            self.origami_boltzmannOffset_value.SetValue(str(self.config.origami_boltzmannOffset))
-            self.origami_method_value.SetStringSelection(self.config.origami_acquisition)
-            try: self.origami_method_value.SetStringSelection(self.itemInfo['method'])
-            except Exception:
-                pass
+#         if self.itemInfo['parameters'] != None:
+#             self.origami_method_value.SetStringSelection(self.itemInfo['parameters']['method'])
+#             self.origami_startScan_value.SetValue(str(self.itemInfo['parameters'].get('firstVoltage', '')))
+#             self.origami_scansPerVoltage_value.SetValue(str(self.itemInfo['parameters'].get('spv', '')))
+#             self.origami_startVoltage_value.SetValue(str(self.itemInfo['parameters'].get('startV', '')))
+#             self.origami_endVoltage_value.SetValue(str(self.itemInfo['parameters'].get('endV', '')))
+#             self.origami_stepVoltage_value.SetValue(str(self.itemInfo['parameters'].get('stepV', '')))
+#             self.origami_exponentialIncrement_value.SetValue(str(self.itemInfo['parameters'].get('expIncrement', '')))
+#             self.origami_exponentialPercentage_value.SetValue(str(self.itemInfo['parameters'].get('expPercent', '')))
+#             self.origami_boltzmannOffset_value.SetValue(str(self.itemInfo['parameters'].get('dx', '')))
+#         else:
+#             self.origami_startScan_value.SetValue(str(self.config.origami_startScan))
+#             self.origami_scansPerVoltage_value.SetValue(str(self.config.origami_spv))
+#             self.origami_startVoltage_value.SetValue(str(self.config.origami_startVoltage))
+#             self.origami_endVoltage_value.SetValue(str(self.config.origami_endVoltage))
+#             self.origami_stepVoltage_value.SetValue(str(self.config.origami_stepVoltage))
+#             self.origami_exponentialIncrement_value.SetValue(str(self.config.origami_exponentialIncrement))
+#             self.origami_exponentialPercentage_value.SetValue(str(self.config.origami_exponentialPercentage))
+#             self.origami_boltzmannOffset_value.SetValue(str(self.config.origami_boltzmannOffset))
+#             self.origami_method_value.SetStringSelection(self.config.origami_acquisition)
+#             try: self.origami_method_value.SetStringSelection(self.itemInfo['method'])
+#             except Exception:
+#                 pass
 
         self.on_toggle_controls(evt=None)
         self.importEvent = False
@@ -445,51 +445,51 @@ class panelModifyIonSettings(wx.MiniFrame):
 
     def on_toggle_controls(self, evt):
 
-        method = self.origami_method_value.GetStringSelection()
-        enableList, disableList = [], []
-        if method == 'Linear':
-            disableList = [self.origami_boltzmannOffset_value, self.origami_exponentialIncrement_value,
-                           self.origami_exponentialPercentage_value]
-            enableList = [self.origami_scansPerVoltage_value,
-                          self.origami_startScan_value, self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value]
-        elif method == 'Exponential':
-            disableList = [self.origami_boltzmannOffset_value]
-            enableList = [self.origami_scansPerVoltage_value,
-                          self.origami_startScan_value, self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_exponentialIncrement_value,
-                          self.origami_exponentialPercentage_value]
-        elif method == 'Boltzmann':
-            disableList = []
-            enableList = [self.origami_scansPerVoltage_value,
-                          self.origami_startScan_value, self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_exponentialIncrement_value,
-                          self.origami_exponentialPercentage_value,
-                          self.origami_boltzmannOffset_value]
-        elif method == 'User-defined':
-            disableList = [self.origami_scansPerVoltage_value,
-                          self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_exponentialIncrement_value,
-                          self.origami_exponentialPercentage_value,
-                          self.origami_boltzmannOffset_value]
-            enableList = [self.origami_startScan_value
-                          ]
-        elif method == 'Manual':
-            disableList = [self.origami_scansPerVoltage_value,
-                           self.origami_startScan_value, self.origami_startVoltage_value,
-                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                           self.origami_exponentialIncrement_value,
-                           self.origami_exponentialPercentage_value,
-                           self.origami_boltzmannOffset_value, ]
-            enableList = []
-
-        for item in enableList:
-            item.Enable()
-        for item in disableList:
-            item.Disable()
+#         method = self.origami_method_value.GetStringSelection()
+#         enableList, disableList = [], []
+#         if method == 'Linear':
+#             disableList = [self.origami_boltzmannOffset_value, self.origami_exponentialIncrement_value,
+#                            self.origami_exponentialPercentage_value]
+#             enableList = [self.origami_scansPerVoltage_value,
+#                           self.origami_startScan_value, self.origami_startVoltage_value,
+#                           self.origami_endVoltage_value, self.origami_stepVoltage_value]
+#         elif method == 'Exponential':
+#             disableList = [self.origami_boltzmannOffset_value]
+#             enableList = [self.origami_scansPerVoltage_value,
+#                           self.origami_startScan_value, self.origami_startVoltage_value,
+#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+#                           self.origami_exponentialIncrement_value,
+#                           self.origami_exponentialPercentage_value]
+#         elif method == 'Boltzmann':
+#             disableList = []
+#             enableList = [self.origami_scansPerVoltage_value,
+#                           self.origami_startScan_value, self.origami_startVoltage_value,
+#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+#                           self.origami_exponentialIncrement_value,
+#                           self.origami_exponentialPercentage_value,
+#                           self.origami_boltzmannOffset_value]
+#         elif method == 'User-defined':
+#             disableList = [self.origami_scansPerVoltage_value,
+#                           self.origami_startVoltage_value,
+#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+#                           self.origami_exponentialIncrement_value,
+#                           self.origami_exponentialPercentage_value,
+#                           self.origami_boltzmannOffset_value]
+#             enableList = [self.origami_startScan_value
+#                           ]
+#         elif method == 'Manual':
+#             disableList = [self.origami_scansPerVoltage_value,
+#                            self.origami_startScan_value, self.origami_startVoltage_value,
+#                            self.origami_endVoltage_value, self.origami_stepVoltage_value,
+#                            self.origami_exponentialIncrement_value,
+#                            self.origami_exponentialPercentage_value,
+#                            self.origami_boltzmannOffset_value, ]
+#             enableList = []
+#
+#         for item in enableList:
+#             item.Enable()
+#         for item in disableList:
+#             item.Disable()
 
         if evt != None:
             evt.Skip()

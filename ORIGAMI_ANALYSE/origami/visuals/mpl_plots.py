@@ -322,6 +322,22 @@ class plots(mpl_plotter):
             if self.rotate == 360:
                 self.rotate = 0
 
+    def plot_remove_patch_with_label(self, label):
+        """
+        Remove plot
+        """
+
+        if len(self.patch) == 0:
+            return
+
+        for i, patch in enumerate(self.patch):
+            if hasattr(patch, "obj_name") and patch.obj_name == label:
+                try:
+                    patch.remove()
+                    del self.patch[i]
+                except Exception:
+                    return
+
     def plot_add_arrow(self, arrow_vals, stick_to_intensity=True, **kwargs):
         # unpack parameters
         xmin, ymin, dx, dy = arrow_vals
@@ -475,7 +491,7 @@ class plots(mpl_plotter):
         self.repaint()
 
     def plot_add_patch(self, xmin, ymin, width, height, color="r", alpha=0.5,
-                       linewidth=0, add_temporary=False, **kwargs):
+                       linewidth=0, add_temporary=False, label="", **kwargs):
 
         # check if need to rescale height
         try: height = np.divide(height, self.y_divider)
@@ -487,6 +503,9 @@ class plots(mpl_plotter):
         except AttributeError:
             print("Please plot something first")
             return
+
+        # set label
+        patch.obj_name = label
 
         if add_temporary:
             self.plot_remove_temporary()

@@ -2810,7 +2810,7 @@ class ORIGAMI(object):
         # Make sure the document is of comparison type
         if self.documentsDict[self.currentDoc].dataType == 'Type: Comparison':
             # Enable text panel
-            self.view.onPaneOnOff(evt=ID_window_textList, check=True)
+            self.view.on_toggle_panel(evt=ID_window_textList, check=True)
 #             self.view.textView = False
 #             self.view.mainToolbar.ToggleTool(id=ID_OnOff_textView, toggle=True)
 #             self.view._mgr.GetPane(self.view.panelMultipleText).Show()
@@ -3375,7 +3375,7 @@ class ORIGAMI(object):
                 except KeyError:
                     label = ''
                 tempList.Append([str(mzMin), str(mzMax), str(charge), '', '', '', '', '', str(label)])
-        self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
+        self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
         dlg.Destroy()
 
         if evt is not None:
@@ -3913,7 +3913,7 @@ class ORIGAMI(object):
 # #         # Remove duplicates
 # #         self.view.panelCCS.bottomP.onRemoveDuplicates(evt=None)
 # #         # Enable and show CCS table
-# #         self.view.onPaneOnOff(evt=ID_window_ccsList, check=True)
+# #         self.view.on_toggle_panel(evt=ID_window_ccsList, check=True)
 # #
 # #     def saveCCScalibrationToPickle(self, evt):
 # #         """

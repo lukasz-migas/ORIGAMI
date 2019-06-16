@@ -79,7 +79,7 @@
     <param title="Linear Drift Cell" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Log" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Multiple files" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
-    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="True" type="mixed" />
+    <param title="Peak list" gripper="False" caption="True" close_button="True" floating="False" show="False" type="mixed" />
     <param title="Plot parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
     <param title="Plots" gripper="False" caption="False" close_button="False" floating="False" show="True" type="mixed" />
     <param title="Processing parameters" gripper="False" caption="True" close_button="True" floating="True" show="False" type="mixed" />
@@ -150,7 +150,7 @@
     <param name="extract_chromatograms" value="False" type="bool" />
     <param name="extract_driftTime1D" value="False" type="bool" />
     <param name="extract_driftTime2D" value="False" type="bool" />
-    <param name="extract_mzStart" value="0.00" type="float" />
+    <param name="extract_mzStart" value="inf" type="float" />
     <param name="extract_mzEnd" value="0.00" type="float" />
     <param name="extract_rtStart" value="0.00" type="float" />
     <param name="extract_rtEnd" value="999.00" type="float" />
@@ -231,23 +231,23 @@
   <process_presets_binning>
     <param name="ms_enable_in_RT" value="True" type="bool" />
     <param name="ms_enable_in_MML_start" value="True" type="bool" />
-    <param name="ms_mzStart" value="2508.22" type="float" />
-    <param name="ms_mzEnd" value="5598.22" type="float" />
+    <param name="ms_mzStart" value="2000.00" type="float" />
+    <param name="ms_mzEnd" value="6000.00" type="float" />
     <param name="ms_mzBinSize" value="0.01" type="float" />
     <param name="ms_dtmsBinSize" value="1.00" type="float" />
     <param name="ms_linearization_mode" value="Linear interpolation" type="unicode" choices="['Linear m/z', 'Linear resolution', 'Nonlinear', 'Linear interpolation', 'Linear resolution interpolation', 'Binning']" />
-    <param name="ms_auto_range" value="True" type="bool" />
+    <param name="ms_auto_range" value="False" type="bool" />
     <param name="ms_process_crop" value="True" type="bool" />
-    <param name="ms_process_linearize" value="False" type="bool" />
+    <param name="ms_process_linearize" value="True" type="bool" />
     <param name="ms_process_smooth" value="True" type="bool" />
-    <param name="ms_process_threshold" value="False" type="bool" />
-    <param name="ms_process_normalize" value="False" type="bool" />
+    <param name="ms_process_threshold" value="True" type="bool" />
+    <param name="ms_process_normalize" value="True" type="bool" />
   </process_presets_binning>
 
   <process_presets_ms>
-    <param name="ms_normalize" value="True" type="bool" />
+    <param name="ms_normalize" value="False" type="bool" />
     <param name="ms_normalize_mode" value="Maximum" type="unicode" choices="['Maximum']" />
-    <param name="ms_smooth_mode" value="Gaussian" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
+    <param name="ms_smooth_mode" value="None" type="unicode" choices="['None', 'Gaussian', 'Savitzky-Golay']" />
     <param name="ms_smooth_polynomial" value="5" type="int" />
     <param name="ms_smooth_window" value="7" type="int" />
     <param name="ms_smooth_sigma" value="10.00" type="float" />

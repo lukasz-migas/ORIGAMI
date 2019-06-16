@@ -1544,19 +1544,29 @@ class panelPlot(wx.Panel):
             if not repaint: return
             else: self.plotRT.repaint()
 
-    def on_plot_patches(self, xmin, ymin, width, height, color='r', alpha=0.5,
+    def plot_repaint(self, plot_window="MS"):
+        if plot_window == "MS":
+            self.plot1.repaint()
+
+    def plot_remove_patches_with_labels(self, label, plot_window="2D",
+                                        refresh=False):
+        if plot_window == "MS":
+            self.plot1.plot_remove_patch_with_label(label)
+
+            if refresh:
+                self.plot1.repaint()
+
+    def on_plot_patches(self, xmin, ymin, width, height, color='r', alpha=0.5, label="",
                         plot='MS', repaint=False):
         if plot == 'MS':
-            self.plot1.plot_add_patch(xmin, ymin, width,
-                                      height, color=color,
-                                      alpha=alpha)
+            self.plot1.plot_add_patch(xmin, ymin, width, height, color=color,
+                                      alpha=alpha, label=label)
             if not repaint: return
             else: self.plot1.repaint()
 
         elif plot == 'CalibrationMS':
-            self.topPlotMS.plot_add_patch(xmin, ymin, width,
-                                          height, color=color,
-                                          alpha=alpha)
+            self.topPlotMS.plot_add_patch(xmin, ymin, width, height, color=color,
+                                          alpha=alpha, label=label)
             if not repaint: return
             else: self.topPlotMS.repaint()
 

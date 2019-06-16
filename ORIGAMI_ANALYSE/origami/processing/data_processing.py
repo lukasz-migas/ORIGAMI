@@ -300,7 +300,7 @@ class data_processing():
                             # Add items to table (if checked)
                             if self.config.fit_addPeaks:
                                 if self.docs.dataType == 'Type: Multifield Linear DT':
-                                    self.view.onPaneOnOff(evt=ID_window_multiFieldList, check=True)
+                                    self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
                                     for rt in tablelist:
                                         xmin, xmax = rt[0], rt[1]
                                         xdiff = xmax - xmin
@@ -647,7 +647,7 @@ class data_processing():
                     # add found peaks to the table
                     if self.config.fit_addPeaks:
                         if self.docs.dataType in ['Type: ORIGAMI', 'Type: MANUAL']:
-                            self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
+                            self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
                             for mz in peakList:
                                 # New in 1.0.4: Added slightly assymetric envelope to the peak
                                 xmin = np.round(mz[0] - (self.config.fit_width * self.config.fit_asymmetric_ratio), 2)
@@ -666,7 +666,7 @@ class data_processing():
                                     panel.on_add_to_table(add_dict)
 
                         elif self.docs.dataType == 'Type: Multifield Linear DT':
-                            self.view.onPaneOnOff(evt=ID_window_multiFieldList, check=True)
+                            self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
                             for mz in peakList:
                                 xmin = np.round(mz[0] - (self.config.fit_width * 0.75), 2)
                                 xmax = xmin + width
@@ -678,7 +678,7 @@ class data_processing():
                             self.view.panelLinearDT.bottomP.onRemoveDuplicates(evt=None)
 
                         elif self.docs.dataType == 'Type: CALIBRANT':
-                            self.view.onPaneOnOff(evt=ID_window_ccsList, check=True)
+                            self.view.on_toggle_panel(evt=ID_window_ccsList, check=True)
                             for mz in peakList:
                                 xmin = np.round(mz[0] - (self.config.peakWidth * 0.75), 2)
                                 xmax = xmin + width

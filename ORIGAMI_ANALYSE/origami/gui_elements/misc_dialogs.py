@@ -49,6 +49,7 @@ def dlgAsk(message='', defaultValue=''):
     dlg = wx.TextEntryDialog(None,  # parent
                              message,
                              defaultValue)
+    dlg.CentreOnScreen()
 
     if dlg.ShowModal() == wx.ID_CANCEL:
         return False

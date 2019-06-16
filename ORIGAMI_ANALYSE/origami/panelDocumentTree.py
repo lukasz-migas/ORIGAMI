@@ -121,15 +121,15 @@ class documentsTree(wx.TreeCtrl):
         self.SetItemImage(root, 0, wx.TreeItemIcon_Normal)
 
         # Add bindings
-        self.Bind(wx.EVT_TREE_KEY_DOWN, self.onKey, id=wx.ID_ANY)
+        self.Bind(wx.EVT_TREE_KEY_DOWN, self.on_keyboard_event, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_enable_document, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.on_enable_document, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_ITEM_MENU, self.on_right_click, id=wx.ID_ANY)
-        self.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click)
 
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_enable_document, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onItemSelection, id=wx.ID_ANY)
-        self.Bind(wx.EVT_CHAR_HOOK, self.onKey, id=wx.ID_ANY)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_keyboard_event, id=wx.ID_ANY)
 
         if self.config.quickDisplay:
             self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChangePlot, id=wx.ID_ANY)
@@ -138,7 +138,7 @@ class documentsTree(wx.TreeCtrl):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
 
-        self.plotsPanel = self.view.panelPlots
+        self.panel_plot = self.view.panelPlots
 
         self.ionPanel = self.view.panelMultipleIons
         self.ionList = self.ionPanel.peaklist
@@ -149,7 +149,7 @@ class documentsTree(wx.TreeCtrl):
         self.filesPanel = self.view.panelMML
         self.filesList = self.filesPanel.peaklist
 
-    def onKey(self, evt):
+    def on_keyboard_event(self, evt):
         """ Shortcut to navigate through Document Tree """
         # Intended use: deleting and selecting items
         # get key
@@ -165,7 +165,7 @@ class documentsTree(wx.TreeCtrl):
 #             elif indent == 1:
 #                 self.removeDocument(evt=ID_removeDocument)
             else:
-                self.onDeleteItem(evt=None)
+                self.on_delete_item(evt=None)
         elif key == 80:
             if self.itemType in ['Drift time (2D)', 'Drift time (2D, processed)']:
                 self.onProcess2D(evt=None)
@@ -180,7 +180,7 @@ class documentsTree(wx.TreeCtrl):
         elif key == 341:  # F2
             self.onRenameItem(None)
 
-    def OnDoubleClick(self, evt):
+    def on_double_click(self, evt):
 
         tstart = time.clock()
         # Get selected item
@@ -408,7 +408,7 @@ class documentsTree(wx.TreeCtrl):
             return
 
         # clear all plots
-        self.plotsPanel.on_clear_all_plots()
+        self.panel_plot.on_clear_all_plots()
 
         if mass_spectrum:
             try:
@@ -417,7 +417,7 @@ class documentsTree(wx.TreeCtrl):
                 try: xlimits = document.massSpectrum['xlimits']
                 except KeyError: xlimits = [document.parameters['startMS'], document.parameters['endMS']]
                 name_kwargs = {"document":document.title, "dataset": "Mass Spectrum"}
-                self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, set_page=False, **name_kwargs)
+                self.panel_plot.on_plot_MS(msX, msY, xlimits=xlimits, set_page=False, **name_kwargs)
             except: pass
 
         if chromatogram:
@@ -425,7 +425,7 @@ class documentsTree(wx.TreeCtrl):
                 rtX = document.RT['xvals']
                 rtY = document.RT['yvals']
                 xlabel = document.RT['xlabels']
-                self.plotsPanel.on_plot_RT(rtX, rtY, xlabel, set_page=False)
+                self.panel_plot.on_plot_RT(rtX, rtY, xlabel, set_page=False)
             except: pass
 
         if mobiligram:
@@ -436,7 +436,7 @@ class documentsTree(wx.TreeCtrl):
                     try: dtY = document.DT['yvalsSum']
                     except KeyError: pass
                 xlabel = document.DT['xlabels']
-                self.plotsPanel.on_plot_1D(dtX, dtY, xlabel, set_page=False)
+                self.panel_plot.on_plot_1D(dtX, dtY, xlabel, set_page=False)
             except: pass
 
         if heatmap:
@@ -446,28 +446,53 @@ class documentsTree(wx.TreeCtrl):
                 yvals = document.IMS2D['yvals']
                 xlabel = document.IMS2D['xlabels']
                 ylabel = document.IMS2D['ylabels']
-                self.plotsPanel.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=True)
+                self.panel_plot.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=True)
             except: pass
 
         # go to page
-        self.plotsPanel.mainBook.SetSelection(go_to_page)
+        self.panel_plot.mainBook.SetSelection(go_to_page)
 
+    # TODO: add option to do this for ALL items in the dataset
     def on_check_xlabels_RT(self):
+        """Change x-axis labels of a chromatogram"""
 
         data = self.GetPyData(self.currentItem)
         xlabel = data['xlabels']
 
-        if xlabel == 'Scans': idX = ID_xlabel_RT_scans
-        elif xlabel == 'Time (min)': idX = ID_xlabel_RT_time_min
-        elif xlabel == 'Retention time (min)': idX = ID_xlabel_RT_retTime_min
+        xlabel_evt_dict = {"Scans": ID_xlabel_RT_scans,
+                           "Time (min)": ID_xlabel_RT_time_min,
+                           "Retention time (min)": ID_xlabel_RT_retTime_min}
 
-        return idX
+        return xlabel_evt_dict.get(xlabel, None)
 
+    # TODO: add option to do this for ALL items in the dataset
     def on_check_xylabels_2D(self):  # checkCurrentXYlabels
         """
         This function checks what is the current X/Y-axis label
         Its kind of dirty and needs to be improved in future!
         """
+
+        xlabel_evt_dict = {
+            'Scans': ID_xlabel_2D_scans,
+            'Time (min)': ID_xlabel_2D_time_min,
+           'Retention time (min)': ID_xlabel_2D_retTime_min,
+            'Collision Voltage (V)': ID_xlabel_2D_colVolt,
+            'Activation Voltage (V)': ID_xlabel_2D_actVolt,
+            'Lab Frame Energy (eV)': ID_xlabel_2D_labFrame,
+            'Activation Energy (eV)': ID_xlabel_2D_actLabFrame,
+            'Mass-to-charge (Da)': ID_xlabel_2D_massToCharge,
+            'm/z (Da)': ID_xlabel_2D_mz,
+            'Wavenumber (cm⁻¹)': ID_xlabel_2D_wavenumber,
+            'Charge': ID_xlabel_2D_charge,
+            'Collision Cross Section (Å²)': ID_xlabel_2D_ccs
+            }
+
+        ylabel_evt_dict = {
+            'Drift time (bins)': ID_ylabel_2D_bins,
+            'Drift time (ms)': ID_ylabel_2D_ms,
+            'Arrival time (ms)': ID_ylabel_2D_ms_arrival,
+            'Collision Cross Section (Å²)': ID_ylabel_2D_ccs,
+            }
 
         # Select dataset
         if self.itemType == 'Drift time (2D)':
@@ -488,33 +513,12 @@ class documentsTree(wx.TreeCtrl):
             data = self.itemData.IMS2DcompData[self.extractData]
 
         # Get labels
-        try:
-            xlabel, ylabel = data['xlabels'], data['ylabels']
+        xlabel = data.get('xlabels', None)
+        ylabel = data.get('ylabels', None)
 
-            if xlabel == 'Scans': idX = ID_xlabel_2D_scans
-            elif xlabel == 'Time (min)': idX = ID_xlabel_2D_time_min
-            elif xlabel == 'Retention time (min)': idX = ID_xlabel_2D_retTime_min
-            elif xlabel == 'Collision Voltage (V)': idX = ID_xlabel_2D_colVolt
-            elif xlabel == 'Activation Voltage (V)': idX = ID_xlabel_2D_actVolt
-            elif xlabel == 'Lab Frame Energy (eV)': idX = ID_xlabel_2D_labFrame
-            elif xlabel == 'Activation Energy (eV)': idX = ID_xlabel_2D_actLabFrame
-            elif xlabel == 'Mass-to-charge (Da)': idX = ID_xlabel_2D_massToCharge
-            elif xlabel == 'm/z (Da)': idX = ID_xlabel_2D_mz
-            elif xlabel == 'Wavenumber (cm⁻¹)': idX = ID_xlabel_2D_wavenumber
-            elif xlabel == 'Charge': idX = ID_xlabel_2D_charge
-            elif xlabel == 'Collision Cross Section (Å²)': idX = ID_xlabel_2D_ccs
-            else: idX = ID_xlabel_2D_custom
+        return xlabel_evt_dict.get(xlabel, ID_xlabel_2D_custom), ylabel_evt_dict.get(ylabel, ID_ylabel_2D_custom)
 
-            if ylabel == 'Drift time (bins)': idY = ID_ylabel_2D_bins
-            elif ylabel == 'Drift time (ms)': idY = ID_ylabel_2D_ms
-            elif ylabel == 'Arrival time (ms)': idY = ID_ylabel_2D_ms_arrival
-            elif ylabel == 'Collision Cross Section (Å²)': idY = ID_ylabel_2D_ccs
-            else:  idY = ID_ylabel_2D_custom
-
-            return idX, idY
-        except:
-            return None, None
-
+    # TODO: add option to do this for ALL items in the dataset
     def on_check_xlabels_1D(self):  # checkCurrentXYlabels1D
         if self.itemType == 'Drift time (1D)':
             data = self.itemData.DT
@@ -522,14 +526,16 @@ class documentsTree(wx.TreeCtrl):
         # Get labels
         xlabel = data['xlabels']
 
-        if xlabel == 'Drift time (bins)': idX = ID_xlabel_1D_bins
-        elif xlabel == 'Drift time (ms)': idX = ID_xlabel_1D_ms
-        elif xlabel == 'Arrival time (ms)': idX = ID_xlabel_1D_ms_arrival
-        elif xlabel == 'Collision Cross Section (Å²)': idX = ID_xlabel_1D_ccs
-        else:  idX = ID_ylabel_2D_bins
+        xlabel_evt_dict = {
+        'Drift time (bins)': ID_xlabel_1D_bins,
+        'Drift time (ms)': ID_xlabel_1D_ms,
+        'Arrival time (ms)': ID_xlabel_1D_ms_arrival,
+        'Collision Cross Section (Å²)': ID_xlabel_1D_ccs
+            }
 
-        return idX
+        return xlabel_evt_dict.get(xlabel, ID_ylabel_2D_bins)
 
+    # TODO: add option to do this for ALL items in the dataset
     def on_check_xlabels_DTMS(self):  # checkCurrentXYlabelsMSDT
         if self.itemType == 'DT/MS':
             data = self.itemData.DTMZ
@@ -537,12 +543,13 @@ class documentsTree(wx.TreeCtrl):
         # Get labels
         ylabel = data['ylabels']
 
-        if ylabel == 'Drift time (bins)': idX = ID_ylabel_DTMS_bins
-        elif ylabel == 'Drift time (ms)': idX = ID_ylabel_DTMS_ms
-        elif ylabel == 'Arrival time (ms)': idX = ID_ylabel_DTMS_ms_arrival
-        else:  idX = ID_ylabel_DTMS_bins
+        ylabel_evt_dict = {
+            'Drift time (bins)': ID_ylabel_DTMS_bins,
+            'Drift time (ms)': ID_ylabel_DTMS_ms,
+            'Arrival time (ms)': ID_ylabel_DTMS_ms_arrival
+            }
 
-        return idX
+        return ylabel_evt_dict.get(ylabel, ID_ylabel_DTMS_bins)
 
     def onLoadInteractiveData(self, evt):
         """
@@ -928,7 +935,7 @@ class documentsTree(wx.TreeCtrl):
 
         # check if we need to add any metadata
         if len(colors) == 0 or len(colors) < len(yvals):
-            colors = self.plotsPanel.onChangePalette(None,
+            colors = self.panel_plot.onChangePalette(None,
                                                                     n_colors=len(yvals),
                                                                     return_colors=True)
 
@@ -1013,7 +1020,7 @@ class documentsTree(wx.TreeCtrl):
         if evt != None:
             evt.Skip()
 
-    def onDeleteItem(self, evt):
+    def on_delete_item(self, evt):
         """
         Delete selected item from document
         ---
@@ -1047,7 +1054,7 @@ class documentsTree(wx.TreeCtrl):
                 del self.presenter.documentsDict[currentDoc].massSpectrum['unidec'][self.extractData]
             # remove mass spectrum
             else:
-                del self.presenter.documentsDict[currentDoc].massSpectrum
+                self.presenter.documentsDict[currentDoc].massSpectrum = {}
                 self.presenter.documentsDict[currentDoc].gotMS = False
 
         if self.itemType == 'Mass Spectrum (processed)':
@@ -1063,7 +1070,7 @@ class documentsTree(wx.TreeCtrl):
                 del self.presenter.documentsDict[currentDoc].smoothMS['unidec'][self.extractData]
             # remove mass spectrum
             else:
-                del self.presenter.documentsDict[currentDoc].smoothMS
+                self.presenter.documentsDict[currentDoc].smoothMS = {}
 
         if self.itemType == 'Mass Spectra':
             docExpandItem = document.multipleMassSpectrum
@@ -1090,7 +1097,7 @@ class documentsTree(wx.TreeCtrl):
 
         # MS/DT
         if self.itemType == 'DT/MS':
-            del self.presenter.documentsDict[currentDoc].DTMZ
+            self.presenter.documentsDict[currentDoc].DTMZ = {}
             self.presenter.documentsDict[currentDoc].gotDTMZ = False
 
         if self.itemType == "UniDec":
@@ -1100,7 +1107,7 @@ class documentsTree(wx.TreeCtrl):
 
         # DT
         elif self.itemType == 'Drift time (1D)':
-            del self.presenter.documentsDict[currentDoc].DT
+            self.presenter.documentsDict[currentDoc].DT = {}
             self.presenter.documentsDict[currentDoc].got1DT = False
 
         elif self.itemType == 'Drift time (1D, EIC, DT-IMS)':
@@ -1134,7 +1141,7 @@ class documentsTree(wx.TreeCtrl):
 
         # RT
         elif self.itemType == 'Chromatogram':
-            del self.presenter.documentsDict[currentDoc].RT
+            self.presenter.documentsDict[currentDoc].RT = {}
             self.presenter.documentsDict[currentDoc].got1RT = False
 
         elif self.itemType == 'Chromatograms (combined voltages, EIC)':
@@ -1147,22 +1154,16 @@ class documentsTree(wx.TreeCtrl):
                     document, document_title,
                     delete_type="heatmap.rt.one",
                     ion_name=self.extractData)
-#             if self.extractData == 'Chromatograms (combined voltages, EIC)':
-#                 self.presenter.documentsDict[currentDoc].IMSRTCombIons = {}
-#                 self.presenter.documentsDict[currentDoc].gotCombinedExtractedIonsRT = False
-#             else:
-#                 del self.presenter.documentsDict[currentDoc].IMSRTCombIons[self.extractData]
-#                 if len(self.presenter.documentsDict[currentDoc].IMSRTCombIons) == 0:
-#                     self.presenter.documentsDict[currentDoc].gotCombinedExtractedIonsRT = False
 
-        elif self.itemType == 'Chromatograms (EIC)':
-            if self.extractData == 'Chromatograms (EIC)':
-                self.presenter.documentsDict[currentDoc].multipleRT = {}
-                self.presenter.documentsDict[currentDoc].gotMultipleRT = False
-            else:
-                del self.presenter.documentsDict[currentDoc].multipleRT[self.extractData]
-                if len(self.presenter.documentsDict[currentDoc].multipleRT) == 0:
-                    self.presenter.documentsDict[currentDoc].gotMultipleRT = False
+        elif self.extractParent == "Chromatograms (EIC)":
+            document, delete_outcome = self.on_delete_data__chromatograms(
+                document, document_title, delete_type="chromatogram.one",
+                spectrum_name=self.extractData,
+                confirm_deletion=True)
+        elif self.extractData == "Chromatograms (EIC)":
+            document, delete_outcome = self.on_delete_data__chromatograms(
+                document, document_title, delete_type="chromatogram.all",
+                confirm_deletion=True)
 
         # 2D
         elif self.itemType == 'Drift time (2D)':
@@ -1194,13 +1195,6 @@ class documentsTree(wx.TreeCtrl):
                     document, document_title,
                     delete_type="heatmap.combined.one",
                     ion_name=self.extractData)
-#
-#                 self.presenter.documentsDict[currentDoc].IMS2DCombIons = {}
-#                 self.presenter.documentsDict[currentDoc].gotCombinedExtractedIons = False
-#             else:
-#                 del self.presenter.documentsDict[currentDoc].IMS2DCombIons[self.extractData]
-#                 if len(self.presenter.documentsDict[currentDoc].IMS2DCombIons) == 0:
-#                     self.presenter.documentsDict[currentDoc].gotCombinedExtractedIons = False
 
         elif self.itemType == 'Drift time (2D, processed, EIC)':
             if self.extractData == 'Drift time (2D, processed, EIC)':
@@ -1212,12 +1206,6 @@ class documentsTree(wx.TreeCtrl):
                     document, document_title,
                     delete_type="heatmap.processed.one",
                     ion_name=self.extractData)
-#                 self.presenter.documentsDict[currentDoc].IMS2DionsProcess = {}
-#                 self.presenter.documentsDict[currentDoc].got2DprocessIons = False
-#             else:
-#                 del self.presenter.documentsDict[currentDoc].IMS2DionsProcess[self.extractData]
-#                 if len(self.presenter.documentsDict[currentDoc].IMS2DionsProcess) == 0:
-#                     self.presenter.documentsDict[currentDoc].got2DprocessIons = False
 
         elif self.itemType == 'Input data':
             if self.extractData == 'Input data':
@@ -1272,12 +1260,6 @@ class documentsTree(wx.TreeCtrl):
         else:
             self.data_handling.on_update_document(document, 'no_refresh')
 
-#         # Add modified document to the dictionary
-#         self.presenter.documentsDict[currentDoc] = document
-#
-#         # Update documents tree
-#         self.add_document(docData=document)
-
     def set_document(self, document_old, document_new):
         """Replace old document data with new
 
@@ -1313,7 +1295,7 @@ class documentsTree(wx.TreeCtrl):
             self.presenter.onThreading(None, ('Cancelled operation', 4, 5)    , action='updateStatusbar')
             return
         else:
-            self.plotsPanel.on_clear_all_plots()
+            self.panel_plot.on_clear_all_plots()
             doc_keys = list(self.presenter.documentsDict.keys())
             for document in doc_keys:
                 try:
@@ -1398,7 +1380,7 @@ class documentsTree(wx.TreeCtrl):
         # waterfall plot
         if ("Waterfall (Raw):" in self.extractData):
             data = None
-            plot = self.plotsPanel.plotWaterfallIMS
+            plot = self.panel_plot.plotWaterfallIMS
         # Annotated data
         elif ("Multi-line: " in self.extractData or "Multi-line: " in self.extractParent or
               "V-bar: " in self.extractData or "V-bar: " in self.extractParent or
@@ -1407,11 +1389,11 @@ class documentsTree(wx.TreeCtrl):
               "Waterfall: " in self.extractData or "Waterfall: " in self.extractParent or
               "Line: " in self.extractData or "Line: " in self.extractParent):
             data = None
-            plot = self.plotsPanel.plotOther
+            plot = self.panel_plot.plotOther
         # mass spectra
         else:
             data = np.transpose([data["xvals"], data["yvals"]])
-            plot = self.plotsPanel.plot1
+            plot = self.panel_plot.plot1
 
         _plot_types = {"multi-line":"Multi-line", "scatter":"Scatter",
                        "line":"Line", "waterfall":"Waterfall",
@@ -1626,7 +1608,7 @@ class documentsTree(wx.TreeCtrl):
             unused
         """
         document = self.presenter.documentsDict[self.itemData.title]
-        plot_obj = self.plotsPanel.plot1
+        plot_obj = self.panel_plot.plot1
         if self.itemType == "Mass Spectrum":
             annotations = document.massSpectrum['annotations']
         elif self.itemType == "Mass Spectrum (processed)":
@@ -1638,12 +1620,12 @@ class documentsTree(wx.TreeCtrl):
                "V-bar: " in self.extractParent or "H-bar: " in self.extractParent or
                "Scatter: " in self.extractParent or "Line: " in self.extractParent)):
             annotations = document.other_data[self.extractParent]['annotations']
-            plot_obj = self.plotsPanel.plotOther
+            plot_obj = self.panel_plot.plotOther
 
         plot_obj.plot_remove_text_and_lines()
         _ymax = []
 
-        label_kwargs = self.plotsPanel._buildPlotParameters(plotType="label")
+        label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
         for key in annotations:
             annotation = annotations[key]
             intensity = str2num(annotation['intensity'])
@@ -1702,6 +1684,11 @@ class documentsTree(wx.TreeCtrl):
             except TypeError: pass
 
         plot_obj.repaint()
+
+    def on_action_ORIGAMI_MS(self, evt):
+        from gui_elements.dialog_customise_origami import dialog_customise_origami
+        dlg = dialog_customise_origami(self, self.presenter, self.config)
+        dlg.ShowModal()
 
     def on_right_click(self, evt):
         """ Create and show up popup menu"""
@@ -1827,28 +1814,15 @@ class documentsTree(wx.TreeCtrl):
                 pass
 
             # Check what is the current label for this particular dataset
-            try: idX, idY = self.on_check_xylabels_2D()
-            except UnboundLocalError: return
-
-            if idX == ID_xlabel_2D_scans: xlabel2DMenu.Check(ID_xlabel_2D_scans, True)
-            elif idX == ID_xlabel_2D_time_min: xlabel2DMenu.Check(ID_xlabel_2D_time_min, True)
-            elif idX == ID_xlabel_2D_retTime_min: xlabel2DMenu.Check(ID_xlabel_2D_retTime_min, True)
-            elif idX == ID_xlabel_2D_colVolt: xlabel2DMenu.Check(ID_xlabel_2D_colVolt, True)
-            elif idX == ID_xlabel_2D_actVolt: xlabel2DMenu.Check(ID_xlabel_2D_actVolt, True)
-            elif idX == ID_xlabel_2D_labFrame: xlabel2DMenu.Check(ID_xlabel_2D_labFrame, True)
-            elif idX == ID_xlabel_2D_actLabFrame: xlabel2DMenu.Check(ID_xlabel_2D_actLabFrame, True)
-            elif idX == ID_xlabel_2D_massToCharge: xlabel2DMenu.Check(ID_xlabel_2D_massToCharge, True)
-            elif idX == ID_xlabel_2D_mz: xlabel2DMenu.Check(ID_xlabel_2D_mz, True)
-            elif idX == ID_xlabel_2D_wavenumber: xlabel2DMenu.Check(ID_xlabel_2D_wavenumber, True)
-            elif idX == ID_xlabel_2D_charge: xlabel2DMenu.Check(ID_xlabel_2D_charge, True)
-            elif idX == ID_xlabel_2D_ccs: xlabel2DMenu.Check(ID_xlabel_2D_ccs, True)
-            else: xlabel2DMenu.Check(ID_xlabel_2D_custom, True)
-
-            if idY == ID_ylabel_2D_bins: ylabel2DMenu.Check(ID_ylabel_2D_bins, True)
-            elif idY == ID_ylabel_2D_ms: ylabel2DMenu.Check(ID_ylabel_2D_ms, True)
-            elif idY == ID_ylabel_2D_ms_arrival: ylabel2DMenu.Check(ID_ylabel_2D_ms_arrival, True)
-            elif idY == ID_ylabel_2D_ccs: ylabel2DMenu.Check(ID_ylabel_2D_ccs, True)
-            else: ylabel2DMenu.Check(ID_ylabel_2D_custom, True)
+            try:
+                idX, idY = self.on_check_xylabels_2D()
+            except UnboundLocalError:
+                return
+            try:
+                xlabel2DMenu.FindItemById(idX).Check(True)
+                ylabel2DMenu.FindItemById(idY).Check(True)
+            except TypeError:
+                pass
 
         # Change x-axis label (1D)
         xlabel1DMenu = wx.Menu()
@@ -1860,14 +1834,12 @@ class documentsTree(wx.TreeCtrl):
         xlabel1DMenu.Append(ID_xlabel_1D_restore, 'Restore default', "")
 
         if self.itemType == 'Drift time (1D)':
-            try: idX = self.on_check_xlabels_1D()
-            except UnboundLocalError: return
+            try:
+                idX = self.on_check_xlabels_1D()
+            except UnboundLocalError:
+                return
 
-            if idX == ID_xlabel_1D_bins: xlabel1DMenu.Check(ID_xlabel_1D_bins, True)
-            elif idX == ID_xlabel_1D_ms: xlabel1DMenu.Check(ID_xlabel_1D_ms, True)
-            elif idX == ID_xlabel_1D_ms_arrival: xlabel1DMenu.Check(ID_xlabel_1D_ms_arrival, True)
-            elif idX == ID_xlabel_1D_ccs: xlabel1DMenu.Check(ID_xlabel_1D_ccs, True)
-            else: xlabel1DMenu.Check(ID_xlabel_1D_bins, True)
+            xlabel1DMenu.FindItemById(idX).Check(True)
 
         # Change x-axis label (RT)
         xlabelRTMenu = wx.Menu()
@@ -1878,13 +1850,15 @@ class documentsTree(wx.TreeCtrl):
         xlabelRTMenu.Append(ID_xlabel_RT_restore, 'Restore default', "")
 
         if self.itemType in ['Chromatogram', 'Chromatograms (EIC)', 'Chromatograms (combined voltages, EIC)']:
-            try: idX = self.on_check_xlabels_RT()
-            except UnboundLocalError: return
+            try:
+                idX = self.on_check_xlabels_RT()
+            except UnboundLocalError:
+                return
 
-            if idX == ID_xlabel_RT_scans: xlabelRTMenu.Check(ID_xlabel_RT_scans, True)
-            elif idX == ID_xlabel_RT_time_min: xlabelRTMenu.Check(ID_xlabel_RT_time_min, True)
-            elif idX == ID_xlabel_RT_retTime_min: xlabelRTMenu.Check(ID_xlabel_RT_retTime_min, True)
-            else: xlabelRTMenu.Check(ID_xlabel_RT_scans, True)
+            try:
+                xlabelRTMenu.FindItemById(idX).Check(True)
+            except TypeError:
+                pass
 
         # change y-axis label (DT/MS)
         ylabelDTMSMenu = wx.Menu()
@@ -1895,15 +1869,14 @@ class documentsTree(wx.TreeCtrl):
         ylabelDTMSMenu.Append(ID_ylabel_DTMS_restore, 'Restore default', "")
 
         if self.itemType == 'DT/MS':
-            try: idX = self.on_check_xlabels_DTMS()
-            except UnboundLocalError: return
+            try:
+                idX = self.on_check_xlabels_DTMS()
+            except UnboundLocalError:
+                return
 
-            if idX == ID_ylabel_DTMS_bins: ylabelDTMSMenu.Check(ID_ylabel_DTMS_bins, True)
-            elif idX == ID_ylabel_DTMS_ms: ylabelDTMSMenu.Check(ID_ylabel_DTMS_ms, True)
-            elif idX == ID_ylabel_DTMS_ms_arrival: ylabelDTMSMenu.Check(ID_ylabel_DTMS_ms_arrival, True)
-            else: xlabel1DMenu.Check(ID_ylabel_DTMS_bins, True)
+            ylabelDTMSMenu.FindItemById(idX).Check(True)
 
-    # Bind events
+        # Bind events
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotDocument)
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotDocument_violin)
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotDocument_waterfall)
@@ -1943,7 +1916,6 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onAddAnnotation, id=ID_docTree_add_annotations)
         self.Bind(wx.EVT_MENU, self.onShowAnnotations, id=ID_docTree_show_annotations)
         self.Bind(wx.EVT_MENU, self.onDuplicateAnnotations, id=ID_docTree_duplicate_annotations)
-        self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_open_extractDTMS)
 
         self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_docTree_duplicate_document)
         self.Bind(wx.EVT_MENU, self.on_refresh_document, id=ID_docTree_show_refresh_document)
@@ -1973,7 +1945,7 @@ class documentsTree(wx.TreeCtrl):
             self.Bind(wx.EVT_MENU, self.on_change_xy_values_and_labels, id=yID)
 
         # Remove document
-        self.Bind(wx.EVT_MENU, self.onDeleteItem, id=ID_removeItemDocument)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_removeItemDocument)
         self.Bind(wx.EVT_MENU, self.removeDocument, id=ID_removeDocument)
         self.Bind(wx.EVT_MENU, self.onOpenDocInfo, id=ID_openDocInfo)
 
@@ -2010,6 +1982,13 @@ class documentsTree(wx.TreeCtrl):
 
         self.Bind(wx.EVT_MENU, self.on_add_mzID_file_fcn, id=ID_docTree_add_mzIdentML)
 
+        self.Bind(wx.EVT_MENU, self.on_action_ORIGAMI_MS, id=ID_docTree_action_open_origami_ms)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
+
+        action_menu = wx.Menu()
+        action_menu.Append(ID_docTree_action_open_extractDTMS, 'Open DT/MS extraction panel...')
+        action_menu.Append(ID_docTree_action_open_origami_ms, 'Setup ORIGAMI-MS parameters...')
+
         # save dataframe
         saveDFSubMenu = wx.Menu()
         saveDFSubMenu.Append(ID_saveData_csv, 'Save to .csv file')
@@ -2017,11 +1996,10 @@ class documentsTree(wx.TreeCtrl):
         saveDFSubMenu.Append(ID_saveData_hdf, 'Save to .hdf file (slow)')
         saveDFSubMenu.Append(ID_saveData_excel, 'Save to .excel file (v. slow)')
 
-        saveImageLabel = ''.join(['Save figure (.', self.config.imageFormat, ')'])
-        saveImageLabelAll = ''.join(['Save figures (.', self.config.imageFormat, ')'])
-        saveCSVLabel = ''.join(['Save data (', self.config.saveExtension, ')\tAlt+V'])
-        saveCSVLabel1D = ''.join(['Save data (1D, ', self.config.saveExtension, ')'])
-        saveCSVLabel2D = ''.join(['Save data (2D, ', self.config.saveExtension, ')'])
+        saveImageLabel = f"Save data (2D, {self.config.imageFormat})"
+        saveCSVLabel = f"Save data ({self.config.saveExtension})\tAlt+V"
+        saveCSVLabel1D = f"Save data (1D, {self.config.saveExtension})"
+        saveCSVLabel2D = f"Save data (2D, {self.config.saveExtension})"
 
         # Get label
         if self.extractData != None:
@@ -2684,8 +2662,8 @@ class documentsTree(wx.TreeCtrl):
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_process2D,
                                          text='Process...\tP', bitmap=self.icons.iconsLib['process_2d_16']))
             menu.AppendSeparator()
-            menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_open_extractDTMS,
-                                         text='Open extraction panel...', bitmap=None))
+            menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_action_open_extractDTMS,
+                                         text='Open DT/MS extraction panel...', bitmap=None))
 
             menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, 'Set Y-axis label as...', ylabelDTMSMenu)
@@ -2707,6 +2685,8 @@ class documentsTree(wx.TreeCtrl):
             menu.Append(ID_renameItem, 'Rename document\tF2')
             menu.AppendSeparator()
 
+        menu.AppendMenu(wx.ID_ANY, 'Action...', action_menu)
+        menu.AppendSeparator()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_openDocInfo,
                                      text='Notes, Information, Labels...\tCtrl+I',
                                      bitmap=self.icons.iconsLib['info16']))
@@ -3110,7 +3090,7 @@ class documentsTree(wx.TreeCtrl):
             data = self.itemData.multipleMassSpectrum
             document_title = self.itemData.title
             n_rows = len(data)
-            colors = self.plotsPanel.onChangePalette(None, n_colors=n_rows, return_colors=True)
+            colors = self.panel_plot.onChangePalette(None, n_colors=n_rows, return_colors=True)
             for i, key in enumerate(data):
                 count = filelist.GetItemCount()
                 label = data[key].get('label', os.path.splitext(key)[0])
@@ -3124,7 +3104,7 @@ class documentsTree(wx.TreeCtrl):
         elif evtID == ID_docTree_addOneToMMLTable:
             data = self.itemData.multipleMassSpectrum
             count = filelist.GetItemCount()
-            colors = self.plotsPanel.onChangePalette(None, n_colors=count + 1, return_colors=True)
+            colors = self.panel_plot.onChangePalette(None, n_colors=count + 1, return_colors=True)
             key = self.extractData
             document_title = self.itemData.title
             label = data.get('label', key)
@@ -3139,7 +3119,7 @@ class documentsTree(wx.TreeCtrl):
             data = self.itemData.IMS2DcompData
             document_title = self.itemData.title
             n_rows = len(data)
-            colors = self.plotsPanel.onChangePalette(None, n_colors=n_rows, return_colors=True)
+            colors = self.panel_plot.onChangePalette(None, n_colors=n_rows, return_colors=True)
             for i, key in enumerate(data):
                 count = textlist.GetItemCount()
                 label = data[key].get('label', os.path.splitext(key)[0])
@@ -3158,7 +3138,7 @@ class documentsTree(wx.TreeCtrl):
             data = self.itemData.IMS2Dions
             document_title = self.itemData.title
             n_rows = len(data)
-            colors = self.plotsPanel.onChangePalette(None, n_colors=n_rows, return_colors=True)
+            colors = self.panel_plot.onChangePalette(None, n_colors=n_rows, return_colors=True)
             for i, key in enumerate(data):
                 count = textlist.GetItemCount()
                 label = data[key].get('label', os.path.splitext(key)[0])
@@ -3177,12 +3157,12 @@ class documentsTree(wx.TreeCtrl):
             # sort items
             self.presenter.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
             self.presenter.view.panelMML.onRemoveDuplicates(None)
-            self.presenter.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
+            self.presenter.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
 
         elif evtID in [ID_docTree_addToTextTable, ID_docTree_addOneToTextTable, ID_docTree_addInteractiveToTextTable]:
             # sort items
             self.presenter.view.panelMultipleText.onRemoveDuplicates(None)
-            self.presenter.view.onPaneOnOff(evt=ID_window_textList, check=True)
+            self.presenter.view.on_toggle_panel(evt=ID_window_textList, check=True)
 
     def onShowMassSpectra(self, evt):
 
@@ -3212,7 +3192,7 @@ class documentsTree(wx.TreeCtrl):
             names.append(key)
 
         kwargs = {'show_y_labels':True, 'labels':names}
-        self.plotsPanel.on_plot_waterfall(xvals_list, yvals_list, None, colors=[],
+        self.panel_plot.on_plot_waterfall(xvals_list, yvals_list, None, colors=[],
                                                          xlabel="m/z", ylabel="", set_page=True,
                                                          **kwargs)
 
@@ -3322,11 +3302,11 @@ class documentsTree(wx.TreeCtrl):
 #                                                             'Drift time (2D, processed, EIC)',
 #                                                             'Input data', 'Statistical']):
 #             self.presenter.process2Ddata2()
-#             self.plotsPanel.mainBook.SetSelection(self.config.panelNames['2D'])
+#             self.panel_plot.mainBook.SetSelection(self.config.panelNames['2D'])
 #
 #         elif self.itemType == 'DT/MS':
 #             self.presenter.process2Ddata2(mode='MSDT')
-#             self.plotsPanel.mainBook.SetSelection(self.config.panelNames['MZDT'])
+#             self.panel_plot.mainBook.SetSelection(self.config.panelNames['MZDT'])
 
     def updateComparisonMS(self, evt):
         msg = "Comparing {} ({}) vs {} ({})".format(self.compareMSDlg.output["spectrum_1"][1],
@@ -3398,7 +3378,7 @@ class documentsTree(wx.TreeCtrl):
             if self.config.compare_massSpectrumParams['normalize']:
                 self.config.compare_massSpectrumParams['subtract'] = False
                 msY_1, msY_2 = subtract_1D(msY_1, msY_2)
-                self.plotsPanel.plot_compare(msX=msX,
+                self.panel_plot.plot_compare(msX=msX,
                                                             msY_1=msY_1,
                                                             msY_2=msY_2,
                                                             xlimits=None)
@@ -3408,7 +3388,7 @@ class documentsTree(wx.TreeCtrl):
                 self.presenter.plot_compareMS(msX=msX, msY=msY,
                                               msY_1=msY_1, msY_2=msY_2)
         else:
-            self.plotsPanel.plot_compare(msX_1=msX_1,
+            self.panel_plot.plot_compare(msX_1=msX_1,
                                                         msX_2=msX_2,
                                                         msY_1=msY_1,
                                                         msY_2=msY_2,
@@ -3779,27 +3759,27 @@ class documentsTree(wx.TreeCtrl):
                   'set_page':change_page}
 
         # change page
-        self.plotsPanel.mainBook.SetSelection(self.config.panelNames['UniDec'])
+        self.panel_plot.mainBook.SetSelection(self.config.panelNames['UniDec'])
 
         if plot_type == "all":
-            self.plotsPanel.on_clear_unidec()
+            self.panel_plot.on_clear_unidec()
 
         if plot_type in ["all", "Fitted", "Processed"]:
             try:
-                self.plotsPanel.on_plot_unidec_MS_v_Fit(replot=unidec_engine_data['Fitted'],
+                self.panel_plot.on_plot_unidec_MS_v_Fit(replot=unidec_engine_data['Fitted'],
                                                                        **kwargs)
             except:
                 print("Failed to plot MS vs Fit plot")
-                try: self.plotsPanel.on_plot_unidec_MS(replot=unidec_engine_data['Processed'],
+                try: self.panel_plot.on_plot_unidec_MS(replot=unidec_engine_data['Processed'],
                                                                       **kwargs)
                 except: print("Failed to plot MS plot")
 
         if plot_type in ["all", "MW distribution"]:
             try:
-                self.plotsPanel.on_plot_unidec_mwDistribution(replot=unidec_engine_data['MW distribution'],
+                self.panel_plot.on_plot_unidec_mwDistribution(replot=unidec_engine_data['MW distribution'],
                                                                              **kwargs)
                 try:
-                    self.plotsPanel.on_plot_unidec_MW_add_markers(unidec_engine_data['m/z with isolated species'],
+                    self.panel_plot.on_plot_unidec_MW_add_markers(unidec_engine_data['m/z with isolated species'],
                                                                                  unidec_engine_data['MW distribution'],
                                                                                  **kwargs)
                 except: pass
@@ -3807,29 +3787,29 @@ class documentsTree(wx.TreeCtrl):
 
         if plot_type in ["all", "m/z vs Charge"]:
             try:
-                self.plotsPanel.on_plot_unidec_mzGrid(replot=unidec_engine_data['m/z vs Charge'],
+                self.panel_plot.on_plot_unidec_mzGrid(replot=unidec_engine_data['m/z vs Charge'],
                                                                      **kwargs)
             except: print("Failed to plot m/z vs charge plot")
 
         if plot_type in ["all", "m/z with isolated species"]:
             try:
-                self.plotsPanel.on_plot_unidec_individualPeaks(replot=unidec_engine_data['m/z with isolated species'],
+                self.panel_plot.on_plot_unidec_individualPeaks(replot=unidec_engine_data['m/z with isolated species'],
                                                                               **kwargs)
             except: print("Failed to plot individual MS plot")
 
         if plot_type in ["all", "MW vs Charge"]:
-            try: self.plotsPanel.on_plot_unidec_MW_v_Charge(replot=unidec_engine_data['MW vs Charge'],
+            try: self.panel_plot.on_plot_unidec_MW_v_Charge(replot=unidec_engine_data['MW vs Charge'],
                                                                            **kwargs)
             except: print("Failed to plot MW vs charge plot")
 
         if plot_type in ["all", "Barchart"]:
-            try: self.plotsPanel.on_plot_unidec_barChart(replot=unidec_engine_data['Barchart'],
+            try: self.panel_plot.on_plot_unidec_barChart(replot=unidec_engine_data['Barchart'],
                                                                         **kwargs)
             except: print("Failed to plot barplot")
 
         if plot_type in ["all", "Charge information"]:
             try:
-                self.plotsPanel.on_plot_unidec_ChargeDistribution(unidec_engine_data['Charge information'][:, 0],
+                self.panel_plot.on_plot_unidec_ChargeDistribution(unidec_engine_data['Charge information'][:, 0],
                                                                                  unidec_engine_data['Charge information'][:, 1],
                                                                                   **kwargs)
             except: print("Failed to plot charge distribution")
@@ -3877,35 +3857,35 @@ class documentsTree(wx.TreeCtrl):
                           "xlabels":data['xlabels'], "ylabels":data["ylabels"]}
 
             if plot_type == "scatter":
-                self.plotsPanel.on_plot_other_scatter(xvals, yvals, zvals, xlabel, ylabel, colors, labels,
+                self.panel_plot.on_plot_other_scatter(xvals, yvals, zvals, xlabel, ylabel, colors, labels,
                                                                      set_page=True, **kwargs)
             elif plot_type == "waterfall":
                 kwargs = {"labels":labels}
-                self.plotsPanel.on_plot_other_waterfall(xvals, yvals, None, xlabel, ylabel, colors=colors,
+                self.panel_plot.on_plot_other_waterfall(xvals, yvals, None, xlabel, ylabel, colors=colors,
                                                                        set_page=True, **kwargs)
             elif plot_type == "multi-line":
-                self.plotsPanel.on_plot_other_overlay(xvals, yvals, xlabel, ylabel, colors=colors,
+                self.panel_plot.on_plot_other_overlay(xvals, yvals, xlabel, ylabel, colors=colors,
                                                                      set_page=True, labels=labels)
             elif plot_type == "line":
                 kwargs = {"line_color":colors[0], "shade_under_color":colors[0],
                           "plot_modifiers": data["plot_modifiers"]}
-                self.plotsPanel.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
+                self.panel_plot.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
             elif plot_type == "grid-line":
-                self.plotsPanel.on_plot_other_grid_1D(xvals, yvals, xlabel, ylabel, colors=colors,
+                self.panel_plot.on_plot_other_grid_1D(xvals, yvals, xlabel, ylabel, colors=colors,
                                                                      labels=labels, set_page=True, **kwargs)
             elif plot_type == "grid-scatter":
-                self.plotsPanel.on_plot_other_grid_scatter(xvals, yvals, xlabel, ylabel, colors=colors,
+                self.panel_plot.on_plot_other_grid_scatter(xvals, yvals, xlabel, ylabel, colors=colors,
                                                                           labels=labels, set_page=True, **kwargs)
 
             elif plot_type in ["vertical-bar", "horizontal-bar"]:
                 kwargs.update(orientation=plot_type)
-                self.plotsPanel.on_plot_other_bars(xvals, data['yvals_min'], data['yvals_max'],
+                self.panel_plot.on_plot_other_bars(xvals, data['yvals_min'], data['yvals_max'],
                                                                   xlabel, ylabel, colors, set_page=True, **kwargs)
             elif plot_type in ['matrix']:
                 zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                plotType='Matrix',
                                                                                compact=False)
-                self.plotsPanel.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap,
+                self.panel_plot.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap,
                                                               set_page=True)
             else:
                 msg = "Plot: {} is not supported yet. Please contact Lukasz Migas \n".format(plot_type) + \
@@ -3918,7 +3898,7 @@ class documentsTree(wx.TreeCtrl):
             if save_image:
                 defaultValue = "Custom_{}_{}".format(basename, os.path.splitext(self.extractData)[0]).replace(":", "").replace(" ", "")
                 save_kwargs = {'image_name':defaultValue}
-                self.plotsPanel.save_images(evt=ID_saveOtherImageDoc, **save_kwargs)
+                self.panel_plot.save_images(evt=ID_saveOtherImageDoc, **save_kwargs)
 
         elif self.itemType == "Tandem Mass Spectra":
             if self.extractData == "Tandem Mass Spectra":
@@ -3932,7 +3912,7 @@ class documentsTree(wx.TreeCtrl):
             title = "Precursor: {:.4f} [{}]".format(data['scan_info']['precursor_mz'],
                                                 data['scan_info']['precursor_charge'])
 
-            self.plotsPanel.on_plot_centroid_MS(data['xvals'], data['yvals'], title=title)
+            self.panel_plot.on_plot_centroid_MS(data['xvals'], data['yvals'], title=title)
         #=======================================================================
         #  MASS SPECTRUM
         #=======================================================================
@@ -3962,7 +3942,7 @@ class documentsTree(wx.TreeCtrl):
 
             # plot
             if self.itemData.dataType != 'Type: CALIBRANT':
-                self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, set_page=True, **name_kwargs)
+                self.panel_plot.on_plot_MS(msX, msY, xlimits=xlimits, set_page=True, **name_kwargs)
                 if save_image:
                     if self.itemType == 'Mass Spectrum':
                         defaultValue = "MS_{}".format(basename)
@@ -3971,9 +3951,9 @@ class documentsTree(wx.TreeCtrl):
                     elif self.itemType == 'Mass Spectra' and self.extractData != self.itemType:
                         defaultValue = "MS_{}_{}".format(basename, os.path.splitext(self.extractData)[0]).replace(":", "")
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_saveMSImage, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveMSImage, **save_kwargs)
             else:
-                self.plotsPanel.on_plot_MS_DT_calibration(msX=msX, msY=msY, xlimits=xlimits,
+                self.panel_plot.on_plot_MS_DT_calibration(msX=msX, msY=msY, xlimits=xlimits,
                                                                          plotType='MS', set_page=True)
         #=======================================================================
         # 1D IM-MS
@@ -4015,7 +3995,7 @@ class documentsTree(wx.TreeCtrl):
                     endX = (data['xylimits'][1] + self.config.zoomWindowX)
                     endY = ((self.config.zoomWindowY + data['xylimits'][2]) / 100)
                 except KeyError: pass
-                self.plotsPanel.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
+                self.panel_plot.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
                 return
             # extract x/y axis values
             dtX = data['xvals']
@@ -4025,14 +4005,14 @@ class documentsTree(wx.TreeCtrl):
                 except KeyError: pass
             xlabel = data['xlabels']
             if self.itemData.dataType != 'Type: CALIBRANT':
-                self.plotsPanel.on_plot_1D(dtX, dtY, xlabel, set_page=True)
+                self.panel_plot.on_plot_1D(dtX, dtY, xlabel, set_page=True)
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_save1DImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_save1DImageDoc, **save_kwargs)
             else:
-                self.plotsPanel.on_plot_MS_DT_calibration(dtX=dtX, dtY=dtY, xlabelDT=xlabel,
+                self.panel_plot.on_plot_MS_DT_calibration(dtX=dtX, dtY=dtY, xlabelDT=xlabel,
                                                                          plotType='1DT', set_page=True)
-                self.plotsPanel.on_add_marker(xvals=data['peak'][0],
+                self.panel_plot.on_add_marker(xvals=data['peak'][0],
                                                              yvals=data['peak'][1],
                                                              color=self.config.annotColor,
                                                              marker=self.config.markerShape,
@@ -4061,10 +4041,10 @@ class documentsTree(wx.TreeCtrl):
             rtY = data['yvals']
             xlabel = data['xlabels']
             # Change panel and plot
-            self.plotsPanel.on_plot_RT(rtX, rtY, xlabel, set_page=True)
+            self.panel_plot.on_plot_RT(rtX, rtY, xlabel, set_page=True)
             if save_image:
                 save_kwargs = {'image_name':defaultValue}
-                self.plotsPanel.save_images(evt=ID_saveRTImageDoc, **save_kwargs)
+                self.panel_plot.save_images(evt=ID_saveRTImageDoc, **save_kwargs)
         #=======================================================================
         #  2D IM-MS
         #=======================================================================
@@ -4113,22 +4093,22 @@ class documentsTree(wx.TreeCtrl):
                     endX = (data['xylimits'][1] + self.config.zoomWindowX)
                     endY = (data['xylimits'][2] / 100)
                 except KeyError: pass
-                self.plotsPanel.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
+                self.panel_plot.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
                 return
             elif evtID == ID_showPlot1DDocument:
-                self.plotsPanel.on_plot_1D(data['yvals'],  # normally this would be the y-axis
+                self.panel_plot.on_plot_1D(data['yvals'],  # normally this would be the y-axis
                                                           data['yvals1D'],
                                                           data['ylabels'],  # data was rotated so using ylabel for xlabel
                                                           set_page=True)
                 return
             elif evtID == ID_showPlotRTDocument:
-                self.plotsPanel.on_plot_RT(data['xvals'][:-1],  # TEMPORARY FIX
+                self.panel_plot.on_plot_RT(data['xvals'][:-1],  # TEMPORARY FIX
                                                           data['yvalsRT'],
                                                           data['xlabels'], set_page=True)
                 return
             elif evtID == ID_showPlotDocument_violin:
                 dataOut = self.presenter.get2DdataFromDictionary(dictionary=data, dataType='plot', compact=True)
-                self.plotsPanel.on_plot_violin(data=dataOut, set_page=True)
+                self.panel_plot.on_plot_violin(data=dataOut, set_page=True)
                 return
             elif evtID == ID_showPlotDocument_waterfall:
                 zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data, dataType='plot', compact=False)
@@ -4139,7 +4119,7 @@ class documentsTree(wx.TreeCtrl):
                     if dlg == wx.ID_NO:
                         return
 
-                self.plotsPanel.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
+                self.panel_plot.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
                                                                 xlabel=xlabel, ylabel=ylabel, set_page=True)
                 return
             else: pass
@@ -4149,12 +4129,12 @@ class documentsTree(wx.TreeCtrl):
 
             dataOut = self.presenter.get2DdataFromDictionary(dictionary=data, dataType='plot', compact=True)
             # Change panel and plot data
-            self.plotsPanel.on_plot_2D_data(data=dataOut)
+            self.panel_plot.on_plot_2D_data(data=dataOut)
             if not self.config.waterfall:
-                self.plotsPanel.mainBook.SetSelection(self.config.panelNames['2D'])
+                self.panel_plot.mainBook.SetSelection(self.config.panelNames['2D'])
             if save_image:
                 save_kwargs = {'image_name':defaultValue}
-                self.plotsPanel.save_images(evt=ID_save2DImageDoc, **save_kwargs)
+                self.panel_plot.save_images(evt=ID_save2DImageDoc, **save_kwargs)
         #=======================================================================
         #  OVERLAY PLOTS
         #=======================================================================
@@ -4171,7 +4151,7 @@ class documentsTree(wx.TreeCtrl):
                         data = self.itemData.IMS2DoverlayData.get(self.extractData, {})
             if out[0] == "Grid (n x n)":
                 defaultValue = "Overlay_Grid_NxN_{}".format(basename)
-                self.plotsPanel.on_plot_n_grid(data['zvals_list'],
+                self.panel_plot.on_plot_n_grid(data['zvals_list'],
                                                               data['cmap_list'],
                                                               data['title_list'],
                                                               data['xvals'],
@@ -4181,10 +4161,10 @@ class documentsTree(wx.TreeCtrl):
                                                               set_page=True)
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
             elif out[0] == "Grid (2":
                 defaultValue = "Overlay_Grid_2to1_{}".format(basename)
-                self.plotsPanel.on_plot_grid(data['zvals_1'],
+                self.panel_plot.on_plot_grid(data['zvals_1'],
                                                             data['zvals_2'],
                                                             data['zvals_cum'],
                                                             data['xvals'],
@@ -4202,14 +4182,14 @@ class documentsTree(wx.TreeCtrl):
 
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
             elif (out[0] == 'Mask'  or out[0] == 'Transparent'):
                 zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, __, __, xvals, yvals, xlabels, ylabels = self.presenter.getOverlayDataFromDictionary(dictionary=data,
                                                                                                                                            dataType='plot',
                                                                                                                                            compact=False)
                 if out[0] == 'Mask':
                     defaultValue = "Overlay_mask_{}".format(basename)
-                    self.plotsPanel.on_plot_overlay_2D(zvalsIon1=zvals1, cmapIon1=cmap1,
+                    self.panel_plot.on_plot_overlay_2D(zvalsIon1=zvals1, cmapIon1=cmap1,
                                                                       alphaIon1=1, zvalsIon2=zvals2,
                                                                       cmapIon2=cmap2, alphaIon2=1,
                                                                       xvals=xvals, yvals=yvals,
@@ -4217,7 +4197,7 @@ class documentsTree(wx.TreeCtrl):
                                                                       flag='Text', set_page=True)
                 elif out[0] == 'Transparent':
                     defaultValue = "Overlay_transparent_{}".format(basename)
-                    self.plotsPanel.on_plot_overlay_2D(zvalsIon1=zvals1, cmapIon1=cmap1,
+                    self.panel_plot.on_plot_overlay_2D(zvalsIon1=zvals1, cmapIon1=cmap1,
                                                                      alphaIon1=alpha1, zvalsIon2=zvals2,
                                                                      cmapIon2=cmap2, alphaIon2=alpha2,
                                                                      xvals=xvals, yvals=yvals,
@@ -4226,14 +4206,14 @@ class documentsTree(wx.TreeCtrl):
                 # Change window view
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
 
             elif out[0] == 'RMSF':
                 zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                                                               plotType='RMSF',
                                                                                                                               compact=True)
                 defaultValue = "Overlay_RMSF_{}".format(basename)
-                self.plotsPanel.on_plot_RMSDF(yvalsRMSF=yvalsRMSF,
+                self.panel_plot.on_plot_RMSDF(yvalsRMSF=yvalsRMSF,
                                                              zvals=zvals,
                                                              xvals=xvals,
                                                              yvals=yvals,
@@ -4251,7 +4231,7 @@ class documentsTree(wx.TreeCtrl):
 
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_saveRMSFImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveRMSFImageDoc, **save_kwargs)
 
             elif out[0] == 'RGB':
                 defaultValue = "Overlay_RGB_{}".format(basename)
@@ -4259,20 +4239,20 @@ class documentsTree(wx.TreeCtrl):
                 rgb_plot, xAxisLabels, xlabel, yAxisLabels, ylabel, __ = \
                 self.presenter.get2DdataFromDictionary(dictionary=data, plotType='2D', compact=False)
                 legend_text = data['legend_text']
-                self.plotsPanel.on_plot_rgb(rgb_plot, xAxisLabels, yAxisLabels, xlabel,
+                self.panel_plot.on_plot_rgb(rgb_plot, xAxisLabels, yAxisLabels, xlabel,
                                                           ylabel, legend_text, set_page=True)
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_save2DImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_save2DImageDoc, **save_kwargs)
 
             elif out[0] == 'RMSD':
                 defaultValue = "Overlay_RMSD_{}".format(basename)
                 zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, rmsdLabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                                                           plotType='RMSD',
                                                                                                                           compact=True)
-                self.plotsPanel.on_plot_RMSD(zvals, xaxisLabels, yaxisLabels, xlabel, ylabel,
+                self.panel_plot.on_plot_RMSD(zvals, xaxisLabels, yaxisLabels, xlabel, ylabel,
                                                              cmap, plotType="RMSD", set_page=True)
-                self.plotsPanel.on_plot_3D(zvals=zvals, labelsX=xaxisLabels, labelsY=yaxisLabels,
+                self.panel_plot.on_plot_3D(zvals=zvals, labelsX=xaxisLabels, labelsY=yaxisLabels,
                                                           xlabel=xlabel, ylabel=ylabel, zlabel='Intensity',
                                                           cmap=cmap)
                 # Add RMSD label
@@ -4283,7 +4263,7 @@ class documentsTree(wx.TreeCtrl):
 
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_saveRMSDImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveRMSDImageDoc, **save_kwargs)
 
             elif out[0] in ["Waterfall (Raw)", "Waterfall (Processed)", "Waterfall (Fitted)",
                             "Waterfall (Deconvoluted MW)", "Waterfall (Charge states)"]:
@@ -4298,7 +4278,7 @@ class documentsTree(wx.TreeCtrl):
                 elif out[0] == "Waterfall (Charge states)":
                     defaultValue = "MS_Waterfall_charges_{}".format(basename)
 
-                self.plotsPanel.on_plot_waterfall(data['xvals'],
+                self.panel_plot.on_plot_waterfall(data['xvals'],
                                                                  data['yvals'], None,
                                                                  colors=data['colors'],
                                                                  xlabel=data['xlabel'],
@@ -4307,17 +4287,17 @@ class documentsTree(wx.TreeCtrl):
                                                                  **data['waterfall_kwargs'])
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
 
             elif out[0] == "Waterfall overlay":
-                self.plotsPanel.on_plot_waterfall_overlay(data['xvals'], data['yvals'],
+                self.panel_plot.on_plot_waterfall_overlay(data['xvals'], data['yvals'],
                                                                          data['zvals'], data['colors'],
                                                                          data['xlabel'], data['ylabel'],
                                                                          data['labels'], set_page=True)
                 if save_image:
                     defaultValue = "Waterfall_overlay_{}".format(basename)
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
 
             # Overlayed 1D data
             elif out[0] == '1D' or out[0] == 'RT':
@@ -4326,18 +4306,18 @@ class documentsTree(wx.TreeCtrl):
                                                                                                         compact=True)
                 if out[0] == '1D':
                     defaultValue = "Overlay_DT_1D_{}".format(basename)
-                    self.plotsPanel.on_plot_overlay_DT(xvals=xvals, yvals=yvals, xlabel=xlabels, colors=colors,
+                    self.panel_plot.on_plot_overlay_DT(xvals=xvals, yvals=yvals, xlabel=xlabels, colors=colors,
                                                                       xlimits=xlimits, labels=labels, set_page=True)
                     if save_image:
                         save_kwargs = {'image_name':defaultValue}
-                        self.plotsPanel.save_images(evt=ID_save1DImageDoc, **save_kwargs)
+                        self.panel_plot.save_images(evt=ID_save1DImageDoc, **save_kwargs)
                 elif out[0] == 'RT':
                     defaultValue = "Overlay_RT_{}".format(basename)
-                    self.plotsPanel.on_plot_overlay_RT(xvals=xvals, yvals=yvals, xlabel=xlabels, colors=colors,
+                    self.panel_plot.on_plot_overlay_RT(xvals=xvals, yvals=yvals, xlabel=xlabels, colors=colors,
                                                                       xlimits=xlimits, labels=labels, set_page=True)
                     if save_image:
                         save_kwargs = {'image_name':defaultValue}
-                        self.plotsPanel.save_images(evt=ID_saveRTImageDoc, **save_kwargs)
+                        self.panel_plot.save_images(evt=ID_saveRTImageDoc, **save_kwargs)
 
         elif self.itemType == 'Statistical':
             if self.extractData == 'Statistical': return
@@ -4358,32 +4338,32 @@ class documentsTree(wx.TreeCtrl):
                                                                  dataType='plot',
                                                                  compact=True)
                 # Change panel and plot data
-                self.plotsPanel.on_plot_2D_data(data=dataOut)
-                self.plotsPanel.mainBook.SetSelection(self.config.panelNames['2D'])
+                self.panel_plot.on_plot_2D_data(data=dataOut)
+                self.panel_plot.mainBook.SetSelection(self.config.panelNames['2D'])
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_save2DImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_save2DImageDoc, **save_kwargs)
 
             elif out[0] == 'RMSD Matrix':
                 defaultValue = "Overlay_matrix_{}".format(basename)
                 zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
                                                                                plotType='Matrix',
                                                                                compact=False)
-                self.plotsPanel.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
+                self.panel_plot.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
                 if save_image:
                     save_kwargs = {'image_name':defaultValue}
-                    self.plotsPanel.save_images(evt=ID_saveRMSDmatrixImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveRMSDmatrixImageDoc, **save_kwargs)
         elif self.itemType == 'DT/MS' or evtID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_restore]:
             defaultValue = "DTMS_{}".format(basename)
             data = self.GetPyData(self.currentItem)
             xvals = data['xvals']
             zvals = data['zvals']
             xvals, zvals = self.data_handling.downsample_array(xvals, zvals)
-            self.plotsPanel.on_plot_MSDT(zvals, xvals, data['yvals'],
+            self.panel_plot.on_plot_MSDT(zvals, xvals, data['yvals'],
                                                         data['xlabels'], data['ylabels'], set_page=True,
                                                         full_data=dict(zvals=data["zvals"], xvals=data["xvals"]))
             if save_image:
-                self.plotsPanel.save_images(evt=ID_saveMZDTImageDoc, **save_kwargs)
+                self.panel_plot.save_images(evt=ID_saveMZDTImageDoc, **save_kwargs)
         else:
             return
 
@@ -5036,6 +5016,10 @@ class documentsTree(wx.TreeCtrl):
             setattr(docData, "last_saved", {})
             print("Added missing attributute ('last_saved') to document")
 
+        if not hasattr(docData, 'metadata'):
+            setattr(docData, "metadata", {})
+            print("Added missing attributute ('app_data') to document")
+
         # update document to latest version
 
         # Add document
@@ -5086,7 +5070,7 @@ class documentsTree(wx.TreeCtrl):
                     self.SetPyData(annotsItem, docData.massSpectrum['annotations'][annotData])
                     self.SetItemImage(annotsItem, self.bulets_dict["annot"], wx.TreeItemIcon_Normal)
 
-        if bool(docData.smoothMS):
+        if docData.smoothMS:
             annotsItemParent = self.AppendItem(docItem, 'Mass Spectrum (processed)')
             self.SetItemImage(annotsItemParent, self.bulets_dict["mass_spec"], wx.TreeItemIcon_Normal)
             self.SetPyData(annotsItemParent, docData.smoothMS)
@@ -5150,6 +5134,7 @@ class documentsTree(wx.TreeCtrl):
             if docData.gotMultipleRT == True:
                 docIonItem = self.AppendItem(docItem, 'Chromatograms (EIC)')
                 self.SetItemImage(docIonItem, self.bulets_dict["rt"], wx.TreeItemIcon_Normal)
+                self.SetPyData(docIonItem, docData.multipleRT)
                 for annotData, __ in natsorted(list(docData.multipleRT.items())):
                     annotsItem = self.AppendItem(docIonItem, annotData)
                     self.SetPyData(annotsItem, docData.multipleRT[annotData])
@@ -5164,6 +5149,7 @@ class documentsTree(wx.TreeCtrl):
             if docData.gotMultipleDT == True:
                 docIonItem = self.AppendItem(docItem, 'Drift time (1D, EIC)')
                 self.SetItemImage(docIonItem, self.bulets_dict["drift_time"], wx.TreeItemIcon_Normal)
+                self.SetPyData(docIonItem, docData.multipleDT)
                 for annotData, __ in natsorted(list(docData.multipleDT.items())):
                     annotsItem = self.AppendItem(docIonItem, annotData)
                     self.SetPyData(annotsItem, docData.multipleDT[annotData])
@@ -5338,7 +5324,7 @@ class documentsTree(wx.TreeCtrl):
 
             # Clear all plotsf
             if self.presenter.currentDoc == deleteItem:
-                self.plotsPanel.on_clear_all_plots()
+                self.panel_plot.on_clear_all_plots()
                 self.presenter.currentDoc = None
 
         if deleteItem == '': return
@@ -5655,7 +5641,7 @@ class documentsTree(wx.TreeCtrl):
 
             title = "Precursor: {:.4f} [{}]".format(data["Scan 1"]['scan_info']['precursor_mz'],
                                                     data["Scan 1"]['scan_info']['precursor_charge'])
-            self.plotsPanel.on_plot_centroid_MS(data["Scan 1"]['xvals'],
+            self.panel_plot.on_plot_centroid_MS(data["Scan 1"]['xvals'],
                                                                data["Scan 1"]['yvals'],
                                                                title=title)
 
@@ -5690,7 +5676,7 @@ class documentsTree(wx.TreeCtrl):
 
             title = "Precursor: {:.4f} [{}]".format(data["Scan 1"]['scan_info']['precursor_mz'],
                                                     data["Scan 1"]['scan_info']['precursor_charge'])
-            self.plotsPanel.on_plot_centroid_MS(data["Scan 1"]['xvals'],
+            self.panel_plot.on_plot_centroid_MS(data["Scan 1"]['xvals'],
                                                                data["Scan 1"]['yvals'],
                                                                title=title)
 
@@ -5800,7 +5786,7 @@ class documentsTree(wx.TreeCtrl):
 
             # get chromatogram
             rtX, rtY = reader.get_tic()
-            self.plotsPanel.on_plot_RT(rtX, rtY, "Time (min)", set_page=False)
+            self.panel_plot.on_plot_RT(rtX, rtY, "Time (min)", set_page=False)
 
             mass_spectra = reader.get_spectrum_for_each_filter()
             chromatograms = reader.get_chromatogram_for_each_filter()
@@ -5810,7 +5796,7 @@ class documentsTree(wx.TreeCtrl):
             msX, msY = reader.get_average_spectrum()
             xlimits = [np.min(msX), np.max(msX)]
             name_kwargs = {"document":None, "dataset": None}
-            self.plotsPanel.on_plot_MS(
+            self.panel_plot.on_plot_MS(
                 msX, msY, xlimits=xlimits, set_page=True, **name_kwargs)
 
             basename = os.path.basename(path)
@@ -6110,9 +6096,12 @@ class documentsTree(wx.TreeCtrl):
                 except:
                     logger.warning("Failed to delete: {}".format(delete_type))
 
-            self.ionPanel.delete_row_from_table(
-                delete_item_name=None,
-                delete_document_title=document_title)
+            if delete_type.startswith("heatmap.raw"):
+                self.ionPanel.delete_row_from_table(
+                    delete_item_name=None,
+                    delete_document_title=document_title)
+                self.on_update_extracted_patches(
+                    document.title, "__all__", None)
 
         elif delete_type.endswith(".one"):
             for delete_type in delete_types:
@@ -6183,9 +6172,12 @@ class documentsTree(wx.TreeCtrl):
                 except Exception:
                     pass
 
-            self.ionPanel.delete_row_from_table(
-                delete_item_name=ion_name,
-                delete_document_title=document_title)
+            if delete_type.startswith("heatmap.raw"):
+                self.ionPanel.delete_row_from_table(
+                    delete_item_name=ion_name,
+                    delete_document_title=document_title)
+                self.on_update_extracted_patches(
+                    document.title, None, ion_name)
 
         return document, True
 
@@ -6258,6 +6250,71 @@ class documentsTree(wx.TreeCtrl):
             self.Delete(docItem)
             return document, True
 
+    def on_delete_data__chromatograms(self, document, document_title,
+                                     delete_type, spectrum_name=None,
+                                     confirm_deletion=False):
+        """
+        Delete data from document tree and document
+
+        Parameters
+        ----------
+        document: py object
+            document object
+        document_title: str
+            name of the document - also found in document.title
+        delete_type: str
+            type of deletion. Accepted: `file.all`, `file.one`
+        spectrum_name: str
+            name of the unsupervised item to be deleted
+        confirm_deletion: bool
+            check whether all items should be deleted before performing the task
+
+
+        Returns
+        -------
+        document: py object
+            updated document object
+        outcome: bool
+            result of positive/negative deletion of document tree object
+        """
+
+        if confirm_deletion:
+            msg = "Are you sure you want to continue with this action?" + \
+                  "\nThis action cannot be undone."
+            dlg = dlgBox(exceptionMsg=msg, type="Question")
+            if dlg == wx.ID_NO:
+                logger.info("The operation was cancelled")
+                return document, True
+
+        docItem = False
+        main_docItem = self.getItemByData(document.multipleRT)
+        # delete all classes
+        if delete_type == "chromatogram.all":
+            docItem = self.getItemByData(document.multipleRT)
+            document.multipleMassSpectrum = {}
+            document.gotMultipleMS = False
+        elif delete_type == "chromatogram.one":
+            docItem = self.getItemByData(document.multipleRT[spectrum_name])
+            try:
+                del document.multipleRT[spectrum_name]
+            except KeyError:
+                msg = "Failed to delete {} from Fits (Supervised) dictionary. ".format(spectrum_name) + \
+                      "You probably have reselect it in the document tree"
+                logger.warning(msg)
+
+        if len(document.multipleRT) == 0:
+            document.gotMultipleRT = False
+            try:
+                self.Delete(main_docItem)
+            except Exception:
+                logger.warning("Failed to delete item: Mass Spectra from the document tree")
+
+        if docItem is False:
+            return document, False
+        else:
+            self.Delete(docItem)
+            return document, True
+
     def on_update_data(self, item_data, item_name, document, data_type, set_data_only=False):
         """Update document -> 2D (EIC)
 
@@ -6300,6 +6357,11 @@ class documentsTree(wx.TreeCtrl):
             document.got1RT = True
             document.RT = item_data
 
+        elif data_type == "extracted.chromatogram":
+            item = self.getItemByData(document.multipleRT)
+            document.gotMultipleRT = True
+            document.multipleRT[item_name] = item_data
+
         elif data_type == "main.heatmap":
             item = self.getItemByData(document.IMS2D)
             document.got2DIMS = True
@@ -6326,11 +6388,14 @@ class documentsTree(wx.TreeCtrl):
             elif data_type == "extracted.spectrum":
                 self.add_one_to_group(item, document.multipleMassSpectrum[item_name], item_name,
                                       image=data_type)
+            # add extracted spectrum
+            elif data_type == "extracted.chromatogram":
+                self.add_one_to_group(item, document.multipleRT[item_name], item_name,
+                                      image=data_type)
             # add mobiligram data
             elif data_type == "ion.mobiligram":
                 self.add_one_to_group(item, document.IMS1DdriftTimes[item_name], item_name,
                                       image=data_type)
-
             # add heatmap-raw data
             elif data_type == "ion.heatmap.raw":
                 self.add_one_to_group(item, document.IMS2Dions[item_name], item_name,
@@ -6344,6 +6409,32 @@ class documentsTree(wx.TreeCtrl):
         else:
             self.data_handling.on_update_document(document, 'document')
 
+    def on_update_extracted_patches(self, document_title, data_type, ion_name):
+        """
+        Remove rectangles/patches from plot area. Triggered upon deletion of item
+        from the 'classes' subtree.
+
+        Parameters
+        ----------
+        document_title: str
+            name of document
+        data_type: str
+            name of dataset
+        ion_name: str
+            name of item
+        """
+
+        # remove all patches
+        if data_type == "__all__":
+            self.panel_plot.on_clear_patches(plot="MS")
+        # remove specific patch
+        else:
+            rect_label = "{};{}".format(document_title, ion_name)
+            self.panel_plot.plot_remove_patches_with_labels(
+                rect_label, plot_window="MS")
+
+        self.panel_plot.plot_repaint(plot_window="MS")
+
     def get_item_image(self, image_type):
         if image_type in ["main.spectrum", "extracted.spectrum"]:
             image = self.bulets_dict["mass_spec_on"]
@@ -6351,6 +6442,8 @@ class documentsTree(wx.TreeCtrl):
             image = self.bulets_dict["heatmap_on"]
         elif image_type == "ion.mobiligram":
             image = self.bulets_dict["drift_time_on"]
+        elif image_type in ["main.chromatogram", "extracted.chromatogram"]:
+            image = self.bulets_dict["rt_on"]
         else:
             image = self.bulets_dict["heatmap_on"]
 

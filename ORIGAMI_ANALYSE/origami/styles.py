@@ -197,7 +197,6 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
     def on_select_item(self, evt):
         self.item_id = evt.Index
 
-#
     def on_activate_item(self, evt):
         self.item_id = evt.Index
 

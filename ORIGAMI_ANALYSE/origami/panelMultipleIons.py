@@ -115,7 +115,7 @@ class panelMultipleIons(wx.Panel):
             (wx.ACCEL_NORMAL, ord('C'), ID_ionPanel_assignColor),
             (wx.ACCEL_NORMAL, ord('E'), ID_ionPanel_editItem),
             (wx.ACCEL_NORMAL, ord('H'), ID_highlightRectAllIons),
-            (wx.ACCEL_NORMAL, ord('I'), ID_useInternalParamsCombinedMenu),
+#             (wx.ACCEL_NORMAL, ord('I'), ID_useInternalParamsCombinedMenu),
             (wx.ACCEL_NORMAL, ord('M'), ID_ionPanel_show_mobiligram),
             (wx.ACCEL_NORMAL, ord('N'), ID_ionPanel_normalize1D),
             (wx.ACCEL_NORMAL, ord('O'), ID_overrideCombinedMenu),
@@ -130,11 +130,11 @@ class panelMultipleIons(wx.Panel):
         wx.EVT_MENU(self, ID_ionPanel_editItem, self.OnOpenEditor)
         wx.EVT_MENU(self, ID_ionPanel_addToDocument, self.onCheckTool)
         wx.EVT_MENU(self, ID_overrideCombinedMenu, self.onCheckTool)
-        wx.EVT_MENU(self, ID_useInternalParamsCombinedMenu, self.onCheckTool)
+#         wx.EVT_MENU(self, ID_useInternalParamsCombinedMenu, self.onCheckTool)
         wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.onCheckTool)
         wx.EVT_MENU(self, ID_ionPanel_normalize1D, self.onCheckTool)
         wx.EVT_MENU(self, ID_combinedCV_binMSCombinedMenu, self.onCheckTool)
-        wx.EVT_MENU(self, ID_highlightRectAllIons, self.presenter.on_highlight_selected_ions)
+#         wx.EVT_MENU(self, ID_highlightRectAllIons, self.data_handling.on_highlight_selected_ions)
         wx.EVT_MENU(self, ID_ionPanel_check_all, self.OnCheckAllItems)
         wx.EVT_MENU(self, ID_ionPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_ionPanel_show_zoom_in_MS, self.on_plot)
@@ -278,14 +278,9 @@ class panelMultipleIons(wx.Panel):
             itemInfo = self.OnGetItemInformation(itemID=row)
             if item_type == "document":
                 if itemInfo['document'] == old_name:
-                    self.peaklist.SetStringItem(index=row,
-                                                col=self.config.peaklistColNames['filename'],
-                                                label=new_name)
-#             elif item_type == "filename":
-#                 if itemInfo['filename'] == old_name:
-#                     self.peaklist.SetStringItem(index=row,
-#                                                 col=self.config.peaklistColNames['filename'],
-#                                                 label=new_name)
+                    self.peaklist.SetStringItem(row,
+                                                self.config.peaklistColNames['filename'],
+                                                new_name)
 
     def menu_column_right_click(self, evt):
         self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_ionPanel_table_startMS)
@@ -392,7 +387,7 @@ class panelMultipleIons(wx.Panel):
         self.SetFocus()
 
     def menu_annotate_tools(self, evt):
-        self.Bind(wx.EVT_MENU, self.presenter.on_highlight_selected_ions, id=ID_highlightRectAllIons)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_highlight_selected_ions, id=ID_highlightRectAllIons)
         self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_charge_state)
         self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_alpha)
         self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_ionPanel_annotate_mask)
@@ -441,20 +436,18 @@ class panelMultipleIons(wx.Panel):
         self.SetFocus()
 
     def menu_add_tools(self, evt):
-
-        self.Bind(wx.EVT_MENU, self.onOpenPeakList, id=ID_addManyIonsCSV)
-        self.Bind(wx.EVT_MENU, self.onDuplicateIons, id=ID_duplicateIons)
-        self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
+        # TODO: add "Restore items from document"
+        self.Bind(wx.EVT_MENU, self.on_open_peak_list, id=ID_addManyIonsCSV)
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_addManyIonsCSV,
                                      text='Add list of ions (.csv/.txt)\tCtrl+L',
                                      bitmap=self.icons.iconsLib['filelist_16'],
                                      help_text='Format: min, max, charge (optional), label (optional), color (optional)'))
-        menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_addNewOverlayDoc,
-                                     text='Create blank COMPARISON document\tAlt+D',
-                                     bitmap=self.icons.iconsLib['new_document_16']))
+#         menu.AppendSeparator()
+#         menu.AppendItem(makeMenuItem(parent=menu, id=ID_addNewOverlayDoc,
+#                                      text='Create blank COMPARISON document\tAlt+D',
+#                                      bitmap=self.icons.iconsLib['new_document_16']))
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -467,13 +460,13 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_extract_new, id=ID_extractNewIon)
 
         menu = wx.Menu()
-        self.automaticExtract_check = menu.AppendCheckItem(ID_ionPanel_automaticExtract, "Extract automatically",
+        self.automaticExtract_check = menu.AppendCheckItem(ID_ionPanel_automaticExtract, "Extract data automatically",
                                                            help="Ions will be extracted automatically")
         self.automaticExtract_check.Check(self.extractAutomatically)
         menu.AppendSeparator()
-        menu.Append(ID_extractNewIon, "Extract new ions")
-        menu.Append(ID_extractSelectedIon, "Extract selected ions")
-        menu.Append(ID_extractAllIons, "Extract all ions\tAlt+E")
+        menu.Append(ID_extractNewIon, "Extract data for new ions")
+        menu.Append(ID_extractSelectedIon, "Extract data for selected ions")
+        menu.Append(ID_extractAllIons, "Extract for all ions\tAlt+E")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -487,9 +480,15 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_ionPanel_addToDocument)
         self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_ionPanel_normalize1D)
         self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_ionPanel_automaticOverlay)
+        self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
 
         menu = wx.Menu()
-        self.addToDocument_check = menu.AppendCheckItem(ID_ionPanel_addToDocument, "Add overlay plots to document\tA",
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_addNewOverlayDoc,
+                                     text='Create blank COMPARISON document\tAlt+D',
+                                     bitmap=self.icons.iconsLib['new_document_16']))
+        menu.AppendSeparator()
+        self.addToDocument_check = menu.AppendCheckItem(ID_ionPanel_addToDocument,
+                                                        "Add overlay plots to document\tA",
                                                         help="Add overlay results to comparison document")
         self.addToDocument_check.Check(self.addToDocument)
         menu.AppendSeparator()
@@ -519,17 +518,22 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_delete_all, id=ID_ionPanel_delete_all)
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_all, id=ID_ionPanel_clear_all)
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_selected, id=ID_ionPanel_clear_selected)
-#         self.Bind(wx.EVT_MENU, self.onRemoveDuplicates, id=ID_removeDuplicatesTable)
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_clear_all,
-                                     text='Clear table',
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_clear_selected,
+                                     text='Remove from list (selected)',
                                      bitmap=self.icons.iconsLib['clear_16']))
-        menu.Append(ID_ionPanel_clear_selected, "Clear selected")
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_clear_all,
+                                     text='Remove from list (all)',
+                                     bitmap=self.icons.iconsLib['clear_16']))
+
         menu.AppendSeparator()
-#         menu.Append(ID_removeDuplicatesTable, "Remove duplicates")
-        menu.Append(ID_ionPanel_delete_selected, "Delete selected ions")
-        menu.Append(ID_ionPanel_delete_all, "Delete all ions")
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_delete_selected,
+                                     text='Remove from file (selected)',
+                                     bitmap=self.icons.iconsLib['bin16']))
+        menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_delete_all,
+                                     text='Remove from file (all)',
+                                     bitmap=self.icons.iconsLib['bin16']))
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -546,7 +550,7 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.presenter.onExtractMSforEachCollVoltage, id=ID_extractMSforCVs)
 
         self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_overrideCombinedMenu)
-        self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_useInternalParamsCombinedMenu)
+#         self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_useInternalParamsCombinedMenu)
         self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_combinedCV_binMSCombinedMenu)
 
         menu = wx.Menu()
@@ -561,12 +565,14 @@ class panelMultipleIons(wx.Panel):
         self.override_check.Check(self.config.overrideCombine)
         help_msg = "When checked, collision voltage scans will be combined based on parameters present" + \
                    " in the ORIGAMI document."
-        self.useInternalParams_check = menu.AppendCheckItem(
-            ID_useInternalParamsCombinedMenu, "Use internal parameters\tI",
-            help=help_msg)
-        self.useInternalParams_check.Check(self.config.useInternalParamsCombine)
-        menu.Append(ID_combineCEscansSelectedIons, "Combine collision voltages for selected ions (ORIGAMI)")
-        menu.Append(ID_combineCEscans, "Combine collision voltages for all ions (ORIGAMI)\tAlt+C")
+#         self.useInternalParams_check = menu.AppendCheckItem(
+#             ID_useInternalParamsCombinedMenu, "Use internal parameters\tI",
+#             help=help_msg)
+#         self.useInternalParams_check.Check(self.config.useInternalParamsCombine)
+        menu.Append(ID_combineCEscansSelectedIons,
+                    "Combine collision voltages for selected items (ORIGAMI-MS)")
+        menu.Append(ID_combineCEscans,
+                    "Combine collision voltages for all items (ORIGAMI-MS)\tAlt+C")
         menu.AppendSeparator()
         self.binCombinedCV_MS_check = menu.AppendCheckItem(
             ID_combinedCV_binMSCombinedMenu, "Bin mass spectra during extraction\tB", help="")
@@ -623,10 +629,10 @@ class panelMultipleIons(wx.Panel):
             args = ("Peak list panel: 'Override' combined IM-MS data was switched to %s" % self.config.overrideCombine, 4)
             self.presenter.onThreading(evt, args, action='updateStatusbar')
 
-        if evtID == ID_useInternalParamsCombinedMenu:
-            self.config.useInternalParamsCombine = not self.config.useInternalParamsCombine
-            args = ("Peak list panel: 'Use internal parameters' was switched to  %s" % self.config.useInternalParamsCombine, 4)
-            self.presenter.onThreading(evt, args, action='updateStatusbar')
+#         if evtID == ID_useInternalParamsCombinedMenu:
+#             self.config.useInternalParamsCombine = not self.config.useInternalParamsCombine
+#             args = ("Peak list panel: 'Use internal parameters' was switched to  %s" % self.config.useInternalParamsCombine, 4)
+#             self.presenter.onThreading(evt, args, action='updateStatusbar')
 
         if evtID == ID_processSaveMenu:
             self.process = not self.process
@@ -796,9 +802,9 @@ class panelMultipleIons(wx.Panel):
                 selectedText = itemInfo['ionName']
                 document = self.presenter.documentsDict[filename]
                 if not ask_kwargs['keyword'] in ['min_threshold', 'max_threshold']:
-                    self.peaklist.SetStringItem(index=row,
-                                                col=self.config.peaklistColNames[ask_kwargs['keyword']],
-                                                label=str(self.ask_value))
+                    self.peaklist.SetStringItem(row,
+                                                self.config.peaklistColNames[ask_kwargs['keyword']],
+                                                str(self.ask_value))
 
                 if selectedText in document.IMS2Dions:
                     document.IMS2Dions[selectedText][ask_kwargs['keyword']] = self.ask_value
@@ -1353,6 +1359,8 @@ class panelMultipleIons(wx.Panel):
             self.config.customColors = dlg.GetCustomColours()
 
             return color_255, color_1, font_color
+        else:
+            return None, None, None
 
     def on_change_item_colormap(self, evt):
         # get number of checked items
@@ -1392,9 +1400,12 @@ class panelMultipleIons(wx.Panel):
                 None, n_colors=check_count, return_colors=True)
         elif evt.GetId() == ID_ionPanel_changeColorBatch_color:
             __, color_1, __ = self.OnGetColor(None)
+            if color_1 is None:
+                return
             colors = [color_1] * check_count
         else:
-            colors = self.presenter.view.panelPlots.onGetColormapList(n_colors=check_count)
+            colors = self.presenter.view.panelPlots.onGetColormapList(
+                n_colors=check_count)
 
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):
@@ -1471,7 +1482,7 @@ class panelMultipleIons(wx.Panel):
             else:
                 row -= 1
 
-    def onOpenPeakList(self, evt):
+    def on_open_peak_list(self, evt):
         """
         This function opens a formatted CSV file with peaks
         """
@@ -1579,7 +1590,7 @@ class panelMultipleIons(wx.Panel):
                     self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1,
                                                     determineFontColor(color_value, return_rgb=True))
                 except: pass
-            self.presenter.view.onPaneOnOff(evt=ID_window_ionList, check=True)
+            self.presenter.view.on_toggle_panel(evt=ID_window_ionList, check=True)
             dlg.Destroy()
 
     def on_check_selected(self, evt):

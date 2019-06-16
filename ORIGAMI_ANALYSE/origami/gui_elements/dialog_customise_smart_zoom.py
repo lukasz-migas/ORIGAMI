@@ -33,7 +33,8 @@ class dialog_customise_smart_zoom(wx.Dialog):
         self.config = config
 
         self.make_gui()
-        self.CentreOnParent()
+        self.CentreOnScreen()
+        self.SetFocus()
 
     def on_close(self, evt):
         """Destroy this frame."""

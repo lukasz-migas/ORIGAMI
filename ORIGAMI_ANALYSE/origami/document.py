@@ -110,6 +110,7 @@ class document():
         self.tandem_spectra = {}
         self.file_reader = {}
         self.app_data = {}
+        self.metadata = {}
 
         # Experimental variables
         self.scanTime = None

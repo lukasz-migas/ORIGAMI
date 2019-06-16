@@ -69,13 +69,13 @@ class topPanel(wx.Panel):
         self.config = config
         self.presenter = presenter  # wx.App
         self.icons = icons
-        self.makeToolbar()
+        self.make_toolbar()
         self.makeListCtrl()
 
         self.reverse = False
         self.lastColumn = None
 
-    def makeToolbar(self):
+    def make_toolbar(self):
         # Create toolbar for the table
 
         self.Bind(wx.EVT_TOOL, self.onRemoveTool, id=ID_removeFilesMenuDT_RT)
@@ -355,13 +355,13 @@ class bottomPanel(wx.Panel):
         self.config = config
         self.presenter = presenter  # wx.App
         self.icons = icons
-        self.makeToolbar()
+        self.make_toolbar()
         self.makeListCtrl()
 
         self.reverse = False
         self.lastColumn = None
 
-    def makeToolbar(self):
+    def make_toolbar(self):
         # Create toolbar for the table
 
         self.Bind(wx.EVT_TOOL, self.onAddTool, id=ID_addFilesMenuDT)

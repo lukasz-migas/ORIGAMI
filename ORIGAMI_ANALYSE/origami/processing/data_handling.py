@@ -707,7 +707,7 @@ class data_handling():
             colormap = self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)]
 
             if document.dataType in ['Type: ORIGAMI', 'Type: MANUAL', 'Type: Infrared']:
-                self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
+                self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
                 # Check if value already present
                 outcome = self.ionPanel.onCheckForDuplicates(
                     mzStart=str(mz_start), mzEnd=str(mz_end))
@@ -729,16 +729,18 @@ class data_handling():
                 self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
 
                 if self.config.showRectanges:
+                    label = "{};{:.2f}-{:.2f}".format(document_title, mz_start, mz_end)
                     self.plotsPanel.on_plot_patches(
                         mz_start, 0, (mz_end - mz_start), 100000000000,
                         color=color, alpha=self.config.markerTransparency_1D,
+                        label=label,
                         repaint=True)
 
                 if self.ionPanel.extractAutomatically:
-                    self.presenter.on_extract_2D_from_mass_range_threaded(None, extract_type="new")
+                    self.on_extract_2D_from_mass_range_fcn(None, extract_type="new")
 
             elif document.dataType == 'Type: Multifield Linear DT':
-                self.view.onPaneOnOff(evt=ID_window_multiFieldList, check=True)
+                self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
                 # Check if value already present
                 outcome = self.view.panelLinearDT.bottomP.onCheckForDuplicates(mz_start=str(mz_start),
                                                                                mzEnd=str(mz_end))
@@ -861,7 +863,7 @@ class data_handling():
 
         xmin, xmax, ymin, ymax = dataOut
         if xmin is None or xmax is None or ymin is None or ymax is None:
-            self.SetStatusText("Extraction range was from outside of the plot area. Try again", number=4)
+            self.__update_statusbar("Extraction range was from outside of the plot area. Please try again", 4)
             return
 
         xmin = np.round(xmin, 2)
@@ -884,17 +886,14 @@ class data_handling():
             return
 
         # Reverse values if they are in the wrong order
-        if xmax < xmin:
-            xmax, xmin = xmin, xmax
-        if ymax < ymin:
-            ymax, ymin = ymin, ymax
+        xmin, xmax = check_value_order(xmin, xmax)
+        ymin, ymax = check_value_order(ymin, ymax)
 
         # Extract data
         if self.plot_page == "DT/MS":
             self.on_extract_RT_from_mzdt(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
         elif self.plot_page == "2D":
             self.on_extract_MS_from_heatmap(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
-        self.SetStatusText("", number=4)
 
     def on_open_text_2D_fcn(self, evt):
         if not self.config.threading:
@@ -912,7 +911,7 @@ class data_handling():
         dlg.Destroy()
 
     def on_open_multiple_text_2D_fcn(self, evt):
-        self.view.onPaneOnOff(evt="text", check=True)
+        self.view.on_toggle_panel(evt="text", check=True)
 
         wildcard = "Text files with axis labels (*.txt, *.csv)| *.txt;*.csv"
         dlg = wx.FileDialog(self.view, "Choose a text file. Make sure files contain x- and y-axis labels!",
@@ -1217,7 +1216,6 @@ class data_handling():
         rtX, rtY = pr_spectra.sum_spectrum_to_chromatogram(ydict=ms_dict)
 
         # Add data to document
-
         document = documents()
         document.title = document_title
         document.path = path
@@ -1263,11 +1261,14 @@ class data_handling():
     def on_extract_2D_from_mass_range(self, extract_type="all"):
         """ extract multiple ions = threaded """
 
+        # first check how many items need extracting
+        n_items = self.ionList.GetItemCount()
+
+        n_extracted = 0
         for ion_id in range(self.ionList.GetItemCount()):
             # Extract ion name
             item_information = self.ionPanel.OnGetItemInformation(itemID=ion_id)
             document_title = item_information['document']
-            print("doc", document_title)
 
             # Check if the ion has been assigned a filename
             if document_title == '':
@@ -1306,25 +1307,23 @@ class data_handling():
 
             # Check whether this ion was already extracted
             if extract_type == 'new' and document.gotExtractedIons:
-                try:
-                    if document.IMS2Dions[ion_name]:
-                        self.__update_statusbar("Data was already extracted for the : {} ion".format(ion_name), 4)
-                        continue
-                except KeyError:
-                    pass
+                if ion_name in document.IMS2Dions:
+                    self.__update_statusbar("Data was already extracted for the : {} ion".format(ion_name), 4)
+                    n_items -= 1
+                    continue
 
             elif extract_type == 'new' and document.gotCombinedExtractedIons:
-                try:
-                    if document.IMS2DCombIons[ion_name]:
-                        self.__update_statusbar("Data was already extracted for the : {} ion".format(ion_name), 4)
-                        continue
-                except KeyError:
-                    pass
+                if ion_name in document.IMS2DCombIons:
+                    self.__update_statusbar("Data was already extracted for the : {} ion".format(ion_name), 4)
+                    n_items -= 1
+                    continue
 
             # Extract selected ions
             if extract_type == 'selected' and not self.ionList.IsChecked(index=ion_id):
+                n_items -= 1
                 continue
 
+            n_extracted += 1
             if document.dataType == 'Type: ORIGAMI':
                 self.__on_add_ion_ORIGAMI(
                     item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge)
@@ -1339,7 +1338,7 @@ class data_handling():
                     item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label)
             else:
                 return
-            msg = "Extracted: {}/{}".format((ion_id + 1), self.ionList.GetItemCount())
+            msg = "Extracted: {}/{}".format((n_extracted), n_items)
             self.__update_statusbar(msg, 4)
 
     def on_open_multiple_ML_files_fcn(self, open_type, pathlist=[]):
@@ -1496,7 +1495,7 @@ class data_handling():
         self.on_update_document(document, 'no_refresh')
 
         # Show panel
-        self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
+        self.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
         self.filesList.on_remove_duplicates()
 
         # Update status bar with MS range
@@ -1527,16 +1526,14 @@ class data_handling():
                                                             **extract_kwargs)
         self.plotsPanel.on_plot_RT(rtDataX, rtDataY, 'Scans')
 
-        itemName = "Ion: {}-{} | Drift time: {}-{}".format(np.round(mzStart, 2), np.round(mzEnd),
-                                                           np.round(dtStart, 2), np.round(dtEnd))
-        document.multipleRT[itemName] = {'xvals': rtDataX, 'yvals': rtDataY, 'xlabels': 'Scans'}
-        document.gotMultipleRT = True
+        ion_name = f"Ion: {mzStart:.2f}-{mzEnd:.2f} | Drift time: {dtStart:.2f}-{dtEnd:.2f}"
+        ion_data = {'xvals': rtDataX, 'yvals': rtDataY, 'xlabels': 'Scans'}
 
         msg = f"Extracted RT data for m/z: {mzStart}-{mzEnd} | dt: {dtStart}-{dtEnd}"
         self.__update_statusbar(msg, 3)
 
         # Update document
-        self.on_update_document(document, 'document')
+        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="extracted.chromatogram")
 
     def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
         document = self._on_get_document()
@@ -1556,19 +1553,18 @@ class data_handling():
         xlimits = [document.parameters['startMS'], document.parameters['endMS']]
 
         # Add data to dictionary
-        itemName = "Drift time: {}-{}".format(dtStart, dtEnd)
+        ion_name = "Drift time: {}-{}".format(dtStart, dtEnd)
 
-        document.gotMultipleMS = True
-        document.multipleMassSpectrum[itemName] = {'xvals': msX, 'yvals': msY,
-                                                    'range': [dtStart, dtEnd],
-                                                    'xlabels': 'm/z (Da)',
-                                                    'xlimits': xlimits}
+        ion_data = {'xvals': msX, 'yvals': msY,
+                    'range': [dtStart, dtEnd],
+                    'xlabels': 'm/z (Da)',
+                    'xlimits': xlimits}
 
         # Plot MS
-        name_kwargs = {"document": document.title, "dataset": itemName}
+        name_kwargs = {"document": document.title, "dataset": ion_name}
         self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="1D", **name_kwargs)
         # Update document
-        self.on_update_document(document, 'mass_spectra')
+        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="extracted.spectrum")
 
     # TODO: optimise this function
     # FIX: This function throws an error
@@ -1714,19 +1710,18 @@ class data_handling():
             return
 
         # Add data to dictionary
-        itemName = "Scans: {}-{} | Drift time: {}-{}".format(startScan, endScan,
+        ion_name = "Scans: {}-{} | Drift time: {}-{}".format(startScan, endScan,
                                                              dtStart, dtEnd)
 
-        document.gotMultipleMS = True
-        document.multipleMassSpectrum[itemName] = {'xvals': msX,
-                                                   'yvals': msY,
-                                                   'range': [startScan, endScan],
-                                                   'xlabels': 'm/z (Da)',
-                                                   'xlimits': xlimits}
+        ion_data = {'xvals': msX,
+                    'yvals': msY,
+                    'range': [startScan, endScan],
+                    'xlabels': 'm/z (Da)',
+                    'xlimits': xlimits}
 
-        self.on_update_document(document, 'mass_spectra', expand_item_title=itemName)
+        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="extracted.spectrum")
         # Plot MS
-        name_kwargs = {"document": document.title, "dataset": itemName}
+        name_kwargs = {"document": document.title, "dataset": ion_name}
         self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
         # Set status
         msg = f"Extracted MS data for rt: {startScan}-{endScan}"
@@ -2247,7 +2242,7 @@ class data_handling():
 #                     tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
 
                     # Update aui manager
-                    self.view.onPaneOnOff(evt=ID_window_ionList, check=True)
+                    self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
                 self.view.panelMultipleIons.onRemoveDuplicates(evt=None, limitCols=False)
 
             # Restore file list
@@ -2288,7 +2283,7 @@ class data_handling():
 
                 self.view.panelMML.onRemoveDuplicates(evt=None, limitCols=False)
                 # Update aui manager
-                self.view.onPaneOnOff(evt=ID_window_multipleMLList, check=True)
+                self.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
 
             # Restore calibration list
             if document.dataType == 'Type: CALIBRANT':
@@ -2320,7 +2315,7 @@ class data_handling():
                 # Check for duplicates
                 self.view.panelCCS.topP.onRemoveDuplicates(evt=None)
                 # Update aui manager
-                self.view.onPaneOnOff(evt=ID_window_ccsList, check=True)
+                self.view.on_toggle_panel(evt=ID_window_ccsList, check=True)
 
             # Restore ion list
             if document.dataType == 'Type: Multifield Linear DT':
@@ -2353,7 +2348,7 @@ class data_handling():
                                    document.title])
                 self.view.panelLinearDT.bottomP.onRemoveDuplicates(evt=None)
 
-                self.view.onPaneOnOff(evt=ID_window_multiFieldList, check=True)
+                self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
                 self.view._mgr.Update()
 
         # Update documents tree
@@ -2605,7 +2600,7 @@ class data_handling():
             logger.error("You must select wider dt/mz range to continue")
             return
         # replot
-        self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel,
+        self.plotsPanel.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel,
                                           override=False, update_extents=False)
         logger.info("Sub-sampling took {:.4f}".format(ttime() - tstart))
 
@@ -2711,7 +2706,7 @@ class data_handling():
             document.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
             # Plot
             name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-            self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+            self.plotsPanel.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
 
             # Update status bar with MS range
             self.view.SetStatusText("{}-{}".format(document.parameters['startMS'],
@@ -2772,7 +2767,7 @@ class data_handling():
         if replot:
             # Plot data
             kwargsMS = {}
-            self.view.panelPlots.on_plot_MS(msX=msX, msY=msY,
+            self.plotsPanel.on_plot_MS(msX=msX, msY=msY,
                                             override=False, **kwargsMS)
 
         if return_data:
@@ -2851,14 +2846,13 @@ class data_handling():
                 continue
 
             itemInfo = self.ionPanel.OnGetItemInformation(itemID=ion_id)
-            print(itemInfo)
             document_title = itemInfo["document"]
             document = self._on_get_document(document_title)
 
-            recalculate_mode = False
-            if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-                and document.gotCombinedExtractedIons):
-                recalculate_mode = True
+#             recalculate_mode = False
+#             if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
+#                 and document.gotCombinedExtractedIons):
+#                 recalculate_mode = True
 
             # Check that this data was opened in ORIGAMI mode and has extracted data
             if document.dataType == 'Type: ORIGAMI' and document.gotExtractedIons:
@@ -2879,29 +2873,57 @@ class data_handling():
                 self.ionList.SetStringItem(
                     ion_id, self.config.peaklistColNames['method'], self.config.origami_acquisition)
 
-            if recalculate_mode:
-                try:
-                    startScan = document.IMS2DCombIons[ion_name]['parameters']['firstVoltage']
-                    startVoltage = document.IMS2DCombIons[ion_name]['parameters']['startV']
-                    endVoltage = document.IMS2DCombIons[ion_name]['parameters']['endV']
-                    stepVoltage = document.IMS2DCombIons[ion_name]['parameters']['stepV']
-                    scansPerVoltage = document.IMS2DCombIons[ion_name]['parameters']['spv']
-                    expIncrement = document.IMS2DCombIons[ion_name]['parameters']['expIncrement']
-                    expPercentage = document.IMS2DCombIons[ion_name]['parameters']['expPercent']
-                    boltzmannOffset = document.IMS2DCombIons[ion_name]['parameters']['dx']
-                    scanList = document.IMS2DCombIons[ion_name]['parameters']['inputList']
-                except Exception:
-                    pass
-            else:
-                startScan = self.config.origami_startScan
-                startVoltage = self.config.origami_startVoltage
-                endVoltage = self.config.origami_endVoltage
-                stepVoltage = self.config.origami_stepVoltage
-                scansPerVoltage = self.config.origami_spv
-                expIncrement = self.config.origami_exponentialIncrement
-                expPercentage = self.config.origami_exponentialPercentage
-                boltzmannOffset = self.config.origami_boltzmannOffset
-                scanList = self.config.origamiList
+            # get origami-ms settings from the metadata
+            origami_settings = document.metadata.get("origami_ms", None)
+            if origami_settings is None:
+                origami_settings = {
+                    "origami_acquisition": self.config.origami_acquisition,
+                    "origami_startScan": self.config.origami_startScan,
+                    "origami_spv": self.config.origami_spv,
+                    "origami_startVoltage": self.config.origami_startVoltage,
+                    "origami_endVoltage": self.config.origami_endVoltage,
+                    "origami_stepVoltage": self.config.origami_stepVoltage,
+                    "origami_boltzmannOffset": self.config.origami_boltzmannOffset,
+                    "origami_exponentialPercentage": self.config.origami_exponentialPercentage,
+                    "origami_exponentialIncrement": self.config.origami_exponentialIncrement,
+                    "origami_cv_spv_list": []
+                    }
+
+            # unpack settings
+            method = origami_settings["origami_acquisition"]
+            startScan = origami_settings["origami_startScan"]
+            startVoltage = origami_settings["origami_startVoltage"]
+            endVoltage = origami_settings["origami_endVoltage"]
+            stepVoltage = origami_settings["origami_stepVoltage"]
+            scansPerVoltage = origami_settings["origami_spv"]
+            expIncrement = origami_settings["origami_exponentialIncrement"]
+            expPercentage = origami_settings["origami_exponentialPercentage"]
+            boltzmannOffset = origami_settings["origami_boltzmannOffset"]
+            origami_cv_spv_list = origami_settings["origami_cv_spv_list"]
+
+#             if recalculate_mode:
+#                 try:
+#                     startScan = document.IMS2DCombIons[ion_name]['parameters']['firstVoltage']
+#                     startVoltage = document.IMS2DCombIons[ion_name]['parameters']['startV']
+#                     endVoltage = document.IMS2DCombIons[ion_name]['parameters']['endV']
+#                     stepVoltage = document.IMS2DCombIons[ion_name]['parameters']['stepV']
+#                     scansPerVoltage = document.IMS2DCombIons[ion_name]['parameters']['spv']
+#                     expIncrement = document.IMS2DCombIons[ion_name]['parameters']['expIncrement']
+#                     expPercentage = document.IMS2DCombIons[ion_name]['parameters']['expPercent']
+#                     boltzmannOffset = document.IMS2DCombIons[ion_name]['parameters']['dx']
+#                     scanList = document.IMS2DCombIons[ion_name]['parameters']['inputList']
+#                 except Exception:
+#                     pass
+#             else:
+#                 startScan = self.config.origami_startScan
+#                 startVoltage = self.config.origami_startVoltage
+#                 endVoltage = self.config.origami_endVoltage
+#                 stepVoltage = self.config.origami_stepVoltage
+#                 scansPerVoltage = self.config.origami_spv
+#                 expIncrement = self.config.origami_exponentialIncrement
+#                 expPercentage = self.config.origami_exponentialPercentage
+#                 boltzmannOffset = self.config.origami_boltzmannOffset
+#                 scanList = self.config.origamiList
 
             # LINEAR METHOD
             if method == 'Linear':
@@ -2921,7 +2943,8 @@ class data_handling():
 
             # USER-DEFINED/LIST METHOD
             elif method == 'User-defined':
-                self.__combine_origami_user_defined(zvals, startScan, scanList)
+                zvals, xlabels, scan_list, parameters = self.__combine_origami_user_defined(
+                    zvals, startScan, origami_cv_spv_list)
 
             if zvals[0] is None:
                 msg = "With your current input, there would be too many scans in your file! " + \
@@ -2970,9 +2993,9 @@ class data_handling():
                                                 'color': color,
                                                 'min_threshold': min_threshold,
                                                 'max_threshold': max_threshold,
-                                                'scanList': scanList,
+                                                'scanList': scan_list,
                                                 'parameters': parameters}
-            document.combineIonsList = scanList
+            document.combineIonsList = scan_list
             # Add 1D data to document object
             document.gotCombinedExtractedIonsRT = True
             document.IMSRTCombIons[ion_name] = {'xvals': xlabels,
@@ -2981,3 +3004,48 @@ class data_handling():
 
             # Update document
             self.on_update_document(document, 'combined_ions')
+
+    def on_highlight_selected_ions(self, evt):
+        """
+        This function adds rectanges and markers to the m/z window
+        """
+        document = self._on_get_document()
+        document_title = self.documentTree.on_enable_document()
+
+        if document.dataType == 'Type: ORIGAMI' or document.dataType == 'Type: MANUAL':
+            peaklist = self.ionList
+        elif document.dataType == 'Type: Multifield Linear DT':
+            peaklist = self.view.panelLinearDT.bottomP.peaklist
+        else:
+            return
+
+        if not document.gotMS:
+            return
+
+        name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
+        self.plotsPanel.on_plot_MS(document.massSpectrum['xvals'],
+                                        document.massSpectrum['yvals'],
+                                        xlimits=document.massSpectrum['xlimits'],
+                                        **name_kwargs)
+        # Show rectangles
+        # Need to check whether there were any ions in the table already
+        last = peaklist.GetItemCount() - 1
+        ymin = 0
+        height = 100000000000
+        repaint = False
+        for item in range(peaklist.GetItemCount()):
+            itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=item)
+            filename = itemInfo['document']
+            if filename != document_title:
+                continue
+            label = "{};{}-{}".format(filename, itemInfo["start"], itemInfo["end"])
+            xmin = itemInfo['start']
+            width = itemInfo['end'] - xmin
+            color = convertRGB255to1(itemInfo['color'])
+            if np.sum(color) <= 0:
+                color = self.config.markerColor_1D
+            if item == last:
+                repaint = True
+            self.plotsPanel.on_plot_patches(xmin, ymin, width, height, color=color,
+                                            alpha=self.config.markerTransparency_1D,
+                                            label=label, repaint=repaint)

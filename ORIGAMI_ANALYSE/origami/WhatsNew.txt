@@ -45,9 +45,60 @@
 
 Interactive:
     - add pie chart
+    
 
 ################################################################################
 ################################################################################
+################################################################################
+# v1.3.0.0
+Code:
+- migrated ORIGAMI to Python3
+- migrated ORIGAMI GUI to wxPython 4
+- cleaned up a lot of poorly designed code
+- removed a lot of old, not used code which should speed things up
+
+Document:
+- added new keyword "metadata" which will store parameters for verious processes
+
+
+Plotting:
+- [new] DT/MS - added smart-zoom option which will speed-up data viewing for very large arrays
+    to activate, right-click and select "Customise smart-zoom" where you can adjust settings
+
+Document tree:
+- [improved] when deleting items from the "Drift time (2D, EIC)" sub-tree, patches corresponding to the ion will be 
+    automatically removed from the MS plot
+- [improved] when adding new data to the document, the document tree should stop flickering and constantly resetting
+    the view and rather expand the current nodes
+
+Processing:
+- [changed] moved ORIGAMI-MS settings away from the processing window. Now, in order to setup FILE specific settings,
+    you must right-click on the document in the Document tree and select "Action -> Setup ORIGAMI-MS settings..." which
+    will open a new window with the settings. Settings for each file are now stored within the file metadata, so it is less
+    likely to get things mixed up. 
+    - as a consequence, the ORIGAMI-MS panel in Processing was removed
+    - as a consequence, the ORIGAMI-MS settings section in Ion settings was removed
+// TODO: It also features a small plot area which will show you the settings profile that was used
+- [changed] removed the settings "DT/MS binning parameters" in Process -> Mass spectrum as it was not intuitive. From
+    now on in order to change DT/MS settings, you must navigate to the Document Tree view, right-click on the DT/MS
+    item in the Document and select Open DT/MS extraction panel... where you can adjust the m/z range and bin size. You
+    can also select whether data should be extracted (to visualise), saved to file or added to the document. This menu 
+    can also be accessed by going to Document -> Action -> Open DT/MS extraction panel...
+
+Ion panel:
+- [fix] when assigning single color to multiple items and the action was cancelled, an error would occur
+- [improved] renamed a couple of menu items to make them clearer
+- [improved] when double-clicking on an item, a smaller editor will be opened which will exclude all ORIGAMI-MS settings
+- [improved] item editor now has correct order of items which can be explored with Tab and Shift+Tab keys
+- [changed] moved the option "Create blank COMPARISON ..." from the Add... menu to "Overlay..." menu
+
+Text panel:
+- [improved] item editor now has correct order of items which can be explored with Tab and Shift+Tab keys
+
+Annotations panel:
+- [changed] changed the label "Multiple annotations" to "Multiply annotations (selected)" (found in Action...)
+
+
 ################################################################################
 # v1.2.0.4 / v1.2.1
 # TODO: change testkDa from 10,000 to user-defined value. Also change the num of d.p 

@@ -101,7 +101,6 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         # make gui items
         self.make_gui()
 
-#         self.CentreOnScreen()
         self.Layout()
         self.SetSize((-1, 500))
         self.SetMinSize((521, 300))
@@ -110,9 +109,9 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         # bind
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
         self.onPopulateTable()
-        self.onEnableDisableItems(None)
+        self.on_toggle_controls(None)
 
         # add listener
         pub.subscribe(self.add_annotation_from_mouse_evt, 'mark_annotation')
@@ -123,7 +122,6 @@ class panel_peak_annotation_editor(wx.MiniFrame):
             pass
 
         print(("Startup took {:.3f} seconds".format(ttime() - tstart)))
-    # ----
 
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
@@ -153,7 +151,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
     def make_gui(self):
 
         # make panel
-        panel = self.makePanel()
+        panel = self.make_panel()
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -163,7 +161,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
 
-    def makePeaklist(self, panel):
+    def make_peaklist(self, panel):
 
         self.annotation_list = {'check': 0, 'min': 1, 'max': 2, 'position': 3,
                                 'intensity': 4, 'charge': 5, 'label': 6, 'color': 7,
@@ -182,13 +180,13 @@ class panel_peak_annotation_editor(wx.MiniFrame):
 
         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
 
-    def makePanel(self):
+    def make_panel(self):
 
         panel = wx.Panel(self, -1, size=(-1, -1))
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         # make peaklist
-        self.makePeaklist(panel)
+        self.make_peaklist(panel)
 
         # make editor
         min_label = wx.StaticText(panel, -1, "min band (x):")
@@ -270,8 +268,8 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         self.addBtn.Bind(wx.EVT_BUTTON, self.onAddAnnotation)
         self.removeBtn.Bind(wx.EVT_BUTTON, self.onRemove)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
-        self.showBtn.Bind(wx.EVT_BUTTON, self.onPlotTool)
-        self.actionBtn.Bind(wx.EVT_BUTTON, self.onActionTool)
+        self.showBtn.Bind(wx.EVT_BUTTON, self.on_plot_tools)
+        self.actionBtn.Bind(wx.EVT_BUTTON, self.on_action_tools)
         self.label_format.Bind(wx.EVT_COMBOBOX, self.onUpdateLabel)
 
         # button grid
@@ -335,7 +333,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
 
         return panel
 
-    def onEnableDisableItems(self, evt):
+    def on_toggle_controls(self, evt):
 
         #         add_arrow = self.add_arrow_to_peak.GetValue()
         #         if add_arrow:
@@ -348,7 +346,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         if evt is not None:
             evt.Skip()
 
-    def onMultiplyAnnotation(self, evt):
+    def on_multiple_annotations(self, evt):
         import copy
 
         rows = self.peaklist.GetItemCount()
@@ -394,7 +392,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                                              self.kwargs['document'],
                                              self.kwargs['dataset'])
 
-    def onActionTool(self, evt):
+    def on_action_tools(self, evt):
         label_format = self.label_format.GetStringSelection()
 
         self.Bind(wx.EVT_MENU, self.on_change_item_parameter, id=ID_annotPanel_assignChargeState_selected)
@@ -405,7 +403,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.onOpenPeakList, id=ID_annotPanel_addAnnotations)
         self.Bind(wx.EVT_MENU, self.onSavePeaklist, id=ID_annotPanel_savePeakList_selected)
         self.Bind(wx.EVT_MENU, self.onCustomiseParameters, id=ID_annotPanel_otherSettings)
-        self.Bind(wx.EVT_MENU, self.onMultiplyAnnotation, id=ID_annotPanel_multipleAnnotation)
+        self.Bind(wx.EVT_MENU, self.on_multiple_annotations, id=ID_annotPanel_multipleAnnotation)
 
         menu = wx.Menu()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_annotPanel_otherSettings,
@@ -414,7 +412,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                                      help_text=''))
         menu.AppendSeparator()
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_annotPanel_multipleAnnotation,
-                                     text="Multiple annotation",
+                                     text="Multiply annotation (selected)",
                                      bitmap=None))
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_annotPanel_addAnnotations,
                                      text='Add list of ions (.csv/.txt)',
@@ -439,13 +437,13 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
-    def onPlotTool(self, evt):
+    def on_plot_tools(self, evt):
 
         self.Bind(wx.EVT_MENU, self.onShowOnPlot, id=ID_annotPanel_show_charge)
         self.Bind(wx.EVT_MENU, self.onShowOnPlot, id=ID_annotPanel_show_label)
         self.Bind(wx.EVT_MENU, self.onShowOnPlot, id=ID_annotPanel_show_mzAndIntensity)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_annotPanel_show_labelsAtIntensity)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_annotPanel_show_adjustLabelPosition)
+        self.Bind(wx.EVT_TOOL, self.on_check_tools, id=ID_annotPanel_show_labelsAtIntensity)
+        self.Bind(wx.EVT_TOOL, self.on_check_tools, id=ID_annotPanel_show_adjustLabelPosition)
 
         menu = wx.Menu()
         self.showLabelsAtIntensity_check = menu.AppendCheckItem(ID_annotPanel_show_labelsAtIntensity,
@@ -465,7 +463,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
-    def onCheckTool(self, evt):
+    def on_check_tools(self, evt):
         """ Check/uncheck menu item """
 
         evtID = evt.GetId()
@@ -803,8 +801,8 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         for row in range(rows):
             self.peaklist.CheckItem(row, check=self.check_all)
 
-    def onItemSelected(self, evt):
-        self.currentItem = evt.m_itemIndex
+    def on_select_item(self, evt):
+#         self.currentItem = evt.m_itemIndex
 
         self.item_loading_lock = True
 
@@ -981,7 +979,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
             return
 
         # trigger events
-        self.onEnableDisableItems(None)
+        self.on_toggle_controls(None)
 
         min_value = str2num(self.min_value.GetValue())
         max_value = str2num(self.max_value.GetValue())

@@ -129,7 +129,7 @@ class MyFrame(wx.Frame):
         self.config.startTime = (strftime("%H-%M-%S_%d-%m-%Y", gmtime()))
 
         # Bind commands to events
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_IDLE, self.OnIdle)
 
@@ -156,7 +156,7 @@ class MyFrame(wx.Frame):
         self.data_processing = data_processing(self.presenter, self, self.config)
         self.data_handling = data_handling(self.presenter, self, self.config)
 
-        self.makeToolbar()
+        self.make_toolbar()
 
         # Panel to store document information
         self._mgr.AddPane(self.panelDocuments, wx.aui.AuiPaneInfo().Left().Caption('Documents')
@@ -240,30 +240,30 @@ class MyFrame(wx.Frame):
         # Setup listeners
         pub.subscribe(self.on_motion, 'motion_xy')
         pub.subscribe(self.motion_range, 'motion_range')
-        pub.subscribe(self.on_distance, 'startX')
-        pub.subscribe(self.presenter.OnChangedRMSF, 'changedZoom')
-        pub.subscribe(self.onMode, 'motion_mode')
+        pub.subscribe(self.on_distance, 'change_x_axis_start')
+        pub.subscribe(self.presenter.OnChangedRMSF, 'change_zoom_rmsd')
+        pub.subscribe(self.on_event_mode, 'motion_mode')
         pub.subscribe(self.data_handling.on_update_DTMS_zoom, 'change_zoom_dtms')
 
         # Load other parts
         self._mgr.Update()
         # self.makeBindings()
-        self.statusBar()
+        self.make_statusbar()
         self.make_menubar()
         self.SetMenuBar(self.mainMenubar)
-        self.makeShortcuts()
+        self.make_shortcuts()
         self.Maximize(True)
 
         # bind events
-        self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self.pageClosed)
-        self.Bind(wx.aui.EVT_AUI_PANE_RESTORE, self.pageRestored)
+        self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self.on_closed_page)
+        self.Bind(wx.aui.EVT_AUI_PANE_RESTORE, self.on_restored_page)
 
         # Fire up a couple of events
-        self._onUpdateWindowSettings()
-        self.onPaneOnOff(evt=None)
-        self._onToggleOnStart()
+        self.on_update_panel_config()
+        self.on_toggle_panel(evt=None)
+        self.on_toggle_panel_at_start()
 
-    def _onUpdateWindowSettings(self):
+    def on_update_panel_config(self):
         self.config._windowSettings['Documents']['id'] = ID_window_documentList
         self.config._windowSettings['Peak list']['id'] = ID_window_ionList
         self.config._windowSettings['CCS calibration']['id'] = ID_window_ccsList
@@ -271,9 +271,8 @@ class MyFrame(wx.Frame):
         self.config._windowSettings['Text files']['id'] = ID_window_textList
         self.config._windowSettings['Multiple files']['id'] = ID_window_multipleMLList
         self.config._windowSettings['Log']['id'] = ID_window_logWindow
-        return None
 
-    def _onToggleOnStart(self):
+    def on_toggle_panel_at_start(self):
         panelDict = {'Documents': ID_window_documentList,
                      'Multiple files': ID_window_multipleMLList,
                      'Peak list': ID_window_ionList,
@@ -287,7 +286,7 @@ class MyFrame(wx.Frame):
                       self.panelMultipleIons, self.panelMultipleText,
                       self.panelCCS, self.panelLinearDT]:
             if self._mgr.GetPane(panel).IsShown():
-                self.onFindToggleBy_ID(find_id=panelDict[self._mgr.GetPane(panel).caption], check=True)
+                self.on_find_toggle_by_id(find_id=panelDict[self._mgr.GetPane(panel).caption], check=True)
 
     def _onUpdatePlotData(self, plot_type=None):
         if plot_type == '2D':
@@ -315,21 +314,21 @@ class MyFrame(wx.Frame):
             self.plot_data['DT/MS'] = _data[0]
             self.plot_scale['DT/MS'] = [_yscale, _xscale]
 
-    def pageClosed(self, evt):
+    def on_closed_page(self, evt):
         # Keep track of which window is closed
         self.config._windowSettings[evt.GetPane().caption]['show'] = False
         # fire-up events
         try:
             evtID = self.onCheckToggleID(panel=evt.GetPane().caption)
-            self.onPaneOnOff(evt=evtID)
+            self.on_toggle_panel(evt=evtID)
         except Exception:
             pass
 
-    def pageRestored(self, evt):
+    def on_restored_page(self, evt):
         # Keep track of which window is restored
         self.config._windowSettings[evt.GetPane().caption]['show'] = True
         evtID = self.onCheckToggleID(panel=evt.GetPane().caption)
-        self.onPaneOnOff(evt=evtID)
+        self.on_toggle_panel(evt=evtID)
         # fire-up events
 
         if evt is not None:
@@ -344,7 +343,7 @@ class MyFrame(wx.Frame):
     #     self.Bind(wx.EVT_TOOL, self.presenter.on_overlay_2D, id=ID_overlayTextFromList)
     #     self.Bind(wx.EVT_TOOL, self.presenter.onExtractDToverMZrangeMultiple, id=ID_extractDriftVoltagesForEachIon)
 
-    def statusBar(self):
+    def make_statusbar(self):
 
         self.mainStatusbar = self.CreateStatusBar(6, wx.STB_SIZEGRIP, wx.ID_ANY)
         # 0 = current x y pos
@@ -358,7 +357,7 @@ class MyFrame(wx.Frame):
         self.mainStatusbar.SetFont(
             wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
 
-    def onMode(self, dataOut):
+    def on_event_mode(self, dataOut):
         shift, ctrl, alt, add2table, wheel, zoom, dragged = dataOut
         self.mode = ''
         myCursor = wx.StockCursor(wx.CURSOR_ARROW)
@@ -478,9 +477,9 @@ class MyFrame(wx.Frame):
                                             text='Settings: &Extract data\tShift+1',
                                             bitmap=self.icons.iconsLib['process_extract_16']))
 
-        menuProcess.AppendItem(makeMenuItem(parent=menuProcess, id=ID_processSettings_ORIGAMI,
-                                            text='Settings: &ORIGAMI\tShift+2',
-                                            bitmap=self.icons.iconsLib['process_origami_16']))
+#         menuProcess.AppendItem(makeMenuItem(parent=menuProcess, id=ID_processSettings_ORIGAMI,
+#                                             text='Settings: &ORIGAMI\tShift+2',
+#                                             bitmap=self.icons.iconsLib['process_origami_16']))
 
         menuProcess.AppendItem(makeMenuItem(parent=menuProcess, id=ID_processSettings_MS,
                                             text='Settings: &Process mass spectra\tShift+3',
@@ -799,7 +798,7 @@ class MyFrame(wx.Frame):
                   id=ID_load_masslynx_raw_ms_only)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_text_MS_fcn, id=ID_load_text_MS)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_clipboard_MS, id=ID_load_clipboard_spectrum)
-        self.Bind(wx.EVT_MENU, self.OnClose, id=ID_quit)
+        self.Bind(wx.EVT_MENU, self.on_close, id=ID_quit)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_interactive, id=ID_addNewInteractiveDoc)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_manual, id=ID_addNewManualDoc)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
@@ -810,7 +809,7 @@ class MyFrame(wx.Frame):
 
         # PROCESS MENU
         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ExtractData)
-        self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ORIGAMI)
+#         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ORIGAMI)
         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_FindPeaks)
         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_MS)
         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_2D)
@@ -869,14 +868,14 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onCheckToggle, id=ID_importAtStart_CCS)
 
         # VIEW MENU
-        self.Bind(wx.EVT_MENU, self.onPaneOnOff, id=ID_window_all)
-        self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.documentsPage)
-        self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.mzTable)
-        self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.multifieldTable)
-        self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.textTable)
-        self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.multipleMLTable)
-        self.Bind(wx.EVT_MENU, self.onPaneOnOff, self.ccsTable)
-        self.Bind(wx.EVT_MENU, self.onPaneOnOff, id=ID_window_logWindow)
+        self.Bind(wx.EVT_MENU, self.on_toggle_panel, id=ID_window_all)
+        self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.documentsPage)
+        self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.mzTable)
+        self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.multifieldTable)
+        self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.textTable)
+        self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.multipleMLTable)
+        self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.ccsTable)
+        self.Bind(wx.EVT_MENU, self.on_toggle_panel, id=ID_window_logWindow)
         self.Bind(wx.EVT_MENU, self.onWindowMaximize, id=ID_windowMaximize)
         self.Bind(wx.EVT_MENU, self.onWindowIconize, id=ID_windowMinimize)
         self.Bind(wx.EVT_MENU, self.onWindowFullscreen, id=ID_windowFullscreen)
@@ -1159,20 +1158,8 @@ class MyFrame(wx.Frame):
         self._fullscreen = not self._fullscreen
         self.ShowFullScreen(self._fullscreen, style=wx.FULLSCREEN_ALL & ~
                             (wx.FULLSCREEN_NOMENUBAR | wx.FULLSCREEN_NOSTATUSBAR))
-    # ----
 
-    def onHelpAbout(self, evt):
-        """Show About mMass panel."""
-
-        about = panelAbout(self, self.presenter,
-                           'About ORIGAMI',
-                           self.config,
-                           self.icons)
-        about.Centre()
-        about.Show()
-        about.SetFocus()
-
-    def makeShortcuts(self):
+    def make_shortcuts(self):
         """
         Setup shortcuts for the GUI application
         """
@@ -1223,7 +1210,7 @@ class MyFrame(wx.Frame):
         menu.Destroy()
         self.SetFocus()
 
-    def makeToolbar(self):
+    def make_toolbar(self):
 
         # Bind events
         #         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_load_origami_masslynx_raw)
@@ -1319,9 +1306,9 @@ class MyFrame(wx.Frame):
         self.mainToolbar_horizontal.AddLabelTool(
             ID_processSettings_ExtractData, "", self.icons.iconsLib['process_extract_16'],
             shortHelp="Settings: &Extract data\tShift+1")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_ORIGAMI, "", self.icons.iconsLib['process_origami_16'],
-            shortHelp="Settings: &ORIGAMI\tShift+2")
+#         self.mainToolbar_horizontal.AddLabelTool(
+#             ID_processSettings_ORIGAMI, "", self.icons.iconsLib['process_origami_16'],
+#             shortHelp="Settings: &ORIGAMI\tShift+2")
         self.mainToolbar_horizontal.AddLabelTool(
             ID_processSettings_MS, "", self.icons.iconsLib['process_ms_16'],
             shortHelp="Settings: &Process mass spectra\tShift+3")
@@ -1342,26 +1329,7 @@ class MyFrame(wx.Frame):
         # Actually realise the toolbar
         self.mainToolbar_horizontal.Realize()
 
-    def checkIfWindowsAreShown(self, evt):
-        """ Check which windows are currently shown in the GUI"""
-
-        if not self.panelDocuments.IsShown():
-            self.documentsPage.Check(False)
-        if not self.panelMultipleIons.IsShown():
-            self.mzTable.Check(False)
-        if not self.panelLinearDT.IsShown():
-            self.multifieldTable.Check(False)
-        if not self.panelMultipleText.IsShown():
-            self.textTable.Check(False)
-        if not self.panelMML.IsShown():
-            self.multipleMLTable.Check(False)
-        if not self.panelCCS.IsShown():
-            self.ccsTable.Check(False)
-
-        if evt is not None:
-            evt.Skip()
-
-    def onPaneOnOff(self, evt, check=None):
+    def on_toggle_panel(self, evt, check=None):
 
         if isinstance(evt, int):
             evtID = evt
@@ -1395,7 +1363,7 @@ class MyFrame(wx.Frame):
                     self._mgr.GetPane(self.panelDocuments).Hide()
                     self.config._windowSettings['Documents']['show'] = False
                 self.documentsPage.Check(self.config._windowSettings['Documents']['show'])
-                self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Documents']['show'])
+                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings['Documents']['show'])
             elif evtID == ID_window_ccsList:
                 if not self.panelCCS.IsShown() or check or not self.ccsTable.IsChecked():
                     self._mgr.GetPane(self.panelCCS).Show()
@@ -1404,7 +1372,7 @@ class MyFrame(wx.Frame):
                     self._mgr.GetPane(self.panelCCS).Hide()
                     self.config._windowSettings['CCS calibration']['show'] = False
                 self.ccsTable.Check(self.config._windowSettings['CCS calibration']['show'])
-                self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['CCS calibration']['show'])
+                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings['CCS calibration']['show'])
             elif evtID == ID_window_ionList:
                 if not self.panelMultipleIons.IsShown() or check or not self.mzTable.IsChecked():
                     self._mgr.GetPane(self.panelMultipleIons).Show()
@@ -1413,7 +1381,7 @@ class MyFrame(wx.Frame):
                     self._mgr.GetPane(self.panelMultipleIons).Hide()
                     self.config._windowSettings['Peak list']['show'] = False
                 self.mzTable.Check(self.config._windowSettings['Peak list']['show'])
-                self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Peak list']['show'])
+                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings['Peak list']['show'])
             elif evtID == ID_window_multipleMLList:
                 if not self.panelMML.IsShown() or check or not self.multipleMLTable.IsChecked():
                     self._mgr.GetPane(self.panelMML).Show()
@@ -1422,7 +1390,7 @@ class MyFrame(wx.Frame):
                     self._mgr.GetPane(self.panelMML).Hide()
                     self.config._windowSettings['Multiple files']['show'] = False
                 self.multipleMLTable.Check(self.config._windowSettings['Multiple files']['show'])
-                self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Multiple files']['show'])
+                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings['Multiple files']['show'])
             elif evtID == ID_window_textList:
                 if not self.panelMultipleText.IsShown() or check or not self.textTable.IsChecked():
                     self._mgr.GetPane(self.panelMultipleText).Show()
@@ -1431,7 +1399,7 @@ class MyFrame(wx.Frame):
                     self._mgr.GetPane(self.panelMultipleText).Hide()
                     self.config._windowSettings['Text files']['show'] = False
                 self.textTable.Check(self.config._windowSettings['Text files']['show'])
-                self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Text files']['show'])
+                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings['Text files']['show'])
             elif evtID == ID_window_multiFieldList:
                 if not self.panelLinearDT.IsShown() or check or not self.multifieldTable.IsChecked():
                     self._mgr.GetPane(self.panelLinearDT).Show()
@@ -1440,7 +1408,7 @@ class MyFrame(wx.Frame):
                     self._mgr.GetPane(self.panelLinearDT).Hide()
                     self.config._windowSettings['Linear Drift Cell']['show'] = False
                 self.multifieldTable.Check(self.config._windowSettings['Linear Drift Cell']['show'])
-                self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Linear Drift Cell']['show'])
+                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings['Linear Drift Cell']['show'])
             elif evtID == ID_window_logWindow:
                 if not self.panelLog.IsShown() or not self.window_logWindow.IsChecked():
                     self.panelLog.Show()
@@ -1451,12 +1419,12 @@ class MyFrame(wx.Frame):
                     self.panelLog.Hide()
                     self.config._windowSettings['Log']['show'] = False
                 self.window_logWindow.Check(self.config._windowSettings['Log']['show'])
-                self.onFindToggleBy_ID(find_id=evtID, check=self.config._windowSettings['Log']['show'])
+                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings['Log']['show'])
             elif evtID == ID_window_all:
                 for key in self.config._windowSettings:
                     self.config._windowSettings[key]['show'] = True
 
-                self.onFindToggleBy_ID(check_all=True)
+                self.on_find_toggle_by_id(check_all=True)
 
                 for panel in [self.panelDocuments, self.panelMML,
                               self.panelMultipleIons, self.panelMultipleText,
@@ -1498,7 +1466,7 @@ class MyFrame(wx.Frame):
 
         self._mgr.Update()
 
-    def onFindToggleBy_ID(self, find_id=None, check=None, check_all=False):
+    def on_find_toggle_by_id(self, find_id=None, check=None, check_all=False):
         """
         Find toggle item by id in either horizontal/vertiacal toolbar
         """
@@ -1524,7 +1492,7 @@ class MyFrame(wx.Frame):
                      'Log': ID_window_logWindow}
         return panelDict[panel]
 
-    def OnClose(self, event):
+    def on_close(self, event):
 
         if len(self.presenter.documentsDict) > 0:
             if len(self.presenter.documentsDict) == 1:
@@ -1552,7 +1520,7 @@ class MyFrame(wx.Frame):
 
         # Try unsubscribing events
         try:
-            self.publisherOff()
+            self.disable_publisher()
         except Exception:
             print("Could not disable publisher")
             pass
@@ -1590,12 +1558,12 @@ class MyFrame(wx.Frame):
 
         self.Destroy()
 
-    def publisherOff(self):
+    def disable_publisher(self):
         """ Unsubscribe from all events """
         pub.unsubscribe(self.on_motion, 'motion_xy')
         pub.unsubscribe(self.motion_range, 'motion_range')
         pub.unsubscribe(self.on_distance, 'startX')
-        pub.unsubscribe(self.presenter.OnChangedRMSF, 'changedZoom')
+        pub.unsubscribe(self.presenter.OnChangedRMSF, 'change_zoom_rmsd')
 
     def on_distance(self, startX):
         # Simple way of setting the start point
@@ -1679,293 +1647,30 @@ class MyFrame(wx.Frame):
     def motion_range(self, dataOut):
         minx, maxx, miny, maxy = dataOut
         if self.mode == 'Add data':
-            self.SetStatusText("Range X=%.2f-%.2f Y=%.2f-%.2f" % (minx, maxx, miny, maxy), number=4)
+            self.SetStatusText(f"X={minx:.3f}:{maxx:.3f} | Y={miny:.3f}:{maxy:.3f}", number=4)
         else:
             self.SetStatusText("", number=4)
 
-    def OnSize(self, event):
+    def OnSize(self, evt):
         self.resized = True  # set dirty
 
-    def OnIdle(self, event):
+    def OnIdle(self, evt):
         if self.resized:
-            # take action if the dirty flag is set
-            self.resized = False  # reset the flag
+            self.resized = False
 
-    def getYvalue(self, msList, mzStart, mzEnd):
-        """
-        This helper function determines the maximum value of X-axis
-        """
-        msList = getNarrow1Ddata(data=msList, mzRange=(mzStart, mzEnd))
-        mzYMax = np.round(findPeakMax(data=msList) * 100, 1)
-        return mzYMax
+    def onHelpAbout(self, evt):
+        """Show About mMass panel."""
 
-    def extract_from_plot_2D(self, dataOut):
-        self.currentPage = self.panelPlots.mainBook.GetPageText(self.panelPlots.mainBook.GetSelection())
-
-        if self.currentPage == "DT/MS":
-            xlabel = self.panelPlots.plotMZDT.plot_labels.get("xlabel", "m/z")
-            ylabel = self.panelPlots.plotMZDT.plot_labels.get("ylabel", "Drift time (bins)")
-        elif self.currentPage == "2D":
-            xlabel = self.panelPlots.plot2D.plot_labels.get("xlabel", "Scans")
-            ylabel = self.panelPlots.plot2D.plot_labels.get("ylabel", "Drift time (bins)")
-
-        xmin, xmax, ymin, ymax = dataOut
-        if xmin is None or xmax is None or ymin is None or ymax is None:
-            self.SetStatusText("Extraction range was from outside of the plot area. Try again", number=4)
-            return
-
-        xmin = np.round(xmin, 2)
-        xmax = np.round(xmax, 2)
-
-        if ylabel == "Drift time (bins)":
-            ymin = int(np.round(ymin, 0))
-            ymax = int(np.round(ymax, 0))
-        elif ylabel in ["Drift time (ms)", "Arrival time (ms)"]:
-            ymin, ymax = ymin, ymax
-        else:
-            return
-
-        if xlabel == "Scans":
-            xmin = np.ceil(xmin).astype(int)
-            xmax = np.floor(xmax).astype(int)
-        elif xlabel in ['Retention time (min)', 'Time (min)', 'm/z']:
-            xmin, xmax = xmin, xmax
-        else:
-            return
-
-        # Reverse values if they are in the wrong order
-        if xmax < xmin:
-            xmax, xmin = xmin, xmax
-        if ymax < ymin:
-            ymax, ymin = ymin, ymax
-
-        # Extract data
-        if self.currentPage == "DT/MS":
-            self.data_handling.on_extract_RT_from_mzdt(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
-        elif self.currentPage == "2D":
-            self.data_handling.on_extract_MS_from_heatmap(xmin, xmax, ymin, ymax,
-                                                      units_x=xlabel, units_y=ylabel)
-        self.SetStatusText("", number=4)
-
-    def extract_from_plot_1D(self, xvalsMin, xvalsMax, yvalsMax, currentView=None, currentDoc=""):
-        self.currentPage = self.panelPlots.mainBook.GetPageText(self.panelPlots.mainBook.GetSelection())
-        self.SetStatusText("", number=4)
-
-        # get current document
-        if currentDoc == "":
-            currentDoc = self.presenter.currentDoc
-
-        # Get current document
-        currentDocument = self.presenter.view.panelDocuments.documents.on_enable_document()
-        if currentDocument == "Current documents":
-            return
-
-        document = self.presenter.documentsDict[currentDocument]
-
-        if self.currentPage in ['RT', 'MS', '1D', '2D'] and document.dataType == 'Type: Interactive':
-            args = ("Cannot extract data from Interactive document", 4)
-            self.presenter.onThreading(None, args, action='updateStatusbar')
-            return
-
-        # Extract mass spectrum from mobiligram window
-        elif self.currentPage == '1D':
-            dt_label = self.panelPlots.plot1D.plot_labels.get("xlabel", "Drift time (bins)")
-
-            if xvalsMin is None or xvalsMax is None:
-                args = ('Your extraction range was outside the window. Please try again', 4)
-                self.presenter.onThreading(None, args, action='updateStatusbar')
-                return
-
-            if dt_label == "Drift time (bins)":
-                dtStart = np.ceil(xvalsMin).astype(int)
-                dtEnd = np.floor(xvalsMax).astype(int)
-            else:
-                dtStart = xvalsMin
-                dtEnd = xvalsMax
-
-            # Check that values are in correct order
-            if dtEnd < dtStart:
-                dtEnd, dtStart = dtStart, dtEnd
-
-            self.data_handling.on_extract_MS_from_mobiligram(dtStart=dtStart, dtEnd=dtEnd, units=dt_label)
-
-        # Extract heatmap from mass spectrum window
-        elif self.currentPage == "MS" or currentView == "MS":
-            if xvalsMin is None or xvalsMax is None:
-                self.SetStatusText('Your extraction range was outside the window. Please try again', 3)
-                return
-
-            if document.fileFormat == "Format: Thermo (.RAW)":
-                return
-
-            mzStart = np.round(xvalsMin, 2)
-            mzEnd = np.round(xvalsMax, 2)
-
-            mzYMax = np.round(yvalsMax * 100, 1)
-            # Check that values are in correct order
-            if mzEnd < mzStart:
-                mzEnd, mzStart = mzStart, mzEnd
-
-            # Make sure the document has MS in first place (i.e. Text)
-            if not self.presenter.documentsDict[currentDoc].gotMS:
-                return
-            # Get MS data for specified region and extract Y-axis maximum
-            ms = self.presenter.documentsDict[currentDoc].massSpectrum
-            ms = np.transpose([ms['xvals'], ms['yvals']])
-            mzYMax = self.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
-
-            # predict charge state
-            charge = self.data_processing.predict_charge_state(ms[:, 0], ms[:, 1], (mzStart, mzEnd))
-            color = self.panelMultipleIons.on_check_duplicate_colors(
-                self.config.customColors[randomIntegerGenerator(0, 15)])
-            color = convertRGB255to1(color)
-
-            if (document.dataType == 'Type: ORIGAMI' or
-                document.dataType == 'Type: MANUAL' or
-                    document.dataType == 'Type: Infrared'):
-                self.onPaneOnOff(evt=ID_window_ionList, check=True)
-                # Check if value already present
-                outcome = self.panelMultipleIons.onCheckForDuplicates(mzStart=str(mzStart),
-                                                                      mzEnd=str(mzEnd))
-                if outcome:
-                    self.SetStatusText('Selected range already in the table', 3)
-                    if currentView == "MS":
-                        return outcome
-                    return
-
-                _add_to_table = {"mz_start": mzStart,
-                                 "mz_end": mzEnd,
-                                 "charge": charge,
-                                 "mz_ymax": mzYMax,
-                                 "color": convertRGB1to255(color),
-                                 "colormap": self.config.overlay_cmaps[randomIntegerGenerator(0,
-                                                                                              len(self.config.overlay_cmaps) - 1)],
-                                 "alpha": self.config.overlay_defaultAlpha,
-                                 "mask": self.config.overlay_defaultMask,
-                                 "document": currentDoc}
-                self.panelMultipleIons.on_add_to_table(_add_to_table, check_color=False)
-
-                if self.config.showRectanges:
-                    self.panelPlots.on_plot_patches(mzStart, 0, (mzEnd - mzStart), 100000000000,
-                                                    color=color, alpha=self.config.markerTransparency_1D,
-                                                    repaint=True)
-
-                if self.panelMultipleIons.extractAutomatically:
-                    self.presenter.on_extract_2D_from_mass_range_threaded(None, extract_type="new")
-
-            elif document.dataType == 'Type: Multifield Linear DT':
-                self.onPaneOnOff(evt=ID_window_multiFieldList, check=True)
-                # Check if value already present
-                outcome = self.panelLinearDT.bottomP.onCheckForDuplicates(mzStart=str(mzStart),
-                                                                          mzEnd=str(mzEnd))
-                if outcome:
-                    return
-                self.panelLinearDT.bottomP.peaklist.Append([mzStart, mzEnd,
-                                                            mzYMax, "",
-                                                            self.presenter.currentDoc])
-
-                if self.config.showRectanges:
-                    self.panelPlots.on_plot_patches(mzStart, 0, (mzEnd - mzStart), 100000000000,
-                                                    color=self.config.annotColor,
-                                                    alpha=self.config.markerTransparency_1D,
-                                                    repaint=True)
-
-        # # Extract data from calibration window
-        # if self.currentPage == "Calibration":
-        #     # Check whether the current document is of correct type!
-        #     if (document.fileFormat != 'Format: MassLynx (.raw)' or document.dataType != 'Type: CALIBRANT'):
-        #         print('Please select the correct document file in document window!')
-        #         return
-        #     mzVal = np.round((xvalsMax + xvalsMin) / 2, 2)
-        #     # prevents extraction if value is below 50. This assumes (wrongly!)
-        #     # that the m/z range will never be below 50.
-        #     if xvalsMax < 50:
-        #         self.SetStatusText('Make sure you are extracting in the MS window.', 3)
-        #         return
-        #     # Check if value already present
-        #     outcome = self.panelCCS.topP.onCheckForDuplicates(mzCentre=str(mzVal))
-        #     if outcome:
-        #         return
-        #     self._mgr.GetPane(self.panelCCS).Show()
-        #     self.ccsTable.Check(True)
-        #     self._mgr.Update()
-        #     if yvalsMax <= 1:
-        #         tD = self.presenter.onAddCalibrant(path=document.path,
-        #                                            mzCentre=mzVal,
-        #                                            mzStart=np.round(xvalsMin, 2),
-        #                                            mzEnd=np.round(xvalsMax, 2),
-        #                                            pusherFreq=document.parameters['pusherFreq'],
-        #                                            tDout=True)
-
-        #         self.panelCCS.topP.peaklist.Append([currentDocument,
-        #                                             np.round(xvalsMin, 2),
-        #                                             np.round(xvalsMax, 2),
-        #                                             "", "", "", str(tD)])
-        #         if self.config.showRectanges:
-        #             self.presenter.addRectMS(xvalsMin, 0, (xvalsMax - xvalsMin), 1.0,
-        #                                      color=self.config.annotColor,
-        #                                      alpha=(self.config.annotTransparency / 100),
-        #                                      repaint=True, plot='CalibrationMS')
-
-        # Extract mass spectrum from chromatogram window - Linear DT files
-        elif self.currentPage == "RT" and document.dataType == 'Type: Multifield Linear DT':
-            self._mgr.GetPane(self.panelLinearDT).Show()
-            self.multifieldTable.Check(True)
-            self._mgr.Update()
-            xvalsMin = np.ceil(xvalsMin).astype(int)
-            xvalsMax = np.floor(xvalsMax).astype(int)
-            # Check that values are in correct order
-            if xvalsMax < xvalsMin:
-                xvalsMax, xvalsMin = xvalsMin, xvalsMax
-
-            # Check if value already present
-            outcome = self.panelLinearDT.topP.onCheckForDuplicates(rtStart=str(xvalsMin),
-                                                                   rtEnd=str(xvalsMax))
-            if outcome:
-                return
-            xvalDiff = xvalsMax - xvalsMin.astype(int)
-            self.panelLinearDT.topP.peaklist.Append([xvalsMin, xvalsMax,
-                                                     xvalDiff, "",
-                                                     self.presenter.currentDoc])
-
-            self.panelPlots.on_add_patch(xvalsMin, 0, (xvalsMax - xvalsMin), 100000000000,
-                                         color=self.config.annotColor,
-                                         alpha=(self.config.annotTransparency / 100),
-                                         repaint=True, plot="RT")
-
-        # Extract mass spectrum from chromatogram window
-        elif self.currentPage == 'RT' and document.dataType != 'Type: Multifield Linear DT':
-            rt_label = self.panelPlots.plotRT.plot_labels.get("xlabel", "Scans")
-
-            # Get values
-            if xvalsMin is None or xvalsMax is None:
-                self.SetStatusText("Extraction range was from outside of the plot area. Try again",
-                                   number=4)
-                return
-            if rt_label == "Scans":
-                xvalsMin = np.ceil(xvalsMin).astype(int)
-                xvalsMax = np.floor(xvalsMax).astype(int)
-
-            # Check that values are in correct order
-            if xvalsMax < xvalsMin:
-                xvalsMax, xvalsMin = xvalsMin, xvalsMax
-
-            # Check if difference between the two values is large enough
-            if (xvalsMax - xvalsMin) < 1 and rt_label == "Scans":
-                self.SetStatusText('The scan range you selected was too small. Please choose wider range', 3)
-                return
-            # Extract data
-            if document.fileFormat == "Format: Thermo (.RAW)":
-                return
-            else:
-                self.data_handling.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
-
-        else:
-            return
+        about = panelAbout(self, self.presenter,
+                           'About ORIGAMI',
+                           self.config,
+                           self.icons)
+        about.Centre()
+        about.Show()
+        about.SetFocus()
 
     def onAnnotatePanel(self, evt):
         pass
-#         if not self.panelParametersEdit.IsShown()
 
     def onPlotParameters(self, evt):
         if evt.GetId() == ID_extraSettings_colorbar:
@@ -2017,8 +1722,8 @@ class MyFrame(wx.Frame):
             kwargs = {'window': 'MS'}
         elif evtID == ID_processSettings_2D:
             kwargs = {'window': '2D'}
-        elif evtID == ID_processSettings_ORIGAMI:
-            kwargs = {'window': 'ORIGAMI'}
+#         elif evtID == ID_processSettings_ORIGAMI:
+#             kwargs = {'window': 'ORIGAMI'}
         elif evtID == ID_processSettings_FindPeaks:
             kwargs = {'window': 'Peak fitting'}
         elif evtID == ID_processSettings_UniDec:
@@ -2209,7 +1914,7 @@ class MyFrame(wx.Frame):
         """
         # modify message
         if modify_msg:
-            msg = ">> %s <<" % msg
+            msg = f">> {msg} <<"
 
         if print_msg:
             logger.info(msg)

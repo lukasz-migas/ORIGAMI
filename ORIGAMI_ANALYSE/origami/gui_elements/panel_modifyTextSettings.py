@@ -127,19 +127,6 @@ class panelModifyTextSettings(wx.MiniFrame):
         self.text_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
         self.text_max_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        mask_label = wx.StaticText(panel, wx.ID_ANY, "Mask:")
-        self.text_mask_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value="1", min=0.0, max=1.0,
-                                            initial=1.0, inc=0.05, size=(60, -1))
-        self.text_mask_value.SetValue(self.itemInfo['mask'])
-        self.text_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
-        transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparency:")
-        self.text_transparency_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                    value="1", min=0.0, max=1.0,
-                                                    initial=1.0, inc=0.05, size=(60, -1))
-        self.text_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.text_colormap_value = wx.Choice(panel, -1,
                                                choices=self.config.cmaps2,
@@ -154,6 +141,19 @@ class panelModifyTextSettings(wx.MiniFrame):
                                           wx.Size(26, 26), 0)
         self.text_color_value.SetBackgroundColour(self.itemInfo['color'])
         self.text_color_value.Bind(wx.EVT_BUTTON, self.on_assign_color)
+
+        mask_label = wx.StaticText(panel, wx.ID_ANY, "Mask:")
+        self.text_mask_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
+                                            value="1", min=0.0, max=1.0,
+                                            initial=1.0, inc=0.05, size=(60, -1))
+        self.text_mask_value.SetValue(self.itemInfo['mask'])
+        self.text_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+
+        transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparency:")
+        self.text_transparency_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
+                                                    value="1", min=0.0, max=1.0,
+                                                    initial=1.0, inc=0.05, size=(60, -1))
+        self.text_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 

@@ -106,7 +106,7 @@ class panelProcessData(wx.MiniFrame):
 
         # make gui items
         self.make_gui()
-        self.makeStatusBar()
+#         self.makeStatusBar()
         self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
         self.mainBook.SetSelection(self.config.processParamsWindow[kwargs['window']])
 
@@ -128,7 +128,7 @@ class panelProcessData(wx.MiniFrame):
 
         # fire-up start events
         self.onPageChanged(evt=None)
-        self.updateStatusbar()
+#         self.updateStatusbar()
         self.onUpdateUniDecPanel()
         print(("Startup took {:.3f} seconds".format(time.time() - tstart)))
 
@@ -231,10 +231,10 @@ class panelProcessData(wx.MiniFrame):
         self.parameters_Extract = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.makePanel_ExtractData(self.parameters_Extract),
                               "Extract", False)
-        # ------
-        self.parameters_ORIGAMI = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanel_ORIGAMI(self.parameters_ORIGAMI),
-                              "ORIGAMI", False)
+#         # ------
+#         self.parameters_ORIGAMI = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+#         self.mainBook.AddPage(self.makePanel_ORIGAMI(self.parameters_ORIGAMI),
+#                               "ORIGAMI", False)
         # ------
         self.parameters_MS = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.makePanel_MS(self.parameters_MS),
@@ -260,17 +260,16 @@ class panelProcessData(wx.MiniFrame):
         # setup color
         self.mainBook.SetBackgroundColour((240, 240, 240))
 
-    def makeStatusBar(self):
-        self.mainStatusbar = self.CreateStatusBar(4, wx.STB_SIZEGRIP | wx.ST_ELLIPSIZE_MIDDLE, wx.ID_ANY)
-        self.mainStatusbar.SetStatusWidths([-1, 90, 120, 60])
-        self.mainStatusbar.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-
-    def updateStatusbar(self):
-        # update status bar
-        self.SetStatusText('Processing:', 0)
-        self.SetStatusText('Plot 1D: %s' % self.parent.panelPlots.window_plot1D, 1)
-        self.SetStatusText('Plot 2D: %s' % self.parent.panelPlots.window_plot2D, 2)
-        self.SetStatusText('Plot 3D: %s' % self.parent.panelPlots.window_plot3D, 3)
+#     def makeStatusBar(self):
+#         self.mainStatusbar = self.CreateStatusBar(4, wx.STB_SIZEGRIP | wx.ST_ELLIPSIZE_MIDDLE, wx.ID_ANY)
+#         self.mainStatusbar.SetStatusWidths([-1, 90, 120, 60])
+#         self.mainStatusbar.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+#     def updateStatusbar(self):
+#         # update status bar
+#         self.SetStatusText('Processing:', 0)
+#         self.SetStatusText('Plot 1D: %s' % self.parent.panelPlots.window_plot1D, 1)
+#         self.SetStatusText('Plot 2D: %s' % self.parent.panelPlots.window_plot2D, 2)
+#         self.SetStatusText('Plot 3D: %s' % self.parent.panelPlots.window_plot3D, 3)
 
     def makePanel_UniDec(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -904,141 +903,141 @@ class panelProcessData(wx.MiniFrame):
 
         return panel
 
-    def makePanel_ORIGAMI(self, panel):
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-
-        acquisition_label = wx.StaticText(panel, wx.ID_ANY, "Acquisition method:")
-        self.origami_method_choice = wx.Choice(panel, -1, choices=self.config.origami_acquisition_choices,
-                                          size=(-1, -1))
-        self.origami_method_choice.SetStringSelection(self.config.origami_acquisition)
-        self.origami_method_choice.Bind(wx.EVT_CHOICE, self.onApply)
-        self.origami_method_choice.Bind(wx.EVT_CHOICE, self.enableDisableBoxes)
-
-#         self.origami_loadParams = wx.BitmapButton(panel, wx.ID_ANY,
-#                                                   self.icons.iconsLib['load16'],
-#                                                   size=(26, 26),
-#                                                   style=wx.BORDER_DOUBLE | wx.ALIGN_CENTER_VERTICAL)
-#         self.origami_loadParams.Bind(wx.EVT_BUTTON, self.onUpdateColorbar)
-
-        spv_label = wx.StaticText(panel, wx.ID_ANY, "Scans per voltage:")
-        self.origami_scansPerVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('intPos'))
-        self.origami_scansPerVoltage_value.SetValue(str(self.config.origami_spv))
-        self.origami_scansPerVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
-
-        scan_label = wx.StaticText(panel, wx.ID_ANY, "First scan:")
-        self.origami_startScan_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('intPos'))
-        self.origami_startScan_value.SetValue(str(self.config.origami_startScan))
-        self.origami_startScan_value.Bind(wx.EVT_TEXT, self.onApply)
-
-        startVoltage_label = wx.StaticText(panel, wx.ID_ANY, "First voltage:")
-        self.origami_startVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_startVoltage_value.SetValue(str(self.config.origami_startVoltage))
-        self.origami_startVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
-
-        endVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Final voltage:")
-        self.origami_endVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_endVoltage_value.SetValue(str(self.config.origami_endVoltage))
-        self.origami_endVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
-
-        stepVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Voltage step:")
-        self.origami_stepVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_stepVoltage_value.SetValue(str(self.config.origami_stepVoltage))
-        self.origami_stepVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
-
-        boltzmann_label = wx.StaticText(panel, wx.ID_ANY, "Boltzmann offset:")
-        self.origami_boltzmannOffset_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                                         validator=validator('floatPos'))
-        self.origami_boltzmannOffset_value.SetValue(str(self.config.origami_boltzmannOffset))
-        self.origami_boltzmannOffset_value.Bind(wx.EVT_TEXT, self.onApply)
-
-        exponentialPercentage_label = wx.StaticText(panel, wx.ID_ANY, "Exponential percentage:")
-        self.origami_exponentialPercentage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_exponentialPercentage_value.SetValue(str(self.config.origami_exponentialPercentage))
-        self.origami_exponentialPercentage_value.Bind(wx.EVT_TEXT, self.onApply)
-
-        exponentialIncrement_label = wx.StaticText(panel, wx.ID_ANY, "Exponential increment:")
-        self.origami_exponentialIncrement_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.origami_exponentialIncrement_value.SetValue(str(self.config.origami_exponentialIncrement))
-        self.origami_exponentialIncrement_value.Bind(wx.EVT_TEXT, self.onApply)
-
-        import_label = wx.StaticText(panel, wx.ID_ANY, "Import list:")
-        self.origami_loadListBtn = wx.Button(panel, wx.ID_OK, "...", size=(-1, 22))
-        self.origami_loadListBtn.Bind(wx.EVT_BUTTON, self.presenter.onUserDefinedListImport)
-
-#         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+#     def makePanel_ORIGAMI(self, panel):
+#         mainSizer = wx.BoxSizer(wx.VERTICAL)
 #
-#         self.origami_applyBtn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
-#         self.origami_applyBtn.Bind(wx.EVT_BUTTON, self.onProcessMS)
+#         acquisition_label = wx.StaticText(panel, wx.ID_ANY, "Acquisition method:")
+#         self.origami_method_choice = wx.Choice(panel, -1, choices=self.config.origami_acquisition_choices,
+#                                           size=(-1, -1))
+#         self.origami_method_choice.SetStringSelection(self.config.origami_acquisition)
+#         self.origami_method_choice.Bind(wx.EVT_CHOICE, self.onApply)
+#         self.origami_method_choice.Bind(wx.EVT_CHOICE, self.enableDisableBoxes)
 #
-#         self.origami_cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
-#         self.origami_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
-
-        # pack elements
-        grid = wx.GridBagSizer(2, 2)
-        n = 0
-        grid.Add(acquisition_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         grid.Add(self.origami_loadParams, (n,2), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-        n = n + 1
-        grid.Add(spv_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_scansPerVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(scan_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_startScan_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(startVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_startVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(endVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_endVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(stepVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_stepVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(boltzmann_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_boltzmannOffset_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(exponentialPercentage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_exponentialPercentage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(exponentialIncrement_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_exponentialIncrement_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(import_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_loadListBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+# #         self.origami_loadParams = wx.BitmapButton(panel, wx.ID_ANY,
+# #                                                   self.icons.iconsLib['load16'],
+# #                                                   size=(26, 26),
+# #                                                   style=wx.BORDER_DOUBLE | wx.ALIGN_CENTER_VERTICAL)
+# #         self.origami_loadParams.Bind(wx.EVT_BUTTON, self.onUpdateColorbar)
+#
+#         spv_label = wx.StaticText(panel, wx.ID_ANY, "Scans per voltage:")
+#         self.origami_scansPerVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('intPos'))
+#         self.origami_scansPerVoltage_value.SetValue(str(self.config.origami_spv))
+#         self.origami_scansPerVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
+#
+#         scan_label = wx.StaticText(panel, wx.ID_ANY, "First scan:")
+#         self.origami_startScan_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('intPos'))
+#         self.origami_startScan_value.SetValue(str(self.config.origami_startScan))
+#         self.origami_startScan_value.Bind(wx.EVT_TEXT, self.onApply)
+#
+#         startVoltage_label = wx.StaticText(panel, wx.ID_ANY, "First voltage:")
+#         self.origami_startVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_startVoltage_value.SetValue(str(self.config.origami_startVoltage))
+#         self.origami_startVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
+#
+#         endVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Final voltage:")
+#         self.origami_endVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_endVoltage_value.SetValue(str(self.config.origami_endVoltage))
+#         self.origami_endVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
+#
+#         stepVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Voltage step:")
+#         self.origami_stepVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_stepVoltage_value.SetValue(str(self.config.origami_stepVoltage))
+#         self.origami_stepVoltage_value.Bind(wx.EVT_TEXT, self.onApply)
+#
+#         boltzmann_label = wx.StaticText(panel, wx.ID_ANY, "Boltzmann offset:")
+#         self.origami_boltzmannOffset_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                                          validator=validator('floatPos'))
+#         self.origami_boltzmannOffset_value.SetValue(str(self.config.origami_boltzmannOffset))
+#         self.origami_boltzmannOffset_value.Bind(wx.EVT_TEXT, self.onApply)
+#
+#         exponentialPercentage_label = wx.StaticText(panel, wx.ID_ANY, "Exponential percentage:")
+#         self.origami_exponentialPercentage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_exponentialPercentage_value.SetValue(str(self.config.origami_exponentialPercentage))
+#         self.origami_exponentialPercentage_value.Bind(wx.EVT_TEXT, self.onApply)
+#
+#         exponentialIncrement_label = wx.StaticText(panel, wx.ID_ANY, "Exponential increment:")
+#         self.origami_exponentialIncrement_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.origami_exponentialIncrement_value.SetValue(str(self.config.origami_exponentialIncrement))
+#         self.origami_exponentialIncrement_value.Bind(wx.EVT_TEXT, self.onApply)
+#
+#         import_label = wx.StaticText(panel, wx.ID_ANY, "Import list:")
+#         self.origami_loadListBtn = wx.Button(panel, wx.ID_OK, "...", size=(-1, 22))
+#         self.origami_loadListBtn.Bind(wx.EVT_BUTTON, self.presenter.onUserDefinedListImport)
+#
+# #         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+# #
+# #         self.origami_applyBtn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
+# #         self.origami_applyBtn.Bind(wx.EVT_BUTTON, self.onProcessMS)
+# #
+# #         self.origami_cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+# #         self.origami_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
+#
+#         # pack elements
+#         grid = wx.GridBagSizer(2, 2)
+#         n = 0
+#         grid.Add(acquisition_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+# #         grid.Add(self.origami_loadParams, (n,2), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
 #         n = n + 1
-#         grid.Add(horizontal_line, (n,0), wx.GBSpan(1,3), flag=wx.EXPAND)
+#         grid.Add(spv_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_scansPerVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
 #         n = n + 1
-#         grid.Add(self.origami_applyBtn, (n,1), wx.GBSpan(1,1))
-#         grid.Add(self.origami_cancelBtn, (n,2), wx.GBSpan(1,1))
-
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
-
-        # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
-
-        return panel
+#         grid.Add(scan_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_startScan_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         grid.Add(startVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_startVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         grid.Add(endVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_endVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         grid.Add(stepVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_stepVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         grid.Add(boltzmann_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_boltzmannOffset_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         grid.Add(exponentialPercentage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_exponentialPercentage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         grid.Add(exponentialIncrement_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_exponentialIncrement_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+#         n = n + 1
+#         grid.Add(import_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         grid.Add(self.origami_loadListBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+# #         n = n + 1
+# #         grid.Add(horizontal_line, (n,0), wx.GBSpan(1,3), flag=wx.EXPAND)
+# #         n = n + 1
+# #         grid.Add(self.origami_applyBtn, (n,1), wx.GBSpan(1,1))
+# #         grid.Add(self.origami_cancelBtn, (n,2), wx.GBSpan(1,1))
+#
+#         mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+#
+#         # fit layout
+#         mainSizer.Fit(panel)
+#         panel.SetSizerAndFit(mainSizer)
+#
+#         return panel
 
     def makePanel_MS(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        dtms_staticBox = makeStaticBox(panel, "DT/MS binning parameters", size=(-1, -1), color=wx.BLACK)
-        dtms_staticBox.SetSize((-1, -1))
-        dtms_box_sizer = wx.StaticBoxSizer(dtms_staticBox, wx.HORIZONTAL)
-
-        bin_msdt_label = wx.StaticText(panel, wx.ID_ANY, "DT/MS bin size:")
-        self.bin_msdt_binSize_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
-        self.bin_msdt_binSize_value.SetValue(str(self.config.ms_dtmsBinSize))
-        self.bin_msdt_binSize_value.Bind(wx.EVT_TEXT, self.onApply)
+#         dtms_staticBox = makeStaticBox(panel, "DT/MS binning parameters", size=(-1, -1), color=wx.BLACK)
+#         dtms_staticBox.SetSize((-1, -1))
+#         dtms_box_sizer = wx.StaticBoxSizer(dtms_staticBox, wx.HORIZONTAL)
+#
+#         bin_msdt_label = wx.StaticText(panel, wx.ID_ANY, "DT/MS bin size:")
+#         self.bin_msdt_binSize_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
+#                                           validator=validator('floatPos'))
+#         self.bin_msdt_binSize_value.SetValue(str(self.config.ms_dtmsBinSize))
+#         self.bin_msdt_binSize_value.Bind(wx.EVT_TEXT, self.onApply)
 
         crop_staticBox = makeStaticBox(panel, "Crop parameters", size=(-1, -1), color=wx.BLACK)
         crop_staticBox.SetSize((-1, -1))
@@ -1227,11 +1226,11 @@ class panelProcessData(wx.MiniFrame):
         ms_grid.Add(self.bin_MML_window_check, (n, 0), wx.GBSpan(1, 5), flag=wx.ALIGN_CENTER_VERTICAL)
         massSpec_box_sizer.Add(ms_grid, 0, wx.EXPAND, 10)
 
-        dtms_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        dtms_grid.Add(bin_msdt_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        dtms_grid.Add(self.bin_msdt_binSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        dtms_box_sizer.Add(dtms_grid, 0, wx.EXPAND, 10)
+#         dtms_grid = wx.GridBagSizer(2, 2)
+#         n = 0
+#         dtms_grid.Add(bin_msdt_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         dtms_grid.Add(self.bin_msdt_binSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+#         dtms_box_sizer.Add(dtms_grid, 0, wx.EXPAND, 10)
 
         process_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -1257,8 +1256,8 @@ class panelProcessData(wx.MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(dtms_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        n = n + 1
+#         grid.Add(dtms_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
+#         n = n + 1
         grid.Add(crop_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
         n = n + 1
         grid.Add(massSpec_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
@@ -1838,7 +1837,7 @@ class panelProcessData(wx.MiniFrame):
         self.config.ms_mzBinSize = str2num(self.bin_mzBinSize_value.GetValue())
         self.config.ms_enable_in_RT = self.bin_RT_window_check.GetValue()
         self.config.ms_enable_in_MML_start = self.bin_MML_window_check.GetValue()
-        self.config.ms_dtmsBinSize = str2num(self.bin_msdt_binSize_value.GetValue())
+#         self.config.ms_dtmsBinSize = str2num(self.bin_msdt_binSize_value.GetValue())
 
         self.config.ms_linearization_mode = self.bin_linearizationMode_choice.GetStringSelection()
         self.config.ms_auto_range = self.bin_autoRange_check.GetValue()
@@ -1863,16 +1862,16 @@ class panelProcessData(wx.MiniFrame):
         self.config.plot2D_smooth_polynomial = str2int(self.plot2D_polynomial_value.GetValue())
         self.config.plot2D_threshold = str2num(self.plot2D_threshold_value.GetValue())
 
-        # ORIGAMI
-        self.config.origami_acquisition = self.origami_method_choice.GetStringSelection()
-        self.config.origami_startScan = str2int(self.origami_startScan_value.GetValue())
-        self.config.origami_spv = str2int(self.origami_scansPerVoltage_value.GetValue())
-        self.config.origami_startVoltage = str2num(self.origami_startVoltage_value.GetValue())
-        self.config.origami_endVoltage = str2num(self.origami_endVoltage_value.GetValue())
-        self.config.origami_stepVoltage = str2num(self.origami_stepVoltage_value.GetValue())
-        self.config.origami_boltzmannOffset = str2num(self.origami_boltzmannOffset_value.GetValue())
-        self.config.origami_exponentialPercentage = str2num(self.origami_exponentialPercentage_value.GetValue())
-        self.config.origami_exponentialIncrement = str2num(self.origami_exponentialIncrement_value.GetValue())
+#         # ORIGAMI
+#         self.config.origami_acquisition = self.origami_method_choice.GetStringSelection()
+#         self.config.origami_startScan = str2int(self.origami_startScan_value.GetValue())
+#         self.config.origami_spv = str2int(self.origami_scansPerVoltage_value.GetValue())
+#         self.config.origami_startVoltage = str2num(self.origami_startVoltage_value.GetValue())
+#         self.config.origami_endVoltage = str2num(self.origami_endVoltage_value.GetValue())
+#         self.config.origami_stepVoltage = str2num(self.origami_stepVoltage_value.GetValue())
+#         self.config.origami_boltzmannOffset = str2num(self.origami_boltzmannOffset_value.GetValue())
+#         self.config.origami_exponentialPercentage = str2num(self.origami_exponentialPercentage_value.GetValue())
+#         self.config.origami_exponentialIncrement = str2num(self.origami_exponentialIncrement_value.GetValue())
 
         # Peak fitting
         self.config.fit_addPeaksToAnnotations = self.fit_addPeaksToAnnotations_check.GetValue()
@@ -1960,43 +1959,45 @@ class panelProcessData(wx.MiniFrame):
         if self.extract_dt_ms_check.GetValue(): self.extract_pusherFreq_value.Enable()
         else: self.extract_pusherFreq_value.Disable()
 
-        # origami panel
-        self.config.origami_acquisition = self.origami_method_choice.GetStringSelection()
-        if self.config.origami_acquisition == 'Linear':
-            enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_scansPerVoltage_value]
-            disableList = [self.origami_boltzmannOffset_value, self.origami_exponentialIncrement_value,
-                           self.origami_exponentialPercentage_value, self.origami_loadListBtn]
-        elif self.config.origami_acquisition == 'Exponential':
-            enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_scansPerVoltage_value, self.origami_exponentialIncrement_value,
-                           self.origami_exponentialPercentage_value]
-            disableList = [self.origami_boltzmannOffset_value, self.origami_loadListBtn]
-        elif self.config.origami_acquisition == 'Boltzmann':
-            enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value]
-            disableList = [self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
-                           self.origami_loadListBtn]
-        elif self.config.origami_acquisition == 'User-defined':
-            disableList = [self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
-                          self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value]
-            enableList = [self.origami_loadListBtn, self.origami_startScan_value]
-        else:
-            disableList = [self.origami_startScan_value, self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
-                          self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value,
-                          self.origami_loadListBtn]
-            enableList = []
+#         # origami panel
+#         self.config.origami_acquisition = self.origami_method_choice.GetStringSelection()
+#         if self.config.origami_acquisition == 'Linear':
+#             enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
+#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+#                           self.origami_scansPerVoltage_value]
+#             disableList = [self.origami_boltzmannOffset_value, self.origami_exponentialIncrement_value,
+#                            self.origami_exponentialPercentage_value, self.origami_loadListBtn]
+#         elif self.config.origami_acquisition == 'Exponential':
+#             enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
+#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+#                           self.origami_scansPerVoltage_value, self.origami_exponentialIncrement_value,
+#                            self.origami_exponentialPercentage_value]
+#             disableList = [self.origami_boltzmannOffset_value, self.origami_loadListBtn]
+#         elif self.config.origami_acquisition == 'Boltzmann':
+#             enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
+#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+#                           self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value]
+#             disableList = [self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
+#                            self.origami_loadListBtn]
+#         elif self.config.origami_acquisition == 'User-defined':
+#             disableList = [self.origami_startVoltage_value,
+#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+#                           self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
+#                           self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value]
+#             enableList = [self.origami_loadListBtn, self.origami_startScan_value]
+#         else:
+#             disableList = [self.origami_startScan_value, self.origami_startVoltage_value,
+#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+#                           self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
+#                           self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value,
+#                           self.origami_loadListBtn]
+#             enableList = []
 
-        # iterate
-        for item in enableList: item.Enable()
-        for item in disableList: item.Disable()
+#         # iterate
+#         for item in enableList:
+#             item.Enable()
+#         for item in disableList:
+#             item.Disable()
 
         # peak fitting
         self.config.fit_type = self.fit_fitPlot_choice.GetStringSelection()
@@ -2133,7 +2134,8 @@ class panelProcessData(wx.MiniFrame):
         try:
             args = ("Processing document: {} | dataset: {}".format(self.document['MS'], self.dataset['MS']), 4)
             self.presenter.onThreading(evt, args, action='updateStatusbar')
-        except KeyError: pass
+        except KeyError:
+            pass
 
         # only replotting
         if evtID == ID_processSettings_replotMS:

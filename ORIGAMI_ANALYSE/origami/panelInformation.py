@@ -76,7 +76,7 @@ class panelDocumentInfo(wx.MiniFrame):
         """Make panel gui."""
 
         # make toolbar
-        toolbar = self.makeToolbar()
+        toolbar = self.make_toolbar()
 
         # make panels
         buttons = self.makeBtnPanel()
@@ -113,7 +113,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.SetSizer(self.mainSizer)
     # ----
 
-    def makeToolbar(self):
+    def make_toolbar(self):
         """Make toolbar."""
 
         TOOLBAR_TOOLSIZE = (16, 16)

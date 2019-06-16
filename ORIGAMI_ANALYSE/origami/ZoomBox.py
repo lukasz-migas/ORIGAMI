@@ -59,11 +59,6 @@ def GetMaxes(axes, xmin=None, xmax=None):
             xys = np.array(offsets)
 
         xdat, ydat = on_check_xys(xys, xmin, xmax)
-#         ydat = xys[:, 1]
-#         xdat = xys[:, 0]
-#         if xmin is not None and xmax is not None:
-#             bool1 = np.all(np.array([xdat > xmin, xdat < xmax]), axis=0)
-#             ydat = ydat[bool1]
         try:
             yvals.append([np.amin(ydat), np.amax(ydat)])
             xvals.append([np.amin(xdat), np.amax(xdat)])
@@ -77,11 +72,6 @@ def GetMaxes(axes, xmin=None, xmax=None):
                 if vertices.size > 0:
                     xys = np.array(patch.get_patch_transform().transform(vertices))
                     xdat, ydat = on_check_xys(xys, xmin, xmax)
-#                     ydat = xys[:, 1]
-#                     xdat = xys[:, 0]
-#                     if xmin is not None and xmax is not None:
-#                         bool1 = np.all(np.array([xdat > xmin, xdat < xmax]), axis=0)
-#                         ydat = ydat[bool1]
                     try:
                         yvals.append([np.amin(ydat), np.amax(ydat)])
                         xvals.append([np.amin(xdat), np.amax(xdat)])
@@ -91,11 +81,6 @@ def GetMaxes(axes, xmin=None, xmax=None):
             try:
                 xys = patch.xy
                 xdat, ydat = on_check_xys(xys, xmin, xmax)
-#                 ydat = xys[:, 1]
-#                 xdat = xys[:, 0]
-#                 if xmin is not None and xmax is not None:
-#                     bool1 = np.all(np.array([xdat > xmin, xdat < xmax]), axis=0)
-#                     ydat = ydat[bool1]
 
                 yvals.append([np.amin(ydat), np.amax(ydat)])
                 xvals.append([np.amin(xdat), np.amax(xdat)])
@@ -597,14 +582,17 @@ class ZoomBox:
                         x_sum = x0_diff + x1_diff
                     except Exception:
                         return
-
                     stepSize = evt.step * ((x1 - x0) / 50)
                     newXmin = x0 - (stepSize * (x0_diff / x_sum))
                     newXmax = x1 + (stepSize * (x1_diff / x_sum))
                     # Check if the X-values are off the data lims
-                    if newXmin < xmin: newXmin = xmin
-                    if newXmax > xmax: newXmax = xmax
+                    if newXmin < xmin:
+                        newXmin = xmin
+                    if newXmax > xmax:
+                        newXmax = xmax
                     axes.set_xlim((newXmin, newXmax))
+                    if self.plotName == "MSDT":
+                        pub.sendMessage('change_zoom_dtms', xmin=newXmin, xmax=newXmax, ymin=ymin, ymax=ymax)
 
                 # Zoom in Y-axis only
                 elif wx.GetKeyState(wx.WXK_SHIFT):
@@ -612,6 +600,22 @@ class ZoomBox:
                     if self.plotName in ['1D', 'CalibrationDT', 'MS']:
                         stepSize = evt.step * ((y1 - y0) / 25)
                         axes.set_ylim((0, y1 + stepSize))
+                    elif self.plotName == "MSDT":
+                        try:
+                            y0_diff, y1_diff = evt.ydata - y0, y1 - evt.ydata
+                            y_sum = y0_diff + y1_diff
+                        except Exception:
+                            return
+
+                        stepSize = evt.step * ((y1 - y0) / 50)
+                        newYmin = y0 - (stepSize * (y0_diff / y_sum))
+                        newYmax = y1 + (stepSize * (y1_diff / y_sum))
+                        # Check if the Y-values are off the data lims
+                        if newYmin < ymin:
+                            newYmin = ymin
+                        if newYmax > ymax:
+                            newYmax = ymax
+                        axes.set_ylim((newYmin, newYmax))
                     elif self.plotName != '1D':
                         try:
                             y0_diff, y1_diff = evt.xdata - y0, y1 - evt.xdata
@@ -623,9 +627,10 @@ class ZoomBox:
                         newYmin = y0 - (stepSize * (y0_diff / y_sum))
                         newYmax = y1 + (stepSize * (y1_diff / y_sum))
                         # Check if the Y-values are off the data lims
-                        if newYmin < ymin: newYmin = ymin
-                        if newYmax > ymax: newYmax = ymax
-
+                        if newYmin < ymin:
+                            newYmin = ymin
+                        if newYmax > ymax:
+                            newYmax = ymax
                         axes.set_ylim((newYmin, newYmax))
 
             self.canvas.draw()
@@ -750,7 +755,7 @@ class ZoomBox:
 
         self.buttonDown = True
 
-        pub.sendMessage('startX', startX=evt.xdata)
+        pub.sendMessage('change_x_axis_start', startX=evt.xdata)
         self.startX = evt.xdata
 
         # make the drawed box/line visible get the click-coordinates, button, ...
@@ -777,7 +782,7 @@ class ZoomBox:
             elif axis_pos in ['top', 'bottom']:
                 axes.set_xlim(xmin, xmax)
                 if self.plotName == 'RMSF':
-                    pub.sendMessage('changedZoom', xmin=xmin, xmax=xmax)
+                    pub.sendMessage('change_zoom_rmsd', xmin=xmin, xmax=xmax)
             ResetVisible(axes)
             self.canvas.draw()
 
@@ -796,7 +801,7 @@ class ZoomBox:
             return
         self.buttonDown = False
 
-        pub.sendMessage('startX', startX=None)
+        pub.sendMessage('change_x_axis_start', startX=None)
 
         # make the box/line invisible again
         for to_draw in self.to_draw:
@@ -859,7 +864,7 @@ class ZoomBox:
                 ResetVisible(axes)
 
             if self.plotName == 'RMSF':
-                pub.sendMessage('changedZoom', xmin=xmin, xmax=xmax)
+                pub.sendMessage('change_zoom_rmsd', xmin=xmin, xmax=xmax)
             elif self.plotName == "MSDT":
                 pub.sendMessage('change_zoom_dtms', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
@@ -972,8 +977,8 @@ class ZoomBox:
                     axes.set_ylim((ymin, ymax))
 
         if self.plotName == 'RMSF':
-            pub.sendMessage('changedZoom', xmin=xmin, xmax=xmax)
-        elif self.plotName == "MSDT":
+            pub.sendMessage('change_zoom_rmsd', xmin=xmin, xmax=xmax)
+        elif self.plotName == "MSDT" and not self.addToTable:
             pub.sendMessage('change_zoom_dtms', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
         self.canvas.draw()

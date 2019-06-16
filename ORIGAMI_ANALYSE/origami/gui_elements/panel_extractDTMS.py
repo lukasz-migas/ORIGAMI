@@ -40,7 +40,6 @@ class panel_extractDTMS(wx.MiniFrame):
         self.on_setup_gui()
 
         self.CentreOnScreen()
-        self.Show(True)
         self.SetFocus()
 
         # bind events
