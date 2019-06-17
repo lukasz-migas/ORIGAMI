@@ -5637,7 +5637,7 @@ class documentsTree(wx.TreeCtrl):
 
             # add data to document
             document.tandem_spectra = data
-            document.file_reader = {'data_reader':reader}
+            document.file_reader = {'data_reader': reader}
 
             title = "Precursor: {:.4f} [{}]".format(data["Scan 1"]['scan_info']['precursor_mz'],
                                                     data["Scan 1"]['scan_info']['precursor_charge'])
@@ -5818,7 +5818,7 @@ class documentsTree(wx.TreeCtrl):
             document.gotMultipleRT = True
             document.multipleRT = chromatograms
 
-            document.file_reader = {'data_reader':reader}
+            document.file_reader = {'data_reader': reader}
 
             self.presenter.OnUpdateDocument(document, 'document')
             print(("It took {:.4f} seconds to load {}".format(time.time() - tstart, document.title)))

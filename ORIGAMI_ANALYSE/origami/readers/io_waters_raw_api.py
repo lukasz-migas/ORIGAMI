@@ -1,14 +1,11 @@
 import time
 
 import numpy as np
-import pandas as pd
 
-import readers.waters.MassLynxRawChromatogramReader as MassLynxRawChromatogramReader
 import readers.waters.MassLynxRawInfoReader as MassLynxRawInfoReader
-import readers.waters.MassLynxRawReader as MassLynxScanItem
+import readers.waters.MassLynxRawReader as MassLynxRawReader
 import readers.waters.MassLynxRawScanReader as MassLynxRawScanReader
-from processing.spectra import bin_1D, normalize_1D
-from toolbox import str2num
+from scipy.interpolate import interpolate
 
 
 class WatersRawReader():
@@ -16,11 +13,6 @@ class WatersRawReader():
     def __init__(self, filename, **kwargs):
         tstart = time.time()
         self.filename = filename
-
-        # set parameters
-        self.bin_params = kwargs
-        self.bin_list = self.create_bin_range()
-        self.bin_centres = self.create_bin_centres()
 
         # create parsers
         self.reader = self.create_file_parser()
@@ -42,18 +34,6 @@ class WatersRawReader():
     def create_data_parser(self):
         return MassLynxRawScanReader.MassLynxRawScanReader(self.reader)
 
-    def create_bin_range(self):
-        return np.arange(self.bin_params['min_mz'],
-                         self.bin_params['max_mz']+self.bin_params['mz_bin'],
-                         self.bin_params['mz_bin'])
-
-    def create_bin_centres(self):
-        ms_centres = np.arange(self.bin_params['min_mz'],
-                               self.bin_params['max_mz']+self.bin_params['mz_bin'],
-                               self.bin_params['mz_bin'])[1::]
-
-        return ms_centres - self.bin_params['mz_bin']
-
     def get_functions_and_stats(self):
         self.n_functions = self.info_reader.GetNumberofFunctions()
 
@@ -71,51 +51,57 @@ class WatersRawReader():
 
         return stats_in_functions
 
-    def get_scan_headers(self, function, scan):
-        # retrieve x and y coordinate
-        xpos, ypos = self.info_reader.GetScanItems(function, scan, [9, 10])
+    def check_fcn(self, fcn):
+        found_fcn = True
+        if fcn not in self.stats_in_functions:
+            found_fcn = False
 
-        return xpos, ypos
+        return found_fcn
 
-    def get_scan_data(self, function, scan):
-        xvals, yvals = self.data_reader.ReadScan(function, scan)
+    def find_minimum_mz_spacing(self, fcn, n_scans, n_max_scans=500):
+        if not self.check_fcn(fcn):
+            raise ValueError(f"Function {fcn} could not be found in the file.")
 
-        # linearize and normalize data
-        yvals, __ = np.histogram(xvals, bins=self.bin_list, weights=yvals)
-        yvals = yvals/np.max(yvals)
+        mz_spacing_diff = np.zeros((0,))
+        if n_scans > n_max_scans:
+            n_scans = n_max_scans
 
-        return yvals
+        for i in range(n_scans):
+            xvals, __ = self.data_reader.ReadScan(fcn, i)
+            mz_spacing_diff = np.append(mz_spacing_diff, np.diff(xvals))
+        return np.min(mz_spacing_diff)
 
-    def get_all_scans(self, instrument_type=None):
-        if instrument_type is None:
-            instrument_type = self.instrument_type
+    def generate_mz_interpolation_range(self, fcn):
+        if not self.check_fcn(fcn):
+            raise ValueError(f"Function {fcn} could not be found in the file.")
 
-        yvals_summed = np.zeros_like(self.bin_centres)
-        zvals_summed = []
+        mass_range = self.stats_in_functions[fcn]["mass_range"]
+        n_scans = self.stats_in_functions[fcn]["n_scans"]
+        mz_spacing = self.find_minimum_mz_spacing(fcn, n_scans)
+        mz_x = np.arange(mass_range[0], mass_range[1], mz_spacing)
 
-        # MALDI
-        if instrument_type in ["LDI+", "LDI-"]:
-            for fcn in range(self.n_functions):
-                for i in range(self.stats_in_functions[fcn]['n_scans']):
-                    yvals = self.get_scan_data(fcn, i)
-                    xpos, ypos = self.get_scan_headers(fcn, i)
-        # DESI
-        elif instrument_type in ["ES+", "ES-"]:
-            fcn = 0
-            n_scans = self.stats_in_functions[fcn]['n_scans']
-            ms_DF = np.zeros((n_scans, len(self.bin_centres)))
-            msBinDict = dict.fromkeys(list(range(n_scans)))
+        self.mz_spacing = mz_spacing
+        self.mz_x = mz_x
 
-            for scan in range(self.stats_in_functions[fcn]['n_scans']):
-                yvals = self.get_scan_data(fcn, scan)
-                xpos, ypos = self.get_scan_headers(fcn, scan)
+        return mz_spacing, mz_x
 
-                ms_DF[int(scan), :] = yvals
-                msBinDict[int(scan)] = {'xval': str2num(xpos),
-                                        'yval': str2num(ypos)}
+    def get_summed_spectrum(self, fcn, n_scans, mz_x, scan_list=None):
+        if not self.check_fcn(fcn):
+            raise ValueError(f"Function {fcn} could not be found in the file.")
 
-                yvals_summed = np.add(yvals, yvals_summed)
-                zvals_summed.append(np.sum(yvals))
+        if scan_list is None:
+            scan_list = range(n_scans)
 
-        print((ms_DF.shape))
-        return ms_DF, msBinDict, yvals_summed, zvals_summed
+        if len(scan_list) == 0:
+            raise ValueError("Scan list is empty")
+
+        mz_y = np.zeros_like(mz_x, dtype=np.float64)
+        for scan_id in scan_list:
+            xvals, yvals = self.data_reader.ReadScan(fcn, scan_id)
+            xvals = np.array(xvals)
+            yvals = np.array(yvals)
+            if len(xvals) > 0:
+                f = interpolate.interp1d(xvals, yvals, "zero", bounds_error=False, fill_value=0)
+                mz_y += f(mz_x)
+
+        return mz_y

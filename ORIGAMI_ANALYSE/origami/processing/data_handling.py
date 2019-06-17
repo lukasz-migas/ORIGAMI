@@ -7,6 +7,7 @@ import numpy as np
 from gui_elements.dialog_multiDirSelector import dialogMultiDirSelector
 import readers.io_text_files as io_text
 import readers.io_waters_raw as io_waters
+import readers.io_waters_raw_api as io_waters_raw_api
 import processing.spectra as pr_spectra
 from document import document as documents
 from ids import ID_window_ionList, ID_window_multiFieldList, ID_load_origami_masslynx_raw, ID_load_masslynx_raw, \
@@ -137,6 +138,28 @@ class data_handling():
         else:
             return None, None
 
+    def _get_waters_api_reader(self, document):
+        reader = document.file_reader.get("data_reader", None)
+        if reader is None:
+            reader = io_waters_raw_api.WatersRawReader(document.path)
+
+        return reader
+
+    def _get_waters_api_spectrum_data(self, reader, **kwargs):
+        fcn = 0
+        if not hasattr(reader, "mz_spacing"):
+            __, __ = reader.generate_mz_interpolation_range(fcn)
+
+        mz_x = reader.mz_x
+
+        start_scan = kwargs.get("start_scan", 0)
+        end_scan = kwargs.get("end_scan", reader.stats_in_functions[fcn]["n_scans"])
+        scan_list = np.arange(start_scan, end_scan)
+
+        mz_y = reader.get_summed_spectrum(fcn, 0, mz_x, scan_list)
+
+        return mz_x, mz_y
+
     def _get_driftscope_spectrum_data(self, path, **kwargs):
         kwargs.update({'return_data': True})
         ms_x, ms_y = io_waters.driftscope_extract_MS(
@@ -205,22 +228,23 @@ class data_handling():
         return xvals_MSDT, yvals_MSDT, zvals_MSDT
 
     def _get_masslynx_spectrum_data(self, path, mz_min, mz_max):
-        kwargs = {'auto_range': self.config.ms_auto_range,
-                  'mz_min': mz_min, 'mz_max': mz_max,
-                  'linearization_mode': self.config.ms_linearization_mode}
-        ms_dict = io_waters.rawMassLynx_MS_bin(
-            filename=path,
-            function=1,
-            binData=self.config.import_binOnImport,
-            mzStart=self.config.ms_mzStart,
-            mzEnd=self.config.ms_mzEnd,
-            binsize=self.config.ms_mzBinSize,
-            **kwargs)
-
-        # Sum MS data
-        ms_x, ms_y = pr_spectra.sum_1D_dictionary(ydict=ms_dict)
-
-        return ms_x, ms_y, ms_dict
+        print("TODO: reimplement this function using SDK")
+#         kwargs = {'auto_range': self.config.ms_auto_range,
+#                   'mz_min': mz_min, 'mz_max': mz_max,
+#                   'linearization_mode': self.config.ms_linearization_mode}
+#         ms_dict = io_waters.rawMassLynx_MS_bin(
+#             filename=path,
+#             function=1,
+#             binData=self.config.import_binOnImport,
+#             mzStart=self.config.ms_mzStart,
+#             mzEnd=self.config.ms_mzEnd,
+#             binsize=self.config.ms_mzBinSize,
+#             **kwargs)
+#
+#         # Sum MS data
+#         ms_x, ms_y = pr_spectra.sum_1D_dictionary(ydict=ms_dict)
+#
+#         return ms_x, ms_y, ms_dict
 
     def _get_text_spectrum_data(self, path):
         # Extract MS file
@@ -712,7 +736,7 @@ class data_handling():
                 outcome = self.ionPanel.onCheckForDuplicates(
                     mzStart=str(mz_start), mzEnd=str(mz_end))
                 if outcome:
-                    self.SetStatusText('Selected range already in the table', 3)
+                    self.__update_statusbar('Selected range already in the table', 4)
                     if currentView == "MS":
                         return outcome
                     return
@@ -798,7 +822,6 @@ class data_handling():
         # Extract mass spectrum from chromatogram window - Linear DT files
         elif self.plot_page == "RT" and document.dataType == 'Type: Multifield Linear DT':
             self.view._mgr.GetPane(self.view.panelLinearDT).Show()
-#             self.multifieldTable.Check(True)
             self.view._mgr.Update()
             xvalsMin = np.ceil(xvalsMin).astype(int)
             xvalsMax = np.floor(xvalsMax).astype(int)
@@ -827,8 +850,7 @@ class data_handling():
 
             # Get values
             if xvalsMin is None or xvalsMax is None:
-                self.SetStatusText("Extraction range was from outside of the plot area. Try again",
-                                   number=4)
+                self.__update_statusbar("Extraction range was from outside of the plot area. Please try again", 4)
                 return
             if rt_label == "Scans":
                 xvalsMin = np.ceil(xvalsMin).astype(int)
@@ -838,10 +860,10 @@ class data_handling():
             if xvalsMax < xvalsMin:
                 xvalsMax, xvalsMin = xvalsMin, xvalsMax
 
-            # Check if difference between the two values is large enough
-            if (xvalsMax - xvalsMin) < 1 and rt_label == "Scans":
-                self.view.SetStatusText('The scan range you selected was too small. Please choose wider range', 3)
-                return
+#             # Check if difference between the two values is large enough
+#             if (xvalsMax - xvalsMin) < 1 and rt_label == "Scans":
+#                 self.__update_statusbar('The scan range you selected was too small. Please choose wider range', 4)
+#                 return
             # Extract data
             if document.fileFormat == "Format: Thermo (.RAW)":
                 return
@@ -996,9 +1018,11 @@ class data_handling():
         parameters = self.config.importMassLynxInfFile(path=path)
         fileInfo = self.config.importMassLynxHeaderFile(path=path)
         xlimits = [parameters['startMS'], parameters['endMS']]
+        reader = io_waters_raw_api.WatersRawReader(path)
 
         try:
-            ms_x, ms_y = self._get_driftscope_spectrum_data(path)
+            ms_x, ms_y = self._get_waters_api_spectrum_data(reader)
+#             ms_x, ms_y = self._get_driftscope_spectrum_data(path)
             self.on_threading(args=("Extracted mass spectrum", 4), action='statusbar.update')
         except IOError:
             # Failed to open document because it does not have IM-MS data
@@ -1044,6 +1068,7 @@ class data_handling():
         document.parameters = parameters
         document.userParameters = self.config.userParameters
         document.userParameters['date'] = getTime()
+        document.file_reader = {'data_reader': reader}
 
         # add mass spectrum data
         document.gotMS = True
@@ -1587,70 +1612,38 @@ class data_handling():
                 pass
             xlimits = None
 
-        if not self.config.ms_enable_in_RT and scantime is not None:
-            if units == "Scans":
-                rtStart = round(startScan * (scantime / 60), 2)
-                rtEnd = round(endScan * (scantime / 60), 2)
-            elif units in ['Time (min)', 'Retention time (min)']:
-                rtStart, rtEnd = startScan, endScan
+        if scantime is not None:
+            if units in ['Time (min)', 'Retention time (min)']:
                 startScan = np.ceil(((startScan / scantime) * 60)).astype(int)
                 endScan = np.ceil(((endScan / scantime) * 60)).astype(int)
 
-            # Mass spectra
-            try:
-                extract_kwargs = {'return_data': True}
-                msX, msY = io_waters.driftscope_extract_MS(path=document.path,
-                                                            driftscope_path=self.config.driftscopePath,
-                                                            rt_start=rtStart, rt_end=rtEnd,
-                                                            **extract_kwargs)
-                if xlimits is None:
-                    xlimits = [np.min(msX), np.max(msX)]
-            except (IOError, ValueError):
-                kwargs = {'auto_range': self.config.ms_auto_range,
-                          'mz_min': xlimits[0], 'mz_max': xlimits[1],
-                          'linearization_mode': self.config.ms_linearization_mode}
-                msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path), function=1,
-                                                      startScan=startScan, endScan=endScan,
-                                                      binData=self.config.import_binOnImport,
-                                                      # override any settings as this is a accidental extraction
-                                                      mzStart=xlimits[0], mzEnd=xlimits[1],
-                                                      binsize=self.config.ms_mzBinSize,
-                                                      **kwargs)
-                msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
+        reader = self._get_waters_api_reader(document)
 
-            xlimits = [np.min(msX), np.max(msX)]
+        fcn = 0
+        if not hasattr(reader, "mz_spacing"):
+            __, __ = reader.generate_mz_interpolation_range(fcn)
+
+        mz_x = reader.mz_x
+
+        if startScan != endScan:
+            scan_list = np.arange(startScan, endScan)
         else:
-            kwargs = {'auto_range': self.config.ms_auto_range,
-                      'mz_min': xlimits[0], 'mz_max': xlimits[1],
-                      'linearization_mode': self.config.ms_linearization_mode}
-            msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path),
-                                                  function=1,
-                                                  startScan=startScan, endScan=endScan,
-                                                  binData=self.config.import_binOnImport,
-                                                  mzStart=self.config.ms_mzStart,
-                                                  mzEnd=self.config.ms_mzEnd,
-                                                  binsize=self.config.ms_mzBinSize,
-                                                  **kwargs)
-
-            msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
-            xlimits = [np.min(msX), np.max(msX)]
+            scan_list = [startScan]
+        mz_y = reader.get_summed_spectrum(fcn, 0, mz_x, scan_list)
 
         # Add data to dictionary
-        itemName = "Scans: {}-{}".format(startScan, endScan)
+        spectrum_name = "Scans: {}-{}".format(startScan, endScan)
 
-        document.gotMultipleMS = True
-        document.multipleMassSpectrum[itemName] = {'xvals': msX,
-                                                   'yvals': msY,
-                                                    'range': [startScan, endScan],
-                                                    'xlabels': 'm/z (Da)',
-                                                    'xlimits': xlimits}
+        spectrum_data = {'xvals': mz_x, 'yvals': mz_y, 'range': [startScan, endScan], 'xlabels': 'm/z (Da)',
+                         'xlimits': xlimits}
+        document.file_reader = {'data_reader': reader}
 
-        self.on_update_document(document, 'mass_spectra', expand_item_title=itemName)
+        self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
         # Plot MS
-        name_kwargs = {"document": document.title, "dataset": itemName}
-        self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="RT", **name_kwargs)
+        name_kwargs = {"document": document.title, "dataset": spectrum_name}
+        self.plotsPanel.on_plot_MS(mz_x, mz_y, xlimits=xlimits, show_in_window="RT", **name_kwargs)
         # Set status
-        msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
+        msg = f"Extracted MS data for rt: {startScan}-{endScan}"
         self.__update_statusbar(msg, 3)
 
     # TODO: check this function works

@@ -33,7 +33,7 @@ import logging
 logger = logging.getLogger("origami")
 
 # Load C library
-mlLib = cdll.LoadLibrary(os.path.join("MassLynxRaw.dll"))
+# mlLib = cdll.LoadLibrary(os.path.join("MassLynxRaw.dll"))
 
 # create data holder
 temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
@@ -398,87 +398,87 @@ def rawMassLynx_MZDT_load(path=None, inputFile='output.2dDTMZ', normalize=False,
     else:
         return data_reshaped
 
-# ##
-# USE C READER
-# ##
-
-
-def rawMassLynx_MS_bin(filename, startScan=0, endScan=-1, function=1,
-                       mzStart=None, mzEnd=None, binsize=None, binData=False,
-                       **kwargs):
-    """
-    Extract MS data, bin it
-    ---
-    @param binData: boolean, determines if data should be binned or not
-    """
-    tstart = time.clock()
-    # Create pointer to the file
-#     try:
-    filePointer = mlLib.newCMassLynxRawReader(filename)
-#     except WindowsError as err:
-#         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
-#         return
-
-    # Setup scan reader
-    dataPointer = mlLib.newCMassLynxRawScanReader(filePointer)
-    # Extract number of scans available from the file
-    nScans = mlLib.getScansInFunction(dataPointer, function)
-    # Initilise pointers to data
-    xpoint = c_float()
-    ypoint = c_float()
-    # Initilise empty lists
-    msX = []
-    msY = []
-    msDict = {}
-    if endScan == -1 or endScan > nScans:
-        endScan = nScans
-    if 'linearization_mode' in kwargs:
-        if kwargs['linearization_mode'] == 'Raw':
-            binData = False
-
-    if binsize == 0.:
-        binData = False
-
-    if binData:
-        if 'auto_range' in kwargs and kwargs['auto_range']:
-            mzStart = kwargs['mz_min']
-            mzEnd = kwargs['mz_max']
-
-        if mzStart is None or mzEnd is None or binsize is None:
-            logger.warning('Missing parameters')
-            return
-        elif kwargs['linearization_mode'] == "Binning":
-            msList = np.arange(mzStart, mzEnd + binsize, binsize)
-            msCentre = msList[:-1] + (binsize / 2)
-        else:
-            msCentre = get_linearization_range(mzStart, mzEnd, binsize, kwargs['linearization_mode'])
-
-    msRange = np.arange(startScan, endScan) + 1
-    # First extract data
-    for scan in msRange:
-        nPoints = mlLib.getScanSize(dataPointer, function, scan)
-        # Read XY coordinates
-        mlLib.getXYCoordinates(filePointer, function, scan, byref(xpoint), byref(ypoint))
-        # Prepare pointers
-        mzP = (c_float * nPoints)()
-        mzI = (c_float * nPoints)()
-        # Read spectrum
-        mlLib.readSpectrum(dataPointer, function, scan, byref(mzP), byref(mzI))
-        # Extract data from pointer and assign it to list
-        msX = np.ndarray((nPoints,), 'f', mzP, order='C')
-        msY = np.ndarray((nPoints,), 'f', mzI, order='C')
-        if binData:
-            if kwargs['linearization_mode'] == "Binning":
-                msYbin = bin_1D(x=msX, y=msY, bins=msList)
-            else:
-                msCentre, msYbin = linearize(data=np.transpose([msX, msY]),
-                                             binsize=binsize, mode=kwargs['linearization_mode'],
-                                             input_list=msCentre)
-            msDict[scan] = [msCentre, msYbin]
-        else:
-            msDict[scan] = [msX, msY]
-    tend = time.clock()
-    logger.info("It took {:.4f} seconds to process {} scans".format((tend - tstart), len(msRange)))
-
-    # Return data
-    return msDict
+# # ##
+# # USE C READER
+# # ##
+#
+#
+# def rawMassLynx_MS_bin(filename, startScan=0, endScan=-1, function=1,
+#                        mzStart=None, mzEnd=None, binsize=None, binData=False,
+#                        **kwargs):
+#     """
+#     Extract MS data, bin it
+#     ---
+#     @param binData: boolean, determines if data should be binned or not
+#     """
+#     tstart = time.clock()
+#     # Create pointer to the file
+# #     try:
+#     filePointer = mlLib.newCMassLynxRawReader(filename)
+# #     except WindowsError as err:
+# #         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
+# #         return
+#
+#     # Setup scan reader
+#     dataPointer = mlLib.newCMassLynxRawScanReader(filePointer)
+#     # Extract number of scans available from the file
+#     nScans = mlLib.getScansInFunction(dataPointer, function)
+#     # Initilise pointers to data
+#     xpoint = c_float()
+#     ypoint = c_float()
+#     # Initilise empty lists
+#     msX = []
+#     msY = []
+#     msDict = {}
+#     if endScan == -1 or endScan > nScans:
+#         endScan = nScans
+#     if 'linearization_mode' in kwargs:
+#         if kwargs['linearization_mode'] == 'Raw':
+#             binData = False
+#
+#     if binsize == 0.:
+#         binData = False
+#
+#     if binData:
+#         if 'auto_range' in kwargs and kwargs['auto_range']:
+#             mzStart = kwargs['mz_min']
+#             mzEnd = kwargs['mz_max']
+#
+#         if mzStart is None or mzEnd is None or binsize is None:
+#             logger.warning('Missing parameters')
+#             return
+#         elif kwargs['linearization_mode'] == "Binning":
+#             msList = np.arange(mzStart, mzEnd + binsize, binsize)
+#             msCentre = msList[:-1] + (binsize / 2)
+#         else:
+#             msCentre = get_linearization_range(mzStart, mzEnd, binsize, kwargs['linearization_mode'])
+#
+#     msRange = np.arange(startScan, endScan) + 1
+#     # First extract data
+#     for scan in msRange:
+#         nPoints = mlLib.getScanSize(dataPointer, function, scan)
+#         # Read XY coordinates
+#         mlLib.getXYCoordinates(filePointer, function, scan, byref(xpoint), byref(ypoint))
+#         # Prepare pointers
+#         mzP = (c_float * nPoints)()
+#         mzI = (c_float * nPoints)()
+#         # Read spectrum
+#         mlLib.readSpectrum(dataPointer, function, scan, byref(mzP), byref(mzI))
+#         # Extract data from pointer and assign it to list
+#         msX = np.ndarray((nPoints,), 'f', mzP, order='C')
+#         msY = np.ndarray((nPoints,), 'f', mzI, order='C')
+#         if binData:
+#             if kwargs['linearization_mode'] == "Binning":
+#                 msYbin = bin_1D(x=msX, y=msY, bins=msList)
+#             else:
+#                 msCentre, msYbin = linearize(data=np.transpose([msX, msY]),
+#                                              binsize=binsize, mode=kwargs['linearization_mode'],
+#                                              input_list=msCentre)
+#             msDict[scan] = [msCentre, msYbin]
+#         else:
+#             msDict[scan] = [msX, msY]
+#     tend = time.clock()
+#     logger.info("It took {:.4f} seconds to process {} scans".format((tend - tstart), len(msRange)))
+#
+#     # Return data
+#     return msDict

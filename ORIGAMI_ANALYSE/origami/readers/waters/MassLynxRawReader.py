@@ -2,11 +2,12 @@
     MassLynx Python SDK
 '''
 
-import string
+# import string
 import ctypes
-from ctypes import*
 import os
 from enum import IntEnum
+from ctypes import c_char_p, c_int, c_void_p, POINTER
+
 
 class MassLynxBaseType(IntEnum):
     SCAN = 1
@@ -18,6 +19,7 @@ class MassLynxBaseType(IntEnum):
     DDA = 7
     MSE = 8
     UNINITALISED = 1000
+
 
 class MassLynxHeaderItem(IntEnum):
     ML_VERSION = 0
@@ -57,6 +59,7 @@ class MassLynxHeaderItem(IntEnum):
     SPARE4 = 34
     SPARE5 = 35
     UNINITIALISED = 1000
+
 
 class MassLynxScanItem(IntEnum):
     LINEAR_DETECTOR_VOLTAGE = 1
@@ -146,16 +149,19 @@ class MassLynxScanItem(IntEnum):
 
 class MassLynxException(Exception):
     code = 0
+
     def __init__(self, code, message):
         self.message = message
         self.code = code
+
     def __str__(self):
-        return repr(  self.message )
+        return repr(self.message)
 
     def Handler(self):
-        #print( self.message )
+        # print( self.message )
         # can rethrow if needed
         return
+
 
 # string handler
 class MassLynxStringHandler(object):
@@ -167,8 +173,8 @@ class MassLynxStringHandler(object):
         if (None == chString):
             return ""
 
-        strValue  = chString.value.decode()
-        if (release ):
+        strValue = chString.value.decode()
+        if (release):
             MassLynxRawReader.ReleaseMemory(chString)
 
         chString = None
@@ -177,19 +183,20 @@ class MassLynxStringHandler(object):
 
 
 class MassLynxCodeHandler(object):
+
     def __init__(self):
         self._code = 0
         self._stringHandler = MassLynxStringHandler()
         return
 
     # three option true, false, throw exception
-    def CheckReturnCode( self, code, throw = True ):
-        self._code = code;
+    def CheckReturnCode(self, code, throw=True):
+        self._code = code
         if (0 == code):
             return True
 
         if (throw):
-            raise MassLynxException( self.GetLastCode(), self.GetLastMessage() )
+            raise MassLynxException(self.GetLastCode(), self.GetLastMessage())
 
         # get last error
         return False
@@ -200,69 +207,70 @@ class MassLynxCodeHandler(object):
     def GetLastMessage(self):
         # load the dll
         getErrorMessage = MassLynxRawReader.massLynxDll.getErrorMessage
-        getErrorMessage.argtypes = [ c_int, POINTER(c_char_p)]
+        getErrorMessage.argtypes = [c_int, POINTER(c_char_p)]
 
         message = (c_char_p)()
-        getErrorMessage( self.GetLastCode(), message )
+        getErrorMessage(self.GetLastCode(), message)
   #      exceptionMessage = "MassLynx Exception {} : {}".format( returnCode, message.value.decode())
 
         # release the memory
         return self._stringHandler.ToString(message, True)
 
 
-
 class MassLynxRawReader(object):
     """basic functionality to read raw files"""
-    
+
     # load the dll
-    
-    dll_path = os.path.join(os.getcwd(), "data_handling", "waters", "MassLynxRaw.dll")
-    
+    current_directory = os.getcwd()
+    waters_path = os.path.join(current_directory, "readers", "waters")
+    os.chdir(waters_path)
+    dll_path = os.path.join(waters_path, "MassLynxRaw.dll")
     massLynxDll = ctypes.WinDLL("MassLynxRaw.dll")
-    version = '1.0'                                 # class variable
+    version = '1.0'  # class variable
+
+    os.chdir(current_directory)
 
     def __init__(self, source, mlType):
 
-        self.mlRawReader = c_void_p()              # instance variable
+        self.mlRawReader = c_void_p()  # instance variable
         self._codeHandler = MassLynxCodeHandler()
         self._stringHandler = MassLynxStringHandler()
 
         # create scan reader from a path
-        if (isinstance(source, str) ):
-            bytes = str.encode(source)     
+        if (isinstance(source, str)):
+            bytes = str.encode(source)
             createRawReaderFromPath = MassLynxRawReader.massLynxDll.createRawReaderFromPath
-            createRawReaderFromPath.argtypes = [ c_char_p, POINTER(c_void_p), c_int]
+            createRawReaderFromPath.argtypes = [c_char_p, POINTER(c_void_p), c_int]
             self._codeHandler.CheckReturnCode(createRawReaderFromPath(bytes, self._getReader(), mlType))
 
         # create scan reader from a reader
         elif (isinstance(source, MassLynxRawReader)):
             createRawReaderFromReader = MassLynxRawReader.massLynxDll.createRawReaderFromReader
-            createRawReaderFromReader.argtypes = [ c_void_p, POINTER(c_void_p), c_int]
-            self._codeHandler.CheckReturnCode(createRawReaderFromReader(source._getReader(),self._getReader(),mlType))
-        
+            createRawReaderFromReader.argtypes = [c_void_p, POINTER(c_void_p), c_int]
+            self._codeHandler.CheckReturnCode(createRawReaderFromReader(source._getReader(), self._getReader(), mlType))
+
         # did we fall through
         else:
-            self._codeHandler.CheckReturnCode( 1 )
+            self._codeHandler.CheckReturnCode(1)
 
         return
-        
-    
-    #@classmethod
-    #def CreateFromPath( cls, path ):        # alternative constructor - pass class to constructor
+
+    # @classmethod
+    # def CreateFromPath( cls, path ):        # alternative constructor - pass class to constructor
     #    return cls(MassLynxRawReader.fromPath( path, 0 ))                     # initalise with reader
 
-    #def fromPath( path, type ):       # create a reader
+    # def fromPath( path, type ):       # create a reader
     #    mlRawReader = c_void_p()
     #    bytes = str.encode(path)
-            
+
     #    # create scan reader
     #    createRawReaderFromPath = MassLynxRawReader.massLynxDll.createRawReaderFromPath
     #    createRawReaderFromPath.argtypes = [ c_char_p, POINTER(c_void_p), c_int]
     #    code = createRawReaderFromPath(bytes,mlRawReader,type)
-    
+
     #    return mlRawReader                  # return reader
 
-    #def _fromReader( sourceReader, type ):                  # alternative constructor - pass class to constructor
+    # def _fromReader( sourceReader, type ):                  # alternative constructor - pass class to constructor
     #    mlRawReader = c_void_p()
     #    createRawReaderFromReader = MassLynxRawReader.massLynxDll.createRawReaderFromReader
     #    createRawReaderFromReader.argtypes = [ c_void_p, POINTER(c_void_p), c_int]
@@ -274,22 +282,21 @@ class MassLynxRawReader(object):
     def __del__(self):
         # destroy reader
         destroyRawReader = MassLynxRawReader.massLynxDll.destroyRawReader
-        destroyRawReader.argtypes = [c_void_p]          
-        destroyRawReader( self._getReader() )
+        destroyRawReader.argtypes = [c_void_p]
+        destroyRawReader(self._getReader())
 
     def _getReader(self):
         return self.mlRawReader
 
-    def ToString( self, pString, release = False ):
-        return self._stringHandler.ToString( pString, release )
+    def ToString(self, pString, release=False):
+        return self._stringHandler.ToString(pString, release)
 
-    
-    def CheckReturnCode(self, code, throw = True):
-        return self._codeHandler.CheckReturnCode( code , throw )
+    def CheckReturnCode(self, code, throw=True):
+        return self._codeHandler.CheckReturnCode(code, throw)
 
     # common util to check return codes
-    #@staticmethod
-    #def CheckReturnCode( returnCode ):
+    # @staticmethod
+    # def CheckReturnCode( returnCode ):
     #    if ( returnCode != 0 ):
     #        # load the dll
     #        getErrorMessage = MassLynxRawReader.massLynxDll.getErrorMessage
@@ -306,7 +313,7 @@ class MassLynxRawReader(object):
 
     # common util to free memory
     @staticmethod
-    def ReleaseMemory( address):
+    def ReleaseMemory(address):
         releaseMemory = MassLynxRawReader.massLynxDll.releaseMemory
-        releaseMemory.argtypes = [ c_void_p]
-        releaseMemory( address )
+        releaseMemory.argtypes = [c_void_p]
+        releaseMemory(address)

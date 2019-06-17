@@ -51,6 +51,8 @@ from gui_elements.misc_dialogs import dlgBox, dlgAsk
 from utils.color import convertRGB1to255, convertRGB255to1
 from utils.converters import str2num, str2int
 
+# TODO: need to override the on_select_item with the built-in method OR call after with similar method
+
 
 class panel_peak_annotation_editor(wx.MiniFrame):
     """
@@ -82,7 +84,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         self.check_all = False
         self.reverse = False
         self.lastColumn = None
-        self.currentItem = None
+#         self.peaklist.item_id = None
 
         self.config.annotation_patch_transparency = 0.2
         self.config.annotation_patch_width = 3
@@ -178,7 +180,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         self.peaklist.InsertColumn(self.annotation_list['color'], 'color', width=107)
         self.peaklist.InsertColumn(self.annotation_list['arrow'], 'show arrow', width=75)
 
-        self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
+#         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
 
     def make_panel(self):
 
@@ -745,80 +747,79 @@ class panel_peak_annotation_editor(wx.MiniFrame):
             self.config.interactive_ms_annotations_color = convertRGB255to1(newColour)
             self.colorBtn.SetBackgroundColour(newColour)
 
-    def OnGetColumnClick(self, evt):
-        column = evt.GetColumn()
+#     def OnGetColumnClick(self, evt):
+#         column = evt.GetColumn()
+#
+#         if column == self.annotation_list['check']:
+#             self.OnCheckAllItems()
+#         else:
+#             if self.lastColumn == None:
+#                 self.lastColumn = column
+#             elif self.lastColumn == column:
+#                 if self.reverse == True:
+#                     self.reverse = False
+#                 else:
+#                     self.reverse = True
+#             else:
+#                 self.reverse = False
+#                 self.lastColumn = column
+#
+#             columns = self.peaklist.GetColumnCount()
+#             rows = self.peaklist.GetItemCount()
+#
+#             tempData = []
+#             for row in range(rows):
+#                 tempRow = []
+#                 for col in range(columns):
+#                     item = self.peaklist.GetItem(itemId=row, col=col)
+#                     tempRow.append(item.GetText())
+#                 tempRow.append(self.peaklist.IsChecked(index=row))
+#                 tempData.append(tempRow)
+#
+#             # Sort data
+#             tempData = natsorted(tempData, key=itemgetter(column), reverse=self.reverse)
+#             # Clear table
+#             self.peaklist.DeleteAllItems()
+#
+#             checkData = []
+#             for check in tempData:
+#                 checkData.append(check[-1])
+#                 del check[-1]
+#
+#             # Reinstate data
+#             rowList = arange(len(tempData))
+#             for row, check in zip(rowList, checkData):
+#                 self.peaklist.Append(tempData[row])
+#                 self.peaklist.CheckItem(row, check)
 
-        if column == self.annotation_list['check']:
-            self.OnCheckAllItems()
-        else:
-            if self.lastColumn == None:
-                self.lastColumn = column
-            elif self.lastColumn == column:
-                if self.reverse == True:
-                    self.reverse = False
-                else:
-                    self.reverse = True
-            else:
-                self.reverse = False
-                self.lastColumn = column
-
-            columns = self.peaklist.GetColumnCount()
-            rows = self.peaklist.GetItemCount()
-
-            tempData = []
-            for row in range(rows):
-                tempRow = []
-                for col in range(columns):
-                    item = self.peaklist.GetItem(itemId=row, col=col)
-                    tempRow.append(item.GetText())
-                tempRow.append(self.peaklist.IsChecked(index=row))
-                tempData.append(tempRow)
-
-            # Sort data
-            tempData = natsorted(tempData, key=itemgetter(column), reverse=self.reverse)
-            # Clear table
-            self.peaklist.DeleteAllItems()
-
-            checkData = []
-            for check in tempData:
-                checkData.append(check[-1])
-                del check[-1]
-
-            # Reinstate data
-            rowList = arange(len(tempData))
-            for row, check in zip(rowList, checkData):
-                self.peaklist.Append(tempData[row])
-                self.peaklist.CheckItem(row, check)
-
-    def OnCheckAllItems(self):
-        """
-        Check/uncheck all items in the list
-        """
-        self.check_all = not self.check_all
-
-        rows = self.peaklist.GetItemCount()
-
-        for row in range(rows):
-            self.peaklist.CheckItem(row, check=self.check_all)
+#     def OnCheckAllItems(self):
+#         """
+#         Check/uncheck all items in the list
+#         """
+#         self.check_all = not self.check_all
+#
+#         rows = self.peaklist.GetItemCount()
+#
+#         for row in range(rows):
+#             self.peaklist.CheckItem(row, check=self.check_all)
 
     def on_select_item(self, evt):
-#         self.currentItem = evt.m_itemIndex
 
         self.item_loading_lock = True
 
         # populate values
-        min_value = self.peaklist.GetItem(self.currentItem, self.annotation_list['min']).GetText()
+        min_value = self.peaklist.GetItem(self.peaklist.item_id, self.annotation_list['min']).GetText()
         self.min_value.SetValue(min_value)
-        max_value = self.peaklist.GetItem(self.currentItem, self.annotation_list['max']).GetText()
+        max_value = self.peaklist.GetItem(self.peaklist.item_id, self.annotation_list['max']).GetText()
         self.max_value.SetValue(max_value)
-        intensity = self.peaklist.GetItem(self.currentItem, self.annotation_list['intensity']).GetText()
+        intensity = self.peaklist.GetItem(self.peaklist.item_id, self.annotation_list['intensity']).GetText()
         self.intensity_value.SetValue(intensity)
-        charge = self.peaklist.GetItem(self.currentItem, self.annotation_list['charge']).GetText()
+        charge = self.peaklist.GetItem(self.peaklist.item_id, self.annotation_list['charge']).GetText()
         self.charge_value.SetValue(charge)
-        label = self.peaklist.GetItem(self.currentItem, self.annotation_list['label']).GetText()
+        label = self.peaklist.GetItem(self.peaklist.item_id, self.annotation_list['label']).GetText()
         self.label_value.SetValue(label)
 
-        color = self.peaklist.GetItem(self.currentItem, self.annotation_list['color']).GetText()
+        color = self.peaklist.GetItem(self.peaklist.item_id, self.annotation_list['color']).GetText()
         if color in ["", "None", None]:
             color = self.config.interactive_ms_annotations_color
         self.colorBtn.SetBackgroundColour(convertRGB1to255(literal_eval(color)))
@@ -1220,10 +1221,10 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                                                  self.kwargs['document'],
                                                  self.kwargs['dataset'])
         else:
-            if self.currentItem is None:
+            if self.peaklist.item_id is None:
                 return
 
-            charge_value = self.peaklist.GetItem(self.currentItem, self.annotation_list['charge']).GetText()
+            charge_value = self.peaklist.GetItem(self.peaklist.item_id, self.annotation_list['charge']).GetText()
             label_value = self._convert_str_to_unicode(str(charge_value), return_type=label_format)
             self.label_value.SetValue(label_value)
 
