@@ -44,9 +44,10 @@ class OrigamiConfig:
 
         self._processID = None
         self.loggingFile_path = None
+        self.version = "1.3.0.0"
+        self.debug = True
 
         self.document_version = "19-10-2018"
-        self.version = "1.3.0.0"
         self.unidec_engine = None
         self.links = {
             'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
@@ -66,7 +67,7 @@ class OrigamiConfig:
         self.threading = True
         self.autoSaveSettings = True
         self.autoSaveDocuments = True
-        self.debug = True
+
         self.loadCCSAtStart = True
         self.configFile_name = 'configOut.xml'
         self.checkForDriftscopeAtStart = True

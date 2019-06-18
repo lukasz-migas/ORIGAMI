@@ -22,6 +22,7 @@ import numpy as np
 from gui_elements.misc_dialogs import dlgBox
 from styles import validator
 from utils.converters import str2int, str2num
+import processing.origami_ms as pr_origami
 
 
 class dialog_customise_origami(wx.Dialog):
@@ -43,6 +44,8 @@ class dialog_customise_origami(wx.Dialog):
 
         self.make_gui()
         self.on_toggle_controls(None)
+        self.SetSize((300, 314))
+        self.Layout()
         self.CentreOnScreen()
         self.SetFocus()
 
@@ -91,7 +94,6 @@ class dialog_customise_origami(wx.Dialog):
 
     def on_ok(self, evt):
         self.on_apply_to_document()
-        self.EndModal(wx.OK)
 
     def make_gui(self):
 
@@ -172,9 +174,9 @@ class dialog_customise_origami(wx.Dialog):
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         self.origami_applyBtn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
-        self.origami_applyBtn.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.origami_applyBtn.Bind(wx.EVT_BUTTON, self.on_apply_to_document)
 
-        self.origami_cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.origami_cancelBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
         self.origami_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # pack elements
@@ -213,8 +215,10 @@ class dialog_customise_origami(wx.Dialog):
         n = n + 1
         grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.origami_applyBtn, (n, 0), wx.GBSpan(1, 1))
-        grid.Add(self.origami_cancelBtn, (n, 1), wx.GBSpan(1, 1))
+        grid.Add(self.origami_applyBtn, (n, 0), wx.GBSpan(1, 1),
+                 flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.origami_cancelBtn, (n, 1), wx.GBSpan(1, 1),
+                 flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
 
         mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
@@ -238,10 +242,40 @@ class dialog_customise_origami(wx.Dialog):
 
         self.user_settings_changed = True
 
-    def on_apply_to_document(self):
+    def on_apply_to_document(self, evt):
+        method = self.user_settings["origami_acquisition"]
+        if method == "Linear":
+            start_end_cv_list = pr_origami.calculate_scan_list_linear(
+                self.user_settings["origami_startScan"],
+                self.user_settings["origami_startVoltage"],
+                self.user_settings["origami_endVoltage"],
+                self.user_settings["origami_stepVoltage"],
+                self.user_settings["origami_spv"])
+        elif method == "Exponential":
+            start_end_cv_list = pr_origami.calculate_scan_list_exponential(
+                self.user_settings["origami_startScan"],
+                self.user_settings["origami_startVoltage"],
+                self.user_settings["origami_endVoltage"],
+                self.user_settings["origami_stepVoltage"],
+                self.user_settings["origami_spv"],
+                self.user_settings["origami_exponentialIncrement"],
+                self.user_settings["origami_exponentialPercentage"])
+        elif method == "Boltzmann":
+            start_end_cv_list = pr_origami.calculate_scan_list_boltzmann(
+                self.user_settings["origami_startScan"],
+                self.user_settings["origami_startVoltage"],
+                self.user_settings["origami_endVoltage"],
+                self.user_settings["origami_stepVoltage"],
+                self.user_settings["origami_spv"],
+                self.user_settings["origami_boltzmannOffset"])
+        elif method == "User-defined":
+            start_end_cv_list = []
+
         document = self.data_handling._on_get_document()
         document.metadata["origami_ms"] = self.user_settings
+        document.combineIonsList = start_end_cv_list
         self.data_handling.on_update_document(document, "no_refresh")
+        self.user_settings_changed = False
 
     @staticmethod
     def _load_origami_list(path):

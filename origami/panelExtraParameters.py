@@ -2181,15 +2181,15 @@ class panelParametersEdit(wx.Panel):
         elif plotName == '2D':
             resize_plot = self.presenter.view.panelPlots.plot2D
         elif plotName == 'Waterfall':
-            resize_plot = self.presenter.view.panelPlots.plotWaterfallIMS
+            resize_plot = self.presenter.view.panelPlots.plot_waterfall
         elif plotName == 'RMSD':
-            resize_plot = self.presenter.view.panelPlots.plotRMSF
+            resize_plot = self.presenter.view.panelPlots.plot_RMSF
         elif plotName in ['Comparison', 'Matrix']:
             resize_plot = self.presenter.view.panelPlots.plotCompare
         elif plotName == 'DT/MS':
-            resize_plot = self.presenter.view.panelPlots.plotMZDT
+            resize_plot = self.presenter.view.panelPlots.plot_DT_vs_MS
         elif plotName in ['Overlay', 'Overlay (Grid)']:
-            resize_plot = self.presenter.view.panelPlots.plotOverlay
+            resize_plot = self.presenter.view.panelPlots.plot_overlay
         elif plotName == 'Calibration (MS)':
             resize_plot = self.presenter.view.panelPlots.topPlotMS
         elif plotName == 'Calibration (DT)':

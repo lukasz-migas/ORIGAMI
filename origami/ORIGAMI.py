@@ -37,18 +37,13 @@ from numpy.ma import masked_array
 import mainWindow as mainWindow
 import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
-import processing.origami_ms as pr_origami
 import processing.spectra as pr_spectra
-import readers.io_text_files as io_text
 import readers.io_waters_raw as io_waters
 import unidec as unidec
 from config import OrigamiConfig as config
 from document import document as documents
 from gui_elements.dialog_selectDocument import panelSelectDocument
 from gui_elements.misc_dialogs import dlgAsk, dlgBox
-from gui_elements.panel_calibrantDB import panelCalibrantDB
-from gui_elements.panel_htmlViewer import panelHTMLViewer
-from gui_elements.panel_notifyNewVersion import panelNotifyNewVersion
 from help_documentation import OrigamiHelp
 from icons import IconContainer as icons
 from ids import *
@@ -62,7 +57,6 @@ from utils.color import (combine_rgb,
                          )
 from utils.converters import str2int, str2num
 from utils.logging import set_logger, set_logger_level
-from utils.random import randomIntegerGenerator
 from utils.time import getTime
 
 # needed to avoid annoying warnings to be printed on console
@@ -202,7 +196,8 @@ class ORIGAMI(object):
             self.config.loggingFile_path = os.path.join(
                 log_directory, file_path)
 
-        set_logger(file_path=self.config.loggingFile_path)
+        # setup logger
+        set_logger(file_path=self.config.loggingFile_path, debug_mode=self.config.debug)
         set_logger_level(verbose="DEBUG")
 
         logger.info("Logs can be found in {}".format(self.config.loggingFile_path))
@@ -1407,97 +1402,6 @@ class ORIGAMI(object):
 #
 #             # Update document
 #             self.OnUpdateDocument(self.docs, 'combined_ions')
-
-    def onExtractMSforEachCollVoltage(self, evt):
-        """
-        This function extracts 'binned' msX and msY values for each collision
-        voltage. The values are extracted for each scan range for particular
-        CV, binned and then summed together. These are then stored in the
-        document dictionary
-        """
-        document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-        if document_title == 'Current documents':
-            return
-        document = self.documentsDict[document_title]
-
-        # Make sure the document is of correct type.
-        if not document.dataType == 'Type: ORIGAMI':
-            self.onThreading(None, ('Please select correct document type - ORIGAMI', 3), action='updateStatusbar')
-            return
-        # Check that the user combined scans already
-        if not document.gotCombinedExtractedIons:
-            self.onThreading(None, ('Please combine collision voltages first', 3), action='updateStatusbar')
-            return
-        # Check that appropriate values were filled in
-        if (self.config.ms_mzStart is None or self.config.ms_mzEnd is None
-                or self.config.binCVdata == None):
-            self.onThreading(
-                None,
-                ('Please fill in appopriate fields: MS start, MS end and MS bin size',
-     3),
-                action='updateStatusbar')
-            return
-
-        try:
-            scantime = self.docs.parameters['scanTime']
-        except Exception:
-            scantime = None
-
-        # Do actual work
-        splitlist = document.combineIonsList
-#         msList = []
-        msFilenames = ["m/z"]
-        document.gotMultipleMS = True
-
-        xlimits = [document.parameters['startMS'], document.parameters['endMS']]
-        kwargs = {'auto_range': self.config.ms_auto_range,
-                  'mz_min': xlimits[0], 'mz_max': xlimits[1],
-                  'linearization_mode': self.config.ms_linearization_mode}
-
-        for counter, item in enumerate(splitlist):
-            itemName = "Scans: %s-%s | CV: %s V" % (item[0], item[1], item[2])
-            if self.config.binCVdata or scantime is None:
-                msDict = io_waters.rawMassLynx_MS_bin(filename=str(document.path),
-                                                      function=1,
-                                                      startScan=item[0], endScan=item[1],
-                                                      binData=self.config.import_binOnImport,
-                                                      mzStart=self.config.ms_mzStart,
-                                                      mzEnd=self.config.ms_mzEnd,
-                                                      binsize=self.config.ms_mzBinSize,
-                                                      **kwargs)
-                msX, msY = pr_spectra.sum_1D_dictionary(ydict=msDict)
-                xlimits = [self.config.ms_mzStart, self.config.ms_mzEnd]
-            elif not self.config.binCVdata and scantime is not None:
-                # Mass spectra
-                rtStart = round(item[0] * (scantime / 60), 2)
-                rtEnd = round(item[1] * (scantime / 60), 2)
-                extract_kwargs = {'return_data': True}
-                msX, msY = io_waters.driftscope_extract_MS(path=document.path,
-                                                            driftscope_path=self.config.driftscopePath,
-                                                            rt_start=rtStart, rt_end=rtEnd,
-                                                            **extract_kwargs)
-                xlimits = [document.parameters['startMS'], document.parameters['endMS']]
-            # Add data to document
-            document.multipleMassSpectrum[itemName] = {'trap': item[2],
-                                                       'xvals': msX,
-                                                        'yvals': msY,
-                                                        'xlabels': 'm/z (Da)',
-                                                        'xlimits': xlimits}
-            msFilenames.append(str(item[2]))
-            if counter == 0:
-                tempArray = msY
-            else:
-                tempArray = np.concatenate((tempArray, msY), axis=0)
-        # Form pandas dataframe
-        combMSOut = np.concatenate((msX, tempArray), axis=0)
-        combMSOut = combMSOut.reshape((len(msY), int(counter + 2)), order='F')
-
-        msSaveData = pd.DataFrame(data=combMSOut, columns=msFilenames)
-        document.gotMSSaveData = True
-        document.massSpectraSave = msSaveData  # pandas dataframe that can be exported as csv
-
-        # Update document
-        self.OnUpdateDocument(document, 'mass_spectra')
 
     def onExtract2DimsOverMZrange(self, e):
         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
@@ -4883,8 +4787,8 @@ class ORIGAMI(object):
                                                     mid=self.config.midCmap,
                                                     max=self.config.maxCmap)
                 plt_kwargs['colormap_norm'] = cmapNorm
-                self.view.panelPlots.plotMZDT.plot_2D_update(**plt_kwargs)
-                self.view.panelPlots.plotMZDT.repaint()
+                self.view.panelPlots.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
+                self.view.panelPlots.plot_DT_vs_MS.repaint()
             except AttributeError:
                 pass
 
@@ -4906,8 +4810,8 @@ class ORIGAMI(object):
         # get link to the plot
         if plotName == 'MS':
             resize_plot = [self.view.panelPlots.plot1,
-                           self.view.panelPlots.plotRT_MS,
-                           self.view.panelPlots.plot1D_MS]
+                           self.view.panelPlots.plot_RT_MS,
+                           self.view.panelPlots.plot_DT_MS]
         elif plotName == 'MS (compare)':
             resize_plot = self.view.panelPlots.plot1
         elif plotName == 'RT':
@@ -4917,15 +4821,15 @@ class ORIGAMI(object):
         elif plotName == '2D':
             resize_plot = self.view.panelPlots.plot2D
         elif plotName == 'Waterfall':
-            resize_plot = self.view.panelPlots.plotWaterfallIMS
+            resize_plot = self.view.panelPlots.plot_waterfall
         elif plotName == 'RMSD':
-            resize_plot = self.view.panelPlots.plotRMSF
+            resize_plot = self.view.panelPlots.plot_RMSF
         elif plotName in ['Comparison', 'Matrix']:
             resize_plot = self.view.panelPlots.plotCompare
         elif plotName == 'DT/MS':
-            resize_plot = self.view.panelPlots.plotMZDT
+            resize_plot = self.view.panelPlots.plot_DT_vs_MS
         elif plotName in ['Overlay', 'Overlay (Grid)']:
-            resize_plot = self.view.panelPlots.plotOverlay
+            resize_plot = self.view.panelPlots.plot_overlay
         elif plotName == 'Calibration (MS)':
             resize_plot = self.view.panelPlots.topPlotMS
         elif plotName == 'Calibration (DT)':
@@ -5121,24 +5025,24 @@ class ORIGAMI(object):
     def addTextRMSD(self, x, y, text, rotation, color="k", plot='RMSD'):
 
         if plot == 'RMSD':
-            self.view.panelPlots.plotRMSF.addText(x, y, text, rotation,
+            self.view.panelPlots.plot_RMSF.addText(x, y, text, rotation,
                                                   color=self.config.rmsd_color,
                                                   fontsize=self.config.rmsd_fontSize,
                                                   weight=self.config.rmsd_fontWeight)
-            self.view.panelPlots.plotRMSF.repaint()
+            self.view.panelPlots.plot_RMSF.repaint()
         elif plot == 'RMSF':
-            self.view.panelPlots.plotRMSF.addText(x, y, text, rotation,
+            self.view.panelPlots.plot_RMSF.addText(x, y, text, rotation,
                                                   color=self.config.rmsd_color,
                                                   fontsize=self.config.rmsd_fontSize,
                                                   weight=self.config.rmsd_fontWeight)
-            self.view.panelPlots.plotRMSF.repaint()
+            self.view.panelPlots.plot_RMSF.repaint()
         elif plot == 'Grid':
-            self.view.panelPlots.plotOverlay.addText(x, y, text, rotation,
+            self.view.panelPlots.plot_overlay.addText(x, y, text, rotation,
                                                      color=self.config.rmsd_color,
                                                      fontsize=self.config.rmsd_fontSize,
                                                      weight=self.config.rmsd_fontWeight,
                                                      plot=plot)
-            self.view.panelPlots.plotOverlay.repaint()
+            self.view.panelPlots.plot_overlay.repaint()
 
 #     def onAddMarker1D(self, xval=None, yval=None, color='r', marker='o'):
 #         """
@@ -5188,7 +5092,7 @@ class ORIGAMI(object):
         Receives a message about change in RMSF plot
         """
 
-        self.view.panelPlots.plotRMSF.onZoomRMSF(xmin, xmax)
+        self.view.panelPlots.plot_RMSF.onZoomRMSF(xmin, xmax)
 
 #     def onZoom2D(self, evt):
 #         if self.config.restrictXYrange:
@@ -5204,16 +5108,16 @@ class ORIGAMI(object):
 #             self.view.panelPlots.plot2D.repaint()
 #             if self.config.waterfall:
 #                 # Axes are rotated so using yaxis limits
-#                 self.view.panelPlots.plotWaterfallIMS.onZoom1D(startY, endY)
-#                 self.view.panelPlots.plotWaterfallIMS.repaint()
+#                 self.view.panelPlots.plot_waterfall.onZoom1D(startY, endY)
+#                 self.view.panelPlots.plot_waterfall.repaint()
 #
 #     def onRebootZoom(self, evt):
 #         plotList = [self.view.panelPlots.plot1,
 #                     self.view.panelPlots.plotRT,
-#                     self.view.panelPlots.plotRMSF, self.view.panelPlots.plotMZDT,
+#                     self.view.panelPlots.plot_RMSF, self.view.panelPlots.plot_DT_vs_MS,
 #                     self.view.panelPlots.plotCompare, self.view.panelPlots.plot2D,
-#                     self.view.panelPlots.plot3D, self.view.panelPlots.plotOverlay,
-#                     self.view.panelPlots.plotWaterfallIMS, self.view.panelPlots.topPlotMS,
+#                     self.view.panelPlots.plot3D, self.view.panelPlots.plot_overlay,
+#                     self.view.panelPlots.plot_waterfall, self.view.panelPlots.topPlotMS,
 #                     self.view.panelPlots.bottomPlot1DT, self.view.panelPlots.plotOther]
 #
 #         for plot in plotList:

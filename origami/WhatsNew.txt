@@ -60,7 +60,6 @@ Code:
 Document:
 - added new keyword "metadata" which will store parameters for verious processes
 
-
 Plotting:
 - [new] DT/MS - added smart-zoom option which will speed-up data viewing for very large arrays
     to activate, right-click and select "Customise smart-zoom" where you can adjust settings
@@ -97,6 +96,13 @@ Text panel:
 
 Annotations panel:
 - [changed] changed the label "Multiple annotations" to "Multiply annotations (selected)" (found in Action...)
+
+Data extraction:
+- [improved] Extraction of MS data moved away from Driftscope to Waters SDK which allows extraction of profile data
+    that is properly scaled (e.g. not normalized). Waters SDK does not provide `full` m/z/intensity map (only values that
+    are not 0s) so data is needs to be interpolated to a common m/z axis. Data is interpolated using `zeroth` order 
+    method with the smallest possible bin size (determined by looking at the first 500 scans). 
+// TODO: should add some sort of control panel where number of scans can be setup  
 
 
 ################################################################################

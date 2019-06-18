@@ -547,7 +547,8 @@ class panelMultipleIons(wx.Panel):
 
         self.Bind(wx.EVT_MENU, self.presenter.onProcessMultipleIonsIons, id=ID_processSelectedIons)
         self.Bind(wx.EVT_MENU, self.presenter.onProcessMultipleIonsIons, id=ID_processAllIons)
-        self.Bind(wx.EVT_MENU, self.presenter.onExtractMSforEachCollVoltage, id=ID_extractMSforCVs)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_extract_mass_spectrum_for_each_collision_voltage,
+                  id=ID_extractMSforCVs)
 
         self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_overrideCombinedMenu)
 #         self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_useInternalParamsCombinedMenu)

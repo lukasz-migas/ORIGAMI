@@ -1380,7 +1380,7 @@ class documentsTree(wx.TreeCtrl):
         # waterfall plot
         if ("Waterfall (Raw):" in self.extractData):
             data = None
-            plot = self.panel_plot.plotWaterfallIMS
+            plot = self.panel_plot.plot_waterfall
         # Annotated data
         elif ("Multi-line: " in self.extractData or "Multi-line: " in self.extractParent or
               "V-bar: " in self.extractData or "V-bar: " in self.extractParent or

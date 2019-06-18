@@ -255,29 +255,6 @@ class MassLynxRawReader(object):
 
         return
 
-    # @classmethod
-    # def CreateFromPath( cls, path ):        # alternative constructor - pass class to constructor
-    #    return cls(MassLynxRawReader.fromPath( path, 0 ))                     # initalise with reader
-
-    # def fromPath( path, type ):       # create a reader
-    #    mlRawReader = c_void_p()
-    #    bytes = str.encode(path)
-
-    #    # create scan reader
-    #    createRawReaderFromPath = MassLynxRawReader.massLynxDll.createRawReaderFromPath
-    #    createRawReaderFromPath.argtypes = [ c_char_p, POINTER(c_void_p), c_int]
-    #    code = createRawReaderFromPath(bytes,mlRawReader,type)
-
-    #    return mlRawReader                  # return reader
-
-    # def _fromReader( sourceReader, type ):                  # alternative constructor - pass class to constructor
-    #    mlRawReader = c_void_p()
-    #    createRawReaderFromReader = MassLynxRawReader.massLynxDll.createRawReaderFromReader
-    #    createRawReaderFromReader.argtypes = [ c_void_p, POINTER(c_void_p), c_int]
-    #    CheckReturnCode( createRawReaderFromReader(sourceReader.getReader(),mlRawReader,type))
-
-    #    return mlRawReader             # return reader
-
     # destroy the reader
     def __del__(self):
         # destroy reader
@@ -294,24 +271,6 @@ class MassLynxRawReader(object):
     def CheckReturnCode(self, code, throw=True):
         return self._codeHandler.CheckReturnCode(code, throw)
 
-    # common util to check return codes
-    # @staticmethod
-    # def CheckReturnCode( returnCode ):
-    #    if ( returnCode != 0 ):
-    #        # load the dll
-    #        getErrorMessage = MassLynxRawReader.massLynxDll.getErrorMessage
-    #        getErrorMessage.argtypes = [ c_int, POINTER(c_char_p)]
-
-    #        message = (c_char_p)()
-    #        getErrorMessage( returnCode, message )
-    #        exceptionMessage = "MassLynx Exception {} : {}".format( returnCode, message.value.decode())
-
-    #        # release the memory
-    #        MassLynxRawReader.ReleaseMemory( message )
-
-    #        raise MassLynxException( returnCode, exceptionMessage )
-
-    # common util to free memory
     @staticmethod
     def ReleaseMemory(address):
         releaseMemory = MassLynxRawReader.massLynxDll.releaseMemory

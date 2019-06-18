@@ -151,13 +151,13 @@ class panelPlot(wx.Panel):
         elif self.currentPage in ['3D']:
             self.window_plot3D = self.currentPage
 
-        if self.currentPage == "Waterfall": self.current_plot = self.plotWaterfallIMS
+        if self.currentPage == "Waterfall": self.current_plot = self.plot_waterfall
         elif self.currentPage == "MS": self.current_plot = self.plot1
         elif self.currentPage == "1D": self.current_plot = self.plot1D
         elif self.currentPage == "RT": self.current_plot = self.plotRT
         elif self.currentPage == "2D": self.current_plot = self.plot2D
-        elif self.currentPage == "DT/MS": self.current_plot = self.plotMZDT
-        elif self.currentPage == "Overlay": self.current_plot = self.plotOverlay
+        elif self.currentPage == "DT/MS": self.current_plot = self.plot_DT_vs_MS
+        elif self.currentPage == "Overlay": self.current_plot = self.plot_overlay
         elif self.currentPage == "Other": self.current_plot = self.plotOther
 
         # update statusbars
@@ -199,11 +199,11 @@ class panelPlot(wx.Panel):
         self.topPanelRT_RT.SetSizer(boxTopPanelRT)
 
         self.bottomPanelRT_MS = wx.Panel(self.panelRT)
-        self.plotRT_MS = mpl_plots.plots(self.bottomPanelRT_MS,
+        self.plot_RT_MS = mpl_plots.plots(self.bottomPanelRT_MS,
                                      figsize=self.config._plotSettings["MS (DT/RT)"]['gui_size'],
                                      config=self.config)
         boxBottomPanelMS = wx.BoxSizer(wx.VERTICAL)
-        boxBottomPanelMS.Add(self.plotRT_MS, 1, wx.EXPAND)
+        boxBottomPanelMS.Add(self.plot_RT_MS, 1, wx.EXPAND)
         self.bottomPanelRT_MS.SetSizer(boxBottomPanelMS)
 
         # Add panels to splitter window
@@ -227,11 +227,11 @@ class panelPlot(wx.Panel):
         self.topPanel1D_1D.SetSizer(boxTopPanelMS)
 
         self.bottomPanel1D_MS = wx.Panel(self.panel1D)
-        self.plot1D_MS = mpl_plots.plots(self.bottomPanel1D_MS,
+        self.plot_DT_MS = mpl_plots.plots(self.bottomPanel1D_MS,
                                      figsize=self.config._plotSettings["MS (DT/RT)"]['gui_size'],
                                      config=self.config)
         boxBottomPanel1DT = wx.BoxSizer(wx.VERTICAL)
-        boxBottomPanel1DT.Add(self.plot1D_MS, 1, wx.EXPAND)
+        boxBottomPanel1DT.Add(self.plot_DT_MS, 1, wx.EXPAND)
         self.bottomPanel1D_MS.SetSizer(boxBottomPanel1DT)
 
         # Add panels to splitter window
@@ -257,12 +257,12 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelMZDT, "DT/MS", False)
 
-        self.plotMZDT = mpl_plots.plots(self.panelMZDT,
+        self.plot_DT_vs_MS = mpl_plots.plots(self.panelMZDT,
                                     figsize=self.config._plotSettings["DT/MS"]['gui_size'],
                                     config=self.config)
 
         boxsizer_MZDT = wx.BoxSizer(wx.HORIZONTAL)
-        boxsizer_MZDT.Add(self.plotMZDT, 1, wx.EXPAND | wx.ALL)
+        boxsizer_MZDT.Add(self.plot_DT_vs_MS, 1, wx.EXPAND | wx.ALL)
         self.panelMZDT.SetSizerAndFit(boxsizer_MZDT)
 
         # Setup PLOT WATERFALL
@@ -270,12 +270,12 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.waterfallIMS, "Waterfall", False)
 
-        self.plotWaterfallIMS = mpl_plots.plots(self.waterfallIMS,
+        self.plot_waterfall = mpl_plots.plots(self.waterfallIMS,
                                             figsize=self.config._plotSettings["Waterfall"]['gui_size'],
                                             config=self.config)
 
         boxsizer_waterfall = wx.BoxSizer(wx.HORIZONTAL)
-        boxsizer_waterfall.Add(self.plotWaterfallIMS, 1, wx.EXPAND | wx.ALL)
+        boxsizer_waterfall.Add(self.plot_waterfall, 1, wx.EXPAND | wx.ALL)
         self.waterfallIMS.SetSizerAndFit(boxsizer_waterfall)
 
         # Setup PLOT 3D
@@ -296,11 +296,11 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelRMSF, "RMSF", False)
 
-        self.plotRMSF = mpl_plots.plots(self.panelRMSF,
+        self.plot_RMSF = mpl_plots.plots(self.panelRMSF,
                                     figsize=self.config._plotSettings["RMSF"]['gui_size'],
                                     config=self.config)
         boxsizer_RMSF = wx.BoxSizer(wx.VERTICAL)
-        boxsizer_RMSF.Add(self.plotRMSF, 1, wx.EXPAND)
+        boxsizer_RMSF.Add(self.plot_RMSF, 1, wx.EXPAND)
         self.panelRMSF.SetSizer(boxsizer_RMSF)
 
         # Setup PLOT Comparison
@@ -320,12 +320,12 @@ class panelPlot(wx.Panel):
                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelOverlay, "Overlay", False)
 
-        self.plotOverlay = mpl_plots.plots(self.panelOverlay,
+        self.plot_overlay = mpl_plots.plots(self.panelOverlay,
                                        figsize=self.config._plotSettings["Overlay"]['gui_size'],
                                        config=self.config)
 
         boxsizer_overlay = wx.BoxSizer(wx.VERTICAL)
-        boxsizer_overlay.Add(self.plotOverlay, 1, wx.EXPAND)
+        boxsizer_overlay.Add(self.plot_overlay, 1, wx.EXPAND)
         self.panelOverlay.SetSizer(boxsizer_overlay)
 
         self.panelCCSCalibration = wx.SplitterWindow(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
@@ -762,7 +762,7 @@ class panelPlot(wx.Panel):
                                          text='Edit colorbar parameters...',
                                          bitmap=self.icons.iconsLib['panel_colorbar_16']))
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plotMZDT.lock_plot_from_updating)
+            self.lock_plot_check.Check(self.plot_DT_vs_MS.lock_plot_from_updating)
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_plots_customisePlot,
                                          text='Customise plot...',
                                          bitmap=self.icons.iconsLib['change_xlabels_16']))
@@ -795,7 +795,7 @@ class panelPlot(wx.Panel):
                                          bitmap=self.icons.iconsLib['panel_plot2D_16']))
             menu.AppendSeparator()
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plotOverlay.lock_plot_from_updating)
+            self.lock_plot_check.Check(self.plot_overlay.lock_plot_from_updating)
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_plots_customisePlot,
                                          text='Customise plot...',
                                          bitmap=self.icons.iconsLib['change_xlabels_16']))
@@ -824,7 +824,7 @@ class panelPlot(wx.Panel):
                                          text='Edit violin parameters...',
                                          bitmap=self.icons.iconsLib['panel_violin_16']))
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plotWaterfallIMS.lock_plot_from_updating)
+            self.lock_plot_check.Check(self.plot_waterfall.lock_plot_from_updating)
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_plots_customisePlot,
                                          text='Customise plot...',
                                          bitmap=self.icons.iconsLib['change_xlabels_16']))
@@ -1022,7 +1022,7 @@ class panelPlot(wx.Panel):
             plotWindow = self.plot3D
 
         elif evtID in [ID_saveWaterfallImage, ID_saveWaterfallImageDoc]:
-            plotWindow = self.plotWaterfallIMS
+            plotWindow = self.plot_waterfall
             if plotWindow.plot_name == "Violin":
                 defaultName = self.config._plotSettings['Violin']['default_name']
                 resizeName = "Violin"
@@ -1032,12 +1032,12 @@ class panelPlot(wx.Panel):
 
         elif evtID in [ID_saveRMSDImage, ID_saveRMSDImageDoc,
                              ID_saveRMSFImage, ID_saveRMSFImageDoc]:
-            plotWindow = self.plotRMSF
+            plotWindow = self.plot_RMSF
             defaultName = self.config._plotSettings['RMSD']['default_name']
             resizeName = plotWindow.getPlotName()
 
         elif evtID in [ID_saveOverlayImage, ID_saveOverlayImageDoc]:
-            plotWindow = self.plotOverlay
+            plotWindow = self.plot_overlay
             defaultName = plotWindow.getPlotName()
             resizeName = "Overlay"
 
@@ -1049,7 +1049,7 @@ class panelPlot(wx.Panel):
         elif evtID in [ID_saveMZDTImage, ID_saveMZDTImageDoc]:
             defaultName = self.config._plotSettings['DT/MS']['default_name']
             resizeName = "DT/MS"
-            plotWindow = self.plotMZDT
+            plotWindow = self.plot_DT_vs_MS
 
         elif evtID in [ID_plots_saveImage_unidec_ms]:
             defaultName = self.config._plotSettings['UniDec (MS)']['default_name']
@@ -1147,13 +1147,13 @@ class panelPlot(wx.Panel):
         self.presenter.onThreading(evt, args, action='updateStatusbar')
 
     def onLockPlot(self, evt):
-        if self.currentPage == "Waterfall": plot = self.plotWaterfallIMS
+        if self.currentPage == "Waterfall": plot = self.plot_waterfall
         elif self.currentPage == "MS": plot = self.plot1
         elif self.currentPage == "1D": plot = self.plot1D
         elif self.currentPage == "RT": plot = self.plotRT
         elif self.currentPage == "2D": plot = self.plot2D
-        elif self.currentPage == "DT/MS": plot = self.plotMZDT
-        elif self.currentPage == "Overlay": plot = self.plotOverlay
+        elif self.currentPage == "DT/MS": plot = self.plot_DT_vs_MS
+        elif self.currentPage == "Overlay": plot = self.plot_overlay
 
         plot.lock_plot_from_updating = not plot.lock_plot_from_updating
 
@@ -1168,17 +1168,17 @@ class panelPlot(wx.Panel):
     def customisePlot(self, evt):
         open_window, title = True, ""
 
-        if self.currentPage == "Waterfall": plot, title = self.plotWaterfallIMS, "Waterfall..."
+        if self.currentPage == "Waterfall": plot, title = self.plot_waterfall, "Waterfall..."
         elif self.currentPage == "MS": plot, title = self.plot1, "Mass spectrum..."
         elif self.currentPage == "1D": plot, title = self.plot1D, "Mobiligram..."
         elif self.currentPage == "RT": plot, title = self.plotRT, "Chromatogram ..."
         elif self.currentPage == "2D": plot, title = self.plot2D, "Heatmap..."
-        elif self.currentPage == "DT/MS": plot, title = self.plotMZDT, "DT/MS..."
+        elif self.currentPage == "DT/MS": plot, title = self.plot_DT_vs_MS, "DT/MS..."
         elif self.currentPage == "Overlay":
-            plot, title = self.plotOverlay, "Overlay"
+            plot, title = self.plot_overlay, "Overlay"
             if plot.plot_name not in ["Mask", "Transparent"]: open_window = False
         elif self.currentPage == "RMSF":
-            plot, title = self.plotRMSF, "RMSF"
+            plot, title = self.plot_RMSF, "RMSF"
             if plot.plot_name not in ["RMSD"]: open_window = False
         elif self.currentPage == "Comparison": plot, title = self.plotCompare, "Comparison..."
         elif self.currentPage == "UniDec":
@@ -1264,14 +1264,14 @@ class panelPlot(wx.Panel):
         plot.repaint()
 
     def get_current_plot(self):
-        if self.currentPage == "Waterfall": plot = self.plotWaterfallIMS
+        if self.currentPage == "Waterfall": plot = self.plot_waterfall
         elif self.currentPage == "MS": plot = self.plot1
         elif self.currentPage == "1D": plot = self.plot1D
         elif self.currentPage == "RT": plot = self.plotRT
         elif self.currentPage == "2D": plot = self.plot2D
-        elif self.currentPage == "DT/MS": plot = self.plotMZDT
-        elif self.currentPage == "Overlay": plot = self.plotOverlay
-        elif self.currentPage == "RMSF": plot = self.plotRMSF
+        elif self.currentPage == "DT/MS": plot = self.plot_DT_vs_MS
+        elif self.currentPage == "Overlay": plot = self.plot_overlay
+        elif self.currentPage == "RMSF": plot = self.plot_RMSF
         elif self.currentPage == "Comparison": plot = self.plotCompare
         elif self.currentPage == "Other": plot = self.plotOther
 
@@ -1381,8 +1381,8 @@ class panelPlot(wx.Panel):
             ymin, ymax = self.plot2D.plotMS.get_ylim()
             return round(xmin, 0), round(xmax, 0), round(ymin, 0), round(ymax, 0)
         elif self.currentPage == "":
-            xmin, xmax = self.plotMZDT.plotMS.get_xlim()
-            ymin, ymax = self.plotMZDT.plotMS.get_ylim()
+            xmin, xmax = self.plot_DT_vs_MS.plotMS.get_xlim()
+            ymin, ymax = self.plot_DT_vs_MS.plotMS.get_ylim()
             return round(xmin, 0), round(xmax, 0), round(ymin, 0), round(ymax, 0)
         else: pass
 
@@ -1423,7 +1423,7 @@ class panelPlot(wx.Panel):
                 return new_colors
 
     def onGetColormapList(self, n_colors):
-        colorlist = sns.color_palette(self.config.currentCmap, n_colors)  # plt.cm.get_cmap(name=self.config.currentCmap, lut=n_colors)
+        colorlist = sns.color_palette(self.config.currentCmap, n_colors)
         return colorlist
 
     def get_colorList(self, count):
@@ -1448,25 +1448,25 @@ class panelPlot(wx.Panel):
         elif plot == 'RT' or eventID == ID_clearPlot_RT:
             plot = self.plotRT
         elif plot == 'RT_MS' or eventID == ID_clearPlot_RT_MS:
-            plot = self.plotRT_MS
+            plot = self.plot_RT_MS
         elif plot == '1D' or eventID == ID_clearPlot_1D:
             plot = self.plot1D
         elif plot == '1D_MS' or eventID == ID_clearPlot_1D_MS:
-            plot = self.plot1D_MS
+            plot = self.plot_DT_MS
         elif plot == '2D' or eventID == ID_clearPlot_2D:
             plot = self.plot2D
         elif plot == 'DT/MS' or eventID == ID_clearPlot_MZDT:
-            plot = self.plotMZDT
+            plot = self.plot_DT_vs_MS
         elif plot == '3D' or eventID == ID_clearPlot_3D:
             plot = self.plot3D
         elif plot == 'RMSF' or eventID == ID_clearPlot_RMSF:
-            plot = self.plotRMSF
+            plot = self.plot_RMSF
         elif plot == 'Overlay' or eventID == ID_clearPlot_Overlay:
-            plot = self.plotOverlay
+            plot = self.plot_overlay
         elif plot == 'Matrix' or eventID == ID_clearPlot_Matrix:
             plot = self.plotCompare
         elif plot == 'Waterall' or eventID == ID_clearPlot_Waterfall:
-            plot = self.plotWaterfallIMS
+            plot = self.plot_waterfall
         elif plot == 'Calibration' or eventID == ID_clearPlot_Calibration:
             plot = [self.topPlotMS, self.bottomPlot1DT]
         elif plot == 'Other' or eventID == ID_clearPlot_other:
@@ -1497,13 +1497,14 @@ class panelPlot(wx.Panel):
     def on_clear_all_plots(self):
 
         # Delete all plots
-        plotList = [self.plot1, self.plotRT, self.plotRMSF, self.plot1D,
-                    self.plotCompare, self.plot2D, self.plot3D, self.plotOverlay,
-                    self.plotWaterfallIMS, self.topPlotMS, self.bottomPlot1DT, self.plotMZDT,
+        plotList = [self.plot1, self.plotRT, self.plot_RMSF, self.plot1D,
+                    self.plotCompare, self.plot2D, self.plot3D, self.plot_overlay,
+                    self.plot_waterfall, self.topPlotMS, self.bottomPlot1DT, self.plot_DT_vs_MS,
                     self.plotUnidec_MS, self.plotUnidec_mzGrid,
                     self.plotUnidec_mwDistribution, self.plotUnidec_mwVsZ,
                     self.plotUnidec_individualPeaks, self.plotUnidec_barChart,
-                    self.plotUnidec_chargeDistribution, self.plotOther]
+                    self.plotUnidec_chargeDistribution, self.plotOther,
+                    self.plot_RT_MS, self.plot_DT_MS]
 
         for plot in plotList:
             plot.clearPlot()
@@ -2116,8 +2117,8 @@ class panelPlot(wx.Panel):
             rmsd_kwargs = self._buildPlotParameters(plotType='RMSF')
             plt_kwargs = merge_two_dicts(plt_kwargs, rmsd_kwargs)
             try:
-                self.plotRMSF.plot_1D_update_rmsf(**plt_kwargs)
-                self.plotRMSF.repaint()
+                self.plot_RMSF.plot_1D_update_rmsf(**plt_kwargs)
+                self.plot_RMSF.repaint()
             except AttributeError: pass
 
     def on_plot_other_1D(self, msX=None, msY=None, xlabel="", ylabel="",
@@ -2422,12 +2423,12 @@ class panelPlot(wx.Panel):
             window = self.config.panelNames['MS']
             plot_size_key = 'MS'
         elif show_in_window == "RT":
-            panel = self.plotRT_MS
+            panel = self.plot_RT_MS
             window = self.config.panelNames['RT']
             plt_kwargs["prevent_extraction"] = True
             plot_size_key = 'MS (DT/RT)'
         elif show_in_window == '1D':
-            panel = self.plot1D_MS
+            panel = self.plot_DT_MS
             window = self.config.panelNames['1D']
             plt_kwargs["prevent_extraction"] = True
             plot_size_key = 'MS (DT/RT)'
@@ -2580,8 +2581,8 @@ class panelPlot(wx.Panel):
 
         if plotName in ['all', 'DT/MS']:
             try:
-                self.plotMZDT.plot_2D_update(**plt_kwargs)
-                self.plotMZDT.repaint()
+                self.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
+                self.plot_DT_vs_MS.repaint()
             except AttributeError: pass
 
     def on_plot_2D_data(self, data=None, **kwargs):
@@ -2643,10 +2644,10 @@ class panelPlot(wx.Panel):
         if 'increment' in kwargs:
             plt_kwargs['increment'] = kwargs['increment']
 
-        self.plotWaterfallIMS.clearPlot()
+        self.plot_waterfall.clearPlot()
         try:
             if zvals.shape[1] < plt_kwargs['violin_nlimit']:
-                self.plotWaterfallIMS.plot_1D_violin(xvals=yvals, yvals=xvals,
+                self.plot_waterfall.plot_1D_violin(xvals=yvals, yvals=xvals,
                                                      zvals=zvals, label="",
                                                      xlabel=xlabel,
                                                      ylabel=ylabel,
@@ -2673,11 +2674,11 @@ class panelPlot(wx.Panel):
                 self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
                                        xlabel=xlabel, ylabel=ylabel)
         except:
-            self.plotWaterfallIMS.clearPlot()
+            self.plot_waterfall.clearPlot()
             print("Failed to plot the violin plot...")
 
         # Show the mass spectrum
-        self.plotWaterfallIMS.repaint()
+        self.plot_waterfall.repaint()
 
     def on_plot_2D(self, zvals=None, xvals=None, yvals=None, xlabel=None,
                      ylabel=None, cmap=None, cmapNorm=None, plotType=None,
@@ -2787,9 +2788,9 @@ class panelPlot(wx.Panel):
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
         try:
-            self.plotMZDT.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals,
+            self.plot_DT_vs_MS.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals,
                                               **plt_kwargs)
-            self.plotMZDT.repaint()
+            self.plot_DT_vs_MS.repaint()
             if override:
                 self.config.replotData['DT/MS'] = {'zvals': zvals, 'xvals': xvals,
                                                    'yvals': yvals, 'xlabels': xlabel,
@@ -2800,21 +2801,21 @@ class panelPlot(wx.Panel):
             pass
 
         # Plot 2D dataset
-        self.plotMZDT.clearPlot()
+        self.plot_DT_vs_MS.clearPlot()
         if self.config.plotType == 'Image':
-            self.plotMZDT.plot_2D_surface(zvals, xvals, yvals, xlabel, ylabel,
+            self.plot_DT_vs_MS.plot_2D_surface(zvals, xvals, yvals, xlabel, ylabel,
                                           axesSize=self.config._plotSettings['DT/MS']['axes_size'],
                                           plotName='MSDT',
                                           **plt_kwargs)
 
         elif self.config.plotType == 'Contour':
-            self.plotMZDT.plot_2D_contour(zvals, xvals, yvals, xlabel, ylabel,
+            self.plot_DT_vs_MS.plot_2D_contour(zvals, xvals, yvals, xlabel, ylabel,
                                           axesSize=self.config._plotSettings['DT/MS']['axes_size'],
                                           plotName='MSDT',
                                           **plt_kwargs)
 
         # Show the mass spectrum
-        self.plotMZDT.repaint()
+        self.plot_DT_vs_MS.repaint()
 
         # since we always sub-sample this dataset, it is makes sense to keep track of the full dataset before it was
         # subsampled - this way, when we replot data it will always use the full information
@@ -2897,8 +2898,8 @@ class panelPlot(wx.Panel):
         if 'increment' in kwargs:
             plt_kwargs['increment'] = kwargs['increment']
 
-        self.plotWaterfallIMS.clearPlot()
-        self.plotWaterfallIMS.plot_1D_waterfall(xvals=xvals, yvals=yvals,
+        self.plot_waterfall.clearPlot()
+        self.plot_waterfall.plot_1D_waterfall(xvals=xvals, yvals=yvals,
                                                 zvals=zvals, label="",
                                                 xlabel=xlabel,
                                                 ylabel=ylabel,
@@ -2912,10 +2913,10 @@ class panelPlot(wx.Panel):
             len(colors) == len(kwargs['labels'])):
             if kwargs['add_legend']:
                 legend_text = list(zip(colors, kwargs['labels']))
-                self.plotWaterfallIMS.plot_1D_add_legend(legend_text, **plt_kwargs)
+                self.plot_waterfall.plot_1D_add_legend(legend_text, **plt_kwargs)
 
         # Show the mass spectrum
-        self.plotWaterfallIMS.repaint()
+        self.plot_waterfall.repaint()
 
     def plot_1D_waterfall_update(self, which='other'):
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2923,9 +2924,9 @@ class panelPlot(wx.Panel):
         if self.currentPage == "Other":
             plot_name = self.plotOther
         else:
-            plot_name = self.plotWaterfallIMS
+            plot_name = self.plot_waterfall
 
-        if self.plotWaterfallIMS.plot_name != "Violin":
+        if self.plot_waterfall.plot_name != "Violin":
             extra_kwargs = self._buildPlotParameters(plotType='waterfall')
         else:
             extra_kwargs = self._buildPlotParameters(plotType='violin')
@@ -2948,8 +2949,8 @@ class panelPlot(wx.Panel):
         if 'increment' in kwargs:
             plt_kwargs['increment'] = kwargs['increment']
 
-        self.plotWaterfallIMS.clearPlot()
-        self.plotWaterfallIMS.plot_1D_waterfall_overlay(xvals=xvals, yvals=yvals,
+        self.plot_waterfall.clearPlot()
+        self.plot_waterfall.plot_1D_waterfall_overlay(xvals=xvals, yvals=yvals,
                                                         zvals=zvals, label="",
                                                         xlabel=xlabel,
                                                         ylabel=ylabel,
@@ -2963,9 +2964,9 @@ class panelPlot(wx.Panel):
             len(colors) == len(kwargs['labels'])):
             if kwargs['add_legend']:
                 legend_text = list(zip(colors, kwargs['labels']))
-                self.plotWaterfallIMS.plot_1D_add_legend(legend_text, **plt_kwargs)
+                self.plot_waterfall.plot_1D_add_legend(legend_text, **plt_kwargs)
 
-        self.plotWaterfallIMS.repaint()
+        self.plot_waterfall.repaint()
 
     def on_plot_overlay_RT(self, xvals, yvals, xlabel, colors, labels, xlimits, style=None,
                            set_page=False):
@@ -3020,8 +3021,8 @@ class panelPlot(wx.Panel):
         if set_page: self._set_page(self.config.panelNames['Overlay'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
-        self.plotOverlay.clearPlot()
-        self.plotOverlay.plot_2D_overlay(zvalsIon1=zvalsIon1,
+        self.plot_overlay.clearPlot()
+        self.plot_overlay.plot_2D_overlay(zvalsIon1=zvalsIon1,
                                          zvalsIon2=zvalsIon2,
                                          cmapIon1=cmapIon1,
                                          cmapIon2=cmapIon2,
@@ -3035,7 +3036,7 @@ class panelPlot(wx.Panel):
                                          plotName=plotName,
                                          **plt_kwargs)
 
-        self.plotOverlay.repaint()
+        self.plot_overlay.repaint()
 
     def on_plot_rgb(self, zvals=None, xvals=None, yvals=None, xlabel=None,
                     ylabel=None, legend_text=None, set_page=False):
@@ -3086,8 +3087,8 @@ class panelPlot(wx.Panel):
         plt_kwargs['colormap'] = cmap
         plt_kwargs['colormap_norm'] = cmapNorm
 
-        self.plotRMSF.clearPlot()
-        self.plotRMSF.plot_1D_2D(yvalsRMSF=yvalsRMSF,
+        self.plot_RMSF.clearPlot()
+        self.plot_RMSF.plot_1D_2D(yvalsRMSF=yvalsRMSF,
                                                  zvals=zvals,
                                                  labelsX=xvals,
                                                  labelsY=yvals,
@@ -3097,7 +3098,7 @@ class panelPlot(wx.Panel):
                                                  label="", zoom="box",
                                                  plotName='RMSF',
                                                  **plt_kwargs)
-        self.plotRMSF.repaint()
+        self.plot_RMSF.repaint()
         self.rmsdfFlag = False
 
         if override:
@@ -3115,7 +3116,7 @@ class panelPlot(wx.Panel):
         # change page
         if set_page: self._set_page(self.config.panelNames['RMSF'])
 
-        self.plotRMSF.clearPlot()
+        self.plot_RMSF.clearPlot()
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -3141,18 +3142,18 @@ class panelPlot(wx.Panel):
 
         # Plot 2D dataset
         if self.config.plotType == 'Image':
-            self.plotRMSF.plot_2D_surface(zvals, xvals, yvals, xlabel, ylabel,
+            self.plot_RMSF.plot_2D_surface(zvals, xvals, yvals, xlabel, ylabel,
                                                         axesSize=self.config._plotSettings['2D']['axes_size'],
                                                         plotName='RMSD',
                                                         **plt_kwargs)
         elif self.config.plotType == 'Contour':
-            self.plotRMSF.plot_2D_contour(zvals, xvals, yvals, xlabel, ylabel,
+            self.plot_RMSF.plot_2D_contour(zvals, xvals, yvals, xlabel, ylabel,
                                                         axesSize=self.config._plotSettings['2D']['axes_size'],
                                                         plotName='RMSD',
                                                         **plt_kwargs)
 
         # Show the mass spectrum
-        self.plotRMSF.repaint()
+        self.plot_RMSF.repaint()
 
         if override:
             self.config.replotData['2D'] = {'zvals':zvals, 'xvals':xvals,
@@ -3221,9 +3222,9 @@ class panelPlot(wx.Panel):
     def plot_2D_update_label(self):
 
         try:
-            if self.plotRMSF.plot_name == 'RMSD':
+            if self.plot_RMSF.plot_name == 'RMSD':
                 zvals, xvals, yvals, xlabel, ylabel = self.presenter._get_replot_data('2D')
-            elif self.plotRMSF.plot_name == 'RMSF':
+            elif self.plot_RMSF.plot_name == 'RMSF':
                 zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF = self.presenter._get_replot_data('RMSF')
             else:
                 return
@@ -3234,8 +3235,8 @@ class panelPlot(wx.Panel):
             plt_kwargs['rmsd_label_coordinates'] = [rmsdXpos, rmsdYpos]
             plt_kwargs['rmsd_label_color'] = self.config.rmsd_color
 
-            self.plotRMSF.plot_2D_update_label(**plt_kwargs)
-            self.plotRMSF.repaint()
+            self.plot_RMSF.plot_2D_update_label(**plt_kwargs)
+            self.plot_RMSF.repaint()
         except:
             pass
 
@@ -3315,12 +3316,12 @@ class panelPlot(wx.Panel):
                                                          max=self.config.maxCmap)
         plt_kwargs['cmap_norm_cum'] = self.normalize_colormap(zvals_cum,
                                                          min=-100, mid=0, max=100)
-        self.plotOverlay.clearPlot()
-        self.plotOverlay.plot_grid_2D_overlay(zvals_1, zvals_2, zvals_cum, xvals, yvals,
+        self.plot_overlay.clearPlot()
+        self.plot_overlay.plot_grid_2D_overlay(zvals_1, zvals_2, zvals_cum, xvals, yvals,
                                               xlabel, ylabel,
                                               axesSize=self.config._plotSettings['Overlay (Grid)']['axes_size'],
                                               **plt_kwargs)
-        self.plotOverlay.repaint()
+        self.plot_overlay.repaint()
 
     def on_plot_n_grid(self, n_zvals, cmap_list, title_list, xvals, yvals, xlabel,
                        ylabel, set_page=False):
@@ -3328,12 +3329,12 @@ class panelPlot(wx.Panel):
         if set_page: self._set_page(self.config.panelNames['Overlay'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
-        self.plotOverlay.clearPlot()
-        self.plotOverlay.plot_n_grid_2D_overlay(n_zvals, cmap_list, title_list,
+        self.plot_overlay.clearPlot()
+        self.plot_overlay.plot_n_grid_2D_overlay(n_zvals, cmap_list, title_list,
                                                 xvals, yvals, xlabel, ylabel,
                                                 axesSize=self.config._plotSettings['Overlay (Grid)']['axes_size'],
                                                 **plt_kwargs)
-        self.plotOverlay.repaint()
+        self.plot_overlay.repaint()
 
     def plot_compare(self, msX=None, msX_1=None, msX_2=None, msY_1=None, msY_2=None,
                      msY=None, xlimits=None, replot=False, override=True, set_page=True):
@@ -3411,8 +3412,8 @@ class panelPlot(wx.Panel):
             self.plot2D.plot_2D_colorbar_update(**plt_kwargs)
             self.plot2D.repaint()
         elif plot_window == "RMSD" or self.currentPage == "RMSF":
-            self.plotRMSF.plot_2D_colorbar_update(**plt_kwargs)
-            self.plotRMSF.repaint()
+            self.plot_RMSF.plot_2D_colorbar_update(**plt_kwargs)
+            self.plot_RMSF.repaint()
         elif plot_window == "Comparison" or self.currentPage == "Comparison":
             self.plotCompare.plot_2D_colorbar_update(**plt_kwargs)
             self.plotCompare.repaint()
@@ -3562,24 +3563,24 @@ class panelPlot(wx.Panel):
     def addTextRMSD(self, x, y, text, rotation, color="k", plot='RMSD'):  # addTextRMSD
 
         if plot == 'RMSD':
-            self.view.panelPlots.plotRMSF.addText(x, y, text, rotation,
+            self.view.panelPlots.plot_RMSF.addText(x, y, text, rotation,
                                                 color=self.config.rmsd_color,
                                                 fontsize=self.config.rmsd_fontSize,
                                                 weight=self.config.rmsd_fontWeight)
-            self.view.panelPlots.plotRMSF.repaint()
+            self.view.panelPlots.plot_RMSF.repaint()
         elif plot == 'RMSF':
-            self.view.panelPlots.plotRMSF.addText(x, y, text, rotation,
+            self.view.panelPlots.plot_RMSF.addText(x, y, text, rotation,
                                                   color=self.config.rmsd_color,
                                                   fontsize=self.config.rmsd_fontSize,
                                                   weight=self.config.rmsd_fontWeight)
-            self.view.panelPlots.plotRMSF.repaint()
+            self.view.panelPlots.plot_RMSF.repaint()
         elif plot == 'Grid':
-            self.view.panelPlots.plotOverlay.addText(x, y, text, rotation,
+            self.view.panelPlots.plot_overlay.addText(x, y, text, rotation,
                                                      color=self.config.rmsd_color,
                                                      fontsize=self.config.rmsd_fontSize,
                                                      weight=self.config.rmsd_fontWeight,
                                                      plot=plot)
-            self.view.panelPlots.plotOverlay.repaint()
+            self.view.panelPlots.plot_overlay.repaint()
 
     def onAddMarker1D(self, xval=None, yval=None, color='r', marker='o'):  # onAddMarker1D
         """ 

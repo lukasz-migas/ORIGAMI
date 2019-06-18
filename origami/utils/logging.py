@@ -10,7 +10,7 @@ LOGGING_TYPES = dict(DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WAR
                      CRITICAL=logging.CRITICAL)
 
 
-def set_logger(file_path=None):
+def set_logger(file_path=None, debug_mode=False):
     """
     Setup logger
 
@@ -23,12 +23,15 @@ def set_logger(file_path=None):
     file_handler = logging.FileHandler(filename=file_path)
     stdout_handler = logging.StreamHandler(sys.stdout)
     handlers = [file_handler, stdout_handler]
+    fmt = '[%(asctime)s.%(msecs)03d] - %(levelname)s - %(message)s'
+    if debug_mode:
+        fmt = '[%(asctime)s.%(msecs)03d] - %(filename)s:%(lineno)s:%(funcName)s - %(levelname)s - %(message)s'
 
     logging.basicConfig(
         level=logging.DEBUG,
-        format='[%(asctime)s] - %(levelname)s - %(message)s',
+        format=fmt,
         handlers=handlers,
-        datefmt='%m/%d/%Y %H:%M:%S')
+        datefmt='%Y/%m/%d %H:%M:%S')
 
 
 def set_logger_level(verbose=None):
