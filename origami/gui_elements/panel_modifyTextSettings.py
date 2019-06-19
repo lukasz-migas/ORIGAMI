@@ -256,7 +256,7 @@ class panelModifyTextSettings(wx.MiniFrame):
         self.on_assign_color(evt=None)
         self.parent.onUpdateDocument(itemInfo=self.itemInfo, evt=None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_setup_gui(self, evt):

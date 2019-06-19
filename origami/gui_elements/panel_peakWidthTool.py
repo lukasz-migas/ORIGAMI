@@ -120,7 +120,7 @@ class panelPeakWidthTool(wx.MiniFrame):
     def on_OK(self, evt):
         width = self.unidec_fit_peakWidth_value.GetValue()
         function = self.unidec_peakFcn_choice.GetStringSelection()
-        if width == "" or width == None:
+        if width == "" or width is None:
             dlgBox(exceptionTitle="Error",
                    exceptionMsg="Could not complete action. Pick peaks first?",
                    type="Error")

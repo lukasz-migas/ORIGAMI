@@ -185,5 +185,5 @@ class panelSequenceAnalysis(wx.MiniFrame):
     def updateMS(self, evt):
         pass
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()

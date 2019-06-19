@@ -102,7 +102,7 @@ class panelParametersEdit(wx.Panel):
         elif key_code == 51:
             self.onReplot3D(evt=None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onPageChanged(self, evt):
@@ -2265,7 +2265,7 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onApply_2D(self, evt):
@@ -2283,7 +2283,7 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onApply_3D(self, evt):
@@ -2304,7 +2304,7 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onApply_general(self, evt):
@@ -2330,7 +2330,7 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onApply_zoom(self, evt):
@@ -2349,7 +2349,7 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onApply(self, evt):
@@ -2432,7 +2432,7 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onChangeColour(self, evt):
@@ -2543,7 +2543,7 @@ class panelParametersEdit(wx.Panel):
 
         try:
             self.presenter.view.updatePlots(None)
-        except:
+        except Exception:
             pass
 
     def onSetupRMSDPosition(self, evt):
@@ -2566,7 +2566,7 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onUpdateLabel(self, evt):
@@ -2575,7 +2575,7 @@ class panelParametersEdit(wx.Panel):
 
         self.parent.panelPlots.plot_2D_update_label()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onUpdateLabel_Matrix(self, evt):
@@ -2583,7 +2583,7 @@ class panelParametersEdit(wx.Panel):
 
         self.parent.panelPlots.plot_2D_matrix_update_label()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onUpdate(self, evt):
@@ -2608,22 +2608,22 @@ class panelParametersEdit(wx.Panel):
 
             elif self.parent.panelPlots.window_plot2D == 'Waterfall':
                 try: source = evt.GetEventObject().GetName()
-                except: source = "axes"
+                except Exception: source = "axes"
                 self.parent.panelPlots.plot_1D_waterfall_update(which=source)
 
         if self.parent.panelPlots.currentPage == 'Other':
             try: source = evt.GetEventObject().GetName()
-            except: source = "axes"
+            except Exception: source = "axes"
             try:
                 if self.parent.panelPlots.plotOther.plot_type == "waterfall":
                     self.parent.panelPlots.plot_1D_waterfall_update(which=source)
-            except:
+            except Exception:
                 pass
 
         if self.parent.panelPlots.window_plot3D == '3D':
             self.presenter.plot_3D_update(plotName="3D")
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onUpdate1D(self, evt):
@@ -2638,7 +2638,7 @@ class panelParametersEdit(wx.Panel):
         elif self.parent.panelPlots.window_plot1D == '1D':
             self.parent.panelPlots.plot_1D_update(plotName="1D")
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onUpdate2D(self, evt):
@@ -2646,7 +2646,7 @@ class panelParametersEdit(wx.Panel):
         self.onApply_1D(None)
         self.onApply_2D(None)
         try: source = evt.GetEventObject().GetName()
-        except: source = "all"
+        except Exception: source = "all"
 
         if self.parent.panelPlots.window_plot2D == '2D':
             if source == "colorbar":
@@ -2679,11 +2679,11 @@ class panelParametersEdit(wx.Panel):
         elif (self.parent.panelPlots.window_plot2D == 'Waterfall' or
               self.parent.panelPlots.currentPage == "Other"):
             try: source = evt.GetEventObject().GetName()
-            except: source = "color"
+            except Exception: source = "color"
             self.onApply(None)
             self.parent.panelPlots.plot_1D_waterfall_update(which=source)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onUpdate3D(self, evt):
@@ -2692,7 +2692,7 @@ class panelParametersEdit(wx.Panel):
         if self.parent.panelPlots.window_plot3D == '3D':
             self.presenter.plot_3D_update(plotName="3D")
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onReplot1D(self, evt):
@@ -2707,7 +2707,7 @@ class panelParametersEdit(wx.Panel):
         elif self.parent.panelPlots.window_plot1D == '1D':
             self.parent.panelPlots.on_plot_1D(replot=True)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onReplot2D(self, evt):
@@ -2721,7 +2721,7 @@ class panelParametersEdit(wx.Panel):
         elif self.parent.panelPlots.window_plot2D == 'Comparison':
             self.parent.panelPlots.on_plot_matrix(replot=True)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onReplot3D(self, evt):
@@ -2730,7 +2730,7 @@ class panelParametersEdit(wx.Panel):
         if self.parent.panelPlots.window_plot3D == '3D':
             self.parent.panelPlots.on_plot_3D(replot=True)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableFeatures_1D(self, evt):
@@ -2746,12 +2746,12 @@ class panelParametersEdit(wx.Panel):
         else:
             self.plot1D_shadeUnderColorBtn.Enable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableFeatures_2D(self, evt):
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableFeatures_3D(self, evt):
@@ -2762,7 +2762,7 @@ class panelParametersEdit(wx.Panel):
             self.plot3D_colorEdgeAnnotBtn.Disable()
             self.plot3D_colorEdgeAnnotBtn.SetBackgroundColour(self.plot3D_colorAnnotBtn.GetBackgroundColour())
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableFeatures_colorbar(self, evt):
@@ -2784,7 +2784,7 @@ class panelParametersEdit(wx.Panel):
             self.colorbarTgl.SetBackgroundColour(wx.RED)
             for item in enableDisableList: item.Disable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableFeatures_legend(self, evt):
@@ -2811,7 +2811,7 @@ class panelParametersEdit(wx.Panel):
             self.legendTgl.SetBackgroundColour(wx.RED)
             for item in enableDisableList: item.Disable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableFeatures_violin(self, evt):
@@ -2829,7 +2829,7 @@ class panelParametersEdit(wx.Panel):
         else:
             self.violin_colormap_value.Disable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableFeatures_waterfall(self, evt):
@@ -2888,7 +2888,7 @@ class panelParametersEdit(wx.Panel):
         else:
             self.waterfall_colormap_value.Disable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableFeatures_rmsd(self, evt):
@@ -2900,7 +2900,7 @@ class panelParametersEdit(wx.Panel):
         else:
             for item in enableDisableList: item.Disable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onEnableDisableFeatures_general(self, evt):
@@ -2911,7 +2911,7 @@ class panelParametersEdit(wx.Panel):
         else:
             for item in enableDisableList: item.Disable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onSetupPlotSizes(self, evt):
@@ -2945,7 +2945,7 @@ class panelParametersEdit(wx.Panel):
                                   self.general_height_window_inch_value]):
             item.SetValue(plotSizes[i])
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onChangePlotStyle(self, evt):
@@ -2955,7 +2955,7 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onChangePalette(self, evt):
@@ -2965,7 +2965,7 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onUpdateGUI(self, evt):
@@ -3005,6 +3005,6 @@ class panelParametersEdit(wx.Panel):
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 

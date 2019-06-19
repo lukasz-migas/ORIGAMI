@@ -101,7 +101,7 @@ class mpl_plotter(wx.Window):
 
     def setup_zoom(self, plots, zoom, data_lims=None, plotName=None,
                    plotParameters=None, allowWheel=True, preventExtraction=False):
-        if plotParameters == None:
+        if plotParameters is None:
             plotParameters = self._generatePlotParameters()
 
         if zoom == 'box':
@@ -133,7 +133,7 @@ class mpl_plotter(wx.Window):
         Reboot 'stuck' keys
         DOES NOT ACTUALLY WORK!
         """
-        if self.zoom != None:
+        if self.zoom is not None:
             ZoomBox.onRebootKeyState(self.zoom, evt=None)
 
     def kda_test(self, xvals):
@@ -166,7 +166,7 @@ class mpl_plotter(wx.Window):
                     kdnorm = 1000.
                     xlabel = "Mass (kDa)"
                     kda = True
-            except:
+            except Exception:
                 xlabel = "Mass (Da)"
                 kdnorm = 1.
                 kda = False
@@ -198,7 +198,7 @@ class mpl_plotter(wx.Window):
 
         try:
             itemShape = values.shape
-        except:
+        except Exception:
             from numpy import array
             values = array(values)
             itemShape = values.shape
@@ -233,38 +233,38 @@ class mpl_plotter(wx.Window):
         self.figure.clear()
         # clear labels
         try: self.text = []
-        except: pass
+        except Exception: pass
         try: self.lines = []
-        except: pass
+        except Exception: pass
         try: self.patch = []
-        except: pass
+        except Exception: pass
         try: self.markers = []
-        except: pass
+        except Exception: pass
         try: self.arrows = []
-        except: pass
+        except Exception: pass
         try: self.temporary = []
-        except: pass
+        except Exception: pass
 
         self.rotate = 0
 
         # clear plots
         try: self.cax = None
-        except: pass
+        except Exception: pass
 
         try: self.plotMS = None
-        except: pass
+        except Exception: pass
 
         try: self.plot2D_upper = None
-        except: pass
+        except Exception: pass
 
         try: self.plot2D_lower = None
-        except: pass
+        except Exception: pass
 
         try: self.plot2D_side = None
-        except: pass
+        except Exception: pass
 
         try: self.plotRMSF = None
-        except: pass
+        except Exception: pass
 
         self.repaint()
 
@@ -349,7 +349,7 @@ class mpl_plotter(wx.Window):
             # get file extension
             fname, delimiter_txt = splitext(path)
             try: bname = basename(fname)
-            except: bname = ""
+            except Exception: bname = ""
 
             fileType = "Image file (%s)|*%s" % (delimiter_txt, delimiter_txt)
             dlg = wx.FileDialog(None, "Save as...",
@@ -373,11 +373,11 @@ class mpl_plotter(wx.Window):
                 try:
                     kwargs['bbox_inches'] = "tight"
                     self.figure.savefig(path, **kwargs)
-                except:
+                except Exception:
                     try:
                         del kwargs['bbox_inches']
                         self.figure.savefig(path, **kwargs)
-                    except: pass
+                    except Exception: pass
 
         # Reset previous view
         if resizeSize is not None and not self.lock_plot_from_updating_size:

@@ -133,7 +133,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             self.currentDisplaySize = wx.Display(position_diff.index(np.min(position_diff))).GetGeometry()
             self.currentDisplayMain = wx.Display(position_diff.index(np.min(position_diff))).IsPrimary()
-        except:
+        except Exception:
             self.currentDisplaySize = None
 
         self.loading = False
@@ -588,7 +588,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             # Start thread
             try:
                 th.start()
-            except:
+            except Exception:
                 print('Failed to execute the operation in threaded mode. Consider switching it off?')
 
     def on_keyboard_event(self, evt=None):
@@ -596,7 +596,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if key_code == 344:  # F5
             self.on_update_list()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_check_item(self, evt=None):
@@ -2144,7 +2144,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         else:
             self.interactive_colorbar_precision.Enable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_clear_pages(self, evt):
@@ -2255,7 +2255,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
 #         self.onSetupTools(preset=toolName, evt=None)
 
-#         if evt != None:
+#         if evt is not None:
 #             evt.Skip()
 
     def on_change_page(self, evt, preset=None):
@@ -2265,7 +2265,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         @param preset: name of the new page
         """
 
-        if preset != None:
+        if preset is not None:
             self.pageLayoutSelect_propView.SetStringSelection(preset)
 
         selectedItem = self.pageLayoutSelect_propView.GetStringSelection()
@@ -2524,7 +2524,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         try:
             plot_width = dictionary['interactive_params']['plot_width']
             plot_height = dictionary['interactive_params']['plot_height']
-        except:
+        except Exception:
             if data_type in ["1D", "MS", "RT"]:
                 plot_width, plot_height = 800, 400
             elif data_type == "2D":
@@ -2817,12 +2817,12 @@ class panelInteractiveOutput(wx.MiniFrame):
             if len(information) > 0:
                 try:
                     information = "{}\nAnnotations: {}".format(information, len(docData["annotations"]))
-                except:
+                except Exception:
                     pass
             else:
                 try:
                     information = "Annotations: {}".format(len(docData["annotations"]))
-                except:
+                except Exception:
                     information = ""
 
         if "annotated_item_list" in docData:
@@ -2830,12 +2830,12 @@ class panelInteractiveOutput(wx.MiniFrame):
                 try:
                     information = "{}\nAnnotated mass spectra: {}".format(
                         information, len(docData["annotated_item_list"]))
-                except:
+                except Exception:
                     pass
             else:
                 try:
                     information = "Annotated mass spectra: {}".format(len(docData["annotated_item_list"]))
-                except:
+                except Exception:
                     information = ""
 
         # Retrieve information
@@ -2852,7 +2852,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             self.itemInformation_value.SetLabel(information)
             self.order_value.SetValue(order)
             self.pageLayoutSelect_htmlView.SetStringSelection(page)
-        except:
+        except Exception:
             self.loading = False
 
         self.loading = False
@@ -2913,7 +2913,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def on_change_page_for_item(self, evt):
         """ This function changes the output page for selected item """
-        if self.peaklist.item_id == None:
+        if self.peaklist.item_id is None:
             msg = 'Please select item first'
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
             return
@@ -2961,7 +2961,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def on_change_color(self, evt):
 
-        if self.peaklist.item_id == None and evt.GetId() == ID_changeColorInteractive:
+        if self.peaklist.item_id is None and evt.GetId() == ID_changeColorInteractive:
             msg = 'Please select item first'
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
             return
@@ -3190,11 +3190,11 @@ class panelInteractiveOutput(wx.MiniFrame):
     def on_annotate_item(self, evt=None, itemID=None):
 
         # If we only updating dictionary
-        if itemID != None:
+        if itemID is not None:
             self.peaklist.item_id = itemID
 
         # Check if is empty
-        if self.peaklist.item_id == None:
+        if self.peaklist.item_id is None:
             return
 
         if self.loading:
@@ -3263,11 +3263,11 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         try:
             dictionary['cmap1'] = kwargs["interactive_parameters"]['overlay_color_1']
-        except:
+        except Exception:
             pass
         try:
             dictionary['cmap2'] = kwargs["interactive_parameters"]['overlay_color_2']
-        except:
+        except Exception:
             pass
 
         return dictionary
@@ -4264,7 +4264,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             #             try:
             #
             bokehPlot = self.add_custom_js_events(bokehPlot, js_type=["double_tap_unzoom"], **kwargs)
-#             except: pass
+#             except Exception: pass
         return bokehPlot
 
 #     def _prepare_centroid_annotations(self, data, yvals, y_offset=0):
@@ -4772,7 +4772,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if xlabel == []:
             try:
                 xlabel = data['xlabel']
-            except:
+            except Exception:
                 xlabel = ""
 
         # unpack if embedded in a list
@@ -4800,7 +4800,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             for i in range(len(itemLabels)):
                 try:
                     hover_label = hoverLabels[i]
-                except:
+                except Exception:
                     hover_label = "Label ({})".format(i)
                 _tooltips.append((hover_label, '@labels_{}'.format(i)))
 
@@ -4827,7 +4827,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             try:
                 kwargs = {'min': xlimits[0], 'max': xlimits[1]}
                 xvals, yvals = crop_1D_data(xvals, yvals, **kwargs)
-            except:
+            except Exception:
                 pass
 
         # check if annotations should prepared
@@ -4949,7 +4949,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             try:
                 bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
-            except:
+            except Exception:
                 pass
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
@@ -5059,7 +5059,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 try:
                     kwargs = {'min': xlimits[0], 'max': xlimits[1]}
                     xval, yval = crop_1D_data(xval, yval, **kwargs)
-                except:
+                except Exception:
                     pass
 
             if (user_kwargs["preprocessing_properties"]["linearize"] and
@@ -5142,7 +5142,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             try:
                 bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
-            except:
+            except Exception:
                 pass
         elif self.config.interactive_custom_scripts and bkh_kwargs['page_layout'] not in ["Individual", "Columns"]:
             _cvd_colors = self.presenter.view.panelPlots.onChangePalette(None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines),
@@ -5191,14 +5191,14 @@ class panelInteractiveOutput(wx.MiniFrame):
                 for i in range(len(itemLabels)):
                     try:
                         hover_label = hoverLabels[i]
-                    except:
+                    except Exception:
                         hover_label = "Label ({})".format(i)
                     _tooltips.append((_replace_labels(hover_label), '@labels_{}'.format(i)))
             elif len(itemLabels) == len(yvals):
                 i = 0
                 try:
                     hover_label = hoverLabels[i]
-                except:
+                except Exception:
                     hover_label = "Label"
                 _tooltips.append((_replace_labels(hover_label), '@labels_{}'.format(i)))
             plot_modifiers["bokeh_add_item_label"] = True
@@ -5250,7 +5250,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             else:
                 try:
                     color = convertRGB1toHEX(colors_list[i])
-                except:
+                except Exception:
                     color = colors_list[i]
 
             # create edge colors
@@ -5296,7 +5296,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             else:
                 try:
                     label = labels[i]
-                except:
+                except Exception:
                     label = " "
             source = ColumnDataSource(data=_sourceDict)
             scatter = bokehPlot.scatter(
@@ -5380,7 +5380,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if len(js_type) > 0:
                 try:
                     bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
-                except:
+                except Exception:
                     pass
 
         elif (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
@@ -5408,7 +5408,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 shape = True
             else:
                 shape = False
-        except:
+        except Exception:
             shape = True
 
         # reshape array to ro reduce size
@@ -5503,7 +5503,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if len(js_type) > 0:
                 try:
                     bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
-                except:
+                except Exception:
                     pass
         elif (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
               bkh_kwargs['page_layout'] not in ["Individual", "Columns"]):
@@ -6075,7 +6075,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if len(js_type) > 0:
                 try:
                     bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
-                except:
+                except Exception:
                     pass
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
@@ -6210,7 +6210,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if len(js_type) > 0:
                 try:
                     bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
-                except:
+                except Exception:
                     pass
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
@@ -6248,7 +6248,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if len(hoverLabels) > 0:
             try:
                 hover_label = hoverLabels[0]
-            except:
+            except Exception:
                 hover_label = "Label ({})".format(0)
             _tooltips.append((hover_label, '@label'))
         else:
@@ -6884,7 +6884,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             try:
                 label = labels[i]
-            except:
+            except Exception:
                 label = " "
             source = ColumnDataSource(data=_sourceDict)
 
@@ -7065,7 +7065,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             for i in range(len(itemLabels)):
                 try:
                     hover_label = hoverLabels[i]
-                except:
+                except Exception:
                     if len(itemLabels) == 1:
                         hover_label = "Label"
                     else:
@@ -7394,14 +7394,14 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         add_width = 0
         add_watermark = self.addWatermarkCheck.GetValue()
-        if self.currentPath == None:
+        if self.currentPath is None:
             try:
                 msg = 'Please select file name'
                 dlgBox(exceptionTitle='No file name',
                        exceptionMsg=msg,
                        type="Error")
                 self.on_get_path(evt=None)
-            except:
+            except Exception:
                 msg = 'Please select a path to save the file before continuing'
                 self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
                 return
@@ -7641,7 +7641,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                        type="Error")
                 continue
 
-            if bokehPlot == None:
+            if bokehPlot is None:
                 print(("%s - %s plot was returned empty. Skipping") % (key, innerKey))
                 continue
 
@@ -7679,7 +7679,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 # legend specific
                 try:
                     widgetDict[page['name']]["legends"].append(bokehPlot.legend[0])
-                except:
+                except Exception:
                     pass
 
             plot_output = [bokehPlot]
@@ -7790,7 +7790,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
                     try:
                         rowOutput = self.add_custom_js_widgets(rowOutput, js_type=js_type, data=data, **js_code)
-                    except:
+                    except Exception:
                         pass
 
                 bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
@@ -7860,7 +7860,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
                     try:
                         rowOutput = self.add_custom_js_widgets(rowOutput, js_type=js_type, data=data, **js_code)
-                    except:
+                    except Exception:
                         pass
 
                 bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
@@ -7919,7 +7919,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         try:
             dlg.SetPath(self.currentPath)
-        except:
+        except Exception:
             pass
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -8152,7 +8152,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return TOOLS
 
     def _preAnnotateItems(self, itemID=None):
-        if itemID != None:
+        if itemID is not None:
             self.peaklist.item_id = itemID
 
         color = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames['color']).GetText()
@@ -8210,7 +8210,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         # Check that those tools were selected. If they are not in the list, it
         # will throw an error
         for active in [self.activeDrag, self.activeWheel, self.activeInspect]:
-            if active == None or active == 'auto' or active == 'hover':
+            if active is None or active == 'auto' or active == 'hover':
                 continue
             else:
                 if not active in toolList:

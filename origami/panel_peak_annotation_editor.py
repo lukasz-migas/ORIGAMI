@@ -120,7 +120,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
 
         try:
             self.SetTitle("Annotating - {} / {}".format(kwargs['document'], kwargs['dataset']))
-        except:
+        except Exception:
             pass
 
         print(("Startup took {:.3f} seconds".format(ttime() - tstart)))
@@ -144,7 +144,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         self.plot._on_mark_annotation(state=False)
         try:
             pub.unsubscribe(self.add_annotation_from_mouse_evt, 'mark_annotation')
-        except:
+        except Exception:
             pass
         self.documentTree.annotateDlg = None
         self.Destroy()
@@ -508,12 +508,12 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                 if position in ["", "None", None, False]:
                     try:
                         position = mz_narrow[max_index, 0]
-                    except:
+                    except Exception:
                         position = max_value - ((max_value - min_value) / 2)
 
                 try:
                     position = position[0]
-                except:
+                except Exception:
                     pass
                 self.peaklist.SetStringItem(index=row,
                                             col=self.annotation_list["intensity"],
@@ -684,7 +684,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         if ask.ShowModal() == wx.ID_OK:
             pass
 
-        if self.ask_value == None:
+        if self.ask_value is None:
             return
 
         for row in range(rows):
@@ -753,7 +753,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
 #         if column == self.annotation_list['check']:
 #             self.OnCheckAllItems()
 #         else:
-#             if self.lastColumn == None:
+#             if self.lastColumn is None:
 #                 self.lastColumn = column
 #             elif self.lastColumn == column:
 #                 if self.reverse == True:
@@ -827,7 +827,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         try:
             annotations = self.kwargs['annotations']["{} - {}".format(str2num(min_value), str2num(max_value))]
             position = annotations['isotopic_x']
-        except:
+        except Exception:
             position = str2num(max_value) - ((str2num(max_value) - str2num(min_value)) / 2)
 
         self.position_value.SetValue(str(position))
@@ -915,7 +915,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
             pass
         try:
             position = mz_narrow[max_index, 0][0]
-        except:
+        except Exception:
             position = max_value - ((max_value - min_value) / 2)
 
         try:
@@ -939,7 +939,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         self.add_arrow_to_peak.SetValue(False)
         self.position_x_value.SetValue("")
         self.position_y_value.SetValue("")
-#         except: pass
+#         except Exception: pass
 
         self.addBtn.SetFocus()
 
@@ -1039,7 +1039,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                                                  set_data_only=True)
             return
 
-        if min_value == None or max_value == None:
+        if min_value is None or max_value is None:
             dlgBox("Error", "Please fill min, max fields at least!",
                    type="Error")
             return
@@ -1057,13 +1057,13 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         if position in ["", "None", None, False]:
             try:
                 position = mz_narrow[max_index, 0]
-            except:
+            except Exception:
                 position = max_value - ((max_value - min_value) / 2)
 
         try:
             if len(position) > 1:
                 position = position[0]
-        except:
+        except Exception:
             pass
 
         annotation_dict = {"min": min_value,

@@ -92,7 +92,7 @@ class DataImporter:
         try:
             min = np.amin(self.scans[boo1])
             max = np.amax(self.scans[boo2])
-        except:
+        except Exception:
             min = -1
             max = -1
         return [min, max]
@@ -105,7 +105,7 @@ class DataImporter:
         max = np.amax(self.times[boo2])
         try:
             avg = np.mean(self.times[boo3])
-        except:
+        except Exception:
             avg = min
         return [min, avg, max]
 

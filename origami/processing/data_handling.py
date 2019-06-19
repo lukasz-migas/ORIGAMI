@@ -154,7 +154,7 @@ class data_handling():
 
         start_scan = kwargs.get("start_scan", 0)
         end_scan = kwargs.get("end_scan", reader.stats_in_functions[fcn]["n_scans"])
-        scan_list = np.arange(start_scan, end_scan)
+        scan_list = kwargs.get("scan_list", np.arange(start_scan, end_scan))
 
         mz_y = reader.get_summed_spectrum(fcn, 0, mz_x, scan_list)
         mz_y = mz_y.astype(np.int32)
@@ -424,7 +424,7 @@ class data_handling():
         try:
             xLabelHigh = np.max(xlabelsActual)
             xLabelLow = np.min(xlabelsActual)
-        except:
+        except Exception:
             xLabelLow, xLabelHigh = None, None
 
         # Get the x-axis labels
@@ -1023,6 +1023,7 @@ class data_handling():
 
         tstart_extraction = ttime()
         try:
+#             ms_x, ms_y = self._get_driftscope_spectrum_data(path)
             ms_x, ms_y = self._get_waters_api_spectrum_data(reader)
         except IOError:
             # Failed to open document because it does not have IM-MS data
@@ -1607,7 +1608,7 @@ class data_handling():
 
         try:
             scantime = document.parameters['scanTime']
-        except:
+        except Exception:
             scantime = None
 
         try:
@@ -1615,7 +1616,7 @@ class data_handling():
         except Exception:
             try:
                 xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-            except:
+            except Exception:
                 pass
             xlimits = None
 
@@ -1624,19 +1625,14 @@ class data_handling():
                 startScan = np.ceil(((startScan / scantime) * 60)).astype(int)
                 endScan = np.ceil(((endScan / scantime) * 60)).astype(int)
 
-        reader = self._get_waters_api_reader(document)
-
-        fcn = 0
-        if not hasattr(reader, "mz_spacing"):
-            __, __ = reader.generate_mz_interpolation_range(fcn)
-
-        mz_x = reader.mz_x
-
         if startScan != endScan:
             scan_list = np.arange(startScan, endScan)
         else:
             scan_list = [startScan]
-        mz_y = reader.get_summed_spectrum(fcn, 0, mz_x, scan_list)
+
+        reader = self._get_waters_api_reader(document)
+        kwargs = {"scan_list": scan_list}
+        mz_x, mz_y = self._get_waters_api_spectrum_data(reader, **kwargs)
 
         # Add data to dictionary
         spectrum_name = "Scans: {}-{}".format(startScan, endScan)
@@ -1662,12 +1658,12 @@ class data_handling():
 
         try:
             scanTime = document.parameters['scanTime']
-        except:
+        except Exception:
             scanTime = None
 
         try:
             pusherFreq = document.parameters['pusherFreq']
-        except:
+        except Exception:
             pusherFreq = None
 
         try:
@@ -1675,7 +1671,7 @@ class data_handling():
         except Exception:
             try:
                 xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-            except:
+            except Exception:
                 return
 
         if units_x == "Scans":
@@ -1998,7 +1994,7 @@ class data_handling():
                     else:
                         try:
                             color = colors[count + 1]
-                        except:
+                        except Exception:
                             color = randomColorGenerator()
                         document.multipleMassSpectrum[key]['color'] = color
 
@@ -2410,7 +2406,7 @@ class data_handling():
                 kwargs.update(mz_min=mzStart, mz_max=mzEnd)
                 try:
                     self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
-                except:
+                except Exception:
                     pass
 
             msFilenames = ["m/z"]

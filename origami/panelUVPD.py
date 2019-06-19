@@ -199,7 +199,7 @@ class panelUVPD(wx.MiniFrame):
                 try:
                     index = self.document.app_data["uvpd_monitor_peaks"].index(search_item)
                     del self.document.app_data["uvpd_monitor_peaks"][index]
-                except:
+                except Exception:
                     pass
 
     def OnRightClickMenu_monitorlist(self, evt):
@@ -563,7 +563,7 @@ class panelUVPD(wx.MiniFrame):
             self.min_dt_value.Enable()
             self.max_dt_value.Enable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def get_column_click_peaklist(self, evt):
@@ -654,7 +654,7 @@ class panelUVPD(wx.MiniFrame):
 
         try:
             source = evt.GetEventObject().GetName()
-        except:
+        except Exception:
             pass
 
         self.config.uvpd_peak_finding_threshold = self.threshold_value.GetValue()
@@ -1181,7 +1181,7 @@ class panelUVPD(wx.MiniFrame):
 
         try:
             dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
-        except:
+        except Exception:
             pass
 
         if not kwargs.get("return_filename", False):

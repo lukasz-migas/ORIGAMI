@@ -223,22 +223,6 @@ def xy_range_divider(values=None):
         return divider, expo
 
 
-def str2num(string):
-    try:
-        val = float(string)
-        return val
-    except (ValueError, TypeError):
-        return None
-
-
-def num2str(val):
-    try:
-        string = str(val)
-        return string
-    except (ValueError, TypeError):
-        return None
-
-
 class GetXValues:
 
     def __init__(self, axes):
@@ -317,7 +301,7 @@ class ZoomBox:
          2 = center mouse button (scroll wheel)
          3 = right mouse button
         """
-        if plotParameters == None:
+        if plotParameters is None:
             self.plot_parameters = {}
         else:
             self.plot_parameters = plotParameters
@@ -653,7 +637,7 @@ class ZoomBox:
         self.buttonDown = False
         self.addToTable = False
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onKeyState(self, evt):
@@ -747,7 +731,7 @@ class ZoomBox:
             if evt.dblclick and not self.shiftKey:
                 self.reset_axes(axis_pos=self.exitLoc)
             elif evt.dblclick and self.shiftKey and self.exitLoc in ['left', 'right']:
-                if self.current_ymax == None:
+                if self.current_ymax is None:
                     return
                 for axes in self.axes:
                     axes.set_ylim(0, self.current_ymax)
@@ -946,9 +930,9 @@ class ZoomBox:
             for axes in self.axes:
                 x0, x1 = axes.get_xlim()
 
-        if ymin == None:
+        if ymin is None:
             ymin = self.data_lims[1]
-        if xmin == None:
+        if xmin is None:
             xmin = self.data_lims[0]
 
         if not self.insideAxes:

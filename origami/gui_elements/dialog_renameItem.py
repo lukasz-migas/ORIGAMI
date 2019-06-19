@@ -31,7 +31,7 @@ class dialogRenameItem(wx.Dialog):
         if key_code == wx.WXK_ESCAPE:  # key = esc
             self.on_close(evt=None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_close(self, evt):

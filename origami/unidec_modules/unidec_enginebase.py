@@ -104,7 +104,7 @@ class UniDecEngine:
                 self.clear_history()
                 # else:
                 # print "No changes"
-        except:
+        except Exception:
             self.clear_history()
         # print self.config_count
         pass

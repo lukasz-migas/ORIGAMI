@@ -1402,37 +1402,37 @@ class OrigamiConfig:
         for line in f:
             if "Start Mass" in line:
                 try: parameters['startMS'] = str2num(str(line.split()[2]))
-                except: pass
+                except Exception: pass
             if "MSMS End Mass" in line:
                 try: parameters['endMS'] = str2num(str(line.split()[3]))
-                except: pass
+                except Exception: pass
             elif "End Mass" in line:
                 try: parameters['endMS'] = str2num(str(line.split()[2]))
-                except: pass
+                except Exception: pass
             if "Set Mass" in line:
                 try: parameters['setMS'] = str2num(str(line.split()[2]))
-                except: pass
+                except Exception: pass
             if "Scan Time (sec)" in line:
                 try: parameters['scanTime'] = str2num(str(line.split()[3]))
-                except: pass
+                except Exception: pass
             if "Polarity" in line:
                 try: parameters['ionPolarity'] = str(line.split()[1])
-                except: pass
+                except Exception: pass
             if "Sensitivity" in line:
                 try: parameters['modeSensitivity'] = str(line.split()[1])
-                except: pass
+                except Exception: pass
             if "Analyser" in line:
                 try: parameters['modeAnalyser'] = str(line.split()[1])
-                except: pass
+                except Exception: pass
             if "EDC Delay Coefficient" in line:
                 try:
                     parameters['corrC'] = str2num(str(line.split()[3]))
-                except: pass
+                except Exception: pass
 #             if manual == True:
             if "Trap Collision Energy" in line:
                 if i == 1:
                     try: parameters['trapCE'] = str2num(str(line.split()[3]))
-                    except: pass
+                    except Exception: pass
                 i += 1
         f.close()
         parameters = self.getPusherFrequency(parameters=parameters, mode="V")
@@ -1449,16 +1449,27 @@ class OrigamiConfig:
         fileInfo = OrderedDict.fromkeys(["SampleDescription"], None)
 
         if not os.path.isfile(fileName):
-            return "None"
+            return ""
 
-        f = open(fileName, 'r')
-        i = 0  # hacky way to get the correct collision voltage value
-        for line in f:
-            if "$$ Sample Description:" in line:
-                splitline = line.split(" ")
-                line = " ".join(splitline[1::])
-                fileInfo['SampleDescription'] = line
-        f.close()
+        try:
+            with open(fileName, "r") as f:
+                for line in f:
+                    if "$$ Sample Description:" in line:
+                        splitline = line.split(" ")
+                        line = " ".join(splitline[1::])
+                        fileInfo['SampleDescription'] = line
+                        break
+        except UnicodeDecodeError:
+            return ""
+
+#         f = open(fileName, 'r')
+#         i = 0  # hacky way to get the correct collision voltage value
+#         for line in f:
+#             if "$$ Sample Description:" in line:
+#                 splitline = line.split(" ")
+#                 line = " ".join(splitline[1::])
+#                 fileInfo['SampleDescription'] = line
+#         f.close()
 
         return fileInfo
 
@@ -1494,45 +1505,45 @@ class OrigamiConfig:
         for line in f:
             if "method" in line:
                 try: parameters['method'] = str(line.split()[1])
-                except: pass
+                except Exception: pass
             if "start" in line:
                 try: parameters['startVoltage'] = str2num(str(line.split()[1]))
-                except: pass
+                except Exception: pass
             if "spv" in line:
                 try: parameters['spv'] = str2int(str(line.split()[1]))
-                except: pass
+                except Exception: pass
             if "end" in line:
                 try: parameters['endVoltage'] = str2num(str(line.split()[1]))
-                except: pass
+                except Exception: pass
             if "step" in line:
                 try: parameters['stepVoltage'] = str2num(str(line.split()[1]))
-                except: pass
+                except Exception: pass
             if "expIncrement" in line:
                 try: parameters['expIncrement'] = str2num(str(line.split()[1]))
-                except: pass
+                except Exception: pass
             if "expPercentage" in line:
                 try: parameters['expPercentage'] = str2num(str(line.split()[1]))
-                except: pass
+                except Exception: pass
             if "dx" in line:
                 try: parameters['dx'] = str2num(str(line.split()[1]))
-                except: pass
+                except Exception: pass
             if "SPVsList" in line:
                 try: parameters['spvList'] = str(line.split()[1::])
-                except: pass
+                except Exception: pass
             if "CVsList" in line:
                 try: parameters['cvList'] = str(line.split()[1::])
-                except: pass
+                except Exception: pass
         f.close()
 
         # Also check if there is a list file
         spvCVlist = None
         try:
             spvPath = ''.join([path, "\spvCVlistOut.csv"])
-        except:
+        except Exception:
             pass
         try:
             spvPath = ''.join([path, '\cv.csv'])
-        except:
+        except Exception:
             return parameters
 
         try:
@@ -1540,7 +1551,7 @@ class OrigamiConfig:
             self.origamiList = np.genfromtxt(spvPath, skip_header=1,
                                              delimiter=',',
                                              filling_values=0)
-        except:
+        except Exception:
             pass
 
         return parameters
@@ -1675,7 +1686,7 @@ class OrigamiConfig:
         buff += '  <custom_colors>\n'
         for i in self.customColors:
             try: color_text = "[{:d}, {:d}, {:d}]".format(int(self.customColors[i][0]), int(self.customColors[i][1]), int(self.customColors[i][2]))
-            except: color_text = str(self.customColors[i])
+            except Exception: color_text = str(self.customColors[i])
             buff += '    <param name="{}" value="{}" type="color" />\n'.format('_'.join(["color", str(i)]), color_text)
         buff += '  </custom_colors>\n\n'
 

@@ -93,18 +93,18 @@ class panelProcessData(wx.MiniFrame):
 
             self.currentDisplaySize = wx.Display(position_diff.index(np.min(position_diff))).GetGeometry()
             self.currentDisplayMain = wx.Display(position_diff.index(np.min(position_diff))).IsPrimary()
-        except:
+        except Exception:
             self.currentDisplaySize = None
 
         # get document
         self.currentDoc = self.presenter.view.panelDocuments.documents.enableCurrentDocument()
         try:
             document = self.presenter.documentsDict[self.currentDoc]
-        except:
+        except Exception:
             document = None
         try:
             self.parameters = document.parameters
-        except:
+        except Exception:
             self.parameters = {}
 
         # make gui items
@@ -114,9 +114,9 @@ class panelProcessData(wx.MiniFrame):
         self.mainBook.SetSelection(self.config.processParamsWindow[kwargs['window']])
 
         # check if new title is present
-        if document != None:
+        if document is not None:
             self.SetTitle("Processing - %s" % document.title)
-        elif kwargs.get('title', None) != None:
+        elif kwargs.get('title', None) is not None:
             self.SetTitle(kwargs['title'])
 
         # bind
@@ -154,7 +154,7 @@ class panelProcessData(wx.MiniFrame):
 
         try:
             self.onUpdateUniDecPanel()
-        except:
+        except Exception:
             pass
 
     def onUpdateUniDecPanel(self):
@@ -171,7 +171,7 @@ class panelProcessData(wx.MiniFrame):
             self.unidec_weightList_choice.SetItems(massList)
             self.unidec_weightList_choice.SetStringSelection(massMax)
 
-        except:
+        except Exception:
             pass
 
     def on_key_event(self, evt):
@@ -184,7 +184,7 @@ class panelProcessData(wx.MiniFrame):
         elif key_code == 70 and self.currentPage == "Peak fitting":  # key = a
             self.onPickPeaksThreaded(evt=None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onPageChanged(self, evt):
@@ -204,12 +204,12 @@ class panelProcessData(wx.MiniFrame):
             if self.currentPage == 'Mass spectrum':
                 try:
                     self.SetTitle("%s - %s" % (self.document['MS'], self.dataset['MS']))
-                except:
+                except Exception:
                     self.SetTitle("Processing...")
             elif self.currentPage == '2D':
                 try:
                     self.SetTitle("%s - %s - %s" % (self.document['2D'], self.dataset['2D'], self.ionName['2D']))
-                except:
+                except Exception:
                     self.SetTitle("Processing...")
         else:
             self.SetTitle("Processing...")
@@ -1764,12 +1764,12 @@ class panelProcessData(wx.MiniFrame):
                     self.presenter.view.panelPlots.on_plot_unidec_MS_v_Fit(unidec_eng_data=None,
                                                                            replot=data['Fitted'],
                                                                            **kwargs)
-                except:
+                except Exception:
                     try:
                         self.presenter.view.panelPlots.on_plot_unidec_MS(unidec_eng_data=None,
                                                                          replot=data['Processed'],
                                                                          **kwargs)
-                    except:
+                    except Exception:
                         pass
 
             if plot in ["all", "MW distribution"]:
@@ -1777,7 +1777,7 @@ class panelProcessData(wx.MiniFrame):
                     self.presenter.view.panelPlots.on_plot_unidec_mwDistribution(unidec_eng_data=None,
                                                                                  replot=data['MW distribution'],
                                                                                  **kwargs)
-                except:
+                except Exception:
                     pass
 
             if plot in ["all", "m/z vs Charge"]:
@@ -1785,7 +1785,7 @@ class panelProcessData(wx.MiniFrame):
                     self.presenter.view.panelPlots.on_plot_unidec_mzGrid(unidec_eng_data=None,
                                                                          replot=data['m/z vs Charge'],
                                                                          **kwargs)
-                except:
+                except Exception:
                     pass
 
             if plot in ["all", "m/z with isolated species"]:
@@ -1797,9 +1797,9 @@ class panelProcessData(wx.MiniFrame):
                         self.presenter.view.panelPlots.on_plot_unidec_MW_add_markers(data['m/z with isolated species'],
                                                                                      data['MW distribution'],
                                                                                      **kwargs)
-                    except:
+                    except Exception:
                         pass
-                except:
+                except Exception:
                     pass
 
             if plot in ["all", "MW vs Charge"]:
@@ -1807,7 +1807,7 @@ class panelProcessData(wx.MiniFrame):
                     self.presenter.view.panelPlots.on_plot_unidec_MW_v_Charge(unidec_eng_data=None,
                                                                               replot=data['MW vs Charge'],
                                                                               **kwargs)
-                except:
+                except Exception:
                     pass
 
             if plot in ["all", "Barchart"]:
@@ -1815,13 +1815,13 @@ class panelProcessData(wx.MiniFrame):
                     self.presenter.view.panelPlots.on_plot_unidec_barChart(unidec_eng_data=None,
                                                                            replot=data['Barchart'],
                                                                            **kwargs)
-                except:
+                except Exception:
                     pass
 
             if plot in ['Isolate MW']:
                 try:
                     mw_selection = "MW: {}".format(self.unidec_weightList_choice.GetStringSelection().split()[1])
-                except:
+                except Exception:
                     return
                 kwargs['show_isolated_mw'] = True
                 kwargs['mw_selection'] = mw_selection
@@ -1982,13 +1982,13 @@ class panelProcessData(wx.MiniFrame):
             self.bin_mzEnd_value.Enable()
 
         # check if MS process data is present
-        if self.document.get('MS', None) == None or self.dataset.get('MS', None) == None:
+        if self.document.get('MS', None) is None or self.dataset.get('MS', None) is None:
             self.ms_processBtn.Disable()
         else:
             self.ms_processBtn.Enable()
 
         # check if 2D process data is present
-        if self.document.get('2D', None) == None or self.dataset.get('2D', None) == None:
+        if self.document.get('2D', None) is None or self.dataset.get('2D', None) is None:
             self.plot2D_processBtn.Disable()
         else:
             self.plot2D_processBtn.Enable()
@@ -2164,7 +2164,7 @@ class panelProcessData(wx.MiniFrame):
             self.unidec_fit_peakWidth_value.Enable()
             self.unidec_peakTool.Enable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onSetupValues(self, evt=None):
@@ -2181,7 +2181,7 @@ class panelProcessData(wx.MiniFrame):
         self.plot2D_polynomial_value.SetValue(str(self.config.plot2D_smooth_polynomial))
 
         self.importEvent = False
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onProcess2D(self, evt):
@@ -2202,7 +2202,7 @@ class panelProcessData(wx.MiniFrame):
         elif evtID == ID_processSettings_process2D:
             self.data_processing.on_process_2D_and_add_data(self.document['2D'], self.dataset['2D'], self.ionName['2D'])
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onProcessMS(self, evt):
@@ -2224,7 +2224,7 @@ class panelProcessData(wx.MiniFrame):
         elif evtID == ID_processSettings_processMS:
             self.data_processing.on_process_MS_and_add_data(self.document['MS'], self.dataset['MS'])
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onExtractData(self, evt):
@@ -2320,7 +2320,7 @@ class panelProcessData(wx.MiniFrame):
                                                                 'yvals': yvals_MS,
                                                                 'xlabels': 'm/z (Da)',
                                                                 'xlimits': xlimits}
-            except:
+            except Exception:
                 msg = "Failed to extract mass spectrum for selected range"
                 self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
 
@@ -2351,7 +2351,7 @@ class panelProcessData(wx.MiniFrame):
                                                       'yvals': yvals_RT,
                                                       'xlabels': 'Scans',
                                                       'ylabels': 'Intensity'}
-            except:
+            except Exception:
                 msg = "Failed to extract chromatogram for selected range"
                 self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
 
@@ -2384,7 +2384,7 @@ class panelProcessData(wx.MiniFrame):
                                                       'yvals': yvals_DT,
                                                       'xlabels': 'Drift time (bins)',
                                                       'ylabels': 'Intensity'}
-            except:
+            except Exception:
                 msg = "Failed to extract mobiligram for selected range"
                 self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
 
@@ -2419,7 +2419,7 @@ class panelProcessData(wx.MiniFrame):
                                                      'yvalsRT': yvals_RT,
                                                      'xlabels': 'Scans',
                                                      'ylabels': 'Drift time (bins)'}
-            except:
+            except Exception:
                 pass
 
         # Update document
@@ -2490,7 +2490,7 @@ class panelProcessData(wx.MiniFrame):
         try:
             kwargs = {'xvals': self.config.unidec_engine.data.data2[:, 0],
                       'yvals': self.config.unidec_engine.data.data2[:, 1]}
-        except:
+        except Exception:
             dlgBox(exceptionTitle="Error",
                    exceptionMsg="Please initilise and process data first!",
                    type="Error")
@@ -2513,7 +2513,7 @@ class panelProcessData(wx.MiniFrame):
 
             try:
                 document = self.presenter.documentsDict[document_title]
-            except:
+            except Exception:
                 return None
 
             if dataset_title == "Mass Spectrum":
@@ -2557,7 +2557,7 @@ class panelProcessData(wx.MiniFrame):
         # Start thread
         try:
             th.start()
-        except:
+        except Exception:
             print('Failed to execute the operation in threaded mode. Consider switching it off?')
 
     def _calculate_charge_positions(self, chargeList, selectedMW, msX,

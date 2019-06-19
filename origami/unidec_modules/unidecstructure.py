@@ -515,11 +515,11 @@ class UniDecConfig(object):
 #             self.linflag = 2
 #         try:
 #             self.maxmz = float(self.maxmz)
-#         except:
+#         except Exception:
 #             self.maxmz = 1000000
 #         try:
 #             self.minmz = float(self.minmz)
-#         except:
+#         except Exception:
 #             self.minmz = 0
 #
 #         cdict = {  # "input": self.infname, "output": self.outfname,
@@ -552,7 +552,7 @@ class UniDecConfig(object):
 #         for key, value in cdict.iteritems():
 #             try:
 #                 config_group.attrs[key] = value
-#             except:
+#             except Exception:
 #                 print "Error with key, value:", key, value
 #
 #         if not ud.isempty(self.masslist):
@@ -706,11 +706,11 @@ class UniDecConfig(object):
 
         try:
             x = float(self.maxmz)
-        except:
+        except Exception:
             self.maxmz = 100000
         try:
             x = float(self.minmz)
-        except:
+        except Exception:
             self.minmz = 0
 
         # Check that mz min and max are not reversed
@@ -925,7 +925,7 @@ class UniDecConfig(object):
                     except RuntimeWarning as e:
                         print(e)
                         print(value, value2)
-                except:
+                except Exception:
                     pass
         except KeyError:
             flag = True

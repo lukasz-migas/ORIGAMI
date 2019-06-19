@@ -139,7 +139,7 @@ class plots(mpl_plotter):
 
         try:
             itemShape = values.shape
-        except:
+        except Exception:
             values = np.array(values)
             itemShape = values.shape
 
@@ -236,7 +236,7 @@ class plots(mpl_plotter):
         """
         try:
             adjust_text(self.text, lim=lim)
-        except:
+        except Exception:
             pass
 
     def extents(self, f):
@@ -267,20 +267,20 @@ class plots(mpl_plotter):
         try:
             startY = startY / float(self.y_divider)
             endY = endY / float(self.y_divider)
-        except: pass
+        except Exception: pass
         try:
             self.plotMS.axis([startX, endX, startY, endY])
             self.repaint()
-        except: pass
+        except Exception: pass
 
     def on_zoom(self, startX, endX, endY):
         try:
             endY = endY / float(self.y_divider)
-        except: pass
+        except Exception: pass
         try:
             self.plotMS.axis([startX, endX, 0, endY])
             self.repaint()
-        except: pass
+        except Exception: pass
 
     def on_zoom_y_axis(self, startY=None, endY=None):
         xylimits = self.get_xylimits()
@@ -294,7 +294,7 @@ class plots(mpl_plotter):
         try:
             startY = np.divide(startY, self.y_divider)
             endY = np.divide(endY, self.y_divider)
-        except: pass
+        except Exception: pass
 
         self.plotMS.set_ylim([startY, endY])
         self.update_y_extents(startY, endY)
@@ -346,7 +346,7 @@ class plots(mpl_plotter):
             try:
                 ymin = np.divide(ymin, self.y_divider)
                 dy = np.divide(dy, self.y_divider)
-            except: pass
+            except Exception: pass
 
         if dx == 0 and dy == 0:
             return
@@ -369,7 +369,7 @@ class plots(mpl_plotter):
     def plot_remove_arrows(self):
         for arrow in self.arrows:
             try: arrow.remove()
-            except: pass
+            except Exception: pass
 
         self.arrows = []
         self.repaint()
@@ -397,7 +397,7 @@ class plots(mpl_plotter):
 
         for marker in self.markers:
             try: marker.remove()
-            except: pass
+            except Exception: pass
 
         self.markers = []
         self.repaint()
@@ -406,11 +406,11 @@ class plots(mpl_plotter):
                                 color="black", yoffset=0.05, stick_to_intensity=False, **kwargs):
 
         try: ymin, ymax = self.plotMS.get_ylim()
-        except: return
+        except Exception: return
 
         if stick_to_intensity:
             try: y_position = np.divide(yval, self.y_divider)
-            except: y_position = ymax
+            except Exception: y_position = ymax
         else:
             y_position = ymax
 
@@ -442,14 +442,14 @@ class plots(mpl_plotter):
         # check if value should be scaled based on the exponential
         if kwargs.pop("check_yscale", False):
             try: yval = np.divide(yval, self.y_divider)
-            except: pass
+            except Exception: pass
 
         # reverse value
         if is_butterfly:
             try:
                 yval = -yval
                 yoffset = -yoffset
-            except:
+            except Exception:
                 pass
 
         # get custom name tag
@@ -485,7 +485,7 @@ class plots(mpl_plotter):
     def plot_remove_text(self):
         for text in self.text:
             try: text.remove()
-            except: pass
+            except Exception: pass
 
         self.text = []
         self.repaint()
@@ -495,7 +495,7 @@ class plots(mpl_plotter):
 
         # check if need to rescale height
         try: height = np.divide(height, self.y_divider)
-        except: pass
+        except Exception: pass
         try:
             patch = self.plotMS.add_patch(patches.Rectangle((xmin, ymin), width, height,
                                                             color=color, alpha=alpha,
@@ -518,7 +518,7 @@ class plots(mpl_plotter):
         for patch in self.patch:
             try:
                 patch.remove()
-            except: pass
+            except Exception: pass
 
         self.patch = []
         self.repaint()
@@ -526,7 +526,7 @@ class plots(mpl_plotter):
     def plot_remove_temporary(self, repaint=False):
         for patch in self.temporary:
             try: patch.remove()
-            except: pass
+            except Exception: pass
 
         self.temporary = []
         if repaint:
@@ -536,15 +536,15 @@ class plots(mpl_plotter):
 
         for text in self.text:
             try: text.remove()
-            except: pass
+            except Exception: pass
 
         for line in self.lines:
             try: line.remove()
-            except: pass
+            except Exception: pass
 
         for arrow in self.arrows:
             try: arrow.remove()
-            except: pass
+            except Exception: pass
 
         self.text = []
         self.lines = []
@@ -566,7 +566,7 @@ class plots(mpl_plotter):
         try:
             self.plot_remove_text_and_lines()
             self.plot_remove_patches()
-        except: pass
+        except Exception: pass
 
         lines = self.plotMS.get_lines()
 #         for line in lines:
@@ -949,7 +949,7 @@ class plots(mpl_plotter):
         try:
             cbar_yticks = self.cbar.get_yticklabels()
             cbar_xticks = self.cbar.get_xticklabels()
-        except: pass
+        except Exception: pass
 
         if 'colormap_norm' in kwargs:
             self.cax.set_norm(kwargs['colormap_norm'])
@@ -987,7 +987,7 @@ class plots(mpl_plotter):
                 self.cbar.set_yticklabels(["0", "%", "100"])
             else:
                 self.cbar.set_xticklabels(["0", "%", "100"])
-        except:
+        except Exception:
             pass
 
         self.plotMS.tick_params(axis='both',
@@ -1115,7 +1115,7 @@ class plots(mpl_plotter):
                     tick_labels = self.tick_labels
 
                 try: self.cbar.remove()
-                except: pass
+                except Exception: pass
                 self.cbar = cbarDivider.append_axes(kwargs['colorbar_position'],
                                                     size="".join([str(kwargs['colorbar_width']), "%"]),
                                                     pad=kwargs['colorbar_pad'])
@@ -1140,7 +1140,7 @@ class plots(mpl_plotter):
                     self.tick_labels = self.cbar.tick_labels
 
                 self.cbar.remove()
-        except:
+        except Exception:
             pass
 
     def plot_2D_update_normalization(self, **kwargs):
@@ -1205,7 +1205,7 @@ class plots(mpl_plotter):
             self.plot_parameters = kwargs
 
         handles = []
-        if legend_text != None and kwargs.get('legend', self.config.legend):
+        if legend_text is not None and kwargs.get('legend', self.config.legend):
             for i in range(len(legend_text)):
                 handles.append(patches.Patch(color=legend_text[i][0],
                                              label=legend_text[i][1],
@@ -1232,7 +1232,7 @@ class plots(mpl_plotter):
         try:
             leg = self.plotMS.axes.get_legend()
             leg.remove()
-        except:
+        except Exception:
             pass
 
     def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
@@ -1270,7 +1270,7 @@ class plots(mpl_plotter):
         try:
             leg = self.plotMS.axes.get_legend()
             leg.remove()
-        except:
+        except Exception:
             pass
 
         # add data
@@ -1309,7 +1309,7 @@ class plots(mpl_plotter):
 
                 # setup other parameters
                 self.cbar.tick_params(labelsize=kwargs['colorbar_label_size'])
-        except:
+        except Exception:
             pass
 
     def plot_1D(self, xvals=None, yvals=None, title="", xlabel="",
@@ -1360,7 +1360,7 @@ class plots(mpl_plotter):
             self.plotMS.fill_between(xvals, 0, yvals, **shade_kws)
 
         # Setup parameters
-        if xlimits == None or xlimits[0] == None or xlimits[1] == None:
+        if xlimits is None or xlimits[0] is None or xlimits[1] is None:
             xlimits = (np.min(xvals), np.max(xvals))
 
         # update limits and extents
@@ -1494,7 +1494,7 @@ class plots(mpl_plotter):
         self.plotMS.add_collection(line_coll)
 
         # Setup parameters
-        if xlimits == None or xlimits[0] == None or xlimits[1] == None:
+        if xlimits is None or xlimits[0] is None or xlimits[1] is None:
             xlimits = (np.min(xvals) - 5, np.max(xvals) + 5)
 
         # update limits and extents
@@ -1844,7 +1844,7 @@ class plots(mpl_plotter):
                                                    marker=kwargs['scatter_shape'],
                                                    alpha=kwargs['scatter_alpha'],
                                                    picker=5)
-                    except:
+                    except Exception:
                         color = colors[i]
                         plot = self.plotMS.scatter(xval, yval,
                                                    edgecolors=color,
@@ -2223,7 +2223,7 @@ class plots(mpl_plotter):
                 labels = labels[::-1]
 
             # Setup parameters
-            if xlimits == None or xlimits[0] == None or xlimits[1] == None:
+            if xlimits is None or xlimits[0] is None or xlimits[1] is None:
                 xlimits = [np.min(xvals), np.max(xvals)]
 
             # Always normalizes data - otherwise it looks pretty bad
@@ -2990,7 +2990,7 @@ class plots(mpl_plotter):
 #                                                    alpha=kwargs['scatter_alpha'],
 #     #                                                label=labels[i],
 #                                                    picker=5)
-#                     except:
+#                     except Exception:
 #                         color = colors[i]
 #                         plot = self.plotMS.scatter(xval, yval,
 #                                                    edgecolors=color,
@@ -3475,7 +3475,7 @@ class plots(mpl_plotter):
         # Plot
         self.plotMS = self.figure.add_axes(self._axes)
 
-        if legend != None:
+        if legend is not None:
             for i in range(len(legend)):
                 self.plotMS.plot(-1, -1, "-",
                                  c=legend[i][1],
@@ -4002,7 +4002,7 @@ class plots(mpl_plotter):
         self.plotMS = self.figure.add_axes(self._axes)
 
         handles = []
-        if legend_text != None:
+        if legend_text is not None:
             for i in range(len(legend_text)):
                 handles.append(patches.Patch(color=legend_text[i][0],
                                              label=legend_text[i][1],
@@ -4155,7 +4155,7 @@ class plots(mpl_plotter):
                                        markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                        fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
                                        scatterpoints=kwargs.get('legend_num_markers', self.config.legendNumberMarkers))
-        except:
+        except Exception:
             pass
 
         # setup colorbar
@@ -4583,7 +4583,7 @@ class plots(mpl_plotter):
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         self.plotMS = self.figure.add_subplot(111, projection='3d', aspect='auto')
-        if colors != None:
+        if colors is not None:
             self.plotMS.scatter(xvals, yvals, zvals,
                                 c=colors,
                                 edgecolor=colors,

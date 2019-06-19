@@ -61,7 +61,7 @@ class panelCustomisePlot(wx.Dialog):
         if key_code == wx.WXK_ESCAPE:  # key = esc
             self.on_close(evt=None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_close(self, evt):
@@ -511,7 +511,7 @@ class panelCustomisePlot(wx.Dialog):
         try:
             self.line_style_value.SetStringSelection(
                 self.config.lineStylesDict[self.plot.plot_parameters.get('line_style', "-")])
-        except:
+        except Exception:
             self.line_style_value.SetStringSelection(self.plot.plot_parameters.get('line_style', "-"))
 
         self.xaxis_tick_division_value.SetValue(str(1))
@@ -587,7 +587,7 @@ class panelCustomisePlot(wx.Dialog):
 
     def onCheckTools(self, check_type="all"):
         if check_type in ["all", "colormap"]:
-            if self.plot.cax == None:
+            if self.plot.cax is None:
                 disableList = [self.colormap_value, self.cmap_mid_value,
                                self.cmap_min_value, self.cmap_max_value]
                 for item in disableList:
@@ -641,7 +641,7 @@ class panelCustomisePlot(wx.Dialog):
                 color = patches[i].get_facecolor()
                 patches[i].set_alpha(legend_alpha)
                 patches[i].set_facecolor(color)
-        except:
+        except Exception:
             pass
 
         try:
@@ -649,7 +649,7 @@ class panelCustomisePlot(wx.Dialog):
             text_size = self.legend_fontSize_value.GetStringSelection()
             for i in range(len(texts)):
                 texts[i].set_fontsize(text_size)
-        except:
+        except Exception:
             pass
 
         self.plot.repaint()
@@ -668,14 +668,14 @@ class panelCustomisePlot(wx.Dialog):
             for line in lines:
                 line.set_linewidth(line_width)
                 line.set_linestyle(line_style)
-        except:
+        except Exception:
             pass
 
         try:
             shade_value = self.shade_alpha_value.GetValue()
             for i in range(len(self.plot.plotMS.collections)):
                 self.plot.plotMS.collections[i].set_alpha(shade_value)
-        except:
+        except Exception:
             pass
 
         self.plot.repaint()
@@ -815,25 +815,25 @@ class panelCustomisePlot(wx.Dialog):
         try:
             new_xticks = str2num(self.xaxis_major_tickreq_value.GetValue())
             self.plot.plotMS.xaxis.set_major_locator(ticker.MultipleLocator(new_xticks))
-        except:
+        except Exception:
             pass
 
         try:
             new_xticks = str2num(self.xaxis_minor_tickreq_value.GetValue())
             self.plot.plotMS.xaxis.set_minor_locator(ticker.MultipleLocator(new_xticks))
-        except:
+        except Exception:
             pass
 
         try:
             new_yticks = str2num(self.yaxis_major_tickreq_value.GetValue())
             self.plot.plotMS.yaxis.set_major_locator(ticker.MultipleLocator(new_yticks))
-        except:
+        except Exception:
             pass
 
         try:
             new_yticks = str2num(self.yaxis_minor_tickreq_value.GetValue())
             self.plot.plotMS.yaxis.set_minor_locator(ticker.MultipleLocator(new_yticks))
-        except:
+        except Exception:
             pass
 
         if self.override_defaults.GetValue():
@@ -848,25 +848,25 @@ class panelCustomisePlot(wx.Dialog):
         try:
             new_xticks = str2num(self.xaxis_major_tickreq_value.GetValue())
             self.plot.plotMS.xaxis.set_major_locator(ticker.MultipleLocator(new_xticks))
-        except:
+        except Exception:
             pass
 
         try:
             new_xticks = str2num(self.xaxis_minor_tickreq_value.GetValue())
             self.plot.plotMS.xaxis.set_minor_locator(ticker.MultipleLocator(new_xticks))
-        except:
+        except Exception:
             pass
 
         try:
             new_yticks = str2num(self.yaxis_major_tickreq_value.GetValue())
             self.plot.plotMS.yaxis.set_major_locator(ticker.MultipleLocator(new_yticks))
-        except:
+        except Exception:
             pass
 
         try:
             new_yticks = str2num(self.yaxis_minor_tickreq_value.GetValue())
             self.plot.plotMS.yaxis.set_minor_locator(ticker.MultipleLocator(new_yticks))
-        except:
+        except Exception:
             pass
 
         self.plot.repaint()
@@ -918,7 +918,7 @@ class panelCustomisePlot(wx.Dialog):
         dlg.CentreOnParent()
         try:
             dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
-        except:
+        except Exception:
             pass
 
         if dlg.ShowModal() == wx.ID_OK:

@@ -55,7 +55,7 @@ class data_processing():
         self.frag_generator = pr_frag.PeptideAnnotation()
 #         try:
 #             self.frag_generator.get_unimod_db()
-#         except: pass
+#         except Exception: pass
 
         # unidec parameters
         self.unidec_dataset = None
@@ -77,7 +77,7 @@ class data_processing():
         if data_format == '2D':
             get_data = self.config.replotData.get('2D', None)
             zvals, xvals, yvals, xlabel, ylabel = None, None, None, None, None
-            if get_data != None:
+            if get_data is not None:
                 zvals = get_data['zvals'].copy()
                 xvals = get_data['xvals']
                 yvals = get_data['yvals']
@@ -87,7 +87,7 @@ class data_processing():
         elif data_format == 'RMSF':
             get_data = self.config.replotData.get('RMSF', None)
             zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF = None, None, None, None, None, None
-            if get_data != None:
+            if get_data is not None:
                 zvals = get_data['zvals'].copy()
                 xvals = get_data['xvals']
                 yvals = get_data['yvals']
@@ -98,7 +98,7 @@ class data_processing():
         elif data_format == 'DT/MS':
             get_data = self.config.replotData.get('DT/MS', None)
             zvals, xvals, yvals, xlabel, ylabel = None, None, None, None, None
-            if get_data != None:
+            if get_data is not None:
                 zvals = get_data['zvals'].copy()
                 xvals = get_data['xvals']
                 yvals = get_data['yvals']
@@ -108,7 +108,7 @@ class data_processing():
         elif data_format == 'MS':
             get_data = self.config.replotData.get('MS', None)
             xvals, yvals, xlimits = None, None, None
-            if get_data != None:
+            if get_data is not None:
                 xvals = get_data.get('xvals', None)
                 yvals = get_data.get('yvals', None)
                 xlimits = get_data.get('xlimits', None)
@@ -116,7 +116,7 @@ class data_processing():
         elif data_format == 'RT':
             get_data = self.config.replotData.get('RT', None)
             xvals, yvals, xlabel = None, None, None
-            if get_data != None:
+            if get_data is not None:
                 xvals = get_data.get('xvals', None)
                 yvals = get_data.get('yvals', None)
                 xlabel = get_data.get('xlabel', None)
@@ -124,7 +124,7 @@ class data_processing():
         elif data_format == '1D':
             get_data = self.config.replotData.get('1D', None)
             xvals, yvals, xlabel = None, None, None
-            if get_data != None:
+            if get_data is not None:
                 xvals = get_data.get('xvals', None)
                 yvals = get_data.get('yvals', None)
                 xlabel = get_data.get('xlabel', None)
@@ -132,7 +132,7 @@ class data_processing():
         elif data_format == 'Matrix':
             get_data = self.config.replotData.get('Matrix', None)
             zvals, xylabels, cmap = None, None, None
-            if get_data != None:
+            if get_data is not None:
                 zvals = get_data.get('zvals', None)
                 xylabels = get_data.get('xylabels', None)
                 cmap = get_data.get('cmap', None)
@@ -256,7 +256,7 @@ class data_processing():
             dataPlot.plot_remove_markers()
             dataPlot.plot_remove_patches()
             dataPlot.plot_remove_text()
-        except: pass
+        except Exception: pass
 
         # Chromatograms
         if self.config.fit_type in ["RT", "MS/RT"]:
@@ -435,7 +435,7 @@ class data_processing():
                                 try:
                                     max_index = np.where(highResPeaks[:, 1] == np.max(highResPeaks[:, 1]))
                                     isotopic_max_val_x, isotopic_max_val_y = highResPeaks[max_index, :][0][0][0], highResPeaks[max_index, :][0][0][1]
-                                except:
+                                except Exception:
                                     isotopic_max_val_x, isotopic_max_val_y = None, None
 
                                 # Assumes positive mode
@@ -563,7 +563,7 @@ class data_processing():
 #                                 try:
 #                                     max_index = np.where(highResPeaks[:,1] == np.max(highResPeaks[:,1]))
 #                                     isotopic_max_val_x, isotopic_max_val_y = highResPeaks[max_index,:][0][0][0], highResPeaks[max_index,:][0][0][1]
-#                                 except:
+#                                 except Exception:
 #                                     isotopic_max_val_x, isotopic_max_val_y = None, None
 #
 #                                 # Assumes positive mode
@@ -612,12 +612,12 @@ class data_processing():
                             max_index = np.where(mz_narrow[:, 1] == intensity)[0]
                             intensity = np.round(intensity, 2)
                             try: position = mz_narrow[max_index, 0]
-                            except: position = max_value - ((max_value - min_value) / 2)
+                            except Exception: position = max_value - ((max_value - min_value) / 2)
                             try: position = position[0]
-                            except: pass
+                            except Exception: pass
 
                             try: charge_value = int(mz[2])
-                            except: charge_value = 0
+                            except Exception: charge_value = 0
                             if len(mz) > 3 and mz[3] > 1:
                                 isotopic_max_val_x = mz[3]
                                 isotopic_max_val_y = mz[4]
@@ -653,7 +653,7 @@ class data_processing():
                                 xmin = np.round(mz[0] - (self.config.fit_width * self.config.fit_asymmetric_ratio), 2)
                                 xmax = xmin + width
                                 try: charge = str(int(mz[2]))
-                                except: charge = ""
+                                except Exception: charge = ""
                                 intensity = np.round(mz[1] * 100, 1)
                                 if not panel.on_check_duplicate(xmin, xmax, self.presenter.currentDoc):
                                     add_dict = {"mz_start":xmin, "mz_end":xmax, "charge":charge,
@@ -671,7 +671,7 @@ class data_processing():
                                 xmin = np.round(mz[0] - (self.config.fit_width * 0.75), 2)
                                 xmax = xmin + width
                                 try: charge = str(int(mz[2]))
-                                except: charge = ""
+                                except Exception: charge = ""
                                 intensity = np.round(mz[1] * 100, 1)
                                 tempList.Append([xmin, xmax, intensity, charge, self.presenter.currentDoc])
                             # Removing duplicates
@@ -683,7 +683,7 @@ class data_processing():
                                 xmin = np.round(mz[0] - (self.config.peakWidth * 0.75), 2)
                                 xmax = xmin + width
                                 try: charge = str(int(mz[2]))
-                                except: charge = ""
+                                except Exception: charge = ""
                                 intensity = np.round(mz[1] * 100, 1)
                                 tempList.Append([self.presenter.currentDoc, xmin, xmax, "", charge])
                             # Removing duplicates
@@ -700,7 +700,7 @@ class data_processing():
 
             try:
                 document = self.presenter.documentsDict[document_title]
-            except:
+            except Exception:
                 return None
 
             if dataset_title == "Mass Spectrum":
@@ -798,7 +798,7 @@ class data_processing():
 
     def on_process_MS_and_add_data(self, document=None, dataset=None):
 
-        if document == None or dataset == None:
+        if document is None or dataset is None:
             self.docs = self._on_get_document()
             if self.docs is None: return
         else:
@@ -865,7 +865,7 @@ class data_processing():
             self.view.panelProcessData.onSetupValues(evt=None)
 
         # Smooth data
-        if self.config.plot2D_smooth_mode != None:
+        if self.config.plot2D_smooth_mode is not None:
             if self.config.plot2D_smooth_mode == 'Gaussian':
                 zvals = pr_heatmap.smooth_gaussian_2D(inputData=zvals.copy(),
                                               sigma=self.config.plot2D_smooth_sigma)
@@ -896,7 +896,7 @@ class data_processing():
                 try:
                     self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
                                                     xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
-                except: pass
+                except Exception: pass
                 if not self.config.waterfall:
                     self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
             elif replot_type == 'DT/MS':
@@ -915,7 +915,7 @@ class data_processing():
             return zvals, parameters
 
     def on_process_2D_and_add_data(self, document=None, dataset=None, ionName=None):
-        if document == None or dataset == None:
+        if document is None or dataset is None:
             self.docs = self._on_get_document()
             if self.docs is None: return
         else:
@@ -949,7 +949,7 @@ class data_processing():
         zvals, params = self.on_process_2D(zvals=zvals.copy(), return_all=True)
 
         # strip any processed string from the title
-        if ionName != None:
+        if ionName is not None:
             if "(processed)" in ionName:
                 dataset = ionName.split(" (")[0]
             new_dataset = "%s (processed)" % ionName
@@ -995,7 +995,7 @@ class data_processing():
             try:
                 self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
                                                 xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
-            except: pass
+            except Exception: pass
             # change to correct plot window
             if not self.config.waterfall:
                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
@@ -1030,7 +1030,7 @@ class data_processing():
         modifications = {}
         try:
             modifications = spectrum_dict['identification'][id_num]['modification_info']
-        except:
+        except Exception:
             pass
 
         # generate fragments

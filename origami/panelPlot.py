@@ -136,7 +136,7 @@ class panelPlot(wx.Panel):
                             self.current_plot.plot_add_arrow(
                                 arrow_list, stick_to_intensity=True,
                                 **arrow_kwargs)
-            except:
+            except Exception:
                 pass
 
         # update annotation
@@ -1027,7 +1027,7 @@ class panelPlot(wx.Panel):
             evtID = evt.GetId()
 
         path, title = self.presenter.getCurrentDocumentPath()
-        if path == None:
+        if path is None:
             args = ("Could not find path", 4)
             self.presenter.onThreading(None, args, action='updateStatusbar')
             return
@@ -1137,7 +1137,7 @@ class panelPlot(wx.Panel):
         # generate a better default name and remove any silly characters
         if "image_name" in save_kwargs:
             defaultName = save_kwargs.pop("image_name")
-            if defaultName == None:
+            if defaultName is None:
                 defaultName = "{}_{}".format(title, defaultName)
         else:
             defaultName = "{}_{}".format(title, defaultName)
@@ -1164,7 +1164,7 @@ class panelPlot(wx.Panel):
         dlg.SetFilename(defaultName)
         try:
             dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
-        except:
+        except Exception:
             pass
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -1383,7 +1383,7 @@ class panelPlot(wx.Panel):
 
         path, document_name = self.presenter.getCurrentDocumentPath()
         document_name = document_name.replace('.raw', '').replace(' ', '')
-        if path == None:
+        if path is None:
             args = ("Could not find path", 4)
             self.presenter.onThreading(None, args, action='updateStatusbar')
             return
@@ -1410,7 +1410,7 @@ class panelPlot(wx.Panel):
             dlg.SetFilename(defaultName)
             try:
                 dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
-            except:
+            except Exception:
                 pass
             plotWindow = plots[plot]
             if dlg.ShowModal() == wx.ID_OK:
@@ -1424,7 +1424,7 @@ class panelPlot(wx.Panel):
                 try:
                     plotWindow.saveFigure2(path=filename, **kwargs)
                     print(("Saved {}".format(filename)))
-                except:
+                except Exception:
                     print(("Could not save {}. Moving on...".format(filename)))
                     continue
 
@@ -1573,7 +1573,7 @@ class panelPlot(wx.Panel):
 
         try:
             plot.clearPlot()
-        except:
+        except Exception:
             for p in plot:
                 p.clearPlot()
 
@@ -1805,7 +1805,7 @@ class panelPlot(wx.Panel):
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
             try:
                 self.unidec_notebook.SetSelection(6)
-            except:
+            except Exception:
                 pass
 
         # Build kwargs
@@ -1838,7 +1838,7 @@ class panelPlot(wx.Panel):
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
             try:
                 self.unidec_notebook.SetSelection(0)
-            except:
+            except Exception:
                 pass
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -1863,7 +1863,7 @@ class panelPlot(wx.Panel):
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
             try:
                 self.unidec_notebook.SetSelection(0)
-            except:
+            except Exception:
                 pass
 
         # Build kwargs
@@ -1903,7 +1903,7 @@ class panelPlot(wx.Panel):
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
             try:
                 self.unidec_notebook.SetSelection(1)
-            except:
+            except Exception:
                 pass
 
         # Build kwargs
@@ -1937,7 +1937,7 @@ class panelPlot(wx.Panel):
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
             try:
                 self.unidec_notebook.SetSelection(3)
-            except:
+            except Exception:
                 pass
 
         # Build kwargs
@@ -2017,7 +2017,7 @@ class panelPlot(wx.Panel):
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
             try:
                 self.unidec_notebook.SetSelection(4)
-            except:
+            except Exception:
                 pass
 
         # Build kwargs
@@ -2114,7 +2114,7 @@ class panelPlot(wx.Panel):
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
             try:
                 self.unidec_notebook.SetSelection(2)
-            except:
+            except Exception:
                 pass
 
         # Build kwargs
@@ -2157,7 +2157,7 @@ class panelPlot(wx.Panel):
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
             try:
                 self.unidec_notebook.SetSelection(5)
-            except:
+            except Exception:
                 pass
 
         # Build kwargs
@@ -2261,7 +2261,7 @@ class panelPlot(wx.Panel):
                 xlimits[0] = msX[0]
             if math.isnan(xlimits.get(1, msX[-1])):
                 xlimits[1] = msX[-1]
-        except:
+        except Exception:
             xlimits = [np.min(msX), np.max(msX)]
 
         try:
@@ -2547,11 +2547,11 @@ class panelPlot(wx.Panel):
 
         try:
             self.on_clear_labels(plot="MS")
-        except:
+        except Exception:
             pass
         try:
             self.on_clear_patches(plot="MS")
-        except:
+        except Exception:
             pass
 
     def on_plot_MS(self, msX=None, msY=None, xlimits=None, override=True, replot=False,
@@ -2604,7 +2604,7 @@ class panelPlot(wx.Panel):
                 if override:
                     self.config.replotData['MS'] = {'xvals': msX, 'yvals': msY, 'xlimits': xlimits}
                 return
-            except:
+            except Exception:
                 pass
 
         # check limits
@@ -2613,7 +2613,7 @@ class panelPlot(wx.Panel):
                 xlimits[0] = msX[0]
             if math.isnan(xlimits.get(1, msX[-1])):
                 xlimits[1] = msX[-1]
-        except:
+        except Exception:
             xlimits = [np.min(msX), np.max(msX)]
 
         panel.clearPlot()
@@ -2652,7 +2652,7 @@ class panelPlot(wx.Panel):
                 if override:
                     self.config.replotData['1D'] = {'xvals': dtX, 'yvals': dtY, 'xlabel': xlabel}
                     return
-            except:
+            except Exception:
                 pass
 
         self.plot1D.clearPlot()
@@ -2692,7 +2692,7 @@ class panelPlot(wx.Panel):
                 if override:
                     self.config.replotData['RT'] = {'xvals': rtX, 'yvals': rtY, 'xlabel': xlabel}
                     return
-            except:
+            except Exception:
                 pass
 
         self.plotRT.clearPlot()
@@ -2780,7 +2780,7 @@ class panelPlot(wx.Panel):
         try:
             self.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
                             xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
-        except:
+        except Exception:
             pass
 
     def on_plot_violin(self, data=None, set_page=False, **kwargs):
@@ -2830,7 +2830,7 @@ class panelPlot(wx.Panel):
                 # plot
                 self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals,
                                        xlabel=xlabel, ylabel=ylabel)
-        except:
+        except Exception:
             self.plot_waterfall.clearPlot()
             print("Failed to plot the violin plot...")
 
@@ -2859,14 +2859,14 @@ class panelPlot(wx.Panel):
             cmap = self.config.currentCmap
 
         # Check that cmap modifier is included
-        if cmapNorm == None and plotType != "RMSD":
+        if cmapNorm is None and plotType != "RMSD":
             cmapNorm = self.normalize_colormap(zvals,
                                                min=self.config.minCmap,
                                                mid=self.config.midCmap,
                                                max=self.config.maxCmap,
                                                )
 
-        elif cmapNorm == None and plotType == "RMSD":
+        elif cmapNorm is None and plotType == "RMSD":
             cmapNorm = self.normalize_colormap(zvals,
                                                min=-100, mid=0, max=100,
                                                )
@@ -2886,7 +2886,7 @@ class panelPlot(wx.Panel):
                                                 'ylabels': ylabel, 'cmap': cmap,
                                                 'cmapNorm': cmapNorm}
             return
-        except:
+        except Exception:
             pass
 
         # Plot 2D dataset
@@ -2932,7 +2932,7 @@ class panelPlot(wx.Panel):
             cmap = self.config.currentCmap
 
         # Check that cmap modifier is included
-        if cmapNorm == None:
+        if cmapNorm is None:
             cmapNorm = self.normalize_colormap(zvals,
                                                min=self.config.minCmap,
                                                mid=self.config.midCmap,
@@ -2955,7 +2955,7 @@ class panelPlot(wx.Panel):
                                                    'ylabels': ylabel, 'cmap': cmap,
                                                    'cmapNorm': cmapNorm}
             return
-        except:
+        except Exception:
             pass
 
         # Plot 2D dataset
@@ -3011,7 +3011,7 @@ class panelPlot(wx.Panel):
             cmap = self.config.currentCmap
 
         # Check that cmap modifier is included
-        if cmapNorm == None:
+        if cmapNorm is None:
             cmapNorm = self.normalize_colormap(zvals,
                                                min=self.config.minCmap,
                                                mid=self.config.midCmap,
@@ -3246,7 +3246,7 @@ class panelPlot(wx.Panel):
         if self.config.useCurrentCmap:
             cmap = self.config.currentCmap
 
-        if cmapNorm == None and plotType == "RMSD":
+        if cmapNorm is None and plotType == "RMSD":
             cmapNorm = self.normalize_colormap(zvals, min=-100, mid=0, max=100)
 
         # update kwargs
@@ -3299,7 +3299,7 @@ class panelPlot(wx.Panel):
             cmap = self.config.currentCmap
 
         # Check that cmap modifier is included
-        if cmapNorm == None and plotType == "RMSD":
+        if cmapNorm is None and plotType == "RMSD":
             cmapNorm = self.normalize_colormap(zvals, min=-100, mid=0, max=100)
 
         # Build kwargs
@@ -3406,7 +3406,7 @@ class panelPlot(wx.Panel):
 
             self.plot_RMSF.plot_2D_update_label(**plt_kwargs)
             self.plot_RMSF.repaint()
-        except:
+        except Exception:
             pass
 
     def plot_2D_matrix_update_label(self):
@@ -3415,7 +3415,7 @@ class panelPlot(wx.Panel):
         try:
             self.plot2D.plot_2D_matrix_update_label(**plt_kwargs)
             self.plot2D.repaint()
-        except:
+        except Exception:
             pass
 
     def on_plot_matrix(self, zvals=None, xylabels=None, cmap=None, override=True,
@@ -3546,7 +3546,7 @@ class panelPlot(wx.Panel):
                                    axesSize=self.config._plotSettings['MS']['axes_size'],
                                    plotType='MS',
                                    **plt_kwargs)
-            except:
+            except Exception:
                 self.plot1.repaint()
             if override:
                 self.config.replotData['compare_MS'] = {'xvals': msX,
@@ -3565,7 +3565,7 @@ class panelPlot(wx.Panel):
                                            axesSize=self.config._plotSettings['MS (compare)']['axes_size'],
                                            plotType='compare_MS',
                                            **plt_kwargs)
-            except:
+            except Exception:
                 self.plot1.repaint()
             if override:
                 self.config.replotData['compare_MS'] = {'xvals': msX,

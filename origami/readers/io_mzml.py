@@ -53,7 +53,7 @@ class mzMLreader():
         precursor_mz = np.round(scan['selected ion m/z'], 4)
         try:
             charge = int(scan['charge state'])
-        except:
+        except Exception:
             charge = 0
         title = scan.get('spectrum title', "")
         if title in [None, "None"]:

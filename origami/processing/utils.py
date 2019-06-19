@@ -94,7 +94,7 @@ def detect_peaks_spectrum(data, window=10, threshold=0, mzRange=None):  # detect
 #     tstart = ttime()
 
     peaks = []
-    if mzRange != None:
+    if mzRange is not None:
         mzStart = np.argmin(np.abs(data[:, 0] - mzRange[0]))
         mzEnd = np.argmin(np.abs(data[:, 0] - mzRange[1]))
         data = data[mzStart:mzEnd, :]
@@ -133,7 +133,7 @@ def find_peak_maximum(data, fail_value=1):  # findPeakMax
 
 def find_peak_maximum_1D(yvals, fail_value=1):
     try: ymax = np.amax(yvals)
-    except: ymax = 1
+    except Exception: ymax = 1
     return ymax
 
 

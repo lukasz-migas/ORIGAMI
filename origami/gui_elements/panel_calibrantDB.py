@@ -42,7 +42,7 @@ class panelCalibrantDB(wx.MiniFrame):
     def on_close(self, evt):
         """Destroy this frame."""
 
-        if self.dataOut == None:
+        if self.dataOut is None:
             self.config.proteinData = None
 
         self.Destroy()
@@ -119,11 +119,11 @@ class panelCalibrantDB(wx.MiniFrame):
 
     def onItemSelected(self, evt):
         self.currentItem = evt.m_itemIndex
-        if self.currentItem == None:
+        if self.currentItem is None:
             return
 
     def onSelect(self, evt):
-        if self.currentItem == None:
+        if self.currentItem is None:
             return
 
         if self.mode == 'calibrants':
@@ -157,7 +157,7 @@ class panelCalibrantDB(wx.MiniFrame):
 
         if self.mode == 'calibrants':
             try:
-                if self.ccsDB != None:
+                if self.ccsDB is not None:
                     pass
             except TypeError:
                 ccsDBlist = self.ccsDB.values.tolist()
@@ -166,7 +166,7 @@ class panelCalibrantDB(wx.MiniFrame):
 
         elif self.mode == 'proteins':
             try:
-                if self.ccsDB != None:
+                if self.ccsDB is not None:
                     pass
             except TypeError:
                 # Convert the DB to dictionary --> list of lists
@@ -190,7 +190,7 @@ class panelCalibrantDB(wx.MiniFrame):
         Sort data in peaklist based on pressed column
         """
         # Check if it should be reversed
-        if self.lastColumn == None:
+        if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
             if self.reverse == True:
@@ -218,14 +218,14 @@ class panelCalibrantDB(wx.MiniFrame):
                     col == self.config.ccsDBColNames['heNeg'] or
                         col == self.config.ccsDBColNames['n2Neg']):
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 # Integers
                 elif (col == self.config.ccsDBColNames['units'] or
                       col == self.config.ccsDBColNames['charge']):
                     itemData = str2int(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 # Text

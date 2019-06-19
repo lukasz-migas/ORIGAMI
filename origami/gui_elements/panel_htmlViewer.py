@@ -38,7 +38,7 @@ class panelHTMLViewer(wx.MiniFrame):
                 position_diff.append(_main_position[0] - d.GetGeometry()[0])
 
             currentDisplaySize = wx.Display(position_diff.index(min(position_diff))).GetGeometry()
-        except:
+        except Exception:
             currentDisplaySize = None
 
         if 'window_size' in kwargs:

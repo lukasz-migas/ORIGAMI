@@ -162,7 +162,7 @@ class topPanel(wx.Panel):
         Sort data in peaklist based on pressed column
         """
         # Check if it should be reversed
-        if self.lastColumn == None:
+        if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
             if self.reverse == True:
@@ -184,7 +184,7 @@ class topPanel(wx.Panel):
                 #  We want to make sure the first 3 columns are numbers
                 if col == 0 or col == 1 or col == 2 or col == 3:
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 else:
@@ -297,7 +297,7 @@ class topPanel(wx.Panel):
                 #  We want to make sure certain columns are numbers
                 if col == 0 or col == 1 or col == 2 or col == 3:
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 else:
@@ -485,7 +485,7 @@ class bottomPanel(wx.Panel):
                 #  We want to make sure certain columns are numbers
                 if col == 0 or col == 1 or col == 2 or col == 3:
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 else:
@@ -513,7 +513,7 @@ class bottomPanel(wx.Panel):
         Sort data in peaklist based on pressed column
         """
         # Check if it should be reversed
-        if self.lastColumn == None:
+        if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
             if self.reverse == True:
@@ -535,12 +535,12 @@ class bottomPanel(wx.Panel):
                 #  We want to make sure the first 3 columns are numbers
                 if col == 0 or col == 1 or col == 2:
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 elif col == 3:
                     itemData = str2int(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 else:
@@ -575,7 +575,7 @@ class bottomPanel(wx.Panel):
         # Now insert it into the document
         try:
             currentDoc = self.presenter.view.panelDocuments.documents.enableCurrentDocument()
-        except:
+        except Exception:
             return None
         if currentDoc == 'Current documents':
             print('There are no documents in the tree')

@@ -405,7 +405,7 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
             label_2 = self.msSpectrum2_value.GetStringSelection()
         self.config.compare_massSpectrumParams['legend'] = [label_1, label_2]
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onUpdateMS1color(self, evt):

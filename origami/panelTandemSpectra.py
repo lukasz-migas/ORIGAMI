@@ -887,7 +887,7 @@ class panelTandemSpectra(wx.MiniFrame):
         else:
             self.frag_currentItem = evt.m_itemIndex
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_select_peaklist_all(self, evt):
@@ -900,7 +900,7 @@ class panelTandemSpectra(wx.MiniFrame):
 
         self.on_show_spectrum(evt)
 
-#         if evt != None:
+#         if evt is not None:
 #             evt.Skip()
 
     def on_select_peaklist_selected(self, evt):
@@ -1001,7 +1001,7 @@ class panelTandemSpectra(wx.MiniFrame):
         Sort data in peaklist based on pressed column
         """
         # Check if it should be reversed
-        if self.lastColumn == None:
+        if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
             if self.reverse == True:
@@ -1033,7 +1033,7 @@ class panelTandemSpectra(wx.MiniFrame):
             tempData.append(tempRow)
 
         # Sort data
-#         if sort_type == None:
+#         if sort_type is None:
         tempData = natsorted(tempData, key=itemgetter(column), reverse=sort_direction)
 #         elif sort_type == "length":
 #             tempData = natsorted(tempData, key=len, reverse=sort_direction)
@@ -1056,7 +1056,7 @@ class panelTandemSpectra(wx.MiniFrame):
         Sort data in peaklist based on pressed column
         """
         # Check if it should be reversed
-        if self.selected_lastColumn == None:
+        if self.selected_lastColumn is None:
             self.selected_lastColumn = column
         elif self.selected_lastColumn == column:
             if self.selected_reverse == True:
@@ -1197,7 +1197,7 @@ class panelTandemSpectra(wx.MiniFrame):
 
         try:
             source = evt.GetEventObject().GetName()
-        except:
+        except Exception:
             pass
 
         self.config.msms_load_n_scans = int(self.show_count_value.GetValue())
@@ -1294,12 +1294,12 @@ class panelTandemSpectra(wx.MiniFrame):
                 if "identification" in spectrum:
                     try:
                         peptide = spectrum['identification'][id_num]['peptide_seq']
-                    except:
+                    except Exception:
                         pass
                     try:
                         if len(spectrum['identification'][id_num]['modification_info']) > 0:
                             ptm = True
-                    except:
+                    except Exception:
                         pass
 
                     # check if scans with PTMs should be shown
@@ -1341,12 +1341,12 @@ class panelTandemSpectra(wx.MiniFrame):
 
                     try:
                         peptide[n_id] = spectrum['identification'][n_id]['peptide_seq']
-                    except:
+                    except Exception:
                         pass
                     try:
                         if len(spectrum['identification'][n_id]['modification_info']) > 0:
                             ptm[n_id] = True
-                    except:
+                    except Exception:
                         pass
 
             for n_id in range(n_ids):
@@ -1407,12 +1407,12 @@ class panelTandemSpectra(wx.MiniFrame):
 
                     try:
                         peptide[n_id] = spectrum['identification'][n_id]['peptide_seq']
-                    except:
+                    except Exception:
                         pass
                     try:
                         if len(spectrum['identification'][n_id]['modification_info']) > 0:
                             ptm[n_id] = True
-                    except:
+                    except Exception:
                         pass
 
             try:
@@ -1622,7 +1622,7 @@ class panelTandemSpectra(wx.MiniFrame):
         Sort data in peaklist based on pressed column
         """
         # Check if it should be reversed
-        if self.frag_lastColumn == None:
+        if self.frag_lastColumn is None:
             self.frag_lastColumn = column
         elif self.frag_lastColumn == column:
             if self.frag_reverse == True:

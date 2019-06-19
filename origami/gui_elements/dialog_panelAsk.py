@@ -46,7 +46,7 @@ class panelAsk(wx.Dialog):
         elif key_code in [wx.WXK_RETURN, 370]:  # enter or enter on numpad
             self.onOK(None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_close(self, evt):
@@ -137,5 +137,5 @@ class panelAsk(wx.Dialog):
     def onApply(self, evt):
         self.item_value = self.input_value.GetValue()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()

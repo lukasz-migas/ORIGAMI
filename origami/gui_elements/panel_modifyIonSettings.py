@@ -329,7 +329,7 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.peaklistColNames['label'],
                                            self.origami_label_value.GetValue())
 
-#         if self.itemInfo['parameters'] == None:
+#         if self.itemInfo['parameters'] is None:
 #             self.itemInfo['parameters'] = {}
 #         self.itemInfo['parameters']['firstVoltage'] = str2int(self.origami_startScan_value.GetValue())
 #         self.itemInfo['parameters']['startV'] = str2num(self.origami_startVoltage_value.GetValue())
@@ -362,7 +362,7 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.on_assign_color(evt=None)
         self.parent.onUpdateDocument(itemInfo=self.itemInfo, evt=None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_setup_gui(self, evt):
@@ -388,7 +388,7 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.origami_min_threshold_value.SetValue(self.itemInfo['min_threshold'])
         self.origami_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
 
-#         if self.itemInfo['parameters'] != None:
+#         if self.itemInfo['parameters'] is not None:
 #             self.origami_method_value.SetStringSelection(self.itemInfo['parameters']['method'])
 #             self.origami_startScan_value.SetValue(str(self.itemInfo['parameters'].get('firstVoltage', '')))
 #             self.origami_scansPerVoltage_value.SetValue(str(self.itemInfo['parameters'].get('spv', '')))
@@ -491,7 +491,7 @@ class panelModifyIonSettings(wx.MiniFrame):
 #         for item in disableList:
 #             item.Disable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_assign_color(self, evt):

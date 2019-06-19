@@ -50,10 +50,10 @@ def makeMenuItem(parent, text, id=-1, bitmap=None, help_text=None,
                  kind=wx.ITEM_NORMAL):
     """ Helper function to make a menu item with or without bitmap image """
     menuItem = wx.MenuItem(parent, id, text, kind=kind)
-    if bitmap != None:
+    if bitmap is not None:
         menuItem.SetBitmap(bitmap)
 
-    if help_text != None:
+    if help_text is not None:
         menuItem.SetHelp(help_text)
 
     return menuItem
@@ -154,7 +154,7 @@ def makeSuperTip(parent, title='Title', text='Insert message', delay=5,
     tip.SetMiddleGradientColour((228, 236, 248, 255))
     tip.SetBottomGradientColour((198, 214, 235, 255))
 
-    if headerImg != None:
+    if headerImg is not None:
         tip.SetHeaderBitmap(headerImg)
 
     return tip
@@ -205,7 +205,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         if key_code == wx.WXK_UP or key_code == wx.WXK_DOWN:
             self.item_id = evt.GetIndex()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_get_item_information(self, item_id):

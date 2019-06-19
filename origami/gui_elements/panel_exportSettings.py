@@ -44,7 +44,7 @@ class panelExportSettings(wx.MiniFrame):
         if key_code == wx.WXK_ESCAPE:  # key = esc
             self.on_close(evt=None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onPageChanged(self, evt):
@@ -236,7 +236,7 @@ class panelExportSettings(wx.MiniFrame):
         else:
             self.peaklist_windowSize_value.Disable()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onSetupPlotName(self, evt):

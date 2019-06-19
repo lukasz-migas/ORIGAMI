@@ -151,7 +151,7 @@ for file in filelist:
     try:
         copy(file, savePath)
         print("Copied file: {}".format(file))
-    except:
+    except Exception:
         print("Skipped file: {}".format(file))
 
 # Copy additional folders
@@ -166,7 +166,7 @@ for directory in dirlist:
         saveDir = path.path(''.join([dist_dir, '\\', directory]))
         copy_tree(directory, saveDir)
         print("Copied directory: {}. It took {:.4f} seconds.".format(directory, time.clock()-tstart_copying))
-    except:
+    except Exception:
         print('Skipped directory: {}'.format(directory))
         pass
 

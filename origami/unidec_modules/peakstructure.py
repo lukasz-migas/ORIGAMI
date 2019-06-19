@@ -192,18 +192,18 @@ class Peaks:
 
             try:
                 n1 = int(splits[0])
-            except:
+            except Exception:
                 n1 = 0
 
             try:
                 n2 = int(splits[1].split("]")[1])
-            except:
+            except Exception:
                 n2 = 0
             try:
                 newcolor = colors[n1][n2]
                 newmarker = self.markers[newmarkers[n1][n2]]
                 newtextmarker = self.textmarkers[newmarkers[n1][n2]]
-            except:
+            except Exception:
                 newcolor = [0.5, 0.5, 1]
                 newmarker = self.markers[6]
                 newtextmarker = self.textmarkers[6]

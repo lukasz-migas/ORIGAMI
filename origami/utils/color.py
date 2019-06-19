@@ -132,7 +132,7 @@ def make_rgb(x, color):
     # Make sure color is an rgb format and not string format
     try:
         color = literal_eval(color)
-    except:
+    except Exception:
         color = color
 
     # Check color range is 0-1
@@ -170,9 +170,9 @@ def make_rgb(x, color):
 
 def remap_values(x, nMin, nMax, oMin=None, oMax=None, type_format='int'):
 
-    if oMin == None:
+    if oMin is None:
         oMin = np.min(x)
-    if oMax == None:
+    if oMax is None:
         oMax = np.max(x)
 
     # range check

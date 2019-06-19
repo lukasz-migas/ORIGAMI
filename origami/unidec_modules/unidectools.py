@@ -588,7 +588,7 @@ def load_mz_file(path, config=None):
             try:
                 print("Trying to convert Waters File")
                 data = waters_convert(path, config)
-            except:
+            except Exception:
                 print("Attempted to convert Waters Raw file but failed")
                 raise IOError
         else:

@@ -1048,7 +1048,7 @@ class MyFrame(wx.Frame):
         """
 #         try:
 #             os.startfile('UserGuide_ANALYSE.pdf')
-#         except:
+#         except Exception:
 #             return
         link = os.path.join(os.getcwd(), "docs\index.html")
         try:

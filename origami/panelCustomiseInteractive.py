@@ -84,7 +84,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         if key_code == wx.WXK_ESCAPE:  # key = esc
             self.on_close(evt=None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_close(self, evt):
@@ -156,7 +156,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         for item in remove_window_list:
             try:
                 allowed_window.remove(item)
-            except:
+            except Exception:
                 pass
 
 #             if any(method[0] in item for item in ['Mask', 'Transparent']):
@@ -334,11 +334,11 @@ class panelCustomiseInteractive(wx.MiniFrame):
         if self.kwargs['xlimits'] is not None:
             try:
                 self.plot_xmin_value.SetValue(str(float(self.kwargs['xlimits'][0])))
-            except:
+            except Exception:
                 pass
             try:
                 self.plot_xmax_value.SetValue(str(float(self.kwargs['xlimits'][1])))
-            except:
+            except Exception:
                 pass
 
         plot_ymin_label = makeStaticText(panel, "Y min:")
@@ -355,11 +355,11 @@ class panelCustomiseInteractive(wx.MiniFrame):
         if self.kwargs['ylimits'] is not None:
             try:
                 self.plot_ymin_value.SetValue(str(float(self.kwargs['ylimits'][0])))
-            except:
+            except Exception:
                 pass
             try:
                 self.plot_ymax_value.SetValue(str(float(self.kwargs['ylimits'][1])))
-            except:
+            except Exception:
                 pass
 
         # axes parameters

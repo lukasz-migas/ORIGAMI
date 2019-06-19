@@ -984,7 +984,7 @@ class ORIGAMI(object):
 #
 #         try:
 #             scantime = document.parameters['scanTime']
-#         except:
+#         except Exception:
 #             scantime = None
 #
 #         try:
@@ -992,7 +992,7 @@ class ORIGAMI(object):
 #         except Exception:
 #             try:
 #                 xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-#             except:
+#             except Exception:
 #                 pass
 #             xlimits = None
 #
@@ -1074,12 +1074,12 @@ class ORIGAMI(object):
 # #
 # #         try:
 # #             scanTime = document.parameters['scanTime']
-# #         except:
+# #         except Exception:
 # #             scanTime = None
 # #
 # #         try:
 # #             pusherFreq = document.parameters['pusherFreq']
-# #         except:
+# #         except Exception:
 # #             pusherFreq = None
 # #
 # #         try:
@@ -1087,7 +1087,7 @@ class ORIGAMI(object):
 # #         except Exception:
 # #             try:
 # #                 xlimits = [np.min(document.massSpectrum['xvals']), np.max(document.massSpectrum['xvals'])]
-# #             except:
+# #             except Exception:
 # #                 return
 # #
 # #         if units_x == "Scans":
@@ -1559,7 +1559,7 @@ class ORIGAMI(object):
 
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        except:
+        except Exception:
             return
         if self.currentDoc == "Current documents":
             return
@@ -2939,7 +2939,7 @@ class ORIGAMI(object):
 #                 kwargs.update(mz_min=mzStart, mz_max=mzEnd)
 #                 try:
 #                     self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
-#                 except:
+#                 except Exception:
 #                     pass
 #
 #             msFilenames = ["m/z"]
@@ -4094,7 +4094,7 @@ class ORIGAMI(object):
             xvals = dictionary['xvals']
             try:
                 xlabels = dictionary['xlabels']
-            except:
+            except Exception:
                 xlabels = dictionary['xlabel']
             yvals = dictionary['yvals']
             try:

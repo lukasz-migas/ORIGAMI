@@ -103,7 +103,7 @@ class UniDec(UniDecEngine):
             self.config.dirname = file_directory
             try:
                 os.chdir(self.config.dirname)
-            except:
+            except Exception:
                 print(("Could not set directory. Saving data in {}".format(os.getcwd())))
                 self.config.dirname = os.getcwd()
                 pass

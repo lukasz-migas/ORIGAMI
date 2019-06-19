@@ -750,7 +750,7 @@ class panelMultipleIons(wx.Panel):
     def onUpdateOverlayMethod(self, evt):
         self.config.overlayMethod = self.combo.GetStringSelection()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_change_item_parameter(self, evt):
@@ -797,7 +797,7 @@ class panelMultipleIons(wx.Panel):
         if ask.ShowModal() == wx.ID_OK:
             pass
 
-        if self.ask_value == None:
+        if self.ask_value is None:
             return
 
         for row in range(rows):
@@ -922,11 +922,11 @@ class panelMultipleIons(wx.Panel):
 #                            self.config.peaklistColNames['alpha'],
 #                            self.config.peaklistColNames['mask']]:
 #                     itemData = str2num(item.GetText())
-#                     if itemData == None: itemData = 0
+#                     if itemData is None: itemData = 0
 #                     tempRow.append(itemData)
 #                 elif col == self.config.peaklistColNames['charge']:
 #                     itemData = str2int(item.GetText())
-#                     if itemData == None: itemData = 0
+#                     if itemData is None: itemData = 0
 #                     tempRow.append(itemData)
 #                 else:
 #                     tempRow.append(item.GetText())
@@ -1014,7 +1014,7 @@ class panelMultipleIons(wx.Panel):
         else:
             return
 
-        if data == None:
+        if data is None:
             self.presenter.onThreading(evt, ("Please extract data before trying to view it", 4, 3),
                                        action='updateStatusbar')
             if evt.GetId() == ID_ionPanel_show_zoom_in_MS:
@@ -1022,7 +1022,7 @@ class panelMultipleIons(wx.Panel):
                     self.presenter.view.panelPlots.on_zoom_1D_x_axis(str2num(mzStart) - self.config.zoomWindowX,
                                                                      str2num(mzEnd) + self.config.zoomWindowX,
                                                                      set_page=True)
-                except:
+                except Exception:
                     pass
             return
 
@@ -1109,7 +1109,7 @@ class panelMultipleIons(wx.Panel):
                 #  We want to make sure the first 3 columns are numbers
                 if col == 0 or col == 1 or col == 2:
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 else:
@@ -1270,7 +1270,7 @@ class panelMultipleIons(wx.Panel):
 
     def OnOpenEditor(self, evt):
 
-        if evt == None:
+        if evt is None:
             evtID = ID_ionPanel_editItem
         else:
             evtID = evt.GetId()
@@ -1360,7 +1360,7 @@ class panelMultipleIons(wx.Panel):
         else:
             try:
                 color_255 = convertRGB1to255(literal_eval(self.OnGetValue(value_type='color')), 3)
-            except:
+            except Exception:
                 color_255 = self.config.customColors[randomIntegerGenerator(0, 15)]
 
             self.on_update_value_in_peaklist(itemID, "color_text", color_255)
@@ -1439,7 +1439,7 @@ class panelMultipleIons(wx.Panel):
     def onUpdateDocument(self, evt, itemInfo=None):
 
         # get item info
-        if itemInfo == None:
+        if itemInfo is None:
             itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
 
         # get item
@@ -1463,7 +1463,7 @@ class panelMultipleIons(wx.Panel):
                 document.IMS2DCombIons[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
                 try:
                     document.IMS2DCombIons[processed_name][keyword_name] = itemInfo[keyword]
-                except:
+                except Exception:
                     pass
 
         if itemInfo['ionName'] in document.IMS2DionsProcess:
@@ -1526,7 +1526,7 @@ class panelMultipleIons(wx.Panel):
                     pass
 
                 document_title = document_panel.current_document
-                if document_title == None:
+                if document_title is None:
                     return
 
             # Create shortcut
@@ -1602,7 +1602,7 @@ class panelMultipleIons(wx.Panel):
                     color_value = peaklist[color_name][peak]
                     try:
                         color_value = literal_eval(color_value)
-                    except:
+                    except Exception:
                         pass
                 else:
                     color_value = colors[peak]
@@ -1625,7 +1625,7 @@ class panelMultipleIons(wx.Panel):
                                                           color_value)
                     self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1,
                                                     determineFontColor(color_value, return_rgb=True))
-                except:
+                except Exception:
                     pass
             self.presenter.view.on_toggle_panel(evt=ID_window_ionList, check=True)
             dlg.Destroy()
@@ -1713,7 +1713,7 @@ class panelMultipleIons(wx.Panel):
 
         count = self.peaklist.GetItemCount()
         currentDoc = self.presenter.currentDoc
-        if currentDoc == "Current documents" or currentDoc == None:
+        if currentDoc == "Current documents" or currentDoc is None:
             return
         document = self.presenter.documentsDict[currentDoc]
 

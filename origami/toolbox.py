@@ -61,7 +61,7 @@ def clean_directory(dirpath):
         # remove files
         except OSError:
             try: os.remove(filepath)
-            except: continue
+            except Exception: continue
 
 
 def _replace_labels(label):
@@ -142,7 +142,7 @@ def _replace_labels(label):
         if any(_label in unicode_label for _label in ["\u03C9", "u03C9", "omega"]):
             unicode_label = unicode_label.replace("\u03C9", "ω").replace("u03C9", "ω").replace("omega", "ω")
 
-    except:
+    except Exception:
         return unicode_label
 
     return unicode_label
@@ -597,7 +597,7 @@ def detectPeaks1D(data, window=10, threshold=0, mzRange=None):
     """
 
     peaks = []
-    if mzRange != None:
+    if mzRange is not None:
         mzStart = np.argmin(np.abs(data[:, 0] - mzRange[0]))
         mzEnd = np.argmin(np.abs(data[:, 0] - mzRange[1]))
         data = data[mzStart:mzEnd, :]
@@ -849,7 +849,7 @@ def make_rgb(x, color):
     # Make sure color is an rgb format and not string format
     try:
         color = literal_eval(color)
-    except:
+    except Exception:
         color = color
 
     # Check color range is 0-1
@@ -887,9 +887,9 @@ def make_rgb(x, color):
 
 def remap_values(x, nMin, nMax, oMin=None, oMax=None, type_format='int'):
 
-    if oMin == None:
+    if oMin is None:
         oMin = np.min(x)
-    if oMax == None:
+    if oMax is None:
         oMax = np.max(x)
 
     # range check

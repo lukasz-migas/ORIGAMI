@@ -213,9 +213,9 @@ class documentsTree(wx.TreeCtrl):
 
         # split
         try: self.splitText = re.split('-|,|:|__| \(', self.extractData)
-        except: self.splitText = []
+        except Exception: self.splitText = []
         # Get the ion/file name from deeper indent
-        if extract == None:
+        if extract is None:
             self.extractData = None
             self.extractParent = None
             self.extractGrandparent = None
@@ -226,7 +226,7 @@ class documentsTree(wx.TreeCtrl):
 
         self.title = self.itemData.title
 
-        if self.indent == 1 and self.extractData == None:
+        if self.indent == 1 and self.extractData is None:
             self.on_refresh_document()
         elif self.itemType == 'Mass Spectra' and self.extractData == 'Mass Spectra':
             self.onCompareMS(evt=None)
@@ -268,7 +268,7 @@ class documentsTree(wx.TreeCtrl):
         # Start thread
         try:
             th.start()
-        except:
+        except Exception:
             print(("Failed to execute the '{}' operation in threaded mode. Consider switching it off?".format(action)))
 
     def onNotUseQuickDisplay(self, evt):
@@ -281,7 +281,7 @@ class documentsTree(wx.TreeCtrl):
         else:
             self.Unbind(wx.EVT_TREE_SEL_CHANGED, id=wx.ID_ANY)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def _resetBullets(self):
@@ -318,7 +318,7 @@ class documentsTree(wx.TreeCtrl):
         """
         This function retrieves data for currently selected item
         """
-        if self.itemData == None:
+        if self.itemData is None:
             return
 
         # Get data
@@ -386,7 +386,7 @@ class documentsTree(wx.TreeCtrl):
 
     def on_refresh_document(self, evt=None):
         document = self.presenter.documentsDict.get(self.title, None)
-        if document == None:
+        if document is None:
             return
 
         # set what to plot
@@ -418,7 +418,7 @@ class documentsTree(wx.TreeCtrl):
                 except KeyError: xlimits = [document.parameters['startMS'], document.parameters['endMS']]
                 name_kwargs = {"document":document.title, "dataset": "Mass Spectrum"}
                 self.panel_plot.on_plot_MS(msX, msY, xlimits=xlimits, set_page=False, **name_kwargs)
-            except: pass
+            except Exception: pass
 
         if chromatogram:
             try:
@@ -426,7 +426,7 @@ class documentsTree(wx.TreeCtrl):
                 rtY = document.RT['yvals']
                 xlabel = document.RT['xlabels']
                 self.panel_plot.on_plot_RT(rtX, rtY, xlabel, set_page=False)
-            except: pass
+            except Exception: pass
 
         if mobiligram:
             try:
@@ -437,7 +437,7 @@ class documentsTree(wx.TreeCtrl):
                     except KeyError: pass
                 xlabel = document.DT['xlabels']
                 self.panel_plot.on_plot_1D(dtX, dtY, xlabel, set_page=False)
-            except: pass
+            except Exception: pass
 
         if heatmap:
             try:
@@ -447,7 +447,7 @@ class documentsTree(wx.TreeCtrl):
                 xlabel = document.IMS2D['xlabels']
                 ylabel = document.IMS2D['ylabels']
                 self.panel_plot.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=True)
-            except: pass
+            except Exception: pass
 
         # go to page
         self.panel_plot.mainBook.SetSelection(go_to_page)
@@ -1004,7 +1004,7 @@ class documentsTree(wx.TreeCtrl):
             parent = item
 
         # Get the ion/file name from deeper indent
-        if extract == None: pass
+        if extract is None: pass
         else:
             self.extractData = self.GetItemText(extract)
 
@@ -1017,7 +1017,7 @@ class documentsTree(wx.TreeCtrl):
 
         self.onShowPlot(evt=None)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def on_delete_item(self, evt):
@@ -1031,7 +1031,7 @@ class documentsTree(wx.TreeCtrl):
         """
 
         try: currentDoc = self.itemData.title
-        except:
+        except Exception:
             print("Please select document in the document tree. Sometimes you might have to right-click on it.")
             return
         document_title = byte2str(self.itemData.title)
@@ -1103,7 +1103,7 @@ class documentsTree(wx.TreeCtrl):
         if self.itemType == "UniDec":
             del self.presenter.documentsDict[currentDoc].massSpectrum['unidec']
             try: del self.presenter.documentsDict[currentDoc].multipleMassSpectrum['temporary_unidec']
-            except: pass
+            except Exception: pass
 
         # DT
         elif self.itemType == 'Drift time (1D)':
@@ -1302,7 +1302,7 @@ class documentsTree(wx.TreeCtrl):
                     self.removeDocument(evt=None,
                                         deleteItem=document,
                                         ask_permission=False)
-                except:
+                except Exception:
                     pass
 
     def onItemSelection(self, evt):
@@ -1325,7 +1325,7 @@ class documentsTree(wx.TreeCtrl):
             parent = item
 
         # Get the ion/file name from deeper indent
-        if extract == None:
+        if extract is None:
             self.extractData = None
             self.extractParent = None
             self.extractGrandparent = None
@@ -1341,7 +1341,7 @@ class documentsTree(wx.TreeCtrl):
         self.itemData = self.GetPyData(parent)
         self.itemType = itemType
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onAddAnnotation(self, evt):
@@ -1474,7 +1474,7 @@ class documentsTree(wx.TreeCtrl):
             self.presenter.OnUpdateDocument(document, 'no_refresh')
         else:
             try: docItem = self.getItemByData(document)
-            except: docItem = False
+            except Exception: docItem = False
             if docItem is not False:
                 self.SetPyData(docItem, document)
                 self.presenter.documentsDict[document.title] = document
@@ -1658,7 +1658,7 @@ class documentsTree(wx.TreeCtrl):
                                                                min_x_value, max_x_value,
                                                                "annotation")
                 label_kwargs['text_name'] = obj_name_tag
-            except: pass
+            except Exception: pass
 
             if add_arrow:
                 arrow_x_position = label_x_position
@@ -1728,7 +1728,7 @@ class documentsTree(wx.TreeCtrl):
             parent = item
 
         # Get the ion/file name from deeper indent
-        if extract == None:
+        if extract is None:
             self.extractData = None
             self.extractParent = None
             self.extractGrandparent = None
@@ -1739,13 +1739,13 @@ class documentsTree(wx.TreeCtrl):
 
         try:
             self.title = self.itemData.title
-        except:
+        except Exception:
             self.title = None
 
         # split
         try:
             self.splitText = re.split('-|,|:|__', self.extractData)
-        except:
+        except Exception:
             self.splitText = []
 
         # Check item
@@ -1757,7 +1757,7 @@ class documentsTree(wx.TreeCtrl):
         self.itemType = itemType
         try:
             self.currentData = self.GetPyData(self.currentItem)
-        except:
+        except Exception:
             self.currentData = None
 
         if self.config.debug:
@@ -2002,7 +2002,7 @@ class documentsTree(wx.TreeCtrl):
         saveCSVLabel2D = f"Save data (2D, {self.config.saveExtension})"
 
         # Get label
-        if self.extractData != None:
+        if self.extractData is not None:
             try:
                 plotLabel = self.extractData.split(':')
             except AttributeError: pass
@@ -2307,7 +2307,7 @@ class documentsTree(wx.TreeCtrl):
                         menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_save_unidec,
                                                  text='Save UniDec results ({})'.format(self.config.saveExtension),
                                                  bitmap=None))
-                except: pass
+                except Exception: pass
                 menu.AppendSeparator()
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_processMS,
                                              text='Process...\tP',
@@ -2724,33 +2724,33 @@ class documentsTree(wx.TreeCtrl):
         evtID = evt.GetId()
 
         # Determine which dataset is used
-        if selectedText == None:
+        if selectedText is None:
             data = document.IMS2D
         elif selectedText == 'Drift time (2D)':
             data = document.IMS2D
         elif selectedText == 'Drift time (2D, processed)':
             data = document.IMS2Dprocess
-        elif selectedItemParentText == 'Drift time (2D, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (2D, EIC)' and selectedText is not None:
             data = document.IMS2Dions[selectedText]
-        elif selectedItemParentText == 'Drift time (2D, combined voltages, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (2D, combined voltages, EIC)' and selectedText is not None:
             data = document.IMS2DCombIons[selectedText]
-        elif selectedItemParentText == 'Drift time (2D, processed, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (2D, processed, EIC)' and selectedText is not None:
             data = document.IMS2DionsProcess[selectedText]
-        elif selectedItemParentText == 'Input data' and selectedText != None:
+        elif selectedItemParentText == 'Input data' and selectedText is not None:
             data = document.IMS2DcompData[selectedText]
 
         # 1D data
         elif selectedText == 'Drift time (1D)':
             data = document.DT
-        elif selectedItemParentText == 'Drift time (1D, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (1D, EIC)' and selectedText is not None:
             data = document.multipleDT[selectedText]
 
         # chromatograms
         elif selectedText == 'Chromatogram':
             data = document.RT
-        elif selectedItemParentText == 'Chromatograms (EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Chromatograms (EIC)' and selectedText is not None:
             data = document.multipleRT[selectedText]
-        elif selectedItemParentText == 'Chromatograms (combined voltages, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Chromatograms (combined voltages, EIC)' and selectedText is not None:
             data = document.IMSRTCombIons[selectedText]
 
         # DTMS
@@ -2759,7 +2759,7 @@ class documentsTree(wx.TreeCtrl):
 
         # try to get dataset object
         try: docItem = self.getItemByData(data)
-        except: docItem = False
+        except Exception: docItem = False
 
         # Add default values
         if 'defaultX' not in data:
@@ -2803,7 +2803,7 @@ class documentsTree(wx.TreeCtrl):
             elif evtID == ID_xlabel_2D_restore:
                 newXlabel = data['defaultX']['xlabels']
                 restoreX = True
-            elif newXlabel == "" or newXlabel == None:
+            elif newXlabel == "" or newXlabel is None:
                 newXlabel = 'Scans'
 
         if evtID in [ID_ylabel_2D_bins, ID_ylabel_2D_ms, ID_ylabel_2D_ms_arrival,
@@ -2820,7 +2820,7 @@ class documentsTree(wx.TreeCtrl):
             elif evtID == ID_ylabel_2D_restore:
                 newYlabel = data['defaultY']['ylabels']
                 restoreY = True
-            elif newYlabel == "" or newYlabel == None: newYlabel = 'Drift time (bins)'
+            elif newYlabel == "" or newYlabel is None: newYlabel = 'Drift time (bins)'
 
         # 1D data
         if evtID in [ID_xlabel_1D_bins, ID_xlabel_1D_ms, ID_xlabel_1D_ms_arrival,
@@ -2858,7 +2858,7 @@ class documentsTree(wx.TreeCtrl):
             elif evtID == ID_ylabel_DTMS_restore:
                 newYlabel = data['defaultY']['ylabels']
                 restoreY = True
-            elif newYlabel == "" or newYlabel == None: newYlabel = 'Drift time (bins)'
+            elif newYlabel == "" or newYlabel is None: newYlabel = 'Drift time (bins)'
 
         if restoreX:
             newXvals = data['defaultX']['xvals']
@@ -2871,7 +2871,7 @@ class documentsTree(wx.TreeCtrl):
             data['ylabels'] = newYlabel
 
         # Change labels
-        if newXlabel != None:
+        if newXlabel is not None:
             oldXLabel = data['xlabels']
             data['xlabels'] = newXlabel  # Set new x-label
             newXvals = self.on_change_xy_axis(data['xvals'],
@@ -2882,7 +2882,7 @@ class documentsTree(wx.TreeCtrl):
                                              defaults=data['defaultX'])
             data['xvals'] = newXvals  # Set new x-values
 
-        if newYlabel != None:
+        if newYlabel is not None:
             oldYLabel = data['ylabels']
             data['ylabels'] = newYlabel
             newYvals = self.on_change_xy_axis(data['yvals'],
@@ -2896,7 +2896,7 @@ class documentsTree(wx.TreeCtrl):
         expand_item_title = None
         replotID = evtID
         # Replace data in the dictionary
-        if selectedText == None:
+        if selectedText is None:
             document.IMS2D = data
             replotID = ID_showPlotDocument
         elif selectedText == 'Drift time (2D)':
@@ -2905,19 +2905,19 @@ class documentsTree(wx.TreeCtrl):
         elif selectedText == 'Drift time (2D, processed)':
             document.IMS2Dprocess = data
             replotID = ID_showPlotDocument
-        elif selectedItemParentText == 'Drift time (2D, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (2D, EIC)' and selectedText is not None:
             document.IMS2Dions[selectedText] = data
             expand_item, expand_item_title = "ions", selectedText
             replotID = ID_showPlotDocument
-        elif selectedItemParentText == 'Drift time (2D, combined voltages, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (2D, combined voltages, EIC)' and selectedText is not None:
             document.IMS2DCombIons[selectedText] = data
             expand_item, expand_item_title = "combined_ions", selectedText
             replotID = ID_showPlotDocument
-        elif selectedItemParentText == 'Drift time (2D, processed, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (2D, processed, EIC)' and selectedText is not None:
             document.IMS2DionsProcess[selectedText] = data
             expand_item, expand_item_title = "processed_ions", selectedText
             replotID = ID_showPlotDocument
-        elif selectedItemParentText == 'Input data' and selectedText != None:
+        elif selectedItemParentText == 'Input data' and selectedText is not None:
             document.IMS2DcompData[selectedText] = data
             expand_item_title = selectedText
             replotID = ID_showPlotDocument
@@ -2925,7 +2925,7 @@ class documentsTree(wx.TreeCtrl):
         # 1D data
         elif selectedText == 'Drift time (1D)':
             document.DT = data
-        elif selectedItemParentText == 'Drift time (1D, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Drift time (1D, EIC)' and selectedText is not None:
             document.multipleDT[selectedText] = data
             expand_item, expand_item_title = "ions_1D", selectedText
 
@@ -2933,9 +2933,9 @@ class documentsTree(wx.TreeCtrl):
         elif selectedText == 'Chromatogram':
             document.RT = data
             replotID = ID_showPlotDocument
-        elif selectedItemParentText == 'Chromatograms (EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Chromatograms (EIC)' and selectedText is not None:
             data = document.multipleRT[selectedText] = data
-        elif selectedItemParentText == 'Chromatograms (combined voltages, EIC)' and selectedText != None:
+        elif selectedItemParentText == 'Chromatograms (combined voltages, EIC)' and selectedText is not None:
             data = document.IMSRTCombIons[selectedText] = data
 
         # DT/MS
@@ -2949,7 +2949,7 @@ class documentsTree(wx.TreeCtrl):
             try:
                 self.SetPyData(docItem, data)
                 self.presenter.documentsDict[document.title] = document
-            except:
+            except Exception:
                 self.presenter.OnUpdateDocument(document, expand_item,
                                                 expand_item_title=expand_item_title)
         else:
@@ -2959,7 +2959,7 @@ class documentsTree(wx.TreeCtrl):
         # Try to plot that data
         try:
             self.onShowPlot(evt=replotID)
-        except:
+        except Exception:
             pass
 
     def on_change_xy_axis(self, data, oldLabel, newLabel, charge=1,
@@ -3199,7 +3199,7 @@ class documentsTree(wx.TreeCtrl):
     def onCompareMS(self, evt):
         """ Open panel where user can select mas spectra to compare """
 
-        if self.currentItem == None:
+        if self.currentItem is None:
             return
 
         if self.itemData is None:
@@ -3274,7 +3274,7 @@ class documentsTree(wx.TreeCtrl):
     def onProcessMS(self, evt):
         try:
             evtID = evt.GetId()
-        except:
+        except Exception:
             evtID = ID_processSettings_MS
 
         pKwargs = {'document_MS':self.itemData.title,
@@ -3290,7 +3290,7 @@ class documentsTree(wx.TreeCtrl):
                                                     **pKwargs)
 
     def onProcess(self, evt=None):
-        if self.itemData == None:
+        if self.itemData is None:
             return
 
         # TODO: This function needs to be fixed before next release
@@ -3321,7 +3321,7 @@ class documentsTree(wx.TreeCtrl):
             if dataset_1 == "Mass Spectrum": spectrum_1 = self.presenter.documentsDict[document_1].massSpectrum
             elif dataset_1 == "Mass Spectrum (processed)": spectrum_1 = self.presenter.documentsDict[document_1].smoothMS
             else: spectrum_1 = self.presenter.documentsDict[document_1].multipleMassSpectrum[dataset_1]
-        except:
+        except Exception:
             dlgBox(exceptionTitle="Incorrect data",
                            exceptionMsg="Could not find requested dataset. Try resellecting the document in the Documents Panel or opening this dialog again.",
                            type="Error")
@@ -3332,7 +3332,7 @@ class documentsTree(wx.TreeCtrl):
             if dataset_2 == "Mass Spectrum": spectrum_2 = self.presenter.documentsDict[document_2].massSpectrum
             elif dataset_2 == "Mass Spectrum (processed)": spectrum_2 = self.presenter.documentsDict[document_2].smoothMS
             else: spectrum_2 = self.presenter.documentsDict[document_2].multipleMassSpectrum[dataset_2]
-        except:
+        except Exception:
             dlgBox(exceptionTitle="Incorrect data",
                            exceptionMsg="Could not find requested dataset. Try resellecting the document in the Documents Panel or opening this dialog again.",
                            type="Error")
@@ -3366,7 +3366,7 @@ class documentsTree(wx.TreeCtrl):
         if self.config.compare_massSpectrumParams['subtract']:
             if len(msX) != len(msY_1) or  len(msX) != len(msY_2) or len(msY_1) != len(msY_2):
                 try: self.compareMSDlg.error_handler(flag="subtract")
-                except: pass
+                except Exception: pass
                 msg = "Mass spectra are not of the same size. X-axis: %s Y-axis (1): %s | Y-axis (2): %s" % (
                     len(msX), len(msY_1), len(msY_2))
                 self.presenter.onThreading(None, (msg, 4, 5)  , action='updateStatusbar')
@@ -3425,7 +3425,7 @@ class documentsTree(wx.TreeCtrl):
 
     def onRenameItem(self, evt):
 
-        if self.itemData == None:
+        if self.itemData is None:
             return
 
         current_name = None
@@ -3468,7 +3468,7 @@ class documentsTree(wx.TreeCtrl):
 
         if new_name == current_name:
             print('Names are the same - ignoring')
-        elif new_name == '' or new_name == None:
+        elif new_name == '' or new_name is None:
             print('Incorrect name')
         else:
             # Actual new name, prepended
@@ -3490,19 +3490,19 @@ class documentsTree(wx.TreeCtrl):
                 try: self.presenter.view.panelMML.onRenameItem(current_name,
                                                                     new_name,
                                                                     item_type="document")
-                except: pass
+                except Exception: pass
                 try: self.presenter.view.panelMultipleIons.onRenameItem(current_name,
                                                                              new_name,
                                                                              item_type="document")
-                except: pass
+                except Exception: pass
 #                 try: self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
-#                 except: pass
+#                 except Exception: pass
 #                 try: self.presenter.view.panelMML.on_remove_deleted_item(title)
-#                 except: pass
+#                 except Exception: pass
 #                 try: self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
-#                 except: pass
+#                 except Exception: pass
 #                 try: self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
-#                 except: pass
+#                 except Exception: pass
 
             elif self.itemType == 'Statistical':
                 # Change document tree
@@ -3530,7 +3530,7 @@ class documentsTree(wx.TreeCtrl):
                 self.Expand(docItem)
                 # check if item is in other panels
                 try: self.presenter.view.panelMML.onRenameItem(current_name, new_name, item_type="filename")
-                except: pass
+                except Exception: pass
             elif self.itemType == "Drift time (2D, EIC)":
                 new_name = new_name.replace(": ", " : ")
                 # Change document tree
@@ -3552,7 +3552,7 @@ class documentsTree(wx.TreeCtrl):
 
             # Expand parent
             try: self.Expand(parent)
-            except: pass
+            except Exception: pass
 
             self.SetFocus()
 
@@ -3593,7 +3593,7 @@ class documentsTree(wx.TreeCtrl):
                 data = [data['xvals'], data['yvals']]
                 labels = ['MW(Da)', 'Intensity']
                 self.onSaveData(data=data, labels=labels, data_format='%.4f', **kwargs)
-        except:
+        except Exception:
             print("Failed to save MW distributions")
 
         try:
@@ -3617,7 +3617,7 @@ class documentsTree(wx.TreeCtrl):
 
                 kwargs = {'default_name':defaultValue}
                 self.onSaveData(data=save_data, labels=labels, data_format='%.4f', **kwargs)
-        except: pass
+        except Exception: pass
 
         try:
             if data_type in ["all", "Fitted"]:
@@ -3629,7 +3629,7 @@ class documentsTree(wx.TreeCtrl):
                 data = [data['xvals'][0], data['yvals'][0], data['yvals'][1]]
                 labels = ['m/z(Da)', 'Intensity(raw)', 'Intensity(fitted)']
                 self.onSaveData(data=data, labels=labels, data_format='%.4f', **kwargs)
-        except: pass
+        except Exception: pass
 
         try:
             if data_type in ["all", "Processed"]:
@@ -3641,7 +3641,7 @@ class documentsTree(wx.TreeCtrl):
                 data = [data['xvals'], data['yvals']]
                 labels = ['m/z(Da)', 'Intensity']
                 self.onSaveData(data=data, labels=labels, data_format='%.4f', **kwargs)
-        except: pass
+        except Exception: pass
 
         try:
             if  data_type in ["all", "m/z vs Charge"]:
@@ -3666,7 +3666,7 @@ class documentsTree(wx.TreeCtrl):
 
                 kwargs = {'default_name':defaultValue}
                 self.onSaveData(data=save_data, labels=labels, data_format='%.4f', **kwargs)
-        except: pass
+        except Exception: pass
 
         try:
             if data_type in ["all", "MW vs Charge"]:
@@ -3691,7 +3691,7 @@ class documentsTree(wx.TreeCtrl):
 
                 kwargs = {'default_name':defaultValue}
                 self.onSaveData(data=save_data, labels=labels, data_format='%.4f', **kwargs)
-        except: pass
+        except Exception: pass
 
         try:
             if data_type in ["all", "Barchart"]:
@@ -3712,7 +3712,7 @@ class documentsTree(wx.TreeCtrl):
 
                 kwargs = {'default_name':defaultValue}
                 self.onSaveData(data=save_data, labels=["position", "intensity", "label"], data_format='%s', **kwargs)
-        except: pass
+        except Exception: pass
 
         try:
             if data_type in ["all", "Charge information"]:
@@ -3724,7 +3724,7 @@ class documentsTree(wx.TreeCtrl):
 
                 kwargs = {'default_name':defaultValue}
                 self.onSaveData(data=save_data, labels=["charge", "intensity"], data_format='%s', **kwargs)
-        except: pass
+        except Exception: pass
 
     def onShowUnidec(self, evt, plot_type="all"):
 
@@ -3768,11 +3768,11 @@ class documentsTree(wx.TreeCtrl):
             try:
                 self.panel_plot.on_plot_unidec_MS_v_Fit(replot=unidec_engine_data['Fitted'],
                                                                        **kwargs)
-            except:
+            except Exception:
                 print("Failed to plot MS vs Fit plot")
                 try: self.panel_plot.on_plot_unidec_MS(replot=unidec_engine_data['Processed'],
                                                                       **kwargs)
-                except: print("Failed to plot MS plot")
+                except Exception: print("Failed to plot MS plot")
 
         if plot_type in ["all", "MW distribution"]:
             try:
@@ -3782,48 +3782,48 @@ class documentsTree(wx.TreeCtrl):
                     self.panel_plot.on_plot_unidec_MW_add_markers(unidec_engine_data['m/z with isolated species'],
                                                                                  unidec_engine_data['MW distribution'],
                                                                                  **kwargs)
-                except: pass
-            except: print("Failed to plot MW distribution plot")
+                except Exception: pass
+            except Exception: print("Failed to plot MW distribution plot")
 
         if plot_type in ["all", "m/z vs Charge"]:
             try:
                 self.panel_plot.on_plot_unidec_mzGrid(replot=unidec_engine_data['m/z vs Charge'],
                                                                      **kwargs)
-            except: print("Failed to plot m/z vs charge plot")
+            except Exception: print("Failed to plot m/z vs charge plot")
 
         if plot_type in ["all", "m/z with isolated species"]:
             try:
                 self.panel_plot.on_plot_unidec_individualPeaks(replot=unidec_engine_data['m/z with isolated species'],
                                                                               **kwargs)
-            except: print("Failed to plot individual MS plot")
+            except Exception: print("Failed to plot individual MS plot")
 
         if plot_type in ["all", "MW vs Charge"]:
             try: self.panel_plot.on_plot_unidec_MW_v_Charge(replot=unidec_engine_data['MW vs Charge'],
                                                                            **kwargs)
-            except: print("Failed to plot MW vs charge plot")
+            except Exception: print("Failed to plot MW vs charge plot")
 
         if plot_type in ["all", "Barchart"]:
             try: self.panel_plot.on_plot_unidec_barChart(replot=unidec_engine_data['Barchart'],
                                                                         **kwargs)
-            except: print("Failed to plot barplot")
+            except Exception: print("Failed to plot barplot")
 
         if plot_type in ["all", "Charge information"]:
             try:
                 self.panel_plot.on_plot_unidec_ChargeDistribution(unidec_engine_data['Charge information'][:, 0],
                                                                                  unidec_engine_data['Charge information'][:, 1],
                                                                                   **kwargs)
-            except: print("Failed to plot charge distribution")
+            except Exception: print("Failed to plot charge distribution")
 
     def onShowPlot(self, evt, data_type=None, save_image=False):
         """ This will send data, plot and change window"""
-        if self.itemData == None:
+        if self.itemData is None:
             return
 
         if not evt and data_type:
             pass
         elif isinstance(evt, int):
             evtID = evt
-        elif evt == None:
+        elif evt is None:
             evtID = None
         else:
             evtID = evt.GetId()
@@ -4177,7 +4177,7 @@ class documentsTree(wx.TreeCtrl):
 
                 # Add RMSD label
                 rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=data['xvals'], ylist=data['yvals'])
-                if rmsdXpos != None and rmsdYpos != None:
+                if rmsdXpos is not None and rmsdYpos is not None:
                     self.presenter.addTextRMSD(rmsdXpos, rmsdYpos, data['rmsdLabel'], 0, plot='Grid')
 
                 if save_image:
@@ -4226,7 +4226,7 @@ class documentsTree(wx.TreeCtrl):
                                                              set_page=True)
                 # Add RMSD label
                 rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xvals, ylist=yvals)
-                if rmsdXpos != None and rmsdYpos != None:
+                if rmsdXpos is not None and rmsdYpos is not None:
                     self.presenter.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot='RMSF')
 
                 if save_image:
@@ -4258,7 +4258,7 @@ class documentsTree(wx.TreeCtrl):
                 # Add RMSD label
                 rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xaxisLabels,
                                                                             ylist=yaxisLabels)
-                if rmsdXpos != None and rmsdYpos != None:
+                if rmsdXpos is not None and rmsdYpos is not None:
                     self.presenter.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot='RMSD')
 
                 if save_image:
@@ -4391,7 +4391,7 @@ class documentsTree(wx.TreeCtrl):
                     combMSOut = np.concatenate((msX, tempArray), axis=0)
                     combMSOut = combMSOut.reshape((len(msY), int(i + 2)), order='F')
                     dataframe = pd.DataFrame(data=combMSOut, columns=msFilenames)
-                except: self.presenter.view.SetStatusText('Mass spectra are not of the same size. Please export each item separately', 3)
+                except Exception: self.presenter.view.SetStatusText('Mass spectra are not of the same size. Please export each item separately', 3)
             try:
                 # Save data
                 if evt.GetId() == ID_saveData_csv:
@@ -4446,7 +4446,7 @@ class documentsTree(wx.TreeCtrl):
         dlg.SetFilename(defaultName)
 
         try: dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
-        except: pass
+        except Exception: pass
 
         if not kwargs.get("return_filename", False):
             if dlg.ShowModal() == wx.ID_OK:
@@ -4474,7 +4474,7 @@ class documentsTree(wx.TreeCtrl):
         """
         This function extracts the 1D or 2D data and saves it in a CSV format
         """
-        if self.itemData == None:
+        if self.itemData is None:
             return
 
         saveFileName = None
@@ -4538,7 +4538,7 @@ class documentsTree(wx.TreeCtrl):
             if evt.GetId() == ID_saveDataCSVDocument:
                 saveFileName = self.presenter.getImageFilename(prefix=True, csv=True,
                                                                defaultValue='calibrationTable')
-                if saveFileName == '' or saveFileName == None:
+                if saveFileName == '' or saveFileName is None:
                     saveFileName = 'calibrationTable'
 
             filename = ''.join([self.itemData.path, '\\', saveFileName, self.config.saveExtension])
@@ -4596,7 +4596,7 @@ class documentsTree(wx.TreeCtrl):
             if evt.GetId() == ID_saveDataCSVDocument:
                 saveFileName = self.presenter.getImageFilename(prefix=True, csv=True,
                                                                defaultValue='DT_1D_')
-                if saveFileName == '' or saveFileName == None:
+                if saveFileName == '' or saveFileName is None:
                     saveFileName = 'DT_1D_'
             # Batch mode
             if self.extractData == 'Drift time (1D, EIC, DT-IMS)':
@@ -4817,7 +4817,7 @@ class documentsTree(wx.TreeCtrl):
                         if evt.GetId() == ID_saveDataCSVDocument:
                             saveFileName = self.presenter.getImageFilename(prefix=True, csv=True,
                                                                            defaultValue='DT_')
-                        if saveFileName == '' or saveFileName == None:
+                        if saveFileName == '' or saveFileName is None:
                             saveFileName = 'DT_'
 
                         # Its a bit easier to save data with text labels using pandas df,
@@ -4869,7 +4869,7 @@ class documentsTree(wx.TreeCtrl):
     #     """
     #     Add currently selected item to the CCS calibration window
     #     """
-    #     if self.itemData == None:
+    #     if self.itemData is None:
     #         return
 
     #     label, item_format, batchMode = None, None, False
@@ -5042,7 +5042,7 @@ class documentsTree(wx.TreeCtrl):
             self.SetPyData(annotsItem, docData.fileFormat)
 
         if hasattr(docData, 'fileInformation'):
-            if docData.fileInformation != None:
+            if docData.fileInformation is not None:
                 annotsItem = self.AppendItem(docItem, 'Sample information')
                 self.SetPyData(annotsItem, docData.fileInformation)
                 self.SetItemImage(annotsItem, self.bulets_dict["annot_on"], wx.TreeItemIcon_Normal)
@@ -5286,13 +5286,13 @@ class documentsTree(wx.TreeCtrl):
         self.on_enable_document(loadingData=True, expandAll=expandAll, evt=None)
 
         # If expandItem is not empty, the Tree will expand specified item
-        if expandItem != None:
+        if expandItem is not None:
             # Change document tree
             try:
                 docItem = self.getItemByData(expandItem)
                 parent = self.GetItemParent(docItem)
                 self.Expand(parent)
-            except: pass
+            except Exception: pass
 
     def removeDocument(self, evt, deleteItem="", ask_permission=True):
         """
@@ -5300,7 +5300,7 @@ class documentsTree(wx.TreeCtrl):
         """
         # Find the root first
         root = None
-        if root == None:
+        if root is None:
             root = self.GetRootItem()
 
         try:
@@ -5308,7 +5308,7 @@ class documentsTree(wx.TreeCtrl):
         except AttributeError:
             evtID = None
 
-        if evtID == ID_removeDocument or (evtID == None and deleteItem == ""):
+        if evtID == ID_removeDocument or (evtID is None and deleteItem == ""):
             __, cookie = self.GetFirstChild(self.GetRootItem())
 
             if ask_permission:
@@ -5339,25 +5339,25 @@ class documentsTree(wx.TreeCtrl):
                 try:
                     title = self.GetItemText(child)
                     iters += 1
-                except: pass
+                except Exception: pass
 
             if deleteItem == title:
                 if child:
                     print(("Deleted {}".format(deleteItem)))
                     self.Delete(child)
                     # Remove data from dictionary if removing whole document
-                    if evtID == ID_removeDocument  or evtID == None:
+                    if evtID == ID_removeDocument  or evtID is None:
                         # make sure to clean-up various tables
                         try: self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
-                        except: pass
+                        except Exception: pass
                         try: self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
-                        except: pass
+                        except Exception: pass
                         try: self.presenter.view.panelMML.on_remove_deleted_item(title)
-                        except: pass
+                        except Exception: pass
                         try: self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
-                        except: pass
+                        except Exception: pass
                         try: self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
-                        except: pass
+                        except Exception: pass
 
                         # delete document
                         del self.presenter.documentsDict[title]
@@ -5437,7 +5437,7 @@ class documentsTree(wx.TreeCtrl):
             item, cookie = self.GetNextChild(root, cookie)
 
         # Select parent document
-        if selected != None:
+        if selected is not None:
             item = self.getParentItem(selected, 1)
             try:
                 self.SetItemBold(item, True)
@@ -5452,12 +5452,12 @@ class documentsTree(wx.TreeCtrl):
                 text = self.GetItemText(item)
                 if text != 'Current documents':
 #                     try: self.setCurrentDocument(text)
-#                     except: pass
+#                     except Exception: pass
                     self.presenter.currentDoc = text
                     self.view.SetTitle("ORIGAMI - v{} - {} ({})".format(self.config.version,
                                                                               text,
                                                                               self.itemData.dataType))
-            except:
+            except Exception:
                 self.view.SetTitle("ORIGAMI - v{}".format(self.config.version))
 
             # status text
@@ -5469,7 +5469,7 @@ class documentsTree(wx.TreeCtrl):
                 msg = "MSMS: {}".format(parameters.get('setMS', ""))
                 if msg == "MSMS: ": msg = ""
                 self.presenter.view.SetStatusText(msg, 2)
-            except: pass
+            except Exception: pass
 
             # In case we also interested in selected item
             if getSelected:
@@ -5480,7 +5480,7 @@ class documentsTree(wx.TreeCtrl):
             else:
                 return text
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def enableCurrentDocument(self, getSelected=False, loadingData=False,
@@ -5512,7 +5512,7 @@ class documentsTree(wx.TreeCtrl):
             item, cookie = self.GetNextChild(root, cookie)
 
         # Select parent document
-        if selected != None:
+        if selected is not None:
             item = self.getParentItem(selected, 1)
             try:
                 self.SetItemBold(item, True)
@@ -5527,10 +5527,10 @@ class documentsTree(wx.TreeCtrl):
                 text = self.GetItemText(item)
                 if text != 'Current documents':
 #                     try: self.setCurrentDocument(text)
-#                     except: pass
+#                     except Exception: pass
                     self.presenter.currentDoc = text
                     self.view.SetTitle("ORIGAMI - %s - %s (%s)" % (self.config.version, text, self.itemData.dataType))
-            except:
+            except Exception:
                 self.view.SetTitle(" - ".join(["ORIGAMI", self.config.version]))
 
             # In case we also interested in selected item
@@ -5542,7 +5542,7 @@ class documentsTree(wx.TreeCtrl):
             else:
                 return text
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onExpandItem(self, item, evt):
@@ -5552,7 +5552,7 @@ class documentsTree(wx.TreeCtrl):
     def setCurrentDocument(self, docTitle, e=None):
         """ Highlight currently selected document from tables """
         root = None
-        if root == None:
+        if root is None:
             root = self.GetRootItem()
         if self.ItemHasChildren(root):
             firstchild, cookie = self.GetFirstChild(self.GetRootItem())
@@ -5596,7 +5596,7 @@ class documentsTree(wx.TreeCtrl):
         """Get item by its data."""
 
         # get root
-        if root == None:
+        if root is None:
             root = self.GetRootItem()
 
         # check children
@@ -5987,7 +5987,7 @@ class documentsTree(wx.TreeCtrl):
                 try:
                     title = self.GetItemText(child)
                     iters += 1
-                except: pass
+                except Exception: pass
 
             if document_title == title:
                 if child:
@@ -5996,23 +5996,23 @@ class documentsTree(wx.TreeCtrl):
                     # make sure to clean-up various tables
                     try:
                         self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
-                    except:
+                    except Exception:
                         pass
                     try:
                         self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
-                    except:
+                    except Exception:
                         pass
                     try:
                         self.presenter.view.panelMML.on_remove_deleted_item(title)
-                    except:
+                    except Exception:
                         pass
                     try:
                         self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
-                    except:
+                    except Exception:
                         pass
                     try:
                         self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
-                    except:
+                    except Exception:
                         pass
 
                     # delete document
@@ -6093,7 +6093,7 @@ class documentsTree(wx.TreeCtrl):
 
                 try:
                     self.Delete(docItem)
-                except:
+                except Exception:
                     logger.warning("Failed to delete: {}".format(delete_type))
 
             if delete_type.startswith("heatmap.raw"):

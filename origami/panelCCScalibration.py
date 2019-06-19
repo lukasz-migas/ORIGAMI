@@ -362,7 +362,7 @@ class topPanel(wx.Panel):
         self.selectBtn.Enable()
 
         self.currentItem = evt.m_itemIndex
-        if self.currentItem == None:
+        if self.currentItem is None:
             return
 
         filename = self.peaklist.GetItem(self.currentItem, self.config.ccsTopColNames['filename']).GetText()
@@ -398,13 +398,13 @@ class topPanel(wx.Panel):
         proteinDoc = self.docs.moleculeDetails.get('protein', None)
 
         # Check whether document has more up-to-date information
-        if gasItemDoc != None:
+        if gasItemDoc is not None:
             gas = gasItemDoc
 
         # Check whether protein is present in the document instance
-        if proteinDoc != None:  # Document overrides
+        if proteinDoc is not None:  # Document overrides
             protein = proteinDoc
-            if proteinItemDoc != None:  # item overrides
+            if proteinItemDoc is not None:  # item overrides
                 protein = proteinItemDoc
 
         # Get xcentre (m/z)
@@ -423,11 +423,11 @@ class topPanel(wx.Panel):
 
     def onAnnotateItems(self, evt, addProtein=False):
         #         print(self.currentItem, self.currentItemBottom)
-        if self.currentItem != None and self.currentItemBottom != None:
+        if self.currentItem is not None and self.currentItemBottom is not None:
             self.currentItemBottom = None
 
-        if self.currentItemBottom == None:
-            if self.currentItem == None:
+        if self.currentItemBottom is None:
+            if self.currentItem is None:
                 return
             # Constants
             filename = self.file_value.GetValue()
@@ -501,7 +501,7 @@ class topPanel(wx.Panel):
             self.presenter.documentsDict[filename] = self.docs
 
             # Plot on change
-            if evt != None:
+            if evt is not None:
                 if evt.GetId() == ID_calibration_changeTD:
                     self.onPlot(evt=None)
         else:
@@ -516,7 +516,7 @@ class topPanel(wx.Panel):
                 xcentre = self.parent.bottomP.peaklist.GetItem(self.currentItemBottom,
                                                                self.config.ccsBottomColNames['ion']).GetText()
 
-            if self.data != None:
+            if self.data is not None:
                 self.data['mw'] = str2num(mw)
                 self.data['charge'] = str2int(charge)
                 self.data['gas'] = gas
@@ -547,7 +547,7 @@ class topPanel(wx.Panel):
 
     def onPlot(self, evt):
         """ Plot data for selected item """
-        if self.currentItem == None:
+        if self.currentItem is None:
             return
         filename = self.peaklist.GetItem(self.currentItem, self.config.ccsTopColNames['filename']).GetText()
         mzStart = self.peaklist.GetItem(self.currentItem, self.config.ccsTopColNames['start']).GetText()
@@ -569,7 +569,7 @@ class topPanel(wx.Panel):
         self.presenter.onPlotMSDTCalibration(dtX=dtX, dtY=dtY, color=color,
                                              xlabelDT=xlabel, plotType='1DT')
 
-        if peak[0] != "" and peak[1] != "" and peak[0] != None and peak[1] != None:
+        if peak[0] != "" and peak[1] != "" and peak[0] is not None and peak[1] is not None:
             self.presenter.addMarkerMS(xvals=peak[0],
                                        yvals=peak[1],
                                        color=self.config.annotColor,
@@ -678,7 +678,7 @@ class topPanel(wx.Panel):
         self.menu.Destroy()
         self.SetFocus()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onCheckForDuplicates(self, mzCentre=None):
@@ -805,12 +805,12 @@ class topPanel(wx.Panel):
                     col == self.config.ccsTopColNames['ccs'] or
                         col == self.config.ccsTopColNames['tD']):
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 elif col == self.config.ccsTopColNames['charge']:
                     itemData = str2int(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 else:
@@ -853,7 +853,7 @@ class topPanel(wx.Panel):
             for row in range(rows):
                 self.peaklist.CheckItem(row, check=check)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def OnGetColumnClick(self, evt):
@@ -864,7 +864,7 @@ class topPanel(wx.Panel):
         Sort data in peaklist based on pressed column
         """
         # Check if it should be reversed
-        if self.lastColumn == None:
+        if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
             if self.reverse == True:
@@ -891,7 +891,7 @@ class topPanel(wx.Panel):
                     col == self.config.ccsTopColNames['ccs'] or
                         col == self.config.ccsTopColNames['tD']):
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 else:
@@ -987,7 +987,7 @@ class bottomPanel(wx.Panel):
 
         self.currentItem = evt.m_itemIndex
         self.topPanel.currentItemBottom = evt.m_itemIndex
-        if self.currentItem == None:
+        if self.currentItem is None:
             return
 
         # Change a couple of labels beforehand
@@ -1030,7 +1030,7 @@ class bottomPanel(wx.Panel):
             print('Data was empty')
 
         mw = data.get('mw', None)
-        if mw == None:
+        if mw is None:
             mw = self.docs.moleculeDetails.get('molWeight', None)
 
         chargeItemDoc = data.get('charge', None)
@@ -1039,7 +1039,7 @@ class bottomPanel(wx.Panel):
 
 #         # Get xcentre (m/z)
 #         xcentre = data.get('xcentre', None)
-#         if xcentre == None:
+#         if xcentre is None:
 #             if isnumber(str2int(charge)) and isnumber(str2num(mw)):
 #                 xcentre = ((self.config.elementalMass['Hydrogen']*str2int(charge)+
 #                            str2num(mw))/str2int(charge))
@@ -1118,7 +1118,7 @@ class bottomPanel(wx.Panel):
         self.menu.Destroy()
         self.SetFocus()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def onProcessTool(self, evt):
@@ -1207,12 +1207,12 @@ class bottomPanel(wx.Panel):
                     col == self.config.ccsBottomColNames['end'] or
                         col == self.config.ccsBottomColNames['ion']):
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 elif col == self.config.ccsTopColNames['charge']:
                     itemData = str2int(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 else:
@@ -1255,7 +1255,7 @@ class bottomPanel(wx.Panel):
             for row in range(rows):
                 self.peaklist.CheckItem(row, check=check)
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def OnGetColumnClick(self, evt):
@@ -1266,7 +1266,7 @@ class bottomPanel(wx.Panel):
         Sort data in peaklist based on pressed column
         """
         # Check if it should be reversed
-        if self.lastColumn == None:
+        if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
             if self.reverse == True:
@@ -1292,7 +1292,7 @@ class bottomPanel(wx.Panel):
                     col == self.config.ccsBottomColNames['charge'] or
                         col == self.config.ccsBottomColNames['ion']):
                     itemData = str2num(item.GetText())
-                    if itemData == None:
+                    if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 else:

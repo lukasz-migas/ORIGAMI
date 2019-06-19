@@ -686,7 +686,7 @@ class panelMultipleTextFiles (wx.Panel):
 
             # get data
             data = currentDocument.IMS2D
-        except:
+        except Exception:
             document_title, ion_title = re.split(': ', itemInfo['document'])
             document = self.presenter.documentsDict[document_title]
             try:
@@ -694,7 +694,7 @@ class panelMultipleTextFiles (wx.Panel):
             except KeyError:
                 try:
                     data = document.IMS2Dions[ion_title]
-                except:
+                except Exception:
                     return
 
         if evt is not None:
@@ -755,7 +755,7 @@ class panelMultipleTextFiles (wx.Panel):
 
                 # get data
                 data = document.IMS2D
-            except:
+            except Exception:
                 document_title, ion_title = re.split(': ', itemInfo['document'])
                 document = self.presenter.documentsDict[document_title]
                 try:
@@ -763,7 +763,7 @@ class panelMultipleTextFiles (wx.Panel):
                 except KeyError:
                     try:
                         data = document.IMS2Dions[ion_title]
-                    except:
+                    except Exception:
                         data = None
 
             if data is None:
@@ -922,7 +922,7 @@ class panelMultipleTextFiles (wx.Panel):
     def onUpdateOverlayMethod(self, evt):
         self.config.overlayMethod = self.combo.GetStringSelection()
 
-        if evt != None:
+        if evt is not None:
             evt.Skip()
 
     def OnGetItemInformation(self, itemID, return_list=False):
@@ -1008,7 +1008,7 @@ class panelMultipleTextFiles (wx.Panel):
         @param give_value (bool): should/not return color
         """
 
-        if itemID != None:
+        if itemID is not None:
             self.peaklist.item_id = itemID
 
         # Restore custom colors
@@ -1042,7 +1042,7 @@ class panelMultipleTextFiles (wx.Panel):
         else:
             try:
                 newColour = convertRGB1to255(literal_eval(self.OnGetValue(value_type='color')), 3)
-            except:
+            except Exception:
                 newColour = self.config.customColors[randomIntegerGenerator(0, 15)]
             # Assign color
             self.peaklist.SetItem(self.peaklist.item_id, self.config.textlistColNames['color'],
@@ -1073,7 +1073,7 @@ class panelMultipleTextFiles (wx.Panel):
                     document.IMS2D[keyword] = itemInfo[keyword_name]
                 if document.got2Dprocess:
                     document.IMS2Dprocess[keyword] = itemInfo[keyword_name]
-        except:
+        except Exception:
             document_title, ion_title = re.split(': ', itemInfo['document'])
             document = self.presenter.documentsDict[document_title]
             for keyword in keywords:

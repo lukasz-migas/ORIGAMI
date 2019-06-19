@@ -65,7 +65,7 @@ class panelLog(wx.Panel):
 #             th = threading.Thread(target=self.saveLogData, args=(evt,))
 #             # Start thread
 #             try: th.start()
-#             except: print('exception')
+#             except Exception: print('exception')
 
     def saveLogData(self, evt):
 
@@ -76,10 +76,10 @@ class panelLog(wx.Panel):
 # #             savefile = open(self.config.loggingFile_path,'w')
 #             try:
 #                 self.logFile.write(self.log.GetValue())
-#             except:
+#             except Exception:
 #                 pass
 # #             savefile.close()
-#         except:
+#         except Exception:
 #             pass
 
     def clearLogData(self, evt):
@@ -153,7 +153,7 @@ class panelLog(wx.Panel):
             msg = "Logging to file was disabled"
             try:
                 self.logFile.close()
-            except:
+            except Exception:
                 pass
             self.logFile = None
 
