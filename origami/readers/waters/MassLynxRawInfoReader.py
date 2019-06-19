@@ -85,7 +85,6 @@ class MassLynxRawInfoReader(MassLynxRawReader):
         return ionMode.value
 
     def GetIonModeString(self, ionMode):
-        #         ionModeString = c_char_p()
         temp = c_char_p()
         getIonModeString = MassLynxRawReader.massLynxDll.getIonModeString
         getIonModeString.argtypes = [c_void_p, c_int, POINTER(c_char_p)]
@@ -93,7 +92,6 @@ class MassLynxRawInfoReader(MassLynxRawReader):
         return super().ToString(temp)
 
     def GetHeaderItems(self, whichItems):
-        #         itemString = c_char_p()
         nItems = len(whichItems)
 
         temp = c_char_p()
@@ -104,8 +102,7 @@ class MassLynxRawInfoReader(MassLynxRawReader):
         getHeaderItem.argtypes = [c_void_p, POINTER(c_int), POINTER(c_char_p), c_int, POINTER(c_char)]
         super().CheckReturnCode(getHeaderItem(self._getReader(), items, temp, nItems, delimiter))
 
-        itemString = super().ToString(temp)  # temp.value.decode()
-#        MassLynxRawReader.ReleaseMemory( temp)
+        itemString = super().ToString(temp)
 
         delim = delimiter.value.decode()
         return itemString.split(delim)

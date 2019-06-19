@@ -5,19 +5,20 @@ import numpy as np
 import readers.waters.MassLynxRawInfoReader as MassLynxRawInfoReader
 import readers.waters.MassLynxRawReader as MassLynxRawReader
 import readers.waters.MassLynxRawScanReader as MassLynxRawScanReader
+import readers.waters.MassLynxRawChromatogramReader as MassLynxRawChromatogramReader
 from scipy.interpolate import interpolate
 
 
 class WatersRawReader():
 
     def __init__(self, filename, **kwargs):
-        tstart = time.time()
         self.filename = filename
 
         # create parsers
         self.reader = self.create_file_parser()
         self.info_reader = self.create_info_parser()
         self.data_reader = self.create_data_parser()
+        self.chrom_reader = self.create_chrom_parser()
 
         # get parameters
         self.stats_in_functions = self.get_functions_and_stats()
@@ -33,6 +34,9 @@ class WatersRawReader():
 
     def create_data_parser(self):
         return MassLynxRawScanReader.MassLynxRawScanReader(self.reader)
+
+    def create_chrom_parser(self):
+        return MassLynxRawChromatogramReader.MassLynxRawChromatogramReader(self.reader)
 
     def get_functions_and_stats(self):
         self.n_functions = self.info_reader.GetNumberofFunctions()
@@ -101,7 +105,33 @@ class WatersRawReader():
             xvals = np.array(xvals)
             yvals = np.array(yvals)
             if len(xvals) > 0:
-                f = interpolate.interp1d(xvals, yvals, "zero", bounds_error=False, fill_value=0)
+                f = interpolate.interp1d(xvals, yvals, "linear", bounds_error=False, fill_value=0)
                 mz_y += f(mz_x)
 
         return mz_y
+
+    def get_TIC(self, fcn):
+        tic_x, tic_y = self.chrom_reader.ReadTIC(fcn)
+        return tic_x, tic_y
+
+    def get_BPI(self, fcn):
+        bpi_x, bpi_y = self.chrom_reader.ReadBPI(fcn)
+        return bpi_x, bpi_y
+
+    def get_chromatogram(self, mz_values, tolerance=0.05):
+        if not isinstance(mz_values):
+            mz_values = [mz_values]
+
+        rt_x, rt_ys = self.chrom_reader.ReadMassChromatograms(
+            0, mz_values, tolerance, 0)
+
+        return rt_x, rt_ys
+
+    def get_mobilogram(self, mz_values, tolerance=0.05):
+        if not isinstance(mz_values):
+            mz_values = [mz_values]
+
+        dt_x, dt_ys = self.chrom_reader.ReadMassChromatograms(
+            1, mz_values, tolerance, 0)
+
+        return dt_x, dt_ys

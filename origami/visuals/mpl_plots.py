@@ -1246,8 +1246,9 @@ class plots(mpl_plotter):
 
         # update limits and extents
         extent = self.extents(xvals) + self.extents(yvals)
-
+        vmax = np.quantile(zvals, .95)
         self.cax.set_data(zvals)
+        self.cax.set_clim(vmax=vmax)
         self.cax.set_norm(kwargs.get('colormap_norm', None))
         self.cax.set_extent(extent)
         self.cax.set_cmap(kwargs['colormap'])

@@ -51,6 +51,7 @@ from utils.random import randomIntegerGenerator
 from utils.converters import str2num, str2int, byte2str
 
 import logging
+from processing import origami_ms
 logger = logging.getLogger("origami")
 
 
@@ -1808,10 +1809,6 @@ class documentsTree(wx.TreeCtrl):
         if self.itemType in ['Drift time (2D)', 'Drift time (2D, processed)', 'Drift time (2D, EIC)',
                              'Drift time (2D, combined voltages, EIC)', 'Drift time (2D, processed, EIC)',
                              'Input data']:
-            # Check if right click was performed on a header of a sub-tree
-            if self.extractData in ['Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
-                                    'Drift time (2D, processed, EIC)', 'Input data']:
-                pass
 
             # Check what is the current label for this particular dataset
             try:
@@ -1849,7 +1846,8 @@ class documentsTree(wx.TreeCtrl):
         xlabelRTMenu.AppendSeparator()
         xlabelRTMenu.Append(ID_xlabel_RT_restore, 'Restore default', "")
 
-        if self.itemType in ['Chromatogram', 'Chromatograms (EIC)', 'Chromatograms (combined voltages, EIC)']:
+        if ((self.itemType in ['Chromatogram'] and self.indent == 2) or
+            (self.itemType in ['Chromatograms (EIC)', 'Chromatograms (combined voltages, EIC)'] and self.indent > 2)):
             try:
                 idX = self.on_check_xlabels_RT()
             except UnboundLocalError:
@@ -4102,7 +4100,7 @@ class documentsTree(wx.TreeCtrl):
                                                           set_page=True)
                 return
             elif evtID == ID_showPlotRTDocument:
-                self.panel_plot.on_plot_RT(data['xvals'][:-1],  # TEMPORARY FIX
+                self.panel_plot.on_plot_RT(data['xvals'],
                                                           data['yvalsRT'],
                                                           data['xlabels'], set_page=True)
                 return
@@ -4358,7 +4356,7 @@ class documentsTree(wx.TreeCtrl):
             data = self.GetPyData(self.currentItem)
             xvals = data['xvals']
             zvals = data['zvals']
-            xvals, zvals = self.data_handling.downsample_array(xvals, zvals)
+            xvals, zvals = self.data_processing.downsample_array(xvals, zvals)
             self.panel_plot.on_plot_MSDT(zvals, xvals, data['yvals'],
                                                         data['xlabels'], data['ylabels'], set_page=True,
                                                         full_data=dict(zvals=data["zvals"], xvals=data["xvals"]))

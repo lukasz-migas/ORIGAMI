@@ -540,9 +540,9 @@ class panelMultipleIons(wx.Panel):
 
     def menu_process_tools(self, evt):
 
-        self.Bind(wx.EVT_MENU, self.data_handling.on_combine_origami_collision_voltages,
+        self.Bind(wx.EVT_MENU, self.data_processing.on_combine_origami_collision_voltages,
                   id=ID_combineCEscansSelectedIons)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_combine_origami_collision_voltages,
+        self.Bind(wx.EVT_MENU, self.data_processing.on_combine_origami_collision_voltages,
                   id=ID_combineCEscans)
 
         self.Bind(wx.EVT_MENU, self.presenter.onProcessMultipleIonsIons, id=ID_processSelectedIons)

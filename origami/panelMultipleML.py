@@ -652,7 +652,7 @@ class panelMML(wx.Panel):
                 xvals = document.multipleMassSpectrum[itemInfo["filename"]]['xvals'].copy()
                 yvals = document.multipleMassSpectrum[itemInfo["filename"]]['yvals'].copy()
                 if self.preprocessMS:
-                    xvals, yvals = self.data_handling._process_spectrum(msX=xvals, msY=yvals, return_data=True)
+                    xvals, yvals = self.data_processing.on_process_MS(msX=xvals, msY=yvals, return_data=True)
 
             elif evtID == ID_mmlPanel_overlayMW:
                 xvals = data['unidec']['MW distribution']['xvals']

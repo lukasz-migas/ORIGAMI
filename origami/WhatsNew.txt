@@ -55,10 +55,13 @@ Code:
 - migrated ORIGAMI to Python3
 - migrated ORIGAMI GUI to wxPython 4
 - cleaned up a lot of poorly designed code
-- removed a lot of old, not used code which should speed things up
+- removed a lot of old, not used code
+
+GUI:
+- [changed] renamed the Menu item "Plugins" with "Widgets"
 
 Document:
-- added new keyword "metadata" which will store parameters for verious processes
+- [new] added new keyword "metadata" which will store parameters for verious processes
 
 Plotting:
 - [new] DT/MS - added smart-zoom option which will speed-up data viewing for very large arrays
@@ -100,9 +103,12 @@ Annotations panel:
 Data extraction:
 - [improved] Extraction of MS data moved away from Driftscope to Waters SDK which allows extraction of profile data
     that is properly scaled (e.g. not normalized). Waters SDK does not provide `full` m/z/intensity map (only values that
-    are not 0s) so data is needs to be interpolated to a common m/z axis. Data is interpolated using `zeroth` order 
+    are not 0s) so data is needs to be interpolated to a common m/z axis. Data is interpolated using `linear` 
     method with the smallest possible bin size (determined by looking at the first 500 scans). 
-// TODO: should add some sort of control panel where number of scans can be setup  
+// TODO: should add some sort of control panel where number of scans can be setup
+- [improved] from now on, chromatographic and mobility (1D) data is extracted using Waters SDK
+- [fixed] fixed an issue which occured when trying to extract MS data from chromatographic window that only occured if 
+    the x-axis was Collision Voltage (V) - from now on you will not see an error and won' be able to extract data
 
 
 ################################################################################

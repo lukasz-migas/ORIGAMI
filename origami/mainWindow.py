@@ -599,7 +599,7 @@ class MyFrame(wx.Frame):
 #         menuPlugins.AppendItem(makeMenuItem(parent=menuPlugins, id=ID_sequence_openGUI,
 #                                               text='Sequence analysis...',
 #                                               bitmap=None))
-        self.mainMenubar.Append(menuPlugins, '&Plugins')
+        self.mainMenubar.Append(menuPlugins, '&Widgets')
 
         # CONFIG
         menuConfig = wx.Menu()
@@ -1216,7 +1216,7 @@ class MyFrame(wx.Frame):
         #         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_load_origami_masslynx_raw)
         #         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_text_2D_fcn, id=ID_load_text_2D)
         #         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_load_masslynx_raw)
-        #         self.Bind(wx.EVT_TOOL, self.on_open_source_menu, id=ID_mainPanel_openSourceFiles)
+        self.Bind(wx.EVT_TOOL, self.on_open_source_menu, id=ID_mainPanel_openSourceFiles)
 
         # Create toolbar
         self.mainToolbar_horizontal = self.CreateToolBar((wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT))

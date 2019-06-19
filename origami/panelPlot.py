@@ -1579,7 +1579,7 @@ class panelPlot(wx.Panel):
 
         self.presenter.onThreading(evt, ("Cleared plot area", 4), action='updateStatusbar')
 
-    def on_clear_all_plots(self):
+    def on_clear_all_plots(self, evt=None):
 
         # Delete all plots
         plotList = [self.plot1, self.plotRT, self.plot_RMSF, self.plot1D,

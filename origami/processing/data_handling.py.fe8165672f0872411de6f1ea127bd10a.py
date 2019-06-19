@@ -24,6 +24,7 @@ from utils.color import convertRGB255to1, convertRGB1to255, randomColorGenerator
 from utils.ranges import get_min_max
 from processing.utils import get_maximum_value_in_range, find_nearest_value
 import processing.origami_ms as pr_origami
+import processing.peaks as pr_peaks
 from gui_elements.dialog_selectDocument import panelSelectDocument
 import processing.heatmap as pr_heatmap
 from gui_elements.dialog_messagePopup import dialogMsgPopup
@@ -832,11 +833,6 @@ class data_handling():
             if xvalsMin is None or xvalsMax is None:
                 self.__update_statusbar("Extraction range was from outside of the plot area. Please try again", 4)
                 return
-
-            if rt_label in ["Collision Voltage (V)"]:
-                self.__update_statusbar(f"Cannot extract MS data when the x-axis is in {rt_label} format", 4)
-                return
-
             if rt_label == "Scans":
                 xvalsMin = np.ceil(xvalsMin).astype(int)
                 xvalsMax = np.floor(xvalsMax).astype(int)
@@ -845,6 +841,10 @@ class data_handling():
             if xvalsMax < xvalsMin:
                 xvalsMax, xvalsMin = xvalsMin, xvalsMax
 
+#             # Check if difference between the two values is large enough
+#             if (xvalsMax - xvalsMin) < 1 and rt_label == "Scans":
+#                 self.__update_statusbar('The scan range you selected was too small. Please choose wider range', 4)
+#                 return
             # Extract data
             if document.fileFormat == "Format: Thermo (.RAW)":
                 return

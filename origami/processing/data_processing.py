@@ -25,12 +25,13 @@ from ids import (ID_smooth1DdataMS, ID_smooth1Ddata1DT, ID_smooth1DdataRT,
                  ID_processSettings_autoUniDec, ID_processSettings_loadDataUniDec,
                  ID_processSettings_preprocessUniDec, ID_processSettings_runAll,
                  ID_processSettings_runUniDec, ID_processSettings_pickPeaksUniDec,
-                 ID_processSettings_isolateZUniDec)
+                 ID_processSettings_isolateZUniDec, ID_combineCEscansSelectedIons)
 from document import document as documents
 import processing.spectra as pr_spectra
 import processing.heatmap as pr_heatmap
 import processing.origami_ms as pr_origami
 import processing.activation as pr_activation
+import processing.peaks as pr_peaks
 import processing.utils as pr_utils
 import processing.peptide_annotation as pr_frag
 import unidec as unidec
@@ -39,9 +40,8 @@ from toolbox import (str2num, str2int, num2str, convertRGB1to255,
                              clean_filename)
 from gui_elements.misc_dialogs import dlgAsk, dlgBox
 
-"""
-Module for all data processing
-"""
+import logging
+logger = logging.getLogger("origami")
 
 
 class data_processing():
@@ -207,23 +207,21 @@ class data_processing():
         """
         This function finds peaks from 1D array
         """
-        self.docs = self._on_get_document()
-        if self.docs is None:
-            return
+        document = self._on_get_document()
 
         tstart = ttime()
         # Shortcut to mz list
-        if (self.docs.dataType == 'Type: ORIGAMI' or
-            self.docs.dataType == 'Type: MANUAL' or
-            self.docs.dataType == 'Type: Infrared' or
-            self.docs.dataType == 'Type: MassLynx'):
+        if (document.dataType == 'Type: ORIGAMI' or
+            document.dataType == 'Type: MANUAL' or
+            document.dataType == 'Type: Infrared' or
+            document.docs.dataType == 'Type: MassLynx'):
             panel = self.view.panelMultipleIons.topP
             tempList = self.view.panelMultipleIons.peaklist
             dataPlot = self.view.panelPlots.plot1
             pageID = self.config.panelNames['MS']
             markerPlot = 'MS'
             listLinks = self.config.peaklistColNames
-        elif self.docs.dataType == 'Type: Multifield Linear DT':
+        elif document.dataType == 'Type: Multifield Linear DT':
             panel = self.view.panelLinearDT.bottomP
             tempList = self.view.panelLinearDT.bottomP.peaklist
             rtTemptList = self.view.panelLinearDT.topP.peaklist
@@ -231,7 +229,7 @@ class data_processing():
             pageID = self.config.panelNames['MS']
             markerPlot = 'MS'
             listLinks = self.config.driftBottomColNames
-        elif self.docs.dataType == 'Type: CALIBRANT':
+        elif document.dataType == 'Type: CALIBRANT':
             panel = self.view.panelCCS.topP
             tempList = self.view.panelCCS.topP.peaklist
             dtTempList = self.view.panelCCS.bottomP.peaklist
@@ -241,7 +239,7 @@ class data_processing():
             listLinks = self.config.ccsTopColNames
 
         else:
-            msg = "%s is not supported yet." % self.docs.dataType
+            msg = "%s is not supported yet." % document.dataType
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
             return
 
@@ -260,10 +258,10 @@ class data_processing():
 
         # Chromatograms
         if self.config.fit_type in ["RT", "MS/RT"]:
-            if (self.docs.dataType in ['Type: Multifield Linear DT', 'Type: Infrared']):
+            if (document.dataType in ['Type: Multifield Linear DT', 'Type: Infrared']):
                 # TO ADD: current view only, smooth
                     # Prepare data first
-                    rtList = np.transpose([self.docs.RT['xvals'], self.docs.RT['yvals']])
+                    rtList = np.transpose([document.RT['xvals'], document.RT['yvals']])
 
                     # Detect peaks
                     peakList, tablelist, _ = pr_utils.detect_peaks_chromatogram(
@@ -272,7 +270,7 @@ class data_processing():
 
                     if len(peakList) > 0:
                         self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['RT'])
-                        self.view.panelPlots.on_plot_RT(self.docs.RT['xvals'], self.docs.RT['yvals'], self.docs.RT['xlabels'])
+                        self.view.panelPlots.on_plot_RT(document.RT['xvals'], document.RT['yvals'], document.RT['xlabels'])
                         # Add rectangles (if checked)
                         if self.config.fit_highlight:
                             self.view.panelPlots.on_add_marker(xvals=peakList[:, 0], yvals=peakList[:, 1],
@@ -299,7 +297,7 @@ class data_processing():
 
                             # Add items to table (if checked)
                             if self.config.fit_addPeaks:
-                                if self.docs.dataType == 'Type: Multifield Linear DT':
+                                if document.dataType == 'Type: Multifield Linear DT':
                                     self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
                                     for rt in tablelist:
                                         xmin, xmax = rt[0], rt[1]
@@ -311,7 +309,7 @@ class data_processing():
         if self.config.fit_type in ["RT (UVPD)"]:
             height = 100000000000
             # Prepare data first
-            rtList = np.transpose([self.docs.RT['xvals'], self.docs.RT['yvals']])
+            rtList = np.transpose([document.RT['xvals'], document.RT['yvals']])
             # Detect peaks
             peakList, tablelist, apexlist = pr_utils.detect_peaks_chromatogram(rtList, self.config.fit_threshold, add_buffer=1)
             peak_count = len(peakList)
@@ -343,22 +341,22 @@ class data_processing():
 
         # Mass spectra
         if self.config.fit_type in ["MS", "MS/RT"]:
-            if self.docs.gotMS:
+            if document.gotMS:
                 if self.config.fit_smoothPeaks:
-                    msX = self.docs.massSpectrum['xvals']
-                    msY = self.docs.massSpectrum['yvals']
+                    msX = document.massSpectrum['xvals']
+                    msY = document.massSpectrum['yvals']
                     # Smooth data
                     msY = pr_spectra.smooth_gaussian_1D(data=msY, sigma=self.config.fit_smooth_sigma)
                     msY = pr_spectra.normalize_1D(inputData=msY)
                 else:
-                    msX = self.docs.massSpectrum['xvals']
-                    msY = self.docs.massSpectrum['yvals']
+                    msX = document.massSpectrum['xvals']
+                    msY = document.massSpectrum['yvals']
 
                 msList = np.transpose([msX, msY])
                 try:
                     mzRange = dataPlot.onGetXYvals(axes='x')  # using shortcut
                 except AttributeError:
-                    mzRange = self.docs.massSpectrum['xlimits']
+                    mzRange = document.massSpectrum['xlimits']
 
                 if self.config.fit_xaxis_limit:
                     # Get current m/z range
@@ -384,14 +382,14 @@ class data_processing():
                     self.view.panelPlots.mainBook.SetSelection(pageID)  # using shortcut
                     self.presenter.view.panelPlots.on_clear_patches(plot=markerPlot)
                     # Plotting smoothed (or not) MS
-                    if self.docs.dataType == 'Type: CALIBRANT':
+                    if document.dataType == 'Type: CALIBRANT':
                             self.view.panelPlots.on_plot_MS_DT_calibration(msX=msX, msY=msY,
-                                                                           xlimits=self.docs.massSpectrum['xlimits'],
+                                                                           xlimits=document.massSpectrum['xlimits'],
                                                                            color=self.config.lineColour_1D, plotType='MS',
                                                                            view_range=mzRange)
                     else:
-                        name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
-                        self.view.panelPlots.on_plot_MS(msX, msY, xlimits=self.docs.massSpectrum['xlimits'],
+                        name_kwargs = {"document":document.title, "dataset": "Mass Spectrum"}
+                        self.view.panelPlots.on_plot_MS(msX, msY, xlimits=document.massSpectrum['xlimits'],
                                                         view_range=mzRange, **name_kwargs)
                     # clear plots
                     self.presenter.view.panelPlots.on_clear_labels()
@@ -646,7 +644,7 @@ class data_processing():
 
                     # add found peaks to the table
                     if self.config.fit_addPeaks:
-                        if self.docs.dataType in ['Type: ORIGAMI', 'Type: MANUAL']:
+                        if document.dataType in ['Type: ORIGAMI', 'Type: MANUAL']:
                             self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
                             for mz in peakList:
                                 # New in 1.0.4: Added slightly assymetric envelope to the peak
@@ -665,7 +663,7 @@ class data_processing():
                                                 "document":self.presenter.currentDoc}
                                     panel.on_add_to_table(add_dict)
 
-                        elif self.docs.dataType == 'Type: Multifield Linear DT':
+                        elif document.dataType == 'Type: Multifield Linear DT':
                             self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
                             for mz in peakList:
                                 xmin = np.round(mz[0] - (self.config.fit_width * 0.75), 2)
@@ -677,7 +675,7 @@ class data_processing():
                             # Removing duplicates
                             self.view.panelLinearDT.bottomP.onRemoveDuplicates(evt=None)
 
-                        elif self.docs.dataType == 'Type: CALIBRANT':
+                        elif document.dataType == 'Type: CALIBRANT':
                             self.view.on_toggle_panel(evt=ID_window_ccsList, check=True)
                             for mz in peakList:
                                 xmin = np.round(mz[0] - (self.config.peakWidth * 0.75), 2)
@@ -733,6 +731,45 @@ class data_processing():
                 document.multipleMassSpectrum[dataset_title]['annotations'] = annotations
 
             self.presenter.OnUpdateDocument(document, 'document')
+
+    def downsample_array(self, xvals, zvals):
+        """Downsample MS/DT array
+        
+        Parameters
+        ----------
+        xvals: np.array
+            x-axis array (eg m/z)
+        zvals: np.array
+            2D array (e.g. m/z vs DT)
+        """
+        __, x_dim = zvals.shape
+        # determine whether soft/hard maximum was breached
+        if x_dim > self.config.smart_zoom_soft_max or x_dim > self.config.smart_zoom_hard_max:
+            original_shape = zvals.shape
+            # calculate division factor(s)
+            division_factors, division_factor = pr_heatmap.calculate_division_factors(
+                x_dim,
+                min_division=self.config.smart_zoom_min_search,
+                max_division=self.config.smart_zoom_max_search,
+                subsampling_default=self.config.smart_zoom_subsample_default)
+            # subsample array
+            if not division_factors or self.config.smart_zoom_downsampling_method == "Sub-sampled":
+                zvals, xvals = pr_heatmap.subsample_array(zvals, xvals, division_factor)
+            else:
+                if self.config.smart_zoom_downsampling_method in ["Auto", "Binned (summed)"]:
+                    zvals, xvals = pr_heatmap.bin_sum_array(zvals, xvals, division_factor)
+                else:
+                    zvals, xvals = pr_heatmap.bin_mean_array(zvals, xvals, division_factor)
+
+            logger.info("Downsampled from {} to {}".format(original_shape, zvals.shape))
+
+            # check whether hard maximum was breached
+            if zvals.shape[1] > self.config.smart_zoom_hard_max:
+                logger.warning("Sub-sampled data is larger than the hard-maximum. Sub-sampling again")
+                while zvals.shape[1] > self.config.smart_zoom_hard_max:
+                    xvals, zvals = self.downsample_array(xvals, zvals)
+
+        return xvals, zvals
 
     def on_process_MS(self, replot=False, msX=None, msY=None, return_data=False,
                       return_all=False, evt=None):
@@ -1498,4 +1535,196 @@ class data_processing():
         else: peak_max = 1
 
         return peak_max
+
+    def on_combine_origami_collision_voltages(self, evt):
+
+        extract_mode = "all"
+        # Check which mode was selected
+        if evt.GetId() == ID_combineCEscansSelectedIons:
+            extract_mode = "selected"
+
+        # Make a list of current documents
+        for ion_id in range(self.ionList.GetItemCount()):
+            if extract_mode == "selected" and not self.ionList.IsChecked(ion_id):
+                continue
+
+            itemInfo = self.ionPanel.OnGetItemInformation(itemID=ion_id)
+            document_title = itemInfo["document"]
+            document = self._on_get_document(document_title)
+
+            # Check that this data was opened in ORIGAMI mode and has extracted data
+            if document.dataType == 'Type: ORIGAMI' and document.gotExtractedIons:
+                data = document.IMS2Dions
+            else:
+                msg = "Data was not extracted yet. Please extract before continuing."
+                dlgBox(exceptionTitle='Missing data',
+                       exceptionMsg=msg,
+                       type="Error")
+                continue
+
+            # Extract ion name
+            ion_name = itemInfo['ionName']
+            method = itemInfo['method']
+            zvals = data[ion_name]['zvals']
+
+            if method == '':
+                self.ionList.SetStringItem(
+                    ion_id, self.config.peaklistColNames['method'], self.config.origami_acquisition)
+
+            # get origami-ms settings from the metadata
+            origami_settings = document.metadata.get("origami_ms", None)
+            if origami_settings is None:
+                origami_settings = {
+                    "origami_acquisition": self.config.origami_acquisition,
+                    "origami_startScan": self.config.origami_startScan,
+                    "origami_spv": self.config.origami_spv,
+                    "origami_startVoltage": self.config.origami_startVoltage,
+                    "origami_endVoltage": self.config.origami_endVoltage,
+                    "origami_stepVoltage": self.config.origami_stepVoltage,
+                    "origami_boltzmannOffset": self.config.origami_boltzmannOffset,
+                    "origami_exponentialPercentage": self.config.origami_exponentialPercentage,
+                    "origami_exponentialIncrement": self.config.origami_exponentialIncrement,
+                    "origami_cv_spv_list": []
+                    }
+
+            # unpack settings
+            method = origami_settings["origami_acquisition"]
+            startScan = origami_settings["origami_startScan"]
+            startVoltage = origami_settings["origami_startVoltage"]
+            endVoltage = origami_settings["origami_endVoltage"]
+            stepVoltage = origami_settings["origami_stepVoltage"]
+            scansPerVoltage = origami_settings["origami_spv"]
+            expIncrement = origami_settings["origami_exponentialIncrement"]
+            expPercentage = origami_settings["origami_exponentialPercentage"]
+            boltzmannOffset = origami_settings["origami_boltzmannOffset"]
+            origami_cv_spv_list = origami_settings["origami_cv_spv_list"]
+
+            # LINEAR METHOD
+            if method == 'Linear':
+                zvals, scan_list, parameters = self.__combine_origami_linear(
+                    zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage)
+
+            # EXPONENTIAL METHOD
+            elif method == 'Exponential':
+                zvals, scan_list, parameters = self.__combine_origami_exponential(
+                    zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage,
+                    expIncrement, expPercentage)
+
+            # FITTED/BOLTZMANN METHOD
+            elif method == 'Fitted':
+                zvals, scan_list, parameters = self.__combine_origami_fitted(
+                    zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, boltzmannOffset)
+
+            # USER-DEFINED/LIST METHOD
+            elif method == 'User-defined':
+                zvals, xlabels, scan_list, parameters = self.__combine_origami_user_defined(
+                    zvals, startScan, origami_cv_spv_list)
+
+            if zvals[0] is None:
+                msg = "With your current input, there would be too many scans in your file! " + \
+                      "There are %s scans in your file and your settings suggest there should be %s" \
+                      % (zvals[2], zvals[1])
+                dlgBox(exceptionTitle='Are your settings correct?',
+                       exceptionMsg=msg, type="Warning")
+                continue
+
+            # Add x-axis and y-axis labels
+            if  method != 'User-defined':
+                xlabels = np.arange(self.config.origami_startVoltage,
+                                    (self.config.origami_endVoltage + self.config.origami_stepVoltage),
+                                    self.config.origami_stepVoltage)
+
+            # Y-axis is bins by default
+            ylabels = np.arange(1, 201, 1)
+            # Combine 2D array into 1D
+            imsData1D = np.sum(zvals, axis=1).T
+            yvalsRT = np.sum(zvals, axis=0)
+            # Check if item has labels, alpha, charge
+            charge = data[ion_name].get('charge', None)
+            cmap = data[ion_name].get('cmap', self.config.overlay_cmaps[randomIntegerGenerator(0, 5)])
+            color = data[ion_name].get('color', self.config.customColors[randomIntegerGenerator(0, 15)])
+            label = data[ion_name].get('label', None)
+            alpha = data[ion_name].get('alpha', self.config.overlay_defaultAlpha)
+            mask = data[ion_name].get('mask', self.config.overlay_defaultMask)
+            min_threshold = data[ion_name].get('min_threshold', 0)
+            max_threshold = data[ion_name].get('max_threshold', 1)
+
+            # Add 2D data to document object
+            document.gotCombinedExtractedIons = True
+            document.IMS2DCombIons[ion_name] = {'zvals': zvals,
+                                                'xvals': xlabels,
+                                                'xlabels': 'Collision Voltage (V)',
+                                                'yvals': ylabels,
+                                                'ylabels': 'Drift time (bins)',
+                                                'yvals1D': imsData1D,
+                                                'yvalsRT': yvalsRT,
+                                                'cmap': cmap,
+                                                'xylimits': data[ion_name]['xylimits'],
+                                                'charge': charge,
+                                                'label': label,
+                                                'alpha': alpha,
+                                                'mask': mask,
+                                                'color': color,
+                                                'min_threshold': min_threshold,
+                                                'max_threshold': max_threshold,
+                                                'scanList': scan_list,
+                                                'parameters': parameters}
+            document.combineIonsList = scan_list
+            # Add 1D data to document object
+            document.gotCombinedExtractedIonsRT = True
+            document.IMSRTCombIons[ion_name] = {'xvals': xlabels,
+                                                'yvals': yvalsRT,
+                                                'xlabels': 'Collision Voltage (V)'}
+
+            # Update document
+            self.on_update_document(document, 'combined_ions')
+
+    def __combine_origami_linear(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage):
+        if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage]):
+            msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
+            self.__update_statusbar(msg, 4)
+            return
+
+        zvals, scan_list, parameters = pr_origami.origami_combine_linear(
+            zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage)
+        return zvals, scan_list, parameters
+
+    def __combine_origami_exponential(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage,
+                                      expIncrement, expPercentage):
+        if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, expIncrement, expPercentage]):
+            msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
+            self.__update_statusbar(msg, 4)
+            return
+
+        zvals, scan_list, parameters = pr_origami.origami_combine_exponential(
+            zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, expIncrement, expPercentage)
+        return zvals, scan_list, parameters
+
+    def __combine_origami_fitted(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx):
+        if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx]):
+            msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
+            self.__update_statusbar(msg, 4)
+            return
+
+        zvals, scan_list, parameters = pr_origami.origami_combine_boltzmann(
+            zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx)
+        return zvals, scan_list, parameters
+
+    def __combine_origami_user_defined(self, zvals, startScan, scanList):
+        # Ensure that config is not missing variabels
+        if len(self.config.origamiList) == 0:
+            msg = "Please load a text file with ORIGAMI parameters"
+        elif not self.config.origami_startScan:
+            msg = "The first scan is incorect (currently: %s)" % self.config.origami_startScan
+        elif self.config.origamiList[:, 0].shape != self.config.origamiList[:, 1].shape:
+            msg = "The collision voltage list is of incorrect shape."
+
+        if msg is not None:
+            self.__update_statusbar(msg, 4)
+            return
+
+        zvals, xlabels, scan_list, parameters = pr_origami.origami_combine_userDefined(
+            zvals, startScan, scanList)
+
+        return zvals, xlabels, scan_list, parameters
 
