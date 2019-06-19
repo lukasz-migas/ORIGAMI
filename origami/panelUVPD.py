@@ -18,7 +18,8 @@
 # __author__ lukasz.g.migas
 
 # Load libraries
-import wx, os
+import wx
+import os
 import wx.lib.mixins.listctrl as listmix
 from natsort import natsorted
 from operator import itemgetter
@@ -32,7 +33,7 @@ from gui_elements.dialog_customise_peptide_annotations import dialog_customise_p
 from ids import (ID_uvpd_laser_on_off_compare_chromatogam, ID_uvpd_laser_on_off_compare_mobiligram,
                  ID_uvpd_laser_on_off_mobiligram_show_chromatogram,
                  ID_uvpd_laser_on_show_heatmap, ID_uvpd_laser_on_show_waterfall,
-                  ID_uvpd_laser_off_show_heatmap, ID_uvpd_laser_off_show_waterfall,
+                 ID_uvpd_laser_off_show_heatmap, ID_uvpd_laser_off_show_waterfall,
                  ID_uvpd_laser_on_show_chromatogram, ID_uvpd_laser_off_show_chromatogram,
                  ID_uvpd_laser_on_show_mobiligram, ID_uvpd_laser_off_show_mobiligram,
                  ID_uvpd_monitor_remove,
@@ -121,7 +122,7 @@ class panelUVPD(wx.MiniFrame):
             (wx.ACCEL_SHIFT, ord('H'), ID_uvpd_laser_off_show_heatmap),
             (wx.ACCEL_SHIFT, ord('M'), ID_uvpd_laser_off_show_mobiligram),
             (wx.ACCEL_SHIFT, ord('W'), ID_uvpd_laser_off_show_waterfall),
-            ]
+        ]
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
         wx.EVT_MENU(self, ID_uvpd_laser_on_show_chromatogram, self.on_plot_laser_on)
@@ -155,7 +156,7 @@ class panelUVPD(wx.MiniFrame):
                 laser_on_data=self.laser_on_data,
                 laser_off_data=self.laser_off_data,
                 legend=self.legend
-                )
+            )
 
         self.Destroy()
 
@@ -175,9 +176,9 @@ class panelUVPD(wx.MiniFrame):
         <li>Click on <strong>Monitor features</strong>.</li>
         </ol>
         """.strip()
-        kwargs = {'msg':msg,
-                  'title':"Learn about: Annotating mass spectra",
-                  'window_size':(600, 450)}
+        kwargs = {'msg': msg,
+                  'title': "Learn about: Annotating mass spectra",
+                  'window_size': (600, 450)}
 
         htmlViewer = panelHTMLViewer(self, self.config, **kwargs)
         htmlViewer.Show()
@@ -198,7 +199,8 @@ class panelUVPD(wx.MiniFrame):
                 try:
                     index = self.document.app_data["uvpd_monitor_peaks"].index(search_item)
                     del self.document.app_data["uvpd_monitor_peaks"][index]
-                except: pass
+                except:
+                    pass
 
     def OnRightClickMenu_monitorlist(self, evt):
         # Menu events
@@ -352,7 +354,7 @@ class panelUVPD(wx.MiniFrame):
         self.buffer_size_value = wx.SpinCtrlDouble(panel, -1, min=0, max=100, inc=1,
                                                    value=str(self.config.uvpd_peak_buffer_width),
                                                    initial=self.config.uvpd_peak_buffer_width,
-                                                 size=(60, -1))
+                                                   size=(60, -1))
         self.buffer_size_value.Bind(wx.EVT_TEXT, self.onApply)
 
         first_index_value = wx.StaticText(panel, wx.ID_ANY, "First index:")
@@ -462,7 +464,7 @@ class panelUVPD(wx.MiniFrame):
         self.max_mz_value.Bind(wx.EVT_TEXT, self.onApply)
 
         frag_add = wx.BitmapButton(panel, -1, self.icons.iconsLib['add16'],
-                                        size=(16, 16), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+                                   size=(16, 16), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         frag_add.Bind(wx.EVT_BUTTON, self.on_add_fragment_ion)
 
         frag_toolbar_grid = wx.GridBagSizer(1, 1)
@@ -502,9 +504,11 @@ class panelUVPD(wx.MiniFrame):
 
         monitor_toolbar_grid = wx.GridBagSizer(1, 1)
         monitor_toolbar_grid.Add(min_dt_value, (0, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        monitor_toolbar_grid.Add(self.min_dt_value, (0, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        monitor_toolbar_grid.Add(self.min_dt_value, (0, 1), wx.GBSpan(1, 1),
+                                 flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         monitor_toolbar_grid.Add(max_dt_value, (0, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        monitor_toolbar_grid.Add(self.max_dt_value, (0, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        monitor_toolbar_grid.Add(self.max_dt_value, (0, 3), wx.GBSpan(1, 1),
+                                 flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         monitor_toolbar_grid.Add(monitor_add, (0, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
 
         self.monitorlist = EditableListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES)
@@ -648,8 +652,10 @@ class panelUVPD(wx.MiniFrame):
 
     def onApply(self, evt):
 
-        try: source = evt.GetEventObject().GetName()
-        except: pass
+        try:
+            source = evt.GetEventObject().GetName()
+        except:
+            pass
 
         self.config.uvpd_peak_finding_threshold = self.threshold_value.GetValue()
         self.config.uvpd_peak_buffer_width = int(self.buffer_size_value.GetValue())
@@ -689,7 +695,7 @@ class panelUVPD(wx.MiniFrame):
             # first value is odd then dataset is blue and 2 is red
             labels, colors = ["Dataset 1", "Dataset 2"], [(0, 0, 1), (1, 0, 0)]
 
-        self.legend = {'colors':colors, 'labels':labels}
+        self.legend = {'colors': colors, 'labels': labels}
 
         # get data
         # separate into dataset 1 and 2 (widths)
@@ -825,12 +831,13 @@ class panelUVPD(wx.MiniFrame):
             laser_off_data[ion_name] = np.zeros(shape=(len(self.laser_off_list), 200))
 
             # Data needs to be present in the document
-            try: ion_data = self.document.IMS2Dions[ion_name]['zvals']
+            try:
+                ion_data = self.document.IMS2Dions[ion_name]['zvals']
             except KeyError:
                 print(("Data was missing for {} ion. This take might few seconds longer...".format(
                     ion_name)))
 
-                extract_kwargs = {'return_data':True}
+                extract_kwargs = {'return_data': True}
                 path = self.document.path
                 ion_data = io_waters.driftscope_extract_2D(
                     path=path, driftscope_path=self.config.driftscopePath,
@@ -951,7 +958,7 @@ class panelUVPD(wx.MiniFrame):
                 sum_mobility_slide = np.sum(mobility_slice, axis=0)
                 xvals = 1 + np.arange(len(sum_mobility_slide))
                 self.laser_on_data[ion_name]['dt_extract'][dt_name] = {
-                    "xvals":xvals, "yvals":sum_mobility_slide}
+                    "xvals": xvals, "yvals": sum_mobility_slide}
 
                 ion_data = self.laser_off_data[ion_name]
                 zvals = ion_data["zvals"]
@@ -960,7 +967,7 @@ class panelUVPD(wx.MiniFrame):
                 sum_mobility_slide = np.sum(mobility_slice, axis=0)
                 xvals = 1 + np.arange(len(sum_mobility_slide))
                 self.laser_off_data[ion_name]['dt_extract'][dt_name] = {
-                    "xvals":xvals, "yvals":sum_mobility_slide}
+                    "xvals": xvals, "yvals": sum_mobility_slide}
 
                 print(("Extracted data for dt: {} for ion: {}".format(
                     dt_name, ion_name)))
@@ -1081,7 +1088,7 @@ class panelUVPD(wx.MiniFrame):
             zvals = ion_data["zvals"]
             xvals = self.laser_on_marker[:, 0]
             yvals = ion_data["yvals"]
-        elif  evtID == ID_uvpd_laser_off_save_heatmap:
+        elif evtID == ID_uvpd_laser_off_save_heatmap:
             laser_dataset = "dataset_2"
             ion_data = self.laser_off_data[ion_name]
             zvals = ion_data["zvals"]
@@ -1092,12 +1099,13 @@ class panelUVPD(wx.MiniFrame):
 
         xvals = list(map(str, xvals.tolist()))
         labels = ["DT"]
-        for label in xvals: labels.append(label)
+        for label in xvals:
+            labels.append(label)
 
         # Save 2D array
-        kwargs = {'default_name':"{}_{}".format(ion_name, laser_dataset)}
+        kwargs = {'default_name': "{}_{}".format(ion_name, laser_dataset)}
         self.save_data_to_file(data=saveData, labels=labels,
-                        data_format='%.4f', **kwargs)
+                               data_format='%.4f', **kwargs)
 
     def on_save_data(self, evt):
         evtID = evt.GetId()
@@ -1118,8 +1126,8 @@ class panelUVPD(wx.MiniFrame):
                 xlabel, ylabel = "Drift time (bins)", "Average intensity"
                 name_modifier = "DT"
 
-        elif  evtID in [ID_uvpd_laser_off_save_chromatogram,
-                        ID_uvpd_laser_off_save_mobiligram]:
+        elif evtID in [ID_uvpd_laser_off_save_chromatogram,
+                       ID_uvpd_laser_off_save_mobiligram]:
             laser_dataset = "dataset_2"
             ion_data = self.laser_off_data[ion_name]
             if evtID == ID_uvpd_laser_off_save_chromatogram:
@@ -1136,7 +1144,7 @@ class panelUVPD(wx.MiniFrame):
         data = [xvals, yvals]
         labels = [xlabel, ylabel]
         # Save data
-        kwargs = {'default_name':"{}_{}_{}".format(name_modifier, ion_name, laser_dataset)}
+        kwargs = {'default_name': "{}_{}_{}".format(name_modifier, ion_name, laser_dataset)}
         self.save_data_to_file(data=data, labels=labels,
                                data_format='%.4f', **kwargs)
 
@@ -1149,7 +1157,7 @@ class panelUVPD(wx.MiniFrame):
                    "Text (Tab delimited) (*.txt)|*.txt|" + \
                    "Text (Space delimited (*.txt)|*.txt"
 
-        wildcard_dict = {',':0, '\t':1, ' ':2}
+        wildcard_dict = {',': 0, '\t': 1, ' ': 2}
 
         if kwargs.get("ask_permission", False):
             style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
@@ -1157,35 +1165,39 @@ class panelUVPD(wx.MiniFrame):
             style = wx.FD_SAVE
 
         dlg = wx.FileDialog(self.presenter.view,
-                             "Please select a name for the file",
-                             "", "",
-                             wildcard=wildcard, style=style)
+                            "Please select a name for the file",
+                            "", "",
+                            wildcard=wildcard, style=style)
         dlg.CentreOnParent()
 
         if "default_name" in kwargs:
             defaultName = kwargs.pop("default_name")
         else:
             defaultName = ""
-        defaultName = defaultName.replace(' ', '').replace(':', '').replace(" ", "").replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "").replace(".", "_")
+        defaultName = defaultName.replace(' ', '').replace(':', '').replace(" ", "").replace(
+            ".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "").replace(".", "_")
 
         dlg.SetFilename(defaultName)
 
-        try: dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
-        except: pass
+        try:
+            dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
+        except:
+            pass
 
         if not kwargs.get("return_filename", False):
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()
                 __, extension = os.path.splitext(filename)
                 self.config.saveExtension = extension
-                self.config.saveDelimiter = list(wildcard_dict.keys())[list(wildcard_dict.values()).index(dlg.GetFilterIndex())]
+                self.config.saveDelimiter = list(wildcard_dict.keys())[list(
+                    wildcard_dict.values()).index(dlg.GetFilterIndex())]
                 saveAsText(filename=filename,
                            data=data,
                            format=data_format,
                            delimiter=self.config.saveDelimiter,
                            header=self.config.saveDelimiter.join(labels))
             else:
-                self.presenter.onThreading(None, ('Cancelled operation', 4, 5)    , action='updateStatusbar')
+                self.presenter.onThreading(None, ('Cancelled operation', 4, 5), action='updateStatusbar')
         else:
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()
@@ -1237,23 +1249,23 @@ class panelUVPD(wx.MiniFrame):
         document = self.document
         # prepare mass range and linearization parameters
         xlimits = [document.parameters['startMS'], document.parameters['endMS']]
-        kwargs = {'auto_range':self.config.ms_auto_range,
-                  'mz_min':xlimits[0], 'mz_max':xlimits[1],
-                  'linearization_mode':self.config.ms_linearization_mode}
+        kwargs = {'auto_range': self.config.ms_auto_range,
+                  'mz_min': xlimits[0], 'mz_max': xlimits[1],
+                  'linearization_mode': self.config.ms_linearization_mode}
 
         # extract dataset 1 mass spectra
         msX_on, msY_on = self._extract_mass_spectrum(document.path, self.laser_on_list, **kwargs)
         self.view.panelPlots.on_plot_MS(msX_on, msY_on, "m/z", "Intensity", set_page=True)
         document.multipleMassSpectrum["UVPD - dataset 1"] = {
-            'xvals':msX_on, 'yvals':msY_on, 'xlabels':'m/z (Da)', 'scan_list':self.laser_on_list,
-            'xlimits':xlimits}
+            'xvals': msX_on, 'yvals': msY_on, 'xlabels': 'm/z (Da)', 'scan_list': self.laser_on_list,
+            'xlimits': xlimits}
 
         # extract dataset 2 mass spectra
         msX_off, msY_off = self._extract_mass_spectrum(document.path, self.laser_off_list, **kwargs)
         self.view.panelPlots.on_plot_MS(msX_off, msY_off, "m/z", "Intensity", set_page=True)
         document.multipleMassSpectrum["UVPD - dataset 2"] = {
-            'xvals':msX_off, 'yvals':msY_off, 'xlabels':'m/z (Da)', 'scan_list':self.laser_off_list,
-            'xlimits':xlimits}
+            'xvals': msX_off, 'yvals': msY_off, 'xlabels': 'm/z (Da)', 'scan_list': self.laser_off_list,
+            'xlimits': xlimits}
 
         # add to document
         document.gotMultipleMS = True
@@ -1287,4 +1299,3 @@ class panelUVPD(wx.MiniFrame):
 #         msY = np.sum(msY_array, axis=1)
 
         return msX, msY
-

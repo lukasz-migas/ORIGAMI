@@ -61,8 +61,8 @@ logger = logging.getLogger("origami")
 class panelMultipleIons(wx.Panel):
 
     def __init__(self, parent, config, icons, helpInfo, presenter):
-        wx.Panel.__init__ (self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                            size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL)
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+                          size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL)
 
         self.view = parent
         self.config = config
@@ -89,19 +89,19 @@ class panelMultipleIons(wx.Panel):
         self.process = False
 
         self._ionPanel_peaklist = {
-            0: {"name":"", "tag":"check", "type":"bool"},
-            1: {"name":"min m/z", "tag":"start", "type":"float"},
-            2: {"name":"max m/z", "tag":"end", "type":"float"},
-            3: {"name":"z", "tag":"charge", "type":"int"},
-            4: {"name":"% int", "tag":"intensity", "type":"float"},
-            5: {"name":"color", "tag":"color", "type":"color"},
-            6: {"name":"colormap", "tag":"colormap", "type":"str"},
-            7: {"name":"\N{GREEK SMALL LETTER ALPHA}", "tag":"alpha", "type":"float"},
-            8: {"name":"mask", "tag":"mask", "type":"float"},
-            9: {"name":"label", "tag":"label", "type":"float"},
-            10: {"name":"method", "tag":"method", "type":"str"},
-            11: {"name":"file", "tag":"document", "type":"str"},
-            }
+            0: {"name": "", "tag": "check", "type": "bool"},
+            1: {"name": "min m/z", "tag": "start", "type": "float"},
+            2: {"name": "max m/z", "tag": "end", "type": "float"},
+            3: {"name": "z", "tag": "charge", "type": "int"},
+            4: {"name": "% int", "tag": "intensity", "type": "float"},
+            5: {"name": "color", "tag": "color", "type": "color"},
+            6: {"name": "colormap", "tag": "colormap", "type": "str"},
+            7: {"name": "\N{GREEK SMALL LETTER ALPHA}", "tag": "alpha", "type": "float"},
+            8: {"name": "mask", "tag": "mask", "type": "float"},
+            9: {"name": "label", "tag": "label", "type": "float"},
+            10: {"name": "method", "tag": "method", "type": "str"},
+            11: {"name": "file", "tag": "document", "type": "str"},
+        }
 
         self.make_gui()
 
@@ -115,7 +115,7 @@ class panelMultipleIons(wx.Panel):
             (wx.ACCEL_NORMAL, ord('C'), ID_ionPanel_assignColor),
             (wx.ACCEL_NORMAL, ord('E'), ID_ionPanel_editItem),
             (wx.ACCEL_NORMAL, ord('H'), ID_highlightRectAllIons),
-#             (wx.ACCEL_NORMAL, ord('I'), ID_useInternalParamsCombinedMenu),
+            #             (wx.ACCEL_NORMAL, ord('I'), ID_useInternalParamsCombinedMenu),
             (wx.ACCEL_NORMAL, ord('M'), ID_ionPanel_show_mobiligram),
             (wx.ACCEL_NORMAL, ord('N'), ID_ionPanel_normalize1D),
             (wx.ACCEL_NORMAL, ord('O'), ID_overrideCombinedMenu),
@@ -124,7 +124,7 @@ class panelMultipleIons(wx.Panel):
             (wx.ACCEL_NORMAL, ord('X'), ID_ionPanel_check_all),
             (wx.ACCEL_NORMAL, ord('Z'), ID_ionPanel_show_zoom_in_MS),
             (wx.ACCEL_NORMAL, wx.WXK_DELETE, ID_ionPanel_delete_rightClick),
-            ]
+        ]
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
         wx.EVT_MENU(self, ID_ionPanel_editItem, self.OnOpenEditor)
@@ -333,11 +333,11 @@ class panelMultipleIons(wx.Panel):
         self.table_document.Check(self.config._peakListSettings[n]['show'])
         menu.AppendSeparator()
         self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_table_hideAll,
-                                     text='Table: Hide all',
-                                     bitmap=self.icons.iconsLib['hide_table_16']))
+                                                        text='Table: Hide all',
+                                                        bitmap=self.icons.iconsLib['hide_table_16']))
         self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_ionPanel_table_restoreAll,
-                                     text='Table: Restore all',
-                                     bitmap=self.icons.iconsLib['show_table_16']))
+                                                        text='Table: Restore all',
+                                                        bitmap=self.icons.iconsLib['show_table_16']))
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -627,7 +627,8 @@ class panelMultipleIons(wx.Panel):
         # check which event was triggered
         if evtID == ID_overrideCombinedMenu:
             self.config.overrideCombine = not self.config.overrideCombine
-            args = ("Peak list panel: 'Override' combined IM-MS data was switched to %s" % self.config.overrideCombine, 4)
+            args = ("Peak list panel: 'Override' combined IM-MS data was switched to %s" %
+                    self.config.overrideCombine, 4)
             self.presenter.onThreading(evt, args, action='updateStatusbar')
 
 #         if evtID == ID_useInternalParamsCombinedMenu:
@@ -717,8 +718,10 @@ class panelMultipleIons(wx.Panel):
         # check values
         col_check = not self.config._peakListSettings[col_index]['show']
         self.config._peakListSettings[col_index]['show'] = col_check
-        if col_check: col_width = self.config._peakListSettings[col_index]['width']
-        else: col_width = 0
+        if col_check:
+            col_width = self.config._peakListSettings[col_index]['width']
+        else:
+            col_width = 0
         # set new column width
         self.peaklist.SetColumnWidth(col_index, col_width)
 
@@ -754,40 +757,41 @@ class panelMultipleIons(wx.Panel):
         """ Iterate over list to assign charge state """
 
         rows = self.peaklist.GetItemCount()
-        if rows == 0: return
+        if rows == 0:
+            return
 
         if evt.GetId() == ID_ionPanel_annotate_charge_state:
             ask_kwargs = {
                 'static_text': 'Assign charge state to selected items.',
                 'value_text': "",
-                'validator':'integer',
-                'keyword':'charge'}
+                'validator': 'integer',
+                'keyword': 'charge'}
         elif evt.GetId() == ID_ionPanel_annotate_alpha:
             static_text = "Assign new transparency value to selected items \nTypical transparency values: 0.5" + \
                           "\nRange 0-1"
             ask_kwargs = {
-                'static_text':static_text,
-                'value_text':0.5,
-                'validator':'float',
-                'keyword':'alpha'}
+                'static_text': static_text,
+                'value_text': 0.5,
+                'validator': 'float',
+                'keyword': 'alpha'}
         elif evt.GetId() == ID_ionPanel_annotate_mask:
             ask_kwargs = {
-                'static_text':'Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1',
-                'value_text':0.25,
-                'validator':'float',
-                'keyword':'mask'}
+                'static_text': 'Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1',
+                'value_text': 0.25,
+                'validator': 'float',
+                'keyword': 'mask'}
         elif evt.GetId() == ID_ionPanel_annotate_min_threshold:
             ask_kwargs = {
-                'static_text':'Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1',
-                'value_text':0.0,
-                'validator':'float',
-                'keyword':'min_threshold'}
+                'static_text': 'Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1',
+                'value_text': 0.0,
+                'validator': 'float',
+                'keyword': 'min_threshold'}
         elif evt.GetId() == ID_ionPanel_annotate_max_threshold:
             ask_kwargs = {
-                'static_text':'Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1',
-                'value_text':1.0,
-                'validator':'float',
-                'keyword':'max_threshold'}
+                'static_text': 'Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1',
+                'value_text': 1.0,
+                'validator': 'float',
+                'keyword': 'max_threshold'}
 
         ask = panelAsk(self, self.presenter, **ask_kwargs)
         if ask.ShowModal() == wx.ID_OK:
@@ -971,7 +975,7 @@ class panelMultipleIons(wx.Panel):
             document_in_table = self.peaklist.GetItem(row, self.config.peaklistColNames['filename']).GetText()
             if (mzStart_in_table == mz_min and
                 mzEnd_in_table == mz_max and
-                document_in_table == document):
+                    document_in_table == document):
                 return True
 
         return False
@@ -990,8 +994,8 @@ class panelMultipleIons(wx.Panel):
         # Check if data was extracted
         if selectedItem == '':
             dlgBox(exceptionTitle='Extract data first',
-                           exceptionMsg="Please extract data first",
-                           type="Error")
+                   exceptionMsg="Please extract data first",
+                   type="Error")
             return
         # Get data from dictionary
         currentDocument = self.presenter.documentsDict[selectedItem]
@@ -1007,16 +1011,19 @@ class panelMultipleIons(wx.Panel):
         elif currentDocument.dataType == 'Type: MANUAL':
             if currentDocument.gotCombinedExtractedIons:
                 data = currentDocument.IMS2DCombIons
-        else: return
+        else:
+            return
 
         if data == None:
             self.presenter.onThreading(evt, ("Please extract data before trying to view it", 4, 3),
                                        action='updateStatusbar')
             if evt.GetId() == ID_ionPanel_show_zoom_in_MS:
-                try: self.presenter.view.panelPlots.on_zoom_1D_x_axis(str2num(mzStart) - self.config.zoomWindowX,
-                                                                      str2num(mzEnd) + self.config.zoomWindowX,
-                                                                      set_page=True)
-                except: pass
+                try:
+                    self.presenter.view.panelPlots.on_zoom_1D_x_axis(str2num(mzStart) - self.config.zoomWindowX,
+                                                                     str2num(mzEnd) + self.config.zoomWindowX,
+                                                                     set_page=True)
+                except:
+                    pass
             return
 
         if evt.GetId() == ID_ionPanel_show_mobiligram:
@@ -1040,10 +1047,14 @@ class panelMultipleIons(wx.Panel):
                                            action='updateStatusbar')
             startX = str2num(mzStart) - self.config.zoomWindowX
             endX = str2num(mzEnd) + self.config.zoomWindowX
-            try: endY = str2num(intensity) / 100
-            except TypeError: endY = 1.001
-            if endY == 0: endY = 1.001
-            try: self.presenter.view.panelPlots.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
+            try:
+                endY = str2num(intensity) / 100
+            except TypeError:
+                endY = 1.001
+            if endY == 0:
+                endY = 1.001
+            try:
+                self.presenter.view.panelPlots.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
             except AttributeError:
                 self.presenter.onThreading(evt, (
                     "Failed to zoom-in on the ion. Please replot the mass spectrum and try again.", 4, 3),
@@ -1060,8 +1071,8 @@ class panelMultipleIons(wx.Panel):
                 msg = "Missing x/y-axis labels. Cannot continue! \nAdd x/y-axis labels to each file before continuing."
                 print(msg)
                 dlgBox(exceptionTitle='Missing data',
-                               exceptionMsg=msg,
-                               type="Error")
+                       exceptionMsg=msg,
+                       type="Error")
                 return
             # Process data
             if evt.GetId() == ID_ionPanel_show_process_heatmap:
@@ -1078,12 +1089,14 @@ class panelMultipleIons(wx.Panel):
         rows = self.peaklist.GetItemCount()
 #         tempData = ['start m/z, end m/z, z, color, alpha, filename, method, intensity, label']
         tempData = []
-        if rows == 0: return
+        if rows == 0:
+            return
         # Ask for a name and path
         saveDlg = wx.FileDialog(self, "Save peak list to file...", "", "",
                                 "Comma delimited file (*.csv)|*.csv",
                                 wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        if saveDlg.ShowModal() == wx.ID_CANCEL: return
+        if saveDlg.ShowModal() == wx.ID_CANCEL:
+            return
         else:
             filepath = saveDlg.GetPath()
 #             print(filepath)
@@ -1096,7 +1109,8 @@ class panelMultipleIons(wx.Panel):
                 #  We want to make sure the first 3 columns are numbers
                 if col == 0 or col == 1 or col == 2:
                     itemData = str2num(item.GetText())
-                    if itemData == None: itemData = 0
+                    if itemData == None:
+                        itemData = 0
                     tempRow.append(itemData)
                 else:
                     tempRow.append(item.GetText())
@@ -1289,7 +1303,7 @@ class panelMultipleIons(wx.Panel):
                                   'min_threshold': information['min_threshold'],
                                   'max_threshold': information['max_threshold'],
                                   'label': information['label'],
-                                  'id':rows
+                                  'id': rows
                                   }
 
                     self.editItemDlg = panelModifyIonSettings(self,
@@ -1308,7 +1322,7 @@ class panelMultipleIons(wx.Panel):
                               'min_threshold': information['min_threshold'],
                               'max_threshold': information['max_threshold'],
                               'label': information['label'],
-                              'id':row
+                              'id': row
                               }
 
                 self.editItemDlg = panelModifyIonSettings(self,
@@ -1447,8 +1461,10 @@ class panelMultipleIons(wx.Panel):
             for keyword in keywords:
                 keyword_name = self.__check_keyword(keyword)
                 document.IMS2DCombIons[itemInfo['ionName']][keyword_name] = itemInfo[keyword]
-                try: document.IMS2DCombIons[processed_name][keyword_name] = itemInfo[keyword]
-                except: pass
+                try:
+                    document.IMS2DCombIons[processed_name][keyword_name] = itemInfo[keyword]
+                except:
+                    pass
 
         if itemInfo['ionName'] in document.IMS2DionsProcess:
             for keyword in keywords:
@@ -1490,7 +1506,8 @@ class panelMultipleIons(wx.Panel):
         dlg = wx.FileDialog(self.presenter.view, "Choose a text file (m/z, window size, charge):",
                             wildcard="*.csv;*.txt",
                             style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_CANCEL: return
+        if dlg.ShowModal() == wx.ID_CANCEL:
+            return
         else:
 
             manual = self.presenter.checkIfAnyDocumentsAreOfType(type='Type: MANUAL')
@@ -1501,7 +1518,8 @@ class panelMultipleIons(wx.Panel):
                 args = ("Please create open or create a new document which can extract MS/IM-MS data", 4, 5)
                 self.presenter.onThreading(evt, args, action='updateStatusbar')
                 return
-            elif len(docList) == 1: document_title = docList[0]
+            elif len(docList) == 1:
+                document_title = docList[0]
             else:
                 document_panel = panelSelectDocument(self.presenter.view, self.presenter, docList, False)
                 if document_panel.ShowModal() == wx.ID_OK:
@@ -1520,32 +1538,42 @@ class panelMultipleIons(wx.Panel):
             for min_name in ["min", "min m/z"]:
                 if min_name in columns:
                     break
-                else: continue
-            if min_name not in columns: min_name = None
+                else:
+                    continue
+            if min_name not in columns:
+                min_name = None
 
             for max_name in ["max", "max m/z"]:
                 if max_name in columns:
                     break
-                else: continue
-            if max_name not in columns: max_name = None
+                else:
+                    continue
+            if max_name not in columns:
+                max_name = None
 
             for charge_name in ["z", "charge"]:
                 if charge_name in columns:
                     break
-                else: continue
-            if charge_name not in columns: charge_name = None
+                else:
+                    continue
+            if charge_name not in columns:
+                charge_name = None
 
             for label_name in ["label", "information"]:
                 if label_name in columns:
                     break
-                else: continue
-            if label_name not in columns: label_name = None
+                else:
+                    continue
+            if label_name not in columns:
+                label_name = None
 
             for color_name in ["color", "colour"]:
                 if color_name in columns:
                     break
-                else: continue
-            if color_name not in columns: color_name = None
+                else:
+                    continue
+            if color_name not in columns:
+                color_name = None
 
             if min_name is None or max_name is None:
                 return
@@ -1560,17 +1588,24 @@ class panelMultipleIons(wx.Panel):
                 min_value = peaklist[min_name][peak]
                 max_value = peaklist[max_name][peak]
 
-                if charge_name is not None: charge_value = peaklist[charge_name][peak]
-                else: charge_value = ""
+                if charge_name is not None:
+                    charge_value = peaklist[charge_name][peak]
+                else:
+                    charge_value = ""
 
-                if label_name is not None: label_value = peaklist[label_name][peak]
-                else: label_value = ""
+                if label_name is not None:
+                    label_value = peaklist[label_name][peak]
+                else:
+                    label_value = ""
 
                 if color_name is not None:
                     color_value = peaklist[color_name][peak]
-                    try: color_value = literal_eval(color_value)
-                    except:pass
-                else: color_value = colors[peak]
+                    try:
+                        color_value = literal_eval(color_value)
+                    except:
+                        pass
+                else:
+                    color_value = colors[peak]
 
                 self.peaklist.Append([
                     str(min_value),
@@ -1590,7 +1625,8 @@ class panelMultipleIons(wx.Panel):
                                                           color_value)
                     self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1,
                                                     determineFontColor(color_value, return_rgb=True))
-                except: pass
+                except:
+                    pass
             self.presenter.view.on_toggle_panel(evt=ID_window_ionList, check=True)
             dlg.Destroy()
 
@@ -1684,14 +1720,15 @@ class panelMultipleIons(wx.Panel):
         # Replot RT for current document
         msX = document.massSpectrum['xvals']
         msY = document.massSpectrum['yvals']
-        try: xlimits = document.massSpectrum['xlimits']
+        try:
+            xlimits = document.massSpectrum['xlimits']
         except KeyError:
             xlimits = [document.parameters['startMS'], document.parameters['endMS']]
         # Change panel and plot
         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MS'])
 
         if not self.presenter.view.panelPlots._on_check_plot_names(document.title, "Mass Spectrum", "MS"):
-            name_kwargs = {"document":document.title, "dataset": "Mass Spectrum"}
+            name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
             self.presenter.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, replot=True,
                                                       set_page=True, **name_kwargs)
 
@@ -1800,7 +1837,7 @@ class panelExportData(wx.MiniFrame):
     """
 
     def __init__(self, parent, icons):
-        wx.MiniFrame.__init__(self, parent , -1, 'Export', size=(400, 300),
+        wx.MiniFrame.__init__(self, parent, -1, 'Export', size=(400, 300),
                               style=wx.DEFAULT_FRAME_STYLE & ~
                               (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
@@ -1905,8 +1942,8 @@ class panelExportData(wx.MiniFrame):
         return panel
 
     def onExportParameters(self):
-        choicesData = {0:'ASCII', 1:'ASCII with Headers'}
-        choicesDelimiter = {0:',', 1:';', 2:'tab'}
+        choicesData = {0: 'ASCII', 1: 'ASCII with Headers'}
+        choicesDelimiter = {0: ',', 1: ';', 2: 'tab'}
 
         self.useStartMZ = self.peaklistColstartMZ_check.GetValue()
         self.useEndMZ = self.peaklistColendMZ_check.GetValue()
@@ -1926,7 +1963,7 @@ class panelExportData(wx.MiniFrame):
         self.onExportParameters()
 
         dlg = wx.FileDialog(self, "Save peak list to file...", "", "", fileType,
-                                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             dlg.Destroy()
@@ -1941,7 +1978,7 @@ class panelDuplicateIons(wx.MiniFrame):
     """
 
     def __init__(self, parent, keyList):
-        wx.MiniFrame.__init__(self, parent , -1, 'Duplicate...', size=(400, 300),
+        wx.MiniFrame.__init__(self, parent, -1, 'Duplicate...', size=(400, 300),
                               style=wx.DEFAULT_FRAME_STYLE & ~
                               (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
@@ -2027,8 +2064,10 @@ class panelDuplicateIons(wx.MiniFrame):
 
     def onDuplicate(self, evt):
         # Which ions to duplicate
-        if self.all_radio.GetValue(): duplicateWhich = 'all'
-        else: duplicateWhich = 'selected'
+        if self.all_radio.GetValue():
+            duplicateWhich = 'all'
+        else:
+            duplicateWhich = 'selected'
 
         # How many in the list
 
@@ -2043,7 +2082,8 @@ class panelDuplicateIons(wx.MiniFrame):
         if duplicateWhich == 'all':
             for i in range(1, self.documentListTo_choice.GetCount()):
                 key = self.documentListTo_choice.GetString(i)
-                if key == docFrom: continue
+                if key == docFrom:
+                    continue
                 # Iterate over row and columns to get data
                 for row in range(rows):
                     tempRow = []
@@ -2055,11 +2095,14 @@ class panelDuplicateIons(wx.MiniFrame):
                     tempRow.append(key)
                     tempData.append(tempRow)
         elif duplicateWhich == 'selected':
-            if docTo == docFrom: docTo = ''
-            elif docTo == 'all': docTo = ''
+            if docTo == docFrom:
+                docTo = ''
+            elif docTo == 'all':
+                docTo = ''
             # Iterate over row and columns to get data
             for row in range(rows):
-                if not self.parent.peaklist.IsChecked(index=row): continue
+                if not self.parent.peaklist.IsChecked(index=row):
+                    continue
                 tempRow = []
                 for col in range(columns):
                     item = self.parent.peaklist.GetItem(itemId=row, col=col)
@@ -2075,4 +2118,3 @@ class panelDuplicateIons(wx.MiniFrame):
             self.parent.peaklist.Append(row)
         # Remove duplicates
         self.parent.onRemoveDuplicates(evt=None)
-

@@ -59,27 +59,32 @@ class MetaTextReader():
         if "x_label" in row_labels:
             idx = row_labels.index("x_label")
             x_label = list(self.df.iloc[idx, 1::])[0]
-        else: x_label = ""
+        else:
+            x_label = ""
 
         if "y_label" in row_labels:
             idx = row_labels.index("y_label")
             y_label = list(self.df.iloc[idx, 1::])[0]
-        else: y_label = ""
+        else:
+            y_label = ""
 
         if "x_unit" in row_labels:
             idx = row_labels.index("x_unit")
             x_unit = list(self.df.iloc[idx, 1::])[0]
-        else: x_unit = ""
+        else:
+            x_unit = ""
 
         if "y_unit" in row_labels:
             idx = row_labels.index("y_unit")
             y_unit = list(self.df.iloc[idx, 1::])[0]
-        else: y_unit = ""
+        else:
+            y_unit = ""
 
         if "order" in row_labels:
             idx = row_labels.index("order")
             order = list(self.df.iloc[idx, 1::])
-        else: order = []
+        else:
+            order = []
 
         if "label" in row_labels:
             idx = row_labels.index("label")
@@ -87,27 +92,32 @@ class MetaTextReader():
         elif "labels" in row_labels:
             idx = row_labels.index("labels")
             labels = list(self.df.iloc[idx, 1::].dropna())
-        else: labels = []
+        else:
+            labels = []
 
         if "x_labels" in row_labels:
             idx = row_labels.index("x_labels")
             x_labels = list(self.df.iloc[idx, 1::].dropna())
-        else: x_labels = []
+        else:
+            x_labels = []
 
         if "y_labels" in row_labels:
             idx = row_labels.index("y_labels")
             y_labels = list(self.df.iloc[idx, 1::].dropna())
-        else: y_labels = []
+        else:
+            y_labels = []
 
         if "xlimits" in row_labels:
             idx = row_labels.index("xlimits")
             xlimits = list(self.df.iloc[idx, 1:3].dropna().astype('float32'))
-        else: xlimits = [None, None]
+        else:
+            xlimits = [None, None]
 
         if "ylimits" in row_labels:
             idx = row_labels.index("ylimits")
             ylimits = list(self.df.iloc[idx, 1:3].dropna().astype('float32'))
-        else: ylimits = [None, None]
+        else:
+            ylimits = [None, None]
 
         if "color" in row_labels:
             idx = row_labels.index("color")
@@ -115,27 +125,32 @@ class MetaTextReader():
         elif "colors" in row_labels:
             idx = row_labels.index("colors")
             colors = list(self.df.iloc[idx, 1::].dropna())
-        else: colors = []
+        else:
+            colors = []
 
         if "column_type" in row_labels:
             idx = row_labels.index("column_type")
             column_types = list(self.df.iloc[idx, 1::].dropna())
-        else: column_types = []
+        else:
+            column_types = []
 
         if "legend_labels" in row_labels:
             idx = row_labels.index("legend_labels")
             legend_labels = list(self.df.iloc[idx, 1::].dropna())
-        else: legend_labels = []
+        else:
+            legend_labels = []
 
         if "legend_colors" in row_labels:
             idx = row_labels.index("legend_colors")
             legend_colors = list(self.df.iloc[idx, 1::].dropna())
-        else: legend_colors = []
+        else:
+            legend_colors = []
 
         if "hover_labels" in row_labels:
             idx = row_labels.index("hover_labels")
             hover_labels = list(self.df.iloc[idx, 1::].dropna())
-        else: hover_labels = []
+        else:
+            hover_labels = []
 
         plot_modifiers.update(legend_labels=legend_labels, legend_colors=legend_colors,
                               xlimits=xlimits, ylimits=ylimits)
@@ -231,13 +246,20 @@ class MetaTextReader():
             n_xvals = len(xvals)
             n_yvals = len(yvals)
             n_grid = max([n_xvals, n_yvals])
-            if n_grid in [2]: n_rows, n_cols = 1, 2
-            elif n_grid in [3, 4]: n_rows, n_cols = 2, 2
-            elif n_grid in [5, 6]: n_rows, n_cols = 2, 3
-            elif n_grid in [7, 8, 9]: n_rows, n_cols = 3, 3
-            elif n_grid in [10, 11, 12]: n_rows, n_cols = 3, 4
-            elif n_grid in [13, 14, 15, 16]: n_rows, n_cols = 4, 4
-            elif n_grid in [17, 18, 19, 20, 21, 22, 23, 24, 25]: n_rows, n_cols = 5, 5
+            if n_grid in [2]:
+                n_rows, n_cols = 1, 2
+            elif n_grid in [3, 4]:
+                n_rows, n_cols = 2, 2
+            elif n_grid in [5, 6]:
+                n_rows, n_cols = 2, 3
+            elif n_grid in [7, 8, 9]:
+                n_rows, n_cols = 3, 3
+            elif n_grid in [10, 11, 12]:
+                n_rows, n_cols = 3, 4
+            elif n_grid in [13, 14, 15, 16]:
+                n_rows, n_cols = 4, 4
+            elif n_grid in [17, 18, 19, 20, 21, 22, 23, 24, 25]:
+                n_rows, n_cols = 5, 5
             plot_modifiers.update(n_grid=n_grid, n_rows=n_rows, n_cols=n_cols)
 
         # check if we need to add any metadata
@@ -251,40 +273,40 @@ class MetaTextReader():
 
         msg = "Item {} has: x-columns ({}), x-errors ({}), y-columns ({}), x-errors ({}), ".format(
             os.path.basename(fname), len(xvals), len(xvalsErr), len(yvals), len(yvalsErr)) + \
-              "labels ({}), colors ({})".format(len(labels), len(colors))
+            "labels ({}), colors ({})".format(len(labels), len(colors))
         print(msg)
 
         # update title
-        _plot_types = {"multi-line":"Multi-line", "scatter":"Scatter",
-                       "line":"Line", "waterfall":"Waterfall",
-                       "grid-line":"Grid-line", "grid-scatter":"Grid-scatter",
-                       "vertical-bar":"V-bar", "horizontal-bar":"H-bar"}
+        _plot_types = {"multi-line": "Multi-line", "scatter": "Scatter",
+                       "line": "Line", "waterfall": "Waterfall",
+                       "grid-line": "Grid-line", "grid-scatter": "Grid-scatter",
+                       "vertical-bar": "V-bar", "horizontal-bar": "H-bar"}
 
         title = "{}: {}".format(_plot_types[plot_type], title)
-        other_data = {"plot_type":plot_type,
-                      "xvals":xvals,
-                      "yvals":yvals,
-                      "zvals":zvals,
-                      "xvalsErr":xvalsErr,
-                      "yvalsErr":yvalsErr,
-                      "yvals_min":axis_y_min,
-                      "yvals_max":axis_y_max,
-                      "itemColors":itemColors,
-                      "itemLabels":itemLabels,
-                      "xlabel":_replace_labels(x_label),
-                      "ylabel":_replace_labels(y_label),
-                      "xlimits":xlimits,
-                      "ylimits":ylimits,
-                      "xlabels":x_labels,
-                      "ylabels":y_labels,
-                      "hover_labels":hover_labels,
-                      "x_unit":x_unit,
-                      "y_unit":y_unit,
-                      "colors":colors,
-                      "labels":labels,
-                      "column_types":column_types,
-                      "column_order":order,
-                      "path":fname,
-                      "plot_modifiers":plot_modifiers}
+        other_data = {"plot_type": plot_type,
+                      "xvals": xvals,
+                      "yvals": yvals,
+                      "zvals": zvals,
+                      "xvalsErr": xvalsErr,
+                      "yvalsErr": yvalsErr,
+                      "yvals_min": axis_y_min,
+                      "yvals_max": axis_y_max,
+                      "itemColors": itemColors,
+                      "itemLabels": itemLabels,
+                      "xlabel": _replace_labels(x_label),
+                      "ylabel": _replace_labels(y_label),
+                      "xlimits": xlimits,
+                      "ylimits": ylimits,
+                      "xlabels": x_labels,
+                      "ylabels": y_labels,
+                      "hover_labels": hover_labels,
+                      "x_unit": x_unit,
+                      "y_unit": y_unit,
+                      "colors": colors,
+                      "labels": labels,
+                      "column_types": column_types,
+                      "column_order": order,
+                      "path": fname,
+                      "plot_modifiers": plot_modifiers}
 
         return title, other_data

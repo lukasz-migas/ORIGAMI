@@ -81,7 +81,8 @@ class dialogAskOverride(wx.Dialog):
         grid.Add(self.overrideBtn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(self.mergeBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(self.copyBtn, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.askAgain_check, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.askAgain_check, (y, 3), wx.GBSpan(1, 1),
+                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(grid, 0, wx.EXPAND, 10)
@@ -106,4 +107,3 @@ class dialogAskOverride(wx.Dialog):
 
     def onApply(self, evt):
         self.config.import_duplicate_ask = self.askAgain_check.GetValue()
-

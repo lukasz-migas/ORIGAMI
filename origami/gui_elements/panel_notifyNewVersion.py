@@ -6,8 +6,8 @@ class panelNotifyNewVersion(wx.Dialog):
 
     def __init__(self, parent, presenter, message, **kwargs):
         wx.Dialog.__init__(self, parent, -1, 'New version of ORIGAMI is available!', size=(-1, -1),
-                              style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.MAXIMIZE_BOX))
+                           style=wx.DEFAULT_FRAME_STYLE & ~
+                           (wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.presenter = presenter
@@ -55,7 +55,7 @@ class panelNotifyNewVersion(wx.Dialog):
 
         image = wx.StaticBitmap(panel, -1, self.icons.getLogo)
 
-        self.label_header = wx.html.HtmlWindow(panel, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.html.HW_SCROLLBAR_AUTO ,
+        self.label_header = wx.html.HtmlWindow(panel, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.html.HW_SCROLLBAR_AUTO,
                                                size=(500, 400))
         self.label_header.SetPage(self.message)
 
@@ -73,7 +73,8 @@ class panelNotifyNewVersion(wx.Dialog):
         grid = wx.GridBagSizer(5, 5)
         grid.Add(image, (0, 0), wx.GBSpan(1, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(horizontal_line_1, (1, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        grid.Add(self.label_header, (2, 0), wx.GBSpan(2, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.label_header, (2, 0), wx.GBSpan(2, 3), flag=wx.EXPAND |
+                 wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(horizontal_line_2, (4, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         grid.Add(btn_grid, (5, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT)
 

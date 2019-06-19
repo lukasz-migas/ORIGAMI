@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 # -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas 
+#    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-# 
+#
 #	 GitHub : https://github.com/lukasz-migas/ORIGAMI
 #	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
 #	 Cite : 10.1016/j.ijms.2017.08.014
 #
-#    This program is free software. Feel free to redistribute it and/or 
-#    modify it under the condition you cite and credit the authors whenever 
-#    appropriate. 
-#    The program is distributed in the hope that it will be useful but is 
+#    This program is free software. Feel free to redistribute it and/or
+#    modify it under the condition you cite and credit the authors whenever
+#    appropriate.
+#    The program is distributed in the hope that it will be useful but is
 #    provided WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
@@ -26,7 +26,7 @@ from pyteomics import mzid  # @UnresolvedImport
 
 class MZIdentReader():
     def __init__(self, filename, **kwargs):
-        
+
         if filename.endswith('.gz') or filename.endswith('.zip'):
             self.filename = self.extract_file(filename)
         else:
@@ -34,7 +34,7 @@ class MZIdentReader():
         self.source = self.create_parser()
         self.index_dict = {}
         self.index_dict_num = 0
-    
+
     def extract_file(self, archive):
         if archive.endswith('gz'):
             in_f = gzip.open(archive, 'rb')
@@ -44,25 +44,24 @@ class MZIdentReader():
             in_f.close()
             out_f.close()
             return archive
-        
+
         elif archive.endswith('zip'):
             unzip_path = os.path.dirname(archive)
             zip_ref = zipfile.ZipFile(archive, 'r')
             zip_ref.extractall(unzip_path)
             zip_ref.close()
-            
+
             return os.path.splitext(archive)
-            
-        
+
     def create_parser(self):
         return mzid.read(self.filename)
-    
+
     def get_next(self):
         return next(self.source)
-    
+
     def reset(self):
         self.source.reset()
-    
+
     def set_index_dict(self, index_dict):
         self.index_dict = index_dict
         self.index_dict_num = len(index_dict)
@@ -70,11 +69,11 @@ class MZIdentReader():
     def match_identification_with_peaklist(self, peaklist, index_dict=None):
         if index_dict is not None:
             self.index_dict = index_dict
-            
+
         if len(self.index_dict) == 0:
             print("Index dictionary is empty")
             return
-        
+
         self.reset()
 
         found, notfound = 0, 0
@@ -86,13 +85,13 @@ class MZIdentReader():
                 found += 1
             else:
                 notfound += 1
-                
+
         msg = "Found {}/{} | Not found {}/{}. There are {} unassigned spectra".format(found, found+notfound,
                                                                                       notfound, found+notfound,
                                                                                       len(peaklist)-found)
         print(msg)
         return peaklist
-    
+
     def find_spectral_match(self, identification):
         """
         Check whether PSM match the peak list
@@ -100,8 +99,7 @@ class MZIdentReader():
         identification (dict): mzIdent dataset
         spectral_dict (dict): key - value dictionary of ORIGAMI scan names and peaklist file titles
         """
-        
-        
+
         if identification.get("spectrum title", "") in self.index_dict:
             return True, identification['spectrum title'], self.index_dict[identification['spectrum title']]
         elif identification.get("name", "") in self.index_dict:
@@ -116,21 +114,23 @@ class MZIdentReader():
             experimental_mz = spectrum_in['SpectrumIdentificationItem'][spec]['experimentalMassToCharge']
             calculated_mz = spectrum_in['SpectrumIdentificationItem'][spec]['calculatedMassToCharge']
             charge = spectrum_in['SpectrumIdentificationItem'][spec].get('chargeState', 0)
-            
+
             # get dictionaries
             scores = self.get_scores(spectrum_in['SpectrumIdentificationItem'][spec])
-            peptide_info = self.get_peptide_information(spectrum_in['SpectrumIdentificationItem'][spec].get('PeptideEvidenceRef', []))
-            modification_info = self.get_modifications(spectrum_in['SpectrumIdentificationItem'][spec].get('Modification', []))        
-            spectrum_out[spec] = {'peptide_seq':peptide_sequence, 
-                                  'experimental_mz':experimental_mz,
-                                  'calculated_mz':calculated_mz, 
-                                  'charge':charge, 
-                                  'scores':scores,
-                                  'peptide_info':peptide_info, 
-                                  'modification_info':modification_info}
+            peptide_info = self.get_peptide_information(
+                spectrum_in['SpectrumIdentificationItem'][spec].get('PeptideEvidenceRef', []))
+            modification_info = self.get_modifications(
+                spectrum_in['SpectrumIdentificationItem'][spec].get('Modification', []))
+            spectrum_out[spec] = {'peptide_seq': peptide_sequence,
+                                  'experimental_mz': experimental_mz,
+                                  'calculated_mz': calculated_mz,
+                                  'charge': charge,
+                                  'scores': scores,
+                                  'peptide_info': peptide_info,
+                                  'modification_info': modification_info}
 
         return spectrum_out
-        
+
     def get_peptide_information(self, peptide_in):
         """
         Retrieve peptide information from mzIdent file
@@ -145,13 +145,13 @@ class MZIdentReader():
             pre = peptide_in[pep].get('pre', "")
             post = peptide_in[pep].get('post', "")
 
-            peptide_out[pep] = {'peptide_seq':peptide_sequence,
-                                'protein_description':protein_description, 
-                                'accession':accession, 
-                                'start':start, 
-                                'end':end,
-                                'peptide_prev_aa':pre, 
-                                'peptide_next_aa':post}
+            peptide_out[pep] = {'peptide_seq': peptide_sequence,
+                                'protein_description': protein_description,
+                                'accession': accession,
+                                'start': start,
+                                'end': end,
+                                'peptide_prev_aa': pre,
+                                'peptide_next_aa': post}
 
         return peptide_out
 
@@ -166,13 +166,13 @@ class MZIdentReader():
             modification_name = modifications_in[mod].get('name', "")
             modification_residues = modifications_in[mod].get('residues', "")
 
-            modifications_out[mod] = {'location':modification_location, 
-                                      'mass_delta':modification_mass_delta,
-                                      'name':modification_name, 
-                                      'residues':modification_residues}
+            modifications_out[mod] = {'location': modification_location,
+                                      'mass_delta': modification_mass_delta,
+                                      'name': modification_name,
+                                      'residues': modification_residues}
 
         return modifications_out
-    
+
     def get_scores(self, spectrum_in):
         """
         Retrieve a dictionary with scores
@@ -182,9 +182,9 @@ class MZIdentReader():
         mascot_score = spectrum_in.get('Mascot:score', "")
         mascot_threshold = spectrum_in.get('Mascot:identity threshold', "")
 
-        scores = {'scaffold_peptide_probability':scaffold_pep_prob,
-                  'identity_e_score':identity_e_score,
-                  'mascot_score':mascot_score,
-                  'mascot_threshold':mascot_threshold}
+        scores = {'scaffold_peptide_probability': scaffold_pep_prob,
+                  'identity_e_score': identity_e_score,
+                  'mascot_score': mascot_score,
+                  'mascot_threshold': mascot_threshold}
 
         return scores

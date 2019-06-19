@@ -43,10 +43,10 @@ temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
 # USE DRIFTSCOPE
 # ##
 def driftscope_extract_MS(path, bin_size=10000,
-                           rt_start=0, rt_end=99999.0,
-                           dt_start=1, dt_end=200,
-                           mz_start=0, mz_end=99999,
-                           driftscope_path='C:\DriftScope\lib', **kwargs):
+                          rt_start=0, rt_end=99999.0,
+                          dt_start=1, dt_end=200,
+                          mz_start=0, mz_end=99999,
+                          driftscope_path='C:\DriftScope\lib', **kwargs):
     """
     Extract MS data from MassLynx (.raw) file that has IMS data
     @param path (str): path to MassLynx (.raw) file
@@ -132,8 +132,8 @@ def rawMassLynx_MS_load(path=None, inputFile='output.1dMZ', normalize=True, **kw
 
 
 def driftscope_extract_RT(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
-                           mz_start=0, mz_end=999999, driftscope_path='C:\DriftScope\lib',
-                           **kwargs):
+                          mz_start=0, mz_end=999999, driftscope_path='C:\DriftScope\lib',
+                          **kwargs):
     """
     Extract the retention time for specified (or not) mass range
     """
@@ -200,7 +200,7 @@ def rawMassLynx_RT_load(path=None, inputFile='output.1dRT', normalize=False, **k
 
 
 def driftscope_extract_DT(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
-                           mz_start=0, mz_end=999999, driftscope_path='C:\DriftScope\lib', **kwargs):
+                          mz_start=0, mz_end=999999, driftscope_path='C:\DriftScope\lib', **kwargs):
     """
     """
     # check if data should be extracted to data folder OR temporary folder
@@ -266,7 +266,7 @@ def rawMassLynx_DT_load(path=None, inputFile='output.1dDT', normalize=False, **k
 
 
 def driftscope_extract_2D(path=None, mz_start=0, mz_end=999999, rt_start=0, rt_end=99999.0,
-                            dt_start=1, dt_end=200, driftscope_path='C:\DriftScope\lib', **kwargs):
+                          dt_start=1, dt_end=200, driftscope_path='C:\DriftScope\lib', **kwargs):
     # check if data should be extracted to data folder OR temporary folder
     if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
@@ -341,7 +341,7 @@ def rawMassLynx_2DT_load(path=None, inputFile='output.2dRTDT', normalize=False, 
 
 
 def driftscope_extract_MZDT(path=None, mz_start=0, mz_end=999999, mz_nPoints=5000, dt_start=1, dt_end=200,
-                             silent_extract=True, driftscope_path='C:\DriftScope\lib', **kwargs):
+                            silent_extract=True, driftscope_path='C:\DriftScope\lib', **kwargs):
     # check if data should be extracted to data folder OR temporary folder
     if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder

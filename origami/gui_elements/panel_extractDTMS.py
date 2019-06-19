@@ -241,7 +241,7 @@ class panel_extractDTMS(wx.MiniFrame):
         mz_min: float
         mz_max: float
         shape: tuple
-        
+
         Returns
         -------
         mz_x: 1D numpy array
@@ -263,7 +263,7 @@ class panel_extractDTMS(wx.MiniFrame):
         return is_present
 
     def on_get_document(self):
-#         try:
+        #         try:
         document = self.data_handling._on_get_document()
 
         return document, document.title
@@ -330,7 +330,7 @@ class panel_extractDTMS(wx.MiniFrame):
         fmts = ["%.4f"] + ["%i"] * len(yvals)
 
         # Save 2D array
-        kwargs = {'default_name':defaultValue}
+        kwargs = {'default_name': defaultValue}
         self.documentTree.onSaveData(data=saveData, labels=labels,
                                      data_format=fmts, **kwargs)
 
@@ -348,4 +348,3 @@ class panel_extractDTMS(wx.MiniFrame):
             self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
             data, mz_x = pr_heatmap.bin_mean_array(self.z_data, self.x_data, division_factor)
             self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
-

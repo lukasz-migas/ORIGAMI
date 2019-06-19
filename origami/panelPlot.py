@@ -16,7 +16,11 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import wx, time, math, matplotlib, os
+import wx
+import time
+import math
+import matplotlib
+import os
 import numpy as np
 import seaborn as sns
 from visuals import mpl_plots
@@ -57,8 +61,8 @@ from utils.check import isempty
 class panelPlot(wx.Panel):
 
     def __init__(self, parent, config, presenter):
-        wx.Panel.__init__ (self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                             size=wx.Size(800, 600), style=wx.TAB_TRAVERSAL)
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+                          size=wx.Size(800, 600), style=wx.TAB_TRAVERSAL)
 
         self.config = config
         self.view = parent
@@ -132,7 +136,8 @@ class panelPlot(wx.Panel):
                             self.current_plot.plot_add_arrow(
                                 arrow_list, stick_to_intensity=True,
                                 **arrow_kwargs)
-            except: pass
+            except:
+                pass
 
         # update annotation
         self.view.panelDocuments.documents.onUpdateAnotations(
@@ -151,14 +156,22 @@ class panelPlot(wx.Panel):
         elif self.currentPage in ['3D']:
             self.window_plot3D = self.currentPage
 
-        if self.currentPage == "Waterfall": self.current_plot = self.plot_waterfall
-        elif self.currentPage == "MS": self.current_plot = self.plot1
-        elif self.currentPage == "1D": self.current_plot = self.plot1D
-        elif self.currentPage == "RT": self.current_plot = self.plotRT
-        elif self.currentPage == "2D": self.current_plot = self.plot2D
-        elif self.currentPage == "DT/MS": self.current_plot = self.plot_DT_vs_MS
-        elif self.currentPage == "Overlay": self.current_plot = self.plot_overlay
-        elif self.currentPage == "Other": self.current_plot = self.plotOther
+        if self.currentPage == "Waterfall":
+            self.current_plot = self.plot_waterfall
+        elif self.currentPage == "MS":
+            self.current_plot = self.plot1
+        elif self.currentPage == "1D":
+            self.current_plot = self.plot1D
+        elif self.currentPage == "RT":
+            self.current_plot = self.plotRT
+        elif self.currentPage == "2D":
+            self.current_plot = self.plot2D
+        elif self.currentPage == "DT/MS":
+            self.current_plot = self.plot_DT_vs_MS
+        elif self.currentPage == "Overlay":
+            self.current_plot = self.plot_overlay
+        elif self.currentPage == "Other":
+            self.current_plot = self.plotOther
 
         # update statusbars
         if self.config.processParamsWindow_on_off:
@@ -168,17 +181,17 @@ class panelPlot(wx.Panel):
             self.view.panelParametersEdit.updateStatusbar()
 
     def makeNotebook(self):
-		# Setup notebook
+                # Setup notebook
         self.mainBook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition,
-                                         wx.DefaultSize, 0)
+                                    wx.DefaultSize, 0)
         # Setup PLOT MS
         self.panelMS = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelMS, "MS", False)
 
         self.plot1 = mpl_plots.plots(self.panelMS,
-                                 figsize=self.config._plotSettings["MS"]['gui_size'],
-                                 config=self.config)
+                                     figsize=self.config._plotSettings["MS"]['gui_size'],
+                                     config=self.config)
 
         boxsizer_MS = wx.BoxSizer(wx.VERTICAL)
         boxsizer_MS.Add(self.plot1, 1, wx.EXPAND)
@@ -192,16 +205,16 @@ class panelPlot(wx.Panel):
         # Create two panels for each dataset
         self.topPanelRT_RT = wx.Panel(self.panelRT)
         self.plotRT = mpl_plots.plots(self.topPanelRT_RT,
-                                  figsize=self.config._plotSettings["RT"]['gui_size'],
-                                  config=self.config)
+                                      figsize=self.config._plotSettings["RT"]['gui_size'],
+                                      config=self.config)
         boxTopPanelRT = wx.BoxSizer(wx.VERTICAL)
         boxTopPanelRT.Add(self.plotRT, 1, wx.EXPAND)
         self.topPanelRT_RT.SetSizer(boxTopPanelRT)
 
         self.bottomPanelRT_MS = wx.Panel(self.panelRT)
         self.plot_RT_MS = mpl_plots.plots(self.bottomPanelRT_MS,
-                                     figsize=self.config._plotSettings["MS (DT/RT)"]['gui_size'],
-                                     config=self.config)
+                                          figsize=self.config._plotSettings["MS (DT/RT)"]['gui_size'],
+                                          config=self.config)
         boxBottomPanelMS = wx.BoxSizer(wx.VERTICAL)
         boxBottomPanelMS.Add(self.plot_RT_MS, 1, wx.EXPAND)
         self.bottomPanelRT_MS.SetSizer(boxBottomPanelMS)
@@ -220,16 +233,16 @@ class panelPlot(wx.Panel):
         # Create two panels for each dataset
         self.topPanel1D_1D = wx.Panel(self.panel1D)
         self.plot1D = mpl_plots.plots(self.topPanel1D_1D,
-                                  figsize=self.config._plotSettings["DT"]['gui_size'],
-                                  config=self.config)
+                                      figsize=self.config._plotSettings["DT"]['gui_size'],
+                                      config=self.config)
         boxTopPanelMS = wx.BoxSizer(wx.VERTICAL)
         boxTopPanelMS.Add(self.plot1D, 1, wx.EXPAND)
         self.topPanel1D_1D.SetSizer(boxTopPanelMS)
 
         self.bottomPanel1D_MS = wx.Panel(self.panel1D)
         self.plot_DT_MS = mpl_plots.plots(self.bottomPanel1D_MS,
-                                     figsize=self.config._plotSettings["MS (DT/RT)"]['gui_size'],
-                                     config=self.config)
+                                          figsize=self.config._plotSettings["MS (DT/RT)"]['gui_size'],
+                                          config=self.config)
         boxBottomPanel1DT = wx.BoxSizer(wx.VERTICAL)
         boxBottomPanel1DT.Add(self.plot_DT_MS, 1, wx.EXPAND)
         self.bottomPanel1D_MS.SetSizer(boxBottomPanel1DT)
@@ -245,8 +258,8 @@ class panelPlot(wx.Panel):
         self.mainBook.AddPage(self.panel2D, "2D", False)
 
         self.plot2D = mpl_plots.plots(self.panel2D,
-                                  figsize=self.config._plotSettings["2D"]['gui_size'],
-                                  config=self.config)
+                                      figsize=self.config._plotSettings["2D"]['gui_size'],
+                                      config=self.config)
 
         boxsizer_2D = wx.BoxSizer(wx.HORIZONTAL)
         boxsizer_2D.Add(self.plot2D, 1, wx.EXPAND | wx.ALL)
@@ -254,12 +267,12 @@ class panelPlot(wx.Panel):
 
         # Setup PLOT DT/MS
         self.panelMZDT = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-                                   wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                  wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelMZDT, "DT/MS", False)
 
         self.plot_DT_vs_MS = mpl_plots.plots(self.panelMZDT,
-                                    figsize=self.config._plotSettings["DT/MS"]['gui_size'],
-                                    config=self.config)
+                                             figsize=self.config._plotSettings["DT/MS"]['gui_size'],
+                                             config=self.config)
 
         boxsizer_MZDT = wx.BoxSizer(wx.HORIZONTAL)
         boxsizer_MZDT.Add(self.plot_DT_vs_MS, 1, wx.EXPAND | wx.ALL)
@@ -267,12 +280,12 @@ class panelPlot(wx.Panel):
 
         # Setup PLOT WATERFALL
         self.waterfallIMS = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-                                   wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.waterfallIMS, "Waterfall", False)
 
         self.plot_waterfall = mpl_plots.plots(self.waterfallIMS,
-                                            figsize=self.config._plotSettings["Waterfall"]['gui_size'],
-                                            config=self.config)
+                                              figsize=self.config._plotSettings["Waterfall"]['gui_size'],
+                                              config=self.config)
 
         boxsizer_waterfall = wx.BoxSizer(wx.HORIZONTAL)
         boxsizer_waterfall.Add(self.plot_waterfall, 1, wx.EXPAND | wx.ALL)
@@ -280,12 +293,12 @@ class panelPlot(wx.Panel):
 
         # Setup PLOT 3D
         self.panel3D = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-                                   wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panel3D, "3D", False)
 
         self.plot3D = mpl_plots.plots(self.panel3D,
-                                  figsize=self.config._plotSettings["3D"]['gui_size'],
-                                  config=self.config)
+                                      figsize=self.config._plotSettings["3D"]['gui_size'],
+                                      config=self.config)
 
         boxsizer_3D = wx.BoxSizer(wx.VERTICAL)
         boxsizer_3D.Add(self.plot3D, 1, wx.EXPAND)
@@ -293,36 +306,36 @@ class panelPlot(wx.Panel):
 
         # Setup PLOT RMSF
         self.panelRMSF = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-                                   wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                  wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelRMSF, "RMSF", False)
 
         self.plot_RMSF = mpl_plots.plots(self.panelRMSF,
-                                    figsize=self.config._plotSettings["RMSF"]['gui_size'],
-                                    config=self.config)
+                                         figsize=self.config._plotSettings["RMSF"]['gui_size'],
+                                         config=self.config)
         boxsizer_RMSF = wx.BoxSizer(wx.VERTICAL)
         boxsizer_RMSF.Add(self.plot_RMSF, 1, wx.EXPAND)
         self.panelRMSF.SetSizer(boxsizer_RMSF)
 
         # Setup PLOT Comparison
         self.panelCompare = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-                                   wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelCompare, "Comparison", False)
 
         self.plotCompare = mpl_plots.plots(self.panelCompare,
-                                       figsize=self.config._plotSettings["Comparison"]['gui_size'],
-                                       config=self.config)
+                                           figsize=self.config._plotSettings["Comparison"]['gui_size'],
+                                           config=self.config)
         boxsizer_compare = wx.BoxSizer(wx.VERTICAL)
         boxsizer_compare.Add(self.plotCompare, 1, wx.EXPAND)
         self.panelCompare.SetSizer(boxsizer_compare)
 
         # Setup PLOT Overlay
         self.panelOverlay = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-                                   wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                     wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelOverlay, "Overlay", False)
 
         self.plot_overlay = mpl_plots.plots(self.panelOverlay,
-                                       figsize=self.config._plotSettings["Overlay"]['gui_size'],
-                                       config=self.config)
+                                            figsize=self.config._plotSettings["Overlay"]['gui_size'],
+                                            config=self.config)
 
         boxsizer_overlay = wx.BoxSizer(wx.VERTICAL)
         boxsizer_overlay.Add(self.plot_overlay, 1, wx.EXPAND)
@@ -346,16 +359,16 @@ class panelPlot(wx.Panel):
 
         # Plot MS
         self.topPlotMS = mpl_plots.plots(self.topPanelMS,
-                                     figsize=self.config._plotSettings["Calibration (MS)"]['gui_size'],
-                                     config=self.config)
+                                         figsize=self.config._plotSettings["Calibration (MS)"]['gui_size'],
+                                         config=self.config)
         boxTopPanelMS = wx.BoxSizer(wx.VERTICAL)
         boxTopPanelMS.Add(self.topPlotMS, 1, wx.EXPAND)
         self.topPanelMS.SetSizer(boxTopPanelMS)
 
         # Plot 1DT
         self.bottomPlot1DT = mpl_plots.plots(self.bottomPanel1DT,
-                                         figsize=self.config._plotSettings["Calibration (DT)"]['gui_size'],
-                                         config=self.config)
+                                             figsize=self.config._plotSettings["Calibration (DT)"]['gui_size'],
+                                             config=self.config)
         boxBottomPanel1DT = wx.BoxSizer(wx.VERTICAL)
         boxBottomPanel1DT.Add(self.bottomPlot1DT, 1, wx.EXPAND)
         self.bottomPanel1DT.SetSizer(boxBottomPanel1DT)
@@ -397,14 +410,14 @@ class panelPlot(wx.Panel):
             self.panelUniDec.SetSizer(plotUnidecSizer)
         else:
             self.panelUniDec = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-                                       wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                        wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.mainBook.AddPage(self.panelUniDec, "UniDec", False)
 
             # Setup notebook
             self.unidec_notebook = wx.Notebook(self.panelUniDec, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
             # Setup PLOT MS
             self.unidec_MS = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
-                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                      wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_MS, "MS", False)
             figsize = self.config._plotSettings["UniDec (MS)"]['gui_size']
             self.plotUnidec_MS = mpl_plots.plots(self.unidec_MS, config=self.config, figsize=figsize)
@@ -413,7 +426,7 @@ class panelPlot(wx.Panel):
             self.unidec_MS.SetSizer(boxsizer_unidec_MS)
 
             self.unidec_mzGrid = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
-                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                          wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_mzGrid, "m/z vs Charge", False)
             figsize = self.config._plotSettings["UniDec (m/z vs Charge)"]['gui_size']
             self.plotUnidec_mzGrid = mpl_plots.plots(self.unidec_mzGrid, config=self.config, figsize=figsize)
@@ -422,7 +435,7 @@ class panelPlot(wx.Panel):
             self.unidec_mzGrid.SetSizer(boxsizer_unidec_mzGrid)
 
             self.unidec_mwVsZ = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
-                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                         wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_mwVsZ, "MW vs Charge", False)
             figsize = self.config._plotSettings["UniDec (MW vs Charge)"]['gui_size']
             self.plotUnidec_mwVsZ = mpl_plots.plots(self.unidec_mwVsZ, config=self.config, figsize=figsize)
@@ -431,10 +444,11 @@ class panelPlot(wx.Panel):
             self.unidec_mwVsZ.SetSizer(boxsizer_unidec__mwVsZ)
 
             self.unidec_mwDistribution = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
-                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                                  wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_mwDistribution, "MW", False)
             figsize = self.config._plotSettings["UniDec (MW)"]['gui_size']
-            self.plotUnidec_mwDistribution = mpl_plots.plots(self.unidec_mwDistribution, config=self.config, figsize=figsize)
+            self.plotUnidec_mwDistribution = mpl_plots.plots(
+                self.unidec_mwDistribution, config=self.config, figsize=figsize)
             boxsizer_unidec_mwDistribution = wx.BoxSizer(wx.VERTICAL)
             boxsizer_unidec_mwDistribution.Add(self.plotUnidec_mwDistribution, 1, wx.EXPAND)
             self.unidec_mwDistribution.SetSizer(boxsizer_unidec_mwDistribution)
@@ -443,29 +457,30 @@ class panelPlot(wx.Panel):
                                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_individualPeaks, "Isolated MS", False)
             figsize = self.config._plotSettings["UniDec (Isolated MS)"]['gui_size']
-            self.plotUnidec_individualPeaks = mpl_plots.plots(self.unidec_individualPeaks, config=self.config, figsize=figsize)
+            self.plotUnidec_individualPeaks = mpl_plots.plots(
+                self.unidec_individualPeaks, config=self.config, figsize=figsize)
             boxsizer_unidec_individualPeaks = wx.BoxSizer(wx.VERTICAL)
             boxsizer_unidec_individualPeaks.Add(self.plotUnidec_individualPeaks, 1, wx.EXPAND)
             self.unidec_individualPeaks.SetSizer(boxsizer_unidec_individualPeaks)
 
             self.unidec_barChart = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
-                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                            wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_barChart, "Barplot", False)
             figsize = self.config._plotSettings["UniDec (Barplot)"]['gui_size']
             self.plotUnidec_barChart = mpl_plots.plots(self.unidec_barChart,
-                                                   config=self.config,
-                                                   figsize=figsize)
+                                                       config=self.config,
+                                                       figsize=figsize)
             boxsizer_unidec_barChart = wx.BoxSizer(wx.VERTICAL)
             boxsizer_unidec_barChart.Add(self.plotUnidec_barChart, 1, wx.EXPAND)
             self.unidec_barChart.SetSizer(boxsizer_unidec_barChart)
 
             self.unidec_chargeDistribution = wx.Panel(self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition,
-                                    wx.DefaultSize, wx.TAB_TRAVERSAL)
+                                                      wx.DefaultSize, wx.TAB_TRAVERSAL)
             self.unidec_notebook.AddPage(self.unidec_chargeDistribution, "Charge distribution", False)
             figsize = self.config._plotSettings["UniDec (Charge Distribution)"]['gui_size']
             self.plotUnidec_chargeDistribution = mpl_plots.plots(self.unidec_chargeDistribution,
-                                                             config=self.config,
-                                                             figsize=figsize)
+                                                                 config=self.config,
+                                                                 figsize=figsize)
             boxsizer_unidec_chargeDistribution = wx.BoxSizer(wx.VERTICAL)
             boxsizer_unidec_chargeDistribution.Add(self.plotUnidec_chargeDistribution, 1, wx.EXPAND)
             self.unidec_chargeDistribution.SetSizer(boxsizer_unidec_chargeDistribution)
@@ -480,8 +495,8 @@ class panelPlot(wx.Panel):
         self.mainBook.AddPage(self.panelOther, "Other", False)
 
         self.plotOther = mpl_plots.plots(self.panelOther,
-                                     figsize=self.config._plotSettings["2D"]['gui_size'],
-                                     config=self.config)
+                                         figsize=self.config._plotSettings["2D"]['gui_size'],
+                                         config=self.config)
 
         boxsizer_other = wx.BoxSizer(wx.VERTICAL)
         boxsizer_other.Add(self.plotOther, 1, wx.EXPAND)
@@ -584,18 +599,25 @@ class panelPlot(wx.Panel):
         customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_mw, 'Customise Zero charge mass spectrum...')
         customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_mz_v_charge, 'Customise m/z vs charge...')
         customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_mw_v_charge, 'Customise molecular weight vs charge...')
-        customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_isolated_mz, 'Customise mass spectrum with isolated species...')
+        customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_isolated_mz,
+                                   'Customise mass spectrum with isolated species...')
         customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_ms_barchart, 'Customise barchart...')
         customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_chargeDist, 'Customise charge state distribution...')
 
         saveUniDecMenu = wx.Menu()
         saveUniDecMenu.Append(ID_plots_saveImage_unidec_ms, 'Save mass spectrum (.{})'.format(self.config.imageFormat))
-        saveUniDecMenu.Append(ID_plots_saveImage_unidec_mw, 'Save Zero charge mass spectrum (.{})'.format(self.config.imageFormat))
-        saveUniDecMenu.Append(ID_plots_saveImage_unidec_mz_v_charge, 'Save m/z vs charge (.{})'.format(self.config.imageFormat))
-        saveUniDecMenu.Append(ID_plots_saveImage_unidec_mw_v_charge, 'Save molecular weight vs charge (.{})'.format(self.config.imageFormat))
-        saveUniDecMenu.Append(ID_plots_saveImage_unidec_isolated_mz, 'Save mass spectrum with isolated species (.{})'.format(self.config.imageFormat))
-        saveUniDecMenu.Append(ID_plots_saveImage_unidec_ms_barchart, 'Save barchart (.{})'.format(self.config.imageFormat))
-        saveUniDecMenu.Append(ID_plots_saveImage_unidec_chargeDist, 'Save charge state distribution (.{})'.format(self.config.imageFormat))
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_mw,
+                              'Save Zero charge mass spectrum (.{})'.format(self.config.imageFormat))
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_mz_v_charge,
+                              'Save m/z vs charge (.{})'.format(self.config.imageFormat))
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_mw_v_charge,
+                              'Save molecular weight vs charge (.{})'.format(self.config.imageFormat))
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_isolated_mz,
+                              'Save mass spectrum with isolated species (.{})'.format(self.config.imageFormat))
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_ms_barchart,
+                              'Save barchart (.{})'.format(self.config.imageFormat))
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_chargeDist,
+                              'Save charge state distribution (.{})'.format(self.config.imageFormat))
         saveUniDecMenu.AppendSeparator()
         saveUniDecMenu.AppendItem(makeMenuItem(parent=saveUniDecMenu, id=ID_saveUniDecAll, text="Save all figures (.{})".format(self.config.imageFormat),
                                                bitmap=self.icons.iconsLib['save16']))
@@ -641,8 +663,8 @@ class panelPlot(wx.Panel):
             else:
                 menu.Append(ID_smooth1DdataRT, "Smooth chromatogram")
                 self.binMS_check = menu.AppendCheckItem(ID_plotPanel_binMS,
-                                                         "Bin mass spectra during extraction",
-                                                         help="")
+                                                        "Bin mass spectra during extraction",
+                                                        help="")
                 self.binMS_check.Check(self.config.ms_enable_in_RT)
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_processSettings_MS,
                                              text='Edit extraction parameters...',
@@ -677,8 +699,8 @@ class panelPlot(wx.Panel):
             else:
                 menu.Append(ID_smooth1Ddata1DT, "Smooth mobiligram")
                 self.binMS_check = menu.AppendCheckItem(ID_plotPanel_binMS,
-                                                         "Bin mass spectra during extraction",
-                                                         help="")
+                                                        "Bin mass spectra during extraction",
+                                                        help="")
                 self.binMS_check.Check(self.config.ms_enable_in_RT)
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_processSettings_MS,
                                              text='Edit extraction parameters...',
@@ -891,13 +913,20 @@ class panelPlot(wx.Panel):
                                          bitmap=self.icons.iconsLib['panel_legend_16']))
             menu.AppendSeparator()
             evtID = None
-            if self.view.plot_name == "MS": evtID = ID_plots_customisePlot_unidec_ms
-            elif self.view.plot_name == "mwDistribution": evtID = ID_plots_customisePlot_unidec_mw
-            elif self.view.plot_name == "mzGrid": evtID = ID_plots_customisePlot_unidec_mz_v_charge
-            elif self.view.plot_name == "mwGrid": evtID = ID_plots_customisePlot_unidec_mw_v_charge
-            elif self.view.plot_name == "pickedPeaks": evtID = ID_plots_customisePlot_unidec_isolated_mz
-            elif self.view.plot_name == "Barchart": evtID = ID_plots_customisePlot_unidec_ms_barchart
-            elif self.view.plot_name == "ChargeDistribution": evtID = ID_plots_customisePlot_unidec_chargeDist
+            if self.view.plot_name == "MS":
+                evtID = ID_plots_customisePlot_unidec_ms
+            elif self.view.plot_name == "mwDistribution":
+                evtID = ID_plots_customisePlot_unidec_mw
+            elif self.view.plot_name == "mzGrid":
+                evtID = ID_plots_customisePlot_unidec_mz_v_charge
+            elif self.view.plot_name == "mwGrid":
+                evtID = ID_plots_customisePlot_unidec_mw_v_charge
+            elif self.view.plot_name == "pickedPeaks":
+                evtID = ID_plots_customisePlot_unidec_isolated_mz
+            elif self.view.plot_name == "Barchart":
+                evtID = ID_plots_customisePlot_unidec_ms_barchart
+            elif self.view.plot_name == "ChargeDistribution":
+                evtID = ID_plots_customisePlot_unidec_chargeDist
             if evtID is not None:
                 menu.AppendItem(makeMenuItem(parent=menu, id=evtID,
                                              text='Customise plot...',
@@ -907,26 +936,40 @@ class panelPlot(wx.Panel):
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(self.config.resize)
             evtID = None
-            if self.view.plot_name == "MS": evtID = ID_clearPlot_UniDec_MS
-            elif self.view.plot_name == "mwDistribution": evtID = ID_plots_saveImage_unidec_mw
-            elif self.view.plot_name == "mzGrid": evtID = ID_plots_saveImage_unidec_mz_v_charge
-            elif self.view.plot_name == "mwGrid": evtID = ID_plots_saveImage_unidec_mw_v_charge
-            elif self.view.plot_name == "pickedPeaks": evtID = ID_plots_saveImage_unidec_isolated_mz
-            elif self.view.plot_name == "Barchart": evtID = ID_plots_saveImage_unidec_ms_barchart
-            elif self.view.plot_name == "ChargeDistribution": evtID = ID_plots_saveImage_unidec_chargeDist
+            if self.view.plot_name == "MS":
+                evtID = ID_clearPlot_UniDec_MS
+            elif self.view.plot_name == "mwDistribution":
+                evtID = ID_plots_saveImage_unidec_mw
+            elif self.view.plot_name == "mzGrid":
+                evtID = ID_plots_saveImage_unidec_mz_v_charge
+            elif self.view.plot_name == "mwGrid":
+                evtID = ID_plots_saveImage_unidec_mw_v_charge
+            elif self.view.plot_name == "pickedPeaks":
+                evtID = ID_plots_saveImage_unidec_isolated_mz
+            elif self.view.plot_name == "Barchart":
+                evtID = ID_plots_saveImage_unidec_ms_barchart
+            elif self.view.plot_name == "ChargeDistribution":
+                evtID = ID_plots_saveImage_unidec_chargeDist
             if evtID is not None:
                 menu.AppendItem(makeMenuItem(parent=menu, id=evtID, text=saveImageLabel,
                                              bitmap=self.icons.iconsLib['save16']))
             menu.AppendMenu(wx.ID_ANY, 'Save figure...', saveUniDecMenu)
             menu.AppendSeparator()
             evtID = None
-            if self.view.plot_name == "MS": evtID = ID_clearPlot_UniDec_MS
-            elif self.view.plot_name == "mwDistribution": evtID = ID_clearPlot_UniDec_mwDistribution
-            elif self.view.plot_name == "mzGrid": evtID = ID_clearPlot_UniDec_mzGrid
-            elif self.view.plot_name == "mwGrid": evtID = ID_clearPlot_UniDec_mwGrid
-            elif self.view.plot_name == "pickedPeaks": evtID = ID_clearPlot_UniDec_pickedPeaks
-            elif self.view.plot_name == "Barchart": evtID = ID_clearPlot_UniDec_barchart
-            elif self.view.plot_name == "ChargeDistribution": evtID = ID_clearPlot_UniDec_chargeDistribution
+            if self.view.plot_name == "MS":
+                evtID = ID_clearPlot_UniDec_MS
+            elif self.view.plot_name == "mwDistribution":
+                evtID = ID_clearPlot_UniDec_mwDistribution
+            elif self.view.plot_name == "mzGrid":
+                evtID = ID_clearPlot_UniDec_mzGrid
+            elif self.view.plot_name == "mwGrid":
+                evtID = ID_clearPlot_UniDec_mwGrid
+            elif self.view.plot_name == "pickedPeaks":
+                evtID = ID_clearPlot_UniDec_pickedPeaks
+            elif self.view.plot_name == "Barchart":
+                evtID = ID_clearPlot_UniDec_barchart
+            elif self.view.plot_name == "ChargeDistribution":
+                evtID = ID_clearPlot_UniDec_chargeDistribution
             if evtID is not None:
                 menu.AppendItem(makeMenuItem(parent=menu, id=evtID, text="Clear plot",
                                              bitmap=self.icons.iconsLib['clear_16']))
@@ -1031,7 +1074,7 @@ class panelPlot(wx.Panel):
                 resizeName = "Waterfall"
 
         elif evtID in [ID_saveRMSDImage, ID_saveRMSDImageDoc,
-                             ID_saveRMSFImage, ID_saveRMSFImageDoc]:
+                       ID_saveRMSFImage, ID_saveRMSFImageDoc]:
             plotWindow = self.plot_RMSF
             defaultName = self.config._plotSettings['RMSD']['default_name']
             resizeName = plotWindow.getPlotName()
@@ -1098,7 +1141,8 @@ class panelPlot(wx.Panel):
                 defaultName = "{}_{}".format(title, defaultName)
         else:
             defaultName = "{}_{}".format(title, defaultName)
-        defaultName = defaultName.replace(' ', '').replace(':', '').replace(" ", "").replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "").replace(".", "")
+        defaultName = defaultName.replace(' ', '').replace(':', '').replace(" ", "").replace(
+            ".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "").replace(".", "")
 
         # Setup filename
         wildcard = "SVG Scalable Vector Graphic (*.svg)|*.svg|" + \
@@ -1111,15 +1155,17 @@ class panelPlot(wx.Panel):
                    "PS PostScript Image File Format (*.ps)|*.ps|" + \
                    "PDF Portable Document Format (*.pdf)|*.pdf"
 
-        wildcard_dict = {'svg':0, 'svgz':1, 'png':2, 'eps':3, 'jpeg':4,
-                         'tiff':5, 'raw':6, 'ps':7, 'pdf':8}
+        wildcard_dict = {'svg': 0, 'svgz': 1, 'png': 2, 'eps': 3, 'jpeg': 4,
+                         'tiff': 5, 'raw': 6, 'ps': 7, 'pdf': 8}
 
         dlg = wx.FileDialog(self, "Please select a name for the file",
-                             "", "", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                            "", "", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         dlg.CentreOnParent()
         dlg.SetFilename(defaultName)
-        try: dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
-        except: pass
+        try:
+            dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
+        except:
+            pass
 
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.clock()
@@ -1128,10 +1174,10 @@ class panelPlot(wx.Panel):
             self.config.imageFormat = extension[1::]
 
             # Build kwargs
-            kwargs = {"transparent":self.config.transparent,
-                      "dpi":self.config.dpi,
-                      'format':extension[1::],
-                      'compression':"zlib",
+            kwargs = {"transparent": self.config.transparent,
+                      "dpi": self.config.dpi,
+                      'format': extension[1::],
+                      'compression': "zlib",
                       'resize': None}
 
             if self.config.resize:
@@ -1147,13 +1193,20 @@ class panelPlot(wx.Panel):
         self.presenter.onThreading(evt, args, action='updateStatusbar')
 
     def onLockPlot(self, evt):
-        if self.currentPage == "Waterfall": plot = self.plot_waterfall
-        elif self.currentPage == "MS": plot = self.plot1
-        elif self.currentPage == "1D": plot = self.plot1D
-        elif self.currentPage == "RT": plot = self.plotRT
-        elif self.currentPage == "2D": plot = self.plot2D
-        elif self.currentPage == "DT/MS": plot = self.plot_DT_vs_MS
-        elif self.currentPage == "Overlay": plot = self.plot_overlay
+        if self.currentPage == "Waterfall":
+            plot = self.plot_waterfall
+        elif self.currentPage == "MS":
+            plot = self.plot1
+        elif self.currentPage == "1D":
+            plot = self.plot1D
+        elif self.currentPage == "RT":
+            plot = self.plotRT
+        elif self.currentPage == "2D":
+            plot = self.plot2D
+        elif self.currentPage == "DT/MS":
+            plot = self.plot_DT_vs_MS
+        elif self.currentPage == "Overlay":
+            plot = self.plot_overlay
 
         plot.lock_plot_from_updating = not plot.lock_plot_from_updating
 
@@ -1168,28 +1221,44 @@ class panelPlot(wx.Panel):
     def customisePlot(self, evt):
         open_window, title = True, ""
 
-        if self.currentPage == "Waterfall": plot, title = self.plot_waterfall, "Waterfall..."
-        elif self.currentPage == "MS": plot, title = self.plot1, "Mass spectrum..."
-        elif self.currentPage == "1D": plot, title = self.plot1D, "Mobiligram..."
-        elif self.currentPage == "RT": plot, title = self.plotRT, "Chromatogram ..."
-        elif self.currentPage == "2D": plot, title = self.plot2D, "Heatmap..."
-        elif self.currentPage == "DT/MS": plot, title = self.plot_DT_vs_MS, "DT/MS..."
+        if self.currentPage == "Waterfall":
+            plot, title = self.plot_waterfall, "Waterfall..."
+        elif self.currentPage == "MS":
+            plot, title = self.plot1, "Mass spectrum..."
+        elif self.currentPage == "1D":
+            plot, title = self.plot1D, "Mobiligram..."
+        elif self.currentPage == "RT":
+            plot, title = self.plotRT, "Chromatogram ..."
+        elif self.currentPage == "2D":
+            plot, title = self.plot2D, "Heatmap..."
+        elif self.currentPage == "DT/MS":
+            plot, title = self.plot_DT_vs_MS, "DT/MS..."
         elif self.currentPage == "Overlay":
             plot, title = self.plot_overlay, "Overlay"
-            if plot.plot_name not in ["Mask", "Transparent"]: open_window = False
+            if plot.plot_name not in ["Mask", "Transparent"]:
+                open_window = False
         elif self.currentPage == "RMSF":
             plot, title = self.plot_RMSF, "RMSF"
-            if plot.plot_name not in ["RMSD"]: open_window = False
-        elif self.currentPage == "Comparison": plot, title = self.plotCompare, "Comparison..."
+            if plot.plot_name not in ["RMSD"]:
+                open_window = False
+        elif self.currentPage == "Comparison":
+            plot, title = self.plotCompare, "Comparison..."
         elif self.currentPage == "UniDec":
             evtID = evt.GetId()
-            if evtID == ID_plots_customisePlot_unidec_ms: plot, title = self.plotUnidec_MS, "UniDec - Mass spectrum..."
-            elif evtID == ID_plots_customisePlot_unidec_mw: plot, title = self.plotUnidec_mwDistribution, "UniDec - Molecular weight distribution..."
-            elif evtID == ID_plots_customisePlot_unidec_mz_v_charge: plot, title = self.plotUnidec_mzGrid, "UniDec - Mass spectrum vs charge..."
-            elif evtID == ID_plots_customisePlot_unidec_isolated_mz: plot, title = self.plotUnidec_individualPeaks, "UniDec - Mass spectrum with individual species..."
-            elif evtID == ID_plots_customisePlot_unidec_mw_v_charge: plot, title = self.plotUnidec_mwVsZ, "UniDec - molecular weight vs charge..."
-            elif evtID == ID_plots_customisePlot_unidec_ms_barchart: plot, title = self.plotUnidec_barChart, "UniDec - Barchart..."
-            elif evtID == ID_plots_customisePlot_unidec_chargeDist: plot, title = self.plotUnidec_chargeDistribution, "UniDec - Charge state distribution..."
+            if evtID == ID_plots_customisePlot_unidec_ms:
+                plot, title = self.plotUnidec_MS, "UniDec - Mass spectrum..."
+            elif evtID == ID_plots_customisePlot_unidec_mw:
+                plot, title = self.plotUnidec_mwDistribution, "UniDec - Molecular weight distribution..."
+            elif evtID == ID_plots_customisePlot_unidec_mz_v_charge:
+                plot, title = self.plotUnidec_mzGrid, "UniDec - Mass spectrum vs charge..."
+            elif evtID == ID_plots_customisePlot_unidec_isolated_mz:
+                plot, title = self.plotUnidec_individualPeaks, "UniDec - Mass spectrum with individual species..."
+            elif evtID == ID_plots_customisePlot_unidec_mw_v_charge:
+                plot, title = self.plotUnidec_mwVsZ, "UniDec - molecular weight vs charge..."
+            elif evtID == ID_plots_customisePlot_unidec_ms_barchart:
+                plot, title = self.plotUnidec_barChart, "UniDec - Barchart..."
+            elif evtID == ID_plots_customisePlot_unidec_chargeDist:
+                plot, title = self.plotUnidec_chargeDistribution, "UniDec - Charge state distribution..."
         elif self.currentPage == "Other":
             plot, title = self.plotOther, "Custom data..."
 
@@ -1230,25 +1299,25 @@ class panelPlot(wx.Panel):
                              np.round(plot_size[1] / dpi[1], 2))
 
         try:
-            kwargs = {'xmin':xmin, 'xmax':xmax,
-                      'ymin':ymin, 'ymax':ymax,
-                      'major_xticker':plot.plotMS.xaxis.get_major_locator(),
-                      'major_yticker':plot.plotMS.yaxis.get_major_locator(),
-                      'minor_xticker':plot.plotMS.xaxis.get_minor_locator(),
-                      'minor_yticker':plot.plotMS.yaxis.get_minor_locator(),
-                      'tick_size':self.config.tickFontSize_1D,
-                      'tick_weight':self.config.tickFontWeight_1D,
-                      'label_size':self.config.labelFontSize_1D,
-                      'label_weight':self.config.labelFontWeight_1D,
-                      'title_size':self.config.titleFontSize_1D,
-                      'title_weight':self.config.titleFontWeight_1D,
-                      'xlabel':plot.plotMS.get_xlabel(),
-                      'ylabel':plot.plotMS.get_ylabel(),
-                      'title':plot.plotMS.get_title(),
-                      'plot_size':plot_sizeInch,
-                      'plot_axes':plot._axes,
-                      'plot':plot,
-                      'window_title':title}
+            kwargs = {'xmin': xmin, 'xmax': xmax,
+                      'ymin': ymin, 'ymax': ymax,
+                      'major_xticker': plot.plotMS.xaxis.get_major_locator(),
+                      'major_yticker': plot.plotMS.yaxis.get_major_locator(),
+                      'minor_xticker': plot.plotMS.xaxis.get_minor_locator(),
+                      'minor_yticker': plot.plotMS.yaxis.get_minor_locator(),
+                      'tick_size': self.config.tickFontSize_1D,
+                      'tick_weight': self.config.tickFontWeight_1D,
+                      'label_size': self.config.labelFontSize_1D,
+                      'label_weight': self.config.labelFontWeight_1D,
+                      'title_size': self.config.titleFontSize_1D,
+                      'title_weight': self.config.titleFontWeight_1D,
+                      'xlabel': plot.plotMS.get_xlabel(),
+                      'ylabel': plot.plotMS.get_ylabel(),
+                      'title': plot.plotMS.get_title(),
+                      'plot_size': plot_sizeInch,
+                      'plot_axes': plot._axes,
+                      'plot': plot,
+                      'window_title': title}
         except AttributeError:
             args = ("Cannot customise plot parameters if the plot does not exist", 4)
             self.presenter.onThreading(None, args, action='updateStatusbar')
@@ -1264,16 +1333,26 @@ class panelPlot(wx.Panel):
         plot.repaint()
 
     def get_current_plot(self):
-        if self.currentPage == "Waterfall": plot = self.plot_waterfall
-        elif self.currentPage == "MS": plot = self.plot1
-        elif self.currentPage == "1D": plot = self.plot1D
-        elif self.currentPage == "RT": plot = self.plotRT
-        elif self.currentPage == "2D": plot = self.plot2D
-        elif self.currentPage == "DT/MS": plot = self.plot_DT_vs_MS
-        elif self.currentPage == "Overlay": plot = self.plot_overlay
-        elif self.currentPage == "RMSF": plot = self.plot_RMSF
-        elif self.currentPage == "Comparison": plot = self.plotCompare
-        elif self.currentPage == "Other": plot = self.plotOther
+        if self.currentPage == "Waterfall":
+            plot = self.plot_waterfall
+        elif self.currentPage == "MS":
+            plot = self.plot1
+        elif self.currentPage == "1D":
+            plot = self.plot1D
+        elif self.currentPage == "RT":
+            plot = self.plotRT
+        elif self.currentPage == "2D":
+            plot = self.plot2D
+        elif self.currentPage == "DT/MS":
+            plot = self.plot_DT_vs_MS
+        elif self.currentPage == "Overlay":
+            plot = self.plot_overlay
+        elif self.currentPage == "RMSF":
+            plot = self.plot_RMSF
+        elif self.currentPage == "Comparison":
+            plot = self.plotCompare
+        elif self.currentPage == "Other":
+            plot = self.plotOther
 
         return plot
 
@@ -1291,15 +1370,15 @@ class panelPlot(wx.Panel):
                    "PS PostScript Image File Format (*.ps)|*.ps|" + \
                    "PDF Portable Document Format (*.pdf)|*.pdf"
 
-        wildcard_dict = {'svg':0, 'svgz':1, 'png':2, 'eps':3, 'jpeg':4,
-                         'tiff':5, 'raw':6, 'ps':7, 'pdf':8}
+        wildcard_dict = {'svg': 0, 'svgz': 1, 'png': 2, 'eps': 3, 'jpeg': 4,
+                         'tiff': 5, 'raw': 6, 'ps': 7, 'pdf': 8}
 
 #         tstart = time.clock()
         # Build kwargs
-        kwargs = {"transparent":self.config.transparent,
-                  "dpi":self.config.dpi,
-                  'format':self.config.imageFormat,
-                  'compression':"zlib",
+        kwargs = {"transparent": self.config.transparent,
+                  "dpi": self.config.dpi,
+                  'format': self.config.imageFormat,
+                  'compression': "zlib",
                   'resize': None}
 
         path, document_name = self.presenter.getCurrentDocumentPath()
@@ -1309,27 +1388,30 @@ class panelPlot(wx.Panel):
             self.presenter.onThreading(None, args, action='updateStatusbar')
             return
 
-        plots = {'UniDec (MS)':self.plotUnidec_MS,
-                 'UniDec (MW)':self.plotUnidec_mwDistribution,
-                 'UniDec (m/z vs Charge)':self.plotUnidec_mzGrid,
-                 'UniDec (Isolated MS)':self.plotUnidec_individualPeaks,
-                 'UniDec (MW vs Charge)':self.plotUnidec_mwVsZ,
-                 'UniDec (Barplot)':self.plotUnidec_barChart,
-                 'UniDec (Charge Distribution)':self.plotUnidec_chargeDistribution}
+        plots = {'UniDec (MS)': self.plotUnidec_MS,
+                 'UniDec (MW)': self.plotUnidec_mwDistribution,
+                 'UniDec (m/z vs Charge)': self.plotUnidec_mzGrid,
+                 'UniDec (Isolated MS)': self.plotUnidec_individualPeaks,
+                 'UniDec (MW vs Charge)': self.plotUnidec_mwVsZ,
+                 'UniDec (Barplot)': self.plotUnidec_barChart,
+                 'UniDec (Charge Distribution)': self.plotUnidec_chargeDistribution}
 
         for plot in plots:
             defaultName = self.config._plotSettings[plot]['default_name']
 
             # generate a better default name and remove any silly characters
             defaultName = "{}_{}".format(document_name, defaultName)
-            defaultName = defaultName.replace(' ', '').replace(':', '').replace(" ", "").replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "")
+            defaultName = defaultName.replace(' ', '').replace(':', '').replace(" ", "").replace(
+                ".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "")
 
             dlg = wx.FileDialog(self, "Please select a name for the file",
-                                 "", "", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                "", "", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             dlg.CentreOnParent()
             dlg.SetFilename(defaultName)
-            try: dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
-            except: pass
+            try:
+                dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
+            except:
+                pass
             plotWindow = plots[plot]
             if dlg.ShowModal() == wx.ID_OK:
                 filename = dlg.GetPath()
@@ -1374,8 +1456,10 @@ class panelPlot(wx.Panel):
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
         if self.currentPage == "MS":
             return self.plot1.plotMS.get_xlim()
-        elif self.currentPage == "RT": pass
-        elif self.currentPage == "1D": pass
+        elif self.currentPage == "RT":
+            pass
+        elif self.currentPage == "1D":
+            pass
         elif self.currentPage == "2D":
             xmin, xmax = self.plot2D.plotMS.get_xlim()
             ymin, ymax = self.plot2D.plotMS.get_ylim()
@@ -1384,7 +1468,8 @@ class panelPlot(wx.Panel):
             xmin, xmax = self.plot_DT_vs_MS.plotMS.get_xlim()
             ymin, ymax = self.plot_DT_vs_MS.plotMS.get_ylim()
             return round(xmin, 0), round(xmax, 0), round(ymin, 0), round(ymax, 0)
-        else: pass
+        else:
+            pass
 
     def onChangePlotStyle(self, evt, plot_style=None):
 
@@ -1532,18 +1617,24 @@ class panelPlot(wx.Panel):
 
         if plot == 'MS':
             self.plot1.plot_remove_patches()
-            if not repaint: return
-            else: self.plot1.repaint()
+            if not repaint:
+                return
+            else:
+                self.plot1.repaint()
 
         elif plot == 'CalibrationMS':
             self.topPlotMS.plot_remove_patches()
-            if not repaint: return
-            else: self.topPlotMS.repaint()
+            if not repaint:
+                return
+            else:
+                self.topPlotMS.repaint()
 
         elif plot == 'RT':
             self.plotRT.plot_remove_patches()
-            if not repaint: return
-            else: self.plotRT.repaint()
+            if not repaint:
+                return
+            else:
+                self.plotRT.repaint()
 
     def plot_repaint(self, plot_window="MS"):
         if plot_window == "MS":
@@ -1562,14 +1653,18 @@ class panelPlot(wx.Panel):
         if plot == 'MS':
             self.plot1.plot_add_patch(xmin, ymin, width, height, color=color,
                                       alpha=alpha, label=label)
-            if not repaint: return
-            else: self.plot1.repaint()
+            if not repaint:
+                return
+            else:
+                self.plot1.repaint()
 
         elif plot == 'CalibrationMS':
             self.topPlotMS.plot_add_patch(xmin, ymin, width, height, color=color,
                                           alpha=alpha, label=label)
-            if not repaint: return
-            else: self.topPlotMS.repaint()
+            if not repaint:
+                return
+            else:
+                self.topPlotMS.repaint()
 
     def on_clear_labels(self, plot="MS"):
         if plot == 'MS':
@@ -1581,9 +1676,9 @@ class panelPlot(wx.Panel):
                        optimise_labels=False, **kwargs):
 
         plt_kwargs = {"horizontalalignment": kwargs.pop("horizontal_alignment", "center"),
-                      "verticalalignment": kwargs.pop("vertical_alignment", "center") ,
-                      "check_yscale":kwargs.pop("check_yscale", False),
-                      "butterfly_plot":kwargs.pop("butterfly_plot", False),
+                      "verticalalignment": kwargs.pop("vertical_alignment", "center"),
+                      "check_yscale": kwargs.pop("check_yscale", False),
+                      "butterfly_plot": kwargs.pop("butterfly_plot", False),
                       "fontweight": kwargs.pop("font_weight", "normal"),
                       "fontsize": kwargs.pop("font_size", "medium"), }
 
@@ -1594,17 +1689,20 @@ class panelPlot(wx.Panel):
             if not repaint:
                 return
             else:
-                if optimise_labels: self.plot1._fix_label_positions()
+                if optimise_labels:
+                    self.plot1._fix_label_positions()
                 self.plot1.repaint()
 
         elif plot == 'CalibrationMS':
             self.topPlotMS.plot_add_text(xpos=xpos, yval=yval, label=label, **plt_kwargs)
-            if not repaint: return
+            if not repaint:
+                return
             else:
-                if optimise_labels: self.topPlotMS._fix_label_positions()
+                if optimise_labels:
+                    self.topPlotMS._fix_label_positions()
                 self.topPlotMS.repaint()
 
-    def on_plot_markers(self, xvals=None, yvals=None, color='b', marker='o',
+    def on_plot_markers(self, xvals, yvals, color='b', marker='o',
                         size=5, plot='MS', repaint=True, **kwargs):
         if plot == 'MS':
             self.plot1.plot_add_markers(xvals=xvals,
@@ -1615,7 +1713,8 @@ class panelPlot(wx.Panel):
                                         test_yvals=True)
             if not repaint:
                 return
-            else: self.plot1.repaint()
+            else:
+                self.plot1.repaint()
 
         elif plot == 'RT':
             self.plotRT.plot_add_markers(xvals=xvals,
@@ -1648,8 +1747,10 @@ class panelPlot(wx.Panel):
             plot_obj = self.plot1
 
         plot_obj.plot_remove_markers()
-        if not repaint: return
-        else: plot_obj.repaint()
+        if not repaint:
+            return
+        else:
+            plot_obj.repaint()
 
     def _get_color_list(self, colorList, count=None, **kwargs):
         """
@@ -1702,8 +1803,10 @@ class panelPlot(wx.Panel):
         """
 
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
-            try: self.unidec_notebook.SetSelection(6)
-            except: pass
+            try:
+                self.unidec_notebook.SetSelection(6)
+            except:
+                pass
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -1716,12 +1819,12 @@ class panelPlot(wx.Panel):
 #                                                  plotType="Test",
 #                                                  **plt_kwargs)
         self.plotUnidec_chargeDistribution.plot_1D(xvals=xvals, yvals=yvals,
-                                   xlimits=xlimits, xlabel="Charge",
-                                   ylabel="Intensity", testMax=None,
-                                   axesSize=self.config._plotSettings['UniDec (Charge Distribution)']['axes_size'],
-                                   plotType='ChargeDistribution', title="Charge State Distribution",
-                                   allowWheel=False,
-                                   **plt_kwargs)
+                                                   xlimits=xlimits, xlabel="Charge",
+                                                   ylabel="Intensity", testMax=None,
+                                                   axesSize=self.config._plotSettings['UniDec (Charge Distribution)']['axes_size'],
+                                                   plotType='ChargeDistribution', title="Charge State Distribution",
+                                                   allowWheel=False,
+                                                   **plt_kwargs)
         # Show the mass spectrum
         self.plotUnidec_chargeDistribution.repaint()
 
@@ -1733,8 +1836,10 @@ class panelPlot(wx.Panel):
         """
 
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
-            try: self.unidec_notebook.SetSelection(0)
-            except: pass
+            try:
+                self.unidec_notebook.SetSelection(0)
+            except:
+                pass
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
 
@@ -1756,8 +1861,10 @@ class panelPlot(wx.Panel):
     def on_plot_unidec_MS_v_Fit(self, unidec_eng_data=None, replot=None, xlimits=None, **kwargs):
 
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
-            try: self.unidec_notebook.SetSelection(0)
-            except: pass
+            try:
+                self.unidec_notebook.SetSelection(0)
+            except:
+                pass
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -1794,8 +1901,10 @@ class panelPlot(wx.Panel):
         """
 
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
-            try: self.unidec_notebook.SetSelection(1)
-            except: pass
+            try:
+                self.unidec_notebook.SetSelection(1)
+            except:
+                pass
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -1826,8 +1935,10 @@ class panelPlot(wx.Panel):
         """
 
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
-            try: self.unidec_notebook.SetSelection(3)
-            except: pass
+            try:
+                self.unidec_notebook.SetSelection(3)
+            except:
+                pass
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -1875,9 +1986,11 @@ class panelPlot(wx.Panel):
 
         num = 0
         for key in natsorted(list(data.keys())):
-            if key.split(" ")[0] != "MW:": continue
+            if key.split(" ")[0] != "MW:":
+                continue
 
-            if num >= plt_kwargs["maximum_shown_items"]: continue
+            if num >= plt_kwargs["maximum_shown_items"]:
+                continue
 
             xval = float(key.split(" ")[1])
             yval = self.data_processing.get_peak_maximum(mw, xval=xval)
@@ -1902,8 +2015,10 @@ class panelPlot(wx.Panel):
         """
 
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
-            try: self.unidec_notebook.SetSelection(4)
-            except: pass
+            try:
+                self.unidec_notebook.SetSelection(4)
+            except:
+                pass
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -1930,15 +2045,18 @@ class panelPlot(wx.Panel):
 
         num = 0
         for key in natsorted(list(replot.keys())):
-            if key.split(" ")[0] != "MW:": continue
-            if num >= plt_kwargs["maximum_shown_items"]: continue
+            if key.split(" ")[0] != "MW:":
+                continue
+            if num >= plt_kwargs["maximum_shown_items"]:
+                continue
             num += 1
 
         colors = self._get_color_list(None, count=num, **unidec_kwargs)
 
         num = 0
         for key in natsorted(list(replot.keys())):
-            if key.split(" ")[0] != "MW:": continue
+            if key.split(" ")[0] != "MW:":
+                continue
             if num >= plt_kwargs["maximum_shown_items"]:
                 continue
 
@@ -1994,8 +2112,10 @@ class panelPlot(wx.Panel):
         """
 
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
-            try: self.unidec_notebook.SetSelection(2)
-            except: pass
+            try:
+                self.unidec_notebook.SetSelection(2)
+            except:
+                pass
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -2013,10 +2133,10 @@ class panelPlot(wx.Panel):
 
         # Check that cmap modifier is included
         cmapNorm = self.normalize_colormap(zvals,
-                                                      min=self.config.minCmap,
-                                                      mid=self.config.midCmap,
-                                                      max=self.config.maxCmap,
-                                                      )
+                                           min=self.config.minCmap,
+                                           mid=self.config.midCmap,
+                                           max=self.config.maxCmap,
+                                           )
         plt_kwargs['colormap_norm'] = cmapNorm
 
         self.plotUnidec_mwVsZ.clearPlot()
@@ -2035,8 +2155,10 @@ class panelPlot(wx.Panel):
         """
 
         if self.config.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
-            try: self.unidec_notebook.SetSelection(5)
-            except: pass
+            try:
+                self.unidec_notebook.SetSelection(5)
+            except:
+                pass
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2098,19 +2220,22 @@ class panelPlot(wx.Panel):
             try:
                 self.plot1.plot_1D_update(**plt_kwargs)
                 self.plot1.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         if plotName in ['all', 'RT']:
             try:
                 self.plotRT.plot_1D_update(**plt_kwargs)
                 self.plotRT.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         if plotName in ['all', '1D']:
             try:
                 self.plot1D.plot_1D_update(**plt_kwargs)
                 self.plot1D.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         if plotName in ['all', 'RMSF']:
             plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -2119,19 +2244,23 @@ class panelPlot(wx.Panel):
             try:
                 self.plot_RMSF.plot_1D_update_rmsf(**plt_kwargs)
                 self.plot_RMSF.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
     def on_plot_other_1D(self, msX=None, msY=None, xlabel="", ylabel="",
                          xlimits=None, set_page=False, **kwargs):
 
-        if set_page: self._set_page(self.config.panelNames['Other'])
+        if set_page:
+            self._set_page(self.config.panelNames['Other'])
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
         # check limits
         try:
-            if math.isnan(xlimits.get(0, msX[0])): xlimits[0] = msX[0]
-            if math.isnan(xlimits.get(1, msX[-1])): xlimits[1] = msX[-1]
+            if math.isnan(xlimits.get(0, msX[0])):
+                xlimits[0] = msX[0]
+            if math.isnan(xlimits.get(1, msX[-1])):
+                xlimits[1] = msX[-1]
         except:
             xlimits = [np.min(msX), np.max(msX)]
 
@@ -2139,7 +2268,8 @@ class panelPlot(wx.Panel):
             if len(msX[0]) > 1:
                 msX = msX[0]
                 msY = msY[0]
-        except TypeError: pass
+        except TypeError:
+            pass
 
         self.plotOther.clearPlot()
         self.plotOther.plot_1D(xvals=msX,
@@ -2155,7 +2285,8 @@ class panelPlot(wx.Panel):
     def on_plot_other_overlay(self, xvals, yvals, xlabel, ylabel, colors, labels,
                               xlimits=None, set_page=False, **kwargs):
 
-        if set_page: self._set_page(self.config.panelNames['Other'])
+        if set_page:
+            self._set_page(self.config.panelNames['Other'])
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
@@ -2179,7 +2310,8 @@ class panelPlot(wx.Panel):
     def on_plot_other_waterfall(self, xvals, yvals, zvals, xlabel, ylabel, colors=[],
                                 set_page=False, **kwargs):
 
-        if set_page: self._set_page(self.config.panelNames['Other'])
+        if set_page:
+            self._set_page(self.config.panelNames['Other'])
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         waterfall_kwargs = self._buildPlotParameters(plotType='waterfall')
@@ -2213,7 +2345,8 @@ class panelPlot(wx.Panel):
     def on_plot_other_scatter(self, xvals, yvals, zvals, xlabel, ylabel, colors, labels,
                               xlimits=None, set_page=False, **kwargs):
 
-        if set_page: self._set_page(self.config.panelNames['Other'])
+        if set_page:
+            self._set_page(self.config.panelNames['Other'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2237,9 +2370,10 @@ class panelPlot(wx.Panel):
         self.plotOther.plot_type = "scatter"
 
     def on_plot_other_grid_1D(self, xvals, yvals, xlabel, ylabel, colors, labels,
-                             set_page=False, **kwargs):
+                              set_page=False, **kwargs):
 
-        if set_page: self._set_page(self.config.panelNames['Other'])
+        if set_page:
+            self._set_page(self.config.panelNames['Other'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2263,7 +2397,8 @@ class panelPlot(wx.Panel):
     def on_plot_other_grid_scatter(self, xvals, yvals, xlabel, ylabel, colors, labels,
                                    set_page=False, **kwargs):
 
-        if set_page: self._set_page(self.config.panelNames['Other'])
+        if set_page:
+            self._set_page(self.config.panelNames['Other'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2287,7 +2422,8 @@ class panelPlot(wx.Panel):
     def on_plot_other_bars(self, xvals, yvals_min, yvals_max, xlabel, ylabel, colors,
                            set_page=False, **kwargs):
 
-        if set_page: self._set_page(self.config.panelNames['Other'])
+        if set_page:
+            self._set_page(self.config.panelNames['Other'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2315,9 +2451,11 @@ class panelPlot(wx.Panel):
         if plot_window == "MS":
             plot = self.plot1
 
-        if plot is None: return False
+        if plot is None:
+            return False
 
-        if plot.document_name is None or plot.dataset_name is None: return
+        if plot.document_name is None or plot.dataset_name is None:
+            return
 
         if plot.document_name != document_name:
             return False
@@ -2329,7 +2467,8 @@ class panelPlot(wx.Panel):
 
     def on_add_centroid_MS_and_labels(self, msX, msY, labels, full_labels, xlimits=None,
                                       title="", butterfly_plot=False, set_page=False, **kwargs):
-        if set_page: self._set_page(self.config.panelNames['MS'])
+        if set_page:
+            self._set_page(self.config.panelNames['MS'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2356,12 +2495,12 @@ class panelPlot(wx.Panel):
         # add labels
         plt_label_kwargs = {"horizontalalignment": self.config.annotation_label_horz,
                             "verticalalignment": self.config.annotation_label_vert,
-                            "check_yscale":True,
-                            "add_arrow_to_low_intensity":self.config.msms_add_arrows,
-                            "butterfly_plot":butterfly_plot,
+                            "check_yscale": True,
+                            "add_arrow_to_low_intensity": self.config.msms_add_arrows,
+                            "butterfly_plot": butterfly_plot,
                             "fontweight": self.config.annotation_label_font_weight,
                             "fontsize": self.config.annotation_label_font_size,
-                            'rotation':self.config.annotation_label_font_orientation}
+                            'rotation': self.config.annotation_label_font_orientation}
 
         for i in range(len(labels)):
             xval, yval, label, full_label = msX[i], msY[i], labels[i], full_labels[i]
@@ -2384,7 +2523,8 @@ class panelPlot(wx.Panel):
 
     def on_plot_centroid_MS(self, msX, msY, msXY=None, xlimits=None, title="", repaint=True,
                             set_page=False, **kwargs):
-        if set_page: self._set_page(self.config.panelNames['MS'])
+        if set_page:
+            self._set_page(self.config.panelNames['MS'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2405,10 +2545,14 @@ class panelPlot(wx.Panel):
 
     def on_clear_MS_annotations(self):
 
-        try: self.on_clear_labels(plot="MS")
-        except: pass
-        try: self.on_clear_patches(plot="MS")
-        except: pass
+        try:
+            self.on_clear_labels(plot="MS")
+        except:
+            pass
+        try:
+            self.on_clear_patches(plot="MS")
+        except:
+            pass
 
     def on_plot_MS(self, msX=None, msY=None, xlimits=None, override=True, replot=False,
                    full_repaint=False, set_page=False, show_in_window="MS", view_range=[], **kwargs):
@@ -2434,7 +2578,8 @@ class panelPlot(wx.Panel):
             plot_size_key = 'MS (DT/RT)'
 
         # change page
-        if set_page: self._set_page(window)
+        if set_page:
+            self._set_page(window)
 
         if replot:
             msX, msY, xlimits = self.presenter._get_replot_data('MS')
@@ -2457,36 +2602,40 @@ class panelPlot(wx.Panel):
                                            repaint=False, plot="MS")
                 panel.repaint()
                 if override:
-                    self.config.replotData['MS'] = {'xvals':msX, 'yvals':msY, 'xlimits':xlimits}
+                    self.config.replotData['MS'] = {'xvals': msX, 'yvals': msY, 'xlimits': xlimits}
                 return
-            except: pass
+            except:
+                pass
 
         # check limits
         try:
-            if math.isnan(xlimits.get(0, msX[0])): xlimits[0] = msX[0]
-            if math.isnan(xlimits.get(1, msX[-1])): xlimits[1] = msX[-1]
+            if math.isnan(xlimits.get(0, msX[0])):
+                xlimits[0] = msX[0]
+            if math.isnan(xlimits.get(1, msX[-1])):
+                xlimits[1] = msX[-1]
         except:
             xlimits = [np.min(msX), np.max(msX)]
 
         panel.clearPlot()
         panel.plot_1D(xvals=msX,
-                           yvals=msY,
-                           xlimits=xlimits,
-                           xlabel="m/z", ylabel="Intensity",
-                           axesSize=self.config._plotSettings[plot_size_key]['axes_size'],
-                           plotType='MS',
-                           **plt_kwargs)
+                      yvals=msY,
+                      xlimits=xlimits,
+                      xlabel="m/z", ylabel="Intensity",
+                      axesSize=self.config._plotSettings[plot_size_key]['axes_size'],
+                      plotType='MS',
+                      **plt_kwargs)
         # Show the mass spectrum
         panel.repaint()
 
         if override:
-            self.config.replotData['MS'] = {'xvals':msX, 'yvals':msY, 'xlimits':xlimits}
+            self.config.replotData['MS'] = {'xvals': msX, 'yvals': msY, 'xlimits': xlimits}
 
     def on_plot_1D(self, dtX=None, dtY=None, xlabel=None, color=None, override=True,
                    full_repaint=False, replot=False, e=None, set_page=False):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['1D'])
+        if set_page:
+            self._set_page(self.config.panelNames['1D'])
 
         if replot:
             dtX, dtY, xlabel = self.presenter._get_replot_data('1D')
@@ -2501,7 +2650,7 @@ class panelPlot(wx.Panel):
                 self.plot1D.plot_1D_update_data(dtX, dtY, xlabel, "Intensity", **plt_kwargs)
                 self.plot1D.repaint()
                 if override:
-                    self.config.replotData['1D'] = {'xvals':dtX, 'yvals':dtY, 'xlabel':xlabel}
+                    self.config.replotData['1D'] = {'xvals': dtX, 'yvals': dtY, 'xlabel': xlabel}
                     return
             except:
                 pass
@@ -2518,14 +2667,15 @@ class panelPlot(wx.Panel):
         self.plot1D.repaint()
 
         if override:
-            self.config.replotData['1D'] = {'xvals':dtX, 'yvals':dtY, 'xlabel':xlabel}
+            self.config.replotData['1D'] = {'xvals': dtX, 'yvals': dtY, 'xlabel': xlabel}
 
     def on_plot_RT(self, rtX=None, rtY=None, xlabel=None, ylabel="Intensity",
                    color=None, override=True, replot=False, full_repaint=False,
                    e=None, set_page=False):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['RT'])
+        if set_page:
+            self._set_page(self.config.panelNames['RT'])
 
         if replot:
             rtX, rtY, xlabel = self.presenter._get_replot_data('RT')
@@ -2540,7 +2690,7 @@ class panelPlot(wx.Panel):
                 self.plotRT.plot_1D_update_data(rtX, rtY, xlabel, ylabel, **plt_kwargs)
                 self.plotRT.repaint()
                 if override:
-                    self.config.replotData['RT'] = {'xvals':rtX, 'yvals':rtY, 'xlabel':xlabel}
+                    self.config.replotData['RT'] = {'xvals': rtX, 'yvals': rtY, 'xlabel': xlabel}
                     return
             except:
                 pass
@@ -2554,9 +2704,9 @@ class panelPlot(wx.Panel):
         self.plotRT.repaint()
 
         if override:
-            self.config.replotData['RT'] = {'xvals':rtX,
-                                            'yvals':rtY,
-                                            'xlabel':xlabel}
+            self.config.replotData['RT'] = {'xvals': rtX,
+                                            'yvals': rtY,
+                                            'xlabel': xlabel}
 
     def plot_2D_update(self, plotName='all', evt=None):
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -2565,25 +2715,29 @@ class panelPlot(wx.Panel):
             try:
                 self.plot2D.plot_2D_update(**plt_kwargs)
                 self.plot2D.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         if plotName in ['all', 'UniDec']:
 
             try:
                 self.plotUnidec_mzGrid.plot_2D_update(**plt_kwargs)
                 self.plotUnidec_mzGrid.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
             try:
                 self.plotUnidec_mwVsZ.plot_2D_update(**plt_kwargs)
                 self.plotUnidec_mwVsZ.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         if plotName in ['all', 'DT/MS']:
             try:
                 self.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
                 self.plot_DT_vs_MS.repaint()
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
     def on_plot_2D_data(self, data=None, **kwargs):
         """
@@ -2591,11 +2745,12 @@ class panelPlot(wx.Panel):
         Input format: zvals, xvals, xlabel, yvals, ylabel
         """
         if isempty(data[0]):
-                dlgBox(exceptionTitle='Missing data',
-                       exceptionMsg="Missing data. Cannot plot 2D plots.",
-                       type="Error")
-                return
-        else: pass
+            dlgBox(exceptionTitle='Missing data',
+                   exceptionMsg="Missing data. Cannot plot 2D plots.",
+                   type="Error")
+            return
+        else:
+            pass
 
         # Unpack data
         if len(data) == 5:
@@ -2605,9 +2760,9 @@ class panelPlot(wx.Panel):
 
         # Check and change colormap if necessary
         cmapNorm = self.normalize_colormap(zvals,
-                                                      min=self.config.minCmap,
-                                                      mid=self.config.midCmap,
-                                                      max=self.config.maxCmap)
+                                           min=self.config.minCmap,
+                                           mid=self.config.midCmap,
+                                           max=self.config.maxCmap)
 
         # Plot data
         self.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmapNorm=cmapNorm)
@@ -2625,12 +2780,14 @@ class panelPlot(wx.Panel):
         try:
             self.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
                             xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
-        except: pass
+        except:
+            pass
 
     def on_plot_violin(self, data=None, set_page=False, **kwargs):
 
                 # change page
-        if set_page: self._set_page(self.config.panelNames['Waterfall'])
+        if set_page:
+            self._set_page(self.config.panelNames['Waterfall'])
 
         # Unpack data
         if len(data) == 5:
@@ -2648,14 +2805,14 @@ class panelPlot(wx.Panel):
         try:
             if zvals.shape[1] < plt_kwargs['violin_nlimit']:
                 self.plot_waterfall.plot_1D_violin(xvals=yvals, yvals=xvals,
-                                                     zvals=zvals, label="",
-                                                     xlabel=xlabel,
-                                                     ylabel=ylabel,
-                                                     labels=kwargs.get('labels', []),
-                                                     axesSize=self.config._plotSettings['Violin']['axes_size'],
-                                                     orientation=self.config.violin_orientation,
-                                                     plotName='1D',
-                                                     **plt_kwargs)
+                                                   zvals=zvals, label="",
+                                                   xlabel=xlabel,
+                                                   ylabel=ylabel,
+                                                   labels=kwargs.get('labels', []),
+                                                   axesSize=self.config._plotSettings['Violin']['axes_size'],
+                                                   orientation=self.config.violin_orientation,
+                                                   plotName='1D',
+                                                   **plt_kwargs)
             else:
                 self.presenter.onThreading(
                     None, ("Selected item is too large to plot as violin. Plotting as waterfall instead.", 4, 10),
@@ -2681,11 +2838,12 @@ class panelPlot(wx.Panel):
         self.plot_waterfall.repaint()
 
     def on_plot_2D(self, zvals=None, xvals=None, yvals=None, xlabel=None,
-                     ylabel=None, cmap=None, cmapNorm=None, plotType=None,
-                     override=True, replot=False, e=None, set_page=False):
+                   ylabel=None, cmap=None, cmapNorm=None, plotType=None,
+                   override=True, replot=False, e=None, set_page=False):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['2D'])
+        if set_page:
+            self._set_page(self.config.panelNames['2D'])
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -2703,15 +2861,15 @@ class panelPlot(wx.Panel):
         # Check that cmap modifier is included
         if cmapNorm == None and plotType != "RMSD":
             cmapNorm = self.normalize_colormap(zvals,
-                                                          min=self.config.minCmap,
-                                                          mid=self.config.midCmap,
-                                                          max=self.config.maxCmap,
-                                                          )
+                                               min=self.config.minCmap,
+                                               mid=self.config.midCmap,
+                                               max=self.config.maxCmap,
+                                               )
 
         elif cmapNorm == None and plotType == "RMSD":
             cmapNorm = self.normalize_colormap(zvals,
-                                                          min=-100, mid=0, max=100,
-                                                          )
+                                               min=-100, mid=0, max=100,
+                                               )
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -2723,10 +2881,10 @@ class panelPlot(wx.Panel):
                                             **plt_kwargs)
             self.plot2D.repaint()
             if override:
-                self.config.replotData['2D'] = {'zvals':zvals, 'xvals':xvals,
-                                                'yvals':yvals, 'xlabels':xlabel,
-                                                'ylabels':ylabel, 'cmap':cmap,
-                                                'cmapNorm':cmapNorm}
+                self.config.replotData['2D'] = {'zvals': zvals, 'xvals': xvals,
+                                                'yvals': yvals, 'xlabels': xlabel,
+                                                'ylabels': ylabel, 'cmap': cmap,
+                                                'cmapNorm': cmapNorm}
             return
         except:
             pass
@@ -2747,10 +2905,10 @@ class panelPlot(wx.Panel):
 
         self.plot2D.repaint()
         if override:
-            self.config.replotData['2D'] = {'zvals':zvals, 'xvals':xvals,
-                                            'yvals':yvals, 'xlabels':xlabel,
-                                            'ylabels':ylabel, 'cmap':cmap,
-                                            'cmapNorm':cmapNorm}
+            self.config.replotData['2D'] = {'zvals': zvals, 'xvals': xvals,
+                                            'yvals': yvals, 'xlabels': xlabel,
+                                            'ylabels': ylabel, 'cmap': cmap,
+                                            'cmapNorm': cmapNorm}
 
         # update plot data
         self.presenter.view._onUpdatePlotData(plot_type='2D')
@@ -2776,10 +2934,10 @@ class panelPlot(wx.Panel):
         # Check that cmap modifier is included
         if cmapNorm == None:
             cmapNorm = self.normalize_colormap(zvals,
-                                                          min=self.config.minCmap,
-                                                          mid=self.config.midCmap,
-                                                          max=self.config.maxCmap,
-                                                          )
+                                               min=self.config.minCmap,
+                                               mid=self.config.midCmap,
+                                               max=self.config.maxCmap,
+                                               )
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -2789,7 +2947,7 @@ class panelPlot(wx.Panel):
 
         try:
             self.plot_DT_vs_MS.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals,
-                                              **plt_kwargs)
+                                                   **plt_kwargs)
             self.plot_DT_vs_MS.repaint()
             if override:
                 self.config.replotData['DT/MS'] = {'zvals': zvals, 'xvals': xvals,
@@ -2804,15 +2962,15 @@ class panelPlot(wx.Panel):
         self.plot_DT_vs_MS.clearPlot()
         if self.config.plotType == 'Image':
             self.plot_DT_vs_MS.plot_2D_surface(zvals, xvals, yvals, xlabel, ylabel,
-                                          axesSize=self.config._plotSettings['DT/MS']['axes_size'],
-                                          plotName='MSDT',
-                                          **plt_kwargs)
+                                               axesSize=self.config._plotSettings['DT/MS']['axes_size'],
+                                               plotName='MSDT',
+                                               **plt_kwargs)
 
         elif self.config.plotType == 'Contour':
             self.plot_DT_vs_MS.plot_2D_contour(zvals, xvals, yvals, xlabel, ylabel,
-                                          axesSize=self.config._plotSettings['DT/MS']['axes_size'],
-                                          plotName='MSDT',
-                                          **plt_kwargs)
+                                               axesSize=self.config._plotSettings['DT/MS']['axes_size'],
+                                               plotName='MSDT',
+                                               **plt_kwargs)
 
         # Show the mass spectrum
         self.plot_DT_vs_MS.repaint()
@@ -2836,7 +2994,8 @@ class panelPlot(wx.Panel):
                    cmapNorm=None, replot=False, set_page=False):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['3D'])
+        if set_page:
+            self._set_page(self.config.panelNames['3D'])
 
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
         plt3d_kwargs = self._buildPlotParameters(plotType='3D')
@@ -2854,10 +3013,10 @@ class panelPlot(wx.Panel):
         # Check that cmap modifier is included
         if cmapNorm == None:
             cmapNorm = self.normalize_colormap(zvals,
-                                                          min=self.config.minCmap,
-                                                          mid=self.config.midCmap,
-                                                          max=self.config.maxCmap,
-                                                          )
+                                               min=self.config.minCmap,
+                                               mid=self.config.midCmap,
+                                               max=self.config.maxCmap,
+                                               )
         # add to kwargs
         plt_kwargs['colormap'] = cmap
         plt_kwargs['colormap_norm'] = cmapNorm
@@ -2875,14 +3034,14 @@ class panelPlot(wx.Panel):
                                         **plt_kwargs)
         elif self.config.plotType_3D == 'Wireframe':
             self.plot3D.plot_3D_wireframe(xvals=labelsX,
-                                        yvals=labelsY,
-                                        zvals=zvals,
-                                        title="",
-                                        xlabel=xlabel,
-                                        ylabel=ylabel,
-                                        zlabel=zlabel,
-                                        axesSize=self.config._plotSettings['3D']['axes_size'],
-                                        **plt_kwargs)
+                                          yvals=labelsY,
+                                          zvals=zvals,
+                                          title="",
+                                          xlabel=xlabel,
+                                          ylabel=ylabel,
+                                          zlabel=zlabel,
+                                          axesSize=self.config._plotSettings['3D']['axes_size'],
+                                          **plt_kwargs)
         # Show the mass spectrum
         self.plot3D.repaint()
 
@@ -2890,7 +3049,8 @@ class panelPlot(wx.Panel):
                           set_page=False, **kwargs):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['Waterfall'])
+        if set_page:
+            self._set_page(self.config.panelNames['Waterfall'])
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         waterfall_kwargs = self._buildPlotParameters(plotType='waterfall')
@@ -2900,17 +3060,17 @@ class panelPlot(wx.Panel):
 
         self.plot_waterfall.clearPlot()
         self.plot_waterfall.plot_1D_waterfall(xvals=xvals, yvals=yvals,
-                                                zvals=zvals, label="",
-                                                xlabel=xlabel,
-                                                ylabel=ylabel,
-                                                colorList=colors,
-                                                labels=kwargs.get('labels', []),
-                                                axesSize=self.config._plotSettings['Waterfall']['axes_size'],
-                                                plotName='1D',
-                                                **plt_kwargs)
+                                              zvals=zvals, label="",
+                                              xlabel=xlabel,
+                                              ylabel=ylabel,
+                                              colorList=colors,
+                                              labels=kwargs.get('labels', []),
+                                              axesSize=self.config._plotSettings['Waterfall']['axes_size'],
+                                              plotName='1D',
+                                              **plt_kwargs)
 
         if ('add_legend' in kwargs and 'labels' in kwargs and
-            len(colors) == len(kwargs['labels'])):
+                len(colors) == len(kwargs['labels'])):
             if kwargs['add_legend']:
                 legend_text = list(zip(colors, kwargs['labels']))
                 self.plot_waterfall.plot_1D_add_legend(legend_text, **plt_kwargs)
@@ -2941,7 +3101,8 @@ class panelPlot(wx.Panel):
                                   labels=None, set_page=False, **kwargs):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['Waterfall'])
+        if set_page:
+            self._set_page(self.config.panelNames['Waterfall'])
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         waterfall_kwargs = self._buildPlotParameters(plotType='waterfall')
@@ -2951,17 +3112,17 @@ class panelPlot(wx.Panel):
 
         self.plot_waterfall.clearPlot()
         self.plot_waterfall.plot_1D_waterfall_overlay(xvals=xvals, yvals=yvals,
-                                                        zvals=zvals, label="",
-                                                        xlabel=xlabel,
-                                                        ylabel=ylabel,
-                                                        colorList=colors,
-                                                        labels=labels,
-                                                        axesSize=self.config._plotSettings['Waterfall']['axes_size'],
-                                                        plotName='1D',
-                                                        **plt_kwargs)
+                                                      zvals=zvals, label="",
+                                                      xlabel=xlabel,
+                                                      ylabel=ylabel,
+                                                      colorList=colors,
+                                                      labels=labels,
+                                                      axesSize=self.config._plotSettings['Waterfall']['axes_size'],
+                                                      plotName='1D',
+                                                      **plt_kwargs)
 
         if ('add_legend' in kwargs and 'labels' in kwargs and
-            len(colors) == len(kwargs['labels'])):
+                len(colors) == len(kwargs['labels'])):
             if kwargs['add_legend']:
                 legend_text = list(zip(colors, kwargs['labels']))
                 self.plot_waterfall.plot_1D_add_legend(legend_text, **plt_kwargs)
@@ -2972,7 +3133,8 @@ class panelPlot(wx.Panel):
                            set_page=False):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['RT'])
+        if set_page:
+            self._set_page(self.config.panelNames['RT'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2980,21 +3142,22 @@ class panelPlot(wx.Panel):
         self.plotRT.clearPlot()
         self.plotRT.plot_1D_overlay(xvals=xvals, yvals=yvals,
                                     title="", xlabel=xlabel,
-                                     ylabel="Intensity",
-                                     labels=labels,
-                                     colors=colors,
-                                     xlimits=xlimits,
-                                     zoom='box',
-                                     axesSize=self.config._plotSettings['RT']['axes_size'],
-                                     plotName='1D',
-                                     **plt_kwargs)
+                                    ylabel="Intensity",
+                                    labels=labels,
+                                    colors=colors,
+                                    xlimits=xlimits,
+                                    zoom='box',
+                                    axesSize=self.config._plotSettings['RT']['axes_size'],
+                                    plotName='1D',
+                                    **plt_kwargs)
         self.plotRT.repaint()
 
     def on_plot_overlay_DT(self, xvals, yvals, xlabel, colors, labels, xlimits, style=None,
                            set_page=False):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['1D'])
+        if set_page:
+            self._set_page(self.config.panelNames['1D'])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
@@ -3011,30 +3174,31 @@ class panelPlot(wx.Panel):
         self.plot1D.repaint()
 
     def on_plot_overlay_2D(self, zvalsIon1, zvalsIon2, cmapIon1, cmapIon2,
-                                  alphaIon1, alphaIon2, xvals, yvals, xlabel, ylabel,
-                                  flag=None, plotName="2D", set_page=False):
+                           alphaIon1, alphaIon2, xvals, yvals, xlabel, ylabel,
+                           flag=None, plotName="2D", set_page=False):
         """
         Plot an overlay of *2* ions
         """
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['Overlay'])
+        if set_page:
+            self._set_page(self.config.panelNames['Overlay'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
         self.plot_overlay.clearPlot()
         self.plot_overlay.plot_2D_overlay(zvalsIon1=zvalsIon1,
-                                         zvalsIon2=zvalsIon2,
-                                         cmapIon1=cmapIon1,
-                                         cmapIon2=cmapIon2,
-                                         alphaIon1=alphaIon1,
-                                         alphaIon2=alphaIon2,
-                                         labelsX=xvals,
-                                         labelsY=yvals,
-                                         xlabel=xlabel,
-                                         ylabel=ylabel,
-                                         axesSize=self.config._plotSettings['Overlay']['axes_size'],
-                                         plotName=plotName,
-                                         **plt_kwargs)
+                                          zvalsIon2=zvalsIon2,
+                                          cmapIon1=cmapIon1,
+                                          cmapIon2=cmapIon2,
+                                          alphaIon1=alphaIon1,
+                                          alphaIon2=alphaIon2,
+                                          labelsX=xvals,
+                                          labelsY=yvals,
+                                          xlabel=xlabel,
+                                          ylabel=ylabel,
+                                          axesSize=self.config._plotSettings['Overlay']['axes_size'],
+                                          plotName=plotName,
+                                          **plt_kwargs)
 
         self.plot_overlay.repaint()
 
@@ -3042,7 +3206,8 @@ class panelPlot(wx.Panel):
                     ylabel=None, legend_text=None, set_page=False):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['2D'])
+        if set_page:
+            self._set_page(self.config.panelNames['2D'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
 
@@ -3062,7 +3227,8 @@ class panelPlot(wx.Panel):
         """
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['RMSF'])
+        if set_page:
+            self._set_page(self.config.panelNames['RMSF'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
         rmsd_kwargs = self._buildPlotParameters(plotType='RMSF')
@@ -3089,32 +3255,33 @@ class panelPlot(wx.Panel):
 
         self.plot_RMSF.clearPlot()
         self.plot_RMSF.plot_1D_2D(yvalsRMSF=yvalsRMSF,
-                                                 zvals=zvals,
-                                                 labelsX=xvals,
-                                                 labelsY=yvals,
-                                                 xlabelRMSD=xlabelRMSD,
-                                                 ylabelRMSD=ylabelRMSD,
-                                                 ylabelRMSF=ylabelRMSF,
-                                                 label="", zoom="box",
-                                                 plotName='RMSF',
-                                                 **plt_kwargs)
+                                  zvals=zvals,
+                                  labelsX=xvals,
+                                  labelsY=yvals,
+                                  xlabelRMSD=xlabelRMSD,
+                                  ylabelRMSD=ylabelRMSD,
+                                  ylabelRMSF=ylabelRMSF,
+                                  label="", zoom="box",
+                                  plotName='RMSF',
+                                  **plt_kwargs)
         self.plot_RMSF.repaint()
         self.rmsdfFlag = False
 
         if override:
-            self.config.replotData['RMSF'] = {'zvals':zvals, 'xvals':xvals, 'yvals':yvals,
-                                              'xlabelRMSD':xlabelRMSD, 'ylabelRMSD':ylabelRMSD,
-                                              'ylabelRMSF':ylabelRMSF,
-                                              'cmapNorm':cmapNorm}
+            self.config.replotData['RMSF'] = {'zvals': zvals, 'xvals': xvals, 'yvals': yvals,
+                                              'xlabelRMSD': xlabelRMSD, 'ylabelRMSD': ylabelRMSD,
+                                              'ylabelRMSF': ylabelRMSF,
+                                              'cmapNorm': cmapNorm}
 
         self.presenter.view._onUpdatePlotData(plot_type='RMSF')
 
     def on_plot_RMSD(self, zvals=None, xvals=None, yvals=None, xlabel=None,
-                   ylabel=None, cmap=None, cmapNorm=None, plotType=None,
-                   override=True, replot=False, set_page=False):
+                     ylabel=None, cmap=None, cmapNorm=None, plotType=None,
+                     override=True, replot=False, set_page=False):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['RMSF'])
+        if set_page:
+            self._set_page(self.config.panelNames['RMSF'])
 
         self.plot_RMSF.clearPlot()
 
@@ -3143,23 +3310,23 @@ class panelPlot(wx.Panel):
         # Plot 2D dataset
         if self.config.plotType == 'Image':
             self.plot_RMSF.plot_2D_surface(zvals, xvals, yvals, xlabel, ylabel,
-                                                        axesSize=self.config._plotSettings['2D']['axes_size'],
-                                                        plotName='RMSD',
-                                                        **plt_kwargs)
+                                           axesSize=self.config._plotSettings['2D']['axes_size'],
+                                           plotName='RMSD',
+                                           **plt_kwargs)
         elif self.config.plotType == 'Contour':
             self.plot_RMSF.plot_2D_contour(zvals, xvals, yvals, xlabel, ylabel,
-                                                        axesSize=self.config._plotSettings['2D']['axes_size'],
-                                                        plotName='RMSD',
-                                                        **plt_kwargs)
+                                           axesSize=self.config._plotSettings['2D']['axes_size'],
+                                           plotName='RMSD',
+                                           **plt_kwargs)
 
         # Show the mass spectrum
         self.plot_RMSF.repaint()
 
         if override:
-            self.config.replotData['2D'] = {'zvals':zvals, 'xvals':xvals,
-                                            'yvals':yvals, 'xlabels':xlabel,
-                                            'ylabels':ylabel, 'cmap':cmap,
-                                            'cmapNorm':cmapNorm}
+            self.config.replotData['2D'] = {'zvals': zvals, 'xvals': xvals,
+                                            'yvals': yvals, 'xlabels': xlabel,
+                                            'ylabels': ylabel, 'cmap': cmap,
+                                            'cmapNorm': cmapNorm}
 
         # update plot data
         self.presenter.view._onUpdatePlotData(plot_type='2D')
@@ -3170,7 +3337,8 @@ class panelPlot(wx.Panel):
                                   view_range=[]):  # onPlotMSDTCalibration
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['Calibration'])
+        if set_page:
+            self._set_page(self.config.panelNames['Calibration'])
 
         # MS plot
         if plotType == 'both' or plotType == 'MS':
@@ -3205,7 +3373,8 @@ class panelPlot(wx.Panel):
                                xlabel='Drift time (bins)', set_page=False):  # onPlot1DTCalibration
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['Calibration'])
+        if set_page:
+            self._set_page(self.config.panelNames['Calibration'])
 
         # Check yaxis labels
         ylabel = "Intensity"
@@ -3253,7 +3422,8 @@ class panelPlot(wx.Panel):
                        replot=False, set_page=False):
 
         # change page
-        if set_page: self._set_page(self.config.panelNames['Comparison'])
+        if set_page:
+            self._set_page(self.config.panelNames['Comparison'])
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -3291,14 +3461,15 @@ class panelPlot(wx.Panel):
         self.plot3D.repaint()
 
         if override:
-            self.config.replotData['Matrix'] = {'zvals':zvals,
-                                                'xylabels':xylabels,
-                                                'cmap':cmap}
+            self.config.replotData['Matrix'] = {'zvals': zvals,
+                                                'xylabels': xylabels,
+                                                'cmap': cmap}
 
     def on_plot_grid(self, zvals_1, zvals_2, zvals_cum, xvals, yvals, xlabel, ylabel,
                      cmap_1, cmap_2, set_page=False, **kwargs):
 
-        if set_page: self._set_page(self.config.panelNames['Overlay'])
+        if set_page:
+            self._set_page(self.config.panelNames['Overlay'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
         rmsd_kwargs = self._buildPlotParameters(plotType='RMSD')
@@ -3307,39 +3478,41 @@ class panelPlot(wx.Panel):
         plt_kwargs['colormap_2'] = cmap_2
 
         plt_kwargs['cmap_norm_1'] = self.normalize_colormap(zvals_1,
-                                                         min=self.config.minCmap,
-                                                         mid=self.config.midCmap,
-                                                         max=self.config.maxCmap)
+                                                            min=self.config.minCmap,
+                                                            mid=self.config.midCmap,
+                                                            max=self.config.maxCmap)
         plt_kwargs['cmap_norm_2'] = self.normalize_colormap(zvals_2,
-                                                         min=self.config.minCmap,
-                                                         mid=self.config.midCmap,
-                                                         max=self.config.maxCmap)
+                                                            min=self.config.minCmap,
+                                                            mid=self.config.midCmap,
+                                                            max=self.config.maxCmap)
         plt_kwargs['cmap_norm_cum'] = self.normalize_colormap(zvals_cum,
-                                                         min=-100, mid=0, max=100)
+                                                              min=-100, mid=0, max=100)
         self.plot_overlay.clearPlot()
         self.plot_overlay.plot_grid_2D_overlay(zvals_1, zvals_2, zvals_cum, xvals, yvals,
-                                              xlabel, ylabel,
-                                              axesSize=self.config._plotSettings['Overlay (Grid)']['axes_size'],
-                                              **plt_kwargs)
+                                               xlabel, ylabel,
+                                               axesSize=self.config._plotSettings['Overlay (Grid)']['axes_size'],
+                                               **plt_kwargs)
         self.plot_overlay.repaint()
 
     def on_plot_n_grid(self, n_zvals, cmap_list, title_list, xvals, yvals, xlabel,
                        ylabel, set_page=False):
 
-        if set_page: self._set_page(self.config.panelNames['Overlay'])
+        if set_page:
+            self._set_page(self.config.panelNames['Overlay'])
 
         plt_kwargs = self._buildPlotParameters(plotType='2D')
         self.plot_overlay.clearPlot()
         self.plot_overlay.plot_n_grid_2D_overlay(n_zvals, cmap_list, title_list,
-                                                xvals, yvals, xlabel, ylabel,
-                                                axesSize=self.config._plotSettings['Overlay (Grid)']['axes_size'],
-                                                **plt_kwargs)
+                                                 xvals, yvals, xlabel, ylabel,
+                                                 axesSize=self.config._plotSettings['Overlay (Grid)']['axes_size'],
+                                                 **plt_kwargs)
         self.plot_overlay.repaint()
 
     def plot_compare(self, msX=None, msX_1=None, msX_2=None, msY_1=None, msY_2=None,
                      msY=None, xlimits=None, replot=False, override=True, set_page=True):
 
-        if set_page: self._set_page(self.config.panelNames['MS'])
+        if set_page:
+            self._set_page(self.config.panelNames['MS'])
 
         if replot:
             data = self.presenter._get_replot_data('compare_MS')
@@ -3376,10 +3549,10 @@ class panelPlot(wx.Panel):
             except:
                 self.plot1.repaint()
             if override:
-                self.config.replotData['compare_MS'] = {'xvals':msX,
-                                                        'yvals':msY,
-                                                        'xlimits':xlimits,
-                                                        'subtract':subtract}
+                self.config.replotData['compare_MS'] = {'xvals': msX,
+                                                        'yvals': msY,
+                                                        'xlimits': xlimits,
+                                                        'subtract': subtract}
         else:
             try:
                 self.plot1.plot_1D_compare(xvals1=msX_1, xvals2=msX_2,
@@ -3395,14 +3568,14 @@ class panelPlot(wx.Panel):
             except:
                 self.plot1.repaint()
             if override:
-                self.config.replotData['compare_MS'] = {'xvals':msX,
-                                                        'xvals1':msX_1,
-                                                        'xvals2':msX_2,
-                                                        'yvals1':msY_1,
-                                                        'yvals2':msY_2,
-                                                        'xlimits':xlimits,
-                                                        'legend':legend,
-                                                        'subtract':subtract}
+                self.config.replotData['compare_MS'] = {'xvals': msX,
+                                                        'xvals1': msX_1,
+                                                        'xvals2': msX_2,
+                                                        'yvals1': msY_1,
+                                                        'yvals2': msY_2,
+                                                        'xlimits': xlimits,
+                                                        'legend': legend,
+                                                        'subtract': subtract}
         # Show the mass spectrum
         self.plot1.repaint()
 
@@ -3454,8 +3627,8 @@ class panelPlot(wx.Panel):
             self.plotRT.plot_remove_legend()
 
     def on_add_marker(self, xvals=None, yvals=None, color='b', marker='o',
-                    size=5, plot='MS', repaint=True,
-                    clear_first=False):  # addMarkerMS
+                      size=5, plot='MS', repaint=True,
+                      clear_first=False):  # addMarkerMS
         if plot == 'MS':
             self.plot1.onAddMarker(xval=xvals, yval=yvals,
                                    color=color, marker=marker,
@@ -3469,7 +3642,8 @@ class panelPlot(wx.Panel):
             self.plotRT.plot_add_markers(
                 xvals, yvals, color=color, marker=marker,
                 size=size)
-            if repaint: self.plotRT.repaint()
+            if repaint:
+                self.plotRT.repaint()
 
         elif plot == 'CalibrationMS':
             self.topPlotMS.onAddMarker(xval=xvals, yval=yvals,
@@ -3488,22 +3662,25 @@ class panelPlot(wx.Panel):
 
         if plot == 'MS':
             self.plot1.plot_add_patch(x, y, width, height, color=color,
-                                    alpha=alpha)
-            if not repaint: return
+                                      alpha=alpha)
+            if not repaint:
+                return
             else:
                 self.plot1.repaint()
 
         elif plot == 'CalibrationMS':
             self.topPlotMS.plot_add_patch(x, y, width, height, color=color,
                                           alpha=alpha)
-            if not repaint: return
+            if not repaint:
+                return
             else:
                 self.topPlotMS.repaint()
 
         elif plot == 'RT':
             self.plotRT.plot_add_patch(x, y, width, height, color=color,
-                                     alpha=alpha)
-            if not repaint: return
+                                       alpha=alpha)
+            if not repaint:
+                return
             else:
                 self.plotRT.repaint()
 
@@ -3512,15 +3689,18 @@ class panelPlot(wx.Panel):
         if plot == 'MS':
             self.plot1.onZoomIn(startX, endX, endY)
             self.plot1.repaint()
-            if set_page: self._set_page(self.config.panelNames['MS'])
+            if set_page:
+                self._set_page(self.config.panelNames['MS'])
         elif plot == 'CalibrationMS':
             self.topPlotMS.onZoomIn(startX, endX, endY)
             self.plot1.repaint()
-            if set_page: self._set_page(self.config.panelNames['1D'])
+            if set_page:
+                self._set_page(self.config.panelNames['1D'])
 
     def on_zoom_1D_x_axis(self, startX, endX, endY=None, set_page=False, plot="MS", repaint=True):
 
-        if set_page: self._set_page(self.config.panelNames['MS'])
+        if set_page:
+            self._set_page(self.config.panelNames['MS'])
 
         if plot == "MS":
             if endY is None:
@@ -3537,7 +3717,8 @@ class panelPlot(wx.Panel):
 
     def on_zoom_1D_xy_axis(self, startX, endX, startY, endY, set_page=False, plot="MS", repaint=True):
 
-        if set_page: self._set_page(self.config.panelNames['MS'])
+        if set_page:
+            self._set_page(self.config.panelNames['MS'])
 
         if plot == "MS":
             self.plot1.on_zoom_xy(startX, endX, startY, endY)
@@ -3548,11 +3729,12 @@ class panelPlot(wx.Panel):
     def addRectRT(self, x, y, width, height, color='r', alpha=0.5,
                   repaint=False):  # addRectRT
         self.view.panelPlots.plotRT.addRectangle(x, y,
-                                                width,
-                                                height,
-                                                color=color,
-                                                alpha=alpha)
-        if not repaint: return
+                                                 width,
+                                                 height,
+                                                 color=color,
+                                                 alpha=alpha)
+        if not repaint:
+            return
         else:
             self.view.panelPlots.plotRT.repaint()
 
@@ -3564,22 +3746,22 @@ class panelPlot(wx.Panel):
 
         if plot == 'RMSD':
             self.view.panelPlots.plot_RMSF.addText(x, y, text, rotation,
-                                                color=self.config.rmsd_color,
-                                                fontsize=self.config.rmsd_fontSize,
-                                                weight=self.config.rmsd_fontWeight)
+                                                   color=self.config.rmsd_color,
+                                                   fontsize=self.config.rmsd_fontSize,
+                                                   weight=self.config.rmsd_fontWeight)
             self.view.panelPlots.plot_RMSF.repaint()
         elif plot == 'RMSF':
             self.view.panelPlots.plot_RMSF.addText(x, y, text, rotation,
-                                                  color=self.config.rmsd_color,
-                                                  fontsize=self.config.rmsd_fontSize,
-                                                  weight=self.config.rmsd_fontWeight)
+                                                   color=self.config.rmsd_color,
+                                                   fontsize=self.config.rmsd_fontSize,
+                                                   weight=self.config.rmsd_fontWeight)
             self.view.panelPlots.plot_RMSF.repaint()
         elif plot == 'Grid':
             self.view.panelPlots.plot_overlay.addText(x, y, text, rotation,
-                                                     color=self.config.rmsd_color,
-                                                     fontsize=self.config.rmsd_fontSize,
-                                                     weight=self.config.rmsd_fontWeight,
-                                                     plot=plot)
+                                                      color=self.config.rmsd_color,
+                                                      fontsize=self.config.rmsd_fontSize,
+                                                      weight=self.config.rmsd_fontWeight,
+                                                      plot=plot)
             self.view.panelPlots.plot_overlay.repaint()
 
     def onAddMarker1D(self, xval=None, yval=None, color='r', marker='o'):  # onAddMarker1D
@@ -3599,264 +3781,264 @@ class panelPlot(wx.Panel):
     def _buildPlotParameters(self, plotType=None, evt=None):
         add_frame_width = True
         if plotType == '1D':
-            plt_kwargs = {'line_width':self.config.lineWidth_1D,
-                          'line_color':self.config.lineColour_1D,
-                          'line_style':self.config.lineStyle_1D,
-                          'shade_under':self.config.lineShadeUnder_1D,
-                          'shade_under_color':self.config.lineShadeUnderColour_1D,
-                          'shade_under_transparency':self.config.lineShadeUnderTransparency_1D,
-                          'line_color_1':self.config.lineColour_MS1,
-                          'line_color_2':self.config.lineColour_MS2,
-                          'line_transparency_1':self.config.lineTransparency_MS1,
-                          'line_transparency_2':self.config.lineTransparency_MS2,
-                          'line_style_1':self.config.lineStyle_MS1,
-                          'line_style_2':self.config.lineStyle_MS2,
-                          'inverse':self.config.compare_massSpectrumParams['inverse'],
-                          'tick_size':self.config.tickFontSize_1D,
-                          'tick_weight':self.config.tickFontWeight_1D,
-                          'label_size':self.config.labelFontSize_1D,
-                          'label_weight':self.config.labelFontWeight_1D,
-                          'title_size':self.config.titleFontSize_1D,
-                          'title_weight':self.config.titleFontWeight_1D,
-                          'frame_width':self.config.frameWidth_1D,
-                          'label_pad':self.config.labelPad_1D,
-                          'axis_onoff':self.config.axisOnOff_1D,
-                          'ticks_left':self.config.ticks_left_1D,
-                          'ticks_right':self.config.ticks_right_1D,
-                          'ticks_top':self.config.ticks_top_1D,
-                          'ticks_bottom':self.config.ticks_bottom_1D,
-                          'tickLabels_left':self.config.tickLabels_left_1D,
-                          'tickLabels_right':self.config.tickLabels_right_1D,
-                          'tickLabels_top':self.config.tickLabels_top_1D,
-                          'tickLabels_bottom':self.config.tickLabels_bottom_1D,
-                          'spines_left':self.config.spines_left_1D,
-                          'spines_right':self.config.spines_right_1D,
-                          'spines_top':self.config.spines_top_1D,
-                          'spines_bottom':self.config.spines_bottom_1D,
-                          'scatter_edge_color':self.config.markerEdgeColor_1D,
-                          'scatter_color':self.config.markerColor_1D,
-                          'scatter_size':self.config.markerSize_1D,
-                          'scatter_shape':self.config.markerShape_1D,
-                          'scatter_alpha':self.config.markerTransparency_1D,
-                          'legend':self.config.legend,
-                          'legend_transparency':self.config.legendAlpha,
-                          'legend_position':self.config.legendPosition,
-                          'legend_num_columns':self.config.legendColumns,
-                          'legend_font_size':self.config.legendFontSize,
-                          'legend_frame_on':self.config.legendFrame,
-                          'legend_fancy_box':self.config.legendFancyBox,
-                          'legend_marker_first':self.config.legendMarkerFirst,
-                          'legend_marker_size':self.config.legendMarkerSize,
-                          'legend_num_markers':self.config.legendNumberMarkers,
-                          'legend_line_width':self.config.legendLineWidth,
-                          'legend_patch_transparency':self.config.legendPatchAlpha,
-                          'bar_width':self.config.bar_width,
-                          'bar_alpha':self.config.bar_alpha,
-                          'bar_edgecolor':self.config.bar_edge_color,
-                          'bar_edgecolor_sameAsFill':self.config.bar_sameAsFill,
-                          'bar_linewidth':self.config.bar_lineWidth,
+            plt_kwargs = {'line_width': self.config.lineWidth_1D,
+                          'line_color': self.config.lineColour_1D,
+                          'line_style': self.config.lineStyle_1D,
+                          'shade_under': self.config.lineShadeUnder_1D,
+                          'shade_under_color': self.config.lineShadeUnderColour_1D,
+                          'shade_under_transparency': self.config.lineShadeUnderTransparency_1D,
+                          'line_color_1': self.config.lineColour_MS1,
+                          'line_color_2': self.config.lineColour_MS2,
+                          'line_transparency_1': self.config.lineTransparency_MS1,
+                          'line_transparency_2': self.config.lineTransparency_MS2,
+                          'line_style_1': self.config.lineStyle_MS1,
+                          'line_style_2': self.config.lineStyle_MS2,
+                          'inverse': self.config.compare_massSpectrumParams['inverse'],
+                          'tick_size': self.config.tickFontSize_1D,
+                          'tick_weight': self.config.tickFontWeight_1D,
+                          'label_size': self.config.labelFontSize_1D,
+                          'label_weight': self.config.labelFontWeight_1D,
+                          'title_size': self.config.titleFontSize_1D,
+                          'title_weight': self.config.titleFontWeight_1D,
+                          'frame_width': self.config.frameWidth_1D,
+                          'label_pad': self.config.labelPad_1D,
+                          'axis_onoff': self.config.axisOnOff_1D,
+                          'ticks_left': self.config.ticks_left_1D,
+                          'ticks_right': self.config.ticks_right_1D,
+                          'ticks_top': self.config.ticks_top_1D,
+                          'ticks_bottom': self.config.ticks_bottom_1D,
+                          'tickLabels_left': self.config.tickLabels_left_1D,
+                          'tickLabels_right': self.config.tickLabels_right_1D,
+                          'tickLabels_top': self.config.tickLabels_top_1D,
+                          'tickLabels_bottom': self.config.tickLabels_bottom_1D,
+                          'spines_left': self.config.spines_left_1D,
+                          'spines_right': self.config.spines_right_1D,
+                          'spines_top': self.config.spines_top_1D,
+                          'spines_bottom': self.config.spines_bottom_1D,
+                          'scatter_edge_color': self.config.markerEdgeColor_1D,
+                          'scatter_color': self.config.markerColor_1D,
+                          'scatter_size': self.config.markerSize_1D,
+                          'scatter_shape': self.config.markerShape_1D,
+                          'scatter_alpha': self.config.markerTransparency_1D,
+                          'legend': self.config.legend,
+                          'legend_transparency': self.config.legendAlpha,
+                          'legend_position': self.config.legendPosition,
+                          'legend_num_columns': self.config.legendColumns,
+                          'legend_font_size': self.config.legendFontSize,
+                          'legend_frame_on': self.config.legendFrame,
+                          'legend_fancy_box': self.config.legendFancyBox,
+                          'legend_marker_first': self.config.legendMarkerFirst,
+                          'legend_marker_size': self.config.legendMarkerSize,
+                          'legend_num_markers': self.config.legendNumberMarkers,
+                          'legend_line_width': self.config.legendLineWidth,
+                          'legend_patch_transparency': self.config.legendPatchAlpha,
+                          'bar_width': self.config.bar_width,
+                          'bar_alpha': self.config.bar_alpha,
+                          'bar_edgecolor': self.config.bar_edge_color,
+                          'bar_edgecolor_sameAsFill': self.config.bar_sameAsFill,
+                          'bar_linewidth': self.config.bar_lineWidth,
                           }
         elif plotType == "annotation":
-            plt_kwargs = {'horizontal_alignment':self.config.annotation_label_horz,
-                          'vertical_alignment':self.config.annotation_label_vert,
-                          'font_size':self.config.annotation_label_font_size,
-                          'font_weight':self.config.annotation_label_font_weight}
+            plt_kwargs = {'horizontal_alignment': self.config.annotation_label_horz,
+                          'vertical_alignment': self.config.annotation_label_vert,
+                          'font_size': self.config.annotation_label_font_size,
+                          'font_weight': self.config.annotation_label_font_weight}
         elif plotType == 'legend':
-            plt_kwargs = {'legend':self.config.legend,
-                          'legend_transparency':self.config.legendAlpha,
-                          'legend_position':self.config.legendPosition,
-                          'legend_num_columns':self.config.legendColumns,
-                          'legend_font_size':self.config.legendFontSize,
-                          'legend_frame_on':self.config.legendFrame,
-                          'legend_fancy_box':self.config.legendFancyBox,
-                          'legend_marker_first':self.config.legendMarkerFirst,
-                          'legend_marker_size':self.config.legendMarkerSize,
-                          'legend_num_markers':self.config.legendNumberMarkers,
-                          'legend_line_width':self.config.legendLineWidth,
-                          'legend_patch_transparency':self.config.legendPatchAlpha
+            plt_kwargs = {'legend': self.config.legend,
+                          'legend_transparency': self.config.legendAlpha,
+                          'legend_position': self.config.legendPosition,
+                          'legend_num_columns': self.config.legendColumns,
+                          'legend_font_size': self.config.legendFontSize,
+                          'legend_frame_on': self.config.legendFrame,
+                          'legend_fancy_box': self.config.legendFancyBox,
+                          'legend_marker_first': self.config.legendMarkerFirst,
+                          'legend_marker_size': self.config.legendMarkerSize,
+                          'legend_num_markers': self.config.legendNumberMarkers,
+                          'legend_line_width': self.config.legendLineWidth,
+                          'legend_patch_transparency': self.config.legendPatchAlpha
                           }
         elif plotType == "UniDec":
-            plt_kwargs = {'bar_width':self.config.unidec_plot_bar_width,
-                          'bar_alpha':self.config.unidec_plot_bar_alpha,
-                          'bar_edgecolor':self.config.unidec_plot_bar_edge_color,
-                          'bar_edgecolor_sameAsFill':self.config.unidec_plot_bar_sameAsFill,
-                          'bar_linewidth':self.config.unidec_plot_bar_lineWidth,
-                          'bar_marker_size':self.config.unidec_plot_bar_markerSize,
-                          'fit_line_color':self.config.unidec_plot_fit_lineColor,
-                          'isolated_marker_size':self.config.unidec_plot_isolatedMS_markerSize,
-                          'MW_marker_size':self.config.unidec_plot_MW_markerSize,
-                          'MW_show_markers':self.config.unidec_plot_MW_showMarkers,
-                          'color_scheme':self.config.unidec_plot_color_scheme,
-                          'colormap':self.config.unidec_plot_colormap,
-                          'palette':self.config.unidec_plot_palette,
-                          'maximum_shown_items':self.config.unidec_maxShown_individualLines,
-                          'contour_levels':self.config.unidec_plot_contour_levels,
+            plt_kwargs = {'bar_width': self.config.unidec_plot_bar_width,
+                          'bar_alpha': self.config.unidec_plot_bar_alpha,
+                          'bar_edgecolor': self.config.unidec_plot_bar_edge_color,
+                          'bar_edgecolor_sameAsFill': self.config.unidec_plot_bar_sameAsFill,
+                          'bar_linewidth': self.config.unidec_plot_bar_lineWidth,
+                          'bar_marker_size': self.config.unidec_plot_bar_markerSize,
+                          'fit_line_color': self.config.unidec_plot_fit_lineColor,
+                          'isolated_marker_size': self.config.unidec_plot_isolatedMS_markerSize,
+                          'MW_marker_size': self.config.unidec_plot_MW_markerSize,
+                          'MW_show_markers': self.config.unidec_plot_MW_showMarkers,
+                          'color_scheme': self.config.unidec_plot_color_scheme,
+                          'colormap': self.config.unidec_plot_colormap,
+                          'palette': self.config.unidec_plot_palette,
+                          'maximum_shown_items': self.config.unidec_maxShown_individualLines,
+                          'contour_levels': self.config.unidec_plot_contour_levels,
                           }
 
         elif plotType == '2D':
-            plt_kwargs = {'colorbar':self.config.colorbar,
-                          'colorbar_width':self.config.colorbarWidth,
-                          'colorbar_pad':self.config.colorbarPad,
-                          'colorbar_range':self.config.colorbarRange,
-                          'colorbar_min_points':self.config.colorbarMinPoints,
-                          'colorbar_position':self.config.colorbarPosition,
-                          'colorbar_label_size':self.config.colorbarLabelSize,
-                          'legend':self.config.legend,
-                          'legend_transparency':self.config.legendAlpha,
-                          'legend_position':self.config.legendPosition,
-                          'legend_num_columns':self.config.legendColumns,
-                          'legend_font_size':self.config.legendFontSize,
-                          'legend_frame_on':self.config.legendFrame,
-                          'legend_fancy_box':self.config.legendFancyBox,
-                          'legend_marker_first':self.config.legendMarkerFirst,
-                          'legend_marker_size':self.config.legendMarkerSize,
-                          'legend_num_markers':self.config.legendNumberMarkers,
-                          'legend_line_width':self.config.legendLineWidth,
-                          'legend_patch_transparency':self.config.legendPatchAlpha,
-                          'interpolation':self.config.interpolation,
-                          'frame_width':self.config.frameWidth_1D,
-                          'axis_onoff':self.config.axisOnOff_1D,
-                          'label_pad':self.config.labelPad_1D,
-                          'tick_size':self.config.tickFontSize_1D,
-                          'tick_weight':self.config.tickFontWeight_1D,
-                          'label_size':self.config.labelFontSize_1D,
-                          'label_weight':self.config.labelFontWeight_1D,
-                          'title_size':self.config.titleFontSize_1D,
-                          'title_weight':self.config.titleFontWeight_1D,
-                          'ticks_left':self.config.ticks_left_1D,
-                          'ticks_right':self.config.ticks_right_1D,
-                          'ticks_top':self.config.ticks_top_1D,
-                          'ticks_bottom':self.config.ticks_bottom_1D,
-                          'tickLabels_left':self.config.tickLabels_left_1D,
-                          'tickLabels_right':self.config.tickLabels_right_1D,
-                          'tickLabels_top':self.config.tickLabels_top_1D,
-                          'tickLabels_bottom':self.config.tickLabels_bottom_1D,
-                          'spines_left':self.config.spines_left_1D,
-                          'spines_right':self.config.spines_right_1D,
-                          'spines_top':self.config.spines_top_1D,
-                          'spines_bottom':self.config.spines_bottom_1D,
-                          'override_colormap':self.config.useCurrentCmap,
-                          'colormap':self.config.currentCmap,
-                          'colormap_min':self.config.minCmap,
-                          'colormap_mid':self.config.midCmap,
-                          'colormap_max':self.config.maxCmap,
+            plt_kwargs = {'colorbar': self.config.colorbar,
+                          'colorbar_width': self.config.colorbarWidth,
+                          'colorbar_pad': self.config.colorbarPad,
+                          'colorbar_range': self.config.colorbarRange,
+                          'colorbar_min_points': self.config.colorbarMinPoints,
+                          'colorbar_position': self.config.colorbarPosition,
+                          'colorbar_label_size': self.config.colorbarLabelSize,
+                          'legend': self.config.legend,
+                          'legend_transparency': self.config.legendAlpha,
+                          'legend_position': self.config.legendPosition,
+                          'legend_num_columns': self.config.legendColumns,
+                          'legend_font_size': self.config.legendFontSize,
+                          'legend_frame_on': self.config.legendFrame,
+                          'legend_fancy_box': self.config.legendFancyBox,
+                          'legend_marker_first': self.config.legendMarkerFirst,
+                          'legend_marker_size': self.config.legendMarkerSize,
+                          'legend_num_markers': self.config.legendNumberMarkers,
+                          'legend_line_width': self.config.legendLineWidth,
+                          'legend_patch_transparency': self.config.legendPatchAlpha,
+                          'interpolation': self.config.interpolation,
+                          'frame_width': self.config.frameWidth_1D,
+                          'axis_onoff': self.config.axisOnOff_1D,
+                          'label_pad': self.config.labelPad_1D,
+                          'tick_size': self.config.tickFontSize_1D,
+                          'tick_weight': self.config.tickFontWeight_1D,
+                          'label_size': self.config.labelFontSize_1D,
+                          'label_weight': self.config.labelFontWeight_1D,
+                          'title_size': self.config.titleFontSize_1D,
+                          'title_weight': self.config.titleFontWeight_1D,
+                          'ticks_left': self.config.ticks_left_1D,
+                          'ticks_right': self.config.ticks_right_1D,
+                          'ticks_top': self.config.ticks_top_1D,
+                          'ticks_bottom': self.config.ticks_bottom_1D,
+                          'tickLabels_left': self.config.tickLabels_left_1D,
+                          'tickLabels_right': self.config.tickLabels_right_1D,
+                          'tickLabels_top': self.config.tickLabels_top_1D,
+                          'tickLabels_bottom': self.config.tickLabels_bottom_1D,
+                          'spines_left': self.config.spines_left_1D,
+                          'spines_right': self.config.spines_right_1D,
+                          'spines_top': self.config.spines_top_1D,
+                          'spines_bottom': self.config.spines_bottom_1D,
+                          'override_colormap': self.config.useCurrentCmap,
+                          'colormap': self.config.currentCmap,
+                          'colormap_min': self.config.minCmap,
+                          'colormap_mid': self.config.midCmap,
+                          'colormap_max': self.config.maxCmap,
                           }
         elif plotType == '3D':
-            plt_kwargs = {'label_pad':self.config.labelPad_1D,
-                          'tick_size':self.config.tickFontSize_1D,
-                          'tick_weight':self.config.tickFontWeight_1D,
-                          'label_size':self.config.labelFontSize_1D,
-                          'label_weight':self.config.labelFontWeight_1D,
-                          'title_size':self.config.titleFontSize_1D,
-                          'title_weight':self.config.titleFontWeight_1D,
-                          'scatter_edge_color':self.config.markerEdgeColor_3D,
-                          'scatter_color':self.config.markerColor_3D,
-                          'scatter_size':self.config.markerSize_3D,
-                          'scatter_shape':self.config.markerShape_3D,
-                          'scatter_alpha':self.config.markerTransparency_3D,
-                          'grid':self.config.showGrids_3D,
-                          'shade':self.config.shade_3D,
-                          'show_ticks':self.config.ticks_3D,
-                          'show_spines':self.config.spines_3D,
-                          'show_labels':self.config.labels_3D}
+            plt_kwargs = {'label_pad': self.config.labelPad_1D,
+                          'tick_size': self.config.tickFontSize_1D,
+                          'tick_weight': self.config.tickFontWeight_1D,
+                          'label_size': self.config.labelFontSize_1D,
+                          'label_weight': self.config.labelFontWeight_1D,
+                          'title_size': self.config.titleFontSize_1D,
+                          'title_weight': self.config.titleFontWeight_1D,
+                          'scatter_edge_color': self.config.markerEdgeColor_3D,
+                          'scatter_color': self.config.markerColor_3D,
+                          'scatter_size': self.config.markerSize_3D,
+                          'scatter_shape': self.config.markerShape_3D,
+                          'scatter_alpha': self.config.markerTransparency_3D,
+                          'grid': self.config.showGrids_3D,
+                          'shade': self.config.shade_3D,
+                          'show_ticks': self.config.ticks_3D,
+                          'show_spines': self.config.spines_3D,
+                          'show_labels': self.config.labels_3D}
 
         elif plotType in ['RMSD', 'RMSF']:
-            plt_kwargs = {'axis_onoff_1D':self.config.axisOnOff_1D,
-                          'ticks_left_1D':self.config.ticks_left_1D,
-                          'ticks_right_1D':self.config.ticks_right_1D,
-                          'ticks_top_1D':self.config.ticks_top_1D,
-                          'ticks_bottom_1D':self.config.ticks_bottom_1D,
-                          'tickLabels_left_1D':self.config.tickLabels_left_1D,
-                          'tickLabels_right_1D':self.config.tickLabels_right_1D,
-                          'tickLabels_top_1D':self.config.tickLabels_top_1D,
-                          'tickLabels_bottom_1D':self.config.tickLabels_bottom_1D,
-                          'spines_left_1D':self.config.spines_left_1D,
-                          'spines_right_1D':self.config.spines_right_1D,
-                          'spines_top_1D':self.config.spines_top_1D,
-                          'spines_bottom_1D':self.config.spines_bottom_1D,
-                          'rmsd_label_position':self.config.rmsd_position,
-                          'rmsd_label_font_size':self.config.rmsd_fontSize,
-                          'rmsd_label_font_weight':self.config.rmsd_fontWeight,
-                          'rmsd_hspace':self.config.rmsd_hspace,
-                          'rmsd_line_color':self.config.rmsd_lineColour,
-                          'rmsd_line_transparency':self.config.rmsd_lineTransparency,
-                          'rmsd_line_style':self.config.rmsd_lineStyle,
-                          'rmsd_line_width':self.config.rmsd_lineWidth,
-                          'rmsd_underline_hatch':self.config.rmsd_lineHatch,
-                          'rmsd_underline_color':self.config.rmsd_underlineColor,
-                          'rmsd_underline_transparency':self.config.rmsd_underlineTransparency,
-                          'rmsd_matrix_rotX':self.config.rmsd_rotation_X,
-                          'rmsd_matrix_rotY':self.config.rmsd_rotation_Y,
-                          'rmsd_matrix_labels':self.config.rmsd_matrix_add_labels,
+            plt_kwargs = {'axis_onoff_1D': self.config.axisOnOff_1D,
+                          'ticks_left_1D': self.config.ticks_left_1D,
+                          'ticks_right_1D': self.config.ticks_right_1D,
+                          'ticks_top_1D': self.config.ticks_top_1D,
+                          'ticks_bottom_1D': self.config.ticks_bottom_1D,
+                          'tickLabels_left_1D': self.config.tickLabels_left_1D,
+                          'tickLabels_right_1D': self.config.tickLabels_right_1D,
+                          'tickLabels_top_1D': self.config.tickLabels_top_1D,
+                          'tickLabels_bottom_1D': self.config.tickLabels_bottom_1D,
+                          'spines_left_1D': self.config.spines_left_1D,
+                          'spines_right_1D': self.config.spines_right_1D,
+                          'spines_top_1D': self.config.spines_top_1D,
+                          'spines_bottom_1D': self.config.spines_bottom_1D,
+                          'rmsd_label_position': self.config.rmsd_position,
+                          'rmsd_label_font_size': self.config.rmsd_fontSize,
+                          'rmsd_label_font_weight': self.config.rmsd_fontWeight,
+                          'rmsd_hspace': self.config.rmsd_hspace,
+                          'rmsd_line_color': self.config.rmsd_lineColour,
+                          'rmsd_line_transparency': self.config.rmsd_lineTransparency,
+                          'rmsd_line_style': self.config.rmsd_lineStyle,
+                          'rmsd_line_width': self.config.rmsd_lineWidth,
+                          'rmsd_underline_hatch': self.config.rmsd_lineHatch,
+                          'rmsd_underline_color': self.config.rmsd_underlineColor,
+                          'rmsd_underline_transparency': self.config.rmsd_underlineTransparency,
+                          'rmsd_matrix_rotX': self.config.rmsd_rotation_X,
+                          'rmsd_matrix_rotY': self.config.rmsd_rotation_Y,
+                          'rmsd_matrix_labels': self.config.rmsd_matrix_add_labels,
                           }
         elif plotType in 'waterfall':
-            plt_kwargs = {'increment':self.config.waterfall_increment,
-                          'offset':self.config.waterfall_offset,
-                          'increment':self.config.waterfall_increment,
-                          'line_width':self.config.waterfall_lineWidth,
-                          'line_style':self.config.waterfall_lineStyle,
-                          'reverse':self.config.waterfall_reverse,
+            plt_kwargs = {'increment': self.config.waterfall_increment,
+                          'offset': self.config.waterfall_offset,
+                          'increment': self.config.waterfall_increment,
+                          'line_width': self.config.waterfall_lineWidth,
+                          'line_style': self.config.waterfall_lineStyle,
+                          'reverse': self.config.waterfall_reverse,
                           'use_colormap': self.config.waterfall_useColormap,
-                          'line_color':self.config.waterfall_color,
-                          'shade_color':self.config.waterfall_shade_under_color,
-                          'normalize':self.config.waterfall_normalize,
+                          'line_color': self.config.waterfall_color,
+                          'shade_color': self.config.waterfall_shade_under_color,
+                          'normalize': self.config.waterfall_normalize,
                           'colormap': self.config.waterfall_colormap,
                           'palette': self.config.currentPalette,
-                          'color_scheme':self.config.waterfall_color_value,
-                          'line_color_as_shade':self.config.waterfall_line_sameAsShade,
+                          'color_scheme': self.config.waterfall_color_value,
+                          'line_color_as_shade': self.config.waterfall_line_sameAsShade,
                           'add_labels': self.config.waterfall_add_labels,
-                          'labels_frequency':self.config.waterfall_labels_frequency,
-                          'labels_x_offset':self.config.waterfall_labels_x_offset,
-                          'labels_y_offset':self.config.waterfall_labels_y_offset,
-                          'labels_font_size':self.config.waterfall_label_fontSize,
+                          'labels_frequency': self.config.waterfall_labels_frequency,
+                          'labels_x_offset': self.config.waterfall_labels_x_offset,
+                          'labels_y_offset': self.config.waterfall_labels_y_offset,
+                          'labels_font_size': self.config.waterfall_label_fontSize,
                           'labels_font_weight': self.config.waterfall_label_fontWeight,
                           'labels_format': self.config.waterfall_label_format,
-                          'shade_under':self.config.waterfall_shade_under,
+                          'shade_under': self.config.waterfall_shade_under,
                           'shade_under_n_limit': self.config.waterfall_shade_under_nlimit,
-                          'shade_under_transparency':self.config.waterfall_shade_under_transparency,
-                          'legend':self.config.legend,
-                          'legend_transparency':self.config.legendAlpha,
-                          'legend_position':self.config.legendPosition,
-                          'legend_num_columns':self.config.legendColumns,
-                          'legend_font_size':self.config.legendFontSize,
-                          'legend_frame_on':self.config.legendFrame,
-                          'legend_fancy_box':self.config.legendFancyBox,
-                          'legend_marker_first':self.config.legendMarkerFirst,
-                          'legend_marker_size':self.config.legendMarkerSize,
-                          'legend_num_markers':self.config.legendNumberMarkers,
-                          'legend_line_width':self.config.legendLineWidth,
-                          'legend_patch_transparency':self.config.legendPatchAlpha,
-                }
+                          'shade_under_transparency': self.config.waterfall_shade_under_transparency,
+                          'legend': self.config.legend,
+                          'legend_transparency': self.config.legendAlpha,
+                          'legend_position': self.config.legendPosition,
+                          'legend_num_columns': self.config.legendColumns,
+                          'legend_font_size': self.config.legendFontSize,
+                          'legend_frame_on': self.config.legendFrame,
+                          'legend_fancy_box': self.config.legendFancyBox,
+                          'legend_marker_first': self.config.legendMarkerFirst,
+                          'legend_marker_size': self.config.legendMarkerSize,
+                          'legend_num_markers': self.config.legendNumberMarkers,
+                          'legend_line_width': self.config.legendLineWidth,
+                          'legend_patch_transparency': self.config.legendPatchAlpha,
+                          }
         elif plotType in ['violin']:
-            plt_kwargs = {'min_percentage':self.config.violin_min_percentage,
-                          'spacing':self.config.violin_spacing,
-                          'line_width':self.config.violin_lineWidth,
-                          'line_style':self.config.violin_lineStyle,
-                          'line_color':self.config.violin_color,
-                          'shade_color':self.config.violin_shade_under_color,
-                          'normalize':self.config.violin_normalize,
+            plt_kwargs = {'min_percentage': self.config.violin_min_percentage,
+                          'spacing': self.config.violin_spacing,
+                          'line_width': self.config.violin_lineWidth,
+                          'line_style': self.config.violin_lineStyle,
+                          'line_color': self.config.violin_color,
+                          'shade_color': self.config.violin_shade_under_color,
+                          'normalize': self.config.violin_normalize,
                           'colormap': self.config.violin_colormap,
                           'palette': self.config.currentPalette,
-                          'color_scheme':self.config.violin_color_value,
-                          'line_color_as_shade':self.config.violin_line_sameAsShade,
+                          'color_scheme': self.config.violin_color_value,
+                          'line_color_as_shade': self.config.violin_line_sameAsShade,
                           'labels_format': self.config.violin_label_format,
-                          'shade_under':self.config.violin_shade_under,
+                          'shade_under': self.config.violin_shade_under,
                           'violin_nlimit': self.config.violin_nlimit,
-                          'shade_under_transparency':self.config.violin_shade_under_transparency,
-                          'labels_frequency':self.config.violin_labels_frequency,
+                          'shade_under_transparency': self.config.violin_shade_under_transparency,
+                          'labels_frequency': self.config.violin_labels_frequency,
                           }
         elif plotType in ['arrow']:
-            plt_kwargs = {'arrow_line_width':self.config.annotation_arrow_line_width,
-                          'arrow_line_style':self.config.annotation_arrow_line_style,
-                          'arrow_head_length':self.config.annotation_arrow_cap_length,
-                          'arrow_head_width':self.config.annotation_arrow_cap_width}
+            plt_kwargs = {'arrow_line_width': self.config.annotation_arrow_line_width,
+                          'arrow_line_style': self.config.annotation_arrow_line_style,
+                          'arrow_head_length': self.config.annotation_arrow_cap_length,
+                          'arrow_head_width': self.config.annotation_arrow_cap_width}
             add_frame_width = False
         elif plotType == "label":
-            plt_kwargs = {'horizontalalignment':self.config.annotation_label_horz,
-                          'verticalalignment':self.config.annotation_label_vert,
-                          'fontweight':self.config.annotation_label_font_weight,
-                          'fontsize':self.config.annotation_label_font_size,
-                          'rotation':self.config.annotation_label_font_orientation}
+            plt_kwargs = {'horizontalalignment': self.config.annotation_label_horz,
+                          'verticalalignment': self.config.annotation_label_vert,
+                          'fontweight': self.config.annotation_label_font_weight,
+                          'fontsize': self.config.annotation_label_font_size,
+                          'rotation': self.config.annotation_label_font_orientation}
             add_frame_width = False
 
         if "frame_width" not in plt_kwargs and add_frame_width:
@@ -3886,4 +4068,3 @@ class panelPlot(wx.Panel):
                                               vmax=cmapMax,
                                               clip=False)
         return cmapNormalization
-

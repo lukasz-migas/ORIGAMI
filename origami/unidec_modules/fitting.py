@@ -357,7 +357,7 @@ def isolated_peak_fit(xvals, yvals, psfun, **kwargs):
         fit, err, fitdat = fit_peak(xvals, yvals, psfun, midguess, sigguess, aguess, bguess)
     else:
         fit, err, fitdat = voigt_fit(xvals, yvals, midguess, sigguess, 0, aguess, bguess)
-        
+
     return np.transpose([fit, err]), fitdat
 
 
@@ -422,8 +422,8 @@ def mpinit(datatop, oarray, background=False):
 
 
 def mperror(array, datatop, oarray, background):
-    bool1=array<-1
-    array[bool1]=0
+    bool1 = array < -1
+    array[bool1] = 0
     error = (datatop[:, 1] - multipoisson(array, datatop, oarray, background)[0]) ** 2.
     return error
 
@@ -444,7 +444,7 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
 
-    oarray = [1, 2, 3, 4, 5,6, 8]
+    oarray = [1, 2, 3, 4, 5, 6, 8]
     fits, fitdat, integrals, integrals2 = complex_poisson(data, oarray=oarray, background=False)
     print(fits)
     print(integrals, integrals2)

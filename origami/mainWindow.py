@@ -1179,7 +1179,7 @@ class MyFrame(wx.Frame):
 
         # Add more shortcuts with known IDs
         extraKeys = [
-#             ["E", self.presenter.on_extract_2D_from_mass_range_threaded, wx.ACCEL_ALT, ID_extractAllIons],
+            #             ["E", self.presenter.on_extract_2D_from_mass_range_threaded, wx.ACCEL_ALT, ID_extractAllIons],
             ["Q", self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayMZfromList],
             ["W", self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayTextFromList],
             ["S", self.panelDocuments.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotDocument],
@@ -2002,7 +2002,8 @@ class MyFrame(wx.Frame):
         try:
             if os.path.isdir(self.config.driftscopePath):
                 dlg.SetPath(self.config.driftscopePath)
-        except Exception:            pass
+        except Exception:
+            pass
 
         if dlg.ShowModal() == wx.ID_OK:
             if os.path.basename(dlg.GetPath()) == "lib":

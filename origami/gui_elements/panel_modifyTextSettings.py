@@ -110,27 +110,27 @@ class panelModifyTextSettings(wx.MiniFrame):
 
         charge_label = wx.StaticText(panel, wx.ID_ANY, "Charge:")
         self.text_charge_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('intPos'))
+                                             validator=validator('intPos'))
         self.text_charge_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         min_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Min threshold:")
         self.text_min_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value="1", min=0.0, max=1.0,
-                                            initial=1.0, inc=0.05, size=(60, -1))
+                                                          value="1", min=0.0, max=1.0,
+                                                          initial=1.0, inc=0.05, size=(60, -1))
         self.text_min_threshold_value.SetValue(self.itemInfo['min_threshold'])
         self.text_min_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         max_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Max threshold:")
         self.text_max_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value="1", min=0.0, max=1.0,
-                                            initial=1.0, inc=0.05, size=(60, -1))
+                                                          value="1", min=0.0, max=1.0,
+                                                          initial=1.0, inc=0.05, size=(60, -1))
         self.text_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
         self.text_max_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.text_colormap_value = wx.Choice(panel, -1,
-                                               choices=self.config.cmaps2,
-                                               size=(-1, -1))
+                                             choices=self.config.cmaps2,
+                                             size=(-1, -1))
         self.text_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         self.text_restrictColormap_value = makeCheckbox(panel, "")
@@ -144,15 +144,15 @@ class panelModifyTextSettings(wx.MiniFrame):
 
         mask_label = wx.StaticText(panel, wx.ID_ANY, "Mask:")
         self.text_mask_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value="1", min=0.0, max=1.0,
-                                            initial=1.0, inc=0.05, size=(60, -1))
+                                                 value="1", min=0.0, max=1.0,
+                                                 initial=1.0, inc=0.05, size=(60, -1))
         self.text_mask_value.SetValue(self.itemInfo['mask'])
         self.text_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparency:")
         self.text_transparency_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                    value="1", min=0.0, max=1.0,
-                                                    initial=1.0, inc=0.05, size=(60, -1))
+                                                         value="1", min=0.0, max=1.0,
+                                                         initial=1.0, inc=0.05, size=(60, -1))
         self.text_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -307,8 +307,8 @@ class panelModifyTextSettings(wx.MiniFrame):
         self.on_check_id()
         if evt:
             color = self.parent.on_assign_color(evt=None,
-                                              itemID=self.itemInfo['id'],
-                                              give_value=True)
+                                                itemID=self.itemInfo['id'],
+                                                give_value=True)
             self.text_color_value.SetBackgroundColour(color)
         else:
             color = self.text_color_value.GetBackgroundColour()

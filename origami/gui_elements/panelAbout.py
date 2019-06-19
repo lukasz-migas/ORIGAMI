@@ -20,7 +20,7 @@
 import wx
 
 from ids import (ID_helpCite, ID_helpGitHub, ID_helpReportBugs, ID_helpNewFeatures,
-                         ID_helpHomepage, ID_helpAuthor)
+                 ID_helpHomepage, ID_helpAuthor)
 
 
 class panelAbout(wx.MiniFrame):
@@ -28,7 +28,7 @@ class panelAbout(wx.MiniFrame):
 
     def __init__(self, parent, presenter, frameTitle, config, icons):
         wx.MiniFrame.__init__(self, parent, -1, frameTitle, style=wx.DEFAULT_FRAME_STYLE
-                       & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX))
+                              & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX))
 
         self.parent = parent
         self.presenter = presenter

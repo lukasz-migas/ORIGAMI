@@ -6,7 +6,7 @@ class panelNotifyOpenDocuments(wx.Dialog):
 
     def __init__(self, parent, presenter, message, **kwargs):
         wx.Dialog.__init__(self, parent, -1, 'Documents are still open...!', size=(-1, -1),
-                              style=wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX)
+                           style=wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX)
 
         self.parent = parent
         self.presenter = presenter
@@ -72,4 +72,3 @@ class panelNotifyOpenDocuments(wx.Dialog):
         panel.SetSizer(mainSizer)
 
         return panel
-

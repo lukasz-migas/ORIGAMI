@@ -17,7 +17,8 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import wx, re
+import wx
+import re
 import numpy as np
 
 from utils.converters import num2str, str2int, str2num
@@ -126,7 +127,7 @@ class panelDocumentInfo(wx.MiniFrame):
 
         # init toolbar
         panel = bgrPanel(self, -1, self.icons.iconsLib['bgrToolbar'],
-                             size=(16, 20))
+                         size=(16, 20))
 
         # make buttons
         self.summary_butt = wx.BitmapButton(panel, ID_documentInfoSummary, self.icons.iconsLib['documentTwo16'],
@@ -140,12 +141,12 @@ class panelDocumentInfo(wx.MiniFrame):
         self.spectrum_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
         self.plotIMS_butt = wx.BitmapButton(panel, ID_documentInfoPlotIMS, self.icons.iconsLib['plotIMS16'],
-                                          size=(TOOLBAR_TOOLSIZE), style=wx.BORDER_NONE)
+                                            size=(TOOLBAR_TOOLSIZE), style=wx.BORDER_NONE)
         self.plotIMS_butt.SetToolTip(wx.ToolTip("Plot (2D) information"))
         self.plotIMS_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
         self.plotCali_butt = wx.BitmapButton(panel, ID_documentInfoCalibration, self.icons.iconsLib['plotCalibration16'],
-                                          size=(TOOLBAR_TOOLSIZE), style=wx.BORDER_NONE)
+                                             size=(TOOLBAR_TOOLSIZE), style=wx.BORDER_NONE)
         self.plotCali_butt.SetToolTip(wx.ToolTip("CCS calibration information"))
         self.plotCali_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
@@ -244,7 +245,8 @@ class panelDocumentInfo(wx.MiniFrame):
         panel = wx.Panel(self, -1)
         PANEL_SPACE_MAIN = 20
 
-        if hasattr(self.document, 'userParameters'): pass
+        if hasattr(self.document, 'userParameters'):
+            pass
         else:
             print('Added attributes from config')
             self.document.userParameters = self.config.userParameters
@@ -329,10 +331,14 @@ class panelDocumentInfo(wx.MiniFrame):
         panel = wx.Panel(self, -1)
         PANEL_SPACE_MAIN = 20
 
-        if hasattr(self.document, 'moleculeDetails'): pass
-        else: self.document.moleculeDetails = {}
-        if hasattr(self.document, 'fileInformation'): pass
-        else: self.document.fileInformation = {}
+        if hasattr(self.document, 'moleculeDetails'):
+            pass
+        else:
+            self.document.moleculeDetails = {}
+        if hasattr(self.document, 'fileInformation'):
+            pass
+        else:
+            self.document.fileInformation = {}
 
         # make elements
         docType_label = wx.StaticText(panel, -1, "Document type:")
@@ -343,7 +349,7 @@ class panelDocumentInfo(wx.MiniFrame):
                                                             'Type: Comparison',
                                                             'Type: Interactive',
                                                             'Other'],
-                                         size=(180, -1))
+                                        size=(180, -1))
 
         if self.document.dataType == 'Type: ORIGAMI':
             self.docType_choice.SetStringSelection('Type: ORIGAMI')
@@ -383,7 +389,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.selectBtn = wx.Button(panel, ID_selectProtein, "...",
                                    wx.DefaultPosition, wx.Size(25, -1), 0)
 
-        # self.selectBtn.Bind(wx.EVT_BUTTON, self.presenter.onSelectProtein, id=ID_selectProtein) 
+        # self.selectBtn.Bind(wx.EVT_BUTTON, self.presenter.onSelectProtein, id=ID_selectProtein)
 
         molWeight_label = wx.StaticText(panel, -1, "Molecular weight (Da):")
         self.molWeight_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
@@ -526,8 +532,10 @@ class panelDocumentInfo(wx.MiniFrame):
         self.charge_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         charge = data.get('charge', "None")
 
-        if charge == "None" or charge == "" or charge == None: charge = 1
-        else: charge = str2int(charge)
+        if charge == "None" or charge == "" or charge == None:
+            charge = 1
+        else:
+            charge = str2int(charge)
         self.charge_value.SetValue(str(charge))
         self.charge_value.Bind(wx.EVT_TEXT, self.onApply)
 
@@ -559,8 +567,10 @@ class panelDocumentInfo(wx.MiniFrame):
 
         shape_label = wx.StaticText(panel, -1, "Shape:")
         self.shape_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
-        try: dataShape = data['zvals'].shape
-        except KeyError: dataShape = None
+        try:
+            dataShape = data['zvals'].shape
+        except KeyError:
+            dataShape = None
         self.shape_value.SetValue(str(dataShape))
         self.shape_value.Bind(wx.EVT_TEXT, self.onApply)
         self.shape_value.Disable()
@@ -610,7 +620,7 @@ class panelDocumentInfo(wx.MiniFrame):
 
         calibrationType_label = wx.StaticText(panel, -1, "Calibration type:")
         self.calibrationType_value = wx.Choice(panel, -1, choices=['Linear', 'Power'],
-                                         size=(180, -1))
+                                               size=(180, -1))
         self.calibrationType_value.Disable()
 
         self.calibrationType_check = makeCheckbox(panel, "")
@@ -643,13 +653,13 @@ class panelDocumentInfo(wx.MiniFrame):
         self.interceptLinear_value = wx.TextCtrl(panel, -1, "", size=(90, -1),
                                                  style=wx.TE_READONLY)
         self.interceptPower_value = wx.TextCtrl(panel, -1, "", size=(90, -1),
-                                                 style=wx.TE_READONLY)
+                                                style=wx.TE_READONLY)
 
         r2_label = wx.StaticText(panel, -1, "R²:")
         self.r2Linear_value = wx.TextCtrl(panel, -1, "", size=(90, -1),
                                           style=wx.TE_READONLY)
         self.r2Power_value = wx.TextCtrl(panel, -1, "", size=(90, -1),
-                                          style=wx.TE_READONLY)
+                                         style=wx.TE_READONLY)
 
         # bind events
         self.calibrationType_value.Bind(wx.EVT_COMBOBOX, self.onApply)
@@ -807,7 +817,7 @@ class panelDocumentInfo(wx.MiniFrame):
 
 # ---
         if (hasattr(self, 'restoreDefaultX_check') and hasattr(self, 'restoreDefaultY_check') and
-            hasattr(self, 'labelsX_check') and hasattr(self, 'labelsY_check')):
+                hasattr(self, 'labelsX_check') and hasattr(self, 'labelsY_check')):
 
             # Determine which dataset is used
             if self.itemType == None:
@@ -830,10 +840,10 @@ class panelDocumentInfo(wx.MiniFrame):
             # Add default values
             if 'defaultX' not in data:
                 data['defaultX'] = {'xlabels': data['xlabels'],
-                                     'xvals': data['xvals']}
+                                    'xvals': data['xvals']}
             if 'defaultY' not in data:
                 data['defaultY'] = {'ylabels': data['ylabels'],
-                                     'yvals': data['yvals']}
+                                    'yvals': data['yvals']}
 
             # Check if restore tickes have been checked
             if self.restoreDefaultX_check.GetValue():
@@ -860,18 +870,18 @@ class panelDocumentInfo(wx.MiniFrame):
             data['xlabels'] = self.labelsX_value.GetStringSelection()
             if not self.labelsX_check.GetValue():
                 newXvals = self.parent.on_change_xy_axis(data['xvals'], oldXLabel,
-                                                        self.labelsX_value.GetStringSelection(),
-                                                        charge=self.charge_value.GetValue(),
-                                                        defaults=data['defaultX'])
+                                                         self.labelsX_value.GetStringSelection(),
+                                                         charge=self.charge_value.GetValue(),
+                                                         defaults=data['defaultX'])
                 data['xvals'] = newXvals
 
             oldYLabel = data['ylabels']
             data['ylabels'] = self.labelsY_value.GetStringSelection()
             if not self.labelsY_check.GetValue():
                 newYvals = self.parent.on_change_xy_axis(data['yvals'], oldYLabel,
-                                                        self.labelsY_value.GetStringSelection(),
-                                                        pusherFreq=self.pusherFreq_value.GetValue(),
-                                                        defaults=data['defaultY'])
+                                                         self.labelsY_value.GetStringSelection(),
+                                                         pusherFreq=self.pusherFreq_value.GetValue(),
+                                                         defaults=data['defaultY'])
                 data['yvals'] = newYvals
 
             # Update other parameters
@@ -894,7 +904,8 @@ class panelDocumentInfo(wx.MiniFrame):
                 self.document.IMS2D = data
 
             # Since charge state is inherent to the m/z range, it needs to be changed iteratively for each dataset
-            if self.itemType == None: pass
+            if self.itemType == None:
+                pass
             elif any(self.itemType in itemType for itemType in ['Drift time (2D, EIC)',
                                                                 'Combined CV 2D IM-MS (multiple ions)',
                                                                 'Drift time (2D, processed, EIC)',
@@ -919,16 +930,16 @@ class panelDocumentInfo(wx.MiniFrame):
 
             # We also have to check if there is data in the table
             if (self.document.dataType == 'Type: ORIGAMI' or
-                self.document.dataType == 'Type: MANUAL') and self.extractData != None:
+                    self.document.dataType == 'Type: MANUAL') and self.extractData != None:
 
                 splitText = self.extractData.split('-')
                 row = self.presenter.view.panelMultipleIons.findItem(splitText[0],
-                                                                          splitText[1],
-                                                                          self.document.title)
+                                                                     splitText[1],
+                                                                     self.document.title)
                 if row != None:
                     self.presenter.view.panelMultipleIons.peaklist.SetStringItem(index=row,
-                                                col=self.config.peaklistColNames['charge'],
-                                                label=self.charge_value.GetValue())
+                                                                                 col=self.config.peaklistColNames['charge'],
+                                                                                 label=self.charge_value.GetValue())
 
 # ---
 
@@ -936,26 +947,31 @@ class panelDocumentInfo(wx.MiniFrame):
         self.presenter.documentsDict[self.document.title] = self.document
 
     def onEnableDisable(self, evt):
-# ---
+        # ---
         if not self.scanTime_check.GetValue():
             self.scanTime_value.Disable()
-        else: self.scanTime_value.Enable()
+        else:
+            self.scanTime_value.Enable()
 
         if not self.pusherFreq_check.GetValue():
             self.pusherFreq_value.Disable()
-        else: self.pusherFreq_value.Enable()
+        else:
+            self.pusherFreq_value.Enable()
 
         if not self.tofCorrFactor_check.GetValue():
             self.tofCorrFactor_value.Disable()
-        else: self.tofCorrFactor_value.Enable()
+        else:
+            self.tofCorrFactor_value.Enable()
 
         if not self.docType_check.GetValue():
             self.docType_choice.Disable()
-        else: self.docType_choice.Enable()
+        else:
+            self.docType_choice.Enable()
 
         if not self.calibrationType_check.GetValue():
             self.calibrationType_value.Disable()
-        else: self.calibrationType_value.Enable()
+        else:
+            self.calibrationType_value.Enable()
 # ---
         if not self.path_check.GetValue():
             self.path_value.Disable()
@@ -981,11 +997,15 @@ class panelDocumentInfo(wx.MiniFrame):
                 self.labelsY_value.Enable()
 # ---
         if hasattr(self, 'labelsX_check') and hasattr(self, 'labelsY_check'):
-            if self.labelsX_check.GetValue(): self.restoreDefaultX_check.Disable()
-            else: self.restoreDefaultX_check.Enable()
+            if self.labelsX_check.GetValue():
+                self.restoreDefaultX_check.Disable()
+            else:
+                self.restoreDefaultX_check.Enable()
 # ---
-            if self.labelsY_check.GetValue(): self.restoreDefaultY_check.Disable()
-            else: self.restoreDefaultY_check.Enable()
+            if self.labelsY_check.GetValue():
+                self.restoreDefaultY_check.Disable()
+            else:
+                self.restoreDefaultY_check.Enable()
 
     def onAnnotateProteinInfo(self, data):
         """ 
@@ -1008,4 +1028,3 @@ class panelDocumentInfo(wx.MiniFrame):
 
         self.onApply(evt=None)
         self.parent.onShowPlot(evt=None)
-

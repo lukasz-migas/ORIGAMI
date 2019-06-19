@@ -56,16 +56,16 @@ def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
 
 def convertRGB1toHEX(rgbList):
 
-        return '#{:02x}{:02x}{:02x}'.format(int((np.float(rgbList[0]) * 255)),
-                                            int((np.float(rgbList[1]) * 255)),
-                                            int((np.float(rgbList[2]) * 255)))
+    return '#{:02x}{:02x}{:02x}'.format(int((np.float(rgbList[0]) * 255)),
+                                        int((np.float(rgbList[1]) * 255)),
+                                        int((np.float(rgbList[2]) * 255)))
 
 
 def convertRGB255toHEX(rgbList):
 
-        return '#{:02x}{:02x}{:02x}'.format(int((np.float(rgbList[0]))),
-                                            int((np.float(rgbList[1]))),
-                                            int((np.float(rgbList[2]))))
+    return '#{:02x}{:02x}{:02x}'.format(int((np.float(rgbList[0]))),
+                                        int((np.float(rgbList[1]))),
+                                        int((np.float(rgbList[2]))))
 
 
 def convertHEXtoRGB1(hex, decimals=3):
@@ -200,7 +200,7 @@ def remap_values(x, nMin, nMax, oMin=None, oMax=None, type_format='int'):
     reverseOutput = False
     newMin = min(nMin, nMax)
     newMax = max(nMin, nMax)
-    if not newMin == nMin :
+    if not newMin == nMin:
         reverseOutput = True
 
     portion = (x - oldMin) * (newMax - newMin) / (oldMax - oldMin)

@@ -85,13 +85,13 @@ def makeStaticText(parent, text):
     textBox = wx.StaticText(parent, wx.ID_ANY,
                             text, wx.DefaultPosition,
                             wx.DefaultSize,
-                             wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+                            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
     return textBox
 
 
 def makeTextCtrl(parent, size=(wx.DefaultSize)):
-    textBox = wx.TextCtrl(parent, wx.ID_ANY, ""  , wx.DefaultPosition,
-                            size, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+    textBox = wx.TextCtrl(parent, wx.ID_ANY, "", wx.DefaultPosition,
+                          size, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
     return textBox
 
 
@@ -563,9 +563,9 @@ class validator(wx.PyValidator):
 
         # define navigation keys
         navKeys = (wx.WXK_HOME, wx.WXK_LEFT, wx.WXK_UP,
-                    wx.WXK_END, wx.WXK_RIGHT, wx.WXK_DOWN,
-                    wx.WXK_NUMPAD_HOME, wx.WXK_NUMPAD_LEFT, wx.WXK_NUMPAD_UP,
-                    wx.WXK_NUMPAD_END, wx.WXK_NUMPAD_RIGHT, wx.WXK_NUMPAD_DOWN)
+                   wx.WXK_END, wx.WXK_RIGHT, wx.WXK_DOWN,
+                   wx.WXK_NUMPAD_HOME, wx.WXK_NUMPAD_LEFT, wx.WXK_NUMPAD_UP,
+                   wx.WXK_NUMPAD_END, wx.WXK_NUMPAD_RIGHT, wx.WXK_NUMPAD_DOWN)
 
         # navigation keys
         if key in navKeys or key < wx.WXK_SPACE or key == wx.WXK_DELETE:
@@ -610,4 +610,3 @@ class validator(wx.PyValidator):
         else:
             wx.Bell()
             return
-

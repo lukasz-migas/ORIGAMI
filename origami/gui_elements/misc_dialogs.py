@@ -57,4 +57,3 @@ def dlgAsk(message='', defaultValue=''):
     result = dlg.GetValue()
     dlg.Destroy()
     return result
-

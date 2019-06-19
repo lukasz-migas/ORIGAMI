@@ -207,7 +207,7 @@ class panelTandemSpectra(wx.MiniFrame):
             scan_title_table = self.peaklist_selected.GetItem(i, self._columns_peaklist_selected['title']).GetText()
             if (scan_id == scan_id_table and
                 scan_id_id == scan_id_id_table and
-                scan_title == scan_title_table):
+                    scan_title == scan_title_table):
                 return True
 
         return False
@@ -234,17 +234,18 @@ class panelTandemSpectra(wx.MiniFrame):
                     document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'] = {}
 
                 document.tandem_spectra[itemInfo['scanID']]['fragment_annotations'][itemInfo['id_num']] = {
-                    'fragment_table':fragments,
-                    'fragment_mass_list':frag_mass_list,
-                    'fragment_intensity_list':frag_int_list,
-                    'fragment_label_list':frag_label_list,
-                    'fragment_full_label_list':frag_full_label_list}
+                    'fragment_table': fragments,
+                    'fragment_mass_list': frag_mass_list,
+                    'fragment_intensity_list': frag_int_list,
+                    'fragment_label_list': frag_label_list,
+                    'fragment_full_label_list': frag_full_label_list}
 
                 annot_title = "{}:{}".format(itemInfo["scanID"], itemInfo["id_num"])
                 document.tandem_spectra['annotated_item_list'].append(annot_title)
 
                 # annotate table
-                self.peaklist_selected.SetStringItem(i, self._columns_peaklist_selected['# matched'], str(len(fragments)))
+                self.peaklist_selected.SetStringItem(
+                    i, self._columns_peaklist_selected['# matched'], str(len(fragments)))
                 counter += 1
 
         # ensure there are no duplicates in the list
@@ -329,7 +330,8 @@ class panelTandemSpectra(wx.MiniFrame):
     def make_peptide_checkbox(self, panel):
         tolerance_label = wx.StaticText(panel, wx.ID_ANY, "Tolerance:")
         self.tolerance_value = wx.SpinCtrlDouble(panel, -1,
-                                                 value=str(self.config.fragments_tolerance[self.config.fragments_units]),
+                                                 value=str(
+                                                     self.config.fragments_tolerance[self.config.fragments_units]),
                                                  min=self.config.fragments_tolerance_limits[self.config.fragments_units][0],
                                                  max=self.config.fragments_tolerance_limits[self.config.fragments_units][1],
                                                  initial=self.config.fragments_tolerance[self.config.fragments_units],
@@ -346,8 +348,8 @@ class panelTandemSpectra(wx.MiniFrame):
 
         max_labels_label = wx.StaticText(panel, wx.ID_ANY, "Maximum labels:")
         self.max_labels_value = wx.SpinCtrlDouble(panel, -1, value=str(self.config.fragments_max_matches), min=1,
-                                                 max=5, initial=self.config.fragments_max_matches, inc=1,
-                                                 size=(90, -1))
+                                                  max=5, initial=self.config.fragments_max_matches, inc=1,
+                                                  size=(90, -1))
         self.max_labels_value.Bind(wx.EVT_TEXT, self.onApply)
 
 #         fragment_presets_label = wx.StaticText(panel, wx.ID_ANY, u"Presets:")
@@ -362,7 +364,8 @@ class panelTandemSpectra(wx.MiniFrame):
         n = 0
         tolerance_grid.Add(tolerance_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         tolerance_grid.Add(self.tolerance_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        tolerance_grid.Add(tolerance_units_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        tolerance_grid.Add(tolerance_units_label, (n, 2), wx.GBSpan(1, 1),
+                           flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         tolerance_grid.Add(self.tolerance_choice, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
         tolerance_grid.Add(max_labels_label, (n, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         tolerance_grid.Add(self.max_labels_value, (n, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
@@ -607,8 +610,8 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def make_peptide_list(self, panel):
 
-        self._frag_columns = {'check':0, 'measured m/z':1, 'calculated m/z':2, 'intensity':3, 'delta':4,
-                              'charge':5, 'label':6, 'full_label':7, 'peptide':8}
+        self._frag_columns = {'check': 0, 'measured m/z': 1, 'calculated m/z': 2, 'intensity': 3, 'delta': 4,
+                              'charge': 5, 'label': 6, 'full_label': 7, 'peptide': 8}
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -638,8 +641,8 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def make_modification_list(self, panel):
 
-#         self._mod_list = {'check':0, 'delta':1, 'calculated m/z':2, 'intensity':3, 'delta':4,
-#                           'charge':5, 'label':6, 'peptide':7}
+        #         self._mod_list = {'check':0, 'delta':1, 'calculated m/z':2, 'intensity':3, 'delta':4,
+        #                           'charge':5, 'label':6, 'peptide':7}
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -691,9 +694,9 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def make_peaklist_all_list(self, panel):
 
-        self._columns_peaklist = {'check':0, 'scan ID':1, 'ID #':2, 'MSn':3, 'parent m/z':4,
-                                  'charge':5, '# peaks':6, 'peptide':7, 'identification':7,
-                                  'PTM':8, 'title':9}
+        self._columns_peaklist = {'check': 0, 'scan ID': 1, 'ID #': 2, 'MSn': 3, 'parent m/z': 4,
+                                  'charge': 5, '# peaks': 6, 'peptide': 7, 'identification': 7,
+                                  'PTM': 8, 'title': 9}
 
         self.peaklist = EditableListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES)
         self.peaklist.SetFont(wx.SMALL_FONT)
@@ -729,9 +732,9 @@ class panelTandemSpectra(wx.MiniFrame):
         self.on_show_spectrum(evt)
 
     def make_peaklist_selected_list(self, panel):
-        self._columns_peaklist_selected = {'check':0, 'scan ID':1, 'ID #':2, 'MSn':3, 'parent m/z':4,
-                                           'charge':5, '# peaks':6, '# matched':7, 'peptide':8, 'identification':9,
-                                           'PTM':9, 'title':10}
+        self._columns_peaklist_selected = {'check': 0, 'scan ID': 1, 'ID #': 2, 'MSn': 3, 'parent m/z': 4,
+                                           'charge': 5, '# peaks': 6, '# matched': 7, 'peptide': 8, 'identification': 9,
+                                           'PTM': 9, 'title': 10}
 
         self.peaklist_selected = EditableListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES)
         self.peaklist_selected.SetFont(wx.SMALL_FONT)
@@ -788,15 +791,18 @@ class panelTandemSpectra(wx.MiniFrame):
         self.peaklist_all = wx.Panel(self.peaklistBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.peaklistBook.AddPage(self.make_peaklist_all_list(self.peaklist_all), "All scans", False)
 
-        self.peaklist_selected = wx.Panel(self.peaklistBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.peaklist_selected = wx.Panel(self.peaklistBook, wx.ID_ANY,
+                                          wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.peaklistBook.AddPage(self.make_peaklist_selected_list(self.peaklist_selected), "Selected scans", False)
 
         self.annotationBook = wx.Notebook(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, style=wx.NB_MULTILINE)
 
-        self.annotation_peaklist = wx.Panel(self.annotationBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.annotation_peaklist = wx.Panel(self.annotationBook, wx.ID_ANY,
+                                            wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.annotationBook.AddPage(self.make_peptide_list(self.annotation_peaklist), "Fragment list", False)
 
-        self.annotation_modlist = wx.Panel(self.annotationBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.annotation_modlist = wx.Panel(self.annotationBook, wx.ID_ANY,
+                                           wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.annotationBook.AddPage(self.make_modification_list(self.annotation_modlist), "Modifications list", False)
 
         self.peaklistBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.peaklist_page_changed)
@@ -805,8 +811,8 @@ class panelTandemSpectra(wx.MiniFrame):
         self.show_next_Btn.Bind(wx.EVT_BUTTON, self.on_load_n_spectra)
 
         self.show_count_value = wx.SpinCtrlDouble(panel, -1, value=str(self.config.msms_load_n_scans),
-                                             min=10, max=999999, inc=500,
-                                             initial=self.config.msms_load_n_scans, size=(90, -1))
+                                                  min=10, max=999999, inc=500,
+                                                  initial=self.config.msms_load_n_scans, size=(90, -1))
         self.show_count_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
 
         self.show_all_Btn = wx.Button(panel, -1, "Load all scans", size=(-1, 25))
@@ -863,7 +869,8 @@ class panelTandemSpectra(wx.MiniFrame):
                                      bitmap=self.icons.iconsLib['settings16_2'],
                                      help_text=''))
         menu.AppendSeparator()
-        self.show_unidentified_check = menu.AppendCheckItem(ID_tandemPanel_showUnidentifiedScans, "Include scans without identification", help="")
+        self.show_unidentified_check = menu.AppendCheckItem(
+            ID_tandemPanel_showUnidentifiedScans, "Include scans without identification", help="")
         self.show_unidentified_check.Check(self.config._tandem_show_unidentified_in_table)
 
         self.show_PTMs_check = menu.AppendCheckItem(ID_tandemPanel_showPTMs, "Include scans with PTMs", help="")
@@ -1035,7 +1042,7 @@ class panelTandemSpectra(wx.MiniFrame):
 
         checkData = []
         for check in tempData:
-#             del check[-1]
+            #             del check[-1]
             checkData.append(check[-1])
             del check[-1]
 
@@ -1104,15 +1111,16 @@ class panelTandemSpectra(wx.MiniFrame):
             should the data be returned as a row to be inserted into another table
         """
         # get item information
-        information = {'scanID':self.peaklist.GetItem(itemID, self._columns_peaklist['scan ID']).GetText(),
-                       'MSlevel':str2int(self.peaklist.GetItem(itemID, self._columns_peaklist['MSn']).GetText()),
-                       'precursor_mz':self.peaklist.GetItem(itemID, self._columns_peaklist['parent m/z']).GetText(),
-                       'precursor_charge':self.peaklist.GetItem(itemID, self._columns_peaklist['charge']).GetText(),
-                       'n_peaks':self.peaklist.GetItem(itemID, self._columns_peaklist['# peaks']).GetText(),
-                       'peptide':self.peaklist.GetItem(itemID, self._columns_peaklist['peptide']).GetText(),
-                       'PTM':str2bool(self.peaklist.GetItem(itemID, self._columns_peaklist['PTM']).GetText()),
-                       'title':self.peaklist.GetItem(itemID, self._columns_peaklist['title']).GetText(),
-                       'id_num':int(self.peaklist.GetItem(itemID, self._columns_peaklist['ID #']).GetText()) - 1,  # adjust for previously added 1
+        information = {'scanID': self.peaklist.GetItem(itemID, self._columns_peaklist['scan ID']).GetText(),
+                       'MSlevel': str2int(self.peaklist.GetItem(itemID, self._columns_peaklist['MSn']).GetText()),
+                       'precursor_mz': self.peaklist.GetItem(itemID, self._columns_peaklist['parent m/z']).GetText(),
+                       'precursor_charge': self.peaklist.GetItem(itemID, self._columns_peaklist['charge']).GetText(),
+                       'n_peaks': self.peaklist.GetItem(itemID, self._columns_peaklist['# peaks']).GetText(),
+                       'peptide': self.peaklist.GetItem(itemID, self._columns_peaklist['peptide']).GetText(),
+                       'PTM': str2bool(self.peaklist.GetItem(itemID, self._columns_peaklist['PTM']).GetText()),
+                       'title': self.peaklist.GetItem(itemID, self._columns_peaklist['title']).GetText(),
+                       # adjust for previously added 1
+                       'id_num': int(self.peaklist.GetItem(itemID, self._columns_peaklist['ID #']).GetText()) - 1,
                        }
 
         if return_list:
@@ -1135,16 +1143,17 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def get_item_info_peaklist_selected(self, itemID, return_list=False):
         # get item information
-        information = {'scanID':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['scan ID']).GetText(),
-                       'MSlevel':str2int(self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['MSn']).GetText()),
-                       'precursor_mz':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['parent m/z']).GetText(),
-                       'precursor_charge':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['charge']).GetText(),
-                       'n_peaks':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['# peaks']).GetText(),
-                       'n_matched':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['# matched']).GetText(),
-                       'peptide':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['peptide']).GetText(),
-                       'PTM':str2bool(self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['PTM']).GetText()),
-                       'title':self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['title']).GetText(),
-                       'id_num':int(self.peaklist_selected.GetItem(itemID, self._columns_peaklist['ID #']).GetText()) - 1,  # adjust for previously added 1
+        information = {'scanID': self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['scan ID']).GetText(),
+                       'MSlevel': str2int(self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['MSn']).GetText()),
+                       'precursor_mz': self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['parent m/z']).GetText(),
+                       'precursor_charge': self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['charge']).GetText(),
+                       'n_peaks': self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['# peaks']).GetText(),
+                       'n_matched': self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['# matched']).GetText(),
+                       'peptide': self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['peptide']).GetText(),
+                       'PTM': str2bool(self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['PTM']).GetText()),
+                       'title': self.peaklist_selected.GetItem(itemID, self._columns_peaklist_selected['title']).GetText(),
+                       # adjust for previously added 1
+                       'id_num': int(self.peaklist_selected.GetItem(itemID, self._columns_peaklist['ID #']).GetText()) - 1,
 
                        }
 
@@ -1163,14 +1172,14 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def get_item_info_fragments(self, itemID, return_list=False):
         # get item information
-        information = {'measured_mz':str2num(self.fraglist.GetItem(itemID, self._frag_columns['measured m/z']).GetText()),
-                       'calculated_mz':str2num(self.fraglist.GetItem(itemID, self._frag_columns['calculated m/z']).GetText()),
-                       'intensity':str2num(self.fraglist.GetItem(itemID, self._frag_columns['intensity']).GetText()),
-                       'delta_mz':str2num(self.fraglist.GetItem(itemID, self._frag_columns['delta']).GetText()),
-                       'charge':str2int(self.fraglist.GetItem(itemID, self._frag_columns['charge']).GetText()),
-                       'label':self.fraglist.GetItem(itemID, self._frag_columns['label']).GetText(),
-                       'full_label':self.fraglist.GetItem(itemID, self._frag_columns['full_label']).GetText(),
-                       'peptide':self.fraglist.GetItem(itemID, self._frag_columns['peptide']).GetText(),
+        information = {'measured_mz': str2num(self.fraglist.GetItem(itemID, self._frag_columns['measured m/z']).GetText()),
+                       'calculated_mz': str2num(self.fraglist.GetItem(itemID, self._frag_columns['calculated m/z']).GetText()),
+                       'intensity': str2num(self.fraglist.GetItem(itemID, self._frag_columns['intensity']).GetText()),
+                       'delta_mz': str2num(self.fraglist.GetItem(itemID, self._frag_columns['delta']).GetText()),
+                       'charge': str2int(self.fraglist.GetItem(itemID, self._frag_columns['charge']).GetText()),
+                       'label': self.fraglist.GetItem(itemID, self._frag_columns['label']).GetText(),
+                       'full_label': self.fraglist.GetItem(itemID, self._frag_columns['full_label']).GetText(),
+                       'peptide': self.fraglist.GetItem(itemID, self._frag_columns['peptide']).GetText(),
                        }
         if return_list:
             measured_mz = information['measured_mz']
@@ -1186,8 +1195,10 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def onApply(self, evt):
 
-        try: source = evt.GetEventObject().GetName()
-        except: pass
+        try:
+            source = evt.GetEventObject().GetName()
+        except:
+            pass
 
         self.config.msms_load_n_scans = int(self.show_count_value.GetValue())
         self.show_next_Btn.SetLabel("Load {} scans".format(self.config.msms_load_n_scans))
@@ -1197,22 +1208,22 @@ class panelTandemSpectra(wx.MiniFrame):
         self.verbose = self.verbose_check.GetValue()
         self.butterfly_plot = self.butterfly_check.GetValue()
 
-        _fragments = {"M-ALL":self.peptide_M_all.GetValue(), "M":self.peptide_M.GetValue(),
-                      "M-nH2O":self.peptide_M_nH2O.GetValue(), "M-nNH3":self.peptide_M_nNH3.GetValue(),
-                      "a-ALL":self.peptide_a_all.GetValue(), "a":self.peptide_a.GetValue(),
-                      "a-nH2O":self.peptide_a_nH2O.GetValue(), "a-nNH3":self.peptide_a_nNH3.GetValue(),
-                      "b-ALL":self.peptide_b_all.GetValue(), "b":self.peptide_b.GetValue(),
-                      "b-nH2O":self.peptide_b_nH2O.GetValue(), "b-nNH3":self.peptide_b_nNH3.GetValue(),
-                      "c-ALL":self.peptide_c_all.GetValue(), "c":self.peptide_c.GetValue(),
-                      "c-nH2O":self.peptide_c_nH2O.GetValue(), "c-nNH3":self.peptide_c_nNH3.GetValue(),
-                      "c-dot":self.peptide_c_dot.GetValue(), "c+1/2":self.peptide_c_add_1_2.GetValue(),
-                      "x-ALL":self.peptide_x_all.GetValue(), "x":self.peptide_x.GetValue(),
-                      "x-nH2O":self.peptide_x_nH2O.GetValue(), "x-nNH3":self.peptide_x_nNH3.GetValue(),
-                      "y-ALL":self.peptide_y_all.GetValue(), "y":self.peptide_y.GetValue(),
-                      "y-nH2O":self.peptide_y_nH2O.GetValue(), "y-nNH3":self.peptide_y_nNH3.GetValue(),
-                      "z-ALL":self.peptide_z_all.GetValue(), "z":self.peptide_z.GetValue(),
-                      "z-nH2O":self.peptide_z_nH2O.GetValue(), "z-nNH3":self.peptide_z_nNH3.GetValue(),
-                      "z-dot":self.peptide_z_dot.GetValue(), "z+1/2":self.peptide_z_add_1_2.GetValue(),
+        _fragments = {"M-ALL": self.peptide_M_all.GetValue(), "M": self.peptide_M.GetValue(),
+                      "M-nH2O": self.peptide_M_nH2O.GetValue(), "M-nNH3": self.peptide_M_nNH3.GetValue(),
+                      "a-ALL": self.peptide_a_all.GetValue(), "a": self.peptide_a.GetValue(),
+                      "a-nH2O": self.peptide_a_nH2O.GetValue(), "a-nNH3": self.peptide_a_nNH3.GetValue(),
+                      "b-ALL": self.peptide_b_all.GetValue(), "b": self.peptide_b.GetValue(),
+                      "b-nH2O": self.peptide_b_nH2O.GetValue(), "b-nNH3": self.peptide_b_nNH3.GetValue(),
+                      "c-ALL": self.peptide_c_all.GetValue(), "c": self.peptide_c.GetValue(),
+                      "c-nH2O": self.peptide_c_nH2O.GetValue(), "c-nNH3": self.peptide_c_nNH3.GetValue(),
+                      "c-dot": self.peptide_c_dot.GetValue(), "c+1/2": self.peptide_c_add_1_2.GetValue(),
+                      "x-ALL": self.peptide_x_all.GetValue(), "x": self.peptide_x.GetValue(),
+                      "x-nH2O": self.peptide_x_nH2O.GetValue(), "x-nNH3": self.peptide_x_nNH3.GetValue(),
+                      "y-ALL": self.peptide_y_all.GetValue(), "y": self.peptide_y.GetValue(),
+                      "y-nH2O": self.peptide_y_nH2O.GetValue(), "y-nNH3": self.peptide_y_nNH3.GetValue(),
+                      "z-ALL": self.peptide_z_all.GetValue(), "z": self.peptide_z.GetValue(),
+                      "z-nH2O": self.peptide_z_nH2O.GetValue(), "z-nNH3": self.peptide_z_nNH3.GetValue(),
+                      "z-dot": self.peptide_z_dot.GetValue(), "z+1/2": self.peptide_z_add_1_2.GetValue(),
                       }
         self.config.fragments_search.update(_fragments)
         self._fragments = self._build_fragment_search_query()
@@ -1252,13 +1263,15 @@ class panelTandemSpectra(wx.MiniFrame):
         if self.peptide_b_all.GetValue():
             enableList.extend([self.peptide_b, self.peptide_b_nH2O, self.peptide_b_nNH3])
         if self.peptide_c_all.GetValue():
-            enableList.extend([self.peptide_c, self.peptide_c_nH2O, self.peptide_c_nNH3, self.peptide_c_dot, self.peptide_c_add_1_2])
+            enableList.extend([self.peptide_c, self.peptide_c_nH2O, self.peptide_c_nNH3,
+                               self.peptide_c_dot, self.peptide_c_add_1_2])
         if self.peptide_x_all.GetValue():
             enableList.extend([self.peptide_x, self.peptide_x_nH2O, self.peptide_x_nNH3])
         if self.peptide_y_all.GetValue():
             enableList.extend([self.peptide_y, self.peptide_y_nH2O, self.peptide_y_nNH3])
         if self.peptide_z_all.GetValue():
-            enableList.extend([self.peptide_z, self.peptide_z_nH2O, self.peptide_z_nNH3, self.peptide_z_dot, self.peptide_z_add_1_2])
+            enableList.extend([self.peptide_z, self.peptide_z_nH2O, self.peptide_z_nNH3,
+                               self.peptide_z_dot, self.peptide_z_add_1_2])
 
         for item in enableList:
             item.SetValue(True)
@@ -1279,12 +1292,15 @@ class panelTandemSpectra(wx.MiniFrame):
                 peptide, ptm = "", False
 
                 if "identification" in spectrum:
-                    try: peptide = spectrum['identification'][id_num]['peptide_seq']
-                    except: pass
+                    try:
+                        peptide = spectrum['identification'][id_num]['peptide_seq']
+                    except:
+                        pass
                     try:
                         if len(spectrum['identification'][id_num]['modification_info']) > 0:
                             ptm = True
-                    except: pass
+                    except:
+                        pass
 
                     # check if scans with PTMs should be shown
                     if not self.config._tandem_show_PTMs_in_table and ptm:
@@ -1301,7 +1317,8 @@ class panelTandemSpectra(wx.MiniFrame):
                                                    "{:.4f}".format(spectrum['scan_info'].get('precursor_mz', "")),
                                                    spectrum['scan_info'].get('precursor_charge', ""),
                                                    spectrum['scan_info'].get('peak_count', len(spectrum['xvals'])),
-                                                   len(spectrum['fragment_annotations'][id_num].get('fragment_table', [])),
+                                                   len(spectrum['fragment_annotations']
+                                                       [id_num].get('fragment_table', [])),
                                                    peptide,
                                                    str(ptm),
                                                    spectrum['scan_info'].get('title', ""),
@@ -1322,12 +1339,15 @@ class panelTandemSpectra(wx.MiniFrame):
                 ptm = [False] * n_ids
                 for n_id in natsorted(spectrum['identification']):
 
-                    try: peptide[n_id] = spectrum['identification'][n_id]['peptide_seq']
-                    except: pass
+                    try:
+                        peptide[n_id] = spectrum['identification'][n_id]['peptide_seq']
+                    except:
+                        pass
                     try:
                         if len(spectrum['identification'][n_id]['modification_info']) > 0:
                             ptm[n_id] = True
-                    except: pass
+                    except:
+                        pass
 
             for n_id in range(n_ids):
                 # check if scans with PTMs should be shown
@@ -1385,8 +1405,10 @@ class panelTandemSpectra(wx.MiniFrame):
                 ptm = [False] * n_ids
                 for n_id in natsorted(spectrum['identification']):
 
-                    try: peptide[n_id] = spectrum['identification'][n_id]['peptide_seq']
-                    except: pass
+                    try:
+                        peptide[n_id] = spectrum['identification'][n_id]['peptide_seq']
+                    except:
+                        pass
                     try:
                         if len(spectrum['identification'][n_id]['modification_info']) > 0:
                             ptm[n_id] = True
@@ -1396,8 +1418,8 @@ class panelTandemSpectra(wx.MiniFrame):
             try:
                 ms_level = spectrum['scan_info'].get('ms_level', "2")
             except TypeError:
-                 self.n_loaded_scans = self.peaklist.GetItemCount()
-                 return
+                self.n_loaded_scans = self.peaklist.GetItemCount()
+                return
 
             for n_id in range(n_ids):
                 # check if scans with PTMs should be shown
@@ -1427,7 +1449,7 @@ class panelTandemSpectra(wx.MiniFrame):
         self.on_update_table(show_all=True)
 
     def on_show_spectrum(self, evt):
-#         tstart = ttime()
+        #         tstart = ttime()
         itemInfo = self.get_item_info_peaklist(self.currentItem)
         data = self.kwargs['tandem_spectra'][itemInfo['scanID']]
 
@@ -1483,23 +1505,23 @@ class panelTandemSpectra(wx.MiniFrame):
         document = self.presenter.documentsDict[self.kwargs['document']]
         tandem_spectra = document.tandem_spectra[itemInfo['scanID']]
 
-        kwargs = {"ion_types":self._fragments,
-                  "tolerance":self.config.fragments_tolerance[self.config.fragments_units],
-                  "tolerance_units":self.config.fragments_units,
-                  "max_annotations":self.config.fragments_max_matches,
-                  "verbose":self.verbose,
-                  "get_calculated_mz":self.butterfly_plot,
-                  "id_num":itemInfo["id_num"]}
+        kwargs = {"ion_types": self._fragments,
+                  "tolerance": self.config.fragments_tolerance[self.config.fragments_units],
+                  "tolerance_units": self.config.fragments_units,
+                  "max_annotations": self.config.fragments_max_matches,
+                  "verbose": self.verbose,
+                  "get_calculated_mz": self.butterfly_plot,
+                  "id_num": itemInfo["id_num"]}
 
         fragments, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.data_processing.on_get_peptide_fragments(
             tandem_spectra, get_lists=True, label_format=self.config._tandem_label_format, **kwargs)
 
         # add to temporary storage
-        self.fragment_ions = {'fragment_table':fragments,
-                              'fragment_mass_list':frag_mass_list,
-                              'fragment_intensity_list':frag_int_list,
-                              'fragment_label_list':frag_label_list,
-                              'fragment_full_label_list':frag_full_label_list}
+        self.fragment_ions = {'fragment_table': fragments,
+                              'fragment_mass_list': frag_mass_list,
+                              'fragment_intensity_list': frag_int_list,
+                              'fragment_label_list': frag_label_list,
+                              'fragment_full_label_list': frag_full_label_list}
 
         # rather than plotting data, return it for annotation of an item
         if return_fragments:
@@ -1536,13 +1558,13 @@ class panelTandemSpectra(wx.MiniFrame):
 
         tandem_spectra = document.tandem_spectra[itemInfo['scanID']]
 
-        kwargs = {"ion_types":self._fragments,
-                  "tolerance":self.config.fragments_tolerance[self.config.fragments_units],
-                  "tolerance_units":self.config.fragments_units,
-                  "max_annotations":self.config.fragments_max_matches,
-                  "verbose":self.verbose,
-                  "get_calculated_mz":self.butterfly_plot,
-                  "id_num":itemInfo["id_num"]}
+        kwargs = {"ion_types": self._fragments,
+                  "tolerance": self.config.fragments_tolerance[self.config.fragments_units],
+                  "tolerance_units": self.config.fragments_units,
+                  "max_annotations": self.config.fragments_max_matches,
+                  "verbose": self.verbose,
+                  "get_calculated_mz": self.butterfly_plot,
+                  "id_num": itemInfo["id_num"]}
         fragments, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.data_processing.on_get_peptide_fragments(
             tandem_spectra, get_lists=True, label_format=self.config._tandem_label_format, **kwargs)
 
@@ -1603,13 +1625,16 @@ class panelTandemSpectra(wx.MiniFrame):
         if self.frag_lastColumn == None:
             self.frag_lastColumn = column
         elif self.frag_lastColumn == column:
-            if self.frag_reverse == True: self.frag_reverse = False
-            else: self.frag_reverse = True
+            if self.frag_reverse == True:
+                self.frag_reverse = False
+            else:
+                self.frag_reverse = True
         else:
             self.reverse = False
             self.frag_lastColumn = column
 
-        if sort_direction is None: sort_direction = self.frag_reverse
+        if sort_direction is None:
+            sort_direction = self.frag_reverse
 
         columns = self.fraglist.GetColumnCount()
         rows = self.fraglist.GetItemCount()
@@ -1644,8 +1669,8 @@ class panelTandemSpectra(wx.MiniFrame):
         self.fraglist.DeleteAllItems()
 
     def on_populate_peptide_table(self, frag_dict):
-        self._frag_columns = {'check':0, 'measured m/z':1, 'calculated m/z':2, 'intensity':3, 'delta':4,
-                              'charge':5, 'label':6, 'full_label':7, 'peptide':8}
+        self._frag_columns = {'check': 0, 'measured m/z': 1, 'calculated m/z': 2, 'intensity': 3, 'delta': 4,
+                              'charge': 5, 'label': 6, 'full_label': 7, 'peptide': 8}
 
         for key in frag_dict:
             fragments = frag_dict[key]
@@ -1683,50 +1708,81 @@ class panelTandemSpectra(wx.MiniFrame):
 
         fragments = []
 
-        if frag_dict['M-ALL']: fragments.append('M-all')
-        if frag_dict['a-ALL']: fragments.append('a-all')
-        if frag_dict['b-ALL']: fragments.append('b-all')
-        if frag_dict['c-ALL']: fragments.append('c-all')
-        if frag_dict['x-ALL']: fragments.append('x-all')
-        if frag_dict['y-ALL']: fragments.append('y-all')
-        if frag_dict['z-ALL']: fragments.append('z-all')
+        if frag_dict['M-ALL']:
+            fragments.append('M-all')
+        if frag_dict['a-ALL']:
+            fragments.append('a-all')
+        if frag_dict['b-ALL']:
+            fragments.append('b-all')
+        if frag_dict['c-ALL']:
+            fragments.append('c-all')
+        if frag_dict['x-ALL']:
+            fragments.append('x-all')
+        if frag_dict['y-ALL']:
+            fragments.append('y-all')
+        if frag_dict['z-ALL']:
+            fragments.append('z-all')
 
-        if frag_dict['M']: fragments.append('M')
-        if frag_dict['a']: fragments.append('a')
-        if frag_dict['b']: fragments.append('b')
-        if frag_dict['c']: fragments.append('c')
-        if frag_dict['x']: fragments.append('x')
-        if frag_dict['y']: fragments.append('y')
-        if frag_dict['z']: fragments.append('z')
+        if frag_dict['M']:
+            fragments.append('M')
+        if frag_dict['a']:
+            fragments.append('a')
+        if frag_dict['b']:
+            fragments.append('b')
+        if frag_dict['c']:
+            fragments.append('c')
+        if frag_dict['x']:
+            fragments.append('x')
+        if frag_dict['y']:
+            fragments.append('y')
+        if frag_dict['z']:
+            fragments.append('z')
 
-        if frag_dict['c-dot']: fragments.append('c-dot')
-        if frag_dict['z-dot']: fragments.append('z-dot')
+        if frag_dict['c-dot']:
+            fragments.append('c-dot')
+        if frag_dict['z-dot']:
+            fragments.append('z-dot')
 
-        if frag_dict['c+1/2']: fragments.extend(['c+1', 'c+2'])
-        if frag_dict['z+1/2/3']: fragments.extend(['z+1', 'z+2', 'z+3'])
+        if frag_dict['c+1/2']:
+            fragments.extend(['c+1', 'c+2'])
+        if frag_dict['z+1/2/3']:
+            fragments.extend(['z+1', 'z+2', 'z+3'])
 
-        if frag_dict['M-nH2O']: fragments.extend(['M-H2Ox1', 'M-H2Ox2', 'M-H2Ox3', 'M-H2Ox4'])
-        if frag_dict['a-nH2O']: fragments.extend(['a-H2Ox1', 'a-H2Ox2', 'a-H2Ox3', 'a-H2Ox4'])
-        if frag_dict['b-nH2O']: fragments.extend(['b-H2Ox1', 'b-H2Ox2', 'b-H2Ox3', 'b-H2Ox4'])
-        if frag_dict['c-nH2O']: fragments.extend(['c-H2Ox1', 'c-H2Ox2', 'c-H2Ox3', 'c-H2Ox4'])
-        if frag_dict['x-nH2O']: fragments.extend(['x-H2Ox1', 'x-H2Ox2', 'x-H2Ox3', 'x-H2Ox4'])
-        if frag_dict['y-nH2O']: fragments.extend(['y-H2Ox1', 'y-H2Ox2', 'y-H2Ox3', 'y-H2Ox4'])
-        if frag_dict['z-nH2O']: fragments.extend(['z-H2Ox1', 'z-H2Ox2', 'z-H2Ox3', 'z-H2Ox4'])
+        if frag_dict['M-nH2O']:
+            fragments.extend(['M-H2Ox1', 'M-H2Ox2', 'M-H2Ox3', 'M-H2Ox4'])
+        if frag_dict['a-nH2O']:
+            fragments.extend(['a-H2Ox1', 'a-H2Ox2', 'a-H2Ox3', 'a-H2Ox4'])
+        if frag_dict['b-nH2O']:
+            fragments.extend(['b-H2Ox1', 'b-H2Ox2', 'b-H2Ox3', 'b-H2Ox4'])
+        if frag_dict['c-nH2O']:
+            fragments.extend(['c-H2Ox1', 'c-H2Ox2', 'c-H2Ox3', 'c-H2Ox4'])
+        if frag_dict['x-nH2O']:
+            fragments.extend(['x-H2Ox1', 'x-H2Ox2', 'x-H2Ox3', 'x-H2Ox4'])
+        if frag_dict['y-nH2O']:
+            fragments.extend(['y-H2Ox1', 'y-H2Ox2', 'y-H2Ox3', 'y-H2Ox4'])
+        if frag_dict['z-nH2O']:
+            fragments.extend(['z-H2Ox1', 'z-H2Ox2', 'z-H2Ox3', 'z-H2Ox4'])
 
-        if frag_dict['M-nNH3']: fragments.extend(['M-NH3x1', 'M-NH3x2', 'M-NH3x3', 'M-NH3x4'])
-        if frag_dict['a-nNH3']: fragments.extend(['a-NH3x1', 'a-NH3x2', 'a-NH3x3', 'a-NH3x4'])
-        if frag_dict['b-nNH3']: fragments.extend(['b-NH3x1', 'b-NH3x2', 'b-NH3x3', 'b-NH3x4'])
-        if frag_dict['c-nNH3']: fragments.extend(['c-NH3x1', 'c-NH3x2', 'c-NH3x3', 'c-NH3x4'])
-        if frag_dict['x-nNH3']: fragments.extend(['x-NH3x1', 'x-NH3x2', 'x-NH3x3', 'x-NH3x4'])
-        if frag_dict['y-nNH3']: fragments.extend(['y-NH3x1', 'y-NH3x2', 'y-NH3x3', 'y-NH3x4'])
-        if frag_dict['z-nNH3']: fragments.extend(['z-NH3x1', 'z-NH3x2', 'z-NH3x3', 'z-NH3x4'])
+        if frag_dict['M-nNH3']:
+            fragments.extend(['M-NH3x1', 'M-NH3x2', 'M-NH3x3', 'M-NH3x4'])
+        if frag_dict['a-nNH3']:
+            fragments.extend(['a-NH3x1', 'a-NH3x2', 'a-NH3x3', 'a-NH3x4'])
+        if frag_dict['b-nNH3']:
+            fragments.extend(['b-NH3x1', 'b-NH3x2', 'b-NH3x3', 'b-NH3x4'])
+        if frag_dict['c-nNH3']:
+            fragments.extend(['c-NH3x1', 'c-NH3x2', 'c-NH3x3', 'c-NH3x4'])
+        if frag_dict['x-nNH3']:
+            fragments.extend(['x-NH3x1', 'x-NH3x2', 'x-NH3x3', 'x-NH3x4'])
+        if frag_dict['y-nNH3']:
+            fragments.extend(['y-NH3x1', 'y-NH3x2', 'y-NH3x3', 'y-NH3x4'])
+        if frag_dict['z-nNH3']:
+            fragments.extend(['z-NH3x1', 'z-NH3x2', 'z-NH3x3', 'z-NH3x4'])
 
         return fragments
 
     def _build_plot_parameters(self, plotType="label"):
         if plotType == "label":
-            kwargs = {'horizontalalignment':self.config.annotation_label_horz,
-                      'verticalalignment':self.config.annotation_label_vert}
+            kwargs = {'horizontalalignment': self.config.annotation_label_horz,
+                      'verticalalignment': self.config.annotation_label_vert}
 
         return kwargs
-

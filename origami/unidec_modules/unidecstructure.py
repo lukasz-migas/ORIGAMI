@@ -10,6 +10,8 @@ from matplotlib.pyplot import colormaps
 __author__ = 'Michael.Marty'
 
 # noinspection PyAttributeOutsideInit
+
+
 class UniDecConfig(object):
     """
     Class containing all options and configurations for UniDec GUI and Program. Contains methods to export and import
@@ -508,7 +510,7 @@ class UniDecConfig(object):
 #             file_name = self.hdf_file
 #         hdf = h5py.File(file_name)
 #         config_group = hdf.require_group("config")
-# 
+#
 #         if self.metamode != -2:
 #             self.linflag = 2
 #         try:
@@ -519,7 +521,7 @@ class UniDecConfig(object):
 #             self.minmz = float(self.minmz)
 #         except:
 #             self.minmz = 0
-# 
+#
 #         cdict = {  # "input": self.infname, "output": self.outfname,
 #             "numit": self.numit,
 #             "endz": self.endz, "startz": self.startz, "zzsig": self.zzsig, "mzsig": self.mzsig,
@@ -546,20 +548,20 @@ class UniDecConfig(object):
 #             "exwindow": self.exwindow, "exchoice": self.exchoice, "exnorm": self.exnorm, "metamode": self.metamode,
 #             "datanorm":self.datanorm
 #         }
-# 
+#
 #         for key, value in cdict.iteritems():
 #             try:
 #                 config_group.attrs[key] = value
 #             except:
 #                 print "Error with key, value:", key, value
-# 
+#
 #         if not ud.isempty(self.masslist):
 #             replace_dataset(config_group, "masslist", data=self.masslist)
 #         if not ud.isempty(self.manuallist):
 #             replace_dataset(config_group, "manuallist", data=self.manuallist)
 #         if not ud.isempty(self.oligomerlist):
 #             replace_dataset(config_group, "oligomerlist", data=self.oligomerlist.astype(np.str))
-# 
+#
 #         hdf.close()
 #         pass
 
@@ -622,7 +624,7 @@ class UniDecConfig(object):
 #         self.baselineflag = self.read_attr(self.baselineflag, "baselineflag", config_group)
 #         self.orbimode = self.read_attr(self.orbimode, "orbimode", config_group)
 #         self.zout = self.read_attr(self.zout, "zout", config_group)
-# 
+#
 #         self.pusher = self.read_attr(self.pusher, "pusher", config_group)
 #         self.mindt = self.read_attr(self.mindt, "mindt", config_group)
 #         self.maxdt = self.read_attr(self.maxdt, "maxdt", config_group)
@@ -645,7 +647,7 @@ class UniDecConfig(object):
 #         self.tcal2 = self.read_attr(self.tcal2, "tcal2", config_group)
 #         self.edc = self.read_attr(self.edc, "edc", config_group)
 #         self.gasmass = self.read_attr(self.gasmass, "gasmass", config_group)
-# 
+#
 #         self.integratelb = self.read_attr(self.integratelb, "integratelb", config_group)
 #         self.integrateub = self.read_attr(self.integrateub, "integrateub", config_group)
 #         self.filterwidth = self.read_attr(self.filterwidth, "filterwidth", config_group)
@@ -653,16 +655,16 @@ class UniDecConfig(object):
 #         self.mfileflag = self.read_attr(self.mfileflag, "mfileflag", config_group)
 #         self.manualfileflag = self.read_attr(self.manualfileflag, "manualfileflag", config_group)
 #         self.imflag = self.read_attr(self.imflag, "imflag", config_group)
-# 
+#
 #         self.exchoice = self.read_attr(self.exchoice, "exchoice", config_group)
 #         self.exnorm = self.read_attr(self.exnorm, "exnorm", config_group)
 #         self.datanorm = self.read_attr(self.datanorm, "datanorm", config_group)
 #         self.exwindow = self.read_attr(self.exwindow, "exwindow", config_group)
-# 
+#
 #         self.masslist = get_dataset(config_group, "masslist")
 #         self.manuallist = get_dataset(config_group, "manuallist")
 #         self.oligomerlist = get_dataset(config_group, "oligomerlist")
-# 
+#
 #         hdf.close()
 
     def print_config(self):
@@ -855,29 +857,29 @@ class UniDecConfig(object):
         :return: None
         """
 
-        #print "\nInitial File Locations..."
+        # print "\nInitial File Locations..."
         self.system = platform.system()
         # pathtofile = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         pathtofile = os.getcwd()
-        
+
         self.defaultUnidecDir = os.path.join(pathtofile, 'unidec_bin')
 
         if self.system == 'Windows':
             self.defaultUnidecName = "UniDec.exe"
             self.h5repackfile = "h5repack.exe"
             self.opencommand = "start "
-            #print "Windows: ", self.defaultUnidecName
+            # print "Windows: ", self.defaultUnidecName
         elif self.system == 'Darwin':
             self.defaultUnidecName = "unidecmac"
             self.h5repackfile = "h5repack"
             # self.defaultUnidecDir = '/Applications/GUniDecMac.app/Contents/MacOS'
             self.opencommand = "open "
-            #print "Mac:", self.defaultUnidecName
+            # print "Mac:", self.defaultUnidecName
         else:
             self.defaultUnidecName = "unideclinux"
             self.h5repackfile = "h5repack"
             self.opencommand = "gnome-open "  # TODO: Test whether this is right
-            #print "Linux or other: unidec"
+            # print "Linux or other: unidec"
 
         def giveup():
             self.defaultUnidecDir = ""
@@ -970,7 +972,7 @@ class DataContainer:
 #         replace_dataset(immsdata, "ccs_data", data=self.ccsdata)
 #         replace_dataset(config_group, "baseline", data=self.baseline)
 #         hdf.close()
-# 
+#
 #     def read_hdf5(self, file_name):
 #         hdf = h5py.File(file_name)
 #         config_group = hdf.get("ms_data")

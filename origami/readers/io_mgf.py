@@ -82,8 +82,8 @@ class MGFreader():
             scan_n = scan + self.last_scan
             xvals, yvals, charges = self.get_spectrum_from_scan(spectrum, "1D")
             scan_info = self.get_info_from_scan(spectrum)
-            data["Scan {}".format(scan_n)] = {'xvals':xvals, 'yvals':yvals, 'charges':charges,
-                                              'scan_info':scan_info}
+            data["Scan {}".format(scan_n)] = {'xvals': xvals, 'yvals': yvals, 'charges': charges,
+                                              'scan_info': scan_info}
 
         self.last_scan = scan_n
         return data
@@ -98,8 +98,8 @@ class MGFreader():
             scan_n = scan + self.last_scan
             xvals, yvals, charges = self.get_spectrum_from_scan(spectrum, "1D")
             scan_info = self.get_info_from_scan(spectrum)
-            data["Scan {}".format(scan_n)] = {'xvals':xvals, 'yvals':yvals, 'charges':charges,
-                                              'scan_info':scan_info}
+            data["Scan {}".format(scan_n)] = {'xvals': xvals, 'yvals': yvals, 'charges': charges,
+                                              'scan_info': scan_info}
 
         self.last_scan = scan_n
         return data

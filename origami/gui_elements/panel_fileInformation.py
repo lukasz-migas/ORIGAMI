@@ -86,4 +86,3 @@ class panelInformation(wx.MiniFrame):
         panel.SetSizerAndFit(mainSizer)
 
         return panel
-

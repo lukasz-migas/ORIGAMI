@@ -69,7 +69,7 @@ class dialog_customise_origami(wx.Dialog):
                 "origami_exponentialPercentage": self.config.origami_exponentialPercentage,
                 "origami_exponentialIncrement": self.config.origami_exponentialIncrement,
                 "origami_cv_spv_list": []
-                }
+            }
             # update document with these global settings
             document.metadata["origami_ms"] = origami_settings
             self.data_handling.on_update_document(document, "no_refresh")
@@ -114,38 +114,38 @@ class dialog_customise_origami(wx.Dialog):
 
         acquisition_label = wx.StaticText(panel, wx.ID_ANY, "Acquisition method:")
         self.origami_method_choice = wx.Choice(panel, -1, choices=self.config.origami_acquisition_choices,
-                                          size=(-1, -1))
+                                               size=(-1, -1))
         self.origami_method_choice.SetStringSelection(self.user_settings["origami_acquisition"])
         self.origami_method_choice.Bind(wx.EVT_CHOICE, self.on_apply)
         self.origami_method_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         spv_label = wx.StaticText(panel, wx.ID_ANY, "Scans per voltage:")
         self.origami_scansPerVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('intPos'))
+                                                         validator=validator('intPos'))
         self.origami_scansPerVoltage_value.SetValue(str(self.user_settings["origami_spv"]))
         self.origami_scansPerVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         scan_label = wx.StaticText(panel, wx.ID_ANY, "First scan:")
         self.origami_startScan_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('intPos'))
+                                                   validator=validator('intPos'))
         self.origami_startScan_value.SetValue(str(self.user_settings["origami_startScan"]))
         self.origami_startScan_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         startVoltage_label = wx.StaticText(panel, wx.ID_ANY, "First voltage:")
         self.origami_startVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
+                                                      validator=validator('floatPos'))
         self.origami_startVoltage_value.SetValue(str(self.user_settings["origami_startVoltage"]))
         self.origami_startVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         endVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Final voltage:")
         self.origami_endVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
+                                                    validator=validator('floatPos'))
         self.origami_endVoltage_value.SetValue(str(self.user_settings["origami_endVoltage"]))
         self.origami_endVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         stepVoltage_label = wx.StaticText(panel, wx.ID_ANY, "Voltage step:")
         self.origami_stepVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
+                                                     validator=validator('floatPos'))
         self.origami_stepVoltage_value.SetValue(str(self.user_settings["origami_stepVoltage"]))
         self.origami_stepVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -157,13 +157,13 @@ class dialog_customise_origami(wx.Dialog):
 
         exponentialPercentage_label = wx.StaticText(panel, wx.ID_ANY, "Exponential percentage:")
         self.origami_exponentialPercentage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
+                                                               validator=validator('floatPos'))
         self.origami_exponentialPercentage_value.SetValue(str(self.user_settings["origami_exponentialPercentage"]))
         self.origami_exponentialPercentage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         exponentialIncrement_label = wx.StaticText(panel, wx.ID_ANY, "Exponential increment:")
         self.origami_exponentialIncrement_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('floatPos'))
+                                                              validator=validator('floatPos'))
         self.origami_exponentialIncrement_value.SetValue(str(self.user_settings["origami_exponentialIncrement"]))
         self.origami_exponentialIncrement_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -237,7 +237,8 @@ class dialog_customise_origami(wx.Dialog):
         self.user_settings["origami_endVoltage"] = str2num(self.origami_endVoltage_value.GetValue())
         self.user_settings["origami_stepVoltage"] = str2num(self.origami_stepVoltage_value.GetValue())
         self.user_settings["origami_boltzmannOffset"] = str2num(self.origami_boltzmannOffset_value.GetValue())
-        self.user_settings["origami_exponentialPercentage"] = str2num(self.origami_exponentialPercentage_value.GetValue())
+        self.user_settings["origami_exponentialPercentage"] = str2num(
+            self.origami_exponentialPercentage_value.GetValue())
         self.user_settings["origami_exponentialIncrement"] = str2num(self.origami_exponentialIncrement_value.GetValue())
 
         self.user_settings_changed = True
@@ -307,7 +308,7 @@ class dialog_customise_origami(wx.Dialog):
             enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
                           self.origami_scansPerVoltage_value, self.origami_exponentialIncrement_value,
-                           self.origami_exponentialPercentage_value]
+                          self.origami_exponentialPercentage_value]
             disableList = [self.origami_boltzmannOffset_value, self.origami_loadListBtn]
         elif self.config.origami_acquisition == 'Boltzmann':
             enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
@@ -317,16 +318,16 @@ class dialog_customise_origami(wx.Dialog):
                            self.origami_loadListBtn]
         elif self.config.origami_acquisition == 'User-defined':
             disableList = [self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
-                          self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value]
+                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+                           self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
+                           self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value]
             enableList = [self.origami_loadListBtn, self.origami_startScan_value]
         else:
             disableList = [self.origami_startScan_value, self.origami_startVoltage_value,
-                          self.origami_endVoltage_value, self.origami_stepVoltage_value,
-                          self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
-                          self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value,
-                          self.origami_loadListBtn]
+                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+                           self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
+                           self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value,
+                           self.origami_loadListBtn]
             enableList = []
 
         # iterate
@@ -337,4 +338,3 @@ class dialog_customise_origami(wx.Dialog):
 
         if evt is not None:
             evt.Skip()
-

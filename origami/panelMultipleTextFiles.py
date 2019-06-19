@@ -74,17 +74,17 @@ class panelMultipleTextFiles (wx.Panel):
         self.plotAutomatically = True
 
         self._textPanel_peaklist = {
-            0: {"name":"", "tag":"check", "type":"bool"},
-            1: {"name":"min CE", "tag":"start", "type":"float"},
-            2: {"name":"max CE", "tag":"end", "type":"float"},
-            3: {"name":"z", "tag":"charge", "type":"int"},
-            4: {"name":"color", "tag":"color", "type":"color"},
-            5: {"name":"colormap", "tag":"colormap", "type":"str"},
-            6: {"name":"\N{GREEK SMALL LETTER ALPHA}", "tag":"alpha", "type":"float"},
-            7: {"name":"mask", "tag":"mask", "type":"float"},
-            8: {"name":"label", "tag":"label", "type":"str"},
-            9: {"name":"shape", "tag":"shape", "type":"str"},
-            10: {"name":"file", "tag":"document", "type":"str"}}
+            0: {"name": "", "tag": "check", "type": "bool"},
+            1: {"name": "min CE", "tag": "start", "type": "float"},
+            2: {"name": "max CE", "tag": "end", "type": "float"},
+            3: {"name": "z", "tag": "charge", "type": "int"},
+            4: {"name": "color", "tag": "color", "type": "color"},
+            5: {"name": "colormap", "tag": "colormap", "type": "str"},
+            6: {"name": "\N{GREEK SMALL LETTER ALPHA}", "tag": "alpha", "type": "float"},
+            7: {"name": "mask", "tag": "mask", "type": "float"},
+            8: {"name": "label", "tag": "label", "type": "str"},
+            9: {"name": "shape", "tag": "shape", "type": "str"},
+            10: {"name": "file", "tag": "document", "type": "str"}}
 
         self.editItemDlg = None
 
@@ -725,12 +725,12 @@ class panelMultipleTextFiles (wx.Panel):
                 msg2 = "Add x- and/or y-axis labels to each file before continuing!"
                 msg = '\n'.join([msg1, msg2])
                 dlgBox(exceptionTitle='Missing data',
-                               exceptionMsg=msg,
-                               type="Error")
+                       exceptionMsg=msg,
+                       type="Error")
                 return
 
             # Process data
-            # TODO: this function is temporarily disabled! Needs to be fixed before next release 
+            # TODO: this function is temporarily disabled! Needs to be fixed before next release
             if evtID == ID_textPanel_show_process_heatmap:
                 pass
                 # zvals = self.presenter.process2Ddata(zvals=zvals.copy(), return_data=True)
@@ -1278,4 +1278,3 @@ class panelMultipleTextFiles (wx.Panel):
             self.view.panelDocuments.documents.on_delete_data__document(
                 itemInfo['document'], ask_permission=False)
             itemID -= 1
-

@@ -97,7 +97,7 @@ class panelModifyManualFiles(wx.MiniFrame):
 
         color_label = wx.StaticText(panel, -1, "Color:")
         self.color_value = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition,
-                                          wx.Size(26, 26), 0)
+                                     wx.Size(26, 26), 0)
         self.color_value.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)

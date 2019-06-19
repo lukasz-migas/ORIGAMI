@@ -8,7 +8,7 @@ class panelHTMLViewer(wx.MiniFrame):
     def __init__(self, parent, config, msg=None, title=None, **kwargs):
         wx.MiniFrame.__init__(self, parent, -1, 'HTML viewer', size=(-1, -1),
                               style=(wx.DEFAULT_FRAME_STYLE |
-                                      wx.MAXIMIZE_BOX | wx.CLOSE_BOX))
+                                     wx.MAXIMIZE_BOX | wx.CLOSE_BOX))
 
         self.parent = parent
         self.config = config

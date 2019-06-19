@@ -54,8 +54,8 @@ Panel to load and combine multiple ML files
 class panelMML(wx.Panel):
 
     def __init__(self, parent, config, icons, presenter):
-        wx.Panel.__init__ (self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                            size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL)
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+                          size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL)
 
         self.view = parent
         self.config = config
@@ -71,13 +71,13 @@ class panelMML(wx.Panel):
         self.lastColumn = None
 
         self._filePanel_peaklist = {
-            0: {"name":"", "tag":"check", "type":"bool"},
-            1: {"name":"filename", "tag":"filename", "type":"str"},
-            2: {"name":"variable", "tag":"energy", "type":"float"},
-            3: {"name":"document", "tag":"document", "type":"str"},
-            4: {"name":"label", "tag":"label", "type":"str"},
-            -1: {"name":"color", "tag":"color", "type":"color"}
-            }
+            0: {"name": "", "tag": "check", "type": "bool"},
+            1: {"name": "filename", "tag": "filename", "type": "str"},
+            2: {"name": "variable", "tag": "energy", "type": "float"},
+            3: {"name": "document", "tag": "document", "type": "str"},
+            4: {"name": "label", "tag": "label", "type": "str"},
+            -1: {"name": "color", "tag": "color", "type": "color"}
+        }
 
         self.make_gui()
 
@@ -93,7 +93,7 @@ class panelMML(wx.Panel):
             (wx.ACCEL_NORMAL, ord('X'), ID_mmlPanel_check_all),
             (wx.ACCEL_NORMAL, ord('S'), ID_mmlPanel_check_selected),
             (wx.ACCEL_NORMAL, wx.WXK_DELETE, ID_mmlPanel_delete_rightClick),
-            ]
+        ]
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
         wx.EVT_MENU(self, ID_mmlPanel_assignColor, self.on_assign_color)
@@ -193,7 +193,7 @@ class panelMML(wx.Panel):
 
         # init table
         self.peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES,
-                                column_info=self._filePanel_peaklist
+                                 column_info=self._filePanel_peaklist
                                  )  # EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
         for item in self.config._multipleFilesSettings:
             order = item['order']
@@ -205,7 +205,7 @@ class panelMML(wx.Panel):
             self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
 
         tooltip_text = \
-        """
+            """
         List of files and their respective energy values. This panel is relatively universal and can be used for 
         aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.
         """
@@ -394,11 +394,11 @@ class panelMML(wx.Panel):
         self.table_label.Check(self.config._multipleFilesSettings[n]['show'])
         menu.AppendSeparator()
         self.table_hide = menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_table_hideAll,
-                                     text='Table: Hide all',
-                                     bitmap=self.icons.iconsLib['hide_table_16']))
+                                                       text='Table: Hide all',
+                                                       bitmap=self.icons.iconsLib['hide_table_16']))
         self.table_restore = menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_table_restoreAll,
-                                     text='Table: Restore all',
-                                     bitmap=self.icons.iconsLib['show_table_16']))
+                                                          text='Table: Restore all',
+                                                          bitmap=self.icons.iconsLib['show_table_16']))
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -455,8 +455,8 @@ class panelMML(wx.Panel):
             self.data_processing.on_run_unidec(dataset, task="auto_unidec")
 
             print(("Pre-processing mass spectra using m/z range {} - {} with {} bin size".format(self.config.unidec_mzStart,
-                                                                                                self.config.unidec_mzEnd,
-                                                                                                self.config.unidec_mzBinSize)))
+                                                                                                 self.config.unidec_mzEnd,
+                                                                                                 self.config.unidec_mzBinSize)))
 
     def onRenameItem(self, old_name, new_name, item_type="Document"):
         for row in range(self.peaklist.GetItemCount()):
@@ -500,8 +500,10 @@ class panelMML(wx.Panel):
         # check values
         col_check = not self.config._multipleFilesSettings[col_index]['show']
         self.config._multipleFilesSettings[col_index]['show'] = col_check
-        if col_check: col_width = self.config._multipleFilesSettings[col_index]['width']
-        else: col_width = 0
+        if col_check:
+            col_width = self.config._multipleFilesSettings[col_index]['width']
+        else:
+            col_width = 0
         # set new column width
         self.peaklist.SetColumnWidth(col_index, col_width)
 
@@ -526,21 +528,21 @@ class panelMML(wx.Panel):
                 msY = document.multipleMassSpectrum[itemName]['yvals']
             except KeyError:
                 return
-            parameters = document.multipleMassSpectrum[itemName].get('parameters', {'startMS':np.min(msX),
-                                                                                    'endMS':np.max(msX)})
+            parameters = document.multipleMassSpectrum[itemName].get('parameters', {'startMS': np.min(msX),
+                                                                                    'endMS': np.max(msX)})
             xlimits = [parameters['startMS'], parameters['endMS']]
-            name_kwargs = {"document":itemInfo['document'], "dataset": itemName}
+            name_kwargs = {"document": itemInfo['document'], "dataset": itemName}
 
         elif evt.GetId() == ID_mmlPanel_plot_combined_MS:
             try:
                 msX = document.massSpectrum['xvals']
                 msY = document.massSpectrum['yvals']
                 xlimits = document.massSpectrum['xlimits']
-                name_kwargs = {"document":itemInfo['document'], "dataset": "Mass Spectrum"}
+                name_kwargs = {"document": itemInfo['document'], "dataset": "Mass Spectrum"}
             except KeyError:
                 dlgBox(exceptionTitle="Error",
-                               exceptionMsg="Document does not have averaged mass spectrum",
-                               type="Error")
+                       exceptionMsg="Document does not have averaged mass spectrum",
+                       type="Error")
                 return
 
         # Plot data
@@ -554,7 +556,8 @@ class panelMML(wx.Panel):
         itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
         document = self.presenter.documentsDict[itemInfo['document']]
 
-        if document is None: return
+        if document is None:
+            return
         try:
             itemName = itemInfo['filename']
             dtX = document.multipleMassSpectrum[itemName]['ims1DX']
@@ -564,8 +567,8 @@ class panelMML(wx.Panel):
             self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, full_repaint=True, set_page=True)
         except KeyError:
             dlgBox(exceptionTitle="Error",
-                           exceptionMsg="No mobility data present for selected item",
-                           type="Error")
+                   exceptionMsg="No mobility data present for selected item",
+                   type="Error")
             return
 
     def OnGetItemInformation(self, itemID, return_list=False):
@@ -627,7 +630,8 @@ class panelMML(wx.Panel):
         show_legend = self.showLegend_check.IsChecked()
         names, colors, xvals_list, yvals_list = [], [], [], []
         for row in range(self.peaklist.GetItemCount()):
-            if not self.peaklist.IsChecked(index=row): continue
+            if not self.peaklist.IsChecked(index=row):
+                continue
             itemInfo = self.OnGetItemInformation(itemID=row)
             names.append(itemInfo['label'])
             # get mass spectrum information
@@ -694,7 +698,7 @@ class panelMML(wx.Panel):
             colors.insert(0, ((0, 0, 0)))
             names.insert(0, ("Average"))
 
-        kwargs = {'show_y_labels':True, 'labels':names, 'add_legend':show_legend}
+        kwargs = {'show_y_labels': True, 'labels': names, 'add_legend': show_legend}
         if evtID == ID_mmlPanel_overlayWaterfall:
             overlay_type = "Waterfall (Raw)"
             xlabel, ylabel = "m/z", "Offset Intensity"
@@ -722,7 +726,7 @@ class panelMML(wx.Panel):
         elif evtID == ID_mmlPanel_overlayChargeStates:
             overlay_type = "Waterfall (Charge states)"
             xlabel, ylabel = "Charge", "Intensity"
-            kwargs = {'show_y_labels':True, 'labels':names, 'increment':0.000001, 'add_legend':show_legend}
+            kwargs = {'show_y_labels': True, 'labels': names, 'increment': 0.000001, 'add_legend': show_legend}
             self.presenter.view.panelPlots.on_plot_waterfall(xvals_list, yvals_list, None, colors=colors,
                                                              xlabel=xlabel, ylabel=ylabel, set_page=True,
                                                              **kwargs)
@@ -740,10 +744,10 @@ class panelMML(wx.Panel):
             self.presenter.onThreading(None, ("No document was selected", 4), action='updateStatusbar')
             return
         document.gotOverlay = True
-        document.IMS2DoverlayData[overlay_title] = {'xvals':xvals, 'yvals':yvals,
-                                                    'xlabel':xlabel, 'ylabel':ylabel,
-                                                    'colors':colors, 'labels':kwargs['labels'],
-                                                    'waterfall_kwargs':kwargs}
+        document.IMS2DoverlayData[overlay_title] = {'xvals': xvals, 'yvals': yvals,
+                                                    'xlabel': xlabel, 'ylabel': ylabel,
+                                                    'colors': colors, 'labels': kwargs['labels'],
+                                                    'waterfall_kwargs': kwargs}
 
         # update document
         self.presenter.OnUpdateDocument(document, expand_item='overlay',
@@ -819,7 +823,7 @@ class panelMML(wx.Panel):
         for row in range(count):
             item_info = self.OnGetItemInformation(itemID=row)
             if add_dict["filename"] == item_info["filename"] and \
-                add_dict["document"] == item_info["document"]:
+                    add_dict["document"] == item_info["document"]:
                 return True
 
         return False
@@ -960,13 +964,13 @@ class panelMML(wx.Panel):
 
 class DragAndDrop(wx.FileDropTarget):
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     def __init__(self, window):
         """Constructor"""
         wx.FileDropTarget.__init__(self)
         self.window = window
 
-    #----------------------------------------------------------------------
+    # ----------------------------------------------------------------------
 
     def OnDropFiles(self, x, y, filenames):
         """
@@ -985,4 +989,3 @@ class DragAndDrop(wx.FileDropTarget):
 
         if len(pathlist) > 0:
             self.window.onOpenFile_DnD(pathlist)
-

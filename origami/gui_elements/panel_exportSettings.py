@@ -8,7 +8,7 @@ class panelExportSettings(wx.MiniFrame):
     def __init__(self, parent, presenter, config, icons, **kwargs):
         wx.MiniFrame.__init__(self, parent, -1, 'Import/Export parameters', size=(-1, -1),
                               style=(wx.DEFAULT_FRAME_STYLE |
-                                      wx.MAXIMIZE_BOX | wx.CLOSE_BOX))
+                                     wx.MAXIMIZE_BOX | wx.CLOSE_BOX))
 
         self.parent = parent
         self.presenter = presenter
@@ -17,8 +17,8 @@ class panelExportSettings(wx.MiniFrame):
         self.help = OrigamiHelp()
 
         self.importEvent = False
-        self.windowSizes = {'Peaklist':(250, 110), 'Image':(250, 150),
-                            'Files':(310, 140)}
+        self.windowSizes = {'Peaklist': (250, 110), 'Image': (250, 150),
+                            'Files': (310, 140)}
 
         # make gui items
         self.make_gui()
@@ -72,7 +72,8 @@ class panelExportSettings(wx.MiniFrame):
         self.mainBook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition,
                                     wx.DefaultSize, style=wx.NB_MULTILINE)
 
-        self.parameters_peaklist = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.parameters_peaklist = wx.Panel(
+            self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.makePanel_Peaklist(self.parameters_peaklist), "Peaklist", False)
         # ------
         self.parameters_image = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
@@ -97,8 +98,8 @@ class panelExportSettings(wx.MiniFrame):
 
         windowSize_label = wx.StaticText(panel, wx.ID_ANY, "± m/z (Da):")
         self.peaklist_windowSize_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
-                                                  min=0.5, max=50, initial=0, inc=1,
-                                                  size=(60, -1))
+                                                           min=0.5, max=50, initial=0, inc=1,
+                                                           size=(60, -1))
         self.peaklist_windowSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
         self.peaklist_windowSize_value.SetValue(self.config.mzWindowSize)
 
@@ -106,7 +107,8 @@ class panelExportSettings(wx.MiniFrame):
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(useInternal_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.peaklist_useInternalWindow_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(self.peaklist_useInternalWindow_check, (n, 1), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n = n + 1
         grid.Add(windowSize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.peaklist_windowSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
@@ -171,18 +173,19 @@ class panelExportSettings(wx.MiniFrame):
 
         delimiter_label = wx.StaticText(panel, wx.ID_ANY, "Delimiter:")
         self.file_delimiter_choice = wx.Choice(panel, -1, choices=list(self.config.textOutputDict.keys()),
-                                                 size=(-1, -1))
+                                               size=(-1, -1))
         self.file_delimiter_choice.SetStringSelection(self.config.saveDelimiterTXT)
         self.file_delimiter_choice.Bind(wx.EVT_CHOICE, self.onApply)
 
         default_name_label = wx.StaticText(panel, wx.ID_ANY, "Default name:")
         self.file_default_name_choice = wx.Choice(panel, -1, choices=sorted(self.config._plotSettings.keys()),
-                                                 size=(-1, -1))
+                                                  size=(-1, -1))
         self.file_default_name_choice.SetSelection(0)
         self.file_default_name_choice.Bind(wx.EVT_CHOICE, self.onSetupPlotName)
 
         self.file_default_name = wx.TextCtrl(panel, -1, "", size=(210, -1))
-        self.file_default_name.SetValue(self.config._plotSettings[self.file_default_name_choice.GetStringSelection()]['default_name'])
+        self.file_default_name.SetValue(
+            self.config._plotSettings[self.file_default_name_choice.GetStringSelection()]['default_name'])
         self.file_default_name.Bind(wx.EVT_TEXT, self.onApply)
 
         # add to grid
@@ -194,7 +197,8 @@ class panelExportSettings(wx.MiniFrame):
         grid.Add(default_name_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.file_default_name_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n = n + 1
-        grid.Add(self.file_default_name, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(self.file_default_name, (n, 1), wx.GBSpan(1, 2),
+                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT | wx.EXPAND)
         mainSizer.Add(grid, 0, wx.ALIGN_LEFT, 10)
 
         # fit layout
@@ -206,7 +210,8 @@ class panelExportSettings(wx.MiniFrame):
     def onApply(self, evt):
 
         # prevent updating config
-        if self.importEvent: return
+        if self.importEvent:
+            return
 
         # Peaklist
         self.config.useInternalMZwindow = self.peaklist_useInternalWindow_check.GetValue()

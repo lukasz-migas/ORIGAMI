@@ -17,7 +17,8 @@
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 
-import wx, itertools
+import wx
+import itertools
 import wx.lib.mixins.listctrl as listmix
 from numpy import arange, round
 from operator import itemgetter
@@ -39,8 +40,8 @@ from utils.converters import str2int, str2num
 class panelCCScalibration(wx.Panel):
 
     def __init__(self, parent, config, icons, presenter):
-        wx.Panel.__init__ (self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                            size=wx.Size(300, 400), style=wx.TAB_TRAVERSAL)
+        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+                          size=wx.Size(300, 400), style=wx.TAB_TRAVERSAL)
 
         self.parent = parent
         self.config = config
@@ -163,7 +164,7 @@ class topPanel(wx.Panel):
 
     def make_gui(self):
         """ Make panel GUI """
-         # make toolbar
+        # make toolbar
         toolbar = self.make_toolbar()
         self.makeListCtrl()
         self.calibrationSubPanel = self.makeCalibrationSubPanel()
@@ -197,10 +198,10 @@ class topPanel(wx.Panel):
         # Create toolbar for the table
         toolbar = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.TB_DOCKABLE, id=wx.ID_ANY)
         toolbar.SetToolBitmapSize((16, 20))
-        toolbar.AddLabelTool(ID_checkAllItems_caliMS, "", self.icons.iconsLib['check16'] ,
-                              shortHelp="Check all items")
+        toolbar.AddLabelTool(ID_checkAllItems_caliMS, "", self.icons.iconsLib['check16'],
+                             shortHelp="Check all items")
         toolbar.AddLabelTool(ID_addCCScalibrantMenu, "", self.icons.iconsLib['add16'],
-                              shortHelp="Add...")
+                             shortHelp="Add...")
         toolbar.AddLabelTool(ID_removeCCScalibrantMenu, "", self.icons.iconsLib['remove16'],
                              shortHelp="Remove...")
         toolbar.AddLabelTool(ID_extractCCScalibrantMenu, "", self.icons.iconsLib['extract16'],
@@ -212,13 +213,13 @@ class topPanel(wx.Panel):
 #         toolbar.AddLabelTool(wx.ID_ANY, "", self.icons.iconsLib['scatter16'],
 #                              shortHelp="Plot...")
         self.gasCombo = wx.ComboBox(toolbar, wx.ID_ANY, value="Nitrogen",
-                                 choices=["Nitrogen", "Helium"],
-                                 style=wx.CB_READONLY)
+                                    choices=["Nitrogen", "Helium"],
+                                    style=wx.CB_READONLY)
         toolbar.AddControl(self.gasCombo)
         toolbar.AddLabelTool(ID_showHidePanelCCSMenu, "", self.icons.iconsLib['document16'],
-                            shortHelp="Show/Hide annotation panel")
+                             shortHelp="Show/Hide annotation panel")
         toolbar.AddLabelTool(ID_showHideListCCSMenu, "", self.icons.iconsLib['bars16'],
-                            shortHelp="Show/Hide list below")
+                             shortHelp="Show/Hide list below")
         toolbar.Realize()
 
         return toolbar
@@ -265,8 +266,8 @@ class topPanel(wx.Panel):
         self.protein_value.SetFont(wx.SMALL_FONT)
 
         self.selectBtn = wx.Button(self, ID_selectCalibrant,
-                                    "...", wx.DefaultPosition,
-                                    wx.Size(25, -1), 0)
+                                   "...", wx.DefaultPosition,
+                                   wx.Size(25, -1), 0)
 
         ion_label = wx.StaticText(self, -1, "m/z:")
         self.ion_value = wx.TextCtrl(self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=validator('float'))
@@ -305,7 +306,7 @@ class topPanel(wx.Panel):
         self.tD_value.SetFont(wx.SMALL_FONT)
 
         self.applyBtn = wx.Button(self, ID_calibration_changeTD, "Apply", wx.DefaultPosition,
-                                   wx.Size(BTN_SIZE, -1), 0)
+                                  wx.Size(BTN_SIZE, -1), 0)
 
         grid = wx.GridBagSizer(2, 2)
         y = 0
@@ -361,7 +362,8 @@ class topPanel(wx.Panel):
         self.selectBtn.Enable()
 
         self.currentItem = evt.m_itemIndex
-        if self.currentItem == None: return
+        if self.currentItem == None:
+            return
 
         filename = self.peaklist.GetItem(self.currentItem, self.config.ccsTopColNames['filename']).GetText()
         mzStart = self.peaklist.GetItem(self.currentItem, self.config.ccsTopColNames['start']).GetText()
@@ -384,7 +386,8 @@ class topPanel(wx.Panel):
         self.annotationBox.SetLabel(boxLabel)
 
         # Check that data was extracted for this item
-        try: self.docs.calibration[rangeName]
+        try:
+            self.docs.calibration[rangeName]
         except KeyError:
             self.presenter.view.SetStatusText('No data for this ion - please extract data first', 3)
             return
@@ -419,12 +422,13 @@ class topPanel(wx.Panel):
         evt.Skip()
 
     def onAnnotateItems(self, evt, addProtein=False):
-#         print(self.currentItem, self.currentItemBottom)
+        #         print(self.currentItem, self.currentItemBottom)
         if self.currentItem != None and self.currentItemBottom != None:
             self.currentItemBottom = None
 
         if self.currentItemBottom == None:
-            if self.currentItem == None: return
+            if self.currentItem == None:
+                return
             # Constants
             filename = self.file_value.GetValue()
             # Get range name
@@ -448,11 +452,15 @@ class topPanel(wx.Panel):
                 charge = self.config.proteinData[3]
                 tempXcentre = self.config.proteinData[4]
                 # Need to add polarity!
-                if gas == 'Helium': tempCCS = self.config.proteinData[4]
-                else: tempCCS = self.config.proteinData[5]
+                if gas == 'Helium':
+                    tempCCS = self.config.proteinData[4]
+                else:
+                    tempCCS = self.config.proteinData[5]
 
-                if str2num(tempCCS) != 0: ccs = tempCCS
-                if str2num(tempXcentre) != 0: xcentre = tempXcentre
+                if str2num(tempCCS) != 0:
+                    ccs = tempCCS
+                if str2num(tempXcentre) != 0:
+                    xcentre = tempXcentre
 
                 # Change fields now
                 self.protein_value.SetValue(protein)
@@ -465,7 +473,7 @@ class topPanel(wx.Panel):
             # If we have molecular weight and charge state, modify the 'xcentre' value
             if isnumber(str2int(charge)) and isnumber(str2num(mw)):
                 xcentre = ((self.config.elementalMass['Hydrogen'] * str2int(charge) +
-                           str2num(mw)) / str2int(charge))
+                            str2num(mw)) / str2int(charge))
 
             self.docs.calibration[rangeName]['charge'] = str2int(charge)
             self.docs.calibration[rangeName]['ccs'] = str2num(ccs)
@@ -478,17 +486,17 @@ class topPanel(wx.Panel):
 
             # Set new text for labels
             self.peaklist.SetStringItem(index=self.currentItem,
-                                         col=self.config.ccsTopColNames['protein'],
-                                         label=protein)
+                                        col=self.config.ccsTopColNames['protein'],
+                                        label=protein)
             self.peaklist.SetStringItem(index=self.currentItem,
-                                         col=self.config.ccsTopColNames['charge'],
-                                         label=charge)
+                                        col=self.config.ccsTopColNames['charge'],
+                                        label=charge)
             self.peaklist.SetStringItem(index=self.currentItem,
-                                         col=self.config.ccsTopColNames['ccs'],
-                                         label=ccs)
+                                        col=self.config.ccsTopColNames['ccs'],
+                                        label=ccs)
             self.peaklist.SetStringItem(index=self.currentItem,
-                                         col=self.config.ccsTopColNames['tD'],
-                                         label=tD)
+                                        col=self.config.ccsTopColNames['tD'],
+                                        label=tD)
 
             self.presenter.documentsDict[filename] = self.docs
 
@@ -528,18 +536,19 @@ class topPanel(wx.Panel):
                 self.presenter.documentsDict[self.filename] = self.docs
 
             self.parent.bottomP.peaklist.SetStringItem(index=self.currentItemBottom,
-                                         col=self.config.ccsBottomColNames['protein'],
-                                         label=protein)
+                                                       col=self.config.ccsBottomColNames['protein'],
+                                                       label=protein)
             self.parent.bottomP.peaklist.SetStringItem(index=self.currentItemBottom,
-                                         col=self.config.ccsBottomColNames['charge'],
-                                         label=charge)
+                                                       col=self.config.ccsBottomColNames['charge'],
+                                                       label=charge)
             self.parent.bottomP.peaklist.SetStringItem(index=self.currentItemBottom,
-                                         col=self.config.ccsBottomColNames['ion'],
-                                         label=str(xcentre))
+                                                       col=self.config.ccsBottomColNames['ion'],
+                                                       label=str(xcentre))
 
     def onPlot(self, evt):
         """ Plot data for selected item """
-        if self.currentItem == None: return
+        if self.currentItem == None:
+            return
         filename = self.peaklist.GetItem(self.currentItem, self.config.ccsTopColNames['filename']).GetText()
         mzStart = self.peaklist.GetItem(self.currentItem, self.config.ccsTopColNames['start']).GetText()
         mzEnd = self.peaklist.GetItem(self.currentItem, self.config.ccsTopColNames['end']).GetText()
@@ -549,7 +558,7 @@ class topPanel(wx.Panel):
         self.docs = self.presenter.documentsDict[filename]
 
         if (self.docs.fileFormat == 'Format: MassLynx (.raw)' or
-            self.docs.fileFormat == 'Format: DataFrame'):
+                self.docs.fileFormat == 'Format: DataFrame'):
             dtX = self.docs.calibration[rangeName]['xvals']
             dtY = self.docs.calibration[rangeName]['yvals']
             xlabel = self.docs.calibration[rangeName]['xlabels']
@@ -699,7 +708,7 @@ class topPanel(wx.Panel):
                     selectedItem = self.peaklist.GetItem(currentItems,
                                                          col=self.config.ccsTopColNames['filename']).GetText()
                     mzStart = self.peaklist.GetItem(itemId=currentItems,
-                                                     col=self.config.ccsTopColNames['start']).GetText()
+                                                    col=self.config.ccsTopColNames['start']).GetText()
                     mzEnd = self.peaklist.GetItem(itemId=currentItems,
                                                   col=self.config.ccsTopColNames['end']).GetText()
                     rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
@@ -707,12 +716,15 @@ class topPanel(wx.Panel):
                         del self.presenter.documentsDict[selectedItem].calibration[rangeName]
                         if len(list(self.presenter.documentsDict[selectedItem].calibration.keys())) == 0:
                             self.presenter.documentsDict[selectedItem].gotCalibration = False
-                    except KeyError: pass
+                    except KeyError:
+                        pass
                     self.peaklist.DeleteItem(currentItems)
                     # Remove reference to calibrants if there are none remaining for the document
                     try:
-                        self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[selectedItem])
-                    except KeyError: pass
+                        self.presenter.view.panelDocuments.documents.add_document(
+                            docData=self.presenter.documentsDict[selectedItem])
+                    except KeyError:
+                        pass
                     currentItems -= 1
                 else:
                     currentItems -= 1
@@ -720,7 +732,7 @@ class topPanel(wx.Panel):
             selectedItem = self.peaklist.GetItem(self.currentItem,
                                                  col=self.config.ccsTopColNames['filename']).GetText()
             mzStart = self.peaklist.GetItem(itemId=self.currentItem,
-                                             col=self.config.ccsTopColNames['start']).GetText()
+                                            col=self.config.ccsTopColNames['start']).GetText()
             mzEnd = self.peaklist.GetItem(itemId=self.currentItem,
                                           col=self.config.ccsTopColNames['end']).GetText()
             rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
@@ -728,28 +740,31 @@ class topPanel(wx.Panel):
                 del self.presenter.documentsDict[selectedItem].calibration[rangeName]
                 if len(list(self.presenter.documentsDict[selectedItem].calibration.keys())) == 0:
                     self.presenter.documentsDict[selectedItem].gotCalibration = False
-            except KeyError: pass
+            except KeyError:
+                pass
             self.peaklist.DeleteItem(self.currentItem)
             # Remove reference to calibrants if there are none remaining for the document
             try:
-                self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[selectedItem])
-            except KeyError: pass
+                self.presenter.view.panelDocuments.documents.add_document(
+                    docData=self.presenter.documentsDict[selectedItem])
+            except KeyError:
+                pass
         else:
-        # Ask if you are sure to delete it!
+            # Ask if you are sure to delete it!
             dlg = dlgBox(exceptionTitle='Are you sure?',
-                                 exceptionMsg="Are you sure you would like to delete ALL text documents?",
-                                 type="Question")
+                         exceptionMsg="Are you sure you would like to delete ALL text documents?",
+                         type="Question")
             if dlg == wx.ID_NO:
                 print('Cancelled operation')
                 return
             else:
-#                 for textID in range(self.peaklist.GetItemCount()):
+                #                 for textID in range(self.peaklist.GetItemCount()):
                 currentItems = self.peaklist.GetItemCount() - 1
                 while (currentItems >= 0):
                     selectedItem = self.peaklist.GetItem(currentItems,
                                                          col=self.config.ccsTopColNames['filename']).GetText()
                     mzStart = self.peaklist.GetItem(itemId=currentItems,
-                                                     col=self.config.ccsTopColNames['start']).GetText()
+                                                    col=self.config.ccsTopColNames['start']).GetText()
                     mzEnd = self.peaklist.GetItem(itemId=currentItems,
                                                   col=self.config.ccsTopColNames['end']).GetText()
                     rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
@@ -759,10 +774,13 @@ class topPanel(wx.Panel):
                         del self.presenter.documentsDict[selectedItem].calibration[rangeName]
                     # Remove reference to calibrants
                         self.presenter.documentsDict[selectedItem].gotCalibration = False
-                    except KeyError: pass
+                    except KeyError:
+                        pass
                     try:
-                        self.presenter.view.panelDocuments.documents.add_document(docData=self.presenter.documentsDict[selectedItem])
-                    except KeyError: pass
+                        self.presenter.view.panelDocuments.documents.add_document(
+                            docData=self.presenter.documentsDict[selectedItem])
+                    except KeyError:
+                        pass
                     self.peaklist.DeleteItem(currentItems)
                     currentItems -= 1
         print((''.join(["Remaining documents: ", str(len(self.presenter.documentsDict))])))
@@ -785,13 +803,15 @@ class topPanel(wx.Panel):
                 if (col == self.config.ccsTopColNames['start'] or
                     col == self.config.ccsTopColNames['end'] or
                     col == self.config.ccsTopColNames['ccs'] or
-                    col == self.config.ccsTopColNames['tD']):
+                        col == self.config.ccsTopColNames['tD']):
                     itemData = str2num(item.GetText())
-                    if itemData == None: itemData = 0
+                    if itemData == None:
+                        itemData = 0
                     tempRow.append(itemData)
                 elif col == self.config.ccsTopColNames['charge']:
                     itemData = str2int(item.GetText())
-                    if itemData == None: itemData = 0
+                    if itemData == None:
+                        itemData = 0
                     tempRow.append(itemData)
                 else:
                     tempRow.append(item.GetText())
@@ -805,7 +825,8 @@ class topPanel(wx.Panel):
         for row in range(rows):
             self.peaklist.Append(tempData[row])
 
-        if evt is None: return
+        if evt is None:
+            return
         else:
             evt.Skip()
 
@@ -868,9 +889,10 @@ class topPanel(wx.Panel):
                     col == self.config.ccsTopColNames['end'] or
                     col == self.config.ccsTopColNames['charge'] or
                     col == self.config.ccsTopColNames['ccs'] or
-                    col == self.config.ccsTopColNames['tD']):
+                        col == self.config.ccsTopColNames['tD']):
                     itemData = str2num(item.GetText())
-                    if itemData == None: itemData = 0
+                    if itemData == None:
+                        itemData = 0
                     tempRow.append(itemData)
                 else:
                     tempRow.append(item.GetText())
@@ -899,8 +921,8 @@ class topPanel(wx.Panel):
         """
         # Ask if you want to delete all items
         dlg = dlgBox(exceptionTitle='Are you sure?',
-                             exceptionMsg="Are you sure you would like to clear the table??",
-                             type="Question")
+                     exceptionMsg="Are you sure you would like to clear the table??",
+                     type="Question")
         if dlg == wx.ID_NO:
             msg = 'Cancelled operation'
             self.presenter.view.SetStatusText(msg, 3)
@@ -936,18 +958,18 @@ class bottomPanel(wx.Panel):
         # Create toolbar for the table
         self.toolbar = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.TB_DOCKABLE, id=wx.ID_ANY)
         self.toolbar.SetToolBitmapSize((16, 20))
-        self.toolbar.AddLabelTool(ID_checkAllItems_caliApply, "", self.icons.iconsLib['check16'] ,
-                              shortHelp="Check all items")
+        self.toolbar.AddLabelTool(ID_checkAllItems_caliApply, "", self.icons.iconsLib['check16'],
+                                  shortHelp="Check all items")
         self.toolbar.AddLabelTool(wx.ID_ANY, "", self.icons.iconsLib['add16'],
-                              shortHelp="Add...")
+                                  shortHelp="Add...")
         self.toolbar.AddLabelTool(ID_removeApplyCCScalibrantMenu, "", self.icons.iconsLib['remove16'],
-                             shortHelp="Remove...")
+                                  shortHelp="Remove...")
         self.calibrationMode = wx.ComboBox(self.toolbar, wx.ID_ANY, value="Log",
                                            choices=["Linear", "Power"],
                                            style=wx.CB_READONLY)
         self.toolbar.AddControl(self.calibrationMode)
         self.toolbar.AddLabelTool(ID_processApplyCCScalibrantMenu, "", self.icons.iconsLib['process16'],
-                             shortHelp="Process...")
+                                  shortHelp="Process...")
         self.toolbar.Realize()
 
     def disableTopAnnotation(self, evt):
@@ -965,7 +987,8 @@ class bottomPanel(wx.Panel):
 
         self.currentItem = evt.m_itemIndex
         self.topPanel.currentItemBottom = evt.m_itemIndex
-        if self.currentItem == None: return
+        if self.currentItem == None:
+            return
 
         # Change a couple of labels beforehand
         self.topPanel.ccs_value.Disable()
@@ -1099,12 +1122,12 @@ class bottomPanel(wx.Panel):
             evt.Skip()
 
     def onProcessTool(self, evt):
-#         self.Bind(wx.EVT_MENU, self.onPrepareDataFrame, id=ID_prepareCCSCalibrant)
-#         self.Bind(wx.EVT_MENU, self.presenter.OnBuildCCSCalibrationDataset,
-#                   id=ID_buildApplyCalibrationDataset)
+        #         self.Bind(wx.EVT_MENU, self.onPrepareDataFrame, id=ID_prepareCCSCalibrant)
+        #         self.Bind(wx.EVT_MENU, self.presenter.OnBuildCCSCalibrationDataset,
+        #                   id=ID_buildApplyCalibrationDataset)
         # self.Bind(wx.EVT_MENU, self.presenter.OnApplyCCSCalibrationToSelectedIons,
                 #   id=ID_applyCalibrationOnDataset)
-#         self.Bind(wx.EVT_MENU, self.onCCSCalibrate, id=ID_calibranteCCScalibrant)
+        #         self.Bind(wx.EVT_MENU, self.onCCSCalibrate, id=ID_calibranteCCScalibrant)
 
         menu = wx.Menu()
 #         menu.Append(ID_detectMZpeaksApplyCCScalibrant, "Detect m/z peaks")
@@ -1144,8 +1167,10 @@ class bottomPanel(wx.Panel):
             currentItems = self.peaklist.GetItemCount() - 1
             while (currentItems >= 0):
                 if self.peaklist.IsChecked(index=currentItems):
-                    selectedItem = self.peaklist.GetItem(currentItems, col=self.config.ccsTopColNames['filename']).GetText()
-                    mzStart = self.peaklist.GetItem(itemId=currentItems, col=self.config.ccsTopColNames['start']).GetText()
+                    selectedItem = self.peaklist.GetItem(
+                        currentItems, col=self.config.ccsTopColNames['filename']).GetText()
+                    mzStart = self.peaklist.GetItem(
+                        itemId=currentItems, col=self.config.ccsTopColNames['start']).GetText()
                     mzEnd = self.peaklist.GetItem(itemId=currentItems, col=self.config.ccsTopColNames['end']).GetText()
                     rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
                     self.peaklist.DeleteItem(currentItems)
@@ -1180,13 +1205,15 @@ class bottomPanel(wx.Panel):
                 #  We want to make sure certain columns are numbers
                 if (col == self.config.ccsBottomColNames['start'] or
                     col == self.config.ccsBottomColNames['end'] or
-                    col == self.config.ccsBottomColNames['ion']):
+                        col == self.config.ccsBottomColNames['ion']):
                     itemData = str2num(item.GetText())
-                    if itemData == None: itemData = 0
+                    if itemData == None:
+                        itemData = 0
                     tempRow.append(itemData)
                 elif col == self.config.ccsTopColNames['charge']:
                     itemData = str2int(item.GetText())
-                    if itemData == None: itemData = 0
+                    if itemData == None:
+                        itemData = 0
                     tempRow.append(itemData)
                 else:
                     tempRow.append(item.GetText())
@@ -1200,7 +1227,8 @@ class bottomPanel(wx.Panel):
         for row in range(rows):
             self.peaklist.Append(tempData[row])
 
-        if evt is None: return
+        if evt is None:
+            return
         else:
             evt.Skip()
 
@@ -1262,9 +1290,10 @@ class bottomPanel(wx.Panel):
                 if (col == self.config.ccsBottomColNames['start'] or
                     col == self.config.ccsBottomColNames['end'] or
                     col == self.config.ccsBottomColNames['charge'] or
-                    col == self.config.ccsBottomColNames['ion']):
+                        col == self.config.ccsBottomColNames['ion']):
                     itemData = str2num(item.GetText())
-                    if itemData == None: itemData = 0
+                    if itemData == None:
+                        itemData = 0
                     tempRow.append(itemData)
                 else:
                     tempRow.append(item.GetText())
@@ -1293,11 +1322,10 @@ class bottomPanel(wx.Panel):
         """
         # Ask if you want to delete all items
         dlg = dlgBox(exceptionTitle='Are you sure?',
-                             exceptionMsg="Are you sure you would like to clear the table??",
-                             type="Question")
+                     exceptionMsg="Are you sure you would like to clear the table??",
+                     type="Question")
         if dlg == wx.ID_NO:
             msg = 'Cancelled operation'
             self.presenter.view.SetStatusText(msg, 3)
             return
         self.peaklist.DeleteAllItems()
-

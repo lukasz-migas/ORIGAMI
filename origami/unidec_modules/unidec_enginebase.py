@@ -12,7 +12,7 @@ class UniDecEngine:
         UniDec Engine Base
 
         Consists of three main subclasses: Config, DataContiner, Peaks
-        
+
         Establishes some core shared functions
 
         :return: None

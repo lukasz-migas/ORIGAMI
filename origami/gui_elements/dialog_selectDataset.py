@@ -7,8 +7,8 @@ class panelSelectDataset(wx.Dialog):
 
     def __init__(self, parent, presenter, docList, dataList, **kwargs):
         wx.Dialog.__init__(self, parent, -1, 'Copy annotations to document/dataset...', size=(400, 300),
-                              style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+                           style=wx.DEFAULT_FRAME_STYLE & ~
+                           (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.presenter = presenter
@@ -61,7 +61,8 @@ class panelSelectDataset(wx.Dialog):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         documentList_label = wx.StaticText(panel, -1, "Document:")
-        self.documentList_choice = wx.ComboBox(panel, -1, choices=self.documentList, size=(300, -1), style=wx.CB_READONLY)
+        self.documentList_choice = wx.ComboBox(panel, -1, choices=self.documentList,
+                                               size=(300, -1), style=wx.CB_READONLY)
         self.documentList_choice.Select(0)
         self.documentList_choice.Bind(wx.EVT_COMBOBOX, self.onUpdateGUI)
 

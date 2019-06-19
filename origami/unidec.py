@@ -1,4 +1,10 @@
-import os, time, shutil, subprocess, zipfile, fnmatch, string
+import os
+import time
+import shutil
+import subprocess
+import zipfile
+import fnmatch
+import string
 from copy import deepcopy
 import numpy as np
 from scipy.interpolate import interp1d
@@ -27,8 +33,8 @@ class UniDec(UniDecEngine):
         self.massfitdat = None
         self.errorgrid = None
         pass
-    
-    def open_file(self, file_name=None, file_directory=None, data_in=None, 
+
+    def open_file(self, file_name=None, file_directory=None, data_in=None,
                   *args, **kwargs):
         """
         Open text or mzML file. Will create _unidecfiles directory if it does not exist.
@@ -44,16 +50,16 @@ class UniDec(UniDecEngine):
         :param data_in: Rather than parsing text/other file through, just providing [msX, msY] list of lists
         :return: None
         """
-        
+
         tstart = time.clock()
         self.pks = peakstructure.Peaks()
         self.data = unidecstructure.DataContainer()
-            
+
         if data_in is None:
             if file_directory is None:
                 file_directory = os.path.dirname(file_name)
                 file_name = os.path.basename(file_name)
-    
+
             # Handle Paths
             self.config.filename = file_name
             if "silent" not in kwargs or not kwargs["silent"]:
@@ -95,12 +101,13 @@ class UniDec(UniDecEngine):
             self.config.extension = os.path.splitext(self.config.filename)[1]
             self.config.default_file_names()
             self.config.dirname = file_directory
-            try: os.chdir(self.config.dirname)
-            except: 
+            try:
+                os.chdir(self.config.dirname)
+            except:
                 print(("Could not set directory. Saving data in {}".format(os.getcwd())))
                 self.config.dirname = os.getcwd()
                 pass
-                
+
             self.data.rawdata = data_in
             self.config.imflag = 0
             self.data.data2 = self.data.rawdata
@@ -110,32 +117,31 @@ class UniDec(UniDecEngine):
         dirnew = self.config.outfname + "_unidecfiles"
         if "clean" in kwargs and kwargs["clean"] and os.path.isdir(dirnew):
             shutil.rmtree(dirnew)
-        
+
         if not os.path.isdir(dirnew):
             try:
                 os.mkdir(dirnew)
             except WindowsError:
                 time.sleep(0.1)
-                try: os.mkdir(dirnew)
-                except WindowsError: 
+                try:
+                    os.mkdir(dirnew)
+                except WindowsError:
                     print("Access was denied. Please try again.")
                     return
-                
-            
+
         os.chdir(dirnew)
-        
+
         self.config.udir = os.getcwd()
         if self.config.imflag == 0:
             newname = os.path.join(os.getcwd(), self.config.outfname + "_rawdata.txt")
         else:
             newname = os.path.join(os.getcwd(), self.config.outfname + "_imraw.txt")
-            
+
         if not os.path.isfile(newname) and data_in is None:
             try:
                 shutil.copy(file_directory, newname)
             except IOError:
                 print("Could not copy raw datafile")
-                
 
         # Initialize Config
         if os.path.isfile(self.config.confname) == True:
@@ -240,7 +246,6 @@ class UniDec(UniDecEngine):
             except ValueError:
                 self.config.maxdt = np.amax(self.data.rawdata3[:, 1])
 
-                
         if self.check_badness() == 1:
             print("Badness found, aborting data prep")
             return 1
@@ -315,7 +320,7 @@ class UniDec(UniDecEngine):
         :param efficiency: If True, it will ignore the larger files to speed up the run.
         :return: None
         """
-        
+
         # Import Results
         self.pks = peakstructure.Peaks()
         self.data.massdat = np.loadtxt(self.config.outfname + "_mass.txt")
@@ -404,7 +409,7 @@ class UniDec(UniDecEngine):
         ud.dataexport(peaks, self.config.peaksfile)
         # Generate Intensities of Each Charge State for Each Peak
         mztab = ud.make_peaks_mztab(self.data.mzgrid, self.pks, self.config.adductmass)
-        #Calculate errors for peaks with FWHM
+        # Calculate errors for peaks with FWHM
         ud.peaks_error_FWHM(self.pks, self.data.massdat)
         ud.peaks_error_mean(self.pks, self.data.massgrid, self.data.ztab, self.data.massdat, self.config)
         if self.config.batchflag == 0:
@@ -561,7 +566,7 @@ class UniDec(UniDecEngine):
                 for i in range(0, len(ztab)):
                     integral = self.integrate(p.integralrange,
                                               data=np.reshape(self.data.massgrid, (len(self.data.massdat), len(ztab)))[
-                                                   :, i])[0]
+                                                  :, i])[0]
                     zlist.append(integral)
             zarea.append(zlist)
 
@@ -1156,7 +1161,6 @@ class UniDec(UniDecEngine):
         plt.show()
         pass
 
-
         # TODO: Batch Process of Various Types
         # TODO: Automatch
         # TODO: 2D Grid Extraction
@@ -1180,7 +1184,7 @@ if __name__ == "__main__":
     # path=os.getcwd()
     # files=["Traptavidin_20mer+B4F_new_40Colli.txt"]
     eng.read_hdf5_config()
-    eng.config.mzbins = 1;
+    eng.config.mzbins = 1
     # eng.config.psfun=2
     # eng.config.peakwindow=2000.
     # eng.process_data()

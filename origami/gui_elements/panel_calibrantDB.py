@@ -13,7 +13,7 @@ class panelCalibrantDB(wx.MiniFrame):
     def __init__(self, parent, presenter, config, mode):
         wx.MiniFrame.__init__(self, parent, -1, 'Select protein...', size=(-1, -1),
                               style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER |
-                               wx.MAXIMIZE_BOX)
+                              wx.MAXIMIZE_BOX)
 
         self.parent = parent
         self.presenter = presenter
@@ -119,10 +119,12 @@ class panelCalibrantDB(wx.MiniFrame):
 
     def onItemSelected(self, evt):
         self.currentItem = evt.m_itemIndex
-        if self.currentItem == None: return
+        if self.currentItem == None:
+            return
 
     def onSelect(self, evt):
-        if self.currentItem == None: return
+        if self.currentItem == None:
+            return
 
         if self.mode == 'calibrants':
 
@@ -214,15 +216,17 @@ class panelCalibrantDB(wx.MiniFrame):
                     col == self.config.ccsDBColNames['hePos'] or
                     col == self.config.ccsDBColNames['n2Pos'] or
                     col == self.config.ccsDBColNames['heNeg'] or
-                    col == self.config.ccsDBColNames['n2Neg']):
+                        col == self.config.ccsDBColNames['n2Neg']):
                     itemData = str2num(item.GetText())
-                    if itemData == None: itemData = 0
+                    if itemData == None:
+                        itemData = 0
                     tempRow.append(itemData)
                 # Integers
                 elif (col == self.config.ccsDBColNames['units'] or
-                    col == self.config.ccsDBColNames['charge']):
+                      col == self.config.ccsDBColNames['charge']):
                     itemData = str2int(item.GetText())
-                    if itemData == None: itemData = 0
+                    if itemData == None:
+                        itemData = 0
                     tempRow.append(itemData)
                 # Text
                 else:
@@ -238,4 +242,3 @@ class panelCalibrantDB(wx.MiniFrame):
         rowList = np.arange(len(tempData))
         for row in rowList:
             self.peaklist.Append(tempData[row])
-

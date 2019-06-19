@@ -8,8 +8,8 @@ class panelAsk(wx.Dialog):
 
     def __init__(self, parent, presenter, **kwargs):
         wx.Dialog.__init__(self, parent, -1, 'Edit parameters...', size=(400, 300),
-                              style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+                           style=wx.DEFAULT_FRAME_STYLE & ~
+                           (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.presenter = presenter
