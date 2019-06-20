@@ -37,7 +37,7 @@ class panelExportSettings(wx.MiniFrame):
 
         # fire-up start events
         self.onPageChanged(evt=None)
-        self.enableDisableBoxes(evt=None)
+        self.on_toggle_controls(evt=None)
 
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
@@ -74,33 +74,33 @@ class panelExportSettings(wx.MiniFrame):
 
         self.parameters_peaklist = wx.Panel(
             self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanel_Peaklist(self.parameters_peaklist), "Peaklist", False)
+        self.mainBook.AddPage(self.make_panel_Peaklist(self.parameters_peaklist), "Peaklist", False)
         # ------
         self.parameters_image = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanel_Image(self.parameters_image), "Image", False)
+        self.mainBook.AddPage(self.make_panel_Image(self.parameters_image), "Image", False)
         # ------
         self.parameters_files = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanel_Files(self.parameters_files), "Files", False)
+        self.mainBook.AddPage(self.make_panel_Files(self.parameters_files), "Files", False)
 
         self.mainSizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 2)
 
         # setup color
         self.mainBook.SetBackgroundColour((240, 240, 240))
 
-    def makePanel_Peaklist(self, panel):
+    def make_panel_Peaklist(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         useInternal_label = wx.StaticText(panel, wx.ID_ANY, "Override imported values:")
         self.peaklist_useInternalWindow_check = makeCheckbox(panel, "")
         self.peaklist_useInternalWindow_check.SetValue(self.config.useInternalMZwindow)
-        self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.onApply)
-        self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.enableDisableBoxes)
+        self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         windowSize_label = wx.StaticText(panel, wx.ID_ANY, "± m/z (Da):")
         self.peaklist_windowSize_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                            min=0.5, max=50, initial=0, inc=1,
                                                            size=(60, -1))
-        self.peaklist_windowSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.peaklist_windowSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.peaklist_windowSize_value.SetValue(self.config.mzWindowSize)
 
         # add to grid
@@ -120,31 +120,31 @@ class panelExportSettings(wx.MiniFrame):
 
         return panel
 
-    def makePanel_Image(self, panel):
+    def make_panel_Image(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         fileFormat_label = wx.StaticText(panel, wx.ID_ANY, "File format:")
         self.image_fileFormat_choice = wx.Choice(panel, -1, choices=self.config.imageFormatType,
                                                  size=(-1, -1))
         self.image_fileFormat_choice.SetStringSelection(self.config.imageFormat)
-        self.image_fileFormat_choice.Bind(wx.EVT_CHOICE, self.onApply)
+        self.image_fileFormat_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         resolution_label = wx.StaticText(panel, wx.ID_ANY, "Resolution:")
         self.image_resolution = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                   min=50, max=600, initial=0, inc=50,
                                                   size=(60, -1))
-        self.image_resolution.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.image_resolution.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.image_resolution.SetValue(self.config.dpi)
 
         transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparent:")
         self.image_transparency_check = makeCheckbox(panel, "")
         self.image_transparency_check.SetValue(self.config.transparent)
-        self.image_transparency_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.image_transparency_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         resize_label = wx.StaticText(panel, wx.ID_ANY, "Resize:")
         self.image_resize_check = makeCheckbox(panel, "")
         self.image_resize_check.SetValue(self.config.resize)
-        self.image_resize_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.image_resize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # add to grid
         grid = wx.GridBagSizer(2, 2)
@@ -168,14 +168,14 @@ class panelExportSettings(wx.MiniFrame):
 
         return panel
 
-    def makePanel_Files(self, panel):
+    def make_panel_Files(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         delimiter_label = wx.StaticText(panel, wx.ID_ANY, "Delimiter:")
         self.file_delimiter_choice = wx.Choice(panel, -1, choices=list(self.config.textOutputDict.keys()),
                                                size=(-1, -1))
         self.file_delimiter_choice.SetStringSelection(self.config.saveDelimiterTXT)
-        self.file_delimiter_choice.Bind(wx.EVT_CHOICE, self.onApply)
+        self.file_delimiter_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         default_name_label = wx.StaticText(panel, wx.ID_ANY, "Default name:")
         self.file_default_name_choice = wx.Choice(panel, -1, choices=sorted(self.config._plotSettings.keys()),
@@ -186,7 +186,7 @@ class panelExportSettings(wx.MiniFrame):
         self.file_default_name = wx.TextCtrl(panel, -1, "", size=(210, -1))
         self.file_default_name.SetValue(
             self.config._plotSettings[self.file_default_name_choice.GetStringSelection()]['default_name'])
-        self.file_default_name.Bind(wx.EVT_TEXT, self.onApply)
+        self.file_default_name.Bind(wx.EVT_TEXT, self.on_apply)
 
         # add to grid
         grid = wx.GridBagSizer(2, 2)
@@ -207,7 +207,7 @@ class panelExportSettings(wx.MiniFrame):
 
         return panel
 
-    def onApply(self, evt):
+    def on_apply(self, evt):
 
         # prevent updating config
         if self.importEvent:
@@ -228,7 +228,7 @@ class panelExportSettings(wx.MiniFrame):
         self.config.saveDelimiter = self.config.textOutputDict[self.config.saveDelimiterTXT]
         self.config.saveExtension = self.config.textExtensionDict[self.config.saveDelimiterTXT]
 
-    def enableDisableBoxes(self, evt):
+    def on_toggle_controls(self, evt):
         self.config.useInternalMZwindow = self.peaklist_useInternalWindow_check.GetValue()
 
         if self.config.useInternalMZwindow:

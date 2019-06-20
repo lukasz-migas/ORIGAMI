@@ -30,7 +30,7 @@ class panelNotifyOpenDocuments(wx.Dialog):
     def make_gui(self):
 
         # make panel
-        panel = self.makePanel()
+        panel = self.make_panel()
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -45,7 +45,7 @@ class panelNotifyOpenDocuments(wx.Dialog):
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
 
-    def makePanel(self):
+    def make_panel(self):
 
         panel = wx.Panel(self, -1)
         mainSizer = wx.BoxSizer(wx.VERTICAL)

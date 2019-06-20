@@ -193,7 +193,7 @@ class panelCalibrantDB(wx.MiniFrame):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse == True:
+            if self.reverse :
                 self.reverse = False
             else:
                 self.reverse = True

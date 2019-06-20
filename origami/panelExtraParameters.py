@@ -142,7 +142,7 @@ class panelParametersEdit(wx.Panel):
         # general
         self.settings_general = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
                                           wx.DefaultSize, wx.TAB_TRAVERSAL | wx.NB_MULTILINE)
-        self.mainBook.AddPage(self.makePanelGeneral(self.settings_general),
+        self.mainBook.AddPage(self.make_panelGeneral(self.settings_general),
                               "General", False)
 
         # plot 1D
@@ -175,25 +175,25 @@ class panelParametersEdit(wx.Panel):
         # rmsd
         self.settings_rmsd = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
                                            wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanelRMSD(self.settings_rmsd),
+        self.mainBook.AddPage(self.make_panelRMSD(self.settings_rmsd),
                               "RMSD", False)
 
         # waterfall
         self.settings_waterfall = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
                                            wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanelWaterfall(self.settings_waterfall),
+        self.mainBook.AddPage(self.make_panelWaterfall(self.settings_waterfall),
                               "Waterfall", False)
 
         # violin
         self.settings_violin = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
                                          wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanelViolin(self.settings_violin),
+        self.mainBook.AddPage(self.make_panelViolin(self.settings_violin),
                               "Violin", False)
 
         # plot sizes
         self.settings_extra = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition,
                                            wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.makePanelExtra(self.settings_extra),
+        self.mainBook.AddPage(self.make_panelExtra(self.settings_extra),
                               "Extra", False)
 
         # fit sizer
@@ -224,7 +224,7 @@ class panelParametersEdit(wx.Panel):
         self.plot1D_topTickLabels_check.GetValue(self.config.tickLabels_top_1D)
         self.plot1D_bottomTickLabels_check.GetValue(self.config.tickLabels_bottom_1D)
 
-    def makePanelGeneral(self, panel):
+    def make_panelGeneral(self, panel):
         PANEL_SPACE_MAIN = 2
         axisParameters_staticBox = makeStaticBox(panel, "Axis parameters",
                                                  size=(-1, -1), color=wx.BLACK)
@@ -234,71 +234,71 @@ class panelParametersEdit(wx.Panel):
         plot1D_axisOnOff_label = wx.StaticText(panel, -1, "Show frame:")
         self.plot1D_axisOnOff_check = makeCheckbox(panel, "", name="frame")
         self.plot1D_axisOnOff_check.SetValue(self.config.axisOnOff_1D)
-        self.plot1D_axisOnOff_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_axisOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_axisOnOff_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_1D)
         self.plot1D_axisOnOff_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         plot1D_spines_label = wx.StaticText(panel, -1, "Line:")
         self.plot1D_leftSpines_check = makeCheckbox(panel, "Left", name="frame")
         self.plot1D_leftSpines_check.SetValue(self.config.spines_left_1D)
-        self.plot1D_leftSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_leftSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_leftSpines_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         self.plot1D_rightSpines_check = makeCheckbox(panel, "Right", name="frame")
         self.plot1D_rightSpines_check.SetValue(self.config.spines_right_1D)
-        self.plot1D_rightSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_rightSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_rightSpines_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         self.plot1D_topSpines_check = makeCheckbox(panel, "Top", name="frame")
         self.plot1D_topSpines_check.SetValue(self.config.spines_top_1D)
-        self.plot1D_topSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_topSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_topSpines_check.Bind(wx.EVT_CHECKBOX, self.onUpdate1D)
 
         self.plot1D_bottomSpines_check = makeCheckbox(panel, "Bottom", name="frame")
         self.plot1D_bottomSpines_check.SetValue(self.config.spines_bottom_1D)
-        self.plot1D_bottomSpines_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_bottomSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_bottomSpines_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         plot1D_ticks_label = wx.StaticText(panel, -1, "Ticks:")
         self.plot1D_leftTicks_check = makeCheckbox(panel, "Left", name="frame")
         self.plot1D_leftTicks_check.SetValue(self.config.ticks_left_1D)
-        self.plot1D_leftTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_leftTicks_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_leftTicks_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         self.plot1D_rightTicks_check = makeCheckbox(panel, "Right", name="frame")
         self.plot1D_rightTicks_check.SetValue(self.config.ticks_right_1D)
-        self.plot1D_rightTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_rightTicks_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_rightTicks_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         self.plot1D_topTicks_check = makeCheckbox(panel, "Top", name="frame")
         self.plot1D_topTicks_check.SetValue(self.config.ticks_top_1D)
-        self.plot1D_topTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_topTicks_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_topTicks_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         self.plot1D_bottomTicks_check = makeCheckbox(panel, "Bottom", name="frame")
         self.plot1D_bottomTicks_check.SetValue(self.config.ticks_bottom_1D)
-        self.plot1D_bottomTicks_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_bottomTicks_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_bottomTicks_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         plot1D_tickLabels_label = wx.StaticText(panel, -1, "Tick labels:")
         self.plot1D_leftTickLabels_check = makeCheckbox(panel, "Left", name="frame")
         self.plot1D_leftTickLabels_check.SetValue(self.config.tickLabels_left_1D)
-        self.plot1D_leftTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_leftTickLabels_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_leftTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         self.plot1D_rightTickLabels_check = makeCheckbox(panel, "Right", name="frame")
         self.plot1D_rightTickLabels_check.SetValue(self.config.tickLabels_right_1D)
-        self.plot1D_rightTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_rightTickLabels_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_rightTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         self.plot1D_topTickLabels_check = makeCheckbox(panel, "Top", name="frame")
         self.plot1D_topTickLabels_check.SetValue(self.config.tickLabels_top_1D)
-        self.plot1D_topTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_topTickLabels_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_topTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         self.plot1D_bottomTickLabels_check = makeCheckbox(panel, "Bottom", name="frame")
         self.plot1D_bottomTickLabels_check.SetValue(self.config.tickLabels_bottom_1D)
-        self.plot1D_bottomTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_bottomTickLabels_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_bottomTickLabels_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         plot1D_frameWidth_label = wx.StaticText(panel, -1, "Frame width:")
@@ -306,7 +306,7 @@ class panelParametersEdit(wx.Panel):
                                                value=str(self.config.frameWidth_1D),
                                                min=0, max=10, initial=self.config.frameWidth_1D,
                                                inc=1, size=(90, -1), name="frame")
-        self.plot1D_frameWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.plot1D_frameWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
         self.plot1D_frameWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate)
 
         fontParameters_staticBox = makeStaticBox(panel, "Font parameters",
@@ -319,7 +319,7 @@ class panelParametersEdit(wx.Panel):
                                                value=str(self.config.labelPad_1D),
                                                min=0, max=100, initial=self.config.labelPad_1D,
                                                inc=5, size=(90, -1), name="fonts")
-        self.plot1D_padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.plot1D_padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
         self.plot1D_padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate)
 
         plot1D_titleFontSize_label = wx.StaticText(panel, -1, "Title font size:")
@@ -327,12 +327,12 @@ class panelParametersEdit(wx.Panel):
                                                value=str(self.config.titleFontSize_1D),
                                                min=0, max=48, initial=self.config.titleFontSize_1D,
                                                inc=2, size=(90, -1), name="fonts")
-        self.plot1D_titleFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.plot1D_titleFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
         self.plot1D_titleFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate)
 
         self.plot1D_titleFontWeight_check = makeCheckbox(panel, "Bold", name="fonts")
         self.plot1D_titleFontWeight_check.SetValue(self.config.titleFontWeight_1D)
-        self.plot1D_titleFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_titleFontWeight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_titleFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         plot1D_labelFontSize_label = wx.StaticText(panel, -1, "Label font size:")
@@ -340,12 +340,12 @@ class panelParametersEdit(wx.Panel):
                                                value=str(self.config.labelFontSize_1D),
                                                min=0, max=48, initial=self.config.labelFontSize_1D,
                                                inc=2, size=(90, -1), name="fonts")
-        self.plot1D_labelFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.plot1D_labelFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
         self.plot1D_labelFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate)
 
         self.plot1D_labelFontWeight_check = makeCheckbox(panel, "Bold", name="fonts")
         self.plot1D_labelFontWeight_check.SetValue(self.config.labelFontWeight_1D)
-        self.plot1D_labelFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_labelFontWeight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_labelFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         plot1D_tickFontSize_label = wx.StaticText(panel, -1, "Tick font size:")
@@ -353,12 +353,12 @@ class panelParametersEdit(wx.Panel):
                                                value=str(self.config.tickFontSize_1D),
                                                min=0, max=48, initial=self.config.tickFontSize_1D,
                                                inc=2, size=(90, -1), name="fonts")
-        self.plot1D_tickFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.plot1D_tickFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
         self.plot1D_tickFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate)
 
         self.plot1D_tickFontWeight_check = makeCheckbox(panel, "Bold", name="fonts")
         self.plot1D_tickFontWeight_check.SetValue(self.config.tickFontWeight_1D)
-        self.plot1D_tickFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_tickFontWeight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_tickFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
         self.plot1D_tickFontWeight_check.Disable()
 
@@ -367,12 +367,12 @@ class panelParametersEdit(wx.Panel):
                                                value=str(self.config.annotationFontSize_1D),
                                                min=0, max=48, initial=self.config.annotationFontSize_1D,
                                                inc=2, size=(90, -1), name="fonts")
-        self.plot1D_annotationFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.plot1D_annotationFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
         self.plot1D_annotationFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate)
 
         self.plot1D_annotationFontWeight_check = makeCheckbox(panel, "Bold", name="fonts")
         self.plot1D_annotationFontWeight_check.SetValue(self.config.annotationFontWeight_1D)
-        self.plot1D_annotationFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_annotationFontWeight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_annotationFontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate)
 
         # axes parameters
@@ -442,7 +442,7 @@ class panelParametersEdit(wx.Panel):
 
         return panel
 
-    def makePanelExtra(self, panel):
+    def make_panelExtra(self, panel):
         PANEL_SPACE_MAIN = 2
 
         # make elements
@@ -464,28 +464,28 @@ class panelParametersEdit(wx.Panel):
         self.general_left_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=1, initial=0, inc=0.05,
                                                     size=(60, -1))
-        self.general_left_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+        self.general_left_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
         __general_left_tip = makeSuperTip(left_label, **self.help.general_leftAxes)
 
         bottom_label = wx.StaticText(panel, -1, "Bottom")
         self.general_bottom_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=1, initial=0, inc=0.05,
                                                     size=(60, -1))
-        self.general_bottom_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+        self.general_bottom_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
         __general_bottom_tip = makeSuperTip(bottom_label, **self.help.general_bottomAxes)
 
         width_label = wx.StaticText(panel, -1, "Width")
         self.general_width_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=1, initial=0, inc=0.05,
                                                     size=(60, -1))
-        self.general_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+        self.general_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
         __general_width_tip = makeSuperTip(width_label, **self.help.general_widthAxes)
 
         height_label = wx.StaticText(panel, -1, "Height")
         self.general_height_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=1, initial=0, inc=0.05,
                                                     size=(60, -1))
-        self.general_height_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+        self.general_height_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightAxes)
 
         plotSize_window_inch_label = wx.StaticText(panel, -1, "Plot size (inch)")
@@ -493,14 +493,14 @@ class panelParametersEdit(wx.Panel):
         self.general_width_window_inch_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=20, initial=0, inc=.5,
                                                     size=(60, -1))
-        self.general_width_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+        self.general_width_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 #         __general_width_tip = makeSuperTip(width_label, **self.help.general_widthPlot_inch)
 
         height_window_inch_label = wx.StaticText(panel, -1, "Height")
         self.general_height_window_inch_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=20, initial=0, inc=.5,
                                                     size=(60, -1))
-        self.general_height_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+        self.general_height_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 #         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightPlot_inch)
 
 ########
@@ -514,28 +514,28 @@ class panelParametersEdit(wx.Panel):
         self.general_left_export_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=1, initial=0, inc=0.05,
                                                     size=(60, -1))
-        self.general_left_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.general_left_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         __general_left_tip = makeSuperTip(left_export_label, **self.help.general_leftAxes_export)
 
         bottom_export_label = wx.StaticText(panel, -1, "Bottom")
         self.general_bottom_export_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=1, initial=0, inc=0.05,
                                                     size=(60, -1))
-        self.general_bottom_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.general_bottom_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         __general_bottom_tip = makeSuperTip(bottom_export_label, **self.help.general_bottomAxes_export)
 
         width_export_label = wx.StaticText(panel, -1, "Width")
         self.general_width_export_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=1, initial=0, inc=0.05,
                                                     size=(60, -1))
-        self.general_width_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.general_width_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         __general_width_tip = makeSuperTip(width_export_label, **self.help.general_widthAxes_export)
 
         height_export_label = wx.StaticText(panel, -1, "Height")
         self.general_height_export_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=1, initial=0, inc=0.05,
                                                     size=(60, -1))
-        self.general_height_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.general_height_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         __general_height_tip = makeSuperTip(height_export_label, **self.help.general_heightAxes_export)
 
         plotSize_inch_label = wx.StaticText(panel, -1, "Plot size (inch)")
@@ -543,14 +543,14 @@ class panelParametersEdit(wx.Panel):
         self.general_width_inch_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=20, initial=0, inc=2,
                                                     size=(60, -1))
-        self.general_width_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+        self.general_width_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
         __general_width_tip = makeSuperTip(width_label, **self.help.general_widthPlot_inch)
 
         height_inch_label = wx.StaticText(panel, -1, "Height")
         self.general_height_inch_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
                                                     min=0.0, max=20, initial=0, inc=2,
                                                     size=(60, -1))
-        self.general_height_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_general)
+        self.general_height_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightPlot_inch)
 
         style_staticBox = makeStaticBox(panel, "Style parameters", size=(-1, -1), color=wx.BLACK)
@@ -599,7 +599,7 @@ class panelParametersEdit(wx.Panel):
         zoom_grid_label = wx.StaticText(panel, -1, "Show cursor grid:")
         self.zoom_grid_check = makeCheckbox(panel, "")
         self.zoom_grid_check.SetValue(self.config._plots_grid_show)
-        self.zoom_grid_check.Bind(wx.EVT_CHECKBOX, self.onApply_zoom)
+        self.zoom_grid_check.Bind(wx.EVT_CHECKBOX, self.on_apply_zoom)
         self.zoom_grid_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_general)
 
         zoom_cursor_width_label = wx.StaticText(panel, -1, "Cursor line width:")
@@ -607,7 +607,7 @@ class panelParametersEdit(wx.Panel):
                                                        value=str(self.config._plots_grid_line_width),
                                                        min=0.5, max=10, initial=0, inc=0.5,
                                                        size=(CTRL_SIZE, -1))
-        self.zoom_cursor_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_zoom)
+        self.zoom_cursor_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_zoom)
 
         zoom_cursor_color_label = wx.StaticText(panel, -1, "Color:")
         self.zoom_cursor_colorBtn = wx.Button(panel, ID_extraSettings_zoomCursorColor,
@@ -621,21 +621,21 @@ class panelParametersEdit(wx.Panel):
                                                        value=str(self.config._plots_extract_line_width),
                                                        min=0.5, max=10, initial=0, inc=0.5,
                                                        size=(CTRL_SIZE, -1))
-        self.zoom_extract_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_zoom)
+        self.zoom_extract_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_zoom)
 
         zoom_extract_crossover_1D_label = wx.StaticText(panel, -1, "Crossover (1D):")
         self.zoom_extract_crossover1D_value = wx.SpinCtrlDouble(panel, -1,
                                                                 value=str(self.config._plots_extract_crossover_1D),
                                                                 min=0.01, max=1, initial=0, inc=0.01,
                                                                 size=(CTRL_SIZE, -1))
-        self.zoom_extract_crossover1D_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_zoom)
+        self.zoom_extract_crossover1D_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_zoom)
 
         zoom_extract_crossover_2D_label = wx.StaticText(panel, -1, "Crossover (2D):")
         self.zoom_extract_crossover2D_value = wx.SpinCtrlDouble(panel, -1,
                                                                 value=str(self.config._plots_extract_crossover_2D),
                                                                 min=0.001, max=1, initial=0, inc=0.01,
                                                                 size=(CTRL_SIZE, -1))
-        self.zoom_extract_crossover2D_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_zoom)
+        self.zoom_extract_crossover2D_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_zoom)
 
         zoom_extract_color_label = wx.StaticText(panel, -1, "Color:")
         self.zoom_extract_colorBtn = wx.Button(panel, ID_extraSettings_extractColor,
@@ -649,7 +649,7 @@ class panelParametersEdit(wx.Panel):
                                                        value=str(self.config._plots_zoom_line_width),
                                                        min=0.5, max=10, initial=0, inc=0.5,
                                                        size=(CTRL_SIZE, -1))
-        self.zoom_zoom_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_zoom)
+        self.zoom_zoom_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_zoom)
 
         zoom_zoom_vertical_color_label = wx.StaticText(panel, -1, "Vertical:")
         self.zoom_zoom_vertical_colorBtn = wx.Button(panel, ID_extraSettings_verticalColor,
@@ -677,7 +677,7 @@ class panelParametersEdit(wx.Panel):
                                                        value=str(self.config._plots_zoom_crossover),
                                                        min=0.01, max=1, initial=0, inc=0.01,
                                                        size=(CTRL_SIZE, -1))
-        self.zoom_sensitivity_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_zoom)
+        self.zoom_sensitivity_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_zoom)
         _zoom_sensitivity_value = makeSuperTip(zoom_sensitivity_label, **self.help.general_zoom_crossover)
         
         gui_staticBox = makeStaticBox(panel, "Graphical User Interface parameters", size=(-1, -1), color=wx.BLACK)
@@ -687,7 +687,7 @@ class panelParametersEdit(wx.Panel):
         self.general_instantPlot_check = makeCheckbox(panel, "Instant plot when selected in Document Tree",
                                                       ID=ID_extraSettings_instantPlot)
         self.general_instantPlot_check.SetValue(self.config.quickDisplay)
-        self.general_instantPlot_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.general_instantPlot_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.general_instantPlot_check.Bind(wx.EVT_CHECKBOX, self.onUpdateGUI)
         _general_instantPlot_check = makeSuperTip(self.general_instantPlot_check, **self.help.general_instantPlot)
 
@@ -830,7 +830,7 @@ class panelParametersEdit(wx.Panel):
 
         return panel
 
-    def makePanelRMSD(self, panel):
+    def make_panelRMSD(self, panel):
         PANEL_SPACE_MAIN = 2
 
         rmsd_staticBox = makeStaticBox(panel, "RMSD", size=(-1, -1), color=wx.BLACK)
@@ -844,7 +844,7 @@ class panelParametersEdit(wx.Panel):
         self.rmsd_position_value.SetStringSelection(self.config.rmsd_position)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.onSetupRMSDPosition)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.onEnableDisableFeatures_rmsd)
-        self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.onUpdateLabel)
 
         rmsd_x_position_label = wx.StaticText(panel, -1, "Position X:")
@@ -866,12 +866,12 @@ class panelParametersEdit(wx.Panel):
                                                      value=str(self.config.rmsd_fontSize),
                                                      min=1, max=50, initial=0, inc=1,
                                                      size=(90, -1))
-        self.rmsd_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.rmsd_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdateLabel)
 
         self.rmsd_fontWeight_check = makeCheckbox(panel, "Bold")
         self.rmsd_fontWeight_check.SetValue(self.config.rmsd_fontWeight)
-        self.rmsd_fontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.rmsd_fontWeight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.rmsd_fontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdateLabel)
 
         rmsd_color_label = wx.StaticText(panel, -1, "Label color:")
@@ -889,7 +889,7 @@ class panelParametersEdit(wx.Panel):
                                                       value=str(self.config.lineWidth_1D * 10),
                                                       min=1, max=100, initial=self.config.rmsd_lineWidth * 10,
                                                       inc=5, size=(90, -1), name="rmsf")
-        self.rmsd_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.rmsd_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         rmsd_lineColor_label = wx.StaticText(panel, -1, "Line color:")
@@ -904,7 +904,7 @@ class panelParametersEdit(wx.Panel):
                                              choices=self.config.lineStylesList,
                                              size=(-1, -1), name="rmsf")
         self.rmsd_lineStyle_value.SetStringSelection(self.config.rmsd_lineStyle)
-        self.rmsd_lineStyle_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.rmsd_lineStyle_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.rmsd_lineStyle_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         rmsd_lineHatch_label = wx.StaticText(panel, -1, "Underline hatch:")
@@ -913,7 +913,7 @@ class panelParametersEdit(wx.Panel):
                                                size=(-1, -1), name="rmsf")
         self.rmsd_lineHatch_value.SetStringSelection(list(self.config.lineHatchDict.keys())[
             list(self.config.lineHatchDict.values()).index(self.config.rmsd_lineHatch)])
-        self.rmsd_lineHatch_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.rmsd_lineHatch_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.rmsd_lineHatch_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         rmsd_underlineColor_label = wx.StaticText(panel, -1, "Underline color:")
@@ -928,7 +928,7 @@ class panelParametersEdit(wx.Panel):
                                                   value=str(self.config.rmsd_underlineTransparency * 100),
                                                   min=0, max=100, initial=self.config.rmsd_underlineTransparency * 100,
                                                   inc=5, size=(90, -1), name="rmsf")
-        self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         rmsd_hspace_label = wx.StaticText(panel, -1, "Vertical spacing:")
@@ -936,7 +936,7 @@ class panelParametersEdit(wx.Panel):
                                                   value=str(self.config.rmsd_hspace),
                                                   min=0, max=1, initial=self.config.rmsd_hspace,
                                                   inc=0.05, size=(90, -1), name="rmsf")
-        self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         rmsd_matrix_staticBox = makeStaticBox(panel, "RMSD Matrix", size=(-1, -1), color=wx.BLACK)
@@ -948,7 +948,7 @@ class panelParametersEdit(wx.Panel):
                                                      value=str(self.config.rmsd_rotation_X),
                                                      min=0, max=360, initial=0, inc=45,
                                                      size=(90, -1))
-        self.rmsd_rotationX_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.rmsd_rotationX_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_rotationX_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdateLabel_Matrix)
 
         rmsd_rotationY_label = wx.StaticText(panel, -1, "Rotation (Y-axis):")
@@ -956,13 +956,13 @@ class panelParametersEdit(wx.Panel):
                                                      value=str(self.config.rmsd_rotation_Y),
                                                      min=0, max=360, initial=0, inc=45,
                                                      size=(90, -1))
-        self.rmsd_rotationY_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.rmsd_rotationY_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_rotationY_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdateLabel_Matrix)
 
         rmsd_add_labels_label = wx.StaticText(panel, -1, "Add labels:")
         self.rmsd_add_labels_check = makeCheckbox(panel, "")
         self.rmsd_add_labels_check.SetValue(self.config.rmsd_matrix_add_labels)
-        self.rmsd_add_labels_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.rmsd_add_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.rmsd_add_labels_check.Bind(wx.EVT_CHECKBOX, self.onUpdateLabel_Matrix)
 
         rmsd_grid = wx.GridBagSizer(2, 2)
@@ -1039,7 +1039,7 @@ class panelParametersEdit(wx.Panel):
 
         return panel
 
-    def makePanelViolin(self, panel):
+    def make_panelViolin(self, panel):
         PANEL_SPACE_MAIN = 2
 
         # make elements
@@ -1047,41 +1047,41 @@ class panelParametersEdit(wx.Panel):
         self.violin_orientation_value = wx.Choice(panel, -1, choices=self.config.violin_orientation_choices,
                                                   size=(-1, -1), name="style")
         self.violin_orientation_value.SetStringSelection(self.config.violin_orientation)
-        self.violin_orientation_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.violin_orientation_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         violin_spacing_label = wx.StaticText(panel, -1, "Spacing:")
         self.violin_spacing_value = wx.SpinCtrlDouble(panel, -1,
                                                         value=str(self.config.violin_spacing),
                                                         min=0.0, max=5, initial=0, inc=0.25,
                                                         size=(90, -1))
-        self.violin_spacing_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.violin_spacing_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         violin_min_percentage_label = wx.StaticText(panel, -1, "Noise threshold:")
         self.violin_min_percentage_value = wx.SpinCtrlDouble(panel, -1,
                                                         value=str(self.config.violin_min_percentage),
                                                         min=0.0, max=1.0, initial=0, inc=0.01,
                                                         size=(90, -1), name="data")
-        self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         violin_normalize_label = wx.StaticText(panel, -1, "Normalize:")
         self.violin_normalize_check = makeCheckbox(panel, "")
         self.violin_normalize_check.SetValue(self.config.violin_normalize)
-        self.violin_normalize_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.violin_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         violin_lineWidth_label = wx.StaticText(panel, -1, "Line width:")
         self.violin_lineWidth_value = wx.SpinCtrlDouble(panel, -1,
                                                            value=str(self.config.violin_lineWidth),
                                                            min=1, max=10, initial=self.config.violin_lineWidth,
                                                            inc=1, size=(90, -1), name="style")
-        self.violin_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.violin_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.violin_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         violin_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
         self.violin_lineStyle_value = wx.Choice(panel, -1, choices=self.config.lineStylesList,
                                                   size=(-1, -1), name="style")
         self.violin_lineStyle_value.SetStringSelection(self.config.violin_lineStyle)
-        self.violin_lineStyle_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.violin_lineStyle_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.violin_lineStyle_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         violin_lineColor_label = wx.StaticText(panel, -1, "Line color:")
@@ -1093,7 +1093,7 @@ class panelParametersEdit(wx.Panel):
 
         self.violin_line_sameAsShade_check = makeCheckbox(panel, "Same as shade", name="color")
         self.violin_line_sameAsShade_check.SetValue(self.config.violin_line_sameAsShade)
-        self.violin_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.violin_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.violin_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_violin)
         self.violin_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
 
@@ -1101,7 +1101,7 @@ class panelParametersEdit(wx.Panel):
         self.violin_colorScheme_value = wx.Choice(panel, -1, choices=self.config.waterfall_color_choices,
                                                     size=(-1, -1), name="color")
         self.violin_colorScheme_value.SetStringSelection(self.config.violin_color_value)
-        self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.onEnableDisableFeatures_violin)
 
@@ -1113,7 +1113,7 @@ class panelParametersEdit(wx.Panel):
         self.violin_colormap_value = wx.Choice(panel, -1, choices=cmap_list,
                                                size=(-1, -1), name="color")
         self.violin_colormap_value.SetStringSelection(self.config.violin_colormap)
-        self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         violin_shadeColor_label = wx.StaticText(panel, -1, "Shade color:")
@@ -1129,14 +1129,14 @@ class panelParametersEdit(wx.Panel):
                                                                 min=0, max=1,
                                                                 initial=self.config.violin_shade_under_transparency,
                                                                 inc=0.25, size=(90, -1), name="shade")
-        self.violin_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.violin_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.violin_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         violin_label_format_label = wx.StaticText(panel, -1, "Label format:")
         self.violin_label_format_value = wx.Choice(panel, -1, choices=self.config.violin_label_format_choices,
                                                     size=(-1, -1), name="label")
         self.violin_label_format_value.SetStringSelection(self.config.waterfall_label_format)
-        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
         self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.onEnableDisableFeatures_violin)
 
@@ -1146,7 +1146,7 @@ class panelParametersEdit(wx.Panel):
                                                               min=0, max=100,
                                                               initial=self.config.violin_labels_frequency,
                                                               inc=1, size=(45, -1), name="label")
-        self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 #         self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         violin_nLimit_label = wx.StaticText(panel, -1, "Violin limit:")
@@ -1155,7 +1155,7 @@ class panelParametersEdit(wx.Panel):
                                                          min=1, max=200,
                                                          initial=self.config.violin_nlimit,
                                                          inc=5, size=(90, -1), name="shade")
-        self.violin_nLimit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.violin_nLimit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         grid = wx.GridBagSizer(2, 2)
         y = 0
@@ -1213,7 +1213,7 @@ class panelParametersEdit(wx.Panel):
 
         return panel
 
-    def makePanelWaterfall(self, panel):
+    def make_panelWaterfall(self, panel):
         PANEL_SPACE_MAIN = 2
 
         # make elements
@@ -1227,39 +1227,39 @@ class panelParametersEdit(wx.Panel):
                                                         value=str(self.config.waterfall_offset),
                                                         min=0.0, max=1, initial=0, inc=0.05,
                                                         size=(90, -1))
-        self.waterfall_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         waterfall_increment_label = wx.StaticText(panel, -1, "Increment:")
         self.waterfall_increment_value = wx.SpinCtrlDouble(panel, -1,
                                                         value=str(self.config.waterfall_increment),
                                                         min=0.0, max=99999.0, initial=0, inc=0.1,
                                                         size=(90, -1), name="data")
-        self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         waterfall_normalize_label = wx.StaticText(panel, -1, "Normalize:")
         self.waterfall_normalize_check = makeCheckbox(panel, "")
         self.waterfall_normalize_check.SetValue(self.config.waterfall_normalize)
-        self.waterfall_normalize_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.waterfall_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         waterfall_reverse_label = wx.StaticText(panel, -1, "Reverse order:")
         self.waterfall_reverse_check = makeCheckbox(panel, "")
         self.waterfall_reverse_check.SetValue(self.config.waterfall_reverse)
-        self.waterfall_reverse_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.waterfall_reverse_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         waterfall_lineWidth_label = wx.StaticText(panel, -1, "Line width:")
         self.waterfall_lineWidth_value = wx.SpinCtrlDouble(panel, -1,
                                                            value=str(self.config.waterfall_lineWidth),
                                                            min=1, max=10, initial=self.config.waterfall_lineWidth,
                                                            inc=1, size=(90, -1), name="style")
-        self.waterfall_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         waterfall_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
         self.waterfall_lineStyle_value = wx.Choice(panel, -1, choices=self.config.lineStylesList,
                                                   size=(-1, -1), name="style")
         self.waterfall_lineStyle_value.SetStringSelection(self.config.waterfall_lineStyle)
-        self.waterfall_lineStyle_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.waterfall_lineStyle_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_lineStyle_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         waterfall_lineColor_label = wx.StaticText(panel, -1, "Line color:")
@@ -1271,7 +1271,7 @@ class panelParametersEdit(wx.Panel):
 
         self.waterfall_line_sameAsShade_check = makeCheckbox(panel, "Same as shade    ", name="color")
         self.waterfall_line_sameAsShade_check.SetValue(self.config.waterfall_line_sameAsShade)
-        self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_waterfall)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
 
@@ -1279,7 +1279,7 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_colorScheme_value = wx.Choice(panel, -1, choices=self.config.waterfall_color_choices,
                                                     size=(-1, -1), name="color")
         self.waterfall_colorScheme_value.SetStringSelection(self.config.waterfall_color_value)
-        self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.onEnableDisableFeatures_waterfall)
         self.waterfall_colorScheme_msg = wx.StaticText(panel, -1, "")
@@ -1290,13 +1290,13 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_colormap_value = wx.Choice(panel, -1, choices=cmap_list,
                                                  size=(-1, -1), name="color")
         self.waterfall_colormap_value.SetStringSelection(self.config.waterfall_colormap)
-        self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         waterfall_shade_under_label = wx.StaticText(panel, -1, "Shade under:")
         self.waterfall_shadeUnder_check = makeCheckbox(panel, "", name="shade")
         self.waterfall_shadeUnder_check.SetValue(self.config.waterfall_shade_under)
-        self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_waterfall)
         self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
 
@@ -1312,7 +1312,7 @@ class panelParametersEdit(wx.Panel):
             panel, -1, value=str(self.config.waterfall_shade_under_transparency),
             min=0, max=1, initial=self.config.waterfall_shade_under_transparency,
             inc=0.25, size=(90, -1), name="shade")
-        self.waterfall_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         waterfall_shadeLimit_label = wx.StaticText(panel, -1, "Shade limit:")
@@ -1321,7 +1321,7 @@ class panelParametersEdit(wx.Panel):
                                                             min=0, max=100,
                                                             initial=self.config.waterfall_shade_under_nlimit,
                                                             inc=5, size=(90, -1), name="shade")
-        self.waterfall_shadeLimit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_shadeLimit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         waterfall_show_labels_label = wx.StaticText(panel, -1, "Show labels:")
         self.waterfall_showLabels_check = makeCheckbox(panel, "", name="label")
@@ -1334,14 +1334,14 @@ class panelParametersEdit(wx.Panel):
                                                                  min=0, max=100,
                                                                  initial=self.config.waterfall_labels_frequency,
                                                                  inc=1, size=(45, -1), name="label")
-        self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         waterfall_label_format_label = wx.StaticText(panel, -1, "Label format:")
         self.waterfall_label_format_value = wx.Choice(panel, -1, choices=self.config.waterfall_label_format_choices,
                                                     size=(-1, -1), name="label")
         self.waterfall_label_format_value.SetStringSelection(self.config.waterfall_label_format)
-        self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
         self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.onEnableDisableFeatures_waterfall)
 
@@ -1351,12 +1351,12 @@ class panelParametersEdit(wx.Panel):
                                                                    min=0, max=32,
                                                                    initial=self.config.waterfall_label_fontSize,
                                                                    inc=4, size=(45, -1), name="label")
-        self.waterfall_label_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_label_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_label_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         self.waterfall_label_fontWeight_check = makeCheckbox(panel, "Bold", name="label")
         self.waterfall_label_fontWeight_check.SetValue(self.config.waterfall_label_fontWeight)
-        self.waterfall_label_fontWeight_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.waterfall_label_fontWeight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.waterfall_label_fontWeight_check.Bind(wx.EVT_CHECKBOX, self.onUpdate2D)
 
         waterfall_label_x_offset_label = wx.StaticText(panel, -1, "Horizontal offset:")
@@ -1365,7 +1365,7 @@ class panelParametersEdit(wx.Panel):
                                                                 min=0, max=1,
                                                                 initial=self.config.waterfall_labels_x_offset,
                                                                 inc=0.01, size=(45, -1), name="label")
-        self.waterfall_label_x_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_label_x_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_label_x_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         waterfall_label_y_offset_label = wx.StaticText(panel, -1, "Vertical offset:")
@@ -1374,7 +1374,7 @@ class panelParametersEdit(wx.Panel):
                                                                 min=0, max=1,
                                                                 initial=self.config.waterfall_labels_y_offset,
                                                                 inc=0.05, size=(45, -1), name="label")
-        self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         grid = wx.GridBagSizer(2, 2)
@@ -1478,7 +1478,7 @@ class panelParametersEdit(wx.Panel):
                                    choices=self.config.colorbarChoices,
                                    size=(-1, -1), name="colorbar")
         self.colorbarPosition_value.SetStringSelection(self.config.colorbarPosition)
-        self.colorbarPosition_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.colorbarPosition_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.colorbarPosition_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         cbar_pad_label = wx.StaticText(panel, -1, "Distance:")
@@ -1486,7 +1486,7 @@ class panelParametersEdit(wx.Panel):
                                                value=str(self.config.colorbarPad),
                                                min=0.0, max=2, initial=0, inc=0.05,
                                                size=(90, -1), name="colorbar")
-        self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         cbar_width_label = wx.StaticText(panel, -1, "Width:")
@@ -1494,7 +1494,7 @@ class panelParametersEdit(wx.Panel):
                                            value=str(self.config.colorbarWidth),
                                            min=0.0, max=10, initial=0, inc=0.5,
                                            size=(90, -1), name="colorbar")
-        self.colorbarWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.colorbarWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.colorbarWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         cbar_fontsize = wx.StaticText(panel, -1, "Label font size:")
@@ -1502,7 +1502,7 @@ class panelParametersEdit(wx.Panel):
                                                         value=str(self.config.colorbarLabelSize),
                                                         min=0, max=32, initial=0, inc=2,
                                                         size=(90, -1), name="colorbar")
-        self.colorbarFontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
+        self.colorbarFontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2D)
         self.colorbarFontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
 #         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -1558,64 +1558,64 @@ class panelParametersEdit(wx.Panel):
                                               choices=self.config.legendPositionChoice,
                                               size=(-1, -1))
         self.legend_position_value.SetStringSelection(self.config.legendPosition)
-        self.legend_position_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.legend_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         legend_columns_label = wx.StaticText(panel, -1, "Columns:")
         self.legend_columns_value = wx.SpinCtrlDouble(panel, -1,
                                                       value=str(self.config.legendColumns),
                                                       min=1, max=5, initial=0, inc=1,
                                                       size=(90, -1))
-        self.legend_columns_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.legend_columns_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         legend_fontSize_label = wx.StaticText(panel, -1, "Font size:")
         self.legend_fontSize_value = wx.Choice(panel, -1,
                                    choices=self.config.legendFontChoice,
                                    size=(-1, -1))
         self.legend_fontSize_value.SetStringSelection(self.config.legendFontSize)
-        self.legend_fontSize_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.legend_fontSize_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         legend_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
         self.legend_markerSize_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.legendMarkerSize),
                                                min=0.5, max=5, initial=0, inc=0.5,
                                                size=(90, -1))
-        self.legend_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.legend_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         legend_markerNumber_label = wx.StaticText(panel, -1, "Number of points:")
         self.legend_numberMarkers_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.legendNumberMarkers),
                                                min=1, max=10, initial=1, inc=1,
                                                size=(90, -1))
-        self.legend_numberMarkers_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.legend_numberMarkers_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         legend_markerFirst_label = wx.StaticText(panel, -1, "Marker before label:")
         self.legend_markerFirst_check = makeCheckbox(panel, "")
         self.legend_markerFirst_check.SetValue(self.config.legendMarkerFirst)
-        self.legend_markerFirst_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.legend_markerFirst_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         legend_alpha_label = wx.StaticText(panel, -1, "Frame transparency:")
         self.legend_alpha_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.legendAlpha),
                                                min=0.0, max=1, initial=0, inc=0.05,
                                                size=(90, -1))
-        self.legend_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.legend_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         legend_patch_alpha_label = wx.StaticText(panel, -1, "Patch transparency:")
         self.legend_patch_alpha_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.legendPatchAlpha),
                                                min=0.0, max=1, initial=0, inc=0.25,
                                                size=(90, -1))
-        self.legend_patch_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.legend_patch_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         legend_frame_label = wx.StaticText(panel, -1, "Frame:")
         self.legend_frame_check = makeCheckbox(panel, "")
         self.legend_frame_check.SetValue(self.config.legendFrame)
-        self.legend_frame_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.legend_frame_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         legend_fancy_label = wx.StaticText(panel, -1, "Rounded corners:")
         self.legend_fancyBox_check = makeCheckbox(panel, "")
         self.legend_fancyBox_check.SetValue(self.config.legendFancyBox)
-        self.legend_fancyBox_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.legend_fancyBox_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         grid = wx.GridBagSizer(2, 2)
         y = 0
@@ -1676,7 +1676,7 @@ class panelParametersEdit(wx.Panel):
                                                value=str(self.config.lineWidth_1D * 10),
                                                min=1, max=100, initial=self.config.lineWidth_1D * 10,
                                                inc=5, size=(90, -1))
-        self.plot1D_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.plot1D_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
         self.plot1D_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate1D)
 
         plot1D_lineColor_label = wx.StaticText(panel, -1, "Line color:")
@@ -1691,13 +1691,13 @@ class panelParametersEdit(wx.Panel):
                                                choices=self.config.lineStylesList,
                                                size=(-1, -1))
         self.plot1D_lineStyle_value.SetStringSelection(self.config.lineStyle_1D)
-        self.plot1D_lineStyle_value.Bind(wx.EVT_CHOICE, self.onApply_1D)
+        self.plot1D_lineStyle_value.Bind(wx.EVT_CHOICE, self.on_apply_1D)
         self.plot1D_lineStyle_value.Bind(wx.EVT_CHOICE, self.onUpdate1D)
 
         plot1D_shade_label = wx.StaticText(panel, -1, "Shade under:")
         self.plot1D_shade_check = makeCheckbox(panel, "")
         self.plot1D_shade_check.SetValue(self.config.lineShadeUnder_1D)
-        self.plot1D_shade_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_shade_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_shade_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_1D)
         self.plot1D_shade_check.Bind(wx.EVT_CHECKBOX, self.onUpdate1D)
 
@@ -1718,21 +1718,21 @@ class panelParametersEdit(wx.Panel):
                                    choices=list(self.config.markerShapeDict.keys()),
                                    size=(-1, -1))
         self.plot1D_markerShape_value.SetStringSelection(self.config.markerShapeTXT_1D)
-        self.plot1D_markerShape_value.Bind(wx.EVT_CHOICE, self.onApply_1D)
+        self.plot1D_markerShape_value.Bind(wx.EVT_CHOICE, self.on_apply_1D)
 
         plot1D_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
         self.plot1D_markerSize_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.markerSize_1D),
                                                min=1, max=100, initial=1, inc=5,
                                                size=(90, -1))
-        self.plot1D_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.plot1D_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
 
         plot1D_alpha_label = wx.StaticText(panel, -1, "Marker transparency:")
         self.plot1D_alpha_value = wx.SpinCtrlDouble(panel, -1,
                                                     value=str(self.config.markerTransparency_1D * 100),
                                                     min=0, max=100, initial=self.config.markerTransparency_1D * 100,
                                                     inc=5, size=(90, -1))
-        self.plot1D_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.plot1D_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
 
         plot1D_markerColor_label = wx.StaticText(panel, -1, "Marker face color:")
         self.plot1D_colorAnnotBtn = wx.Button(panel, ID_extraSettings_markerColor_1D,
@@ -1750,7 +1750,7 @@ class panelParametersEdit(wx.Panel):
 
         self.plot1D_colorEdgeMarker_check = makeCheckbox(panel, "Same as fill")
         self.plot1D_colorEdgeMarker_check.SetValue(self.config.markerEdgeUseSame_1D)
-        self.plot1D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.plot1D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_1D)
 
         barParameters_staticBox = makeStaticBox(panel, "Bar parameters",
@@ -1764,21 +1764,21 @@ class panelParametersEdit(wx.Panel):
                                                min=0.01, max=10, inc=0.1,
                                                initial=self.config.bar_width,
                                                size=(90, -1))
-        self.bar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.bar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
 
         bar_alpha_label = wx.StaticText(panel, -1, "Bar transparency:")
         self.bar_alpha_value = wx.SpinCtrlDouble(panel, -1,
                                                     value=str(self.config.bar_alpha),
                                                     min=0, max=1, initial=self.config.bar_alpha,
                                                     inc=0.25, size=(90, -1))
-        self.bar_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.bar_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
 
         bar_lineWidth_label = wx.StaticText(panel, -1, "Edge line width:")
         self.bar_lineWidth_value = wx.SpinCtrlDouble(panel, -1,
                                                     value=str(self.config.bar_lineWidth),
                                                     min=0, max=5, initial=self.config.bar_lineWidth,
                                                     inc=1, size=(90, -1))
-        self.bar_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_1D)
+        self.bar_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
 
         bar_edgeColor_label = wx.StaticText(panel, -1, "Edge color:")
         self.bar_edgeColorBtn = wx.Button(panel, ID_extraSettings_bar_edgeColor,
@@ -1789,7 +1789,7 @@ class panelParametersEdit(wx.Panel):
 
         self.bar_colorEdge_check = makeCheckbox(panel, "Same as fill")
         self.bar_colorEdge_check.SetValue(self.config.bar_sameAsFill)
-        self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.onApply_1D)
+        self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_1D)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -1895,12 +1895,12 @@ class panelParametersEdit(wx.Panel):
                                    choices=self.config.cmaps2,
                                    size=(-1, -1), name="color")
         self.plot2D_colormap_value.SetStringSelection(self.config.currentCmap)
-        self.plot2D_colormap_value.Bind(wx.EVT_CHOICE, self.onApply_2D)
+        self.plot2D_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_2D)
         self.plot2D_colormap_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         self.plot2D_overrideColormap_check = makeCheckbox(panel, "Override colormap")
         self.plot2D_overrideColormap_check.SetValue(self.config.useCurrentCmap)
-        self.plot2D_overrideColormap_check.Bind(wx.EVT_CHECKBOX, self.onApply_2D)
+        self.plot2D_overrideColormap_check.Bind(wx.EVT_CHECKBOX, self.on_apply_2D)
         self.plot2D_overrideColormap_check.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         plot2D_plotType_label = wx.StaticText(panel, -1, "Plot type:")
@@ -1908,7 +1908,7 @@ class panelParametersEdit(wx.Panel):
                                               choices=self.config.imageType2D,
                                               size=(-1, -1))
         self.plot2D_plotType_value.SetStringSelection(self.config.plotType)
-        self.plot2D_plotType_value.Bind(wx.EVT_CHOICE, self.onApply_2D)
+        self.plot2D_plotType_value.Bind(wx.EVT_CHOICE, self.on_apply_2D)
         self.plot2D_plotType_value.Bind(wx.EVT_CHOICE, self.onReplot2D)
 
         plot2D_interpolation_label = wx.StaticText(panel, -1, "Interpolation:")
@@ -1916,28 +1916,28 @@ class panelParametersEdit(wx.Panel):
                                    choices=self.config.comboInterpSelectChoices,
                                    size=(-1, -1))
         self.plot2D_interpolation_value.SetStringSelection(self.config.interpolation)
-        self.plot2D_interpolation_value.Bind(wx.EVT_CHOICE, self.onApply_2D)
+        self.plot2D_interpolation_value.Bind(wx.EVT_CHOICE, self.on_apply_2D)
         self.plot2D_interpolation_value.Bind(wx.EVT_CHOICE, self.onUpdate2D)
 
         plot2D_min_label = wx.StaticText(panel, -1, "Min %:")
         self.plot2D_min_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.minCmap), min=0, max=100,
                                                initial=0, inc=5, size=(50, -1), name="normalization")
-        self.plot2D_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
+        self.plot2D_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2D)
         self.plot2D_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         plot2D_mid_label = wx.StaticText(panel, -1, "Mid %:")
         self.plot2D_mid_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.midCmap), min=0, max=100,
                                                initial=0, inc=5, size=(50, -1), name="normalization")
-        self.plot2D_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
+        self.plot2D_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2D)
         self.plot2D_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         plot2D_max_label = wx.StaticText(panel, -1, "Max %:")
         self.plot2D_max_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.maxCmap), min=0, max=100,
                                                initial=0, inc=5, size=(90, -1), name="normalization")
-        self.plot2D_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_2D)
+        self.plot2D_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2D)
         self.plot2D_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -2004,7 +2004,7 @@ class panelParametersEdit(wx.Panel):
                                               choices=self.config.imageType3D,
                                               size=(-1, -1))
         self.plot3D_plotType_value.SetStringSelection(self.config.plotType_3D)
-        self.plot3D_plotType_value.Bind(wx.EVT_CHOICE, self.onApply_3D)
+        self.plot3D_plotType_value.Bind(wx.EVT_CHOICE, self.on_apply_3D)
         self.plot3D_plotType_value.Bind(wx.EVT_CHOICE, self.onReplot3D)
 
         scatter3D_staticBox = makeStaticBox(panel, "Scatter 3D parameters",
@@ -2017,21 +2017,21 @@ class panelParametersEdit(wx.Panel):
                                    choices=list(self.config.markerShapeDict.keys()),
                                    size=(-1, -1))
         self.plot3D_markerShape_value.SetStringSelection(self.config.markerShapeTXT_3D)
-        self.plot3D_markerShape_value.Bind(wx.EVT_CHOICE, self.onApply_3D)
+        self.plot3D_markerShape_value.Bind(wx.EVT_CHOICE, self.on_apply_3D)
 
         plot3D_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
         self.plot3D_markerSize_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.markerSize_3D),
                                                min=1, max=200, initial=1, inc=5,
                                                size=(90, -1))
-        self.plot3D_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
+        self.plot3D_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_3D)
 
         plot3D_alpha_label = wx.StaticText(panel, -1, "Marker transparency:")
         self.plot3D_alpha_value = wx.SpinCtrlDouble(panel, -1,
                                                value=str(self.config.markerTransparency_3D * 100),
                                                min=0, max=100, initial=self.config.markerTransparency_3D * 100,
                                                inc=5, size=(90, -1))
-        self.plot3D_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply_3D)
+        self.plot3D_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_3D)
 
         plot3D_markerColor_label = wx.StaticText(panel, -1, "Marker fill color:")
         self.plot3D_colorAnnotBtn = wx.Button(panel, ID_extraSettings_markerColor_3D,
@@ -2049,7 +2049,7 @@ class panelParametersEdit(wx.Panel):
 
         self.plot3D_colorEdgeMarker_check = makeCheckbox(panel, "Same as fill")
         self.plot3D_colorEdgeMarker_check.SetValue(self.config.markerEdgeUseSame_3D)
-        self.plot3D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
+        self.plot3D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
         self.plot3D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisableFeatures_3D)
 
         axisParameters_staticBox = makeStaticBox(panel, "Axis parameters",
@@ -2060,31 +2060,31 @@ class panelParametersEdit(wx.Panel):
         plot3D_shadeOnOff_label = wx.StaticText(panel, -1, "Show shade:")
         self.plot3D_shadeOnOff_check = makeCheckbox(panel, "")
         self.plot3D_shadeOnOff_check.SetValue(self.config.shade_3D)
-        self.plot3D_shadeOnOff_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
+        self.plot3D_shadeOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
         self.plot3D_shadeOnOff_check.Bind(wx.EVT_CHECKBOX, self.onUpdate3D)
 
         plot3D_gridsOnOff_label = wx.StaticText(panel, -1, "Show grids:")
         self.plot3D_gridsOnOff_check = makeCheckbox(panel, "")
         self.plot3D_gridsOnOff_check.SetValue(self.config.showGrids_3D)
-        self.plot3D_gridsOnOff_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
+        self.plot3D_gridsOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
         self.plot3D_gridsOnOff_check.Bind(wx.EVT_CHECKBOX, self.onUpdate3D)
 
         plot3D_ticksOnOff_label = wx.StaticText(panel, -1, "Show ticks:")
         self.plot3D_ticksOnOff_check = makeCheckbox(panel, "")
         self.plot3D_ticksOnOff_check.SetValue(self.config.ticks_3D)
-        self.plot3D_ticksOnOff_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
+        self.plot3D_ticksOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
         self.plot3D_ticksOnOff_check.Bind(wx.EVT_CHECKBOX, self.onReplot3D)
 
         plot3D_spinesOnOff_label = wx.StaticText(panel, -1, "Show line:")
         self.plot3D_spinesOnOff_check = makeCheckbox(panel, "")
         self.plot3D_spinesOnOff_check.SetValue(self.config.spines_3D)
-        self.plot3D_spinesOnOff_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
+        self.plot3D_spinesOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
         self.plot3D_spinesOnOff_check.Bind(wx.EVT_CHECKBOX, self.onReplot3D)
 
         plot3D_labelsOnOff_label = wx.StaticText(panel, -1, "Show labels:")
         self.plot3D_labelsOnOff_check = makeCheckbox(panel, "")
         self.plot3D_labelsOnOff_check.SetValue(self.config.labels_3D)
-        self.plot3D_labelsOnOff_check.Bind(wx.EVT_CHECKBOX, self.onApply_3D)
+        self.plot3D_labelsOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
         self.plot3D_labelsOnOff_check.Bind(wx.EVT_CHECKBOX, self.onUpdate3D)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -2222,7 +2222,7 @@ class panelParametersEdit(wx.Panel):
         except (AttributeError, UnboundLocalError):
             pass
 
-    def onApply_1D(self, evt):
+    def on_apply_1D(self, evt):
         # plot 1D
         self.config.lineWidth_1D = str2num(self.plot1D_lineWidth_value.GetValue()) / 10
         self.config.lineStyle_1D = self.plot1D_lineStyle_value.GetStringSelection()
@@ -2268,7 +2268,7 @@ class panelParametersEdit(wx.Panel):
         if evt is not None:
             evt.Skip()
 
-    def onApply_2D(self, evt):
+    def on_apply_2D(self, evt):
         self.config.currentCmap = self.plot2D_colormap_value.GetStringSelection()
         self.config.useCurrentCmap = self.plot2D_overrideColormap_check.GetValue()
         self.config.plotType = self.plot2D_plotType_value.GetStringSelection()
@@ -2278,7 +2278,7 @@ class panelParametersEdit(wx.Panel):
         self.config.maxCmap = str2num(self.plot2D_max_value.GetValue())
 
         # fire events
-        self.onApply(evt=None)
+        self.on_apply(evt=None)
 
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
@@ -2286,7 +2286,7 @@ class panelParametersEdit(wx.Panel):
         if evt is not None:
             evt.Skip()
 
-    def onApply_3D(self, evt):
+    def on_apply_3D(self, evt):
         self.config.plotType_3D = self.plot3D_plotType_value.GetStringSelection()
         self.config.showGrids_3D = self.plot3D_gridsOnOff_check.GetValue()
         self.config.shade_3D = self.plot3D_shadeOnOff_check.GetValue()
@@ -2307,7 +2307,7 @@ class panelParametersEdit(wx.Panel):
         if evt is not None:
             evt.Skip()
 
-    def onApply_general(self, evt):
+    def on_apply_general(self, evt):
         # general
         plotName = self.general_plotName_value.GetStringSelection()
         plotValues = [self.general_left_value.GetValue(), self.general_bottom_value.GetValue(),
@@ -2333,7 +2333,7 @@ class panelParametersEdit(wx.Panel):
         if evt is not None:
             evt.Skip()
 
-    def onApply_zoom(self, evt):
+    def on_apply_zoom(self, evt):
         # plots
         self.config._plots_grid_show = self.zoom_grid_check.GetValue()
         self.config._plots_grid_line_width = self.zoom_cursor_lineWidth_value.GetValue()
@@ -2352,7 +2352,7 @@ class panelParametersEdit(wx.Panel):
         if evt is not None:
             evt.Skip()
 
-    def onApply(self, evt):
+    def on_apply(self, evt):
 
         if self.importEvent: return
 
@@ -2570,7 +2570,7 @@ class panelParametersEdit(wx.Panel):
             evt.Skip()
 
     def onUpdateLabel(self, evt):
-        self.onApply(None)
+        self.on_apply(None)
         self.onSetupRMSDPosition(None)
 
         self.parent.panelPlots.plot_2D_update_label()
@@ -2579,7 +2579,7 @@ class panelParametersEdit(wx.Panel):
             evt.Skip()
 
     def onUpdateLabel_Matrix(self, evt):
-        self.onApply(None)
+        self.on_apply(None)
 
         self.parent.panelPlots.plot_2D_matrix_update_label()
 
@@ -2588,7 +2588,7 @@ class panelParametersEdit(wx.Panel):
 
     def onUpdate(self, evt):
 
-        self.onApply_1D(None)
+        self.on_apply_1D(None)
         if self.parent.panelPlots.currentPage in ["MS", "RT", "1D"]:
             if self.parent.panelPlots.window_plot1D == 'MS':
                 self.parent.panelPlots.plot_1D_update(plotName="MS")
@@ -2628,7 +2628,7 @@ class panelParametersEdit(wx.Panel):
 
     def onUpdate1D(self, evt):
 
-        self.onApply_1D(None)
+        self.on_apply_1D(None)
         if self.parent.panelPlots.window_plot1D == 'MS':
             self.parent.panelPlots.plot_1D_update(plotName="MS")
 
@@ -2643,8 +2643,8 @@ class panelParametersEdit(wx.Panel):
 
     def onUpdate2D(self, evt):
 
-        self.onApply_1D(None)
-        self.onApply_2D(None)
+        self.on_apply_1D(None)
+        self.on_apply_2D(None)
         try: source = evt.GetEventObject().GetName()
         except Exception: source = "all"
 
@@ -2680,7 +2680,7 @@ class panelParametersEdit(wx.Panel):
               self.parent.panelPlots.currentPage == "Other"):
             try: source = evt.GetEventObject().GetName()
             except Exception: source = "color"
-            self.onApply(None)
+            self.on_apply(None)
             self.parent.panelPlots.plot_1D_waterfall_update(which=source)
 
         if evt is not None:
@@ -2688,7 +2688,7 @@ class panelParametersEdit(wx.Panel):
 
     def onUpdate3D(self, evt):
 
-        self.onApply_3D(None)
+        self.on_apply_3D(None)
         if self.parent.panelPlots.window_plot3D == '3D':
             self.presenter.plot_3D_update(plotName="3D")
 
@@ -2697,7 +2697,7 @@ class panelParametersEdit(wx.Panel):
 
     def onReplot1D(self, evt):
 
-        self.onApply_1D(None)
+        self.on_apply_1D(None)
         if self.parent.panelPlots.window_plot1D == 'MS':
             self.parent.panelPlots.on_plot_MS(replot=True)
 
@@ -2711,7 +2711,7 @@ class panelParametersEdit(wx.Panel):
             evt.Skip()
 
     def onReplot2D(self, evt):
-        self.onApply_2D(None)
+        self.on_apply_2D(None)
         if self.parent.panelPlots.window_plot2D == '2D':
             self.parent.panelPlots.on_plot_2D(replot=True)
 
@@ -2726,7 +2726,7 @@ class panelParametersEdit(wx.Panel):
 
     def onReplot3D(self, evt):
 
-        self.onApply_3D(None)
+        self.on_apply_3D(None)
         if self.parent.panelPlots.window_plot3D == '3D':
             self.parent.panelPlots.on_plot_3D(replot=True)
 

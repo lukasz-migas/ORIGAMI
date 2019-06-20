@@ -23,6 +23,9 @@ from sklearn.preprocessing import normalize
 from gui_elements.misc_dialogs import dlgBox
 from utils.check import is_prime
 
+import logging
+logger = logging.getLogger("origami")
+
 
 def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.0):  # threshold2D
 
@@ -50,27 +53,11 @@ def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.
     return inputData
 
 
-def remove_noise_2D(inputData=None, threshold=0):  # removeNoise
-    # Check whether threshold values meet the criteria.
-    # First check if value is not above the maximum or below 0
-    if (threshold > np.max(inputData)) or (threshold < 0):
-        dlgBox(exceptionTitle='Warning',
-               exceptionMsg="Threshold value was too high - the maximum value is %s. Value was reset to 0. Consider reducing your threshold value." % np.max(inputData),
-               type="Warning")
-        threshold = 0
-    elif threshold == 0.0:
-        pass
-    # Check if the value is a fraction (i.e. if working on a normalized dataset)
-    elif (threshold < (np.max(inputData) / 10000)):  # This is somewhat guesswork! It won't be 100 % fool proof
-        if (threshold > 1) or (threshold <= 0):
-            threshold = 0
-        dlgBox(exceptionTitle='Warning',
-               exceptionMsg="Threshold value was too low - the maximum value is %s. Value was reset to 0. Consider increasing your threshold value." % np.max(inputData),
-               type="Warning")
-        threshold = 0
-    # Or leave it as is if the values are correct
-    else:
-        threshold = threshold
+def remove_noise_2D(inputData, threshold=0):
+    data_max = np.max(inputData)
+    if threshold > data_max:
+        logger.warning(f"Threshold value {threshold} is larger than the maximum value in the data {data_max}")
+        return inputData
 
     inputData[inputData <= threshold] = 0
     return inputData

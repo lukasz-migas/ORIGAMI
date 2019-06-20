@@ -20,6 +20,8 @@
 from utils.time import ttime
 import numpy as np
 from scipy.signal import find_peaks
+import logging
+logger = logging.getLogger("origami")
 
 
 def mask_peaks_props(pks_props, mask):

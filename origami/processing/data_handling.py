@@ -116,7 +116,7 @@ class data_handling():
         else:
             document_title = byte2str(document_title)
 
-        if document_title is None or document_title == "Current documents":
+        if document_title is None or document_title == "Documents":
             return None
 
         print(self.presenter.documentsDict.keys())
@@ -140,7 +140,7 @@ class data_handling():
     def _get_waters_api_reader(self, document):
         reader = document.file_reader.get("data_reader", None)
         if reader is None:
-            reader = io_waters_raw_api.WatersRawReader(document.path)
+            reader = io_waters_raw_api.WatersRawReader(check_waters_path(document.path))
 
         return reader
 
@@ -1574,9 +1574,6 @@ class data_handling():
 
     def on_extract_MS_from_chromatogram(self, startScan=None, endScan=None, units="Scans"):
         """ Function to extract MS data for specified RT region """
-        # TODO: FIXME: This function will throw an error if the file was reopened after it was
-        # deleted (e.g. WatersReader was once initilized but then try to reinitilize it
-        # - error thrown ins File Open Error
 
         document = self._on_get_document()
 
@@ -1827,6 +1824,13 @@ class data_handling():
             document_title = document.title
             self.presenter.documentsDict[document_title] = document
 
+            if document.fileFormat == "Format: Waters (.raw)":
+                try:
+                    reader = self._get_waters_api_reader(document)
+                    document.file_reader = {'data_reader': reader}
+                except Exception as err:
+                    logger.warning(f"When trying to create file error an error occurer. Error msg: {err}")
+
             if document.gotMS:
                 self.__update_statusbar("Loaded mass spectra", 4)
                 msX = document.massSpectrum['xvals']
@@ -1906,7 +1910,7 @@ class data_handling():
                 elif len(document.IMS2Dions) == 0:
                     dataset = {}
 
-                for i, key in enumerate(dataset):
+                for _, key in enumerate(dataset):
                     mz_split = re.split('-| |,|', key)
                     mz_start = mz_split[0]
                     mz_end = mz_split[1]
@@ -1943,20 +1947,11 @@ class data_handling():
                                      "document": document_title}
                     self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
 
-#                     tempList.Append([out[0], out[1], charge, str(xylimits),
-#                                      color, cmap, str(alpha), str(mask),
-#                                      str(label), method, document.title])
-#                     color = convertRGB1to255(color)
-#                     list_count = tempList.GetItemCount() - 1
-#                     tempList.SetItemBackgroundColour(list_count, color)
-#                     tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
-
                     # Update aui manager
                     self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
                 self.view.panelMultipleIons.onRemoveDuplicates(evt=None, limitCols=False)
 
             # Restore file list
-            # if self.config.ciuMode == 'MANUAL':
             if document.dataType == 'Type: MANUAL':
                 count = self.filesList.GetItemCount() + len(document.multipleMassSpectrum)
                 colors = self.plotsPanel.onChangePalette(None, n_colors=count + 1, return_colors=True)
@@ -1984,12 +1979,6 @@ class data_handling():
                                 "color": color}
 
                     self.filesPanel.on_add_to_table(add_dict, check_color=False)
-#
-#                     tempList.Append([key, energy, document.title, label])
-#                     color = convertRGB1to255(color)
-#                     list_count = tempList.GetItemCount() - 1
-#                     tempList.SetItemBackgroundColour(list_count, color)
-#                     tempList.SetItemTextColour(list_count, determineFontColor(color, return_rgb=True))
 
                 self.view.panelMML.onRemoveDuplicates(evt=None, limitCols=False)
                 # Update aui manager

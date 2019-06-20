@@ -45,7 +45,7 @@ class dialogAskOverride(wx.Dialog):
     def make_gui(self):
 
         # make panel
-        panel = self.makePanel()
+        panel = self.make_panel()
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -55,7 +55,7 @@ class dialogAskOverride(wx.Dialog):
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
 
-    def makePanel(self):
+    def make_panel(self):
         panel = wx.Panel(self, -1)
 
         self.msg = wx.TextCtrl(panel, -1, "", size=(400, 40),
@@ -71,7 +71,7 @@ class dialogAskOverride(wx.Dialog):
         self.copyBtn.Bind(wx.EVT_BUTTON, self.create_copy)
 
         self.askAgain_check = makeCheckbox(panel, "Don't ask again")
-        self.askAgain_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.askAgain_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -105,5 +105,5 @@ class dialogAskOverride(wx.Dialog):
         self.config.import_duplicate_action = "duplicate"
         self.EndModal(wx.OK)
 
-    def onApply(self, evt):
+    def on_apply(self, evt):
         self.config.import_duplicate_ask = self.askAgain_check.GetValue()

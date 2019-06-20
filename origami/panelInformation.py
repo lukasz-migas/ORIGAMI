@@ -209,7 +209,7 @@ class panelDocumentInfo(wx.MiniFrame):
         panel.SetSizer(mainSizer)
 
         # Bind
-        applyBtn.Bind(wx.EVT_BUTTON, self.onApply)
+        applyBtn.Bind(wx.EVT_BUTTON, self.on_apply)
         self.plotBtn.Bind(wx.EVT_BUTTON, self.onReplot)
         cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
@@ -225,7 +225,7 @@ class panelDocumentInfo(wx.MiniFrame):
         # make elements
         self.notes_value = wx.TextCtrl(panel, -1, "", size=(400, 200), style=wx.TE_MULTILINE)
         self.notes_value.SetValue(self.document.notes)
-        self.notes_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.notes_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         # pack elements
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -260,22 +260,22 @@ class panelDocumentInfo(wx.MiniFrame):
         operator_label = wx.StaticText(panel, -1, "Operator:")
         self.operator_value = wx.TextCtrl(panel, -1, "", size=(300, -1))
         self.operator_value.SetValue(self.document.userParameters.get('operator', None))
-        self.operator_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.operator_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         contact_label = wx.StaticText(panel, -1, "Contact:")
         self.contact_value = wx.TextCtrl(panel, -1, "", size=(300, -1))
         self.contact_value.SetValue(self.document.userParameters.get('contact', None))
-        self.contact_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.contact_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         institution_label = wx.StaticText(panel, -1, "Institution:")
         self.institution_value = wx.TextCtrl(panel, -1, "", size=(300, -1))
         self.institution_value.SetValue(self.document.userParameters.get('institution', None))
-        self.institution_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.institution_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         instrument_label = wx.StaticText(panel, -1, "Instrument:")
         self.instrument_value = wx.TextCtrl(panel, -1, "", size=(300, -1))
         self.instrument_value.SetValue(self.document.userParameters.get('instrument', None))
-        self.instrument_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.instrument_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         date_label = wx.StaticText(panel, -1, "Created on:")
         self.date_value = wx.TextCtrl(panel, -1, "", size=(300, -1))
@@ -285,7 +285,7 @@ class panelDocumentInfo(wx.MiniFrame):
         path_label = wx.StaticText(panel, -1, "Path:")
         self.path_value = wx.TextCtrl(panel, -1, "", size=(300, -1))
         self.path_value.SetValue(self.document.path)
-        self.path_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.path_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.path_check = makeCheckbox(panel, "")
         self.path_check.SetToolTip(wx.ToolTip("Enable/disable"))
@@ -366,7 +366,7 @@ class panelDocumentInfo(wx.MiniFrame):
         else:
             self.docType_choice.SetStringSelection('Other')
 
-        self.docType_choice.Bind(wx.EVT_COMBOBOX, self.onApply)
+        self.docType_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         self.docType_check = makeCheckbox(panel, "")
         self.docType_check.SetToolTip(wx.ToolTip("Enable/disable"))
@@ -376,7 +376,7 @@ class panelDocumentInfo(wx.MiniFrame):
         scanTime_label = wx.StaticText(panel, -1, "Scan time (s):")
         self.scanTime_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.scanTime_value.SetValue(num2str(self.document.parameters.get('scanTime', None)))
-        self.scanTime_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.scanTime_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.scanTime_check = makeCheckbox(panel, "")
         self.scanTime_check.SetValue(False)
         self.scanTime_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
@@ -384,7 +384,7 @@ class panelDocumentInfo(wx.MiniFrame):
         protein_label = wx.StaticText(panel, -1, "Protein:")
         self.protein_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.protein_value.SetValue(num2str(self.document.moleculeDetails.get('protein', None)))
-        self.protein_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.protein_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.selectBtn = wx.Button(panel, ID_selectProtein, "...",
                                    wx.DefaultPosition, wx.Size(25, -1), 0)
@@ -394,22 +394,22 @@ class panelDocumentInfo(wx.MiniFrame):
         molWeight_label = wx.StaticText(panel, -1, "Molecular weight (Da):")
         self.molWeight_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.molWeight_value.SetValue(num2str(self.document.moleculeDetails.get('molWeight', None)))
-        self.molWeight_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.molWeight_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         precursorMZ_label = wx.StaticText(panel, -1, "Precursor m/z:")
         self.precursorMZ_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.precursorMZ_value.SetValue(num2str(self.document.parameters.get('setMS', None)))
-        self.precursorMZ_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.precursorMZ_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         precursorCharge_label = wx.StaticText(panel, -1, "Precursor charge:")
         self.precursorCharge_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.precursorCharge_value.SetValue(num2str(self.document.moleculeDetails.get('charge', None)))
-        self.precursorCharge_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.precursorCharge_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         pusherFreq_label = wx.StaticText(panel, -1, "Pusher frequency (μs):")
         self.pusherFreq_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.pusherFreq_value.SetValue(num2str(self.document.parameters.get('pusherFreq', None)))
-        self.pusherFreq_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.pusherFreq_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.pusherFreq_check = makeCheckbox(panel, "")
         self.pusherFreq_check.SetValue(False)
@@ -418,7 +418,7 @@ class panelDocumentInfo(wx.MiniFrame):
         tofCorrFactor_label = wx.StaticText(panel, -1, "TOF corr. factor (EDC):")
         self.tofCorrFactor_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.tofCorrFactor_value.SetValue(num2str(self.document.parameters.get('corrC', None)))
-        self.tofCorrFactor_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.tofCorrFactor_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.tofCorrFactor_check = makeCheckbox(panel, "")
         self.tofCorrFactor_check.SetValue(False)
@@ -439,7 +439,7 @@ class panelDocumentInfo(wx.MiniFrame):
         else:
             self.polarity_choice.SetStringSelection("Undefined")
 
-        self.polarity_choice.Bind(wx.EVT_COMBOBOX, self.onApply)
+        self.polarity_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
@@ -537,13 +537,13 @@ class panelDocumentInfo(wx.MiniFrame):
         else:
             charge = str2int(charge)
         self.charge_value.SetValue(str(charge))
-        self.charge_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.charge_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         labelsX_label = wx.StaticText(panel, -1, "X-labels:")
         self.labelsX_value = wx.Choice(panel, -1, choices=self.config.labelsXChoices,
                                        size=(180, -1))
         self.labelsX_value.SetStringSelection(data.get('xlabels', 'Scans'))
-        self.labelsX_value.Bind(wx.EVT_COMBOBOX, self.onApply)
+        self.labelsX_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         self.labelsX_check = makeCheckbox(panel, "Just label")
         self.labelsX_check.SetValue(False)
@@ -556,7 +556,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.labelsY_value = wx.Choice(panel, -1, choices=self.config.labelsYChoices,
                                        size=(180, -1))
         self.labelsY_value.SetStringSelection(data.get('ylabels', 'Drift time (bins)'))
-        self.labelsY_value.Bind(wx.EVT_COMBOBOX, self.onApply)
+        self.labelsY_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         self.labelsY_check = makeCheckbox(panel, "Just label")
         self.labelsY_check.SetValue(False)
@@ -572,14 +572,14 @@ class panelDocumentInfo(wx.MiniFrame):
         except KeyError:
             dataShape = None
         self.shape_value.SetValue(str(dataShape))
-        self.shape_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.shape_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.shape_value.Disable()
 
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2,
                                         size=(180, -1))
         self.colormap_value.SetStringSelection(data.get('cmap', "None"))
-        self.colormap_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.colormap_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
@@ -662,7 +662,7 @@ class panelDocumentInfo(wx.MiniFrame):
                                          style=wx.TE_READONLY)
 
         # bind events
-        self.calibrationType_value.Bind(wx.EVT_COMBOBOX, self.onApply)
+        self.calibrationType_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.calibrationType_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
 
         # check if document has calibration parameters
@@ -788,7 +788,7 @@ class panelDocumentInfo(wx.MiniFrame):
 
         layout(self, self.mainSizer)
 
-    def onApply(self, evt):
+    def on_apply(self, evt):
         """ 
         This function applies any changes made to the document
         """
@@ -1026,5 +1026,5 @@ class panelDocumentInfo(wx.MiniFrame):
 
     def onReplot(self, evt):
 
-        self.onApply(evt=None)
+        self.on_apply(evt=None)
         self.parent.onShowPlot(evt=None)

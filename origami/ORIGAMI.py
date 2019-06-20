@@ -941,7 +941,7 @@ class ORIGAMI(object):
 #         self.OnUpdateDocument(document, 'document')#
 #     def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
 #         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#         if self.currentDoc == 'Current documents':
+#         if self.currentDoc == 'Documents':
 #             return
 #         self.docs = self.documentsDict[self.currentDoc]
 #
@@ -978,7 +978,7 @@ class ORIGAMI(object):
 #         """ Function to extract MS data for specified RT region """
 #
 #         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-#         if document_title == 'Current documents':
+#         if document_title == 'Documents':
 #             return
 #         document = self.documentsDict[document_title]
 #
@@ -1068,7 +1068,7 @@ class ORIGAMI(object):
 # #         """ Function to extract MS data for specified DT/MS region """
 # #
 # #         document_title = self.view.panelDocuments.documents.enableCurrentDocument()
-# #         if document_title == 'Current documents':
+# #         if document_title == 'Documents':
 # #             return
 # #         document = self.documentsDict[document_title]
 # #
@@ -1140,356 +1140,12 @@ class ORIGAMI(object):
 # #         msg = "Extracted MS data for rt: %s-%s" % (startScan, endScan)
 # #         self.onThreading(None, (msg, 3), action='updateStatusbar')
 
-#     def onCombineCEvoltagesMultiple(self, evt):
-#         # self.config.extractMode = 'multipleIons'
-#
-#         # Shortcut to ion table
-#         tempList = self.view.panelMultipleIons.peaklist
-#
-#         # Make a list of current documents
-#         for row in range(tempList.GetItemCount()):
-#
-#             # Check which mode was selected
-#             if evt.GetId() == ID_combineCEscans:
-#                 pass
-#             elif evt.GetId() == ID_combineCEscansSelectedIons:
-#                 if not tempList.IsChecked(index=row):
-#                     continue
-#
-#             self.currentDoc = tempList.GetItem(itemId=row,
-#                                                col=self.config.peaklistColNames['filename']).GetText()
-#             # Check that data was extracted first
-#             if self.currentDoc == '':
-#                 msg = "Please extract data first"
-#                 dlgBox(exceptionTitle='Extract data first',
-#                        exceptionMsg=msg,
-#                        type="Warning")
-#                 continue
-#             # Get document
-#             self.docs = self.documentsDict[self.currentDoc]
-#
-#             # Check that this data was opened in ORIGAMI mode and has extracted data
-#             if self.docs.dataType == 'Type: ORIGAMI' and self.docs.gotExtractedIons:
-#                 zvals = self.docs.IMS2Dions
-#             else:
-#                 msg = "Data was not extracted yet. Please extract before continuing."
-#                 dlgBox(exceptionTitle='Missing data',
-#                        exceptionMsg=msg,
-#                        type="Error")
-#                 continue
-#
-#             # Extract ion name
-#             itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=row)
-#             selectedItem = itemInfo['ionName']
-#
-#         # Combine data
-#         # LINEAR METHOD
-#             if self.config.origami_acquisition == 'Linear':
-#                 # Check that the user filled in appropriate parameters
-#                 if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-#                         and self.docs.gotCombinedExtractedIons):
-#                     try:
-#                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
-#                         self.config.origami_startVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['startV']
-#                         self.config.origami_endVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['endV']
-#                         self.config.origami_stepVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['stepV']
-#                         self.config.origami_spv = self.docs.IMS2DCombIons[selectedItem]['parameters']['spv']
-#                     except Exception:
-#                         pass
-#                 # Ensure that config is not missing variabels
-#                 elif not any([self.config.origami_startScan, self.config.origami_startVoltage, self.config.origami_endVoltage,
-#                               self.config.origami_stepVoltage, self.config.origami_spv]):
-#                     msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
-#                     self.onThreading(None, (msg, 3), action='updateStatusbar')
-#                     return
-#
-#                 # Check if ion/file has specified ORIGAMI method
-#                 if itemInfo['method'] == '':
-#                     tempList.SetStringItem(index=row, col=self.config.peaklistColNames['method'],
-#                                            label=self.config.origami_acquisition)
-#                 elif (itemInfo['method'] == self.config.origami_acquisition and self.config.overrideCombine):
-#                     pass
-#                 # Check if using internal parameters and item is checked
-#                 elif self.config.useInternalParamsCombine and tempList.IsChecked(index=row):
-#                     pass
-#                 else:
-#                     continue
-#                 # Combine data
-#                 imsData2D, scanList, parameters = pr_origami.origami_combine_linear(imsDataInput=zvals[selectedItem]['zvals'],
-#                                                                                     firstVoltage=self.config.origami_startScan,
-#                                                                                     startVoltage=self.config.origami_startVoltage,
-#                                                                                     endVoltage=self.config.origami_endVoltage,
-#                                                                                     stepVoltage=self.config.origami_stepVoltage,
-#                                                                                     scansPerVoltage=self.config.origami_spv)
-#             # EXPONENTIAL METHOD
-#             elif self.config.origami_acquisition == 'Exponential':
-#                 # Check that the user filled in appropriate parameters
-#                 if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-#                         and self.docs.gotCombinedExtractedIons):
-#                     try:
-#                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
-#                         self.config.origami_startVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['startV']
-#                         self.config.origami_endVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['endV']
-#                         self.config.origami_stepVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['stepV']
-#                         self.config.origami_spv = self.docs.IMS2DCombIons[selectedItem]['parameters']['spv']
-#                         self.config.origami_exponentialIncrement = self.docs.IMS2DCombIons[
-#                             selectedItem]['parameters']['expIncrement']
-#                         self.config.origami_exponentialPercentage = self.docs.IMS2DCombIons[
-#                             selectedItem]['parameters']['expPercent']
-#                     except Exception:
-#                         pass
-#                 # Ensure that config is not missing variabels
-#                 elif not any([self.config.origami_startScan, self.config.origami_startVoltage, self.config.origami_endVoltage,
-#                               self.config.origami_stepVoltage, self.config.origami_spv, self.config.origami_exponentialIncrement,
-#                               self.config.origami_exponentialPercentage]):
-#                     msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
-#                     self.onThreading(None, (msg, 3), action='updateStatusbar')
-#                     return
-#
-#                 # Check if ion/file has specified ORIGAMI method
-#                 if itemInfo['method'] == '':
-#                     tempList.SetStringItem(index=row, col=self.config.peaklistColNames['method'],
-#                                            label=self.config.origami_acquisition)
-#                 elif (itemInfo['method'] == self.config.origami_acquisition and
-#                       self.config.overrideCombine):
-#                     pass
-#                 # Check if using internal parameters and item is checked
-#                 elif self.config.useInternalParamsCombine and tempList.IsChecked(index=row):
-#                     pass
-#                 else:
-#                     continue  # skip
-#                 imsData2D, scanList, parameters = pr_origami.origami_combine_exponential(imsDataInput=zvals[selectedItem]['zvals'],
-#                                                                                          firstVoltage=self.config.origami_startScan,
-#                                                                                          startVoltage=self.config.origami_startVoltage,
-#                                                                                          endVoltage=self.config.origami_endVoltage,
-#                                                                                          stepVoltage=self.config.origami_stepVoltage,
-#                                                                                          scansPerVoltage=self.config.origami_spv,
-#                                                                                          expIncrement=self.config.origami_exponentialIncrement,
-#                                                                                          expPercentage=self.config.origami_exponentialPercentage)
-#             # FITTED/BOLTZMANN METHOD
-#             elif self.config.origami_acquisition == 'Fitted':
-#                 # Check that the user filled in appropriate parameters
-#                 if ((evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine)
-#                         and self.docs.gotCombinedExtractedIons):
-#                     try:
-#                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
-#                         self.config.origami_startVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['startV']
-#                         self.config.origami_endVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['endV']
-#                         self.config.origami_stepVoltage = self.docs.IMS2DCombIons[selectedItem]['parameters']['stepV']
-#                         self.config.origami_spv = self.docs.IMS2DCombIons[selectedItem]['parameters']['spv']
-#                         self.config.origami_boltzmannOffset = self.docs.IMS2DCombIons[selectedItem]['parameters']['dx']
-#                     except Exception:
-#                         pass
-#                 # Ensure that config is not missing variabels
-#                 elif not any([self.config.origami_startScan, self.config.origami_startVoltage, self.config.origami_endVoltage,
-#                               self.config.origami_stepVoltage, self.config .scansPerVoltage, self.config.origami_boltzmannOffset]):
-#                     msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
-#                     self.onThreading(None, (msg, 3), action='updateStatusbar')
-#                     return
-#
-#                 # Check if ion/file has specified ORIGAMI method
-#                 if itemInfo['method'] == '':
-#                     tempList.SetStringItem(index=row, col=self.config.peaklistColNames['method'],
-#                                            label=self.config.origami_acquisition)
-#                 elif (itemInfo['method'] == self.config.origami_acquisition and
-#                       self.config.overrideCombine):
-#                     pass
-#                 # Check if using internal parameters and item is checked
-#                 elif self.config.useInternalParamsCombine and tempList.IsChecked(index=row):
-#                     pass
-#                 else:
-#                     continue  # skip
-#                 imsData2D, scanList, parameters = pr_origami.origami_combine_boltzmann(imsDataInput=zvals[selectedItem]['zvals'],
-#                                                                                        firstVoltage=self.config.origami_startScan,
-#                                                                                        startVoltage=self.config.origami_startVoltage,
-#                                                                                        endVoltage=self.config.origami_endVoltage,
-#                                                                                        stepVoltage=self.config.origami_stepVoltage,
-#                                                                                        scansPerVoltage=self.config.origami_spv,
-#                                                                                        dx=self.config.origami_boltzmannOffset)
-#             # USER-DEFINED/LIST METHOD
-#             elif self.config.origami_acquisition == 'User-defined':
-#                 print((self.config.origamiList, self.config.origami_startScan))
-#                 errorMsg = None
-#                 # Check that the user filled in appropriate parameters
-#                 if evt.GetId() == ID_recalculateORIGAMI or self.config.useInternalParamsCombine:
-#                     try:
-#                         self.config.origami_startScan = self.docs.IMS2DCombIons[selectedItem]['parameters']['firstVoltage']
-#                         self.config.origamiList = self.docs.IMS2DCombIons[selectedItem]['parameters']['inputList']
-#                     except Exception:
-#                         pass
-#                 # Ensure that config is not missing variabels
-#                 elif len(self.config.origamiList) == 0:
-#                     errorMsg = "Please load a text file with ORIGAMI parameters"
-#                 elif not self.config.origami_startScan:
-#                     errorMsg = "The first scan is incorect (currently: %s)" % self.config.origami_startScan
-#                 elif self.config.origamiList[:, 0].shape != self.config.origamiList[:, 1].shape:
-#                     errorMsg = "The collision voltage list is of incorrect shape."
-#
-#                 if errorMsg is not None:
-#                     self.onThreading(None, (errorMsg, 3), action='updateStatusbar')
-#                     return
-#
-#                 # Check if ion/file has specified ORIGAMI method
-#                 if itemInfo['method'] == '':
-#                     tempList.SetStringItem(index=row, col=self.config.peaklistColNames['method'],
-#                                            label=self.config.origami_acquisition)
-#                 elif (itemInfo['method'] == self.config.origami_acquisition and
-#                       self.config.overrideCombine):
-#                     pass
-#                 # Check if using internal parameters and item is checked
-#                 elif self.config.useInternalParamsCombine and tempList.IsChecked(index=row):
-#                     pass
-#                 else:
-#                     continue  # skip
-#                 imsData2D, xlabels, scanList, parameters = pr_origami.origami_combine_userDefined(
-#     imsDataInput=zvals[selectedItem]['zvals'], firstVoltage=self.config.origami_startScan, inputList=self.config.origamiList)
-#
-#             if imsData2D[0] is None:
-#                 msg = "With your current input, there would be too many scans in your file! " + \
-#                       "There are %s scans in your file and your settings suggest there should be %s" \
-#                       % (imsData2D[2], imsData2D[1])
-#                 dlgBox(exceptionTitle='Are your settings correct?',
-#                        exceptionMsg=msg, type="Warning")
-#                 continue
-#
-#             # Add x-axis and y-axis labels
-#             if self.config.origami_acquisition != 'User-defined':
-#                 xlabels = np.arange(self.config.origami_startVoltage,
-#                                     (self.config.origami_endVoltage + self.config.origami_stepVoltage),
-#                                     self.config.origami_stepVoltage)
-#
-#             # Y-axis is bins by default
-#             ylabels = np.arange(1, 201, 1)
-#             # Combine 2D array into 1D
-#             imsData1D = np.sum(imsData2D, axis=1).T
-#             yvalsRT = np.sum(imsData2D, axis=0)
-#             # Check if item has labels, alpha, charge
-#             charge = zvals[selectedItem].get('charge', None)
-#             cmap = zvals[selectedItem].get('cmap', self.config.overlay_cmaps[randomIntegerGenerator(0, 5)])
-#             color = zvals[selectedItem].get('color', self.config.customColors[randomIntegerGenerator(0, 15)])
-#             label = zvals[selectedItem].get('label', None)
-#             alpha = zvals[selectedItem].get('alpha', self.config.overlay_defaultAlpha)
-#             mask = zvals[selectedItem].get('mask', self.config.overlay_defaultMask)
-#             min_threshold = zvals[selectedItem].get('min_threshold', 0)
-#             max_threshold = zvals[selectedItem].get('max_threshold', 1)
-#
-#             # Add 2D data to document object
-#             self.docs.gotCombinedExtractedIons = True
-#             self.docs.IMS2DCombIons[selectedItem] = {'zvals': imsData2D,
-#                                                      'xvals': xlabels,
-#                                                      'xlabels': 'Collision Voltage (V)',
-#                                                      'yvals': ylabels,
-#                                                      'ylabels': 'Drift time (bins)',
-#                                                      'yvals1D': imsData1D,
-#                                                      'yvalsRT': yvalsRT,
-#                                                      'cmap': cmap,
-#                                                      'xylimits': zvals[selectedItem]['xylimits'],
-#                                                      'charge': charge,
-#                                                      'label': label,
-#                                                      'alpha': alpha,
-#                                                      'mask': mask,
-#                                                      'color': color,
-#                                                      'min_threshold': min_threshold,
-#                                                      'max_threshold': max_threshold,
-#                                                      'scanList': scanList,
-#                                                      'parameters': parameters}
-#             self.docs.combineIonsList = scanList
-#             # Add 1D data to document object
-#             self.docs.gotCombinedExtractedIonsRT = True
-#             self.docs.IMSRTCombIons[selectedItem] = {'xvals': xlabels,
-#                                                      'yvals': np.sum(imsData2D, axis=0),
-#                                                      'xlabels': 'Collision Voltage (V)'}
-#
-#             # Update document
-#             self.OnUpdateDocument(self.docs, 'combined_ions')
-
-    def onExtract2DimsOverMZrange(self, e):
-        self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-        if self.currentDoc == 'Current documents':
-            return
-        self.docs = self.documentsDict[self.currentDoc]
-        dataType = self.docs.dataType
-        path = self.docs.path
-        mzStart = str2num(self.config.mzStart)
-        mzEnd = str2num(self.config.mzEnd)
-        if isempty(path) or isempty(mzStart) or isempty(mzEnd):
-            self.onThreading(None, ('Please enter correct mass range', 3), action='updateStatusbar')
-            return
-        if mzEnd < mzStart:
-            mzEnd_copy = mzStart
-            mzStart = mzEnd
-            mzEnd = mzEnd_copy
-            self.config.mzStart = mzStart
-            self.config.mzEnd = mzEnd
-#             self.view.panelControls.onUpdateParams()
-        else:
-            tstart = time.clock()
-            # Add to table and show the window
-            # Check if this data is already present - if so it stops here
-            outcome = self.view.Add2Table(xvalsMin=mzStart, xvalsMax=mzEnd, yvalsMax=0,
-                                          currentView='MS', currentDoc=self.currentDoc)
-            if outcome:
-                return
-            # 1D IMMS
-            extract_kwargs = {'return_data': True}
-            __, imsData1D = io_waters.driftscope_extract_DT(path=path,
-                                                             driftscope_path=self.config.driftscopePath,
-                                                             mz_start=mzStart, mz_end=mzEnd,
-                                                             **extract_kwargs)
-
-            # RT
-            extract_kwargs = {'return_data': True, 'normalize': True}
-            rtDataX, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=path,
-                                                                             driftscope_path=self.config.driftscopePath,
-                                                                             mz_start=mzStart, mz_end=mzEnd,
-                                                                             **extract_kwargs)
-
-            # 2D IMMS
-            extract_kwargs = {'return_data': True}
-            imsData2D = io_waters.driftscope_extract_2D(path=path,
-                                                          driftscope_path=self.config.driftscopePath,
-                                                          mz_start=mzStart, mz_end=mzEnd,
-                                                          **extract_kwargs)
-            xlabels = 1 + np.arange(len(imsData2D[1, :]))
-            ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-
-            imsData1D = np.sum(imsData2D, axis=1).T  # 'yvals1D':imsData1D,
-            self.view.panelPlots.on_plot_2D_data(
-                data=[
-        imsData2D,
-        xlabels,
-        'Scans',
-        ylabels,
-        'Drift time (bins)',
-        self.docs.colormap])
-            tend = time.clock()
-            self.onThreading(None, ('Total time to extract ion: %.2gs' % (tend - tstart), 3), action='updateStatusbar')
-
-            # Update limits
-            self.setXYlimitsRMSD2D(xlabels, ylabels)
-            # Add data to document object
-            self.docs.gotExtractedIons = True
-            rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
-            self.docs.currentExtractRange = rangeName
-            self.docs.IMS2Dions[rangeName] = {'zvals': imsData2D,
-                                              'xvals': xlabels,
-                                               'xlabels': 'Scans',
-                                               'yvals': ylabels,
-                                               'yvals1D': imsData1D,
-                                               'yvalsRT': rtDataY,
-                                               'ylabels': 'Drift time (bins)',
-                                               'cmap': self.docs.colormap,
-                                               'charge': "None"}
-
-        # Update document
-        self.OnUpdateDocument(self.docs, 'ions')
-
     def get_overlay_document(self):
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except Exception:
             return
-        if self.currentDoc == "Current documents":
+        if self.currentDoc == "Documents":
             return
 
         # Check if current document is a comparison document
@@ -1561,7 +1217,7 @@ class ORIGAMI(object):
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except Exception:
             return
-        if self.currentDoc == "Current documents":
+        if self.currentDoc == "Documents":
             return
 
         # Check if current document is a comparison document
@@ -1818,7 +1474,7 @@ class ORIGAMI(object):
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except Exception:
             return
-        if self.currentDoc == "Current documents":
+        if self.currentDoc == "Documents":
             return
 
         # Check if current document is a comparison document
@@ -2708,7 +2364,7 @@ class ORIGAMI(object):
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except Exception:
             return
-        if self.currentDoc == "Current documents":
+        if self.currentDoc == "Documents":
             return
 
         # Make sure the document is of comparison type
@@ -2760,65 +2416,6 @@ class ORIGAMI(object):
 
         return rmsdXpos, rmsdYpos
 
-#     def onCombineMultipleMLFiles(self, e=None):
-#         """
-#         This function takes the multiple ML dictionary, sorts it and combines it
-#         to form a 2D IM-MS map
-#         """
-#         try:
-#             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#         except Exception:
-#             return
-#         self.docs = self.documentsDict[self.currentDoc]
-#         if self.docs.dataType != 'Type: MANUAL':
-#             msg = 'Make sure you select the correct dataset - MANUAL'
-#             self.onThreading(None, (msg, 4), action='updateStatusbar')
-#             return
-#
-#         # Sort data in the dictionary first - if returns False then it hasn't done it!
-#         vals_sorted = self.view.panelMML.OnSortByColumn(column=1)
-#         tempList = self.view.panelMML.peaklist
-#         if not vals_sorted:
-#             return
-#         else:
-#             counter = 0
-#             for item in range(tempList.GetItemCount()):
-#                 key = tempList.GetItem(item, 0).GetText()
-# #                 trapCV = str2num(tempList.GetItem(item,1).GetText())
-#                 if counter == 0:
-#                     tempArray = self.docs.multipleMassSpectrum[key]['ims1D']
-#                     xLabelLow = self.docs.multipleMassSpectrum[key]['trap']  # first iteration so first value
-#                     counter = counter + 1
-#                 else:
-#                     imsList = self.docs.multipleMassSpectrum[key]['ims1D']
-#                     tempArray = np.concatenate((tempArray, imsList), axis=0)
-#                     counter = counter + 1
-#
-#             # Reshape data to form a 2D array of size 200 x number of files
-#             imsData2D = tempArray.reshape((200, int(counter)), order='F')
-#             # Get the x-axis labels
-#             xLabelHigh = self.docs.multipleMassSpectrum[key]['trap']  # after the loop has finished, so last value
-#             xlabels = np.linspace(xLabelLow, xLabelHigh, num=counter)
-#             ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-#             self.view.panelPlots.on_plot_2D_data(data=[imsData2D, xlabels,
-#                                                        'Collision Voltage (V)', ylabels,
-#                                                        'Drift time (bins)',
-#                                                        self.docs.colormap])
-#
-#             self.docs.got2DIMS = True
-#             self.docs.IMS2D = {'zvals': imsData2D,
-#                                'xvals': xlabels,
-#                                'xlabels': 'Collision Voltage (V)',
-#                                'yvals': ylabels,
-#                                'ylabels': 'Drift time (bins)',
-#                                'cmap': self.docs.colormap}
-#
-#             # Append to list
-#             self.documentsDict[self.docs.title] = self.docs
-#
-#             # Update documents tree
-#             self.view.panelDocuments.documents.add_document(docData=self.docs)
-
     def checkIfRawFile(self, path):
         """
         Checks whether the selected directory is a MassLynx file i.e. ends with .raw
@@ -2833,7 +2430,7 @@ class ORIGAMI(object):
         # Shortcut to table
         tempList = self.view.panelMultipleIons.peaklist
 
-        # Make a list of current documents
+        # Make a list of Documents
         for row in range(tempList.GetItemCount()):
             self.currentDoc = tempList.GetItem(itemId=row, col=self.config.peaklistColNames['filename']).GetText()
             # Check that data was extracted first
@@ -2909,130 +2506,6 @@ class ORIGAMI(object):
 
             # Update file list
             self.OnUpdateDocument(self.docs, 'combined_ions')
-
-#     def on_combine_mass_spectra(self, document_name=None):
-#
-#         if document_name is None:
-#             self.docs = self.data_processing._on_get_document()
-#         else:
-#             self.docs = self.documentsDict[document_name]
-#
-#         kwargs = {'auto_range': False,
-#                   'mz_min': self.config.ms_mzStart,
-#                   'mz_max': self.config.ms_mzEnd,
-#                   'mz_bin': self.config.ms_mzBinSize,
-#                   'linearization_mode': self.config.ms_linearization_mode}
-#         msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
-#             self.config.ms_linearization_mode,
-#             self.config.ms_mzStart,
-#             self.config.ms_mzEnd,
-#             self.config.ms_mzBinSize,
-#             self.config.ms_auto_range)
-#         self.onThreading(None, (msg, 4), action='updateStatusbar')
-#
-#         if len(list(self.docs.multipleMassSpectrum.keys())) > 0:
-#             # check the min/max values in the mass spectrum
-#             if self.config.ms_auto_range:
-#                 mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=self.docs.multipleMassSpectrum)
-#                 self.config.ms_mzStart = mzStart
-#                 self.config.ms_mzEnd = mzEnd
-#                 kwargs.update(mz_min=mzStart, mz_max=mzEnd)
-#                 try:
-#                     self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
-#                 except Exception:
-#                     pass
-#
-#             msFilenames = ["m/z"]
-#             counter = 0
-#             for key in self.docs.multipleMassSpectrum:
-#                 msFilenames.append(key)
-#                 if counter == 0:
-#                     msDataX, tempArray = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
-#                                                                    self.docs.multipleMassSpectrum[key]['yvals'],
-#                                                                    **kwargs)
-#                     msList = tempArray
-#                 else:
-#                     msDataX, msList = pr_spectra.linearize_data(self.docs.multipleMassSpectrum[key]['xvals'],
-#                                                                 self.docs.multipleMassSpectrum[key]['yvals'],
-#                                                                 **kwargs)
-#                     tempArray = np.concatenate((tempArray, msList), axis=0)
-#                 counter += 1
-#
-#             # Reshape the list
-#             combMS = tempArray.reshape((len(msList), int(counter)), order='F')
-#
-#             # Sum y-axis data
-#             msDataY = np.sum(combMS, axis=1)
-#             msDataY = pr_spectra.normalize_1D(inputData=msDataY)
-#             xlimits = [self.docs.parameters['startMS'],
-#                        self.docs.parameters['endMS']]
-#
-#             # Form pandas dataframe
-#             combMSOut = np.concatenate((msDataX, tempArray), axis=0)
-#             combMSOut = combMSOut.reshape((len(msList), int(counter + 1)), order='F')
-#
-#             # Add data
-#             self.docs.gotMS = True
-#             self.docs.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
-#             # Plot
-#             name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
-#             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-#
-#             # Update status bar with MS range
-#             self.view.SetStatusText("{}-{}".format(self.docs.parameters['startMS'],
-#                                                    self.docs.parameters['endMS']), 1)
-#             self.view.SetStatusText("MSMS: {}".format(self.docs.parameters['setMS']), 2)
-#         else:
-#             self.docs.gotMS = False
-#             self.docs.massSpectrum = {}
-#             self.view.SetStatusText("", 1)
-#             self.view.SetStatusText("", 2)
-#
-#         # Add info to document
-#         self.OnUpdateDocument(self.docs, 'document')
-
-#     def reBinMSdata(self, evt):
-#         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#         self.docs = self.documentsDict[self.currentDoc]
-#
-#         if self.docs.dataType == 'Type: MANUAL' and self.docs.gotMultipleMS:
-#             # Sum all mass spectra into one
-#             counter = 0
-#             # Bin MS data
-#             binsize = self.config.binMSbinsize
-#             msBinList = np.arange(self.docs.parameters['startMS'],
-#                                   self.docs.parameters['endMS'] + binsize,
-#                                   binsize)
-#
-#             msCentre = msBinList[:-1] + (binsize / 2)
-#             for key in self.docs.multipleMassSpectrum:
-#                 if counter == 0:
-#                     tempArray = pr_spectra.bin_1D(x=self.docs.multipleMassSpectrum[key]['xvals'],
-#                                                   y=self.docs.multipleMassSpectrum[key]['yvals'],
-#                                                   bins=msBinList)
-#                     counter = counter + 1
-#                 else:
-#                     msList = pr_spectra.bin_1D(x=self.docs.multipleMassSpectrum[key]['xvals'],
-#                                                y=self.docs.multipleMassSpectrum[key]['yvals'],
-#                                                bins=msBinList)
-#                     tempArray = np.concatenate((tempArray, msList), axis=0)
-#                     counter = counter + 1
-#             # Reshape the list
-#             combMS = tempArray.reshape((len(msList), int(counter)), order='F')
-#             # Sum y-axis data
-#             msDataY = np.sum(combMS, axis=1)
-#             msDataY = pr_spectra.normalize_1D(inputData=msDataY)
-#             xlimits = self.docs.massSpectrum['xlimits']
-#             # Add info to document
-#             self.docs.massSpectrum = {'xvals': msCentre,
-#                                       'yvals': msDataY,
-#                                       'xlabels': 'm/z (Da)',
-#                                       'xlimits': xlimits}
-#             self.OnUpdateDocument(self.docs, 'document')
-#             # Plot
-#             name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
-#             self.view.panelPlots.on_plot_MS(msCentre, msDataY, xlimits=xlimits, **name_kwargs)
-#         evt.Skip()
 
     def on_highlight_selected_ions(self, evt):
         """
@@ -3119,7 +2592,7 @@ class ORIGAMI(object):
 
         self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(
             getSelected=True)
-        if self.currentDoc is None or self.currentDoc == "Current documents":
+        if self.currentDoc is None or self.currentDoc == "Documents":
             return
         indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
         selectedItemParentText = ''
@@ -3285,71 +2758,6 @@ class ORIGAMI(object):
         if evt is not None:
             evt.Skip()
 
-#     def onUpdateColormap(self, evt=None):
-#         """
-#         Updates colormap for current document
-#         """
-#         self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#         if not self.currentDoc:
-#             document = None
-#         elif self.currentDoc == 'Current documents':
-#             return
-#         else:
-#             document = self.documentsDict[self.currentDoc]
-#         # Return
-#         return document
-
-#     def testXYmaxVals(self, values=None):
-#         """
-#         This function checks whether the x/y axis labels should be adjusted (divided)
-#         to adjust their size
-#         """
-#         if not hasattr(values, "__len__"):
-#             if 10000 < values <= 1000000:
-#                 divider = 1000
-#             elif values > 1000000:
-#                 divider = 1000000
-#             else:
-#                 divider = 1
-#         elif 10000 < max(values) <= 1000000:
-#             divider = 1000
-#         elif  max(values) > 1000000:
-#             divider = 1000000
-#         else:
-#             divider = 1
-#         return divider
-#     def onDocumentColour(self, evt):
-#         """Get new colour"""
-#         try:
-#             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#         except Exception:
-#             return None
-#         if self.currentDoc == 'Current documents':
-#             return
-#
-#         document = self.documentsDict[self.currentDoc]
-#         # Check document
-#         if not self.documentsDict:
-#             wx.Bell()
-#             return
-#
-#         # Show dialog and get new colour
-#         dlg = wx.ColourDialog(self.view)
-#         dlg.GetColourData().SetChooseFull(True)
-#         if dlg.ShowModal() == wx.ID_OK:
-#             data = dlg.GetColourData()
-#             newColour = list(data.GetColour().Get())
-#             document.lineColour = list([np.float(newColour[0]) / 255,
-#                                         np.float(newColour[1]) / 255,
-#                                         np.float(newColour[2]) / 255])
-#             dlg.Destroy()
-#         else:
-#             return
-#
-# #         self.view.panelControls.colorBtn.SetBackgroundColour(newColour)
-#         # Update plot
-#         self.view.panelDocuments.documents.onShowPlot()
-
     # TODOO: move to another panel
 #     def onSelectProtein(self, evt):
 #         if evt.GetId() == ID_selectCalibrant:
@@ -3368,7 +2776,7 @@ class ORIGAMI(object):
 
     #     # Figure out what is the current document
     #     self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-    #     if self.currentDoc == 'Current documents':
+    #     if self.currentDoc == 'Documents':
     #         return
     #     document = self.documentsDict[self.currentDoc]
 
@@ -3461,7 +2869,7 @@ class ORIGAMI(object):
 #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
 #         except Exception:
 #             return
-#         if self.currentDoc == "Current documents":
+#         if self.currentDoc == "Documents":
 #             return
 #
 #         # Check if the currently selected document is Calibration dataframe file
@@ -3631,7 +3039,7 @@ class ORIGAMI(object):
 #         self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear, 4)),
 #                                          ' | R² (power): ', str(np.round(r2Power, 4)), ]), 3)
 #
-# #     def OnApplyCCSCalibrationToSelectedIons(self, evt):
+# #     def on_applyCCSCalibrationToSelectedIons(self, evt):
 # #
 # #         # Shortcut to the table
 # #         tempList = self.view.panelCCS.bottomP.peaklist
@@ -3826,7 +3234,7 @@ class ORIGAMI(object):
 # #         try:
 # #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
 # #         except Exception:            return
-# #         if self.currentDoc == "Current documents":
+# #         if self.currentDoc == "Documents":
 # #             return
 # #
 # #         # Check if the currently selected document is Calibration dataframe file
@@ -3873,18 +3281,6 @@ class ORIGAMI(object):
 # #             saveObject(filename=saveFileName, saveFile=self.currentCalibrationParams)
 # #         else:
 # #             return
-
-    def onUserDefinedListImport(self, evt):
-        """ Load a csv file with CV/SPV values for the List/User-defined method"""
-        dlg = wx.FileDialog(self.view, "Choose a text file:", wildcard="*.csv",
-                            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_OK:
-            print("You chose %s" % dlg.GetPath())
-
-            origamiList = np.genfromtxt(dlg.GetPath(), delimiter=',', skip_header=True)
-            self.config.origamiList = origamiList
-
-        dlg.Destroy()
 
 #     def onImportCCSDatabase(self, evt, onStart=False):
 #
@@ -4225,7 +3621,7 @@ class ORIGAMI(object):
 #             return
 #
 #         # Check values
-#         self.config.onCheckValues(data_type='process')
+#         self.config.on_check_parameters(data_type='process')
 #         if self.config.processParamsWindow_on_off:
 #             self.view.panelProcessData.onSetupValues(evt=None)
 #
@@ -4384,7 +3780,7 @@ class ORIGAMI(object):
 #         # new in 1.1.0
 #         if document is None or dataset is None:
 #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#             if self.currentDoc is None or self.currentDoc == "Current documents":
+#             if self.currentDoc is None or self.currentDoc == "Documents":
 #                 return
 #             self.docs = self.documentsDict[self.currentDoc]
 #         else:
@@ -4482,7 +3878,7 @@ class ORIGAMI(object):
 #                 return
 #
 #         # Check values
-#         self.config.onCheckValues(data_type='process')
+#         self.config.on_check_parameters(data_type='process')
 #         if self.config.processParamsWindow_on_off:
 #             self.view.panelProcessData.onSetupValues(evt=None)
 #
@@ -4540,7 +3936,7 @@ class ORIGAMI(object):
 #
 #         if document is None or dataset is None:
 #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#             if self.currentDoc is None or self.currentDoc == "Current documents":
+#             if self.currentDoc is None or self.currentDoc == "Documents":
 #                 return
 #             self.docs = self.documentsDict[self.currentDoc]
 #         else:
@@ -4655,25 +4051,6 @@ class ORIGAMI(object):
                 xylabels = get_data.get('xylabels', None)
                 cmap = get_data.get('cmap', None)
             return zvals, xylabels, cmap
-
-    def checkWhatIsMissing2D(self, zvals, xvals, xlabel, yvals, ylabel, cmap):
-        if isempty(zvals):
-            self.view.SetStatusText("Missing 2D array", 3)
-
-        if isempty(xvals):
-            self.view.SetStatusText("Missing x-axis labels", 3)
-
-        if isempty(xlabel):
-            self.view.SetStatusText("Missing x-axis label", 3)
-
-        if isempty(yvals):
-            self.view.SetStatusText("Missing y-axis labels", 3)
-
-        if isempty(ylabel):
-            self.view.SetStatusText("Missing y-axis label", 3)
-
-        if isempty(cmap):
-            self.view.SetStatusText("Missing colormap", 3)
 
     # TODO: move this function to panelPlots or else
     def plot_compareMS(self, msX=None, msY_1=None, msY_2=None, msY=None, xlimits=None,
@@ -5078,14 +4455,6 @@ class ORIGAMI(object):
         ymin, ymax = yvals[0], yvals[-1]
         self.config.xyLimitsRMSD = [xmin, xmax, ymin, ymax]
 
-#     def onZoomMS(self, startX, endX, endY, plot='MS'):
-#
-#         if plot == 'MS':
-#             self.view.panelPlots.plot1.onZoomIn(startX, endX, endY)
-#             self.view.panelPlots.plot1.repaint()
-#         elif plot == 'CalibrationMS':
-#             self.view.panelPlots.topPlotMS.onZoomIn(startX, endX, endY)
-
     # TODO: move this function to panelplots
     def OnChangedRMSF(self, xmin, xmax):
         """
@@ -5094,23 +4463,6 @@ class ORIGAMI(object):
 
         self.view.panelPlots.plot_RMSF.onZoomRMSF(xmin, xmax)
 
-#     def onZoom2D(self, evt):
-#         if self.config.restrictXYrange:
-#             if len(self.config.xyLimits) != 4:
-#                 return
-#
-#             startX, endX, startY, endY = self.config.xyLimits
-#
-#             msg = ' '.join(['Zoomed in: X:', str(startX), '-', str(endX),
-#                             'Y:', str(startY), '-', str(endY)])
-#             self.view.SetStatusText(msg, 3)
-#             self.view.panelPlots.plot2D.onZoom2D(startX, endX, startY, endY)
-#             self.view.panelPlots.plot2D.repaint()
-#             if self.config.waterfall:
-#                 # Axes are rotated so using yaxis limits
-#                 self.view.panelPlots.plot_waterfall.onZoom1D(startY, endY)
-#                 self.view.panelPlots.plot_waterfall.repaint()
-#
 #     def onRebootZoom(self, evt):
 #         plotList = [self.view.panelPlots.plot1,
 #                     self.view.panelPlots.plotRT,
@@ -5202,7 +4554,7 @@ class ORIGAMI(object):
         self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(
             getSelected=True)
         indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
-        if self.currentDoc == 'Current documents':
+        if self.currentDoc == 'Documents':
             return None, None
         elif indent > 2:
             selectedItemParent, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(

@@ -57,7 +57,7 @@ class panelAsk(wx.Dialog):
     # ----
 
     def onOK(self, evt):
-        self.onApply(evt=None)
+        self.on_apply(evt=None)
 
         if self.item_validator == 'integer':
             self.return_value = int(self.item_value)
@@ -73,7 +73,7 @@ class panelAsk(wx.Dialog):
     def make_gui(self):
 
         # make panel
-        panel = self.makePanel()
+        panel = self.make_panel()
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -87,7 +87,7 @@ class panelAsk(wx.Dialog):
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
 
-    def makePanel(self):
+    def make_panel(self):
 
         panel = wx.Panel(self, -1)
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -107,7 +107,7 @@ class panelAsk(wx.Dialog):
                                                  min=0, max=1, initial=0, inc=0.1,
                                                  size=(90, -1))
 
-        self.input_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.input_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         self.okBtn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
         self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
@@ -134,7 +134,7 @@ class panelAsk(wx.Dialog):
 
         return panel
 
-    def onApply(self, evt):
+    def on_apply(self, evt):
         self.item_value = self.input_value.GetValue()
 
         if evt is not None:

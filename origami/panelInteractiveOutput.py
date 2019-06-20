@@ -2561,7 +2561,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             for key in self.documentsDict:
                 data = []
                 docData = self.documentsDict[key]
-                if docData.gotMS == True:
+                if docData.gotMS :
                     data = docData.massSpectrum
                     if data.get('cmap', "") == "":
                         data['cmap'] = self.config.interactive_line_color
@@ -2577,7 +2577,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                             self.append_to_table(data, key, innerKey, "UniDec", **kwargs)
 
                 if hasattr(docData, "gotSmoothMS"):
-                    if docData.gotSmoothMS == True:
+                    if docData.gotSmoothMS :
                         data = docData.smoothMS
                         if data.get('cmap', "") == "":
                             data['cmap'] = self.config.interactive_line_color
@@ -2592,37 +2592,37 @@ class panelInteractiveOutput(wx.MiniFrame):
                             kwargs = {"color": (176, 202, 220), "toolset": innerKey}
                             self.append_to_table(data, key, innerKey, "UniDec, processed", **kwargs)
 
-                if docData.got1RT == True:
+                if docData.got1RT :
                     data = docData.RT
                     if data.get('cmap', "") == "":
                         data['cmap'] = self.config.interactive_line_color
                     kwargs = {"toolset": "1D", "color": (219, 209, 255)}
                     self.append_to_table(data, key, "", "RT", **kwargs)
 
-                if docData.got1DT == True:
+                if docData.got1DT :
                     data = docData.DT
                     if data.get('cmap', "") == "":
                         data['cmap'] = self.config.interactive_line_color
                     kwargs = {"toolset": "1D", "color": (255, 118, 117)}
                     self.append_to_table(data, key, "", "1D", **kwargs)
 
-                if docData.got2DIMS == True:
+                if docData.got2DIMS :
                     data = docData.IMS2D
                     kwargs = {"toolset": "2D", "color": (255, 206, 252)}
                     self.append_to_table(data, key, "", "2D", **kwargs)
 
-                if docData.got2Dprocess == True:
+                if docData.got2Dprocess :
                     data = docData.IMS2Dprocess
                     kwargs = {"toolset": "2D", "color": (99, 110, 114)}
                     self.append_to_table(data, key, "", "2D, processed", **kwargs)
 
-                if docData.gotExtractedIons == True:
+                if docData.gotExtractedIons :
                     for innerKey in docData.IMS2Dions:
                         data = docData.IMS2Dions[innerKey]
                         kwargs = {"toolset": "2D", "color": (179, 180, 180)}
                         self.append_to_table(data, key, innerKey, "2D", **kwargs)
 
-                if docData.gotMultipleMS == True:
+                if docData.gotMultipleMS :
                     for innerKey in docData.multipleMassSpectrum:
                         data = docData.multipleMassSpectrum[innerKey]
                         if data.get('cmap', "") == "":
@@ -2655,7 +2655,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset": "1D", "color": (255, 118, 117)}
                         self.append_to_table(data, key, innerKey, "1D, multiple", **kwargs)
 
-                if docData.gotExtractedDriftTimes == True:
+                if docData.gotExtractedDriftTimes :
                     for innerKey in docData.IMS1DdriftTimes:
                         if docData.dataType == 'Type: MANUAL':
                             tableKey = '1D'
@@ -2667,7 +2667,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset": "1D", "color": (154, 236, 219)}
                         self.append_to_table(data, key, innerKey, tableKey, **kwargs)
 
-                if docData.gotCombinedExtractedIonsRT == True:
+                if docData.gotCombinedExtractedIonsRT :
                     for innerKey in docData.IMSRTCombIons:
                         data = docData.IMSRTCombIons[innerKey]
                         if data.get('cmap', "") == "":
@@ -2675,20 +2675,20 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset": "RT", "color": (219, 209, 255)}
                         self.append_to_table(data, key, innerKey, "RT, combined", **kwargs)
 
-                if docData.gotCombinedExtractedIons == True:
+                if docData.gotCombinedExtractedIons :
                     for innerKey in docData.IMS2DCombIons:
                         data = docData.IMS2DCombIons[innerKey]
                         kwargs = {"toolset": "2D", "color": (255, 206, 252)}
                         self.append_to_table(data, key, innerKey, "2D, combined", **kwargs)
 
-                if docData.got2DprocessIons == True:
+                if docData.got2DprocessIons :
                     for innerKey in docData.IMS2DionsProcess:
                         data = docData.IMS2DionsProcess[innerKey]
                         kwargs = {"toolset": "2D", "color": (255, 206, 252)}
                         self.append_to_table(data, key, innerKey, "2D, processed", **kwargs)
 
                 # Overlay data
-                if docData.gotOverlay == True:
+                if docData.gotOverlay :
                     for innerKey in docData.IMS2DoverlayData:
                         data = docData.IMS2DoverlayData[innerKey]
                         overlayMethod = re.split('-|,|:|__', innerKey)
@@ -2699,7 +2699,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset": "2D", "color_label": color_label, "color": (214, 220, 198)}
                         self.append_to_table(data, key, innerKey, "Overlay", **kwargs)
 
-                if docData.gotStatsData == True:
+                if docData.gotStatsData :
                     for innerKey in docData.IMS2DstatsData:
                         data = docData.IMS2DstatsData[innerKey]
                         overlayMethod = re.split('-|,|:|__', innerKey)

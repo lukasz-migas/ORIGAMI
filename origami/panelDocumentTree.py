@@ -118,7 +118,7 @@ class documentsTree(wx.TreeCtrl):
         self._resetBullets()
 
         # add root
-        root = self.AddRoot("Current documents")
+        root = self.AddRoot("Documents")
         self.SetItemImage(root, 0, wx.TreeItemIcon_Normal)
 
         # Add bindings
@@ -190,7 +190,7 @@ class documentsTree(wx.TreeCtrl):
 
         # Get the current text value for selected item
         itemType = self.GetItemText(item)
-        if itemType == 'Current documents':
+        if itemType == 'Documents':
             menu = wx.Menu()
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveAllDocuments,
                                          text='Save all documents',
@@ -990,7 +990,7 @@ class documentsTree(wx.TreeCtrl):
         self.currentItem = item
         # Get the current text value for selected item
         itemType = self.GetItemText(item)
-        if itemType == 'Current documents':
+        if itemType == 'Documents':
             return
 
         # Get indent level for selected item
@@ -1704,7 +1704,7 @@ class documentsTree(wx.TreeCtrl):
         self.currentItem = item
         # Get the current text value for selected item
         itemType = self.GetItemText(item)
-        if itemType == 'Current documents':
+        if itemType == 'Documents':
             menu = wx.Menu()
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveAllDocuments,
                                          text='Save all documents',
@@ -1882,7 +1882,6 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotRTDocument)
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotMSDocument)
         self.Bind(wx.EVT_MENU, self.onProcess, id=ID_process2DDocument)
-        # self.Bind(wx.EVT_MENU, self.presenter.onDocumentColour, id=ID_getNewColour)
         self.Bind(wx.EVT_MENU, self.presenter.onChangeChargeState, id=ID_assignChargeState)
         self.Bind(wx.EVT_MENU, self.onGoToDirectory, id=ID_goToDirectory)
         self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveDataCSVDocument)
@@ -1982,6 +1981,7 @@ class documentsTree(wx.TreeCtrl):
 
         self.Bind(wx.EVT_MENU, self.on_action_ORIGAMI_MS, id=ID_docTree_action_open_origami_ms)
         self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
+        self.Bind(wx.EVT_MENU, self.on_open_peak_picker, id=ID_docTree_action_open_peak_picker)
 
         action_menu = wx.Menu()
         action_menu.Append(ID_docTree_action_open_extractDTMS, 'Open DT/MS extraction panel...')
@@ -2295,6 +2295,10 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_duplicate_annotations,
                                              text='Duplicate annotations...',
                                              bitmap=self.icons.iconsLib['blank_16']))
+                menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_action_open_peak_picker,
+                                             text='Open peak picker...',
+                                             bitmap=self.icons.iconsLib['highlight_16']))
+
                 # check if deconvolution results are present
                 try:
                     if 'unidec' in self.currentData:
@@ -3261,13 +3265,13 @@ class documentsTree(wx.TreeCtrl):
 #             ionName = 'all'
 
         # create processing kwargs
-        pKwargs = {'document_2D':self.itemData.title,
+        kwargs = {'document_2D':self.itemData.title,
                    'dataset_2D':dataset,
                    'ionName_2D':ionName,
                    'update_mode':'2D'}
         # call function
         self.presenter.view.onProcessParameters(evt=ID_processSettings_2D,
-                                                **pKwargs)
+                                                **kwargs)
 
     def onProcessMS(self, evt):
         try:
@@ -4940,7 +4944,7 @@ class documentsTree(wx.TreeCtrl):
 
         self.presenter.currentDoc = self.on_enable_document()
         document_title = self.on_enable_document()
-        if self.presenter.currentDoc == 'Current documents': return
+        if self.presenter.currentDoc == 'Documents': return
         document = self.presenter.documentsDict.get(document_title, None)
 
         if document is None: return
@@ -5045,7 +5049,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.fileInformation)
                 self.SetItemImage(annotsItem, self.bulets_dict["annot_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotMS == True:
+        if docData.gotMS :
             annotsItemParent = self.AppendItem(docItem, 'Mass Spectrum')
             self.SetPyData(annotsItemParent, docData.massSpectrum)
             self.SetItemImage(annotsItemParent, self.bulets_dict["mass_spec"], wx.TreeItemIcon_Normal)
@@ -5090,7 +5094,7 @@ class documentsTree(wx.TreeCtrl):
                     self.SetPyData(annotsItem, docData.smoothMS['annotations'][annotData])
                     self.SetItemImage(annotsItem, self.bulets_dict["annot"], wx.TreeItemIcon_Normal)
 
-        if docData.gotMultipleMS == True:
+        if docData.gotMultipleMS :
             docIonItem = self.AppendItem(docItem, 'Mass Spectra')
             self.SetItemImage(docIonItem, self.bulets_dict["mass_spec"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.multipleMassSpectrum)
@@ -5123,13 +5127,13 @@ class documentsTree(wx.TreeCtrl):
             self.SetItemImage(docIonItem, self.bulets_dict["mass_spec"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.tandem_spectra)
 
-        if docData.got1RT == True:
+        if docData.got1RT :
             annotsItem = self.AppendItem(docItem, 'Chromatogram')
             self.SetPyData(annotsItem, docData.RT)
             self.SetItemImage(annotsItem, self.bulets_dict["rt"], wx.TreeItemIcon_Normal)
 
         if hasattr(docData, 'gotMultipleRT'):
-            if docData.gotMultipleRT == True:
+            if docData.gotMultipleRT :
                 docIonItem = self.AppendItem(docItem, 'Chromatograms (EIC)')
                 self.SetItemImage(docIonItem, self.bulets_dict["rt"], wx.TreeItemIcon_Normal)
                 self.SetPyData(docIonItem, docData.multipleRT)
@@ -5138,13 +5142,13 @@ class documentsTree(wx.TreeCtrl):
                     self.SetPyData(annotsItem, docData.multipleRT[annotData])
                     self.SetItemImage(annotsItem, self.bulets_dict["rt_on"], wx.TreeItemIcon_Normal)
 
-        if docData.got1DT == True:
+        if docData.got1DT :
             annotsItem = self.AppendItem(docItem, 'Drift time (1D)')
             self.SetPyData(annotsItem, docData.DT)
             self.SetItemImage(annotsItem, self.bulets_dict["drift_time"], wx.TreeItemIcon_Normal)
 
         if hasattr(docData, 'gotMultipleDT'):
-            if docData.gotMultipleDT == True:
+            if docData.gotMultipleDT :
                 docIonItem = self.AppendItem(docItem, 'Drift time (1D, EIC)')
                 self.SetItemImage(docIonItem, self.bulets_dict["drift_time"], wx.TreeItemIcon_Normal)
                 self.SetPyData(docIonItem, docData.multipleDT)
@@ -5153,7 +5157,7 @@ class documentsTree(wx.TreeCtrl):
                     self.SetPyData(annotsItem, docData.multipleDT[annotData])
                     self.SetItemImage(annotsItem, self.bulets_dict["drift_time_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotExtractedDriftTimes == True:
+        if docData.gotExtractedDriftTimes :
             docIonItem = self.AppendItem(docItem, 'Drift time (1D, EIC, DT-IMS)')
             self.SetItemImage(docIonItem, self.bulets_dict["drift_time"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS1DdriftTimes)
@@ -5162,17 +5166,17 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS1DdriftTimes[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["drift_time_on"], wx.TreeItemIcon_Normal)
 
-        if docData.got2DIMS == True:
+        if docData.got2DIMS :
             annotsItem = self.AppendItem(docItem, 'Drift time (2D)')
             self.SetPyData(annotsItem, docData.IMS2D)
             self.SetItemImage(annotsItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
 
-        if docData.got2Dprocess == True or len(docData.IMS2Dprocess) > 0:
+        if docData.got2Dprocess  or len(docData.IMS2Dprocess) > 0:
             annotsItem = self.AppendItem(docItem, 'Drift time (2D, processed)')
             self.SetPyData(annotsItem, docData.IMS2Dprocess)
             self.SetItemImage(annotsItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
 
-        if docData.gotExtractedIons == True:
+        if docData.gotExtractedIons :
             docIonItem = self.AppendItem(docItem, 'Drift time (2D, EIC)')
             self.SetItemImage(docIonItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2Dions)
@@ -5181,7 +5185,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS2Dions[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotCombinedExtractedIons == True:
+        if docData.gotCombinedExtractedIons :
             docIonItem = self.AppendItem(docItem, 'Drift time (2D, combined voltages, EIC)')
             self.SetItemImage(docIonItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2DCombIons)
@@ -5190,7 +5194,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS2DCombIons[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotCombinedExtractedIonsRT == True:
+        if docData.gotCombinedExtractedIonsRT :
             docIonItem = self.AppendItem(docItem, 'Chromatograms (combined voltages, EIC)')
             self.SetItemImage(docIonItem, self.bulets_dict["rt"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMSRTCombIons)
@@ -5199,7 +5203,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMSRTCombIons[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["rt_on"], wx.TreeItemIcon_Normal)
 
-        if docData.got2DprocessIons == True:
+        if docData.got2DprocessIons :
             docIonItem = self.AppendItem(docItem, 'Drift time (2D, processed, EIC)')
             self.SetItemImage(docIonItem, self.bulets_dict["heatmap"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2DionsProcess)
@@ -5208,7 +5212,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS2DionsProcess[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotCalibration == True:
+        if docData.gotCalibration :
             docIonItem = self.AppendItem(docItem, 'Calibration peaks')
             self.SetItemImage(docIonItem, self.bulets_dict["calibration"], wx.TreeItemIcon_Normal)
             for annotData, __ in natsorted(list(docData.calibration.items())):
@@ -5216,7 +5220,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.calibration[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["dots_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotCalibrationDataset == True:
+        if docData.gotCalibrationDataset :
             docIonItem = self.AppendItem(docItem, 'Calibrants')
             self.SetItemImage(docIonItem, self.bulets_dict["calibration_on"], wx.TreeItemIcon_Normal)
             for annotData in docData.calibrationDataset:
@@ -5224,12 +5228,12 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.calibrationDataset[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["dots_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotCalibrationParameters == True:
+        if docData.gotCalibrationParameters :
             annotsItem = self.AppendItem(docItem, 'Calibration parameters')
             self.SetPyData(annotsItem, docData.calibrationParameters)
             self.SetItemImage(annotsItem, self.bulets_dict["calibration"], wx.TreeItemIcon_Normal)
 
-        if docData.gotComparisonData == True:
+        if docData.gotComparisonData :
             docIonItem = self.AppendItem(docItem, 'Input data')
             self.SetItemImage(docIonItem, self.bulets_dict["overlay"], wx.TreeItemIcon_Normal)
             for annotData, __ in natsorted(list(docData.IMS2DcompData.items())):
@@ -5237,7 +5241,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS2DcompData[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotOverlay == True or len(docData.IMS2DoverlayData) > 0:
+        if docData.gotOverlay  or len(docData.IMS2DoverlayData) > 0:
             docIonItem = self.AppendItem(docItem, 'Overlay')
             self.SetItemImage(docIonItem, self.bulets_dict["overlay"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2DoverlayData)
@@ -5246,7 +5250,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS2DoverlayData[annotData])
                 self.SetItemImage(annotsItem, self.bulets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotStatsData == True:
+        if docData.gotStatsData :
             docIonItem = self.AppendItem(docItem, 'Statistical')
             self.SetItemImage(docIonItem, self.bulets_dict["overlay"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2DstatsData)
@@ -5430,7 +5434,7 @@ class documentsTree(wx.TreeCtrl):
             evtID = None
         while item.IsOk():
             self.SetItemBold(item, False)
-            if loadingData == True:
+            if loadingData :
                 self.CollapseAllChildren(item)
             item, cookie = self.GetNextChild(root, cookie)
 
@@ -5440,7 +5444,7 @@ class documentsTree(wx.TreeCtrl):
             try:
                 self.SetItemBold(item, True)
             except wx._core.PyAssertionError: pass
-            if loadingData == True or evtID == ID_getSelectedDocument:
+            if loadingData  or evtID == ID_getSelectedDocument:
                 self.Expand(item)  # Parent item
                 if expandAll:
                     self.ExpandAllChildren(item)
@@ -5448,7 +5452,7 @@ class documentsTree(wx.TreeCtrl):
             # window label
             try:
                 text = self.GetItemText(item)
-                if text != 'Current documents':
+                if text != 'Documents':
 #                     try: self.setCurrentDocument(text)
 #                     except Exception: pass
                     self.presenter.currentDoc = text
@@ -5472,7 +5476,7 @@ class documentsTree(wx.TreeCtrl):
             # In case we also interested in selected item
             if getSelected:
                 selectedText = self.GetItemText(selected)
-                if highlightSelected == True:
+                if highlightSelected :
                     self.SetItemBold(selected, True)
                 return text, selected, selectedText
             else:
@@ -5505,7 +5509,7 @@ class documentsTree(wx.TreeCtrl):
             evtID = None
         while item.IsOk():
             self.SetItemBold(item, False)
-            if loadingData == True:
+            if loadingData :
                 self.CollapseAllChildren(item)
             item, cookie = self.GetNextChild(root, cookie)
 
@@ -5515,7 +5519,7 @@ class documentsTree(wx.TreeCtrl):
             try:
                 self.SetItemBold(item, True)
             except wx._core.PyAssertionError: pass
-            if loadingData == True or evtID == ID_getSelectedDocument:
+            if loadingData  or evtID == ID_getSelectedDocument:
                 self.Expand(item)  # Parent item
                 if expandAll:
                     self.ExpandAllChildren(item)
@@ -5523,7 +5527,7 @@ class documentsTree(wx.TreeCtrl):
             # window label
             try:
                 text = self.GetItemText(item)
-                if text != 'Current documents':
+                if text != 'Documents':
 #                     try: self.setCurrentDocument(text)
 #                     except Exception: pass
                     self.presenter.currentDoc = text
@@ -5534,7 +5538,7 @@ class documentsTree(wx.TreeCtrl):
             # In case we also interested in selected item
             if getSelected:
                 selectedText = self.GetItemText(selected)
-                if highlightSelected == True:
+                if highlightSelected :
                     self.SetItemBold(selected, True)
                 return text, selected, selectedText
             else:
@@ -5713,6 +5717,14 @@ class documentsTree(wx.TreeCtrl):
                                                    self.config,
                                                    self.icons)
         self.panel_extractDTMS .Show()
+
+    def on_open_peak_picker(self, evt):
+        from gui_elements.panel_peak_picker import panel_peak_picker
+        panel_peak_picker = panel_peak_picker(self.presenter.view,
+                                              self.presenter,
+                                              self.config,
+                                              self.icons)
+        panel_peak_picker .Show()
 
     def on_add_mzID_file(self, evt):
         document = self.data_processing._on_get_document()

@@ -867,7 +867,7 @@ class topPanel(wx.Panel):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse == True:
+            if self.reverse :
                 self.reverse = False
             else:
                 self.reverse = True
@@ -1125,7 +1125,7 @@ class bottomPanel(wx.Panel):
         #         self.Bind(wx.EVT_MENU, self.onPrepareDataFrame, id=ID_prepareCCSCalibrant)
         #         self.Bind(wx.EVT_MENU, self.presenter.OnBuildCCSCalibrationDataset,
         #                   id=ID_buildApplyCalibrationDataset)
-        # self.Bind(wx.EVT_MENU, self.presenter.OnApplyCCSCalibrationToSelectedIons,
+        # self.Bind(wx.EVT_MENU, self.presenter.on_applyCCSCalibrationToSelectedIons,
                 #   id=ID_applyCalibrationOnDataset)
         #         self.Bind(wx.EVT_MENU, self.onCCSCalibrate, id=ID_calibranteCCScalibrant)
 
@@ -1269,7 +1269,7 @@ class bottomPanel(wx.Panel):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse == True:
+            if self.reverse :
                 self.reverse = False
             else:
                 self.reverse = True

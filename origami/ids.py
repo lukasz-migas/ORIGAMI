@@ -451,7 +451,7 @@ ID_docTree_batch_y_2D_ccs = NewId()
 ID_docTree_action_open_origami_ms = NewId()
 ID_docTree_action_open_MS = NewId()
 ID_docTree_action_open_heatmap = NewId()
-ID_docTree_action_open_peak_finding = NewId()
+ID_docTree_action_open_peak_picker = NewId()
 ID_docTree_action_open_unidec = NewId()
 ID_docTree_action_open_extractDTMS = NewId()
 

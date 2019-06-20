@@ -1217,7 +1217,7 @@ class OrigamiConfig:
         self.interactive_bar_sameAsFill = True
         self.interactive_bar_lineWidth = 1.
 
-    def onCheckValues(self, data_type='all'):
+    def on_check_parameters(self, data_type='all'):
         """
         Helper function to fix values that might be inappropriate for certain calculations
         ------
@@ -1233,16 +1233,19 @@ class OrigamiConfig:
             # Extract
             if self.extract_mzStart == self.extract_mzEnd:
                 self.extract_mzEnd = self.extract_mzStart + 1
+
             if self.extract_mzEnd < self.extract_mzStart:
                 self.extract_mzStart, self.extract_mzEnd = self.extract_mzEnd, self.extract_mzStart
 
             if self.extract_dtStart == self.extract_dtEnd:
                 self.extract_dtEnd = self.extract_dtStart + 1
+
             if self.extract_dtEnd < self.extract_dtStart:
                 self.extract_dtStart, self.extract_dtEnd = self.extract_dtEnd, self.extract_dtStart
 
             if self.extract_rtStart == self.extract_rtEnd:
                 self.extract_rtEnd = self.extract_rtStart + 1
+
             if self.extract_rtEnd < self.extract_rtStart:
                 self.extract_rtStart, self.extract_rtEnd = self.extract_rtEnd, self.extract_rtStart
 
@@ -1265,8 +1268,6 @@ class OrigamiConfig:
                 self.origami_startVoltage, self.origami_endVoltage = self.origami_endVoltage, self.origami_startVoltage
 
         if data_type in ['all', 'process']:
-
-            # SMOOTHINH
             # mass spectra
             if self.ms_smooth_sigma < 0:
                 self.ms_smooth_sigma = 0
@@ -1292,6 +1293,9 @@ class OrigamiConfig:
                     self.plot2D_smooth_window = self.plot2D_smooth_polynomial + 1
                 else:
                     self.plot2D_smooth_window = self.plot2D_smooth_polynomial + 2
+
+            if self.plot2D_threshold is None or self.plot2D_threshold < 0:
+                self.plot2D_threshold = 0
 
     def initilizeColormaps(self):
         self.colormapMode = 0
@@ -1428,7 +1432,7 @@ class OrigamiConfig:
                 try:
                     parameters['corrC'] = str2num(str(line.split()[3]))
                 except Exception: pass
-#             if manual == True:
+#             if manual :
             if "Trap Collision Energy" in line:
                 if i == 1:
                     try: parameters['trapCE'] = str2num(str(line.split()[3]))
@@ -1613,26 +1617,6 @@ class OrigamiConfig:
                                                                                                                                                                                                                                                                                                                 ps['gui_size'][1],
                                                                                                                                                                                                                                                                                                                 ps['default_name'])
         buff += '  </presets_gui_plotSizes>\n\n'
-
-#         buff += '  <presets_gui_peaklistPanel>\n'
-#         for item in self._peakListSettings:
-#             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
-#         buff += '  </presets_gui_peaklistPanel>\n\n'
-#
-#         buff += '  <presets_gui_textPanel>\n'
-#         for item in self._textlistSettings:
-#             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
-#         buff += '  </presets_gui_textPanel>\n\n'
-#
-#         buff += '  <presets_gui_multipleFilesPanel>\n'
-#         for item in self._multipleFilesSettings:
-#             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (str(item['name']), int(item['order']), int(item['width']), bool(item['show']))
-#         buff += '  </presets_gui_multipleFilesPanel>\n\n'
-#
-#         buff += '  <presets_gui_interactivePanel>\n'
-#         for item in self._interactiveSettings:
-#             buff += '    <param name="%s" order="%d" width="%d" show="%s" type="mixed" />\n' % (item['name'], int(item['order']), int(item['width']), bool(item['show']))
-#         buff += '  </presets_gui_interactivePanel>\n\n'
 
         # GUI settings
         buff += '  <presets_gui_aui_settings>\n'

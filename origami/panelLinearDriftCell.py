@@ -165,7 +165,7 @@ class topPanel(wx.Panel):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse == True:
+            if self.reverse :
                 self.reverse = False
             else:
                 self.reverse = True
@@ -204,7 +204,7 @@ class topPanel(wx.Panel):
         """
         count = self.peaklist.GetItemCount()
         currentDoc = self.presenter.currentDoc
-        if currentDoc == "Current documents":
+        if currentDoc == "Documents":
             return
         document = self.presenter.documentsDict[currentDoc]
         # Replot RT for current document
@@ -244,7 +244,7 @@ class topPanel(wx.Panel):
         if evt.GetId() == ID_removeSelectedFileDT_RT:
             while (currentItems >= 0):
                 item = self.peaklist.IsChecked(index=currentItems)
-                if item == True:
+                if item :
                     self.peaklist.DeleteItem(currentItems)
                     currentItems -= 1
                 else:
@@ -516,7 +516,7 @@ class bottomPanel(wx.Panel):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse == True:
+            if self.reverse :
                 self.reverse = False
             else:
                 self.reverse = True
@@ -577,7 +577,7 @@ class bottomPanel(wx.Panel):
             currentDoc = self.presenter.view.panelDocuments.documents.enableCurrentDocument()
         except Exception:
             return None
-        if currentDoc == 'Current documents':
+        if currentDoc == 'Documents':
             print('There are no documents in the tree')
             return currentDoc
         document = self.presenter.documentsDict[currentDoc]
@@ -598,7 +598,7 @@ class bottomPanel(wx.Panel):
         if evt.GetId() == ID_removeSelectedFileDT:
             while (currentItems >= 0):
                 item = self.peaklist.IsChecked(index=currentItems)
-                if item == True:
+                if item :
                     selectedItem = self.peaklist.GetItem(currentItems, 4).GetText()
                     mzStart = self.peaklist.GetItem(currentItems, 0).GetText()
                     mzEnd = self.peaklist.GetItem(currentItems, 1).GetText()
@@ -669,7 +669,7 @@ class bottomPanel(wx.Panel):
         """
         count = self.peaklist.GetItemCount()
         currentDoc = self.presenter.currentDoc
-        if currentDoc == "Current documents":
+        if currentDoc == "Documents":
             return
         document = self.presenter.documentsDict[currentDoc]
         # Replot RT for current document

@@ -46,7 +46,7 @@ class dialog_customise_peptide_annotations(wx.Dialog):
     def make_gui(self):
 
         # make panel
-        panel = self.makePanel()
+        panel = self.make_panel()
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -56,14 +56,14 @@ class dialog_customise_peptide_annotations(wx.Dialog):
         self.mainSizer.Fit(self)
         self.SetSizer(self.mainSizer)
 
-    def makePanel(self):
+    def make_panel(self):
         panel = wx.Panel(self, -1)
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         add_arrows_check = wx.StaticText(panel, -1, "Add arrows to labels:")
         self.add_arrows_check = makeCheckbox(panel, "")
         self.add_arrows_check.SetValue(self.config.msms_add_arrows)
-        self.add_arrows_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.add_arrows_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         arrow_line_width = wx.StaticText(panel, -1, "Line width:")
         self.arrow_line_width_value = wx.SpinCtrlDouble(panel, -1,
@@ -71,14 +71,14 @@ class dialog_customise_peptide_annotations(wx.Dialog):
                                                         min=0.005, max=2,
                                                         initial=self.config.annotation_arrow_line_width, inc=0.25,
                                                         size=(-1, -1))
-        self.arrow_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.arrow_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         arrow_line_style = wx.StaticText(panel, -1, "Line style:")
         self.arrow_line_style_value = wx.Choice(panel, -1,
                                                 choices=self.config.lineStylesList,
                                                 size=(-1, -1))
         self.arrow_line_style_value.SetStringSelection(self.config.annotation_arrow_line_style)
-        self.arrow_line_style_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.arrow_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         # temporarily disable
         self.arrow_line_width_value.Disable()
@@ -93,42 +93,42 @@ class dialog_customise_peptide_annotations(wx.Dialog):
                                                           initial=self.config.msms_label_y_offset,
                                                           inc=0.01,
                                                           size=(-1, -1))
-        self.label_yaxis_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onApply)
+        self.label_yaxis_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         label_fontOrientation_label = wx.StaticText(panel, -1, "Font orientation:")
         self.label_fontOrientation_value = wx.Choice(panel, -1,
                                    choices=self.config.label_font_orientation_list,
                                    size=(-1, -1))
         self.label_fontOrientation_value.SetStringSelection(self.config.annotation_label_font_orientation)
-        self.label_fontOrientation_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.label_fontOrientation_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         label_fontSize_label = wx.StaticText(panel, -1, "Font size:")
         self.label_fontSize_value = wx.Choice(panel, -1,
                                    choices=self.config.label_fontsize_list,
                                    size=(-1, -1))
         self.label_fontSize_value.SetStringSelection(self.config.annotation_label_font_size)
-        self.label_fontSize_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.label_fontSize_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         label_fontWeight_label = wx.StaticText(panel, -1, "Font weight:")
         self.label_fontWeight_value = wx.Choice(panel, -1,
                                    choices=self.config.label_fontweight_list,
                                    size=(-1, -1))
         self.label_fontWeight_value.SetStringSelection(self.config.annotation_label_font_weight)
-        self.label_fontWeight_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.label_fontWeight_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         label_horz_alignment = wx.StaticText(panel, -1, "Label horizontal alignment:")
         self.label_horz_alignment_value = wx.Choice(panel, -1,
                                                     choices=self.config.horizontal_alignment_list,
                                                     size=(-1, -1))
         self.label_horz_alignment_value.SetStringSelection(self.config.annotation_label_horz)
-        self.label_horz_alignment_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.label_horz_alignment_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         label_vert_alignment = wx.StaticText(panel, -1, "Label vertical alignment:")
         self.label_vert_alignment_value = wx.Choice(panel, -1,
                                                     choices=self.config.vertical_alignment_list,
                                                     size=(-1, -1))
         self.label_vert_alignment_value.SetStringSelection(self.config.annotation_label_vert)
-        self.label_vert_alignment_value.Bind(wx.EVT_CHOICE, self.onApply)
+        self.label_vert_alignment_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         hz_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
@@ -137,26 +137,26 @@ class dialog_customise_peptide_annotations(wx.Dialog):
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="plot_tandem_unlabelled")
         self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(convertRGB1to255(
             self.config.msms_line_color_unlabelled))
-        self.plot_tandem_line_unlabelled_colorBtn.Bind(wx.EVT_BUTTON, self.onApply_color)
+        self.plot_tandem_line_unlabelled_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         plot_tandem_line_labelled_colorBtn = wx.StaticText(panel, -1, "Line color (labelled):")
         self.plot_tandem_line_labelled_colorBtn = wx.Button(
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="plot_tandem_labelled")
         self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(convertRGB1to255(
             self.config.msms_line_color_labelled))
-        self.plot_tandem_line_labelled_colorBtn.Bind(wx.EVT_BUTTON, self.onApply_color)
+        self.plot_tandem_line_labelled_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         label_show_neutral_loss = wx.StaticText(panel, -1, "Show neutral loss labels:")
         self.label_show_neutral_loss_check = makeCheckbox(panel, "")
         self.label_show_neutral_loss_check.SetValue(self.config.msms_show_neutral_loss)
-        self.label_show_neutral_loss_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.label_show_neutral_loss_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.label_show_neutral_loss_check.SetToolTip(makeTooltip(
             text="When checked neutral loss labels (e.g. H2O, NH3) will be shown."))
 
         label_show_full_label = wx.StaticText(panel, -1, "Show full label:")
         self.label_show_full_label_check = makeCheckbox(panel, "")
         self.label_show_full_label_check.SetValue(self.config.msms_show_full_label)
-        self.label_show_full_label_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.label_show_full_label_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.label_show_full_label_check.SetToolTip(makeTooltip(
             text="Full labels will be shown, e.g. y5_H2Ox2+1. When unchecked, this label would look: y5+1."))
 
@@ -166,19 +166,19 @@ class dialog_customise_peptide_annotations(wx.Dialog):
 
         self.label_show_fragment_check = makeCheckbox(panel, "fragment")
         self.label_show_fragment_check.SetValue(self.config._tandem_label_format['fragment_name'])
-        self.label_show_fragment_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.label_show_fragment_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.label_show_charge_check = makeCheckbox(panel, "charge")
         self.label_show_charge_check.SetValue(self.config._tandem_label_format['charge'])
-        self.label_show_charge_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.label_show_charge_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.label_show_peptide_check = makeCheckbox(panel, "sequence")
         self.label_show_peptide_check.SetValue(self.config._tandem_label_format['peptide_seq'])
-        self.label_show_peptide_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.label_show_peptide_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.label_show_error_check = makeCheckbox(panel, "Δ error")
         self.label_show_error_check.SetValue(self.config._tandem_label_format['delta_mz'])
-        self.label_show_error_check.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.label_show_error_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # temporarily disable
         self.label_show_error_check.Disable()
@@ -249,7 +249,7 @@ class dialog_customise_peptide_annotations(wx.Dialog):
 
         return panel
 
-    def onApply(self, evt):
+    def on_apply(self, evt):
         self.config.annotation_label_font_size = self.label_fontSize_value.GetStringSelection()
         self.config.annotation_label_font_weight = self.label_fontWeight_value.GetStringSelection()
         self.config.annotation_label_vert = self.label_vert_alignment_value.GetStringSelection()
@@ -271,7 +271,7 @@ class dialog_customise_peptide_annotations(wx.Dialog):
 
         self.config._tandem_label_format = _label_format
 
-    def onApply_color(self, evt):
+    def on_apply_color(self, evt):
         source = evt.GetEventObject().GetName()
 
         # Restore custom colors

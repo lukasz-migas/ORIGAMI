@@ -108,7 +108,7 @@ def rawMassLynx_MS_load(path=None, inputFile='output.1dMZ', normalize=True, **kw
 
     # clean-up MS file
     firstBad = strictly_increasing(data_x)
-    if firstBad == True:
+    if firstBad :
         pass
     else:
         firstBadIdx = np.where(data_x == firstBad)

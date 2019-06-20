@@ -329,7 +329,7 @@ class panelUVPD(wx.MiniFrame):
     def make_gui(self):
 
         # make panel
-        panel = self.makePanel()
+        panel = self.make_panel()
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -348,35 +348,35 @@ class panelUVPD(wx.MiniFrame):
                                                  value=str(self.config.uvpd_peak_finding_threshold),
                                                  initial=self.config.uvpd_peak_finding_threshold,
                                                  size=(60, -1))
-        self.threshold_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         buffer_size_value = wx.StaticText(panel, wx.ID_ANY, "Buffer size:")
         self.buffer_size_value = wx.SpinCtrlDouble(panel, -1, min=0, max=100, inc=1,
                                                    value=str(self.config.uvpd_peak_buffer_width),
                                                    initial=self.config.uvpd_peak_buffer_width,
                                                    size=(60, -1))
-        self.buffer_size_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.buffer_size_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         first_index_value = wx.StaticText(panel, wx.ID_ANY, "First index:")
         self.first_index_value = wx.SpinCtrlDouble(panel, -1, min=0, max=10000, inc=1,
                                                    value=str(self.config.uvpd_peak_first_index),
                                                    initial=self.config.uvpd_peak_first_index,
                                                    size=(60, -1))
-        self.first_index_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.first_index_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         show_markers = wx.StaticText(panel, wx.ID_ANY, "Show on plot:")
         self.show_labels = makeCheckbox(panel, "labels")
         self.show_labels.SetValue(self.config.uvpd_peak_show_labels)
-        self.show_labels.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.show_labels.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.show_labels.Disable()
 
         self.show_markers = makeCheckbox(panel, "markers")
         self.show_markers.SetValue(self.config.uvpd_peak_show_markers)
-        self.show_markers.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.show_markers.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.show_patches = makeCheckbox(panel, "patches")
         self.show_patches.SetValue(self.config.uvpd_peak_show_patches)
-        self.show_patches.Bind(wx.EVT_CHECKBOX, self.onApply)
+        self.show_patches.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, 22))
         self.find_peaks_btn.Bind(wx.EVT_BUTTON, self.on_find_peaks)
@@ -445,7 +445,7 @@ class panelUVPD(wx.MiniFrame):
 
         return grid
 
-    def makePanel(self):
+    def make_panel(self):
 
         panel = wx.Panel(self, -1, size=(-1, -1))
 
@@ -456,12 +456,12 @@ class panelUVPD(wx.MiniFrame):
         min_mz_value = wx.StaticText(panel, wx.ID_ANY, "min m/z:")
         self.min_mz_value = wx.TextCtrl(panel, -1, "", size=(45, -1),
                                         validator=validator('floatPos'))
-        self.min_mz_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.min_mz_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         max_mz_value = wx.StaticText(panel, wx.ID_ANY, "max m/z:")
         self.max_mz_value = wx.TextCtrl(panel, -1, "", size=(45, -1),
                                         validator=validator('floatPos'))
-        self.max_mz_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.max_mz_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         frag_add = wx.BitmapButton(panel, -1, self.icons.iconsLib['add16'],
                                    size=(16, 16), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
@@ -489,13 +489,13 @@ class panelUVPD(wx.MiniFrame):
         min_dt_value = wx.StaticText(panel, wx.ID_ANY, "min dt:")
         self.min_dt_value = wx.TextCtrl(panel, -1, "", size=(45, -1),
                                         validator=validator('intPos'))
-        self.min_dt_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.min_dt_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.min_dt_value.Disable()
 
         max_dt_value = wx.StaticText(panel, wx.ID_ANY, "max dt:")
         self.max_dt_value = wx.TextCtrl(panel, -1, "", size=(45, -1),
                                         validator=validator('intPos'))
-        self.max_dt_value.Bind(wx.EVT_TEXT, self.onApply)
+        self.max_dt_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.max_dt_value.Disable()
 
         monitor_add = wx.BitmapButton(panel, -1, self.icons.iconsLib['add16'],
@@ -650,7 +650,7 @@ class panelUVPD(wx.MiniFrame):
             self.monitorlist.Append(tempData[row])
             self.monitorlist.CheckItem(row, check)
 
-    def onApply(self, evt):
+    def on_apply(self, evt):
 
         try:
             source = evt.GetEventObject().GetName()

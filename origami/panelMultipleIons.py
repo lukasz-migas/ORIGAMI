@@ -840,12 +840,12 @@ class panelMultipleIons(wx.Panel):
 #
 #             # Check whether its ORIGAMI or MANUAL data type
 #             if currentDocument.dataType == 'Type: ORIGAMI':
-#                 if currentDocument.gotCombinedExtractedIons == True:
+#                 if currentDocument.gotCombinedExtractedIons :
 #                     data = currentDocument.IMS2DCombIons
-#                 elif currentDocument.gotExtractedIons == True:
+#                 elif currentDocument.gotExtractedIons :
 #                     data = currentDocument.IMS2Dions
 #             elif currentDocument.dataType == 'Type: MANUAL':
-#                 if currentDocument.gotCombinedExtractedIons == True:
+#                 if currentDocument.gotCombinedExtractedIons :
 #                     data = currentDocument.IMS2DCombIons
 #             else: continue
 #             zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(
@@ -1713,7 +1713,7 @@ class panelMultipleIons(wx.Panel):
 
         count = self.peaklist.GetItemCount()
         currentDoc = self.presenter.currentDoc
-        if currentDoc == "Current documents" or currentDoc is None:
+        if currentDoc == "Documents" or currentDoc is None:
             return
         document = self.presenter.documentsDict[currentDoc]
 

@@ -75,7 +75,7 @@ verbose_mode = True
 def vprint(thing):
     """
     Multiplierz verbosity-sensitive print function, for use
-    internally.  Prints only if multiplierz.verbose_mode == True.
+    internally.  Prints only if multiplierz.verbose_mode .
     """
     global verbose_mode  # Slightly speeds up lookup, supposedly.
     if verbose_mode:

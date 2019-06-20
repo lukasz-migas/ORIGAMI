@@ -63,7 +63,7 @@ class data_processing():
 
     def _on_get_document(self):
         self.presenter.currentDoc = self.documentTree.on_enable_document()
-        if self.presenter.currentDoc is None or self.presenter.currentDoc == "Current documents":
+        if self.presenter.currentDoc is None or self.presenter.currentDoc == "Documents":
             return None
         document = self.presenter.documentsDict[self.presenter.currentDoc]
 
@@ -779,7 +779,7 @@ class data_processing():
                 return
 
         # Check values
-        self.config.onCheckValues(data_type='process')
+        self.config.on_check_parameters(data_type='process')
         if self.config.processParamsWindow_on_off:
             self.view.panelProcessData.onSetupValues(evt=None)
 
@@ -896,29 +896,31 @@ class data_processing():
         if zvals is None:
             return
 
-        # Check values
-        self.config.onCheckValues(data_type='process')
+        # create a copy
+        zvals = zvals.copy()
+
+        # check values
+        self.config.on_check_parameters(data_type='process')
         if self.config.processParamsWindow_on_off:
             self.view.panelProcessData.onSetupValues(evt=None)
 
-        # Smooth data
+        # smooth data
         if self.config.plot2D_smooth_mode is not None:
             if self.config.plot2D_smooth_mode == 'Gaussian':
-                zvals = pr_heatmap.smooth_gaussian_2D(inputData=zvals.copy(),
-                                              sigma=self.config.plot2D_smooth_sigma)
+                zvals = pr_heatmap.smooth_gaussian_2D(
+                    zvals, sigma=self.config.plot2D_smooth_sigma)
             elif self.config.plot2D_smooth_mode == 'Savitzky-Golay':
-                zvals = pr_heatmap.smooth_savgol_2D(inputData=zvals,
-                                                    polyOrder=self.config.plot2D_smooth_polynomial,
-                                                    windowSize=self.config.plot2D_smooth_window)
-        else:
-            pass
-        # Threshold
-        zvals = pr_heatmap.remove_noise_2D(inputData=zvals.copy(),
-                                           threshold=self.config.plot2D_threshold)
-        # Normalize
-        if self.config.plot2D_normalize == True:
-            zvals = pr_heatmap.normalize_2D(inputData=zvals.copy(),
-                                            mode=self.config.plot2D_normalize_mode)
+                zvals = pr_heatmap.smooth_savgol_2D(
+                    zvals, polyOrder=self.config.plot2D_smooth_polynomial,
+                    windowSize=self.config.plot2D_smooth_window)
+
+        # threshold
+        zvals = pr_heatmap.remove_noise_2D(zvals, self.config.plot2D_threshold)
+
+        # normalize
+        if self.config.plot2D_normalize:
+            zvals = pr_heatmap.normalize_2D(
+                zvals, mode=self.config.plot2D_normalize_mode)
 
         # As a precaution, remove inf
         zvals[zvals == -np.inf] = 0
@@ -933,7 +935,8 @@ class data_processing():
                 try:
                     self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
                                                     xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
-                except Exception: pass
+                except Exception:
+                    pass
                 if not self.config.waterfall:
                     self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
             elif replot_type == 'DT/MS':
@@ -1543,7 +1546,7 @@ class data_processing():
         if evt.GetId() == ID_combineCEscansSelectedIons:
             extract_mode = "selected"
 
-        # Make a list of current documents
+        # Make a list of Documents
         for ion_id in range(self.ionList.GetItemCount()):
             if extract_mode == "selected" and not self.ionList.IsChecked(ion_id):
                 continue
