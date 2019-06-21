@@ -996,8 +996,8 @@ class data_handling():
         __, document_title = get_path_and_fname(path, simple=True)
 
         # Get experimental parameters
-        parameters = self.config.importMassLynxInfFile(path=path)
-        fileInfo = self.config.importMassLynxHeaderFile(path=path)
+        parameters = self.config.get_waters_inf_data(path)
+        fileInfo = self.config.get_waters_header_data(path)
         xlimits = [parameters['startMS'], parameters['endMS']]
         reader = io_waters_raw_api.WatersRawReader(path)
 
@@ -1211,7 +1211,7 @@ class data_handling():
         __, document_title = get_path_and_fname(path, simple=True)
 
         # Get experimental parameters
-        parameters = self.config.importMassLynxInfFile(path=path)
+        parameters = self.config.get_waters_inf_data(path)
         xlimits = [parameters['startMS'], parameters['endMS']]
 
         reader = io_waters_raw_api.WatersRawReader(path)
@@ -1287,6 +1287,7 @@ class data_handling():
 
             document = self._on_get_document(document_title)
             path = document.path
+            path = check_waters_path(path)
             if not check_path_exists(path):
                 msg = "File with {} path no longer exists".format(path)
                 dlgBox("File no longer exists", msg, type="Error")
@@ -1413,7 +1414,7 @@ class data_handling():
                 continue
 
             # add data to document
-            parameters = self.config.importMassLynxInfFile(path=path, manual=True)
+            parameters = self.config.get_waters_inf_data(path)
             xlimits = [parameters['startMS'], parameters['endMS']]
             ms_x, ms_y = self._get_driftscope_spectrum_data(path)
             dt_x, dt_y = self._get_driftscope_mobiligram_data(path)

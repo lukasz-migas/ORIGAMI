@@ -1731,3 +1731,11 @@ class data_processing():
 
         return zvals, xlabels, scan_list, parameters
 
+    def find_peaks_in_mass_spectrum(self, **kwargs):
+        mz_x = kwargs.get("mz_x")
+        mz_y = kwargs.get("mz_y")
+        found_peaks = pr_peaks.find_peaks_in_spectrum(mz_x, mz_y)
+
+        if kwargs.get("return_data", False):
+            return found_peaks
+

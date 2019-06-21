@@ -30,6 +30,7 @@ from processing.spectra import bin_1D, get_linearization_range, linearize
 from toolbox import strictly_increasing
 
 import logging
+from utils.path import check_waters_path
 logger = logging.getLogger("origami")
 
 # Load C library
@@ -64,6 +65,8 @@ def driftscope_extract_MS(path, bin_size=10000,
         out_path = temp_data_folder
     else:
         out_path = path
+
+    path = check_waters_path(path)
 
     # Write range file
     range_file = os.path.join(out_path, '__.1dMZ.inp')
@@ -143,6 +146,8 @@ def driftscope_extract_RT(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_
     else:
         out_path = path
 
+    path = check_waters_path(path)
+
     # Create input file
     range_file = os.path.join(out_path, '__.1dRT.inp')
 
@@ -209,6 +214,8 @@ def driftscope_extract_DT(path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_
     else:
         out_path = path
 
+    path = check_waters_path(path)
+
     # Create input file
     range_file = os.path.join(out_path, '__.1dDT.inp')
     try:
@@ -272,6 +279,8 @@ def driftscope_extract_2D(path=None, mz_start=0, mz_end=999999, rt_start=0, rt_e
         out_path = temp_data_folder
     else:
         out_path = path
+
+    path = check_waters_path(path)
 
     # Create input file
     range_file = os.path.join(out_path, '__.2dRTDT.inp')
@@ -347,6 +356,8 @@ def driftscope_extract_MZDT(path=None, mz_start=0, mz_end=999999, mz_nPoints=500
         out_path = temp_data_folder
     else:
         out_path = path
+
+    path = check_waters_path(path)
 
     # Create input file
     range_file = os.path.join(out_path, '__.2dDTMZ.inp')

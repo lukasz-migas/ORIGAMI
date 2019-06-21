@@ -167,7 +167,7 @@ class ORIGAMI(object):
         self.onCheckVersion()
 
         if self.config.checkForDriftscopeAtStart:
-            self.config.initlizePaths()
+            self.config.initilize_paths()
 
         # add data handling and processing modules
         self.view.panelDocuments.documents._setup_handling_and_processing()
@@ -275,7 +275,7 @@ class ORIGAMI(object):
 #             # Update statusbar
 #             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
 #             # Get experimental parameters
-#             parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
+#             parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
 #             xlimits = [parameters['startMS'], parameters['endMS']]
 #             # Mass spectra
 #             extract_kwargs = {'return_data': True}
@@ -369,7 +369,7 @@ class ORIGAMI(object):
 #             # Update statusbar
 #             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
 #             # Get experimental parameters
-#             parameters = self.config.importMassLynxInfFile(path=dlg.GetPath())
+#             parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
 #             xlimits = [parameters['startMS'], parameters['endMS']]
 #             # Mass spectra
 #             extract_kwargs = {'return_data': True}

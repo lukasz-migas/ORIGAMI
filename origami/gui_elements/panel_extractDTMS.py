@@ -263,7 +263,6 @@ class panel_extractDTMS(wx.MiniFrame):
         return is_present
 
     def on_get_document(self):
-        #         try:
         document = self.data_handling._on_get_document()
 
         return document, document.title
@@ -321,7 +320,7 @@ class panel_extractDTMS(wx.MiniFrame):
         xvals = self.x_data
         yvals = self.y_data
 
-        defaultValue = "MSDT_{}{}".format(document_title, self.config.saveExtension)
+        default_name = "MSDT_{}{}".format(document_title, self.config.saveExtension)
 
         saveData = np.vstack((xvals, zvals))
         yvals = list(map(str, yvals.tolist()))
@@ -330,21 +329,21 @@ class panel_extractDTMS(wx.MiniFrame):
         fmts = ["%.4f"] + ["%i"] * len(yvals)
 
         # Save 2D array
-        kwargs = {'default_name': defaultValue}
+        kwargs = {'default_name': default_name}
         self.documentTree.onSaveData(data=saveData, labels=labels,
                                      data_format=fmts, **kwargs)
 
         self._update_msg_bar("Data was saved to file!")
 
-    def downsample_array(self):
-        """Downsample MS/DT array"""
-        __, x_dim = self.z_data.shape
-
-        division_factors, division_factor = pr_heatmap.calculate_division_factors(x_dim)
-        if not division_factors:
-            data, mz_x = pr_heatmap.subsample_array(self.z_data, self.x_data, division_factor)
-        else:
-            data, mz_x = pr_heatmap.bin_sum_array(self.z_data, self.x_data, division_factor)
-            self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
-            data, mz_x = pr_heatmap.bin_mean_array(self.z_data, self.x_data, division_factor)
-            self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
+#     def downsample_array(self):
+#         """Downsample MS/DT array"""
+#         __, x_dim = self.z_data.shape
+#
+#         division_factors, division_factor = pr_heatmap.calculate_division_factors(x_dim)
+#         if not division_factors:
+#             data, mz_x = pr_heatmap.subsample_array(self.z_data, self.x_data, division_factor)
+#         else:
+#             data, mz_x = pr_heatmap.bin_sum_array(self.z_data, self.x_data, division_factor)
+#             self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
+#             data, mz_x = pr_heatmap.bin_mean_array(self.z_data, self.x_data, division_factor)
+#             self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')

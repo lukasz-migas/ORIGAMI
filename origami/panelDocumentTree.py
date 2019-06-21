@@ -1599,6 +1599,21 @@ class documentsTree(wx.TreeCtrl):
                                                          duplicate_dataset)
         self.presenter.onThreading(None, (msg, 4, 5), action='updateStatusbar')
 
+    def _on_event_get_mass_spectrum(self):
+
+        document = self.presenter.documentsDict[self.itemData.title]
+        if self.itemType == "Mass Spectrum":
+            data = self.itemData.massSpectrum
+            dataset = "Mass Spectrum"
+        elif self.itemType == "Mass Spectrum (processed)":
+            data = self.itemData.smoothMS
+            dataset = "Mass Spectrum (processed)"
+        elif self.itemType == "Mass Spectra":
+            data = self.itemData.multipleMassSpectrum[self.extractParent]
+            dataset = self.extractParent
+
+        return document, data, dataset
+
     def onShowAnnotations(self, evt):
         """
         Show annotations in the currently shown mass spectrum
@@ -5719,11 +5734,17 @@ class documentsTree(wx.TreeCtrl):
         self.panel_extractDTMS .Show()
 
     def on_open_peak_picker(self, evt):
+        document, data, dataset = self._on_event_get_mass_spectrum()
+
         from gui_elements.panel_peak_picker import panel_peak_picker
         panel_peak_picker = panel_peak_picker(self.presenter.view,
                                               self.presenter,
                                               self.config,
-                                              self.icons)
+                                              self.icons,
+                                              document=document,
+                                              mz_data=data,
+                                              dataset_name=dataset,
+                                              document_title=document.title)
         panel_peak_picker .Show()
 
     def on_add_mzID_file(self, evt):

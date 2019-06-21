@@ -20,41 +20,50 @@ import wx
 import numpy as np
 
 from visuals import mpl_plots
-from styles import validator
+from styles import validator, makeCheckbox
+
+import logging
+logger = logging.getLogger("origami")
 
 
 class panel_peak_picker(wx.MiniFrame):
     """Peak picking panel"""
 
-    def __init__(self, parent, presenter, config, icons):
+    def __init__(self, parent, presenter, config, icons, **kwargs):
         wx.MiniFrame.__init__(self, parent, -1, 'Peak picker...', size=(-1, -1),
-                              style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER |
-                              wx.MAXIMIZE_BOX)
+                              style=wx.DEFAULT_FRAME_STYLE & ~
+                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         self.view = parent
         self.presenter = presenter
-        self.documentTree = self.view.panelDocuments.documents
-        self.data_handling = presenter.data_handling
+        self.document_tree = self.view.panelDocuments.documents
+        self.panel_plot = self.view.panelPlots
+
         self.config = config
         self.icons = icons
+
+        self.data_processing = presenter.data_processing
+        self.data_handling = presenter.data_handling
 
         self.displaysize = wx.GetDisplaySize()
         self.displayRes = (wx.GetDisplayPPI())
         self.figsizeX = (self.displaysize[0] - 320) / self.displayRes[0]
 
         self.make_gui()
-
-        # setup gui pview
-#         self.on_setup_gui()
-
         self.CentreOnScreen()
         self.SetFocus()
 
+        # setup kwargs
+        self.document = kwargs.pop("document", None)
+        self.document_title = kwargs.pop("document_title", None)
+        self.dataset_name = kwargs.pop("dataset_name", None)
+        self.mz_data = kwargs.pop("mz_data", None)
+
+        # initilize plot
+        self.on_plot_spectrum()
+
         # bind events
         wx.EVT_CLOSE(self, self.on_close)
-        wx.EVT_SPLITTER_DCLICK(self, wx.ID_ANY, self._onSash)
-
-    def _onSash(self, evt):
-        evt.Veto()
+        wx.EVT_SIZE(self, self.on_resize)
 
     def on_close(self, evt):
         """Destroy this frame."""
@@ -62,97 +71,102 @@ class panel_peak_picker(wx.MiniFrame):
 
     def make_gui(self):
 
-        # splitter window
-        self.split_panel = wx.SplitterWindow(self, wx.ID_ANY, wx.DefaultPosition,
-                                             wx.DefaultSize,
-                                             wx.TAB_TRAVERSAL | wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
-
-        # make panels
-        left_panel_size = 400
-        self.settings_panel = self.make_settings_panel(self.split_panel)
-        self.settings_panel.SetSize((left_panel_size, -1))
-        self.settings_panel.SetMinSize((left_panel_size, -1))
-        self.settings_panel.SetMaxSize((left_panel_size, -1))
-
-        right_panel_size = 680
-        self.plot_panel = self.make_plot_panel(self.split_panel)
-        self.plot_panel.SetSize((right_panel_size, -1))
-        self.plot_panel.SetMinSize((right_panel_size, -1))
-        self.plot_panel.SetMaxSize((right_panel_size, -1))
-
-        self.split_panel.SplitVertically(self.settings_panel, self.plot_panel)
-        self.split_panel.SetSashGravity(0.0)
-        self.split_panel.SetSashSize(5)
-        self.split_panel.SetSashPosition((400))
+        panel = wx.Panel(self, -1, size=(-1, -1))
+        self.settings_panel = self.make_settings_panel(panel)
+        self.plot_panel = self.make_plot_panel(panel)
 
         # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(self.split_panel, 1, wx.EXPAND)
+        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.main_sizer.Add(self.settings_panel, 1, wx.EXPAND)
+        self.main_sizer.Add(self.plot_panel, 1, wx.EXPAND)
+        self.main_sizer.Fit(panel)
 
-        # fit layout
-        self.main_sizer.Fit(self.split_panel)
-        self.SetSizer(self.main_sizer)
+        self.main_sizer.Fit(panel)
         self.SetSize((1100, 600))
-        self.Centre()
+        self.SetSizer(self.main_sizer)
         self.Layout()
-        self.SetFocus()
+
+    def on_resize(self, evt):
+        self.Layout()
 
     def make_settings_panel(self, split_panel):
 
         panel = wx.Panel(split_panel, -1, size=(-1, -1))
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        mz_limit_check = wx.StaticText(panel, wx.ID_ANY, "Select mass range:")
+        self.mz_limit_check = makeCheckbox(panel, "")
+        self.mz_limit_check.SetValue(self.config.peak_find_mz_limit)
+        self.mz_limit_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.mz_limit_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         mz_min_value = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
         self.mz_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                             validator=validator('floatPos'))
-        self.mz_min_value.SetValue(str(self.config.fit_window))
+        self.mz_min_value.SetValue(str(self.config.peak_find_mz_min))
         self.mz_min_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         mz_max_value = wx.StaticText(panel, wx.ID_ANY, "m/z end:")
         self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                             validator=validator('floatPos'))
-        self.mz_max_value.SetValue(str(self.config.fit_window))
+        self.mz_max_value.SetValue(str(self.config.peak_find_mz_max))
         self.mz_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         threshold_value = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                                validator=validator('floatPos'))
-        self.threshold_value.SetValue(str(self.config.fit_threshold))
+        self.threshold_value.SetValue(str(self.config.peak_find_threshold))
         self.threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         width_value = wx.StaticText(panel, wx.ID_ANY, "Minimal width:")
         self.width_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                             validator=validator('intPos'))
-        self.width_value.SetValue(str(self.config.fit_window))
+        self.width_value.SetValue(str(self.config.peak_find_width))
         self.width_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         relative_height_value = wx.StaticText(panel, wx.ID_ANY, "Relative height of peak width:")
         self.relative_height_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                             validator=validator('floatPos'))
-        self.relative_height_value.SetValue(str(self.config.fit_window))
+        self.relative_height_value.SetValue(str(self.config.peak_find_relative_height))
         self.relative_height_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         min_intensity_value = wx.StaticText(panel, wx.ID_ANY, "Minimal intensity:")
         self.min_intensity_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                             validator=validator('intPos'))
-        self.min_intensity_value.SetValue(str(self.config.fit_window))
+        self.min_intensity_value.SetValue(str(self.config.peak_find_min_intensity))
         self.min_intensity_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         min_distance_value = wx.StaticText(panel, wx.ID_ANY, "Minimal distance between peaks:")
         self.min_distance_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                             validator=validator('intPos'))
-        self.min_distance_value.SetValue(str(self.config.fit_window))
+        self.min_distance_value.SetValue(str(self.config.peak_find_distance))
         self.min_distance_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         peak_width_modifier_value = wx.StaticText(panel, wx.ID_ANY, "Peak width modifier:")
         self.peak_width_modifier_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
                                             validator=validator('floatPos'))
-        self.peak_width_modifier_value.SetValue(str(self.config.fit_window))
+        self.peak_width_modifier_value.SetValue(str(self.config.peak_find_peak_width_modifier))
         self.peak_width_modifier_value.Bind(wx.EVT_TEXT, self.on_apply)
+
+        verbose_check = wx.StaticText(panel, wx.ID_ANY, "Verbose:")
+        self.verbose_check = makeCheckbox(panel, "")
+        self.verbose_check.SetValue(self.config.peak_find_verbose)
+        self.verbose_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.verbose_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
+
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, 22))
+        self.find_peaks_btn.Bind(wx.EVT_BUTTON, self.on_find_peaks)
+
+        self.close_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
+        self.close_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
+        grid.Add(mz_limit_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mz_limit_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
         grid.Add(mz_min_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.mz_min_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
@@ -176,11 +190,22 @@ class panel_peak_picker(wx.MiniFrame):
         n += 1
         grid.Add(peak_width_modifier_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.peak_width_modifier_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-
-        main_sizer.Add(grid, 0, wx.EXPAND, 10)
+        n += 1
+        grid.Add(verbose_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.verbose_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(self.find_peaks_btn, (n, 0), wx.GBSpan(1, 1),
+                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.close_btn, (n, 1), wx.GBSpan(1, 1),
+                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         # fit layout
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.EXPAND, 10)
         main_sizer.Fit(panel)
+
         panel.SetSizerAndFit(main_sizer)
 
         return panel
@@ -208,4 +233,21 @@ class panel_peak_picker(wx.MiniFrame):
         return panel
 
     def on_apply(self, evt):
-        pass
+        logger.info("Not implemented yet")
+
+    def on_toggle_controls(self, evt):
+        logger.info("Not implemented yet")
+
+    def on_find_peaks(self, evt):
+        print(self.document_title, self.dataset_name)
+        mz_x = self.mz_data["xvals"]
+        mz_y = self.mz_data["yvals"]
+        found_peaks = self.data_processing.find_peaks_in_mass_spectrum(
+            mz_x=mz_x, mz_y=mz_y, return_data=True)
+        print(found_peaks)
+
+    def on_plot_spectrum(self):
+        mz_x = self.mz_data["xvals"]
+        mz_y = self.mz_data["yvals"]
+
+        self.panel_plot.on_plot_MS(mz_x, mz_y, show_in_window="peak_picker", plot_obj=self.plot_window)

@@ -2576,9 +2576,14 @@ class panelPlot(wx.Panel):
             window = self.config.panelNames['1D']
             plt_kwargs["prevent_extraction"] = True
             plot_size_key = 'MS (DT/RT)'
+        else:
+            panel = kwargs.pop("plot_obj")
+            window = None
+            plt_kwargs["prevent_extraction"] = True
+            plot_size_key = 'MS'
 
         # change page
-        if set_page:
+        if set_page and window is not None:
             self._set_page(window)
 
         if replot:
