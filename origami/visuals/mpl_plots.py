@@ -405,12 +405,16 @@ class plots(mpl_plotter):
     def plot_add_text_and_lines(self, xpos, yval, label, vline=True, vline_position=None,
                                 color="black", yoffset=0.05, stick_to_intensity=False, **kwargs):
 
-        try: ymin, ymax = self.plotMS.get_ylim()
-        except Exception: return
+        try:
+            ymin, ymax = self.plotMS.get_ylim()
+        except Exception:
+            return
 
         if stick_to_intensity:
-            try: y_position = np.divide(yval, self.y_divider)
-            except Exception: y_position = ymax
+            try:
+                y_position = np.divide(yval, self.y_divider)
+            except Exception:
+                y_position = ymax
         else:
             y_position = ymax
 

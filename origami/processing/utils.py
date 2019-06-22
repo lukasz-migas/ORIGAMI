@@ -79,44 +79,45 @@ def detect_peaks_spectrum2(xvals, yvals, window=10, threshold=0):
     return np.transpose([mzs, ints])
 
 
-def detect_peaks_spectrum(data, window=10, threshold=0, mzRange=None):  # detectPeaks1D
+def detect_peaks_spectrum(data, window=10, threshold=0, mzRange=None):
     """
-    Peak detection tool.
+    Peak detection tool
     Modified to include a mz range (i.e to only search in specified region)
-    ---
+
     Parameters:
-    ---
-    data: array [ms, intensity]
+    ----------
+    data: np.array 
+        [ms, intensity]
     window: float 
     threshold: float
-    mzRange: tuple (ms start, ms end)
+    mzRange: tuple 
+        (ms start, ms end)
     """
-#     tstart = ttime()
 
-    peaks = []
     if mzRange is not None:
         mzStart = np.argmin(np.abs(data[:, 0] - mzRange[0]))
         mzEnd = np.argmin(np.abs(data[:, 0] - mzRange[1]))
         data = data[mzStart:mzEnd, :]
 
+    peaks = []
     length = len(data)
     maxval = np.amax(data[:, 1])
     for i in range(1, length):
         if data[i, 1] > maxval * threshold:
             start = i - window
             end = i + window
-            if start < 0: start = 0
-            if end > length: end = length
+            if start < 0:
+                start = 0
+            if end > length:
+                end = length
             testmax = np.amax(data[int(start):int(end) + 1, 1])
             if data[i, 1] == testmax and data[i, 1] != data[i - 1, 1]:
                 peaks.append([data[i, 0], data[i, 1]])
 
-#     print("It took {:.4f} seconds to search spectrum".format(ttime()-tstart))
-
     return np.array(peaks)
 
 
-def find_peak_maximum(data, fail_value=1):  # findPeakMax
+def find_peak_maximum(data, fail_value=1):
     """
     Simple tool to find the intensity (maximum) of a selected peak
     ---

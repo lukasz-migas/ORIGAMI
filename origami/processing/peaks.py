@@ -85,6 +85,7 @@ def find_peaks_in_spectrum(x_signal, y_signal, threshold=250, width=0, rel_heigh
     # get peaks
     pks_x_minus_width = x_signal[pks_idx_minus_width]
     pks_x_plus_width = x_signal[pks_idx_plus_width]
+    pks_x_width = pks_x_plus_width - pks_x_minus_width
 
     if verbose:
         print(f"Found {len(pks_idx)} peaks in {ttime() - tstart:.4f} seconds")
@@ -93,7 +94,8 @@ def find_peaks_in_spectrum(x_signal, y_signal, threshold=250, width=0, rel_heigh
         {"peaks_index": pks_idx,
          "peaks_x_values": pks_x,
          "peaks_y_values": pks_y,
-         "peaks_width": pks_width,
+         "peaks_width_idx": pks_width,
+         "peaks_width": pks_x_width,
          "peaks_x_minus_width": pks_x_minus_width,
          "peaks_x_plus_width": pks_x_plus_width,
          "peaks_index_x_minus_width": pks_idx_minus_width,

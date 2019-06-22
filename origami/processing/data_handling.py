@@ -1950,7 +1950,7 @@ class data_handling():
 
                     # Update aui manager
                     self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
-                self.view.panelMultipleIons.onRemoveDuplicates(evt=None, limitCols=False)
+                self.ionList.on_remove_duplicates()  # (evt=None, limitCols=False)
 
             # Restore file list
             if document.dataType == 'Type: MANUAL':

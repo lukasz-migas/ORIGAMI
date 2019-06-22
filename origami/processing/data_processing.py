@@ -52,10 +52,21 @@ class data_processing():
         self.documentTree = view.panelDocuments.documents
         self.config = config
 
+        # panel links
+        self.documentTree = self.view.panelDocuments.documents
+
+        self.plotsPanel = self.view.panelPlots
+
+        self.ionPanel = self.view.panelMultipleIons
+        self.ionList = self.ionPanel.peaklist
+
+        self.textPanel = self.view.panelMultipleText
+        self.textList = self.textPanel.peaklist
+
+        self.filesPanel = self.view.panelMML
+        self.filesList = self.filesPanel.peaklist
+
         self.frag_generator = pr_frag.PeptideAnnotation()
-#         try:
-#             self.frag_generator.get_unimod_db()
-#         except Exception: pass
 
         # unidec parameters
         self.unidec_dataset = None
@@ -203,6 +214,7 @@ class data_processing():
 
         return charge
 
+    # TODO: seperate this function into seperate mini functions - a lot easier to debug...
     def on_pick_peaks(self, evt):
         """
         This function finds peaks from 1D array
@@ -210,17 +222,12 @@ class data_processing():
         document = self._on_get_document()
 
         tstart = ttime()
-        # Shortcut to mz list
-        if (document.dataType == 'Type: ORIGAMI' or
-            document.dataType == 'Type: MANUAL' or
-            document.dataType == 'Type: Infrared' or
-            document.docs.dataType == 'Type: MassLynx'):
-            panel = self.view.panelMultipleIons.topP
-            tempList = self.view.panelMultipleIons.peaklist
-            dataPlot = self.view.panelPlots.plot1
+        if document.dataType in ['Type: ORIGAMI', 'Type: MANUAL', 'Type: Infrared', 'Type: MassLynx']:
+            panel = self.ionPanel
+            tempList = self.ionList
+            dataPlot = self.plotsPanel.plot1
             pageID = self.config.panelNames['MS']
             markerPlot = 'MS'
-            listLinks = self.config.peaklistColNames
         elif document.dataType == 'Type: Multifield Linear DT':
             panel = self.view.panelLinearDT.bottomP
             tempList = self.view.panelLinearDT.bottomP.peaklist
@@ -228,15 +235,12 @@ class data_processing():
             dataPlot = self.view.panelPlots.plot1
             pageID = self.config.panelNames['MS']
             markerPlot = 'MS'
-            listLinks = self.config.driftBottomColNames
         elif document.dataType == 'Type: CALIBRANT':
             panel = self.view.panelCCS.topP
             tempList = self.view.panelCCS.topP.peaklist
-            dtTempList = self.view.panelCCS.bottomP.peaklist
             dataPlot = self.view.panelPlots.topPlotMS
             pageID = self.config.panelNames['Calibration']
             markerPlot = 'CalibrationMS'
-            listLinks = self.config.ccsTopColNames
 
         else:
             msg = "%s is not supported yet." % document.dataType
@@ -449,14 +453,20 @@ class data_processing():
                         # generate label
                         if self.config.fit_show_labels and peak_count <= self.config.fit_show_labels_max_count:
                             if self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
-                                if charge != 0: label = "{:.2f}, {:.2f}\nz={}".format(peak[0], label_height, charge)
-                                else: label = "{:.2f}, {:.2f}".format(peak[0], label_height)
+                                if charge != 0:
+                                    label = "{:.2f}, {:.2f}\nz={}".format(peak[0], label_height, charge)
+                                else:
+                                    label = "{:.2f}, {:.2f}".format(peak[0], label_height)
                             elif self.config.fit_show_labels_mz and not self.config.fit_show_labels_int:
-                                if charge != 0: label = "{:.2f}\nz={}".format(peak[0], charge)
-                                else: label = "{:.2f}".format(peak[0])
+                                if charge != 0:
+                                    label = "{:.2f}\nz={}".format(peak[0], charge)
+                                else:
+                                    label = "{:.2f}".format(peak[0])
                             elif not self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
-                                if charge != 0: label = "{:.2f}\nz={}".format(label_height, charge)
-                                else: label = "{:.2f}".format(label_height)
+                                if charge != 0:
+                                    label = "{:.2f}\nz={}".format(label_height, charge)
+                                else:
+                                    label = "{:.2f}".format(label_height)
 
                         # add isotopic markers
                         if self.config.fit_highRes_isotopicFit:
@@ -1733,8 +1743,23 @@ class data_processing():
 
     def find_peaks_in_mass_spectrum(self, **kwargs):
         mz_x = kwargs.get("mz_x")
-        mz_y = kwargs.get("mz_y")
-        found_peaks = pr_peaks.find_peaks_in_spectrum(mz_x, mz_y)
+        mz_y = kwargs.get("mz_y")
+
+        mz_min, mz_max = None, None
+        if self.config.peak_find_mz_limit:
+            mz_min = self.config.peak_find_mz_min
+            mz_max = self.config.peak_find_mz_max
+        found_peaks = pr_peaks.find_peaks_in_spectrum(
+            mz_x, mz_y,
+            threshold=self.config.peak_find_threshold,
+            distance=self.config.peak_find_distance,
+            width=self.config.peak_find_width,
+            rel_height=self.config.peak_find_relative_height,
+            min_intensity=self.config.peak_find_min_intensity,
+            mz_min=mz_min,
+            mz_max=mz_max,
+            peak_width_modifier=self.config.peak_find_peak_width_modifier,
+            )
 
         if kwargs.get("return_data", False):
             return found_peaks

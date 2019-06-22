@@ -173,10 +173,6 @@ class panelPlot(wx.Panel):
         elif self.currentPage == "Other":
             self.current_plot = self.plotOther
 
-        # update statusbars
-        if self.config.processParamsWindow_on_off:
-            self.view.panelProcessData.updateStatusbar()
-
         if self.config.extraParamsWindow_on_off:
             self.view.panelParametersEdit.updateStatusbar()
 
@@ -1613,28 +1609,28 @@ class panelPlot(wx.Panel):
             self.plotUnidec_barChart.clearPlot()
             self.plotUnidec_chargeDistribution.clearPlot()
 
-    def on_clear_patches(self, plot="MS", repaint=False):
+    def on_clear_patches(self, plot="MS", repaint=False, **kwargs):
 
         if plot == 'MS':
             self.plot1.plot_remove_patches()
-            if not repaint:
-                return
-            else:
+            if repaint:
                 self.plot1.repaint()
 
         elif plot == 'CalibrationMS':
             self.topPlotMS.plot_remove_patches()
-            if not repaint:
-                return
-            else:
+            if repaint:
                 self.topPlotMS.repaint()
 
         elif plot == 'RT':
             self.plotRT.plot_remove_patches()
-            if not repaint:
-                return
-            else:
+            if repaint:
                 self.plotRT.repaint()
+
+        elif plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+            plot_obj.plot_remove_patches()
+            if repaint:
+                plot_obj.repaint()
 
     def plot_repaint(self, plot_window="MS"):
         if plot_window == "MS":
@@ -1649,28 +1645,25 @@ class panelPlot(wx.Panel):
                 self.plot1.repaint()
 
     def on_plot_patches(self, xmin, ymin, width, height, color='r', alpha=0.5, label="",
-                        plot='MS', repaint=False):
-        if plot == 'MS':
-            self.plot1.plot_add_patch(xmin, ymin, width, height, color=color,
+                        plot='MS', repaint=False, **kwargs):
+
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
+        plot_obj.plot_add_patch(xmin, ymin, width, height, color=color,
                                       alpha=alpha, label=label)
-            if not repaint:
-                return
-            else:
-                self.plot1.repaint()
+        if repaint:
+            plot_obj.repaint()
 
-        elif plot == 'CalibrationMS':
-            self.topPlotMS.plot_add_patch(xmin, ymin, width, height, color=color,
-                                          alpha=alpha, label=label)
-            if not repaint:
-                return
-            else:
-                self.topPlotMS.repaint()
+    def on_clear_labels(self, plot="MS", **kwargs):
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
 
-    def on_clear_labels(self, plot="MS"):
-        if plot == 'MS':
-            self.plot1.plot_remove_text_and_lines()
-        elif plot == 'CalibrationMS':
-            self.topPlotMS.plot_remove_text_and_lines()
+        plot_obj.plot_remove_text_and_lines()
 
     def on_plot_labels(self, xpos, yval, label='', plot='MS', repaint=False,
                        optimise_labels=False, **kwargs):
@@ -1682,25 +1675,28 @@ class panelPlot(wx.Panel):
                       "fontweight": kwargs.pop("font_weight", "normal"),
                       "fontsize": kwargs.pop("font_size", "medium"), }
 
-        if plot == 'MS':
-            self.plot1.plot_add_text(xpos=xpos, yval=yval, label=label,
-                                     yoffset=kwargs.get("yoffset", 0.0),
-                                     **plt_kwargs)
-            if not repaint:
-                return
-            else:
-                if optimise_labels:
-                    self.plot1._fix_label_positions()
-                self.plot1.repaint()
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
 
+        if plot == 'MS':
+            plot_obj.plot_add_text(xpos, yval, label,
+                                   yoffset=kwargs.get("yoffset", 0.0),
+                                   **plt_kwargs)
         elif plot == 'CalibrationMS':
-            self.topPlotMS.plot_add_text(xpos=xpos, yval=yval, label=label, **plt_kwargs)
-            if not repaint:
-                return
-            else:
-                if optimise_labels:
-                    self.topPlotMS._fix_label_positions()
-                self.topPlotMS.repaint()
+            plot_obj.plot_add_text(xpos, yval, label, **plt_kwargs)
+
+        elif plot is None and "plot_obj" in kwargs:
+            plot_obj.plot_add_text(xpos, yval, label, **plt_kwargs)
+
+        if optimise_labels:
+            plot_obj._fix_label_positions()
+
+        if not repaint:
+            return
+
+        self.plot1.repaint()
 
     def on_plot_markers(self, xvals, yvals, color='b', marker='o',
                         size=5, plot='MS', repaint=True, **kwargs):
@@ -1739,17 +1735,16 @@ class panelPlot(wx.Panel):
                                                 testMax='yvals')
             self.bottomPlot1DT.repaint()
 
-    def on_clear_markers(self, plot="MS", repaint=False):
+    def on_clear_markers(self, plot="MS", repaint=False, **kwargs):
 
-        if plot == 'RT':
-            plot_obj = self.plotRT
-        elif plot == 'MS':
-            plot_obj = self.plot1
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
 
         plot_obj.plot_remove_markers()
-        if not repaint:
-            return
-        else:
+
+        if repaint:
             plot_obj.repaint()
 
     def _get_color_list(self, colorList, count=None, **kwargs):
@@ -3631,63 +3626,49 @@ class panelPlot(wx.Panel):
         if plot == 'RT':
             self.plotRT.plot_remove_legend()
 
+    def get_plot_from_name(self, plot_name):
+        plot_dict = {
+            "MS": self.plot1,
+            "RT": self.plotRT,
+            "CalibrationMS": self.topPlotMS,
+            "CalibrationDT": self.bottomPlot1DT}
+
+        return plot_dict.get(plot_name, None)
+
     def on_add_marker(self, xvals=None, yvals=None, color='b', marker='o',
                       size=5, plot='MS', repaint=True,
-                      clear_first=False):  # addMarkerMS
-        if plot == 'MS':
-            self.plot1.onAddMarker(xval=xvals, yval=yvals,
-                                   color=color, marker=marker,
-                                   size=size)
-            self.plot1.repaint()
+                      clear_first=False, **kwargs):
 
-        elif plot == 'RT':
-            if clear_first:
-                self.plotRT.plot_remove_markers()
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
 
-            self.plotRT.plot_add_markers(
-                xvals, yvals, color=color, marker=marker,
-                size=size)
-            if repaint:
-                self.plotRT.repaint()
+        if clear_first:
+            plot_obj.plot_remove_markers()
 
-        elif plot == 'CalibrationMS':
-            self.topPlotMS.onAddMarker(xval=xvals, yval=yvals,
-                                       color=color, marker=marker,
-                                       size=size)
-            self.topPlotMS.repaint()
+        plot_obj.plot_add_markers(xvals=xvals,
+                                  yvals=yvals,
+                                  color=color,
+                                  marker=marker,
+                                  size=size,
+                                  test_yvals=kwargs.get("test_yvals", False))
 
-        elif plot == 'CalibrationDT':
-            self.bottomPlot1DT.onAddMarker(xval=xvals, yval=yvals,
-                                           color=color, marker=marker,
-                                           size=size, testMax='yvals')
-            self.bottomPlot1DT.repaint()
+        if repaint:
+            plot_obj.repaint()
 
     def on_add_patch(self, x, y, width, height, color='r', alpha=0.5,
-                     repaint=False, plot='MS'):  # addRectMS
+                     repaint=False, plot='MS', **kwargs):
 
-        if plot == 'MS':
-            self.plot1.plot_add_patch(x, y, width, height, color=color,
-                                      alpha=alpha)
-            if not repaint:
-                return
-            else:
-                self.plot1.repaint()
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
 
-        elif plot == 'CalibrationMS':
-            self.topPlotMS.plot_add_patch(x, y, width, height, color=color,
-                                          alpha=alpha)
-            if not repaint:
-                return
-            else:
-                self.topPlotMS.repaint()
-
-        elif plot == 'RT':
-            self.plotRT.plot_add_patch(x, y, width, height, color=color,
-                                       alpha=alpha)
-            if not repaint:
-                return
-            else:
-                self.plotRT.repaint()
+        plot_obj.plot_add_patch(x, y, width, height, color=color,
+                                alpha=alpha)
+        if repaint:
+            plot_obj.repaint()
 
     def on_zoom_1D(self, startX, endX, endY, plot='MS', set_page=False):  # onZoomMS
 
