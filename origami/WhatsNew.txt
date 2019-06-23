@@ -86,6 +86,9 @@ Processing:
     item in the Document and select Open DT/MS extraction panel... where you can adjust the m/z range and bin size. You
     can also select whether data should be extracted (to visualise), saved to file or added to the document. This menu 
     can also be accessed by going to Document -> Action -> Open DT/MS extraction panel...
+- [new] added new peak picking module that can be activated when you right-click in the document view on any
+    MS dataset and select `Open peak picker...` which will open a new window where youc an select between two different
+    peak picking algorithms
 
 Ion panel:
 - [fix] when assigning single color to multiple items and the action was cancelled, an error would occur
@@ -109,6 +112,7 @@ Data extraction:
 - [improved] from now on, chromatographic and mobility (1D) data is extracted using Waters SDK
 - [fixed] fixed an issue which occured when trying to extract MS data from chromatographic window that only occured if 
     the x-axis was Collision Voltage (V) - from now on you will not see an error and won' be able to extract data
+
 
 
 ################################################################################
