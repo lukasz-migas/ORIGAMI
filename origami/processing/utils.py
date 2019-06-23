@@ -86,14 +86,15 @@ def detect_peaks_spectrum(data, window=10, threshold=0, mzRange=None):
 
     Parameters:
     ----------
-    data: np.array 
-        [ms, intensity]
-    window: float 
+    data: np.array
+        array with m/z and intensity values [ms, intensity]
+    window: float
+        extraction window
     threshold: float
-    mzRange: tuple 
-        (ms start, ms end)
+        minimal intensity
+    mzRange: tuple
+        user-defined mass range (ms start, ms end)
     """
-
     if mzRange is not None:
         mzStart = np.argmin(np.abs(data[:, 0] - mzRange[0]))
         mzEnd = np.argmin(np.abs(data[:, 0] - mzRange[1]))

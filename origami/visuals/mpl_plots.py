@@ -556,6 +556,26 @@ class plots(mpl_plotter):
 
         self.repaint()
 
+    def plot_1D_update_data_only(self, xvals, yvals):
+        kwargs = self.plot_parameters
+
+        lines = self.plotMS.get_lines()
+        ylabel = self.plotMS.get_ylabel()
+        ylabel = ylabel.split(" [")[0]
+
+        yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
+
+        lines[0].set_xdata(xvals)
+        lines[0].set_ydata(yvals)
+
+        self.plotMS.set_ylabel(ylabel,
+                               labelpad=kwargs['label_pad'],
+                               fontsize=kwargs['label_size'],
+                               weight=kwargs['label_weight'])
+#         lines[0].set_linewidth(kwargs['line_width'])
+#         lines[0].set_color(kwargs['line_color'])
+#         lines[0].set_linestyle(kwargs['line_style'])
+
     def plot_1D_update_data(self, xvals, yvals, xlabel, ylabel, testMax='yvals',
                             **kwargs):
         if self.plot_name in ['compare', 'Compare']:
@@ -570,7 +590,8 @@ class plots(mpl_plotter):
         try:
             self.plot_remove_text_and_lines()
             self.plot_remove_patches()
-        except Exception: pass
+        except Exception:
+            pass
 
         lines = self.plotMS.get_lines()
 #         for line in lines:
@@ -617,8 +638,10 @@ class plots(mpl_plotter):
                 self.plotMS.collections[shade].remove()
 
         # convert weights
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         self.plotMS.set_xlim(xlimits)
         self.plotMS.set_ylim(ylimits)

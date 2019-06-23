@@ -452,6 +452,8 @@ class panelMultipleIons(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
+    # TODO: add Extract chromatographic data only
+    # TODO: add extract mobilogram data only
     def menu_extract_tools(self, evt):
 
         self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_ionPanel_automaticExtract)

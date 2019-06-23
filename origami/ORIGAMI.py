@@ -176,6 +176,9 @@ class ORIGAMI(object):
         self.view.panelMML._setup_handling_and_processing()
         self.view.panelPlots._setup_handling_and_processing()
 
+        if self.config.debug:
+            self._debug_()
+
 #         for file_path in [
 # #                         'Z:\###_PhD1_###\RebeccaBeveridge - P27 CdkCyclin Fdc1\p27_data_January2018\SynaptG2\LM_15012017_P27K56_2.pickle'
 #                         'Z:\###_PhD2_###\CIU\PythonCIU\ORIGAMI_2\_TEST_DATA\ubb.pickle',
@@ -227,6 +230,10 @@ class ORIGAMI(object):
         document.fileFormat = kwargs.get("file_format", "Format: Other")
 
         return document
+
+    def _debug_(self):
+        import wx.lib.inspection
+        wx.lib.inspection.InspectionTool().Show()
 
     def onThreading(self, evt, args, action='loadOrigami'):
         # Setup thread
@@ -4792,3 +4799,4 @@ class ORIGAMI(object):
 if __name__ == '__main__':
     app = ORIGAMI(redirect=False)
     app.start()
+

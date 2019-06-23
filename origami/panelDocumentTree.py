@@ -1609,8 +1609,8 @@ class documentsTree(wx.TreeCtrl):
             data = self.itemData.smoothMS
             dataset = "Mass Spectrum (processed)"
         elif self.itemType == "Mass Spectra":
-            data = self.itemData.multipleMassSpectrum[self.extractParent]
-            dataset = self.extractParent
+            data = self.itemData.multipleMassSpectrum[self.extractData]
+            dataset = self.extractData
 
         return document, data, dataset
 
@@ -2324,7 +2324,8 @@ class documentsTree(wx.TreeCtrl):
                         menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_save_unidec,
                                                  text='Save UniDec results ({})'.format(self.config.saveExtension),
                                                  bitmap=None))
-                except Exception: pass
+                except Exception:
+                    pass
                 menu.AppendSeparator()
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_processMS,
                                              text='Process...\tP',
@@ -2372,6 +2373,9 @@ class documentsTree(wx.TreeCtrl):
                     menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_duplicate_annotations,
                                                  text='Duplicate annotations...',
                                                  bitmap=self.icons.iconsLib['blank_16']))
+                    menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_action_open_peak_picker,
+                                                 text='Open peak picker...',
+                                                 bitmap=self.icons.iconsLib['highlight_16']))
                     menu.AppendSeparator()
                     menu.AppendItem(makeMenuItem(parent=menu, id=ID_docTree_processMS,
                                                  text='Process...\tP',

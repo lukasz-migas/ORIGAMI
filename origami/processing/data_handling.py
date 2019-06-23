@@ -1005,11 +1005,15 @@ class data_handling():
         ms_x, ms_y = self._get_waters_api_spectrum_data(reader)
         self.__update_statusbar(f"Extracted mass spectrum in {ttime()-tstart_extraction:.4f}", 4)
 
-        if data_type != 'Type: MS':
-            tstart_extraction = ttime()
-            xvals_RT, yvals_RT = reader.get_TIC(0)
-            xvals_RT = np.arange(1, len(xvals_RT) + 1)
-            self.__update_statusbar(f"Extracted chromatogram in {ttime()-tstart_extraction:.4f}", 4)
+        tstart_extraction = ttime()
+        xvals_RT, yvals_RT = reader.get_TIC(0)
+        xvals_RT = np.arange(1, len(xvals_RT) + 1)
+        self.__update_statusbar(f"Extracted chromatogram in {ttime()-tstart_extraction:.4f}", 4)
+
+        if reader.n_functions == 1:
+            data_type = "Type: MS"
+
+        if data_type != 'Type: MS' and reader.n_functions > 1:
 
             # DT
             tstart_extraction = ttime()
@@ -1032,7 +1036,7 @@ class data_handling():
                 xvals_MSDT, zvals_MSDT = self.data_processing.downsample_array(xvals_MSDT, zvals_MSDT)
                 self.plotsPanel.on_plot_MSDT(zvals_MSDT, xvals_MSDT, yvals_MSDT, 'm/z', 'Drift time (bins)')
 
-        # Update status bar with MS range
+            # Update status bar with MS range
             self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
             self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
 

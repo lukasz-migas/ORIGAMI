@@ -671,7 +671,10 @@ class OrigamiConfig:
         self.fit_highRes_width = 1
         self.fit_highRes_isotopicFit = False
 
+        self.fit_relative_height = 0.75  # new in v1.3.0.0
+
         # Peak finding/fitting - local + wavelet
+        self.peak_find_method = "small_molecule"
         self.peak_find_threshold = 250  # new in v1.3.0.0
         self.peak_find_width = 0  # new in v1.3.0.0
         self.peak_find_relative_height = 0.5  # new in v1.3.0.0

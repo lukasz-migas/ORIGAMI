@@ -1583,26 +1583,26 @@ class MyFrame(wx.Frame):
             # If measuring distance, additional fields are used to help user
             # make observations
             if self.startX is not None:
-                range = np.absolute(self.startX - xpos)
-                charge = np.round(1.0 / range, 1)
+                delta = np.absolute(self.startX - xpos)
+                charge = np.round(1.0 / delta, 1)
                 mass = (xpos + charge) * charge
                 # If inside a plot area with MS, give out charge state
                 if self.mode == 'Measure' and self.panelPlots.currentPage in ["MS", "DT/MS"]:
-                    self.SetStatusText("m/z=%.2f int=%.2f Δm/z=%.2f z=%.1f mw=%.1f" %
-                                       (xpos, ypos, range, charge, mass), number=0)
+                    self.SetStatusText(
+                        f"m/z={xpos:.2f} int={ypos:.2f} Δm/z={delta:.2f} z={charge:.1f} mw={mass:.1f}", number=0)
                 else:
                     if self.panelPlots.currentPage in ['MS']:
-                        self.SetStatusText("m/z=%.4f int=%.4f Δm/z=%.2f" % (xpos, ypos, range), number=0)
+                        self.SetStatusText("m/z=%.4f int=%.4f Δm/z=%.2f" % (xpos, ypos, delta), number=0)
                     elif self.panelPlots.currentPage in ['DT/MS']:
-                        self.SetStatusText("m/z=%.4f dt=%.4f Δm/z=%.2f" % (xpos, ypos, range), number=0)
+                        self.SetStatusText("m/z=%.4f dt=%.4f Δm/z=%.2f" % (xpos, ypos, delta), number=0)
                     elif self.panelPlots.currentPage in ['RT']:
-                        self.SetStatusText("scan=%.0f int=%.4f Δscans=%.2f" % (xpos, ypos, range), number=0)
+                        self.SetStatusText("scan=%.0f int=%.4f Δscans=%.2f" % (xpos, ypos, delta), number=0)
                     elif self.panelPlots.currentPage in ['1D']:
-                        self.SetStatusText("dt=%.2f int=%.4f Δdt=%.2f" % (xpos, ypos, range), number=0)
+                        self.SetStatusText("dt=%.2f int=%.4f Δdt=%.2f" % (xpos, ypos, delta), number=0)
                     elif self.panelPlots.currentPage in ['2D']:
-                        self.SetStatusText("x=%.4f dt=%.4f Δx=%.2f" % (xpos, ypos, range), number=0)
+                        self.SetStatusText("x=%.4f dt=%.4f Δx=%.2f" % (xpos, ypos, delta), number=0)
                     else:
-                        self.SetStatusText("x=%.4f y=%.4f Δx=%.2f" % (xpos, ypos, range), number=0)
+                        self.SetStatusText("x=%.4f y=%.4f Δx=%.2f" % (xpos, ypos, delta), number=0)
             else:
                 if self.panelPlots.currentPage in ['MS']:
                     self.SetStatusText("m/z=%.4f int=%.4f" % (xpos, ypos), number=0)

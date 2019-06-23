@@ -81,8 +81,17 @@ class data_processing():
         return document
 
     def _get_replot_data(self, data_format):
-        """
-        @param data_format (str): type of data to be returned
+        """Quick function to retrieve plotting data without having to go into the document
+        
+        Parameters
+        ----------
+        data_format: str
+            type of data to be returned
+        
+        Returns
+        -------
+        data: various
+            returns a set of data that is required to replot the data
         """
         # new in 1.1.0
         if data_format == '2D':
@@ -222,7 +231,7 @@ class data_processing():
         document = self._on_get_document()
 
         tstart = ttime()
-        if document.dataType in ['Type: ORIGAMI', 'Type: MANUAL', 'Type: Infrared', 'Type: MassLynx']:
+        if document.dataType in ['Type: ORIGAMI', 'Type: MANUAL', 'Type: Infrared', 'Type: MassLynx', "Type: MS"]:
             panel = self.ionPanel
             tempList = self.ionList
             dataPlot = self.plotsPanel.plot1
@@ -242,10 +251,10 @@ class data_processing():
             pageID = self.config.panelNames['Calibration']
             markerPlot = 'CalibrationMS'
 
-        else:
-            msg = "%s is not supported yet." % document.dataType
-            self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-            return
+#         else:
+#             msg = "%s is not supported yet." % document.dataType
+#             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
+#             return
 
         # A couple of constants
         ymin = 0
@@ -399,8 +408,10 @@ class data_processing():
                     self.presenter.view.panelPlots.on_clear_labels()
 
                     for i, peak in enumerate(peakList):
-                        if i == last_peak: repaint = True
-                        else: repaint = False
+                        if i == last_peak:
+                            repaint = True
+                        else:
+                            repaint = False
 
                         # preset all variables
                         mzStart = peak[0] - (self.config.fit_width * self.config.fit_asymmetric_ratio)
@@ -678,8 +689,10 @@ class data_processing():
                             for mz in peakList:
                                 xmin = np.round(mz[0] - (self.config.fit_width * 0.75), 2)
                                 xmax = xmin + width
-                                try: charge = str(int(mz[2]))
-                                except Exception: charge = ""
+                                try:
+                                    charge = str(int(mz[2]))
+                                except Exception:
+                                    charge = ""
                                 intensity = np.round(mz[1] * 100, 1)
                                 tempList.Append([xmin, xmax, intensity, charge, self.presenter.currentDoc])
                             # Removing duplicates
@@ -690,8 +703,10 @@ class data_processing():
                             for mz in peakList:
                                 xmin = np.round(mz[0] - (self.config.peakWidth * 0.75), 2)
                                 xmax = xmin + width
-                                try: charge = str(int(mz[2]))
-                                except Exception: charge = ""
+                                try:
+                                    charge = str(int(mz[2]))
+                                except Exception:
+                                    charge = ""
                                 intensity = np.round(mz[1] * 100, 1)
                                 tempList.Append([self.presenter.currentDoc, xmin, xmax, "", charge])
                             # Removing duplicates
@@ -1741,15 +1756,16 @@ class data_processing():
 
         return zvals, xlabels, scan_list, parameters
 
-    def find_peaks_in_mass_spectrum(self, **kwargs):
+    def find_peaks_in_mass_spectrum_peak_properties(self, **kwargs):
         mz_x = kwargs.get("mz_x")
         mz_y = kwargs.get("mz_y")
 
         mz_min, mz_max = None, None
         if self.config.peak_find_mz_limit:
             mz_min = self.config.peak_find_mz_min
-            mz_max = self.config.peak_find_mz_max
-        found_peaks = pr_peaks.find_peaks_in_spectrum(
+            mz_max = self.config.peak_find_mz_max
+
+        found_peaks = pr_peaks.find_peaks_in_spectrum_peak_properties(
             mz_x, mz_y,
             threshold=self.config.peak_find_threshold,
             distance=self.config.peak_find_distance,
@@ -1759,8 +1775,115 @@ class data_processing():
             mz_min=mz_min,
             mz_max=mz_max,
             peak_width_modifier=self.config.peak_find_peak_width_modifier,
+            verbose=self.config.peak_find_verbose
             )
 
         if kwargs.get("return_data", False):
             return found_peaks
+
+    def find_peaks_in_mass_spectrum_local_max(self, **kwargs):
+        mz_x = kwargs.get("mz_x")
+        mz_y = kwargs.get("mz_y")
+
+        mz_xy = np.transpose([mz_x, mz_y])
+
+        mz_range = None
+        if self.config.peak_find_mz_limit:
+            mz_min = self.config.peak_find_mz_min
+            mz_max = self.config.peak_find_mz_max
+            mz_range = (mz_min, mz_max)
+
+        found_peaks = pr_peaks.find_peaks_in_spectrum_local_search(
+            mz_xy,
+            self.config.fit_window,
+            self.config.fit_threshold,
+            mz_range,
+            rel_height=self.config.fit_relative_height,
+            verbose=self.config.peak_find_verbose)
+
+        if kwargs.get("return_data", False):
+            return found_peaks
+
+    def find_isotopic_peaks_in_mass_spectrum_local_max(self, peaks_dict, **kwargs):
+        mz_x = kwargs.get("mz_x")
+        mz_y = kwargs.get("mz_y")
+
+        mz_xy = np.transpose([mz_x, mz_y])
+
+        mz_range = None
+        if self.config.peak_find_mz_limit:
+            mz_min = self.config.peak_find_mz_min
+            mz_max = self.config.peak_find_mz_max
+            mz_range = (mz_min, mz_max)
+
+#         found_peaks = pr_peaks.find_peaks_in_spectrum_local_search(
+#             mz_xy,
+#             self.config.fit_window,
+#             self.config.fit_threshold,
+#             mz_range,
+#             rel_height=self.config.fit_relative_height,
+#             verbose=self.config.peak_find_verbose)
+#
+#
+#                         # detect charges
+#                         if self.config.fit_highRes:
+#                             # Iterate over the peaklist
+#                             isotope_peaks_x, isotope_peaks_y = [], []
+#
+#                                     highResPeaks = pr_utils.detect_peaks_spectrum(data=mzNarrow,
+#                                                                                    window=self.config.fit_highRes_window,
+#                                                                                    threshold=self.config.fit_highRes_threshold)
+#
+#                                 peakDiffs = np.diff(highResPeaks[:, 0])
+#                                 if len(peakDiffs) > 0:
+#                                     charge = int(np.round(1 / np.round(np.average(peakDiffs), 4), 0))
+#
+#                                 try:
+#                                     max_index = np.where(highResPeaks[:, 1] == np.max(highResPeaks[:, 1]))
+#                                     isotopic_max_val_x, isotopic_max_val_y = highResPeaks[max_index, :][0][0][0], highResPeaks[max_index, :][0][0][1]
+#                                 except Exception:
+#                                     isotopic_max_val_x, isotopic_max_val_y = None, None
+#
+#                                 # Assumes positive mode
+#                                 peakList[i, 2] = charge
+#                                 if isotopic_max_val_x is not None:
+#                                     peakList[i, 3] = isotopic_max_val_x
+#                                     peakList[i, 4] = isotopic_max_val_y
+#
+#                                 if self.config.fit_highRes_isotopicFit:
+#                                     isotope_peaks_x.append(highResPeaks[:, 0].tolist())
+#                                     isotope_peaks_y.append(highResPeaks[:, 1].tolist())
+#
+#                         # generate label
+#                         if self.config.fit_show_labels and peak_count <= self.config.fit_show_labels_max_count:
+#                             if self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
+#                                 if charge != 0:
+#                                     label = "{:.2f}, {:.2f}\nz={}".format(peak[0], label_height, charge)
+#                                 else:
+#                                     label = "{:.2f}, {:.2f}".format(peak[0], label_height)
+#                             elif self.config.fit_show_labels_mz and not self.config.fit_show_labels_int:
+#                                 if charge != 0:
+#                                     label = "{:.2f}\nz={}".format(peak[0], charge)
+#                                 else:
+#                                     label = "{:.2f}".format(peak[0])
+#                             elif not self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
+#                                 if charge != 0:
+#                                     label = "{:.2f}\nz={}".format(label_height, charge)
+#                                 else:
+#                                     label = "{:.2f}".format(label_height)
+#
+#                         # add isotopic markers
+#                         if self.config.fit_highRes_isotopicFit:
+#                             flat_x = [item for sublist in isotope_peaks_x for item in sublist]
+#                             flat_y = [item for sublist in isotope_peaks_y for item in sublist]
+#                             self.presenter.view.panelPlots.on_plot_markers(xvals=flat_x, yvals=flat_y,
+#                                                                            color=(1, 0, 0), marker='o',
+#                                                                            size=15, plot=markerPlot,
+#                                                                            repaint=repaint)
+
+    def smooth_spectrum(self, mz_y, method="gaussian"):
+        if method == "gaussian":
+            mz_y = pr_spectra.smooth_gaussian_1D(mz_y, self.config.fit_smooth_sigma)
+
+        return mz_y
 
