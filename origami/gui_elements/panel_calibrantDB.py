@@ -1,8 +1,9 @@
 import wx
 import itertools
-from toolbox import str2num, str2int
 from operator import itemgetter
 import numpy as np
+from utils.converters import str2num, str2int
+from styles import ListCtrl
 
 
 class panelCalibrantDB(wx.MiniFrame):
@@ -193,7 +194,7 @@ class panelCalibrantDB(wx.MiniFrame):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse :
+            if self.reverse:
                 self.reverse = False
             else:
                 self.reverse = True

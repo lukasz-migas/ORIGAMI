@@ -45,11 +45,12 @@ from ids import (ID_annotPanel_addAnnotations,
                  ID_annotPanel_show_labelsAtIntensity,
                  ID_annotPanel_show_mzAndIntensity)
 from styles import makeCheckbox, makeMenuItem, makeToggleBtn, validator, ListCtrl
-from toolbox import (_replace_labels, checkExtension)
+from toolbox import (checkExtension)
 from gui_elements.dialog_panelAsk import panelAsk
 from gui_elements.misc_dialogs import dlgBox, dlgAsk
 from utils.color import convertRGB1to255, convertRGB255to1
 from utils.converters import str2num, str2int
+from utils.labels import _replace_labels
 
 # TODO: need to override the on_select_item with the built-in method OR call after with similar method
 

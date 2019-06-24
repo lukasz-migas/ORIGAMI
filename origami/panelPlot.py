@@ -54,8 +54,9 @@ from ids import ID_clearPlot_MS, ID_smooth1DdataMS, ID_smooth1Ddata1DT, ID_smoot
     ID_saveRMSDImageDoc, ID_saveRMSFImageDoc, ID_saveOverlayImageDoc, ID_saveRMSDmatrixImageDoc, ID_saveMZDTImageDoc, \
     ID_saveOtherImageDoc, ID_plots_customise_smart_zoom
 from utils.color import convertRGB1to255, convertRGB1toHEX, randomColorGenerator
-from toolbox import merge_two_dicts, MidpointNormalize
+from toolbox import merge_two_dicts
 from utils.check import isempty
+from visuals.normalize import MidpointNormalize
 
 
 class panelPlot(wx.Panel):
@@ -3662,7 +3663,8 @@ class panelPlot(wx.Panel):
                                   color=color,
                                   marker=marker,
                                   size=size,
-                                  test_yvals=kwargs.get("test_yvals", False))
+                                  test_yvals=kwargs.pop("test_yvals", False),
+                                  **kwargs)
 
         if repaint:
             plot_obj.repaint()

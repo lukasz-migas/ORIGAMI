@@ -19,9 +19,9 @@
 
 import numpy as np
 
-from toolbox import isempty
 from processing.heatmap import normalize_2D
 from processing.spectra import normalize_1D
+from utils.check import isempty
 
 
 def compute_RMSD(inputData1=None, inputData2=None):  # computeRMSD

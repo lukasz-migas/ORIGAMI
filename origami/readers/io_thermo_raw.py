@@ -19,7 +19,7 @@
 
 from utils.multiplierz_lite.mzAPI import raw
 import numpy as np
-from toolbox import clean_filename
+from utils.path import clean_filename
 
 
 class thermoRAWreader():

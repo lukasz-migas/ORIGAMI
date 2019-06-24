@@ -26,7 +26,7 @@ from numpy import arange
 from document import document as documents
 from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
 from styles import makeMenuItem, makeTooltip, ListCtrl
-from toolbox import (literal_eval, merge_two_dicts, removeListDuplicates, roundRGB)
+from toolbox import (merge_two_dicts, removeListDuplicates)
 from gui_elements.dialog_selectDocument import panelSelectDocument
 from gui_elements.dialog_panelAsk import panelAsk
 from gui_elements.misc_dialogs import dlgBox
@@ -45,12 +45,13 @@ from ids import ID_textPanel_addToDocument, ID_textPanel_assignColor, ID_textPan
     ID_textPanel_table_colormap, ID_textPanel_table_alpha, ID_textPanel_table_mask, ID_textPanel_table_document, \
     ID_textPanel_table_label, ID_textPanel_table_shape, ID_textPanel_table_hideAll, ID_textPanel_table_restoreAll, \
     ID_textPanel_about_info
-from utils.color import convertRGB1to255, determineFontColor, convertRGB255to1, randomColorGenerator
+from utils.color import convertRGB1to255, determineFontColor, convertRGB255to1, randomColorGenerator, roundRGB
 from utils.check import isempty
 from utils.time import getTime
 from utils.random import randomIntegerGenerator
 
 import logging
+from ast import literal_eval
 logger = logging.getLogger("origami")
 
 

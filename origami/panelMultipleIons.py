@@ -24,7 +24,7 @@ from pandas import read_csv
 
 from gui_elements.panel_modifyIonSettings import panelModifyIonSettings
 from gui_elements.dialog_colorSelector import dialogColorSelector
-from toolbox import isempty, checkExtension, roundRGB
+from toolbox import checkExtension
 from styles import makeMenuItem, makeTooltip
 from gui_elements.dialog_selectDocument import panelSelectDocument
 from gui_elements.dialog_panelAsk import panelAsk
@@ -51,10 +51,11 @@ from ids import ID_ionPanel_addToDocument, ID_combinedCV_binMSCombinedMenu, ID_i
     ID_processSaveMenu, ID_ionPanel_edit_selected, ID_ionPanel_edit_all, ID_window_ionList, ID_ionPanel_about_info
 
 from styles import ListCtrl
-from utils.color import convertRGB255to1, determineFontColor, randomColorGenerator, convertRGB1to255
+from utils.color import convertRGB255to1, determineFontColor, randomColorGenerator, convertRGB1to255, roundRGB
 from utils.random import randomIntegerGenerator
 
 import logging
+from utils.check import isempty
 logger = logging.getLogger("origami")
 
 

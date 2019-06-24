@@ -22,10 +22,7 @@ from time import time as ttime
 
 from ids import (ID_smooth1DdataMS, ID_smooth1Ddata1DT, ID_smooth1DdataRT,
                  ID_window_multiFieldList, ID_window_ionList, ID_window_ccsList,
-                 ID_processSettings_autoUniDec, ID_processSettings_loadDataUniDec,
-                 ID_processSettings_preprocessUniDec, ID_processSettings_runAll,
-                 ID_processSettings_runUniDec, ID_processSettings_pickPeaksUniDec,
-                 ID_processSettings_isolateZUniDec, ID_combineCEscansSelectedIons)
+                 ID_combineCEscansSelectedIons)
 from document import document as documents
 import processing.spectra as pr_spectra
 import processing.heatmap as pr_heatmap
@@ -35,12 +32,14 @@ import processing.peaks as pr_peaks
 import processing.utils as pr_utils
 import processing.peptide_annotation as pr_frag
 import unidec as unidec
-from toolbox import (str2num, str2int, num2str, convertRGB1to255,
-                             convertRGB255to1, randomIntegerGenerator, isempty,
-                             clean_filename)
+from utils.path import clean_filename
 from gui_elements.misc_dialogs import dlgAsk, dlgBox
 
 import logging
+from utils.check import check_value_order, isempty
+from utils.converters import str2num
+from utils.random import randomIntegerGenerator
+from utils.color import convertRGB255to1
 logger = logging.getLogger("origami")
 
 
@@ -1764,6 +1763,7 @@ class data_processing():
         if self.config.peak_find_mz_limit:
             mz_min = self.config.peak_find_mz_min
             mz_max = self.config.peak_find_mz_max
+            mz_min, mz_max = check_value_order(mz_min, mz_max)
 
         found_peaks = pr_peaks.find_peaks_in_spectrum_peak_properties(
             mz_x, mz_y,
@@ -1791,6 +1791,7 @@ class data_processing():
         if self.config.peak_find_mz_limit:
             mz_min = self.config.peak_find_mz_min
             mz_max = self.config.peak_find_mz_max
+            mz_min, mz_max = check_value_order(mz_min, mz_max)
             mz_range = (mz_min, mz_max)
 
         found_peaks = pr_peaks.find_peaks_in_spectrum_local_search(

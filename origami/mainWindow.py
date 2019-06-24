@@ -47,8 +47,8 @@ from processing.data_handling import data_handling
 from processing.data_processing import data_processing
 from readers.io_text_files import check_file_type
 from styles import makeMenuItem
-from toolbox import (get_latest_version, clean_directory, compare_versions,
-                     findPeakMax, getNarrow1Ddata)
+from toolbox import (get_latest_version, compare_versions)
+from utils.path import clean_directory
 from ids import ID_fileMenu_MGF, ID_fileMenu_mzML, \
     ID_fileMenu_openRecent, ID_openDocument, ID_load_origami_masslynx_raw, ID_load_multiple_origami_masslynx_raw, \
     ID_load_multiple_masslynx_raw, ID_addCCScalibrantFile, ID_openLinearDTRawFile, ID_load_masslynx_raw_ms_only, \

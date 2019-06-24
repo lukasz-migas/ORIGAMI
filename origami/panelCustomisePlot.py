@@ -23,8 +23,9 @@ import matplotlib.ticker as ticker
 import numpy as np
 
 from styles import makeCheckbox, validator
-from toolbox import MidpointNormalize, _replace_labels
+from utils.labels import _replace_labels
 from utils.converters import str2num
+from visuals.normalize import MidpointNormalize
 
 
 class panelCustomisePlot(wx.Dialog):

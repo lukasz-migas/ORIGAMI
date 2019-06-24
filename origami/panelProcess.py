@@ -25,7 +25,6 @@ import numpy as np
 from natsort import natsorted
 from operator import itemgetter
 
-from toolbox import (str2num, str2int)
 from styles import (makeToggleBtn, validator, makeCheckbox, makeSuperTip,
                     makeStaticBox, makeTooltip)
 from ids import (ID_processSettings_replotMS, ID_processSettings_processMS,
@@ -46,6 +45,7 @@ from gui_elements.misc_dialogs import dlgBox
 import logging
 from utils.time import ttime
 from utils.check import check_value_order
+from utils.converters import str2num, str2int
 logger = logging.getLogger("origami")
 
 

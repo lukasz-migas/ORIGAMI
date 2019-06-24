@@ -4,9 +4,9 @@
 #    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
 #
-#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#	 Cite : 10.1016/j.ijms.2017.08.014
+# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
+# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
+# 	 Cite : 10.1016/j.ijms.2017.08.014
 #
 #    This program is free software. Feel free to redistribute it and/or
 #    modify it under the condition you cite and credit the authors whenever
@@ -26,7 +26,8 @@ from ids import (
     ID_compareMS_MS_1, ID_compareMS_MS_2, ID_extraSettings_legend,
     ID_extraSettings_plot1D, ID_processSettings_MS)
 from styles import makeCheckbox, makeStaticBox, makeSuperTip
-from toolbox import convertRGB1to255, convertRGB255to1, str2num
+from utils.color import convertRGB1to255, convertRGB255to1
+from utils.converters import str2num
 
 
 class panel_signal_comparison_viewer(wx.MiniFrame):
@@ -153,8 +154,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.msSpectrum1_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.lineColour_MS1))
 
         self.msSpectrum1_transparency = wx.SpinCtrlDouble(panel, -1,
-                                                          value=str(self.config.lineTransparency_MS1*100),
-                                                          min=0, max=100, initial=self.config.lineTransparency_MS1*100,
+                                                          value=str(self.config.lineTransparency_MS1 * 100),
+                                                          min=0, max=100, initial=self.config.lineTransparency_MS1 * 100,
                                                           inc=10, size=(90, -1))
 
         self.msSpectrum1_lineStyle_value = wx.ComboBox(panel, choices=self.config.lineStylesList,
@@ -181,8 +182,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.msSpectrum2_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.lineColour_MS2))
 
         self.msSpectrum2_transparency = wx.SpinCtrlDouble(panel, -1,
-                                                          value=str(self.config.lineTransparency_MS1*100),
-                                                          min=0, max=100, initial=self.config.lineTransparency_MS1*100,
+                                                          value=str(self.config.lineTransparency_MS1 * 100),
+                                                          min=0, max=100, initial=self.config.lineTransparency_MS1 * 100,
                                                           inc=10, size=(90, -1))
 
         self.msSpectrum2_lineStyle_value = wx.ComboBox(panel, choices=self.config.lineStylesList,
@@ -286,14 +287,14 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         y = 0
         ms1_grid.Add(document1_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms1_grid.Add(self.document1_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         ms1_grid.Add(msSpectrum1_spectrum_label, (y, 0), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms1_grid.Add(self.msSpectrum1_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         ms1_grid.Add(label1_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms1_grid.Add(self.label1_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         ms1_grid.Add(msSpectrum1_color_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms1_grid.Add(self.msSpectrum1_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         ms1_grid.Add(msSpectrum1_transparency_label, (y, 2), wx.GBSpan(
@@ -311,14 +312,14 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         y = 0
         ms2_grid.Add(document2_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms2_grid.Add(self.document2_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         ms2_grid.Add(msSpectrum2_spectrum_label, (y, 0), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms2_grid.Add(self.msSpectrum2_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         ms2_grid.Add(label2_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms2_grid.Add(self.label2_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         ms2_grid.Add(msSpectrum2_color_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms2_grid.Add(self.msSpectrum2_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         ms2_grid.Add(msSpectrum2_transparency_label, (y, 2), wx.GBSpan(
@@ -344,18 +345,18 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         grid = wx.GridBagSizer(GRIDBAG_VSPACE, GRIDBAG_HSPACE)
         y = 0
         grid.Add(ms1_box_sizer, (y, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         grid.Add(ms2_box_sizer, (y, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         grid.Add(processing_box_sizer, (y, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         grid.Add(horizontal_line_1, (y, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
         grid.Add(settings_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(btn_grid, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        y = y+1
+        y = y + 1
         grid.Add(horizontal_line_2, (y, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        y = y+1
+        y = y + 1
         grid.Add(self.selectBtn, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(self.plotBtn, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(self.cancelBtn, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
@@ -386,10 +387,10 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
     def updateMS(self, evt):
         self.config.compare_massSpectrum = [self.msSpectrum1_value.GetStringSelection(),
                                             self.msSpectrum2_value.GetStringSelection()]
-        self.config.lineTransparency_MS1 = str2num(self.msSpectrum1_transparency.GetValue())/100
+        self.config.lineTransparency_MS1 = str2num(self.msSpectrum1_transparency.GetValue()) / 100
         self.config.lineStyle_MS1 = self.msSpectrum1_lineStyle_value.GetStringSelection()
 
-        self.config.lineTransparency_MS2 = str2num(self.msSpectrum2_transparency.GetValue())/100
+        self.config.lineTransparency_MS2 = str2num(self.msSpectrum2_transparency.GetValue()) / 100
         self.config.lineStyle_MS2 = self.msSpectrum2_lineStyle_value.GetStringSelection()
 
         self.config.compare_massSpectrumParams['preprocess'] = self.preprocess_check.GetValue()

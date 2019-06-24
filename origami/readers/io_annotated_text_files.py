@@ -22,7 +22,8 @@ import numpy as np
 import os
 import time
 
-from toolbox import convertHEXtoRGB1, _replace_labels
+from utils.color import convertHEXtoRGB1
+from utils.labels import _replace_labels
 
 
 class MetaTextReader():

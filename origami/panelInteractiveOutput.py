@@ -94,7 +94,8 @@ from ids import ID_interactivePanel_customise_item, ID_interactivePanel_copy_all
     ID_changeColormapInteractive, ID_interactivePanel_color_markerEdge
 from utils.color import convertRGB1to255, convertRGB1toHEX, determineFontColor, convertHEXtoRGB255
 from utils.converters import str2int, str2num
-from toolbox import merge_two_dicts, _replace_labels, find_limits_all, remove_nan_from_list, find_limits_list
+from toolbox import merge_two_dicts, find_limits_all, remove_nan_from_list, find_limits_list
+from utils.labels import _replace_labels
 
 import warnings
 # needed to avoid annoying warnings to be printed on console

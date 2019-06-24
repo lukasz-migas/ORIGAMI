@@ -27,7 +27,7 @@ import numpy as np
 from time import time as ttime
 from re import split as re_split
 
-from toolbox import (str2int, str2num, saveAsText)
+from toolbox import saveAsText
 from styles import (makeCheckbox, makeStaticBox, makeMenuItem, validator)
 from gui_elements.dialog_customise_peptide_annotations import dialog_customise_peptide_annotations
 from ids import (ID_uvpd_laser_on_off_compare_chromatogam, ID_uvpd_laser_on_off_compare_mobiligram,

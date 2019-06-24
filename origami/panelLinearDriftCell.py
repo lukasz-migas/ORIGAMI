@@ -23,8 +23,8 @@ import wx.lib.mixins.listctrl as listmix
 from operator import itemgetter
 
 from ids import *
-from toolbox import str2num, str2int
 from gui_elements.misc_dialogs import dlgBox
+from utils.converters import str2num, str2int
 
 
 class panelLinearDriftCell(wx.Panel):

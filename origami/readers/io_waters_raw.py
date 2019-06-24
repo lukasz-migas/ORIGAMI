@@ -18,15 +18,12 @@
 # __author__ lukasz.g.migas
 
 import os.path
-import time
-from ctypes import byref, c_float, cdll
-from subprocess import CREATE_NEW_CONSOLE, Popen, call
+from subprocess import CREATE_NEW_CONSOLE, Popen
 
 import numpy as np
 
 from gui_elements.misc_dialogs import dlgBox
 from readers.io_utils import clean_up
-from processing.spectra import bin_1D, get_linearization_range, linearize
 from toolbox import strictly_increasing
 
 import logging

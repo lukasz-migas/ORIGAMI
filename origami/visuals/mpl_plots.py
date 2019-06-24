@@ -40,11 +40,13 @@ from seaborn import color_palette
 from visuals.mpl_plotter import mpl_plotter
 from processing.heatmap import normalize_2D
 from processing.spectra import normalize_1D
-from toolbox import (determineFontColor, convertRGB1to255,
-                     find_limits_list, MidpointNormalize, merge_two_dicts,
-                     str2num, str2int, randomColorGenerator, _replace_labels,
+from toolbox import (find_limits_list, merge_two_dicts,
                      remove_nan_from_list, find_limits_all)
+from utils.labels import _replace_labels
+from visuals.normalize import MidpointNormalize
 from gui_elements.misc_dialogs import dlgBox
+from utils.converters import str2num, str2int
+from utils.color import randomColorGenerator, convertRGB1to255, determineFontColor
 
 # from mpl_toolkits.mplot3d import Axes3D
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -94,23 +96,30 @@ class plots(mpl_plotter):
         """
         self.plot_kwargs = kwargs
 
-    def _convert_label(self, label, label_format):
+    @staticmethod
+    def _convert_label(label, label_format):
         if label_format == "String":
-            try: new_label = str(label)
-            except UnicodeEncodeError: new_label = str(label)
+            try:
+                new_label = str(label)
+            except UnicodeEncodeError:
+                new_label = str(label)
         elif label_format == "Float":
             new_label = str2num(label)
             if new_label in [None, "None"]:
-                try: new_label = str(label)
-                except UnicodeEncodeError: new_label = str(label)
+                try:
+                    new_label = str(label)
+                except UnicodeEncodeError:
+                    new_label = str(label)
         elif label_format == "Integer":
             new_label = str2int(label)
             if new_label in [None, "None"]:
                 new_label = str2num(label)
                 new_label = str2int(new_label)
                 if new_label in [None, "None"]:
-                    try: new_label = str(label)
-                    except UnicodeEncodeError: new_label = str(label)
+                    try:
+                        new_label = str(label)
+                    except UnicodeEncodeError:
+                        new_label = str(label)
 
         return new_label
 
@@ -134,7 +143,7 @@ class plots(mpl_plotter):
     def _convert_intensities(self, values, label, set_divider=True, convert_values=True):
         """ Function to check whether x/y axis labels do not need formatting """
 
-        baseDiv, increment = 10, 10
+        increment = 10
         divider = 1
 
         try:
@@ -160,8 +169,7 @@ class plots(mpl_plotter):
             divider = 1
 
         if expo > 1:
-            offset_text = r'x$\mathregular{10^{%d}}$' % expo
-            label = ''.join([label, " [", offset_text, "]"])
+            label = self._add_exponent_to_label(label, expo)
             if convert_values:
                 values = np.divide(values, float(divider))
 
@@ -170,7 +178,23 @@ class plots(mpl_plotter):
 
         return values, label, divider
 
-    def _add_exponent_to_label(self, label, divider):
+    def _convert_intensities_with_preset_divider(self, values, label):
+        if self.y_divider is None:
+            __, __, __ = self._convert_intensities(values, label)
+
+        divider = self.y_divider
+        expo = len(str(divider)) - len(str(divider).rstrip('0'))
+
+        if expo > 1:
+            offset_text = r'x$\mathregular{10^{%d}}$' % expo
+            label = ''.join([label, " [", offset_text, "]"])
+
+        values = np.divide(values, float(divider))
+
+        return values, label, divider
+
+    @staticmethod
+    def _add_exponent_to_label(label, divider):
         expo = len(str(divider)) - len(str(divider).rstrip('0'))
 
         if expo > 1:
@@ -378,12 +402,14 @@ class plots(mpl_plotter):
                          test_yvals=False, test_xvals=False, **kwargs):
 
         if test_yvals:
-            ydivider, expo = self.testXYmaxValsUpdated(values=yvals)
-            if expo > 1:
-                yvals = np.divide(yvals, float(ydivider))
+            yvals, __, __ = self._convert_intensities(yvals, "")
+
+        if kwargs.get("test_yvals_with_preset_divider", False):
+            print("??")
+            yvals, __, __ = self._convert_intensities_with_preset_divider(yvals, label)
 
         if test_xvals:
-            xvals, xlabel, __ = self.kda_test(xvals)
+            xvals, __, __ = self.kda_test(xvals)
 
         markers = self.plotMS.scatter(xvals, yvals, color=color, marker=marker,
                                       s=size, label=label,

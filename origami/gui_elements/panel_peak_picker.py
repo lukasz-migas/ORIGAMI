@@ -580,7 +580,10 @@ class panel_peak_picker(wx.MiniFrame):
         self.config.fit_show_labels_max_count = str2int(self.visualize_max_labels.GetValue())
         self.config.fit_show_labels_mz = self.visualize_show_labels_mz_check.GetValue()
         self.config.fit_show_labels_int = self.visualize_show_labels_int_check.GetValue()
-        print(self.config.peak_find_verbose)
+
+        # ui
+        self.config.fit_addPeaks = self.data_add_peaks_to_peaklist.GetValue()
+        self.config.fit_addPeaksToAnnotations = self.data_add_peaks_to_annotations.GetValue()
         # gui parameters
 #         self.show_smoothed_spectrum = self.fit_show_smoothed.GetValue()
 
@@ -638,7 +641,8 @@ class panel_peak_picker(wx.MiniFrame):
         # plot found peaks
         self.on_annotate_spectrum(peaks_dict)
 
-        self.on_add_to_peaklist(peaks_dict)
+        if self.config.fit_addPeaks:
+            self.on_add_to_peaklist(peaks_dict)
 
     def on_plot_spectrum(self, mz_x, mz_y):
         """Plot mass spectrum"""
@@ -699,8 +703,9 @@ class panel_peak_picker(wx.MiniFrame):
                                       size=self.config.markerSize_1D,
                                       plot=None,
                                       plot_obj=self.plot_window,
-                                      test_yvals=True,
-                                      clear_first=False)
+                                      test_yvals=False,
+                                      clear_first=False,
+                                      test_yvals_with_preset_divider=True)
 
         # add `rectangle`-like patches to the plot area to highlight each ion
         if self.config.fit_highlight:
@@ -724,8 +729,9 @@ class panel_peak_picker(wx.MiniFrame):
 
         # replot plot in case anything was added
         self.plot_window.repaint()
+
         if self.config.peak_find_verbose:
-            logger.info(f"Plotted found peaks in {ttime()-tstart:.4f} seconds.")
+            logger.info(f"Plotted peaks in {ttime()-tstart:.4f} seconds.")
 
     def on_add_to_peaklist(self, peaks_dict):
         document_type = self.document.dataType

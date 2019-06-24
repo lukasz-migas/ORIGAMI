@@ -34,7 +34,8 @@ from panel_signal_comparison_viewer import panel_signal_comparison_viewer
 from panelInformation import panelDocumentInfo
 from panelTandemSpectra import panelTandemSpectra
 from ids import *
-from toolbox import (saveAsText, merge_two_dicts, _replace_labels)
+from toolbox import (saveAsText, merge_two_dicts)
+from utils.labels import _replace_labels
 from processing.spectra import normalize_1D, subtract_1D
 from readers.io_text_files import text_heatmap_open
 from styles import makeMenuItem

@@ -88,7 +88,9 @@ Processing:
     can also be accessed by going to Document -> Action -> Open DT/MS extraction panel...
 - [new] added new peak picking module that can be activated when you right-click in the document view on any
     MS dataset and select `Open peak picker...` which will open a new window where youc an select between two different
-    peak picking algorithms
+    peak picking algorithms:
+        - one that is pretty good for small molecules which is based on the principle of peak properties
+        - one that is pretty good for native MS and is based on local maxima search - data should be smoothed first
 
 Ion panel:
 - [fix] when assigning single color to multiple items and the action was cancelled, an error would occur

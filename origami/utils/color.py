@@ -221,3 +221,10 @@ def remap_values(x, nMin, nMax, oMin=None, oMax=None, type_format='int'):
 
 def combine_rgb(data_list):
     return np.sum(data_list, axis=0)
+
+
+def roundRGB(rgbList, decimals=3):
+    rgbList = list([round(rgbList[0], decimals),
+                    round(rgbList[1], decimals),
+                    round(rgbList[2], decimals)])
+    return rgbList

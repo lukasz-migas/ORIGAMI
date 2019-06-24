@@ -2,6 +2,7 @@ import os
 from utils.converters import byte2str
 
 import logging
+import shutil
 logger = logging.getLogger("origami")
 
 __all__ = ["get_path_and_fname", "clean_up_folder", "check_waters_path", "check_path_exists", "check_file_exists"]
@@ -74,3 +75,29 @@ def clean_up_MDD_path(path):
 
 def get_base_path(filepath):
     return os.path.dirname(filepath)
+
+
+def clean_filename(filename):
+    filename = filename.replace(".csv", "").replace(".txt", "").replace(".raw", "")
+    filename = filename.replace(".tab", "").replace(".RAW", "").replace(".mgf", "")
+    filename = filename.replace(".mzML", "").replace(".mzIdentML", "").replace(":", "")
+    filename = filename.replace("/", "").replace("~", "").replace("@", "at")
+    filename = filename.replace("[", "_").replace("]", "_")
+
+    return filename
+
+
+def clean_directory(dirpath):
+    """Iterate over specified directory and delete all files and directories"""
+    for filename in os.listdir(dirpath):
+        filepath = os.path.join(dirpath, filename)
+        # remove directory
+        try:
+            shutil.rmtree(filepath)
+        # remove files
+        except OSError:
+            try:
+                os.remove(filepath)
+            except Exception:
+                continue
+

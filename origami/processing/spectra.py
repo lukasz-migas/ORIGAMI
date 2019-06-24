@@ -22,7 +22,6 @@ import numpy as np
 from bisect import bisect_left
 from scipy.signal import savgol_filter
 from scipy.ndimage import gaussian_filter
-from toolbox import getNarrow1Ddata
 from gui_elements.misc_dialogs import dlgBox
 from scipy.interpolate.interpolate import interp1d
 
