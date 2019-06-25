@@ -32,29 +32,28 @@ class panelPeakWidthTool(wx.MiniFrame):
     def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
-    # ----
 
     def make_gui(self):
         # make panel
         panel = self.makeSelectionPanel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 0, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 0, wx.EXPAND, 0)
 
         # bind events
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
         self.fitBtn.Bind(wx.EVT_BUTTON, self.on_fit_peak)
-        self.okBtn.Bind(wx.EVT_BUTTON, self.on_OK)
+        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def makeSelectionPanel(self):
 
         panel = wx.Panel(self, -1)
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.plotMS = mpl_plots.plots(panel, figsize=(6, 3), config=self.config)
 
@@ -83,8 +82,8 @@ class panelPeakWidthTool(wx.MiniFrame):
                      'footer_line': False}
         _tip = makeSuperTip(self.fitBtn, **help_peak)
 
-        self.okBtn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
 
         peak_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -106,18 +105,18 @@ class panelPeakWidthTool(wx.MiniFrame):
         grid = wx.GridBagSizer(5, 5)
         grid.Add(self.plotMS, (0, 0), wx.GBSpan(3, 2))
         grid.Add(peak_grid, (0, 3), wx.GBSpan(1, 2))
-        grid.Add(self.okBtn, (3, 3), wx.GBSpan(1, 1))
-        grid.Add(self.cancelBtn, (3, 4), wx.GBSpan(1, 1))
+        grid.Add(self.ok_btn, (3, 3), wx.GBSpan(1, 1))
+        grid.Add(self.cancel_btn, (3, 4), wx.GBSpan(1, 1))
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
-    def on_OK(self, evt):
+    def on_ok(self, evt):
         width = self.unidec_fit_peakWidth_value.GetValue()
         function = self.unidec_peakFcn_choice.GetStringSelection()
         if width == "" or width is None:
@@ -125,9 +124,9 @@ class panelPeakWidthTool(wx.MiniFrame):
                    exceptionMsg="Could not complete action. Pick peaks first?",
                    type="Error")
             return
-        else:
-            self.parent.unidec_fit_peakWidth_value.SetValue("{:.4f}".format(str2num(width)))
-            self.parent.unidec_peakFcn_choice.SetStringSelection(function)
+
+        self.parent.unidec_fit_peakWidth_value.SetValue("{:.4f}".format(str2num(width)))
+        self.parent.unidec_peakFcn_choice.SetStringSelection(function)
         self.Destroy()
 
     def on_crop_data(self):
@@ -174,7 +173,6 @@ class panelPeakWidthTool(wx.MiniFrame):
 
     def on_plot_MS_with_Fit(self, xvals, yvals, fit_xvals, fit_yvals, xlimits=None, **kwargs):
         """
-
         """
 
         # Build kwargs
@@ -183,7 +181,6 @@ class panelPeakWidthTool(wx.MiniFrame):
         # Plot MS
         self.plotMS.clearPlot()
         self.plotMS.plot_1D(xvals=xvals, yvals=yvals,
-                            #                             xlimits=xlimits,
                             xlabel="m/z",
                             ylabel="Intensity",
                             axesSize=[0.1, 0.2, 0.8, 0.75],

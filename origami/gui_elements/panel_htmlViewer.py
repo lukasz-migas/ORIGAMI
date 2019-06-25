@@ -27,7 +27,7 @@ class panelHTMLViewer(wx.MiniFrame):
         os.chdir(self.config.cwd)
 
         self.label_header.SetPage(msg)
-        self.label_header.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.onURL)
+        self.label_header.Bind(wx.html.EVT_HTML_LINK_CLICKED, self.on_url)
         self.SetTitle(title)
 
         try:
@@ -62,12 +62,10 @@ class panelHTMLViewer(wx.MiniFrame):
         # reset working directory
         os.chdir(cwd)
 
-    def onURL(self, evt):
+    def on_url(self, evt):
         link = evt.GetLinkInfo()
         webbrowser.open(link.GetHref())
-        return
 
     def on_close(self, evt):
         """Destroy this frame."""
-
         self.Destroy()

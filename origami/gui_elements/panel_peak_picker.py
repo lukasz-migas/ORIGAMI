@@ -759,4 +759,3 @@ class panel_peak_picker(wx.MiniFrame):
                             "mask": self.config.overlay_defaultMask,
                             "document": self.document_title}
                 self.ionPanel.on_add_to_table(add_dict)
-

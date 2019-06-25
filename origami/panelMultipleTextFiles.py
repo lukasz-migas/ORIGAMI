@@ -66,10 +66,6 @@ class panelMultipleTextFiles (wx.Panel):
         self.presenter = presenter
         self.icons = icons
 
-        self.allChecked = True
-        self.reverse = False
-        self.lastColumn = None
-        self.listOfSelected = []
         self.addToDocument = False
         self.normalize1D = True
         self.plotAutomatically = True

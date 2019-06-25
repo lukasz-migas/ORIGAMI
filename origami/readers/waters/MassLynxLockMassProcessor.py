@@ -36,8 +36,6 @@ class MasslynxLockMassProcessor(object):
         else:
             self._codeHandler.CheckReturnCode(1)
 
-        return
-
     def _setRawPath(self, path):
         ml_bytes = str.encode(path)
         setRawPath = MassLynxRawReader.massLynxDll.setRawPath

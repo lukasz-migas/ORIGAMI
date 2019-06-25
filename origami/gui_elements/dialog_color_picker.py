@@ -17,10 +17,12 @@ class DialogColorPicker(wx.ColourDialog):
     def ShowModal(self):
         """ Simplified ShowModal(), returning strings 'ok' or 'cancel'. """
         result = wx.ColourDialog.ShowModal(self)
+
+        return_value = "cancel"
         if result == wx.ID_OK:
-            return 'ok'
-        else:
-            return 'cancel'
+            return_value = 'ok'
+
+        return return_value
 
     def GetChosenColour(self):
         """ Shorthand... """

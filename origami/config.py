@@ -20,7 +20,7 @@
 import glob
 import os.path
 import platform
-import xml.dom.minidom
+import defusedxml.minidom
 import xml.parsers.expat
 from ast import literal_eval
 from collections import OrderedDict
@@ -1356,45 +1356,41 @@ class OrigamiConfig:
     def initilize_colormaps(self):
         self.colormapMode = 0
 
-        mapList = colormaps()  # + cmocean.cmapnames
+        mapList = colormaps()
         self.cmaps2 = sorted(mapList)
-#         self.cmocean_cmaps = cmocean.cmapnames
 
     def initilize_paths(self, return_check=False):
         self.system = platform.system()
 
         alternative_driftscope_path = os.path.join(self.cwd, self.driftscopePath_dist)
-        print(alternative_driftscope_path)
         # Check if driftscope exists
         if not os.path.isdir(self.driftscopePath):
             if not os.path.isdir(alternative_driftscope_path):
-                print('Could not find Driftscope path')
-                msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
+                msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder." + \
+                    " It usually exists under C:\DriftScope\lib"
                 dlgBox(exceptionTitle='Could not find Driftscope',
                                exceptionMsg=msg,
                                type="Warning")
                 return False
-            else:
-                self.driftscopePath = alternative_driftscope_path
+            self.driftscopePath = alternative_driftscope_path
 
         if not os.path.isfile(self.driftscopePath + "\imextract.exe"):
-            print('Could not find imextract.exe')
-            msg = "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib"
+            msg = "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder." + \
+                " It usually exists under C:\DriftScope\lib"
             dlgBox(exceptionTitle='Could not find Driftscope',
                            exceptionMsg=msg,
                            type="Warning")
             return False
 
-        self.origamiPath = ""
+        print(("Driftscope Path: {}".format(self.driftscopePath)))
 
         if return_check:
             return True
-        else:
-            print(("Driftscope Path: {}".format(self.driftscopePath)))
 
-    def get_pusher_frequency(self, parameters, mode="V"):
-        mode = 'V'
-        """           V           W
+    @staticmethod
+    def get_pusher_frequency(parameters, mode="V"):
+        """
+        mode           V           W
         600         39.25       75.25
         1200        54.25       106.25
         2000        69.25       137.25
@@ -1403,10 +1399,9 @@ class OrigamiConfig:
         14000       182.25      363.25
         32000       274.25      547.25
         100000      486.25      547.25
-        """
-        """
         Check what pusher frequency should be used
         """
+
         if mode == "V":
             if parameters['endMS'] <= 600:
                 parameters['pusherFreq'] = 39.25
@@ -1461,44 +1456,62 @@ class OrigamiConfig:
         i = 0  # hacky way to get the correct collision voltage value
         for line in f:
             if "Start Mass" in line:
-                try: parameters['startMS'] = str2num(str(line.split()[2]))
-                except Exception: pass
+                try:
+                    parameters['startMS'] = str2num(str(line.split()[2]))
+                except Exception:
+                    pass
             if "MSMS End Mass" in line:
-                try: parameters['endMS'] = str2num(str(line.split()[3]))
-                except Exception: pass
+                try:
+                    parameters['endMS'] = str2num(str(line.split()[3]))
+                except Exception:
+                    pass
             elif "End Mass" in line:
-                try: parameters['endMS'] = str2num(str(line.split()[2]))
-                except Exception: pass
+                try:
+                    parameters['endMS'] = str2num(str(line.split()[2]))
+                except Exception:
+                    pass
             if "Set Mass" in line:
-                try: parameters['setMS'] = str2num(str(line.split()[2]))
-                except Exception: pass
+                try:
+                    parameters['setMS'] = str2num(str(line.split()[2]))
+                except Exception:
+                    pass
             if "Scan Time (sec)" in line:
-                try: parameters['scanTime'] = str2num(str(line.split()[3]))
-                except Exception: pass
+                try:
+                    parameters['scanTime'] = str2num(str(line.split()[3]))
+                except Exception:
+                    pass
             if "Polarity" in line:
-                try: parameters['ionPolarity'] = str(line.split()[1])
-                except Exception: pass
+                try:
+                    parameters['ionPolarity'] = str(line.split()[1])
+                except Exception:
+                    pass
             if "Sensitivity" in line:
                 try: parameters['modeSensitivity'] = str(line.split()[1])
                 except Exception: pass
             if "Analyser" in line:
-                try: parameters['modeAnalyser'] = str(line.split()[1])
-                except Exception: pass
+                try:
+                    parameters['modeAnalyser'] = str(line.split()[1])
+                except Exception:
+                    pass
             if "EDC Delay Coefficient" in line:
                 try:
                     parameters['corrC'] = str2num(str(line.split()[3]))
-                except Exception: pass
+                except Exception:
+                    pass
             if "Trap Collision Energy" in line:
                 if i == 1:
-                    try: parameters['trapCE'] = str2num(str(line.split()[3]))
-                    except Exception: pass
+                    try:
+                        parameters['trapCE'] = str2num(str(line.split()[3]))
+                    except Exception:
+                        pass
                 i += 1
         f.close()
         parameters = self.get_pusher_frequency(parameters=parameters, mode="V")
 
         return parameters
 
-    def get_waters_header_data(self, path):
+    @staticmethod
+    def get_waters_header_data(path):
         '''
         Imports information file for selected MassLynx file
         '''
@@ -1520,15 +1533,6 @@ class OrigamiConfig:
                         break
         except UnicodeDecodeError:
             return ""
-
-#         f = open(fileName, 'r')
-#         i = 0  # hacky way to get the correct collision voltage value
-#         for line in f:
-#             if "$$ Sample Description:" in line:
-#                 splitline = line.split(" ")
-#                 line = " ".join(splitline[1::])
-#                 fileInfo['SampleDescription'] = line
-#         f.close()
 
         return fileInfo
 
@@ -1563,35 +1567,55 @@ class OrigamiConfig:
 
         for line in f:
             if "method" in line:
-                try: parameters['method'] = str(line.split()[1])
-                except Exception: pass
+                try:
+                    parameters['method'] = str(line.split()[1])
+                except Exception:
+                    pass
             if "start" in line:
-                try: parameters['startVoltage'] = str2num(str(line.split()[1]))
-                except Exception: pass
+                try:
+                    parameters['startVoltage'] = str2num(str(line.split()[1]))
+                except Exception:
+                    pass
             if "spv" in line:
-                try: parameters['spv'] = str2int(str(line.split()[1]))
-                except Exception: pass
+                try:
+                    parameters['spv'] = str2int(str(line.split()[1]))
+                except Exception:
+                    pass
             if "end" in line:
-                try: parameters['endVoltage'] = str2num(str(line.split()[1]))
-                except Exception: pass
+                try:
+                    parameters['endVoltage'] = str2num(str(line.split()[1]))
+                except Exception:
+                    pass
             if "step" in line:
-                try: parameters['stepVoltage'] = str2num(str(line.split()[1]))
-                except Exception: pass
+                try:
+                    parameters['stepVoltage'] = str2num(str(line.split()[1]))
+                except Exception:
+                    pass
             if "expIncrement" in line:
-                try: parameters['expIncrement'] = str2num(str(line.split()[1]))
-                except Exception: pass
+                try:
+                    parameters['expIncrement'] = str2num(str(line.split()[1]))
+                except Exception:
+                    pass
             if "expPercentage" in line:
-                try: parameters['expPercentage'] = str2num(str(line.split()[1]))
-                except Exception: pass
+                try:
+                    parameters['expPercentage'] = str2num(str(line.split()[1]))
+                except Exception:
+                    pass
             if "dx" in line:
-                try: parameters['dx'] = str2num(str(line.split()[1]))
-                except Exception: pass
+                try:
+                    parameters['dx'] = str2num(str(line.split()[1]))
+                except Exception:
+                    pass
             if "SPVsList" in line:
-                try: parameters['spvList'] = str(line.split()[1::])
-                except Exception: pass
+                try:
+                    parameters['spvList'] = str(line.split()[1::])
+                except Exception:
+                    pass
             if "CVsList" in line:
-                try: parameters['cvList'] = str(line.split()[1::])
-                except Exception: pass
+                try:
+                    parameters['cvList'] = str(line.split()[1::])
+                except Exception:
+                    pass
         f.close()
 
         # Also check if there is a list file
@@ -1723,8 +1747,11 @@ class OrigamiConfig:
         # Custom colors
         buff += '  <custom_colors>\n'
         for i in self.customColors:
-            try: color_text = "[{:d}, {:d}, {:d}]".format(int(self.customColors[i][0]), int(self.customColors[i][1]), int(self.customColors[i][2]))
-            except Exception: color_text = str(self.customColors[i])
+            try:
+                color_text = "[{:d}, {:d}, {:d}]".format(
+                    int(self.customColors[i][0]), int(self.customColors[i][1]), int(self.customColors[i][2]))
+            except Exception:
+                color_text = str(self.customColors[i])
             buff += '    <param name="{}" value="{}" type="color" />\n'.format('_'.join(["color", str(i)]), color_text)
         buff += '  </custom_colors>\n\n'
 
@@ -2253,7 +2280,7 @@ class OrigamiConfig:
     def loadConfigXML(self, path, evt=None):
 
         try:
-            document = xml.dom.minidom.parse(path)
+            document = defusedxml.minidom.parse(path)
         except IOError:
             print('Missing configuration file')
             self.saveConfigXML(path='configOut.xml', evt=None)
