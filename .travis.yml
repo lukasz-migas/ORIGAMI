@@ -56,12 +56,12 @@ before_install:
 # https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.6-cp36-cp36m-linux_x86_64.whl
 install:
   - pip install --upgrade pip || pip3 install --upgrade pip
+  - pip install -r requirements_origami_travis.txt
   - if [[ "${Image}" == "Linux_37" ]]; then
     pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython;
     elif [[ "${Image}" == "Win10_37" ]]; then
     pip install -U wxPython;
     fi;
-  - pip install -r requirements_origami_travis.txt
 
   # install test dependencies
   - if [[ "${TEST}" == "flake" ]]; then
