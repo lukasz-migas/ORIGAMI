@@ -28,7 +28,6 @@ lxml==4.3.2
 MarkupSafe==1.1.1
 matplotlib==3.0.3
 mccabe==0.6.1
-multiplierz==2.0
 natsort==6.0.0
 nbformat==4.4.0
 networkx==2.2
@@ -46,7 +45,6 @@ pyimzML==1.2.4
 pylint==2.3.1
 pymzml==2.0.6
 pyparsing==2.3.1
-pypiwin32==223
 Pypubsub==4.0.3
 pyrsistent==0.14.11
 pyteomics==4.0.1
