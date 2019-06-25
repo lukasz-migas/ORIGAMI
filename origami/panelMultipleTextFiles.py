@@ -52,6 +52,7 @@ from utils.random import randomIntegerGenerator
 
 import logging
 from ast import literal_eval
+from gui_elements.dialog_color_picker import DialogColorPicker
 logger = logging.getLogger("origami")
 
 
@@ -979,25 +980,13 @@ class panelMultipleTextFiles (wx.Panel):
             return information['document']
 
     def OnGetColor(self, evt):
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.Centre()
-        dlg.GetColourData().SetChooseFull(True)
 
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            __, color_1, __ = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
 
-            # Retrieve custom colors
-            for i in range(len(self.config.customColors)):
-                self.config.customColors[i] = data.GetCustomColour(i)
-
-            return convertRGB255to1(newColour)
+            return color_1
 
     def on_assign_color(self, evt, itemID=None, give_value=False):
         """

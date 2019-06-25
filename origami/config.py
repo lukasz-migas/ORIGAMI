@@ -50,19 +50,19 @@ class OrigamiConfig:
         self.document_version = "19-10-2018"
         self.unidec_engine = None
         self.links = {
-            'home' : 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
-            'github' : 'https://github.com/lukasz-migas/ORIGAMI',
-            'cite' : 'https://doi.org/10.1016/j.ijms.2017.08.014',
-            'newVersion' : 'https://github.com/lukasz-migas/ORIGAMI/releases',
+            'home': 'https://www.click2go.umip.com/i/s_w/ORIGAMI.html',
+            'github': 'https://github.com/lukasz-migas/ORIGAMI',
+            'cite': 'https://doi.org/10.1016/j.ijms.2017.08.014',
+            'newVersion': 'https://github.com/lukasz-migas/ORIGAMI/releases',
             'guide': 'https://origami.lukasz-migas.com/',
-            'youtube':'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8',
-            'htmlEditor':'https://html-online.com/editor/',
-            'newFeatures':'https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform',
-            'reportBugs':'https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform',
-            'unidec_cite_1':'https://pubs.acs.org/doi/abs/10.1021/acs.analchem.5b00140',
-            'unidec_cite_2':'https://link.springer.com/article/10.1007/s13361-018-1951-9',
-            'unidec_github':'https://github.com/michaelmarty/UniDec/releases',
-            'about-author':'https://lukasz-migas.com/'}
+            'youtube': 'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8',
+            'htmlEditor': 'https://html-online.com/editor/',
+            'newFeatures': 'https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform',
+            'reportBugs': 'https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform',
+            'unidec_cite_1': 'https://pubs.acs.org/doi/abs/10.1021/acs.analchem.5b00140',
+            'unidec_cite_2': 'https://link.springer.com/article/10.1007/s13361-018-1951-9',
+            'unidec_github': 'https://github.com/michaelmarty/UniDec/releases',
+            'about-author': 'https://lukasz-migas.com/'}
         self.logging = False
         self.threading = True
         self.autoSaveSettings = True
@@ -94,9 +94,9 @@ class OrigamiConfig:
         self.comboSmoothSelectChoices = ["None", "Savitzky-Golay", "Gaussian"]
         self.comboInterpSelectChoices = ['None', 'nearest', 'bilinear',
                                          'bicubic', 'spline16', 'spline36', 'hanning',
-                                        'hamming', 'hermite', 'kaiser', 'quadric',
-                                        'catrom', 'gaussian', 'bessel', 'mitchell',
-                                        'sinc', 'lanczos']
+                                         'hamming', 'hermite', 'kaiser', 'quadric',
+                                         'catrom', 'gaussian', 'bessel', 'mitchell',
+                                         'sinc', 'lanczos']
         self.narrowCmapList = ['Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
                                'Greys_r', 'Purples_r', 'Blues_r', 'Greens_r', 'Oranges_r', 'Reds_r',
                                'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
@@ -110,9 +110,9 @@ class OrigamiConfig:
                        'bmh', 'seaborn', 'seaborn-ticks',
                        'seaborn-bright', 'seaborn-dark', 'seaborn-pastel']
         self.currentPalette = "HLS"
-        self.color_palettes = {'HLS':'hls', 'HUSL':'husl', 'Cubehelix':'cubehelix',
-                               'Spectral':'Spectral', 'Viridis':'viridis',
-                               'Rainbow':'rainbow', 'Inferno':'Inferno'}
+        self.color_palettes = {'HLS': 'hls', 'HUSL': 'husl', 'Cubehelix': 'cubehelix',
+                               'Spectral': 'Spectral', 'Viridis': 'viridis',
+                               'Rainbow': 'rainbow', 'Inferno': 'Inferno'}
 
         self.imageType2D = ['Image', 'Contour']
         self.imageType3D = ['Surface', 'Wireframe']
@@ -121,129 +121,129 @@ class OrigamiConfig:
                                    "RMSD", "Comparison", "Overlay", "Calibration (MS)",
                                    "Calibration (DT)"]
 
-        self.markerShapeDict = {'square':'s', 'circle':'o', 'pentagon':'p', 'star':'*',
-                                'diamond':'D', 'cross':'x'}
+        self.markerShapeDict = {'square': 's', 'circle': 'o', 'pentagon': 'p', 'star': '*',
+                                'diamond': 'D', 'cross': 'x'}
 
-        self.textOutputDict = {'comma':',', 'tab':'\t', 'space':' '}
-        self.textExtensionDict = {'comma':'.csv', 'tab':'.txt', 'space':'.txt'}
+        self.textOutputDict = {'comma': ',', 'tab': '\t', 'space': ' '}
+        self.textExtensionDict = {'comma': '.csv', 'tab': '.txt', 'space': '.txt'}
 
         self.rmsdLocChoices = {'leftTop': (5, 95), 'rightTop': (75, 95), 'leftBottom': (5, 5),
-                               'rightBottom': (75, 5), 'None':()}
+                               'rightBottom': (75, 5), 'None': ()}
 
-        self.interactiveToolsOnOff = {'1D':{'hover':True, 'save':True, 'pan':True,
-                                            'boxzoom':True, 'crosshair':False,
-                                            'boxzoom_horizontal':True,
-                                            'boxzoom_vertical':False,
-                                            'reset':True, 'wheel':True,
-                                            'wheelType':'Wheel Zoom X',
-                                            'activeDrag':'Box Zoom',
-                                            'activeWheel':'None',
-                                            'activeInspect':'Hover'},
-                                      '2D':{'hover':True, 'save':True, 'pan':True,
-                                             'boxzoom':True, 'crosshair':True,
-                                             'boxzoom_horizontal':False,
-                                             'boxzoom_vertical':False,
-                                             'reset':True, 'wheel':True,
-                                             'wheelType':'Wheel Zoom X',
-                                             'activeDrag':'Box Zoom',
-                                             'activeWheel':'None',
-                                             'activeInspect':'Hover'},
-                                      'Overlay':{'hover':True, 'save':True, 'pan':True,
-                                                 'boxzoom':True, 'crosshair':True,
-                                                 'boxzoom_horizontal':False,
-                                                 'boxzoom_vertical':False,
-                                                 'reset':True,
-                                                 'wheel':False,
-                                                 'wheelType':'Wheel Zoom X',
-                                                 'activeDrag':'Box Zoom',
-                                                 'activeWheel':'None',
-                                                 'activeInspect':'Hover'},
-                                      'All':{'hover':True, 'save':True, 'pan':True,
-                                             'boxzoom':True, 'crosshair':True,
-                                             'boxzoom_horizontal':True,
-                                             'boxzoom_vertical':True,
-                                             'reset':True, 'wheel':True,
-                                             'wheelType':'Wheel Zoom XY',
-                                             'activeDrag':'Box Zoom',
-                                             'activeWheel':'None',
-                                             'activeInspect':'Hover'}}
+        self.interactiveToolsOnOff = {'1D': {'hover': True, 'save': True, 'pan': True,
+                                             'boxzoom': True, 'crosshair': False,
+                                             'boxzoom_horizontal': True,
+                                             'boxzoom_vertical': False,
+                                             'reset': True, 'wheel': True,
+                                             'wheelType': 'Wheel Zoom X',
+                                             'activeDrag': 'Box Zoom',
+                                             'activeWheel': 'None',
+                                             'activeInspect': 'Hover'},
+                                      '2D': {'hover': True, 'save': True, 'pan': True,
+                                             'boxzoom': True, 'crosshair': True,
+                                             'boxzoom_horizontal': False,
+                                             'boxzoom_vertical': False,
+                                             'reset': True, 'wheel': True,
+                                             'wheelType': 'Wheel Zoom X',
+                                             'activeDrag': 'Box Zoom',
+                                             'activeWheel': 'None',
+                                             'activeInspect': 'Hover'},
+                                      'Overlay': {'hover': True, 'save': True, 'pan': True,
+                                                  'boxzoom': True, 'crosshair': True,
+                                                  'boxzoom_horizontal': False,
+                                                  'boxzoom_vertical': False,
+                                                  'reset': True,
+                                                  'wheel': False,
+                                                  'wheelType': 'Wheel Zoom X',
+                                                  'activeDrag': 'Box Zoom',
+                                                  'activeWheel': 'None',
+                                                  'activeInspect': 'Hover'},
+                                      'All': {'hover': True, 'save': True, 'pan': True,
+                                              'boxzoom': True, 'crosshair': True,
+                                              'boxzoom_horizontal': True,
+                                              'boxzoom_vertical': True,
+                                              'reset': True, 'wheel': True,
+                                              'wheelType': 'Wheel Zoom XY',
+                                              'activeDrag': 'Box Zoom',
+                                              'activeWheel': 'None',
+                                              'activeInspect': 'Hover'}}
 
         self._plotSettings = {
-            'MS':{'axes_size':[0.1, 0.5, 0.85, 0.45], 'gui_size':[10, 6], 'resize_size':[10, 4],
-                  'save_size':[0.1, 0.15, 0.85, 0.8], 'default_name':'MS'},
-            'MS (compare)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8],
-                            'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'MS_compare'},
-            'RT':{'axes_size':[0.1, 0.2, 0.8, 0.75], 'gui_size':[10, 4],
-                  'resize_size':[10, 4], 'save_size':[0.1, 0.15, 0.85, 0.8], 'default_name':'RT'},
-            'DT':{'axes_size':[0.1, 0.2, 0.8, 0.75], 'gui_size':[10, 4],
-                  'resize_size':[10, 4], 'save_size':[0.1, 0.15, 0.85, 0.8], 'default_name':'IMS1D'},
-            '2D':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8],
-                  'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'IMS2D'},
-            '3D':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[12, 8],
-                  'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'IMS3D'},
-            'DT/MS':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8],
-                     'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'DTMS'},
-            'MS (DT/RT)':{'axes_size':[0.1, 0.2, 0.8, 0.75], 'gui_size':[10, 4],
-                          'resize_size':[10, 4], 'save_size':[0.1, 0.15, 0.85, 0.8], 'default_name':'MS'},
-            'Waterfall':{'axes_size':[0.05, 0.1, 0.9, 0.85], 'gui_size':[10, 4],
-                         'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.8], 'default_name':'Waterfall'},
-            'Violin':{'axes_size':[0.15, 0.1, 0.8, 0.85], 'gui_size':[10, 4],
-                      'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.8], 'default_name':'Violin'},
-            'RMSD':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[10, 4],
-                    'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'RMSD'},
-            'RMSF':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[10, 4],
-                    'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'RMSF'},
-            'Matrix':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8],
-                      'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'matrix'},
-            'Comparison':{'axes_size':[0.2, 0.2, 0.6, 0.6], 'gui_size':[8, 8],
-                          'resize_size':[10, 10], 'save_size':[0.2, 0.2, 0.6, 0.6], 'default_name':'comparison'},
-            'Overlay':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8],
-                       'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'overlay'},
-            'Overlay (Grid)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[8, 8],
-                              'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'overlay'},
-            'Calibration (MS)':{'axes_size':[0.10, 0.15, 0.8, 0.7], 'gui_size':[10, 4],
-                                'resize_size':[10, 4], 'save_size':[0.10, 0.20, 0.8, 0.7],
-                                'default_name':'calibration_MS'},
-            'Calibration (DT)':{'axes_size':[0.10, 0.15, 0.8, 0.7], 'gui_size':[6, 6],
-                                'resize_size':[10, 4], 'save_size':[0.10, 0.15, 0.8, 0.7],
-                                'default_name':'calibration_DT'},
-            'UniDec (MS)':{'axes_size':[0.1, 0.2, 0.8, 0.7], 'gui_size':[6, 3],
-                           'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_MS'},
-            'UniDec (MW)':{'axes_size':[0.1, 0.2, 0.8, 0.7], 'gui_size':[6, 3],
-                           'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'unidec_MW'},
-            'UniDec (m/z vs Charge)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6, 6],
-                                      'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85],
-                                      'default_name':'unidec_grid_MZvZ'},
-            'UniDec (Isolated MS)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6, 6],
-                                    'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85],
-                                    'default_name':'unidec_isolated_MS'},
-            'UniDec (MW vs Charge)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6, 6],
-                                     'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85],
-                                     'default_name':'unidec_grid_MWvZ'},
-            'UniDec (Barplot)':{'axes_size':[0.15, 0.1, 0.8, 0.85], 'gui_size':[6, 6],
-                                'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85],
-                                'default_name':'unidec_barplot'},
-            'UniDec (Charge Distribution)':{'axes_size':[0.15, 0.1, 0.7, 0.75], 'gui_size':[6, 3],
-                                            'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85],
-                                            'default_name':'unidec_chargeDist'},
-            'Other (Line)':{'axes_size':[0.15, 0.45, 0.75, 0.5], 'gui_size':[10, 6],
-                            'resize_size':[10, 4], 'save_size':[0.1, 0.1, 0.8, 0.85], 'default_name':'other_line'},
-            'Other (Multi-line)':{'axes_size':[0.15, 0.2, 0.7, 0.7], 'gui_size':[6, 3],
-                                  'resize_size':[10, 6], 'save_size':[0.1, 0.1, 0.8, 0.85],
-                                  'default_name':'other_multiline'},
-            'Other (Barplot)':{'axes_size':[0.1, 0.1, 0.8, 0.85], 'gui_size':[6, 6],
-                               'resize_size':[10, 10], 'save_size':[0.1, 0.1, 0.8, 0.85],
-                               'default_name':'other_barplot'},
-            'Other (Grid-1D)':{'axes_size':[0.15, 0.1, 0.75, 0.85], 'gui_size':[6, 6],
-                               'resize_size':[10, 10], 'save_size':[0.15, 0.1, 0.75, 0.85],
-                               'default_name':'other_grid1D'},
-            'Other (Scatter)':{'axes_size':[0.15, 0.15, 0.75, 0.8], 'gui_size':[6, 6],
-                               'resize_size':[10, 10], 'save_size':[0.15, 0.15, 0.75, 0.8],
-                               'default_name':'other_scatter'},
-            'Other (Waterfall)':{'axes_size':[0.1, 0.15, 0.8, 0.8], 'gui_size':[6, 6],
-                                 'resize_size':[10, 10], 'save_size':[0.1, 0.15, 0.8, 0.8],
-                                 'default_name':'other_waterfall'},
-            }
+            'MS': {'axes_size': [0.1, 0.5, 0.85, 0.45], 'gui_size': [10, 6], 'resize_size': [10, 4],
+                   'save_size': [0.1, 0.15, 0.85, 0.8], 'default_name': 'MS'},
+            'MS (compare)': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [8, 8],
+                             'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'MS_compare'},
+            'RT': {'axes_size': [0.1, 0.2, 0.8, 0.75], 'gui_size': [10, 4],
+                   'resize_size': [10, 4], 'save_size': [0.1, 0.15, 0.85, 0.8], 'default_name': 'RT'},
+            'DT': {'axes_size': [0.1, 0.2, 0.8, 0.75], 'gui_size': [10, 4],
+                   'resize_size': [10, 4], 'save_size': [0.1, 0.15, 0.85, 0.8], 'default_name': 'IMS1D'},
+            '2D': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [8, 8],
+                   'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'IMS2D'},
+            '3D': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [12, 8],
+                   'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'IMS3D'},
+            'DT/MS': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [8, 8],
+                      'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'DTMS'},
+            'MS (DT/RT)': {'axes_size': [0.1, 0.2, 0.8, 0.75], 'gui_size': [10, 4],
+                           'resize_size': [10, 4], 'save_size': [0.1, 0.15, 0.85, 0.8], 'default_name': 'MS'},
+            'Waterfall': {'axes_size': [0.05, 0.1, 0.9, 0.85], 'gui_size': [10, 4],
+                          'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.8], 'default_name': 'Waterfall'},
+            'Violin': {'axes_size': [0.15, 0.1, 0.8, 0.85], 'gui_size': [10, 4],
+                       'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.8], 'default_name': 'Violin'},
+            'RMSD': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [10, 4],
+                     'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'RMSD'},
+            'RMSF': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [10, 4],
+                     'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'RMSF'},
+            'Matrix': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [8, 8],
+                       'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'matrix'},
+            'Comparison': {'axes_size': [0.2, 0.2, 0.6, 0.6], 'gui_size': [8, 8],
+                           'resize_size': [10, 10], 'save_size': [0.2, 0.2, 0.6, 0.6], 'default_name': 'comparison'},
+            'Overlay': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [8, 8],
+                        'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'overlay'},
+            'Overlay (Grid)': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [8, 8],
+                               'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'overlay'},
+            'Calibration (MS)': {'axes_size': [0.10, 0.15, 0.8, 0.7], 'gui_size': [10, 4],
+                                 'resize_size': [10, 4], 'save_size': [0.10, 0.20, 0.8, 0.7],
+                                 'default_name': 'calibration_MS'},
+            'Calibration (DT)': {'axes_size': [0.10, 0.15, 0.8, 0.7], 'gui_size': [6, 6],
+                                 'resize_size': [10, 4], 'save_size': [0.10, 0.15, 0.8, 0.7],
+                                 'default_name': 'calibration_DT'},
+            'UniDec (MS)': {'axes_size': [0.1, 0.2, 0.8, 0.7], 'gui_size': [6, 3],
+                            'resize_size': [10, 6], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'unidec_MS'},
+            'UniDec (MW)': {'axes_size': [0.1, 0.2, 0.8, 0.7], 'gui_size': [6, 3],
+                            'resize_size': [10, 6], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'unidec_MW'},
+            'UniDec (m/z vs Charge)': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [6, 6],
+                                       'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85],
+                                       'default_name': 'unidec_grid_MZvZ'},
+            'UniDec (Isolated MS)': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [6, 6],
+                                     'resize_size': [10, 6], 'save_size': [0.1, 0.1, 0.8, 0.85],
+                                     'default_name': 'unidec_isolated_MS'},
+            'UniDec (MW vs Charge)': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [6, 6],
+                                      'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85],
+                                      'default_name': 'unidec_grid_MWvZ'},
+            'UniDec (Barplot)': {'axes_size': [0.15, 0.1, 0.8, 0.85], 'gui_size': [6, 6],
+                                 'resize_size': [10, 6], 'save_size': [0.1, 0.1, 0.8, 0.85],
+                                 'default_name': 'unidec_barplot'},
+            'UniDec (Charge Distribution)': {'axes_size': [0.15, 0.1, 0.7, 0.75], 'gui_size': [6, 3],
+                                             'resize_size': [10, 6], 'save_size': [0.1, 0.1, 0.8, 0.85],
+                                             'default_name': 'unidec_chargeDist'},
+            'Other (Line)': {'axes_size': [0.15, 0.45, 0.75, 0.5], 'gui_size': [10, 6],
+                             'resize_size': [10, 4], 'save_size': [0.1, 0.1, 0.8, 0.85], 'default_name': 'other_line'},
+            'Other (Multi-line)': {'axes_size': [0.15, 0.2, 0.7, 0.7], 'gui_size': [6, 3],
+                                   'resize_size': [10, 6], 'save_size': [0.1, 0.1, 0.8, 0.85],
+                                   'default_name': 'other_multiline'},
+            'Other (Barplot)': {'axes_size': [0.1, 0.1, 0.8, 0.85], 'gui_size': [6, 6],
+                                'resize_size': [10, 10], 'save_size': [0.1, 0.1, 0.8, 0.85],
+                                'default_name': 'other_barplot'},
+            'Other (Grid-1D)': {'axes_size': [0.15, 0.1, 0.75, 0.85], 'gui_size': [6, 6],
+                                'resize_size': [10, 10], 'save_size': [0.15, 0.1, 0.75, 0.85],
+                                'default_name': 'other_grid1D'},
+            'Other (Scatter)': {'axes_size': [0.15, 0.15, 0.75, 0.8], 'gui_size': [6, 6],
+                                'resize_size': [10, 10], 'save_size': [0.15, 0.15, 0.75, 0.8],
+                                'default_name': 'other_scatter'},
+            'Other (Waterfall)': {'axes_size': [0.1, 0.15, 0.8, 0.8], 'gui_size': [6, 6],
+                                  'resize_size': [10, 10], 'save_size': [0.1, 0.15, 0.8, 0.8],
+                                  'default_name': 'other_waterfall'},
+        }
 
         self.labelsXChoices = ['Scans', 'Collision Voltage (V)',
                                'Activation Voltage (V)', 'Lab Frame Energy (eV)',
@@ -253,97 +253,97 @@ class OrigamiConfig:
         self.labelsYChoices = ['Drift time (bins)', 'Drift time (ms)',
                                'Arrival time (ms)', 'Collision Cross Section (Å²)']
 
-        self.panelNames = {'MS':0, 'RT':1, '1D':2, '2D':3, 'MZDT':4, 'Waterfall':5,
-                           '3D':6, 'RMSF':7, 'Comparison':8, 'Overlay':9,
-                           'Calibration':10, 'UniDec':11, "Other":12}
+        self.panelNames = {'MS': 0, 'RT': 1, '1D': 2, '2D': 3, 'MZDT': 4, 'Waterfall': 5,
+                           '3D': 6, 'RMSF': 7, 'Comparison': 8, 'Overlay': 9,
+                           'Calibration': 10, 'UniDec': 11, "Other": 12}
 
-        self.peaklistColNames = {'check':0, 'start':1, 'end':2, 'charge':3, 'intensity':4,
-                                 'color':5, 'colormap':6, 'alpha':7, 'mask':8,
-                                 'label':9, 'method':10, 'filename':11}
+        self.peaklistColNames = {'check': 0, 'start': 1, 'end': 2, 'charge': 3, 'intensity': 4,
+                                 'color': 5, 'colormap': 6, 'alpha': 7, 'mask': 8,
+                                 'label': 9, 'method': 10, 'filename': 11}
 
-        self._peakListSettings = [{'name':'', 'order':0, 'width':25, 'show':True},
-                                  {'name':'min m/z', 'order':1, 'width':65, 'show':True},
-                                  {'name':'max m/z', 'order':2, 'width':65, 'show':True},
-                                  {'name':'z', 'order':3, 'width':25, 'show':True},
-                                  {'name':'% int', 'order':4, 'width':60, 'show':True},
-                                  {'name':'color', 'order':5, 'width':60, 'show':True},
-                                  {'name':'colormap', 'order':6, 'width':70, 'show':True},
-                                  {'name':'\N{GREEK SMALL LETTER ALPHA}', 'order':7, 'width':35, 'show':True},
-                                  {'name':'mask', 'order':8, 'width':40, 'show':True},
-                                  {'name':'label', 'order':9, 'width':50, 'show':True},
-                                  {'name':'method', 'order':10, 'width':80, 'show':True},
-                                  {'name':'file', 'order':11, 'width':100, 'show':True}
+        self._peakListSettings = [{'name': '', 'order': 0, 'width': 25, 'show': True},
+                                  {'name': 'min m/z', 'order': 1, 'width': 65, 'show': True},
+                                  {'name': 'max m/z', 'order': 2, 'width': 65, 'show': True},
+                                  {'name': 'z', 'order': 3, 'width': 25, 'show': True},
+                                  {'name': '% int', 'order': 4, 'width': 60, 'show': True},
+                                  {'name': 'color', 'order': 5, 'width': 60, 'show': True},
+                                  {'name': 'colormap', 'order': 6, 'width': 70, 'show': True},
+                                  {'name': '\N{GREEK SMALL LETTER ALPHA}', 'order': 7, 'width': 35, 'show': True},
+                                  {'name': 'mask', 'order': 8, 'width': 40, 'show': True},
+                                  {'name': 'label', 'order': 9, 'width': 50, 'show': True},
+                                  {'name': 'method', 'order': 10, 'width': 80, 'show': True},
+                                  {'name': 'file', 'order': 11, 'width': 100, 'show': True}
                                   ]
 
-        self.driftTopColNames = {'start':0, 'end':1, 'scans':2, 'drift_voltage':4,
-                                 'filename':5}
+        self.driftTopColNames = {'start': 0, 'end': 1, 'scans': 2, 'drift_voltage': 4,
+                                 'filename': 5}
 
-        self.driftBottomColNames = {'start':0, 'end':1, 'intensity':2, 'charge':4,
-                                    'filename':5}
+        self.driftBottomColNames = {'start': 0, 'end': 1, 'intensity': 2, 'charge': 4,
+                                    'filename': 5}
 
-        self.textlistColNames = {'check':0, 'start':1, 'end':2, 'charge':3, 'color':4,
-                                 'colormap':5, 'alpha':6, 'mask':7, 'label':8,
-                                 'shape':9, 'filename':10}
+        self.textlistColNames = {'check': 0, 'start': 1, 'end': 2, 'charge': 3, 'color': 4,
+                                 'colormap': 5, 'alpha': 6, 'mask': 7, 'label': 8,
+                                 'shape': 9, 'filename': 10}
 
-        self._textlistSettings = [{'name':'', 'order':0, 'width':25, 'show':True},
-                                  {'name':'min CE', 'order':1, 'width':65, 'show':True},
-                                  {'name':'max CE', 'order':2, 'width':65, 'show':True},
-                                  {'name':'z', 'order':3, 'width':25, 'show':True},
-                                  {'name':'color', 'order':4, 'width':60, 'show':True},
-                                  {'name':'colormap', 'order':5, 'width':70, 'show':True},
-                                  {'name':'\N{GREEK SMALL LETTER ALPHA}', 'order':6, 'width':35, 'show':True},
-                                  {'name':'mask', 'order':7, 'width':40, 'show':True},
-                                  {'name':'label', 'order':8, 'width':50, 'show':True},
-                                  {'name':'shape', 'order':9, 'width':70, 'show':True},
-                                  {'name':'file', 'order':10, 'width':100, 'show':True}
+        self._textlistSettings = [{'name': '', 'order': 0, 'width': 25, 'show': True},
+                                  {'name': 'min CE', 'order': 1, 'width': 65, 'show': True},
+                                  {'name': 'max CE', 'order': 2, 'width': 65, 'show': True},
+                                  {'name': 'z', 'order': 3, 'width': 25, 'show': True},
+                                  {'name': 'color', 'order': 4, 'width': 60, 'show': True},
+                                  {'name': 'colormap', 'order': 5, 'width': 70, 'show': True},
+                                  {'name': '\N{GREEK SMALL LETTER ALPHA}', 'order': 6, 'width': 35, 'show': True},
+                                  {'name': 'mask', 'order': 7, 'width': 40, 'show': True},
+                                  {'name': 'label', 'order': 8, 'width': 50, 'show': True},
+                                  {'name': 'shape', 'order': 9, 'width': 70, 'show': True},
+                                  {'name': 'file', 'order': 10, 'width': 100, 'show': True}
                                   ]
 
         # column name 'energy' was changed to 'variable' as it might be more appropriate
-        self.multipleMLColNames = {'check':0, 'filename':1, 'energy':2, 'document':3, 'label':4}
-        self._multipleFilesSettings = [{'name':'', 'order':0, 'width':25, 'show':True},
-                                       {'name':'filename', 'order':1, 'width':200, 'show':True},
-                                       {'name':'variable', 'order':2, 'width':50, 'show':True},
-                                       {'name':'document', 'order':3, 'width':80, 'show':True},
-                                       {'name':'label', 'order':4, 'width':100, 'show':True}
+        self.multipleMLColNames = {'check': 0, 'filename': 1, 'energy': 2, 'document': 3, 'label': 4}
+        self._multipleFilesSettings = [{'name': '', 'order': 0, 'width': 25, 'show': True},
+                                       {'name': 'filename', 'order': 1, 'width': 200, 'show': True},
+                                       {'name': 'variable', 'order': 2, 'width': 50, 'show': True},
+                                       {'name': 'document', 'order': 3, 'width': 80, 'show': True},
+                                       {'name': 'label', 'order': 4, 'width': 100, 'show': True}
                                        ]
 
-        self._interactiveSettings = [{'name':'', 'order':0, 'width':25, 'show':True},
-                                     {'name':'document', 'order':1, 'width':150, 'show':True},
-                                     {'name':'type', 'order':2, 'width':90, 'show':True},
-                                     {'name':'file/ion/item', 'order':3, 'width':150, 'show':True},
-                                     {'name':'title', 'order':4, 'width':40, 'show':True},
-                                     {'name':'header', 'order':5, 'width':40, 'show':True},
-                                     {'name':'footnote', 'order':6, 'width':40, 'show':True},
-                                     {'name':'color/colormap', 'order':7, 'width':75, 'show':True},
-                                     {'name':'page', 'order':8, 'width':50, 'show':True},
-#                                      {'name':'tools', 'order':9, 'width':50, 'show':True},
-                                     {'name':'#', 'order':9, 'width':30, 'show':True},
+        self._interactiveSettings = [{'name': '', 'order': 0, 'width': 25, 'show': True},
+                                     {'name': 'document', 'order': 1, 'width': 150, 'show': True},
+                                     {'name': 'type', 'order': 2, 'width': 90, 'show': True},
+                                     {'name': 'file/ion/item', 'order': 3, 'width': 150, 'show': True},
+                                     {'name': 'title', 'order': 4, 'width': 40, 'show': True},
+                                     {'name': 'header', 'order': 5, 'width': 40, 'show': True},
+                                     {'name': 'footnote', 'order': 6, 'width': 40, 'show': True},
+                                     {'name': 'color/colormap', 'order': 7, 'width': 75, 'show': True},
+                                     {'name': 'page', 'order': 8, 'width': 50, 'show': True},
+                                     #                                      {'name':'tools', 'order':9, 'width':50, 'show':True},
+                                     {'name': '#', 'order': 9, 'width': 30, 'show': True},
                                      ]
-        self.interactiveColNames = {'check':0, 'document':1, 'type':2, 'file':3, 'title':4,
-                                     'header':5, 'footnote':6, 'color':7, 'colormap':7,
-                                     'page':8,
-#                                      'tools':9,
-                                     'order':9}
+        self.interactiveColNames = {'check': 0, 'document': 1, 'type': 2, 'file': 3, 'title': 4,
+                                    'header': 5, 'footnote': 6, 'color': 7, 'colormap': 7,
+                                    'page': 8,
+                                    #                                      'tools':9,
+                                    'order': 9}
 
-        self.ccsTopColNames = {'filename':0, 'start':1, 'end':2,
-                               'protein':3, 'charge':4, 'ccs':5, 'tD':6,
-                               'gas':7}
+        self.ccsTopColNames = {'filename': 0, 'start': 1, 'end': 2,
+                               'protein': 3, 'charge': 4, 'ccs': 5, 'tD': 6,
+                               'gas': 7}
 
-        self.ccsBottomColNames = {'filename':0, 'start':1, 'end':2,
-                                  'ion':3, 'protein':4, 'charge':5,
-                                  'format':6}
+        self.ccsBottomColNames = {'filename': 0, 'start': 1, 'end': 2,
+                                  'ion': 3, 'protein': 4, 'charge': 5,
+                                  'format': 6}
 
-        self.ccsDBColNames = {'protein':0, 'mw':1, 'units':2, 'charge':3, 'ion':4,
-                              'hePos':5, 'n2Pos':6, 'heNeg':7, 'n2Neg':8, 'state':9,
-                              'source':10}
+        self.ccsDBColNames = {'protein': 0, 'mw': 1, 'units': 2, 'charge': 3, 'ion': 4,
+                              'hePos': 5, 'n2Pos': 6, 'heNeg': 7, 'n2Neg': 8, 'state': 9,
+                              'source': 10}
 
         # Calibration
-        self.elementalMass = {'Hydrogen':1.00794, 'Helium':4.002602, 'Nitrogen':28.0134}
+        self.elementalMass = {'Hydrogen': 1.00794, 'Helium': 4.002602, 'Nitrogen': 28.0134}
 
         # Add default HTML output methods
-        self.pageDict = {'None':{'name':'None', 'layout':'Individual', 'rows':None, 'columns':None},
-                         'Rows':{'name':'Rows', 'layout':'Rows', 'rows':None, 'columns':None},
-                         'Columns':{'name':'Columns', 'layout':'Columns', 'rows':None, 'columns':None}
+        self.pageDict = {'None': {'name': 'None', 'layout': 'Individual', 'rows': None, 'columns': None},
+                         'Rows': {'name': 'Rows', 'layout': 'Rows', 'rows': None, 'columns': None},
+                         'Columns': {'name': 'Columns', 'layout': 'Columns', 'rows': None, 'columns': None}
                          }
         self.interactive_pageLayout_choices = ['Individual', 'Columns', 'Rows', 'Grid']
         self.interactive_wheelZoom_choices = ['Wheel Zoom XY', 'Wheel Zoom X', 'Wheel Zoom Y']
@@ -354,7 +354,7 @@ class OrigamiConfig:
         self.interactive_activeHoverTools_choices = ['Hover', 'Crosshair', 'auto', 'None']
         self.interactive_colorbarPosition_choices = ['left', 'above', 'right', 'below']
 
-        #=========== FILE INFO ===========
+        # =========== FILE INFO ===========
         # can be removed
         self.rawName = ''
         self.fileName = ''
@@ -382,29 +382,29 @@ class OrigamiConfig:
 
         self._tandem_show_PTMs_in_table = False  # new
         self._tandem_show_unidentified_in_table = True  # new
-        self._tandem_label_format = {'fragment_name':True, 'peptide_seq':False,
-                                     'charge':True, 'delta_mz': False}
+        self._tandem_label_format = {'fragment_name': True, 'peptide_seq': False,
+                                     'charge': True, 'delta_mz': False}
 
-        self.fragments_tolerance = {"Da":0.05, "ppm":25}  # new
-        self.fragments_tolerance_limits = {"Da":[0.00, 5, 0.25], "ppm":[0, 500, 25]}  # new
+        self.fragments_tolerance = {"Da": 0.05, "ppm": 25}  # new
+        self.fragments_tolerance_limits = {"Da": [0.00, 5, 0.25], "ppm": [0, 500, 25]}  # new
         self.fragments_units_choices = ["Da", "ppm"]  # new
         self.fragments_units = "Da"  # new
         self.fragments_max_matches = 1  # new
-        self.fragments_common = {"a/x":["a-all", "x-all"],
-                                 "b/y":["b-all", "y-all"],
-                                 "c/z":["c-all", "z-all"],
-                                 "ETD/ECD":["c-all", "y-all", "z+1/2/3"],
-                                 "CID":["b-all", "y-all"],
-                                 "Other":[]}
+        self.fragments_common = {"a/x": ["a-all", "x-all"],
+                                 "b/y": ["b-all", "y-all"],
+                                 "c/z": ["c-all", "z-all"],
+                                 "ETD/ECD": ["c-all", "y-all", "z+1/2/3"],
+                                 "CID": ["b-all", "y-all"],
+                                 "Other": []}
 
         self.fragments_search = {
-            'M-ALL':False, 'M':False, 'M-nH2O':False, 'M-nNH3':False,
-            'a-ALL':False, 'a':False, 'a-nH2O':False, 'a-nNH3':False,
-            'b-ALL':False, 'b':False, 'b-nH2O':False, 'b-nNH3':False,
-            'c-ALL':False, 'c':False, 'c-nH2O':False, 'c-nNH3':False, 'c-dot':False, 'c+1/2':False,
-            'x-ALL':False, 'x':False, 'x-nH2O':False, 'x-nNH3':False,
-            'y-ALL':False, 'y':False, 'y-nH2O':False, 'y-nNH3':False,
-            'z-ALL':False, 'z':False, 'z-nH2O':False, 'z-nNH3':False, 'z-dot':False, 'z+1/2/3':False}
+            'M-ALL': False, 'M': False, 'M-nH2O': False, 'M-nNH3': False,
+            'a-ALL': False, 'a': False, 'a-nH2O': False, 'a-nNH3': False,
+            'b-ALL': False, 'b': False, 'b-nH2O': False, 'b-nNH3': False,
+            'c-ALL': False, 'c': False, 'c-nH2O': False, 'c-nNH3': False, 'c-dot': False, 'c+1/2': False,
+            'x-ALL': False, 'x': False, 'x-nH2O': False, 'x-nNH3': False,
+            'y-ALL': False, 'y': False, 'y-nH2O': False, 'y-nNH3': False,
+            'z-ALL': False, 'z': False, 'z-nH2O': False, 'z-nNH3': False, 'z-dot': False, 'z+1/2/3': False}
 
         # plot parameters
         self._plots_grid_show = False
@@ -424,18 +424,18 @@ class OrigamiConfig:
 
         # window parameters
         self.extraParamsWindow_on_off = False
-        self.extraParamsWindow = {'General':0, 'Plot 1D':1, 'Plot 2D':2,
-                                  'Plot 3D':3, 'Colorbar':4, 'Legend':5,
-                                  'RMSD':6, 'Waterfall':7, 'Violin':8,
-                                  'Extra':9}
+        self.extraParamsWindow = {'General': 0, 'Plot 1D': 1, 'Plot 2D': 2,
+                                  'Plot 3D': 3, 'Colorbar': 4, 'Legend': 5,
+                                  'RMSD': 6, 'Waterfall': 7, 'Violin': 8,
+                                  'Extra': 9}
 
         self.processParamsWindow_on_off = False
-        self.processParamsWindow = {'Extract':0, 'ORIGAMI':1, 'MS':2, '2D':3, 'Peak fitting':4, 'UniDec':5}
+        self.processParamsWindow = {'Extract': 0, 'ORIGAMI': 1, 'MS': 2, '2D': 3, 'Peak fitting': 4, 'UniDec': 5}
 
         self.interactiveParamsWindow_on_off = False
 
         self.importExportParamsWindow_on_off = False
-        self.importExportParamsWindow = {'Peaklist':0, 'Image':1, 'Files':2}
+        self.importExportParamsWindow = {'Peaklist': 0, 'Image': 1, 'Files': 2}
 
         # Custom colors dictionary
         self.customColors = OrderedDict([(0, [16, 71, 185]), (1, [50, 140, 0]), (2, [241, 144, 0]),
@@ -448,7 +448,7 @@ class OrigamiConfig:
         self.overlay_cmaps = ['Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
                               'Greys_r', 'Purples_r', 'Blues_r', 'Greens_r', 'Oranges_r', 'Reds_r',
                               'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
-            				  'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
+                              'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
         self.overlay_defaultMask = 0.4
         self.overlay_defaultAlpha = 0.5
         self.overlay_smooth1DRT = 1
@@ -458,44 +458,44 @@ class OrigamiConfig:
         self.previousFiles = []
 
         # Open windows
-        self._windowSettings = {'Plots':{'gripper':False, 'caption':False,
-                                         'close_button':False, 'show':True,
-                                         'floating':False, 'title':'Plots'},
-                                'Documents':{'gripper':False, 'caption':True,
-                                             'close_button':True, 'show':True,
-                                             'floating':False, 'title':'Documents'},
-                                'Peak list':{'gripper':False, 'caption':True,
-                                             'close_button':True, 'show':False,
-                                             'floating':False, 'title':'Peak list'},
-                                'CCS calibration':{'gripper':False, 'caption':True,
-                                                   'close_button':True, 'show':False,
-                                                   'floating':False, 'title':'CCS calibration'},
-                                'Linear Drift Cell':{'gripper':False, 'caption':True,
-                                                     'close_button':True, 'show':False,
-                                                     'floating':False, 'title':'Linear Drift Cell'},
-                                'Text files':{'gripper':False, 'caption':True,
-                                              'close_button':True, 'show':False,
-                                              'floating':False, 'title':'Text files'},
-                                'Multiple files':{'gripper':False, 'caption':True,
-                                                  'close_button':True, 'show':False,
-                                                  'floating':False, 'title':'Multiple files'},
-                                'Log':{'gripper':False, 'caption':True,
-                                       'close_button':True, 'show':False,
-                                       'title':'Log', 'floating':False},
-                                'Plot parameters':{'gripper':False, 'caption':True,
-                                                   'close_button':True, 'show':False,
-                                                   'floating':True, 'title':'Plot parameters'},
-                                'Import/Export parameters':{'gripper':False, 'caption':True,
-                                                            'close_button':True, 'show':False,
-                                                            'floating':True, 'title':'Import/Export parameters'},
-                                'Processing parameters':{'gripper':False, 'caption':True,
-                                                         'close_button':True, 'show':False,
-                                                         'floating':True, 'title':'Processing parameters'},
-                                'Toolbar':{'gripper':True, 'show':True, 'orientation':'top',
-                                           'left_position':False, 'top_position':True,
-                                           'left_dockable':True, 'right_dockable':True,
-                                           'top_dockable':True, 'bottom_dockable':True,
-                                           'title':'Toolbar', 'close_button':False}
+        self._windowSettings = {'Plots': {'gripper': False, 'caption': False,
+                                          'close_button': False, 'show': True,
+                                          'floating': False, 'title': 'Plots'},
+                                'Documents': {'gripper': False, 'caption': True,
+                                              'close_button': True, 'show': True,
+                                              'floating': False, 'title': 'Documents'},
+                                'Peak list': {'gripper': False, 'caption': True,
+                                              'close_button': True, 'show': False,
+                                              'floating': False, 'title': 'Peak list'},
+                                'CCS calibration': {'gripper': False, 'caption': True,
+                                                    'close_button': True, 'show': False,
+                                                    'floating': False, 'title': 'CCS calibration'},
+                                'Linear Drift Cell': {'gripper': False, 'caption': True,
+                                                      'close_button': True, 'show': False,
+                                                      'floating': False, 'title': 'Linear Drift Cell'},
+                                'Text files': {'gripper': False, 'caption': True,
+                                               'close_button': True, 'show': False,
+                                               'floating': False, 'title': 'Text files'},
+                                'Multiple files': {'gripper': False, 'caption': True,
+                                                   'close_button': True, 'show': False,
+                                                   'floating': False, 'title': 'Multiple files'},
+                                'Log': {'gripper': False, 'caption': True,
+                                        'close_button': True, 'show': False,
+                                        'title': 'Log', 'floating': False},
+                                'Plot parameters': {'gripper': False, 'caption': True,
+                                                    'close_button': True, 'show': False,
+                                                    'floating': True, 'title': 'Plot parameters'},
+                                'Import/Export parameters': {'gripper': False, 'caption': True,
+                                                             'close_button': True, 'show': False,
+                                                             'floating': True, 'title': 'Import/Export parameters'},
+                                'Processing parameters': {'gripper': False, 'caption': True,
+                                                          'close_button': True, 'show': False,
+                                                          'floating': True, 'title': 'Processing parameters'},
+                                'Toolbar': {'gripper': True, 'show': True, 'orientation': 'top',
+                                            'left_position': False, 'top_position': True,
+                                            'left_dockable': True, 'right_dockable': True,
+                                            'top_dockable': True, 'bottom_dockable': True,
+                                            'title': 'Toolbar', 'close_button': False}
                                 }
 
         # GUI add-ons
@@ -517,11 +517,11 @@ class OrigamiConfig:
         self.smoothMS_choices = ["None", "Savitzky-Golay", "Gaussian"]
         self.smooth2D_choices = ["None", "Savitzky-Golay", "Gaussian"]
 
-        self.markerShapeDict = {'square':'s', 'circle':'o', 'pentagon':'p', 'star':'*',
-                                'diamond':'D', 'cross':'x', 'plus':'+', 'point':'.',
-                                'vline':': ', 'hline':'_'}
+        self.markerShapeDict = {'square': 's', 'circle': 'o', 'pentagon': 'p', 'star': '*',
+                                'diamond': 'D', 'cross': 'x', 'plus': '+', 'point': '.',
+                                'vline': ': ', 'hline': '_'}
         self.lineStylesList = ['solid', 'dashed', 'dashdot', 'dotted']
-        self.lineStylesDict = {"-":'solid', "--":'dashed', "-.":'dashdot', ":":'dotted'}
+        self.lineStylesDict = {"-": 'solid', "--": 'dashed', "-.": 'dashdot', ":": 'dotted'}
         self.lineHatchDict = OrderedDict([('none', ' '), ('sparse hatch', '/'), ('dense hatch', '//'),
                                           ('vertical line', '|'), ('horizontal line', '-'),
                                           ('square', '+'), ('cross', 'X'), ('small circles', 'o'),
@@ -543,7 +543,8 @@ class OrigamiConfig:
         self.smart_zoom_enable = True  # new in v1.3.0.0
         self.smart_zoom_soft_max = 15000  # new in v1.3.0.0
         self.smart_zoom_hard_max = 100000  # new in v1.3.0.0
-        self.smart_zoom_downsampling_method_choices = ["Auto", "Binned (summed)", "Binned (mean)", "Sub-sampled"]  # new in v1.3.0.0
+        self.smart_zoom_downsampling_method_choices = [
+            "Auto", "Binned (summed)", "Binned (mean)", "Sub-sampled"]  # new in v1.3.0.0
         self.smart_zoom_downsampling_method = "Auto"  # new in v1.3.0.0
         self.smart_zoom_subsample_default = 5  # new in v1.3.0.0
         self.smart_zoom_view_mode_choices = ["One-view (2D-only)", "Three-view (DT, MS, 2D)"]  # new in v1.3.0.0
@@ -574,11 +575,11 @@ class OrigamiConfig:
         self.unidec_mzEnd = 8000
         self.unidec_mzBinSize = 0.1
         self.unidec_gaussianFilter = 0.0
-        self.unidec_linearization_choices = {"Linear m/z":0,
-                                             "Linear resolution":1,
-                                             "Nonlinear":2,
-                                             "Linear interpolation":3,
-                                             "Linear resolution interpolation":4}
+        self.unidec_linearization_choices = {"Linear m/z": 0,
+                                             "Linear resolution": 1,
+                                             "Nonlinear": 2,
+                                             "Linear interpolation": 3,
+                                             "Linear resolution interpolation": 4}
         self.unidec_linearization = "Linear m/z"
         self.unidec_accelerationV = 0.0
         self.unidec_zStart = 1
@@ -588,12 +589,12 @@ class OrigamiConfig:
         self.unidec_mwFrequency = 100
         self.unidec_peakWidth = 2.0
         self.unidec_peakWidth_auto = True
-        self.unidec_peakFunction_choices = {"Gaussian":0, "Lorentzian":1, "Split G/L":""}
+        self.unidec_peakFunction_choices = {"Gaussian": 0, "Lorentzian": 1, "Split G/L": ""}
         self.unidec_peakFunction = "Lorentzian"
 
         self.unidec_peakDetectionWidth = 500.0
         self.unidec_peakDetectionThreshold = 0.1
-        self.unidec_peakNormalization_choices = {"None":0, "Max":1, "Total":2}
+        self.unidec_peakNormalization_choices = {"None": 0, "Max": 1, "Total": 2}
         self.unidec_peakNormalization = "Max"
         self.unidec_lineSeparation = 0.05
         self.unidec_maxIterations = 100
@@ -724,7 +725,13 @@ class OrigamiConfig:
 
         # Process 2D
         self.plot2D_normalize = False
-        self.plot2D_normalize_choices = ["Maximum", "Logarithmic", "Natural log", "Square root", "Least Abs Deviation", "Least Squares"]
+        self.plot2D_normalize_choices = [
+            "Maximum",
+            "Logarithmic",
+            "Natural log",
+            "Square root",
+            "Least Abs Deviation",
+            "Least Squares"]
         self.plot2D_normalize_mode = 'Maximum'
         self.plot2D_smooth_choices = ['None', 'Gaussian', 'Savitzky-Golay']
         self.plot2D_smooth_mode = 'None'
@@ -948,8 +955,8 @@ class OrigamiConfig:
         self.lineTransparency_MS2 = 1.0
         self.lineStyle_MS2 = 'solid'
         self.compare_massSpectrum = []
-        self.compare_massSpectrumParams = {'inverse':True, 'preprocess':False,
-                                           'normalize':False, 'subtract':False}
+        self.compare_massSpectrumParams = {'inverse': True, 'preprocess': False,
+                                           'normalize': False, 'subtract': False}
 
         # Settings Panel
         self.lastDir = None
@@ -971,14 +978,14 @@ class OrigamiConfig:
         self.zoomWindowY = 5  # percent
 
         # Presets
-        self.userParameters = {'operator':'Lukasz G. Migas',
-                               'contact':'lukasz.migas@manchester.ac.uk',
-                               'institution':'University of Manchester',
-                               'instrument':'SynaptG2',
-                               'date':'date'}
+        self.userParameters = {'operator': 'Lukasz G. Migas',
+                               'contact': 'lukasz.migas@manchester.ac.uk',
+                               'institution': 'University of Manchester',
+                               'instrument': 'SynaptG2',
+                               'date': 'date'}
 
         self.resize = True
-        #=========== DOCUMENT TREE PARAMETERS ==========
+        # =========== DOCUMENT TREE PARAMETERS ==========
         self.quickDisplay = False
         self.loadConfigOnStart = True
         self.currentPeakFit = "MS"
@@ -991,12 +998,12 @@ class OrigamiConfig:
         self.ccsDB = None
         self.proteinData = None
 
-        #=========== FILE INFO ===========
+        # =========== FILE INFO ===========
         self.normalize = False
         self.ciuMode = ''
         self.scantime = ''
         self.startTime = None
-        #=========== COMBINE ===========
+        # =========== COMBINE ===========
         self.startScan = ''
         self.startVoltage = ''
         self.endVoltage = ''
@@ -1014,7 +1021,7 @@ class OrigamiConfig:
         self.binMSend = 8000
         self.binMSbinsize = 0.1
 
-        #=========== EXTRACT MZ ===========
+        # =========== EXTRACT MZ ===========
         self.mzStart = ''
         self.mzEnd = ''
         self.rtStart = ''
@@ -1046,7 +1053,7 @@ class OrigamiConfig:
         self.sigmaMS = 1
         self.markerShapeTXT = 'square'
 
-        #=========== PROCESS ===========
+        # =========== PROCESS ===========
         self.datatype = ''
         self.normMode = 'None'
         self.smoothMode = ''
@@ -1055,7 +1062,7 @@ class OrigamiConfig:
         self.gaussSigma = 1
         self.threshold = 0
 
-        #=========== PLOT PARAMETERS =============
+        # =========== PLOT PARAMETERS =============
         self.lineColour = (0, 0, 0)
         self.lineWidth = 10
         self.currentCmap = "inferno"
@@ -1094,7 +1101,7 @@ class OrigamiConfig:
         self.imageHeightInch = 8
         self.imageFormat = 'png'
 
-        #=========== TEXT PARAMETERS =============
+        # =========== TEXT PARAMETERS =============
         self.notationFontSize = 8
         self.tickFontWeight = False
         self.tickFontSize = 12
@@ -1119,9 +1126,9 @@ class OrigamiConfig:
         self.initilize_colormaps()
 #         self.initilize_paths()
 
-#===============================================================================
+# ===============================================================================
 # # Interactive parameters
-#===============================================================================
+# ===============================================================================
 
         self.saveInteractiveOverride = True
 
@@ -1257,10 +1264,10 @@ class OrigamiConfig:
         self.interactive_scatter_size = 10
         self.interactive_scatter_alpha = 1.
         self.interactive_scatter_marker_choices = ["circle", "square", "triangle",
-                                                  "circle_cross", "square_cross",
-                                                  "diamond", "circle_x", "square_x",
-                                                  "inverted_triangle", "cross", "x",
-                                                  "asterisk"]
+                                                   "circle_cross", "square_cross",
+                                                   "diamond", "circle_x", "square_x",
+                                                   "inverted_triangle", "cross", "x",
+                                                   "asterisk"]
         self.interactive_scatter_marker = "circle"
         self.interactive_scatter_sameAsFill = True
         self.interactive_scatter_edge_color = (0., 0., 0.)
@@ -1369,8 +1376,8 @@ class OrigamiConfig:
                 msg = "Could not localise Driftscope directory. Please setup path to Dritscope lib folder." + \
                     " It usually exists under C:\DriftScope\lib"
                 dlgBox(exceptionTitle='Could not find Driftscope',
-                               exceptionMsg=msg,
-                               type="Warning")
+                       exceptionMsg=msg,
+                       type="Warning")
                 return False
             self.driftscopePath = alternative_driftscope_path
 
@@ -1378,8 +1385,8 @@ class OrigamiConfig:
             msg = "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder." + \
                 " It usually exists under C:\DriftScope\lib"
             dlgBox(exceptionTitle='Could not find Driftscope',
-                           exceptionMsg=msg,
-                           type="Warning")
+                   exceptionMsg=msg,
+                   type="Warning")
             return False
 
         print(("Driftscope Path: {}".format(self.driftscopePath)))
@@ -1447,7 +1454,7 @@ class OrigamiConfig:
         fileName = ''.join([path, fileName])
 
         parameters = OrderedDict.fromkeys(["startMS", "endMS", "setMS", "scanTime", "ionPolarity",
-                                   "modeSensitivity", "pusherFreq", "corrC", "trapCE"], None)
+                                           "modeSensitivity", "pusherFreq", "corrC", "trapCE"], None)
 
         if not os.path.isfile(fileName):
             return parameters
@@ -1486,8 +1493,10 @@ class OrigamiConfig:
                 except Exception:
                     pass
             if "Sensitivity" in line:
-                try: parameters['modeSensitivity'] = str(line.split()[1])
-                except Exception: pass
+                try:
+                    parameters['modeSensitivity'] = str(line.split()[1])
+                except Exception:
+                    pass
             if "Analyser" in line:
                 try:
                     parameters['modeAnalyser'] = str(line.split()[1])
@@ -1554,8 +1563,10 @@ class OrigamiConfig:
             filelist.append(file)
 
         if len(filelist) > 0:
-            if filelist[0] == fileName: pass
-            else: fileName = filelist[0]
+            if filelist[0] == fileName:
+                pass
+            else:
+                fileName = filelist[0]
 
         if os.path.isfile(fileName):
             print('Found ORIGAMI-MS configuration file')
@@ -1668,11 +1679,15 @@ class OrigamiConfig:
         buff += '    <param name="debug" value="%s" type="bool" />\n' % (bool(self.debug))
         buff += '    <param name="quickDisplay" value="%s" type="bool" />\n' % (bool(self.quickDisplay))
         buff += '    <param name="loadCCSAtStart" value="%s" type="bool" />\n' % (bool(self.loadCCSAtStart))
-        buff += '    <param name="checkForDriftscopeAtStart" value="%s" type="bool" />\n' % (bool(self.checkForDriftscopeAtStart))
+        buff += '    <param name="checkForDriftscopeAtStart" value="%s" type="bool" />\n' % (
+            bool(self.checkForDriftscopeAtStart))
         buff += '    <param name="overrideCombine" value="%s" type="bool" />\n' % (bool(self.overrideCombine))
-        buff += '    <param name="useInternalParamsCombine" value="%s" type="bool" />\n' % (bool(self.useInternalParamsCombine))
-        buff += '    <param name="overlay_usedProcessed" value="%s" type="bool" />\n' % (bool(self.overlay_usedProcessed))
-        buff += '    <param name="import_duplicate_action" value="%s" type="unicode" choices="%s" />\n' % (self.import_duplicate_action, ["override", "merge", "duplicate"])
+        buff += '    <param name="useInternalParamsCombine" value="%s" type="bool" />\n' % (
+            bool(self.useInternalParamsCombine))
+        buff += '    <param name="overlay_usedProcessed" value="%s" type="bool" />\n' % (
+            bool(self.overlay_usedProcessed))
+        buff += '    <param name="import_duplicate_action" value="%s" type="unicode" choices="%s" />\n' % (
+            self.import_duplicate_action, ["override", "merge", "duplicate"])
         buff += '    <param name="import_duplicate_ask" value="%s" type="bool" />\n' % (bool(self.import_duplicate_ask))
         buff += '  </presets_gui>\n\n'
 
@@ -1680,20 +1695,8 @@ class OrigamiConfig:
         buff += '  <presets_gui_plotSizes>\n'
         for key, __ in sorted(self._plotSettings.items()):
             ps = self._plotSettings[key]
-            buff += '    <param name="%s" left_axes="%.2f" bottom_axes="%.2f" width_axes="%.2f" height_axes="%.2f" left_save="%.2f" bottom_save="%.2f" width_save="%.2f" height_save="%.2f" width_resize="%.2f" height_resize="%.2f" width_gui="%.2f" height_gui="%.2f" default_name="%s" type="float" />\n' % (key,
-                                                                                                                                                                                                                                                                                                                ps['axes_size'][0],
-                                                                                                                                                                                                                                                                                                                ps['axes_size'][1],
-                                                                                                                                                                                                                                                                                                                ps['axes_size'][2],
-                                                                                                                                                                                                                                                                                                                ps['axes_size'][3],
-                                                                                                                                                                                                                                                                                                                ps['save_size'][0],
-                                                                                                                                                                                                                                                                                                                ps['save_size'][1],
-                                                                                                                                                                                                                                                                                                                ps['save_size'][2],
-                                                                                                                                                                                                                                                                                                                ps['save_size'][3],
-                                                                                                                                                                                                                                                                                                                ps['resize_size'][0],
-                                                                                                                                                                                                                                                                                                                ps['resize_size'][1],
-                                                                                                                                                                                                                                                                                                                ps['gui_size'][0],
-                                                                                                                                                                                                                                                                                                                ps['gui_size'][1],
-                                                                                                                                                                                                                                                                                                                ps['default_name'])
+            buff += '    <param name="%s" left_axes="%.2f" bottom_axes="%.2f" width_axes="%.2f" height_axes="%.2f" left_save="%.2f" bottom_save="%.2f" width_save="%.2f" height_save="%.2f" width_resize="%.2f" height_resize="%.2f" width_gui="%.2f" height_gui="%.2f" default_name="%s" type="float" />\n' % (
+                key, ps['axes_size'][0], ps['axes_size'][1], ps['axes_size'][2], ps['axes_size'][3], ps['save_size'][0], ps['save_size'][1], ps['save_size'][2], ps['save_size'][3], ps['resize_size'][0], ps['resize_size'][1], ps['gui_size'][0], ps['gui_size'][1], ps['default_name'])
         buff += '  </presets_gui_plotSizes>\n\n'
 
         # GUI settings
@@ -1713,35 +1716,58 @@ class OrigamiConfig:
         buff += '  <plot_presets_zoom>\n'
         buff += '    <param name="_plots_grid_show" value="%s" type="bool" />\n' % (bool(self._plots_grid_show))
         buff += '    <param name="_plots_grid_color" value="%s" type="color" />\n' % (str(self._plots_grid_color))
-        buff += '    <param name="_plots_grid_line_width" value="%.2f" type="float" />\n' % (float(self._plots_grid_line_width))
+        buff += '    <param name="_plots_grid_line_width" value="%.2f" type="float" />\n' % (
+            float(self._plots_grid_line_width))
         buff += '    <param name="_plots_extract_color" value="%s" type="color" />\n' % (str(self._plots_extract_color))
-        buff += '    <param name="_plots_extract_line_width" value="%.2f" type="float" />\n' % (float(self._plots_extract_line_width))
-        buff += '    <param name="_plots_extract_crossover_1D" value="%.2f" type="float" />\n' % (float(self._plots_extract_crossover_1D))
-        buff += '    <param name="_plots_extract_crossover_2D" value="%.2f" type="float" />\n' % (float(self._plots_extract_crossover_2D))
-        buff += '    <param name="_plots_zoom_vertical_color" value="%s" type="color" />\n' % (str(self._plots_zoom_vertical_color))
-        buff += '    <param name="_plots_zoom_horizontal_color" value="%s" type="color" />\n' % (str(self._plots_zoom_horizontal_color))
-        buff += '    <param name="_plots_zoom_box_color" value="%s" type="color" />\n' % (str(self._plots_zoom_box_color))
-        buff += '    <param name="_plots_zoom_line_width" value="%.2f" type="float" />\n' % (float(self._plots_zoom_line_width))
-        buff += '    <param name="_plots_zoom_crossover" value="%.2f" type="float" />\n' % (float(self._plots_zoom_crossover))
+        buff += '    <param name="_plots_extract_line_width" value="%.2f" type="float" />\n' % (
+            float(self._plots_extract_line_width))
+        buff += '    <param name="_plots_extract_crossover_1D" value="%.2f" type="float" />\n' % (
+            float(self._plots_extract_crossover_1D))
+        buff += '    <param name="_plots_extract_crossover_2D" value="%.2f" type="float" />\n' % (
+            float(self._plots_extract_crossover_2D))
+        buff += '    <param name="_plots_zoom_vertical_color" value="%s" type="color" />\n' % (
+            str(self._plots_zoom_vertical_color))
+        buff += '    <param name="_plots_zoom_horizontal_color" value="%s" type="color" />\n' % (
+            str(self._plots_zoom_horizontal_color))
+        buff += '    <param name="_plots_zoom_box_color" value="%s" type="color" />\n' % (
+            str(self._plots_zoom_box_color))
+        buff += '    <param name="_plots_zoom_line_width" value="%.2f" type="float" />\n' % (
+            float(self._plots_zoom_line_width))
+        buff += '    <param name="_plots_zoom_crossover" value="%.2f" type="float" />\n' % (
+            float(self._plots_zoom_crossover))
         buff += '  </plot_presets_zoom>\n\n'
 
         # Plot presets - annotations
         buff += '  <plot_presets_annotations>\n'
-        buff += '    <param name="annotation_charge_std_dev" value="%.2f" type="float" />\n' % (float(self.annotation_charge_std_dev))
-        buff += '    <param name="annotation_arrow_cap_length" value="%.2f" type="float" />\n' % (float(self.annotation_arrow_cap_length))
-        buff += '    <param name="annotation_arrow_cap_width" value="%.2f" type="float" />\n' % (float(self.annotation_arrow_cap_width))
-        buff += '    <param name="annotation_arrow_line_width" value="%.2f" type="float" />\n' % (float(self.annotation_arrow_line_width))
-        buff += '    <param name="annotation_arrow_line_style" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_arrow_line_style, self.origami_acquisition_choices)
-        buff += '    <param name="annotation_label_y_offset" value="%.2f" type="float" />\n' % (float(self.annotation_label_y_offset))
-        buff += '    <param name="annotation_zoom_y_multiplier" value="%.2f" type="float" />\n' % (float(self.annotation_zoom_y_multiplier))
+        buff += '    <param name="annotation_charge_std_dev" value="%.2f" type="float" />\n' % (
+            float(self.annotation_charge_std_dev))
+        buff += '    <param name="annotation_arrow_cap_length" value="%.2f" type="float" />\n' % (
+            float(self.annotation_arrow_cap_length))
+        buff += '    <param name="annotation_arrow_cap_width" value="%.2f" type="float" />\n' % (
+            float(self.annotation_arrow_cap_width))
+        buff += '    <param name="annotation_arrow_line_width" value="%.2f" type="float" />\n' % (
+            float(self.annotation_arrow_line_width))
+        buff += '    <param name="annotation_arrow_line_style" value="%s" type="unicode" choices="%s" />\n' % (
+            self.annotation_arrow_line_style, self.origami_acquisition_choices)
+        buff += '    <param name="annotation_label_y_offset" value="%.2f" type="float" />\n' % (
+            float(self.annotation_label_y_offset))
+        buff += '    <param name="annotation_zoom_y_multiplier" value="%.2f" type="float" />\n' % (
+            float(self.annotation_zoom_y_multiplier))
         buff += '    <param name="annotation_zoom_y" value="%s" type="bool" />\n' % (bool(self.annotation_zoom_y))
-        buff += '    <param name="annotation_show_vline" value="%s" type="bool" />\n' % (bool(self.annotation_show_vline))
-        buff += '    <param name="annotation_label_horz" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_label_horz, self.horizontal_alignment_list)
-        buff += '    <param name="annotation_label_vert" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_label_vert, self.vertical_alignment_list)
-        buff += '    <param name="annotation_label_font_size" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_label_font_size, self.label_fontsize_list)
-        buff += '    <param name="annotation_label_font_weight" value="%s" type="unicode" choices="%s" />\n' % (self.annotation_label_font_weight, self.label_fontweight_list)
-        buff += '    <param name="annotation_patch_transparency" value="%.2f" type="float" />\n' % (float(self.annotation_patch_transparency))
-        buff += '    <param name="annotation_patch_width" value="%.2f" type="float" />\n' % (float(self.annotation_patch_width))
+        buff += '    <param name="annotation_show_vline" value="%s" type="bool" />\n' % (
+            bool(self.annotation_show_vline))
+        buff += '    <param name="annotation_label_horz" value="%s" type="unicode" choices="%s" />\n' % (
+            self.annotation_label_horz, self.horizontal_alignment_list)
+        buff += '    <param name="annotation_label_vert" value="%s" type="unicode" choices="%s" />\n' % (
+            self.annotation_label_vert, self.vertical_alignment_list)
+        buff += '    <param name="annotation_label_font_size" value="%s" type="unicode" choices="%s" />\n' % (
+            self.annotation_label_font_size, self.label_fontsize_list)
+        buff += '    <param name="annotation_label_font_weight" value="%s" type="unicode" choices="%s" />\n' % (
+            self.annotation_label_font_weight, self.label_fontweight_list)
+        buff += '    <param name="annotation_patch_transparency" value="%.2f" type="float" />\n' % (
+            float(self.annotation_patch_transparency))
+        buff += '    <param name="annotation_patch_width" value="%.2f" type="float" />\n' % (
+            float(self.annotation_patch_width))
         buff += '  </plot_presets_annotations>\n\n'
 
         # Custom colors
@@ -1757,15 +1783,18 @@ class OrigamiConfig:
 
         # Process presets - overlay
         buff += '  <process_presets_overlay>\n'
-        buff += '    <param name="overlay_defaultMask" value="%.2f" type="float" />\n' % (float(self.overlay_defaultMask))
-        buff += '    <param name="overlay_defaultAlpha" value="%.2f" type="float" />\n' % (float(self.overlay_defaultAlpha))
+        buff += '    <param name="overlay_defaultMask" value="%.2f" type="float" />\n' % (
+            float(self.overlay_defaultMask))
+        buff += '    <param name="overlay_defaultAlpha" value="%.2f" type="float" />\n' % (
+            float(self.overlay_defaultAlpha))
         buff += '    <param name="overlay_smooth1DRT" value="%.2f" type="float" />\n' % (float(self.overlay_smooth1DRT))
         buff += '  </process_presets_overlay>\n\n'
 
         # Process - extract
         buff += '  <process_presets_extract>\n'
         buff += '    <param name="extract_massSpectra" value="%s" type="bool" />\n' % (bool(self.extract_massSpectra))
-        buff += '    <param name="extract_chromatograms" value="%s" type="bool" />\n' % (bool(self.extract_chromatograms))
+        buff += '    <param name="extract_chromatograms" value="%s" type="bool" />\n' % (
+            bool(self.extract_chromatograms))
         buff += '    <param name="extract_driftTime1D" value="%s" type="bool" />\n' % (bool(self.extract_driftTime1D))
         buff += '    <param name="extract_driftTime2D" value="%s" type="bool" />\n' % (bool(self.extract_driftTime2D))
         buff += '    <param name="extract_mzStart" value="%.2f" type="float" />\n' % (float(self.extract_mzStart))
@@ -1778,15 +1807,21 @@ class OrigamiConfig:
 
         # Process - origami
         buff += '  <process_presets_origami>\n'
-        buff += '    <param name="origami_acquisition" value="%s" type="unicode" choices="%s" />\n' % (self.origami_acquisition, self.origami_acquisition_choices)
+        buff += '    <param name="origami_acquisition" value="%s" type="unicode" choices="%s" />\n' % (
+            self.origami_acquisition, self.origami_acquisition_choices)
         buff += '    <param name="origami_startScan" value="%d" type="int" />\n' % (int(self.origami_startScan))
         buff += '    <param name="origami_spv" value="%d" type="int" />\n' % (int(self.origami_spv))
-        buff += '    <param name="origami_startVoltage" value="%.2f" type="float" />\n' % (float(self.origami_startVoltage))
+        buff += '    <param name="origami_startVoltage" value="%.2f" type="float" />\n' % (
+            float(self.origami_startVoltage))
         buff += '    <param name="origami_endVoltage" value="%.2f" type="float" />\n' % (float(self.origami_endVoltage))
-        buff += '    <param name="origami_stepVoltage" value="%.2f" type="float" />\n' % (float(self.origami_stepVoltage))
-        buff += '    <param name="origami_boltzmannOffset" value="%.2f" type="float" />\n' % (float(self.origami_boltzmannOffset))
-        buff += '    <param name="origami_exponentialPercentage" value="%.2f" type="float" />\n' % (float(self.origami_exponentialPercentage))
-        buff += '    <param name="origami_exponentialIncrement" value="%.2f" type="float" />\n' % (float(self.origami_exponentialIncrement))
+        buff += '    <param name="origami_stepVoltage" value="%.2f" type="float" />\n' % (
+            float(self.origami_stepVoltage))
+        buff += '    <param name="origami_boltzmannOffset" value="%.2f" type="float" />\n' % (
+            float(self.origami_boltzmannOffset))
+        buff += '    <param name="origami_exponentialPercentage" value="%.2f" type="float" />\n' % (
+            float(self.origami_exponentialPercentage))
+        buff += '    <param name="origami_exponentialIncrement" value="%.2f" type="float" />\n' % (
+            float(self.origami_exponentialIncrement))
         buff += '  </process_presets_origami>\n\n'
 
         # Process - mass spectrum
@@ -1795,9 +1830,12 @@ class OrigamiConfig:
         buff += '    <param name="unidec_mzStart" value="%d" type="float" />\n' % (float(self.unidec_mzStart))
         buff += '    <param name="unidec_mzEnd" value="%.2f" type="float" />\n' % (float(self.unidec_mzEnd))
         buff += '    <param name="unidec_mzBinSize" value="%.2f" type="float" />\n' % (float(self.unidec_mzBinSize))
-        buff += '    <param name="unidec_gaussianFilter" value="%.2f" type="float" />\n' % (float(self.unidec_gaussianFilter))
-        buff += '    <param name="unidec_accelerationV" value="%.2f" type="float" />\n' % (float(self.unidec_accelerationV))
-        buff += '    <param name="unidec_linearization" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_linearization, list(self.unidec_linearization_choices.keys()))
+        buff += '    <param name="unidec_gaussianFilter" value="%.2f" type="float" />\n' % (
+            float(self.unidec_gaussianFilter))
+        buff += '    <param name="unidec_accelerationV" value="%.2f" type="float" />\n' % (
+            float(self.unidec_accelerationV))
+        buff += '    <param name="unidec_linearization" value="%s" type="unicode" choices="%s" />\n' % (
+            self.unidec_linearization, list(self.unidec_linearization_choices.keys()))
         buff += '    <!-- UniDec engine parameters -->\n'
         buff += '    <param name="unidec_zStart" value="%d" type="int" />\n' % (int(self.unidec_zStart))
         buff += '    <param name="unidec_zEnd" value="%d" type="int" />\n' % (int(self.unidec_zEnd))
@@ -1805,58 +1843,84 @@ class OrigamiConfig:
         buff += '    <param name="unidec_mwEnd" value="%.2f" type="float" />\n' % (float(self.unidec_mwEnd))
         buff += '    <param name="unidec_mwFrequency" value="%.2f" type="float" />\n' % (float(self.unidec_mwFrequency))
         buff += '    <param name="unidec_peakWidth" value="%.2f" type="float" />\n' % (float(self.unidec_peakWidth))
-        buff += '    <param name="unidec_peakFunction" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_peakFunction, list(self.unidec_peakFunction_choices.keys()))
+        buff += '    <param name="unidec_peakFunction" value="%s" type="unicode" choices="%s" />\n' % (
+            self.unidec_peakFunction, list(self.unidec_peakFunction_choices.keys()))
         buff += '    <!-- Peak picking parameters -->\n'
-        buff += '    <param name="unidec_peakDetectionWidth" value="%.2f" type="float" />\n' % (float(self.unidec_peakDetectionWidth))
-        buff += '    <param name="unidec_peakDetectionThreshold" value="%.2f" type="float" />\n' % (float(self.unidec_peakDetectionThreshold))
-        buff += '    <param name="unidec_peakNormalization" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_peakNormalization, list(self.unidec_peakNormalization_choices.keys()))
-        buff += '    <param name="unidec_lineSeparation" value="%.2f" type="float" />\n' % (float(self.unidec_lineSeparation))
+        buff += '    <param name="unidec_peakDetectionWidth" value="%.2f" type="float" />\n' % (
+            float(self.unidec_peakDetectionWidth))
+        buff += '    <param name="unidec_peakDetectionThreshold" value="%.2f" type="float" />\n' % (
+            float(self.unidec_peakDetectionThreshold))
+        buff += '    <param name="unidec_peakNormalization" value="%s" type="unicode" choices="%s" />\n' % (
+            self.unidec_peakNormalization, list(self.unidec_peakNormalization_choices.keys()))
+        buff += '    <param name="unidec_lineSeparation" value="%.2f" type="float" />\n' % (
+            float(self.unidec_lineSeparation))
         buff += '    <!-- Plotting parameters -->\n'
-        buff += '    <param name="unidec_plot_panel_view" value="%s" type="unicode" />\n' % (str(self.unidec_plot_panel_view))
-        buff += '    <param name="unidec_maxShown_individualLines" value="%d" type="int" />\n' % (int(self.unidec_maxShown_individualLines))
-        buff += '    <param name="unidec_plot_fit_lineColor" value="%s" type="color" />\n' % (str(self.unidec_plot_fit_lineColor))
-        buff += '    <param name="unidec_plot_MW_showMarkers" value="%s" type="bool" />\n' % (bool(self.unidec_plot_MW_showMarkers))
-        buff += '    <param name="unidec_plot_MW_markerSize" value="%d" type="int" />\n' % (int(self.unidec_plot_MW_markerSize))
-        buff += '    <param name="unidec_plot_isolatedMS_markerSize" value="%d" type="int" />\n' % (int(self.unidec_plot_isolatedMS_markerSize))
-        buff += '    <param name="unidec_plot_bar_markerSize" value="%d" type="int" />\n' % (int(self.unidec_plot_bar_markerSize))
-        buff += '    <param name="unidec_plot_bar_width" value="%.2f" type="float" />\n' % (float(self.unidec_plot_bar_width))
-        buff += '    <param name="unidec_plot_bar_alpha" value="%.2f" type="float" />\n' % (float(self.unidec_plot_bar_alpha))
-        buff += '    <param name="unidec_plot_bar_edge_color" value="%s" type="color" />\n' % (str(self.unidec_plot_bar_edge_color))
-        buff += '    <param name="unidec_plot_bar_sameAsFill" value="%s" type="bool" />\n' % (bool(self.unidec_plot_bar_sameAsFill))
-        buff += '    <param name="unidec_plot_bar_lineWidth" value="%d" type="int" />\n' % (int(self.unidec_plot_bar_lineWidth))
-        buff += '    <param name="unidec_plot_contour_levels" value="%d" type="int" />\n' % (int(self.unidec_plot_contour_levels))
-        buff += '    <param name="unidec_plot_color_scheme" value="%s" type="unicode" choices="%s" />\n' % (self.unidec_plot_color_scheme, ["Color scheme", "Colormap"])
-        buff += '    <param name="unidec_plot_colormap" value="%s" type="unicode" />\n' % (str(self.unidec_plot_colormap))
+        buff += '    <param name="unidec_plot_panel_view" value="%s" type="unicode" />\n' % (
+            str(self.unidec_plot_panel_view))
+        buff += '    <param name="unidec_maxShown_individualLines" value="%d" type="int" />\n' % (
+            int(self.unidec_maxShown_individualLines))
+        buff += '    <param name="unidec_plot_fit_lineColor" value="%s" type="color" />\n' % (
+            str(self.unidec_plot_fit_lineColor))
+        buff += '    <param name="unidec_plot_MW_showMarkers" value="%s" type="bool" />\n' % (
+            bool(self.unidec_plot_MW_showMarkers))
+        buff += '    <param name="unidec_plot_MW_markerSize" value="%d" type="int" />\n' % (
+            int(self.unidec_plot_MW_markerSize))
+        buff += '    <param name="unidec_plot_isolatedMS_markerSize" value="%d" type="int" />\n' % (
+            int(self.unidec_plot_isolatedMS_markerSize))
+        buff += '    <param name="unidec_plot_bar_markerSize" value="%d" type="int" />\n' % (
+            int(self.unidec_plot_bar_markerSize))
+        buff += '    <param name="unidec_plot_bar_width" value="%.2f" type="float" />\n' % (
+            float(self.unidec_plot_bar_width))
+        buff += '    <param name="unidec_plot_bar_alpha" value="%.2f" type="float" />\n' % (
+            float(self.unidec_plot_bar_alpha))
+        buff += '    <param name="unidec_plot_bar_edge_color" value="%s" type="color" />\n' % (
+            str(self.unidec_plot_bar_edge_color))
+        buff += '    <param name="unidec_plot_bar_sameAsFill" value="%s" type="bool" />\n' % (
+            bool(self.unidec_plot_bar_sameAsFill))
+        buff += '    <param name="unidec_plot_bar_lineWidth" value="%d" type="int" />\n' % (
+            int(self.unidec_plot_bar_lineWidth))
+        buff += '    <param name="unidec_plot_contour_levels" value="%d" type="int" />\n' % (
+            int(self.unidec_plot_contour_levels))
+        buff += '    <param name="unidec_plot_color_scheme" value="%s" type="unicode" choices="%s" />\n' % (
+            self.unidec_plot_color_scheme, ["Color scheme", "Colormap"])
+        buff += '    <param name="unidec_plot_colormap" value="%s" type="unicode" />\n' % (
+            str(self.unidec_plot_colormap))
         buff += '    <param name="unidec_plot_palette" value="%s" type="unicode" />\n' % (str(self.unidec_plot_palette))
         buff += '  </process_presets_unidec>\n\n'
 
         # Process - peak fitting
         buff += '  <process_presets_fitting>\n'
-        buff += '    <param name="fit_type" value="%s" type="unicode" choices="%s" />\n' % (self.fit_type, self.fit_type_choices)
+        buff += '    <param name="fit_type" value="%s" type="unicode" choices="%s" />\n' % (
+            self.fit_type, self.fit_type_choices)
         buff += '    <param name="fit_highlight" value="%s" type="bool" />\n' % (bool(self.fit_highlight))
         buff += '    <param name="fit_addPeaks" value="%s" type="bool" />\n' % (bool(self.fit_addPeaks))
         buff += '    <param name="fit_xaxis_limit" value="%s" type="bool" />\n' % (bool(self.fit_xaxis_limit))
-        buff += '    <param name="fit_highRes_isotopicFit" value="%s" type="bool" />\n' % (bool(self.fit_highRes_isotopicFit))
+        buff += '    <param name="fit_highRes_isotopicFit" value="%s" type="bool" />\n' % (
+            bool(self.fit_highRes_isotopicFit))
         buff += '    <param name="fit_smoothPeaks" value="%s" type="bool" />\n' % (bool(self.fit_smoothPeaks))
         buff += '    <param name="fit_highRes" value="%s" type="bool" />\n' % (bool(self.fit_highRes))
         buff += '    <param name="fit_window" value="%d" type="int" />\n' % (int(self.fit_window))
         buff += '    <param name="fit_threshold" value="%.2f" type="float" />\n' % (float(self.fit_threshold))
         buff += '    <param name="fit_width" value="%.2f" type="float" />\n' % (float(self.fit_width))
-        buff += '    <param name="fit_asymmetric_ratio" value="%.2f" type="float" />\n' % (float(self.fit_asymmetric_ratio))
+        buff += '    <param name="fit_asymmetric_ratio" value="%.2f" type="float" />\n' % (
+            float(self.fit_asymmetric_ratio))
         buff += '    <param name="fit_highRes_window" value="%d" type="int" />\n' % (int(self.fit_highRes_window))
         buff += '    <param name="fit_smooth_sigma" value="%.2f" type="float" />\n' % (float(self.fit_smooth_sigma))
-        buff += '    <param name="fit_highRes_threshold" value="%.2f" type="float" />\n' % (float(self.fit_highRes_threshold))
+        buff += '    <param name="fit_highRes_threshold" value="%.2f" type="float" />\n' % (
+            float(self.fit_highRes_threshold))
         buff += '    <param name="fit_highRes_width" value="%.2f" type="float" />\n' % (float(self.fit_highRes_width))
         buff += '  </process_presets_fitting>\n\n'
 
         buff += '  <process_presets_binning>\n'
         buff += '    <param name="ms_enable_in_RT" value="%s" type="bool" />\n' % (bool(self.ms_enable_in_RT))
-        buff += '    <param name="ms_enable_in_MML_start" value="%s" type="bool" />\n' % (bool(self.ms_enable_in_MML_start))
+        buff += '    <param name="ms_enable_in_MML_start" value="%s" type="bool" />\n' % (
+            bool(self.ms_enable_in_MML_start))
         buff += '    <param name="ms_mzStart" value="%.2f" type="float" />\n' % (float(self.ms_mzStart))
         buff += '    <param name="ms_mzEnd" value="%.2f" type="float" />\n' % (float(self.ms_mzEnd))
         buff += '    <param name="ms_mzBinSize" value="%.2f" type="float" />\n' % (float(self.ms_mzBinSize))
         buff += '    <param name="ms_dtmsBinSize" value="%.2f" type="float" />\n' % (float(self.ms_dtmsBinSize))
-        buff += '    <param name="ms_linearization_mode" value="%s" type="unicode" choices="%s" />\n' % (self.ms_linearization_mode, self.ms_linearization_mode_choices)
+        buff += '    <param name="ms_linearization_mode" value="%s" type="unicode" choices="%s" />\n' % (
+            self.ms_linearization_mode, self.ms_linearization_mode_choices)
         buff += '    <param name="ms_auto_range" value="%s" type="bool" />\n' % (bool(self.ms_auto_range))
         buff += '    <param name="ms_process_crop" value="%s" type="bool" />\n' % (bool(self.ms_process_crop))
         buff += '    <param name="ms_process_linearize" value="%s" type="bool" />\n' % (bool(self.ms_process_linearize))
@@ -1868,8 +1932,10 @@ class OrigamiConfig:
         # Process - mass spectrum
         buff += '  <process_presets_ms>\n'
         buff += '    <param name="ms_normalize" value="%s" type="bool" />\n' % (bool(self.ms_normalize))
-        buff += '    <param name="ms_normalize_mode" value="%s" type="unicode" choices="%s" />\n' % (self.ms_normalize_mode, self.ms_normalize_choices)
-        buff += '    <param name="ms_smooth_mode" value="%s" type="unicode" choices="%s" />\n' % (self.ms_smooth_mode, self.ms_smooth_choices)
+        buff += '    <param name="ms_normalize_mode" value="%s" type="unicode" choices="%s" />\n' % (
+            self.ms_normalize_mode, self.ms_normalize_choices)
+        buff += '    <param name="ms_smooth_mode" value="%s" type="unicode" choices="%s" />\n' % (
+            self.ms_smooth_mode, self.ms_smooth_choices)
         buff += '    <param name="ms_smooth_polynomial" value="%d" type="int" />\n' % (int(self.ms_smooth_polynomial))
         buff += '    <param name="ms_smooth_window" value="%d" type="int" />\n' % (int(self.ms_smooth_window))
         buff += '    <param name="ms_smooth_sigma" value="%.2f" type="float" />\n' % (float(self.ms_smooth_sigma))
@@ -1879,51 +1945,69 @@ class OrigamiConfig:
         # Plot presets - compare mass spectra
         buff += '  <process_compare_mass_spectra>\n'
         buff += '    <param name="lineColour_MS1" value="%s" type="color" />\n' % (str(self.lineColour_MS1))
-        buff += '    <param name="lineStyle_MS1" value="%s" type="unicode" choices="%s" />\n' % (self.lineStyle_MS1, self.lineStylesList)
-        buff += '    <param name="lineTransparency_MS1" value="%.2f" type="float" />\n' % (float(self.lineTransparency_MS1))
+        buff += '    <param name="lineStyle_MS1" value="%s" type="unicode" choices="%s" />\n' % (
+            self.lineStyle_MS1, self.lineStylesList)
+        buff += '    <param name="lineTransparency_MS1" value="%.2f" type="float" />\n' % (
+            float(self.lineTransparency_MS1))
         buff += '    <param name="lineColour_MS2" value="%s" type="color" />\n' % (str(self.lineColour_MS2))
-        buff += '    <param name="lineStyle_MS2" value="%s" type="unicode" choices="%s" />\n' % (self.lineStyle_MS2, self.lineStylesList)
-        buff += '    <param name="lineTransparency_MS2" value="%.2f" type="float" />\n' % (float(self.lineTransparency_MS2))
+        buff += '    <param name="lineStyle_MS2" value="%s" type="unicode" choices="%s" />\n' % (
+            self.lineStyle_MS2, self.lineStylesList)
+        buff += '    <param name="lineTransparency_MS2" value="%.2f" type="float" />\n' % (
+            float(self.lineTransparency_MS2))
         buff += '  </process_compare_mass_spectra>\n\n'
 
         # Process - plot 2D
         buff += '  <process_presets_uvpd>\n'
-        buff += '    <param name="uvpd_peak_show_markers" value="%s" type="bool" />\n' % (bool(self.uvpd_peak_show_markers))
-        buff += '    <param name="uvpd_peak_show_patches" value="%s" type="bool" />\n' % (bool(self.uvpd_peak_show_patches))
-        buff += '    <param name="uvpd_peak_show_labels" value="%s" type="bool" />\n' % (bool(self.uvpd_peak_show_labels))
+        buff += '    <param name="uvpd_peak_show_markers" value="%s" type="bool" />\n' % (
+            bool(self.uvpd_peak_show_markers))
+        buff += '    <param name="uvpd_peak_show_patches" value="%s" type="bool" />\n' % (
+            bool(self.uvpd_peak_show_patches))
+        buff += '    <param name="uvpd_peak_show_labels" value="%s" type="bool" />\n' % (
+            bool(self.uvpd_peak_show_labels))
         buff += '    <param name="uvpd_peak_laser_on" value="%s" type="color" />\n' % (str(self.uvpd_peak_laser_on))
         buff += '    <param name="uvpd_peak_laser_off" value="%s" type="color" />\n' % (str(self.uvpd_peak_laser_off))
         buff += '    <param name="uvpd_peak_first_index" value="%d" type="int" />\n' % (int(self.uvpd_peak_first_index))
-        buff += '    <param name="uvpd_peak_buffer_width" value="%.2f" type="float" />\n' % (float(self.uvpd_peak_buffer_width))
-        buff += '    <param name="uvpd_peak_finding_threshold" value="%.2f" type="float" />\n' % (float(self.uvpd_peak_finding_threshold))
+        buff += '    <param name="uvpd_peak_buffer_width" value="%.2f" type="float" />\n' % (
+            float(self.uvpd_peak_buffer_width))
+        buff += '    <param name="uvpd_peak_finding_threshold" value="%.2f" type="float" />\n' % (
+            float(self.uvpd_peak_finding_threshold))
         buff += '  </process_presets_uvpd>\n\n'
 
         # Process - UVPD
         buff += '  <process_presets_plot2D>\n'
         buff += '    <param name="plot2D_normalize" value="%s" type="bool" />\n' % (bool(self.plot2D_normalize))
-        buff += '    <param name="plot2D_normalize_mode" value="%s" type="unicode" choices="%s" />\n' % (self.plot2D_normalize_mode, self.plot2D_normalize_choices)
-        buff += '    <param name="plot2D_smooth_mode" value="%s" type="unicode" choices="%s" />\n' % (self.plot2D_smooth_mode, self.plot2D_smooth_choices)
-        buff += '    <param name="plot2D_smooth_polynomial" value="%d" type="int" />\n' % (int(self.plot2D_smooth_polynomial))
+        buff += '    <param name="plot2D_normalize_mode" value="%s" type="unicode" choices="%s" />\n' % (
+            self.plot2D_normalize_mode, self.plot2D_normalize_choices)
+        buff += '    <param name="plot2D_smooth_mode" value="%s" type="unicode" choices="%s" />\n' % (
+            self.plot2D_smooth_mode, self.plot2D_smooth_choices)
+        buff += '    <param name="plot2D_smooth_polynomial" value="%d" type="int" />\n' % (
+            int(self.plot2D_smooth_polynomial))
         buff += '    <param name="plot2D_smooth_window" value="%d" type="int" />\n' % (int(self.plot2D_smooth_window))
-        buff += '    <param name="plot2D_smooth_sigma" value="%.2f" type="float" />\n' % (float(self.plot2D_smooth_sigma))
+        buff += '    <param name="plot2D_smooth_sigma" value="%.2f" type="float" />\n' % (
+            float(self.plot2D_smooth_sigma))
         buff += '    <param name="plot2D_threshold" value="%.2f" type="float" />\n' % (float(self.plot2D_threshold))
         buff += '  </process_presets_plot2D>\n\n'
 
         # Plot presets - rmsd
         buff += '  <plot_presets_rmsd>\n'
-        buff += '    <param name="rmsd_position" value="%s" type="unicode" choices="%s" />\n' % (self.rmsd_position, self.rmsd_position_choices)
+        buff += '    <param name="rmsd_position" value="%s" type="unicode" choices="%s" />\n' % (
+            self.rmsd_position, self.rmsd_position_choices)
         buff += '    <param name="rmsd_fontSize" value="%.2f" type="float" />\n' % (float(self.rmsd_fontSize))
         buff += '    <param name="rmsd_fontWeight" value="%s" type="bool" />\n' % (bool(self.rmsd_fontWeight))
         buff += '    <param name="rmsd_color" value="%s" type="color" />\n' % (str(self.rmsd_color))
         buff += '    <param name="rmsd_rotation_X" value="%.2f" type="float" />\n' % (float(self.rmsd_rotation_X))
         buff += '    <param name="rmsd_rotation_Y" value="%.2f" type="float" />\n' % (float(self.rmsd_rotation_Y))
         buff += '    <param name="rmsd_lineColour" value="%s" type="color" />\n' % (str(self.rmsd_lineColour))
-        buff += '    <param name="rmsd_lineTransparency" value="%.2f" type="float" />\n' % (float(self.rmsd_lineTransparency))
+        buff += '    <param name="rmsd_lineTransparency" value="%.2f" type="float" />\n' % (
+            float(self.rmsd_lineTransparency))
         buff += '    <param name="rmsd_underlineColor" value="%s" type="color" />\n' % (str(self.rmsd_underlineColor))
-        buff += '    <param name="rmsd_underlineTransparency" value="%.2f" type="float" />\n' % (float(self.rmsd_underlineTransparency))
+        buff += '    <param name="rmsd_underlineTransparency" value="%.2f" type="float" />\n' % (
+            float(self.rmsd_underlineTransparency))
         buff += '    <param name="rmsd_lineWidth" value="%.2f" type="float" />\n' % (float(self.rmsd_lineWidth))
-        buff += '    <param name="rmsd_lineStyle" value="%s" type="unicode" choices="%s" />\n' % (self.rmsd_lineStyle, self.lineStylesList)
-        buff += '    <param name="rmsd_lineHatch" value="%s" type="unicode" choices="%s" />\n' % (self.rmsd_lineHatch, self.lineHatchList)
+        buff += '    <param name="rmsd_lineStyle" value="%s" type="unicode" choices="%s" />\n' % (
+            self.rmsd_lineStyle, self.lineStylesList)
+        buff += '    <param name="rmsd_lineHatch" value="%s" type="unicode" choices="%s" />\n' % (
+            self.rmsd_lineHatch, self.lineHatchList)
         buff += '    <param name="rmsd_hspace" value="%.2f" type="float" />\n' % (float(self.rmsd_hspace))
         buff += '  </plot_presets_rmsd>\n\n'
 
@@ -1931,40 +2015,62 @@ class OrigamiConfig:
         buff += '  <plot_presets_waterfall>\n'
         buff += '    <param name="waterfall" value="%s" type="bool" />\n' % (bool(self.waterfall))
         buff += '    <param name="waterfallOffset" value="%.2f" type="float" />\n' % (float(self.waterfall_offset))
-        buff += '    <param name="waterfall_increment" value="%.2f" type="float" />\n' % (float(self.waterfall_increment))
+        buff += '    <param name="waterfall_increment" value="%.2f" type="float" />\n' % (
+            float(self.waterfall_increment))
         buff += '    <param name="waterfall_reverse" value="%s" type="bool" />\n' % (bool(self.waterfall_reverse))
-        buff += '    <param name="waterfall_lineWidth" value="%.2f" type="float" />\n' % (float(self.waterfall_lineWidth))
-        buff += '    <param name="waterfall_lineStyle" value="%s" type="unicode" choices="%s" />\n' % (self.waterfall_lineStyle, self.lineStylesList)
+        buff += '    <param name="waterfall_lineWidth" value="%.2f" type="float" />\n' % (
+            float(self.waterfall_lineWidth))
+        buff += '    <param name="waterfall_lineStyle" value="%s" type="unicode" choices="%s" />\n' % (
+            self.waterfall_lineStyle, self.lineStylesList)
         buff += '    <param name="waterfall_color" value="%s" type="color" />\n' % (str(self.waterfall_color))
-        buff += '    <param name="waterfall_useColormap" value="%s" type="bool" />\n' % (bool(self.waterfall_useColormap))
+        buff += '    <param name="waterfall_useColormap" value="%s" type="bool" />\n' % (
+            bool(self.waterfall_useColormap))
         buff += '    <param name="waterfall_normalize" value="%s" type="bool" />\n' % (bool(self.waterfall_normalize))
-        buff += '    <param name="waterfall_label_format" value="%s" type="unicode" choices="%s" />\n' % (self.waterfall_label_format, self.waterfall_label_format_choices)
-        buff += '    <param name="waterfall_color_value" value="%s" type="unicode" choices="%s" />\n' % (self.waterfall_color_value, self.waterfall_color_choices)
+        buff += '    <param name="waterfall_label_format" value="%s" type="unicode" choices="%s" />\n' % (
+            self.waterfall_label_format, self.waterfall_label_format_choices)
+        buff += '    <param name="waterfall_color_value" value="%s" type="unicode" choices="%s" />\n' % (
+            self.waterfall_color_value, self.waterfall_color_choices)
         buff += '    <param name="waterfall_add_labels" value="%s" type="bool" />\n' % (bool(self.waterfall_add_labels))
-        buff += '    <param name="waterfall_shade_under" value="%s" type="bool" />\n' % (bool(self.waterfall_shade_under))
-        buff += '    <param name="waterfall_shade_under_transparency" value="%.2f" type="float" />\n' % (float(self.waterfall_shade_under_transparency))
-        buff += '    <param name="waterfall_shade_under_nlimit" value="%d" type="int" />\n' % (int(self.waterfall_shade_under_nlimit))
-        buff += '    <param name="waterfall_labels_frequency" value="%.2f" type="float" />\n' % (float(self.waterfall_labels_frequency))
-        buff += '    <param name="waterfall_labels_x_offset" value="%.2f" type="float" />\n' % (float(self.waterfall_labels_x_offset))
-        buff += '    <param name="waterfall_labels_y_offset" value="%.2f" type="float" />\n' % (float(self.waterfall_labels_y_offset))
-        buff += '    <param name="waterfall_label_fontSize" value="%.2f" type="float" />\n' % (float(self.waterfall_label_fontSize))
-        buff += '    <param name="waterfall_label_fontWeight" value="%s" type="bool" />\n' % (bool(self.waterfall_label_fontWeight))
+        buff += '    <param name="waterfall_shade_under" value="%s" type="bool" />\n' % (
+            bool(self.waterfall_shade_under))
+        buff += '    <param name="waterfall_shade_under_transparency" value="%.2f" type="float" />\n' % (
+            float(self.waterfall_shade_under_transparency))
+        buff += '    <param name="waterfall_shade_under_nlimit" value="%d" type="int" />\n' % (
+            int(self.waterfall_shade_under_nlimit))
+        buff += '    <param name="waterfall_labels_frequency" value="%.2f" type="float" />\n' % (
+            float(self.waterfall_labels_frequency))
+        buff += '    <param name="waterfall_labels_x_offset" value="%.2f" type="float" />\n' % (
+            float(self.waterfall_labels_x_offset))
+        buff += '    <param name="waterfall_labels_y_offset" value="%.2f" type="float" />\n' % (
+            float(self.waterfall_labels_y_offset))
+        buff += '    <param name="waterfall_label_fontSize" value="%.2f" type="float" />\n' % (
+            float(self.waterfall_label_fontSize))
+        buff += '    <param name="waterfall_label_fontWeight" value="%s" type="bool" />\n' % (
+            bool(self.waterfall_label_fontWeight))
         buff += '  </plot_presets_waterfall>\n\n'
 
         # Plot presets - violin
         buff += '  <plot_presets_violin>\n'
         buff += '    <param name="violin_normalize" value="%s" type="bool" />\n' % (bool(self.violin_normalize))
-        buff += '    <param name="violin_orientation" value="%s" type="unicode" choices="%s" />\n' % (self.violin_orientation, self.violin_orientation_choices)
-        buff += '    <param name="violin_label_format" value="%s" type="unicode" choices="%s" />\n' % (self.violin_label_format, self.violin_label_format_choices)
-        buff += '    <param name="violin_color_value" value="%s" type="unicode" choices="%s" />\n' % (self.violin_color_value, self.violin_color_choices)
-        buff += '    <param name="violin_line_sameAsShade" value="%s" type="bool" />\n' % (bool(self.violin_line_sameAsShade))
-        buff += '    <param name="violin_shade_under_transparency" value="%.2f" type="float" />\n' % (float(self.violin_shade_under_transparency))
+        buff += '    <param name="violin_orientation" value="%s" type="unicode" choices="%s" />\n' % (
+            self.violin_orientation, self.violin_orientation_choices)
+        buff += '    <param name="violin_label_format" value="%s" type="unicode" choices="%s" />\n' % (
+            self.violin_label_format, self.violin_label_format_choices)
+        buff += '    <param name="violin_color_value" value="%s" type="unicode" choices="%s" />\n' % (
+            self.violin_color_value, self.violin_color_choices)
+        buff += '    <param name="violin_line_sameAsShade" value="%s" type="bool" />\n' % (
+            bool(self.violin_line_sameAsShade))
+        buff += '    <param name="violin_shade_under_transparency" value="%.2f" type="float" />\n' % (
+            float(self.violin_shade_under_transparency))
         buff += '    <param name="violin_nlimit" value="%d" type="int" />\n' % (int(self.violin_nlimit))
-        buff += '    <param name="violin_labels_frequency" value="%.2f" type="float" />\n' % (float(self.violin_labels_frequency))
-        buff += '    <param name="violin_min_percentage" value="%.2f" type="float" />\n' % (float(self.violin_min_percentage))
+        buff += '    <param name="violin_labels_frequency" value="%.2f" type="float" />\n' % (
+            float(self.violin_labels_frequency))
+        buff += '    <param name="violin_min_percentage" value="%.2f" type="float" />\n' % (
+            float(self.violin_min_percentage))
         buff += '    <param name="violin_spacing" value="%.2f" type="float" />\n' % (float(self.violin_spacing))
         buff += '    <param name="violin_lineWidth" value="%.2f" type="float" />\n' % (float(self.violin_lineWidth))
-        buff += '    <param name="violin_lineStyle" value="%s" type="unicode" choices="%s" />\n' % (self.violin_lineStyle, self.lineStylesList)
+        buff += '    <param name="violin_lineStyle" value="%s" type="unicode" choices="%s" />\n' % (
+            self.violin_lineStyle, self.lineStylesList)
         buff += '  </plot_presets_violin>\n\n'
 
         # Plot presets - bar
@@ -1982,8 +2088,10 @@ class OrigamiConfig:
         buff += '    <param name="legendFancyBox" value="%s" type="bool" />\n' % (bool(self.legendFancyBox))
         buff += '    <param name="legendMarkerFirst" value="%s" type="bool" />\n' % (bool(self.legendMarkerFirst))
         buff += '    <param name="legendFrame" value="%s" type="bool" />\n' % (bool(self.legendFrame))
-        buff += '    <param name="legendPosition" value="%s" type="unicode" choices="%s" />\n' % (self.legendPosition, self.legendPositionChoice)
-        buff += '    <param name="legendFontSize" value="%s" type="unicode" choices="%s" />\n' % (self.legendFontSize, self.legendFontChoice)
+        buff += '    <param name="legendPosition" value="%s" type="unicode" choices="%s" />\n' % (
+            self.legendPosition, self.legendPositionChoice)
+        buff += '    <param name="legendFontSize" value="%s" type="unicode" choices="%s" />\n' % (
+            self.legendFontSize, self.legendFontChoice)
         buff += '    <param name="legendColumns" value="%d" type="int" />\n' % (int(self.legendColumns))
         buff += '    <param name="legendNumberMarkers" value="%d" type="int" />\n' % (int(self.legendNumberMarkers))
         buff += '    <param name="legendMarkerSize" value="%.2f" type="float" />\n' % (float(self.legendMarkerSize))
@@ -1994,7 +2102,8 @@ class OrigamiConfig:
         # Plot presets - colorbar
         buff += '  <plot_presets_colorbar>\n'
         buff += '    <param name="colorbar" value="%s" type="bool" />\n' % (bool(self.colorbar))
-        buff += '    <param name="colorbarPosition" value="%s" type="unicode" choices="%s" />\n' % (self.colorbarPosition, self.colorbarChoices)
+        buff += '    <param name="colorbarPosition" value="%s" type="unicode" choices="%s" />\n' % (
+            self.colorbarPosition, self.colorbarChoices)
         buff += '    <param name="colorbarMinPoints" value="%d" type="int" />\n' % (int(self.colorbarMinPoints))
         buff += '    <param name="colorbarWidth" value="%.2f" type="float" />\n' % (float(self.colorbarWidth))
         buff += '    <param name="colorbarPad" value="%.2f" type="float" />\n' % (float(self.colorbarPad))
@@ -2007,15 +2116,21 @@ class OrigamiConfig:
         buff += '    <param name="lineWidth_1D" value="%.2f" type="float" />\n' % (float(self.lineWidth_1D))
         buff += '    <param name="frameWidth_1D" value="%d" type="float" />\n' % (float(self.frameWidth_1D))
         buff += '    <param name="labelPad_1D" value="%d" type="float" />\n' % (float(self.labelPad_1D))
-        buff += '    <param name="lineStyle_1D" value="%s" type="unicode" choices="%s" />\n' % (self.lineStyle_1D, self.lineStylesList)
+        buff += '    <param name="lineStyle_1D" value="%s" type="unicode" choices="%s" />\n' % (
+            self.lineStyle_1D, self.lineStylesList)
         buff += '    <param name="markerColor_1D" value="%s" type="color" />\n' % (str(self.markerColor_1D))
-        buff += '    <param name="markerTransparency_1D" value="%.2f" type="float" />\n' % (float(self.markerTransparency_1D))
+        buff += '    <param name="markerTransparency_1D" value="%.2f" type="float" />\n' % (
+            float(self.markerTransparency_1D))
         buff += '    <param name="markerSize_1D" value="%.2f" type="float" />\n' % (float(self.markerSize_1D))
-        buff += '    <param name="markerShape_1D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShape_1D, list(self.markerShapeDict.keys()))
-        buff += '    <param name="markerShapeTXT_1D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShapeTXT_1D, list(self.markerShapeDict.keys()))
+        buff += '    <param name="markerShape_1D" value="%s" type="unicode" choices="%s" />\n' % (
+            self.markerShape_1D, list(self.markerShapeDict.keys()))
+        buff += '    <param name="markerShapeTXT_1D" value="%s" type="unicode" choices="%s" />\n' % (
+            self.markerShapeTXT_1D, list(self.markerShapeDict.keys()))
         buff += '    <param name="axisOnOff_1D" value="%s" type="bool" />\n' % (bool(self.axisOnOff_1D))
-        buff += '    <param name="annotationFontWeight_1D" value="%s" type="bool" />\n' % (bool(self.annotationFontWeight_1D))
-        buff += '    <param name="annotationFontSize_1D" value="%.2f" type="float" />\n' % (float(self.annotationFontSize_1D))
+        buff += '    <param name="annotationFontWeight_1D" value="%s" type="bool" />\n' % (
+            bool(self.annotationFontWeight_1D))
+        buff += '    <param name="annotationFontSize_1D" value="%.2f" type="float" />\n' % (
+            float(self.annotationFontSize_1D))
         buff += '    <param name="tickFontWeight_1D" value="%s" type="bool" />\n' % (bool(self.tickFontWeight_1D))
         buff += '    <param name="tickFontSize_1D" value="%.2f" type="float" />\n' % (float(self.tickFontSize_1D))
         buff += '    <param name="labelFontWeight_1D" value="%s" type="bool" />\n' % (bool(self.labelFontWeight_1D))
@@ -2038,17 +2153,22 @@ class OrigamiConfig:
 
         # Plot presets - 2D plots
         buff += '  <plot_presets_plot_2D>\n'
-        buff += '    <param name="interpolation" value="%s" type="unicode" choices="%s" />\n' % (self.interpolation, self.comboInterpSelectChoices)
-        buff += '    <param name="plotType" value="%s" type="unicode" choices="%s" />\n' % (self.plotType, self.imageType2D)
-        buff += '    <param name="currentCmap" value="%s" type="unicode" choices="%s" />\n' % (self.currentCmap, self.cmaps2)
+        buff += '    <param name="interpolation" value="%s" type="unicode" choices="%s" />\n' % (
+            self.interpolation, self.comboInterpSelectChoices)
+        buff += '    <param name="plotType" value="%s" type="unicode" choices="%s" />\n' % (
+            self.plotType, self.imageType2D)
+        buff += '    <param name="currentCmap" value="%s" type="unicode" choices="%s" />\n' % (
+            self.currentCmap, self.cmaps2)
         buff += '    <param name="useCurrentCmap" value="%s" type="bool" />\n' % (bool(self.useCurrentCmap))
         buff += '    <param name="minCmap" value="%.2f" type="float" />\n' % (float(self.minCmap))
         buff += '    <param name="midCmap" value="%.2f" type="float" />\n' % (float(self.midCmap))
         buff += '    <param name="maxCmap" value="%.2f" type="float" />\n' % (float(self.maxCmap))
         buff += '    <param name="labelPad_2D" value="%.2f" type="float" />\n' % (float(self.labelPad_2D))
         buff += '    <param name="axisOnOff_2D" value="%s" type="bool" />\n' % (bool(self.axisOnOff_2D))
-        buff += '    <param name="annotationFontWeight_2D" value="%s" type="bool" />\n' % (bool(self.annotationFontWeight_2D))
-        buff += '    <param name="annotationFontSize_2D" value="%.2f" type="float" />\n' % (float(self.annotationFontSize_2D))
+        buff += '    <param name="annotationFontWeight_2D" value="%s" type="bool" />\n' % (
+            bool(self.annotationFontWeight_2D))
+        buff += '    <param name="annotationFontSize_2D" value="%.2f" type="float" />\n' % (
+            float(self.annotationFontSize_2D))
         buff += '    <param name="tickFontWeight_2D" value="%s" type="bool" />\n' % (bool(self.tickFontWeight_2D))
         buff += '    <param name="tickFontSize_2D" value="%.2f" type="float" />\n' % (float(self.tickFontSize_2D))
         buff += '    <param name="labelFontWeight_2D" value="%s" type="bool" />\n' % (bool(self.labelFontWeight_2D))
@@ -2079,13 +2199,18 @@ class OrigamiConfig:
         buff += '    <param name="labelPad_3D" value="%.2f" type="float" />\n' % (float(self.labelPad_3D))
         buff += '    <param name="markerEdgeUseSame_3D" value="%s" type="bool" />\n' % (bool(self.markerEdgeUseSame_3D))
         buff += '    <param name="markerColor_3D" value="%s" type="color" />\n' % (str(self.markerColor_3D))
-        buff += '    <param name="markerTransparency_3D" value="%.2f" type="float" />\n' % (float(self.markerTransparency_3D))
+        buff += '    <param name="markerTransparency_3D" value="%.2f" type="float" />\n' % (
+            float(self.markerTransparency_3D))
         buff += '    <param name="markerSize_3D" value="%.2f" type="float" />\n' % (float(self.markerSize_3D))
-        buff += '    <param name="markerShape_3D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShape_3D, list(self.markerShapeDict.keys()))
-        buff += '    <param name="markerShapeTXT_3D" value="%s" type="unicode" choices="%s" />\n' % (self.markerShapeTXT_3D, list(self.markerShapeDict.keys()))
+        buff += '    <param name="markerShape_3D" value="%s" type="unicode" choices="%s" />\n' % (
+            self.markerShape_3D, list(self.markerShapeDict.keys()))
+        buff += '    <param name="markerShapeTXT_3D" value="%s" type="unicode" choices="%s" />\n' % (
+            self.markerShapeTXT_3D, list(self.markerShapeDict.keys()))
         buff += '    <param name="markerEdgeColor_3D" value="%s" type="color" />\n' % (str(self.markerEdgeColor_3D))
-        buff += '    <param name="annotationFontWeight_3D" value="%s" type="bool" />\n' % (bool(self.annotationFontWeight_3D))
-        buff += '    <param name="annotationFontSize_3D" value="%.2f" type="float" />\n' % (float(self.annotationFontSize_3D))
+        buff += '    <param name="annotationFontWeight_3D" value="%s" type="bool" />\n' % (
+            bool(self.annotationFontWeight_3D))
+        buff += '    <param name="annotationFontSize_3D" value="%.2f" type="float" />\n' % (
+            float(self.annotationFontSize_3D))
         buff += '    <param name="tickFontWeight_3D" value="%s" type="bool" />\n' % (bool(self.tickFontWeight_3D))
         buff += '    <param name="tickFontSize_3D" value="%.2f" type="float" />\n' % (float(self.tickFontSize_3D))
         buff += '    <param name="labelFontWeight_3D" value="%s" type="bool" />\n' % (bool(self.labelFontWeight_3D))
@@ -2100,8 +2225,10 @@ class OrigamiConfig:
         buff += '    <param name="imageHeightInch" value="%d" type="int" />\n' % (int(self.imageHeightInch))
         buff += '    <param name="transparent" value="%s" type="bool" />\n' % (bool(self.transparent))
         buff += '    <param name="colorbar" value="%s" type="bool" />\n' % (bool(self.colorbar))
-        buff += '    <param name="imageFormat" value="%s" type="unicode" choices="%s" />\n' % (str(self.imageFormat), self.imageFormatType)
-        buff += '    <param name="saveDelimiterTXT" value="%s" type="unicode" choices="%s" />\n' % (self.saveDelimiterTXT, list(self.textOutputDict.keys()))
+        buff += '    <param name="imageFormat" value="%s" type="unicode" choices="%s" />\n' % (
+            str(self.imageFormat), self.imageFormatType)
+        buff += '    <param name="saveDelimiterTXT" value="%s" type="unicode" choices="%s" />\n' % (
+            self.saveDelimiterTXT, list(self.textOutputDict.keys()))
         buff += '    <param name="normalizeMultipleMS" value="%s" type="bool" />\n' % (bool(self.normalizeMultipleMS))
         buff += '  </exportParams>\n\n'
 
@@ -2112,47 +2239,59 @@ class OrigamiConfig:
         buff += '    <!-- activeInspect_choices="%s" -->\n' % self.interactive_activeHoverTools_choices
         for key, __ in sorted(self.interactiveToolsOnOff.items()):
             ts = self.interactiveToolsOnOff[key]
-            buff += '    <param name="%s" hover="%s" save="%s" pan="%s" boxzoom="%s" boxzoom_horizontal="%s" boxzoom_vertical="%s" crosshair="%s" reset="%s" wheel="%s" wheelType="%s" activeDrag="%s" activeWheel="%s" activeInspect="%s" type="mixed" />\n' % (key, bool(ts['hover']), bool(ts['save']), bool(ts['pan']), bool(ts['boxzoom']), bool(ts.get('boxzoom_horizontal', True)), bool(ts.get('boxzoom_vertical', False)), bool(ts['crosshair']), bool(ts['reset']), bool(ts['wheel']), ts['wheelType'], ts['activeDrag'], ts['activeWheel'], ts['activeInspect'])
+            buff += '    <param name="%s" hover="%s" save="%s" pan="%s" boxzoom="%s" boxzoom_horizontal="%s" boxzoom_vertical="%s" crosshair="%s" reset="%s" wheel="%s" wheelType="%s" activeDrag="%s" activeWheel="%s" activeInspect="%s" type="mixed" />\n' % (key, bool(ts['hover']), bool(
+                ts['save']), bool(ts['pan']), bool(ts['boxzoom']), bool(ts.get('boxzoom_horizontal', True)), bool(ts.get('boxzoom_vertical', False)), bool(ts['crosshair']), bool(ts['reset']), bool(ts['wheel']), ts['wheelType'], ts['activeDrag'], ts['activeWheel'], ts['activeInspect'])
         buff += '  </presets_interactive_toolsets>\n\n'
 
         buff += '  <presets_interactive_pageLayouts>\n'
         buff += '    <!-- layout_choices="%s" -->\n' % self.interactive_pageLayout_choices
         for key, __ in sorted(self.pageDict.items()):
             pl = self.pageDict[key]
-            buff += '    <param page_name="%s" name="%s" layout="%s" rows="%s" columns="%s" grid_share_tools="%s" type="mixed" />\n' % (key,
-                                                                                                                                                                  pl['name'],
-                                                                                                                                                                  pl['layout'],
-                                                                                                                                                                  pl.get('rows', None),
-                                                                                                                                                                  pl['columns'],
-                                                                                                                                                                  pl.get('grid_share_tools', True))
+            buff += '    <param page_name="%s" name="%s" layout="%s" rows="%s" columns="%s" grid_share_tools="%s" type="mixed" />\n' % (
+                key, pl['name'], pl['layout'], pl.get('rows', None), pl['columns'], pl.get('grid_share_tools', True))
         buff += '  </presets_interactive_pageLayouts>\n\n'
 
         buff += '  <presets_interactive_gui>\n'
         buff += '    <!-- GENERAL PARAMETERS -->\n'
-        buff += '    <param name="interactive_override_defaults" value="%s" type="bool" />\n' % (bool(self.interactive_override_defaults))
-        buff += '    <param name="openInteractiveOnSave" value="%s" type="bool" />\n' % (bool(self.openInteractiveOnSave))
-        buff += '    <param name="interactive_cvd_cmap" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_cvd_cmap), self.interactive_cvd_cmap_choices)
+        buff += '    <param name="interactive_override_defaults" value="%s" type="bool" />\n' % (
+            bool(self.interactive_override_defaults))
+        buff += '    <param name="openInteractiveOnSave" value="%s" type="bool" />\n' % (
+            bool(self.openInteractiveOnSave))
+        buff += '    <param name="interactive_cvd_cmap" value="%s"  choices="%s" type="unicode" />\n' % (
+            str(self.interactive_cvd_cmap), self.interactive_cvd_cmap_choices)
 
         buff += '    <!-- JAVA SCRIPT PARAMETERS -->\n'
-        buff += '    <param name="interactive_custom_scripts" value="%s" type="bool" />\n' % (bool(self.interactive_custom_scripts))
-        buff += '    <param name="interactive_custom_events" value="%s" type="bool" />\n' % (bool(self.interactive_custom_events))
-        buff += '    <param name="interactive_custom_position" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_custom_position), ["left", "right", "below", "above"])
+        buff += '    <param name="interactive_custom_scripts" value="%s" type="bool" />\n' % (
+            bool(self.interactive_custom_scripts))
+        buff += '    <param name="interactive_custom_events" value="%s" type="bool" />\n' % (
+            bool(self.interactive_custom_events))
+        buff += '    <param name="interactive_custom_position" value="%s"  choices="%s" type="unicode" />\n' % (
+            str(self.interactive_custom_position), ["left", "right", "below", "above"])
 
         buff += '    <!-- FRAME PARAMETERS -->\n'
         buff += '    <param name="figHeight" value="%d" type="int" />\n' % (int(self.figHeight))
         buff += '    <param name="figWidth" value="%d" type="int" />\n' % (int(self.figWidth))
         buff += '    <param name="figHeight1D" value="%d" type="int" />\n' % (int(self.figHeight1D))
         buff += '    <param name="figWidth1D" value="%d" type="int" />\n' % (int(self.figWidth1D))
-        buff += '    <param name="interactive_outline_alpha" value="%.1f" type="float" />\n' % (float(self.interactive_outline_alpha))
-        buff += '    <param name="interactive_outline_width" value="%.1f" type="float" />\n' % (float(self.interactive_outline_width))
-        buff += '    <param name="interactive_border_min_right" value="%d" type="int" />\n' % (int(self.interactive_border_min_right))
-        buff += '    <param name="interactive_border_min_left" value="%d" type="int" />\n' % (int(self.interactive_border_min_left))
-        buff += '    <param name="interactive_border_min_top" value="%d" type="int" />\n' % (int(self.interactive_border_min_top))
-        buff += '    <param name="interactive_border_min_bottom" value="%d" type="int" />\n' % (int(self.interactive_border_min_bottom))
+        buff += '    <param name="interactive_outline_alpha" value="%.1f" type="float" />\n' % (
+            float(self.interactive_outline_alpha))
+        buff += '    <param name="interactive_outline_width" value="%.1f" type="float" />\n' % (
+            float(self.interactive_outline_width))
+        buff += '    <param name="interactive_border_min_right" value="%d" type="int" />\n' % (
+            int(self.interactive_border_min_right))
+        buff += '    <param name="interactive_border_min_left" value="%d" type="int" />\n' % (
+            int(self.interactive_border_min_left))
+        buff += '    <param name="interactive_border_min_top" value="%d" type="int" />\n' % (
+            int(self.interactive_border_min_top))
+        buff += '    <param name="interactive_border_min_bottom" value="%d" type="int" />\n' % (
+            int(self.interactive_border_min_bottom))
         buff += '    <param name="layoutModeDoc" value="%s" type="unicode" />\n' % (str(self.layoutModeDoc))
-        buff += '    <param name="interactive_grid_line" value="%s" type="bool" />\n' % (bool(self.interactive_grid_line))
-        buff += '    <param name="interactive_background_color" value="%s" type="color" />\n' % (str(self.interactive_background_color))
-        buff += '    <param name="interactive_grid_line_color" value="%s" type="color" />\n' % (str(self.interactive_grid_line_color))
+        buff += '    <param name="interactive_grid_line" value="%s" type="bool" />\n' % (
+            bool(self.interactive_grid_line))
+        buff += '    <param name="interactive_background_color" value="%s" type="color" />\n' % (
+            str(self.interactive_background_color))
+        buff += '    <param name="interactive_grid_line_color" value="%s" type="color" />\n' % (
+            str(self.interactive_grid_line_color))
 
         buff += '    <!-- TOOLS PARAMETERS -->\n'
         buff += '    <param name="toolsLocation" value="%s" type="unicode" />\n' % (str(self.toolsLocation))
@@ -2163,103 +2302,176 @@ class OrigamiConfig:
         buff += '    <!-- OVERLAY PARAMETERS -->\n'
         buff += '    <param name="plotLayoutOverlay" value="%s" type="unicode" />\n' % (str(self.plotLayoutOverlay))
         buff += '    <param name="linkXYaxes" value="%s" type="bool" />\n' % (bool(self.linkXYaxes))
-        buff += '    <param name="interactive_grid_label" value="%s" type="bool" />\n' % (bool(self.interactive_grid_label))
-        buff += '    <param name="interactive_grid_label_weight" value="%s" type="bool" />\n' % (bool(self.interactive_grid_label_weight))
-        buff += '    <param name="interactive_grid_label_size" value="%.2f" type="float" />\n' % (float(self.interactive_grid_label_size))
-        buff += '    <param name="interactive_grid_xpos" value="%.2f" type="float" />\n' % (float(self.interactive_grid_xpos))
-        buff += '    <param name="interactive_grid_ypos" value="%.2f" type="float" />\n' % (float(self.interactive_grid_ypos))
-        buff += '    <param name="interactive_grid_label_color" value="%s" type="color" />\n' % (str(self.interactive_grid_label_color))
+        buff += '    <param name="interactive_grid_label" value="%s" type="bool" />\n' % (
+            bool(self.interactive_grid_label))
+        buff += '    <param name="interactive_grid_label_weight" value="%s" type="bool" />\n' % (
+            bool(self.interactive_grid_label_weight))
+        buff += '    <param name="interactive_grid_label_size" value="%.2f" type="float" />\n' % (
+            float(self.interactive_grid_label_size))
+        buff += '    <param name="interactive_grid_xpos" value="%.2f" type="float" />\n' % (
+            float(self.interactive_grid_xpos))
+        buff += '    <param name="interactive_grid_ypos" value="%.2f" type="float" />\n' % (
+            float(self.interactive_grid_ypos))
+        buff += '    <param name="interactive_grid_label_color" value="%s" type="color" />\n' % (
+            str(self.interactive_grid_label_color))
 
         buff += '    <!-- FONT PARAMETERS -->\n'
-        buff += '    <param name="interactive_title_fontSize" value="%d" type="int" />\n' % (int(self.interactive_title_fontSize))
-        buff += '    <param name="interactive_title_weight" value="%s" type="bool" />\n' % (bool(self.interactive_title_weight))
-        buff += '    <param name="interactive_label_fontSize" value="%d" type="int" />\n' % (int(self.interactive_label_fontSize))
-        buff += '    <param name="interactive_label_weight" value="%s" type="bool" />\n' % (bool(self.interactive_label_weight))
-        buff += '    <param name="interactive_tick_fontSize" value="%d" type="int" />\n' % (int(self.interactive_tick_fontSize))
-        buff += '    <param name="interactive_annotation_fontSize" value="%d" type="int" />\n' % (int(self.interactive_annotation_fontSize))
-        buff += '    <param name="interactive_annotation_weight" value="%s" type="bool" />\n' % (bool(self.interactive_annotation_weight))
-        buff += '    <param name="interactive_annotation_color" value="%s" type="color" />\n' % (str(self.interactive_annotation_color))
-        buff += '    <param name="interactive_annotation_background_color" value="%s" type="color" />\n' % (str(self.interactive_annotation_background_color))
-        buff += '    <param name="interactive_annotation_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_annotation_alpha))
+        buff += '    <param name="interactive_title_fontSize" value="%d" type="int" />\n' % (
+            int(self.interactive_title_fontSize))
+        buff += '    <param name="interactive_title_weight" value="%s" type="bool" />\n' % (
+            bool(self.interactive_title_weight))
+        buff += '    <param name="interactive_label_fontSize" value="%d" type="int" />\n' % (
+            int(self.interactive_label_fontSize))
+        buff += '    <param name="interactive_label_weight" value="%s" type="bool" />\n' % (
+            bool(self.interactive_label_weight))
+        buff += '    <param name="interactive_tick_fontSize" value="%d" type="int" />\n' % (
+            int(self.interactive_tick_fontSize))
+        buff += '    <param name="interactive_annotation_fontSize" value="%d" type="int" />\n' % (
+            int(self.interactive_annotation_fontSize))
+        buff += '    <param name="interactive_annotation_weight" value="%s" type="bool" />\n' % (
+            bool(self.interactive_annotation_weight))
+        buff += '    <param name="interactive_annotation_color" value="%s" type="color" />\n' % (
+            str(self.interactive_annotation_color))
+        buff += '    <param name="interactive_annotation_background_color" value="%s" type="color" />\n' % (
+            str(self.interactive_annotation_background_color))
+        buff += '    <param name="interactive_annotation_alpha" value="%.2f" type="float" />\n' % (
+            float(self.interactive_annotation_alpha))
 
         buff += '    <!-- COLORBAR PARAMETERS -->\n'
         buff += '    <param name="interactive_colorbar" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar))
-        buff += '    <param name="interactive_colorbar_useScientific" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_useScientific))
-        buff += '    <param name="interactive_colorbar_label_offset" value="%d" type="int" />\n' % (int(self.interactive_colorbar_label_offset))
-        buff += '    <param name="interactive_colorbar_precision" value="%d" type="int" />\n' % (int(self.interactive_colorbar_precision))
-        buff += '    <param name="interactive_colorbar_offset_x" value="%d" type="int" />\n' % (int(self.interactive_colorbar_offset_x))
-        buff += '    <param name="interactive_colorbar_offset_y" value="%d" type="int" />\n' % (int(self.interactive_colorbar_offset_y))
-        buff += '    <param name="interactive_colorbar_width" value="%d" type="int" />\n' % (int(self.interactive_colorbar_width))
-        buff += '    <param name="interactive_colorbar_padding" value="%d" type="int" />\n' % (int(self.interactive_colorbar_padding))
-        buff += '    <param name="interactive_colorbar_location" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_colorbar_location), self.interactive_colorbarPosition_choices)
-        buff += '    <param name="interactive_colorbar_orientation" value="%s" type="unicode" />\n' % (str(self.interactive_colorbar_orientation))
-        buff += '    <param name="interactive_colorbar_edge_color" value="%s" type="color" />\n' % (str(self.interactive_colorbar_edge_color))
-        buff += '    <param name="interactive_colorbar_edge_width" value="%.2f" type="float" />\n' % (float(self.interactive_colorbar_edge_width))
-        buff += '    <param name="interactive_colorbar_label_fontSize" value="%.2f" type="float" />\n' % (float(self.interactive_colorbar_label_fontSize))
-        buff += '    <param name="interactive_colorbar_title_fontSize" value="%.2f" type="float" />\n' % (float(self.interactive_colorbar_title_fontSize))
-        buff += '    <param name="interactive_colorbar_title_weight" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_title_weight))
-        buff += '    <param name="interactive_colorbar_label_weight" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_label_weight))
-        buff += '    <param name="interactive_colorbar_modify_ticks" value="%s" type="bool" />\n' % (bool(self.interactive_colorbar_modify_ticks))
+        buff += '    <param name="interactive_colorbar_useScientific" value="%s" type="bool" />\n' % (
+            bool(self.interactive_colorbar_useScientific))
+        buff += '    <param name="interactive_colorbar_label_offset" value="%d" type="int" />\n' % (
+            int(self.interactive_colorbar_label_offset))
+        buff += '    <param name="interactive_colorbar_precision" value="%d" type="int" />\n' % (
+            int(self.interactive_colorbar_precision))
+        buff += '    <param name="interactive_colorbar_offset_x" value="%d" type="int" />\n' % (
+            int(self.interactive_colorbar_offset_x))
+        buff += '    <param name="interactive_colorbar_offset_y" value="%d" type="int" />\n' % (
+            int(self.interactive_colorbar_offset_y))
+        buff += '    <param name="interactive_colorbar_width" value="%d" type="int" />\n' % (
+            int(self.interactive_colorbar_width))
+        buff += '    <param name="interactive_colorbar_padding" value="%d" type="int" />\n' % (
+            int(self.interactive_colorbar_padding))
+        buff += '    <param name="interactive_colorbar_location" value="%s"  choices="%s" type="unicode" />\n' % (
+            str(self.interactive_colorbar_location), self.interactive_colorbarPosition_choices)
+        buff += '    <param name="interactive_colorbar_orientation" value="%s" type="unicode" />\n' % (
+            str(self.interactive_colorbar_orientation))
+        buff += '    <param name="interactive_colorbar_edge_color" value="%s" type="color" />\n' % (
+            str(self.interactive_colorbar_edge_color))
+        buff += '    <param name="interactive_colorbar_edge_width" value="%.2f" type="float" />\n' % (
+            float(self.interactive_colorbar_edge_width))
+        buff += '    <param name="interactive_colorbar_label_fontSize" value="%.2f" type="float" />\n' % (
+            float(self.interactive_colorbar_label_fontSize))
+        buff += '    <param name="interactive_colorbar_title_fontSize" value="%.2f" type="float" />\n' % (
+            float(self.interactive_colorbar_title_fontSize))
+        buff += '    <param name="interactive_colorbar_title_weight" value="%s" type="bool" />\n' % (
+            bool(self.interactive_colorbar_title_weight))
+        buff += '    <param name="interactive_colorbar_label_weight" value="%s" type="bool" />\n' % (
+            bool(self.interactive_colorbar_label_weight))
+        buff += '    <param name="interactive_colorbar_modify_ticks" value="%s" type="bool" />\n' % (
+            bool(self.interactive_colorbar_modify_ticks))
 
         buff += '    <!-- TICK PARAMETERS -->\n'
-        buff += '    <param name="interactive_tick_precision" value="%d" type="int" />\n' % (int(self.interactive_tick_precision))
-        buff += '    <param name="interactive_tick_useScientific" value="%s" type="bool" />\n' % (bool(self.interactive_tick_useScientific))
+        buff += '    <param name="interactive_tick_precision" value="%d" type="int" />\n' % (
+            int(self.interactive_tick_precision))
+        buff += '    <param name="interactive_tick_useScientific" value="%s" type="bool" />\n' % (
+            bool(self.interactive_tick_useScientific))
 
         buff += '    <!-- LEGEND PARAMETERS -->\n'
         buff += '    <param name="interactive_legend" value="%s" type="bool" />\n' % (bool(self.interactive_legend))
-        buff += '    <param name="interactive_legend_click_policy" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_legend_click_policy), self.interactive_legend_click_policy_choices)
-        buff += '    <param name="interactive_legend_location" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_legend_location), self.interactive_legend_location_choices)
-        buff += '    <param name="interactive_legend_orientation" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_legend_orientation), self.interactive_legend_orientation_choices)
-        buff += '    <param name="interactive_legend_mute_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_legend_mute_alpha))
-        buff += '    <param name="interactive_legend_background_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_legend_background_alpha))
-        buff += '    <param name="interactive_legend_font_size" value="%.2f" type="float" />\n' % (float(self.interactive_legend_font_size))
+        buff += '    <param name="interactive_legend_click_policy" value="%s"  choices="%s" type="unicode" />\n' % (
+            str(self.interactive_legend_click_policy), self.interactive_legend_click_policy_choices)
+        buff += '    <param name="interactive_legend_location" value="%s"  choices="%s" type="unicode" />\n' % (
+            str(self.interactive_legend_location), self.interactive_legend_location_choices)
+        buff += '    <param name="interactive_legend_orientation" value="%s"  choices="%s" type="unicode" />\n' % (
+            str(self.interactive_legend_orientation), self.interactive_legend_orientation_choices)
+        buff += '    <param name="interactive_legend_mute_alpha" value="%.2f" type="float" />\n' % (
+            float(self.interactive_legend_mute_alpha))
+        buff += '    <param name="interactive_legend_background_alpha" value="%.2f" type="float" />\n' % (
+            float(self.interactive_legend_background_alpha))
+        buff += '    <param name="interactive_legend_font_size" value="%.2f" type="float" />\n' % (
+            float(self.interactive_legend_font_size))
 
         buff += '    <!-- LINE PARAMETERS -->\n'
         buff += '    <param name="hoverVline" value="%s" type="bool" />\n' % (bool(self.hoverVline))
-        buff += '    <param name="interactive_line_style" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_line_style), self.interactive_line_style_choices)
-        buff += '    <param name="interactive_line_width" value="%.2f" type="float" />\n' % (float(self.interactive_line_width))
-        buff += '    <param name="interactive_line_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_line_alpha))
-        buff += '    <param name="interactive_line_color" value="%s" type="color" />\n' % (str(self.interactive_line_color))
-        buff += '    <param name="interactive_line_shade_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_line_shade_alpha))
-        buff += '    <param name="interactive_line_shade_under" value="%s" type="bool" />\n' % (bool(self.interactive_line_shade_under))
+        buff += '    <param name="interactive_line_style" value="%s"  choices="%s" type="unicode" />\n' % (
+            str(self.interactive_line_style), self.interactive_line_style_choices)
+        buff += '    <param name="interactive_line_width" value="%.2f" type="float" />\n' % (
+            float(self.interactive_line_width))
+        buff += '    <param name="interactive_line_alpha" value="%.2f" type="float" />\n' % (
+            float(self.interactive_line_alpha))
+        buff += '    <param name="interactive_line_color" value="%s" type="color" />\n' % (
+            str(self.interactive_line_color))
+        buff += '    <param name="interactive_line_shade_alpha" value="%.2f" type="float" />\n' % (
+            float(self.interactive_line_shade_alpha))
+        buff += '    <param name="interactive_line_shade_under" value="%s" type="bool" />\n' % (
+            bool(self.interactive_line_shade_under))
 
         buff += '    <!-- LINEARIZE PARAMETERS -->\n'
         buff += '    <param name="interactive_ms_linearize" value="%s" type="bool" />\n' % (bool(self.hoverVline))
-        buff += '    <param name="interactive_ms_binSize" value="%.2f" type="float" />\n' % (float(self.interactive_ms_binSize))
+        buff += '    <param name="interactive_ms_binSize" value="%.2f" type="float" />\n' % (
+            float(self.interactive_ms_binSize))
 
         buff += '    <!-- BAR PARAMETERS -->\n'
-        buff += '    <param name="interactive_bar_sameAsFill" value="%s" type="bool" />\n' % (bool(self.interactive_bar_sameAsFill))
-        buff += '    <param name="interactive_bar_width" value="%.2f" type="float" />\n' % (float(self.interactive_bar_width))
-        buff += '    <param name="interactive_bar_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_bar_alpha))
-        buff += '    <param name="interactive_bar_lineWidth" value="%.2f" type="float" />\n' % (float(self.interactive_bar_lineWidth))
-        buff += '    <param name="interactive_bar_edge_color" value="%s" type="color" />\n' % (str(self.interactive_bar_edge_color))
+        buff += '    <param name="interactive_bar_sameAsFill" value="%s" type="bool" />\n' % (
+            bool(self.interactive_bar_sameAsFill))
+        buff += '    <param name="interactive_bar_width" value="%.2f" type="float" />\n' % (
+            float(self.interactive_bar_width))
+        buff += '    <param name="interactive_bar_alpha" value="%.2f" type="float" />\n' % (
+            float(self.interactive_bar_alpha))
+        buff += '    <param name="interactive_bar_lineWidth" value="%.2f" type="float" />\n' % (
+            float(self.interactive_bar_lineWidth))
+        buff += '    <param name="interactive_bar_edge_color" value="%s" type="color" />\n' % (
+            str(self.interactive_bar_edge_color))
 
         buff += '    <!-- SCATTER PARAMETERS -->\n'
-        buff += '    <param name="interactive_scatter_sameAsFill" value="%s" type="bool" />\n' % (bool(self.interactive_scatter_sameAsFill))
-        buff += '    <param name="interactive_scatter_size" value="%d" type="int" />\n' % (int(self.interactive_scatter_size))
-        buff += '    <param name="interactive_scatter_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_scatter_alpha))
-        buff += '    <param name="interactive_scatter_edge_color" value="%s" type="color" />\n' % (str(self.interactive_scatter_edge_color))
-        buff += '    <param name="interactive_scatter_marker" value="%s"  choices="%s" type="unicode" />\n' % (str(self.interactive_scatter_marker), self.interactive_scatter_marker_choices)
-        buff += '    <param name="interactive_scatter_lineWidth" value="%.2f" type="float" />\n' % (float(self.interactive_scatter_lineWidth))
+        buff += '    <param name="interactive_scatter_sameAsFill" value="%s" type="bool" />\n' % (
+            bool(self.interactive_scatter_sameAsFill))
+        buff += '    <param name="interactive_scatter_size" value="%d" type="int" />\n' % (
+            int(self.interactive_scatter_size))
+        buff += '    <param name="interactive_scatter_alpha" value="%.2f" type="float" />\n' % (
+            float(self.interactive_scatter_alpha))
+        buff += '    <param name="interactive_scatter_edge_color" value="%s" type="color" />\n' % (
+            str(self.interactive_scatter_edge_color))
+        buff += '    <param name="interactive_scatter_marker" value="%s"  choices="%s" type="unicode" />\n' % (
+            str(self.interactive_scatter_marker), self.interactive_scatter_marker_choices)
+        buff += '    <param name="interactive_scatter_lineWidth" value="%.2f" type="float" />\n' % (
+            float(self.interactive_scatter_lineWidth))
 
         buff += '    <!-- ANNOTATIONS PARAMETERS -->\n'
-        buff += '    <param name="interactive_ms_annotations" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations))
-        buff += '    <param name="interactive_ms_annotations_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_color))
-        buff += '    <param name="interactive_ms_annotations_line_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_line_color))
-        buff += '    <param name="interactive_ms_annotations_transparency" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_transparency))
-        buff += '    <param name="interactive_ms_annotations_fontWeight" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations_fontWeight))
-        buff += '    <param name="interactive_ms_annotations_highlight" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations_highlight))
-        buff += '    <param name="interactive_ms_annotations_labels" value="%s" type="bool" />\n' % (bool(self.interactive_ms_annotations_labels))
-        buff += '    <param name="interactive_ms_annotations_offsetX" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_offsetX))
-        buff += '    <param name="interactive_ms_annotations_offsetY" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_offsetY))
-        buff += '    <param name="interactive_ms_annotations_fontSize" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_fontSize))
-        buff += '    <param name="interactive_ms_annotations_rotation" value="%.2f" type="float" />\n' % (float(self.interactive_ms_annotations_rotation))
-        buff += '    <param name="interactive_ms_annotations_label_color" value="%s" type="color" />\n' % (str(self.interactive_ms_annotations_label_color))
+        buff += '    <param name="interactive_ms_annotations" value="%s" type="bool" />\n' % (
+            bool(self.interactive_ms_annotations))
+        buff += '    <param name="interactive_ms_annotations_color" value="%s" type="color" />\n' % (
+            str(self.interactive_ms_annotations_color))
+        buff += '    <param name="interactive_ms_annotations_line_color" value="%s" type="color" />\n' % (
+            str(self.interactive_ms_annotations_line_color))
+        buff += '    <param name="interactive_ms_annotations_transparency" value="%.2f" type="float" />\n' % (
+            float(self.interactive_ms_annotations_transparency))
+        buff += '    <param name="interactive_ms_annotations_fontWeight" value="%s" type="bool" />\n' % (
+            bool(self.interactive_ms_annotations_fontWeight))
+        buff += '    <param name="interactive_ms_annotations_highlight" value="%s" type="bool" />\n' % (
+            bool(self.interactive_ms_annotations_highlight))
+        buff += '    <param name="interactive_ms_annotations_labels" value="%s" type="bool" />\n' % (
+            bool(self.interactive_ms_annotations_labels))
+        buff += '    <param name="interactive_ms_annotations_offsetX" value="%.2f" type="float" />\n' % (
+            float(self.interactive_ms_annotations_offsetX))
+        buff += '    <param name="interactive_ms_annotations_offsetY" value="%.2f" type="float" />\n' % (
+            float(self.interactive_ms_annotations_offsetY))
+        buff += '    <param name="interactive_ms_annotations_fontSize" value="%.2f" type="float" />\n' % (
+            float(self.interactive_ms_annotations_fontSize))
+        buff += '    <param name="interactive_ms_annotations_rotation" value="%.2f" type="float" />\n' % (
+            float(self.interactive_ms_annotations_rotation))
+        buff += '    <param name="interactive_ms_annotations_label_color" value="%s" type="color" />\n' % (
+            str(self.interactive_ms_annotations_label_color))
 
         buff += '    <!-- WATERFALL PARAMETERS -->\n'
-        buff += '    <param name="interactive_waterfall_shade_under" value="%s" type="bool" />\n' % (bool(self.interactive_waterfall_shade_under))
-        buff += '    <param name="interactive_waterfall_shade_alpha" value="%.2f" type="float" />\n' % (float(self.interactive_waterfall_shade_alpha))
-        buff += '    <param name="interactive_waterfall_increment" value="%.2f" type="float" />\n' % (float(self.interactive_waterfall_increment))
+        buff += '    <param name="interactive_waterfall_shade_under" value="%s" type="bool" />\n' % (
+            bool(self.interactive_waterfall_shade_under))
+        buff += '    <param name="interactive_waterfall_shade_alpha" value="%.2f" type="float" />\n' % (
+            float(self.interactive_waterfall_shade_alpha))
+        buff += '    <param name="interactive_waterfall_increment" value="%.2f" type="float" />\n' % (
+            float(self.interactive_waterfall_increment))
 
         buff += '  </presets_interactive_gui>\n\n'
 
@@ -2359,8 +2571,8 @@ class OrigamiConfig:
             if pathTags:
                 self.previousFiles = []
                 for pathTag in pathTags:
-                    self.previousFiles.append({'file_path':pathTag.getAttribute('value'),
-                                               'file_type':pathTag.getAttribute('format')
+                    self.previousFiles.append({'file_path': pathTag.getAttribute('value'),
+                                               'file_type': pathTag.getAttribute('format')
                                                })
 
         plotSizesTags = document.getElementsByTagName('presets_gui_plotSizes')
@@ -2478,9 +2690,9 @@ class OrigamiConfig:
                         close_button = str2bool(item.getAttribute('close_button'))
                         floating = str2bool(item.getAttribute('floating'))
                         show = str2bool(item.getAttribute('show'))
-                        self._windowSettings[title] = {'title':title, 'gripper':gripper, 'caption':caption,
-                                                       'close_button':close_button, 'floating':floating,
-                                                       'show':show}
+                        self._windowSettings[title] = {'title': title, 'gripper': gripper, 'caption': caption,
+                                                       'close_button': close_button, 'floating': floating,
+                                                       'show': show}
                     else:
                         orientation = item.getAttribute('orientation')
                         gripper = str2bool(item.getAttribute('gripper'))
@@ -2492,11 +2704,18 @@ class OrigamiConfig:
                         top_dockable = str2bool(item.getAttribute('top_dockable'))
                         bottom_dockable = str2bool(item.getAttribute('bottom_dockable'))
                         show = str2bool(item.getAttribute('show'))
-                        self._windowSettings[title] = {'title':title, 'orientation':orientation, 'gripper':gripper,
-                                                       'close_button':close_button, 'left_position':left_position,
-                                                       'top_position':top_position, 'left_dockable':left_dockable,
-                                                       'right_dockable':right_dockable, 'bottom_dockable':bottom_dockable,
-                                                       'top_dockable':top_dockable, 'show':show}
+                        self._windowSettings[title] = {
+                            'title': title,
+                            'orientation': orientation,
+                            'gripper': gripper,
+                            'close_button': close_button,
+                            'left_position': left_position,
+                            'top_position': top_position,
+                            'left_dockable': left_dockable,
+                            'right_dockable': right_dockable,
+                            'bottom_dockable': bottom_dockable,
+                            'top_dockable': top_dockable,
+                            'show': show}
 
     def saveProteinXML(self, path, evt=None):
         pass

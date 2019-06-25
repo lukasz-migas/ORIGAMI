@@ -237,8 +237,8 @@ class ORIGAMI(object):
 
     def onThreading(self, evt, args, action='loadOrigami'):
         # Setup thread
-#         if action == 'loadOrigami':
-#             th = threading.Thread(target=self.onLoadOrigamiDataThreaded, args=(args, evt))
+        #         if action == 'loadOrigami':
+        #             th = threading.Thread(target=self.onLoadOrigamiDataThreaded, args=(args, evt))
 
         if action == 'saveFigs':
             target, path, kwargs = args
@@ -1162,10 +1162,10 @@ class ORIGAMI(object):
             self.onThreading(
                 None,
                 ('Using document: ' +
-     document.title.encode(
-        'ascii',
-        'replace'),
-        4),
+                 document.title.encode(
+                     'ascii',
+                     'replace'),
+                    4),
                 action='updateStatusbar')
         else:
             docList = self.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
@@ -1198,10 +1198,10 @@ class ORIGAMI(object):
                 self.onThreading(
                     None,
                     ('Using document: ' +
-     document.title.encode(
-        'ascii',
-        'replace'),
-        4),
+                     document.title.encode(
+                         'ascii',
+                         'replace'),
+                        4),
                     action='updateStatusbar')
 
         return document
@@ -1235,10 +1235,10 @@ class ORIGAMI(object):
                 self.onThreading(
                     None,
                     ('Using document: ' +
-     self.docs.title.encode(
-        'ascii',
-        'replace'),
-        4),
+                     self.docs.title.encode(
+                         'ascii',
+                         'replace'),
+                        4),
                     action='updateStatusbar')
             else:
                 docList = self.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
@@ -1270,10 +1270,10 @@ class ORIGAMI(object):
                     self.onThreading(
                         None,
                         ('Using document: ' +
-     self.docs.title.encode(
-        'ascii',
-        'replace'),
-        4),
+                         self.docs.title.encode(
+                             'ascii',
+                             'replace'),
+                            4),
                         action='updateStatusbar')
 
         # Empty lists
@@ -1355,7 +1355,7 @@ class ORIGAMI(object):
                 elif source == "text":
                     __, __, charge, color, colormap, alpha, mask, __, \
                         label, filename, min_threshold, max_threshold \
- = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
+                        = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
                     try:
                         document = self.documentsDict[filename]
@@ -1492,10 +1492,10 @@ class ORIGAMI(object):
                 self.onThreading(
                     None,
                     ('Using document: ' +
-     self.docs.title.encode(
-        'ascii',
-        'replace'),
-        4),
+                     self.docs.title.encode(
+                         'ascii',
+                         'replace'),
+                        4),
                     action='updateStatusbar')
                 if self.docs.gotComparisonData:
                     compDict = self.docs.IMS2DcompData
@@ -1542,10 +1542,10 @@ class ORIGAMI(object):
                     self.onThreading(
                         None,
                         ('Using document: ' +
-     self.docs.title.encode(
-        'ascii',
-        'replace'),
-        4),
+                         self.docs.title.encode(
+                             'ascii',
+                             'replace'),
+                            4),
                         action='updateStatusbar')
                     if self.docs.gotComparisonData:
                         compDict = self.docs.IMS2DcompData
@@ -1565,7 +1565,7 @@ class ORIGAMI(object):
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, label, \
                         self.currentDoc, ionName, min_threshold, max_threshold \
- = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
+                        = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
 
                     # processed name
                     ionNameProcessed = "%s (processed)" % ionName
@@ -2160,12 +2160,12 @@ class ORIGAMI(object):
             # Plot
             self.view.panelPlots.on_plot_2D_data(
                 data=[
-        zvals,
-        xAxisLabels,
-        xlabel,
-        yAxisLabels,
-        ylabel,
-        self.config.currentCmap])
+                    zvals,
+                    xAxisLabels,
+                    xlabel,
+                    yAxisLabels,
+                    ylabel,
+                    self.config.currentCmap])
             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
             if add_data_to_document:
                 self.docs.gotStatsData = True
@@ -3428,10 +3428,10 @@ class ORIGAMI(object):
                 # Load output
                 extract_kwargs = {'return_data': True}
                 __, imsData1D = io_waters.driftscope_extract_DT(path=path,
-                                                                 driftscope_path=self.config.driftscopePath,
-                                                                 mz_start=mzStart, mz_end=mzEnd,
-                                                                 rt_start=rtStart, rt_end=rtEnd
-                                                                 ** extract_kwargs)
+                                                                driftscope_path=self.config.driftscopePath,
+                                                                mz_start=mzStart, mz_end=mzEnd,
+                                                                rt_start=rtStart, rt_end=rtEnd
+                                                                ** extract_kwargs)
                 # Append to output
                 tempArray.append(imsData1D)
                 driftList.append(driftVoltage)
@@ -4152,9 +4152,9 @@ class ORIGAMI(object):
                 zvals, __, __, __, __ = self._get_replot_data('2D')
                 # normalize
                 cmapNorm = self.normalize_colormap(zvals,
-                                                    min=self.config.minCmap,
-                                                    mid=self.config.midCmap,
-                                                    max=self.config.maxCmap)
+                                                   min=self.config.minCmap,
+                                                   mid=self.config.midCmap,
+                                                   max=self.config.maxCmap)
                 plt_kwargs['colormap_norm'] = cmapNorm
 
                 self.view.panelPlots.plot2D.plot_2D_update(**plt_kwargs)
@@ -4167,9 +4167,9 @@ class ORIGAMI(object):
                 zvals, __, __, __, __ = self._get_replot_data('DT/MS')
                 # normalize
                 cmapNorm = self.normalize_colormap(zvals,
-                                                    min=self.config.minCmap,
-                                                    mid=self.config.midCmap,
-                                                    max=self.config.maxCmap)
+                                                   min=self.config.minCmap,
+                                                   mid=self.config.midCmap,
+                                                   max=self.config.maxCmap)
                 plt_kwargs['colormap_norm'] = cmapNorm
                 self.view.panelPlots.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
                 self.view.panelPlots.plot_DT_vs_MS.repaint()
@@ -4410,22 +4410,22 @@ class ORIGAMI(object):
 
         if plot == 'RMSD':
             self.view.panelPlots.plot_RMSF.addText(x, y, text, rotation,
-                                                  color=self.config.rmsd_color,
-                                                  fontsize=self.config.rmsd_fontSize,
-                                                  weight=self.config.rmsd_fontWeight)
+                                                   color=self.config.rmsd_color,
+                                                   fontsize=self.config.rmsd_fontSize,
+                                                   weight=self.config.rmsd_fontWeight)
             self.view.panelPlots.plot_RMSF.repaint()
         elif plot == 'RMSF':
             self.view.panelPlots.plot_RMSF.addText(x, y, text, rotation,
-                                                  color=self.config.rmsd_color,
-                                                  fontsize=self.config.rmsd_fontSize,
-                                                  weight=self.config.rmsd_fontWeight)
+                                                   color=self.config.rmsd_color,
+                                                   fontsize=self.config.rmsd_fontSize,
+                                                   weight=self.config.rmsd_fontWeight)
             self.view.panelPlots.plot_RMSF.repaint()
         elif plot == 'Grid':
             self.view.panelPlots.plot_overlay.addText(x, y, text, rotation,
-                                                     color=self.config.rmsd_color,
-                                                     fontsize=self.config.rmsd_fontSize,
-                                                     weight=self.config.rmsd_fontWeight,
-                                                     plot=plot)
+                                                      color=self.config.rmsd_color,
+                                                      fontsize=self.config.rmsd_fontSize,
+                                                      weight=self.config.rmsd_fontWeight,
+                                                      plot=plot)
             self.view.panelPlots.plot_overlay.repaint()
 
 #     def onAddMarker1D(self, xval=None, yval=None, color='r', marker='o'):
@@ -4622,7 +4622,7 @@ class ORIGAMI(object):
                                                                 expandItem=document.multipleMassSpectrum)
             else:
                 self.view.panelDocuments.documents.add_document(
-    docData=document, expandItem=document.multipleMassSpectrum[expand_item_title])
+                    docData=document, expandItem=document.multipleMassSpectrum[expand_item_title])
 
         elif expand_item == 'overlay':
             if expand_item_title is None:
@@ -4707,7 +4707,8 @@ class ORIGAMI(object):
             self.onThreading(None, ("Opening a link in your default internet browser", 4),
                              action='updateStatusbar')
             webbrowser.open(link, autoraise=1)
-        except Exception:            pass
+        except Exception:
+            pass
 
     def onCheckVersion(self, evt=None):
         """
@@ -4799,4 +4800,3 @@ class ORIGAMI(object):
 if __name__ == '__main__':
     app = ORIGAMI(redirect=False)
     app.start()
-
