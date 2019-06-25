@@ -14,13 +14,14 @@ class dialogMultiDirSelector(MDD.MultiDirDialog):
     def ShowModal(self):
         """Simplified ShowModal(), returning strings 'ok' or 'cancel'. """
         result = MDD.MultiDirDialog.ShowModal(self)
+
+        output = "cancel"
         if result == wx.ID_OK:
-            return 'ok'
-        else:
-            return 'cancel'
+            output = 'ok'
+
+        return output
 
     def GetPaths(self, *args, **kwargs):
         """Clean-up the list of paths that is returned from the GetPaths function"""
         path_list = MDD.MultiDirDialog.GetPaths(self, *args, **kwargs)
         return [clean_up_MDD_path(path) for path in path_list]
-

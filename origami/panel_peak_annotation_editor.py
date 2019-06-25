@@ -46,7 +46,7 @@ from ids import (ID_annotPanel_addAnnotations,
                  ID_annotPanel_show_mzAndIntensity)
 from styles import makeCheckbox, makeMenuItem, makeToggleBtn, validator, ListCtrl
 from toolbox import (checkExtension)
-from gui_elements.dialog_panelAsk import panelAsk
+from gui_elements.dialog_ask import DialogAsk
 from gui_elements.misc_dialogs import dlgBox, dlgAsk
 from utils.color import convertRGB1to255, convertRGB255to1
 from utils.converters import str2num, str2int
@@ -681,7 +681,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
             ask_kwargs = {'static_text': 'Assign charge state for selected items.',
                           'value_text': "", 'validator': 'integer', 'keyword': 'charge'}
 
-        ask = panelAsk(self, None, **ask_kwargs)
+        ask = DialogAsk(self, **ask_kwargs)
         if ask.ShowModal() == wx.ID_OK:
             pass
 

@@ -18,15 +18,13 @@
 # __author__ lukasz.g.migas
 
 import wx
-from styles import makeCheckbox
+from styles import makeCheckbox, Dialog
 
 
-class dialogAskOverride(wx.Dialog):
+class DialogAskOverride(Dialog):
 
     def __init__(self, parent, config, msg=None, **kwargs):
-        wx.Dialog.__init__(self, parent, -1, 'Conflicting name...', size=(-1, -1),
-                           style=wx.DEFAULT_FRAME_STYLE & ~
-                           (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+        Dialog.__init__(self, parent, title="Conflicting name...", **kwargs)
 
         self.parent = parent
         self.config = config
@@ -36,11 +34,6 @@ class dialogAskOverride(wx.Dialog):
         if msg is None:
             msg = "Item already exists in the document. What would you like to do?"
         self.msg.SetValue(msg)
-
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
-    # ----
 
     def make_gui(self):
 

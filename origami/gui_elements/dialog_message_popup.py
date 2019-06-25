@@ -18,18 +18,14 @@
 # __author__ lukasz.g.migas
 
 import wx
-from styles import makeCheckbox
+from styles import makeCheckbox, Dialog
 
 
-class dialogMsgPopup(wx.Dialog):
+class DialogMessagePopup(Dialog):
 
-    def __init__(self, parent, config, title, msg, **kwargs):
-        wx.Dialog.__init__(self, parent, -1, 'Warning', size=(-1, -1),
-                           style=wx.DEFAULT_FRAME_STYLE & ~
-                           (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+    def __init__(self, parent, title, msg, **kwargs):
+        Dialog.__init__(self, parent, title='Warning', **kwargs)
 
-        self.parent = parent
-        self.config = config
         self.make_gui()
         self.CentreOnParent()
 
@@ -37,10 +33,6 @@ class dialogMsgPopup(wx.Dialog):
         self.SetTitle(title)
 
         self.ask_again = False
-
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
 
     def make_gui(self):
 

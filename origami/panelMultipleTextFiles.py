@@ -28,7 +28,7 @@ from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
 from styles import makeMenuItem, makeTooltip, ListCtrl
 from toolbox import (merge_two_dicts, removeListDuplicates)
 from gui_elements.dialog_selectDocument import panelSelectDocument
-from gui_elements.dialog_panelAsk import panelAsk
+from gui_elements.dialog_ask import DialogAsk
 from gui_elements.misc_dialogs import dlgBox
 from ids import ID_textPanel_addToDocument, ID_textPanel_assignColor, ID_textPanel_editItem, ID_textPanel_show_heatmap, \
     ID_textPanel_show_mobiligram, ID_textPanel_normalize1D, ID_useProcessedCombinedMenu, ID_textPanel_automaticOverlay, \
@@ -610,7 +610,7 @@ class panelMultipleTextFiles (wx.Panel):
                           'validator': 'float',
                           'keyword': 'max_threshold'}
 
-        ask_dialog = panelAsk(self, self.presenter, **ask_kwargs)
+        ask_dialog = DialogAsk(self, **ask_kwargs)
         if ask_dialog.ShowModal() != wx.ID_OK:
             return
 

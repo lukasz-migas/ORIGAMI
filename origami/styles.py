@@ -170,6 +170,20 @@ def mac_app_init():
         SCROLL_DIRECTION = -1
 
 
+class Dialog(wx.Dialog):
+
+    def __init__(self, parent, **kwargs):
+        wx.Dialog.__init__(self, parent, -1,
+                           style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
+                           **kwargs)
+
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+    def on_close(self, evt):
+        """Destroy this frame."""
+        self.Destroy()
+
+
 class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
     """ListCtrl"""
 
@@ -416,7 +430,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
 class SimpleListCtrl(wx.ListCtrl):
     """ListCtrl"""
 
-    def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize,
+    def __init__(self, parent, pos=wx.DefaultPosition, size=wx.DefaultSize,
                  style=wx.LC_REPORT):
         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
 
@@ -522,7 +536,6 @@ class bgrPanel(wx.Panel):
 
         # set paint event to tile image
         wx.EVT_PAINT(self, self._onPaint)
-    # ----
 
     def _onPaint(self, event=None):
 
@@ -542,23 +555,19 @@ class validator(wx.PyValidator):
         wx.PyValidator.__init__(self)
         self.flag = flag
         self.Bind(wx.EVT_CHAR, self.OnChar)
-    # ----
 
     def Clone(self):
         return validator(self.flag)
-    # ----
 
     def TransferToWindow(self):
         return True
-    # ----
 
     def TransferFromWindow(self):
         return True
-    # ----
 
     def OnChar(self, evt):
-        ctrl = self.GetWindow()
-        value = ctrl.GetValue()
+#         ctrl = self.GetWindow()
+#         value = ctrl.GetValue()
         key = evt.GetKeyCode()
 
         # define navigation keys

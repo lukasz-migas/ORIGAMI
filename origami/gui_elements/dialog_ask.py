@@ -1,18 +1,16 @@
 import wx
+from styles import Dialog
 
 
-class panelAsk(wx.Dialog):
+class DialogAsk(wx.Dialog):
     """
-    Duplicate ions
+    Simple dialog that will ask what should the new value be.
     """
 
-    def __init__(self, parent, presenter, **kwargs):
-        wx.Dialog.__init__(self, parent, -1, 'Edit parameters...', size=(400, 300),
-                           style=wx.DEFAULT_FRAME_STYLE & ~
-                           (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
-
+    def __init__(self, parent, **kwargs):
+        Dialog.__init__(self, parent, title="Edit parameters...", size=(400, 300))
+#
         self.parent = parent
-        self.presenter = presenter
 
         self.item_label = kwargs['static_text']
         self.item_value = kwargs['value_text']
@@ -54,7 +52,6 @@ class panelAsk(wx.Dialog):
 
         self.parent.ask_value = None
         self.Destroy()
-    # ----
 
     def onOK(self, evt):
         self.on_apply(evt=None)

@@ -27,7 +27,7 @@ from gui_elements.dialog_colorSelector import dialogColorSelector
 from toolbox import checkExtension
 from styles import makeMenuItem, makeTooltip
 from gui_elements.dialog_selectDocument import panelSelectDocument
-from gui_elements.dialog_panelAsk import panelAsk
+from gui_elements.dialog_ask import DialogAsk
 from gui_elements.misc_dialogs import dlgBox
 from utils.converters import str2num
 from ids import ID_ionPanel_addToDocument, ID_combinedCV_binMSCombinedMenu, ID_ionPanel_assignColor, \
@@ -796,7 +796,7 @@ class panelMultipleIons(wx.Panel):
                 'validator': 'float',
                 'keyword': 'max_threshold'}
 
-        ask = panelAsk(self, self.presenter, **ask_kwargs)
+        ask = DialogAsk(self, **ask_kwargs)
         if ask.ShowModal() == wx.ID_OK:
             pass
 

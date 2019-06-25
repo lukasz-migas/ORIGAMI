@@ -117,13 +117,13 @@ class panelDocumentInfo(wx.MiniFrame):
     def make_toolbar(self):
         """Make toolbar."""
 
-        TOOLBAR_TOOLSIZE = (16, 16)
-        TOOLBAR_HEIGHT = 38
-        BUTTON_SIZE_CORRECTION = 0
-        TOOLBAR_RSPACE = 15
-        TOOLBAR_LSPACE = 0
-        SPACER = 5
-        SPACER_L = 20
+        toolbar_toolsize = (16, 16)
+        toolbar_height = 38
+        button_size_correction = 0
+        toolbar_rspace = 15
+        toolbar_lspace = 0
+        spacer = 5
+        spacer_l = 20
 
         # init toolbar
         panel = bgrPanel(self, -1, self.icons.iconsLib['bgrToolbar'],
@@ -131,51 +131,51 @@ class panelDocumentInfo(wx.MiniFrame):
 
         # make buttons
         self.summary_butt = wx.BitmapButton(panel, ID_documentInfoSummary, self.icons.iconsLib['documentTwo16'],
-                                            size=(TOOLBAR_TOOLSIZE), style=wx.BORDER_NONE)
+                                            size=(toolbar_toolsize), style=wx.BORDER_NONE)
         self.summary_butt.SetToolTip(wx.ToolTip("Document summary"))
         self.summary_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
         self.spectrum_butt = wx.BitmapButton(panel, ID_documentInfoSpectrum, self.icons.iconsLib['ms16'],
-                                             size=(TOOLBAR_TOOLSIZE), style=wx.BORDER_NONE)
+                                             size=(toolbar_toolsize), style=wx.BORDER_NONE)
         self.spectrum_butt.SetToolTip(wx.ToolTip("Spectrum information"))
         self.spectrum_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
         self.plotIMS_butt = wx.BitmapButton(panel, ID_documentInfoPlotIMS, self.icons.iconsLib['plotIMS16'],
-                                            size=(TOOLBAR_TOOLSIZE), style=wx.BORDER_NONE)
+                                            size=(toolbar_toolsize), style=wx.BORDER_NONE)
         self.plotIMS_butt.SetToolTip(wx.ToolTip("Plot (2D) information"))
         self.plotIMS_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
         self.plotCali_butt = wx.BitmapButton(panel, ID_documentInfoCalibration, self.icons.iconsLib['plotCalibration16'],
-                                             size=(TOOLBAR_TOOLSIZE), style=wx.BORDER_NONE)
+                                             size=(toolbar_toolsize), style=wx.BORDER_NONE)
         self.plotCali_butt.SetToolTip(wx.ToolTip("CCS calibration information"))
         self.plotCali_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
         self.notes_butt = wx.BitmapButton(panel, ID_documentInfoNotes, self.icons.iconsLib['document16'],
-                                          size=(TOOLBAR_TOOLSIZE), style=wx.BORDER_NONE)
+                                          size=(toolbar_toolsize), style=wx.BORDER_NONE)
         self.notes_butt.SetToolTip(wx.ToolTip("Analysis notes"))
         self.notes_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
         self.presets_butt = wx.BitmapButton(panel, ID_saveAsConfig, self.icons.iconsLib['save16'],
-                                            size=(TOOLBAR_TOOLSIZE),
+                                            size=(toolbar_toolsize),
                                             style=wx.BORDER_NONE)
         self.presets_butt.SetToolTip(wx.ToolTip("Operator presets"))
         self.presets_butt.Bind(wx.EVT_BUTTON, self.presenter.onExportConfig, id=ID_saveAsConfig)
 
         # pack elements
         self.toolbar = wx.BoxSizer(wx.HORIZONTAL)
-        self.toolbar.AddSpacer(SPACER)
+        self.toolbar.AddSpacer(spacer)
         self.toolbar.Add(self.summary_butt, 0, wx.ALIGN_CENTER_VERTICAL)
-        self.toolbar.AddSpacer(SPACER)
-        self.toolbar.Add(self.spectrum_butt, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, BUTTON_SIZE_CORRECTION)
-        self.toolbar.AddSpacer(SPACER)
-        self.toolbar.Add(self.plotIMS_butt, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, BUTTON_SIZE_CORRECTION)
-        self.toolbar.AddSpacer(SPACER)
-        self.toolbar.Add(self.plotCali_butt, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, BUTTON_SIZE_CORRECTION)
-        self.toolbar.AddSpacer(SPACER)
-        self.toolbar.Add(self.notes_butt, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, BUTTON_SIZE_CORRECTION)
-        self.toolbar.AddSpacer(SPACER_L)
+        self.toolbar.AddSpacer(spacer)
+        self.toolbar.Add(self.spectrum_butt, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, button_size_correction)
+        self.toolbar.AddSpacer(spacer)
+        self.toolbar.Add(self.plotIMS_butt, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, button_size_correction)
+        self.toolbar.AddSpacer(spacer)
+        self.toolbar.Add(self.plotCali_butt, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, button_size_correction)
+        self.toolbar.AddSpacer(spacer)
+        self.toolbar.Add(self.notes_butt, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, button_size_correction)
+        self.toolbar.AddSpacer(spacer_l)
         self.toolbar.Add(self.presets_butt, 0, wx.ALIGN_CENTER_VERTICAL)
-        self.toolbar.AddSpacer(TOOLBAR_RSPACE)
+        self.toolbar.AddSpacer(toolbar_rspace)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(self.toolbar, 1, wx.EXPAND)
@@ -194,7 +194,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.plotBtn.Hide()
         cancelBtn = wx.Button(panel, -1, "Close", size=(80, -1))
 
-        PANEL_SPACE_MAIN = 10
+        panel_space_main = 10
 
         # pack elements
         mainSizer = wx.BoxSizer(wx.HORIZONTAL)

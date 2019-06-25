@@ -38,7 +38,6 @@ class dialog_customise_peptide_annotations(wx.Dialog):
     def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
-    # ----
 
     def onOK(self, evt):
         self.EndModal(wx.OK)
@@ -296,4 +295,3 @@ class dialog_customise_peptide_annotations(wx.Dialog):
             elif source == "plot_tandem_unlabelled":
                 self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(newColour)
                 self.config.msms_line_color_unlabelled = convertRGB255to1(newColour)
-

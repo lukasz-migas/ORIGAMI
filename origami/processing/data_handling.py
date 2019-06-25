@@ -26,7 +26,6 @@ from processing.utils import get_maximum_value_in_range, find_nearest_value
 import processing.origami_ms as pr_origami
 from gui_elements.dialog_selectDocument import panelSelectDocument
 import processing.heatmap as pr_heatmap
-from gui_elements.dialog_messagePopup import dialogMsgPopup
 from readers.io_document import save_py_object, open_py_object
 
 import logging

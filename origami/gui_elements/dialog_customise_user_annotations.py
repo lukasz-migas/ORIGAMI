@@ -272,4 +272,3 @@ class dialog_customise_user_annotations(wx.Dialog):
 
         self.config.annotation_patch_transparency = self.highlight_alpha_value.GetValue()
         self.config.annotation_patch_width = self.highlight_width_value.GetValue()
-
