@@ -42,7 +42,7 @@ from gui_elements.panel_modifyManualFiles import panelModifyManualFiles
 
 import logging
 from utils.color import randomColorGenerator, convertRGB1to255, determineFontColor, convertRGB255to1
-from gui_elements.dialog_colorSelector import dialogColorSelector
+from gui_elements.dialog_color_picker import DialogColorPicker
 logger = logging.getLogger("origami")
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 
@@ -946,7 +946,7 @@ class panelMML(wx.Panel):
         if itemID is None:
             itemID = self.peaklist.item_id
 
-        dlg = dialogColorSelector(self, self.config.customColors)
+        dlg = DialogColorPicker(self, self.config.customColors)
         if dlg.ShowModal() == "ok":
             color_255, color_1, font_color = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()

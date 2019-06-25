@@ -4,7 +4,7 @@ import wx.lib.agw.multidirdialog as MDD
 from utils.path import clean_up_MDD_path
 
 
-class dialogMultiDirSelector(MDD.MultiDirDialog):
+class DialogMultiDirectoryPicker(MDD.MultiDirDialog):
 
     def __init__(self, parent, title="Choose directories...", default_path=None, style=MDD.DD_MULTIPLE | MDD.DD_DIR_MUST_EXIST):
 

@@ -27,7 +27,7 @@ from document import document as documents
 from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
 from styles import makeMenuItem, makeTooltip, ListCtrl
 from toolbox import (merge_two_dicts, removeListDuplicates)
-from gui_elements.dialog_selectDocument import panelSelectDocument
+from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.dialog_ask import DialogAsk
 from gui_elements.misc_dialogs import dlgBox
 from ids import ID_textPanel_addToDocument, ID_textPanel_assignColor, ID_textPanel_editItem, ID_textPanel_show_heatmap, \
@@ -835,7 +835,7 @@ class panelMultipleTextFiles (wx.Panel):
                 document.dataType = 'Type: Comparison'
                 document.fileFormat = 'Format: ORIGAMI'
             else:
-                selectDlg = panelSelectDocument(self.presenter.view, self, docList)
+                selectDlg = DialogSelectDocument(self.presenter.view, presenter=self.presenter, document_list=docList)
                 if selectDlg.ShowModal() == wx.ID_OK:
                     pass
 

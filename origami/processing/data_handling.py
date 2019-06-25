@@ -6,7 +6,7 @@ import copy
 from pubsub import pub
 import numpy as np
 import math
-from gui_elements.dialog_multiDirSelector import dialogMultiDirSelector
+from gui_elements.dialog_multi_directory_picker import DialogMultiDirectoryPicker
 import readers.io_text_files as io_text
 import readers.io_waters_raw as io_waters
 import readers.io_waters_raw_api as io_waters_raw_api
@@ -24,7 +24,7 @@ from utils.color import convertRGB255to1, convertRGB1to255, randomColorGenerator
 from utils.ranges import get_min_max
 from processing.utils import get_maximum_value_in_range, find_nearest_value
 import processing.origami_ms as pr_origami
-from gui_elements.dialog_selectDocument import panelSelectDocument
+from gui_elements.dialog_select_document import DialogSelectDocument
 import processing.heatmap as pr_heatmap
 from readers.io_document import save_py_object, open_py_object
 
@@ -118,7 +118,7 @@ class data_handling():
         if document_title is None or document_title == "Documents":
             return None
 
-        print(self.presenter.documentsDict.keys())
+#         print(self.presenter.documentsDict.keys())
 
         document_title = byte2str(document_title)
         document = self.presenter.documentsDict[document_title]
@@ -256,7 +256,7 @@ class data_handling():
         elif len(document_list) == 1:
             document = self._on_get_document(document_list[0])
         else:
-            dlg = panelSelectDocument(self.view, self, document_list)
+            dlg = DialogSelectDocument(self.view, presenter=self.presenter, document_list=document_list)
             if dlg.ShowModal() == wx.ID_OK:
                 return
 
@@ -937,7 +937,7 @@ class data_handling():
         if not check_path_exists(self.config.lastDir):
             self.config.lastDir = os.getcwd()
 
-        dlg = dialogMultiDirSelector(self.view,
+        dlg = DialogMultiDirectoryPicker(self.view,
                                      title="Choose Waters (.raw) files to open...",
                                      default_path=self.config.lastDir)
 
@@ -1358,7 +1358,7 @@ class data_handling():
         if not check_path_exists(self.config.lastDir):
             self.config.lastDir = os.getcwd()
 
-        dlg = dialogMultiDirSelector(self.view,
+        dlg = DialogMultiDirectoryPicker(self.view,
                                      title="Choose Waters (.raw) files to open...",
                                      default_path=self.config.lastDir)
 #

@@ -23,10 +23,10 @@ from ast import literal_eval
 from pandas import read_csv
 
 from gui_elements.panel_modifyIonSettings import panelModifyIonSettings
-from gui_elements.dialog_colorSelector import dialogColorSelector
+from gui_elements.dialog_color_picker import DialogColorPicker
 from toolbox import checkExtension
 from styles import makeMenuItem, makeTooltip
-from gui_elements.dialog_selectDocument import panelSelectDocument
+from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.dialog_ask import DialogAsk
 from gui_elements.misc_dialogs import dlgBox
 from utils.converters import str2num
@@ -797,10 +797,10 @@ class panelMultipleIons(wx.Panel):
                 'keyword': 'max_threshold'}
 
         ask = DialogAsk(self, **ask_kwargs)
-        if ask.ShowModal() == wx.ID_OK:
-            pass
+        ask.ShowModal()
 
         if self.ask_value is None:
+            logger.info("Action was cancelled")
             return
 
         for row in range(rows):
@@ -822,8 +822,9 @@ class panelMultipleIons(wx.Panel):
                     document.IMS2DionsProcess[selectedText][ask_kwargs['keyword']] = self.ask_value
                 if selectedText in document.IMSRTCombIons:
                     document.IMSRTCombIons[selectedText][ask_kwargs['keyword']] = self.ask_value
-                # update document
-                self.presenter.documentsDict[document.title] = document
+
+                # Update document
+                self.data_handling.on_update_document(document, "no_refresh")
 
 #     def onSaveAsData(self, evt):
 #         count = self.peaklist.GetItemCount()
@@ -1349,7 +1350,7 @@ class panelMultipleIons(wx.Panel):
         if itemID is None:
             itemID = self.peaklist.item_id
 
-        dlg = dialogColorSelector(self, self.config.customColors)
+        dlg = DialogColorPicker(self, self.config.customColors)
         if dlg.ShowModal() == "ok":
             color_255, color_1, font_color = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
@@ -1371,7 +1372,7 @@ class panelMultipleIons(wx.Panel):
                 return color_255
 
     def OnGetColor(self, evt):
-        dlg = dialogColorSelector(self, self.config.customColors)
+        dlg = DialogColorPicker(self, self.config.customColors)
         if dlg.ShowModal() == "ok":
             color_255, color_1, font_color = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
@@ -1524,7 +1525,8 @@ class panelMultipleIons(wx.Panel):
             elif len(docList) == 1:
                 document_title = docList[0]
             else:
-                document_panel = panelSelectDocument(self.presenter.view, self.presenter, docList, False)
+                document_panel = DialogSelectDocument(
+                    self.presenter.view, presenter=self.presenter, document_list=docList, allow_new_document=False)
                 if document_panel.ShowModal() == wx.ID_OK:
                     pass
 

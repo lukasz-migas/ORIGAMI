@@ -44,8 +44,8 @@ import readers.io_mzid as io_mzid
 import readers.io_mzml as io_mzml
 import readers.io_thermo_raw as io_thermo
 from gui_elements.dialog_ask_override import DialogAskOverride
-from gui_elements.dialog_renameItem import dialogRenameItem
-from gui_elements.dialog_selectDataset import panelSelectDataset
+from gui_elements.dialog_rename import DialogRenameObject
+from gui_elements.dialog_select_dataset import DialogSelectDataset
 from gui_elements.misc_dialogs import dlgBox, dlgAsk
 from utils.color import convertRGB255to1, convertHEXtoRGB1, convertRGB1to255, determineFontColor
 from utils.random import randomIntegerGenerator
@@ -1566,7 +1566,7 @@ class documentsTree(wx.TreeCtrl):
                 document_list.append(document_title)
 
         kwargs = dict(set_document=document.title)
-        duplicateDlg = panelSelectDataset(self.presenter.view, self, document_list, document_spectrum_list, **kwargs)
+        duplicateDlg = DialogSelectDataset(self.presenter.view, self, document_list, document_spectrum_list, **kwargs)
         if duplicateDlg.ShowModal() == wx.ID_OK:
             pass
 
@@ -3491,7 +3491,7 @@ class documentsTree(wx.TreeCtrl):
         elif current_name == 'Waterfalloverlay': current_name = 'Waterfall overlay'
 
         kwargs = {'current_name':current_name, 'prepend_name':prepend_name}
-        renameDlg = dialogRenameItem(self, self.presenter, self.title, **kwargs)
+        renameDlg = DialogRenameObject(self, self.presenter, self.title, **kwargs)
         renameDlg.CentreOnScreen()
         renameDlg.ShowModal()
         new_name = renameDlg.new_name

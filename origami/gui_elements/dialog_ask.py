@@ -2,7 +2,7 @@ import wx
 from styles import Dialog
 
 
-class DialogAsk(wx.Dialog):
+class DialogAsk(Dialog):
     """
     Simple dialog that will ask what should the new value be.
     """

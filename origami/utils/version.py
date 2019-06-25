@@ -21,7 +21,7 @@ def check_version():
                 newVersion, self.config.version)
             self.onThreading(None, (message, 4),
                              action='updateStatusbar')
-            msgDialog = panelNotifyNewVersion(self.view, self, webpage)
+            msgDialog = DialogNewVersion(self.view, presenter=self, webpage=webpage)
             msgDialog.ShowModal()
     except Exception as e:
         self.onThreading(None, ('Could not check version number', 4),

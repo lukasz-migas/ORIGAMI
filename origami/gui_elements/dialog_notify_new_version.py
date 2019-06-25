@@ -1,18 +1,17 @@
 import wx
 from ids import ID_helpNewVersion
+from styles import Dialog
 
 
-class panelNotifyNewVersion(wx.Dialog):
+class DialogNewVersion(Dialog):
 
-    def __init__(self, parent, presenter, message, **kwargs):
-        wx.Dialog.__init__(self, parent, -1, 'New version of ORIGAMI is available!', size=(-1, -1),
-                           style=wx.DEFAULT_FRAME_STYLE & ~
-                           (wx.MAXIMIZE_BOX))
+    def __init__(self, parent, **kwargs):
+        Dialog.__init__(self, parent, title='New version of ORIGAMI is available!')
 
         self.parent = parent
-        self.presenter = presenter
-        self.icons = presenter.icons
-        self.message = message
+        self.presenter = kwargs["presenter"]
+        self.icons = self.presenter.icons
+        self.message = kwargs["webpage"]
 
         self.make_gui()
         self.CentreOnParent()
@@ -22,9 +21,7 @@ class panelNotifyNewVersion(wx.Dialog):
 
     def on_close(self, evt):
         """Destroy this frame."""
-
         self.Destroy()
-    # ----
 
     def onOK(self, evt):
 
@@ -55,7 +52,8 @@ class panelNotifyNewVersion(wx.Dialog):
 
         image = wx.StaticBitmap(panel, -1, self.icons.getLogo)
 
-        self.label_header = wx.html.HtmlWindow(panel, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.html.HW_SCROLLBAR_AUTO,
+        self.label_header = wx.html.HtmlWindow(panel,
+                                               style=wx.TE_READONLY | wx.TE_MULTILINE | wx.html.HW_SCROLLBAR_AUTO,
                                                size=(500, 400))
         self.label_header.SetPage(self.message)
 

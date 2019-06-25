@@ -2,7 +2,7 @@ import wx
 from utils.color import convertRGB255to1, determineFontColor
 
 
-class dialogColorSelector(wx.ColourDialog):
+class DialogColorPicker(wx.ColourDialog):
 
     def __init__(self, parent, colors):
         self.colors = self.GetColours(colors)

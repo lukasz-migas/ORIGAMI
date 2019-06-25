@@ -30,7 +30,7 @@ import wx
 import wx.aui
 from pubsub import pub
 
-from gui_elements.panel_notifyOpenDocuments import panelNotifyOpenDocuments
+from gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
 from gui_elements.panelAbout import panelAbout
 from panelCCScalibration import panelCCScalibration
 from panelDocumentTree import panelDocuments
@@ -79,7 +79,7 @@ from ids import ID_fileMenu_MGF, ID_fileMenu_mzML, \
     ID_load_masslynx_raw, ID_window_controls, ID_documentRecent0, ID_documentRecent1, ID_documentRecent2, \
     ID_documentRecent3, ID_documentRecent4, ID_documentRecent5, ID_documentRecent6, ID_documentRecent7, \
     ID_documentRecent8, ID_documentRecent9, ID_fileMenu_clearRecent, ID_fileMenu_thermoRAW
-from gui_elements.panel_notifyNewVersion import panelNotifyNewVersion
+from gui_elements.dialog_notify_new_version import DialogNewVersion
 from gui_elements.panel_htmlViewer import panelHTMLViewer
 from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
 from gui_elements.panel_exportSettings import panelExportSettings
@@ -1027,7 +1027,7 @@ class MyFrame(wx.Frame):
                     newVersion, self.config.version)
                 self.presenter.onThreading(None, (message, 4),
                                            action='updateStatusbar')
-                msgDialog = panelNotifyNewVersion(self, self.presenter, webpage)
+                msgDialog = DialogNewVersion(self, presenter=self.presenter, webpage=webpage)
                 msgDialog.ShowModal()
         except Exception as e:
             self.presenter.onThreading(None, ('Could not check version number', 4),
@@ -1037,7 +1037,7 @@ class MyFrame(wx.Frame):
     def on_whats_new(self, evt):
         try:
             webpage = get_latest_version(get_webpage=True)
-            msgDialog = panelNotifyNewVersion(self, self.presenter, webpage)
+            msgDialog = DialogNewVersion(self, presenter=self.presenter, webpage=webpage)
             msgDialog.ShowModal()
         except Exception:
             pass
@@ -1501,7 +1501,7 @@ class MyFrame(wx.Frame):
                 verb_form = "are"
             message = "There {} {} document(s) open.\n".format(verb_form, len(self.presenter.documentsDict)) + \
                 "Are you sure you want to continue?"
-            msgDialog = panelNotifyOpenDocuments(self, self.presenter, message)
+            msgDialog = DialogNotifyOpenDocuments(self, presenter=self.presenter, message=message)
             dlg = msgDialog.ShowModal()
 
             if dlg == wx.ID_NO:

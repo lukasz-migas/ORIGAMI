@@ -42,7 +42,7 @@ import readers.io_waters_raw as io_waters
 import unidec as unidec
 from config import OrigamiConfig as config
 from document import document as documents
-from gui_elements.dialog_selectDocument import panelSelectDocument
+from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.misc_dialogs import dlgAsk, dlgBox
 from help_documentation import OrigamiHelp
 from icons import IconContainer as icons
@@ -1186,7 +1186,7 @@ class ORIGAMI(object):
                 document.dataType = 'Type: Comparison'
                 document.fileFormat = 'Format: ORIGAMI'
             else:
-                self.selectDocDlg = panelSelectDocument(self.view, self, docList)
+                self.selectDocDlg = DialogSelectDocument(self.view, presenter=self, document_list=docList)
                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
                     pass
 
@@ -1258,7 +1258,7 @@ class ORIGAMI(object):
                     self.docs.dataType = 'Type: Comparison'
                     self.docs.fileFormat = 'Format: ORIGAMI'
                 else:
-                    self.selectDocDlg = panelSelectDocument(self.view, self, docList)
+                    self.selectDocDlg = DialogSelectDocument(self.view, presenter=self, document_list=docList)
                     if self.selectDocDlg.ShowModal() == wx.ID_OK:
                         pass
 
@@ -1528,7 +1528,7 @@ class ORIGAMI(object):
                     # Initiate empty list and dictionary
                     compDict, compList = {}, []
                 else:
-                    self.selectDocDlg = panelSelectDocument(self.view, self, docList)
+                    self.selectDocDlg = DialogSelectDocument(self.view, presenter=self, document_list=docList)
                     if self.selectDocDlg.ShowModal() == wx.ID_OK:
                         pass
 
@@ -2910,7 +2910,7 @@ class ORIGAMI(object):
 #                 self.docs.dataType = 'Type: CALIBRANT'
 #                 self.docs.fileFormat = 'Format: DataFrame'
 #             else:
-#                 self.selectDocDlg = panelSelectDocument(self.view, self, docList)
+#                 self.selectDocDlg = DialogSelectDocument(self.view, self, docList)
 #                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
 #                     pass
 #
@@ -3152,7 +3152,7 @@ class ORIGAMI(object):
 # #                                type="Error")
 # #                         return
 # #                     else:
-# #                         self.selectDocDlg = panelSelectDocument(self.view, self, docList, allowNewDoc=False)
+# #                         self.selectDocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
 # #                         if self.selectDocDlg.ShowModal() == wx.ID_OK:
 # #                             calibrationParameters = self.currentCalibrationParams.get('parameters', None)
 # #                             if calibrationParameters is None:
@@ -3256,7 +3256,7 @@ class ORIGAMI(object):
 # #                 print('Did not find appropriate document.')
 # #                 return
 # #             else:
-# #                 self.DocDlg = panelSelectDocument(self.view, self, docList, allowNewDoc=False)
+# #                 self.DocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
 # #                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
 # #                     pass
 # #
@@ -4732,7 +4732,7 @@ class ORIGAMI(object):
 #                     newVersion, self.config.version)
 #                 self.onThreading(None, (message, 4),
 #                                  action='updateStatusbar')
-#                 msgDialog = panelNotifyNewVersion(self.view, self, webpage)
+#                 msgDialog = DialogNewVersion(self.view, self, webpage)
 #                 msgDialog.ShowModal()
 #         except Exception as e:
 #             self.onThreading(None, ('Could not check version number', 4),
