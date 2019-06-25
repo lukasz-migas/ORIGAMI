@@ -71,6 +71,5 @@ urllib3==1.24.2
 wheezy.template==0.1.167
 wincertstore==0.2
 wrapt==1.11.1
-wxPython==4.0.4
 xlrd==1.2.0
 xlwt==1.3.0

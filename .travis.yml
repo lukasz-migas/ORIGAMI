@@ -1,69 +1,89 @@
+dist: trusty
 language: python
 
 cache:
   pip: true
   apt: true
-  
+
 python:
   - "3.6"
-  
+
 addons:
   apt:
     packages:
-    # These are all for wxPython 4
-    - libwebkitgtk-3.0-dev
-    - libjpeg-dev
-    - libtiff-dev
-    - libgtk2.0-dev
-    - libsdl1.2-dev
-    - libgstreamer-plugins-base0.10-dev
-    - freeglut3
-    - freeglut3-dev
-    - libnotify-dev
+      # These are all for wxPython 4
+      - libwebkitgtk-3.0-dev
+      - libjpeg-dev
+      - libtiff-dev
+      - libgtk2.0-dev
+      - libsdl1.2-dev
+      - libgstreamer-plugins-base0.10-dev
+      - freeglut3
+      - freeglut3-dev
+      - libnotify-dev
 
 sudo: false
 
 matrix:
+  # jobs
   include:
-    - env: TEST=standard
-      os: linux
+    # linux - 3.7
+    - env: Image=Linux_37
+      python: 3.7
+      dist: xenial
+    # windows10 - 3.7
+    - env:
+        - Image=Win10_37
+        - PATH=/c/Python37:/c/Python37/Scripts:$PATH
+      os: windows
+      language: shell
+      before_install: choco install python
+    # flake8
     - env: TEST=flake
       os: linux
-    # - evt: TEST=standard
-    #   os: osx
-  allow_failures:
-    - env: TEST=flake
+      python: 3.6
+      # coverage
+    - env: TEST=coverage
+      os: linux
+      python: 3.6
 
 before_install:
-  - "pip install -U pip"
-  - "export PYTHONPATH=$PYTHONPATH:$(pwd)"
+  - pip install --upgrade pip || pip3 install --upgrade pip
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)
   - SRC_DIR=$(pwd)
   - echo $SRC_DIR
-  - ls
+  - ls || dir
 
 install:
   - pip install -U pip wheel
-  - pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython
-  - pip install -r specml_requirements.txt
+  - if [[ "${Image}" == "Linux_37" ]]; then
+    pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython;
+    elif [[ "${Image}" == "Win10_37" ]]; then
+    pip install -U wxPython;
+    fi;
+  - pip install -r requirements_origami_travis.txt
+
   # install test dependencies
-  - if [ "${TEST}" == "standard" ]; then
-    pip install codecov pytest pytest-cov pytest-sugar pytest-travis-fold;
+  - if [[ "${TEST}" == "flake" ]]; then
+    pip install flake8;
+    elif [ "${TEST}" == "coverage" ]; then
+    pip install codecov pytest==3.6 pytest-cov pytest-sugar pytest-travis-fold;
+    elif [ "${Image}" == "Win10_37" ]; then
+    pip install setuptools;
     fi;
   - cd ${SRC_DIR}
-  - cd specML/
-  - # pip install -e .
+  - cd ORIGAMI/origami
 
 script:
-    - if [[ "${TEST}" == "standard" ]]; then
-          py.test --cov;
-      elif [[ "${TEST}" == "flake" ]]; then
-          flake8;
-      fi;
+  - if [[ "${TEST}" == "flake" ]]; then
+    flake8;
+    elif [[ "${TEST}" == "coverage" ]]; then
+    py.test --cov;
+    elif [[ "${Image}" == "Win10_37" ]]; then
+    python3 ORIGAMI.py || python ORIGAMI.py
+    elif [[ "${Image}" == "Linux_37" ]]; then
+    python3 ORIGAMI.py || python ORIGAMI.py
+    fi;
 
 notifications:
   email: false
-
-after_success:
-    - if [ "${TEST}" == "standard" ]; then
-        codecov --token=ca29633c-c0bf-43dc-a681-06dca25cfac1;
-      fi
