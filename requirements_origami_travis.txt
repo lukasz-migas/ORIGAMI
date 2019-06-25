@@ -34,7 +34,7 @@ multiplierz==2.0
 natsort==6.0.0
 nbformat==4.4.0
 networkx==2.2
-numpy==1.16.2+mkl
+numpy==1.16.4
 openpyxl==2.6.1
 packaging==19.0
 pandas==0.24.1
