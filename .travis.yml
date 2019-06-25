@@ -75,14 +75,15 @@ install:
   - cd origami
 
 script:
+  - echo $SRC_DIR
   - if [[ "${TEST}" == "flake" ]]; then
     flake8;
     elif [[ "${TEST}" == "coverage" ]]; then
     py.test --cov;
     elif [[ "${Image}" == "Win10_37" ]]; then
-    python3 ORIGAMI.py || python ORIGAMI.py
+    python3 ORIGAMI.py || python ORIGAMI.py;
     elif [[ "${Image}" == "Linux_37" ]]; then
-    python3 ORIGAMI.py || python ORIGAMI.py
+    python3 ORIGAMI.py || python ORIGAMI.py;
     fi;
 
 notifications:
