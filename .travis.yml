@@ -71,7 +71,6 @@ install:
     elif [ "${Image}" == "Win10_37" ]; then
     pip install setuptools;
     fi;
-  - cd ${SRC_DIR}
   - ls || dir
   - cd origami
 
