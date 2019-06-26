@@ -46,7 +46,7 @@ class OrigamiConfig:
         self.loggingFile_path = None
         self.version = "1.3.0.0"
         self.debug = True
-        self.testing = True
+        self.testing = False
 
         self.document_version = "19-10-2018"
         self.unidec_engine = None
