@@ -43,7 +43,7 @@ install:
 test_script:
   - activate testenv
   - dir
-  - python ORIGAMI.py;
+  - python ORIGAMI.py
 
 matrix:
   fast_finish: true
