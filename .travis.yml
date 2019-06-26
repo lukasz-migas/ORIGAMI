@@ -98,10 +98,10 @@ script:
     elif [[ "${TEST}" == "coverage" ]]; then
     py.test --cov;
     elif [[ "${Image}" == "Win10_37" ]]; then
-    powershell -Command "(gc config.py) -replace 'self.testing = False', 'self.testing = True' | Out-File config.py"
+    powershell -Command "(gc config.py) -replace 'self.testing = False', 'self.testing = True' | Out-File config.py";
     python3 ORIGAMI.py || python ORIGAMI.py;
     elif [[ "${Image}" == "Linux_37" ]]; then
-    sed 's/self.testing = False/self.testing = True/g' config.py
+    sed -i 's/self.testing = False/self.testing = True/g' config.py;
     python3 ORIGAMI.py || python ORIGAMI.py;
     fi;
 
