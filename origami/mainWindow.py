@@ -1494,7 +1494,7 @@ class MyFrame(wx.Frame):
                      'Log': ID_window_logWindow}
         return panelDict[panel]
 
-    def on_close(self, event):
+    def on_close(self, evt, **kwargs):
 
         if len(self.presenter.documentsDict) > 0:
             if len(self.presenter.documentsDict) == 1:
@@ -1523,8 +1523,9 @@ class MyFrame(wx.Frame):
         # Try unsubscribing events
         try:
             self.disable_publisher()
-        except Exception:
+        except Exception as err:
             print("Could not disable publisher")
+            print(err)
             pass
 
         # Try killing window manager
@@ -1552,20 +1553,18 @@ class MyFrame(wx.Frame):
             pass
 
         # Aggressive way to kill the ORIGAMI process (grrr)
-        try:
-            p = psutil.Process(self.config._processID)
-            p.terminate()
-        except Exception:
-            pass
+        if not kwargs.get("clean_exit", False):
+            try:
+                p = psutil.Process(self.config._processID)
+                p.terminate()
+            except Exception as err:
+                print(err)
 
         self.Destroy()
 
     def disable_publisher(self):
         """ Unsubscribe from all events """
-        pub.unsubscribe(self.on_motion, 'motion_xy')
-        pub.unsubscribe(self.motion_range, 'motion_range')
-        pub.unsubscribe(self.on_distance, 'startX')
-        pub.unsubscribe(self.presenter.OnChangedRMSF, 'change_zoom_rmsd')
+        pub.unsubAll()
 
     def on_distance(self, startX):
         # Simple way of setting the start point

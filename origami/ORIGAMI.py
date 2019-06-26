@@ -182,7 +182,7 @@ class ORIGAMI(object):
             self._debug_()
 
         if self.config.testing:
-            self.view.on_close(None)
+            self.view.on_close(None, clean_exit=True)
 
 #         for file_path in [
 # #                         'Z:\###_PhD1_###\RebeccaBeveridge - P27 CdkCyclin Fdc1\p27_data_January2018\SynaptG2\LM_15012017_P27K56_2.pickle'
