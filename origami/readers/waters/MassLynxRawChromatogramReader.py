@@ -1,4 +1,4 @@
-''' Waters 
+''' Waters
     MassLynx Python Chromatogram reader SDK
 '''
 from ctypes import c_void_p, c_int, POINTER, c_bool, c_float, cast
@@ -102,8 +102,17 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
         readMassChroms = MassLynxRawReader.massLynxDll.readMassChromatograms
         readMassChroms.argtypes = [c_void_p, c_int, POINTER(c_float), c_int, POINTER(
             c_void_p), POINTER(c_void_p), c_float, c_bool, POINTER(c_int)]
-        super().CheckReturnCode(readMassChroms(self._getReader(), whichFunction,
-                                               masses, numMasses, pTimes, pIntensities, massTollerance, daughters, size))
+        super().CheckReturnCode(
+            readMassChroms(
+                self._getReader(),
+                whichFunction,
+                masses,
+                numMasses,
+                pTimes,
+                pIntensities,
+                massTollerance,
+                daughters,
+                size))
 
         # fill the array and free memory
         pT = cast(pTimes, POINTER(c_float))
@@ -148,7 +157,8 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
 
     #         readMRM = RawReader.massLynxDll.readMRMChromatogram
     #         readMRM.argtypes = [c_void_p, c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-    #         RawReader.CheckReturnCode( readMRM( RawReader.getReader(self), whichFunction, whichMRM, times, intensities)) # test with invalid MRM
+    # RawReader.CheckReturnCode( readMRM( RawReader.getReader(self),
+    # whichFunction, whichMRM, times, intensities)) # test with invalid MRM
 
     #     except MassLynxException as e:
     #         e.Handler()

@@ -85,7 +85,7 @@ def smooth_savgol_2D(inputData=None, polyOrder=2, windowSize=5):  # smoothDataSa
     if inputData is None or len(inputData) == 0:
         return None
     # Check whether polynomial order is of correct size
-    if (polyOrder <= 0) :
+    if (polyOrder <= 0):
         dlgBox(exceptionTitle='Warning',
                exceptionMsg="Polynomial order is too small. Value was reset to 2",
                type="Warning")
@@ -95,12 +95,15 @@ def smooth_savgol_2D(inputData=None, polyOrder=2, windowSize=5):  # smoothDataSa
     # Check whether window size is of correct size
     if windowSize is None:
         windowSize = polyOrder + 1
-    elif (windowSize % 2) and (windowSize > polyOrder) :
+    elif (windowSize % 2) and (windowSize > polyOrder):
         windowSize = windowSize
     elif windowSize <= polyOrder:
-        dlgBox(exceptionTitle='Warning',
-               exceptionMsg="Window size was smaller than the polynomial order. Value was reset to %s" % (polyOrder + 1),
-               type="Warning")
+        dlgBox(
+            exceptionTitle='Warning',
+            exceptionMsg="Window size was smaller than the polynomial order. Value was reset to %s" %
+            (polyOrder +
+             1),
+            type="Warning")
         windowSize = polyOrder + 1
     else:
         print('Window size is even. Adding 1 to make it odd.')
@@ -179,7 +182,7 @@ def bin_sum_array(data, xvals, division_factor):
     new_shape = (y_dim, int(x_dim / division_factor), division_factor)
     if np.prod(new_shape) != data.size:
         raise ValueError(
-            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) + \
+            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) +
             " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
         )
     return np.reshape(data, new_shape).sum(axis=2), bin_mean_1D_array(xvals, new_shape)
@@ -191,7 +194,7 @@ def bin_mean_array(data, xvals, division_factor):
     new_shape = (y_dim, int(x_dim / division_factor), division_factor)
     if np.prod(new_shape) != data.size:
         raise ValueError(
-            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) + \
+            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) +
             " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
         )
     return np.reshape(data, new_shape).mean(axis=2), bin_mean_1D_array(xvals, new_shape)

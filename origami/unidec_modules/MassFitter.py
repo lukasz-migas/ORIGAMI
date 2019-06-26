@@ -104,7 +104,7 @@ class MassFitter:
             elif "microguess" in args:
                 self.initguess = np.array(
                     [[self.finarray[i, 0], 0.1, self.finarray[i, 1]] for i in range(0, len(self.finarray))])
-                self.initguess[len(self.initguess)-1, 1] = 10
+                self.initguess[len(self.initguess) - 1, 1] = 10
             else:
                 self.initguess = np.array(
                     [[self.finarray[i, 0], 500., self.finarray[i, 1]] for i in range(0, len(self.finarray))])

@@ -18,21 +18,19 @@
 # __author__ lukasz.g.migas
 
 # IMPORT LIBS
-import wx, matplotlib
-matplotlib.use('WXAgg')
-
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
-from matplotlib.figure import Figure
-import matplotlib.patches as patches
-from mpl_toolkits.mplot3d import Axes3D
-
-from ZoomBox import ZoomBox, GetXValues
-from pubsub import pub
-from numpy import amax, divide
-from os.path import join, splitext, basename
-from PIL import Image, ImageChops
-
 from gui_elements.misc_dialogs import dlgBox
+from PIL import Image, ImageChops
+from os.path import join, splitext, basename
+from numpy import amax, divide
+from pubsub import pub
+from ZoomBox import ZoomBox, GetXValues
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.patches as patches
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
+import wx
+import matplotlib
+matplotlib.use('WXAgg')
 
 
 class mpl_plotter(wx.Window):
@@ -81,18 +79,18 @@ class mpl_plotter(wx.Window):
 #         print('pick')
 
     def _generatePlotParameters(self):
-        plot_parameters = {'grid_show':self.config._plots_grid_show,
-                           'grid_color':self.config._plots_grid_color,
-                           'grid_line_width':self.config._plots_grid_line_width,
-                           'extract_color':self.config._plots_extract_color,
-                           'extract_line_width':self.config._plots_extract_line_width,
-                           'extract_crossover_sensitivity_1D':self.config._plots_extract_crossover_1D,
-                           'extract_crossover_sensitivity_2D':self.config._plots_extract_crossover_2D,
-                           'zoom_color_vertical':self.config._plots_zoom_vertical_color,
-                           'zoom_color_horizontal':self.config._plots_zoom_horizontal_color,
-                           'zoom_color_box':self.config._plots_zoom_box_color,
-                           'zoom_line_width':self.config._plots_zoom_line_width,
-                           'zoom_crossover_sensitivity':self.config._plots_zoom_crossover
+        plot_parameters = {'grid_show': self.config._plots_grid_show,
+                           'grid_color': self.config._plots_grid_color,
+                           'grid_line_width': self.config._plots_grid_line_width,
+                           'extract_color': self.config._plots_extract_color,
+                           'extract_line_width': self.config._plots_extract_line_width,
+                           'extract_crossover_sensitivity_1D': self.config._plots_extract_crossover_1D,
+                           'extract_crossover_sensitivity_2D': self.config._plots_extract_crossover_2D,
+                           'zoom_color_vertical': self.config._plots_zoom_vertical_color,
+                           'zoom_color_horizontal': self.config._plots_zoom_horizontal_color,
+                           'zoom_color_box': self.config._plots_zoom_box_color,
+                           'zoom_line_width': self.config._plots_zoom_line_width,
+                           'zoom_crossover_sensitivity': self.config._plots_zoom_crossover
                            }
         return plot_parameters
 
@@ -139,7 +137,7 @@ class mpl_plotter(wx.Window):
     def kda_test(self, xvals):
         """
         Adapted from Unidec/PlottingWindow.py
-        
+
         Test whether the axis should be normalized to convert mass units from Da to kDa.
         Will use kDa if: xvals[int(len(xvals) / 2)] > 100000 or xvals[len(xvals) - 1] > 1000000
 
@@ -177,7 +175,7 @@ class mpl_plotter(wx.Window):
         return xvals, xlabel, kda
 
     def testXYmaxVals(self, values=None):
-        """ 
+        """
         Function to check whether x/y axis labels do not need formatting
         """
         if max(values) > 1000:
@@ -189,7 +187,7 @@ class mpl_plotter(wx.Window):
         return divider
 
     def testXYmaxValsUpdated(self, values=None):
-        """ 
+        """
         Function to check whether x/y axis labels do not need formatting
         """
         baseDiv = 10
@@ -232,39 +230,63 @@ class mpl_plotter(wx.Window):
         """
         self.figure.clear()
         # clear labels
-        try: self.text = []
-        except Exception: pass
-        try: self.lines = []
-        except Exception: pass
-        try: self.patch = []
-        except Exception: pass
-        try: self.markers = []
-        except Exception: pass
-        try: self.arrows = []
-        except Exception: pass
-        try: self.temporary = []
-        except Exception: pass
+        try:
+            self.text = []
+        except Exception:
+            pass
+        try:
+            self.lines = []
+        except Exception:
+            pass
+        try:
+            self.patch = []
+        except Exception:
+            pass
+        try:
+            self.markers = []
+        except Exception:
+            pass
+        try:
+            self.arrows = []
+        except Exception:
+            pass
+        try:
+            self.temporary = []
+        except Exception:
+            pass
 
         self.rotate = 0
 
         # clear plots
-        try: self.cax = None
-        except Exception: pass
+        try:
+            self.cax = None
+        except Exception:
+            pass
 
-        try: self.plotMS = None
-        except Exception: pass
+        try:
+            self.plotMS = None
+        except Exception:
+            pass
 
-        try: self.plot2D_upper = None
-        except Exception: pass
+        try:
+            self.plot2D_upper = None
+        except Exception:
+            pass
 
-        try: self.plot2D_lower = None
-        except Exception: pass
+        try:
+            self.plot2D_lower = None
+        except Exception:
+            pass
 
-        try: self.plot2D_side = None
-        except Exception: pass
+        try:
+            self.plot2D_side = None
+        except Exception:
+            pass
 
-        try: self.plotRMSF = None
-        except Exception: pass
+        try:
+            self.plotRMSF = None
+        except Exception:
+            pass
 
         self.repaint()
 
@@ -290,14 +312,14 @@ class mpl_plotter(wx.Window):
 
     def saveFigure(self, path, transparent, dpi, **kwargs):
         """
-        Saves figures in specified location. 
+        Saves figures in specified location.
         Transparency and DPI taken from config file
         """
         self.figure.savefig(path, transparent=transparent, dpi=dpi, **kwargs)
 
     def saveFigure2(self, path, **kwargs):
         """
-        Saves figures in specified location. 
+        Saves figures in specified location.
         Transparency and DPI taken from config file
         """
         # check if plot exists
@@ -343,17 +365,21 @@ class mpl_plotter(wx.Window):
                 self.plotMS.set_position(oldAxesSize)
                 self.sizeHandler()
             # warn user
-            dlgBox(exceptionTitle='Warning',
-                   exceptionMsg="Cannot save file: %s as it appears to be currently open or the folder doesn't exist" % path,
-                   type="Error")
+            dlgBox(
+                exceptionTitle='Warning',
+                exceptionMsg="Cannot save file: %s as it appears to be currently open or the folder doesn't exist" %
+                path,
+                type="Error")
             # get file extension
             fname, delimiter_txt = splitext(path)
-            try: bname = basename(fname)
-            except Exception: bname = ""
+            try:
+                bname = basename(fname)
+            except Exception:
+                bname = ""
 
             fileType = "Image file (%s)|*%s" % (delimiter_txt, delimiter_txt)
             dlg = wx.FileDialog(None, "Save as...",
-                                 "", "", fileType, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                                "", "", fileType, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             dlg.SetFilename(bname)
 
             if dlg.ShowModal() == wx.ID_OK:
@@ -377,7 +403,8 @@ class mpl_plotter(wx.Window):
                     try:
                         del kwargs['bbox_inches']
                         self.figure.savefig(path, **kwargs)
-                    except Exception: pass
+                    except Exception:
+                        pass
 
         # Reset previous view
         if resizeSize is not None and not self.lock_plot_from_updating_size:
@@ -386,7 +413,7 @@ class mpl_plotter(wx.Window):
 
     def onAddMarker(self, xval=None, yval=None, marker='s', color='r', size=5,
                     testMax='none', label="", as_line=True):
-        """ 
+        """
         This function adds a marker to 1D plot
         """
         if testMax == 'yvals':
@@ -409,8 +436,10 @@ class mpl_plotter(wx.Window):
         This function annotates the MS peak
         """
         # Change label weight
-        if weight:weight = 'bold'
-        else: weight = 'regular'
+        if weight:
+            weight = 'bold'
+        else:
+            weight = 'regular'
 
         if plot is None:
             self.text = self.plotMS.text(x=xval, y=yval,
@@ -476,4 +505,3 @@ class mpl_plotter(wx.Window):
     def getAxesSize(self):
         axesSize = self._axes
         return axesSize
-

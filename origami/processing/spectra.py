@@ -30,18 +30,23 @@ def remove_noise_1D(inputData=None, threshold=0):
     # Check whether threshold values meet the criteria.
     # First check if value is not above the maximum or below 0
     if (threshold > np.max(inputData)) or (threshold < 0):
-        dlgBox(exceptionTitle='Warning',
-               exceptionMsg="Threshold value was too high - the maximum value is %s. Value was reset to 0. Consider reducing your threshold value." % np.max(inputData),
-               type="Warning")
+        dlgBox(
+            exceptionTitle='Warning',
+            exceptionMsg="Threshold value was too high - the maximum value is %s. Value was reset to 0. Consider reducing your threshold value." %
+            np.max(inputData),
+            type="Warning")
         threshold = 0
-    elif threshold == 0.0: pass
+    elif threshold == 0.0:
+        pass
     # Check if the value is a fraction (i.e. if working on a normalized dataset)
     elif (threshold < (np.max(inputData) / 10000)):  # This is somewhat guesswork! It won't be 100 % fool proof
         if (threshold > 1) or (threshold <= 0):
             threshold = 0
-        dlgBox(exceptionTitle='Warning',
-               exceptionMsg="Threshold value was too low - the maximum value is %s. Value was reset to 0. Consider increasing your threshold value." % np.max(inputData),
-               type="Warning")
+        dlgBox(
+            exceptionTitle='Warning',
+            exceptionMsg="Threshold value was too low - the maximum value is %s. Value was reset to 0. Consider increasing your threshold value." %
+            np.max(inputData),
+            type="Warning")
         threshold = 0
     # Or leave it as is if the values are correct
     else:
@@ -92,7 +97,7 @@ def interpolate(x_short, y_short, x_long):
 
     fcn = interp1d(x_short, y_short, fill_value=0, bounds_error=False)
     new_y_long = fcn(x_long)
-    return  x_long, new_y_long
+    return x_long, new_y_long
 
 
 def linearize_data(msX, msY, **kwargs):
@@ -313,7 +318,7 @@ def linearize(data, binsize, mode, input_list=[]):
         lastpoint = math.floor(data[length - 1, 0] / binsize) * binsize
 
         if mode in ["Linear m/z", "Linear interpolation"]:
-    #     if mode in [0, 3]:
+            #     if mode in [0, 3]:
             intx = np.arange(firstpoint, lastpoint, binsize)
         else:
             intx = nonlinear_axis(firstpoint, lastpoint, firstpoint / binsize)
@@ -321,7 +326,7 @@ def linearize(data, binsize, mode, input_list=[]):
         intx = input_list
 
     if mode in ["Linear m/z", "Linear resolution"]:
-#     if mode < 2:
+        #     if mode < 2:
         newdat = lintegrate(data, intx)
     else:
         newdat = linterpolate(data, intx)
@@ -397,9 +402,9 @@ def lintegrate(data, intx):
 def linterpolate(data, intx):
     """
     Linearize x-axis by interpolation.
- 
+
     The new x-axis is interpolated on the old data and the corresponding intensities and picked out.
- 
+
     :param data: Data array
     :param intx: New x-axis
     :return: Interpolation of intensity from original data onto the new x-axis.

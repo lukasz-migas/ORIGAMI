@@ -1534,9 +1534,10 @@ class panelInteractiveOutput(wx.MiniFrame):
             convertRGB1to255(self.config.interactive_annotation_background_color))
 
         interactive_transparency_label = makeStaticText(panel, "Transparency")
-        self.rmsd_label_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                         value=str(self.config.interactive_annotation_alpha), min=0, max=1,
-                                                         initial=self.config.interactive_annotation_alpha, inc=0.1, size=(50, -1))
+        self.rmsd_label_transparency = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY, value=str(
+                self.config.interactive_annotation_alpha), min=0, max=1, initial=self.config.interactive_annotation_alpha, inc=0.1, size=(
+                50, -1))
 
         self.titleSlider.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.titleBoldCheck.Bind(wx.EVT_CHECKBOX, self.on_apply)
@@ -1715,9 +1716,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.scatter_marker_size.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         marker_alpha_label = makeStaticText(panel, "transparency:")
-        self.scatter_marker_alpha = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                      value=str(self.config.interactive_scatter_alpha), min=0, max=1,
-                                                      initial=self.config.interactive_scatter_alpha, inc=0.1, size=(50, -1))
+        self.scatter_marker_alpha = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY, value=str(
+                self.config.interactive_scatter_alpha), min=0, max=1, initial=self.config.interactive_scatter_alpha, inc=0.1, size=(
+                50, -1))
         self.scatter_marker_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         marker_color_label = makeStaticText(panel, "Edge color:")
@@ -1865,9 +1867,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.interactive_colorbar.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         precision_label = makeStaticText(panel, "Precision")
-        self.interactive_colorbar_precision = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                                value=str(self.config.interactive_colorbar_precision), min=0, max=5,
-                                                                initial=self.config.interactive_colorbar_precision, inc=1, size=(50, -1))
+        self.interactive_colorbar_precision = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY, value=str(
+                self.config.interactive_colorbar_precision), min=0, max=5, initial=self.config.interactive_colorbar_precision, inc=1, size=(
+                50, -1))
         self.interactive_colorbar_precision.SetToolTip(wx.ToolTip("Number of decimal places in the colorbar tickers"))
 
         self.interactive_colorbar_useScientific = wx.CheckBox(panel, -1, 'Scientific\nnotation', (15, 30))
@@ -1877,9 +1880,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.interactive_colorbar_useScientific.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         labelOffset_label = makeStaticText(panel, "Label offset:")
-        self.interactive_colorbar_label_offset = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                                   value=str(self.config.interactive_colorbar_label_offset), min=0, max=100,
-                                                                   initial=self.config.interactive_colorbar_label_offset, inc=5, size=(50, -1))
+        self.interactive_colorbar_label_offset = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY, value=str(
+                self.config.interactive_colorbar_label_offset), min=0, max=100, initial=self.config.interactive_colorbar_label_offset, inc=5, size=(
+                50, -1))
         self.interactive_colorbar_label_offset.SetToolTip(wx.ToolTip("Distance between the colorbar and labels"))
 
         location_label = makeStaticText(panel, "Position:")
@@ -1890,16 +1894,18 @@ class panelInteractiveOutput(wx.MiniFrame):
             "Colorbar position next to the plot. The colorbar orientation changes automatically"))
 
         offsetX_label = makeStaticText(panel, "Offset X")
-        self.interactive_colorbar_offset_x = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                               value=str(self.config.interactive_colorbar_offset_x), min=0, max=100,
-                                                               initial=self.config.interactive_colorbar_offset_x, inc=5, size=(50, -1))
+        self.interactive_colorbar_offset_x = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY, value=str(
+                self.config.interactive_colorbar_offset_x), min=0, max=100, initial=self.config.interactive_colorbar_offset_x, inc=5, size=(
+                50, -1))
         self.interactive_colorbar_offset_x.SetToolTip(wx.ToolTip(
             "Colorbar position offset in the X axis. Adjust if colorbar is too close or too far away from the plot"))
 
         offsetY_label = makeStaticText(panel, "Offset Y")
-        self.interactive_colorbar_offset_y = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                               value=str(self.config.interactive_colorbar_offset_y), min=0, max=100,
-                                                               initial=self.config.interactive_colorbar_offset_y, inc=5, size=(50, -1))
+        self.interactive_colorbar_offset_y = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY, value=str(
+                self.config.interactive_colorbar_offset_y), min=0, max=100, initial=self.config.interactive_colorbar_offset_y, inc=5, size=(
+                50, -1))
         self.interactive_colorbar_offset_y.SetToolTip(wx.ToolTip(
             "Colorbar position offset in the Y axis. Adjust if colorbar is too close or too far away from the plot"))
 
@@ -1994,9 +2000,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
 
         muteAlpha_label = makeStaticText(panel, "Line transparency")
-        self.legend_mute_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                          value=str(self.config.interactive_legend_mute_alpha), min=0, max=1,
-                                                          initial=self.config.interactive_legend_mute_alpha, inc=0.1, size=(50, -1))
+        self.legend_mute_transparency = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY, value=str(
+                self.config.interactive_legend_mute_alpha), min=0, max=1, initial=self.config.interactive_legend_mute_alpha, inc=0.1, size=(
+                50, -1))
         self.legend_mute_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         gridFigure = wx.GridBagSizer(2, 2)
@@ -2181,7 +2188,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         page_name = self.pageLayoutSelect_propView.GetStringSelection()
         if page_name in ["None", "Rows", "Columns", ""]:
             self.presenter.onThreading(
-                None, ("Cannot remove '{}' page. Operation was cancelled".format(page_name), 4), action='updateStatusbar')
+                None,
+                ("Cannot remove '{}' page. Operation was cancelled".format(page_name),
+                 4),
+                action='updateStatusbar')
             return
 
         del self.config.pageDict[page_name]
@@ -2562,7 +2572,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             for key in self.documentsDict:
                 data = []
                 docData = self.documentsDict[key]
-                if docData.gotMS :
+                if docData.gotMS:
                     data = docData.massSpectrum
                     if data.get('cmap', "") == "":
                         data['cmap'] = self.config.interactive_line_color
@@ -2578,7 +2588,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                             self.append_to_table(data, key, innerKey, "UniDec", **kwargs)
 
                 if hasattr(docData, "gotSmoothMS"):
-                    if docData.gotSmoothMS :
+                    if docData.gotSmoothMS:
                         data = docData.smoothMS
                         if data.get('cmap', "") == "":
                             data['cmap'] = self.config.interactive_line_color
@@ -2593,37 +2603,37 @@ class panelInteractiveOutput(wx.MiniFrame):
                             kwargs = {"color": (176, 202, 220), "toolset": innerKey}
                             self.append_to_table(data, key, innerKey, "UniDec, processed", **kwargs)
 
-                if docData.got1RT :
+                if docData.got1RT:
                     data = docData.RT
                     if data.get('cmap', "") == "":
                         data['cmap'] = self.config.interactive_line_color
                     kwargs = {"toolset": "1D", "color": (219, 209, 255)}
                     self.append_to_table(data, key, "", "RT", **kwargs)
 
-                if docData.got1DT :
+                if docData.got1DT:
                     data = docData.DT
                     if data.get('cmap', "") == "":
                         data['cmap'] = self.config.interactive_line_color
                     kwargs = {"toolset": "1D", "color": (255, 118, 117)}
                     self.append_to_table(data, key, "", "1D", **kwargs)
 
-                if docData.got2DIMS :
+                if docData.got2DIMS:
                     data = docData.IMS2D
                     kwargs = {"toolset": "2D", "color": (255, 206, 252)}
                     self.append_to_table(data, key, "", "2D", **kwargs)
 
-                if docData.got2Dprocess :
+                if docData.got2Dprocess:
                     data = docData.IMS2Dprocess
                     kwargs = {"toolset": "2D", "color": (99, 110, 114)}
                     self.append_to_table(data, key, "", "2D, processed", **kwargs)
 
-                if docData.gotExtractedIons :
+                if docData.gotExtractedIons:
                     for innerKey in docData.IMS2Dions:
                         data = docData.IMS2Dions[innerKey]
                         kwargs = {"toolset": "2D", "color": (179, 180, 180)}
                         self.append_to_table(data, key, innerKey, "2D", **kwargs)
 
-                if docData.gotMultipleMS :
+                if docData.gotMultipleMS:
                     for innerKey in docData.multipleMassSpectrum:
                         data = docData.multipleMassSpectrum[innerKey]
                         if data.get('cmap', "") == "":
@@ -2656,7 +2666,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset": "1D", "color": (255, 118, 117)}
                         self.append_to_table(data, key, innerKey, "1D, multiple", **kwargs)
 
-                if docData.gotExtractedDriftTimes :
+                if docData.gotExtractedDriftTimes:
                     for innerKey in docData.IMS1DdriftTimes:
                         if docData.dataType == 'Type: MANUAL':
                             tableKey = '1D'
@@ -2668,7 +2678,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset": "1D", "color": (154, 236, 219)}
                         self.append_to_table(data, key, innerKey, tableKey, **kwargs)
 
-                if docData.gotCombinedExtractedIonsRT :
+                if docData.gotCombinedExtractedIonsRT:
                     for innerKey in docData.IMSRTCombIons:
                         data = docData.IMSRTCombIons[innerKey]
                         if data.get('cmap', "") == "":
@@ -2676,20 +2686,20 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset": "RT", "color": (219, 209, 255)}
                         self.append_to_table(data, key, innerKey, "RT, combined", **kwargs)
 
-                if docData.gotCombinedExtractedIons :
+                if docData.gotCombinedExtractedIons:
                     for innerKey in docData.IMS2DCombIons:
                         data = docData.IMS2DCombIons[innerKey]
                         kwargs = {"toolset": "2D", "color": (255, 206, 252)}
                         self.append_to_table(data, key, innerKey, "2D, combined", **kwargs)
 
-                if docData.got2DprocessIons :
+                if docData.got2DprocessIons:
                     for innerKey in docData.IMS2DionsProcess:
                         data = docData.IMS2DionsProcess[innerKey]
                         kwargs = {"toolset": "2D", "color": (255, 206, 252)}
                         self.append_to_table(data, key, innerKey, "2D, processed", **kwargs)
 
                 # Overlay data
-                if docData.gotOverlay :
+                if docData.gotOverlay:
                     for innerKey in docData.IMS2DoverlayData:
                         data = docData.IMS2DoverlayData[innerKey]
                         overlayMethod = re.split('-|,|:|__', innerKey)
@@ -2700,7 +2710,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         kwargs = {"toolset": "2D", "color_label": color_label, "color": (214, 220, 198)}
                         self.append_to_table(data, key, innerKey, "Overlay", **kwargs)
 
-                if docData.gotStatsData :
+                if docData.gotStatsData:
                     for innerKey in docData.IMS2DstatsData:
                         data = docData.IMS2DstatsData[innerKey]
                         overlayMethod = re.split('-|,|:|__', innerKey)
@@ -3386,9 +3396,16 @@ class panelInteractiveOutput(wx.MiniFrame):
                 console.log('Angle: ' + angle);
                 '''
                 callback = CustomJS(code=js_code, args={})
-                slider = Slider(start=0, end=180, step=10, value=kwargs.get("label_rotation_angle", self.config.interactive_ms_annotations_rotation),
-                                callback=callback, title="Label rotation angle",
-                                width=widget_width)
+                slider = Slider(
+                    start=0,
+                    end=180,
+                    step=10,
+                    value=kwargs.get(
+                        "label_rotation_angle",
+                        self.config.interactive_ms_annotations_rotation),
+                    callback=callback,
+                    title="Label rotation angle",
+                    width=widget_width)
                 callback.args = {'slider': slider, 'labels': labels}
                 js_widgets.append(slider)
                 msg = "{} Annotation rotation slider |".format(msg)
@@ -3562,7 +3579,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                     [legend, figure] = [legends[i], figures[i]];
                     legend.background_fill_alpha = transparency;
                     figure.change.emit();
-                    
+
                 console.log('Legend transparency: ' + transparency);
                 '''
                 callback = CustomJS(code=js_code, args={})
@@ -3587,7 +3604,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                             line.glyph.line_color = original_colors[i];
                         toggle.label = "Show in colorblind mode";
                         console.log('Colors set to: normal mode');
-                    else 
+                    else
                         for line, i in lines
                             line.glyph.line_color = cvd_colors[i];
                         toggle.label = "Show in normal mode"
@@ -3634,7 +3651,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                             [line, patch, color] = [line_list[j], patch_list[j], color_list[j]]
                             line.glyph.line_color = color;
                             patch.glyph.fill_color = color;
-    
+
                     toggle.label = "Show in colorblind mode"
                     console.log 'Colors set to: normal mode'
                 else
@@ -3644,10 +3661,10 @@ class panelInteractiveOutput(wx.MiniFrame):
                             [line, patch, color] = [line_list[j], patch_list[j], color_list[j]]
                             line.glyph.line_color = color;
                             patch.glyph.fill_color = color;
-    
+
                     toggle.label = "Show in normal mode"
                     console.log 'Colors set to: colorblind friendly mode'
-    
+
                 for figure in figures
                     figure.change.emit()
                 '''
@@ -3745,7 +3762,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                     image.glyph.color_mapper = colormaps[i];
                 for cbar in colorbars
                     cbar.color_mapper = colormaps[i];
-    
+
                 figure.change.emit();
                 console.log 'Changed colormap', cbar
                 '''
@@ -3944,8 +3961,17 @@ class panelInteractiveOutput(wx.MiniFrame):
                 annot_xmax_list.append(data['annotations'][annotKey]["max"])
                 annot_ymin_list.append(0)
                 annot_ymax_list.append(ylimits[1] + y_offset)
-                color_list.append(convertRGB1toHEX(data['annotations'][annotKey].get("color", data.get("interactive_params", {}).get(
-                    "annotation_properties", {}).get("label_color", self.config.interactive_ms_annotations_line_color))))
+                color_list.append(
+                    convertRGB1toHEX(
+                        data['annotations'][annotKey].get(
+                            "color",
+                            data.get(
+                                "interactive_params",
+                                {}).get(
+                                "annotation_properties",
+                                {}).get(
+                                "label_color",
+                                self.config.interactive_ms_annotations_line_color))))
 
             # add labels
             if user_kwargs["annotation_properties"].get(
@@ -4452,7 +4478,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         <p><strong>Protein accession</strong>: {}</p>
         <p><strong>Sequence</strong>:</p>
         <p>{}</p>
-        
+
         """.format(data[scanID]['scan_info']['title'],
                    scanID,
                    scan_num + 1,
@@ -4573,23 +4599,23 @@ class panelInteractiveOutput(wx.MiniFrame):
         // get data
         var list_data = source_list.data;
         var plot_data = source.data;
-        
+
         // convert value to integer
         i = parseInt(cb_obj.value, 10);
-        
-        // retrieve data from list 
+
+        // retrieve data from list
         var xvals = list_data['xvals_list'][i];
         var yvals = list_data['yvals_list'][i];
         var title = list_data['title_list'][i];
-        
+
         // report title
         console.log("Spectrum title: " + title_list[i]);
         div.text = title;
-        
+
         // replace data and trigger replot
         plot_data['xvals'] = xvals;
         plot_data['yvals'] = yvals;
-        
+
         source.change.emit();
         '''
 
@@ -4705,8 +4731,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **setup_kwargs)
 
         # create div for scan information
-        divHeader = Div(text=title_list[0],
-                        width=plt_kwargs['plot_width'])  # ("<p><strong>Current ID: {}<br /></strong></p>".format(annotated_ms_list[0])))
+        # ("<p><strong>Current ID: {}<br /></strong></p>".format(annotated_ms_list[0])))
+        divHeader = Div(text=title_list[0], width=plt_kwargs['plot_width'])
 
         # generate javascript widget
         js_widgets = []
@@ -4714,29 +4740,29 @@ class panelInteractiveOutput(wx.MiniFrame):
         // get data
         var list_data = source_list.data;
         var plot_data = source.data
-        
+
         // get selection index
         i = cb_obj.options.indexOf(cb_obj.value) // parseInt(cb_obj.value, 10);
-        
-        // retrieve data from list 
+
+        // retrieve data from list
         var xvals = list_data['xvals_list'][i];
         var yvals = list_data['yvals_list'][i];
         var colors = list_data['colors_frag_list'][i];
         var labels = list_data['labels_frag_list'][i];
         var details = list_data['details_frag_list'][i];
         var title = list_data['title_list'][i];
-        
+
         // report title
         console.log("Spectrum title: " + title_list[i]);
         div.text = title;
-        
+
         // replace data and trigger replot
         plot_data['xvals'] = xvals;
         plot_data['yvals'] = yvals;
         plot_data['colors'] = colors;
         plot_data['labels'] = labels;
         plot_data['details'] = details;
-        
+
         // update plot
         source.change.emit();
         '''
@@ -5115,16 +5141,19 @@ class panelInteractiveOutput(wx.MiniFrame):
         bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Overlay_1D", data=data)
 
         plot_mods = {}
-        if user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and bkh_kwargs['page_layout'] in ["Individual", "Columns"]:
+        if user_kwargs["widgets"].get(
+                "add_custom_widgets",
+                self.config.interactive_custom_scripts) and bkh_kwargs['page_layout'] in [
+                "Individual",
+                "Columns"]:
             js_type, js_code = [], {}
             if user_kwargs["widgets"].get("hover_mode", True):
                 js_code.update(hover=hoverTool)
                 js_type.extend(["hover_mode"])
 
             if user_kwargs["widgets"].get("colorblind_safe_1D", True):
-                _cvd_colors = self.presenter.view.panelPlots.onChangePalette(None, cmap=self.config.interactive_cvd_cmap,
-                                                                             n_colors=len(_lines),
-                                                                             return_colors=True, return_hex=True)
+                _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+                    None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True)
                 js_code.update(lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
                                patches=_patches)
                 js_type.extend(["colorblind_safe_1D"])
@@ -5146,8 +5175,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             except Exception:
                 pass
         elif self.config.interactive_custom_scripts and bkh_kwargs['page_layout'] not in ["Individual", "Columns"]:
-            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines),
-                                                                         return_colors=True, return_hex=True)
+            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+                None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True)
             plot_mods.update(lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
                              patches=_patches)
             self.presenter.onThreading(None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment.", 4),
@@ -8214,7 +8243,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if active is None or active == 'auto' or active == 'hover':
                 continue
             else:
-                if not active in toolList:
+                if active not in toolList:
                     toolList.append(active)
 
         # Set the tools

@@ -23,8 +23,9 @@ from time import time as ttime
 from copy import deepcopy
 from styles import (makeCheckbox, makeStaticBox, makeStaticText, validator)
 from help_documentation import OrigamiHelp
-from utils.color import convertRGB1to255, convertRGB255to1
+from utils.color import convertRGB1to255
 from utils.converters import str2num
+from gui_elements.dialog_color_picker import DialogColorPicker
 
 
 class panelCustomiseInteractive(wx.MiniFrame):
@@ -146,7 +147,15 @@ class panelCustomiseInteractive(wx.MiniFrame):
             remove_window_list = ['annotations']
         elif self.item_type in ['Overlay', "Statistical"]:
             method = re.split('-|,|:|__', self.item_title)
-            if method[0] in ['Mask', 'Transparent', 'RMSD', 'RMSF', 'Mean', 'Standard Deviation', 'Variance', 'RMSD Matrix']:
+            if method[0] in [
+                'Mask',
+                'Transparent',
+                'RMSD',
+                'RMSF',
+                'Mean',
+                'Standard Deviation',
+                'Variance',
+                    'RMSD Matrix']:
                 remove_window_list = ["preprocess", "annotations"]
             elif method[0] in ['1D', 'RT']:
                 remove_window_list = ["colorbar"]
@@ -421,37 +430,53 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         borderLeft_label = makeStaticText(panel, "Border\nleft")
         self.frame_border_min_left = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, min=0, max=100, inc=5, size=(50, -1),
-            value=str(self.kwargs.get("frame_properties", {}).get(
-                "border_left", self.config.interactive_border_min_left)),
-            initial=int(self.kwargs.get("frame_properties", {}).get("border_left", self.config.interactive_border_min_left)))
+            panel, wx.ID_ANY, min=0, max=100, inc=5, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "frame_properties", {}).get(
+                    "border_left", self.config.interactive_border_min_left)), initial=int(
+                        self.kwargs.get(
+                            "frame_properties", {}).get(
+                                "border_left", self.config.interactive_border_min_left)))
         self.frame_border_min_left.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
         self.frame_border_min_left.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 
         borderRight_label = makeStaticText(panel, "Border\nright")
         self.frame_border_min_right = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, min=0, max=100, inc=5, size=(50, -1),
-            value=str(self.kwargs.get("frame_properties", {}).get(
-                "border_right", self.config.interactive_border_min_right)),
-            initial=int(self.kwargs.get("frame_properties", {}).get("border_right", self.config.interactive_border_min_right)))
+            panel, wx.ID_ANY, min=0, max=100, inc=5, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "frame_properties", {}).get(
+                    "border_right", self.config.interactive_border_min_right)), initial=int(
+                        self.kwargs.get(
+                            "frame_properties", {}).get(
+                                "border_right", self.config.interactive_border_min_right)))
         self.frame_border_min_right.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
         self.frame_border_min_right.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 
         borderTop_label = makeStaticText(panel, "Border\ntop")
         self.frame_border_min_top = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, min=0, max=100, inc=5, size=(50, -1),
-            value=str(self.kwargs.get("frame_properties", {}).get(
-                "border_top", self.config.interactive_border_min_top)),
-            initial=int(self.kwargs.get("frame_properties", {}).get("border_top", self.config.interactive_border_min_top)))
+            panel, wx.ID_ANY, min=0, max=100, inc=5, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "frame_properties", {}).get(
+                    "border_top", self.config.interactive_border_min_top)), initial=int(
+                        self.kwargs.get(
+                            "frame_properties", {}).get(
+                                "border_top", self.config.interactive_border_min_top)))
         self.frame_border_min_top.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
         self.frame_border_min_top.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 
         borderBottom_label = makeStaticText(panel, "Border\nbottom")
         self.frame_border_min_bottom = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, min=0, max=100, inc=5, size=(50, -1),
-            value=str(self.kwargs.get("frame_properties", {}).get(
-                "border_bottom", self.config.interactive_border_min_bottom)),
-            initial=int(self.kwargs.get("frame_properties", {}).get("border_bottom", self.config.interactive_border_min_bottom)))
+            panel, wx.ID_ANY, min=0, max=100, inc=5, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "frame_properties", {}).get(
+                    "border_bottom", self.config.interactive_border_min_bottom)), initial=int(
+                        self.kwargs.get(
+                            "frame_properties", {}).get(
+                                "border_bottom", self.config.interactive_border_min_bottom)))
         self.frame_border_min_bottom.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
         self.frame_border_min_bottom.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 
@@ -593,14 +618,23 @@ class panelCustomiseInteractive(wx.MiniFrame):
         plot_scatter_marker_edge_sameAsFill = makeStaticText(panel, "Edge same as fill:")
         self.plot_scatter_marker_edge_sameAsFill = makeCheckbox(panel, "")
         self.plot_scatter_marker_edge_sameAsFill.SetValue(
-            self.kwargs.get("plot_properties", {}).get("scatter_edge_color_sameAsFill", self.config.interactive_scatter_sameAsFill))
+            self.kwargs.get(
+                "plot_properties",
+                {}).get(
+                "scatter_edge_color_sameAsFill",
+                self.config.interactive_scatter_sameAsFill))
         self.plot_scatter_marker_edge_sameAsFill.Bind(wx.EVT_CHECKBOX, self.on_apply_plots)
 
         plot_scatter_marker_edge_colorBtn = makeStaticText(panel, "Edge color:")
         self.plot_scatter_marker_edge_colorBtn = wx.Button(
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="plot_scatter_edge_color")
-        self.plot_scatter_marker_edge_colorBtn.SetBackgroundColour(convertRGB1to255(
-            self.kwargs.get("plot_properties", {}).get("scatter_edge_color", self.config.interactive_scatter_edge_color)))
+        self.plot_scatter_marker_edge_colorBtn.SetBackgroundColour(
+            convertRGB1to255(
+                self.kwargs.get(
+                    "plot_properties",
+                    {}).get(
+                    "scatter_edge_color",
+                    self.config.interactive_scatter_edge_color)))
         self.plot_scatter_marker_edge_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         staticBox = makeStaticBox(
@@ -660,7 +694,11 @@ class panelCustomiseInteractive(wx.MiniFrame):
         plot_bar_edge_sameAsFill = makeStaticText(panel, "Edge same as fill:")
         self.plot_bar_edge_sameAsFill = makeCheckbox(panel, "")
         self.plot_bar_edge_sameAsFill.SetValue(
-            self.kwargs.get("plot_properties", {}).get("bar_edge_color_sameAsFill", self.config.interactive_bar_sameAsFill))
+            self.kwargs.get(
+                "plot_properties",
+                {}).get(
+                "bar_edge_color_sameAsFill",
+                self.config.interactive_bar_sameAsFill))
         self.plot_bar_edge_sameAsFill.Bind(wx.EVT_CHECKBOX, self.on_apply_plots)
 
         plot_bar_edge_colorBtn = makeStaticText(panel, "Edge color:")
@@ -793,15 +831,22 @@ class panelCustomiseInteractive(wx.MiniFrame):
         multiline_shade_under_label = makeStaticText(panel, "Shade under line:")
         self.waterfall_shade_under_value = makeCheckbox(panel, "")
         self.waterfall_shade_under_value.SetValue(
-            self.kwargs.get("plot_properties", {}).get("waterfall_shade_under", self.config.interactive_waterfall_shade_under))
+            self.kwargs.get(
+                "plot_properties",
+                {}).get(
+                "waterfall_shade_under",
+                self.config.interactive_waterfall_shade_under))
         self.waterfall_shade_under_value.Bind(wx.EVT_CHECKBOX, self.on_apply_plots)
 
         multiline_shade_transparency_label = makeStaticText(panel, "Shade transparency:")
         self.waterfall_shade_transparency_value = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, inc=0.25, min=0, max=1, size=(50, -1),
-            value=str(self.kwargs.get("plot_properties", {}).get(
-                "waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha)),
-            initial=self.kwargs.get("plot_properties", {}).get("waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha))
+            panel, wx.ID_ANY, inc=0.25, min=0, max=1, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "plot_properties", {}).get(
+                    "waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha)), initial=self.kwargs.get(
+                        "plot_properties", {}).get(
+                            "waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha))
         self.waterfall_shade_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_plots)
 
         grid_staticBox = makeStaticBox(
@@ -1023,14 +1068,23 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         self.overlay_grid_fontWeight_value = makeCheckbox(panel, "bold")
         self.overlay_grid_fontWeight_value.SetValue(
-            self.kwargs.get("overlay_properties", {}).get("grid_label_fontweight", self.config.interactive_grid_label_weight))
+            self.kwargs.get(
+                "overlay_properties",
+                {}).get(
+                "grid_label_fontweight",
+                self.config.interactive_grid_label_weight))
         self.overlay_grid_fontWeight_value.Bind(wx.EVT_CHECKBOX, self.on_apply_overlay)
 
         annotation_fontColor_label = makeStaticText(panel, "Font color:")
         self.overlay_grid_label_colorBtn = wx.Button(
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="overlay_grid_label_color")
-        self.overlay_grid_label_colorBtn.SetBackgroundColour(convertRGB1to255(
-            self.kwargs.get("overlay_properties", {}).get("grid_label_color", self.config.interactive_annotation_color)))
+        self.overlay_grid_label_colorBtn.SetBackgroundColour(
+            convertRGB1to255(
+                self.kwargs.get(
+                    "overlay_properties",
+                    {}).get(
+                    "grid_label_color",
+                    self.config.interactive_annotation_color)))
         self.overlay_grid_label_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         annotation_xpos_label = makeStaticText(panel, "Position offset X:")
@@ -1081,8 +1135,8 @@ class panelCustomiseInteractive(wx.MiniFrame):
             panel, -1, style=wx.CB_READONLY, choices=["Rows", "Columns"],
             value=self.kwargs.get("overlay_properties", {}).get("overlay_layout", self.config.plotLayoutOverlay))
         self.overlay_layout.Bind(wx.EVT_COMBOBOX, self.on_apply_overlay)
-        self.overlay_layout.SetToolTip(
-            wx.ToolTip("Layout to be used when creating mask/transparent plot. Currently, actual overlaying of two heatmaps is not possible"))
+        self.overlay_layout.SetToolTip(wx.ToolTip(
+            "Layout to be used when creating mask/transparent plot. Currently, actual overlaying of two heatmaps is not possible"))
 
         overlay_linkXY_label = makeStaticText(panel, "Link XY axes:")
         self.overlay_linkXY = makeCheckbox(panel, "")
@@ -1148,29 +1202,46 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         self.rmsd_label_fontweight = makeCheckbox(panel, "bold")
         self.rmsd_label_fontweight.SetValue(
-            self.kwargs.get("overlay_properties", {}).get("rmsd_label_fontweight", self.config.interactive_annotation_weight))
+            self.kwargs.get(
+                "overlay_properties",
+                {}).get(
+                "rmsd_label_fontweight",
+                self.config.interactive_annotation_weight))
         self.rmsd_label_fontweight.Bind(wx.EVT_CHECKBOX, self.on_apply_overlay)
 
         rmsd_label_transparency_label = makeStaticText(panel, "Background transparency:")
         self.rmsd_label_transparency = wx.SpinCtrlDouble(
-            panel, min=0, max=1, inc=0.25, size=(50, -1),
-            value=str(self.kwargs.get("overlay_properties", {}).get(
-                "rmsd_background_transparency", self.config.interactive_annotation_alpha)),
-            initial=self.kwargs.get("overlay_properties", {}).get("rmsd_background_transparency", self.config.interactive_annotation_alpha))
+            panel, min=0, max=1, inc=0.25, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "overlay_properties", {}).get(
+                    "rmsd_background_transparency", self.config.interactive_annotation_alpha)), initial=self.kwargs.get(
+                        "overlay_properties", {}).get(
+                            "rmsd_background_transparency", self.config.interactive_annotation_alpha))
         self.rmsd_label_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
         rmsd_label_color_label = makeStaticText(panel, "Label color:")
         self.rmsd_label_colorBtn = wx.Button(
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="rmsd_label_color")
-        self.rmsd_label_colorBtn.SetBackgroundColour(convertRGB1to255(
-            self.kwargs.get("overlay_properties", {}).get("rmsd_label_color", self.config.interactive_annotation_color)))
+        self.rmsd_label_colorBtn.SetBackgroundColour(
+            convertRGB1to255(
+                self.kwargs.get(
+                    "overlay_properties",
+                    {}).get(
+                    "rmsd_label_color",
+                    self.config.interactive_annotation_color)))
         self.rmsd_label_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         rmsd_background_color_label = makeStaticText(panel, "Background color:")
         self.rmsd_background_colorBtn = wx.Button(
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="rmsd_background_color")
-        self.rmsd_background_colorBtn.SetBackgroundColour(convertRGB1to255(
-            self.kwargs.get("overlay_properties", {}).get("rmsd_background_color", self.config.interactive_annotation_background_color)))
+        self.rmsd_background_colorBtn.SetBackgroundColour(
+            convertRGB1to255(
+                self.kwargs.get(
+                    "overlay_properties",
+                    {}).get(
+                    "rmsd_background_color",
+                    self.config.interactive_annotation_background_color)))
         self.rmsd_background_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         rmsd_staticBox = makeStaticBox(
@@ -1205,22 +1276,34 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         annotation_fontSize_label = makeStaticText(panel, "Font size:")
         self.rmsd_matrix_fontSize_value = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, min=0, max=32, inc=2, size=(50, -1),
-            value=str(self.kwargs.get("overlay_properties", {}).get(
-                "rmsd_matrix_label_fontsize", self.config.interactive_ms_annotations_fontSize)),
-            initial=self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_label_fontsize", self.config.interactive_ms_annotations_fontSize))
+            panel, wx.ID_ANY, min=0, max=32, inc=2, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "overlay_properties", {}).get(
+                    "rmsd_matrix_label_fontsize", self.config.interactive_ms_annotations_fontSize)), initial=self.kwargs.get(
+                        "overlay_properties", {}).get(
+                            "rmsd_matrix_label_fontsize", self.config.interactive_ms_annotations_fontSize))
         self.rmsd_matrix_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
         self.rmsd_matrix_fontWeight_value = makeCheckbox(panel, "bold")
         self.rmsd_matrix_fontWeight_value.SetValue(
-            self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_label_fontweight", self.config.interactive_ms_annotations_fontWeight))
+            self.kwargs.get(
+                "overlay_properties",
+                {}).get(
+                "rmsd_matrix_label_fontweight",
+                self.config.interactive_ms_annotations_fontWeight))
         self.rmsd_matrix_fontWeight_value.Bind(wx.EVT_CHECKBOX, self.on_apply_overlay)
 
         annotation_fontColor_label = makeStaticText(panel, "Font color:")
         self.rmsd_matrix_fontColor_colorBtn = wx.Button(
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="rmsd_matrix_label_color")
-        self.rmsd_matrix_fontColor_colorBtn.SetBackgroundColour(convertRGB1to255(
-            self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_label_color", self.config.interactive_ms_annotations_label_color)))
+        self.rmsd_matrix_fontColor_colorBtn.SetBackgroundColour(
+            convertRGB1to255(
+                self.kwargs.get(
+                    "overlay_properties",
+                    {}).get(
+                    "rmsd_matrix_label_color",
+                    self.config.interactive_ms_annotations_label_color)))
         self.rmsd_matrix_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         self.rmsd_matrix_auto_fontColor_value = makeCheckbox(panel, "Auto-determine\nlabel color")
@@ -1230,18 +1313,48 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         annotation_xpos_label = makeStaticText(panel, "Position offset X:")
         self.rmsd_matrix_xpos_value = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, inc=5, min=-100, max=100, size=(50, -1),
-            value=str(self.kwargs.get("overlay_properties", {}).get(
-                "rmsd_matrix_position_offset_x", self.config.interactive_ms_annotations_offsetX)),
-            initial=self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_position_offset_x", self.config.interactive_ms_annotations_offsetX))
+            panel,
+            wx.ID_ANY,
+            inc=5,
+            min=-100,
+            max=100,
+            size=(
+                50,
+                -1),
+            value=str(
+                self.kwargs.get(
+                    "overlay_properties",
+                    {}).get(
+                    "rmsd_matrix_position_offset_x",
+                    self.config.interactive_ms_annotations_offsetX)),
+            initial=self.kwargs.get(
+                "overlay_properties",
+                {}).get(
+                "rmsd_matrix_position_offset_x",
+                self.config.interactive_ms_annotations_offsetX))
         self.rmsd_matrix_xpos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
         annotation_ypos_label = makeStaticText(panel, "Position offset Y:")
         self.rmsd_matrix_ypos_value = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, min=-100, max=100, inc=5, size=(50, -1),
-            value=str(self.kwargs.get("overlay_properties", {}).get(
-                "rmsd_matrix_position_offset_y", self.config.interactive_ms_annotations_offsetY)),
-            initial=self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_position_offset_y", self.config.interactive_ms_annotations_offsetY))
+            panel,
+            wx.ID_ANY,
+            min=-100,
+            max=100,
+            inc=5,
+            size=(
+                50,
+                -1),
+            value=str(
+                self.kwargs.get(
+                    "overlay_properties",
+                    {}).get(
+                    "rmsd_matrix_position_offset_y",
+                    self.config.interactive_ms_annotations_offsetY)),
+            initial=self.kwargs.get(
+                "overlay_properties",
+                {}).get(
+                "rmsd_matrix_position_offset_y",
+                self.config.interactive_ms_annotations_offsetY))
         self.rmsd_matrix_ypos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
         xaxis_rotation_label = makeStaticText(panel, "X-axis tick rotation:")
@@ -1427,7 +1540,11 @@ class panelCustomiseInteractive(wx.MiniFrame):
         annotation_annotate_peak_label = makeStaticText(panel, "Add label to peaks:")
         self.annotation_peakLabel = wx.CheckBox(panel, -1, '', (15, 30))
         self.annotation_peakLabel.SetValue(
-            self.kwargs.get("annotation_properties", {}).get("show_labels", self.config.interactive_ms_annotations_labels))
+            self.kwargs.get(
+                "annotation_properties",
+                {}).get(
+                "show_labels",
+                self.config.interactive_ms_annotations_labels))
         self.annotation_peakLabel.Bind(wx.EVT_CHECKBOX, self.on_apply_annotation)
         self.annotation_peakLabel.SetToolTip(
             wx.ToolTip("A pre-defined (by you) label will be added to selected peaks"))
@@ -1450,30 +1567,45 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         annotation_rotation_label = makeStaticText(panel, "Label rotation:")
         self.annotation_rotation_value = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, min=0, max=180, inc=45, size=(50, -1),
-            value=str(self.kwargs.get("annotation_properties", {}).get(
-                "label_rotation", self.config.interactive_ms_annotations_rotation)),
-            initial=self.kwargs.get("annotation_properties", {}).get("label_rotation", self.config.interactive_ms_annotations_rotation))
+            panel, wx.ID_ANY, min=0, max=180, inc=45, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "annotation_properties", {}).get(
+                    "label_rotation", self.config.interactive_ms_annotations_rotation)), initial=self.kwargs.get(
+                        "annotation_properties", {}).get(
+                            "label_rotation", self.config.interactive_ms_annotations_rotation))
         self.annotation_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_annotation)
 
         annotation_fontSize_label = makeStaticText(panel, "Font size:")
         self.annotation_fontSize_value = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, min=0, max=32, inc=2, size=(50, -1),
-            value=str(self.kwargs.get("annotation_properties", {}).get(
-                "label_fontsize", self.config.interactive_ms_annotations_fontSize)),
-            initial=self.kwargs.get("annotation_properties", {}).get("label_fontsize", self.config.interactive_ms_annotations_fontSize))
+            panel, wx.ID_ANY, min=0, max=32, inc=2, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "annotation_properties", {}).get(
+                    "label_fontsize", self.config.interactive_ms_annotations_fontSize)), initial=self.kwargs.get(
+                        "annotation_properties", {}).get(
+                            "label_fontsize", self.config.interactive_ms_annotations_fontSize))
         self.annotation_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_annotation)
 
         self.annotation_fontWeight_value = makeCheckbox(panel, "bold")
         self.annotation_fontWeight_value.SetValue(
-            self.kwargs.get("annotation_properties", {}).get("label_fontweight", self.config.interactive_ms_annotations_fontWeight))
+            self.kwargs.get(
+                "annotation_properties",
+                {}).get(
+                "label_fontweight",
+                self.config.interactive_ms_annotations_fontWeight))
         self.annotation_fontWeight_value.Bind(wx.EVT_CHECKBOX, self.on_apply_annotation)
 
         annotation_fontColor_label = makeStaticText(panel, "Font color:")
         self.annotation_fontColor_colorBtn = wx.Button(
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="annotation_color")
-        self.annotation_fontColor_colorBtn.SetBackgroundColour(convertRGB1to255(
-            self.kwargs.get("annotation_properties", {}).get("label_color", self.config.interactive_ms_annotations_label_color)))
+        self.annotation_fontColor_colorBtn.SetBackgroundColour(
+            convertRGB1to255(
+                self.kwargs.get(
+                    "annotation_properties",
+                    {}).get(
+                    "label_color",
+                    self.config.interactive_ms_annotations_label_color)))
         self.annotation_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         self.annotation_fontColor_presets_value = makeCheckbox(panel, "use preset colors")
@@ -1484,17 +1616,24 @@ class panelCustomiseInteractive(wx.MiniFrame):
         annotation_highlight_peak_label = makeStaticText(panel, "Add patch to peaks:")
         self.annotation_peakHighlight = wx.CheckBox(panel, -1, '', (15, 30))
         self.annotation_peakHighlight.SetValue(
-            self.kwargs.get("annotation_properties", {}).get("show_patches", self.config.interactive_ms_annotations_highlight))
+            self.kwargs.get(
+                "annotation_properties",
+                {}).get(
+                "show_patches",
+                self.config.interactive_ms_annotations_highlight))
         self.annotation_peakHighlight.Bind(wx.EVT_CHECKBOX, self.on_apply_annotation)
         self.annotation_peakHighlight.SetToolTip(
             wx.ToolTip("A rectangular-shaped patch will be added to the spectrum to highlight selected peaks"))
 
         annotation_patch_transparency_label = makeStaticText(panel, "Patch transparency:")
         self.annotation_patch_transparency_value = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, inc=.25, min=0, max=1, size=(50, -1),
-            value=str(self.kwargs.get("annotation_properties", {}).get(
-                "patch_transparency", self.config.interactive_ms_annotations_transparency)),
-            initial=self.kwargs.get("annotation_properties", {}).get("patch_transparency", self.config.interactive_ms_annotations_transparency))
+            panel, wx.ID_ANY, inc=.25, min=0, max=1, size=(
+                50, -1), value=str(
+                self.kwargs.get(
+                    "annotation_properties", {}).get(
+                    "patch_transparency", self.config.interactive_ms_annotations_transparency)), initial=self.kwargs.get(
+                        "annotation_properties", {}).get(
+                            "patch_transparency", self.config.interactive_ms_annotations_transparency))
         self.annotation_patch_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_annotation)
 
         grid = wx.GridBagSizer(2, 2)
@@ -1562,28 +1701,37 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         fontSize_label = makeStaticText(panel, "Font size:")
         self.legend_fontSize = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY,
-            value=str(self.kwargs.get("legend_properties", {}).get(
-                "legend_font_size", self.config.interactive_legend_font_size)),
-            min=0, max=32,
-            initial=self.kwargs.get("legend_properties", {}).get("legend_font_size", self.config.interactive_legend_font_size), inc=2, size=(50, -1))
+            panel, wx.ID_ANY, value=str(
+                self.kwargs.get(
+                    "legend_properties", {}).get(
+                    "legend_font_size", self.config.interactive_legend_font_size)), min=0, max=32, initial=self.kwargs.get(
+                "legend_properties", {}).get(
+                        "legend_font_size", self.config.interactive_legend_font_size), inc=2, size=(
+                            50, -1))
         self.legend_fontSize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_legend)
 
         legendAlpha_label = makeStaticText(panel, "Legend transparency:")
-        self.legend_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                     value=str(self.kwargs.get("legend_properties", {}).get(
-                                                         "legend_background_alpha", self.config.interactive_legend_background_alpha)),
-                                                     min=0, max=1,
-                                                     initial=self.kwargs.get("legend_properties", {}).get(
-                                                         "legend_background_alpha", self.config.interactive_legend_background_alpha),
-                                                     inc=0.25, size=(50, -1))
+        self.legend_transparency = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY, value=str(
+                self.kwargs.get(
+                    "legend_properties", {}).get(
+                    "legend_background_alpha", self.config.interactive_legend_background_alpha)), min=0, max=1, initial=self.kwargs.get(
+                "legend_properties", {}).get(
+                        "legend_background_alpha", self.config.interactive_legend_background_alpha), inc=0.25, size=(
+                            50, -1))
         self.legend_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_legend)
 
         action_label = makeStaticText(panel, "Action:")
         self.legend_click_policy = wx.ComboBox(
-            panel, -1,
+            panel,
+            -1,
             choices=self.config.interactive_legend_click_policy_choices,
-            value=self.kwargs.get("legend_properties", {}).get("legend_click_policy", self.config.interactive_legend_click_policy), style=wx.CB_READONLY)
+            value=self.kwargs.get(
+                "legend_properties",
+                {}).get(
+                "legend_click_policy",
+                self.config.interactive_legend_click_policy),
+            style=wx.CB_READONLY)
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.on_apply_legend)
 #         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.onEnableDisable_legend)
 
@@ -1646,10 +1794,12 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         precision_label = makeStaticText(panel, "Precision:")
         self.colorbar_precision = wx.SpinCtrlDouble(
-            panel, min=0, max=5, inc=1, size=SC_SIZE,
-            value=str(self.kwargs.get("colorbar_properties", {}).get(
-                "precision", self.config.interactive_colorbar_precision)),
-            initial=self.kwargs.get("colorbar_properties", {}).get("precision", self.config.interactive_colorbar_precision))
+            panel, min=0, max=5, inc=1, size=SC_SIZE, value=str(
+                self.kwargs.get(
+                    "colorbar_properties", {}).get(
+                    "precision", self.config.interactive_colorbar_precision)), initial=self.kwargs.get(
+                "colorbar_properties", {}).get(
+                        "precision", self.config.interactive_colorbar_precision))
         self.colorbar_precision.SetToolTip(wx.ToolTip("Number of decimal places in the colorbar tickers"))
         self.colorbar_precision.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
 
@@ -1669,32 +1819,42 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         colorbar_edge_width_label = makeStaticText(panel, "Edge width:")
         self.colorbar_edge_width = wx.SpinCtrlDouble(
-            panel, inc=1., size=SC_SIZE, min=0, max=5,
-            value=str(self.kwargs.get("colorbar_properties", {}).get(
-                "edge_width", self.config.interactive_colorbar_edge_width)),
-            initial=self.kwargs.get("colorbar_properties", {}).get("edge_width", self.config.interactive_colorbar_edge_width))
+            panel, inc=1., size=SC_SIZE, min=0, max=5, value=str(
+                self.kwargs.get(
+                    "colorbar_properties", {}).get(
+                    "edge_width", self.config.interactive_colorbar_edge_width)), initial=self.kwargs.get(
+                "colorbar_properties", {}).get(
+                        "edge_width", self.config.interactive_colorbar_edge_width))
         self.colorbar_edge_width.SetToolTip(wx.ToolTip("Width of the colorbar edge"))
         self.colorbar_edge_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
 
         colorbar_label_fontsize = makeStaticText(panel, "Label font size:")
         self.colorbar_label_fontsize = wx.SpinCtrlDouble(
-            panel, wx.ID_ANY, min=0, max=32, inc=2, size=SC_SIZE,
-            value=str(self.kwargs.get("colorbar_properties", {}).get(
-                "label_fontsize", self.config.interactive_colorbar_label_fontSize)),
-            initial=self.kwargs.get("colorbar_properties", {}).get("label_fontsize", self.config.interactive_colorbar_label_fontSize))
+            panel, wx.ID_ANY, min=0, max=32, inc=2, size=SC_SIZE, value=str(
+                self.kwargs.get(
+                    "colorbar_properties", {}).get(
+                    "label_fontsize", self.config.interactive_colorbar_label_fontSize)), initial=self.kwargs.get(
+                "colorbar_properties", {}).get(
+                        "label_fontsize", self.config.interactive_colorbar_label_fontSize))
         self.colorbar_label_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
 
         self.colorbar_label_fontweight = makeCheckbox(panel, "bold")
         self.colorbar_label_fontweight.SetValue(
-            self.kwargs.get("colorbar_properties", {}).get("label_fontweight", self.config.interactive_colorbar_label_weight))
+            self.kwargs.get(
+                "colorbar_properties",
+                {}).get(
+                "label_fontweight",
+                self.config.interactive_colorbar_label_weight))
         self.colorbar_label_fontweight.Bind(wx.EVT_CHECKBOX, self.on_apply_colorbar)
 
         labelOffset_label = makeStaticText(panel, "Label offset:")
         self.colorbar_label_offset = wx.SpinCtrlDouble(
-            panel, inc=1, size=SC_SIZE, min=0, max=100,
-            value=str(self.kwargs.get("colorbar_properties", {}).get(
-                "label_offset", self.config.interactive_colorbar_label_offset)),
-            initial=self.kwargs.get("colorbar_properties", {}).get("label_offset", self.config.interactive_colorbar_label_offset))
+            panel, inc=1, size=SC_SIZE, min=0, max=100, value=str(
+                self.kwargs.get(
+                    "colorbar_properties", {}).get(
+                    "label_offset", self.config.interactive_colorbar_label_offset)), initial=self.kwargs.get(
+                "colorbar_properties", {}).get(
+                        "label_offset", self.config.interactive_colorbar_label_offset))
         self.colorbar_label_offset.SetToolTip(wx.ToolTip("Distance between the colorbar ticks and the labels"))
         self.colorbar_label_offset.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
 
@@ -1710,20 +1870,24 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         offsetX_label = makeStaticText(panel, "Position offset X:")
         self.colorbar_offset_x = wx.SpinCtrlDouble(
-            panel, inc=5, size=SC_SIZE, min=0, max=100,
-            value=str(self.kwargs.get("colorbar_properties", {}).get(
-                "position_offset_x", self.config.interactive_colorbar_offset_x)),
-            initial=self.kwargs.get("colorbar_properties", {}).get("position_offset_x", self.config.interactive_colorbar_offset_x))
+            panel, inc=5, size=SC_SIZE, min=0, max=100, value=str(
+                self.kwargs.get(
+                    "colorbar_properties", {}).get(
+                    "position_offset_x", self.config.interactive_colorbar_offset_x)), initial=self.kwargs.get(
+                "colorbar_properties", {}).get(
+                        "position_offset_x", self.config.interactive_colorbar_offset_x))
         self.colorbar_offset_x.SetToolTip(wx.ToolTip(
             "Colorbar position offset in the X axis. Adjust if colorbar is too close or too far away from the plot"))
         self.colorbar_offset_x.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
 
         offsetY_label = makeStaticText(panel, "Position offset Y:")
         self.colorbar_offset_y = wx.SpinCtrlDouble(
-            panel, inc=5, size=SC_SIZE, min=0, max=100,
-            value=str(self.kwargs.get("colorbar_properties", {}).get(
-                "position_offset_y", self.config.interactive_colorbar_label_offset)),
-            initial=self.kwargs.get("colorbar_properties", {}).get("position_offset_y", self.config.interactive_colorbar_offset_y))
+            panel, inc=5, size=SC_SIZE, min=0, max=100, value=str(
+                self.kwargs.get(
+                    "colorbar_properties", {}).get(
+                    "position_offset_y", self.config.interactive_colorbar_label_offset)), initial=self.kwargs.get(
+                "colorbar_properties", {}).get(
+                        "position_offset_y", self.config.interactive_colorbar_offset_y))
         self.colorbar_offset_y.SetToolTip(wx.ToolTip(
             "Colorbar position offset in the Y axis. Adjust if colorbar is too close or too far away from the plot"))
         self.colorbar_offset_y.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
@@ -2429,64 +2593,53 @@ class panelCustomiseInteractive(wx.MiniFrame):
     def on_apply_color(self, evt):
         source = evt.GetEventObject().GetName()
 
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in range(len(self.config.customColors)):
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.GetColourData().SetChooseFull(True)
-
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-            # Retrieve custom colors
-            for i in range(15):
-                self.config.customColors[i] = data.GetCustomColour(i)
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, __ = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
 
             if source == "gridline_color":
-                self.frame_gridline_color.SetBackgroundColour(newColour)
-                self.kwargs['frame_properties']['gridline_color'] = convertRGB255to1(newColour)
+                self.frame_gridline_color.SetBackgroundColour(color_255)
+                self.kwargs['frame_properties']['gridline_color'] = color_1
             elif source == "background_color":
-                self.frame_background_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['frame_properties']['background_color'] = convertRGB255to1(newColour)
+                self.frame_background_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['frame_properties']['background_color'] = color_1
             elif source == "annotation_color":
-                self.annotation_fontColor_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['annotation_properties']['label_color'] = convertRGB255to1(newColour)
+                self.annotation_fontColor_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['annotation_properties']['label_color'] = color_1
             elif source == "colorbar_edge_color":
-                self.colorbar_edge_color.SetBackgroundColour(newColour)
-                self.kwargs['colorbar_properties']['edge_color'] = convertRGB255to1(newColour)
+                self.colorbar_edge_color.SetBackgroundColour(color_255)
+                self.kwargs['colorbar_properties']['edge_color'] = color_1
             elif source == "rmsd_label_color":
-                self.rmsd_label_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['overlay_properties']['rmsd_label_color'] = convertRGB255to1(newColour)
+                self.rmsd_label_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['overlay_properties']['rmsd_label_color'] = color_1
             elif source == "rmsd_background_color":
-                self.rmsd_background_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['overlay_properties']['rmsd_background_color'] = convertRGB255to1(newColour)
+                self.rmsd_background_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['overlay_properties']['rmsd_background_color'] = color_1
             elif source == "rmsd_matrix_label_color":
-                self.rmsd_matrix_fontColor_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['overlay_properties']['rmsd_matrix_label_color'] = convertRGB255to1(newColour)
+                self.rmsd_matrix_fontColor_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['overlay_properties']['rmsd_matrix_label_color'] = color_1
             elif source == "overlay_grid_label_color":
-                self.overlay_grid_label_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['overlay_properties']['grid_label_color'] = convertRGB255to1(newColour)
+                self.overlay_grid_label_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['overlay_properties']['grid_label_color'] = color_1
             elif source == "plot_line_color":
-                self.plot_line_color_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['plot_properties']['line_color'] = convertRGB255to1(newColour)
+                self.plot_line_color_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['plot_properties']['line_color'] = color_1
             elif source == "rmsf_line_color":
-                self.rmsf_line_color_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['overlay_properties']['rmsf_line_color'] = convertRGB255to1(newColour)
+                self.rmsf_line_color_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['overlay_properties']['rmsf_line_color'] = color_1
             elif source == "plot_bar_edge_color":
-                self.plot_bar_edge_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['plot_properties']['bar_edge_color'] = convertRGB255to1(newColour)
+                self.plot_bar_edge_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['plot_properties']['bar_edge_color'] = color_1
             elif source == "plot_scatter_edge_color":
-                self.plot_scatter_marker_edge_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['plot_properties']['scatter_edge_color'] = convertRGB255to1(newColour)
+                self.plot_scatter_marker_edge_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['plot_properties']['scatter_edge_color'] = color_1
             elif source == "plot_tandem_labelled":
-                self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['plot_properties']['tandem_line_color_labelled'] = convertRGB255to1(newColour)
+                self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['plot_properties']['tandem_line_color_labelled'] = color_1
             elif source == "plot_tandem_unlabelled":
-                self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(newColour)
-                self.kwargs['plot_properties']['tandem_line_color_unlabelled'] = convertRGB255to1(newColour)
+                self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(color_255)
+                self.kwargs['plot_properties']['tandem_line_color_unlabelled'] = color_1
 
             # update document
             self.onUpdateDocument()

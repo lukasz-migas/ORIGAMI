@@ -144,10 +144,10 @@ class panel_peak_picker(wx.MiniFrame):
 
         visualize_max_labels = wx.StaticText(panel, wx.ID_ANY, "Max no. labels:")
         self.visualize_max_labels = wx.SpinCtrlDouble(panel, -1,
-                                                value=str(self.config.fit_show_labels_max_count),
-                                                min=0, max=250,
-                                                initial=self.config.fit_show_labels_max_count,
-                                                inc=50, size=(90, -1))
+                                                      value=str(self.config.fit_show_labels_max_count),
+                                                      min=0, max=250,
+                                                      initial=self.config.fit_show_labels_max_count,
+                                                      inc=50, size=(90, -1))
         self.visualize_max_labels.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         self.visualize_show_labels_mz_check = makeCheckbox(panel, "m/z")
@@ -244,13 +244,13 @@ class panel_peak_picker(wx.MiniFrame):
 
         mz_min_value = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
         self.mz_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                            validator=validator('floatPos'))
+                                        validator=validator('floatPos'))
         self.mz_min_value.SetValue(str(self.config.peak_find_mz_min))
         self.mz_min_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         mz_max_value = wx.StaticText(panel, wx.ID_ANY, "m/z end:")
         self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                            validator=validator('floatPos'))
+                                        validator=validator('floatPos'))
         self.mz_max_value.SetValue(str(self.config.peak_find_mz_max))
         self.mz_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -292,9 +292,9 @@ class panel_peak_picker(wx.MiniFrame):
         choice_grid = wx.GridBagSizer(2, 2)
         n = 0
         choice_grid.Add(self.method_small_molecule, (n, 0), wx.GBSpan(1, 1),
-                     flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND)
+                        flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND)
         choice_grid.Add(self.method_native_ms, (n, 1), wx.GBSpan(1, 1),
-                     flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND)
+                        flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(panel_info_txt, 0, wx.EXPAND, 2)
@@ -314,37 +314,37 @@ class panel_peak_picker(wx.MiniFrame):
 
         threshold_value = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                               validator=validator('floatPos'))
+                                           validator=validator('floatPos'))
         self.threshold_value.SetValue(str(self.config.peak_find_threshold))
         self.threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         width_value = wx.StaticText(panel, wx.ID_ANY, "Minimal width:")
         self.width_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                            validator=validator('intPos'))
+                                       validator=validator('intPos'))
         self.width_value.SetValue(str(self.config.peak_find_width))
         self.width_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         relative_height_value = wx.StaticText(panel, wx.ID_ANY, "Measure peak width at relative height:")
         self.relative_height_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                            validator=validator('floatPos'))
+                                                 validator=validator('floatPos'))
         self.relative_height_value.SetValue(str(self.config.peak_find_relative_height))
         self.relative_height_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         min_intensity_value = wx.StaticText(panel, wx.ID_ANY, "Minimal intensity:")
         self.min_intensity_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                            validator=validator('floatPos'))
+                                               validator=validator('floatPos'))
         self.min_intensity_value.SetValue(str(self.config.peak_find_min_intensity))
         self.min_intensity_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         min_distance_value = wx.StaticText(panel, wx.ID_ANY, "Minimal distance between peaks:")
         self.min_distance_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                            validator=validator('intPos'))
+                                              validator=validator('intPos'))
         self.min_distance_value.SetValue(str(self.config.peak_find_distance))
         self.min_distance_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         peak_width_modifier_value = wx.StaticText(panel, wx.ID_ANY, "Peak width modifier:")
         self.peak_width_modifier_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                            validator=validator('floatPos'))
+                                                     validator=validator('floatPos'))
         self.peak_width_modifier_value.SetValue(str(self.config.peak_find_peak_width_modifier))
         self.peak_width_modifier_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -383,7 +383,7 @@ class panel_peak_picker(wx.MiniFrame):
 
         panel.SetSizerAndFit(main_sizer)
 
-        return  panel
+        return panel
 
     def make_settings_panel_native(self, split_panel):
         """Make settings panel for native MS peak picking"""
@@ -403,7 +403,7 @@ class panel_peak_picker(wx.MiniFrame):
 
         fit_relative_height = wx.StaticText(panel, wx.ID_ANY, "Measure peak width at relative height:")
         self.fit_relative_height = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                            validator=validator('floatPos'))
+                                               validator=validator('floatPos'))
         self.fit_relative_height.SetValue(str(self.config.fit_relative_height))
         self.fit_relative_height.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -616,7 +616,7 @@ class panel_peak_picker(wx.MiniFrame):
         # smooth MS
         self.config.fit_smoothPeaks = self.fit_smooth_check.GetValue()
         item_list = [self.fit_sigma_value,
-#                      self.fit_show_smoothed
+                     #                      self.fit_show_smoothed
                      ]
         for item in item_list:
             item.Enable(enable=self.config.fit_smoothPeaks)
@@ -710,7 +710,7 @@ class panel_peak_picker(wx.MiniFrame):
         # add `rectangle`-like patches to the plot area to highlight each ion
         if self.config.fit_highlight:
             for peak_id, (mz_x_minus, mz_width, mz_height) in enumerate(
-                zip(peaks_x_minus_width, peaks_width, peaks_y_values)):
+                    zip(peaks_x_minus_width, peaks_width, peaks_y_values)):
                 if peak_id == n_peaks_max - 1:
                     break
                 self.panel_plot.on_plot_patches(mz_x_minus, 0, mz_width, mz_height,
@@ -722,10 +722,14 @@ class panel_peak_picker(wx.MiniFrame):
         if self.config.fit_show_labels:
             labels = self.on_generate_labels(peaks_x_values, peaks_y_values)
             for mz_position, mz_intensity, label in labels:
-                self.presenter.view.panelPlots.on_plot_labels(xpos=mz_position,
-                                                              yval=mz_intensity / self.plot_window.y_divider, label=label,
-                                                              repaint=False,
-                                                              plot=None, plot_obj=self.plot_window)
+                self.presenter.view.panelPlots.on_plot_labels(
+                    xpos=mz_position,
+                    yval=mz_intensity /
+                    self.plot_window.y_divider,
+                    label=label,
+                    repaint=False,
+                    plot=None,
+                    plot_obj=self.plot_window)
 
         # replot plot in case anything was added
         self.plot_window.repaint()
@@ -738,7 +742,7 @@ class panel_peak_picker(wx.MiniFrame):
         allowed_document_types = ['Type: ORIGAMI', 'Type: MANUAL', 'Type: Infrared', 'Type: MassLynx']
 
         if document_type not in allowed_document_types:
-            logger.error(f"Document type {document_type} does not permit addition of found peaks to the" + \
+            logger.error(f"Document type {document_type} does not permit addition of found peaks to the" +
                          f" peaklist. Allowed document types include {allowed_document_types}.")
             return
 
@@ -747,14 +751,14 @@ class panel_peak_picker(wx.MiniFrame):
         peaks_x_plus_width = peaks_dict["peaks_x_plus_width"]
 
         for __, (mz_x_minus, mz_x_plus, mz_height) in enumerate(
-            zip(peaks_x_minus_width, peaks_x_plus_width, peaks_y_values)):
+                zip(peaks_x_minus_width, peaks_x_plus_width, peaks_y_values)):
             if not self.ionPanel.on_check_duplicate(mz_x_minus, mz_x_plus, self.document_title):
                 add_dict = {"mz_start": mz_x_minus,
                             "mz_end": mz_x_plus,
                             "charge": 1,
-#                             "color": self.config.customColors[randomIntegerGenerator(0, 15)],
+                            #                             "color": self.config.customColors[randomIntegerGenerator(0, 15)],
                             "mz_ymax": mz_height,
-#                             "colormap": self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
+                            #                             "colormap": self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
                             "alpha": self.config.overlay_defaultAlpha,
                             "mask": self.config.overlay_defaultMask,
                             "document": self.document_title}

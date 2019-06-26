@@ -21,17 +21,16 @@ import wx
 from wx.adv import BitmapComboBox
 
 from ids import (ID_unidecPanel_fitLineColor, ID_unidecPanel_barEdgeColor)
-from styles import makeStaticBox, makeCheckbox
+from styles import makeStaticBox, makeCheckbox, Dialog
 from gui_elements.misc_dialogs import dlgBox
-from utils.color import convertRGB1to255, convertRGB255to1
+from utils.color import convertRGB1to255
+from gui_elements.dialog_color_picker import DialogColorPicker
 
 
-class dialog_customise_unidec_visuals(wx.Dialog):
+class dialog_customise_unidec_visuals(Dialog):
 
     def __init__(self, parent, config, icons, **kwargs):
-        wx.Dialog.__init__(self, parent, -1, 'Other parameters...', size=(-1, -1),
-                              style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+        Dialog.__init__(self, parent, title='Other parameters...')
 
         self.parent = parent
         self.config = config
@@ -70,7 +69,7 @@ class dialog_customise_unidec_visuals(wx.Dialog):
 
         unidec_view_label = wx.StaticText(panel, -1, "Panel view:")
         self.unidec_view_value = wx.Choice(panel, -1, choices=["Single page view", "Tabbed view"],
-                                          size=(-1, -1))
+                                           size=(-1, -1))
         self.unidec_view_value.SetStringSelection(self.config.unidec_plot_panel_view)
         self.unidec_view_value.Bind(wx.EVT_CHOICE, self.onUniDecView)
 
@@ -144,9 +143,9 @@ class dialog_customise_unidec_visuals(wx.Dialog):
 
         MW_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
         self.MW_markerSize_value = wx.SpinCtrlDouble(panel, -1,
-                                               value=str(self.config.unidec_plot_MW_markerSize),
-                                               min=1, max=100, initial=1, inc=5,
-                                               size=(90, -1))
+                                                     value=str(self.config.unidec_plot_MW_markerSize),
+                                                     min=1, max=100, initial=1, inc=5,
+                                                     size=(90, -1))
         self.MW_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         MW_grid = wx.GridBagSizer(2, 2)
@@ -191,9 +190,9 @@ class dialog_customise_unidec_visuals(wx.Dialog):
 
         isolatedMS_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
         self.isolatedMS_markerSize_value = wx.SpinCtrlDouble(panel, -1,
-                                               value=str(self.config.unidec_plot_isolatedMS_markerSize),
-                                               min=1, max=100, initial=1, inc=5,
-                                               size=(90, -1))
+                                                             value=str(self.config.unidec_plot_isolatedMS_markerSize),
+                                                             min=1, max=100, initial=1, inc=5,
+                                                             size=(90, -1))
         self.isolatedMS_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         isolatedMS_grid = wx.GridBagSizer(2, 2)
@@ -204,43 +203,43 @@ class dialog_customise_unidec_visuals(wx.Dialog):
 
         # Barchart
         barParameters_staticBox = makeStaticBox(panel, "Peak intensities (Barchart)",
-                                                 size=(-1, -1), color=wx.BLACK)
+                                                size=(-1, -1), color=wx.BLACK)
         barParameters_staticBox.SetSize((-1, -1))
         bar_box_sizer = wx.StaticBoxSizer(barParameters_staticBox, wx.HORIZONTAL)
 
         bar_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
         self.bar_markerSize_value = wx.SpinCtrlDouble(panel, -1,
-                                               value=str(self.config.unidec_plot_bar_markerSize),
-                                               min=1, max=100, initial=1, inc=5,
-                                               size=(90, -1))
+                                                      value=str(self.config.unidec_plot_bar_markerSize),
+                                                      min=1, max=100, initial=1, inc=5,
+                                                      size=(90, -1))
         self.bar_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         bar_width_label = wx.StaticText(panel, -1, "Bar width:")
         self.bar_width_value = wx.SpinCtrlDouble(panel, -1,
-                                               value=str(self.config.unidec_plot_bar_width),
-                                               min=0.01, max=10, inc=0.1,
-                                               initial=self.config.unidec_plot_bar_width,
-                                               size=(90, -1))
+                                                 value=str(self.config.unidec_plot_bar_width),
+                                                 min=0.01, max=10, inc=0.1,
+                                                 initial=self.config.unidec_plot_bar_width,
+                                                 size=(90, -1))
         self.bar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         bar_alpha_label = wx.StaticText(panel, -1, "Bar transparency:")
         self.bar_alpha_value = wx.SpinCtrlDouble(panel, -1,
-                                                    value=str(self.config.unidec_plot_bar_alpha),
-                                                    min=0, max=1, initial=self.config.unidec_plot_bar_alpha,
-                                                    inc=0.25, size=(90, -1))
+                                                 value=str(self.config.unidec_plot_bar_alpha),
+                                                 min=0, max=1, initial=self.config.unidec_plot_bar_alpha,
+                                                 inc=0.25, size=(90, -1))
         self.bar_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         bar_lineWidth_label = wx.StaticText(panel, -1, "Edge line width:")
         self.bar_lineWidth_value = wx.SpinCtrlDouble(panel, -1,
-                                                    value=str(self.config.unidec_plot_bar_lineWidth),
-                                                    min=0, max=5, initial=self.config.unidec_plot_bar_lineWidth,
-                                                    inc=1, size=(90, -1))
+                                                     value=str(self.config.unidec_plot_bar_lineWidth),
+                                                     min=0, max=5, initial=self.config.unidec_plot_bar_lineWidth,
+                                                     inc=1, size=(90, -1))
         self.bar_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         bar_edgeColor_label = wx.StaticText(panel, -1, "Edge color:")
         self.bar_edgeColor_Btn = wx.Button(panel, ID_unidecPanel_barEdgeColor,
-                                              "", wx.DefaultPosition,
-                                              wx.Size(26, 26), 0)
+                                           "", wx.DefaultPosition,
+                                           wx.Size(26, 26), 0)
         self.bar_edgeColor_Btn.SetBackgroundColour(convertRGB1to255(self.config.unidec_plot_bar_edge_color))
         self.bar_edgeColor_Btn.Bind(wx.EVT_BUTTON, self.onChangeColour)
 
@@ -277,7 +276,7 @@ class dialog_customise_unidec_visuals(wx.Dialog):
 
         color_scheme_label = wx.StaticText(panel, -1, "Color scheme:")
         self.colorScheme_value = wx.Choice(panel, -1, choices=["Color palette", "Colormap"],
-                                          size=(-1, -1), name="color")
+                                           size=(-1, -1), name="color")
         self.colorScheme_value.SetStringSelection(self.config.violin_color_value)
         self.colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
@@ -345,31 +344,20 @@ class dialog_customise_unidec_visuals(wx.Dialog):
     def onChangeColour(self, evt):
         evtID = evt.GetId()
 
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in range(len(self.config.customColors)):  # key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.GetColourData().SetChooseFull(True)
-
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-            # Retrieve custom colors
-            for i in range(15):
-                self.config.customColors[i] = data.GetCustomColour(i)
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, __ = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
         else:
             return
 
         if evtID == ID_unidecPanel_barEdgeColor:
-            self.config.unidec_plot_bar_edge_color = convertRGB255to1(newColour)
-            self.bar_edgeColor_Btn.SetBackgroundColour(newColour)
+            self.config.unidec_plot_bar_edge_color = color_1
+            self.bar_edgeColor_Btn.SetBackgroundColour(color_255)
 
         elif evtID == ID_unidecPanel_fitLineColor:
-            self.config.unidec_plot_fit_lineColor = convertRGB255to1(newColour)
-            self.fit_lineColor_Btn.SetBackgroundColour(newColour)
+            self.config.unidec_plot_fit_lineColor = color_1
+            self.fit_lineColor_Btn.SetBackgroundColour(color_255)
 
     def on_apply(self, evt):
 
@@ -395,4 +383,3 @@ class dialog_customise_unidec_visuals(wx.Dialog):
         dlgBox(exceptionTitle="Warning",
                exceptionMsg="Changing the panel view will not take place until you restart ORIGAMI.",
                type="Warning")
-

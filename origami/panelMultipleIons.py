@@ -71,7 +71,6 @@ class panelMultipleIons(wx.Panel):
         self.presenter = presenter
         self.icons = icons
 
-        self.listOfSelected = []
         self.allChecked = True
         self.override = self.config.overrideCombine
         self.addToDocument = False
@@ -81,12 +80,8 @@ class panelMultipleIons(wx.Panel):
 
         self.editItemDlg = None
         self.onSelectingItem = True
-        self.docs = None
-        self.reverse = False
-        self.lastColumn = None
         self.ask_value = None
         self.flag = False  # flag to either show or hide annotation panel
-        self.useInternalParams = self.config.useInternalParamsCombine
         self.process = False
 
         self._ionPanel_peaklist = {
@@ -441,10 +436,13 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_open_peak_list, id=ID_addManyIonsCSV)
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_addManyIonsCSV,
-                                     text='Add list of ions (.csv/.txt)\tCtrl+L',
-                                     bitmap=self.icons.iconsLib['filelist_16'],
-                                     help_text='Format: min, max, charge (optional), label (optional), color (optional)'))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu,
+                id=ID_addManyIonsCSV,
+                text='Add list of ions (.csv/.txt)\tCtrl+L',
+                bitmap=self.icons.iconsLib['filelist_16'],
+                help_text='Format: min, max, charge (optional), label (optional), color (optional)'))
 #         menu.AppendSeparator()
 #         menu.AppendItem(makeMenuItem(parent=menu, id=ID_addNewOverlayDoc,
 #                                      text='Create blank COMPARISON document\tAlt+D',
@@ -495,14 +493,18 @@ class panelMultipleIons(wx.Panel):
                                                         help="Add overlay results to comparison document")
         self.addToDocument_check.Check(self.addToDocument)
         menu.AppendSeparator()
-        self.normalize1D_check = menu.AppendCheckItem(ID_ionPanel_normalize1D, "Normalize mobiligram/chromatogram dataset\tN",
-                                                      help="Normalize mobiligram/chromatogram before overlaying")
+        self.normalize1D_check = menu.AppendCheckItem(
+            ID_ionPanel_normalize1D,
+            "Normalize mobiligram/chromatogram dataset\tN",
+            help="Normalize mobiligram/chromatogram before overlaying")
         self.normalize1D_check.Check(self.normalize1D)
         menu.Append(ID_overlayMZfromList1D, "Overlay mobiligrams (selected)")
         menu.Append(ID_overlayMZfromListRT, "Overlay chromatograms (selected)")
         menu.AppendSeparator()
-        self.useProcessed_check = menu.AppendCheckItem(ID_useProcessedCombinedMenu, "Use processed data (when available)\tP",
-                                                       help="When checked, processed data is used in the overlay (2D) plots.")
+        self.useProcessed_check = menu.AppendCheckItem(
+            ID_useProcessedCombinedMenu,
+            "Use processed data (when available)\tP",
+            help="When checked, processed data is used in the overlay (2D) plots.")
         self.useProcessed_check.Check(self.config.overlay_usedProcessed)
         menu.AppendSeparator()
         self.automaticPlot_check = menu.AppendCheckItem(ID_ionPanel_automaticOverlay, "Overlay automatically",
@@ -1690,8 +1692,8 @@ class panelMultipleIons(wx.Panel):
                                         determineFontColor(color, return_rgb=True))
 
     def on_check_duplicate_colors(self, new_color):
-        """ 
-        Check whether newly assigned color is already in the table and if so, 
+        """
+        Check whether newly assigned color is already in the table and if so,
         return a different one
         """
         count = self.peaklist.GetItemCount()

@@ -1,5 +1,5 @@
 '''
-     Waters 
+     Waters
     MassLynx Python SDK
 '''
 

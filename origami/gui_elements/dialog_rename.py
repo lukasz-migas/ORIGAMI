@@ -61,7 +61,7 @@ class DialogRenameObject(Dialog):
         BOX_SIZE = 400
         oldName_label = wx.StaticText(panel, -1, "Current name:")
         self.old_name_value = wx.TextCtrl(panel, -1, "", size=(BOX_SIZE, 40),
-                                         style=wx.TE_READONLY | wx.TE_WORDWRAP)
+                                          style=wx.TE_READONLY | wx.TE_WORDWRAP)
         self.old_name_value.SetValue(self.kwargs['current_name'])
 
         newName_label = wx.StaticText(panel, -1, "Edit name:")

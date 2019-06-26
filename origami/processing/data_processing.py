@@ -34,12 +34,12 @@ import processing.peptide_annotation as pr_frag
 import unidec as unidec
 from utils.path import clean_filename
 from gui_elements.misc_dialogs import dlgAsk, dlgBox
-
-import logging
 from utils.check import check_value_order, isempty
 from utils.converters import str2num
 from utils.random import randomIntegerGenerator
 from utils.color import convertRGB255to1
+
+import logging
 logger = logging.getLogger("origami")
 
 
@@ -81,12 +81,12 @@ class data_processing():
 
     def _get_replot_data(self, data_format):
         """Quick function to retrieve plotting data without having to go into the document
-        
+
         Parameters
         ----------
         data_format: str
             type of data to be returned
-        
+
         Returns
         -------
         data: various
@@ -159,10 +159,11 @@ class data_processing():
 
     def on_smooth_1D_and_add_data(self, evt):
         self.docs = self._on_get_document()
-        if self.docs is None: return
+        if self.docs is None:
+            return
 
         sigma = dlgAsk('Spectrum smoothing using Gaussian filter. Sigma value:',
-                               defaultValue='')
+                       defaultValue='')
         if sigma == '':
             msg = "No value was provided. Action was cancelled."
             self.presenter.onThreading(None, (msg, 3), action='updateStatusbar')
@@ -176,9 +177,9 @@ class data_processing():
                 msY = pr_spectra.smooth_gaussian_1D(data=msY, sigma=str2num(sigma))
                 msY = pr_spectra.normalize_1D(inputData=msY)
                 self.docs.gotSmoothMS = True
-                self.docs.smoothMS = {'xvals':msX, 'yvals':msY, 'smoothSigma':sigma}
+                self.docs.smoothMS = {'xvals': msX, 'yvals': msY, 'smoothSigma': sigma}
                 # Plot smoothed MS
-                name_kwargs = {"document":self.docs.title, "dataset": "Mass Spectrum"}
+                name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
                 self.view.panelPlots.on_plot_MS(msX, msY, xlimits=self.docs.massSpectrum['xlimits'], **name_kwargs)
                 self.presenter.OnUpdateDocument(self.docs, 'document')
 
@@ -266,64 +267,68 @@ class data_processing():
             dataPlot.plot_remove_markers()
             dataPlot.plot_remove_patches()
             dataPlot.plot_remove_text()
-        except Exception: pass
+        except Exception:
+            pass
 
         # Chromatograms
         if self.config.fit_type in ["RT", "MS/RT"]:
             if (document.dataType in ['Type: Multifield Linear DT', 'Type: Infrared']):
                 # TO ADD: current view only, smooth
-                    # Prepare data first
-                    rtList = np.transpose([document.RT['xvals'], document.RT['yvals']])
+                # Prepare data first
+                rtList = np.transpose([document.RT['xvals'], document.RT['yvals']])
 
-                    # Detect peaks
-                    peakList, tablelist, _ = pr_utils.detect_peaks_chromatogram(
-                        rtList, self.config.fit_threshold)
-                    peak_count = len(peakList)
+                # Detect peaks
+                peakList, tablelist, _ = pr_utils.detect_peaks_chromatogram(
+                    rtList, self.config.fit_threshold)
+                peak_count = len(peakList)
 
-                    if len(peakList) > 0:
-                        self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['RT'])
-                        self.view.panelPlots.on_plot_RT(document.RT['xvals'], document.RT['yvals'], document.RT['xlabels'])
-                        # Add rectangles (if checked)
-                        if self.config.fit_highlight:
-                            self.view.panelPlots.on_add_marker(xvals=peakList[:, 0], yvals=peakList[:, 1],
-                                                               color=self.config.markerColor_1D,
-                                                               marker=self.config.markerShape_1D,
-                                                               size=self.config.markerSize_1D,
-                                                               plot='RT')
-                            # Iterate over list and add rectangles
-                            last = len(tablelist) - 1
-                            for i, rt in enumerate(tablelist):
-                                xmin = rt[0]
-                                if xmin == 1: pass
-                                else: xmin = xmin - 1
-                                width = rt[1] - xmin + 1
-                                if i == last:
-                                    width = width - 1
-                                    self.view.panelPlots.on_add_patch(xmin, ymin, width, height, color=self.config.markerColor_1D,
-                                                                      alpha=(self.config.markerTransparency_1D / 100),
-                                                                      plot="RT", repaint=True)
-                                else:
-                                    self.view.panelPlots.on_add_patch(xmin, ymin, width, height, color=self.config.markerColor_1D,
-                                                                      alpha=(self.config.markerTransparency_1D / 100),
-                                                                      plot="RT", repaint=False)
+                if len(peakList) > 0:
+                    self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['RT'])
+                    self.view.panelPlots.on_plot_RT(document.RT['xvals'], document.RT['yvals'], document.RT['xlabels'])
+                    # Add rectangles (if checked)
+                    if self.config.fit_highlight:
+                        self.view.panelPlots.on_add_marker(xvals=peakList[:, 0], yvals=peakList[:, 1],
+                                                           color=self.config.markerColor_1D,
+                                                           marker=self.config.markerShape_1D,
+                                                           size=self.config.markerSize_1D,
+                                                           plot='RT')
+                        # Iterate over list and add rectangles
+                        last = len(tablelist) - 1
+                        for i, rt in enumerate(tablelist):
+                            xmin = rt[0]
+                            if xmin == 1:
+                                pass
+                            else:
+                                xmin = xmin - 1
+                            width = rt[1] - xmin + 1
+                            if i == last:
+                                width = width - 1
+                                self.view.panelPlots.on_add_patch(
+                                    xmin, ymin, width, height, color=self.config.markerColor_1D, alpha=(
+                                        self.config.markerTransparency_1D / 100), plot="RT", repaint=True)
+                            else:
+                                self.view.panelPlots.on_add_patch(
+                                    xmin, ymin, width, height, color=self.config.markerColor_1D, alpha=(
+                                        self.config.markerTransparency_1D / 100), plot="RT", repaint=False)
 
-                            # Add items to table (if checked)
-                            if self.config.fit_addPeaks:
-                                if document.dataType == 'Type: Multifield Linear DT':
-                                    self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
-                                    for rt in tablelist:
-                                        xmin, xmax = rt[0], rt[1]
-                                        xdiff = xmax - xmin
-                                        rtTemptList.Append([xmin, xmax, xdiff, "", self.presenter.currentDoc])
-                                    # Removing duplicates
-                                    self.view.panelLinearDT.topP.onRemoveDuplicates(evt=None)
+                        # Add items to table (if checked)
+                        if self.config.fit_addPeaks:
+                            if document.dataType == 'Type: Multifield Linear DT':
+                                self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
+                                for rt in tablelist:
+                                    xmin, xmax = rt[0], rt[1]
+                                    xdiff = xmax - xmin
+                                    rtTemptList.Append([xmin, xmax, xdiff, "", self.presenter.currentDoc])
+                                # Removing duplicates
+                                self.view.panelLinearDT.topP.onRemoveDuplicates(evt=None)
 
         if self.config.fit_type in ["RT (UVPD)"]:
             height = 100000000000
             # Prepare data first
             rtList = np.transpose([document.RT['xvals'], document.RT['yvals']])
             # Detect peaks
-            peakList, tablelist, apexlist = pr_utils.detect_peaks_chromatogram(rtList, self.config.fit_threshold, add_buffer=1)
+            peakList, tablelist, apexlist = pr_utils.detect_peaks_chromatogram(
+                rtList, self.config.fit_threshold, add_buffer=1)
             peak_count = len(peakList)
 
             self.view.panelPlots.on_clear_patches("RT", True)
@@ -335,20 +340,24 @@ class data_processing():
                                                clear_first=True)
             last = len(tablelist) - 1
             for i, rt in enumerate(tablelist):
-                if i % 2: color = (1, 0, 0)
-                else: color = (0, 0, 1)
+                if i % 2:
+                    color = (1, 0, 0)
+                else:
+                    color = (0, 0, 1)
                 xmin = rt[0]
-                if xmin == 1: pass
-                else: xmin = xmin - 1
+                if xmin == 1:
+                    pass
+                else:
+                    xmin = xmin - 1
                 width = rt[1] - xmin + 1
                 if i == last:
                     width = width - 1
                     self.view.panelPlots.on_add_patch(xmin, ymin, width, height, color=color,
-#                                                       alpha=(self.config.markerTransparency_1D/100),
+                                                      #                                                       alpha=(self.config.markerTransparency_1D/100),
                                                       plot="RT", repaint=True)
                 else:
                     self.view.panelPlots.on_add_patch(xmin, ymin, width, height, color=color,
-#                                                       alpha=(self.config.markerTransparency_1D/100),
+                                                      #                                                       alpha=(self.config.markerTransparency_1D/100),
                                                       plot="RT", repaint=False)
 
         # Mass spectra
@@ -389,18 +398,22 @@ class data_processing():
                 last_peak = peak_count - 1
                 if peak_count > 0:
                     # preset peaklist with space for other parameters
-                    peakList = np.c_[peakList, np.zeros(len(peakList)), np.empty(len(peakList)), np.empty(len(peakList))]
+                    peakList = np.c_[
+                        peakList, np.zeros(
+                            len(peakList)), np.empty(
+                            len(peakList)), np.empty(
+                            len(peakList))]
 
                     self.view.panelPlots.mainBook.SetSelection(pageID)  # using shortcut
                     self.presenter.view.panelPlots.on_clear_patches(plot=markerPlot)
                     # Plotting smoothed (or not) MS
                     if document.dataType == 'Type: CALIBRANT':
-                            self.view.panelPlots.on_plot_MS_DT_calibration(msX=msX, msY=msY,
-                                                                           xlimits=document.massSpectrum['xlimits'],
-                                                                           color=self.config.lineColour_1D, plotType='MS',
-                                                                           view_range=mzRange)
+                        self.view.panelPlots.on_plot_MS_DT_calibration(msX=msX, msY=msY,
+                                                                       xlimits=document.massSpectrum['xlimits'],
+                                                                       color=self.config.lineColour_1D, plotType='MS',
+                                                                       view_range=mzRange)
                     else:
-                        name_kwargs = {"document":document.title, "dataset": "Mass Spectrum"}
+                        name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
                         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=document.massSpectrum['xlimits'],
                                                         view_range=mzRange, **name_kwargs)
                     # clear plots
@@ -433,20 +446,19 @@ class data_processing():
                             isotope_peaks_x, isotope_peaks_y = [], []
                             if narrow_count > 0:
                                 if method == 1:  # old method
-                                    highResPeaks = pr_utils.detect_peaks_spectrum(data=mzNarrow,
-                                                                                   window=self.config.fit_highRes_window,
-                                                                                   threshold=self.config.fit_highRes_threshold)
+                                    highResPeaks = pr_utils.detect_peaks_spectrum(
+                                        data=mzNarrow, window=self.config.fit_highRes_window, threshold=self.config.fit_highRes_threshold)
                                 else:
-                                    highResPeaks = pr_utils.detect_peaks_spectrum2(msXnarrow, msYnarrow,
-                                                                                   window=self.config.fit_highRes_window,
-                                                                                   threshold=self.config.fit_highRes_threshold)
+                                    highResPeaks = pr_utils.detect_peaks_spectrum2(
+                                        msXnarrow, msYnarrow, window=self.config.fit_highRes_window, threshold=self.config.fit_highRes_threshold)
                                 peakDiffs = np.diff(highResPeaks[:, 0])
                                 if len(peakDiffs) > 0:
                                     charge = int(np.round(1 / np.round(np.average(peakDiffs), 4), 0))
 
                                 try:
                                     max_index = np.where(highResPeaks[:, 1] == np.max(highResPeaks[:, 1]))
-                                    isotopic_max_val_x, isotopic_max_val_y = highResPeaks[max_index, :][0][0][0], highResPeaks[max_index, :][0][0][1]
+                                    isotopic_max_val_x, isotopic_max_val_y = highResPeaks[max_index,
+                                                                                          :][0][0][0], highResPeaks[max_index, :][0][0][1]
                                 except Exception:
                                     isotopic_max_val_x, isotopic_max_val_y = None, None
 
@@ -489,9 +501,8 @@ class data_processing():
 
                         # add labels
                         if self.config.fit_show_labels and peak_count <= self.config.fit_show_labels_max_count:
-                            self.presenter.view.panelPlots.on_plot_labels(xpos=peak[0],
-                                                                          yval=label_height / dataPlot.y_divider, label=label,
-                                                                          repaint=repaint)
+                            self.presenter.view.panelPlots.on_plot_labels(
+                                xpos=peak[0], yval=label_height / dataPlot.y_divider, label=label, repaint=repaint)
 
                         # highlight in MS
                         if self.config.fit_highlight:
@@ -629,33 +640,39 @@ class data_processing():
                             intensity = pr_utils.find_peak_maximum(mz_narrow)
                             max_index = np.where(mz_narrow[:, 1] == intensity)[0]
                             intensity = np.round(intensity, 2)
-                            try: position = mz_narrow[max_index, 0]
-                            except Exception: position = max_value - ((max_value - min_value) / 2)
-                            try: position = position[0]
-                            except Exception: pass
+                            try:
+                                position = mz_narrow[max_index, 0]
+                            except Exception:
+                                position = max_value - ((max_value - min_value) / 2)
+                            try:
+                                position = position[0]
+                            except Exception:
+                                pass
 
-                            try: charge_value = int(mz[2])
-                            except Exception: charge_value = 0
+                            try:
+                                charge_value = int(mz[2])
+                            except Exception:
+                                charge_value = 0
                             if len(mz) > 3 and mz[3] > 1:
                                 isotopic_max_val_x = mz[3]
                                 isotopic_max_val_y = mz[4]
-                                annotation_dict = {"min":min_value,
-                                                   "max":max_value,
-                                                   "charge":charge_value,
-                                                   "intensity":intensity,
-                                                   "label":"",
-                                                   "color":self.config.interactive_ms_annotations_color,
-                                                   "isotopic_x":isotopic_max_val_x,
-                                                   "isotopic_y":isotopic_max_val_y}
+                                annotation_dict = {"min": min_value,
+                                                   "max": max_value,
+                                                   "charge": charge_value,
+                                                   "intensity": intensity,
+                                                   "label": "",
+                                                   "color": self.config.interactive_ms_annotations_color,
+                                                   "isotopic_x": isotopic_max_val_x,
+                                                   "isotopic_y": isotopic_max_val_y}
                             else:
-                                annotation_dict = {"min":min_value,
-                                                   "max":max_value,
-                                                   "charge":charge_value,
-                                                   "intensity":intensity,
-                                                   "label":"",
-                                                   'isotopic_x':position,
-                                                   'isotopic_y':intensity,
-                                                   "color":self.config.interactive_ms_annotations_color}
+                                annotation_dict = {"min": min_value,
+                                                   "max": max_value,
+                                                   "charge": charge_value,
+                                                   "intensity": intensity,
+                                                   "label": "",
+                                                   'isotopic_x': position,
+                                                   'isotopic_y': intensity,
+                                                   "color": self.config.interactive_ms_annotations_color}
                             name = "{} - {}".format(min_value, max_value)
                             annotations[name] = annotation_dict
 
@@ -670,17 +687,23 @@ class data_processing():
                                 # New in 1.0.4: Added slightly assymetric envelope to the peak
                                 xmin = np.round(mz[0] - (self.config.fit_width * self.config.fit_asymmetric_ratio), 2)
                                 xmax = xmin + width
-                                try: charge = str(int(mz[2]))
-                                except Exception: charge = ""
+                                try:
+                                    charge = str(int(mz[2]))
+                                except Exception:
+                                    charge = ""
                                 intensity = np.round(mz[1] * 100, 1)
                                 if not panel.on_check_duplicate(xmin, xmax, self.presenter.currentDoc):
-                                    add_dict = {"mz_start":xmin, "mz_end":xmax, "charge":charge,
-                                                "color":self.config.customColors[randomIntegerGenerator(0, 15)],
-                                                "mz_ymax":intensity,
-                                                "colormap":self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
-                                                "alpha":self.config.overlay_defaultAlpha,
-                                                "mask":self.config.overlay_defaultMask,
-                                                "document":self.presenter.currentDoc}
+                                    add_dict = {"mz_start": xmin,
+                                                "mz_end": xmax,
+                                                "charge": charge,
+                                                "color": self.config.customColors[randomIntegerGenerator(0,
+                                                                                                         15)],
+                                                "mz_ymax": intensity,
+                                                "colormap": self.config.overlay_cmaps[randomIntegerGenerator(0,
+                                                                                                             len(self.config.overlay_cmaps) - 1)],
+                                                "alpha": self.config.overlay_defaultAlpha,
+                                                "mask": self.config.overlay_defaultMask,
+                                                "document": self.presenter.currentDoc}
                                     panel.on_add_to_table(add_dict)
 
                         elif document.dataType == 'Type: Multifield Linear DT':
@@ -712,11 +735,11 @@ class data_processing():
                             self.view.panelCCS.topP.onRemoveDuplicates(evt=None)
 
             msg = "Found {} peaks in {:.4f} seconds.".format(peak_count, ttime() - tstart)
-            self.presenter.onThreading(None, (msg, 4) , action='updateStatusbar')
+            self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
 
     def get_document_annotations(self):
         if (self.presenter.view.panelPlots.plot1.document_name is not None and
-            self.presenter.view.panelPlots.plot1.dataset_name is not None):
+                self.presenter.view.panelPlots.plot1.dataset_name is not None):
             document_title = self.presenter.view.panelPlots.plot1.document_name
             dataset_title = self.presenter.view.panelPlots.plot1.dataset_name
 
@@ -758,7 +781,7 @@ class data_processing():
 
     def downsample_array(self, xvals, zvals):
         """Downsample MS/DT array
-        
+
         Parameters
         ----------
         xvals: np.array
@@ -798,7 +821,7 @@ class data_processing():
     def on_process_MS(self, replot=False, msX=None, msY=None, return_data=False,
                       return_all=False, evt=None):
         if replot:
-            msX, msY, xlimits = self._get_replot_data('MS')
+            msX, msY, __ = self._get_replot_data('MS')
             if msX is None or msY is None:
                 return
 
@@ -808,23 +831,23 @@ class data_processing():
             self.view.panelProcessData.onSetupValues(evt=None)
 
         if self.config.ms_process_crop:
-            kwargs = {'min':self.config.ms_crop_min,
-                      'max':self.config.ms_crop_max}
+            kwargs = {'min': self.config.ms_crop_min,
+                      'max': self.config.ms_crop_max}
             msX, msY = pr_spectra.crop_1D_data(msX, msY, **kwargs)
 
         if self.config.ms_process_linearize and msX is not None:
-            kwargs = {'auto_range':self.config.ms_auto_range,
-                      'mz_min':self.config.ms_mzStart,
-                      'mz_max':self.config.ms_mzEnd,
-                      'mz_bin':self.config.ms_mzBinSize,
-                      'linearization_mode':self.config.ms_linearization_mode}
+            kwargs = {'auto_range': self.config.ms_auto_range,
+                      'mz_min': self.config.ms_mzStart,
+                      'mz_max': self.config.ms_mzEnd,
+                      'mz_bin': self.config.ms_mzBinSize,
+                      'linearization_mode': self.config.ms_linearization_mode}
             msX, msY = pr_spectra.linearize_data(msX, msY, **kwargs)
 
         if self.config.ms_process_smooth:
             # Smooth data
-            kwargs = {'sigma':self.config.ms_smooth_sigma,
-                      'polyOrder':self.config.ms_smooth_polynomial,
-                      'windowSize':self.config.ms_smooth_window}
+            kwargs = {'sigma': self.config.ms_smooth_sigma,
+                      'polyOrder': self.config.ms_smooth_polynomial,
+                      'windowSize': self.config.ms_smooth_window}
             msY = pr_spectra.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **kwargs)
 
         if self.config.ms_process_threshold:
@@ -850,18 +873,19 @@ class data_processing():
                 return msY
 
         if return_all:
-            parameters = {'smooth_mode':self.config.ms_smooth_mode,
-                          'sigma':self.config.ms_smooth_sigma,
-                          'polyOrder':self.config.ms_smooth_polynomial,
-                          'windowSize':self.config.ms_smooth_window,
-                          'threshold':self.config.ms_threshold}
+            parameters = {'smooth_mode': self.config.ms_smooth_mode,
+                          'sigma': self.config.ms_smooth_sigma,
+                          'polyOrder': self.config.ms_smooth_polynomial,
+                          'windowSize': self.config.ms_smooth_window,
+                          'threshold': self.config.ms_threshold}
             return msX, msY, parameters
 
     def on_process_MS_and_add_data(self, document=None, dataset=None):
 
         if document is None or dataset is None:
             self.docs = self._on_get_document()
-            if self.docs is None: return
+            if self.docs is None:
+                return
         else:
             self.docs = self.presenter.documentsDict[document]
 
@@ -882,12 +906,12 @@ class data_processing():
         footnote = data.get('footnote', "")
         msX, msY, params = self.on_process_MS(msX=msX, msY=msY, return_all=True)
         xlimits = [np.min(msX), np.max(msX)]
-        ms_data = {'xvals':msX, 'yvals':msY,
-                   'xlabels':'m/z (Da)',
-                   'parameters':params,
-                   'annotations':annotations, 'title':title,
-                   'header':header, 'footnote':footnote,
-                   'xlimits':xlimits}
+        ms_data = {'xvals': msX, 'yvals': msY,
+                   'xlabels': 'm/z (Da)',
+                   'parameters': params,
+                   'annotations': annotations, 'title': title,
+                   'header': header, 'footnote': footnote,
+                   'xlimits': xlimits}
 
         # add data to dictionary
         if dataset == 'Mass Spectrum':
@@ -902,7 +926,7 @@ class data_processing():
             self.docs.multipleMassSpectrum[new_dataset] = ms_data
 
         # Plot processed MS
-        name_kwargs = {"document":self.docs.title, "dataset": new_dataset}
+        name_kwargs = {"document": self.docs.title, "dataset": new_dataset}
         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
         self.presenter.OnUpdateDocument(self.docs, 'document')
 
@@ -971,17 +995,18 @@ class data_processing():
             return zvals
 
         if return_all:
-            parameters = {'smooth_mode':self.config.plot2D_smooth_mode,
-                          'sigma':self.config.plot2D_smooth_sigma,
-                          'polyOrder':self.config.plot2D_smooth_polynomial,
-                          'windowSize':self.config.plot2D_smooth_window,
-                          'threshold':self.config.plot2D_threshold}
+            parameters = {'smooth_mode': self.config.plot2D_smooth_mode,
+                          'sigma': self.config.plot2D_smooth_sigma,
+                          'polyOrder': self.config.plot2D_smooth_polynomial,
+                          'windowSize': self.config.plot2D_smooth_window,
+                          'threshold': self.config.plot2D_threshold}
             return zvals, parameters
 
     def on_process_2D_and_add_data(self, document=None, dataset=None, ionName=None):
         if document is None or dataset is None:
             self.docs = self._on_get_document()
-            if self.docs is None: return
+            if self.docs is None:
+                return
         else:
             self.docs = self.presenter.documentsDict[document]
 
@@ -1059,7 +1084,8 @@ class data_processing():
             try:
                 self.view.panelPlots.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals,
                                                 xlabel=xlabel, ylabel=ylabel, zlabel='Intensity')
-            except Exception: pass
+            except Exception:
+                pass
             # change to correct plot window
             if not self.config.waterfall:
                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
@@ -1075,8 +1101,8 @@ class data_processing():
         tstart = ttime()
         id_num = kwargs.get("id_num", 0)
         if len(label_format) == 0:
-            label_format = {'fragment_name':True, 'peptide_seq':False,
-                            'charge':True, 'delta_mz': False}
+            label_format = {'fragment_name': True, 'peptide_seq': False,
+                            'charge': True, 'delta_mz': False}
 
         self.frag_generator.set_label_format(label_format)
 #         self.frag_generator = pr_frag.PeptideAnnotation(**{"label_format":label_format}) # refresh, temprorary!
@@ -1103,7 +1129,8 @@ class data_processing():
             label_format=label_format, max_charge=z, modification_dict=modifications)
 
         # generate fragment lists
-        fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list, frag_full_name_list = self.frag_generator.get_fragment_mass_list(fragments)
+        fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list, frag_full_name_list = self.frag_generator.get_fragment_mass_list(
+            fragments)
         xvals, yvals = spectrum_dict['xvals'], spectrum_dict['yvals']
 
         # match fragments to peaks in the spectrum
@@ -1146,7 +1173,7 @@ class data_processing():
     def on_run_unidec(self, dataset, task):
 
         self.unidec_dataset = dataset
-        data, document, document_title = self.get_unidec_data(data_type="document_all")
+        data, __, document_title = self.get_unidec_data(data_type="document_all")
 
         # retrieve unidec object
         if "temporary_unidec" in data and task not in ['auto_unidec']:
@@ -1159,7 +1186,7 @@ class data_processing():
             msX = data['xvals']
             msY = data['yvals']
 
-            check_kwargs = {'mz_min':msX[0], 'mz_max':msX[-1]}
+            check_kwargs = {'mz_min': msX[0], 'mz_max': msX[-1]}
             self._check_unidec_input(**check_kwargs)
 
         if task not in ['auto_unidec']:
@@ -1171,7 +1198,8 @@ class data_processing():
             self.config.unidec_engine.config.mzbins = self.config.unidec_mzBinSize
             self.config.unidec_engine.config.smooth = self.config.unidec_gaussianFilter
             self.config.unidec_engine.config.accvol = self.config.unidec_accelerationV
-            self.config.unidec_engine.config.linflag = self.config.unidec_linearization_choices[self.config.unidec_linearization]
+            self.config.unidec_engine.config.linflag = self.config.unidec_linearization_choices[
+                self.config.unidec_linearization]
             self.config.unidec_engine.config.cmap = self.config.currentCmap
 
             # unidec engine
@@ -1184,14 +1212,15 @@ class data_processing():
             self.config.unidec_engine.config.psfun = self.config.unidec_peakFunction_choices[self.config.unidec_peakFunction]
 
             # peak finding
-            self.config.unidec_engine.config.peaknorm = self.config.unidec_peakNormalization_choices[self.config.unidec_peakNormalization]
+            self.config.unidec_engine.config.peaknorm = self.config.unidec_peakNormalization_choices[
+                self.config.unidec_peakNormalization]
             self.config.unidec_engine.config.peakwindow = self.config.unidec_peakDetectionWidth
             self.config.unidec_engine.config.peakthresh = self.config.unidec_peakDetectionThreshold
             self.config.unidec_engine.config.separation = self.config.unidec_lineSeparation
 
-         # load data
+        # load data
         if task in ['auto_unidec', 'load_data_unidec', 'run_all_unidec']:
-            self.presenter.onThreading(None, ("UniDec: Loading data...", 4, 1) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Loading data...", 4, 1), action='updateStatusbar')
 #             # reshape spectra
 #             msX = data['xvals']
 #             msY = data['yvals']
@@ -1199,38 +1228,38 @@ class data_processing():
             file_name = "".join([document_title, "_", dataset])
             file_name = clean_filename(file_name)
             folder = self.config.temporary_data
-            kwargs = {'clean':True}
+            kwargs = {'clean': True}
             self.config.unidec_engine.open_file(file_name=file_name,
                                                 file_directory=folder,
                                                 data_in=np.transpose([msX, msY]),
                                                 **kwargs)
 
-            self.presenter.onThreading(None, ("UniDec: Finished loading data...", 4, 1) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Finished loading data...", 4, 1), action='updateStatusbar')
         # pre-process
         if task in ['run_all_unidec', 'preprocess_unidec']:
-            self.presenter.onThreading(None, ("UniDec: Pre-processing...", 4, 3) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Pre-processing...", 4, 3), action='updateStatusbar')
             # preprocess
             try:
                 self.config.unidec_engine.process_data()
             except IndexError:
                 self.on_run_unidec(dataset, task="load_data_unidec")
                 self.presenter.onThreading(None,
-                                           ("No data was loaded. Trying to load it automatically", 4) ,
+                                           ("No data was loaded. Trying to load it automatically", 4),
                                            action='updateStatusbar')
                 return
             except ValueError:
                 msg = "Interpolation range is above the 'true' data range." + \
                       "Consider reducing interpolation range to cover the span of the mass spectrum"
-                self.presenter.onThreading(None, (msg, 4) , action='updateStatusbar')
+                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
                 dlgBox(exceptionTitle="Error",
                        exceptionMsg=msg,
                        type="Error")
                 return
-            self.presenter.onThreading(None, ("UniDec: Finished pre-processing...", 4, 2) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Finished pre-processing...", 4, 2), action='updateStatusbar')
 
         # deconvolute
         if task in ['run_all_unidec', 'run_unidec']:
-            self.presenter.onThreading(None, ("UniDec: Deconvoluting...", 4, 5) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Deconvoluting...", 4, 5), action='updateStatusbar')
 
             if self.config.unidec_peakWidth_auto:
                 self.config.unidec_engine.get_auto_peak_width()
@@ -1246,20 +1275,21 @@ class data_processing():
                        type="Error")
                 return
             except ValueError:
-                self.presenter.onThreading(None, ("Could not perform task", 4) , action='updateStatusbar')
+                self.presenter.onThreading(None, ("Could not perform task", 4), action='updateStatusbar')
                 return
-            self.presenter.onThreading(None, ("UniDec: Finished deconvoluting...", 4, 2) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Finished deconvoluting...", 4, 2), action='updateStatusbar')
 
         # find peaks
         if task in ['run_all_unidec', 'pick_peaks_unidec']:
-            self.presenter.onThreading(None, ("UniDec: Picking peaks...", 4, 5) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Picking peaks...", 4, 5), action='updateStatusbar')
 
-            try: self.config.unidec_engine.pick_peaks()
+            try:
+                self.config.unidec_engine.pick_peaks()
             except (ValueError, ZeroDivisionError) as e:
                 print(e)
                 msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'. " + \
                       "This value should be >= 'Sample frequency (Da)'"
-                self.presenter.onThreading(None, (msg, 4) , action='updateStatusbar')
+                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
                 dlgBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
                 return
             except IndexError as e:
@@ -1269,22 +1299,24 @@ class data_processing():
                        type="Error")
                 return
 
-            try: self.config.unidec_engine.convolve_peaks()
+            try:
+                self.config.unidec_engine.convolve_peaks()
             except OverflowError:
                 msg = "Too many peaks! Try again with larger 'Peak detection threshold' or 'Peak detection window (Da).'"
-                self.presenter.onThreading(None, (msg, 4) , action='updateStatusbar')
+                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
                 dlgBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
                 return
-            self.presenter.onThreading(None, ("UniDec: Finished picking peaks...", 4, 2) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Finished picking peaks...", 4, 2), action='updateStatusbar')
 
         # isolate peak
         if task in ['isolate_mw_unidec']:
-            self.presenter.onThreading(None, ("UniDec: Isolating MW...", 4, 1) , action='updateStatusbar')
-            try: self.config.unidec_engine.pick_peaks()
+            self.presenter.onThreading(None, ("UniDec: Isolating MW...", 4, 1), action='updateStatusbar')
+            try:
+                self.config.unidec_engine.pick_peaks()
             except (ValueError, ZeroDivisionError):
                 msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'" + \
                       "to be same or larger than 'Sample frequency (Da)'."
-                self.presenter.onThreading(None, (msg, 4) , action='updateStatusbar')
+                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
                 dlgBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
                 return
             except IndexError:
@@ -1293,25 +1325,26 @@ class data_processing():
                        type="Error")
                 return
 
-            self.presenter.onThreading(None, ("UniDec: Finished isolating a single MW...", 4, 5) , action='updateStatusbar')
+            self.presenter.onThreading(
+                None, ("UniDec: Finished isolating a single MW...", 4, 5), action='updateStatusbar')
 
         if task in ['auto_unidec']:
-            self.presenter.onThreading(None, ("UniDec: Autorun...", 4, 1) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Autorun...", 4, 1), action='updateStatusbar')
             self.config.unidec_engine.autorun()
             self.config.unidec_engine.convolve_peaks()
-            self.presenter.onThreading(None, ("UniDec: Finished autorun...", 4, 2) , action='updateStatusbar')
+            self.presenter.onThreading(None, ("UniDec: Finished autorun...", 4, 2), action='updateStatusbar')
 
         # add data to document
         self.on_add_unidec(task, dataset, document_title=document_title)
 
     def on_add_unidec(self, task, dataset, document_title=None):
 
-#         # export current MS to file
-#         if 'MS' in self.document:
-#             document_title = self.document['MS']
-#         else:
-#             document = self._on_get_document()
-#             document_title = document.title
+        #         # export current MS to file
+        #         if 'MS' in self.document:
+        #             document_title = self.document['MS']
+        #         else:
+        #             document = self._on_get_document()
+        #             document_title = document.title
 
         try:
             document = self.presenter.documentsDict[document_title]
@@ -1340,34 +1373,34 @@ class data_processing():
             data['unidec'] = {}
 
         if task in ['auto_unidec', 'run_all_unidec', 'preprocess_unidec']:
-            raw_data = {'xvals':self.config.unidec_engine.data.data2[:, 0],
-                        'yvals':self.config.unidec_engine.data.data2[:, 1],
-                        'color':[0, 0, 0], 'label':"Data", 'xlabels':"m/z",
-                        'ylabels':"Intensity"}
+            raw_data = {'xvals': self.config.unidec_engine.data.data2[:, 0],
+                        'yvals': self.config.unidec_engine.data.data2[:, 1],
+                        'color': [0, 0, 0], 'label': "Data", 'xlabels': "m/z",
+                        'ylabels': "Intensity"}
             # add data
             data['unidec']['Processed'] = raw_data
 
         if task in ['auto_unidec', 'run_all_unidec', "run_unidec"]:
-            fit_data = {'xvals':[self.config.unidec_engine.data.data2[:, 0],
-                                 self.config.unidec_engine.data.data2[:, 0]],
-                        'yvals':[self.config.unidec_engine.data.data2[:, 1],
-                                 self.config.unidec_engine.data.fitdat],
-                        'colors':[[0, 0, 0], [1, 0, 0]], 'labels':['Data', 'Fit Data'],
-                        'xlabel':"m/z", 'ylabel':"Intensity",
-                        'xlimits':[np.min(self.config.unidec_engine.data.data2[:, 0]),
-                                   np.max(self.config.unidec_engine.data.data2[:, 0])]}
-            mw_distribution_data = {'xvals':self.config.unidec_engine.data.massdat[:, 0],
-                                    'yvals':self.config.unidec_engine.data.massdat[:, 1],
-                                    'color':[0, 0, 0], 'label':"Data", 'xlabels':"Mass (Da)",
-                                    'ylabels':"Intensity"}
-            mz_grid_data = {'grid':self.config.unidec_engine.data.mzgrid,
-                            'xlabels':" m/z (Da)", 'ylabels':"Charge",
-                            'cmap':self.config.unidec_engine.config.cmap}
-            mw_v_z_data = {'xvals':self.config.unidec_engine.data.massdat[:, 0],
-                           'yvals':self.config.unidec_engine.data.ztab,
-                           'zvals':self.config.unidec_engine.data.massgrid,
-                           'xlabels':"Mass (Da)", 'ylabels':"Charge",
-                           'cmap':self.config.unidec_engine.config.cmap}
+            fit_data = {'xvals': [self.config.unidec_engine.data.data2[:, 0],
+                                  self.config.unidec_engine.data.data2[:, 0]],
+                        'yvals': [self.config.unidec_engine.data.data2[:, 1],
+                                  self.config.unidec_engine.data.fitdat],
+                        'colors': [[0, 0, 0], [1, 0, 0]], 'labels': ['Data', 'Fit Data'],
+                        'xlabel': "m/z", 'ylabel': "Intensity",
+                        'xlimits': [np.min(self.config.unidec_engine.data.data2[:, 0]),
+                                    np.max(self.config.unidec_engine.data.data2[:, 0])]}
+            mw_distribution_data = {'xvals': self.config.unidec_engine.data.massdat[:, 0],
+                                    'yvals': self.config.unidec_engine.data.massdat[:, 1],
+                                    'color': [0, 0, 0], 'label': "Data", 'xlabels': "Mass (Da)",
+                                    'ylabels': "Intensity"}
+            mz_grid_data = {'grid': self.config.unidec_engine.data.mzgrid,
+                            'xlabels': " m/z (Da)", 'ylabels': "Charge",
+                            'cmap': self.config.unidec_engine.config.cmap}
+            mw_v_z_data = {'xvals': self.config.unidec_engine.data.massdat[:, 0],
+                           'yvals': self.config.unidec_engine.data.ztab,
+                           'zvals': self.config.unidec_engine.data.massgrid,
+                           'xlabels': "Mass (Da)", 'ylabels': "Charge",
+                           'cmap': self.config.unidec_engine.config.cmap}
             # add data
             data['unidec']['Fitted'] = fit_data
             data['unidec']['MW distribution'] = mw_distribution_data
@@ -1434,13 +1467,13 @@ class data_processing():
                         legend_text.append([color, "MW: {:.2f}".format(p.mass)])
 #                         self._calculate_peak_widths(charges, p.mass, self.config.unidec_engine.config.mzsig, adductIon)
 
-                        individual_dict["MW: {:.2f}".format(p.mass)] = {'scatter_xvals':np.array(list1),
-                                                                        'scatter_yvals':np.array(list2),
-                                                                        'marker':p.marker,
-                                                                        'color':color,
-                                                                        'label':"MW: {:.2f}".format(p.mass),
-                                                                        'line_xvals':self.config.unidec_engine.data.data2[:, 0],
-                                                                        'line_yvals':np.array(p.stickdat) / stickmax - (num + 1) * self.config.unidec_engine.config.separation
+                        individual_dict["MW: {:.2f}".format(p.mass)] = {'scatter_xvals': np.array(list1),
+                                                                        'scatter_yvals': np.array(list2),
+                                                                        'marker': p.marker,
+                                                                        'color': color,
+                                                                        'label': "MW: {:.2f}".format(p.mass),
+                                                                        'line_xvals': self.config.unidec_engine.data.data2[:, 0],
+                                                                        'line_yvals': np.array(p.stickdat) / stickmax - (num + 1) * self.config.unidec_engine.config.separation
                                                                         }
                         num += 1
 
@@ -1482,13 +1515,13 @@ class data_processing():
                         legend.append("MW: {:.2f}".format(p.mass))
                         num += 1
                     xvals = list(range(0, num))
-                    barchart_dict = {'xvals':xvals,
-                                     'yvals':yvals,
-                                     'labels':labels,
-                                     'colors':colors,
-                                     'legend':legend,
-                                     'legend_text':legend_text,
-                                     'markers':markers}
+                    barchart_dict = {'xvals': xvals,
+                                     'yvals': yvals,
+                                     'labels': labels,
+                                     'colors': colors,
+                                     'legend': legend,
+                                     'legend_text': legend_text,
+                                     'markers': markers}
 #                 for k, v in vars(p).items():
 #                   print k, v
                 return barchart_dict
@@ -1559,7 +1592,8 @@ class data_processing():
         narrow_data = pr_utils.get_narrow_data_range(data=data, mzRange=(xmin, xmax))
         if len(narrow_data) > 0:
             peak_max = np.round(pr_utils.find_peak_maximum(narrow_data), 4)
-        else: peak_max = 1
+        else:
+            peak_max = 1
 
         return peak_max
 
@@ -1612,7 +1646,7 @@ class data_processing():
                     "origami_exponentialPercentage": self.config.origami_exponentialPercentage,
                     "origami_exponentialIncrement": self.config.origami_exponentialIncrement,
                     "origami_cv_spv_list": []
-                    }
+                }
 
             # unpack settings
             method = origami_settings["origami_acquisition"]
@@ -1656,7 +1690,7 @@ class data_processing():
                 continue
 
             # Add x-axis and y-axis labels
-            if  method != 'User-defined':
+            if method != 'User-defined':
                 xlabels = np.arange(self.config.origami_startVoltage,
                                     (self.config.origami_endVoltage + self.config.origami_stepVoltage),
                                     self.config.origami_stepVoltage)
@@ -1776,7 +1810,7 @@ class data_processing():
             mz_max=mz_max,
             peak_width_modifier=self.config.peak_find_peak_width_modifier,
             verbose=self.config.peak_find_verbose
-            )
+        )
 
         if kwargs.get("return_data", False):
             return found_peaks
@@ -1887,4 +1921,3 @@ class data_processing():
             mz_y = pr_spectra.smooth_gaussian_1D(mz_y, self.config.fit_smooth_sigma)
 
         return mz_y
-

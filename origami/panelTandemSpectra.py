@@ -258,9 +258,10 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def on_delete_all_annotations(self, evt):
 
-        dlg = dlgBox(exceptionTitle='Are you sure?',
-                     exceptionMsg="Are you sure you want to remove all annotations from the document? This action is irreversible.",
-                     type="Question")
+        dlg = dlgBox(
+            exceptionTitle='Are you sure?',
+            exceptionMsg="Are you sure you want to remove all annotations from the document? This action is irreversible.",
+            type="Question")
         if dlg == wx.ID_NO:
             self._update_status_('Operation was cancelled.')
             return
@@ -1005,7 +1006,7 @@ class panelTandemSpectra(wx.MiniFrame):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse :
+            if self.reverse:
                 self.reverse = False
             else:
                 self.reverse = True
@@ -1060,7 +1061,7 @@ class panelTandemSpectra(wx.MiniFrame):
         if self.selected_lastColumn is None:
             self.selected_lastColumn = column
         elif self.selected_lastColumn == column:
-            if self.selected_reverse :
+            if self.selected_reverse:
                 self.selected_reverse = False
             else:
                 self.selected_reverse = True
@@ -1136,9 +1137,18 @@ class panelTandemSpectra(wx.MiniFrame):
             return scanID, MSlevel, precursor_mz, precursor_charge, n_peaks, peptide, ptm, title
 
         if return_row:
-            return ["", information['scanID'], information['id_num'] + 1, information['MSlevel'], information['precursor_mz'],
-                    information['precursor_charge'], information['n_peaks'], "0", information['peptide'],
-                    information['PTM'], information['title']]
+            return [
+                "",
+                information['scanID'],
+                information['id_num'] + 1,
+                information['MSlevel'],
+                information['precursor_mz'],
+                information['precursor_charge'],
+                information['n_peaks'],
+                "0",
+                information['peptide'],
+                information['PTM'],
+                information['title']]
 
         return information
 
@@ -1173,15 +1183,37 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def get_item_info_fragments(self, itemID, return_list=False):
         # get item information
-        information = {'measured_mz': str2num(self.fraglist.GetItem(itemID, self._frag_columns['measured m/z']).GetText()),
-                       'calculated_mz': str2num(self.fraglist.GetItem(itemID, self._frag_columns['calculated m/z']).GetText()),
-                       'intensity': str2num(self.fraglist.GetItem(itemID, self._frag_columns['intensity']).GetText()),
-                       'delta_mz': str2num(self.fraglist.GetItem(itemID, self._frag_columns['delta']).GetText()),
-                       'charge': str2int(self.fraglist.GetItem(itemID, self._frag_columns['charge']).GetText()),
-                       'label': self.fraglist.GetItem(itemID, self._frag_columns['label']).GetText(),
-                       'full_label': self.fraglist.GetItem(itemID, self._frag_columns['full_label']).GetText(),
-                       'peptide': self.fraglist.GetItem(itemID, self._frag_columns['peptide']).GetText(),
-                       }
+        information = {
+            'measured_mz': str2num(
+                self.fraglist.GetItem(
+                    itemID,
+                    self._frag_columns['measured m/z']).GetText()),
+            'calculated_mz': str2num(
+                self.fraglist.GetItem(
+                    itemID,
+                    self._frag_columns['calculated m/z']).GetText()),
+            'intensity': str2num(
+                self.fraglist.GetItem(
+                    itemID,
+                    self._frag_columns['intensity']).GetText()),
+            'delta_mz': str2num(
+                self.fraglist.GetItem(
+                    itemID,
+                    self._frag_columns['delta']).GetText()),
+            'charge': str2int(
+                self.fraglist.GetItem(
+                    itemID,
+                    self._frag_columns['charge']).GetText()),
+            'label': self.fraglist.GetItem(
+                itemID,
+                self._frag_columns['label']).GetText(),
+            'full_label': self.fraglist.GetItem(
+                itemID,
+                self._frag_columns['full_label']).GetText(),
+            'peptide': self.fraglist.GetItem(
+                itemID,
+                self._frag_columns['peptide']).GetText(),
+        }
         if return_list:
             measured_mz = information['measured_mz']
             calculated_mz = information['calculated_mz']
@@ -1626,7 +1658,7 @@ class panelTandemSpectra(wx.MiniFrame):
         if self.frag_lastColumn is None:
             self.frag_lastColumn = column
         elif self.frag_lastColumn == column:
-            if self.frag_reverse :
+            if self.frag_reverse:
                 self.frag_reverse = False
             else:
                 self.frag_reverse = True

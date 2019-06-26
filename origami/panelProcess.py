@@ -304,8 +304,8 @@ class panelProcessData(wx.MiniFrame):
         self.unidec_accelerationV_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_linearization_label = wx.StaticText(panel, wx.ID_ANY, "Linearization mode:")
-        self.unidec_linearization_choice = wx.Choice(panel, -1, choices=list(self.config.unidec_linearization_choices.keys()),
-                                                     size=(-1, -1))
+        self.unidec_linearization_choice = wx.Choice(
+            panel, -1, choices=list(self.config.unidec_linearization_choices.keys()), size=(-1, -1))
         self.unidec_linearization_choice.SetStringSelection(self.config.unidec_linearization)
         self.unidec_linearization_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
@@ -452,8 +452,8 @@ class panelProcessData(wx.MiniFrame):
         self.unidec_peakThreshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_peak_normalization_label = wx.StaticText(panel, wx.ID_ANY, "Peak normalization:")
-        self.unidec_peakNormalization_choice = wx.Choice(panel, -1, choices=list(self.config.unidec_peakNormalization_choices.keys()),
-                                                         size=(-1, -1))
+        self.unidec_peakNormalization_choice = wx.Choice(
+            panel, -1, choices=list(self.config.unidec_peakNormalization_choices.keys()), size=(-1, -1))
         self.unidec_peakNormalization_choice.SetStringSelection(self.config.unidec_peakNormalization)
         self.unidec_peakNormalization_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
@@ -1627,9 +1627,8 @@ class panelProcessData(wx.MiniFrame):
 
             if plot in ["all", "m/z with isolated species"]:
                 try:
-                    self.presenter.view.panelPlots.on_plot_unidec_individualPeaks(unidec_eng_data=None,
-                                                                                  replot=data['m/z with isolated species'],
-                                                                                  **kwargs)
+                    self.presenter.view.panelPlots.on_plot_unidec_individualPeaks(
+                        unidec_eng_data=None, replot=data['m/z with isolated species'], **kwargs)
                     try:
                         self.presenter.view.panelPlots.on_plot_unidec_MW_add_markers(data['m/z with isolated species'],
                                                                                      data['MW distribution'],
@@ -1674,9 +1673,8 @@ class panelProcessData(wx.MiniFrame):
                 selection = self.unidec_weightList_choice.GetStringSelection().split()[1]
                 adductIon = self.unidec_adductMW_choice.GetStringSelection()
 
-                peakpos, charges, __ = self._calculate_charge_positions(charges, selection, data['Processed']['xvals'],
-                                                                        adductIon,
-                                                                        remove_below=self.config.unidec_charges_label_charges)
+                peakpos, charges, __ = self._calculate_charge_positions(
+                    charges, selection, data['Processed']['xvals'], adductIon, remove_below=self.config.unidec_charges_label_charges)
                 self.presenter.view.panelPlots.on_plot_charge_states(peakpos, charges, **kwargs)
 
     def onAddToAnnotations(self, evt):
@@ -1792,15 +1790,15 @@ class panelProcessData(wx.MiniFrame):
                 pass
 
     def on_toggle_controls(self, evt):
-#         enableDisableList = [self.fit_show_labels_int_check, self.fit_show_labels_mz_check,
-#                              self.fit_max_labels]
-#
-#         if self.fit_show_labels_check.GetValue():
-#             for item in enableDisableList:
-#                 item.Enable()
-#         else:
-#             for item in enableDisableList:
-#                 item.Disable()
+        #         enableDisableList = [self.fit_show_labels_int_check, self.fit_show_labels_mz_check,
+        #                              self.fit_max_labels]
+        #
+        #         if self.fit_show_labels_check.GetValue():
+        #             for item in enableDisableList:
+        #                 item.Enable()
+        #         else:
+        #             for item in enableDisableList:
+        #                 item.Disable()
 
         if self.bin_autoRange_check.GetValue():
             self.bin_mzStart_value.Disable()
@@ -2396,7 +2394,7 @@ class panelProcessData(wx.MiniFrame):
                                     adductIon="H+", remove_below=0.01):
 
         _adducts = {'H+': 1.007276467, 'Na+': 22.989218, 'K+': 38.963158, 'NH4+': 18.033823,
-                    'H-':-1.007276, 'Cl-': 34.969402}
+                    'H-': -1.007276, 'Cl-': 34.969402}
 
         # np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(self.config.unidec_engine.data.data2[:, 0])
         min_mz, max_mz = np.min(msX), np.max(msX)
@@ -2415,7 +2413,7 @@ class panelProcessData(wx.MiniFrame):
 
     def _calculate_peak_widths(self, chargeList, selectedMW, peakWidth, adductIon="H+"):
         _adducts = {'H+': 1.007276467, 'Na+': 22.989218, 'K+': 38.963158, 'NH4+': 18.033823,
-                    'H-':-1.007276, 'Cl-': 34.969402}
+                    'H-': -1.007276, 'Cl-': 34.969402}
         min_mz, max_mz = np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(
             self.config.unidec_engine.data.data2[:, 0])
         charges = np.array(list(map(int, np.arange(chargeList[0, 0], chargeList[-1, 0] + 1))))
@@ -2446,7 +2444,7 @@ class panelProcessData(wx.MiniFrame):
         """
         Update panel with new values if they were changed elsewhere in the program.
         You can selectively update ALL fields (i.e. if reloading configuration file) or
-        single set of fields. 
+        single set of fields.
         ---
         @param update_what (str): select what you would like to update
         """

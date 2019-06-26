@@ -86,9 +86,9 @@ class MZIdentReader():
             else:
                 notfound += 1
 
-        msg = "Found {}/{} | Not found {}/{}. There are {} unassigned spectra".format(found, found+notfound,
-                                                                                      notfound, found+notfound,
-                                                                                      len(peaklist)-found)
+        msg = "Found {}/{} | Not found {}/{}. There are {} unassigned spectra".format(found, found + notfound,
+                                                                                      notfound, found + notfound,
+                                                                                      len(peaklist) - found)
         print(msg)
         return peaklist
 

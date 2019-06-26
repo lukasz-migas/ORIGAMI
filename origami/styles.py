@@ -368,10 +368,9 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
     def on_remove_duplicates(self):
 
         # get list data
-        tempData = self._get_list_data()
+        tempData = sorted(self._get_list_data())
 
         # remove duplicates
-        tempData.sort()
         tempData = list(k for k, _ in itertools.groupby(tempData))
 
         # clear table
@@ -566,8 +565,8 @@ class validator(wx.PyValidator):
         return True
 
     def OnChar(self, evt):
-#         ctrl = self.GetWindow()
-#         value = ctrl.GetValue()
+        #         ctrl = self.GetWindow()
+        #         value = ctrl.GetValue()
         key = evt.GetKeyCode()
 
         # define navigation keys

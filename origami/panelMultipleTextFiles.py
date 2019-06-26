@@ -1163,8 +1163,8 @@ class panelMultipleTextFiles (wx.Panel):
         self.presenter.on_overlay_2D(source="text")
 
     def on_check_duplicate_colors(self, new_color):
-        """ 
-        Check whether newly assigned color is already in the table and if so, 
+        """
+        Check whether newly assigned color is already in the table and if so,
         return a different one
         """
         count = self.peaklist.GetItemCount()

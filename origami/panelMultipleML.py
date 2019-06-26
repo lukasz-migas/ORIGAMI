@@ -206,7 +206,7 @@ class panelMML(wx.Panel):
 
         tooltip_text = \
             """
-        List of files and their respective energy values. This panel is relatively universal and can be used for 
+        List of files and their respective energy values. This panel is relatively universal and can be used for
         aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.
         """
 
@@ -331,8 +331,10 @@ class panelMML(wx.Panel):
                                                         help="Add overlay results to comparison document")
         self.addToDocument_check.Check(self.addToDocument)
         menu.AppendSeparator()
-        self.preProcess_check = menu.AppendCheckItem(ID_mmlPanel_preprocess, "Pre-process mass spectra",
-                                                     help="Pre-process MS before generating waterfall plot (i.e. linearization, normalisation, smoothing, etc")
+        self.preProcess_check = menu.AppendCheckItem(
+            ID_mmlPanel_preprocess,
+            "Pre-process mass spectra",
+            help="Pre-process MS before generating waterfall plot (i.e. linearization, normalisation, smoothing, etc")
         self.preProcess_check.Check(self.preprocessMS)
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_overlayWaterfall,
                                      text='Overlay raw mass spectra',
@@ -757,8 +759,8 @@ class panelMML(wx.Panel):
         self.presenter.onAddBlankDocument(evt=None, document_type='manual')
 
     def on_check_duplicate_colors(self, new_color, document_name):
-        """ 
-        Check whether newly assigned color is already in the table and if so, 
+        """
+        Check whether newly assigned color is already in the table and if so,
         return a different one
         """
         count = self.peaklist.GetItemCount()

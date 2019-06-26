@@ -1,4 +1,4 @@
-''' Waters 
+''' Waters
     MassLynx Python SDK
 '''
 from readers.waters.MassLynxRawReader import MassLynxRawReader, MassLynxBaseType

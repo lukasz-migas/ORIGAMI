@@ -107,27 +107,27 @@ class panelModifyIonSettings(wx.MiniFrame):
 
         charge_label = wx.StaticText(panel, wx.ID_ANY, "Charge:")
         self.origami_charge_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-                                          validator=validator('intPos'))
+                                                validator=validator('intPos'))
         self.origami_charge_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         min_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Min threshold:")
         self.origami_min_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value="1", min=0.0, max=1.0,
-                                            initial=1.0, inc=0.05, size=(60, -1))
+                                                             value="1", min=0.0, max=1.0,
+                                                             initial=1.0, inc=0.05, size=(60, -1))
         self.origami_min_threshold_value.SetValue(self.itemInfo['min_threshold'])
         self.origami_min_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         max_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Max threshold:")
         self.origami_max_threshold_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value="1", min=0.0, max=1.0,
-                                            initial=1.0, inc=0.05, size=(60, -1))
+                                                             value="1", min=0.0, max=1.0,
+                                                             initial=1.0, inc=0.05, size=(60, -1))
         self.origami_max_threshold_value.SetValue(self.itemInfo['max_threshold'])
         self.origami_max_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.origami_colormap_value = wx.Choice(panel, -1,
-                                               choices=self.config.cmaps2,
-                                               size=(-1, -1))
+                                                choices=self.config.cmaps2,
+                                                size=(-1, -1))
         self.origami_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         self.origami_restrictColormap_value = makeCheckbox(panel, "")
@@ -135,21 +135,21 @@ class panelModifyIonSettings(wx.MiniFrame):
 
         color_label = wx.StaticText(panel, -1, "Color:")
         self.origami_color_value = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition,
-                                     wx.Size(26, 26), 0)
+                                             wx.Size(26, 26), 0)
         self.origami_color_value.SetBackgroundColour(self.itemInfo['color'])
         self.origami_color_value.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         mask_label = wx.StaticText(panel, wx.ID_ANY, "Mask:")
         self.origami_mask_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value="1", min=0.0, max=1.0,
-                                            initial=1.0, inc=0.05, size=(60, -1))
+                                                    value="1", min=0.0, max=1.0,
+                                                    initial=1.0, inc=0.05, size=(60, -1))
         self.origami_mask_value.SetValue(self.itemInfo['mask'])
         self.origami_mask_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparency:")
         self.origami_transparency_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                    value="1", min=0.0, max=1.0,
-                                                    initial=1.0, inc=0.05, size=(60, -1))
+                                                            value="1", min=0.0, max=1.0,
+                                                            initial=1.0, inc=0.05, size=(60, -1))
         self.origami_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
 #         origami_staticBox = makeStaticBox(panel, "Collision voltage parameters", size=(-1, -1), color=wx.BLACK)
@@ -286,7 +286,8 @@ class panelModifyIonSettings(wx.MiniFrame):
         n = n + 1
         grid.Add(colormap_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_colormap_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.origami_restrictColormap_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.origami_restrictColormap_value, (n, 2), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
         grid.Add(color_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_color_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
@@ -314,7 +315,8 @@ class panelModifyIonSettings(wx.MiniFrame):
 
     def on_apply(self, evt):
         self.on_check_id()
-        if self.importEvent: return
+        if self.importEvent:
+            return
         self.parent.peaklist.CheckItem(self.itemInfo['id'], self.origami_select_value.GetValue())
         self.parent.peaklist.SetStringItem(self.itemInfo['id'], self.config.peaklistColNames['charge'],
                                            self.origami_charge_value.GetValue())
@@ -445,51 +447,51 @@ class panelModifyIonSettings(wx.MiniFrame):
 
     def on_toggle_controls(self, evt):
 
-#         method = self.origami_method_value.GetStringSelection()
-#         enableList, disableList = [], []
-#         if method == 'Linear':
-#             disableList = [self.origami_boltzmannOffset_value, self.origami_exponentialIncrement_value,
-#                            self.origami_exponentialPercentage_value]
-#             enableList = [self.origami_scansPerVoltage_value,
-#                           self.origami_startScan_value, self.origami_startVoltage_value,
-#                           self.origami_endVoltage_value, self.origami_stepVoltage_value]
-#         elif method == 'Exponential':
-#             disableList = [self.origami_boltzmannOffset_value]
-#             enableList = [self.origami_scansPerVoltage_value,
-#                           self.origami_startScan_value, self.origami_startVoltage_value,
-#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-#                           self.origami_exponentialIncrement_value,
-#                           self.origami_exponentialPercentage_value]
-#         elif method == 'Boltzmann':
-#             disableList = []
-#             enableList = [self.origami_scansPerVoltage_value,
-#                           self.origami_startScan_value, self.origami_startVoltage_value,
-#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-#                           self.origami_exponentialIncrement_value,
-#                           self.origami_exponentialPercentage_value,
-#                           self.origami_boltzmannOffset_value]
-#         elif method == 'User-defined':
-#             disableList = [self.origami_scansPerVoltage_value,
-#                           self.origami_startVoltage_value,
-#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-#                           self.origami_exponentialIncrement_value,
-#                           self.origami_exponentialPercentage_value,
-#                           self.origami_boltzmannOffset_value]
-#             enableList = [self.origami_startScan_value
-#                           ]
-#         elif method == 'Manual':
-#             disableList = [self.origami_scansPerVoltage_value,
-#                            self.origami_startScan_value, self.origami_startVoltage_value,
-#                            self.origami_endVoltage_value, self.origami_stepVoltage_value,
-#                            self.origami_exponentialIncrement_value,
-#                            self.origami_exponentialPercentage_value,
-#                            self.origami_boltzmannOffset_value, ]
-#             enableList = []
-#
-#         for item in enableList:
-#             item.Enable()
-#         for item in disableList:
-#             item.Disable()
+        #         method = self.origami_method_value.GetStringSelection()
+        #         enableList, disableList = [], []
+        #         if method == 'Linear':
+        #             disableList = [self.origami_boltzmannOffset_value, self.origami_exponentialIncrement_value,
+        #                            self.origami_exponentialPercentage_value]
+        #             enableList = [self.origami_scansPerVoltage_value,
+        #                           self.origami_startScan_value, self.origami_startVoltage_value,
+        #                           self.origami_endVoltage_value, self.origami_stepVoltage_value]
+        #         elif method == 'Exponential':
+        #             disableList = [self.origami_boltzmannOffset_value]
+        #             enableList = [self.origami_scansPerVoltage_value,
+        #                           self.origami_startScan_value, self.origami_startVoltage_value,
+        #                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+        #                           self.origami_exponentialIncrement_value,
+        #                           self.origami_exponentialPercentage_value]
+        #         elif method == 'Boltzmann':
+        #             disableList = []
+        #             enableList = [self.origami_scansPerVoltage_value,
+        #                           self.origami_startScan_value, self.origami_startVoltage_value,
+        #                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+        #                           self.origami_exponentialIncrement_value,
+        #                           self.origami_exponentialPercentage_value,
+        #                           self.origami_boltzmannOffset_value]
+        #         elif method == 'User-defined':
+        #             disableList = [self.origami_scansPerVoltage_value,
+        #                           self.origami_startVoltage_value,
+        #                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
+        #                           self.origami_exponentialIncrement_value,
+        #                           self.origami_exponentialPercentage_value,
+        #                           self.origami_boltzmannOffset_value]
+        #             enableList = [self.origami_startScan_value
+        #                           ]
+        #         elif method == 'Manual':
+        #             disableList = [self.origami_scansPerVoltage_value,
+        #                            self.origami_startScan_value, self.origami_startVoltage_value,
+        #                            self.origami_endVoltage_value, self.origami_stepVoltage_value,
+        #                            self.origami_exponentialIncrement_value,
+        #                            self.origami_exponentialPercentage_value,
+        #                            self.origami_boltzmannOffset_value, ]
+        #             enableList = []
+        #
+        #         for item in enableList:
+        #             item.Enable()
+        #         for item in disableList:
+        #             item.Disable()
 
         if evt is not None:
             evt.Skip()

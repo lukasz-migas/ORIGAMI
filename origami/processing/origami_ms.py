@@ -231,9 +231,9 @@ def origami_combine_boltzmann(data, start_scan,  # combineCEscansFitted
                               expIncrement, verbose, A1=2, A2=0.07, x0=47, dx=None):
 
     # Build dictionary with parameters
-    parameters = {'start_scan':start_scan, 'startV':start_voltage,
-                  'endV':end_voltage, 'stepV':step_voltage, 'spv':scans_per_voltage,
-                  'A1':A1, 'A2':A2, 'x0':x0, 'dx':dx, 'method':'Fitted'}
+    parameters = {'start_scan': start_scan, 'startV': start_voltage,
+                  'endV': end_voltage, 'stepV': step_voltage, 'spv': scans_per_voltage,
+                  'A1': A1, 'A2': A2, 'x0': x0, 'dx': dx, 'method': 'Fitted'}
 
     # Calculate how many voltages were used
     n_voltages = ((end_voltage - start_voltage) / step_voltage) + 1

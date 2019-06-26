@@ -887,9 +887,9 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_compare_MS_window, id=ID_docTree_compareMS)
 
     def on_customise_annotation_plot_parameters(self, evt):
-        from gui_elements.dialog_customise_user_annotations import dialog_customise_user_annotations
+        from gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
 
-        dlg = dialog_customise_user_annotations(self, self.config)
+        dlg = DialogCustomiseUserAnnotations(self, config=self.config)
         dlg.ShowModal()
 
     def on_customise_unidec_plot_parameters(self, evt):

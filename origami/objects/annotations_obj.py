@@ -17,4 +17,3 @@ class Annotations:
         if annotation_name in self.names:
             del self.annotations[annotation_name]
             del self.names[self.names.index(annotation_name)]
-

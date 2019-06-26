@@ -698,7 +698,7 @@ class topPanel(wx.Panel):
         return False
 
     def OnDeleteAll(self, evt, ticked=False, selected=False, itemID=None):
-        """ 
+        """
         This function removes selected or all text documents
         """
         if evt.GetId() == ID_removeCCScalibrantFile:
@@ -867,7 +867,7 @@ class topPanel(wx.Panel):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse :
+            if self.reverse:
                 self.reverse = False
             else:
                 self.reverse = True
@@ -1160,7 +1160,7 @@ class bottomPanel(wx.Panel):
         return False
 
     def OnDeleteAll(self, evt, ticked=False, selected=False, itemID=None):
-        """ 
+        """
         This function removes selected or all text documents
         """
         if evt.GetId() == ID_removeCCScalibrantBottomPanel:
@@ -1269,7 +1269,7 @@ class bottomPanel(wx.Panel):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse :
+            if self.reverse:
                 self.reverse = False
             else:
                 self.reverse = True

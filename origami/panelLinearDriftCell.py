@@ -165,7 +165,7 @@ class topPanel(wx.Panel):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse :
+            if self.reverse:
                 self.reverse = False
             else:
                 self.reverse = True
@@ -236,15 +236,15 @@ class topPanel(wx.Panel):
                                          repaint=False)
 
     def OnDeleteAll(self, evt, ticked=False, selected=False, itemID=None):
-        """ 
-        This function removes selected or all MassLynx files from the 
+        """
+        This function removes selected or all MassLynx files from the
         combined document
         """
         currentItems = self.peaklist.GetItemCount() - 1
         if evt.GetId() == ID_removeSelectedFileDT_RT:
             while (currentItems >= 0):
                 item = self.peaklist.IsChecked(index=currentItems)
-                if item :
+                if item:
                     self.peaklist.DeleteItem(currentItems)
                     currentItems -= 1
                 else:
@@ -516,7 +516,7 @@ class bottomPanel(wx.Panel):
         if self.lastColumn is None:
             self.lastColumn = column
         elif self.lastColumn == column:
-            if self.reverse :
+            if self.reverse:
                 self.reverse = False
             else:
                 self.reverse = True
@@ -590,15 +590,15 @@ class bottomPanel(wx.Panel):
             return document
 
     def OnDeleteAll(self, evt, ticked=False, selected=False, itemID=None):
-        """ 
-        This function removes selected or all MassLynx files from the 
+        """
+        This function removes selected or all MassLynx files from the
         combined document
         """
         currentItems = self.peaklist.GetItemCount() - 1
         if evt.GetId() == ID_removeSelectedFileDT:
             while (currentItems >= 0):
                 item = self.peaklist.IsChecked(index=currentItems)
-                if item :
+                if item:
                     selectedItem = self.peaklist.GetItem(currentItems, 4).GetText()
                     mzStart = self.peaklist.GetItem(currentItems, 0).GetText()
                     mzEnd = self.peaklist.GetItem(currentItems, 1).GetText()

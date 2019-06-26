@@ -100,4 +100,3 @@ def clean_directory(dirpath):
                 os.remove(filepath)
             except Exception:
                 continue
-

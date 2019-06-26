@@ -28,6 +28,7 @@ from ids import (
 from styles import makeCheckbox, makeStaticBox, makeSuperTip
 from utils.color import convertRGB1to255, convertRGB255to1
 from utils.converters import str2num
+from gui_elements.dialog_color_picker import DialogColorPicker
 
 
 class panel_signal_comparison_viewer(wx.MiniFrame):
@@ -410,46 +411,24 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
             evt.Skip()
 
     def onUpdateMS1color(self, evt):
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.GetColourData().SetChooseFull(True)
-
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            self.config.lineColour_MS1 = convertRGB255to1(newColour)
-            dlg.Destroy()
-            # Retrieve custom colors
-            for i in range(15):
-                self.config.customColors[i] = data.GetCustomColour(i)
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, __ = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
         else:
             return
-        self.msSpectrum1_colorBtn.SetBackgroundColour(newColour)
+        self.config.lineColour_MS1 = color_1
+        self.msSpectrum1_colorBtn.SetBackgroundColour(color_255)
 
     def onUpdateMS2color(self, evt):
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.GetColourData().SetChooseFull(True)
-
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            self.config.lineColour_MS2 = convertRGB255to1(newColour)
-            dlg.Destroy()
-            # Retrieve custom colors
-            for i in range(15):
-                self.config.customColors[i] = data.GetCustomColour(i)
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, __ = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
         else:
             return
-        self.msSpectrum2_colorBtn.SetBackgroundColour(newColour)
+        self.config.lineColour_MS2 = color_1
+        self.msSpectrum2_colorBtn.SetBackgroundColour(color_255)
 
     def error_handler(self, flag=None):
         """

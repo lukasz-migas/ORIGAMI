@@ -60,7 +60,7 @@ class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
 
 
 class panelUVPD(wx.MiniFrame):
-    """ 
+    """
     """
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
@@ -161,7 +161,7 @@ class panelUVPD(wx.MiniFrame):
         self.Destroy()
 
     def about(self, evt):
-        msg = """ 
+        msg = """
         <h3>About UVPD processing</h3>
         <p>This panel permits quick extraction of data from a very specific UVPD experiment where during the experiment a UV laser is switched on and off.</p>
         <h3>How to use</h3>
@@ -819,8 +819,10 @@ class panelUVPD(wx.MiniFrame):
             return
 
         if len(self.laser_on_list) == 0 or len(self.laser_off_list) == 0:
-            dlgBox(exceptionTitle="Error", exceptionMsg="Please detect regions of interest first using the Find peaks button above",
-                   type="Error")
+            dlgBox(
+                exceptionTitle="Error",
+                exceptionMsg="Please detect regions of interest first using the Find peaks button above",
+                type="Error")
             return
 
         laser_on_data, laser_off_data = {}, {}

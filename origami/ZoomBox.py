@@ -187,7 +187,7 @@ def getMaxFromRange(data, start, end):
 
 
 def xy_range_divider(values=None):
-    """ 
+    """
     Function to check whether x/y axis labels do not need formatting
     """
     baseDiv = 10
@@ -529,7 +529,7 @@ class ZoomBox:
                 self.lastXY[3] = ymax
 
         # find ymax for specific x axis range
-        if not self.plotName in ['2D', 'RMSD', 'RMSF', 'Matrix']:
+        if self.plotName not in ['2D', 'RMSD', 'RMSF', 'Matrix']:
             try:
                 for axes in self.axes:
                     xmin, xmax = axes.get_xlim()

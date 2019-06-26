@@ -6,7 +6,12 @@ from utils.path import clean_up_MDD_path
 
 class DialogMultiDirectoryPicker(MDD.MultiDirDialog):
 
-    def __init__(self, parent, title="Choose directories...", default_path=None, style=MDD.DD_MULTIPLE | MDD.DD_DIR_MUST_EXIST):
+    def __init__(
+            self,
+            parent,
+            title="Choose directories...",
+            default_path=None,
+            style=MDD.DD_MULTIPLE | MDD.DD_DIR_MUST_EXIST):
 
         MDD.MultiDirDialog.__init__(self, parent=parent, title=title, defaultPath=default_path,
                                     agwStyle=style)

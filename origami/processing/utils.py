@@ -38,7 +38,7 @@ def detect_peaks_chromatogram(data, threshold, add_buffer=0):  # detectPeaksRT
     # Find index values
     outlist = []
     apex_list = []
-    for k, g in groupby(enumerate(valXX), lambda i_x:i_x[0] - i_x[1]):
+    for k, g in groupby(enumerate(valXX), lambda i_x: i_x[0] - i_x[1]):
         x = (list(map(itemgetter(1), g)))  # list of vals
         xStart = x[0]  # get x start
         xEnd = x[-1]  # get x end
@@ -134,8 +134,10 @@ def find_peak_maximum(data, fail_value=1):
 
 
 def find_peak_maximum_1D(yvals, fail_value=1):
-    try: ymax = np.amax(yvals)
-    except Exception: ymax = 1
+    try:
+        ymax = np.amax(yvals)
+    except Exception:
+        ymax = 1
     return ymax
 
 
@@ -158,11 +160,11 @@ def get_narrow_data_range_1D(xvals, yvals, x_range=None):
     start = np.argmin(np.abs(xvals - x_range[0]))
     end = np.argmin(np.abs(xvals - x_range[1]))
 
-    if start > end: end, start = start, end
+    if start > end:
+        end, start = start, end
     return xvals[start:end], yvals[start:end]
 
 
 def get_maximum_value_in_range(data, mz_range):
     data = get_narrow_data_range(data, mz_range)
     return find_peak_maximum(data)
-

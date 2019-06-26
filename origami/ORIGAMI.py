@@ -24,7 +24,6 @@ import os
 import re
 import sys
 import threading
-import time
 import warnings
 import webbrowser
 
@@ -48,9 +47,8 @@ from help_documentation import OrigamiHelp
 from icons import IconContainer as icons
 from ids import *
 from toolbox import (checkExtension, find_nearest,
-                     removeDuplicates, saveObject)
+                     removeDuplicates)
 from visuals.normalize import MidpointNormalize
-from utils.check import get_latest_version, compare_versions, isempty, isnumber
 from utils.color import (combine_rgb,
                          convertRGB255to1,
                          make_rgb,

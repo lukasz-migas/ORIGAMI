@@ -20,14 +20,15 @@ import wx
 
 from styles import (makeCheckbox, makeTooltip)
 from utils.color import convertRGB255to1, convertRGB1to255
+from gui_elements.dialog_color_picker import DialogColorPicker
 
 
 class dialog_customise_peptide_annotations(wx.Dialog):
 
     def __init__(self, parent, config, **kwargs):
         wx.Dialog.__init__(self, parent, -1, 'Other parameters...', size=(-1, -1),
-                              style=wx.DEFAULT_FRAME_STYLE & ~
-                              (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+                           style=wx.DEFAULT_FRAME_STYLE & ~
+                           (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.parent = parent
         self.config = config
@@ -96,22 +97,22 @@ class dialog_customise_peptide_annotations(wx.Dialog):
 
         label_fontOrientation_label = wx.StaticText(panel, -1, "Font orientation:")
         self.label_fontOrientation_value = wx.Choice(panel, -1,
-                                   choices=self.config.label_font_orientation_list,
-                                   size=(-1, -1))
+                                                     choices=self.config.label_font_orientation_list,
+                                                     size=(-1, -1))
         self.label_fontOrientation_value.SetStringSelection(self.config.annotation_label_font_orientation)
         self.label_fontOrientation_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         label_fontSize_label = wx.StaticText(panel, -1, "Font size:")
         self.label_fontSize_value = wx.Choice(panel, -1,
-                                   choices=self.config.label_fontsize_list,
-                                   size=(-1, -1))
+                                              choices=self.config.label_fontsize_list,
+                                              size=(-1, -1))
         self.label_fontSize_value.SetStringSelection(self.config.annotation_label_font_size)
         self.label_fontSize_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         label_fontWeight_label = wx.StaticText(panel, -1, "Font weight:")
         self.label_fontWeight_value = wx.Choice(panel, -1,
-                                   choices=self.config.label_fontweight_list,
-                                   size=(-1, -1))
+                                                choices=self.config.label_fontweight_list,
+                                                size=(-1, -1))
         self.label_fontWeight_value.SetStringSelection(self.config.annotation_label_font_weight)
         self.label_fontWeight_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
@@ -184,9 +185,12 @@ class dialog_customise_peptide_annotations(wx.Dialog):
 
         label_grid = wx.GridBagSizer(5, 5)
         y = 0
-        label_grid.Add(self.label_show_fragment_check, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(
+            self.label_show_fragment_check, (y, 0), wx.GBSpan(
+                1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         label_grid.Add(self.label_show_charge_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        label_grid.Add(self.label_show_peptide_check, (y, 2), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(self.label_show_peptide_check, (y, 2), wx.GBSpan(
+            1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         label_grid.Add(self.label_show_error_check, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
 
         # pack elements
@@ -223,11 +227,15 @@ class dialog_customise_peptide_annotations(wx.Dialog):
         y = y + 1
         grid.Add(hz_line_2, (y, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(plot_tandem_line_unlabelled_colorBtn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot_tandem_line_unlabelled_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(plot_tandem_line_unlabelled_colorBtn, (y, 0), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot_tandem_line_unlabelled_colorBtn, (y, 1),
+                 wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(plot_tandem_line_labelled_colorBtn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot_tandem_line_labelled_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(plot_tandem_line_labelled_colorBtn, (y, 0), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot_tandem_line_labelled_colorBtn, (y, 1),
+                 wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
         grid.Add(label_show_neutral_loss, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_show_neutral_loss_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
@@ -263,35 +271,24 @@ class dialog_customise_peptide_annotations(wx.Dialog):
         self.config.msms_label_y_offset = self.label_yaxis_offset_value.GetValue()
         self.config.msms_show_full_label = self.label_show_full_label_check.GetValue()
 
-        _label_format = {'fragment_name':self.label_show_fragment_check.GetValue(),
-                         'peptide_seq':self.label_show_peptide_check.GetValue(),
-                         'charge':self.label_show_charge_check.GetValue(),
-                         'delta_mz':self.label_show_error_check.GetValue()}
+        _label_format = {'fragment_name': self.label_show_fragment_check.GetValue(),
+                         'peptide_seq': self.label_show_peptide_check.GetValue(),
+                         'charge': self.label_show_charge_check.GetValue(),
+                         'delta_mz': self.label_show_error_check.GetValue()}
 
         self.config._tandem_label_format = _label_format
 
     def on_apply_color(self, evt):
         source = evt.GetEventObject().GetName()
 
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in range(len(self.config.customColors)):
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.GetColourData().SetChooseFull(True)
-
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-            # Retrieve custom colors
-            for i in range(15):
-                self.config.customColors[i] = data.GetCustomColour(i)
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, __ = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
 
             if source == "plot_tandem_labelled":
-                self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(newColour)
-                self.config.msms_line_color_labelled = convertRGB255to1(newColour)
+                self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(color_255)
+                self.config.msms_line_color_labelled = color_1
             elif source == "plot_tandem_unlabelled":
-                self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(newColour)
-                self.config.msms_line_color_unlabelled = convertRGB255to1(newColour)
+                self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(color_255)
+                self.config.msms_line_color_unlabelled = color_1

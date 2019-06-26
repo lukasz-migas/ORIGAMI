@@ -616,8 +616,13 @@ class panelPlot(wx.Panel):
         saveUniDecMenu.Append(ID_plots_saveImage_unidec_chargeDist,
                               'Save charge state distribution (.{})'.format(self.config.imageFormat))
         saveUniDecMenu.AppendSeparator()
-        saveUniDecMenu.AppendItem(makeMenuItem(parent=saveUniDecMenu, id=ID_saveUniDecAll, text="Save all figures (.{})".format(self.config.imageFormat),
-                                               bitmap=self.icons.iconsLib['save16']))
+        saveUniDecMenu.AppendItem(
+            makeMenuItem(
+                parent=saveUniDecMenu,
+                id=ID_saveUniDecAll,
+                text="Save all figures (.{})".format(
+                    self.config.imageFormat),
+                bitmap=self.icons.iconsLib['save16']))
         menu = wx.Menu()
         if self.currentPage == "MS":
             menu.AppendItem(makeMenuItem(parent=menu, id=ID_processSettings_MS,
@@ -1654,7 +1659,7 @@ class panelPlot(wx.Panel):
             plot_obj = self.get_plot_from_name(plot)
 
         plot_obj.plot_add_patch(xmin, ymin, width, height, color=color,
-                                      alpha=alpha, label=label)
+                                alpha=alpha, label=label)
         if repaint:
             plot_obj.repaint()
 
@@ -1751,7 +1756,7 @@ class panelPlot(wx.Panel):
     def _get_color_list(self, colorList, count=None, **kwargs):
         """
         colorList : list
-           list of colors to replace 
+           list of colors to replace
         kwargs : dict
             dictionary with appropriate keys (color_scheme, colormap)
         """
@@ -1814,13 +1819,18 @@ class panelPlot(wx.Panel):
 #                                                  ylabel="Intensity",
 #                                                  plotType="Test",
 #                                                  **plt_kwargs)
-        self.plotUnidec_chargeDistribution.plot_1D(xvals=xvals, yvals=yvals,
-                                                   xlimits=xlimits, xlabel="Charge",
-                                                   ylabel="Intensity", testMax=None,
-                                                   axesSize=self.config._plotSettings['UniDec (Charge Distribution)']['axes_size'],
-                                                   plotType='ChargeDistribution', title="Charge State Distribution",
-                                                   allowWheel=False,
-                                                   **plt_kwargs)
+        self.plotUnidec_chargeDistribution.plot_1D(
+            xvals=xvals,
+            yvals=yvals,
+            xlimits=xlimits,
+            xlabel="Charge",
+            ylabel="Intensity",
+            testMax=None,
+            axesSize=self.config._plotSettings['UniDec (Charge Distribution)']['axes_size'],
+            plotType='ChargeDistribution',
+            title="Charge State Distribution",
+            allowWheel=False,
+            **plt_kwargs)
         # Show the mass spectrum
         self.plotUnidec_chargeDistribution.repaint()
 
@@ -1911,15 +1921,19 @@ class panelPlot(wx.Panel):
             grid = replot['grid']
 
         self.plotUnidec_mzGrid.clearPlot()
-        self.plotUnidec_mzGrid.plot_2D_contour_unidec(data=grid,
-                                                      xlabel="m/z (Da)",
-                                                      ylabel="Charge",
-                                                      axesSize=self.config._plotSettings['UniDec (m/z vs Charge)']['axes_size'],
-                                                      plotType='2D', plotName="mzGrid",
-                                                      speedy=kwargs.get('speedy', True),
-                                                      title="m/z vs Charge",
-                                                      allowWheel=False,
-                                                      **plt_kwargs)
+        self.plotUnidec_mzGrid.plot_2D_contour_unidec(
+            data=grid,
+            xlabel="m/z (Da)",
+            ylabel="Charge",
+            axesSize=self.config._plotSettings['UniDec (m/z vs Charge)']['axes_size'],
+            plotType='2D',
+            plotName="mzGrid",
+            speedy=kwargs.get(
+                'speedy',
+                True),
+            title="m/z vs Charge",
+            allowWheel=False,
+            **plt_kwargs)
         # Show the mass spectrum
         self.plotUnidec_mzGrid.repaint()
 
@@ -3763,7 +3777,7 @@ class panelPlot(wx.Panel):
             self.view.panelPlots.plot_overlay.repaint()
 
     def onAddMarker1D(self, xval=None, yval=None, color='r', marker='o'):  # onAddMarker1D
-        """ 
+        """
         This function adds marker to 1D plot
         """
         # Check yaxis labels

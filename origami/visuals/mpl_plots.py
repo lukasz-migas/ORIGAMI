@@ -84,7 +84,7 @@ class plots(mpl_plotter):
         self.document_name = None
         self.dataset_name = None
 
-    #-----
+    # -----
 
     def _update_plot_settings_(self, **kwargs):
         for parameter in kwargs:
@@ -291,20 +291,24 @@ class plots(mpl_plotter):
         try:
             startY = startY / float(self.y_divider)
             endY = endY / float(self.y_divider)
-        except Exception: pass
+        except Exception:
+            pass
         try:
             self.plotMS.axis([startX, endX, startY, endY])
             self.repaint()
-        except Exception: pass
+        except Exception:
+            pass
 
     def on_zoom(self, startX, endX, endY):
         try:
             endY = endY / float(self.y_divider)
-        except Exception: pass
+        except Exception:
+            pass
         try:
             self.plotMS.axis([startX, endX, 0, endY])
             self.repaint()
-        except Exception: pass
+        except Exception:
+            pass
 
     def on_zoom_y_axis(self, startY=None, endY=None):
         xylimits = self.get_xylimits()
@@ -318,7 +322,8 @@ class plots(mpl_plotter):
         try:
             startY = np.divide(startY, self.y_divider)
             endY = np.divide(endY, self.y_divider)
-        except Exception: pass
+        except Exception:
+            pass
 
         self.plotMS.set_ylim([startY, endY])
         self.update_y_extents(startY, endY)
@@ -327,7 +332,8 @@ class plots(mpl_plotter):
         # only works for 2D plots!
 
         if hasattr(self, "plot_data"):
-            if len(self.plot_data) == 0: return
+            if len(self.plot_data) == 0:
+                return
 
             self.rotate = self.rotate + 90
 
@@ -370,7 +376,8 @@ class plots(mpl_plotter):
             try:
                 ymin = np.divide(ymin, self.y_divider)
                 dy = np.divide(dy, self.y_divider)
-            except Exception: pass
+            except Exception:
+                pass
 
         if dx == 0 and dy == 0:
             return
@@ -392,8 +399,10 @@ class plots(mpl_plotter):
 
     def plot_remove_arrows(self):
         for arrow in self.arrows:
-            try: arrow.remove()
-            except Exception: pass
+            try:
+                arrow.remove()
+            except Exception:
+                pass
 
         self.arrows = []
         self.repaint()
@@ -422,8 +431,10 @@ class plots(mpl_plotter):
     def plot_remove_markers(self):
 
         for marker in self.markers:
-            try: marker.remove()
-            except Exception: pass
+            try:
+                marker.remove()
+            except Exception:
+                pass
 
         self.markers = []
         self.repaint()
@@ -471,8 +482,10 @@ class plots(mpl_plotter):
 
         # check if value should be scaled based on the exponential
         if kwargs.pop("check_yscale", False):
-            try: yval = np.divide(yval, self.y_divider)
-            except Exception: pass
+            try:
+                yval = np.divide(yval, self.y_divider)
+            except Exception:
+                pass
 
         # reverse value
         if is_butterfly:
@@ -514,8 +527,10 @@ class plots(mpl_plotter):
 
     def plot_remove_text(self):
         for text in self.text:
-            try: text.remove()
-            except Exception: pass
+            try:
+                text.remove()
+            except Exception:
+                pass
 
         self.text = []
         self.repaint()
@@ -524,8 +539,10 @@ class plots(mpl_plotter):
                        linewidth=0, add_temporary=False, label="", **kwargs):
 
         # check if need to rescale height
-        try: height = np.divide(height, self.y_divider)
-        except Exception: pass
+        try:
+            height = np.divide(height, self.y_divider)
+        except Exception:
+            pass
         try:
             patch = self.plotMS.add_patch(patches.Rectangle((xmin, ymin), width, height,
                                                             color=color, alpha=alpha,
@@ -548,15 +565,18 @@ class plots(mpl_plotter):
         for patch in self.patch:
             try:
                 patch.remove()
-            except Exception: pass
+            except Exception:
+                pass
 
         self.patch = []
         self.repaint()
 
     def plot_remove_temporary(self, repaint=False):
         for patch in self.temporary:
-            try: patch.remove()
-            except Exception: pass
+            try:
+                patch.remove()
+            except Exception:
+                pass
 
         self.temporary = []
         if repaint:
@@ -565,16 +585,22 @@ class plots(mpl_plotter):
     def plot_remove_text_and_lines(self):
 
         for text in self.text:
-            try: text.remove()
-            except Exception: pass
+            try:
+                text.remove()
+            except Exception:
+                pass
 
         for line in self.lines:
-            try: line.remove()
-            except Exception: pass
+            try:
+                line.remove()
+            except Exception:
+                pass
 
         for arrow in self.arrows:
-            try: arrow.remove()
-            except Exception: pass
+            try:
+                arrow.remove()
+            except Exception:
+                pass
 
         self.text = []
         self.lines = []
@@ -657,7 +683,7 @@ class plots(mpl_plotter):
                 alpha=kwargs.get("shade_under_transparency", 0.25),
                 clip_on=kwargs.get("clip_on", True),
                 zorder=kwargs.get("zorder", 1),
-                )
+            )
             self.plotMS.fill_between(xvals, 0, yvals, **shade_kws)
         elif len(self.plotMS.collections) > 0:
             for shade in range(len(self.plotMS.collections)):
@@ -687,7 +713,7 @@ class plots(mpl_plotter):
         self.update_extents(extent)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
-        self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
+        self.plot_labels.update({'xlabel': xlabel, 'ylabel': ylabel})
 
     def plot_1D_waterfall_update(self, which="other", **kwargs):
         if self.lock_plot_from_updating:
@@ -730,17 +756,22 @@ class plots(mpl_plotter):
 
             elif kwargs['color_scheme'] == "Random":
                 colorlist = []
-                for __ in range(n_colors): colorlist.append(randomColorGenerator())
+                for __ in range(n_colors):
+                    colorlist.append(randomColorGenerator())
 
             if self.plot_name != "Violin":
                 for i, line in enumerate(self.plotMS.get_lines()):
-                    if kwargs['line_color_as_shade']: line_color = colorlist[i]
-                    else: line_color = kwargs['line_color']
+                    if kwargs['line_color_as_shade']:
+                        line_color = colorlist[i]
+                    else:
+                        line_color = kwargs['line_color']
                     line.set_color(line_color)
             else:
                 for i in range(len(self.plotMS.collections)):
-                    if kwargs['line_color_as_shade']: line_color = colorlist[i]
-                    else: line_color = kwargs['line_color']
+                    if kwargs['line_color_as_shade']:
+                        line_color = colorlist[i]
+                    else:
+                        line_color = kwargs['line_color']
                     self.plotMS.collections[i].set_edgecolor(line_color)
 
             for shade in range(len(self.plotMS.collections)):
@@ -751,15 +782,19 @@ class plots(mpl_plotter):
             try:
                 for shade in range(len(self.plotMS.collections)):
                     self.plotMS.collections[shade].set_alpha(kwargs['shade_under_transparency'])
-            except AttributeError: pass
+            except AttributeError:
+                pass
 
         elif which == "label":
             # convert weights
-            if kwargs['labels_font_weight']: kwargs['labels_font_weight'] = "heavy"
-            else: kwargs['labels_font_weight'] = "normal"
+            if kwargs['labels_font_weight']:
+                kwargs['labels_font_weight'] = "heavy"
+            else:
+                kwargs['labels_font_weight'] = "normal"
 
             # calculate new position
-            label_xposition = self.text_offset_position["min"] + (self.text_offset_position["max"] * kwargs['labels_x_offset'])
+            label_xposition = self.text_offset_position["min"] + \
+                (self.text_offset_position["max"] * kwargs['labels_x_offset'])
 
             for i in range(len(self.text)):
                 self.text[i].set_fontweight(kwargs['labels_font_weight'])
@@ -785,7 +820,8 @@ class plots(mpl_plotter):
 #                 print(dir_extra(dir(self.plotMS.collections[shade]), "set"))
             for i, line in enumerate(self.plotMS.get_lines()):
                 yvals = line.get_ydata()
-                if len(yvals) > 5: count = +1
+                if len(yvals) > 5:
+                    count = +1
             yOffset = 0  # offset*(count+1)
             for i, line in enumerate(self.plotMS.get_lines()):
                 yvals = line.get_ydata()
@@ -822,7 +858,7 @@ class plots(mpl_plotter):
                                     labelright=kwargs['tickLabels_right'],
                                     labeltop=kwargs['tickLabels_top'],
                                     labelbottom=kwargs['tickLabels_bottom'],
-#                                     length=5, width=kwargs['frame_width']
+                                    #                                     length=5, width=kwargs['frame_width']
                                     )
 
             self.plotMS.spines['left'].set_visible(kwargs['spines_left'])
@@ -837,8 +873,10 @@ class plots(mpl_plotter):
             matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
             # convert weights
-            if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-            else: kwargs['label_weight'] = "normal"
+            if kwargs['label_weight']:
+                kwargs['label_weight'] = "heavy"
+            else:
+                kwargs['label_weight'] = "normal"
 
             # update labels
             self.plotMS.set_xlabel(self.plotMS.get_xlabel(),
@@ -868,8 +906,10 @@ class plots(mpl_plotter):
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         # convert weights
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         # update labels
         self.plotMS.set_xlabel(self.plotMS.get_xlabel(),
@@ -924,18 +964,20 @@ class plots(mpl_plotter):
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         # convert weights
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         # update labels
         self.plotRMSF.set_xlabel(self.plotMS.get_xlabel(),
-                               labelpad=kwargs['label_pad'],
-                               fontsize=kwargs['label_size'],
-                               weight=kwargs['label_weight'])
+                                 labelpad=kwargs['label_pad'],
+                                 fontsize=kwargs['label_size'],
+                                 weight=kwargs['label_weight'])
         self.plotRMSF.set_ylabel(self.plotMS.get_ylabel(),
-                               labelpad=kwargs['label_pad'],
-                               fontsize=kwargs['label_size'],
-                               weight=kwargs['label_weight'])
+                                 labelpad=kwargs['label_pad'],
+                                 fontsize=kwargs['label_size'],
+                                 weight=kwargs['label_weight'])
         # Setup font size info
         self.plotRMSF.tick_params(labelsize=kwargs['tick_size'])
 
@@ -946,14 +988,14 @@ class plots(mpl_plotter):
             self.plotRMSF.set_axis_off()
 
         self.plotRMSF.tick_params(axis='both',
-                                left=kwargs['ticks_left'],
-                                right=kwargs['ticks_right'],
-                                top=kwargs['ticks_top'],
-                                bottom=kwargs['ticks_bottom'],
-                                labelleft=kwargs['tickLabels_left'],
-                                labelright=kwargs['tickLabels_right'],
-                                labeltop=kwargs['tickLabels_top'],
-                                labelbottom=kwargs['tickLabels_bottom'])
+                                  left=kwargs['ticks_left'],
+                                  right=kwargs['ticks_right'],
+                                  top=kwargs['ticks_top'],
+                                  bottom=kwargs['ticks_bottom'],
+                                  labelleft=kwargs['tickLabels_left'],
+                                  labelright=kwargs['tickLabels_right'],
+                                  labeltop=kwargs['tickLabels_top'],
+                                  labelbottom=kwargs['tickLabels_bottom'])
 
         for i, line in enumerate(self.plotRMSF.get_lines()):
             line.set_linewidth(kwargs['rmsd_line_width'])
@@ -966,7 +1008,7 @@ class plots(mpl_plotter):
         self.plotRMSF.spines['bottom'].set_visible(kwargs['spines_bottom'])
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
-    #-----
+    # -----
 
     def plot_2D_update_label(self, **kwargs):
 
@@ -1002,7 +1044,8 @@ class plots(mpl_plotter):
         try:
             cbar_yticks = self.cbar.get_yticklabels()
             cbar_xticks = self.cbar.get_xticklabels()
-        except Exception: pass
+        except Exception:
+            pass
 
         if 'colormap_norm' in kwargs:
             self.cax.set_norm(kwargs['colormap_norm'])
@@ -1010,12 +1053,16 @@ class plots(mpl_plotter):
 #         kwargs = self._check_colormap(**kwargs)
         self.cax.set_cmap(kwargs['colormap'])
 
-        try: self.cax.set_interpolation(kwargs['interpolation'])
-        except AttributeError: pass
+        try:
+            self.cax.set_interpolation(kwargs['interpolation'])
+        except AttributeError:
+            pass
 
         # convert weights
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         # update labels
         self.plotMS.set_xlabel(self.plotMS.get_xlabel(),
@@ -1031,8 +1078,10 @@ class plots(mpl_plotter):
         self.plotMS.tick_params(labelsize=kwargs['tick_size'])
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         try:
             self.cbar.set_visible(kwargs['colorbar'])
@@ -1061,7 +1110,7 @@ class plots(mpl_plotter):
 
         self.plot_parameters = kwargs
 
-    #-----
+    # -----
 
     def plot_update_axes(self, axes_sizes):
         self.plotMS.set_position(axes_sizes)
@@ -1078,13 +1127,13 @@ class plots(mpl_plotter):
 
     def plot_3D_update(self, which="all", **kwargs):
 
-#         # update labels
-#         self.plotMS.set_xlabel(self.plotMS.get_xlabel(),
-#                                fontsize=kwargs['label_size'],
-#                                weight=kwargs['label_weight'])
-#         self.plotMS.set_ylabel(self.plotMS.get_ylabel(),
-#                                fontsize=kwargs['label_size'],
-#                                weight=kwargs['label_weight'])
+        #         # update labels
+        #         self.plotMS.set_xlabel(self.plotMS.get_xlabel(),
+        #                                fontsize=kwargs['label_size'],
+        #                                weight=kwargs['label_weight'])
+        #         self.plotMS.set_ylabel(self.plotMS.get_ylabel(),
+        #                                fontsize=kwargs['label_size'],
+        #                                weight=kwargs['label_weight'])
 
         # Setup font size info
         self.plotMS.tick_params(labelsize=kwargs['tick_size'])
@@ -1167,8 +1216,10 @@ class plots(mpl_plotter):
                 elif hasattr(self, "tick_labels"):
                     tick_labels = self.tick_labels
 
-                try: self.cbar.remove()
-                except Exception: pass
+                try:
+                    self.cbar.remove()
+                except Exception:
+                    pass
                 self.cbar = cbarDivider.append_axes(kwargs['colorbar_position'],
                                                     size="".join([str(kwargs['colorbar_width']), "%"]),
                                                     pad=kwargs['colorbar_pad'])
@@ -1271,7 +1322,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -1328,9 +1379,9 @@ class plots(mpl_plotter):
             pass
 
         # add data
-        self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
-                          'xlabel':xlabel, 'ylabel':ylabel}
-        self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
+        self.plot_data = {'xvals': xvals, 'yvals': yvals, 'zvals': zvals,
+                          'xlabel': xlabel, 'ylabel': ylabel}
+        self.plot_labels.update({'xlabel': xlabel, 'ylabel': ylabel})
 
         try:
             self.cbar.remove()
@@ -1338,11 +1389,12 @@ class plots(mpl_plotter):
                 cbarDivider = make_axes_locatable(self.plotMS)
                 # pad controls how close colorbar is to the axes
                 self.cbar = cbarDivider.append_axes(kwargs['colorbar_position'],
-                                              size="".join([str(kwargs['colorbar_width']), "%"]),
-                                              pad=kwargs['colorbar_pad'])
+                                                    size="".join([str(kwargs['colorbar_width']), "%"]),
+                                                    pad=kwargs['colorbar_pad'])
 
                 ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
-                if ticks[1] in [ticks[0], ticks[2]]: ticks[1] = 0
+                if ticks[1] in [ticks[0], ticks[2]]:
+                    ticks[1] = 0
 
                 if self.plot_name in ['RMSD', 'RMSF']:
                     tick_labels = ["-100", "%", "100"]
@@ -1410,7 +1462,7 @@ class plots(mpl_plotter):
                 alpha=kwargs.get("shade_under_transparency", 0.25),
                 clip_on=kwargs.get("clip_on", True),
                 zorder=kwargs.get("zorder", 1),
-                )
+            )
             self.plotMS.fill_between(xvals, 0, yvals, **shade_kws)
 
         # Setup parameters
@@ -1438,8 +1490,10 @@ class plots(mpl_plotter):
             self.plotMS.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         # convert weights
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -1452,8 +1506,10 @@ class plots(mpl_plotter):
 
 #         self.plotMS.grid(color="gray", linestyle="-.", zorder=1)
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         self.plotMS.tick_params(axis='both',
                                 left=kwargs['ticks_left'],
@@ -1470,8 +1526,10 @@ class plots(mpl_plotter):
             line.set_linestyle(kwargs['line_style'])
 
         if title != "":
-            if kwargs['title_weight']: title_weight = "heavy"
-            else: title_weight = "normal"
+            if kwargs['title_weight']:
+                title_weight = "heavy"
+            else:
+                title_weight = "normal"
             self.plotMS.set_title(title,
                                   fontsize=kwargs['title_size'],
                                   weight=title_weight)
@@ -1489,9 +1547,9 @@ class plots(mpl_plotter):
         # Setup X-axis getter
         self.setupGetXAxies([self.plotMS])
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-        self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
+        self.plot_labels.update({'xlabel': xlabel, 'ylabel': ylabel})
 
-    #-----
+    # -----
 
     def plot_1D_centroid(self, xvals=None, yvals=None, xyvals=None, xlabel="m/z (Da)",
                          ylabel="Intensity", title="", xlimits=None, color="black",
@@ -1501,10 +1559,10 @@ class plots(mpl_plotter):
         Parameters
         ----------
         adding_on_top : bool
-            If ``True`` it will not create new axes and will instead change the size 
-            of the plot to ensure appropriate overlay. 
+            If ``True`` it will not create new axes and will instead change the size
+            of the plot to ensure appropriate overlay.
         update_y_axis : bool
-            If ``True`` y-axis values will be rescaled to ensure they do not have 
+            If ``True`` y-axis values will be rescaled to ensure they do not have
             excessive number of zeroes.
         """
 
@@ -1572,8 +1630,10 @@ class plots(mpl_plotter):
         self.plotMS.set_ylim(ylimits)
 
         # convert weights
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -1587,8 +1647,10 @@ class plots(mpl_plotter):
                                    weight=kwargs['label_weight'])
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         self.plotMS.tick_params(axis='both',
                                 left=kwargs['ticks_left'],
@@ -1605,8 +1667,10 @@ class plots(mpl_plotter):
             line.set_linestyle(kwargs['line_style'])
 
         if title != "":
-            if kwargs['title_weight']: title_weight = "heavy"
-            else: title_weight = "normal"
+            if kwargs['title_weight']:
+                title_weight = "heavy"
+            else:
+                title_weight = "normal"
             self.plotMS.set_title(title,
                                   fontsize=kwargs['title_size'],
                                   weight=title_weight)
@@ -1697,8 +1761,10 @@ class plots(mpl_plotter):
             line.set_linestyle(kwargs['line_style'])
 
         if title != "":
-            if kwargs['title_weight']: title_weight = "heavy"
-            else: title_weight = "normal"
+            if kwargs['title_weight']:
+                title_weight = "heavy"
+            else:
+                title_weight = "normal"
             self.plotMS.set_title(title,
                                   fontsize=kwargs['title_size'],
                                   weight=title_weight)
@@ -1793,10 +1859,10 @@ class plots(mpl_plotter):
 
             if kwargs["orientation"] == "vertical-bar":
                 self.plotMS.bar(xval, bottom=yval_min, height=yvals_height, color=colorList,
-                                 width=kwargs.get("bar_width", 0.1),
-                                 edgecolor=edgecolor,
-                                 alpha=kwargs.get("bar_alpha", 0.5),
-                                 linewidth=kwargs.get("bar_linewidth", 1)
+                                width=kwargs.get("bar_width", 0.1),
+                                edgecolor=edgecolor,
+                                alpha=kwargs.get("bar_alpha", 0.5),
+                                linewidth=kwargs.get("bar_linewidth", 1)
                                 )
             else:
                 xlimits, ylimits = ylimits, xlimits
@@ -1813,8 +1879,10 @@ class plots(mpl_plotter):
                                weight=kwargs['label_weight'])
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         self.plotMS.tick_params(axis='both',
                                 left=kwargs['ticks_left'],
@@ -1845,7 +1913,7 @@ class plots(mpl_plotter):
         legend_labels = plot_modifiers["legend_labels"]
         legend_colors = plot_modifiers["legend_colors"]
         if (len(legend_labels) > 0 and len(legend_colors) > 0 and
-            len(legend_labels) == len(legend_colors)):
+                len(legend_labels) == len(legend_colors)):
             legend_text = []
             for leg_color, leg_label in zip(legend_colors, legend_labels):
                 leg_label = _replace_labels(leg_label)
@@ -1878,7 +1946,8 @@ class plots(mpl_plotter):
         plot_modifiers = kwargs["plot_modifiers"]
         itemColors = kwargs.get("item_colors", [])
 
-        if yvals is None: yvals = []
+        if yvals is None:
+            yvals = []
         self.scatter_plots = []
         if len(zvals) == 0:
             for i in range(len(yvals)):
@@ -1888,8 +1957,10 @@ class plots(mpl_plotter):
                 else:
                     xval = xvals
                 if len(itemColors) > 0:
-                    if len(itemColors) == len(yvals): color = itemColors[i]
-                    else: color = itemColors[0]
+                    if len(itemColors) == len(yvals):
+                        color = itemColors[i]
+                    else:
+                        color = itemColors[0]
                     try:
                         plot = self.plotMS.scatter(xval, yval,
                                                    edgecolors="k",
@@ -1935,7 +2006,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -1982,13 +2053,13 @@ class plots(mpl_plotter):
         # Setup X-axis getter
         self.setupGetXAxies([self.plotMS])
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #-----
+    # -----
 
     def plot_1D_compare(self, xvals=None, xvals1=None, xvals2=None,
                         yvals1=None, yvals2=None, title="", xlabel="",
-                       ylabel="", label="", xlimits=None, color="black",
-                       zoom="box", plotType="compare_MS", testMax='yvals',
-                       lineWidth=1, axesSize=None, **kwargs):
+                        ylabel="", label="", xlimits=None, color="black",
+                        zoom="box", plotType="compare_MS", testMax='yvals',
+                        lineWidth=1, axesSize=None, **kwargs):
         """
         Plots MS and 1DT data
         """
@@ -2078,13 +2149,13 @@ class plots(mpl_plotter):
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
-         # legend
+        # legend
         if kwargs.get('legend', self.config.legend):
             self.plotMS.legend(loc=kwargs.get('legend_position', self.config.legendPosition),
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -2098,7 +2169,7 @@ class plots(mpl_plotter):
         # Setup X-axis getter
         self.setupGetXAxies([self.plotMS])
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #-----
+    # -----
 
     def plot_1D_overlay(self, xvals, yvals, colors, xlabel, ylabel, labels,
                         xlimits=None, zoom="box", plotType=None, testMax='yvals',
@@ -2155,7 +2226,7 @@ class plots(mpl_plotter):
                     alpha=kwargs.get("shade_under_transparency", 0.25),
                     clip_on=kwargs.get("clip_on", True),
                     zorder=zorder - 2,
-                    )
+                )
                 self.plotMS.fill_between(xval, 0, yval, **shade_kws)
                 zorder = zorder + zorder_offset
 
@@ -2167,7 +2238,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -2189,8 +2260,10 @@ class plots(mpl_plotter):
         extent = [xlimits[0], np.min(np.concatenate(yvals)), xlimits[-1], np.max(np.concatenate(yvals)) + 0.01]
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         self.plotMS.tick_params(axis='both',
                                 left=kwargs['ticks_left'],
@@ -2213,8 +2286,10 @@ class plots(mpl_plotter):
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         if title != "":
-            if kwargs['title_weight']: title_weight = "heavy"
-            else: title_weight = "normal"
+            if kwargs['title_weight']:
+                title_weight = "heavy"
+            else:
+                title_weight = "normal"
             self.plotMS.set_title(title,
                                   fontsize=kwargs['title_size'],
                                   weight=title_weight)
@@ -2251,8 +2326,10 @@ class plots(mpl_plotter):
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         self.plotMS = self.figure.add_axes(self._axes)
-        if kwargs['labels_font_weight']: kwargs['labels_font_weight'] = "heavy"
-        else: kwargs['labels_font_weight'] = "normal"
+        if kwargs['labels_font_weight']:
+            kwargs['labels_font_weight'] = "heavy"
+        else:
+            kwargs['labels_font_weight'] = "normal"
 
         zorder, zorder_offset = 5, 5
         count = kwargs["labels_frequency"]
@@ -2308,7 +2385,8 @@ class plots(mpl_plotter):
                 colorlist = [kwargs["shade_color"]] * n_colors
             elif kwargs['color_scheme'] == "Random":
                 colorlist = []
-                for __ in range(n_colors): colorlist.append(randomColorGenerator())
+                for __ in range(n_colors):
+                    colorlist.append(randomColorGenerator())
 
             # Iterate over the colormap to get the color shading we desire
             for i in voltage_idx[::-1]:
@@ -2317,8 +2395,10 @@ class plots(mpl_plotter):
                 if kwargs.get('normalize', True):
                     y = normalize_1D(inputData=y)
 
-                if kwargs['line_color_as_shade']: line_color = colorlist[int(i)]
-                else: line_color = kwargs['line_color']
+                if kwargs['line_color_as_shade']:
+                    line_color = colorlist[int(i)]
+                else:
+                    line_color = kwargs['line_color']
                 shade_color = colorlist[int(i)]
 
                 self.plotMS.plot(xvals, (y + yOffset),
@@ -2358,7 +2438,8 @@ class plots(mpl_plotter):
                 xvals = xvals * len(yvals)
 
             n_colors = len(yvals)
-            if len(labels) == 0: labels = [""] * n_colors
+            if len(labels) == 0:
+                labels = [""] * n_colors
             yOffset = kwargs['offset'] * (n_colors + 1)
 
             # Find new xlimits
@@ -2382,7 +2463,8 @@ class plots(mpl_plotter):
                 colorlist = [kwargs["line_color"]] * n_colors
             elif kwargs['color_scheme'] == "Random":
                 colorlist = []
-                for __ in range(n_colors): colorlist.append(randomColorGenerator())
+                for __ in range(n_colors):
+                    colorlist.append(randomColorGenerator())
 
             if kwargs['reverse']:
                 xvals = xvals[::-1]
@@ -2408,8 +2490,10 @@ class plots(mpl_plotter):
                         yvals[irow] = normalize_1D(inputData=yvals[irow])
 
                 voltage_idx = np.linspace(0, n_colors - 1, n_colors)
-                if kwargs['line_color_as_shade']: line_color = colorlist[irow]
-                else: line_color = kwargs['line_color']
+                if kwargs['line_color_as_shade']:
+                    line_color = colorlist[irow]
+                else:
+                    line_color = kwargs['line_color']
                 shade_color = colorlist[int(irow)]
                 y = yvals[irow]
                 self.plotMS.plot(xvals[irow], (y + yOffset),
@@ -2446,8 +2530,10 @@ class plots(mpl_plotter):
                                weight=kwargs['label_weight'])
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         self.plotMS.tick_params(axis='both',
                                 left=kwargs['ticks_left'],
@@ -2510,8 +2596,10 @@ class plots(mpl_plotter):
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         self.plotMS = self.figure.add_axes(self._axes)
-        if kwargs['labels_font_weight']: kwargs['labels_font_weight'] = "heavy"
-        else: kwargs['labels_font_weight'] = "normal"
+        if kwargs['labels_font_weight']:
+            kwargs['labels_font_weight'] = "heavy"
+        else:
+            kwargs['labels_font_weight'] = "normal"
 
         count = len(xvals)
         zorder, zorder_offset = 5, 5 + count
@@ -2548,7 +2636,8 @@ class plots(mpl_plotter):
                 zval = np.fliplr(zval)
 
             for irow in range(len(yval)):
-                if irow > 0: label = ""
+                if irow > 0:
+                    label = ""
 
                 zval_one = np.asarray((zval[:, irow]))
                 if kwargs['increment'] != 0 and kwargs.get('normalize', True):
@@ -2588,7 +2677,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -2603,8 +2692,10 @@ class plots(mpl_plotter):
                                weight=kwargs['label_weight'])
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         self.plotMS.tick_params(axis='both',
                                 left=kwargs['ticks_left'],
@@ -2642,8 +2733,8 @@ class plots(mpl_plotter):
 #         self.n_colors = n_colors
 
     def plot_1D_violin(self, xvals=None, yvals=None, zvals=None, xlabel="", ylabel="",
-                        colorList=[], orientation="vertical", axesSize=None, plotName='Violin',
-                        xlimits=None, plotType="Violin", labels=[], **kwargs):
+                       colorList=[], orientation="vertical", axesSize=None, plotName='Violin',
+                       xlimits=None, plotType="Violin", labels=[], **kwargs):
 
         self.zoomtype = "box"
         self.plot_name = plotType
@@ -2663,8 +2754,10 @@ class plots(mpl_plotter):
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         self.plotMS = self.figure.add_axes(self._axes)
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         n_count = zvals.shape[1]
         if kwargs['color_scheme'] == "Colormap":
@@ -2677,7 +2770,8 @@ class plots(mpl_plotter):
             colorlist = [kwargs["shade_color"]] * n_count
         elif kwargs['color_scheme'] == "Random":
             colorlist = []
-            for __ in range(n_count): colorlist.append(randomColorGenerator())
+            for __ in range(n_count):
+                colorlist.append(randomColorGenerator())
 
         tick_labels, tick_position = [], []
         min_percentage = kwargs.get("min_percentage", 0.03)
@@ -2727,7 +2821,7 @@ class plots(mpl_plotter):
                 self.plotMS.fill_between(xvals_plot,
                                          -yvals_plot + offset,
                                          yvals_plot + offset,
-#                                          facecolor=colorlist[i],
+                                         #                                          facecolor=colorlist[i],
                                          edgecolor=line_color,
                                          linewidth=kwargs['line_width'],
                                          **shade_kws)
@@ -2735,7 +2829,7 @@ class plots(mpl_plotter):
                 self.plotMS.fill_betweenx(xvals_plot,
                                           -yvals_plot + offset,
                                           yvals_plot + offset,
-#                                           facecolor=colorlist[i],
+                                          #                                           facecolor=colorlist[i],
                                           edgecolor=line_color,
                                           linewidth=kwargs['line_width'],
                                           **shade_kws)
@@ -2768,7 +2862,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -2786,8 +2880,10 @@ class plots(mpl_plotter):
                                weight=kwargs['label_weight'])
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         self.plotMS.tick_params(axis='both',
                                 left=kwargs['ticks_left'],
@@ -2837,11 +2933,15 @@ class plots(mpl_plotter):
         n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
 
         # convert weights
-        if kwargs['title_weight']: kwargs['title_weight'] = "heavy"
-        else: kwargs['title_weight'] = "normal"
+        if kwargs['title_weight']:
+            kwargs['title_weight'] = "heavy"
+        else:
+            kwargs['title_weight'] = "normal"
 
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
@@ -2902,19 +3002,19 @@ class plots(mpl_plotter):
                     facecolor=color,
                     alpha=kwargs.get("shade_under_transparency", 0.25),
                     clip_on=kwargs.get("clip_on", True),
-                    )
+                )
                 ax.fill_between(xval, 0, yval, **shade_kws)
             ax.set_xlim(xmin, xmax)
             ax.set_ylim(ymin, ymax)
             ax.tick_params(axis='both',
                            left=kwargs['ticks_left'],
-                            right=kwargs['ticks_right'],
-                            top=kwargs['ticks_top'],
-                            bottom=kwargs['ticks_bottom'],
-                            labelleft=kwargs['tickLabels_left'],
-                            labelright=kwargs['tickLabels_right'],
-                            labeltop=kwargs['tickLabels_top'],
-                            labelbottom=kwargs['tickLabels_bottom'])
+                           right=kwargs['ticks_right'],
+                           top=kwargs['ticks_top'],
+                           bottom=kwargs['ticks_bottom'],
+                           labelleft=kwargs['tickLabels_left'],
+                           labelright=kwargs['tickLabels_right'],
+                           labeltop=kwargs['tickLabels_top'],
+                           labelbottom=kwargs['tickLabels_bottom'])
 
             # spines
             ax.spines['left'].set_visible(kwargs['spines_left'])
@@ -2923,8 +3023,10 @@ class plots(mpl_plotter):
             ax.spines['bottom'].set_visible(kwargs['spines_bottom'])
 
             # update axis frame
-            if kwargs['axis_onoff']: ax.set_axis_on()
-            else: ax.set_axis_off()
+            if kwargs['axis_onoff']:
+                ax.set_axis_on()
+            else:
+                ax.set_axis_off()
 
             kwargs['label_pad'] = 5
             ax.set_xlabel(xlabel,
@@ -2940,15 +3042,15 @@ class plots(mpl_plotter):
             if kwargs.get('legend', self.config.legend):
                 handle, label = ax.get_legend_handles_labels()
                 ax.legend(loc=kwargs.get('legend_position', self.config.legendPosition),
-                                   ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
-                                   fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
-                                   frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                                   framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
-                                   markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
-                                   markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
-                                   fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
-                                   scatterpoints=kwargs.get('legend_num_markers', self.config.legendNumberMarkers),
-                                   handles=handle, labels=label)
+                          ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
+                          fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
+                          frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
+                          framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
+                          markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
+                          markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
+                          fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
+                          scatterpoints=kwargs.get('legend_num_markers', self.config.legendNumberMarkers),
+                          handles=handle, labels=label)
 
                 leg = ax.axes.get_legend()
                 leg.draggable()
@@ -2981,11 +3083,15 @@ class plots(mpl_plotter):
         n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
 
         # convert weights
-        if kwargs['title_weight']: kwargs['title_weight'] = "heavy"
-        else: kwargs['title_weight'] = "normal"
+        if kwargs['title_weight']:
+            kwargs['title_weight'] = "heavy"
+        else:
+            kwargs['title_weight'] = "normal"
 
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
@@ -3069,13 +3175,13 @@ class plots(mpl_plotter):
             ax.set_ylim(ymin, ymax)
             ax.tick_params(axis='both',
                            left=kwargs['ticks_left'],
-                            right=kwargs['ticks_right'],
-                            top=kwargs['ticks_top'],
-                            bottom=kwargs['ticks_bottom'],
-                            labelleft=kwargs['tickLabels_left'],
-                            labelright=kwargs['tickLabels_right'],
-                            labeltop=kwargs['tickLabels_top'],
-                            labelbottom=kwargs['tickLabels_bottom'])
+                           right=kwargs['ticks_right'],
+                           top=kwargs['ticks_top'],
+                           bottom=kwargs['ticks_bottom'],
+                           labelleft=kwargs['tickLabels_left'],
+                           labelright=kwargs['tickLabels_right'],
+                           labeltop=kwargs['tickLabels_top'],
+                           labelbottom=kwargs['tickLabels_bottom'])
 
             # spines
             ax.spines['left'].set_visible(kwargs['spines_left'])
@@ -3084,8 +3190,10 @@ class plots(mpl_plotter):
             ax.spines['bottom'].set_visible(kwargs['spines_bottom'])
 
             # update axis frame
-            if kwargs['axis_onoff']: ax.set_axis_on()
-            else: ax.set_axis_off()
+            if kwargs['axis_onoff']:
+                ax.set_axis_on()
+            else:
+                ax.set_axis_off()
 
             kwargs['label_pad'] = 5
             ax.set_xlabel(xlabel,
@@ -3101,15 +3209,15 @@ class plots(mpl_plotter):
             if kwargs.get('legend', self.config.legend):
                 handle, label = ax.get_legend_handles_labels()
                 ax.legend(loc=kwargs.get('legend_position', self.config.legendPosition),
-                                   ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
-                                   fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
-                                   frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                                   framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
-                                   markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
-                                   markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
-                                   fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
-                                   scatterpoints=kwargs.get('legend_num_markers', self.config.legendNumberMarkers),
-                                   handles=handle, labels=label)
+                          ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
+                          fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
+                          frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
+                          framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
+                          markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
+                          markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
+                          fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
+                          scatterpoints=kwargs.get('legend_num_markers', self.config.legendNumberMarkers),
+                          handles=handle, labels=label)
 
                 leg = ax.axes.get_legend()
                 leg.draggable()
@@ -3135,11 +3243,15 @@ class plots(mpl_plotter):
         n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
 
         # convert weights
-        if kwargs['title_weight']: kwargs['title_weight'] = "heavy"
-        else: kwargs['title_weight'] = "normal"
+        if kwargs['title_weight']:
+            kwargs['title_weight'] = "heavy"
+        else:
+            kwargs['title_weight'] = "normal"
 
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
@@ -3167,7 +3279,8 @@ class plots(mpl_plotter):
 
             if kwargs.get("override_colormap", False):
                 cmap = kwargs["colormap"]
-            else: cmap = cmap_list[i]
+            else:
+                cmap = cmap_list[i]
 
             ax.imshow(n_zvals[i], extent=extent,
                       cmap=cmap,
@@ -3178,13 +3291,13 @@ class plots(mpl_plotter):
             ax.set_ylim(ymin, ymax - 0.5)
             ax.tick_params(axis='both',
                            left=kwargs['ticks_left'],
-                            right=kwargs['ticks_right'],
-                            top=kwargs['ticks_top'],
-                            bottom=kwargs['ticks_bottom'],
-                            labelleft=kwargs['tickLabels_left'],
-                            labelright=kwargs['tickLabels_right'],
-                            labeltop=kwargs['tickLabels_top'],
-                            labelbottom=kwargs['tickLabels_bottom'])
+                           right=kwargs['ticks_right'],
+                           top=kwargs['ticks_top'],
+                           bottom=kwargs['ticks_bottom'],
+                           labelleft=kwargs['tickLabels_left'],
+                           labelright=kwargs['tickLabels_right'],
+                           labeltop=kwargs['tickLabels_top'],
+                           labelbottom=kwargs['tickLabels_bottom'])
 
             # spines
             ax.spines['left'].set_visible(kwargs['spines_left'])
@@ -3194,20 +3307,24 @@ class plots(mpl_plotter):
 
             if kwargs.get('grid_show_title', True):
                 ax.set_title(label=title_list[i],
-                             fontdict={'fontsize':kwargs['title_size'],
-                                       'fontweight':kwargs['title_weight']})
+                             fontdict={'fontsize': kwargs['title_size'],
+                                       'fontweight': kwargs['title_weight']})
 
             # remove ticks for anything thats not on the outskirts
             if kwargs.get('grid_show_tickLabels', True):
-                if col != 0: ax.set_yticks([])
-                if row != (n_rows - 1): ax.set_xticks([])
+                if col != 0:
+                    ax.set_yticks([])
+                if row != (n_rows - 1):
+                    ax.set_xticks([])
             else:
                 ax.set_yticks([])
                 ax.set_xticks([])
 
             # update axis frame
-            if kwargs['axis_onoff']: ax.set_axis_on()
-            else: ax.set_axis_off()
+            if kwargs['axis_onoff']:
+                ax.set_axis_on()
+            else:
+                ax.set_axis_off()
             plt_list.append(ax)
 
             if kwargs.get('grid_show_label', False):
@@ -3223,8 +3340,10 @@ class plots(mpl_plotter):
                                   fontsize=kwargs['label_size'],
                                   weight=kwargs['label_weight'])
 
-        try: gs.tight_layout(self.figure, pad=kwargs.get("grid_pad", 1.08))
-        except ValueError as e: print(e)
+        try:
+            gs.tight_layout(self.figure, pad=kwargs.get("grid_pad", 1.08))
+        except ValueError as e:
+            print(e)
         self.figure.tight_layout()
 
 #         extent = [xmin, ymin, xmax, ymax]
@@ -3289,14 +3408,14 @@ class plots(mpl_plotter):
             plot.set_ylim(ymin, ymax - 0.5)
 
             plot.tick_params(axis='both',
-                                    left=kwargs['ticks_left'],
-                                    right=kwargs['ticks_right'],
-                                    top=kwargs['ticks_top'],
-                                    bottom=kwargs['ticks_bottom'],
-                                    labelleft=kwargs['tickLabels_left'],
-                                    labelright=kwargs['tickLabels_right'],
-                                    labeltop=kwargs['tickLabels_top'],
-                                    labelbottom=kwargs['tickLabels_bottom'])
+                             left=kwargs['ticks_left'],
+                             right=kwargs['ticks_right'],
+                             top=kwargs['ticks_top'],
+                             bottom=kwargs['ticks_bottom'],
+                             labelleft=kwargs['tickLabels_left'],
+                             labelright=kwargs['tickLabels_right'],
+                             labeltop=kwargs['tickLabels_top'],
+                             labelbottom=kwargs['tickLabels_bottom'])
 
             # spines
             plot.spines['left'].set_visible(kwargs['spines_left'])
@@ -3313,13 +3432,13 @@ class plots(mpl_plotter):
 
             kwargs['label_pad'] = 5
             plot.set_xlabel(xlabel,
-                                   labelpad=kwargs['label_pad'],
-                                   fontsize=kwargs['label_size'],
-                                   weight=kwargs['label_weight'])
+                            labelpad=kwargs['label_pad'],
+                            fontsize=kwargs['label_size'],
+                            weight=kwargs['label_weight'])
             plot.set_ylabel(ylabel,
-                                   labelpad=kwargs['label_pad'],
-                                   fontsize=kwargs['label_size'],
-                                   weight=kwargs['label_weight'])
+                            labelpad=kwargs['label_pad'],
+                            fontsize=kwargs['label_size'],
+                            weight=kwargs['label_weight'])
 
         gs.tight_layout(self.figure)
         self.figure.tight_layout()
@@ -3350,17 +3469,22 @@ class plots(mpl_plotter):
             kwargs = merge_two_dicts(kwargs, self.plot_parameters)
             self.plot_parameters = kwargs
 
-        if kwargs['label_weight']: kwargs['label_weight'] = "heavy"
-        else: kwargs['label_weight'] = "normal"
+        if kwargs['label_weight']:
+            kwargs['label_weight'] = "heavy"
+        else:
+            kwargs['label_weight'] = "normal"
 
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         # Check if there are any labels attached with the data
-        if xlabelRMSD == "": xlabelRMSD = "Scans"
-        if ylabelRMSD == "": ylabelRMSD = "Drift time (bins)"
-        if ylabelRMSF == "": ylabelRMSF = "RMSD (%)"
+        if xlabelRMSD == "":
+            xlabelRMSD = "Scans"
+        if ylabelRMSD == "":
+            ylabelRMSD = "Drift time (bins)"
+        if ylabelRMSF == "":
+            ylabelRMSF = "RMSD (%)"
 
         if testMax == 'yvals':
             ydivider, expo = self.testXYmaxValsUpdated(values=yvalsRMSF)
@@ -3368,14 +3492,15 @@ class plots(mpl_plotter):
                 offset_text = r'x$\mathregular{10^{%d}}$' % expo
                 ylabelRMSF = ''.join([ylabelRMSF, " [", offset_text, "]"])
                 yvalsRMSF = np.divide(yvalsRMSF, float(ydivider))
-        else: ylabelRMSF = "RMSD (%)"
+        else:
+            ylabelRMSF = "RMSD (%)"
 
         # Plot RMSF data (top plot)
         if len(labelsX) != len(yvalsRMSF):
-                dlgBox(exceptionTitle='Missing data',
-                               exceptionMsg='Missing x-axis labels! Cannot execute this action!',
-                               type="Error")
-                return
+            dlgBox(exceptionTitle='Missing data',
+                   exceptionMsg='Missing x-axis labels! Cannot execute this action!',
+                   type="Error")
+            return
 
         self.plotRMSF = self.figure.add_subplot(gs[0], aspect='auto')
         self.plotRMSF.plot(labelsX, yvalsRMSF,
@@ -3434,8 +3559,8 @@ class plots(mpl_plotter):
             cbarDivider = make_axes_locatable(self.plotMS)
             # pad controls how close colorbar is to the axes
             self.cbar = cbarDivider.append_axes(kwargs['colorbar_position'],
-                                          size="".join([str(kwargs['colorbar_width']), "%"]),
-                                          pad=kwargs['colorbar_pad'])
+                                                size="".join([str(kwargs['colorbar_width']), "%"]),
+                                                pad=kwargs['colorbar_pad'])
             tick_min = np.min(zvals)
             tick_max = np.max(zvals)
             tick_mid = np.median([tick_min, tick_max])
@@ -3451,7 +3576,7 @@ class plots(mpl_plotter):
 
             if kwargs['colorbar_position'] in ['left', 'right']:
                 self.figure.colorbar(self.cax, cax=self.cbar,
-                                    ticks=ticks,
+                                     ticks=ticks,
                                      orientation='vertical')
                 self.cbar.yaxis.set_ticks_position(kwargs['colorbar_position'])
                 self.cbar.set_yticklabels(tick_labels)
@@ -3498,18 +3623,22 @@ class plots(mpl_plotter):
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotRMSF.spines.values()]
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
-        if kwargs['axis_onoff_1D']: self.plotRMSF.set_axis_on()
-        else: self.plotRMSF.set_axis_off()
+        if kwargs['axis_onoff_1D']:
+            self.plotRMSF.set_axis_on()
+        else:
+            self.plotRMSF.set_axis_off()
 
         # update gridspace
         gs.tight_layout(self.figure)
         self.figure.tight_layout()
 
     def plot_2D(self, zvals=None, title="", extent=None, xlabel="", ylabel="", zoom="box",
-                      axesSize=None, colorbar=False, legend=None, plotName="2D", **kwargs):
+                axesSize=None, colorbar=False, legend=None, plotName="2D", **kwargs):
         self.plotflag = True  # Used only if saving data
         self.zoomtype = zoom
         self.plot_name = plotName
@@ -3565,7 +3694,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -3574,8 +3703,10 @@ class plots(mpl_plotter):
             leg.draggable()
 
         # labels
-        if xlabel in ['None', None]: xlabel = ''
-        if ylabel in ['None', None]: ylabel = ''
+        if xlabel in ['None', None]:
+            xlabel = ''
+        if ylabel in ['None', None]:
+            ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -3590,8 +3721,8 @@ class plots(mpl_plotter):
         if kwargs['colorbar']:
             # pad controls how close colorbar is to the axes
             self.cbar = cbarDivider.append_axes(kwargs['colorbar_position'],
-                                          size="".join([str(kwargs['colorbar_width']), "%"]),
-                                          pad=kwargs['colorbar_pad'])
+                                                size="".join([str(kwargs['colorbar_width']), "%"]),
+                                                pad=kwargs['colorbar_pad'])
 
             ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
 
@@ -3629,15 +3760,17 @@ class plots(mpl_plotter):
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         # add data
-        self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
-                          'xlabel':xlabel, 'ylabel':ylabel}
+        self.plot_data = {'xvals': xvals, 'yvals': yvals, 'zvals': zvals,
+                          'xlabel': xlabel, 'ylabel': ylabel}
 
     def plot_2D_surface(self, zvals, xvals, yvals, xlabel, ylabel,
                         legend=False, zoom='box',
@@ -3682,7 +3815,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -3696,8 +3829,10 @@ class plots(mpl_plotter):
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         # labels
-        if xlabel in ['None', None, ""]: xlabel = ''
-        if ylabel in ['None', None, ""]: ylabel = ''
+        if xlabel in ['None', None, ""]:
+            xlabel = ''
+        if ylabel in ['None', None, ""]:
+            ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -3713,8 +3848,8 @@ class plots(mpl_plotter):
             cbarDivider = make_axes_locatable(self.plotMS)
             # pad controls how close colorbar is to the axes
             self.cbar = cbarDivider.append_axes(kwargs['colorbar_position'],
-                                          size="".join([str(kwargs['colorbar_width']), "%"]),
-                                          pad=kwargs['colorbar_pad'])
+                                                size="".join([str(kwargs['colorbar_width']), "%"]),
+                                                pad=kwargs['colorbar_pad'])
 
             tick_min = np.min(zvals)
             tick_max = np.max(zvals)
@@ -3762,13 +3897,15 @@ class plots(mpl_plotter):
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         # add data
-        self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
-                          'xlabel':xlabel, 'ylabel':ylabel}
-        self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
+        self.plot_data = {'xvals': xvals, 'yvals': yvals, 'zvals': zvals,
+                          'xlabel': xlabel, 'ylabel': ylabel}
+        self.plot_labels.update({'xlabel': xlabel, 'ylabel': ylabel})
 
     def plot_2D_contour(self, zvals, xvals, yvals, xlabel, ylabel,
                         legend=False, zoom='box',
@@ -3811,7 +3948,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -3822,8 +3959,10 @@ class plots(mpl_plotter):
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         # labels
-        if xlabel in ['None', None, ""]: xlabel = ''
-        if ylabel in ['None', None, ""]: ylabel = ''
+        if xlabel in ['None', None, ""]:
+            xlabel = ''
+        if ylabel in ['None', None, ""]:
+            ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -3839,11 +3978,12 @@ class plots(mpl_plotter):
             cbarDivider = make_axes_locatable(self.plotMS)
             # pad controls how close colorbar is to the axes
             self.cbar = cbarDivider.append_axes(kwargs['colorbar_position'],
-                                          size="".join([str(kwargs['colorbar_width']), "%"]),
-                                          pad=kwargs['colorbar_pad'])
+                                                size="".join([str(kwargs['colorbar_width']), "%"]),
+                                                pad=kwargs['colorbar_pad'])
 
             ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
-            if ticks[1] in [ticks[0], ticks[2]]: ticks[1] = 0
+            if ticks[1] in [ticks[0], ticks[2]]:
+                ticks[1] = 0
 
             self.cbar.ticks = ticks
 #             self.cbar.tick_labels = tick_labels
@@ -3879,13 +4019,15 @@ class plots(mpl_plotter):
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
 
         # update axis frame
-        if kwargs['axis_onoff']: self.plotMS.set_axis_on()
-        else: self.plotMS.set_axis_off()
+        if kwargs['axis_onoff']:
+            self.plotMS.set_axis_on()
+        else:
+            self.plotMS.set_axis_off()
 
         # add data
-        self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
-                          'xlabel':xlabel, 'ylabel':ylabel}
-        self.plot_labels.update({'xlabel':xlabel, 'ylabel':ylabel})
+        self.plot_data = {'xvals': xvals, 'yvals': yvals, 'zvals': zvals,
+                          'xlabel': xlabel, 'ylabel': ylabel}
+        self.plot_labels.update({'xlabel': xlabel, 'ylabel': ylabel})
 
     def plot_2D_contour_unidec(self, data=None, zvals=None, xvals=None, yvals=None,
                                xlabel="m/z (Da)", ylabel="Charge", legend=False,
@@ -3954,8 +4096,10 @@ class plots(mpl_plotter):
             self.plotMS.yaxis.set_major_locator(MaxNLocator(integer=True))
 
         # labels
-        if xlabel in ['None', None, ""]: xlabel = ''
-        if ylabel in ['None', None, ""]: ylabel = ''
+        if xlabel in ['None', None, ""]:
+            xlabel = ''
+        if ylabel in ['None', None, ""]:
+            ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                labelpad=kwargs['label_pad'],
@@ -3971,11 +4115,12 @@ class plots(mpl_plotter):
         if kwargs['colorbar']:
             # pad controls how close colorbar is to the axes
             self.cbar = cbarDivider.append_axes(kwargs['colorbar_position'],
-                                          size="".join([str(kwargs['colorbar_width']), "%"]),
-                                          pad=kwargs['colorbar_pad'])
+                                                size="".join([str(kwargs['colorbar_width']), "%"]),
+                                                pad=kwargs['colorbar_pad'])
 
             ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
-            if ticks[1] in [ticks[0], ticks[2]]: ticks[1] = 0
+            if ticks[1] in [ticks[0], ticks[2]]:
+                ticks[1] = 0
 
             tick_labels = ["0", "%", "100"]
 
@@ -4019,8 +4164,10 @@ class plots(mpl_plotter):
             self.plotMS.set_axis_off()
 
         if title != "":
-            if kwargs['title_weight']: title_weight = "heavy"
-            else: title_weight = "normal"
+            if kwargs['title_weight']:
+                title_weight = "heavy"
+            else:
+                title_weight = "normal"
             self.plotMS.set_title(title,
                                   fontsize=kwargs['title_size'],
                                   weight=title_weight)
@@ -4030,8 +4177,8 @@ class plots(mpl_plotter):
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent,
                         plotName=plotName, allowWheel=False)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-        self.plot_data = {'xvals':xvals, 'yvals':yvals, 'zvals':zvals,
-                          'xlabel':xlabel, 'ylabel':ylabel}
+        self.plot_data = {'xvals': xvals, 'yvals': yvals, 'zvals': zvals,
+                          'xlabel': xlabel, 'ylabel': ylabel}
 
     def plot_2D_rgb(self, zvals, xvals, yvals, xlabel, ylabel,
                     zoom="box", axesSize=None, legend_text=None,
@@ -4082,7 +4229,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -4160,7 +4307,7 @@ class plots(mpl_plotter):
             self.plotMS.set_yticklabels(xylabels,
                                         rotation=kwargs['rmsd_matrix_rotY'])
 
-        extent = [0.5, xsize + 0.5 , 0.5, xsize + 0.5]
+        extent = [0.5, xsize + 0.5, 0.5, xsize + 0.5]
 
         # Add imshow
         self.cax = self.plotMS.imshow(zvals,
@@ -4204,7 +4351,7 @@ class plots(mpl_plotter):
                                        ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                        fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                        frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                                       framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                                       framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                        markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                        markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                        fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -4216,8 +4363,8 @@ class plots(mpl_plotter):
         if kwargs['colorbar']:
             # pad controls how close colorbar is to the axes
             self.cbar = cbarDivider.append_axes(kwargs['colorbar_position'],
-                                          size="".join([str(kwargs['colorbar_width']), "%"]),
-                                          pad=kwargs['colorbar_pad'])
+                                                size="".join([str(kwargs['colorbar_width']), "%"]),
+                                                pad=kwargs['colorbar_pad'])
 
             ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
             tick_labels = ["0", "%", "100"]
@@ -4262,7 +4409,7 @@ class plots(mpl_plotter):
                         plotName=plotName)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
-    #-----
+    # -----
 
     def plot_2D_overlay(self, zvalsIon1=None, zvalsIon2=None, cmapIon1='Reds',
                         cmapIon2='Greens', alphaIon1=1, alphaIon2=1,
@@ -4314,7 +4461,7 @@ class plots(mpl_plotter):
                                ncol=kwargs.get('legend_num_columns', self.config.legendColumns),
                                fontsize=kwargs.get('legend_font_size', self.config.legendFontSize),
                                frameon=kwargs.get('legend_frame_on', self.config.legendFrame),
-                               framealpha=kwargs.get('legend_transparency' , self.config.legendAlpha),
+                               framealpha=kwargs.get('legend_transparency', self.config.legendAlpha),
                                markerfirst=kwargs.get('legend_marker_first', self.config.legendMarkerFirst),
                                markerscale=kwargs.get('legend_marker_size', self.config.legendMarkerSize),
                                fancybox=kwargs.get('legend_fancy_box', self.config.legendFancyBox),
@@ -4326,8 +4473,10 @@ class plots(mpl_plotter):
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         # labels
-        if xlabel in ['None', None, ""]: xlabel = ''
-        if ylabel in ['None', None, ""]: ylabel = ''
+        if xlabel in ['None', None, ""]:
+            xlabel = ''
+        if ylabel in ['None', None, ""]:
+            ylabel = ''
 
         self.plotMS.set_xlabel(xlabel,
                                fontsize=kwargs['label_size'],
@@ -4539,8 +4688,8 @@ class plots(mpl_plotter):
         self.plotMS.set_position(axesSize)
 
     def plot_3D_wireframe(self, xvals=None, yvals=None, zvals=None, colors=None,
-                        xlabel=None, ylabel=None, zlabel=None, plotName='whole',
-                        axesSize=None, plotType="Wireframe3D", **kwargs):
+                          xlabel=None, ylabel=None, zlabel=None, plotName='whole',
+                          axesSize=None, plotType="Wireframe3D", **kwargs):
         if axesSize is not None:
             self._axes = axesSize
         self.plotflag = True  # Used only if saving data
@@ -4565,8 +4714,8 @@ class plots(mpl_plotter):
                                    color=kwargs['line_color'],
                                    linewidth=kwargs['line_width'],
                                    linestyle=kwargs['line_style'],
-                                    antialiased=False,
-                                 )
+                                   antialiased=False,
+                                   )
 
         # update labels
         self.plotMS.set_xlabel(self.plotMS.get_xlabel(),
@@ -4704,7 +4853,7 @@ class plots(mpl_plotter):
         self.plotMS.set_ylim([np.min(yvals), np.max(yvals)])
         self.plotMS.set_zlim([np.min(zvals), np.max(zvals)])
 
-    #----
+    # ----
 
 # class MayaviPanel(HasTraits):
 #     scene = Instance(MlabSceneModel, ())

@@ -18,27 +18,21 @@
 # __author__ lukasz.g.migas
 import wx
 
-from styles import makeCheckbox
+from styles import makeCheckbox, Dialog
 
 
-class dialog_customise_user_annotations(wx.Dialog):
+class DialogCustomiseUserAnnotations(Dialog):
 
-    def __init__(self, parent, config, **kwargs):
-        wx.Dialog.__init__(self, parent, -1, 'Annotation...', size=(-1, -1),
-                           style=wx.DEFAULT_FRAME_STYLE & ~
-                           (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+    def __init__(self, parent, **kwargs):
+        Dialog.__init__(self, parent, title='Annotation...')
 
         self.parent = parent
-        self.config = config
+        self.config = kwargs["config"]
 
         self.make_gui()
         self.CentreOnParent()
 
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
-
-    def onOK(self, evt):
+    def on_ok(self, evt):
         self.EndModal(wx.OK)
 
     def make_gui(self):
@@ -47,16 +41,16 @@ class dialog_customise_user_annotations(wx.Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 0, wx.EXPAND, 10)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 0, wx.EXPAND, 10)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
         panel = wx.Panel(self, -1)
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         charge_std_dev = wx.StaticText(panel, -1, "Charge prediction (std dev):")
         self.charge_std_dev_value = wx.SpinCtrlDouble(panel, -1,
@@ -86,11 +80,11 @@ class dialog_customise_user_annotations(wx.Dialog):
 
         arrow_cap_length_value = wx.StaticText(panel, -1, "Arrow cap length:")
         self.arrow_cap_length_value = wx.SpinCtrlDouble(panel, -1,
-                                                       value=str(self.config.annotation_arrow_cap_length),
-                                                       min=0.0, max=1000,
-                                                       initial=self.config.annotation_arrow_cap_length,
-                                                       inc=0.1,
-                                                       size=(-1, -1))
+                                                        value=str(self.config.annotation_arrow_cap_length),
+                                                        min=0.0, max=1000,
+                                                        initial=self.config.annotation_arrow_cap_length,
+                                                        inc=0.1,
+                                                        size=(-1, -1))
         self.arrow_cap_length_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         arrow_cap_width_value = wx.StaticText(panel, -1, "Arrow cap width:")
@@ -115,22 +109,22 @@ class dialog_customise_user_annotations(wx.Dialog):
 
         label_fontOrientation_label = wx.StaticText(panel, -1, "Font orientation:")
         self.label_fontOrientation_value = wx.Choice(panel, -1,
-                                   choices=self.config.label_font_orientation_list,
-                                   size=(-1, -1))
+                                                     choices=self.config.label_font_orientation_list,
+                                                     size=(-1, -1))
         self.label_fontOrientation_value.SetStringSelection(self.config.annotation_label_font_orientation)
         self.label_fontOrientation_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         label_fontSize_label = wx.StaticText(panel, -1, "Font size:")
         self.label_fontSize_value = wx.Choice(panel, -1,
-                                   choices=self.config.label_fontsize_list,
-                                   size=(-1, -1))
+                                              choices=self.config.label_fontsize_list,
+                                              size=(-1, -1))
         self.label_fontSize_value.SetStringSelection(self.config.annotation_label_font_size)
         self.label_fontSize_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         label_fontWeight_label = wx.StaticText(panel, -1, "Font weight:")
         self.label_fontWeight_value = wx.Choice(panel, -1,
-                                   choices=self.config.label_fontweight_list,
-                                   size=(-1, -1))
+                                                choices=self.config.label_fontweight_list,
+                                                size=(-1, -1))
         self.label_fontWeight_value.SetStringSelection(self.config.annotation_label_font_weight)
         self.label_fontWeight_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
@@ -167,20 +161,20 @@ class dialog_customise_user_annotations(wx.Dialog):
 
         highlight_alpha = wx.StaticText(panel, -1, "Highlight transparency:")
         self.highlight_alpha_value = wx.SpinCtrlDouble(panel, -1,
-                                                     value=str(self.config.annotation_patch_transparency),
-                                                     min=0., max=1.,
-                                                     initial=self.config.annotation_patch_transparency,
-                                                     inc=0.2,
-                                                     size=(-1, -1))
+                                                       value=str(self.config.annotation_patch_transparency),
+                                                       min=0., max=1.,
+                                                       initial=self.config.annotation_patch_transparency,
+                                                       inc=0.2,
+                                                       size=(-1, -1))
         self.highlight_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         highlight_width = wx.StaticText(panel, -1, "Highlight width:")
         self.highlight_width_value = wx.SpinCtrlDouble(panel, -1,
-                                                     value=str(self.config.annotation_patch_width),
-                                                     min=1., max=10.,
-                                                     initial=self.config.annotation_patch_width,
-                                                     inc=1,
-                                                     size=(-1, -1))
+                                                       value=str(self.config.annotation_patch_width),
+                                                       min=1., max=10.,
+                                                       initial=self.config.annotation_patch_width,
+                                                       inc=1,
+                                                       size=(-1, -1))
         self.highlight_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 #
 #         self.applyBtn = wx.Button(panel, wx.ID_ANY, "Apply", size=(-1, 22))
@@ -244,11 +238,11 @@ class dialog_customise_user_annotations(wx.Dialog):
 #         y = y+1
 #         grid.Add(self.applyBtn, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
 #         grid.Add(self.closeBtn, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
-        mainSizer.Add(grid, 0, wx.EXPAND, 10)
+        main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

@@ -144,7 +144,7 @@ class UniDec(UniDecEngine):
                 print("Could not copy raw datafile")
 
         # Initialize Config
-        if os.path.isfile(self.config.confname) :
+        if os.path.isfile(self.config.confname):
             self.load_config(self.config.confname)
 
         tend = time.clock()

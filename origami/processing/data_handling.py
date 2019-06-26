@@ -1,3 +1,4 @@
+import logging
 import wx
 import os
 import threading
@@ -8,19 +9,17 @@ import numpy as np
 import math
 from gui_elements.dialog_multi_directory_picker import DialogMultiDirectoryPicker
 import readers.io_text_files as io_text
-import readers.io_waters_raw as io_waters
-import readers.io_waters_raw_api as io_waters_raw_api
 import processing.spectra as pr_spectra
 from document import document as documents
 from ids import ID_window_ionList, ID_window_multiFieldList, ID_load_origami_masslynx_raw, ID_load_masslynx_raw, \
-    ID_openIRRawFile, ID_window_multipleMLList, ID_window_ccsList, ID_combineCEscansSelectedIons
+    ID_openIRRawFile, ID_window_multipleMLList, ID_window_ccsList
 from gui_elements.misc_dialogs import dlgBox
 from utils.check import isempty, check_value_order, check_axes_spacing
-from utils.time import getTime, ttime, tsleep
+from utils.time import getTime, ttime
 from utils.path import get_path_and_fname, check_waters_path, check_path_exists, get_base_path
 from utils.converters import byte2str, str2num, str2int
 from utils.random import randomIntegerGenerator
-from utils.color import convertRGB255to1, convertRGB1to255, randomColorGenerator, determineFontColor
+from utils.color import convertRGB255to1, convertRGB1to255, randomColorGenerator
 from utils.ranges import get_min_max
 from processing.utils import get_maximum_value_in_range, find_nearest_value
 import processing.origami_ms as pr_origami
@@ -28,10 +27,16 @@ from gui_elements.dialog_select_document import DialogSelectDocument
 import processing.heatmap as pr_heatmap
 from readers.io_document import save_py_object, open_py_object
 
-import logging
+# enable on windowsOS only
+from sys import platform
+if platform == "win32":
+    import readers.io_waters_raw as io_waters
+    import readers.io_waters_raw_api as io_waters_raw_api
+
 logger = logging.getLogger("origami")
 
-# TODO: on_open_MassLynx_raw_MS_only: This function is currently broken: OSError: [WinError -529697949] Windows Error 0xe06d7363
+# TODO: on_open_MassLynx_raw_MS_only: This function is currently broken:
+# OSError: [WinError -529697949] Windows Error 0xe06d7363
 
 
 class data_handling():
@@ -354,10 +359,10 @@ class data_handling():
                     document.multipleMassSpectrum[nameValue]['path'] = path
                 except Exception:
                     msg = \
-                    "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
-                    "by updating the document path by right-clicking on the document and selecting\n" + \
-                    "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
-                    "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
+                        "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n" + \
+                        "by updating the document path by right-clicking on the document and selecting\n" + \
+                        "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
+                        "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
                     dlgBox(exceptionTitle='Error', exceptionMsg=msg, type="Error")
                     return
 
@@ -938,8 +943,8 @@ class data_handling():
             self.config.lastDir = os.getcwd()
 
         dlg = DialogMultiDirectoryPicker(self.view,
-                                     title="Choose Waters (.raw) files to open...",
-                                     default_path=self.config.lastDir)
+                                         title="Choose Waters (.raw) files to open...",
+                                         default_path=self.config.lastDir)
 
         if dlg.ShowModal() == "ok":  # wx.ID_OK:
             pathlist = dlg.GetPaths()
@@ -1359,8 +1364,8 @@ class data_handling():
             self.config.lastDir = os.getcwd()
 
         dlg = DialogMultiDirectoryPicker(self.view,
-                                     title="Choose Waters (.raw) files to open...",
-                                     default_path=self.config.lastDir)
+                                         title="Choose Waters (.raw) files to open...",
+                                         default_path=self.config.lastDir)
 #
         if dlg.ShowModal() == "ok":
             pathlist = dlg.GetPaths()
@@ -1495,8 +1500,8 @@ class data_handling():
         xlimits = [parameters['startMS'], parameters['endMS']]
         data = {'xvals': ms_x,
                 'yvals': ms_y_sum,
-                'xlabels':'m/z (Da)',
-                'xlimits':xlimits}
+                'xlabels': 'm/z (Da)',
+                'xlimits': xlimits}
         self.documentTree.on_update_data(data, "", document, data_type="main.spectrum")
         # Plot
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
@@ -1530,10 +1535,10 @@ class data_handling():
         # Load data
         extract_kwargs = {'return_data': True, 'normalize': False}
         rtDataX, rtDataY = io_waters.driftscope_extract_RT(path=document.path,
-                                                            driftscope_path=self.config.driftscopePath,
-                                                            mz_start=mzStart, mz_end=mzEnd,
-                                                            dt_start=dtStart, dt_end=dtEnd,
-                                                            **extract_kwargs)
+                                                           driftscope_path=self.config.driftscopePath,
+                                                           mz_start=mzStart, mz_end=mzEnd,
+                                                           dt_start=dtStart, dt_end=dtEnd,
+                                                           **extract_kwargs)
         self.plotsPanel.on_plot_RT(rtDataX, rtDataY, 'Scans')
 
         ion_name = f"Ion: {mzStart:.2f}-{mzEnd:.2f} | Drift time: {dtStart:.2f}-{dtEnd:.2f}"
@@ -1557,9 +1562,9 @@ class data_handling():
         # Extract data
         extract_kwargs = {'return_data': True}
         msX, msY = io_waters.driftscope_extract_MS(path=document.path,
-                                                    driftscope_path=self.config.driftscopePath,
-                                                    dt_start=dtStart, dt_end=dtEnd,
-                                                    **extract_kwargs)
+                                                   driftscope_path=self.config.driftscopePath,
+                                                   dt_start=dtStart, dt_end=dtEnd,
+                                                   **extract_kwargs)
         xlimits = [document.parameters['startMS'], document.parameters['endMS']]
 
         # Add data to dictionary
@@ -1670,10 +1675,10 @@ class data_handling():
         try:
             extract_kwargs = {'return_data': True}
             msX, msY = io_waters.driftscope_extract_MS(path=document.path,
-                                                        driftscope_path=self.config.driftscopePath,
-                                                        rt_start=rtStart, rt_end=rtEnd,
-                                                        dt_start=dtStart, dt_end=dtEnd,
-                                                        **extract_kwargs)
+                                                       driftscope_path=self.config.driftscopePath,
+                                                       rt_start=rtStart, rt_end=rtEnd,
+                                                       dt_start=dtStart, dt_end=dtEnd,
+                                                       **extract_kwargs)
             if xlimits is None:
                 xlimits = [np.min(msX), np.max(msX)]
         except (IOError, ValueError):
@@ -1959,7 +1964,7 @@ class data_handling():
             if document.dataType == 'Type: MANUAL':
                 count = self.filesList.GetItemCount() + len(document.multipleMassSpectrum)
                 colors = self.plotsPanel.onChangePalette(None, n_colors=count + 1, return_colors=True)
-                for i, key in enumerate(document.multipleMassSpectrum):
+                for __, key in enumerate(document.multipleMassSpectrum):
                     energy = document.multipleMassSpectrum[key]['trap']
                     if 'color' in document.multipleMassSpectrum[key]:
                         color = document.multipleMassSpectrum[key]['color']
@@ -2088,7 +2093,7 @@ class data_handling():
                     document_title = itemInfo['document']
                     # Check that data was extracted first
                     if document_title == '':
-#                         self.onThreading(None, ('Please extract data first', 3), action='updateStatusbar')
+                        #                         self.onThreading(None, ('Please extract data first', 3), action='updateStatusbar')
                         continue
                     document = self._on_get_document(document_title)
                     dataType = document.dataType
@@ -2164,7 +2169,7 @@ class data_handling():
                         comparison_flag = False
                         selectedItem = document_title
                         itemName = "file={}".format(document_title)
-                    except Exception as e:
+                    except Exception as __:
                         comparison_flag = True
                         document_title, ion_name = re.split(': ', document_title)
                         document = self._on_get_document(document_title)
@@ -2244,12 +2249,12 @@ class data_handling():
             document = self._get_document_of_type('Type: Comparison')
             document.gotOverlay = True
             document.IMS2DoverlayData[idName] = {'xvals': xlist,
-                                                  'yvals': ylist,
-                                                  'xlabel': xlabels,
-                                                  'colors': colorlist,
-                                                  'xlimits': xlimits,
-                                                  'labels': legend
-                                                  }
+                                                 'yvals': ylist,
+                                                 'xlabel': xlabels,
+                                                 'colors': colorlist,
+                                                 'xlimits': xlimits,
+                                                 'labels': legend
+                                                 }
             document_title = document.title
             self.on_update_document(document, 'comparison_data')
 
@@ -2259,11 +2264,11 @@ class data_handling():
                                                xlimits=xlimits, labels=legend, set_page=True)
         elif plot_type == "chromatogram":
             self.plotsPanel.on_plot_overlay_RT(xvals=xlist, yvals=ylist, xlabel=xlabels, colors=colorlist,
-                                                    xlimits=xlimits, labels=legend, set_page=True)
+                                               xlimits=xlimits, labels=legend, set_page=True)
 
     def on_update_DTMS_zoom(self, xmin, xmax, ymin, ymax):
         """Event driven data sub-sampling
-        
+
         Parameters
         ----------
         xmin: float
@@ -2304,7 +2309,7 @@ class data_handling():
             return
         # replot
         self.plotsPanel.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel,
-                                          override=False, update_extents=False)
+                                     override=False, update_extents=False)
         logger.info("Sub-sampling took {:.4f}".format(ttime() - tstart))
 
     def on_combine_mass_spectra(self, document_name=None):
@@ -2367,7 +2372,7 @@ class data_handling():
 
             # Add data
             document.gotMS = True
-            document.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels':'m/z (Da)', 'xlimits':xlimits}
+            document.massSpectrum = {'xvals': msDataX, 'yvals': msDataY, 'xlabels': 'm/z (Da)', 'xlimits': xlimits}
             # Plot
             name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
             self.plotsPanel.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
@@ -2404,9 +2409,9 @@ class data_handling():
 
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
         self.plotsPanel.on_plot_MS(document.massSpectrum['xvals'],
-                                        document.massSpectrum['yvals'],
-                                        xlimits=document.massSpectrum['xlimits'],
-                                        **name_kwargs)
+                                   document.massSpectrum['yvals'],
+                                   xlimits=document.massSpectrum['xlimits'],
+                                   **name_kwargs)
         # Show rectangles
         # Need to check whether there were any ions in the table already
         last = peaklist.GetItemCount() - 1

@@ -145,8 +145,12 @@ class panelDocumentInfo(wx.MiniFrame):
         self.plotIMS_butt.SetToolTip(wx.ToolTip("Plot (2D) information"))
         self.plotIMS_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
-        self.plotCali_butt = wx.BitmapButton(panel, ID_documentInfoCalibration, self.icons.iconsLib['plotCalibration16'],
-                                             size=(toolbar_toolsize), style=wx.BORDER_NONE)
+        self.plotCali_butt = wx.BitmapButton(
+            panel,
+            ID_documentInfoCalibration,
+            self.icons.iconsLib['plotCalibration16'],
+            size=(toolbar_toolsize),
+            style=wx.BORDER_NONE)
         self.plotCali_butt.SetToolTip(wx.ToolTip("CCS calibration information"))
         self.plotCali_butt.Bind(wx.EVT_BUTTON, self.onToolSelected)
 
@@ -789,7 +793,7 @@ class panelDocumentInfo(wx.MiniFrame):
         layout(self, self.mainSizer)
 
     def on_apply(self, evt):
-        """ 
+        """
         This function applies any changes made to the document
         """
 
@@ -937,9 +941,8 @@ class panelDocumentInfo(wx.MiniFrame):
                                                                      splitText[1],
                                                                      self.document.title)
                 if row is not None:
-                    self.presenter.view.panelMultipleIons.peaklist.SetStringItem(index=row,
-                                                                                 col=self.config.peaklistColNames['charge'],
-                                                                                 label=self.charge_value.GetValue())
+                    self.presenter.view.panelMultipleIons.peaklist.SetStringItem(
+                        index=row, col=self.config.peaklistColNames['charge'], label=self.charge_value.GetValue())
 
 # ---
 
@@ -1008,7 +1011,7 @@ class panelDocumentInfo(wx.MiniFrame):
                 self.restoreDefaultY_check.Enable()
 
     def onAnnotateProteinInfo(self, data):
-        """ 
+        """
         receive data from the 'Select protein...' panel and add it to the GUI
         """
         protein = data[0]

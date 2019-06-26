@@ -18,19 +18,17 @@
 # __author__ lukasz.g.migas
 
 from ast import literal_eval
-from operator import itemgetter
 from re import split as re_split
 from time import time as ttime
 
 import wx
-from natsort import natsorted
-from numpy import amax, arange, average, round, where
+from numpy import amax, average, round, where
 from pandas import read_csv
 from pubsub import pub
 
 import processing.utils as pr_utils
 from gui_elements.dialog_customise_user_annotations import \
-    dialog_customise_user_annotations
+    DialogCustomiseUserAnnotations
 from help_documentation import OrigamiHelp
 from ids import (ID_annotPanel_addAnnotations,
                  ID_annotPanel_assignChargeState_selected,
@@ -51,6 +49,7 @@ from gui_elements.misc_dialogs import dlgBox, dlgAsk
 from utils.color import convertRGB1to255, convertRGB255to1
 from utils.converters import str2num, str2int
 from utils.labels import _replace_labels
+from gui_elements.dialog_color_picker import DialogColorPicker
 
 # TODO: need to override the on_select_item with the built-in method OR call after with similar method
 
@@ -212,8 +211,8 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         self.colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
 
         label_format = wx.StaticText(panel, -1, "format:")
-        self.label_format = wx.ComboBox(panel, -1, choices=["None", "charge-only [n+]", "charge-only [+n]", "superscript", "M+nH", "2M+nH", "3M+nH", "4M+nH"],
-                                        value="None", style=wx.CB_READONLY, size=(-1, -1))
+        self.label_format = wx.ComboBox(panel, -1, choices=["None", "charge-only [n+]", "charge-only [+n]",
+                                                            "superscript", "M+nH", "2M+nH", "3M+nH", "4M+nH"], value="None", style=wx.CB_READONLY, size=(-1, -1))
 
         intensity_label = wx.StaticText(panel, -1, "value (y):")
         self.intensity_value = wx.TextCtrl(panel, -1, "", validator=validator('float'))
@@ -417,10 +416,13 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_annotPanel_multipleAnnotation,
                                      text="Multiply annotation (selected)",
                                      bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_annotPanel_addAnnotations,
-                                     text='Add list of ions (.csv/.txt)',
-                                     bitmap=self.icons.iconsLib['filelist_16'],
-                                     help_text='Format: min, max, charge (optional), label (optional), color (optional)'))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu,
+                id=ID_annotPanel_addAnnotations,
+                text='Add list of ions (.csv/.txt)',
+                bitmap=self.icons.iconsLib['filelist_16'],
+                help_text='Format: min, max, charge (optional), label (optional), color (optional)'))
         menu.AppendSeparator()
         menu.Append(ID_annotPanel_assignColor_selected, "Set color (selected)")
         menu.AppendItem(makeMenuItem(parent=menu, id=ID_annotPanel_assignChargeState_selected,
@@ -449,13 +451,15 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         self.Bind(wx.EVT_TOOL, self.on_check_tools, id=ID_annotPanel_show_adjustLabelPosition)
 
         menu = wx.Menu()
-        self.showLabelsAtIntensity_check = menu.AppendCheckItem(ID_annotPanel_show_labelsAtIntensity,
-                                                                "Show labels at intensity value",
-                                                                help="If checked, labels will 'stick' to the intensity values")
+        self.showLabelsAtIntensity_check = menu.AppendCheckItem(
+            ID_annotPanel_show_labelsAtIntensity,
+            "Show labels at intensity value",
+            help="If checked, labels will 'stick' to the intensity values")
         self.showLabelsAtIntensity_check.Check(self.showLabelsAtIntensity)
-        self.adjustLabelPosition_check = menu.AppendCheckItem(ID_annotPanel_show_adjustLabelPosition,
-                                                              "Adjust positions to prevent overlap",
-                                                              help="If checked, labels will be repositioned to prevent overlap.")
+        self.adjustLabelPosition_check = menu.AppendCheckItem(
+            ID_annotPanel_show_adjustLabelPosition,
+            "Adjust positions to prevent overlap",
+            help="If checked, labels will be repositioned to prevent overlap.")
         self.adjustLabelPosition_check.Check(self.adjustLabelPosition)
 
         menu.AppendSeparator()
@@ -481,7 +485,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
 
     def onCustomiseParameters(self, evt):
 
-        dlg = dialog_customise_user_annotations(self, self.config)
+        dlg = DialogCustomiseUserAnnotations(self, config=self.config)
         dlg.ShowModal()
 
     def onFixIntensity(self, evt):
@@ -626,10 +630,15 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                 if intensity_name is not None:
                     intensity = peaklist[intensity_name][peak]
                 else:
-                    intensity = round(pr_utils.find_peak_maximum(pr_utils.get_narrow_data_range(data=self.kwargs["data"],
-                                                                                                mzRange=[min_value, max_value]),
-                                                                 fail_value=0.),
-                                      2)
+                    intensity = round(
+                        pr_utils.find_peak_maximum(
+                            pr_utils.get_narrow_data_range(
+                                data=self.kwargs["data"],
+                                mzRange=[
+                                    min_value,
+                                    max_value]),
+                            fail_value=0.),
+                        2)
                 if charge_name is not None:
                     charge_value = peaklist[charge_name][peak]
                 else:
@@ -713,30 +722,21 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                 rows -= 1
 
     def onChangeColour(self, evt):
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in range(len(self.config.customColors)):  # key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.GetColourData().SetChooseFull(True)
 
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-            # Retrieve custom colors
-            for i in range(15):
-                self.config.customColors[i] = data.GetCustomColour(i)
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, __ = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
         else:
             return
+
         if evt.GetId() == ID_annotPanel_assignColor_selected:
             rows = self.peaklist.GetItemCount()
             for row in range(rows):
                 if self.peaklist.IsChecked(index=row):
                     self.peaklist.SetStringItem(index=row,
                                                 col=self.annotation_list["color"],
-                                                label=str(convertRGB255to1(newColour)))
+                                                label=str(color_1))
                     self.onUpdateAnnotation(row)
 
             # update document
@@ -745,64 +745,8 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                                                  self.kwargs['dataset'],
                                                  set_data_only=True)
         else:
-            self.config.interactive_ms_annotations_color = convertRGB255to1(newColour)
-            self.colorBtn.SetBackgroundColour(newColour)
-
-#     def OnGetColumnClick(self, evt):
-#         column = evt.GetColumn()
-#
-#         if column == self.annotation_list['check']:
-#             self.OnCheckAllItems()
-#         else:
-#             if self.lastColumn is None:
-#                 self.lastColumn = column
-#             elif self.lastColumn == column:
-#                 if self.reverse :
-#                     self.reverse = False
-#                 else:
-#                     self.reverse = True
-#             else:
-#                 self.reverse = False
-#                 self.lastColumn = column
-#
-#             columns = self.peaklist.GetColumnCount()
-#             rows = self.peaklist.GetItemCount()
-#
-#             tempData = []
-#             for row in range(rows):
-#                 tempRow = []
-#                 for col in range(columns):
-#                     item = self.peaklist.GetItem(itemId=row, col=col)
-#                     tempRow.append(item.GetText())
-#                 tempRow.append(self.peaklist.IsChecked(index=row))
-#                 tempData.append(tempRow)
-#
-#             # Sort data
-#             tempData = natsorted(tempData, key=itemgetter(column), reverse=self.reverse)
-#             # Clear table
-#             self.peaklist.DeleteAllItems()
-#
-#             checkData = []
-#             for check in tempData:
-#                 checkData.append(check[-1])
-#                 del check[-1]
-#
-#             # Reinstate data
-#             rowList = arange(len(tempData))
-#             for row, check in zip(rowList, checkData):
-#                 self.peaklist.Append(tempData[row])
-#                 self.peaklist.CheckItem(row, check)
-
-#     def OnCheckAllItems(self):
-#         """
-#         Check/uncheck all items in the list
-#         """
-#         self.check_all = not self.check_all
-#
-#         rows = self.peaklist.GetItemCount()
-#
-#         for row in range(rows):
-#             self.peaklist.CheckItem(row, check=self.check_all)
+            self.config.interactive_ms_annotations_color = color_1
+            self.colorBtn.SetBackgroundColour(color_255)
 
     def on_select_item(self, evt):
 

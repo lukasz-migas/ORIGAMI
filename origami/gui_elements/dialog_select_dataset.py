@@ -60,7 +60,7 @@ class DialogSelectDataset(Dialog):
 
         documentList_label = wx.StaticText(panel, -1, "Document:")
         self.document_list_choice = wx.ComboBox(panel, -1, choices=self.documentList,
-                                               size=(300, -1), style=wx.CB_READONLY)
+                                                size=(300, -1), style=wx.CB_READONLY)
         self.document_list_choice.Select(0)
         self.document_list_choice.Bind(wx.EVT_COMBOBOX, self.on_update_gui)
 

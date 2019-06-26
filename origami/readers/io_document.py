@@ -26,7 +26,7 @@ logger = logging.getLogger("origami")
 
 
 def save_py_object(filename=None, saveFile=None):
-    """ 
+    """
     Simple tool to save objects/dictionaries
     """
     tstart = time.time()

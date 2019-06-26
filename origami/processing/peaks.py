@@ -35,8 +35,18 @@ def mask_peaks_props(pks_props, mask):
     return pks_props
 
 
-def find_peaks_in_spectrum_peak_properties(x_signal, y_signal, threshold=250, width=0, rel_height=0.5, min_intensity=0., distance=1,
-                           mz_min=None, mz_max=None, peak_width_modifier=1.0, verbose=True):
+def find_peaks_in_spectrum_peak_properties(
+        x_signal,
+        y_signal,
+        threshold=250,
+        width=0,
+        rel_height=0.5,
+        min_intensity=0.,
+        distance=1,
+        mz_min=None,
+        mz_max=None,
+        peak_width_modifier=1.0,
+        verbose=True):
     tstart = ttime()
 
     # find peaks
@@ -124,14 +134,14 @@ def find_peaks_in_spectrum_local_search(data, window=10, threshold=0, mz_range=N
         minimal intensity
     mz_range: tuple
         user-defined mass range (ms start, ms end)
-    
+
     Additional parameters:
     ---------------------
     verbose: bool
         will print some basic information about peak finding
     rel_height: float
         determines the relative position of the peak height that is used for peak width definition
-        
+
     Returns
     -------
     found_peaks: dict
@@ -211,8 +221,7 @@ def find_peaks_in_spectrum_local_search(data, window=10, threshold=0, mz_range=N
 
 
 def detectPeaks(x, mph=None, mpd=1, threshold=0, edge='rising',
-                 kpsh=False, valley=False, show=False, ax=None):
-
+                kpsh=False, valley=False, show=False, ax=None):
     """Detect peaks in data based on their amplitude and other features.
     __author__ = "Marcos Duarte, https://github.com/demotu/BMC"
     Parameters
@@ -248,8 +257,8 @@ def detectPeaks(x, mph=None, mpd=1, threshold=0, edge='rising',
     -----
     The detection of valleys instead of peaks is performed internally by simply
     negating the data: `ind_valleys = detect_peaks(-x)`
-    
-    The function can handle NaN's 
+
+    The function can handle NaN's
 
     See this IPython Notebook [1]_.
 
@@ -338,4 +347,3 @@ def detectPeaks(x, mph=None, mpd=1, threshold=0, edge='rising',
         ind = np.sort(ind[~idel])
 
     return ind
-

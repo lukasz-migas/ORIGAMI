@@ -20,8 +20,13 @@
 # This file contains a number of useful functions
 
 from builtins import str
-import wx, os, re, time
-import urllib.request, urllib.error, urllib.parse
+import wx
+import os
+import re
+import time
+import urllib.request
+import urllib.error
+import urllib.parse
 import numpy as np
 from numpy import savetxt
 from datetime import datetime
@@ -51,7 +56,7 @@ def dir_extra(dirlist, keywords="get"):
         print(dir_extra(dir(line), 'set'))
     """
     # convert string to list
-    if type(keywords) == str:
+    if isinstance(keywords, str):
         keywords = [keywords]
 
     dirlist_out = []
@@ -111,7 +116,7 @@ def cleanup_document(document):
 
 
 def saveObject(filename=None, saveFile=None):
-    """ 
+    """
     Simple tool to save objects/dictionaries
     """
     tstart = time.clock()
@@ -160,7 +165,7 @@ def checkExtension(input):
 
 def savaData(fileName, inputData, delimiter):
     """
-    This function saves data to an array. In case you want to save it in a 
+    This function saves data to an array. In case you want to save it in a
     zipped format, just append .gz to the end of the file
     """
     savetxt(fileName, inputData, delimiter=delimiter, fmt='%f')

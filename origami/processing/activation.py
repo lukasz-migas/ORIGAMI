@@ -47,7 +47,7 @@ def compute_RMSD(inputData1=None, inputData2=None):  # computeRMSD
 
 def compute_RMSF(inputData1=None, inputData2=None):  # computeRMSF
     """
-    Compute the pairwise RMSF for a pair of arrays. RMSF is computed by comparing 
+    Compute the pairwise RMSF for a pair of arrays. RMSF is computed by comparing
     each individual voltage separately
     """
     if isempty(inputData1) or isempty(inputData2):

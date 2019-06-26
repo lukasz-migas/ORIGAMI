@@ -41,8 +41,8 @@ class UniDecConfig(object):
         self.filetype = 0
 
         self.twavedict = {1: "Logarithmic", 2: "Linear", 3: "Power Law"}
-        self.backgroundchoices = ["Subtract Minimum", "Subtract Line",
-                                  "Subtract Curved"]  # , "Subtract Gaussian"]  # , "Subtract SavGol","Subtract Polynomial"]
+        # , "Subtract Gaussian"]  # , "Subtract SavGol","Subtract Polynomial"]
+        self.backgroundchoices = ["Subtract Minimum", "Subtract Line", "Subtract Curved"]
         self.figsize = (6, 5)
         self.initialize()
 

@@ -49,23 +49,87 @@ def _replace_labels(label):
         if any(_label in unicode_label for _label in ["\R", "\r"]):
             unicode_label = unicode_label.replace("\R", "®").replace("\r", "®")
         if any(_label in unicode_label for _label in ["\u207A", "u207A", "++", "^+"]):
-            unicode_label = unicode_label.replace("\u207A", "⁺").replace("u207A", "⁺").replace("++", "⁺").replace("^+", "⁺")
+            unicode_label = unicode_label.replace(
+                "\u207A",
+                "⁺").replace(
+                "u207A",
+                "⁺").replace(
+                "++",
+                "⁺").replace(
+                "^+",
+                "⁺")
         if any(_label in unicode_label for _label in ["\u207B", "u207B", "--", "^-"]):
-            unicode_label = unicode_label.replace("\u207B", "⁻").replace("u207B", "⁻").replace("--", "⁻").replace("^-", "⁻")
+            unicode_label = unicode_label.replace(
+                "\u207B",
+                "⁻").replace(
+                "u207B",
+                "⁻").replace(
+                "--",
+                "⁻").replace(
+                "^-",
+                "⁻")
         if any(_label in unicode_label for _label in ["\u22C5", "u22C5", ",,", "^,"]):
-            unicode_label = unicode_label.replace("\u22C5", "⋅").replace("u22C5", "⋅").replace(",,", "⋅").replace("^,", "⋅")
+            unicode_label = unicode_label.replace(
+                "\u22C5",
+                "⋅").replace(
+                "u22C5",
+                "⋅").replace(
+                ",,",
+                "⋅").replace(
+                "^,",
+                "⋅")
         if any(_label in unicode_label for _label in ["nan", "NaN"]):
             unicode_label = unicode_label.replace("nan", "").replace("NaN", "")
         if any(_label in unicode_label for _label in ["\u212B", "u212B", "AA", "ang"]):
-            unicode_label = unicode_label.replace("\u212B", "Å").replace("u212B", "Å").replace("AA", "Å").replace("ang", "Å")
+            unicode_label = unicode_label.replace(
+                "\u212B",
+                "Å").replace(
+                "u212B",
+                "Å").replace(
+                "AA",
+                "Å").replace(
+                "ang",
+                "Å")
         if any(_label in unicode_label for _label in ["\u03B1", "u03B1", "alpha", "aaa"]):
-            unicode_label = unicode_label.replace("\u03B1", "α").replace("u03B1", "α").replace("alpha", "α").replace("aaa", "α")
+            unicode_label = unicode_label.replace(
+                "\u03B1",
+                "α").replace(
+                "u03B1",
+                "α").replace(
+                "alpha",
+                "α").replace(
+                "aaa",
+                "α")
         if any(_label in unicode_label for _label in ["\u03B2", "u03B2", "beta", "bbb"]):
-            unicode_label = unicode_label.replace("\u03B2", "β").replace("u03B2", "β").replace("beta", "β").replace("bbb", "β")
+            unicode_label = unicode_label.replace(
+                "\u03B2",
+                "β").replace(
+                "u03B2",
+                "β").replace(
+                "beta",
+                "β").replace(
+                "bbb",
+                "β")
         if any(_label in unicode_label for _label in ["\u03BA", "u03BA", "kappa", "kkk"]):
-            unicode_label = unicode_label.replace("\u03BA", "κ").replace("u03BA", "κ").replace("kappa", "κ").replace("kkk", "κ")
+            unicode_label = unicode_label.replace(
+                "\u03BA",
+                "κ").replace(
+                "u03BA",
+                "κ").replace(
+                "kappa",
+                "κ").replace(
+                "kkk",
+                "κ")
         if any(_label in unicode_label for _label in ["\u0394", "u0394", "delta", "ddd"]):
-            unicode_label = unicode_label.replace("\u0394", "Δ").replace("u0394", "Δ").replace("delta", "Δ").replace("ddd", "Δ")
+            unicode_label = unicode_label.replace(
+                "\u0394",
+                "Δ").replace(
+                "u0394",
+                "Δ").replace(
+                "delta",
+                "Δ").replace(
+                "ddd",
+                "Δ")
         if any(_label in unicode_label for _label in ["\u03A8", "u03A8", "PSI"]):
             unicode_label = unicode_label.replace("\u03A8", "Ψ").replace("u03A8", "Ψ").replace("PSI", "Ψ")
         if any(_label in unicode_label for _label in ["\u03C8", "u03C8", "psi"]):

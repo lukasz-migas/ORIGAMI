@@ -30,8 +30,8 @@ from readers.io_utils import remove_non_digits_from_list
 def check_file_type(path=None, fileName=None):
     """
     Simple check if the text file is likely to be MS or 2D type. Checks based
-    on the length of the list. If value above 1000 rows, its unlikely to be 
-    a 2D datafile. Obviously this might be wrong assumption! It is checked when 
+    on the length of the list. If value above 1000 rows, its unlikely to be
+    a 2D datafile. Obviously this might be wrong assumption! It is checked when
     files are dropped into the main window.
     """
     # get extension
