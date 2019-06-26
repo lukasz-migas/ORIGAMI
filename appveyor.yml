@@ -8,16 +8,6 @@ platform:
 
 environment:
   matrix:
-    #python 3.4
-    - PYTHON: "C:/Python34"
-      MINICONDA: C:\Miniconda34-x64
-      PYTHON_ARCH: 64
-      PYTHON_VERSION: "3.4"
-    # python 3.5
-    - PYTHON: "C:/Python35"
-      MINICONDA: C:\Miniconda35-x64
-      PYTHON_ARCH: 64
-      PYTHON_VERSION: "3.5"
     # python 3.6
     - PYTHON: "C:/Python36"
       MINICONDA: C:\Miniconda36-x64
