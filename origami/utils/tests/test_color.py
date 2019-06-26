@@ -5,14 +5,14 @@ from utils.color import convertRGB1to255, convertRGB255to1, determineFontColor
 
 def test_convertRGB1to255():
     expected_value = [255., 255., 255.]
-    return_value = convertRGB1to255([1., 1., 1.], decimals=1, as_int=False)
+    return_value = convertRGB1to255([1., 1., 1.], decimals=1, as_integer=False)
 
     assert expected_value == return_value
 
 
-def test_convertRGB1to255_as_int():
+def test_convertRGB1to255_as_integer():
     expected_value = [255, 255, 255]
-    return_value = convertRGB1to255([1., 1., 1.], decimals=1, as_int=True)
+    return_value = convertRGB1to255([1., 1., 1.], decimals=1, as_integer=True)
 
     assert expected_value == return_value
 

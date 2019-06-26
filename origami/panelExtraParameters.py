@@ -31,7 +31,7 @@ from ids import ID_extraSettings_zoomCursorColor, ID_extraSettings_extractColor,
     ID_extraSettings_shadeColour_waterfall, ID_extraSettings_lineColor_1D, ID_extraSettings_shadeUnderColor_1D, \
     ID_extraSettings_markerColor_1D, ID_extraSettings_edgeMarkerColor_1D, ID_extraSettings_bar_edgeColor, \
     ID_extraSettings_markerColor_3D, ID_extraSettings_edgeMarkerColor_3D, ID_saveConfig
-from utils.color import convertRGB1to255, convertRGB255to1
+from utils.color import convertRGB1to255
 from utils.converters import str2num, str2int
 from gui_elements.dialog_color_picker import DialogColorPicker
 

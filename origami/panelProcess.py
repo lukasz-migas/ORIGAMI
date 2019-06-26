@@ -37,8 +37,6 @@ from ids import (ID_processSettings_replotMS, ID_processSettings_processMS,
                  ID_saveConfig)
 from help_documentation import OrigamiHelp
 from gui_elements.dialog_customise_unidec_visuals import dialog_customise_unidec_visuals
-from readers.io_waters_raw import (driftscope_extract_MS, driftscope_extract_RT, driftscope_extract_DT,
-                                   driftscope_extract_2D)
 from gui_elements.panel_peakWidthTool import panelPeakWidthTool
 from gui_elements.panel_htmlViewer import panelHTMLViewer
 from gui_elements.misc_dialogs import dlgBox
@@ -46,6 +44,11 @@ import logging
 from utils.time import ttime
 from utils.check import check_value_order
 from utils.converters import str2num, str2int
+
+from sys import platform
+if platform == "win32":
+    from readers.io_waters_raw import (driftscope_extract_MS, driftscope_extract_RT, driftscope_extract_DT,
+                                       driftscope_extract_2D)
 logger = logging.getLogger("origami")
 
 
@@ -2394,7 +2397,7 @@ class panelProcessData(wx.MiniFrame):
                                     adductIon="H+", remove_below=0.01):
 
         _adducts = {'H+': 1.007276467, 'Na+': 22.989218, 'K+': 38.963158, 'NH4+': 18.033823,
-                    'H-': -1.007276, 'Cl-': 34.969402}
+                    'H-':-1.007276, 'Cl-': 34.969402}
 
         # np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(self.config.unidec_engine.data.data2[:, 0])
         min_mz, max_mz = np.min(msX), np.max(msX)
@@ -2413,7 +2416,7 @@ class panelProcessData(wx.MiniFrame):
 
     def _calculate_peak_widths(self, chargeList, selectedMW, peakWidth, adductIon="H+"):
         _adducts = {'H+': 1.007276467, 'Na+': 22.989218, 'K+': 38.963158, 'NH4+': 18.033823,
-                    'H-': -1.007276, 'Cl-': 34.969402}
+                    'H-':-1.007276, 'Cl-': 34.969402}
         min_mz, max_mz = np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(
             self.config.unidec_engine.data.data2[:, 0])
         charges = np.array(list(map(int, np.arange(chargeList[0, 0], chargeList[-1, 0] + 1))))
