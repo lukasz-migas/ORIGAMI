@@ -35,11 +35,14 @@ install:
   - python -m pip install --upgrade pip
   - pip install -r requirements_origami_travis.txt
   - pip install -U wxPython;
+  - dir
   - cd origami
+  - dir
   - powershell -Command "(gc config.py) -replace 'self.testing = False', 'self.testing = True' | Out-File -encoding ASCII config.py"
 
 test_script:
   - activate testenv
+  - dir
   - python ORIGAMI.py;
 
 matrix:
