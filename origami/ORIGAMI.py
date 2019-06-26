@@ -167,7 +167,8 @@ class ORIGAMI(object):
         # check version
         self.onCheckVersion()
 
-        if self.config.checkForDriftscopeAtStart:
+        # only check if on Windows
+        if self.config.checkForDriftscopeAtStart and platform == "win32":
             self.config.initilize_paths()
 
         # add data handling and processing modules
