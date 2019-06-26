@@ -180,6 +180,9 @@ class ORIGAMI(object):
         if self.config.debug:
             self._debug_()
 
+        if self.config.testing:
+            self.view.on_close(None)
+
 #         for file_path in [
 # #                         'Z:\###_PhD1_###\RebeccaBeveridge - P27 CdkCyclin Fdc1\p27_data_January2018\SynaptG2\LM_15012017_P27K56_2.pickle'
 #                         'Z:\###_PhD2_###\CIU\PythonCIU\ORIGAMI_2\_TEST_DATA\ubb.pickle',
