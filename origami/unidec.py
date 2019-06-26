@@ -8,7 +8,6 @@ import string
 from copy import deepcopy
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy import signal
 
 from unidec_modules import unidecstructure, peakstructure, MassFitter
 import unidec_modules.unidectools as ud
@@ -18,6 +17,7 @@ __author__ = 'Michael.Marty'
 
 
 class UniDec(UniDecEngine):
+
     def __init__(self):
         """
         UniDec Engine
@@ -1118,7 +1118,6 @@ class UniDec(UniDecEngine):
 
         self.open_file(fname, testdir, **kwargs)
         self.data.ztab = ztab
-        pass
 
     def get_spectrum_peaks(self, threshold=0.05, window=None):
         if window is None:
@@ -1153,13 +1152,11 @@ class UniDec(UniDecEngine):
                              color="b")
         except AttributeError:
             print("Failed to Plot Error Bars")
-            pass
 
         if massrange is not None:
             plt.xlim(massrange)
             pass
         plt.show()
-        pass
 
         # TODO: Batch Process of Various Types
         # TODO: Automatch

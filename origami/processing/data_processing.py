@@ -251,11 +251,6 @@ class data_processing():
             pageID = self.config.panelNames['Calibration']
             markerPlot = 'CalibrationMS'
 
-#         else:
-#             msg = "%s is not supported yet." % document.dataType
-#             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-#             return
-
         # A couple of constants
         ymin = 0
         height = 1.0

@@ -2467,3 +2467,4 @@ class data_handling():
                              'xlimits': xlimits, "trap": cv}
 
             self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
+

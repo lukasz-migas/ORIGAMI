@@ -21,14 +21,14 @@
 import wx
 from natsort import natsorted
 
-from help_documentation import OrigamiHelp
 from ids import (
     ID_compareMS_MS_1, ID_compareMS_MS_2, ID_extraSettings_legend,
     ID_extraSettings_plot1D, ID_processSettings_MS)
-from styles import makeCheckbox, makeStaticBox, makeSuperTip
-from utils.color import convertRGB1to255, convertRGB255to1
+from styles import makeCheckbox, makeStaticBox
+from utils.color import convertRGB1to255
 from utils.converters import str2num
 from gui_elements.dialog_color_picker import DialogColorPicker
+from visuals import mpl_plots
 
 
 class panel_signal_comparison_viewer(wx.MiniFrame):
@@ -45,24 +45,24 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.config = config
         self.icons = icons
 
-        self.help = OrigamiHelp()
-
         self.currentItem = None
         self.kwargs = kwargs
         self.current_document = self.kwargs['current_document']
         self.document_list = self.kwargs['document_list']
 
+        self.data_handling = presenter.data_handling
+        self.data_processing = presenter.data_processing
+
+        self.displaysize = wx.GetDisplaySize()
+        self.displayRes = (wx.GetDisplayPPI())
+        self.figsizeX = (self.displaysize[0] - 320) / self.displayRes[0]
+
         # make gui items
         self.make_gui()
-
-        self.Centre()
-        self.Layout()
-        self.SetFocus()
 
         # bind
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
-    # ----
 
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
@@ -80,116 +80,119 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
     def onSelect(self, evt):
 
         self.updateMS(evt=None)
-        self.parent.documents.updateComparisonMS(evt=None)
+#         self.parent.documents.updateComparisonMS(evt=None)
         self.Destroy()
 
     def onPlot(self, evt):
         """
         Update plot with currently selected PCs
         """
-        self.output = {'spectrum_1': [self.document1_value.GetStringSelection(),
-                                      self.msSpectrum1_value.GetStringSelection()],
-                       'spectrum_2': [self.document2_value.GetStringSelection(),
-                                      self.msSpectrum2_value.GetStringSelection()]}
+#         self.output = {'spectrum_1': [self.spectrum_1_document_value.GetStringSelection(),
+#                                       self.spectrum_1_spectrum_value.GetStringSelection()],
+#                        'spectrum_2': [self.document2_value.GetStringSelection(),
+#                                       self.spectrum_2_value.GetStringSelection()]}
 
         self.updateMS(evt=None)
-        self.parent.documents.updateComparisonMS(evt=None)
+#         self.parent.documents.updateComparisonMS(evt=None)
 
     def make_gui(self):
 
         # make panel
-        panel = self.make_panel()
+        panel = wx.Panel(self, -1, size=(-1, -1), name="main")
+
+        settings_panel = self.make_settings_panel(panel)
+        plot_panel = self.make_plot_panel(panel)
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 1, wx.EXPAND, 5)
+        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
+        self.main_sizer.Add(plot_panel, 0, wx.EXPAND, 0)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(panel)
+        self.SetSize((1200, 600))
+        self.SetSizer(self.main_sizer)
+        self.Layout()
+        self.CentreOnScreen()
+        self.SetFocus()
 
-    def make_panel(self):
+    def make_settings_panel(self, split_panel):
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
-        panel = wx.Panel(self, -1, size=(-1, -1))
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-
-        ms1_staticBox = makeStaticBox(panel, "Mass spectrum - 1", size=(-1, -1), color=wx.BLACK)
+        ms1_staticBox = makeStaticBox(panel, "Spectrum - 1", size=(-1, -1), color=wx.BLACK)
         ms1_staticBox.SetSize((-1, -1))
         ms1_box_sizer = wx.StaticBoxSizer(ms1_staticBox, wx.HORIZONTAL)
 
-        ms2_staticBox = makeStaticBox(panel, "Mass spectrum - 2", size=(-1, -1), color=wx.BLACK)
+        ms2_staticBox = makeStaticBox(panel, "Spectrum - 2", size=(-1, -1), color=wx.BLACK)
         ms2_staticBox.SetSize((-1, -1))
         ms2_box_sizer = wx.StaticBoxSizer(ms2_staticBox, wx.HORIZONTAL)
-
-        msSpectrum1_transparency_label = wx.StaticText(panel, -1, "Transparency:")
-        msSpectrum1_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
-
-        document2_label = wx.StaticText(panel, -1, "Document:")
-        msSpectrum2_spectrum_label = wx.StaticText(panel, -1, "Spectrum:")
-        msSpectrum2_color_label = wx.StaticText(panel, -1, "Color:")
-        msSpectrum2_transparency_label = wx.StaticText(panel, -1, "Transparency:")
-        msSpectrum2_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
 
         # check document list
         document_1, spectrum_1, spectrum_list_1, document_2, spectrum_2, spectrum_list_2 = self._check_spectrum_list()
 
         # MS 1
-        document1_label = wx.StaticText(panel, -1, "Document:")
-        self.document1_value = wx.ComboBox(panel, ID_compareMS_MS_1,
+        spectrum_1_document_label = wx.StaticText(panel, -1, "Document:")
+        self.spectrum_1_document_value = wx.ComboBox(panel, ID_compareMS_MS_1,
                                            choices=self.document_list,
                                            style=wx.CB_READONLY)
-        self.document1_value.SetStringSelection(document_1)
+        self.spectrum_1_document_value.SetStringSelection(document_1)
 
-        msSpectrum1_spectrum_label = wx.StaticText(panel, -1, "Spectrum:")
-        self.msSpectrum1_value = wx.ComboBox(panel, wx.ID_ANY,
+        spectrum_1_spectrum_label = wx.StaticText(panel, -1, "Spectrum:")
+        self.spectrum_1_spectrum_value = wx.ComboBox(panel, wx.ID_ANY,
                                              choices=spectrum_list_1,
                                              style=wx.CB_READONLY)
-        self.msSpectrum1_value.SetStringSelection(spectrum_1)
+        self.spectrum_1_spectrum_value.SetStringSelection(spectrum_1)
 
-        label1_label = wx.StaticText(panel, -1, "Label:")
-        self.label1_value = wx.TextCtrl(panel, -1, "")
+        spectrum_1_label_label = wx.StaticText(panel, -1, "Label:")
+        self.spectrum_1_label_value = wx.TextCtrl(panel, -1, "")
 
-        msSpectrum1_color_label = wx.StaticText(panel, -1, "Color:")
-        self.msSpectrum1_colorBtn = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition,
-                                              wx.Size(26, 26), 0)
-        self.msSpectrum1_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.lineColour_MS1))
+        spectrum_1_color_label = wx.StaticText(panel, -1, "Color:")
+        self.spectrum_1_colorBtn = wx.Button(panel, size=wx.Size(26, 26))
+        self.spectrum_1_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.lineColour_MS1))
 
-        self.msSpectrum1_transparency = wx.SpinCtrlDouble(panel, -1,
+        spectrum_1_transparency_label = wx.StaticText(panel, -1, "Transparency:")
+        self.spectrum_1_transparency = wx.SpinCtrlDouble(panel, -1,
                                                           value=str(self.config.lineTransparency_MS1 * 100),
-                                                          min=0, max=100, initial=self.config.lineTransparency_MS1 * 100,
+                                                          min=0, max=100,
+                                                          initial=self.config.lineTransparency_MS1 * 100,
                                                           inc=10, size=(90, -1))
 
-        self.msSpectrum1_lineStyle_value = wx.ComboBox(panel, choices=self.config.lineStylesList,
+        spectrum_1_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
+        self.spectrum_1_lineStyle_value = wx.ComboBox(panel, choices=self.config.lineStylesList,
                                                        style=wx.CB_READONLY)
-        self.msSpectrum1_lineStyle_value.SetStringSelection(self.config.lineStyle_MS1)
+        self.spectrum_1_lineStyle_value.SetStringSelection(self.config.lineStyle_MS1)
 
         # MS 2
+        document2_label = wx.StaticText(panel, -1, "Document:")
         self.document2_value = wx.ComboBox(panel, ID_compareMS_MS_2,
                                            choices=self.document_list,
                                            style=wx.CB_READONLY)
         self.document2_value.SetStringSelection(document_2)
 
-        self.msSpectrum2_value = wx.ComboBox(panel, wx.ID_ANY,
+        spectrum_2_spectrum_label = wx.StaticText(panel, -1, "Spectrum:")
+        self.spectrum_2_value = wx.ComboBox(panel, wx.ID_ANY,
                                              choices=spectrum_list_2,
                                              style=wx.CB_READONLY)
-        self.msSpectrum2_value.SetStringSelection(spectrum_2)
+        self.spectrum_2_value.SetStringSelection(spectrum_2)
 
-        label2_label = wx.StaticText(panel, -1, "Label:")
-        self.label2_value = wx.TextCtrl(panel, -1, "")
+        spectrum_2_label_label = wx.StaticText(panel, -1, "Label:")
+        self.spectrum_2_label_value = wx.TextCtrl(panel, -1, "")
 
-        self.msSpectrum2_colorBtn = wx.Button(panel, wx.ID_ANY,
-                                              "", wx.DefaultPosition,
-                                              wx.Size(26, 26), 0)
-        self.msSpectrum2_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.lineColour_MS2))
+        spectrum_2_color_label = wx.StaticText(panel, -1, "Color:")
+        self.spectrum_2_colorBtn = wx.Button(panel, size=wx.Size(26, 26))
+        self.spectrum_2_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.lineColour_MS2))
 
-        self.msSpectrum2_transparency = wx.SpinCtrlDouble(panel, -1,
+        spectrum_2_transparency_label = wx.StaticText(panel, -1, "Transparency:")
+        self.spectrum_2_transparency = wx.SpinCtrlDouble(panel, -1,
                                                           value=str(self.config.lineTransparency_MS1 * 100),
-                                                          min=0, max=100, initial=self.config.lineTransparency_MS1 * 100,
+                                                          min=0, max=100,
+                                                          initial=self.config.lineTransparency_MS1 * 100,
                                                           inc=10, size=(90, -1))
 
-        self.msSpectrum2_lineStyle_value = wx.ComboBox(panel, choices=self.config.lineStylesList,
+        spectrum_2_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
+        self.spectrum_2_lineStyle_value = wx.ComboBox(panel, choices=self.config.lineStylesList,
                                                        style=wx.CB_READONLY)
-        self.msSpectrum2_lineStyle_value.SetStringSelection(self.config.lineStyle_MS2)
+        self.spectrum_2_lineStyle_value.SetStringSelection(self.config.lineStyle_MS2)
 
         # Processing
         processing_staticBox = makeStaticBox(panel, "Processing",
@@ -199,7 +202,6 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         self.preprocess_check = makeCheckbox(panel, "Preprocess")
         self.preprocess_check.SetValue(self.config.compare_massSpectrumParams['preprocess'])
-        self.preprocess_tip = makeSuperTip(self.preprocess_check, delay=7, **self.help.compareMS_preprocess)
 
         self.normalize_check = makeCheckbox(panel, "Normalize")
         self.normalize_check.SetValue(self.config.compare_massSpectrumParams['normalize'])
@@ -211,64 +213,58 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.subtract_check.SetValue(self.config.compare_massSpectrumParams['subtract'])
 
         settings_label = wx.StaticText(panel, wx.ID_ANY, "Settings:")
-        self.settingsBtn = wx.BitmapButton(panel, ID_extraSettings_plot1D,
+        self.settings_btn = wx.BitmapButton(panel, ID_extraSettings_plot1D,
                                            self.icons.iconsLib['panel_plot1D_16'],
                                            size=(26, 26),
                                            style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
-        self.settingsBtn.SetBackgroundColour((240, 240, 240))
-        self.settingsBtn_tip = makeSuperTip(self.settingsBtn, delay=7, **self.help.compareMS_open_plot1D_settings)
+        self.settings_btn.SetBackgroundColour((240, 240, 240))
 
-        self.legendBtn = wx.BitmapButton(panel, ID_extraSettings_legend,
+        self.legend_btn = wx.BitmapButton(panel, ID_extraSettings_legend,
                                          self.icons.iconsLib['panel_legend_16'],
                                          size=(26, 26),
                                          style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
-        self.legendBtn.SetBackgroundColour((240, 240, 240))
-        self.legendBtn_tip = makeSuperTip(self.legendBtn, delay=7, **self.help.compareMS_open_legend_settings)
+        self.legend_btn.SetBackgroundColour((240, 240, 240))
 
-        self.processingBtn = wx.BitmapButton(panel, ID_processSettings_MS,
+        self.process_btn = wx.BitmapButton(panel, ID_processSettings_MS,
                                              self.icons.iconsLib['process_ms_16'],
                                              size=(26, 26),
                                              style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
-        self.processingBtn.SetBackgroundColour((240, 240, 240))
-        self.processingBtn_tip = makeSuperTip(self.processingBtn, delay=7, **
-                                              self.help.compareMS_open_processMS_settings)
+        self.process_btn.SetBackgroundColour((240, 240, 240))
 
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        self.selectBtn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
-        self.plotBtn = wx.Button(panel, wx.ID_OK, "Update", size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.plot_btn = wx.Button(panel, wx.ID_OK, "Update", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
 
-        self.document1_value.Bind(wx.EVT_COMBOBOX, self.updateGUI)
+        self.spectrum_1_document_value.Bind(wx.EVT_COMBOBOX, self.updateGUI)
         self.document2_value.Bind(wx.EVT_COMBOBOX, self.updateGUI)
 
-        self.msSpectrum1_value.Bind(wx.EVT_COMBOBOX, self.updateMS)
-        self.msSpectrum2_value.Bind(wx.EVT_COMBOBOX, self.updateMS)
+        self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.updateMS)
+        self.spectrum_2_value.Bind(wx.EVT_COMBOBOX, self.updateMS)
         self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.updateMS)
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.updateMS)
         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.updateMS)
         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.updateMS)
-        self.label1_value.Bind(wx.EVT_TEXT, self.updateMS)
-        self.label2_value.Bind(wx.EVT_TEXT, self.updateMS)
+        self.spectrum_1_label_value.Bind(wx.EVT_TEXT, self.updateMS)
+        self.spectrum_2_label_value.Bind(wx.EVT_TEXT, self.updateMS)
 
-        self.msSpectrum1_colorBtn.Bind(wx.EVT_BUTTON, self.onUpdateMS1color)
-        self.msSpectrum2_colorBtn.Bind(wx.EVT_BUTTON, self.onUpdateMS2color)
+        self.spectrum_1_colorBtn.Bind(wx.EVT_BUTTON, self.onUpdateMS1color)
+        self.spectrum_2_colorBtn.Bind(wx.EVT_BUTTON, self.onUpdateMS2color)
 
-        self.msSpectrum1_value.Bind(wx.EVT_COMBOBOX, self.onPlot)
-        self.msSpectrum2_value.Bind(wx.EVT_COMBOBOX, self.onPlot)
+        self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.onPlot)
+        self.spectrum_2_value.Bind(wx.EVT_COMBOBOX, self.onPlot)
         self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
 
-        self.selectBtn.Bind(wx.EVT_BUTTON, self.onSelect)
-        self.plotBtn.Bind(wx.EVT_BUTTON, self.onPlot)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
+        self.plot_btn.Bind(wx.EVT_BUTTON, self.onPlot)
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        self.settingsBtn.Bind(wx.EVT_BUTTON, self.presenter.view.onPlotParameters)
-        self.legendBtn.Bind(wx.EVT_BUTTON, self.presenter.view.onPlotParameters)
-        self.processingBtn.Bind(wx.EVT_BUTTON, self.presenter.view.onProcessParameters)
+        self.settings_btn.Bind(wx.EVT_BUTTON, self.presenter.view.onPlotParameters)
+        self.legend_btn.Bind(wx.EVT_BUTTON, self.presenter.view.onPlotParameters)
+        self.process_btn.Bind(wx.EVT_BUTTON, self.presenter.view.onProcessParameters)
 
         GRIDBAG_VSPACE = 7
         GRIDBAG_HSPACE = 5
@@ -276,35 +272,35 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         # button grid
         btn_grid = wx.GridBagSizer(GRIDBAG_VSPACE, GRIDBAG_HSPACE)
         y = 0
-        btn_grid.Add(self.settingsBtn, (y, 0), wx.GBSpan(1, 1),
+        btn_grid.Add(self.settings_btn, (y, 0), wx.GBSpan(1, 1),
                      flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid.Add(self.legendBtn, (y, 1), wx.GBSpan(1, 1),
+        btn_grid.Add(self.legend_btn, (y, 1), wx.GBSpan(1, 1),
                      flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid.Add(self.processingBtn, (y, 2), wx.GBSpan(1, 1),
+        btn_grid.Add(self.process_btn, (y, 2), wx.GBSpan(1, 1),
                      flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         # pack elements
         ms1_grid = wx.GridBagSizer(2, 2)
         y = 0
-        ms1_grid.Add(document1_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms1_grid.Add(self.document1_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
+        ms1_grid.Add(spectrum_1_document_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms1_grid.Add(self.spectrum_1_document_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms1_grid.Add(msSpectrum1_spectrum_label, (y, 0), wx.GBSpan(
+        ms1_grid.Add(spectrum_1_spectrum_label, (y, 0), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms1_grid.Add(self.msSpectrum1_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
+        ms1_grid.Add(self.spectrum_1_spectrum_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms1_grid.Add(label1_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms1_grid.Add(self.label1_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
+        ms1_grid.Add(spectrum_1_label_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms1_grid.Add(self.spectrum_1_label_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms1_grid.Add(msSpectrum1_color_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms1_grid.Add(self.msSpectrum1_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        ms1_grid.Add(msSpectrum1_transparency_label, (y, 2), wx.GBSpan(
+        ms1_grid.Add(spectrum_1_color_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms1_grid.Add(self.spectrum_1_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        ms1_grid.Add(spectrum_1_transparency_label, (y, 2), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms1_grid.Add(self.msSpectrum1_transparency, (y, 3), wx.GBSpan(
+        ms1_grid.Add(self.spectrum_1_transparency, (y, 3), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        ms1_grid.Add(msSpectrum1_lineStyle_label, (y, 4), wx.GBSpan(
+        ms1_grid.Add(spectrum_1_lineStyle_label, (y, 4), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms1_grid.Add(self.msSpectrum1_lineStyle_value, (y, 5), wx.GBSpan(
+        ms1_grid.Add(self.spectrum_1_lineStyle_value, (y, 5), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
 
         ms1_box_sizer.Add(ms1_grid, 0, wx.EXPAND, 10)
@@ -314,22 +310,22 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         ms2_grid.Add(document2_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms2_grid.Add(self.document2_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms2_grid.Add(msSpectrum2_spectrum_label, (y, 0), wx.GBSpan(
+        ms2_grid.Add(spectrum_2_spectrum_label, (y, 0), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms2_grid.Add(self.msSpectrum2_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
+        ms2_grid.Add(self.spectrum_2_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms2_grid.Add(label2_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms2_grid.Add(self.label2_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
+        ms2_grid.Add(spectrum_2_label_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms2_grid.Add(self.spectrum_2_label_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms2_grid.Add(msSpectrum2_color_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms2_grid.Add(self.msSpectrum2_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        ms2_grid.Add(msSpectrum2_transparency_label, (y, 2), wx.GBSpan(
+        ms2_grid.Add(spectrum_2_color_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms2_grid.Add(self.spectrum_2_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        ms2_grid.Add(spectrum_2_transparency_label, (y, 2), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms2_grid.Add(self.msSpectrum2_transparency, (y, 3), wx.GBSpan(
+        ms2_grid.Add(self.spectrum_2_transparency, (y, 3), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        ms2_grid.Add(msSpectrum2_lineStyle_label, (y, 4), wx.GBSpan(
+        ms2_grid.Add(spectrum_2_lineStyle_label, (y, 4), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms2_grid.Add(self.msSpectrum2_lineStyle_value, (y, 5), wx.GBSpan(
+        ms2_grid.Add(self.spectrum_2_lineStyle_value, (y, 5), wx.GBSpan(
             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         ms2_box_sizer.Add(ms2_grid, 0, wx.EXPAND, 10)
 
@@ -358,15 +354,37 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         y = y + 1
         grid.Add(horizontal_line_2, (y, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(self.selectBtn, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.plotBtn, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.cancelBtn, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.plot_btn, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.cancel_btn, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
-        mainSizer.Add(grid, 0, wx.EXPAND, 10)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
+
+        return panel
+
+    def make_plot_panel(self, split_panel):
+
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot")
+        self.plot_panel = wx.Panel(panel, wx.ID_ANY, wx.DefaultPosition,
+                                   wx.DefaultSize, wx.TAB_TRAVERSAL)
+
+        self.plot_window = mpl_plots.plots(self.plot_panel, figsize=(self.figsizeX, 2),
+                                           config=self.config)
+
+        box = wx.BoxSizer(wx.VERTICAL)
+        box.Add(self.plot_window, 1, wx.EXPAND)
+        self.plot_panel.SetSizer(box)
+        self.plot_panel.Fit()
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 2)
+        # fit layout
+        panel.SetSizer(main_sizer)
+        main_sizer.Fit(panel)
 
         return panel
 
@@ -374,37 +392,37 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         evtID = evt.GetId()
         # update document list
         if evtID == ID_compareMS_MS_1:
-            document_1 = self.document1_value.GetStringSelection()
+            document_1 = self.spectrum_1_document_value.GetStringSelection()
             spectrum_list_1 = natsorted(self.kwargs['document_spectrum_list'][document_1])
-            self.msSpectrum1_value.SetItems(spectrum_list_1)
-            self.msSpectrum1_value.SetStringSelection(spectrum_list_1[0])
+            self.spectrum_1_spectrum_value.SetItems(spectrum_list_1)
+            self.spectrum_1_spectrum_value.SetStringSelection(spectrum_list_1[0])
 
         elif evtID == ID_compareMS_MS_2:
             document_2 = self.document2_value.GetStringSelection()
             spectrum_list_2 = natsorted(self.kwargs['document_spectrum_list'][document_2])
-            self.msSpectrum2_value.SetItems(spectrum_list_2)
-            self.msSpectrum2_value.SetStringSelection(spectrum_list_2[0])
+            self.spectrum_2_value.SetItems(spectrum_list_2)
+            self.spectrum_2_value.SetStringSelection(spectrum_list_2[0])
 
     def updateMS(self, evt):
-        self.config.compare_massSpectrum = [self.msSpectrum1_value.GetStringSelection(),
-                                            self.msSpectrum2_value.GetStringSelection()]
-        self.config.lineTransparency_MS1 = str2num(self.msSpectrum1_transparency.GetValue()) / 100
-        self.config.lineStyle_MS1 = self.msSpectrum1_lineStyle_value.GetStringSelection()
+        self.config.compare_massSpectrum = [self.spectrum_1_spectrum_value.GetStringSelection(),
+                                            self.spectrum_2_value.GetStringSelection()]
+        self.config.lineTransparency_MS1 = str2num(self.spectrum_1_transparency.GetValue()) / 100
+        self.config.lineStyle_MS1 = self.spectrum_1_lineStyle_value.GetStringSelection()
 
-        self.config.lineTransparency_MS2 = str2num(self.msSpectrum2_transparency.GetValue()) / 100
-        self.config.lineStyle_MS2 = self.msSpectrum2_lineStyle_value.GetStringSelection()
+        self.config.lineTransparency_MS2 = str2num(self.spectrum_2_transparency.GetValue()) / 100
+        self.config.lineStyle_MS2 = self.spectrum_2_lineStyle_value.GetStringSelection()
 
         self.config.compare_massSpectrumParams['preprocess'] = self.preprocess_check.GetValue()
         self.config.compare_massSpectrumParams['inverse'] = self.inverse_check.GetValue()
         self.config.compare_massSpectrumParams['normalize'] = self.normalize_check.GetValue()
         self.config.compare_massSpectrumParams['subtract'] = self.subtract_check.GetValue()
 
-        label_1 = self.label1_value.GetValue()
+        label_1 = self.spectrum_1_label_value.GetValue()
         if label_1 == "":
-            label_1 = self.msSpectrum1_value.GetStringSelection()
-        label_2 = self.label2_value.GetValue()
+            label_1 = self.spectrum_1_spectrum_value.GetStringSelection()
+        label_2 = self.spectrum_2_label_value.GetValue()
         if label_2 == "":
-            label_2 = self.msSpectrum2_value.GetStringSelection()
+            label_2 = self.spectrum_2_value.GetStringSelection()
         self.config.compare_massSpectrumParams['legend'] = [label_1, label_2]
 
         if evt is not None:
@@ -418,7 +436,7 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         else:
             return
         self.config.lineColour_MS1 = color_1
-        self.msSpectrum1_colorBtn.SetBackgroundColour(color_255)
+        self.spectrum_1_colorBtn.SetBackgroundColour(color_255)
 
     def onUpdateMS2color(self, evt):
         dlg = DialogColorPicker(self, self.config.customColors)
@@ -428,7 +446,7 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         else:
             return
         self.config.lineColour_MS2 = color_1
-        self.msSpectrum2_colorBtn.SetBackgroundColour(color_255)
+        self.spectrum_2_colorBtn.SetBackgroundColour(color_255)
 
     def error_handler(self, flag=None):
         """

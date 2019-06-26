@@ -3377,87 +3377,87 @@ class ORIGAMI(object):
 
         return listOfDocs
 
-    def onExtractDToverMZrangeMultiple(self, e):
-        # TODO: move this function to data_handling
-        """
-        Currently this function is not working well. IT doesn't store data in the correct format
-        i.e. it only saves ONE RT per charge state which is useless
-        Need to do:
-        - add to document object to have a sub-tree with each RT for each MZ
-        - should be a dictionary with m/z, rts, charge
-        """
-        # Combine 1DT to array
-        initialDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-
-        rtList = self.view.panelLinearDT.topP.peaklist  # List with MassLynx file information
-        mzList = self.view.panelLinearDT.bottomP.peaklist  # List with m/z information
-
-        if rtList.GetItemCount() == 0 or mzList.GetItemCount() == 0:
-            self.view.SetStatusText('Please make sure you selected regions to extract', 3)
-            return
-        for mz in range(mzList.GetItemCount()):
-            mzStart = str2num(mzList.GetItem(mz, 0).GetText())
-            mzEnd = str2num(mzList.GetItem(mz, 1).GetText())
-            charge = str2num(mzList.GetItem(mz, 3).GetText())
-            # Get document for the ion
-#             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-            self.currentDoc = mzList.GetItem(mz, 4).GetText()
-            document = self.documentsDict[self.currentDoc]
-            path = document.path
-            scantime = document.parameters['scanTime']
-            xvals = document.IMS2D['yvals']
-            xlabel = document.IMS2D['ylabels']
-            # Get height of the peak
-            ms = document.massSpectrum
-            ms = np.flipud(np.rot90(np.array([ms['xvals'], ms['yvals']])))
-            mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
-            mzList.SetStringItem(index=mz, col=2, label=str(mzYMax))
-            tempArray = []
-            driftList = []
-            retTimeList = []
-            for rt in range(rtList.GetItemCount()):
-                # RT has to be in minutes to extract using Driftscope
-                rtStart = str2num(rtList.GetItem(rt, 0).GetText())
-                rtEnd = str2num(rtList.GetItem(rt, 1).GetText())
-                retTimeList.append([int(rtStart), int(rtEnd)])  # create list of RTs to be saved with the document
-                rtStart = round(rtStart * (scantime / 60), 2)
-                rtEnd = round(rtEnd * (scantime / 60), 2)
-                filename = rtList.GetItem(rt, 4).GetText()
-                driftVoltage = str2num(rtList.GetItem(rt, 3).GetText())
-                if driftVoltage is None:
-                    driftVoltage = 0
-                if filename != document.title:
-                    continue
-                self.view.SetStatusText(
-                    ''.join(['RT(s): ', str(rtStart), '-', str(rtEnd), ', MS: ', str(mzStart), '-', str(mzEnd)]), 3)
-                # Load output
-                extract_kwargs = {'return_data': True}
-                __, imsData1D = io_waters.driftscope_extract_DT(path=path,
-                                                                driftscope_path=self.config.driftscopePath,
-                                                                mz_start=mzStart, mz_end=mzEnd,
-                                                                rt_start=rtStart, rt_end=rtEnd
-                                                                ** extract_kwargs)
-                # Append to output
-                tempArray.append(imsData1D)
-                driftList.append(driftVoltage)
-
-            # Add data to document object
-            ims1Darray = np.array(tempArray)  # combine
-            imsData1D = np.sum(ims1Darray, axis=0)
-            document.gotExtractedDriftTimes = True
-            rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
-            document.IMS1DdriftTimes[rangeName] = {'xvals': xvals,
-                                                   'yvals': ims1Darray,
-                                                   'yvalsSum': imsData1D,
-                                                   'xlabels': xlabel,
-                                                   'charge': charge,
-                                                   'driftVoltage': driftList,
-                                                   'retTimes': retTimeList,
-                                                   'xylimits': [mzStart, mzEnd, mzYMax]}
-            self.documentsDict[self.currentDoc] = document
-            self.view.panelDocuments.documents.add_document(docData=document)
-        document = self.documentsDict[initialDoc]
-        self.view.panelDocuments.documents.add_document(docData=document)
+#     def onExtractDToverMZrangeMultiple(self, e):
+#         # TODO: move this function to data_handling
+#         """
+#         Currently this function is not working well. IT doesn't store data in the correct format
+#         i.e. it only saves ONE RT per charge state which is useless
+#         Need to do:
+#         - add to document object to have a sub-tree with each RT for each MZ
+#         - should be a dictionary with m/z, rts, charge
+#         """
+#         # Combine 1DT to array
+#         initialDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#
+#         rtList = self.view.panelLinearDT.topP.peaklist  # List with MassLynx file information
+#         mzList = self.view.panelLinearDT.bottomP.peaklist  # List with m/z information
+#
+#         if rtList.GetItemCount() == 0 or mzList.GetItemCount() == 0:
+#             self.view.SetStatusText('Please make sure you selected regions to extract', 3)
+#             return
+#         for mz in range(mzList.GetItemCount()):
+#             mzStart = str2num(mzList.GetItem(mz, 0).GetText())
+#             mzEnd = str2num(mzList.GetItem(mz, 1).GetText())
+#             charge = str2num(mzList.GetItem(mz, 3).GetText())
+#             # Get document for the ion
+# #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+#             self.currentDoc = mzList.GetItem(mz, 4).GetText()
+#             document = self.documentsDict[self.currentDoc]
+#             path = document.path
+#             scantime = document.parameters['scanTime']
+#             xvals = document.IMS2D['yvals']
+#             xlabel = document.IMS2D['ylabels']
+#             # Get height of the peak
+#             ms = document.massSpectrum
+#             ms = np.flipud(np.rot90(np.array([ms['xvals'], ms['yvals']])))
+#             mzYMax = self.view.getYvalue(msList=ms, mzStart=mzStart, mzEnd=mzEnd)
+#             mzList.SetStringItem(index=mz, col=2, label=str(mzYMax))
+#             tempArray = []
+#             driftList = []
+#             retTimeList = []
+#             for rt in range(rtList.GetItemCount()):
+#                 # RT has to be in minutes to extract using Driftscope
+#                 rtStart = str2num(rtList.GetItem(rt, 0).GetText())
+#                 rtEnd = str2num(rtList.GetItem(rt, 1).GetText())
+#                 retTimeList.append([int(rtStart), int(rtEnd)])  # create list of RTs to be saved with the document
+#                 rtStart = round(rtStart * (scantime / 60), 2)
+#                 rtEnd = round(rtEnd * (scantime / 60), 2)
+#                 filename = rtList.GetItem(rt, 4).GetText()
+#                 driftVoltage = str2num(rtList.GetItem(rt, 3).GetText())
+#                 if driftVoltage is None:
+#                     driftVoltage = 0
+#                 if filename != document.title:
+#                     continue
+#                 self.view.SetStatusText(
+#                     ''.join(['RT(s): ', str(rtStart), '-', str(rtEnd), ', MS: ', str(mzStart), '-', str(mzEnd)]), 3)
+#                 # Load output
+#                 extract_kwargs = {'return_data': True}
+#                 __, imsData1D = io_waters.driftscope_extract_DT(path=path,
+#                                                                 driftscope_path=self.config.driftscopePath,
+#                                                                 mz_start=mzStart, mz_end=mzEnd,
+#                                                                 rt_start=rtStart, rt_end=rtEnd
+#                                                                 ** extract_kwargs)
+#                 # Append to output
+#                 tempArray.append(imsData1D)
+#                 driftList.append(driftVoltage)
+#
+#             # Add data to document object
+#             ims1Darray = np.array(tempArray)  # combine
+#             imsData1D = np.sum(ims1Darray, axis=0)
+#             document.gotExtractedDriftTimes = True
+#             rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
+#             document.IMS1DdriftTimes[rangeName] = {'xvals': xvals,
+#                                                    'yvals': ims1Darray,
+#                                                    'yvalsSum': imsData1D,
+#                                                    'xlabels': xlabel,
+#                                                    'charge': charge,
+#                                                    'driftVoltage': driftList,
+#                                                    'retTimes': retTimeList,
+#                                                    'xylimits': [mzStart, mzEnd, mzYMax]}
+#             self.documentsDict[self.currentDoc] = document
+#             self.view.panelDocuments.documents.add_document(docData=document)
+#         document = self.documentsDict[initialDoc]
+#         self.view.panelDocuments.documents.add_document(docData=document)
 
     def get2DdataFromDictionary(self, dictionary=None, dataType='plot',
                                 compact=False, plotType='2D'):

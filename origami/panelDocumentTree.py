@@ -31,7 +31,6 @@ from copy import deepcopy
 from natsort import natsorted
 
 from panel_peak_annotation_editor import panel_peak_annotation_editor
-from panel_signal_comparison_viewer import panel_signal_comparison_viewer
 from panelInformation import panelDocumentInfo
 from panelTandemSpectra import panelTandemSpectra
 from ids import *
@@ -3338,6 +3337,7 @@ class documentsTree(wx.TreeCtrl):
 
     def onCompareMS(self, evt):
         """ Open panel where user can select mas spectra to compare """
+        from panel_signal_comparison_viewer import panel_signal_comparison_viewer
 
         if self._item_id is None:
             return

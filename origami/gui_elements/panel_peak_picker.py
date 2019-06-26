@@ -94,10 +94,8 @@ class panel_peak_picker(wx.MiniFrame):
         self.settings_mass_range = self.make_mass_selection_panel(panel)
 
         self.settings_small = self.make_settings_panel_small_molecule(panel)
-#         self.settings_small.Hide()
 
         self.settings_native = self.make_settings_panel_native(panel)
-#         self.settings_native.Hide()
 
         self.settings_panel = self.make_settings_panel(panel)
 
@@ -118,7 +116,6 @@ class panel_peak_picker(wx.MiniFrame):
         self.main_sizer.Add(self.plot_panel, 1, wx.EXPAND)
         self.main_sizer.Fit(panel)
 
-        self.main_sizer.Fit(panel)
         self.SetSize((1100, 600))
         self.SetSizer(self.main_sizer)
         self.Layout()
@@ -520,9 +517,9 @@ class panel_peak_picker(wx.MiniFrame):
         self.plot_panel.SetSizer(box)
         self.plot_panel.Fit()
 
-        # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 2)
+        # fit layout
         panel.SetSizer(main_sizer)
         main_sizer.Fit(panel)
 

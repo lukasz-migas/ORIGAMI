@@ -54,6 +54,8 @@ class mpl_plotter(wx.Window):
             self.config = kwargs['config']
             del kwargs['config']
 
+        self.window_name = kwargs.pop("window_name", None)
+
         wx.Window.__init__(self, *args, **kwargs)
         self.canvas = FigureCanvasWxAgg(self, -1, self.figure)
 
