@@ -37,7 +37,6 @@ import mainWindow as mainWindow
 import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
 import processing.spectra as pr_spectra
-import readers.io_waters_raw as io_waters
 import unidec as unidec
 from config import OrigamiConfig as config
 from document import document as documents
@@ -56,6 +55,10 @@ from utils.color import (combine_rgb,
 from utils.converters import str2int, str2num
 from utils.logging import set_logger, set_logger_level
 from utils.time import getTime
+
+from sys import platform
+if platform == "win32":
+    import readers.io_waters_raw as io_waters
 
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -1353,7 +1356,7 @@ class ORIGAMI(object):
                 elif source == "text":
                     __, __, charge, color, colormap, alpha, mask, __, \
                         label, filename, min_threshold, max_threshold \
-                        = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
+ = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
                     try:
                         document = self.documentsDict[filename]
@@ -1563,7 +1566,7 @@ class ORIGAMI(object):
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, label, \
                         self.currentDoc, ionName, min_threshold, max_threshold \
-                        = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
+ = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
 
                     # processed name
                     ionNameProcessed = "%s (processed)" % ionName
