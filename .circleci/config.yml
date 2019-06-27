@@ -7,6 +7,8 @@ jobs:
   build:
     docker:
       - image: circleci/python:3.6
+    machine:
+      - image: circleci/classic:201708-01 # VM will run Ubuntu 14.04 for this release date
     steps:
       - checkout
       - run:
@@ -50,8 +52,8 @@ jobs:
             source activate testenv;
             pip install -U pip wheel;
             pip install -r requirements_origami_CI.txt --ignore-installed;
-            pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/debian-9/ wxPython;
-            # pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython;
+            # pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/debian-9/ wxPython;
+            pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython;
             echo $PATH;
             echo $CIRCLE_BRANCH;
             which python;
