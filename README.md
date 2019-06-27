@@ -3,9 +3,11 @@
 ---
 
 [![Build Status](https://travis-ci.com/lukasz-migas/ORIGAMI.svg?branch=dev-py3)](https://travis-ci.com/lukasz-migas/ORIGAMI)
+[![Build status](https://ci.appveyor.com/api/projects/status/jy9txtbg0ptodyag/branch/dev-py3?svg=true)](https://ci.appveyor.com/project/lukasz-migas/origami/branch/dev-py3)
+[![CircleCI](https://circleci.com/gh/lukasz-migas/ORIGAMI/tree/dev-py3.svg?style=svg)](https://circleci.com/gh/lukasz-migas/ORIGAMI/tree/dev-py3)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/00205444-c38d-4974-92a5-e4c543507157/deploy-status)](https://app.netlify.com/sites/origami/deploys)
 [![CodeFactor](https://www.codefactor.io/repository/github/lukasz-migas/origami/badge)](https://www.codefactor.io/repository/github/lukasz-migas/origami)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ee92e286b9c74ac0aa583df9a3b2daac)](https://www.codacy.com/app/lukasz-migas/ORIGAMI?utm_source=github.com&utm_medium=referral&utm_content=lukasz-migas/ORIGAMI&utm_campaign=Badge_Grade)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/00205444-c38d-4974-92a5-e4c543507157/deploy-status)](https://app.netlify.com/sites/origami/deploys)
 
 **ORIGAMI** is a two component software suite for faster acquisition of actived ion mobility mass spectrometry (IM-MS) datasets and analysis of MS and IM-MS data.<p>
 

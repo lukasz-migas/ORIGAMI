@@ -13,11 +13,11 @@ environment:
       MINICONDA: C:\Miniconda36-x64
       PYTHON_ARCH: 64
       PYTHON_VERSION: "3.6"
-    # python 3.7
-    - PYTHON: "C:/Python37"
-      MINICONDA: C:\Miniconda37-x64
-      PYTHON_ARCH: 64
-      PYTHON_VERSION: "3.7"
+    # # python 3.7
+    # - PYTHON: "C:/Python37"
+    #   MINICONDA: C:\Miniconda37-x64
+    #   PYTHON_ARCH: 64
+    #   PYTHON_VERSION: "3.7"
 
 init:
   - "ECHO %PYTHON_VERSION% %MINICONDA% %PYTHON_ARCH%"
