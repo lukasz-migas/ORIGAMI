@@ -1,29 +1,24 @@
+from bisect import bisect_left
+from copy import deepcopy
+from ctypes import c_double, c_int, byref, cdll
+import fnmatch
+import math
 import os
 import platform
-import sys
-import math
 import subprocess
+import sys
 import time
-from bisect import bisect_left
-# from ctypes import *
-from copy import deepcopy
 import zipfile
+
+from scipy import fftpack
+from scipy import signal
+from scipy.interpolate import griddata
+from scipy.interpolate import interp1d
+
+import matplotlib.cm as cm
 import numpy as np
 import scipy.ndimage.filters as filt
-from scipy.interpolate import interp1d
-from scipy.interpolate import griddata
-from scipy import signal
-from scipy import fftpack
-import matplotlib.cm as cm
 from unidec_modules.fitting import stats, ndis, ldis, splitdis, ndis_std, logistic, isolated_peak_fit
-from ctypes import c_double, c_int, byref, cdll
-import unidec_modules.unidecstructure
-
-try:
-    import unidec_modules.data_reader as data_reader
-except ImportError:
-    print("Could not import data reader: unidectools")
-import fnmatch
 
 is_64bits = sys.maxsize > 2 ** 32
 
@@ -558,6 +553,7 @@ def header_test(path):
 
 
 def waters_convert(path, config=None):
+    import unidec_modules.unidecstructure
     if config is None:
         config = unidec_modules.unidecstructure.UniDecConfig()
         config.initialize_system_paths()
@@ -578,6 +574,8 @@ def load_mz_file(path, config=None):
     :param config: UniDecConfig object
     :return: Data array
     """
+    import unidec_modules.data_reader as data_reader
+
     if config is None:
         extension = os.path.splitext(path)[1]
     else:
