@@ -57,6 +57,7 @@ jobs:
       - run:
           name: Run ORIGAMI
           command: |
+            lsb_release -a
             source activate testenv;
             cd origami;
             sed -i 's/self.testing = False/self.testing = True/g' config.py;
