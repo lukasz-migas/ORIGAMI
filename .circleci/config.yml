@@ -49,12 +49,13 @@ jobs:
             source activate testenv;
             pip install -U pip wheel;
             pip install -r requirements_origami_CI.txt --ignore-installed;
+            pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython;
             echo $PATH;
             echo $CIRCLE_BRANCH;
             which python;
             which pip;
       - run:
-          name: Run msasign
+          name: Run ORIGAMI
           command: |
             source activate testenv;
             cd origami;
