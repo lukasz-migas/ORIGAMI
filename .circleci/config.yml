@@ -6,9 +6,8 @@ general:
 jobs:
   build:
     docker:
+      - image: buildpack-deps:trusty
       - image: circleci/python:3.6
-    machine:
-      - image: circleci/classic:201708-01 # VM will run Ubuntu 14.04 for this release date
     steps:
       - checkout
       - run:
