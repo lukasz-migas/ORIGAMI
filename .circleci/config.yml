@@ -25,7 +25,8 @@ jobs:
             sudo apt-get install -y libgtk-3-dev libjpeg-dev libtiff-dev \
                     libsdl2-dev libgstreamer-plugins-base1.0-dev libnotify-dev \
                     libsm-dev libwebkit2gtk-4.0-dev libxtst-dev \
-                    libgl1-mesa-dev libglu1-mesa-dev python-virtualenv
+                    libgl1-mesa-dev libglu1-mesa-dev python-virtualenv \
+                    libpng12-0
       - run:
           name: Install miniconda
           command: |
@@ -49,7 +50,7 @@ jobs:
             source activate testenv;
             pip install -U pip wheel;
             pip install -r requirements_origami_CI.txt --ignore-installed;
-            pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython;
+            pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython;
             echo $PATH;
             echo $CIRCLE_BRANCH;
             which python;
