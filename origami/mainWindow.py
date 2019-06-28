@@ -54,11 +54,11 @@ from ids import ID_fileMenu_MGF, ID_fileMenu_mzML, \
     ID_load_multiple_masslynx_raw, ID_addCCScalibrantFile, ID_openLinearDTRawFile, ID_load_masslynx_raw_ms_only, \
     ID_addNewOverlayDoc, ID_addNewInteractiveDoc, ID_load_text_MS, ID_load_text_2D, ID_addNewManualDoc, \
     ID_load_clipboard_spectrum, ID_saveDocument, ID_saveAllDocuments, ID_quit, ID_processSettings_ExtractData, \
-    ID_processSettings_ORIGAMI, ID_processSettings_MS, ID_processSettings_2D, ID_processSettings_FindPeaks, \
+    ID_processSettings_MS, ID_processSettings_2D, ID_processSettings_FindPeaks, \
     ID_processSettings_UniDec, ID_extraSettings_general_plot, ID_extraSettings_plot1D, ID_extraSettings_plot2D, \
     ID_extraSettings_plot3D, ID_extraSettings_colorbar, ID_extraSettings_legend, ID_extraSettings_rmsd, \
     ID_extraSettings_waterfall, ID_extraSettings_violin, ID_extraSettings_general, ID_annotPanel_otherSettings, \
-    ID_unidecPanel_otherSettings, ID_plots_showCursorGrid, ID_plots_resetZoom, ID_clearAllPlots, ID_docTree_compareMS, \
+    ID_unidecPanel_otherSettings, ID_plots_showCursorGrid, ID_clearAllPlots, ID_docTree_compareMS, \
     ID_saveAsInteractive, ID_window_documentList, ID_window_ionList, ID_window_textList, ID_window_multipleMLList, \
     ID_window_multiFieldList, ID_window_ccsList, ID_window_logWindow, ID_window_all, ID_windowMaximize, \
     ID_windowMinimize, ID_windowFullscreen, ID_docTree_plugin_UVPD, ID_docTree_plugin_MSMS, ID_saveConfig, \
@@ -70,11 +70,11 @@ from ids import ID_fileMenu_MGF, ID_fileMenu_mzML, \
     ID_helpGuide, ID_helpGuideLocal, ID_helpYoutube, ID_helpNewVersion, ID_helpCite, ID_helpNewFeatures, \
     ID_helpReportBugs, ID_CHECK_VERSION, ID_WHATS_NEW, ID_SHOW_ABOUT, ID_helpAuthor, ID_RESET_ORIGAMI, \
     ID_help_page_gettingStarted, ID_help_page_CCScalibration, ID_help_page_linearDT, ID_openIRRawFile, \
-    ID_openIRTextile, ID_saveOverlayImage, ID_saveMSImage, ID_saveMZDTImage, \
+    ID_saveOverlayImage, ID_saveMSImage, ID_saveMZDTImage, \
     ID_saveRTImage, ID_save1DImage, ID_save2DImage, ID_save3DImage, ID_saveWaterfallImage, ID_saveRMSDImage, \
-    ID_saveRMSFImage, ID_saveRMSDmatrixImage, ID_load_multiple_text_2D, ID_textPanel_process_selected, ID_overlayTextFromList, \
-    ID_extractDriftVoltagesForEachIon, ID_helpHomepage, ID_helpGitHub, ID_helpHTMLEditor, ID_overlayMZfromList, \
-    ID_extractAllIons, ID_showPlotDocument, ID_process2DDocument, ID_combineCEscans, ID_renameItem, \
+    ID_saveRMSFImage, ID_saveRMSDmatrixImage, ID_load_multiple_text_2D, ID_overlayTextFromList, \
+    ID_helpHomepage, ID_helpGitHub, ID_helpHTMLEditor, ID_overlayMZfromList, \
+    ID_showPlotDocument, ID_process2DDocument, ID_renameItem, \
     ID_showPlotMSDocument, ID_assignChargeState, ID_saveDataCSVDocument, ID_mainPanel_openSourceFiles, \
     ID_load_masslynx_raw, ID_window_controls, ID_documentRecent0, ID_documentRecent1, ID_documentRecent2, \
     ID_documentRecent3, ID_documentRecent4, ID_documentRecent5, ID_documentRecent6, ID_documentRecent7, \
@@ -85,17 +85,13 @@ from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
 from gui_elements.panel_exportSettings import panelExportSettings
 from gui_elements.misc_dialogs import dlgBox
 
-from utils.random import randomIntegerGenerator
-from utils.color import convertRGB255to1, convertRGB1to255
 import logging
 logger = logging.getLogger("origami")
 
 
 class MyFrame(wx.Frame):
 
-    def __init__(self, parent, config, helpInfo, icons, id=-1, title='ORIGAMI',
-                 pos=wx.DefaultPosition, size=(1200, 600),
-                 style=wx.FULL_REPAINT_ON_RESIZE):
+    def __init__(self, parent, config, helpInfo, icons, title='ORIGAMI'):
         wx.Frame.__init__(self, None, title=title)
 
         # Extract size of screen
@@ -1525,14 +1521,13 @@ class MyFrame(wx.Frame):
         try:
             self.disable_publisher()
         except Exception as err:
-            print("Could not disable publisher")
-            print(err)
+            print(f"Could not disable publisher: {err}")
 
         # Try killing window manager
         try:
             self._mgr.UnInit()
-        except Exception:
-            print("Could not uninitilize window manager")
+        except Exception as err:
+            print(f"Could not uninitilize window manager: {err}")
 
         # Clear-up temporary data directory
         try:
@@ -1914,8 +1909,10 @@ class MyFrame(wx.Frame):
             self.SetStatusText(msg, number=position)
             sleep(delay)
             self.SetStatusText("", number=position)
-        except Exception as e:
-            logger.warning("Could not update statusbar :: {}".format(e))
+        except RuntimeError as err:
+            print(err)
+        except Exception as err:
+            logger.warning("Could not update statusbar :: {}".format(err))
 
     def updatePlots(self, evt):
         """

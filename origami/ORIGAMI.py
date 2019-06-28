@@ -203,14 +203,14 @@ class ORIGAMI(object):
                                 fname)
             self.data_handling.on_add_text_2D(None, path)
 
-        if platform == "win32":
-            # load Waters (.raw) file - MS only
-            path = os.path.join(self.config.cwd, "example_files", "dt-ims", "LM_20151006_7_B_DV60.raw")
-            self.data_handling.on_open_single_MassLynx_raw(path, "Type: MS")
-
-            # load Waters (.raw) file - IM-MS
-            path = os.path.join(self.config.cwd, "example_files", "origami_ms", "ORIGAMI_ConA_z20.raw")
-            self.data_handling.on_open_single_MassLynx_raw(path, "Type: ORIGAMI")
+#         if platform == "win32":
+#             # load Waters (.raw) file - MS only
+#             path = os.path.join(self.config.cwd, "example_files", "dt-ims", "LM_20151006_7_B_DV60.raw")
+#             self.data_handling.on_open_single_MassLynx_raw(path, "Type: MS")
+#
+#             # load Waters (.raw) file - IM-MS
+#             path = os.path.join(self.config.cwd, "example_files", "origami_ms", "ORIGAMI_ConA_z20.raw")
+#             self.data_handling.on_open_single_MassLynx_raw(path, "Type: ORIGAMI")
 
         self.view.on_close(None, clean_exit=True, ignore_warning=True)
 
@@ -1383,7 +1383,7 @@ class ORIGAMI(object):
                 elif source == "text":
                     __, __, charge, color, colormap, alpha, mask, __, \
                         label, filename, min_threshold, max_threshold \
-                        = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
+ = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
                     try:
                         document = self.documentsDict[filename]
@@ -1593,7 +1593,7 @@ class ORIGAMI(object):
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, label, \
                         self.currentDoc, ionName, min_threshold, max_threshold \
-                        = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
+ = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
 
                     # processed name
                     ionNameProcessed = "%s (processed)" % ionName
