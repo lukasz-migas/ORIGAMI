@@ -2397,7 +2397,7 @@ class panelProcessData(wx.MiniFrame):
                                     adductIon="H+", remove_below=0.01):
 
         _adducts = {'H+': 1.007276467, 'Na+': 22.989218, 'K+': 38.963158, 'NH4+': 18.033823,
-                    'H-':-1.007276, 'Cl-': 34.969402}
+                    'H-': -1.007276, 'Cl-': 34.969402}
 
         # np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(self.config.unidec_engine.data.data2[:, 0])
         min_mz, max_mz = np.min(msX), np.max(msX)
@@ -2416,7 +2416,7 @@ class panelProcessData(wx.MiniFrame):
 
     def _calculate_peak_widths(self, chargeList, selectedMW, peakWidth, adductIon="H+"):
         _adducts = {'H+': 1.007276467, 'Na+': 22.989218, 'K+': 38.963158, 'NH4+': 18.033823,
-                    'H-':-1.007276, 'Cl-': 34.969402}
+                    'H-': -1.007276, 'Cl-': 34.969402}
         min_mz, max_mz = np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(
             self.config.unidec_engine.data.data2[:, 0])
         charges = np.array(list(map(int, np.arange(chargeList[0, 0], chargeList[-1, 0] + 1))))

@@ -57,8 +57,8 @@ from utils.logging import set_logger, set_logger_level
 from utils.time import getTime
 
 from sys import platform
-if platform == "win32":
-    import readers.io_waters_raw as io_waters
+# if platform == "win32":
+#     import readers.io_waters_raw as io_waters
 
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -182,7 +182,7 @@ class ORIGAMI(object):
             self._debug_()
 
         if self.config.testing:
-            self.view.on_close(None, clean_exit=True)
+            self._test_()
 
 #         for file_path in [
 # #                         'Z:\###_PhD1_###\RebeccaBeveridge - P27 CdkCyclin Fdc1\p27_data_January2018\SynaptG2\LM_15012017_P27K56_2.pickle'
@@ -190,6 +190,29 @@ class ORIGAMI(object):
 #                         'Z:\###_PhD2_###\CIU\PythonCIU\ORIGAMI_2\_TEST_DATA\ORIGAMI_ConA_z20.pickle'
 #                           ]:
 #             self.onOpenDocument(evt=None, file_path = file_path)
+
+    def _test_(self):
+        # load text MS file
+        path = os.path.join(self.config.cwd, "example_files", "text_files", "MS_p27-FL-K31.csv")
+        self.data_handling.on_add_text_MS(path)
+
+        # load text 2D file
+        for fname in ["1_Linear_IMS2D_5140.73-5169.41.csv", "2_Exponential_IMS2D_5140.48-5164.36.csv",
+                      "3_Boltzmann_IMS2D_5139.58-5170.58.csv"]:
+            path = os.path.join(self.config.cwd, "example_files", "text_files",
+                                fname)
+            self.data_handling.on_add_text_2D(None, path)
+
+        if platform == "win32":
+            # load Waters (.raw) file - MS only
+            path = os.path.join(self.config.cwd, "example_files", "dt-ims", "LM_20151006_7_B_DV60.raw")
+            self.data_handling.on_open_single_MassLynx_raw(path, "Type: MS")
+
+            # load Waters (.raw) file - IM-MS
+            path = os.path.join(self.config.cwd, "example_files", "origami_ms", "ORIGAMI_ConA_z20.raw")
+            self.data_handling.on_open_single_MassLynx_raw(path, "Type: ORIGAMI")
+
+        self.view.on_close(None, clean_exit=True, ignore_warning=True)
 
     def on_start_logging(self):
 
@@ -1360,7 +1383,7 @@ class ORIGAMI(object):
                 elif source == "text":
                     __, __, charge, color, colormap, alpha, mask, __, \
                         label, filename, min_threshold, max_threshold \
- = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
+                        = self.view.panelMultipleText.OnGetItemInformation(itemID=row, return_list=True)
                     # get document
                     try:
                         document = self.documentsDict[filename]
@@ -1570,7 +1593,7 @@ class ORIGAMI(object):
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, label, \
                         self.currentDoc, ionName, min_threshold, max_threshold \
- = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
+                        = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
 
                     # processed name
                     ionNameProcessed = "%s (processed)" % ionName

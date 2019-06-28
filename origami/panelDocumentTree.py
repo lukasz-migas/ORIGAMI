@@ -2113,8 +2113,8 @@ class documentsTree(wx.TreeCtrl):
                                              text='Delete item\tDelete',
                                              bitmap=self.icons.iconsLib['clear_16']))
             if (self._document_type in ['Drift time (2D)', 'Drift time (2D, processed)']
-                or (self._document_type == 'Drift time (2D, EIC)' and self._item_leaf != self._document_type)
-                ):
+                    or (self._document_type == 'Drift time (2D, EIC)' and self._item_leaf != self._document_type)
+                    ):
                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_showPlotDocument,
                                              text='Show heatmap\tAlt+S',
                                              bitmap=self.icons.iconsLib['heatmap_16']))

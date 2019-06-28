@@ -1496,11 +1496,9 @@ class MyFrame(wx.Frame):
 
     def on_close(self, evt, **kwargs):
 
-        if len(self.presenter.documentsDict) > 0:
-            if len(self.presenter.documentsDict) == 1:
-                verb_form = "is"
-            else:
-                verb_form = "are"
+        n_documents = len(self.presenter.documentsDict)
+        if n_documents > 0 and not kwargs.get("ignore_warning", False):
+            verb_form = {"1": "is"}.get(str(n_documents), "are")
             message = "There {} {} document(s) open.\n".format(verb_form, len(self.presenter.documentsDict)) + \
                 "Are you sure you want to continue?"
             msgDialog = DialogNotifyOpenDocuments(self, presenter=self.presenter, message=message)
@@ -1509,8 +1507,6 @@ class MyFrame(wx.Frame):
             if dlg == wx.ID_NO:
                 print('Cancelled operation')
                 return
-            else:
-                pass
 
         # Try saving configuration file
         try:
@@ -1518,7 +1514,12 @@ class MyFrame(wx.Frame):
             self.config.saveConfigXML(path=path, evt=None)
         except Exception:
             print("Could not save configuration file")
-            pass
+
+        # Clear-up dictionary
+        try:
+            self.presenter.documentsDict.clear()
+        except Exception as err:
+            print(err)
 
         # Try unsubscribing events
         try:
@@ -1526,22 +1527,12 @@ class MyFrame(wx.Frame):
         except Exception as err:
             print("Could not disable publisher")
             print(err)
-            pass
 
         # Try killing window manager
         try:
             self._mgr.UnInit()
         except Exception:
             print("Could not uninitilize window manager")
-            pass
-
-        # Clear-up dictionary
-        try:
-            for title in self.presenter.documentsDict:
-                del self.presenter.documentsDict[title]
-                print(("Deleted {}".format(title)))
-        except Exception:
-            pass
 
         # Clear-up temporary data directory
         try:
@@ -1550,7 +1541,6 @@ class MyFrame(wx.Frame):
                 print(("Cleared {} from temporary files.".format(self.config.temporary_data)))
         except Exception as err:
             print(err)
-            pass
 
         # Aggressive way to kill the ORIGAMI process (grrr)
         if not kwargs.get("clean_exit", False):
@@ -1879,7 +1869,7 @@ class MyFrame(wx.Frame):
         elif file_type == 'Infrared':
             self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_openIRRawFile)
         elif file_type == 'Text':
-            self.data_handling.__on_add_text_2D(None, file_path)
+            self.data_handling.on_add_text_2D(None, file_path)
         elif file_type == 'Text_MS':
             self.data_handling.on_open_single_text_MS(path=file_path)
 
@@ -1892,9 +1882,9 @@ class MyFrame(wx.Frame):
         elif file_extension in ['.txt', '.csv', '.tab']:
             file_format = check_file_type(path=file_path)
             if file_format == "2D":
-                self.data_handling.__on_add_text_2D(None, file_path)
+                self.data_handling.on_add_text_2D(None, file_path)
             else:
-                self.data_handling.__on_add_text_MS(path=file_path)
+                self.data_handling.on_add_text_MS(path=file_path)
 
     def updateStatusbar(self, msg, position, delay=3, modify_msg=True, print_msg=True):
         """

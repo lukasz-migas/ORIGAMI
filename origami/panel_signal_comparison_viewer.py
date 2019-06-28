@@ -133,14 +133,14 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         # MS 1
         spectrum_1_document_label = wx.StaticText(panel, -1, "Document:")
         self.spectrum_1_document_value = wx.ComboBox(panel, ID_compareMS_MS_1,
-                                           choices=self.document_list,
-                                           style=wx.CB_READONLY)
+                                                     choices=self.document_list,
+                                                     style=wx.CB_READONLY)
         self.spectrum_1_document_value.SetStringSelection(document_1)
 
         spectrum_1_spectrum_label = wx.StaticText(panel, -1, "Spectrum:")
         self.spectrum_1_spectrum_value = wx.ComboBox(panel, wx.ID_ANY,
-                                             choices=spectrum_list_1,
-                                             style=wx.CB_READONLY)
+                                                     choices=spectrum_list_1,
+                                                     style=wx.CB_READONLY)
         self.spectrum_1_spectrum_value.SetStringSelection(spectrum_1)
 
         spectrum_1_label_label = wx.StaticText(panel, -1, "Label:")
@@ -152,14 +152,14 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         spectrum_1_transparency_label = wx.StaticText(panel, -1, "Transparency:")
         self.spectrum_1_transparency = wx.SpinCtrlDouble(panel, -1,
-                                                          value=str(self.config.lineTransparency_MS1 * 100),
-                                                          min=0, max=100,
-                                                          initial=self.config.lineTransparency_MS1 * 100,
-                                                          inc=10, size=(90, -1))
+                                                         value=str(self.config.lineTransparency_MS1 * 100),
+                                                         min=0, max=100,
+                                                         initial=self.config.lineTransparency_MS1 * 100,
+                                                         inc=10, size=(90, -1))
 
         spectrum_1_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
         self.spectrum_1_lineStyle_value = wx.ComboBox(panel, choices=self.config.lineStylesList,
-                                                       style=wx.CB_READONLY)
+                                                      style=wx.CB_READONLY)
         self.spectrum_1_lineStyle_value.SetStringSelection(self.config.lineStyle_MS1)
 
         # MS 2
@@ -171,8 +171,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         spectrum_2_spectrum_label = wx.StaticText(panel, -1, "Spectrum:")
         self.spectrum_2_value = wx.ComboBox(panel, wx.ID_ANY,
-                                             choices=spectrum_list_2,
-                                             style=wx.CB_READONLY)
+                                            choices=spectrum_list_2,
+                                            style=wx.CB_READONLY)
         self.spectrum_2_value.SetStringSelection(spectrum_2)
 
         spectrum_2_label_label = wx.StaticText(panel, -1, "Label:")
@@ -184,14 +184,14 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         spectrum_2_transparency_label = wx.StaticText(panel, -1, "Transparency:")
         self.spectrum_2_transparency = wx.SpinCtrlDouble(panel, -1,
-                                                          value=str(self.config.lineTransparency_MS1 * 100),
-                                                          min=0, max=100,
-                                                          initial=self.config.lineTransparency_MS1 * 100,
-                                                          inc=10, size=(90, -1))
+                                                         value=str(self.config.lineTransparency_MS1 * 100),
+                                                         min=0, max=100,
+                                                         initial=self.config.lineTransparency_MS1 * 100,
+                                                         inc=10, size=(90, -1))
 
         spectrum_2_lineStyle_label = wx.StaticText(panel, -1, "Line style:")
         self.spectrum_2_lineStyle_value = wx.ComboBox(panel, choices=self.config.lineStylesList,
-                                                       style=wx.CB_READONLY)
+                                                      style=wx.CB_READONLY)
         self.spectrum_2_lineStyle_value.SetStringSelection(self.config.lineStyle_MS2)
 
         # Processing
@@ -214,21 +214,21 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         settings_label = wx.StaticText(panel, wx.ID_ANY, "Settings:")
         self.settings_btn = wx.BitmapButton(panel, ID_extraSettings_plot1D,
-                                           self.icons.iconsLib['panel_plot1D_16'],
-                                           size=(26, 26),
-                                           style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
+                                            self.icons.iconsLib['panel_plot1D_16'],
+                                            size=(26, 26),
+                                            style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
         self.settings_btn.SetBackgroundColour((240, 240, 240))
 
         self.legend_btn = wx.BitmapButton(panel, ID_extraSettings_legend,
-                                         self.icons.iconsLib['panel_legend_16'],
-                                         size=(26, 26),
-                                         style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
+                                          self.icons.iconsLib['panel_legend_16'],
+                                          size=(26, 26),
+                                          style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
         self.legend_btn.SetBackgroundColour((240, 240, 240))
 
         self.process_btn = wx.BitmapButton(panel, ID_processSettings_MS,
-                                             self.icons.iconsLib['process_ms_16'],
-                                             size=(26, 26),
-                                             style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
+                                           self.icons.iconsLib['process_ms_16'],
+                                           size=(26, 26),
+                                           style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
         self.process_btn.SetBackgroundColour((240, 240, 240))
 
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)

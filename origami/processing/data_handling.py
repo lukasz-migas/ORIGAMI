@@ -88,7 +88,7 @@ class data_handling():
         elif action == "load.multiple.text.heatmap":
             th = threading.Thread(target=self.on_open_multiple_text_2D, args=args)
         elif action == "load.text.spectrum":
-            th = threading.Thread(target=self.__on_add_text_MS, args=args)
+            th = threading.Thread(target=self.on_add_text_MS, args=args)
         elif action == "load.raw.masslynx.ms_only":
             th = threading.Thread(target=self.on_open_MassLynx_raw_MS_only, args=args)
         elif action == "extract.heatmap":
@@ -293,8 +293,8 @@ class data_handling():
 
         return document
 
-    def __on_add_ion_ORIGAMI(self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name,
-                             label, charge):
+    def on_add_ion_ORIGAMI(self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name,
+                           label, charge):
         kwargs = dict(mz_start=mz_start, mz_end=mz_end)
         # 1D
         try:
@@ -335,8 +335,8 @@ class data_handling():
 
         self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.raw")
 
-    def __on_add_ion_MANUAL(self, item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id,
-                            charge, label):
+    def on_add_ion_MANUAL(self, item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id,
+                          charge, label):
 
         self.filesList.on_sort(2, False)
         tempDict = {}
@@ -454,7 +454,7 @@ class data_handling():
 
         self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.combined")
 
-    def __on_add_ion_IR(self, item_information, document, path, mz_start, mz_end, ion_name, ion_id, charge, label):
+    def on_add_ion_IR(self, item_information, document, path, mz_start, mz_end, ion_name, ion_id, charge, label):
         # 2D
         __, __, zvals = self._get_driftscope_mobility_data(path)
 
@@ -484,7 +484,7 @@ class data_handling():
         self.documentTree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.raw")
         self.on_update_document(document, 'ions')
 
-    def __on_add_text_2D(self, filename, filepath):
+    def on_add_text_2D(self, filename, filepath):
 
         if filename is None:
             _, filename = get_path_and_fname(filepath, simple=True)
@@ -555,12 +555,13 @@ class data_handling():
         # Update document
         self.view.updateRecentFiles(path={'file_type': 'Text', 'file_path': path})
 
-    def __on_add_text_MS(self, path):
+    def on_add_text_MS(self, path):
         # Update statusbar
         self.on_threading(args=("Loading {}...".format(path), 4), action='statusbar.update')
         __, document_title = get_path_and_fname(path, simple=True)
 
         ms_x, ms_y, dirname, xlimits, extension = self._get_text_spectrum_data(path)
+
         # Add data to document
         document = documents()
         document.title = document_title
@@ -914,7 +915,7 @@ class data_handling():
         if dlg.ShowModal() == wx.ID_OK:
             filepath = dlg.GetPath()
             __, filename = get_path_and_fname(filepath, simple=True)
-            self.__on_add_text_2D(filename, filepath)
+            self.on_add_text_2D(filename, filepath)
         dlg.Destroy()
 
     def on_open_multiple_text_2D_fcn(self, evt):
@@ -935,7 +936,7 @@ class data_handling():
 
     def on_open_multiple_text_2D(self, pathlist, filenames):
         for filepath, filename in zip(pathlist, filenames):
-            self.__on_add_text_2D(filename, filepath)
+            self.on_add_text_2D(filename, filepath)
 
     def on_open_multiple_MassLynx_raw_fcn(self, evt):
 
@@ -948,7 +949,7 @@ class data_handling():
 
         if dlg.ShowModal() == "ok":  # wx.ID_OK:
             pathlist = dlg.GetPaths()
-            data_type = 'Type: ORIGAMI'
+            data_type = "Type: ORIGAMI"
             for path in pathlist:
                 if not check_waters_path(path):
                     msg = "The path ({}) you've selected does not end with .raw"
@@ -1126,7 +1127,7 @@ class data_handling():
             pathlist = dlg.GetPaths()
             for path in pathlist:
                 if not self.config.threading:
-                    self.__on_add_text_MS(path)
+                    self.on_add_text_MS(path)
                 else:
                     self.on_threading(action="load.text.spectrum", args=(path,))
 
@@ -1342,16 +1343,16 @@ class data_handling():
 
             n_extracted += 1
             if document.dataType == 'Type: ORIGAMI':
-                self.__on_add_ion_ORIGAMI(
+                self.on_add_ion_ORIGAMI(
                     item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge)
 
             # Check if manual dataset
             elif document.dataType == 'Type: MANUAL':
-                self.__on_add_ion_MANUAL(
+                self.on_add_ion_MANUAL(
                     item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label)
 
             elif document.dataType == 'Type: Infrared':
-                self.__on_add_ion_IR(
+                self.on_add_ion_IR(
                     item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label)
             else:
                 return
@@ -2467,4 +2468,3 @@ class data_handling():
                              'xlimits': xlimits, "trap": cv}
 
             self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
-
