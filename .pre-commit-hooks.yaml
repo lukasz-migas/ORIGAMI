@@ -14,3 +14,10 @@
   types: [python]
   args: ["--config=setup.cfg"]
   require_serial: true
+- id: name-tests-test
+  name: Tests should end in _test.py
+  description: This verifies that test files are named correctly
+  entry: name-tests-test
+  language: python
+  files: (^|/)tests/.+\.py$
+  args: ["--django=True"]

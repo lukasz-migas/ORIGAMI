@@ -10,42 +10,42 @@
     = add new 2D plot which colours charge states of various components as with RGB plot
     = add adduct in the Pre-processing or deconvolution part
     = add isotopic resolution in deconvolution
-    
+
 - Peak list
     = when double-clicking on an item it incorrectly selects method (Linear/Manual)
     = add option to visualise global ATD as a waterfall
-    
+
 - Support loading other data formats
     = when loading 2D dataset, check column names to see if they are float, if not
         add them as separate 1D items
     = custom tooltips?
         This could be quite simple. A user would have an option to select type of annotation
-        which could be integer, float or string and for which item(s) in the plot. These would be 
+        which could be integer, float or string and for which item(s) in the plot. These would be
         then rendered as tooltip features
         -- add 2D from clipboard/file(s)
 
 - add new sub-document item: Saved images
 	= should allow saving already generated images to the document (no re-plotting required!)
-	
+
 - complete revamp of Linear DT files panel
     = remove the DT panel and add it as a plugin instead
 	= add features like highlighting on RT and MS panels
 	= load lists
 	= fix feature detection
-	
+
 - complete revamp of CCS panel
     = remove the CCS panel and add it as a plugin instead
-	
+
 - add support for Agilent files
 
 - retention time:
     = combine multiple areas
-    
+
 - move the MS extraction to Waters official API and stop using Driftscope for this
 
 Interactive:
     - add pie chart
-    
+
 autopep8
 autopep8 --in-place --aggressive --aggressive --max-line-length=120 ORIGAMI.py
 
@@ -69,9 +69,14 @@ Document:
 Plotting:
 - [new] DT/MS - added smart-zoom option which will speed-up data viewing for very large arrays
     to activate, right-click and select "Customise smart-zoom" where you can adjust settings
+- [changed] comparing mass spectra is a little bit better now. I've modified the Comparison widget to have its own
+    plotting window so the behaviour is a lot more understandable! Now when you double-click on Mass Spectra in the Document
+    panel or select Menu -> Widgets -> Compare spectra... a new window will appear where you can easily compare
+    spectra from within the same or different document. Plotting is automatic so you simply select the spectrum you want
+    to view.
 
 Document tree:
-- [improved] when deleting items from the "Drift time (2D, EIC)" sub-tree, patches corresponding to the ion will be 
+- [improved] when deleting items from the "Drift time (2D, EIC)" sub-tree, patches corresponding to the ion will be
     automatically removed from the MS plot
 - [improved] when adding new data to the document, the document tree should stop flickering and constantly resetting
     the view and rather expand the current nodes
@@ -80,14 +85,14 @@ Processing:
 - [changed] moved ORIGAMI-MS settings away from the processing window. Now, in order to setup FILE specific settings,
     you must right-click on the document in the Document tree and select "Action -> Setup ORIGAMI-MS settings..." which
     will open a new window with the settings. Settings for each file are now stored within the file metadata, so it is less
-    likely to get things mixed up. 
+    likely to get things mixed up.
     - as a consequence, the ORIGAMI-MS panel in Processing was removed
     - as a consequence, the ORIGAMI-MS settings section in Ion settings was removed
 // TODO: It also features a small plot area which will show you the settings profile that was used
 - [changed] removed the settings "DT/MS binning parameters" in Process -> Mass spectrum as it was not intuitive. From
     now on in order to change DT/MS settings, you must navigate to the Document Tree view, right-click on the DT/MS
     item in the Document and select Open DT/MS extraction panel... where you can adjust the m/z range and bin size. You
-    can also select whether data should be extracted (to visualise), saved to file or added to the document. This menu 
+    can also select whether data should be extracted (to visualise), saved to file or added to the document. This menu
     can also be accessed by going to Document -> Action -> Open DT/MS extraction panel...
 - [new] added new peak picking module that can be activated when you right-click in the document view on any
     MS dataset and select `Open peak picker...` which will open a new window where youc an select between two different
@@ -111,37 +116,37 @@ Annotations panel:
 Data extraction:
 - [improved] Extraction of MS data moved away from Driftscope to Waters SDK which allows extraction of profile data
     that is properly scaled (e.g. not normalized). Waters SDK does not provide `full` m/z/intensity map (only values that
-    are not 0s) so data is needs to be interpolated to a common m/z axis. Data is interpolated using `linear` 
-    method with the smallest possible bin size (determined by looking at the first 500 scans). 
+    are not 0s) so data is needs to be interpolated to a common m/z axis. Data is interpolated using `linear`
+    method with the smallest possible bin size (determined by looking at the first 500 scans).
 // TODO: should add some sort of control panel where number of scans can be setup
 - [improved] from now on, chromatographic and mobility (1D) data is extracted using Waters SDK
-- [fixed] fixed an issue which occured when trying to extract MS data from chromatographic window that only occured if 
+- [fixed] fixed an issue which occured when trying to extract MS data from chromatographic window that only occured if
     the x-axis was Collision Voltage (V) - from now on you will not see an error and won' be able to extract data
 
 
 
 ################################################################################
 # v1.2.0.4 / v1.2.1
-# TODO: change testkDa from 10,000 to user-defined value. Also change the num of d.p 
+# TODO: change testkDa from 10,000 to user-defined value. Also change the num of d.p
         in the statusbar updater
 
 Documentation:
-- Added online documentation (also copied locally in ORIGAMI path/docs/index.html). 
+- Added online documentation (also copied locally in ORIGAMI path/docs/index.html).
     See online at https://lukasz-migas.github.io/ORIGAMI/
 - Added 10 new video guides to the Youtube playlist (https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8)
 
 Document tree:
 - [fix] Fixed type: spectrun -> spectrum (grr)
-- [fix] When loading mzml/mgf files, the individual scans will no longer 
+- [fix] When loading mzml/mgf files, the individual scans will no longer
     be shown in the document tree as it caused some major issues. If you would like
     to see the individual spectra, please double-click on the header 'Tandem Mass Spectra'
     and new window will appear when you can select scan by double-clicking on it
     in the table
-- [improvement] When loading any data into the INTERACTIVE document, you will be asked 
+- [improvement] When loading any data into the INTERACTIVE document, you will be asked
     whether data should be duplicated, merged or duplicated
-- [improvement] When plotting a waterfall plot, data will be checked to ensure its not too big (e.g. too many rows). 
+- [improvement] When plotting a waterfall plot, data will be checked to ensure its not too big (e.g. too many rows).
     You will be asked if you would like to continue
-    
+
 Main window:
 - [new] Added new sub-menu: Plugins. This will hold all future mini-applications that will be added
 - [new] Under the menu: Plot there are a couple of new settings windows that can be used
@@ -149,7 +154,7 @@ Main window:
 - [improvement] The help pages (Help -> Help pages -> ...) have now been replaced with
     links to the provided documentation (opens in the browser). Where no documentation exists yet,
     old pages will be shown.
-  
+
 Annotations:
 - [fix] font size, weight and rotation will now be aplied when adding labels
 - [fix] annotation parameters (e.g. size, weight, rotation) will be respected when replotting from the Document Tree
@@ -161,12 +166,12 @@ Annotations:
     distinguished from its parent
 
 Interactive panel:
-= [new] Made big progres in terms of copying/applying styles for plot elements. 
+= [new] Made big progres in terms of copying/applying styles for plot elements.
     When you double-click on any element in the file list a new window will appear
     where you can individually adjust plot parameters. When you finished, you can
-    right-click on that same (or any other) item in the list and select 'Copy style..'. 
+    right-click on that same (or any other) item in the list and select 'Copy style..'.
     You can then select any other item in the list, right-click on it and select
-    'Apply style..'. 
+    'Apply style..'.
 = [fix] fixed sorting in the list (especilaly when using the 'Show selected' option)
   Lists are sorted using 'natural sorting' from now on, meaning they should be more
   logically sorted.
@@ -175,9 +180,9 @@ Interactive panel:
     = added loads of new settings users can control
     = better behaviour when adding colorbars to plots
 = [change] removed tools/toolset from ORIGAMI - the new system of copy/apply style should work much better
-= [new] certain plot types (v-bar, h-bar, scatter, waterfall, multi-line/overlay) 
-    will now support addition of annotations (and their widgets). Annotations can correspond 
-    to anything you wish to say about specific region of a dataset. 
+= [new] certain plot types (v-bar, h-bar, scatter, waterfall, multi-line/overlay)
+    will now support addition of annotations (and their widgets). Annotations can correspond
+    to anything you wish to say about specific region of a dataset.
 = [improvement] I've realised that using 'coffeescript' for widget exportation was
     a big mistake as it takes ~10x+ longer to compile that script than pure JavaScript.
     Adding widgets will be a lot faster from now on (a couple haven't been ported
@@ -186,31 +191,31 @@ Interactive panel:
 UVPD panel
 = added a new plugin that allows analysis and processing of UVPD datasets that were acquire with the laser
     constantly switching between on and off. To activate, click on Menu -> Plugins -> UVPD processing...
-    
+
 Tandem MS panel:
 - [improvement] improved the way scans are loaded
 - [improvement] butterfly plots will now have horizontal line at 0
 - [new] you can now load mzML files
 - [new] you can now export *annotated* MS/MS datasets in an interactive format
     This is still in development, however if you load mzML or mgf file and annotate
-    it using mzIdentML file and subsequently generate fragment annotations 
-    (no post-translational modifications...) then you can export it. Files that have 
-    not been annotated can also be exported. 
-- [improvement] loading of mzML, mgf and mzIdentML files will now be performed in 
+    it using mzIdentML file and subsequently generate fragment annotations
+    (no post-translational modifications...) then you can export it. Files that have
+    not been annotated can also be exported.
+- [improvement] loading of mzML, mgf and mzIdentML files will now be performed in
   threaded mode (e.g. no more hanging of the application).
-  
+
 UVPD panel:
 - [new] you can now extract mass spectra from the found regions that correspond to
     dataset 1 and dataset 2. Unfortunately spectra always return of different size
     (thanks Waters) so they need to be linearized. You can change those settings in
     Menu -> Process -> Mass Spectra.
-    
+
 Other data:
 - [change] changed the poorly named 'Other data' to 'Annotated data'
 - [new] added new keyword 'axis_url/axis_urls' which can be used to provide web address
     which will be used on action. Currently only implemented in scatter plots where
-    tap on any data point will take you to a new web address    
-    
+    tap on any data point will take you to a new web address
+
 
 ################################################################################
 ################################################################################
@@ -221,7 +226,7 @@ Other data:
 - when changing width of the colorbar (or position), the internals disappear
 - when adding text 2D files from a overlay document, and then trying to plot 1D or RT data
   there is an error
-- resizing RMSF plot gives BIG ERRORS. The top part does not rescale properly.. 
+- resizing RMSF plot gives BIG ERRORS. The top part does not rescale properly..
 - zooming in RMSF plot is disabled
 - rotation does not work in 3D plot
 - changing RMSF (top) parameters does not respond
@@ -233,13 +238,13 @@ Interactive panel:
 # KNOWN ISSUES in 1.2.0
 - when plotting RMSD matrix and then plotting 2D, the plot needs to be completely refreshed as it currently
   only paints on top whats already there (resulting in weird artefacts!)
-  
-- When plotting heatmap and then plotting processed heatmap, the colorbar 
+
+- When plotting heatmap and then plotting processed heatmap, the colorbar
   doesn't always refresh values
-  
-- Delting 'multiple mass spectra' from document in the document tree should also 
+
+- Delting 'multiple mass spectra' from document in the document tree should also
   trigger removal of that item from the panel
-  
+
 - Deleting of item in 'drift time (2D)' in the document tree should also trigger
   removal of that item in the panel
 
@@ -248,117 +253,117 @@ Interactive panel:
 New:
     Interactive panel:
         = added limited support for individually modifying parameters for interactive plots
-        = interactive documents can now be viewed in an interactive environment. 
+        = interactive documents can now be viewed in an interactive environment.
           Make sure you check the "Add offline support" in the GUI
-        
+
     Peaklist panel:
         = added 'Extract automatically' check tool to the Peaklist panel (Toolbar -> Extract...)
-        = added 'Overlay automatically' check tool to the Peaklist panel (Toolbar -> Overlay...) 
-    
+        = added 'Overlay automatically' check tool to the Peaklist panel (Toolbar -> Overlay...)
+
     Text panel:
         = added 'Overlay automatically' check tool to the Peaklist panel (Toolbar -> Overlay...)
         = added 'Show chromatogram' and 'Show mobiligram' for each viewed file (Right-click -> Select appropriate)
-        
+
     Document tree:
-        = double-clicking on document name will clear all plots and show the basic plots for 
+        = double-clicking on document name will clear all plots and show the basic plots for
           that document. You can also do this by selecting: Right-click on document title and selecting Refresh document
         = You can change the x/y-axis labels for chromatograms and mobiligrams. Right-click
           on the item in document tree and select 'Change x/y-axis to...'
-          
+
     Multiple files panel:
-        = Added an option to rebin/reprocess mass spectra based on new parameters 
+        = Added an option to rebin/reprocess mass spectra based on new parameters
           (Proess --> Average mass spectra (current document))
-          
+
     Plot panel:
         = Images can be rotated by 90 degrees (2D, DT/MS, RMSF, Comparison, Overlay)
-    
+
     Data extraction:
         = You can now extract mass spectra from the '2D' panel. Hold CTRL on your keyboard and drag to
           select region of interest
-        
+
     MS annotations:
         = peaks can be now annotated with an arrow (also available when exported in an interactive format)
         = other settings for peak annotations can be changed (Action button -> Customise other settings...)
         = during selection (using Annotating: On button), the isotopic distribution
           will be used to predict charge state. You can change the error tolerance
           using the Action -> Customise other settings... -> Charge prediction value (default: 0.05)
-          
+
     UniDec settings:
         = added possibility to customise UniDec plots (Settings: UniDec -> Customise plots -> New window appears)
         = UniDec plots can now be shown in a Tabbed-view or in Continous-view
-    
-    
+
+
 Improved:
     General:
         = The underlying source code of ORIGAMI was restructured and rewritten to be more readable
-          and more responsive 
+          and more responsive
         = added better DriftScope setup
-        
+
     Document tree:
         = general improvements of behaviour
         = better right-click menus and double-click response
         = better changing of labels
-    
+
     Interactive panel:
         = interactive legends now work with markers and shaded areas
-        = Moved the show/hide list elements from the toolbar to right-click command 
+        = Moved the show/hide list elements from the toolbar to right-click command
           (Right-click on the header of columns)
-    	
+
     Processing:
     	= UniDec and Peak Finding can be done in multi-threading mode now
-    	
+
     Peaklist panel:
-        = Moved the show/hide list elements from the toolbar to right-click command 
+        = Moved the show/hide list elements from the toolbar to right-click command
           (Right-click on the header of columns)
         = Added a whole range of shortcuts for easier plotting and option selection
         = Font color will be automatically selected to ensure appropriate contrast
           to better visualisation
         = Colors "should not" be repeated in the table from now on
         = selection of visualisation method should plot that plot automatically
-        
+
     Text panel:
-        = Moved the show/hide list elements from the toolbar to right-click command 
+        = Moved the show/hide list elements from the toolbar to right-click command
           (Right-click on the header of columns)
         = Added a whole range of shortcuts for easier plotting and option selection
         = Font color will be automatically selected to ensure appropriate contrast
           to better visualisation
         = Colors "should not" be repeated in the table from now on
         = File reader should be a bit more robust and better handle 'odd' files
-        
+
     Multiple files panel:
-        = Average mass spectrum will be automatically rebinned when a file is deleted in 
-          the panel. 
-          
+        = Average mass spectrum will be automatically rebinned when a file is deleted in
+          the panel.
+
     Plots:
         = small changes to the plotting functions to improve performance and way things
           are shown
         = wheel-zoom in the X-dimension has been improved
-        
+
     Data extraction:
         = MS extracted in RT and 1D windows will now be shown underneath the plot area
           so you don't have to change the window to see the results
-        
+
     MS comparison:
         = you can now compare spectra from the 'Mass Spectra' sub-directory and
           other spectral types (e.g. Mass Spectrum, Mass Spectrum (processed))
-                
+
 Fixes:
     Interactive:
         = fixed an issue where it would crash exporting interactive figure with legend
         = fixed an issue with the toolbar not showing properly
-    
+
     Data extraction:
         = fixed an issue where it was not possible to extract MS from retention time window
         = fixed an issue that would incorrectly extract data from MS, DT and RT windows
           if the plots had non-standard x-axis labels
-        
+
     Text panel:
         = fixed an issue which prevented loading some text files
         = fixed an issue that was deleting items from the list when it was not meant to
-        
+
     Multiple files panel
         = when trying to change the column 'variable' and typing-in numerical values on a laptop keyboard
-          ORIGAMI would open a help page instead, blocking insertion of values - Very annoying 
+          ORIGAMI would open a help page instead, blocking insertion of values - Very annoying
           (and not particularly consistent between different PCs...) -> Removed shortcuts
           to help pages
 
@@ -374,7 +379,7 @@ New:
     = added new way to visualise data by using pretty violin plots
 - document tree
     = can now duplicate documents
-    
+
 
 Improvements:
 - simplified plot parameter controls + added several new values
@@ -391,7 +396,7 @@ Improvements:
     = slightly better look to the panel
     = you can now rename the document window
 - ORIGAMI logo
-    = fixed an issue that prevented logo being visible when ORIGAMI was pinned in the taskbar    
+    = fixed an issue that prevented logo being visible when ORIGAMI was pinned in the taskbar
 
 Fixes:
 - fixed an issue where certain text input fields would be locked out and didn't allow entering values
@@ -413,10 +418,10 @@ New:
     = ORIGAMI generates similar plots to those of UniDec
     = all deconvolution results can be exported in HTML format
     = if you happen to use this feature, please don't forget to cite UniDec!
-    = The results obtained in ORIGAMI are identical to those in UniDec however I have not ported all possible 
+    = The results obtained in ORIGAMI are identical to those in UniDec however I have not ported all possible
       options but only the most commonly used!
     = all results can be saved in nicely formatted way
-    
+
 
 - can now export RGB plots in the HTML format
 - added new comparison view Grid (2->1) (also supported in the Interactive format)
@@ -432,11 +437,11 @@ New:
 
 
 Improvements:
-- binning is no longer the default method of linearizing data. Added multiple other methods that 
+- binning is no longer the default method of linearizing data. Added multiple other methods that
     are better at that (and some are quite slow!)
 - significant improvements to the way images are saved...
 - improvements to the way files are saved
-- interactive documents will now contain a watermark 
+- interactive documents will now contain a watermark
 - small improvements to the hover tool in HTML viewer
 - small tweaks to 1D plots
 - fixed small issues with the waterfall plots (incorrect ordering of the plot lines)
@@ -468,7 +473,7 @@ Fix:
 New:
 - you can now extract MS for specified region or RT plot
     KNOWN ISSUE: since the MS is not normalized, when you selection option to zoom-in on a plot, it will cause issues
-- you can now zoom in the plot area using the mouse wheel: 
+- you can now zoom in the plot area using the mouse wheel:
     +/- wheel zooms in the X-axis
     +/- and SHIFT key zoom in the Y axis
 - if you hold SHIFT and double-click in plot area, only the Y-axis will be reset
@@ -502,7 +507,7 @@ Fixes:
 - fixed issues that were encountered when trying to load multiple MassLynx files
     - path problems
     - selecting items in table
-    
+
 - fixed an issue where it would ask you for output file name a couple of times
 - you can save MS data in one file
 
@@ -512,13 +517,13 @@ To do for version 1.1.0
 - quick extract (hold key and extract)
 - autoplot of data
 - proper charge assign window
-- universal extract panel : extract RT/MZ and DT/MZ 
+- universal extract panel : extract RT/MZ and DT/MZ
 - new data structure
 - allow extraction of RT region (i.e. to get MS and 1D plot)
 - rename ions - include collision voltage
 - add better plot controls:
     - should be able to set start/end point of labels
-    - change font 
+    - change font
 - add proper threading for loading data + saving images
     - currently when executing, the event ID is not carried through
 - better peak picking:
@@ -556,7 +561,7 @@ Fixes:
 - fixed an issue where incorrect plots were saved when using the 'Document Panel'
 - fixed an issue when loading config file, some parameters were not setting up properly
 - fixed a couple of other bugs
-- 
+-
 
 New:
 - added a couple of new shortcuts
@@ -572,5 +577,3 @@ New:
 - changed the Interactive Panel around (should be a bit less messy!)
 - you can now assign set of tools to specific plot type
 - when zooming in the RMSF plot, the 1D plot is also zoomed in (you have to zoom in the 2D panel, bottom plot)
-
-
