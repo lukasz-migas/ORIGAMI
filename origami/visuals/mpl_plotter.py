@@ -24,6 +24,7 @@ import matplotlib
 import matplotlib.patches as patches
 import wx
 from gui_elements.misc_dialogs import dlgBox
+from matplotlib import interactive
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
@@ -36,29 +37,29 @@ from ZoomBox import GetXValues
 from ZoomBox import ZoomBox
 matplotlib.use('WXAgg')
 
+interactive(True)
+
 
 class mpl_plotter(wx.Window):
 
     def __init__(self, *args, **kwargs):
 
         if 'figsize' in kwargs:
-            self.figure = Figure(
-                figsize=kwargs['figsize'],
-                constrained_layout=True,
-            )
-            del kwargs['figsize']
-            if 'axes_size' in kwargs:
-                self._axes = kwargs['axes_size']
-                del kwargs['axes_size']
-            else:
-                self._axes = [0.1, 0.1, 0.8, 0.8]
-
+            self.figsize = kwargs.pop('figsize')
         else:
-            self.figure = Figure(figsize=[8, 2.5])
+            self.figsize = [8, 2.5]
+
+        if 'axes_size' in kwargs:
+            self._axes = kwargs.pop('axes_size')
+        else:
+            self._axes = [0.15, 0.12, 0.8, 0.8]
+
+        self.figure = Figure(
+            figsize=self.figsize,
+        )
 
         if 'config' in kwargs:
-            self.config = kwargs['config']
-            del kwargs['config']
+            self.config = kwargs.pop('config')
 
         self.window_name = kwargs.pop('window_name', None)
 
@@ -66,7 +67,7 @@ class mpl_plotter(wx.Window):
         self.canvas = FigureCanvasWxAgg(self, -1, self.figure)
 
         # Create a resizer
-        self.Bind(wx.EVT_SIZE, self.sizeHandler)
+        self.Bind(wx.EVT_SIZE, self.on_resize)
 
         # Prepare for zoom
         self.zoom = None
@@ -306,7 +307,7 @@ class mpl_plotter(wx.Window):
 
         self.repaint()
 
-    def sizeHandler(self, *args, **kwargs):
+    def on_resize(self, *args, **kwargs):
 
         if self.lock_plot_from_updating_size:
             self.SetBackgroundColour(wx.WHITE)
@@ -379,7 +380,7 @@ class mpl_plotter(wx.Window):
             # reset axes size
             if resizeSize is not None and not self.lock_plot_from_updating_size:
                 self.plotMS.set_position(oldAxesSize)
-                self.sizeHandler()
+                self.on_resize()
             # warn user
             dlgBox(
                 exceptionTitle='Warning',
@@ -428,7 +429,7 @@ class mpl_plotter(wx.Window):
         # Reset previous view
         if resizeSize is not None and not self.lock_plot_from_updating_size:
             self.plotMS.set_position(oldAxesSize)
-            self.sizeHandler()
+            self.on_resize()
 
     def onAddMarker(
         self, xval=None, yval=None, marker='s', color='r', size=5,
@@ -507,18 +508,6 @@ class mpl_plotter(wx.Window):
     def onZoomIn(self, startX, endX, endY):
         self.plotMS.axis([startX, endX, 0, endY])
 
-    def onZoom2D(self, startX, endX, startY, endY):
-        self.plotMS.axis([startX, endX, startY, endY])
-
-    def onZoom1D(self, startX, endX):
-        # Retrieve current axis values
-        try:
-            x1, x2, y1, y2 = self.plotMS.axis()
-        except AttributeError:
-            print('No waterfall plot - replot data')
-        # Set updated values
-        self.plotMS.axis([startX, endX, y1, y2])
-
     def onZoomRMSF(self, startX, endX):
         x1, x2, y1, y2 = self.plotRMSF.axis()
         self.plotRMSF.axis([startX, endX, y1, y2])
@@ -533,10 +522,8 @@ class mpl_plotter(wx.Window):
         elif axes == 'y':
             return yvals
 
-    def getPlotName(self):
-        plotName = self.plot_name
-        return plotName
+    def get_plot_name(self):
+        return self.plot_name
 
-    def getAxesSize(self):
-        axesSize = self._axes
-        return axesSize
+    def get_axes_size(self):
+        return self._axes

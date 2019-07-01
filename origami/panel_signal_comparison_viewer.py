@@ -67,9 +67,9 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.data_processing = presenter.data_processing
         self.panel_plot = self.presenter.view.panelPlots
 
-        self.displaysize = wx.GetDisplaySize()
-        self.displayRes = (wx.GetDisplayPPI())
-        self.figsizeX = (self.displaysize[0] - 320) / self.displayRes[0]
+        self._display_size = wx.GetDisplaySize()
+        self._display_resolution = wx.ScreenDC().GetPPI()
+        self._window_size = calculate_window_size(self._display_size, 0.8)
 
         # make gui items
         self.make_gui()
@@ -146,6 +146,7 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         panel = wx.Panel(self, -1, size=(-1, -1), name='main')
 
         settings_panel = self.make_settings_panel(panel)
+        self._settings_panel_size = settings_panel.GetSize()
         plot_panel = self.make_plot_panel(panel)
 
         # pack element
@@ -155,7 +156,7 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         # fit layout
         self.main_sizer.Fit(panel)
-        self.SetSize(calculate_window_size(self.displaysize, 0.8))
+        self.SetSize(self._window_size)
         self.SetSizer(self.main_sizer)
         self.Layout()
         self.CentreOnScreen()
@@ -499,16 +500,28 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
             wx.DefaultSize, wx.TAB_TRAVERSAL,
         )
 
+        pixel_size = [
+            (self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50),
+        ]
+        figsize = [
+            pixel_size[0] / self._display_resolution[0],
+            pixel_size[1] / self._display_resolution[1],
+        ]
+
         self.plot_window = mpl_plots.plots(
             self.plot_panel,
-            figsize=(self.figsizeX, 2),
+            figsize=figsize,
             config=self.config,
         )
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)
+
+        box.Fit(self.plot_panel)
+        self.plot_window.SetSize(pixel_size)
         self.plot_panel.SetSizer(box)
-        self.plot_panel.Fit()
+        self.plot_panel.Layout()
+#
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 2)
@@ -517,6 +530,11 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         main_sizer.Fit(panel)
 
         return panel
+
+#         resizeSize = self.config._plotSettings[plotName]['gui_size']
+#         figsizeNarrowPix = (int(resizeSize[0] * dpi[0]), int(resizeSize[1] * dpi[1]))
+
+#         resize_plot.SetSize(figsizeNarrowPix)
 
     def update_gui(self, evt):
         evtID = evt.GetId()

@@ -1607,11 +1607,11 @@ class panelPlot(wx.Panel):
         ]:
             plotWindow = self.plot_RMSF
             defaultName = self.config._plotSettings['RMSD']['default_name']
-            resizeName = plotWindow.getPlotName()
+            resizeName = plotWindow.get_plot_name()
 
         elif evtID in [ID_saveOverlayImage, ID_saveOverlayImageDoc]:
             plotWindow = self.plot_overlay
-            defaultName = plotWindow.getPlotName()
+            defaultName = plotWindow.get_plot_name()
             resizeName = 'Overlay'
 
         elif evtID in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc]:
@@ -4421,7 +4421,10 @@ class panelPlot(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType='1D')
 
         try:
-            plot_obj.plot_1D_compare_update_data(xvals_1, xvals_2, yvals_1, yvals_2)
+            plot_obj.plot_1D_compare_update_data(
+                xvals_1, xvals_2, yvals_1, yvals_2,
+                **plt_kwargs
+            )
         except AttributeError:
             plot_obj.clearPlot()
             plot_obj.plot_1D_compare(
@@ -4432,7 +4435,7 @@ class panelPlot(wx.Panel):
                 xlabel='m/z', ylabel='Intensity',
                 label=legend,
                 lineWidth=self.config.lineWidth_1D,
-                axesSize=self.config._plotSettings['MS (compare)']['axes_size'],
+                #                 axesSize=self.config._plotSettings['MS (compare)']['axes_size'],
                 plotType='compare_MS',
                 **plt_kwargs
             )

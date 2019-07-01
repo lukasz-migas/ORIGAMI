@@ -91,6 +91,14 @@ class plots(mpl_plotter):
         for parameter in kwargs:
             self.plot_parameters[parameter] = kwargs[parameter]
 
+    def _check_And_update_plot_settings(self, **kwargs):
+        # override parameters
+        if not self.lock_plot_from_updating:
+            self.plot_parameters = kwargs
+        else:
+            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
+            self.plot_parameters = kwargs
+
     def _plot_settings_(self, **kwargs):
         """
         Setup all plot parameters for easy retrieval
@@ -169,8 +177,8 @@ class plots(mpl_plotter):
         if expo == 1:
             divider = 1
 
+        label = self._add_exponent_to_label(label, divider)
         if expo > 1:
-            label = self._add_exponent_to_label(label, divider)
             if convert_values:
                 values = np.divide(values, float(divider))
 
@@ -817,14 +825,9 @@ class plots(mpl_plotter):
         handles, __ = self.plotMS.get_legend_handles_labels()
         self.set_legend_parameters(handles, **self.plot_parameters)
 
-    def plot_1D_compare_update_data(self, xvals_1, xvals_2, yvals_1, yvals_2):
-
-        #         __, __, divider = self._convert_intensities(
-        #                     xvals_1,
-        #                     '',
-        #                     set_divider=False,
-        #                     convert_values=False,
-        #                 )
+    def plot_1D_compare_update_data(self, xvals_1, xvals_2, yvals_1, yvals_2, **kwargs):
+        # update settings
+        self._check_And_update_plot_settings(**kwargs)
 
         ylimits = []
         lines = self.plotMS.get_lines()
@@ -838,6 +841,15 @@ class plots(mpl_plotter):
                 line.set_xdata(xvals_2)
                 line.set_ydata(yvals_2)
                 ylimits += get_min_max(yvals_2)
+
+        # convert ylabel based on the divider
+        __, ylabel, __ = self._convert_intensities(
+            yvals_1,
+            self.plotMS.get_ylabel(),
+            set_divider=False,
+            convert_values=False,
+        )
+        self.set_plot_ylabel(ylabel, **self.plot_parameters)
 
         # update legend
         handles, __ = self.plotMS.get_legend_handles_labels()
@@ -1171,6 +1183,27 @@ class plots(mpl_plotter):
 
     def plot_update_axes(self, axes_sizes):
         self.plotMS.set_position(axes_sizes)
+
+    def get_optimal_margins(self, axes_sizes):
+        trans = self.figure.transFigure.inverted().transform
+        l, t, r, b = axes_sizes
+        (l, b), (r, t) = trans(((l, b), (r, t)))
+
+        # Extent
+        dl, dt, dr, db = 0, 0, 0, 0
+        for i, ax in enumerate(self.figure.get_axes()):
+            (x0, y0), (x1, y1) = ax.get_position().get_points()
+            try:
+                (ox0, oy0), (ox1, oy1) = ax.get_tightbbox(self.canvas.get_renderer()).get_points()
+                (ox0, oy0), (ox1, oy1) = trans(((ox0, oy0), (ox1, oy1)))
+                dl = min(0.2, max(dl, (x0 - ox0)))
+                dt = min(0.2, max(dt, (oy1 - y1)))
+                dr = min(0.2, max(dr, (ox1 - x1)))
+                db = min(0.2, max(db, (y0 - oy0)))
+            except:
+                pass
+        l, t, r, b = l + dl, t + dt, r + dr, b + db
+#         l, 1 - t, 1 - r, b
 
     def plot_2D_matrix_update_label(self, **kwargs):
 

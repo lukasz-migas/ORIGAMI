@@ -347,10 +347,9 @@ class panelMultipleIons(wx.Panel):
         for item in self.config._peakListSettings:
             order = item['order']
             name = item['name']
+            width = 0
             if item['show']:
                 width = item['width']
-            else:
-                width = 0
             self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
 
         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
