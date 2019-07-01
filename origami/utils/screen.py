@@ -20,7 +20,8 @@ def calculate_window_size(screen_size, percentage_size):
 
     # values should be as proportion between 0 and 1
     if percentage_size > 1.:
-        percentage_size = math.ceil(percentage_size / 100)
+        percentage_size = percentage_size / 100
+        print(percentage_size)
 
     x_size = math.ceil(x_size * percentage_size)
     y_size = math.ceil(y_size * percentage_size)

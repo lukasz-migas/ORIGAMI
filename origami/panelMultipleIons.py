@@ -31,7 +31,6 @@ from ids import ID_addNewOverlayDoc
 from ids import ID_combineCEscans
 from ids import ID_combineCEscansSelectedIons
 from ids import ID_combinedCV_binMSCombinedMenu
-from ids import ID_duplicateIons
 from ids import ID_exportAllAsCSV_ion
 from ids import ID_exportAllAsImage_ion
 from ids import ID_exportSelectedAsCSV_ion
@@ -100,7 +99,6 @@ from ids import ID_saveIonsMenu
 from ids import ID_saveSelectIonListCSV
 from ids import ID_selectOverlayMethod
 from ids import ID_showIonsMenu
-from ids import ID_useInternalParamsCombinedMenu
 from ids import ID_useProcessedCombinedMenu
 from ids import ID_window_ionList
 from pandas import read_csv

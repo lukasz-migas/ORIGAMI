@@ -19,6 +19,7 @@
 import logging
 from copy import deepcopy
 
+import processing.spectra as pr_spectra
 import wx
 from gui_elements.dialog_color_picker import DialogColorPicker
 from ids import ID_compareMS_MS_1
@@ -36,6 +37,7 @@ from utils.color import convertRGB1to255
 from utils.converters import str2num
 from utils.screen import calculate_window_size
 from visuals import mpl_plots
+
 logger = logging.getLogger('origami')
 
 
@@ -337,8 +339,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.spectrum_1_lineStyle_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.spectrum_2_lineStyle_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-#         self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
-#         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
+        self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_process_and_plot_data)
+        self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_process_and_plot_data)
 #         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
 #         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
 
@@ -633,27 +635,49 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 #         print(old_label, new_label)
 #         print(source, label_1, label_2)
 
+    def on_process_and_plot_data(self, evt):
+        for index in range(2):
+            spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[index])
+            xvals = spectrum['xvals']
+            yvals = spectrum['yvals']
+            label = self.config.compare_massSpectrumParams['legend'][index]
+
+            if self.config.compare_massSpectrumParams['normalize']:
+                yvals = pr_spectra.normalize_1D(yvals)
+
+            if self.config.compare_massSpectrumParams['inverse'] and index == 1:
+                yvals = -yvals
+
+            self.panel_plot.plot_1D_update_data_by_label(
+                xvals, yvals, index, label,
+                plot=None, plot_obj=self.plot_window,
+            )
+#
+#         spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[0])
+#         xvals = spectrum['xvals']
+#         yvals = spectrum['yvals']
+#         label = self.config.compare_massSpectrumParams['legend'][1]
+#
+#         self.panel_plot.plot_1D_update_data_by_label(
+#             xvals, yvals, 1, label,
+#             plot=None, plot_obj=self.plot_window,
+#         )
+
     def on_plot_update_data(self, evt):
         if evt is not None:
             source = evt.GetEventObject().GetName()
 
         self.update_spectrum(evt=None)
 
-        print(
-            'local', self.compare_massSpectrum,
-            'global', self.config.compare_massSpectrum,
-            source,
-        )
-
-        if source.endswith('_1'):
-            index = 0
-        elif source.endswith('_2'):
-            index = 1
+        index = self._get_dataset_index(source)
 
         spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[index])
         xvals = spectrum['xvals']
         yvals = spectrum['yvals']
         label = self.config.compare_massSpectrumParams['legend'][index]
+
+        if self.config.compare_massSpectrumParams['normalize']:
+            yvals = pr_spectra.normalize_1D(yvals)
 
         if self.config.compare_massSpectrumParams['inverse'] and index == 1:
             yvals = -yvals
@@ -670,13 +694,15 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
     def on_plot_update_style(self, source):
 
         kwargs = dict()
+        index = self._get_dataset_index(source)
+
+        label = self.config.compare_massSpectrumParams['legend'][index]
+
         if source.endswith('_1'):
-            label = self.config.compare_massSpectrumParams['legend'][0]
             kwargs['color'] = self.config.lineColour_MS1
             kwargs['line_style'] = self.config.lineStyle_MS1
             kwargs['transparency'] = self.config.lineTransparency_MS1
         elif source.endswith('_2'):
-            label = self.config.compare_massSpectrumParams['legend'][1]
             kwargs['color'] = self.config.lineColour_MS2
             kwargs['line_style'] = self.config.lineStyle_MS2
             kwargs['transparency'] = self.config.lineTransparency_MS2
@@ -696,6 +722,15 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.panel_plot.plot_compare_spectra(xvals_1, xvals_2, yvals_1, yvals_2, plot=None, plot_obj=self.plot_window)
 
         self._update_local_plot_information()
+
+    @staticmethod
+    def _get_dataset_index(source):
+        if source.endswith('_1'):
+            index = 0
+        elif source.endswith('_2'):
+            index = 1
+
+        return index
 
     def _update_local_plot_information(self):
         # update local information about the plots

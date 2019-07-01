@@ -4210,12 +4210,12 @@ class documentsTree(wx.TreeCtrl):
         if self._item_id is None:
             return
 
-        if self._document_data is None:
-            self.presenter.onThreading(
-                None, ('Please click on any document in the document tree.', 4, 5),
-                action='updateStatusbar',
-            )
-            return
+#         if self._document_data is None:
+#             self.presenter.onThreading(
+#                 None, ('Please click on any document in the document tree.', 4, 5),
+#                 action='updateStatusbar',
+#             )
+#             return
 
         document_list, document_spectrum_list = [], {}
         count = 0
@@ -4243,8 +4243,13 @@ class documentsTree(wx.TreeCtrl):
             self.presenter.onThreading(None, (msg, 4, 5), action='updateStatusbar')
             return
 
+        try:
+            document_title = self._document_data.title
+        except AttributeError:
+            document_title = document_list[0]
+
         kwargs = {
-            'current_document': self._document_data.title,
+            'current_document': document_title,
             'document_list': document_list,
             'document_spectrum_list': document_spectrum_list,
         }

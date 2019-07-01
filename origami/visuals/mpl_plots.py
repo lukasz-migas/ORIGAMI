@@ -740,32 +740,49 @@ class plots(mpl_plotter):
         self.plot_labels.update({'xlabel': xlabel, 'ylabel': ylabel})
 
     def plot_1D_update_data_by_label(self, xvals, yvals, gid, label):
+        """Update plot data without replotting the entire plot
+
+        Parameters
+        ----------
+        xvals: np.array
+            x-axis values
+        yvals: np.array
+            y-axis values
+        gid: int / str
+            value by which we can identify the desired plot
+        label: str
+            new label to be updated in the legend
+
+        """
         lines = self.plotMS.get_lines()
 
-        yvals, ylabel, divider = self._convert_intensities(
+        # calculate divider
+        yvals, __, divider = self._convert_intensities(
             yvals,
-            self.plotMS.get_ylabel(),
+            '',
             set_divider=False,
             convert_values=False,
         )
         divider = np.max([divider, self.y_divider])
+        self.y_divider = divider
+
+        # convert ylabel based on the divider
+        ylabel = self._add_exponent_to_label(self.plotMS.get_ylabel(), divider)
         self.set_plot_ylabel(ylabel, **self.plot_parameters)
 
+        # determine the plot limits and if necessary, update the plot data
         ylimits = self.get_ylimits()
-        if divider != self.y_divider:
-            for line in lines:
-                plot_gid = line.get_gid()
-                if plot_gid is not None and plot_gid != gid:
-                    old_yvals = line.get_ydata()
-                    old_yvals = np.multiply(old_yvals, float(self.y_divider))
-                    old_yvals = np.divide(old_yvals, float(divider))
-                    line.set_ydata(old_yvals)
-                    ylimits = get_min_max(old_yvals)
+        for line in lines:
+            plot_gid = line.get_gid()
+            if plot_gid is not None and plot_gid != gid:
+                old_yvals = line.get_ydata()
+                old_yvals = np.multiply(old_yvals, float(self.y_divider))
+                old_yvals = np.divide(old_yvals, float(divider))
+                line.set_ydata(old_yvals)
+                ylimits = get_min_max(old_yvals)
 
+        # change data for desired plot
         yvals, __, __ = self._convert_intensities_with_preset_divider(yvals, '')
-        ylimits = get_min_max(get_min_max(yvals) + ylimits)
-        print(ylimits)
-
         for line in lines:
             plot_gid = line.get_gid()
             if gid == plot_gid:
@@ -774,8 +791,12 @@ class plots(mpl_plotter):
                 line.set_label(label)
                 break
 
+        # update legend
         handles, __ = self.plotMS.get_legend_handles_labels()
         self.set_legend_parameters(handles, **self.plot_parameters)
+
+        # update plot limits
+        ylimits = get_min_max(get_min_max(yvals) + ylimits)
         self.on_zoom_y_axis(ylimits[0], ylimits[1], convert_values=False)
 
     def plot_1D_update_style_by_label(self, label, **kwargs):
@@ -792,14 +813,17 @@ class plots(mpl_plotter):
                     line.set_alpha(kwargs.get('transparency'))
                 break
 
-        handles, labels = self.plotMS.get_legend_handles_labels()
-        for handle, legend_label in zip(handles, labels):
-            if label == legend_label:
-                if 'color' in kwargs:
-                    handle.set_color(kwargs.pop('color'))
-                break
-
+        handles, __ = self.plotMS.get_legend_handles_labels()
         self.set_legend_parameters(handles, **self.plot_parameters)
+
+#     def plot_1D_process_and_set(self, action, gid):
+#         lines = self.plotMS.get_lines()
+#         for line in lines:
+#             plot_gid = line.get_gid()
+#             if gid == plot_gid:
+#                 yvals = line.get_ydata()
+#
+# #                 line.set_ydata(yvals)
 
     def plot_1D_waterfall_update(self, which='other', **kwargs):
         if self.lock_plot_from_updating:
@@ -2197,7 +2221,6 @@ class plots(mpl_plotter):
                 linestyle=kwargs['line_style'],
                 zorder=zorder,
             )
-            print('label', label)
 
             if kwargs['shade_under']:
                 handles.append(patches.Patch(color=color, label=label, alpha=0.25))

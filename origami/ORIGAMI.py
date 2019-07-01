@@ -32,7 +32,6 @@ import numpy as np
 import pandas as pd
 import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
-import processing.spectra as pr_spectra
 import unidec as unidec
 import wx
 from config import OrigamiConfig as config

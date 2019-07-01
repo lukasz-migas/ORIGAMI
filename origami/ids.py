@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # -------------------------------------------------------------------------
 #    Copyright (C) 2017-2018 Lukasz G. Migas
 #    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
@@ -16,9 +15,10 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
 # -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
 # File containing all IDs for functions
-from wx import NewId, ID_EXIT, ID_ABOUT
+from wx import ID_ABOUT
+from wx import ID_EXIT
+from wx import NewId
 
 # Common
 ID_quit = ID_EXIT
@@ -469,10 +469,8 @@ ID_window_ionList = NewId()
 ID_window_multipleMLList = NewId()
 ID_window_textList = NewId()
 ID_window_multiFieldList = NewId()
-ID_window_logWindow = NewId()
 
 # Toolbar
-
 ID_helpGuideLocal = NewId()
 
 ID_saveAllDocuments = NewId()

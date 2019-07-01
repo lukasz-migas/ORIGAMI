@@ -157,7 +157,6 @@ from ids import ID_window_ccsList
 from ids import ID_window_controls
 from ids import ID_window_documentList
 from ids import ID_window_ionList
-from ids import ID_window_logWindow
 from ids import ID_window_multiFieldList
 from ids import ID_window_multipleMLList
 from ids import ID_window_textList
@@ -169,7 +168,6 @@ from panelDocumentTree import panelDocuments
 from panelExtraParameters import panelParametersEdit
 from panelInteractiveOutput import panelInteractiveOutput as panelInteractive
 from panelLinearDriftCell import panelLinearDriftCell
-from panelLog import panelLog
 from panelMultipleIons import panelMultipleIons
 from panelMultipleML import panelMML
 from panelMultipleTextFiles import panelMultipleTextFiles
@@ -243,7 +241,6 @@ class MyFrame(wx.Frame):
         self.panelMML = panelMML(self, self.config, self.icons, self.presenter)
         self.panelLinearDT = panelLinearDriftCell(self, self.config, self.icons, self.presenter)
         self.panelCCS = panelCCScalibration(self, self.config, self.icons, self.presenter)
-        self.panelLog = panelLog(self, self.config, self.icons)
 
         kwargs = {'window': None}
         self.panelParametersEdit = panelParametersEdit(self, self.presenter, self.config, self.icons, **kwargs)
@@ -332,17 +329,6 @@ class MyFrame(wx.Frame):
             .Gripper(self.config._windowSettings['Plot parameters']['gripper']),
         )
 
-        self._mgr.AddPane(
-            self.panelLog, wx.aui.AuiPaneInfo().Bottom()
-            .Caption(self.config._windowSettings['Log']['title'])
-            .MinSize((320, -1)).GripperTop().BottomDockable(True).TopDockable(True)
-            .Show(self.config._windowSettings['Log']['show'])
-            .CloseButton(self.config._windowSettings['Log']['close_button'])
-            .CaptionVisible(self.config._windowSettings['Log']['caption'])
-            .Gripper(self.config._windowSettings['Log']['gripper'])
-            .Float(),
-        )
-
         # Setup listeners
         pub.subscribe(self.on_motion, 'motion_xy')
         pub.subscribe(self.motion_range, 'motion_range')
@@ -376,7 +362,6 @@ class MyFrame(wx.Frame):
         self.config._windowSettings['Linear Drift Cell']['id'] = ID_window_multiFieldList
         self.config._windowSettings['Text files']['id'] = ID_window_textList
         self.config._windowSettings['Multiple files']['id'] = ID_window_multipleMLList
-        self.config._windowSettings['Log']['id'] = ID_window_logWindow
 
     def on_toggle_panel_at_start(self):
         panelDict = {
@@ -386,12 +371,11 @@ class MyFrame(wx.Frame):
             'Text files': ID_window_textList,
             'CCS calibration': ID_window_ccsList,
             'Linear Drift Cell': ID_window_multiFieldList,
-            'Log': ID_window_logWindow,
         }
 
         for panel in [
             self.panelDocuments,
-            self.panelMML, self.panelLog,
+            self.panelMML,
             self.panelMultipleIons, self.panelMultipleText,
             self.panelCCS, self.panelLinearDT,
         ]:
@@ -820,7 +804,6 @@ class MyFrame(wx.Frame):
             ID_window_multiFieldList, 'Panel: Linear DT-IMS\tCtrl+6', kind=wx.ITEM_CHECK,
         )
         self.ccsTable = menuView.Append(ID_window_ccsList, 'Panel: CCS calibration\tCtrl+7', kind=wx.ITEM_CHECK)
-        self.window_logWindow = menuView.Append(ID_window_logWindow, 'Panel: Log\tCtrl+8', kind=wx.ITEM_CHECK)
         menuView.AppendSeparator()
         menuView.Append(ID_window_all, 'Panel: Restore &all')
         menuView.AppendSeparator()
@@ -1285,7 +1268,6 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.textTable)
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.multipleMLTable)
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.ccsTable)
-        self.Bind(wx.EVT_MENU, self.on_toggle_panel, id=ID_window_logWindow)
         self.Bind(wx.EVT_MENU, self.onWindowMaximize, id=ID_windowMaximize)
         self.Bind(wx.EVT_MENU, self.onWindowIconize, id=ID_windowMinimize)
         self.Bind(wx.EVT_MENU, self.onWindowFullscreen, id=ID_windowFullscreen)
@@ -1723,10 +1705,6 @@ class MyFrame(wx.Frame):
             ID_window_ccsList, '', self.icons.iconsLib['panel_ccs_16'],
             shortHelp='Enable/Disable CCS calibration panel',
         )
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_logWindow, '', self.icons.iconsLib['panel_log_16'],
-            shortHelp='Enable/Disable Log panel',
-        )
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
             ID_extraSettings_general_plot, '', self.icons.iconsLib['panel_plot_general_16'],
@@ -1818,8 +1796,6 @@ class MyFrame(wx.Frame):
                 evtID = ID_window_multipleMLList
             elif evt == 'dt':
                 evtID = ID_window_multiFieldList
-            elif evt == 'log':
-                evtID = ID_window_logWindow
 
         elif evt is not None:
             evtID = evt.GetId()
@@ -1881,17 +1857,6 @@ class MyFrame(wx.Frame):
                     self.config._windowSettings['Linear Drift Cell']['show'] = False
                 self.multifieldTable.Check(self.config._windowSettings['Linear Drift Cell']['show'])
                 self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings['Linear Drift Cell']['show'])
-            elif evtID == ID_window_logWindow:
-                if not self.panelLog.IsShown() or not self.window_logWindow.IsChecked():
-                    self.panelLog.Show()
-                    self._mgr.GetPane(self.panelLog).Show()
-                    self.config._windowSettings['Log']['show'] = True
-                else:
-                    self._mgr.GetPane(self.panelLog).Hide()
-                    self.panelLog.Hide()
-                    self.config._windowSettings['Log']['show'] = False
-                self.window_logWindow.Check(self.config._windowSettings['Log']['show'])
-                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings['Log']['show'])
             elif evtID == ID_window_all:
                 for key in self.config._windowSettings:
                     self.config._windowSettings[key]['show'] = True
@@ -1911,7 +1876,6 @@ class MyFrame(wx.Frame):
                 self.multifieldTable.Check(self.config._windowSettings['Linear Drift Cell']['show'])
                 self.textTable.Check(self.config._windowSettings['Text files']['show'])
                 self.multipleMLTable.Check(self.config._windowSettings['Multiple files']['show'])
-                self.window_logWindow.Check(self.config._windowSettings['Log']['show'])
 
         # Checking at start of program
         else:
@@ -1927,8 +1891,6 @@ class MyFrame(wx.Frame):
                 self.config._windowSettings['Linear Drift Cell']['show'] = False
             if not self.panelMultipleText.IsShown():
                 self.config._windowSettings['Text files']['show'] = False
-            if not self.panelLog.IsShown():
-                self.config._windowSettings['Log']['show'] = False
 
             self.documentsPage.Check(self.config._windowSettings['Documents']['show'])
             self.mzTable.Check(self.config._windowSettings['Peak list']['show'])
@@ -1936,7 +1898,6 @@ class MyFrame(wx.Frame):
             self.multifieldTable.Check(self.config._windowSettings['Linear Drift Cell']['show'])
             self.textTable.Check(self.config._windowSettings['Text files']['show'])
             self.multipleMLTable.Check(self.config._windowSettings['Multiple files']['show'])
-            self.window_logWindow.Check(self.config._windowSettings['Log']['show'])
 
         self._mgr.Update()
 
@@ -1947,7 +1908,7 @@ class MyFrame(wx.Frame):
         idList = [
             ID_window_documentList, ID_window_controls, ID_window_ccsList,
             ID_window_ionList, ID_window_multipleMLList, ID_window_textList,
-            ID_window_multiFieldList, ID_window_logWindow,
+            ID_window_multiFieldList,
         ]
         for itemID in idList:
             if check_all:
@@ -1966,7 +1927,6 @@ class MyFrame(wx.Frame):
             'Text files': ID_window_textList,
             'CCS calibration': ID_window_ccsList,
             'Linear Drift Cell': ID_window_multiFieldList,
-            'Log': ID_window_logWindow,
         }
         return panelDict[panel]
 
@@ -2428,43 +2388,6 @@ class MyFrame(wx.Frame):
             'zoom_crossover_sensitivity': self.config._plots_zoom_crossover,
         }
         pub.sendMessage('plot_parameters', plot_parameters=plot_parameters)
-
-        if evt is not None:
-            evt.Skip()
-
-    def onEnableDisableLogging(self, evt, show_msg=True):
-
-        self.config.logging = False
-        if show_msg:
-            msg = 'Logging to file was temporarily disabled as there is a persistent bug that prevents it correct operation. Apologies, LM'
-            dlgBox(
-                exceptionTitle='Error',
-                exceptionMsg=msg,
-                type='Error',
-            )
-        return
-
-        log_directory = os.path.join(self.config.cwd, 'logs')
-        if not os.path.exists(log_directory):
-            print('Directory logs did not exist - created a new one in %s' % log_directory)
-            os.makedirs(log_directory)
-
-        # Generate filename
-        if self.config.loggingFile_path is None:
-            file_path = 'ORIGAMI_%s.log' % self.config.startTime
-            self.config.loggingFile_path = os.path.join(log_directory, file_path)
-            # logging.basicConfig(filename=self.config.loggingFile_path,level=logging.DEBUG)
-            if self.config.logging:
-                print('\nGenerated log filename: %s' % self.config.loggingFile_path)
-
-        if self.config.logging:
-            sys.stdin = self.panelLog.log
-            sys.stdout = self.panelLog.log
-            sys.stderr = self.panelLog.log
-        else:
-            sys.stdin = self.config.stdin
-            sys.stdout = self.config.stdout
-            sys.stderr = self.config.stderr
 
         if evt is not None:
             evt.Skip()
