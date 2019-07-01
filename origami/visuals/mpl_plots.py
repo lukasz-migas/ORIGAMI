@@ -752,19 +752,17 @@ class plots(mpl_plotter):
             value by which we can identify the desired plot
         label: str
             new label to be updated in the legend
-
         """
         lines = self.plotMS.get_lines()
 
         # calculate divider
-        yvals, __, divider = self._convert_intensities(
+        __, __, divider = self._convert_intensities(
             yvals,
             '',
             set_divider=False,
             convert_values=False,
         )
-        divider = np.max([divider, self.y_divider])
-        self.y_divider = divider
+#         divider = np.max([divider, self.y_divider])
 
         # convert ylabel based on the divider
         ylabel = self._add_exponent_to_label(self.plotMS.get_ylabel(), divider)
@@ -781,11 +779,14 @@ class plots(mpl_plotter):
                 line.set_ydata(old_yvals)
                 ylimits = get_min_max(old_yvals)
 
+        # update divider
+        self.y_divider = divider
+
         # change data for desired plot
         yvals, __, __ = self._convert_intensities_with_preset_divider(yvals, '')
         for line in lines:
             plot_gid = line.get_gid()
-            if gid == plot_gid:
+            if plot_gid == gid:
                 line.set_xdata(xvals)
                 line.set_ydata(yvals)
                 line.set_label(label)
@@ -799,12 +800,12 @@ class plots(mpl_plotter):
         ylimits = get_min_max(get_min_max(yvals) + ylimits)
         self.on_zoom_y_axis(ylimits[0], ylimits[1], convert_values=False)
 
-    def plot_1D_update_style_by_label(self, label, **kwargs):
+    def plot_1D_update_style_by_label(self, gid, **kwargs):
 
         lines = self.plotMS.get_lines()
         for line in lines:
-            plot_label = line.get_label()
-            if label == plot_label:
+            plot_gid = line.get_gid()
+            if plot_gid == gid:
                 if 'color' in kwargs:
                     line.set_color(kwargs.get('color'))
                 if 'line_style' in kwargs:
@@ -816,14 +817,35 @@ class plots(mpl_plotter):
         handles, __ = self.plotMS.get_legend_handles_labels()
         self.set_legend_parameters(handles, **self.plot_parameters)
 
-#     def plot_1D_process_and_set(self, action, gid):
-#         lines = self.plotMS.get_lines()
-#         for line in lines:
-#             plot_gid = line.get_gid()
-#             if gid == plot_gid:
-#                 yvals = line.get_ydata()
-#
-# #                 line.set_ydata(yvals)
+    def plot_1D_compare_update_data(self, xvals_1, xvals_2, yvals_1, yvals_2):
+
+        #         __, __, divider = self._convert_intensities(
+        #                     xvals_1,
+        #                     '',
+        #                     set_divider=False,
+        #                     convert_values=False,
+        #                 )
+
+        ylimits = []
+        lines = self.plotMS.get_lines()
+        for line in lines:
+            plot_gid = line.get_gid()
+            if plot_gid == 0:
+                line.set_xdata(xvals_1)
+                line.set_ydata(yvals_1)
+                ylimits += get_min_max(yvals_1)
+            elif plot_gid == 1:
+                line.set_xdata(xvals_2)
+                line.set_ydata(yvals_2)
+                ylimits += get_min_max(yvals_2)
+
+        # update legend
+        handles, __ = self.plotMS.get_legend_handles_labels()
+        self.set_legend_parameters(handles, **self.plot_parameters)
+
+        # update plot limits
+        ylimits = get_min_max(ylimits)
+        self.on_zoom_y_axis(ylimits[0], ylimits[1], convert_values=False)
 
     def plot_1D_waterfall_update(self, which='other', **kwargs):
         if self.lock_plot_from_updating:
@@ -1459,8 +1481,6 @@ class plots(mpl_plotter):
         self.plotMS.spines['top'].set_visible(kwargs['spines_top'])
         self.plotMS.spines['bottom'].set_visible(kwargs['spines_bottom'])
         [i.set_linewidth(kwargs['frame_width']) for i in self.plotMS.spines.values()]
-
-        print(kwargs['frame_width'])
 
     def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
 
@@ -2124,8 +2144,8 @@ class plots(mpl_plotter):
             yvals2 = np.divide(yvals2, float(divider))
             ylabel = self._add_exponent_to_label(ylabel, divider)
 
-        if kwargs['inverse']:
-            yvals2 = -yvals2
+#         if kwargs['inverse']:
+#             yvals2 = -yvals2
 
         if xvals2 is None:
             xvals2 = xvals1

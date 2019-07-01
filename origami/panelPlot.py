@@ -4420,20 +4420,23 @@ class panelPlot(wx.Panel):
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
 
-        plot_obj.clearPlot()
-        plot_obj.plot_1D_compare(
-            xvals1=xvals_1, xvals2=xvals_2,
-            yvals1=yvals_1, yvals2=yvals_2,
-            xlimits=xlimits,
-            zoom='box', title='',
-            xlabel='m/z', ylabel='Intensity',
-            label=legend,
-            lineWidth=self.config.lineWidth_1D,
-            axesSize=self.config._plotSettings['MS (compare)']['axes_size'],
-            plotType='compare_MS',
-            **plt_kwargs
-        )
-        # Show the mass spectrum
+        try:
+            plot_obj.plot_1D_compare_update_data(xvals_1, xvals_2, yvals_1, yvals_2)
+        except AttributeError:
+            plot_obj.clearPlot()
+            plot_obj.plot_1D_compare(
+                xvals1=xvals_1, xvals2=xvals_2,
+                yvals1=yvals_1, yvals2=yvals_2,
+                xlimits=xlimits,
+                zoom='box', title='',
+                xlabel='m/z', ylabel='Intensity',
+                label=legend,
+                lineWidth=self.config.lineWidth_1D,
+                axesSize=self.config._plotSettings['MS (compare)']['axes_size'],
+                plotType='compare_MS',
+                **plt_kwargs
+            )
+            # Show the mass spectrum
         plot_obj.repaint()
 
     def plot_1D_update_data_by_label(self, xvals, yvals, gid, label, plot, **kwargs):
@@ -4445,13 +4448,13 @@ class panelPlot(wx.Panel):
         plot_obj.plot_1D_update_data_by_label(xvals, yvals, gid, label)
         plot_obj.repaint()
 
-    def plot_1D_update_style_by_label(self, label, plot, **kwargs):
+    def plot_1D_update_style_by_label(self, gid, plot, **kwargs):
         if plot is None and 'plot_obj' in kwargs:
             plot_obj = kwargs.get('plot_obj')
         else:
             plot_obj = self.get_plot_from_name(plot)
 
-        plot_obj.plot_1D_update_style_by_label(label, **kwargs)
+        plot_obj.plot_1D_update_style_by_label(gid, **kwargs)
         plot_obj.repaint()
 
     def plot_colorbar_update(self, plot_window=''):

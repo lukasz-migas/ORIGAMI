@@ -339,9 +339,9 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.spectrum_1_lineStyle_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.spectrum_2_lineStyle_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_process_and_plot_data)
-        self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_process_and_plot_data)
-#         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
+        self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
+        self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
+        self.inverse_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
 #         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
 
         self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
@@ -636,22 +636,23 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 #         print(source, label_1, label_2)
 
     def on_process_and_plot_data(self, evt):
-        for index in range(2):
-            spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[index])
-            xvals = spectrum['xvals']
-            yvals = spectrum['yvals']
-            label = self.config.compare_massSpectrumParams['legend'][index]
-
-            if self.config.compare_massSpectrumParams['normalize']:
-                yvals = pr_spectra.normalize_1D(yvals)
-
-            if self.config.compare_massSpectrumParams['inverse'] and index == 1:
-                yvals = -yvals
-
-            self.panel_plot.plot_1D_update_data_by_label(
-                xvals, yvals, index, label,
-                plot=None, plot_obj=self.plot_window,
-            )
+        pass
+#         for index in range(2):
+#             spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[index])
+#             xvals = spectrum['xvals']
+#             yvals = spectrum['yvals']
+#             label = self.config.compare_massSpectrumParams['legend'][index]
+#
+#             if self.config.compare_massSpectrumParams['normalize']:
+#                 yvals = pr_spectra.normalize_1D(yvals)
+#
+#             if self.config.compare_massSpectrumParams['inverse'] and index == 1:
+#                 yvals = -yvals
+#
+#             self.panel_plot.plot_1D_update_data_by_label(
+#                 xvals, yvals, index, label,
+#                 plot=None, plot_obj=self.plot_window,
+#             )
 #
 #         spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[0])
 #         xvals = spectrum['xvals']
@@ -696,8 +697,6 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         kwargs = dict()
         index = self._get_dataset_index(source)
 
-        label = self.config.compare_massSpectrumParams['legend'][index]
-
         if source.endswith('_1'):
             kwargs['color'] = self.config.lineColour_MS1
             kwargs['line_style'] = self.config.lineStyle_MS1
@@ -707,9 +706,11 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
             kwargs['line_style'] = self.config.lineStyle_MS2
             kwargs['transparency'] = self.config.lineTransparency_MS2
 
-        self.panel_plot.plot_1D_update_style_by_label(label, plot=None, plot_obj=self.plot_window, **kwargs)
+        self.panel_plot.plot_1D_update_style_by_label(index, plot=None, plot_obj=self.plot_window, **kwargs)
 
-    def on_plot(self, evt):  #
+    def on_plot(self, evt):
+        self.update_spectrum(None)
+
         spectrum_1 = self.data_handling.get_spectrum(self.config.compare_massSpectrum[0][:2])
         spectrum_2 = self.data_handling.get_spectrum(self.config.compare_massSpectrum[1][:2])
 
@@ -718,6 +719,13 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         xvals_2 = spectrum_2['xvals']
         yvals_2 = spectrum_2['yvals']
+
+        if self.config.compare_massSpectrumParams['normalize']:
+            yvals_1 = pr_spectra.normalize_1D(yvals_1)
+            yvals_2 = pr_spectra.normalize_1D(yvals_2)
+
+        if self.config.compare_massSpectrumParams['inverse']:
+            yvals_2 = -yvals_2
 
         self.panel_plot.plot_compare_spectra(xvals_1, xvals_2, yvals_1, yvals_2, plot=None, plot_obj=self.plot_window)
 
