@@ -1,7 +1,8 @@
-import numpy as np
+import re
 import urllib
 from distutils.version import LooseVersion
-import re
+
+import numpy as np
 
 
 def is_prime(a):
@@ -19,7 +20,7 @@ def check_axes_spacing(values):
 
 def check_value(value):
     if value is None:
-        return ""
+        return ''
     else:
         return str(value)
 
@@ -61,6 +62,10 @@ def isempty(val):
     return out
 
 
+def isbool(value):
+    return isinstance(value, bool)
+
+
 def isnumber(input):
     """ Quick and easy way to check if input is a number """
     return isinstance(input, (int, float, complex))
@@ -82,12 +87,13 @@ def get_latest_version(link=None, get_webpage=False):
         webVersion = None
         for row in split:
             if '(' in row:
-                webVersion = row.strip("()")
+                webVersion = row.strip('()')
                 break
         return webVersion
     else:
         webpage = urllib.request.urlopen(
-            "https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md")
+            'https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md',
+        )
         return webpage.read().decode('utf-8')
 
 

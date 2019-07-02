@@ -36,6 +36,7 @@ from toolbox import find_limits_list
 from toolbox import merge_two_dicts
 from toolbox import remove_nan_from_list
 from utils.adjustText import adjust_text
+from utils.check import isbool
 from utils.color import convertRGB1to255
 from utils.color import determineFontColor
 from utils.color import randomColorGenerator
@@ -59,7 +60,7 @@ warnings.filterwarnings('ignore', category=RuntimeWarning)
 class plots(mpl_plotter):
 
     def __init__(self, *args, **kwargs):
-        self._axes = kwargs.get('axes_size', [0.1, 0.1, 0.8, 0.8])  # keep track of axes size
+        self._axes = kwargs.get('axes_size', [0.12, 0.12, 0.8, 0.8])  # keep track of axes size
 
         mpl_plotter.__init__(self, *args, **kwargs)
         self.plotflag = False
@@ -91,13 +92,43 @@ class plots(mpl_plotter):
         for parameter in kwargs:
             self.plot_parameters[parameter] = kwargs[parameter]
 
-    def _check_And_update_plot_settings(self, **kwargs):
+    def _check_and_update_plot_settings(self, **kwargs):
+
+        # check kwargs
+        kwargs = self._check_plot_settings(**kwargs)
+
+        # extract plot name
+        if 'plot_name' in kwargs:
+            self.plot_name = kwargs['plot_name']
+
+        if 'axes_size' in kwargs:
+            axes_size = kwargs['axes_size']
+
         # override parameters
         if not self.lock_plot_from_updating:
+            if axes_size is not None:
+                self._axes = axes_size
             self.plot_parameters = kwargs
         else:
             kwargs = merge_two_dicts(kwargs, self.plot_parameters)
             self.plot_parameters = kwargs
+
+    @staticmethod
+    def _check_plot_settings(**kwargs):
+
+        # convert weights
+        if 'title' in kwargs:
+            if kwargs['title_weight'] and isbool(kwargs['title_weight']):
+                kwargs['title_weight'] = 'heavy'
+            else:
+                kwargs['title_weight'] = 'normal'
+
+        if 'label_weight' in kwargs:
+            if kwargs['label_weight'] and isbool(kwargs['label_weight']):
+                kwargs['label_weight'] = 'heavy'
+            else:
+                kwargs['label_weight'] = 'normal'
+        return kwargs
 
     def _plot_settings_(self, **kwargs):
         """
@@ -826,8 +857,9 @@ class plots(mpl_plotter):
         self.set_legend_parameters(handles, **self.plot_parameters)
 
     def plot_1D_compare_update_data(self, xvals_1, xvals_2, yvals_1, yvals_2, **kwargs):
+
         # update settings
-        self._check_And_update_plot_settings(**kwargs)
+        self._check_and_update_plot_settings(**kwargs)
 
         ylimits = []
         lines = self.plotMS.get_lines()
@@ -996,11 +1028,7 @@ class plots(mpl_plotter):
             matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
             matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
-            # convert weights
-            if kwargs['label_weight']:
-                kwargs['label_weight'] = 'heavy'
-            else:
-                kwargs['label_weight'] = 'normal'
+            kwargs = self._check_plot_settings(**kwargs)
 
             # update labels
             self.set_plot_xlabel(None, **kwargs)
@@ -1019,10 +1047,6 @@ class plots(mpl_plotter):
             print(msg)
             return
 
-        # update ticks
-        matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
-        matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
-
         # convert weights
         if kwargs['label_weight']:
             kwargs['label_weight'] = 'heavy'
@@ -1031,10 +1055,6 @@ class plots(mpl_plotter):
 
         self.set_plot_xlabel(None, **kwargs)
         self.set_plot_ylabel(None, **kwargs)
-
-        # Setup font size info
-        self.plotMS.tick_params(labelsize=kwargs['tick_size'])
-
         self.set_tick_parameters(**kwargs)
 
         for __, line in enumerate(self.plotMS.get_lines()):
@@ -1133,10 +1153,6 @@ class plots(mpl_plotter):
             print(msg)
             return
 
-        # update ticks
-        matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
-        matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
-
         try:
             cbar_yticks = self.cbar.get_yticklabels()
             cbar_xticks = self.cbar.get_xticklabels()
@@ -1154,18 +1170,10 @@ class plots(mpl_plotter):
         except AttributeError:
             pass
 
-        # convert weights
-        if kwargs['label_weight']:
-            kwargs['label_weight'] = 'heavy'
-        else:
-            kwargs['label_weight'] = 'normal'
-
         # update labels
         self.set_plot_xlabel(None, **kwargs)
         self.set_plot_ylabel(None, **kwargs)
-
-        # Setup font size info
-        self.plotMS.tick_params(labelsize=kwargs['tick_size'])
+        self.set_tick_parameters(**kwargs)
 
         # update axis frame
         try:
@@ -1176,8 +1184,6 @@ class plots(mpl_plotter):
                 self.cbar.set_xticklabels(['0', '%', '100'])
         except Exception:
             pass
-
-        self.set_tick_parameters(**kwargs)
 
         self.plot_parameters = kwargs
 
@@ -1299,10 +1305,6 @@ class plots(mpl_plotter):
                 elif hasattr(self, 'ticks'):
                     ticks = self.ticks
 
-#                 if ticks_input is not None:
-#                     ticks = ticks_input
-#
-
                 if hasattr(self.cbar, 'tick_labels'):
                     tick_labels = self.cbar.tick_labels
                 elif hasattr(self, 'tick_labels'):
@@ -1403,12 +1405,8 @@ class plots(mpl_plotter):
 
     def plot_1D_add_legend(self, legend_text, **kwargs):
 
-        # override parameters
-        if not self.lock_plot_from_updating:
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(**kwargs)
 
         handles = []
         if legend_text is not None and kwargs.get('legend', self.config.legend):
@@ -1460,6 +1458,8 @@ class plots(mpl_plotter):
             legend.draggable()
 
     def set_plot_xlabel(self, xlabel, **kwargs):
+        kwargs = self._check_plot_settings(**kwargs)
+
         if xlabel is None:
             xlabel = self.plotMS.get_xlabel()
         self.plotMS.set_xlabel(
@@ -1470,6 +1470,7 @@ class plots(mpl_plotter):
         )
 
     def set_plot_ylabel(self, ylabel, **kwargs):
+        kwargs = self._check_plot_settings(**kwargs)
         if ylabel is None:
             ylabel = self.plotMS.get_ylabel()
         self.plotMS.set_ylabel(
@@ -1480,6 +1481,8 @@ class plots(mpl_plotter):
         )
 
     def set_plot_zlabel(self, zlabel, **kwargs):
+        kwargs = self._check_plot_settings(**kwargs)
+
         if zlabel is None:
             zlabel = self.plotMS.get_ylabel()
         self.plotMS.set_zlabel(
@@ -1489,7 +1492,23 @@ class plots(mpl_plotter):
             weight=kwargs['label_weight'],
         )
 
+    def set_plot_title(self, title, **kwargs):
+        kwargs = self._check_plot_settings(**kwargs)
+
+        if title is None:
+            title = self.plotMS.get_title()
+
+        self.plotMS.set_title(
+            title,
+            fontsize=kwargs['title_size'],
+            weight=kwargs.get('label_weight', 'normal'),
+        )
+
     def set_tick_parameters(self, **kwargs):
+
+        matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
+        matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
+
         # update axis frame
         if kwargs['axis_onoff']:
             self.plotMS.set_axis_on()
@@ -1517,12 +1536,8 @@ class plots(mpl_plotter):
 
     def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
 
-        # override parameters
-        if not self.lock_plot_from_updating:
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(**kwargs)
 
         # update limits and extents
         extent = self.extents(xvals) + self.extents(yvals)
@@ -1605,23 +1620,8 @@ class plots(mpl_plotter):
         """
         Plots MS and 1DT data
         """
-
-        # Setup parameters
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotType
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
-
-        matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
-        matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
         if testMax == 'yvals':
             yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
@@ -1671,12 +1671,6 @@ class plots(mpl_plotter):
             self.plotMS.xaxis.set_tick_params(which='minor', bottom='off')
             self.plotMS.xaxis.set_major_locator(MaxNLocator(integer=True))
 
-        # convert weights
-        if kwargs['label_weight']:
-            kwargs['label_weight'] = 'heavy'
-        else:
-            kwargs['label_weight'] = 'normal'
-
         self.set_plot_xlabel(xlabel, **kwargs)
         self.set_plot_ylabel(ylabel, **kwargs)
         self.set_tick_parameters(**kwargs)
@@ -1686,15 +1680,7 @@ class plots(mpl_plotter):
             line.set_linestyle(kwargs['line_style'])
 
         if title != '':
-            if kwargs['title_weight']:
-                title_weight = 'heavy'
-            else:
-                title_weight = 'normal'
-            self.plotMS.set_title(
-                title,
-                fontsize=kwargs['title_size'],
-                weight=title_weight,
-            )
+            self.set_plot_title(title, **kwargs)
 
         self.setup_zoom(
             [self.plotMS], self.zoomtype, data_lims=extent,
@@ -1706,8 +1692,6 @@ class plots(mpl_plotter):
         self.setupGetXAxies([self.plotMS])
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
         self.plot_labels.update({'xlabel': xlabel, 'ylabel': ylabel})
-
-    # -----
 
     def plot_1D_centroid(
         self, xvals=None, yvals=None, xyvals=None, xlabel='m/z (Da)',
@@ -1726,18 +1710,8 @@ class plots(mpl_plotter):
             excessive number of zeroes.
         """
 
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = 'box'
-        self.plot_name = plot_name
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plot_name, axes_size=axesSize, **kwargs)
 
         if kwargs.get('butterfly_plot', False):
             yvals = -np.array(yvals)
@@ -1753,9 +1727,6 @@ class plots(mpl_plotter):
 
         if xyvals is None:
             xyvals = self._convert_to_vertical_line_input(xvals, yvals)
-
-        matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
-        matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         # Simple hack to reduce size is to use different subplot size
         if not adding_on_top:
@@ -1793,15 +1764,8 @@ class plots(mpl_plotter):
         self.plotMS.set_xlim(xlimits)
         self.plotMS.set_ylim(ylimits)
 
-        # convert weights
-        if kwargs['label_weight']:
-            kwargs['label_weight'] = 'heavy'
-        else:
-            kwargs['label_weight'] = 'normal'
-
         self.set_plot_xlabel(xlabel, **kwargs)
         self.set_plot_ylabel(ylabel, **kwargs)
-
         self.set_tick_parameters(**kwargs)
 
         for __, line in enumerate(self.plotMS.get_lines()):
@@ -1809,15 +1773,7 @@ class plots(mpl_plotter):
             line.set_linestyle(kwargs['line_style'])
 
         if title != '':
-            if kwargs['title_weight']:
-                title_weight = 'heavy'
-            else:
-                title_weight = 'normal'
-            self.plotMS.set_title(
-                title,
-                fontsize=kwargs['title_size'],
-                weight=title_weight,
-            )
+            self.set_plot_title(title, **kwargs)
 
         self.setup_zoom(
             [self.plotMS], self.zoomtype, data_lims=extent,
@@ -1833,21 +1789,8 @@ class plots(mpl_plotter):
         self, xvals, yvals, labels, colors, xlabel='', ylabel='',
         title='', zoom='box', axesSize=None, plotType=None, **kwargs
     ):
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotType
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
-
-        matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
-        matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
         if not kwargs.get('bar_edgecolor_sameAsFill', True):
             edgecolor = kwargs.get('bar_edgecolor', '#000000')
@@ -1871,15 +1814,8 @@ class plots(mpl_plotter):
             rotation=90,  # 90
             fontsize=kwargs['label_size'],
         )
-        # convert weights
-        if kwargs['label_weight']:
-            kwargs['label_weight'] = 'heavy'
-        else:
-            kwargs['label_weight'] = 'normal'
-
         self.set_plot_xlabel(xlabel, **kwargs)
         self.set_plot_ylabel(ylabel, **kwargs)
-
         self.set_tick_parameters(**kwargs)
 
         for __, line in enumerate(self.plotMS.get_lines()):
@@ -1887,15 +1823,7 @@ class plots(mpl_plotter):
             line.set_linestyle(kwargs['line_style'])
 
         if title != '':
-            if kwargs['title_weight']:
-                title_weight = 'heavy'
-            else:
-                title_weight = 'normal'
-            self.plotMS.set_title(
-                title,
-                fontsize=kwargs['title_size'],
-                weight=title_weight,
-            )
+            self.set_plot_title(title, **kwargs)
 
         xlimits = self.plotMS.get_xlim()
         ylimits = self.plotMS.get_ylim()
@@ -1909,19 +1837,8 @@ class plots(mpl_plotter):
         self, xvals, yvals_min, yvals_max, xlabel, ylabel,
         colors=[], axesSize=None, plotName='bar', **kwargs
     ):
-        # Setup parameters
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = 'box'
-        self.plot_name = plotName
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
@@ -2037,22 +1954,8 @@ class plots(mpl_plotter):
         ylabel='', xlimits=None, axesSize=None,
         plotName='whole', **kwargs
     ):
-        # Setup parameters
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = 'box'
-        self.plot_name = plotName
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
-
-        matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
-        matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         # Plot
         self.plotMS = self.figure.add_axes(self._axes)
@@ -2148,20 +2051,8 @@ class plots(mpl_plotter):
         ylabel='', label='', plotType='compare_MS', testMax='yvals',
         axesSize=None, **kwargs
     ):
-        """
-        """
-        # Setup parameters
-        self.plotflag = True  # Used only if saving data
-        self.plot_name = plotType
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
@@ -2228,19 +2119,8 @@ class plots(mpl_plotter):
         xlimits=None, zoom='box', plotType=None, testMax='yvals',
         axesSize=None, title='', allowWheel=True, **kwargs
     ):
-        # Setup parameters
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotType
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
         # check in case only one item was passed
         # assumes xvals is a list in a list
@@ -2307,15 +2187,7 @@ class plots(mpl_plotter):
             line.set_linestyle(kwargs['line_style'])
 
         if title != '':
-            if kwargs['title_weight']:
-                title_weight = 'heavy'
-            else:
-                title_weight = 'normal'
-            self.plotMS.set_title(
-                title,
-                fontsize=kwargs['title_size'],
-                weight=title_weight,
-            )
+            self.set_plot_title(title, **kwargs)
 
         self.setup_zoom(
             [self.plotMS], self.zoomtype, data_lims=extent,
@@ -2755,22 +2627,8 @@ class plots(mpl_plotter):
         xlimits=None, plotType='Violin', labels=[], **kwargs
     ):
 
-        self.zoomtype = 'box'
-        self.plot_name = plotType
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-
-            self.plot_parameters = kwargs
-        else:
-            # update ticks
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
-
-        matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
-        matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
         self.plotMS = self.figure.add_axes(self._axes)
         if kwargs['label_weight']:
@@ -2916,11 +2774,8 @@ class plots(mpl_plotter):
         plotName='Grid_1D', axesSize=None, testMax='yvals',
         **kwargs
     ):
-        self.plot_name = plotName
-        self.zoomtype = 'box'
-        if axesSize is not None:
-            self._axes = axesSize
-        self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         # check in case only one item was passed
         # assumes xvals is a list in a list
@@ -2931,17 +2786,6 @@ class plots(mpl_plotter):
         n_yvals = len(yvals)
         n_grid = np.max([n_xvals, n_yvals])
         n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
-
-        # convert weights
-        if kwargs['title_weight']:
-            kwargs['title_weight'] = 'heavy'
-        else:
-            kwargs['title_weight'] = 'normal'
-
-        if kwargs['label_weight']:
-            kwargs['label_weight'] = 'heavy'
-        else:
-            kwargs['label_weight'] = 'normal'
 
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
@@ -3078,11 +2922,8 @@ class plots(mpl_plotter):
         plotName='Grid_scatter', axesSize=None, testMax='yvals',
         **kwargs
     ):
-        self.plot_name = plotName
-        self.zoomtype = 'box'
-        if axesSize is not None:
-            self._axes = axesSize
-        self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         # check in case only one item was passed
         # assumes xvals is a list in a list
@@ -3257,11 +3098,8 @@ class plots(mpl_plotter):
         xvals, yvals, xlabel, ylabel, plotName='Overlay_Grid',
         axesSize=None, **kwargs
     ):
-        self.plot_name = plotName
-        self.zoomtype = 'box'
-        if axesSize is not None:
-            self._axes = axesSize
-        self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         n_grid = len(n_zvals)
         n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
@@ -3392,17 +3230,8 @@ class plots(mpl_plotter):
         axesSize=None, **kwargs
     ):
 
-        self.plot_name = plotName
-        self.zoomtype = 'box'
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         gs = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1, 1], width_ratios=[1, 2])
         gs.update(hspace=kwargs['rmsd_hspace'], wspace=kwargs['rmsd_hspace'])
@@ -3511,17 +3340,9 @@ class plots(mpl_plotter):
         # Setup parameters
         gs = gridspec.GridSpec(2, 1, height_ratios=[1, 3])
         gs.update(hspace=kwargs['rmsd_hspace'])
-        self.plot_name = plotName
-        self.zoomtype = zoom
 
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         if kwargs['label_weight']:
             kwargs['label_weight'] = 'heavy'
@@ -3709,18 +3530,8 @@ class plots(mpl_plotter):
         self, zvals=None, title='', extent=None, xlabel='', ylabel='', zoom='box',
         axesSize=None, colorbar=False, legend=None, plotName='2D', **kwargs
     ):
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotName
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
@@ -3816,20 +3627,8 @@ class plots(mpl_plotter):
         legend=False, zoom='box',
         axesSize=None, plotName=None, **kwargs
     ):
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotName
-
-#         kwargs = self._check_colormap(**kwargs)
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
@@ -3937,18 +3736,8 @@ class plots(mpl_plotter):
         legend=False, zoom='box',
         axesSize=None, plotName=None, **kwargs
     ):
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotName
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
@@ -4033,18 +3822,8 @@ class plots(mpl_plotter):
         speedy=True, zoom='box', axesSize=None, plotName=None,
         testX=False, title='', **kwargs
     ):
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotName
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
@@ -4142,15 +3921,7 @@ class plots(mpl_plotter):
         self.set_tick_parameters(**kwargs)
 
         if title != '':
-            if kwargs['title_weight']:
-                title_weight = 'heavy'
-            else:
-                title_weight = 'normal'
-            self.plotMS.set_title(
-                title,
-                fontsize=kwargs['title_size'],
-                weight=title_weight,
-            )
+            self.set_plot_title(title, **kwargs)
 
         # setup zoom
         extent = [xmin, ymin, xmax, ymax]
@@ -4169,18 +3940,8 @@ class plots(mpl_plotter):
         zoom='box', axesSize=None, legend_text=None,
         plotName='RGB', **kwargs
     ):
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotName
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
@@ -4231,18 +3992,8 @@ class plots(mpl_plotter):
         axesSize=None, plotName=None, **kwargs
     ):
 
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotName
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
@@ -4353,18 +4104,8 @@ class plots(mpl_plotter):
         zoom='box', axesSize=None, plotName=None, **kwargs
     ):
 
-        self.plotflag = True  # Used only if saving data
-        self.zoomtype = zoom
-        self.plot_name = plotName
-
-        # override parameters
-        if not self.lock_plot_from_updating:
-            if axesSize is not None:
-                self._axes = axesSize
-            self.plot_parameters = kwargs
-        else:
-            kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-            self.plot_parameters = kwargs
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         # set tick size
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
@@ -4422,10 +4163,8 @@ class plots(mpl_plotter):
         cmap='inferno', title='', xlabel='', ylabel='', zlabel='',
         label='', axesSize=None, plotType='Bar', **kwargs
     ):
-        if axesSize is not None:
-            self._axes = axesSize
-        self.plot_parameters = kwargs
-        self.plot_name = plotType
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
         xvals = list(range(zvals.shape[1]))
         yvals = list(range(zvals.shape[0]))
@@ -4435,10 +4174,6 @@ class plots(mpl_plotter):
         top = zvals.ravel()
         bottom = np.zeros_like(top)
         width = depth = 1
-
-#         # colormap check
-#         if kwargs['colormap'] in self.config.cmocean_cmaps:
-#             kwargs['colormap'] = eval("cmocean.cm.%s" % kwargs['colormap'])
 
         cmap = cm.get_cmap(kwargs['colormap'])  # Get desired colormap
         max_height = np.max(top)  # get range of colorbars
@@ -4526,11 +4261,8 @@ class plots(mpl_plotter):
         xlabel=None, ylabel=None, zlabel=None, plotName='whole',
         axesSize=None, plotType='Surface3D', **kwargs
     ):
-        if axesSize is not None:
-            self._axes = axesSize
-        self.plotflag = True  # Used only if saving data
-        self.plot_parameters = kwargs
-        self.plot_name = plotType
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
 #         kwargs = self._check_colormap(**kwargs)
         xvals, yvals = np.meshgrid(xvals, yvals)
@@ -4614,11 +4346,8 @@ class plots(mpl_plotter):
         xlabel=None, ylabel=None, zlabel=None, plotName='whole',
         axesSize=None, plotType='Wireframe3D', **kwargs
     ):
-        if axesSize is not None:
-            self._axes = axesSize
-        self.plotflag = True  # Used only if saving data
-        self.plot_parameters = kwargs
-        self.plot_name = plotType
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
         xvals, yvals = np.meshgrid(xvals, yvals)
 
@@ -4705,11 +4434,8 @@ class plots(mpl_plotter):
         xlabel=None, ylabel=None, zlabel=None, plotName='whole',
         axesSize=None, plotType='Scatter3D', **kwargs
     ):
-        if axesSize is not None:
-            self._axes = axesSize
-        self.plotflag = True  # Used only if saving data
-        self.plot_parameters = kwargs
-        self.plot_name = plotType
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
         matplotlib.rc('xtick', labelsize=kwargs['tick_size'])
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])

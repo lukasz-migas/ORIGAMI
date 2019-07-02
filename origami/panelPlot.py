@@ -4435,7 +4435,6 @@ class panelPlot(wx.Panel):
                 xlabel='m/z', ylabel='Intensity',
                 label=legend,
                 lineWidth=self.config.lineWidth_1D,
-                #                 axesSize=self.config._plotSettings['MS (compare)']['axes_size'],
                 plotType='compare_MS',
                 **plt_kwargs
             )
