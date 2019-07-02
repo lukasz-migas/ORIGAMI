@@ -36,6 +36,7 @@ from styles import makeStaticBox
 from utils.color import convertRGB1to255
 from utils.converters import str2num
 from utils.screen import calculate_window_size
+from utils.time import ttime
 from visuals import mpl_plots
 
 logger = logging.getLogger('origami')
@@ -318,8 +319,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.update_spectrum)
         self.spectrum_2_spectrum_value.Bind(wx.EVT_COMBOBOX, self.update_spectrum)
-        self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot_update_data)
-        self.spectrum_2_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot_update_data)
+        self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot)
+        self.spectrum_2_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot)
 
         self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
@@ -681,37 +682,39 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 #             xvals, yvals, 1, label,
 #             plot=None, plot_obj=self.plot_window,
 #         )
-
-    def on_plot_update_data(self, evt):
-        if evt is not None:
-            source = evt.GetEventObject().GetName()
-
-        self.update_spectrum(evt=None)
-
-        index = self._get_dataset_index(source)
-
-        spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[index])
-        xvals = spectrum['xvals']
-        yvals = spectrum['yvals']
-        label = self.config.compare_massSpectrumParams['legend'][index]
-
-        if self.config.compare_massSpectrumParams['normalize']:
-            yvals = pr_spectra.normalize_1D(yvals)
-
-        if self.config.compare_massSpectrumParams['inverse'] and index == 1:
-            yvals = -yvals
-
-        self.panel_plot.plot_1D_update_data_by_label(
-            xvals, yvals, index, label,
-            plot=None, plot_obj=self.plot_window,
-        )
-
-        self._update_local_plot_information()
-        if evt is not None:
-            evt.Skip()
+#
+#     def on_plot_update_data(self, evt):
+#         tstart = ttime()
+#         if evt is not None:
+#             source = evt.GetEventObject().GetName()
+#
+#         self.update_spectrum(evt=None)
+#
+#         index = self._get_dataset_index(source)
+#
+#         spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[index])
+#         xvals = spectrum['xvals']
+#         yvals = spectrum['yvals']
+#         label = self.config.compare_massSpectrumParams['legend'][index]
+#
+#         if self.config.compare_massSpectrumParams['normalize']:
+#             yvals = pr_spectra.normalize_1D(yvals)
+#
+#         if self.config.compare_massSpectrumParams['inverse'] and index == 1:
+#             yvals = -yvals
+#
+#         self.panel_plot.plot_1D_update_data_by_label(
+#             xvals, yvals, index, label,
+#             plot=None, plot_obj=self.plot_window,
+#         )
+#
+#         self._update_local_plot_information()
+#         if evt is not None:
+#             evt.Skip()
+#
+#         print(ttime() - tstart)
 
     def on_plot_update_style(self, source):
-
         kwargs = dict()
         index = self._get_dataset_index(source)
 

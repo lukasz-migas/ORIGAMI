@@ -103,6 +103,8 @@ class plots(mpl_plotter):
 
         if 'axes_size' in kwargs:
             axes_size = kwargs['axes_size']
+        else:
+            axes_size = self._axes
 
         # override parameters
         if not self.lock_plot_from_updating:
@@ -685,12 +687,7 @@ class plots(mpl_plotter):
         lines[0].set_xdata(xvals)
         lines[0].set_ydata(yvals)
 
-        self.plotMS.set_ylabel(
-            ylabel,
-            labelpad=kwargs['label_pad'],
-            fontsize=kwargs['label_size'],
-            weight=kwargs['label_weight'],
-        )
+        self.set_plot_ylabel(ylabel, **kwargs)
 #         lines[0].set_linewidth(kwargs['line_width'])
 #         lines[0].set_color(kwargs['line_color'])
 #         lines[0].set_linestyle(kwargs['line_style'])
@@ -856,10 +853,27 @@ class plots(mpl_plotter):
         handles, __ = self.plotMS.get_legend_handles_labels()
         self.set_legend_parameters(handles, **self.plot_parameters)
 
+    def _plot_1D_compare_prepare_data(self, yvals_1, yvals_2, ylabel=None):
+        if ylabel is None:
+            ylabel = self.plotMS.get_ylabel()
+
+        yvals_1, __, divider_1 = self._convert_intensities(yvals_1, '', convert_values=False)
+        yvals_2, __, divider_2 = self._convert_intensities(yvals_2, '', convert_values=False)
+        divider = np.max([divider_1, divider_2])
+        self.y_divider = divider
+        yvals_1 = np.divide(yvals_1, float(divider))
+        yvals_2 = np.divide(yvals_2, float(divider))
+        ylabel = self._add_exponent_to_label(ylabel, divider)
+
+        return yvals_1, yvals_2, ylabel
+
     def plot_1D_compare_update_data(self, xvals_1, xvals_2, yvals_1, yvals_2, **kwargs):
 
         # update settings
         self._check_and_update_plot_settings(**kwargs)
+
+        yvals_1, yvals_2, ylabel = self._plot_1D_compare_prepare_data(yvals_1, yvals_2, None)
+        self.set_plot_ylabel(ylabel, **self.plot_parameters)
 
         ylimits = []
         lines = self.plotMS.get_lines()
@@ -873,15 +887,6 @@ class plots(mpl_plotter):
                 line.set_xdata(xvals_2)
                 line.set_ydata(yvals_2)
                 ylimits += get_min_max(yvals_2)
-
-        # convert ylabel based on the divider
-        __, ylabel, __ = self._convert_intensities(
-            yvals_1,
-            self.plotMS.get_ylabel(),
-            set_divider=False,
-            convert_values=False,
-        )
-        self.set_plot_ylabel(ylabel, **self.plot_parameters)
 
         # update legend
         handles, __ = self.plotMS.get_legend_handles_labels()
@@ -2058,18 +2063,17 @@ class plots(mpl_plotter):
         matplotlib.rc('ytick', labelsize=kwargs['tick_size'])
 
         if testMax == 'yvals':
-            yvals1, __, divider_1 = self._convert_intensities(yvals1, ylabel, convert_values=False)
-            yvals2, __, divider_2 = self._convert_intensities(yvals2, ylabel, convert_values=False)
-            divider = np.max([divider_1, divider_2])
+            yvals1, yvals2, ylabel = self._plot_1D_compare_prepare_data(yvals1, yvals2, ylabel)
 
-            self.y_divider = divider
-
-            yvals1 = np.divide(yvals1, float(divider))
-            yvals2 = np.divide(yvals2, float(divider))
-            ylabel = self._add_exponent_to_label(ylabel, divider)
-
-#         if kwargs['inverse']:
-#             yvals2 = -yvals2
+#             yvals1, __, divider_1 = self._convert_intensities(yvals1, ylabel, convert_values=False)
+#             yvals2, __, divider_2 = self._convert_intensities(yvals2, ylabel, convert_values=False)
+#             divider = np.max([divider_1, divider_2])
+#
+#             self.y_divider = divider
+#
+#             yvals1 = np.divide(yvals1, float(divider))
+#             yvals2 = np.divide(yvals2, float(divider))
+#             ylabel = self._add_exponent_to_label(ylabel, divider)
 
         if xvals2 is None:
             xvals2 = xvals1
