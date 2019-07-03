@@ -38,6 +38,7 @@ from utils.converters import str2int
 from utils.converters import str2num
 from utils.logging import set_logger
 from utils.logging import set_logger_level
+from utils.time import getTime
 from visuals.normalize import MidpointNormalize
 # if platform == "win32":
 #     import readers.io_waters_raw as io_waters

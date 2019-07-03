@@ -4405,6 +4405,9 @@ class panelPlot(wx.Panel):
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
 
+        plt_kwargs["label_1"] = self.config.compare_massSpectrumParams['legend'][0]
+        plt_kwargs["label_2"] = self.config.compare_massSpectrumParams['legend'][1]
+
         try:
             plot_obj.plot_1D_compare_update_data(
                 xvals_1, xvals_2, yvals_1, yvals_2,

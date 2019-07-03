@@ -29,7 +29,7 @@ class OrigamiConfig:
         self.loggingFile_path = None
         self.version = '1.3.0.0'
         self.debug = True
-        self.testing = True
+        self.testing = False
 
         self.document_version = '19-10-2018'
         self.unidec_engine = None
@@ -1876,7 +1876,8 @@ class OrigamiConfig:
             ps = self._plotSettings[key]
             buff += '    <param name="{}" left_axes="{:.2f}" bottom_axes="{:.2f}" width_axes="{:.2f}" height_axes="{:.2f}" left_save="{:.2f}" bottom_save="{:.2f}" width_save="{:.2f}" height_save="{:.2f}" width_resize="{:.2f}" height_resize="{:.2f}" width_gui="{:.2f}" height_gui="{:.2f}" default_name="{}" type="float" />\n'.format(
                 key, ps['axes_size'][0], ps['axes_size'][1], ps['axes_size'][2], ps['axes_size'][3], ps['save_size'][0], ps['save_size'][1], ps[
-                    'save_size'][2], ps['save_size'][3], ps['resize_size'][0], ps['resize_size'][1], ps['gui_size'][0], ps['gui_size'][1], ps['default_name'],
+                    'save_size'
+                ][2], ps['save_size'][3], ps['resize_size'][0], ps['resize_size'][1], ps['gui_size'][0], ps['gui_size'][1], ps['default_name'],
             )
         buff += '  </presets_gui_plotSizes>\n\n'
 

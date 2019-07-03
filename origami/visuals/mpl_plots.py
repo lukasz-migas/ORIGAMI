@@ -867,10 +867,12 @@ class plots(mpl_plotter):
             if plot_gid == 0:
                 line.set_xdata(xvals_1)
                 line.set_ydata(yvals_1)
+                line.set_label(kwargs.pop("label_1", line.get_label()))
                 ylimits += get_min_max(yvals_1)
             elif plot_gid == 1:
                 line.set_xdata(xvals_2)
                 line.set_ydata(yvals_2)
+                line.set_label(kwargs.pop("label_2", line.get_label()))
                 ylimits += get_min_max(yvals_2)
 
         # update legend

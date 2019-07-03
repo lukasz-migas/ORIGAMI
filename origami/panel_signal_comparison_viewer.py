@@ -181,7 +181,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.spectrum_1_spectrum_value.SetStringSelection(spectrum_1)
 
         spectrum_1_label_label = wx.StaticText(panel, -1, 'Label:')
-        self.spectrum_1_label_value = wx.TextCtrl(panel, -1, '', name='label_1')
+        self.spectrum_1_label_value = wx.TextCtrl(panel, -1, '', style=wx.TE_PROCESS_ENTER,
+                                                  name='label_1')
 
         spectrum_1_color_label = wx.StaticText(panel, -1, 'Color:')
         self.spectrum_1_colorBtn = wx.Button(panel, size=wx.Size(26, 26), name='color_1')
@@ -224,7 +225,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.spectrum_2_spectrum_value.SetStringSelection(spectrum_2)
 
         spectrum_2_label_label = wx.StaticText(panel, -1, 'Label:')
-        self.spectrum_2_label_value = wx.TextCtrl(panel, -1, '', name='label_2')
+        self.spectrum_2_label_value = wx.TextCtrl(panel, -1, '', style=wx.TE_PROCESS_ENTER,
+                                                  name='label_2')
 
         spectrum_2_color_label = wx.StaticText(panel, -1, 'Color:')
         self.spectrum_2_colorBtn = wx.Button(panel, size=wx.Size(26, 26), name='color_2')
@@ -312,11 +314,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
 #
-#         self.spectrum_1_label_value.Bind(wx.EVT_TEXT, self.update_spectrum)
-#         self.spectrum_2_label_value.Bind(wx.EVT_TEXT, self.update_spectrum)
-
-        self.spectrum_1_label_value.Bind(wx.EVT_TEXT, self.on_plot_update_label)
-        self.spectrum_2_label_value.Bind(wx.EVT_TEXT, self.on_plot_update_label)
+        self.spectrum_1_label_value.Bind(wx.EVT_TEXT_ENTER, self.on_plot)
+        self.spectrum_2_label_value.Bind(wx.EVT_TEXT_ENTER, self.on_plot)
 
         self.spectrum_1_colorBtn.Bind(wx.EVT_BUTTON, self.on_update_color)
         self.spectrum_2_colorBtn.Bind(wx.EVT_BUTTON, self.on_update_color)
@@ -629,75 +628,6 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
                 self.document_list[0], spectrum_list_1[0], spectrum_list_1,
                 self.document_list[1], spectrum_list_2[0], spectrum_list_2,
             )
-
-    def on_plot_update_label(self, evt):
-        source = evt.GetEventObject().GetName()
-
-#         old_label = self.compare_massSpectrum[index][-1]
-#         new_label = self.config.compare_massSpectrumParams['legend'][index]
-#
-#         print(old_label, new_label)
-#         print(source, label_1, label_2)
-
-    def on_process_and_plot_data(self, evt):
-        pass
-#         for index in range(2):
-#             spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[index])
-#             xvals = spectrum['xvals']
-#             yvals = spectrum['yvals']
-#             label = self.config.compare_massSpectrumParams['legend'][index]
-#
-#             if self.config.compare_massSpectrumParams['normalize']:
-#                 yvals = pr_spectra.normalize_1D(yvals)
-#
-#             if self.config.compare_massSpectrumParams['inverse'] and index == 1:
-#                 yvals = -yvals
-#
-#             self.panel_plot.plot_1D_update_data_by_label(
-#                 xvals, yvals, index, label,
-#                 plot=None, plot_obj=self.plot_window,
-#             )
-#
-#         spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[0])
-#         xvals = spectrum['xvals']
-#         yvals = spectrum['yvals']
-#         label = self.config.compare_massSpectrumParams['legend'][1]
-#
-#         self.panel_plot.plot_1D_update_data_by_label(
-#             xvals, yvals, 1, label,
-#             plot=None, plot_obj=self.plot_window,
-#         )
-#
-#     def on_plot_update_data(self, evt):
-#         tstart = ttime()
-#         if evt is not None:
-#             source = evt.GetEventObject().GetName()
-#
-#         self.update_spectrum(evt=None)
-#
-#         index = self._get_dataset_index(source)
-#
-#         spectrum = self.data_handling.get_spectrum(self.config.compare_massSpectrum[index])
-#         xvals = spectrum['xvals']
-#         yvals = spectrum['yvals']
-#         label = self.config.compare_massSpectrumParams['legend'][index]
-#
-#         if self.config.compare_massSpectrumParams['normalize']:
-#             yvals = pr_spectra.normalize_1D(yvals)
-#
-#         if self.config.compare_massSpectrumParams['inverse'] and index == 1:
-#             yvals = -yvals
-#
-#         self.panel_plot.plot_1D_update_data_by_label(
-#             xvals, yvals, index, label,
-#             plot=None, plot_obj=self.plot_window,
-#         )
-#
-#         self._update_local_plot_information()
-#         if evt is not None:
-#             evt.Skip()
-#
-#         print(ttime() - tstart)
 
     def on_plot_update_style(self, source):
         kwargs = dict()

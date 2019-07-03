@@ -1970,11 +1970,6 @@ class MyFrame(wx.Frame):
             except Exception as err:
                 print(err)
 
-        if self.config.testing:
-            from utils.time import tsleep
-            logger.propagate = False
-            tsleep(5)
-
         self.Destroy()
 
     def disable_publisher(self):
@@ -2349,6 +2344,10 @@ class MyFrame(wx.Frame):
 
         if print_msg:
             logger.info(msg)
+
+        # disable delay during testing
+        if self.config.testing:
+            delay = 0
 
         try:
             self.SetStatusText(msg, number=position)
