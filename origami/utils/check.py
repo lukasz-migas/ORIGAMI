@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import re
 import urllib
 from distutils.version import LooseVersion

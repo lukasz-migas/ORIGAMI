@@ -1,19 +1,4 @@
 # -*- coding: utf-8 -*-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 import gc
 import logging
@@ -4584,8 +4569,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
                 self.presenter.documentsDict[self.title].IMS2DstatsData[new_name] = self.presenter.documentsDict[self.title].IMS2DstatsData.pop(
-                    self._item_leaf,
-                )
+                    self._item_leaf, )
                 self.Expand(docItem)
             elif self._document_type == 'Overlay':
                 # Change document tree
@@ -4594,8 +4578,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
                 self.presenter.documentsDict[self.title].IMS2DoverlayData[new_name] = self.presenter.documentsDict[self.title].IMS2DoverlayData.pop(
-                    self._item_leaf,
-                )
+                    self._item_leaf, )
                 self.Expand(docItem)
             elif self._document_type == 'Mass Spectra':
                 # Change document tree
@@ -4606,8 +4589,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
                 self.presenter.documentsDict[self.title].multipleMassSpectrum[new_name] = self.presenter.documentsDict[self.title].multipleMassSpectrum.pop(
-                    self._item_leaf,
-                )
+                    self._item_leaf, )
                 self.Expand(docItem)
                 # check if item is in other panels
                 try:
@@ -4625,8 +4607,7 @@ class documentsTree(wx.TreeCtrl):
                 # TODO: check if iterm is in the peaklist
                 # Change dictionary key
                 self.presenter.documentsDict[self.title].IMS2Dions[new_name] = self.presenter.documentsDict[self.title].IMS2Dions.pop(
-                    self._item_leaf,
-                )
+                    self._item_leaf, )
                 self.Expand(docItem)
             else:
                 return
@@ -5420,8 +5401,7 @@ class documentsTree(wx.TreeCtrl):
                     self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
             elif (out[0] == 'Mask' or out[0] == 'Transparent'):
                 zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, __, __, xvals, yvals, xlabels, ylabels = self.presenter.getOverlayDataFromDictionary(
-                    dictionary=data, dataType='plot', compact=False,
-                )
+                    dictionary=data, dataType='plot', compact=False, )
                 if out[0] == 'Mask':
                     defaultValue = 'Overlay_mask_{}'.format(basename)
                     self.panel_plot.on_plot_overlay_2D(
@@ -5449,8 +5429,7 @@ class documentsTree(wx.TreeCtrl):
 
             elif out[0] == 'RMSF':
                 zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType='RMSF', compact=True,
-                )
+                    dictionary=data, plotType='RMSF', compact=True, )
                 defaultValue = 'Overlay_RMSF_{}'.format(basename)
                 self.panel_plot.on_plot_RMSDF(
                     yvalsRMSF=yvalsRMSF,
@@ -5491,8 +5470,7 @@ class documentsTree(wx.TreeCtrl):
             elif out[0] == 'RMSD':
                 defaultValue = 'Overlay_RMSD_{}'.format(basename)
                 zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, rmsdLabel, cmap = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType='RMSD', compact=True,
-                )
+                    dictionary=data, plotType='RMSD', compact=True, )
                 self.panel_plot.on_plot_RMSD(
                     zvals, xaxisLabels, yaxisLabels, xlabel, ylabel,
                     cmap, plotType='RMSD', set_page=True,

@@ -4,7 +4,8 @@ import tempfile
 import warnings
 
 from utils.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
-from utils.multiplierz_lite.mzml import demarshal, mzmlToSqlite
+from utils.multiplierz_lite.mzml import demarshal
+from utils.multiplierz_lite.mzml import mzmlToSqlite
 
 
 class mzFile(mzAPImzFile):
@@ -26,13 +27,13 @@ class mzFile(mzAPImzFile):
         if data_file.lower().endswith('mzml'):
             flptr, flname = tempfile.mkstemp(suffix='.mzmlsql')
             # flptr.close()
-            print("Parsing mzML to sqlite3... (this may take some time.)")
+            print('Parsing mzML to sqlite3... (this may take some time.)')
             mzmlToSqlite(data_file, flname)
             self.connection = sqlite3.connect(flname)
             self.cursor = self.connection.cursor()
             self.cachename = flname
         elif data_file.lower().endswith('mzmlsql'):
-            print("Opening previously prepared sqlite3 file...")
+            print('Opening previously prepared sqlite3 file...')
             self.connection = sqlite3.connect(data_file)
             self.cursor = self.connection.cursor()
             self.cachename = data_file
@@ -50,8 +51,10 @@ class mzFile(mzAPImzFile):
         if not any([start_mz, stop_mz, start_rt, stop_rt]):
             self.cursor.execute('SELECT ind, mz, rt FROM spectra')
         else:
-            self.cursor.execute('SELECT ind, mz, rt FROM spectra WHERE mz >= %s AND mz <= %s AND rt >= %s AND rt <= %s'
-                                % (start_mz, stop_mz, start_rt, stop_rt))
+            self.cursor.execute(
+                'SELECT ind, mz, rt FROM spectra WHERE mz >= %s AND mz <= %s AND rt >= %s AND rt <= %s'
+                % (start_mz, stop_mz, start_rt, stop_rt),
+            )
         manifest = list(self.cursor.fetchall())
         manifest = [(r, m, i, 'MS1' if not m else 'MS2', None) for i, m, r in manifest]
         return sorted(manifest)
@@ -65,17 +68,19 @@ class mzFile(mzAPImzFile):
         scandata = demarshal(self.cursor.fetchone()[0])
 
         if centroid and not scandata['centroid']:
-            raise NotImplementedError("Requires general centroiding function!")
+            raise NotImplementedError('Requires general centroiding function!')
         elif not centroid and scandata['centroid']:
-            warnings.warn("Non-centroid data requested but only centroided data available.", RuntimeWarning)
+            warnings.warn('Non-centroid data requested but only centroided data available.', RuntimeWarning)
 
         return scandata['spectrum']
 
     def scan_for_time(self, time, tolerance=0.0001):
         # Float inprecision spoils the exact value of RT keys when they
         # get into Python scope, requiring the addition of a tolerance factor.
-        self.cursor.execute('SELECT ind, rt FROM spectra WHERE rt >= %s AND rt <= %s'
-                            % (time - (tolerance / 2), time + (tolerance / 2)))
+        self.cursor.execute(
+            'SELECT ind, rt FROM spectra WHERE rt >= %s AND rt <= %s'
+            % (time - (tolerance / 2), time + (tolerance / 2)),
+        )
         return min(self.cursor.fetchall(), key=lambda x: abs(x[1] - time))[0]
 
     def time_for_scan(self, scan):
@@ -101,8 +106,9 @@ class mzFile(mzAPImzFile):
 
     def xic(self, start_time=None, stop_time=None, start_mz=None, stop_mz=None):
         if any([start_time, stop_time, start_mz, stop_mz]):
-            raise NotImplementedError("Uncertain how to deal with custom XICs from mzML data.")
+            raise NotImplementedError('Uncertain how to deal with custom XICs from mzML data.')
         else:
             self.cursor.execute(
-                'SELECT data FROM chromato WHERE ind=0 AND startmz=0 AND stopmz=0 AND startrt=0 AND stopmz=0')
+                'SELECT data FROM chromato WHERE ind=0 AND startmz=0 AND stopmz=0 AND startrt=0 AND stopmz=0',
+            )
             return demarshal(self.cursor.fetchone()[0])[1]

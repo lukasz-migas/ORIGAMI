@@ -2,8 +2,16 @@
     Waters
     MassLynx Python SDK
 '''
-from readers.waters.MassLynxRawReader import MassLynxCodeHandler, MassLynxRawReader, MassLynxBaseType
-from ctypes import c_void_p, c_int, POINTER, c_char_p, c_bool, c_float
+from ctypes import c_bool
+from ctypes import c_char_p
+from ctypes import c_float
+from ctypes import c_int
+from ctypes import c_void_p
+from ctypes import POINTER
+
+from readers.waters.MassLynxRawReader import MassLynxBaseType
+from readers.waters.MassLynxRawReader import MassLynxCodeHandler
+from readers.waters.MassLynxRawReader import MassLynxRawReader
 
 
 class MasslynxLockMassProcessor(object):
@@ -14,8 +22,12 @@ class MasslynxLockMassProcessor(object):
         self.mlLockMassProcessor = c_void_p()
         createRawProcessor = MassLynxRawReader.massLynxDll.createRawProcessor
         createRawProcessor.argtypes = [POINTER(c_void_p), c_int, c_void_p, POINTER(c_void_p)]
-        self._codeHandler.CheckReturnCode(createRawProcessor(self.mlLockMassProcessor,
-                                                             MassLynxBaseType.LOCKMASS, c_void_p(0), c_void_p(0)))
+        self._codeHandler.CheckReturnCode(
+            createRawProcessor(
+                self.mlLockMassProcessor,
+                MassLynxBaseType.LOCKMASS, c_void_p(0), c_void_p(0),
+            ),
+        )
 
     # destroy the processor
     def __del__(self):

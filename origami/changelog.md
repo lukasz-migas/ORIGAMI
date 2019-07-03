@@ -4,7 +4,7 @@
 ### MS/DT
 
 * Add support for multi-zoom of MS/DT dataset. It should be low-res when zoomed out and higher resolution as we zoom in
-* Add better normalization formats = quantile, rms, 
+* Add better normalization formats = quantile, rms,
 
 ### v2.0.0
 ![](img/changed.png) Migrated ORIGAMI from python 2 to python 3 as well as from wxPython 3 to wxPython 4
@@ -22,7 +22,7 @@ an idea, a new panel/miniframe and a necessary code
 ### v1.2.2.0
 
 #### DT/MS
-![](img/added.png) Added new data processing pipeline, where you can select m/z range and bin size for 
+![](img/added.png) Added new data processing pipeline, where you can select m/z range and bin size for
 the DT/MS datatype. To activate, you simply right-click on the DT/MS instance in the Document view
 and select "Open extraction panel..." which will open a new window. The previous method of extracting data
 via the Menu -> Process -> ... was removed as it was very confusing.
@@ -37,7 +37,7 @@ via the Menu -> Process -> ... was removed as it was very confusing.
 #### Document Tree:
 ![](img/fixed.png) Fixed typo: spectrun -> spectrum (grr)
 
-![](img/fixed.png) When loading mzml/mgf files, the individual scans will no longer be shown in the document tree as it caused some major issues. If you would like to see the individual spectra, please double-click on the header 
+![](img/fixed.png) When loading mzml/mgf files, the individual scans will no longer be shown in the document tree as it caused some major issues. If you would like to see the individual spectra, please double-click on the header
 'Tandem Mass Spectra'
 
 ![](img/improved.png) When loading any data into the INTERACTIVE document, you will be asked whether data should be duplicated, merged or duplicated
@@ -53,9 +53,9 @@ via the Menu -> Process -> ... was removed as it was very confusing.
 ![](img/fixed.png) annotation parameters (e.g. size, weight, rotation) will be respected when replotting from the Document Tree
 
 #### Interactive panel:
-![](img/added.png) Made big progres in terms of copying/applying styles for plot elements. When you double-click on any element in the file list a new window will appear where you can individually adjust plot parameters. When you finished, you can right-click on that same (or any other) item in the list and select 'Copy style..'. You can then select any other item in the list, right-click on it and select  'Apply style..'.  
+![](img/added.png) Made big progres in terms of copying/applying styles for plot elements. When you double-click on any element in the file list a new window will appear where you can individually adjust plot parameters. When you finished, you can right-click on that same (or any other) item in the list and select 'Copy style..'. You can then select any other item in the list, right-click on it and select  'Apply style..'.
 
-![](img/fixed.png) fixed sorting in the list (especilaly when using the 'Show selected' option) Lists are sorted using 'natural sorting' from now on, meaning they should be more logically sorted. 
+![](img/fixed.png) fixed sorting in the list (especilaly when using the 'Show selected' option) Lists are sorted using 'natural sorting' from now on, meaning they should be more logically sorted.
 
 ![](img/fixed.png) fixed the show/hide table elements when you right-click on the table headers
 

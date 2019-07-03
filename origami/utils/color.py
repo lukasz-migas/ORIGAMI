@@ -1,15 +1,20 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 from ast import literal_eval
-from utils.random import random_int_0_to_255
-import numpy as np
 
-__all__ = ["randomColorGenerator", "convertRGB255to1", "convertRGB1to255", "determineFontColor"]
+import numpy as np
+from utils.random import random_int_0_to_255
+
+__all__ = ['randomColorGenerator', 'convertRGB255to1', 'convertRGB1to255', 'determineFontColor']
 
 
 def randomColorGenerator(return_as_255=False):
 
-    color = (random_int_0_to_255(),
-             random_int_0_to_255(),
-             random_int_0_to_255())
+    color = (
+        random_int_0_to_255(),
+        random_int_0_to_255(),
+        random_int_0_to_255(),
+    )
 
     if return_as_255:
         return color
@@ -26,27 +31,35 @@ def convertRGB255to1(rgbList, decimals=3):
     except Exception:
         rgbList = rgbList
 
-    rgbList = list([round((np.float(rgbList[0]) / 255), decimals),
-                    round((np.float(rgbList[1]) / 255), decimals),
-                    round((np.float(rgbList[2]) / 255), decimals)])
+    rgbList = list([
+        round((np.float(rgbList[0]) / 255), decimals),
+        round((np.float(rgbList[1]) / 255), decimals),
+        round((np.float(rgbList[2]) / 255), decimals),
+    ])
     return rgbList
 
 
 def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
     if not as_integer:
-        rgbList = list([np.round((np.float(rgbList[0]) * 255), decimals),
-                        np.round((np.float(rgbList[1]) * 255), decimals),
-                        np.round((np.float(rgbList[2]) * 255), decimals)])
+        rgbList = list([
+            np.round((np.float(rgbList[0]) * 255), decimals),
+            np.round((np.float(rgbList[1]) * 255), decimals),
+            np.round((np.float(rgbList[2]) * 255), decimals),
+        ])
     else:
         try:
-            rgbList = list([int((np.float(rgbList[0]) * 255)),
-                            int((np.float(rgbList[1]) * 255)),
-                            int((np.float(rgbList[2]) * 255))])
+            rgbList = list([
+                int(np.float(rgbList[0]) * 255),
+                int(np.float(rgbList[1]) * 255),
+                int(np.float(rgbList[2]) * 255),
+            ])
         except ValueError:
             rgbList = literal_eval(rgbList)
-            rgbList = list([int((np.float(rgbList[0]) * 255)),
-                            int((np.float(rgbList[1]) * 255)),
-                            int((np.float(rgbList[2]) * 255))])
+            rgbList = list([
+                int(np.float(rgbList[0]) * 255),
+                int(np.float(rgbList[1]) * 255),
+                int(np.float(rgbList[2]) * 255),
+            ])
 
     if not as_tuple:
         return rgbList
@@ -56,16 +69,20 @@ def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
 
 def convertRGB1toHEX(rgbList):
 
-    return '#{:02x}{:02x}{:02x}'.format(int((np.float(rgbList[0]) * 255)),
-                                        int((np.float(rgbList[1]) * 255)),
-                                        int((np.float(rgbList[2]) * 255)))
+    return '#{:02x}{:02x}{:02x}'.format(
+        int(np.float(rgbList[0]) * 255),
+        int(np.float(rgbList[1]) * 255),
+        int(np.float(rgbList[2]) * 255),
+    )
 
 
 def convertRGB255toHEX(rgbList):
 
-    return '#{:02x}{:02x}{:02x}'.format(int((np.float(rgbList[0]))),
-                                        int((np.float(rgbList[1]))),
-                                        int((np.float(rgbList[2]))))
+    return '#{:02x}{:02x}{:02x}'.format(
+        int(np.float(rgbList[0])),
+        int(np.float(rgbList[1])),
+        int(np.float(rgbList[2])),
+    )
 
 
 def convertHEXtoRGB1(hex, decimals=3):
@@ -95,28 +112,34 @@ def determineFontColor(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):
         rgb = convertRGB1to255(rgb)
 
     if rgb_mode == 1:
-        a = 1 - (rgb[0] * 0.2126 +
-                 rgb[1] * 0.7152 +
-                 rgb[2] * 0.0722) / 255
+        a = 1 - (
+            rgb[0] * 0.2126 +
+            rgb[1] * 0.7152 +
+            rgb[2] * 0.0722
+        ) / 255
     elif rgb_mode == 2:
-        a = 1 - (rgb[0] * 0.299 +
-                 rgb[1] * 0.587 +
-                 rgb[2] * 0.114) / 255
+        a = 1 - (
+            rgb[0] * 0.299 +
+            rgb[1] * 0.587 +
+            rgb[2] * 0.114
+        ) / 255
 
     elif rgb_mode == 3:
-        a = 1 - (np.sqrt(rgb[0]) * 0.299 +
-                 np.sqrt(rgb[1]) * 0.587 +
-                 np.sqrt(rgb[2]) * 0.114) / 255
+        a = 1 - (
+            np.sqrt(rgb[0]) * 0.299 +
+            np.sqrt(rgb[1]) * 0.587 +
+            np.sqrt(rgb[2]) * 0.114
+        ) / 255
     if a < 0.5:
         if return_rgb:
             return (0, 0, 0)
         else:
-            return "black"
+            return 'black'
     else:
         if return_rgb:
             return (255, 255, 255)
         else:
-            return "white"
+            return 'white'
 
 
 def make_rgb(x, color):
@@ -177,11 +200,11 @@ def remap_values(x, nMin, nMax, oMin=None, oMax=None, type_format='int'):
 
     # range check
     if oMin == oMax:
-        print("Warning: Zero input range")
+        print('Warning: Zero input range')
         return None
 
     if nMin == nMax:
-        print("Warning: Zero input range")
+        print('Warning: Zero input range')
         return None
 
     # Check that values are of correct type
@@ -224,7 +247,9 @@ def combine_rgb(data_list):
 
 
 def roundRGB(rgbList, decimals=3):
-    rgbList = list([round(rgbList[0], decimals),
-                    round(rgbList[1], decimals),
-                    round(rgbList[2], decimals)])
+    rgbList = list([
+        round(rgbList[0], decimals),
+        round(rgbList[1], decimals),
+        round(rgbList[2], decimals),
+    ])
     return rgbList

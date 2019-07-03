@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import random
 import string
 
-__all__ = ["random_int_0_to_255", "randomIntegerGenerator", "randomStringGenerator"]
+__all__ = ['random_int_0_to_255', 'randomIntegerGenerator', 'randomStringGenerator']
 
 
 def random_int_0_to_255():

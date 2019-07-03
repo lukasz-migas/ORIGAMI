@@ -1,16 +1,14 @@
 """This module is the exact copy of the adjustText package available at:
-
 https://github.com/Phlya/adjustText
-
 """
-
 import sys
-from matplotlib import pyplot as plt
 from itertools import product
-import numpy as np
 from operator import itemgetter
-from matplotlib.path import get_path_collection_extents
+
 import matplotlib
+import numpy as np
+from matplotlib import pyplot as plt
+from matplotlib.path import get_path_collection_extents
 
 if sys.version_info >= (3, 0):
     xrange = range
@@ -51,7 +49,8 @@ def get_bboxes_pathcollection(sc, ax):
         for p, o, t in zip(paths, offsets, transforms):
             result = get_path_collection_extents(
                 transform.frozen(), [p], [t],
-                [o], transOffset.frozen())
+                [o], transOffset.frozen(),
+            )
             bboxes.append(result.inverse_transformed(ax.transData))
 
     return bboxes
@@ -60,8 +59,10 @@ def get_bboxes_pathcollection(sc, ax):
 def get_text_position(text, ax=None):
     ax = ax or plt.gca()
     x, y = text.get_position()
-    return (ax.xaxis.convert_units(x),
-            ax.yaxis.convert_units(y))
+    return (
+        ax.xaxis.convert_units(x),
+        ax.yaxis.convert_units(y),
+    )
 
 
 def get_bboxes(objs, r, expand, ax):
@@ -70,8 +71,12 @@ def get_bboxes(objs, r, expand, ax):
     if all([isinstance(obj, matplotlib.transforms.BboxBase) for obj in objs]):
         return objs
     try:
-        return [i.get_window_extent(r).expanded(*expand).transformed(ax.
-                                                                     transData.inverted()) for i in objs]
+        return [
+            i.get_window_extent(r).expanded(*expand).transformed(
+                ax.
+                transData.inverted(),
+            ) for i in objs
+        ]
     except TypeError:
         return get_bboxes_pathcollection(objs, ax)
 
@@ -150,9 +155,11 @@ def move_texts(texts, delta_x, delta_y, bboxes=None, renderer=None, ax=None):
         text.set_position((newx, newy))
 
 
-def optimally_align_text(x, y, texts, expand=(1., 1.), add_bboxes=[],
-                         renderer=None, ax=None,
-                         direction='xy'):
+def optimally_align_text(
+    x, y, texts, expand=(1., 1.), add_bboxes=[],
+    renderer=None, ax=None,
+    direction='xy',
+):
     """
     For all text objects find alignment that causes the least overlap with
     points and other texts and apply it
@@ -189,10 +196,14 @@ def optimally_align_text(x, y, texts, expand=(1., 1.), add_bboxes=[],
             bbox = text.get_window_extent(r).expanded(*expand).\
                 transformed(ax.transData.inverted())
             c = len(get_points_inside_bbox(x, y, bbox))
-            intersections = [bbox.intersection(bbox, bbox2) if i != j else None
-                             for j, bbox2 in enumerate(bboxes + add_bboxes)]
-            intersections = sum([abs(b.width * b.height) if b is not None else 0
-                                 for b in intersections])
+            intersections = [
+                bbox.intersection(bbox, bbox2) if i != j else None
+                for j, bbox2 in enumerate(bboxes + add_bboxes)
+            ]
+            intersections = sum([
+                abs(b.width * b.height) if b is not None else 0
+                for b in intersections
+            ])
             # Check for out-of-axes position
             bbox = text.get_window_extent(r).transformed(ax.transData.inverted())
             x1, y1, x2, y2 = bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax
@@ -206,7 +217,7 @@ def optimally_align_text(x, y, texts, expand=(1., 1.), add_bboxes=[],
         # contained inside the text.
         # Break any remaining ties by minimizing the total area of intersections
         # with all text bboxes and other objects to avoid.
-        a, value = min(enumerate(counts), key=itemgetter(1))
+        a, _ = min(enumerate(counts), key=itemgetter(1))
         if 'x' in direction:
             text.set_ha(alignment[a][0])
         if 'y' in direction:
@@ -216,8 +227,10 @@ def optimally_align_text(x, y, texts, expand=(1., 1.), add_bboxes=[],
     return texts
 
 
-def repel_text(texts, renderer=None, ax=None, expand=(1.2, 1.2),
-               only_use_max_min=False, move=False):
+def repel_text(
+    texts, renderer=None, ax=None, expand=(1.2, 1.2),
+    move=False,
+):
     """
     Repel texts from each other while expanding their bounding boxes by expand
     (x, y), e.g. (1.2, 1.2) would multiply width and height by 1.2.
@@ -242,8 +255,10 @@ def repel_text(texts, renderer=None, ax=None, expand=(1.2, 1.2),
     overlap_directions_x = np.zeros_like(overlaps_x)
     overlap_directions_y = np.zeros_like(overlaps_y)
     for i, bbox1 in enumerate(bboxes):
-        overlaps = get_points_inside_bbox(xmins * 2 + xmaxs * 2, (ymins + ymaxs) * 2,
-                                          bbox1) % len(bboxes)
+        overlaps = get_points_inside_bbox(
+            xmins * 2 + xmaxs * 2, (ymins + ymaxs) * 2,
+            bbox1,
+        ) % len(bboxes)
         overlaps = np.unique(overlaps)
         for j in overlaps:
             bbox2 = bboxes[j]
@@ -266,9 +281,11 @@ def repel_text(texts, renderer=None, ax=None, expand=(1.2, 1.2),
     return delta_x, delta_y, q
 
 
-def repel_text_from_bboxes(add_bboxes, texts, renderer=None, ax=None,
-                           expand=(1.2, 1.2), only_use_max_min=False,
-                           move=False):
+def repel_text_from_bboxes(
+    add_bboxes, texts, renderer=None, ax=None,
+    expand=(1.2, 1.2), only_use_max_min=False,
+    move=False,
+):
     """
     Repel texts from other objects' bboxes while expanding their (texts')
     bounding boxes by expand (x, y), e.g. (1.2, 1.2) would multiply width and
@@ -315,8 +332,10 @@ def repel_text_from_bboxes(add_bboxes, texts, renderer=None, ax=None,
     return delta_x, delta_y, q
 
 
-def repel_text_from_points(x, y, texts, renderer=None, ax=None,
-                           expand=(1.2, 1.2), move=False):
+def repel_text_from_points(
+    x, y, texts, renderer=None, ax=None,
+    expand=(1.2, 1.2), move=False,
+):
     """
     Repel texts from all points specified by x and y while expanding their
     (texts'!) bounding boxes by expandby  (x, y), e.g. (1.2, 1.2)
@@ -354,8 +373,10 @@ def repel_text_from_points(x, y, texts, renderer=None, ax=None,
     return delta_x, delta_y, q
 
 
-def repel_text_from_axes(texts, ax=None, bboxes=None, renderer=None,
-                         expand=None):
+def repel_text_from_axes(
+    texts, ax=None, bboxes=None, renderer=None,
+    expand=None,
+):
     if ax is None:
         ax = plt.gca()
     if renderer is None:
@@ -399,18 +420,20 @@ def float_to_tuple(a):
         return b
 
 
-def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
-                expand_text=(1.05, 1.2), expand_points=(1.05, 1.2),
-                expand_objects=(1.05, 1.2), expand_align=(1.05, 1.2),
-                autoalign='xy', va='center', ha='center',
-                force_text=(0.1, 0.25), force_points=(0.2, 0.5),
-                force_objects=(0.1, 0.25),
-                lim=500, precision=0.01,
-                only_move={'points': 'xy', 'text': 'xy', 'objects': 'xy'},
-                avoid_text=True, avoid_points=True, avoid_self=True,
-                save_steps=False, save_prefix='', save_format='png',
-                add_step_numbers=True, on_basemap=False,
-                *args, **kwargs):
+def adjust_text(
+    texts, x=None, y=None, add_objects=None, ax=None,
+    expand_text=(1.05, 1.2), expand_points=(1.05, 1.2),
+    expand_objects=(1.05, 1.2), expand_align=(1.05, 1.2),
+    autoalign='xy', va='center', ha='center',
+    force_text=(0.1, 0.25), force_points=(0.2, 0.5),
+    force_objects=(0.1, 0.25),
+    lim=500, precision=0.01,
+    only_move={'points': 'xy', 'text': 'xy', 'objects': 'xy'},
+    avoid_text=True, avoid_points=True, avoid_self=True,
+    save_steps=False, save_prefix='', save_format='png',
+    add_step_numbers=True, on_basemap=False,
+    *args, **kwargs
+):
     """Iteratively adjusts the locations of texts.
 
     Call adjust_text the very last, after all plotting (especially
@@ -571,8 +594,12 @@ def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
     if save_steps:
         if add_step_numbers:
             plt.title('Before')
-        plt.savefig('%s%s.%s' % (save_prefix,
-                                 '000a', save_format), format=save_format, dpi=150)
+        plt.savefig(
+            '{}{}.{}'.format(
+                save_prefix,
+                '000a', save_format,
+            ), format=save_format, dpi=150,
+        )
     elif on_basemap:
         ax.draw(r)
 
@@ -580,16 +607,22 @@ def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
         if autoalign is True:
             autoalign = 'xy'
         for i in range(2):
-            texts = optimally_align_text(x, y, texts, expand=expand_align,
-                                         add_bboxes=add_bboxes,
-                                         direction=autoalign, renderer=r,
-                                         ax=ax)
+            texts = optimally_align_text(
+                x, y, texts, expand=expand_align,
+                add_bboxes=add_bboxes,
+                direction=autoalign, renderer=r,
+                ax=ax,
+            )
 
     if save_steps:
         if add_step_numbers:
             plt.title('Autoaligned')
-        plt.savefig('%s%s.%s' % (save_prefix,
-                                 '000b', save_format), format=save_format, dpi=150)
+        plt.savefig(
+            '{}{}.{}'.format(
+                save_prefix,
+                '000b', save_format,
+            ), format=save_format, dpi=150,
+        )
     elif on_basemap:
         ax.draw(r)
 
@@ -599,23 +632,29 @@ def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
         #        q1, q2 = [np.inf, np.inf], [np.inf, np.inf]
 
         if avoid_text:
-            d_x_text, d_y_text, q1 = repel_text(texts, renderer=r, ax=ax,
-                                                expand=expand_text)
+            d_x_text, d_y_text, q1 = repel_text(
+                texts, renderer=r, ax=ax,
+                expand=expand_text,
+            )
         else:
             d_x_text, d_y_text, q1 = [0] * len(texts), [0] * len(texts), (0, 0)
 
         if avoid_points:
-            d_x_points, d_y_points, q2 = repel_text_from_points(x, y, texts,
-                                                                ax=ax, renderer=r,
-                                                                expand=expand_points)
+            d_x_points, d_y_points, q2 = repel_text_from_points(
+                x, y, texts,
+                ax=ax, renderer=r,
+                expand=expand_points,
+            )
         else:
             d_x_points, d_y_points, q2 = [0] * len(texts), [0] * len(texts), (0, 0)
 
         if text_from_objects:
-            d_x_objects, d_y_objects, q3 = repel_text_from_bboxes(add_bboxes,
-                                                                  texts,
-                                                                  ax=ax, renderer=r,
-                                                                  expand=expand_objects)
+            d_x_objects, d_y_objects, q3 = repel_text_from_bboxes(
+                add_bboxes,
+                texts,
+                ax=ax, renderer=r,
+                expand=expand_objects,
+            )
         else:
             d_x_objects, d_y_objects, q3 = [0] * len(texts), [0] * len(texts), (0, 0)
 
@@ -636,25 +675,35 @@ def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
                 if 'y' not in only_move['objects']:
                     d_y_objects = np.zeros_like(d_y_objects)
 
-        dx = (np.array(d_x_text) * force_text[0] +
-              np.array(d_x_points) * force_points[0] +
-              np.array(d_x_objects) * force_objects[0])
-        dy = (np.array(d_y_text) * force_text[1] +
-              np.array(d_y_points) * force_points[1] +
-              np.array(d_y_objects) * force_objects[1])
+        dx = (
+            np.array(d_x_text) * force_text[0] +
+            np.array(d_x_points) * force_points[0] +
+            np.array(d_x_objects) * force_objects[0]
+        )
+        dy = (
+            np.array(d_y_text) * force_text[1] +
+            np.array(d_y_points) * force_points[1] +
+            np.array(d_y_objects) * force_objects[1]
+        )
         qx = np.sum([q[0] for q in [q1, q2, q3]])
         qy = np.sum([q[1] for q in [q1, q2, q3]])
         histm = np.max(np.array(history), axis=0)
         history.pop(0)
         history.append((qx, qy))
-        move_texts(texts, dx, dy,
-                   bboxes=get_bboxes(texts, r, (1, 1), ax), ax=ax)
+        move_texts(
+            texts, dx, dy,
+            bboxes=get_bboxes(texts, r, (1, 1), ax), ax=ax,
+        )
         if save_steps:
             if add_step_numbers:
                 plt.title(i + 1)
-            plt.savefig('%s%s.%s' % (save_prefix,
-                                     '{0:03}'.format(i + 1), save_format),
-                        format=save_format, dpi=150)
+            plt.savefig(
+                '{}{}.{}'.format(
+                    save_prefix,
+                    '{:03}'.format(i + 1), save_format,
+                ),
+                format=save_format, dpi=150,
+            )
         elif on_basemap:
             ax.draw(r)
         # Stop if we've reached the precision threshold, or if the x and y displacement
@@ -669,18 +718,24 @@ def adjust_text(texts, x=None, y=None, add_objects=None, ax=None,
         for j, (bbox, text) in enumerate(zip(bboxes, texts)):
             ap = {'patchA': text}  # Ensure arrow is clipped by the text
             ap.update(kwap)  # Add arrowprops from kwargs
-            ax.annotate("",  # Add an arrow from the text to the point
-                        xy=(orig_xy[j]),
-                        xytext=get_midpoint(bbox),
-                        arrowprops=ap,
-                        *args, **kwargs)
+            ax.annotate(
+                '',  # Add an arrow from the text to the point
+                xy=(orig_xy[j]),
+                xytext=get_midpoint(bbox),
+                arrowprops=ap,
+                *args, **kwargs
+            )
 
     if save_steps:
         if add_step_numbers:
             plt.title(i + 1)
-            plt.savefig('%s%s.%s' % (save_prefix,
-                                     '{0:03}'.format(i + 1), save_format),
-                        format=save_format, dpi=150)
+            plt.savefig(
+                '{}{}.{}'.format(
+                    save_prefix,
+                    '{:03}'.format(i + 1), save_format,
+                ),
+                format=save_format, dpi=150,
+            )
     elif on_basemap:
         ax.draw(r)
 

@@ -1,10 +1,12 @@
-import wx
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
+import logging
 import os
 import threading
-import numpy as np
 
-import logging
-logger = logging.getLogger("origami")
+import numpy as np
+import wx
+logger = logging.getLogger('origami')
 
 
 class data_visualisation():

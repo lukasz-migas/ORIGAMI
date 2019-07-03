@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 from collections import OrderedDict
 
 
@@ -9,7 +11,7 @@ class document():
     def __init__(self):
 
         # File info
-        self.docVersion = "19-10-2018"  # to keep track of new features: add as date: DD-MM-YYYY
+        self.docVersion = '19-10-2018'  # to keep track of new features: add as date: DD-MM-YYYY
 
         self.last_saved = None  # added in 19-10-2018 / v1.2.1
         self.title = ''

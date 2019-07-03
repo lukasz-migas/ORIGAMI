@@ -1,24 +1,7 @@
 # -*- coding: utf-8 -*-
-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-#      GitHub : https://github.com/lukasz-migas/ORIGAMI
-#      University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#      Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
-from utils.multiplierz_lite.mzAPI import raw
 import numpy as np
+from utils.multiplierz_lite.mzAPI import raw
 from utils.path import clean_filename
 
 
@@ -43,15 +26,17 @@ class thermoRAWreader():
             ms_level = info[0].upper() if info[0].upper() != 'MS' else 'MS1'
             time = self.source.source.time_from_scan(scan)
             ms_format = 'p' if info[2] == 'Profile' else 'c'
-            scan_info[scan] = {'time': time,
-                               'precursor_mz': info[1],
-                               'ms_level': ms_level,
-                               'format': ms_format,
-                               'filter': self.filters[scan - 1]}
+            scan_info[scan] = {
+                'time': time,
+                'precursor_mz': info[1],
+                'ms_level': ms_level,
+                'format': ms_format,
+                'filter': self.filters[scan - 1],
+            }
 
         return scan_info
 
-    def get_average_spectrum(self, title="Full ms ", return_xy=True):
+    def get_average_spectrum(self, title='Full ms ', return_xy=True):
         spectrum = np.array(self.source.average_scan(0, 99999, title))
 
         if return_xy:
@@ -64,7 +49,7 @@ class thermoRAWreader():
         unique_filters = set(self.filters)
         data = {}
         for title in unique_filters:
-            if title not in ["None", None]:
+            if title not in ['None', None]:
                 msX, msY = self.get_average_spectrum(title)
                 xlimits = [np.min(msX), np.max(msX)]
                 data[clean_filename(title)] = {
@@ -72,7 +57,8 @@ class thermoRAWreader():
                     'yvals': msY,
                     'xlabels': 'm/z (Da)',
                     'xlimits': xlimits,
-                    'filter': title}
+                    'filter': title,
+                }
         return data
 
     def get_chromatogram_for_each_filter(self):
@@ -80,7 +66,7 @@ class thermoRAWreader():
         unique_filters = set(self.filters)
         data = {}
         for title in unique_filters:
-            if title not in ["None", None]:
+            if title not in ['None', None]:
                 rtX, rtY = self.get_xic(title=title)
                 xlimits = [np.min(rtX), np.max(rtY)]
                 data[clean_filename(title)] = {
@@ -88,7 +74,8 @@ class thermoRAWreader():
                     'yvals': rtY,
                     'xlabels': 'Time (min)',
                     'xlimits': xlimits,
-                    'filter': title}
+                    'filter': title,
+                }
         return data
 
     def get_spectrum(self):

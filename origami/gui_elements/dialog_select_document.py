@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import wx
 from ids import ID_addNewOverlayDoc
 from styles import Dialog
@@ -9,12 +11,12 @@ class DialogSelectDocument(Dialog):
     """
 
     def __init__(self, parent, **kwargs):
-        wx.Dialog.__init__(self, parent, title="Select document...", size=(400, 300))
+        wx.Dialog.__init__(self, parent, title='Select document...', size=(400, 300))
 
         self.parent = parent
-        self.presenter = kwargs["presenter"]
-        self.documentList = kwargs["document_list"]
-        self.allow_new_document = kwargs.get("allow_new_document", True)
+        self.presenter = kwargs['presenter']
+        self.documentList = kwargs['document_list']
+        self.allow_new_document = kwargs.get('allow_new_document', True)
         self.current_document = None
 
         # make gui items
@@ -55,13 +57,13 @@ class DialogSelectDocument(Dialog):
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        documentList_label = wx.StaticText(panel, -1, "Choose document:")
+        documentList_label = wx.StaticText(panel, -1, 'Choose document:')
         self.document_list_choice = wx.Choice(panel, -1, choices=self.documentList, size=(300, -1))
         self.document_list_choice.Select(0)
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
-        self.add_btn = wx.Button(panel, ID_addNewOverlayDoc, "Add new document", size=(-1, 22))
-        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, 'Select', size=(-1, 22))
+        self.add_btn = wx.Button(panel, ID_addNewOverlayDoc, 'Add new document', size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, -1, 'Cancel', size=(-1, 22))
 
         # In some cases, we don't want to be able to create new document!
         if not self.allow_new_document:

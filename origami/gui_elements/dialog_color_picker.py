@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import wx
-from utils.color import convertRGB255to1, determineFontColor
+from utils.color import convertRGB255to1
+from utils.color import determineFontColor
 
 
 class DialogColorPicker(wx.ColourDialog):
@@ -18,7 +21,7 @@ class DialogColorPicker(wx.ColourDialog):
         """ Simplified ShowModal(), returning strings 'ok' or 'cancel'. """
         result = wx.ColourDialog.ShowModal(self)
 
-        return_value = "cancel"
+        return_value = 'cancel'
         if result == wx.ID_OK:
             return_value = 'ok'
 

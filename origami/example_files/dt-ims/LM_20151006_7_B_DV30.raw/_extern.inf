@@ -1,11 +1,11 @@
 Parameters for C:\MassLynx\Qtof\tuneexp.exp
- 
+
 Temperature Correction Is Disabled
 TDC Gain Control	0.0
 TDC Amp Edge Control	0.0
 Using 4 GHz TDC	YES
 Using TTP 4 GHz TDC	YES
- 
+
 Instrument Parameters - Function 1:
 Polarity	ES+
 Calibration	Dynamic 2
@@ -49,8 +49,8 @@ TDC Threshold	0.0000
 Pirani Pressure(mbar)	3.22e0
 Penning Pressure(mbar)	5.52e-3
 Tof Penning Pressure(mbar)	2.39e-7
- 
- 
+
+
 Function Parameters - Function 1 - TOF MS FUNCTION
 Start Mass				2500.0
 End Mass				5500.0
@@ -65,4 +65,3 @@ Scan Time (sec)				25.0
 Interscan Time (sec)			5.0
 Use Tune Page Cone Voltage		YES
 Cone Voltage (V)			35.0
- 

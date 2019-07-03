@@ -1,13 +1,12 @@
 import os
+import platform
+
+import matplotlib.cm as cm
 import numpy as np
 import unidec_modules.unidectools as ud
-import platform
-import matplotlib.cm as cm
 from matplotlib.pyplot import colormaps
-# import h5py
-# from hdf5_tools import *
 
-__author__ = 'Michael.Marty'
+__author__ = 'michael.marty'
 
 # noinspection PyAttributeOutsideInit
 
@@ -23,15 +22,15 @@ class UniDecConfig(object):
         Initialize Everything. Set default paths and run self.initialize
         :return: UniDecConfig object
         """
-        self.infname = "input.dat"
-        self.outfname = "output"
-        self.mfile = "mass.dat"
-        self.manualfile = "man.dat"
-        self.confname = "conf.dat"
-        self.hdf_file = "default.hdf5"
-        self.ofile = "ofile.dat"
-        self.matchfile = "match.csv"
-        self.peaksfile = "peaks.dat"
+        self.infname = 'input.dat'
+        self.outfname = 'output'
+        self.mfile = 'mass.dat'
+        self.manualfile = 'man.dat'
+        self.confname = 'conf.dat'
+        self.hdf_file = 'default.hdf5'
+        self.ofile = 'ofile.dat'
+        self.matchfile = 'match.csv'
+        self.peaksfile = 'peaks.dat'
         self.dirname = ''
         self.udir = ''
         self.filename = ''
@@ -40,9 +39,9 @@ class UniDecConfig(object):
         self.metamode = -2
         self.filetype = 0
 
-        self.twavedict = {1: "Logarithmic", 2: "Linear", 3: "Power Law"}
+        self.twavedict = {1: 'Logarithmic', 2: 'Linear', 3: 'Power Law'}
         # , "Subtract Gaussian"]  # , "Subtract SavGol","Subtract Polynomial"]
-        self.backgroundchoices = ["Subtract Minimum", "Subtract Line", "Subtract Curved"]
+        self.backgroundchoices = ['Subtract Minimum', 'Subtract Line', 'Subtract Curved']
         self.figsize = (6, 5)
         self.initialize()
 
@@ -54,14 +53,14 @@ class UniDecConfig(object):
         # plotting
         self.publicationmode = 0
         self.discreteplot = 0
-        self.cmap = "nipy_spectral"
-        self.peakcmap = "rainbow"
+        self.cmap = 'nipy_spectral'
+        self.peakcmap = 'rainbow'
         self.rawflag = 0
 
         # data prep
         self.minmz = ''
         self.maxmz = ''
-        self.intscale = "Linear"
+        self.intscale = 'Linear'
 
         # Results
         self.error = 0
@@ -142,8 +141,8 @@ class UniDecConfig(object):
         self.nativezlb = -100
         self.inflate = 1
         self.linflag = 0
-        self.integratelb = ""
-        self.integrateub = ""
+        self.integratelb = ''
+        self.integrateub = ''
         self.filterwidth = 20
         self.zerolog = -12
 
@@ -195,99 +194,99 @@ class UniDecConfig(object):
         """
         self.numz = self.endz - self.startz + 1
         f = open(name, 'w')
-        f.write("imflag " + str(self.imflag) + "\n")
-        f.write("input " + str(self.infname) + "\n")
-        f.write("output " + str(self.outfname) + "\n")
-        f.write("numit " + str(self.numit) + "\n")
-        f.write("numz " + str(self.numz) + "\n")
-        f.write("startz " + str(self.startz) + "\n")
-        f.write("endz " + str(self.endz) + "\n")
-        f.write("psfun " + str(self.psfun) + "\n")
-        f.write("zzsig " + str(self.zzsig) + "\n")
-        f.write("mzsig " + str(self.mzsig) + "\n")
-        f.write("discreteplot " + str(self.discreteplot) + "\n")
-        f.write("masslb " + str(self.masslb) + "\n")
-        f.write("massub " + str(self.massub) + "\n")
-        f.write("massbins " + str(self.massbins) + "\n")
-        f.write("msig " + str(self.msig) + "\n")
-        f.write("molig " + str(self.molig) + "\n")
-        f.write("mtabsig " + str(self.mtabsig) + "\n")
+        f.write('imflag ' + str(self.imflag) + '\n')
+        f.write('input ' + str(self.infname) + '\n')
+        f.write('output ' + str(self.outfname) + '\n')
+        f.write('numit ' + str(self.numit) + '\n')
+        f.write('numz ' + str(self.numz) + '\n')
+        f.write('startz ' + str(self.startz) + '\n')
+        f.write('endz ' + str(self.endz) + '\n')
+        f.write('psfun ' + str(self.psfun) + '\n')
+        f.write('zzsig ' + str(self.zzsig) + '\n')
+        f.write('mzsig ' + str(self.mzsig) + '\n')
+        f.write('discreteplot ' + str(self.discreteplot) + '\n')
+        f.write('masslb ' + str(self.masslb) + '\n')
+        f.write('massub ' + str(self.massub) + '\n')
+        f.write('massbins ' + str(self.massbins) + '\n')
+        f.write('msig ' + str(self.msig) + '\n')
+        f.write('molig ' + str(self.molig) + '\n')
+        f.write('mtabsig ' + str(self.mtabsig) + '\n')
         if self.mfileflag:
             if not ud.isempty(self.masslist):
-                f.write("mfile " + str(self.mfile) + "\n")
+                f.write('mfile ' + str(self.mfile) + '\n')
             else:
-                print("Need to specify mass list. Running without mass list.")
+                print('Need to specify mass list. Running without mass list.')
         if self.manualfileflag:
             if not ud.isempty(self.manuallist):
-                f.write("manualfile " + str(self.manualfile) + "\n")
+                f.write('manualfile ' + str(self.manualfile) + '\n')
             else:
-                print("Need to specify manual assignments. Running without assignments.")
-        f.write("minmz " + str(self.minmz) + "\n")
-        f.write("maxmz " + str(self.maxmz) + "\n")
-        f.write("mzbins " + str(self.mzbins) + "\n")
-        f.write("subbuff " + str(self.subbuff) + "\n")
-        f.write("subtype " + str(self.subtype) + "\n")
-        f.write("smooth " + str(self.smooth) + "\n")
-        f.write("peakwindow " + str(self.peakwindow) + "\n")
-        f.write("peakthresh " + str(self.peakthresh) + "\n")
-        f.write("peaknorm " + str(self.peaknorm) + "\n")
-        f.write("peakplotthresh " + str(self.peakplotthresh) + "\n")
-        f.write("plotsep " + str(self.separation) + "\n")
-        f.write("intthresh " + str(self.intthresh) + "\n")
-        f.write("aggressive " + str(self.aggressiveflag) + "\n")
-        f.write("rawflag " + str(self.rawflag) + "\n")
-        f.write("adductmass " + str(self.adductmass) + "\n")
-        f.write("nativezub " + str(self.nativezub) + "\n")
-        f.write("nativezlb " + str(self.nativezlb) + "\n")
-        f.write("poolflag " + str(self.poolflag) + "\n")
-        f.write("accvol " + str(self.detectoreffva) + "\n")
-        f.write("peakshapeinflate " + str(self.inflate) + "\n")
-        f.write("noiseflag " + str(self.noiseflag) + "\n")
-        f.write("linflag " + str(self.linflag) + "\n")
-        f.write("cmap " + str(self.cmap) + "\n")
-        f.write("peakcmap " + str(self.peakcmap) + "\n")
-        f.write("publicationmode " + str(self.publicationmode) + "\n")
-        f.write("isotopemode " + str(self.isotopemode) + "\n")
-        f.write("baselineflag " + str(self.baselineflag) + "\n")
-        f.write("orbimode " + str(self.orbimode) + "\n")
-        if self.integratelb != "" and self.integrateub != "":
+                print('Need to specify manual assignments. Running without assignments.')
+        f.write('minmz ' + str(self.minmz) + '\n')
+        f.write('maxmz ' + str(self.maxmz) + '\n')
+        f.write('mzbins ' + str(self.mzbins) + '\n')
+        f.write('subbuff ' + str(self.subbuff) + '\n')
+        f.write('subtype ' + str(self.subtype) + '\n')
+        f.write('smooth ' + str(self.smooth) + '\n')
+        f.write('peakwindow ' + str(self.peakwindow) + '\n')
+        f.write('peakthresh ' + str(self.peakthresh) + '\n')
+        f.write('peaknorm ' + str(self.peaknorm) + '\n')
+        f.write('peakplotthresh ' + str(self.peakplotthresh) + '\n')
+        f.write('plotsep ' + str(self.separation) + '\n')
+        f.write('intthresh ' + str(self.intthresh) + '\n')
+        f.write('aggressive ' + str(self.aggressiveflag) + '\n')
+        f.write('rawflag ' + str(self.rawflag) + '\n')
+        f.write('adductmass ' + str(self.adductmass) + '\n')
+        f.write('nativezub ' + str(self.nativezub) + '\n')
+        f.write('nativezlb ' + str(self.nativezlb) + '\n')
+        f.write('poolflag ' + str(self.poolflag) + '\n')
+        f.write('accvol ' + str(self.detectoreffva) + '\n')
+        f.write('peakshapeinflate ' + str(self.inflate) + '\n')
+        f.write('noiseflag ' + str(self.noiseflag) + '\n')
+        f.write('linflag ' + str(self.linflag) + '\n')
+        f.write('cmap ' + str(self.cmap) + '\n')
+        f.write('peakcmap ' + str(self.peakcmap) + '\n')
+        f.write('publicationmode ' + str(self.publicationmode) + '\n')
+        f.write('isotopemode ' + str(self.isotopemode) + '\n')
+        f.write('baselineflag ' + str(self.baselineflag) + '\n')
+        f.write('orbimode ' + str(self.orbimode) + '\n')
+        if self.integratelb != '' and self.integrateub != '':
             try:
-                f.write("integratelb " + str(self.integratelb) + "\n")
-                f.write("integrateub " + str(self.integrateub) + "\n")
+                f.write('integratelb ' + str(self.integratelb) + '\n')
+                f.write('integrateub ' + str(self.integrateub) + '\n')
             except ValueError:
-                print("Failed to write integation areas:", self.integratelb, self.integrateub)
+                print('Failed to write integation areas:', self.integratelb, self.integrateub)
                 pass
-        f.write("filterwidth " + str(self.filterwidth) + "\n")
-        f.write("zerolog " + str(self.zerolog) + "\n")
+        f.write('filterwidth ' + str(self.filterwidth) + '\n')
+        f.write('zerolog ' + str(self.zerolog) + '\n')
 
         if self.mindt != '' or self.maxdt != '':
-            f.write("zout " + str(self.zout) + "\n")
-            f.write("pusher " + str(self.pusher) + "\n")
-            f.write("mindt " + str(self.mindt) + "\n")
-            f.write("maxdt " + str(self.maxdt) + "\n")
-            f.write("ccsub " + str(self.ccsub) + "\n")
-            f.write("ccslb " + str(self.ccslb) + "\n")
-            f.write("dtsig " + str(self.dtsig) + "\n")
-            f.write("csig " + str(self.csig) + "\n")
-            f.write("ccsbins " + str(self.ccsbins) + "\n")
-            f.write("subbufdt " + str(self.subbufdt) + "\n")
-            f.write("smoothdt " + str(self.smoothdt) + "\n")
-            f.write("ubnativeccs " + str(self.nativeccsub) + "\n")
-            f.write("lbnativeccs " + str(self.nativeccslb) + "\n")
-            f.write("twaveflag " + str(self.twaveflag) + "\n")
+            f.write('zout ' + str(self.zout) + '\n')
+            f.write('pusher ' + str(self.pusher) + '\n')
+            f.write('mindt ' + str(self.mindt) + '\n')
+            f.write('maxdt ' + str(self.maxdt) + '\n')
+            f.write('ccsub ' + str(self.ccsub) + '\n')
+            f.write('ccslb ' + str(self.ccslb) + '\n')
+            f.write('dtsig ' + str(self.dtsig) + '\n')
+            f.write('csig ' + str(self.csig) + '\n')
+            f.write('ccsbins ' + str(self.ccsbins) + '\n')
+            f.write('subbufdt ' + str(self.subbufdt) + '\n')
+            f.write('smoothdt ' + str(self.smoothdt) + '\n')
+            f.write('ubnativeccs ' + str(self.nativeccsub) + '\n')
+            f.write('lbnativeccs ' + str(self.nativeccslb) + '\n')
+            f.write('twaveflag ' + str(self.twaveflag) + '\n')
             if self.twaveflag == 0:  # and (self.pressure!=0 or self.temp!=0 or self.volt!=0 or self.to!=0):
-                f.write("temp " + str(self.temp) + "\n")
-                f.write("pressure " + str(self.pressure) + "\n")
-                f.write("volt " + str(self.volt) + "\n")
-                f.write("gasmass " + str(self.gasmass) + "\n")
-                f.write("tnaught " + str(self.to) + "\n")
-                f.write("driftlength " + str(self.driftlength) + "\n")
+                f.write('temp ' + str(self.temp) + '\n')
+                f.write('pressure ' + str(self.pressure) + '\n')
+                f.write('volt ' + str(self.volt) + '\n')
+                f.write('gasmass ' + str(self.gasmass) + '\n')
+                f.write('tnaught ' + str(self.to) + '\n')
+                f.write('driftlength ' + str(self.driftlength) + '\n')
 
             if self.twaveflag > 0:  # and (self.tcal1!=0 or self.tcal2!=0 or self.edc!=0):
-                f.write("tcal1 " + str(self.tcal1) + "\n")
-                f.write("tcal2 " + str(self.tcal2) + "\n")
-                f.write("edc " + str(self.edc) + "\n")
-                f.write("gasmass " + str(self.gasmass) + "\n")
+                f.write('tcal1 ' + str(self.tcal1) + '\n')
+                f.write('tcal2 ' + str(self.tcal2) + '\n')
+                f.write('edc ' + str(self.edc) + '\n')
+                f.write('gasmass ' + str(self.gasmass) + '\n')
 
         f.close()
         if not ud.isempty(self.masslist):
@@ -298,13 +297,13 @@ class UniDecConfig(object):
                 if self.manuallist.shape[1] == 3:
                     ud.dataexport(self.manuallist, self.manualfile)
                 else:
-                    print("Manual List Shape is wrong. Try using manual list tool again.")
+                    print('Manual List Shape is wrong. Try using manual list tool again.')
                     print(self.manuallist.shape)
             else:
                 if self.manuallist.shape[1] == 5:
                     ud.dataexport(self.manuallist, self.manualfile)
                 else:
-                    print("Manual List Shape is wrong. Try using manual list tool again.")
+                    print('Manual List Shape is wrong. Try using manual list tool again.')
                     print(self.manuallist.shape)
         if not ud.isempty(self.oligomerlist):
             np.savetxt(self.ofile, self.oligomerlist, fmt='%s')
@@ -321,13 +320,13 @@ class UniDecConfig(object):
             self.mfileflag = 0
             for line in f:
                 if len(line.split()) > 1:
-                    if line.startswith("minmz"):
+                    if line.startswith('minmz'):
                         self.minmz = ud.string_to_value(line.split()[1])
-                    if line.startswith("maxmz"):
+                    if line.startswith('maxmz'):
                         self.maxmz = ud.string_to_value(line.split()[1])
-                    if line.startswith("mindt"):
+                    if line.startswith('mindt'):
                         self.mindt = ud.string_to_value(line.split()[1])
-                    if line.startswith("maxdt"):
+                    if line.startswith('maxdt'):
                         self.maxdt = ud.string_to_value(line.split()[1])
                     if self.batchflag == 0:
                         '''
@@ -336,146 +335,146 @@ class UniDecConfig(object):
                         if (line.startswith("output")):
                             self.outfname = line.split()[1]
                         '''
-                        if line.startswith("numit"):
+                        if line.startswith('numit'):
                             self.numit = ud.string_to_int(line.split()[1])
-                        if line.startswith("numz"):
+                        if line.startswith('numz'):
                             self.numz = ud.string_to_int(line.split()[1])
-                        if line.startswith("endz"):
+                        if line.startswith('endz'):
                             self.endz = ud.string_to_int(line.split()[1])
-                        if line.startswith("startz"):
+                        if line.startswith('startz'):
                             self.startz = ud.string_to_int(line.split()[1])
-                        if line.startswith("zzsig"):
+                        if line.startswith('zzsig'):
                             self.zzsig = ud.string_to_value(line.split()[1])
-                        if line.startswith("mzsig"):
+                        if line.startswith('mzsig'):
                             self.mzsig = ud.string_to_value(line.split()[1])
-                        if line.startswith("psfun"):
+                        if line.startswith('psfun'):
                             self.psfun = ud.string_to_int(line.split()[1])
-                        if line.startswith("discreteplot"):
+                        if line.startswith('discreteplot'):
                             self.discreteplot = ud.string_to_int(line.split()[1])
-                        if line.startswith("massub"):
+                        if line.startswith('massub'):
                             self.massub = ud.string_to_value(line.split()[1])
-                        if line.startswith("masslb"):
+                        if line.startswith('masslb'):
                             self.masslb = ud.string_to_value(line.split()[1])
-                        if line.startswith("msig"):
+                        if line.startswith('msig'):
                             self.msig = ud.string_to_value(line.split()[1])
-                        if line.startswith("molig"):
+                        if line.startswith('molig'):
                             self.molig = ud.string_to_value(line.split()[1])
-                        if line.startswith("massbins"):
+                        if line.startswith('massbins'):
                             self.massbins = ud.string_to_value(line.split()[1])
-                        if line.startswith("mtabsig"):
+                        if line.startswith('mtabsig'):
                             self.mtabsig = ud.string_to_value(line.split()[1])
-                        if line.startswith("mfile"):
+                        if line.startswith('mfile'):
                             # self.mfile = line.split()[1]
                             self.mfileflag = 1
-                        if line.startswith("manualfile"):
+                        if line.startswith('manualfile'):
                             # self.manualfile = line.split()[1]
                             self.manualfileflag = 1
-                        if line.startswith("subbuff"):
+                        if line.startswith('subbuff'):
                             self.subbuff = ud.string_to_value(line.split()[1])
                             if self.subbuff < 0:
                                 self.subtype = 2
                                 self.subbuff = abs(self.subbuff)
-                        if line.startswith("subtype"):
+                        if line.startswith('subtype'):
                             self.subtype = ud.string_to_int(line.split()[1])
-                        if line.startswith("smooth") and not line.startswith("smoothdt"):
+                        if line.startswith('smooth') and not line.startswith('smoothdt'):
                             self.smooth = ud.string_to_value(line.split()[1])
-                        if line.startswith("mzbins"):
+                        if line.startswith('mzbins'):
                             self.mzbins = ud.string_to_value(line.split()[1])
-                        if line.startswith("peakwindow"):
+                        if line.startswith('peakwindow'):
                             self.peakwindow = ud.string_to_value(line.split()[1])
-                        if line.startswith("peakthresh"):
+                        if line.startswith('peakthresh'):
                             self.peakthresh = ud.string_to_value(line.split()[1])
-                        if line.startswith("peakplotthresh"):
+                        if line.startswith('peakplotthresh'):
                             self.peakplotthresh = ud.string_to_value(line.split()[1])
-                        if line.startswith("plotsep"):
+                        if line.startswith('plotsep'):
                             self.separation = ud.string_to_value(line.split()[1])
-                        if line.startswith("intthresh"):
+                        if line.startswith('intthresh'):
                             self.intthresh = ud.string_to_value(line.split()[1])
-                        if line.startswith("aggressive"):
+                        if line.startswith('aggressive'):
                             self.aggressiveflag = ud.string_to_int(line.split()[1])
-                        if line.startswith("rawflag"):
+                        if line.startswith('rawflag'):
                             self.rawflag = ud.string_to_int(line.split()[1])
-                        if line.startswith("adductmass"):
+                        if line.startswith('adductmass'):
                             self.adductmass = ud.string_to_value(line.split()[1])
-                        if line.startswith("nativezub"):
+                        if line.startswith('nativezub'):
                             self.nativezub = ud.string_to_value(line.split()[1])
-                        if line.startswith("nativezlb"):
+                        if line.startswith('nativezlb'):
                             self.nativezlb = ud.string_to_value(line.split()[1])
-                        if line.startswith("poolflag"):
+                        if line.startswith('poolflag'):
                             self.poolflag = ud.string_to_int(line.split()[1])
-                        if line.startswith("accvol"):
+                        if line.startswith('accvol'):
                             self.detectoreffva = ud.string_to_value(line.split()[1])
-                        if line.startswith("peakshapeinflate"):
+                        if line.startswith('peakshapeinflate'):
                             self.inflate = ud.string_to_value(line.split()[1])
-                        if line.startswith("noiseflag"):
+                        if line.startswith('noiseflag'):
                             self.noiseflag = ud.string_to_value(line.split()[1])
-                        if line.startswith("linflag"):
+                        if line.startswith('linflag'):
                             self.linflag = ud.string_to_int(line.split()[1])
-                        if line.startswith("cmap"):
+                        if line.startswith('cmap'):
                             self.cmap = str(line.split()[1])
-                        if line.startswith("peakcmap"):
+                        if line.startswith('peakcmap'):
                             self.peakcmap = str(line.split()[1])
-                        if line.startswith("publicationmode"):
+                        if line.startswith('publicationmode'):
                             self.publicationmode = ud.string_to_int(line.split()[1])
-                        if line.startswith("isotopemode"):
+                        if line.startswith('isotopemode'):
                             self.isotopemode = ud.string_to_int(line.split()[1])
-                        if line.startswith("integratelb"):
+                        if line.startswith('integratelb'):
                             self.integratelb = ud.string_to_value(line.split()[1])
-                        if line.startswith("integrateub"):
+                        if line.startswith('integrateub'):
                             self.integrateub = ud.string_to_value(line.split()[1])
-                        if line.startswith("filterwidth"):
+                        if line.startswith('filterwidth'):
                             self.filterwidth = ud.string_to_value(line.split()[1])
-                        if line.startswith("zerolog"):
+                        if line.startswith('zerolog'):
                             self.zerolog = ud.string_to_value(line.split()[1])
-                        if line.startswith("peaknorm"):
+                        if line.startswith('peaknorm'):
                             self.peaknorm = ud.string_to_value(line.split()[1])
-                        if line.startswith("baselineflag"):
+                        if line.startswith('baselineflag'):
                             self.baselineflag = ud.string_to_value(line.split()[1])
-                        if line.startswith("orbimode"):
+                        if line.startswith('orbimode'):
                             self.orbimode = ud.string_to_value(line.split()[1])
 
                         # IM Imports
-                        if line.startswith("ccsub"):
+                        if line.startswith('ccsub'):
                             self.ccsub = ud.string_to_value(line.split()[1])
-                        if line.startswith("ccslb"):
+                        if line.startswith('ccslb'):
                             self.ccslb = ud.string_to_value(line.split()[1])
-                        if line.startswith("dtsig"):
+                        if line.startswith('dtsig'):
                             self.dtsig = ud.string_to_value(line.split()[1])
-                        if line.startswith("csig"):
+                        if line.startswith('csig'):
                             self.csig = ud.string_to_value(line.split()[1])
-                        if line.startswith("ccsbins"):
+                        if line.startswith('ccsbins'):
                             self.ccsbins = ud.string_to_value(line.split()[1])
-                        if line.startswith("subbufdt"):
+                        if line.startswith('subbufdt'):
                             self.subbufdt = ud.string_to_value(line.split()[1])
-                        if line.startswith("smoothdt"):
+                        if line.startswith('smoothdt'):
                             self.smoothdt = ud.string_to_value(line.split()[1])
-                        if line.startswith("temp"):
+                        if line.startswith('temp'):
                             self.temp = ud.string_to_value(line.split()[1])
-                        if line.startswith("pressure"):
+                        if line.startswith('pressure'):
                             self.pressure = ud.string_to_value(line.split()[1])
-                        if line.startswith("volt"):
+                        if line.startswith('volt'):
                             self.volt = ud.string_to_value(line.split()[1])
-                        if line.startswith("gasmass"):
+                        if line.startswith('gasmass'):
                             self.gasmass = ud.string_to_value(line.split()[1])
-                        if (line.startswith("to")) or (line.startswith("tnaught")):
+                        if (line.startswith('to')) or (line.startswith('tnaught')):
                             self.to = ud.string_to_value(line.split()[1])
-                        if line.startswith("driftlength"):
+                        if line.startswith('driftlength'):
                             self.driftlength = ud.string_to_value(line.split()[1])
-                        if line.startswith("tcal1"):
+                        if line.startswith('tcal1'):
                             self.tcal1 = ud.string_to_value(line.split()[1])
-                        if line.startswith("tcal2"):
+                        if line.startswith('tcal2'):
                             self.tcal2 = ud.string_to_value(line.split()[1])
-                        if line.startswith("edc"):
+                        if line.startswith('edc'):
                             self.edc = ud.string_to_value(line.split()[1])
-                        if line.startswith("twaveflag"):
+                        if line.startswith('twaveflag'):
                             self.twaveflag = ud.string_to_int(line.split()[1])
-                        if line.startswith("pusher"):
+                        if line.startswith('pusher'):
                             self.pusher = ud.string_to_value(line.split()[1])
-                        if line.startswith("zout"):
+                        if line.startswith('zout'):
                             self.zout = ud.string_to_value(line.split()[1])
-                        if line.startswith("nativeccsub") or line.startswith("ubnativeccs"):
+                        if line.startswith('nativeccsub') or line.startswith('ubnativeccs'):
                             self.nativeccsub = ud.string_to_value(line.split()[1])
-                        if line.startswith("nativeccslb") or line.startswith("lbnativeccs"):
+                        if line.startswith('nativeccslb') or line.startswith('lbnativeccs'):
                             self.nativeccslb = ud.string_to_value(line.split()[1])
             f.close()
             self.endz = self.startz + self.numz - 1
@@ -682,15 +681,15 @@ class UniDecConfig(object):
          but it might be risky.
         :return: None
         """
-        self.infname = self.outfname + "_input.dat"
-        self.confname = self.outfname + "_conf.dat"
-        self.mfile = self.outfname + "_mfile.dat"
-        self.manualfile = self.outfname + "_manualfile.dat"
-        self.ofile = self.outfname + "_ofile.dat"
-        self.matchfile = self.outfname + "_match.dat"
-        self.peaksfile = self.outfname + "_peaks.dat"
+        self.infname = self.outfname + '_input.dat'
+        self.confname = self.outfname + '_conf.dat'
+        self.mfile = self.outfname + '_mfile.dat'
+        self.manualfile = self.outfname + '_manualfile.dat'
+        self.ofile = self.outfname + '_ofile.dat'
+        self.matchfile = self.outfname + '_match.dat'
+        self.peaksfile = self.outfname + '_peaks.dat'
         if self.filetype == 0:
-            self.hdf_file = self.outfname + ".hdf5"
+            self.hdf_file = self.outfname + '.hdf5'
 
     def check_badness(self):
         """
@@ -702,7 +701,7 @@ class UniDecConfig(object):
         :return: None
         """
         self.badtest = 0
-        self.warning = ""
+        self.warning = ''
 
         try:
             x = float(self.maxmz)
@@ -715,54 +714,54 @@ class UniDecConfig(object):
 
         # Check that mz min and max are not reversed
         if self.maxmz <= self.minmz:
-            self.warning = "Max m/z is less or equal to Min m/z\nFix m/z range."
+            self.warning = 'Max m/z is less or equal to Min m/z\nFix m/z range.'
             self.badtest = 1
 
         # Check that bin size is not too small
         if self.mzbins < 0.01 and self.linflag != 2:
-            self.warning = "Bin size is really small!\nGo ahead, but know that it will be really slow."
+            self.warning = 'Bin size is really small!\nGo ahead, but know that it will be really slow.'
 
         # Check Charge range
         if self.endz < self.startz:
-            self.warning = "Max charge is less than Min charge\nFix charge range."
+            self.warning = 'Max charge is less than Min charge\nFix charge range.'
             self.badtest = 1
 
         # Check Mass Range
         if abs(self.massub) <= abs(self.masslb):
-            self.warning = "Max mass is less or equal to Min mass\nFix mass range."
+            self.warning = 'Max mass is less or equal to Min mass\nFix mass range.'
             self.badtest = 1
 
         # Check Native Z range
         if self.nativezub <= self.nativezlb:
-            self.warning = "Max native z offset is less or equal to Min native z offset\nFix native z offset range."
+            self.warning = 'Max native z offset is less or equal to Min native z offset\nFix native z offset range.'
             self.badtest = 1
 
         # Check peak width
         if self.mzsig == 0:
-            self.warning = "Peak width is zero\nFix peak width to be positive number"
+            self.warning = 'Peak width is zero\nFix peak width to be positive number'
             self.badtest = 1
 
         if self.imflag == 1:
             if self.nativeccsub <= self.nativeccslb:
-                self.warning = "Max native ccs offset is less or equal to Min native ccs offset" \
-                               "\nFix native ccs offset range."
+                self.warning = 'Max native ccs offset is less or equal to Min native ccs offset' \
+                               '\nFix native ccs offset range.'
                 self.badtest = 1
 
             if self.maxdt < self.mindt:
-                self.warning = "Max Arrival Time is less or equal to Min Arrival Time\nFix Arrival Time range."
+                self.warning = 'Max Arrival Time is less or equal to Min Arrival Time\nFix Arrival Time range.'
                 self.badtest = 1
 
             if self.ccsub < self.ccslb:
-                self.warning = "CCS Upper Bound lower then CCS Lower Bound\nFix CCS range."
+                self.warning = 'CCS Upper Bound lower then CCS Lower Bound\nFix CCS range.'
                 self.badtest = 1
 
             if self.twaveflag == 0 and (self.pressure == 0 or self.driftlength == 0):
-                self.warning = "Pressure and Cell Length must be nonzero for Linear Cell"
+                self.warning = 'Pressure and Cell Length must be nonzero for Linear Cell'
                 self.badtest = 1
 
             if self.twaveflag > 0 and (self.tcal1 == 0 or self.tcal2 == 0 or self.edc == 0):
-                self.warning = "Note: One or more T-wave calibration parameters has been set to 0" \
-                               "\nCheck to make sure this is correct"
+                self.warning = 'Note: One or more T-wave calibration parameters has been set to 0' \
+                               '\nCheck to make sure this is correct'
 
         return self.badtest, self.warning
 
@@ -865,26 +864,26 @@ class UniDecConfig(object):
         self.defaultUnidecDir = os.path.join(pathtofile, 'unidec_bin')
 
         if self.system == 'Windows':
-            self.defaultUnidecName = "UniDec.exe"
-            self.h5repackfile = "h5repack.exe"
-            self.opencommand = "start "
+            self.defaultUnidecName = 'UniDec.exe'
+            self.h5repackfile = 'h5repack.exe'
+            self.opencommand = 'start '
             # print "Windows: ", self.defaultUnidecName
         elif self.system == 'Darwin':
-            self.defaultUnidecName = "unidecmac"
-            self.h5repackfile = "h5repack"
+            self.defaultUnidecName = 'unidecmac'
+            self.h5repackfile = 'h5repack'
             # self.defaultUnidecDir = '/Applications/GUniDecMac.app/Contents/MacOS'
-            self.opencommand = "open "
+            self.opencommand = 'open '
             # print "Mac:", self.defaultUnidecName
         else:
-            self.defaultUnidecName = "unideclinux"
-            self.h5repackfile = "h5repack"
-            self.opencommand = "gnome-open "  # TODO: Test whether this is right
+            self.defaultUnidecName = 'unideclinux'
+            self.h5repackfile = 'h5repack'
+            self.opencommand = 'gnome-open '  # TODO: Test whether this is right
             # print "Linux or other: unidec"
 
         def giveup():
-            self.defaultUnidecDir = ""
+            self.defaultUnidecDir = ''
             self.UniDecPath = self.defaultUnidecName
-            print("Assuming " + self.defaultUnidecName + " is in system path.")
+            print('Assuming ' + self.defaultUnidecName + ' is in system path.')
 
         self.UniDecPath = os.path.join(self.defaultUnidecDir, self.defaultUnidecName)
         if not os.path.isfile(self.UniDecPath):
@@ -903,13 +902,13 @@ class UniDecConfig(object):
         self.UniDecName = self.defaultUnidecName
         self.UniDecDir = self.defaultUnidecDir
         self.UniDecPath = os.path.join(self.UniDecDir, self.UniDecName)
-        self.rawreaderpath = os.path.join(self.UniDecDir, "rawreader.exe")
-        self.cdcreaderpath = os.path.join(self.UniDecDir, "CDCreader.exe")
-        self.defaultconfig = os.path.join(self.UniDecDir, "default_conf.dat")
-        self.masstablefile = os.path.join(self.UniDecDir, "mass_table.csv")
+        self.rawreaderpath = os.path.join(self.UniDecDir, 'rawreader.exe')
+        self.cdcreaderpath = os.path.join(self.UniDecDir, 'CDCreader.exe')
+        self.defaultconfig = os.path.join(self.UniDecDir, 'default_conf.dat')
+        self.masstablefile = os.path.join(self.UniDecDir, 'mass_table.csv')
         self.h5repackfile = os.path.join(self.UniDecDir, self.h5repackfile)
 
-        print("\nUniDec Path:", self.UniDecPath)
+        print('\nUniDec Path:', self.UniDecPath)
 
     def check_new(self, other):
         flag = False
@@ -933,6 +932,7 @@ class UniDecConfig(object):
 
 
 class DataContainer:
+
     def __init__(self):
         """
         Initialize DataContainer with empty arrays.
@@ -995,7 +995,7 @@ class DataContainer:
 
 
 if __name__ == '__main__':
-    fname = "test.hdf5"
+    fname = 'test.hdf5'
     data = DataContainer()
     config = UniDecConfig()
     config.write_hdf5(fname)

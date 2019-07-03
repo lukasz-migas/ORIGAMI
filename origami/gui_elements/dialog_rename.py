@@ -1,13 +1,15 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import wx
 from styles import Dialog
 
-FORBIDDEN_NAMES = ["Documents", ""]
+FORBIDDEN_NAMES = ['Documents', '']
 
 
 class DialogRenameObject(Dialog):
 
     def __init__(self, parent, presenter, title, **kwargs):
-        Dialog.__init__(self, parent, title="Rename...", size=(400, 300))
+        Dialog.__init__(self, parent, title='Rename...', size=(400, 300))
 
         self.parent = parent
         self.presenter = presenter
@@ -59,22 +61,24 @@ class DialogRenameObject(Dialog):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         BOX_SIZE = 400
-        oldName_label = wx.StaticText(panel, -1, "Current name:")
-        self.old_name_value = wx.TextCtrl(panel, -1, "", size=(BOX_SIZE, 40),
-                                          style=wx.TE_READONLY | wx.TE_WORDWRAP)
+        oldName_label = wx.StaticText(panel, -1, 'Current name:')
+        self.old_name_value = wx.TextCtrl(
+            panel, -1, '', size=(BOX_SIZE, 40),
+            style=wx.TE_READONLY | wx.TE_WORDWRAP,
+        )
         self.old_name_value.SetValue(self.kwargs['current_name'])
 
-        newName_label = wx.StaticText(panel, -1, "Edit name:")
-        self.new_name_value = wx.TextCtrl(panel, -1, "", size=(BOX_SIZE, -1), style=wx.TE_PROCESS_ENTER)
+        newName_label = wx.StaticText(panel, -1, 'Edit name:')
+        self.new_name_value = wx.TextCtrl(panel, -1, '', size=(BOX_SIZE, -1), style=wx.TE_PROCESS_ENTER)
         self.new_name_value.SetValue(self.kwargs['current_name'])
         self.new_name_value.SetFocus()
 
-        note_label = wx.StaticText(panel, -1, "Final name:")
-        self.note_value = wx.StaticText(panel, -1, "", size=(BOX_SIZE, 40))
+        note_label = wx.StaticText(panel, -1, 'Final name:')
+        self.note_value = wx.StaticText(panel, -1, '', size=(BOX_SIZE, 40))
         self.note_value.Wrap(BOX_SIZE)
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "Rename", size=(-1, 22))
-        self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, 'Rename', size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, 'Cancel', size=(-1, 22))
 
         # bind
         self.new_name_value.Bind(wx.EVT_TEXT_ENTER, self.on_finish_label_changing)
@@ -109,15 +113,17 @@ class DialogRenameObject(Dialog):
         """ change label of the selected item """
 
         if self.kwargs['prepend_name']:
-            self.new_name = "{}: {}".format(self.kwargs['current_name'], self.new_name_value.GetValue())
+            self.new_name = '{}: {}'.format(self.kwargs['current_name'], self.new_name_value.GetValue())
         else:
-            self.new_name = "{}".format(self.new_name_value.GetValue())
+            self.new_name = '{}'.format(self.new_name_value.GetValue())
 
         if self.new_name in FORBIDDEN_NAMES:
             from gui_elements.misc_dialogs import dlgBox
-            dlgBox(exceptionTitle='Forbidden name',
-                   exceptionMsg=f"The name you've selected {self.new_name} is not allowed! Please try again",
-                   type="Error")
+            dlgBox(
+                exceptionTitle='Forbidden name',
+                exceptionMsg=f"The name you've selected {self.new_name} is not allowed! Please try again",
+                type='Error',
+            )
             return
 
         self.note_value.SetLabel(self.new_name)

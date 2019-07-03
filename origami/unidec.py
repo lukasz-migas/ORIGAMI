@@ -1,16 +1,20 @@
-import os
-import time
-import shutil
-import subprocess
-import zipfile
+# -*- coding: utf-8 -*-
+# __author__ michael.marty
 import fnmatch
+import os
+import shutil
 import string
+import subprocess
+import time
+import zipfile
 from copy import deepcopy
-import numpy as np
-from scipy.interpolate import interp1d
 
-from unidec_modules import unidecstructure, peakstructure, MassFitter
+import numpy as np
 import unidec_modules.unidectools as ud
+from scipy.interpolate import interp1d
+from unidec_modules import MassFitter
+from unidec_modules import peakstructure
+from unidec_modules import unidecstructure
 from unidec_modules.unidec_enginebase import UniDecEngine
 
 __author__ = 'Michael.Marty'
@@ -34,8 +38,10 @@ class UniDec(UniDecEngine):
         self.errorgrid = None
         pass
 
-    def open_file(self, file_name=None, file_directory=None, data_in=None,
-                  *args, **kwargs):
+    def open_file(
+        self, file_name=None, file_directory=None, data_in=None,
+        *args, **kwargs
+    ):
         """
         Open text or mzML file. Will create _unidecfiles directory if it does not exist.
 
@@ -62,8 +68,8 @@ class UniDec(UniDecEngine):
 
             # Handle Paths
             self.config.filename = file_name
-            if "silent" not in kwargs or not kwargs["silent"]:
-                print("Opening File: ", self.config.filename)
+            if 'silent' not in kwargs or not kwargs['silent']:
+                print('Opening File: ', self.config.filename)
             self.config.outfname = os.path.splitext(self.config.filename)[0]
             self.config.extension = os.path.splitext(self.config.filename)[1]
             self.config.default_file_names()
@@ -104,7 +110,7 @@ class UniDec(UniDecEngine):
             try:
                 os.chdir(self.config.dirname)
             except Exception:
-                print(("Could not set directory. Saving data in {}".format(os.getcwd())))
+                print('Could not set directory. Saving data in {}'.format(os.getcwd()))
                 self.config.dirname = os.getcwd()
                 pass
 
@@ -114,8 +120,8 @@ class UniDec(UniDecEngine):
             self.config.procflag = 0
 
         # Change paths to unidecfiles folder
-        dirnew = self.config.outfname + "_unidecfiles"
-        if "clean" in kwargs and kwargs["clean"] and os.path.isdir(dirnew):
+        dirnew = self.config.outfname + '_unidecfiles'
+        if 'clean' in kwargs and kwargs['clean'] and os.path.isdir(dirnew):
             shutil.rmtree(dirnew)
 
         if not os.path.isdir(dirnew):
@@ -126,30 +132,30 @@ class UniDec(UniDecEngine):
                 try:
                     os.mkdir(dirnew)
                 except WindowsError:
-                    print("Access was denied. Please try again.")
+                    print('Access was denied. Please try again.')
                     return
 
         os.chdir(dirnew)
 
         self.config.udir = os.getcwd()
         if self.config.imflag == 0:
-            newname = os.path.join(os.getcwd(), self.config.outfname + "_rawdata.txt")
+            newname = os.path.join(os.getcwd(), self.config.outfname + '_rawdata.txt')
         else:
-            newname = os.path.join(os.getcwd(), self.config.outfname + "_imraw.txt")
+            newname = os.path.join(os.getcwd(), self.config.outfname + '_imraw.txt')
 
         if not os.path.isfile(newname) and data_in is None:
             try:
                 shutil.copy(file_directory, newname)
             except IOError:
-                print("Could not copy raw datafile")
+                print('Could not copy raw datafile')
 
         # Initialize Config
         if os.path.isfile(self.config.confname):
             self.load_config(self.config.confname)
 
         tend = time.clock()
-        if "silent" not in kwargs or not kwargs["silent"]:
-            print("Loading Time: %.2gs" % (tend - tstart))
+        if 'silent' not in kwargs or not kwargs['silent']:
+            print('Loading Time: %.2gs' % (tend - tstart))
 
     def raw_process(self, dirname, inflag=False, binsize=1):
         """
@@ -172,15 +178,15 @@ class UniDec(UniDecEngine):
         self.config.filename = os.path.split(self.config.dirname)[1]
         self.config.outfname = os.path.splitext(self.config.filename)[0]
 
-        print("Openening: ", self.config.filename)
-        if os.path.splitext(self.config.filename)[1] == ".zip":
+        print('Openening: ', self.config.filename)
+        if os.path.splitext(self.config.filename)[1] == '.zip':
             print("Can't open zip, try Load State.")
             return None, None
-        if os.path.splitext(self.config.filename)[1] == ".raw" and self.config.system == "Windows":
+        if os.path.splitext(self.config.filename)[1] == '.raw' and self.config.system == 'Windows':
             self.config.outfname = os.path.splitext(self.config.filename)[0]
-            newfilename = self.config.outfname + "_rawdata.txt"
+            newfilename = self.config.outfname + '_rawdata.txt'
             if self.config.imflag == 1:
-                newfilename = self.config.outfname + "_imraw.txt"
+                newfilename = self.config.outfname + '_imraw.txt'
 
             if inflag:
                 newfilepath = os.path.join(self.config.dirname, newfilename)
@@ -189,27 +195,30 @@ class UniDec(UniDecEngine):
 
             if os.path.isfile(newfilepath):
                 self.config.filename = newfilename
-                print("Data already converted")
+                print('Data already converted')
             else:
-                if self.config.system == "Windows":
+                if self.config.system == 'Windows':
                     if self.config.imflag == 0:
                         result = subprocess.call(
-                            [self.config.rawreaderpath, "-i", self.config.dirname, "-o", newfilepath])
+                            [self.config.rawreaderpath, '-i', self.config.dirname, '-o', newfilepath],
+                        )
                         self.config.filename = newfilename
                     else:
-                        call = [self.config.cdcreaderpath, '-r', self.config.dirname, '-m',
-                                newfilepath[:-10] + "_msraw.txt", '-i', newfilepath, '--ms_bin', binsize,
-                                "--ms_smooth_window", "0", "--ms_number_smooth", "0", "--im_bin", binsize, "--sparse",
-                                "1"]
+                        call = [
+                            self.config.cdcreaderpath, '-r', self.config.dirname, '-m',
+                            newfilepath[:-10] + '_msraw.txt', '-i', newfilepath, '--ms_bin', binsize,
+                            '--ms_smooth_window', '0', '--ms_number_smooth', '0', '--im_bin', binsize, '--sparse',
+                            '1',
+                        ]
                         result = subprocess.call(call)
                         self.config.filename = newfilename
                     if result == 0 and os.path.isfile(newfilepath):
-                        print("Converted data from raw to txt")
+                        print('Converted data from raw to txt')
                     else:
-                        print("Failed conversion to txt file. ", result, newfilepath)
+                        print('Failed conversion to txt file. ', result, newfilepath)
                         return None, None
                 else:
-                    print("Sorry. Waters Raw converter only works on windows. Convert to txt file first.")
+                    print('Sorry. Waters Raw converter only works on windows. Convert to txt file first.')
                     return None, None
         return self.config.filename, self.config.dirname
         pass
@@ -247,7 +256,7 @@ class UniDec(UniDecEngine):
                 self.config.maxdt = np.amax(self.data.rawdata3[:, 1])
 
         if self.check_badness() == 1:
-            print("Badness found, aborting data prep")
+            print('Badness found, aborting data prep')
             return 1
 
         if self.config.imflag == 0:
@@ -268,8 +277,8 @@ class UniDec(UniDecEngine):
 
         self.config.procflag = 1
         tend = time.clock()
-        if "silent" not in kwargs or not kwargs["silent"]:
-            print("Data Prep Done. Time: %.2gs" % (tend - tstart))
+        if 'silent' not in kwargs or not kwargs['silent']:
+            print('Data Prep Done. Time: %.2gs' % (tend - tstart))
         # self.get_spectrum_peaks()
         pass
 
@@ -289,10 +298,10 @@ class UniDec(UniDecEngine):
         """
         # Check to make sure everything is in order
         if self.config.procflag == 0:
-            print("Need to process data first...")
+            print('Need to process data first...')
             self.process_data()
         if self.check_badness() == 1:
-            print("Badness found, aborting UniDec run")
+            print('Badness found, aborting UniDec run')
             return 1
         # Export Config and Call
         self.export_config()
@@ -303,15 +312,15 @@ class UniDec(UniDecEngine):
         tend = time.clock()
         self.config.runtime = (tend - tstart)
         if not silent:
-            print("UniDec run %.2gs" % self.config.runtime)
+            print('UniDec run %.2gs' % self.config.runtime)
         # Import Results if Successful
         if out == 0:
             self.unidec_imports(efficiency)
             if not silent:
-                print("File Name: ", self.config.filename, "R Sqaured: ", self.config.error)
+                print('File Name: ', self.config.filename, 'R Sqaured: ', self.config.error)
             return out
         else:
-            print("UniDec Run Error:", out)
+            print('UniDec Run Error:', out)
             return out
 
     def unidec_imports(self, efficiency=False):
@@ -323,16 +332,16 @@ class UniDec(UniDecEngine):
 
         # Import Results
         self.pks = peakstructure.Peaks()
-        self.data.massdat = np.loadtxt(self.config.outfname + "_mass.txt")
+        self.data.massdat = np.loadtxt(self.config.outfname + '_mass.txt')
         self.data.ztab = np.arange(self.config.startz, self.config.endz + 1)
         self.config.massdatnormtop = np.amax(self.data.massdat[:, 1])
         if not efficiency:
-            self.data.massgrid = np.fromfile(self.config.outfname + "_massgrid.bin", dtype=float)
+            self.data.massgrid = np.fromfile(self.config.outfname + '_massgrid.bin', dtype=float)
 
-            self.data.fitdat = np.fromfile(self.config.outfname + "_fitdat.bin", dtype=float)
+            self.data.fitdat = np.fromfile(self.config.outfname + '_fitdat.bin', dtype=float)
             try:
                 if self.config.aggressiveflag != 0:
-                    self.data.baseline = np.fromfile(self.config.outfname + "_baseline.bin", dtype=float)
+                    self.data.baseline = np.fromfile(self.config.outfname + '_baseline.bin', dtype=float)
                 else:
                     self.data.baseline = np.array([])
             except Exception as e:
@@ -342,10 +351,13 @@ class UniDec(UniDecEngine):
             if self.config.imflag == 1:
                 self.data.fitdat2d = deepcopy(self.data.data3)
                 self.data.fitdat2d[:, 2] = self.data.fitdat
-                self.data.fitdat = np.sum(self.data.fitdat.reshape(
-                    (len(np.unique(self.data.data3[:, 0])), len(np.unique(self.data.data3[:, 1])))), axis=1)
+                self.data.fitdat = np.sum(
+                    self.data.fitdat.reshape(
+                        (len(np.unique(self.data.data3[:, 0])), len(np.unique(self.data.data3[:, 1]))),
+                    ), axis=1,
+                )
 
-        runstats = np.genfromtxt(self.config.outfname + "_error.txt", dtype='str')
+        runstats = np.genfromtxt(self.config.outfname + '_error.txt', dtype='str')
         if self.config.imflag == 0:
             # Calculate Error
             sse = float(runstats[0, 2])
@@ -353,7 +365,7 @@ class UniDec(UniDecEngine):
             self.config.error = 1 - sse / np.sum((self.data.data2[:, 1] - mean) ** 2)
             if not efficiency:
                 # Import Grid
-                self.data.mzgrid = np.fromfile(self.config.outfname + "_grid.bin", dtype=float)
+                self.data.mzgrid = np.fromfile(self.config.outfname + '_grid.bin', dtype=float)
                 xv, yv = np.meshgrid(self.data.ztab, self.data.data2[:, 0])
                 xv = np.c_[np.ravel(yv), np.ravel(xv)]
                 self.data.mzgrid = np.c_[xv, self.data.mzgrid]
@@ -362,22 +374,23 @@ class UniDec(UniDecEngine):
             # Calculate Error
             self.config.error = float(runstats[1])
 
-            self.data.ccsdata = np.loadtxt(self.config.outfname + "_ccs.txt")
+            self.data.ccsdata = np.loadtxt(self.config.outfname + '_ccs.txt')
             if not efficiency:
                 # Import Grids and Reshape
                 masslen = len(self.data.massdat)
                 ccslen = len(self.data.ccsdata)
                 zlen = len(self.data.ztab)
 
-                self.data.massccs = np.fromfile(self.config.outfname + "_massccs.bin", dtype=float)
-                self.data.ccsz = np.fromfile(self.config.outfname + "_ccsz.bin", dtype=float)
-                self.data.mztgrid = np.fromfile(self.config.outfname + "_mzgrid.bin", dtype=float)
+                self.data.massccs = np.fromfile(self.config.outfname + '_massccs.bin', dtype=float)
+                self.data.ccsz = np.fromfile(self.config.outfname + '_ccsz.bin', dtype=float)
+                self.data.mztgrid = np.fromfile(self.config.outfname + '_mzgrid.bin', dtype=float)
 
                 self.data.massccs = self.data.massccs.reshape((masslen, ccslen))
                 self.data.ccsz = self.data.ccsz.reshape((zlen, ccslen))
                 self.data.mztgrid = np.clip(self.data.mztgrid, 0.0, np.amax(self.data.mztgrid))
                 self.data.mztgrid = self.data.mztgrid.reshape(
-                    (len(np.unique(self.data.data3[:, 0])), len(np.unique(self.data.data3[:, 1])), zlen))
+                    (len(np.unique(self.data.data3[:, 0])), len(np.unique(self.data.data3[:, 1])), zlen),
+                )
                 self.data.mzgrid = np.sum(self.data.mztgrid, axis=1)
                 xv, yv = np.meshgrid(self.data.ztab, np.unique(self.data.data3[:, 0]))
                 xv = np.c_[np.ravel(yv), np.ravel(xv)]
@@ -446,7 +459,7 @@ class UniDec(UniDecEngine):
         self.autopeaks = peakstructure.Peaks()
         self.autopeaks.add_peaks(cpeaks, massbins=self.config.massbins)
         self.autopeaks.default_params()
-        print("Autocorrelation:", [p.mass for p in self.autopeaks.peaks])
+        print('Autocorrelation:', [p.mass for p in self.autopeaks.peaks])
         return self.autopeaks.peaks[0].mass
 
     def kendrick_peaks(self, kmass=None, centermode=1):
@@ -465,7 +478,7 @@ class UniDec(UniDecEngine):
             self.pks.get_mass_defects(self.config.kendrickmass, mode=centermode)
             return np.array([[p.mass, p.kendrickdefect] for p in self.pks.peaks])
         else:
-            print("Need non-zero Kendrick mass")
+            print('Need non-zero Kendrick mass')
             return None
 
     def kendrick_continuous(self, ref_mass=None, centermode=0, nbins=50, transformmode=0, xaxistype=1):
@@ -485,19 +498,21 @@ class UniDec(UniDecEngine):
             self.config.kendrickmass = self.config.molig
         if self.config.kendrickmass > 0:
 
-            data1, data2, m1grid, m2grid, igrid = ud.kendrick_analysis(self.data.massdat, self.config.kendrickmass,
-                                                                       centermode=centermode, nbins=nbins,
-                                                                       transformmode=transformmode,
-                                                                       xaxistype=xaxistype)
+            data1, data2, m1grid, m2grid, igrid = ud.kendrick_analysis(
+                self.data.massdat, self.config.kendrickmass,
+                centermode=centermode, nbins=nbins,
+                transformmode=transformmode,
+                xaxistype=xaxistype,
+            )
             # Write outputs
-            outfile2 = os.path.join(self.config.outfname + "_2D_Mass_Defects.txt")
-            outfile1 = os.path.join(self.config.outfname + "_1D_Mass_Defects.txt")
+            outfile2 = os.path.join(self.config.outfname + '_2D_Mass_Defects.txt')
+            outfile1 = os.path.join(self.config.outfname + '_1D_Mass_Defects.txt')
             np.savetxt(outfile2, data2)
             np.savetxt(outfile1, data1)
-            print("Saved Kendrick:", outfile2, outfile1)
+            print('Saved Kendrick:', outfile2, outfile1)
             return m1grid, m2grid, igrid
         else:
-            print("Need non-zero Kendrick mass")
+            print('Need non-zero Kendrick mass')
             return None, None, None
 
     def mass_grid_to_f_grid(self):
@@ -508,10 +523,10 @@ class UniDec(UniDecEngine):
         offsets (oaxis), and the interpolates a new grid of (mass, offset) from oaxis, which is output as outgrid.
         :return: oxais, outgrid: offset axis (N) and offset grid (M x N)
         """
-        mgrid, zgrid = np.meshgrid(self.data.massdat[:, 0], np.array(self.data.ztab), indexing="ij")
+        mgrid, zgrid = np.meshgrid(self.data.massdat[:, 0], np.array(self.data.ztab), indexing='ij')
         ogrid = ud.get_z_offset(mgrid, zgrid)
         oaxis = np.arange(np.amin(ogrid), np.amax(ogrid), 0.5)
-        mgrid2, ogrid2 = np.meshgrid(self.data.massdat[:, 0], oaxis, indexing="ij")
+        mgrid2, ogrid2 = np.meshgrid(self.data.massdat[:, 0], oaxis, indexing='ij')
         massgrid = self.data.massgrid.reshape((len(self.data.massdat[:, 0]), len(self.data.ztab)))
         outgrid = ud.mergedata2d(mgrid2, ogrid2, mgrid, ogrid, massgrid)
         outgrid -= np.amin(outgrid)
@@ -549,11 +564,11 @@ class UniDec(UniDecEngine):
         :return: zarea: P x Z array where P is the number of peaks and Z is the number of charge states.
         Each value of the array is the integral of peak P at charge state Z.
         """
-        if self.config.integrateub == "":
+        if self.config.integrateub == '':
             ub = self.config.peakwindow
         else:
             ub = self.config.integrateub
-        if self.config.integratelb == "":
+        if self.config.integratelb == '':
             lb = -self.config.peakwindow
         else:
             lb = self.config.integratelb
@@ -564,9 +579,12 @@ class UniDec(UniDecEngine):
             zlist = []
             if ztab is not None:
                 for i in range(0, len(ztab)):
-                    integral = self.integrate(p.integralrange,
-                                              data=np.reshape(self.data.massgrid, (len(self.data.massdat), len(ztab)))[
-                                                  :, i])[0]
+                    integral = self.integrate(
+                        p.integralrange,
+                        data=np.reshape(self.data.massgrid, (len(self.data.massdat), len(ztab)))[
+                            :, i
+                        ],
+                    )[0]
                     zlist.append(integral)
             zarea.append(zlist)
 
@@ -582,16 +600,16 @@ class UniDec(UniDecEngine):
         if self.pks.plen > 0:
             # Export Peaks Height by Charge Grid
             mztab = np.array([p.mztab for p in self.pks.peaks])
-            ud.dataexport(mztab[:, :, 1], self.config.outfname + "_chargedata.dat")
-            print("Exported data to " + self.config.outfname + "_chargedata.dat")
+            ud.dataexport(mztab[:, :, 1], self.config.outfname + '_chargedata.dat')
+            print('Exported data to ' + self.config.outfname + '_chargedata.dat')
 
             # Export Peaks Integral by Charge Grid
             if self.config.batchflag == 0:
                 try:
                     chargeareas = self.autointegrate(ztab=self.data.ztab)
-                    ud.dataexport(chargeareas, self.config.outfname + "_chargedata_areas.dat")
+                    ud.dataexport(chargeareas, self.config.outfname + '_chargedata_areas.dat')
                 except (IndexError, ValueError, AttributeError, ZeroDivisionError):
-                    print("Unable to autointegrate")
+                    print('Unable to autointegrate')
 
             # Get Params
             peaks = np.array([[p.mass, p.height] for p in self.pks.peaks])
@@ -600,29 +618,32 @@ class UniDec(UniDecEngine):
                 areas = [p.integral for p in self.pks.peaks]
             except (IndexError, ValueError, AttributeError, ZeroDivisionError):
                 areas = peaks[:, 1]
-                print("Failed to integrate. Substituting heights for areas.")
+                print('Failed to integrate. Substituting heights for areas.')
 
             peakparams = []
             for i in range(0, len(peaks)):
                 avg = np.average(self.data.ztab, weights=mztab[i, :, 1])
                 std = np.sqrt(np.average((np.array(self.data.ztab) - avg) ** 2, weights=mztab[i, :, 1]))
-                if e == "PostFit":
+                if e == 'PostFit':
                     peakparams.append(
-                        [peaks[i, 0], self.config.mzsig * avg, avg, std, peaks[i, 1] / np.sum(peaks[:, 1]),
-                         self.massfit[i, 1], self.massfit[i, 2] / np.sum(self.massfit[:, 2])])
+                        [
+                            peaks[i, 0], self.config.mzsig * avg, avg, std, peaks[i, 1] / np.sum(peaks[:, 1]),
+                            self.massfit[i, 1], self.massfit[i, 2] / np.sum(self.massfit[:, 2]),
+                        ],
+                    )
                 else:
                     peakparams.append([peaks[i, 0], self.config.mzsig * avg, avg, std, peaks[i, 1], areas[i]])
             self.peakparams = np.array(peakparams)
 
-            print("Mass MassStdGuess AvgCharge StdDevCharge Height Area")
+            print('Mass MassStdGuess AvgCharge StdDevCharge Height Area')
             np.set_printoptions(precision=2, formatter={'float': '{: 0.2f}'.format})
             print(self.peakparams)
             np.set_printoptions()
-            outfile = self.config.outfname + "_peakparam.dat"
+            outfile = self.config.outfname + '_peakparam.dat'
             ud.dataexport(self.peakparams, outfile)
-            print("Peak Parameters (Saved To", outfile, ")")
+            print('Peak Parameters (Saved To', outfile, ')')
         else:
-            print("Pick Peaks First")
+            print('Pick Peaks First')
 
             # TODO: Streamline to remove multiple integration steps
             # TODO: Rework params into peakstructure
@@ -673,8 +694,10 @@ class UniDec(UniDecEngine):
         Fit all masses to a series of peaks, with initial guesses defined by the peak parameters.
         :return: self.massfitdat, self.massfit (fit to data, fit parameters)
         """
-        self.massfitdat, self.massfit = MassFitter.MassFitter(self.data.massdat, self.peakparams,
-                                                              self.config.psfun).perform_fit("nonorm", "sort")
+        self.massfitdat, self.massfit = MassFitter.MassFitter(
+            self.data.massdat, self.peakparams,
+            self.config.psfun,
+        ).perform_fit('nonorm', 'sort')
         return self.massfitdat, self.massfit
 
     def get_charge_peaks(self):
@@ -697,7 +720,7 @@ class UniDec(UniDecEngine):
                 cint = cint / np.sum(cint) * 100.
 
             cpeaks = np.transpose([self.data.ztab, cint])
-            np.savetxt(self.config.outfname + "_chargepeaks.txt", cpeaks)
+            np.savetxt(self.config.outfname + '_chargepeaks.txt', cpeaks)
             # com, std = self.center_of_mass(data=cpeaks)
             self.pks = peakstructure.Peaks()
             self.pks.add_peaks(cpeaks, massbins=1)
@@ -707,7 +730,7 @@ class UniDec(UniDecEngine):
                 p.label = str(int(self.data.ztab[i]))
             return cpeaks
         else:
-            print("Error: no m/z grid.")
+            print('Error: no m/z grid.')
             return None
 
     def save_state(self, file_name):
@@ -722,17 +745,17 @@ class UniDec(UniDecEngine):
         :return: True is successful, False if failed
         """
         # Set up extensions
-        extension = "_rawdata."
-        extension2 = "_imraw."
+        extension = '_rawdata.'
+        extension2 = '_imraw.'
         # In zip file, search for correct files
         zipf = zipfile.ZipFile(load_path)
         imfile = None
         msfile = None
         for file_path in zipf.namelist():
-            if fnmatch.fnmatch(file_path, '*' + extension + "*") or fnmatch.fnmatch(file_path, '*' + extension2 + "*"):
-                if fnmatch.fnmatch(file_path, '*' + extension + "*"):
+            if fnmatch.fnmatch(file_path, '*' + extension + '*') or fnmatch.fnmatch(file_path, '*' + extension2 + '*'):
+                if fnmatch.fnmatch(file_path, '*' + extension + '*'):
                     msfile = file_path
-                elif fnmatch.fnmatch(file_path, '*' + extension2 + "*"):
+                elif fnmatch.fnmatch(file_path, '*' + extension2 + '*'):
                     imfile = file_path
 
         # Set file and extension
@@ -740,24 +763,24 @@ class UniDec(UniDecEngine):
         if imfile is not None:
             if msfile is None or self.config.imflag == 1:
                 header = imfile[:-8]
-                extension = "_imraw."
+                extension = '_imraw.'
         elif msfile is not None:
             if imfile is None or self.config.imflag == 0:
                 header = msfile[:-10]
-                extension = "_rawdata."
+                extension = '_rawdata.'
         else:
-            print("Broken Save File. Unable to find _rawdata or _imraw")
+            print('Broken Save File. Unable to find _rawdata or _imraw')
             return False
 
         # Get directory, filename, and header
         self.config.dirname = os.path.split(load_path)[0]
-        self.config.outfname = string.rsplit(header, sep="_", maxsplit=1)[0]
-        print("Header:", self.config.outfname)
+        self.config.outfname = string.rsplit(header, sep='_', maxsplit=1)[0]
+        print('Header:', self.config.outfname)
 
         # Setup default file names, unidecfile directory, and extract there
         self.config.default_file_names()
         os.chdir(self.config.dirname)
-        dirnew = os.path.join(self.config.dirname, self.config.outfname + "_unidecfiles")
+        dirnew = os.path.join(self.config.dirname, self.config.outfname + '_unidecfiles')
         flag = os.path.isdir(dirnew)
         if not flag:
             os.mkdir(dirnew)
@@ -765,12 +788,12 @@ class UniDec(UniDecEngine):
         zipf.extractall(dirnew)
 
         # Copy data file from unidecfiles to directory above it
-        file_name = self.config.outfname + extension + "txt"
+        file_name = self.config.outfname + extension + 'txt'
         # if not os.path.isfile(file_name):
         #    file_name = self.config.outfname + extension + "dat"
-        filename2 = self.config.outfname + ".txt"
+        filename2 = self.config.outfname + '.txt'
         load_path = os.path.join(self.config.dirname, filename2)
-        print("Data file:", file_name, load_path)
+        print('Data file:', file_name, load_path)
         shutil.copy(file_name, load_path)
 
         # Open File
@@ -783,14 +806,15 @@ class UniDec(UniDecEngine):
             else:
                 self.data.data3 = np.loadtxt(self.config.infname)
                 i3 = self.data.data3[:, 2].reshape(
-                    (len(np.unique(self.data.data3[:, 0])), len(np.unique(self.data.data3[:, 1]))))
+                    (len(np.unique(self.data.data3[:, 0])), len(np.unique(self.data.data3[:, 1]))),
+                )
                 self.data.data2 = np.transpose([np.unique(self.data.data3[:, 0]), np.sum(i3, axis=1)])
             self.config.procflag = 1
         else:
             self.config.procflag = 0
 
         # Import UniDec Results
-        if os.path.isfile(self.config.outfname + "_error.txt"):
+        if os.path.isfile(self.config.outfname + '_error.txt'):
             self.unidec_imports()
 
         # Import Peaks
@@ -824,13 +848,13 @@ class UniDec(UniDecEngine):
 
                 ud.unidec_call(self.config, silent=True)
 
-                massdat = np.loadtxt(self.config.outfname + "_mass.txt")
+                massdat = np.loadtxt(self.config.outfname + '_mass.txt')
                 try:
                     peaks = ud.peakdetect(massdat, self.config)
                     peaks = ud.mergepeaks(toppeaks, peaks, self.config.peakwindow)
                     peakdatavg.append(peaks)
                 except (ValueError, TypeError, IndexError, ZeroDivisionError):
-                    print("No peaks selected")
+                    print('No peaks selected')
                     pass
                 massdat = ud.mergedata(self.data.massdat, massdat)
                 massdatavg.append(massdat[:, 1])
@@ -838,7 +862,7 @@ class UniDec(UniDecEngine):
             tend = time.clock()
             mean = np.mean(np.array(massdatavg), axis=0)
             stddev = np.std(np.array(massdatavg), axis=0)
-            print(j, "Total CV Time:", (tend - tstart), "STD:", np.mean(stddev))
+            print(j, 'Total CV Time:', (tend - tstart), 'STD:', np.mean(stddev))
 
         self.data.data2 = deepcopy(data2archive)
         ud.dataexport(self.data.data2, self.config.infname)
@@ -848,28 +872,32 @@ class UniDec(UniDecEngine):
                 i = np.where(self.data.massdat[:, 0] == peak[0])
                 peaksvert.append([peak[0], mean[i], stddev[i], stddev[i] / mean[i] * 100])
             peaksvert = np.array(peaksvert)
-            print("\nIntensity Variation at Fixed Mass: ")
-            print("Mass Int.Mean Int.Std Int.%Std")
+            print('\nIntensity Variation at Fixed Mass: ')
+            print('Mass Int.Mean Int.Std Int.%Std')
             print(peaksvert)
 
-            ud.dataexport(peaksvert, self.config.outfname + "_peakcvinterr.dat")
+            ud.dataexport(peaksvert, self.config.outfname + '_peakcvinterr.dat')
 
             peakdatavg = np.array(peakdatavg)
             peakmean = np.array(
-                [np.mean(peakdatavg[:, i][peakdatavg[:, i, 1] != 0], axis=0) for i in range(0, len(toppeaks))])
+                [np.mean(peakdatavg[:, i][peakdatavg[:, i, 1] != 0], axis=0) for i in range(0, len(toppeaks))],
+            )
             peakstd = np.array(
-                [np.std(peakdatavg[:, i][peakdatavg[:, i, 1] != 0], axis=0) for i in range(0, len(toppeaks))])
+                [np.std(peakdatavg[:, i][peakdatavg[:, i, 1] != 0], axis=0) for i in range(0, len(toppeaks))],
+            )
 
-            peaks = [peakmean[:, 0], peakstd[:, 0], peakstd[:, 0] / peakmean[:, 0] * 100., peakmean[:, 1],
-                     peakstd[:, 1], peakstd[:, 1] / peakmean[:, 1] * 100.]
+            peaks = [
+                peakmean[:, 0], peakstd[:, 0], peakstd[:, 0] / peakmean[:, 0] * 100., peakmean[:, 1],
+                peakstd[:, 1], peakstd[:, 1] / peakmean[:, 1] * 100.,
+            ]
             # Output format: Mass: Mean, Std Dev, % Std Dev  Intensity: Mean, Std Dev, %Std Dev
             peaks = np.transpose(np.array(peaks))
-            print("\nMass and Intensity Variation for Fresh Peaks Each Round:")
-            print("MassMean MassStd Mass%Std Int.Mean Int.Std Int.%Std")
+            print('\nMass and Intensity Variation for Fresh Peaks Each Round:')
+            print('MassMean MassStd Mass%Std Int.Mean Int.Std Int.%Std')
             print(peaks)
-            ud.dataexport(peaks, self.config.outfname + "_peakcverr.dat")
+            ud.dataexport(peaks, self.config.outfname + '_peakcverr.dat')
         except (IndexError, ValueError, ZeroDivisionError, TypeError, AttributeError):
-            print("No peaks in cross validation...")
+            print('No peaks in cross validation...')
         return mean, stddev
 
     def normalize_peaks(self):
@@ -947,7 +975,7 @@ class UniDec(UniDecEngine):
                     f = interp1d(aligned[0][:, 0], aligned[0][:, 1], fill_value=0, bounds_error=False)
                     aligned[0] = np.transpose([dat[:, 0], f(dat[:, 0])])
                 # TODO: Problem when len (aligned[[0]) < len (dat) (Fixed?)
-                corr = np.correlate(dat[:, 1], aligned[0][:, 1], mode="same")
+                corr = np.correlate(dat[:, 1], aligned[0][:, 1], mode='same')
                 move = np.argmax(corr) - np.argmax(dat[:, 1])
                 y = np.roll(self.data.massdat[:, 1], -move)[boo3]
                 if norm:
@@ -1093,7 +1121,7 @@ class UniDec(UniDecEngine):
 
     def get_errors(self, **kwargs):
         kwargs2 = deepcopy(kwargs)
-        kwargs2["plot_corr"] = False
+        kwargs2['plot_corr'] = False
         self.get_peaks_scores(**kwargs2)
         self.fit_isolated_peaks(**kwargs)
         self.correlate_intensities(window=self.config.peakwindow, **kwargs)
@@ -1101,19 +1129,21 @@ class UniDec(UniDecEngine):
         try:
             errorgrid = []
             for p in self.pks.peaks:
-                errorgrid.append([[p.fitmassavg, p.fitmasserr, p.fitarea, p.fitareaerr],
-                                  [p.massavg, p.masserr, p.corrint, p.correrr]])
+                errorgrid.append([
+                    [p.fitmassavg, p.fitmasserr, p.fitarea, p.fitareaerr],
+                    [p.massavg, p.masserr, p.corrint, p.correrr],
+                ])
         except ValueError:
             errorgrid = []
         self.errorgrid = np.array(errorgrid)
 
     def open_test_spectrum(self, masslist=None, n=1, **kwargs):
         data, ztab = MSBuild.simple_spectrum(masslist, **kwargs)
-        testdir = os.path.join(self.config.UniDecDir, "TestSpectra")
+        testdir = os.path.join(self.config.UniDecDir, 'TestSpectra')
         if not os.path.isdir(testdir):
             os.mkdir(testdir)
 
-        fname = "test_" + str(n) + ".txt"
+        fname = 'test_' + str(n) + '.txt'
         np.savetxt(os.path.join(testdir, fname), data)
 
         self.open_file(fname, testdir, **kwargs)
@@ -1136,22 +1166,26 @@ class UniDec(UniDecEngine):
         plt.figure()
         plt.subplot(121)
         try:
-            plt.plot(self.data.data2[:, 0], self.data.data2[:, 1], color="k")
+            plt.plot(self.data.data2[:, 0], self.data.data2[:, 1], color='k')
         except (IndexError, AttributeError):
-            plt.plot(self.data.rawdata[:, 0], self.data.rawdata[:, 1], color="k")
+            plt.plot(self.data.rawdata[:, 0], self.data.rawdata[:, 1], color='k')
         plt.subplot(122)
         try:
-            plt.plot(self.data.massdat[:, 0], self.data.massdat[:, 1], color="k")
+            plt.plot(self.data.massdat[:, 0], self.data.massdat[:, 1], color='k')
         except (IndexError, AttributeError):
             pass
         try:
             for p in self.pks.peaks:
-                plt.errorbar(p.fitmassavg, p.fitarea, yerr=p.fitareaerr, xerr=p.fitmasserr, label="Fit", linestyle="",
-                             color="r")
-                plt.errorbar(p.massavg, p.corrint, xerr=p.masserr, yerr=p.correrr, label="Corr", linestyle="",
-                             color="b")
+                plt.errorbar(
+                    p.fitmassavg, p.fitarea, yerr=p.fitareaerr, xerr=p.fitmasserr, label='Fit', linestyle='',
+                    color='r',
+                )
+                plt.errorbar(
+                    p.massavg, p.corrint, xerr=p.masserr, yerr=p.correrr, label='Corr', linestyle='',
+                    color='b',
+                )
         except AttributeError:
-            print("Failed to Plot Error Bars")
+            print('Failed to Plot Error Bars')
 
         if massrange is not None:
             plt.xlim(massrange)
@@ -1170,14 +1204,14 @@ class UniDec(UniDecEngine):
 
 
 # Optional Run
-if __name__ == "__main__":
+if __name__ == '__main__':
     eng = UniDec()
 
-    print("MSTest")
-    filename = "0.txt"
-    path = "C:\\Python\\UniDec\\TestSpectra"
+    print('MSTest')
+    filename = '0.txt'
+    path = 'C:\\Python\\UniDec\\TestSpectra'
     # files=["150611_ND_AmtB_05_100.txt"]
-    files = ["0.txt"]  # ,"250313_AQPZ_POPC_100_imraw.txt"]
+    files = ['0.txt']  # ,"250313_AQPZ_POPC_100_imraw.txt"]
     # path=os.getcwd()
     # files=["Traptavidin_20mer+B4F_new_40Colli.txt"]
     eng.read_hdf5_config()

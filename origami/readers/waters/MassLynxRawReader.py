@@ -1,12 +1,14 @@
 ''' Waters
     MassLynx Python SDK
 '''
-
 # import string
 import ctypes
 import os
+from ctypes import c_char_p
+from ctypes import c_int
+from ctypes import c_void_p
+from ctypes import POINTER
 from enum import IntEnum
-from ctypes import c_char_p, c_int, c_void_p, POINTER
 
 
 class MassLynxBaseType(IntEnum):
@@ -171,7 +173,7 @@ class MassLynxStringHandler(object):
 
     def ToString(self, chString, release):
         if (None == chString):
-            return ""
+            return ''
 
         strValue = chString.value.decode()
         if (release):
@@ -222,10 +224,10 @@ class MassLynxRawReader(object):
 
     # load the dll
     current_directory = os.getcwd()
-    waters_path = os.path.join(current_directory, "readers", "waters")
+    waters_path = os.path.join(current_directory, 'readers', 'waters')
     os.chdir(waters_path)
-    dll_path = os.path.join(waters_path, "MassLynxRaw.dll")
-    massLynxDll = ctypes.WinDLL("MassLynxRaw.dll")
+    dll_path = os.path.join(waters_path, 'MassLynxRaw.dll')
+    massLynxDll = ctypes.WinDLL('MassLynxRaw.dll')
     version = '1.0'  # class variable
 
     os.chdir(current_directory)

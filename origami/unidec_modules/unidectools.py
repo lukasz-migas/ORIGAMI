@@ -1,6 +1,7 @@
-from bisect import bisect_left
-from copy import deepcopy
-from ctypes import c_double, c_int, byref, cdll
+"""
+Loads initial dll called libmypfunc. Will speed up convolutions and a few functions.
+If this isn't present, it will print a warning but use the pure python code later on.
+"""
 import fnmatch
 import math
 import os
@@ -9,34 +10,40 @@ import subprocess
 import sys
 import time
 import zipfile
-
-from scipy import fftpack
-from scipy import signal
-from scipy.interpolate import griddata
-from scipy.interpolate import interp1d
+from bisect import bisect_left
+from copy import deepcopy
+from ctypes import byref
+from ctypes import c_double
+from ctypes import c_int
+from ctypes import cdll
 
 import matplotlib.cm as cm
 import numpy as np
 import scipy.ndimage.filters as filt
-from unidec_modules.fitting import stats, ndis, ldis, splitdis, ndis_std, logistic, isolated_peak_fit
+from scipy import fftpack
+from scipy import signal
+from scipy.interpolate import griddata
+from scipy.interpolate import interp1d
+from unidec_modules.fitting import isolated_peak_fit
+from unidec_modules.fitting import ldis
+from unidec_modules.fitting import logistic
+from unidec_modules.fitting import ndis
+from unidec_modules.fitting import ndis_std
+from unidec_modules.fitting import splitdis
+from unidec_modules.fitting import stats
 
 is_64bits = sys.maxsize > 2 ** 32
 
-"""
-Loads initial dll called libmypfunc. Will speed up convolutions and a few functions.
+dllname = 'libmypfunc'
 
-If this isn't present, it will print a warning but use the pure python code later on.
-"""
-dllname = "libmypfunc"
-
-if platform.system() == "Windows":
+if platform.system() == 'Windows':
     if not is_64bits:
-        dllname += "32"
-    dllname += ".dll"
-elif platform.system() == "Darwin":
-    dllname += ".dylib"
+        dllname += '32'
+    dllname += '.dll'
+elif platform.system() == 'Darwin':
+    dllname += '.dylib'
 else:
-    dllname += ".so"
+    dllname += '.so'
 testpath = dllname
 if os.path.isfile(testpath):
     dllpath = testpath
@@ -52,17 +59,17 @@ else:
             dllpath = testpath
         else:
             # print testpath
-            testpath = os.path.join(os.path.join(os.path.dirname(pathtofile), "unidec_bin"), dllname)
+            testpath = os.path.join(os.path.join(os.path.dirname(pathtofile), 'unidec_bin'), dllname)
             if os.path.isfile(testpath):
                 dllpath = testpath
             else:
                 # print testpath
-                print("Unable to find file", testpath)
+                print('Unable to find file', testpath)
 
 try:
     libs = cdll.LoadLibrary(dllpath)
 except (OSError, NameError):
-    print("Failed to load libmypfunc, convolutions in nonlinear mode might be slow")
+    print('Failed to load libmypfunc, convolutions in nonlinear mode might be slow')
 
 # ..........................
 #
@@ -91,7 +98,7 @@ def isempty(thing):
         else:
             out = False
     except (TypeError, ValueError, AttributeError):
-        print("Error testing emptiness")
+        print('Error testing emptiness')
         out = False
     return out
 
@@ -106,7 +113,7 @@ def string_to_value(s):
         v = float(s)
         return v
     except (ValueError, TypeError):
-        return ""
+        return ''
 
 
 def simp_string_to_value(s):
@@ -385,7 +392,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
         else:
             index = nearest(data[:, 0], x)
             val = data[index, 1]
-            print("NEED TO SET INTEGRAL WINDOW!\nUsing Peak Height Instead")
+            print('NEED TO SET INTEGRAL WINDOW!\nUsing Peak Height Instead')
 
     elif extract_method == 3:
         if window is not None:
@@ -394,7 +401,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val, junk = center_of_mass(data, start, end)
         else:
             val, junk = center_of_mass(data, data[0, 0], data[len(data) - 1, 0])
-            print("No window set for center of mass!\nUsing entire data range....")
+            print('No window set for center of mass!\nUsing entire data range....')
 
     elif extract_method == 4:
         if window is not None:
@@ -403,7 +410,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val = localmaxpos(data, start, end)
         else:
             val = localmaxpos(data, data[0, 0], data[len(data) - 1, 0])
-            print("No window set for local max position!\nUsing entire data range....")
+            print('No window set for local max position!\nUsing entire data range....')
 
     elif extract_method == 5:
         # Remove data points that fall below 50% threshold
@@ -417,7 +424,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val, junk = center_of_mass(cutdat, start, end)
         else:
             val, junk = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
-            print("No window set for center of mass!\nUsing entire data range....")
+            print('No window set for center of mass!\nUsing entire data range....')
 
     elif extract_method == 6:
         # Remove data points that fall below 10% threshold
@@ -431,11 +438,11 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val, junk = center_of_mass(cutdat, start, end)
         else:
             val, junk = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
-            print("No window set for center of mass!\nUsing entire data range....")
+            print('No window set for center of mass!\nUsing entire data range....')
 
     else:
         val = 0
-        print("Undefined extraction choice")
+        print('Undefined extraction choice')
     return val
 
 
@@ -452,7 +459,7 @@ def data_extract_grid(data, xarray, extract_method=1, window=0):
 def kendrick_analysis(massdat, kendrickmass, centermode=1, nbins=50, transformmode=1, xaxistype=1):
     # Calculate Defects for Deconvolved Masses
     if kendrickmass == 0:
-        print("Error: Kendrick mass is 0.")
+        print('Error: Kendrick mass is 0.')
         return None, None, None, None, None
     xaxis = massdat[:, 0]
     kmass = np.array(xaxis) / float(kendrickmass)
@@ -536,7 +543,7 @@ def header_test(path):
     """
     header = 0
     try:
-        with open(path, "r") as f:
+        with open(path, 'r') as f:
             for line in f:
                 for sin in line.split():
                     try:
@@ -545,9 +552,9 @@ def header_test(path):
                         header += 1
                         break
         if header > 0:
-            print("Header Length:", header)
+            print('Header Length:', header)
     except (ImportError, OSError, AttributeError, IOError):
-        print("Failed header test")
+        print('Failed header test')
         header = 0
     return header
 
@@ -559,10 +566,10 @@ def waters_convert(path, config=None):
         config.initialize_system_paths()
         print(config.rawreaderpath)
 
-    t = os.path.join(path, "converted_rawdata.txt")
-    call = [config.rawreaderpath, "-i", path, "-o", t]
+    t = os.path.join(path, 'converted_rawdata.txt')
+    call = [config.rawreaderpath, '-i', path, '-o', t]
     result = subprocess.call(call)
-    print("Conversion Stderr:", result)
+    print('Conversion Stderr:', result)
     data = np.loadtxt(t)
     return data
 
@@ -582,36 +589,36 @@ def load_mz_file(path, config=None):
         extension = config.extension.lower()
 
     if not os.path.isfile(path):
-        if os.path.isdir(path) and os.path.splitext(path)[1].lower() == ".raw":
+        if os.path.isdir(path) and os.path.splitext(path)[1].lower() == '.raw':
             try:
-                print("Trying to convert Waters File")
+                print('Trying to convert Waters File')
                 data = waters_convert(path, config)
             except Exception:
-                print("Attempted to convert Waters Raw file but failed")
+                print('Attempted to convert Waters Raw file but failed')
                 raise IOError
         else:
-            print("Attempted to open:", path)
+            print('Attempted to open:', path)
             print("\t but I couldn't find the file...")
             raise IOError
     else:
 
-        if extension == ".txt":
+        if extension == '.txt':
             data = np.loadtxt(path, skiprows=header_test(path))
         # elif extension == ".mzml":
         #     data = mzMLimporter.mzMLimporter(path).get_data()
         #     txtname = path[:-5] + ".txt"
         #     np.savetxt(txtname, data)
         #     print "Saved to:", txtname
-        elif extension.lower() == ".raw":
+        elif extension.lower() == '.raw':
             data = data_reader.DataImporter(path).get_data()
-            txtname = path[:-4] + ".txt"
+            txtname = path[:-4] + '.txt'
             np.savetxt(txtname, data)
-            print("Saved to:", txtname)
+            print('Saved to:', txtname)
         else:
             try:
                 data = np.loadtxt(path, skiprows=header_test(path))
             except IOError:
-                print("Failed to open:", path)
+                print('Failed to open:', path)
                 data = None
     return data
 
@@ -636,11 +643,11 @@ def zip_folder(save_path):
     :return: None
     """
     directory = os.getcwd()
-    print("Zipping directory:", directory)
+    print('Zipping directory:', directory)
     zipf = zipfile.ZipFile(save_path, 'w')
     zipdir(directory, zipf)
     zipf.close()
-    print("File saved to: " + str(save_path))
+    print('File saved to: ' + str(save_path))
 
 
 def dataexport(datatop, fname):
@@ -887,7 +894,7 @@ def savgol_background_subtract(datatop, width, cutoff_percent=0.25):
         gooddat = gooddat[good]
         # plt.plot(gooddat[:,0],gooddat[:,1],marker="o",linestyle="")
     sgsmooth = savgol(gooddat[:, 1], window=buff, order=sgorder)
-    f = interp1d(gooddat[:, 0], sgsmooth, kind="linear", fill_value=0, bounds_error=True)
+    f = interp1d(gooddat[:, 0], sgsmooth, kind='linear', fill_value=0, bounds_error=True)
     background = f(datatop[:, 0])
     background = savgol(background, window=buff, order=sgorder)
     background = np.clip(background, 0, starting_max)
@@ -1055,8 +1062,10 @@ def nonlinearize(datatop, num_compressed):
         return datatop
     else:
         num_compressed = int(num_compressed)
-        return np.array([np.mean(datatop[index:index + num_compressed], axis=0) for index in
-                         range(0, len(datatop), num_compressed)])
+        return np.array([
+            np.mean(datatop[index:index + num_compressed], axis=0) for index in
+            range(0, len(datatop), num_compressed)
+        ])
 
 
 def removeduplicates(datatop):
@@ -1068,7 +1077,7 @@ def removeduplicates(datatop):
     """
     testunique = np.unique(datatop[:, 0])
     if len(testunique) != len(datatop):
-        print("Removing Duplicates")
+        print('Removing Duplicates')
         num, start = np.histogram(datatop[:, 0], bins=testunique)
         means = []
         xvals = []
@@ -1189,16 +1198,16 @@ def dataprep(datatop, config):
     elif buff == 0:
         pass
     else:
-        print("Background subtraction code unsupported", subtype, buff)
+        print('Background subtraction code unsupported', subtype, buff)
 
     # Intensity Threshold
     data2 = intensitythresh(data2, 0)  # thresh
     # data2=data2[data2[:,1]>0]
 
     # Scale Adjustment
-    if config.intscale is "Square Root":
+    if config.intscale == 'Square Root':
         data2[:, 1] = np.sqrt(data2[:, 1])
-    elif config.intscale is "Logarithmic":
+    elif config.intscale == 'Logarithmic':
         data2[:, 1] = fake_log(data2[:, 1])
         data2[:, 1] -= np.amin(data2[:, 1])
 
@@ -1239,10 +1248,10 @@ def unidec_call(config, silent=False, **kwargs):
 
     call = [config.UniDecPath, str(config.confname)]
 
-    if "kill" in kwargs:
-        killnum = kwargs["kill"]
+    if 'kill' in kwargs:
+        killnum = kwargs['kill']
         # print "Killing Peak:",killnum
-        call.append("-kill")
+        call.append('-kill')
         call.append(str(killnum))
 
     if silent:
@@ -1468,12 +1477,22 @@ def make_alpha_cmap(rgb_tuple, alpha):
     :param alpha: Maximum Alpha (Transparency) [0,1]
     :return: Color map dictionary with a constant color but varying transprency
     """
-    cdict = {'red': ((0.0, rgb_tuple[0], rgb_tuple[0]),
-                     (1.0, rgb_tuple[0], rgb_tuple[0])), 'green': ((0.0, rgb_tuple[1], rgb_tuple[1]),
-                                                                   (1.0, rgb_tuple[1], rgb_tuple[1])),
-             'blue': ((0.0, rgb_tuple[2], rgb_tuple[2]),
-                      (1.0, rgb_tuple[2], rgb_tuple[2])), 'alpha': ((0.0, 0, 0),
-                                                                    (1.0, alpha, alpha))}
+    cdict = {
+        'red': (
+            (0.0, rgb_tuple[0], rgb_tuple[0]),
+            (1.0, rgb_tuple[0], rgb_tuple[0]),
+        ), 'green': (
+            (0.0, rgb_tuple[1], rgb_tuple[1]),
+            (1.0, rgb_tuple[1], rgb_tuple[1]),
+        ),
+        'blue': (
+            (0.0, rgb_tuple[2], rgb_tuple[2]),
+            (1.0, rgb_tuple[2], rgb_tuple[2]),
+        ), 'alpha': (
+            (0.0, 0, 0),
+            (1.0, alpha, alpha),
+        ),
+    }
     return cdict
 
 
@@ -1541,11 +1560,11 @@ def combine_all(array2):
     finlist = []
     namelist = []
     for index in np.ndindex(tup):
-        name = ""
+        name = ''
         for i in range(0, len(index)):
             val = index[i] + startindex[i]
             if val > 0:
-                name = name + str(val) + "[" + names[i] + "] "
+                name = name + str(val) + '[' + names[i] + '] '
             else:
                 pass
         total = np.sum((index + startindex) * omass + basemass)
@@ -1566,10 +1585,10 @@ def make_isolated_match(oligos):
             newmass = float(oligos[i][0]) + j * float(oligos[i][1])
             if newmass > 0:
                 oligomasslist.append(newmass)
-                if j > 0 or oligos[i][4] == "":
-                    oligonames.append(str(j) + "[" + oligos[i][4]) + "]"
+                if j > 0 or oligos[i][4] == '':
+                    oligonames.append(str(j) + '[' + oligos[i][4]) + ']'
                 else:
-                    oligonames.append("")
+                    oligonames.append('')
                     # self.oligonames.append(str(j)+""+oligos[i][4])
     oligomasslist = np.array(oligomasslist)
     return oligomasslist, oligonames
@@ -1599,7 +1618,7 @@ def match(pks, oligomasslist, oligonames, tolerance=None):
         if tolerance is None or np.abs(error) < tolerance:
             name = oligonames[nearpt]
         else:
-            name = ""
+            name = ''
 
         p.label = name
         p.match = match
@@ -1627,7 +1646,7 @@ def cconv(a, b):
     """
     # return np.fft.ifft(np.fft.fft(a) * np.fft.fft(b)).real
     # return np.convolve(a, np.roll(b, (len(b)) / 2 - 1 + len(b) % 2), mode="same")
-    return signal.fftconvolve(a, np.roll(b, (len(b)) / 2 - 1 + len(b) % 2), mode="same")
+    return signal.fftconvolve(a, np.roll(b, (len(b)) / 2 - 1 + len(b) % 2), mode='same')
 
 
 def FD_gauss_wavelet(length, width):
@@ -1637,7 +1656,7 @@ def FD_gauss_wavelet(length, width):
     return [stats.norm.pdf(x, mu, sigma) * (mu - x) / sigma ** 2 for x in xvals]
 
 
-def single_cwt(a, width, wavelet_type="Ricker"):
+def single_cwt(a, width, wavelet_type='Ricker'):
     """
     Perform a continuous wavelet transform at a single defined width.
     :param a: 1D numpy array of data (length N)
@@ -1646,16 +1665,16 @@ def single_cwt(a, width, wavelet_type="Ricker"):
     :return: cwt, wavelet
     Continous wavelet transform and wavelet of choice, both as numpy arrays of length N.
     """
-    if wavelet_type is "Morlet":
+    if wavelet_type == 'Morlet':
         wdat = signal.morlet(len(a), width)
-    elif wavelet_type is "1DG":
+    elif wavelet_type == '1DG':
         wdat = FD_gauss_wavelet(len(a), width)
     else:
         wdat = signal.ricker(len(a), width)
     return continuous_wavelet_transform(a, [width], wavelet_type=wavelet_type)[0], wdat
 
 
-def continuous_wavelet_transform(a, widths, wavelet_type="Ricker"):
+def continuous_wavelet_transform(a, widths, wavelet_type='Ricker'):
     """
     Perform a continuous wavelet transform at multiple widths.
     :param a: 1D numpy array of data (length N)
@@ -1663,9 +1682,9 @@ def continuous_wavelet_transform(a, widths, wavelet_type="Ricker"):
     :param wavelet_type: Type of wavelet. Either "Ricker" (Mexican Hat) or "Morlet" (Gabor)
     :return: cwt_matrix (The continuous wavelet transform at the defined widths in a (W x N) array)
     """
-    if wavelet_type is "Morlet":
+    if wavelet_type == 'Morlet':
         wavelet = signal.morlet
-    elif wavelet_type is "1DG":
+    elif wavelet_type == '1DG':
         wavelet = FD_gauss_wavelet
     else:
         wavelet = signal.ricker
@@ -1905,7 +1924,7 @@ def win_fft_grid(rawdata, binsize, wbin, window_fwhm, diffrange):
 
     intdat = results[:, :, 1]
     yvals = np.unique(results[:, :, 0])
-    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing="ij")
+    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing='ij')
     out = np.transpose([np.ravel(xgrid), np.ravel(ygrid), np.ravel(intdat)])
     return out
 
@@ -1924,7 +1943,7 @@ def win_fft_grid_single(rawdata, binsize, wbin, window_fwhm, diffrange):
 
     intdat = results[:, :, 1]
     yvals = np.unique(results[:, :, 0])
-    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing="ij")
+    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing='ij')
     out = np.transpose([np.ravel(xgrid), np.ravel(ygrid), np.ravel(intdat)])
     return out
 
@@ -1936,7 +1955,7 @@ def win_fft_diff(rawdata, binsize=0.05, sigma=1000, diffrange=None):
     mzdata = pad_two_power(mzdata)
     maxpos = smoothdata[np.argmax(smoothdata[:, 1]), 0]
     maxdiff, fftdat = windowed_fft(mzdata, maxpos, sigma, diffrange=diffrange)
-    print("Difference:", maxdiff)
+    print('Difference:', maxdiff)
     return maxdiff, fftdat
 
 
@@ -1965,7 +1984,7 @@ def win_autocorr_grid(rawdata, binsize, wbin, window_fwhm, diffrange):
 
     intdat = results[:, :, 1]
     yvals = np.unique(results[:, :, 0])
-    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing="ij")
+    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing='ij')
     out = np.transpose([np.ravel(xgrid), np.ravel(ygrid), np.ravel(intdat)])
     return out
 
@@ -2016,7 +2035,7 @@ def correlation_integration(dat1, dat2, alpha=0.01, plot_corr=False, **kwargs):
         if pvalue < alpha:
             plt.plot(y2)
         else:
-            plt.plot(y2, color="r")
+            plt.plot(y2, color='r')
         plt.show()
 
     return slope, cierr, rsquared, slope_std_error * np.sqrt(n), pvalue
@@ -2162,8 +2181,8 @@ def peaks_error_mean(pks, data, ztab, massdat, config):
         # pks.peaks[count].errormean = abs(sums[count] - pks.peaks[count].mass)
 
 
-if __name__ == "__main__":
-    testfile = "C:\Python\\UniDec\TestSpectra\\test_imms.raw"
+if __name__ == '__main__':
+    testfile = 'C:\\Python\\UniDec\\TestSpectra\\test_imms.raw'
     waters_convert(testfile)
 
     exit()

@@ -1,42 +1,26 @@
 # -*- coding: utf-8 -*-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
+import logging
 
 import numpy as np
-from scipy.signal import savgol_filter
-from scipy.ndimage import gaussian_filter
-from sklearn.preprocessing import normalize
 from gui_elements.misc_dialogs import dlgBox
+from scipy.ndimage import gaussian_filter
+from scipy.signal import savgol_filter
+from sklearn.preprocessing import normalize
 from utils.check import is_prime
-
-import logging
-logger = logging.getLogger("origami")
+logger = logging.getLogger('origami')
 
 
 def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.0):  # threshold2D
 
     # Check min_threshold is larger than max_threshold
     if min_threshold > max_threshold:
-        print("Minimum threshold is larger than the maximum. Values were reversed.")
+        print('Minimum threshold is larger than the maximum. Values were reversed.')
         min_threshold, max_threshold = max_threshold, min_threshold
 
     # Check if they are the same
     if min_threshold == max_threshold:
-        print("Minimum and maximum thresholds are the same.")
+        print('Minimum and maximum thresholds are the same.')
         return inputData
 
     # Find maximum value in the array
@@ -56,7 +40,7 @@ def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.
 def remove_noise_2D(inputData, threshold=0):
     data_max = np.max(inputData)
     if threshold > data_max:
-        logger.warning(f"Threshold value {threshold} is larger than the maximum value in the data {data_max}")
+        logger.warning(f'Threshold value {threshold} is larger than the maximum value in the data {data_max}')
         return inputData
 
     inputData[inputData <= threshold] = 0
@@ -68,9 +52,11 @@ def smooth_gaussian_2D(inputData=None, sigma=2):  # smoothDataGaussian
     if inputData is None or len(inputData) == 0:
         return None
     if sigma < 0:
-        dlgBox(exceptionTitle='Warning',
-               exceptionMsg="Value of sigma is too low. Value was reset to 1",
-               type="Warning")
+        dlgBox(
+            exceptionTitle='Warning',
+            exceptionMsg='Value of sigma is too low. Value was reset to 1',
+            type='Warning',
+        )
         sigma = 1
     else:
         sigma = sigma
@@ -86,9 +72,11 @@ def smooth_savgol_2D(inputData=None, polyOrder=2, windowSize=5):  # smoothDataSa
         return None
     # Check whether polynomial order is of correct size
     if (polyOrder <= 0):
-        dlgBox(exceptionTitle='Warning',
-               exceptionMsg="Polynomial order is too small. Value was reset to 2",
-               type="Warning")
+        dlgBox(
+            exceptionTitle='Warning',
+            exceptionMsg='Polynomial order is too small. Value was reset to 2',
+            type='Warning',
+        )
         polyOrder = 2
     else:
         polyOrder = polyOrder
@@ -100,10 +88,13 @@ def smooth_savgol_2D(inputData=None, polyOrder=2, windowSize=5):  # smoothDataSa
     elif windowSize <= polyOrder:
         dlgBox(
             exceptionTitle='Warning',
-            exceptionMsg="Window size was smaller than the polynomial order. Value was reset to %s" %
-            (polyOrder +
-             1),
-            type="Warning")
+            exceptionMsg='Window size was smaller than the polynomial order. Value was reset to %s' %
+            (
+                polyOrder +
+                1
+            ),
+            type='Warning',
+        )
         windowSize = polyOrder + 1
     else:
         print('Window size is even. Adding 1 to make it odd.')
@@ -121,7 +112,7 @@ def normalize_2D(inputData=None, mode='Maximum'):  # normalizeIMS
     """
     inputData = np.nan_to_num(inputData)
 #      Normalize 2D array to maximum intensity of 1
-    if mode == "Maximum":
+    if mode == 'Maximum':
         normData = normalize(inputData.astype(np.float64), axis=0, norm='max')
     elif mode == 'Logarithmic':
         normData = np.log10(inputData.astype(np.float64))
@@ -157,16 +148,22 @@ def calculate_division_factors(value, min_division=1, max_division=20, subsampli
     """Calculate division factor(s) for DT/MS dataset"""
     division_factors = []
     if is_prime(value):
-        print("The x-dimension is a prime number so I cannot bin it. Will downsample with `{}` instead.".format(
-            subsampling_default))
+        print(
+            'The x-dimension is a prime number so I cannot bin it. Will downsample with `{}` instead.'.format(
+                subsampling_default,
+            ),
+        )
         return [], subsampling_default
     else:
         for i in range(max_division, min_division, -1):
             if value % i == 0:
                 division_factors.append(i)
         if not division_factors:
-            print("Failed to find division factor in the range {}-{}. Will downsample with `{}` instead".format(
-                min_division, max_division, subsampling_default))
+            print(
+                'Failed to find division factor in the range {}-{}. Will downsample with `{}` instead'.format(
+                    min_division, max_division, subsampling_default,
+                ),
+            )
             return [], subsampling_default
         return division_factors, np.max(division_factors)
 
@@ -183,7 +180,7 @@ def bin_sum_array(data, xvals, division_factor):
     if np.prod(new_shape) != data.size:
         raise ValueError(
             "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) +
-            " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
+            ' Number of items before reshape: {} and after {}'.format(data.size, np.prod(new_shape)),
         )
     return np.reshape(data, new_shape).sum(axis=2), bin_mean_1D_array(xvals, new_shape)
 
@@ -195,7 +192,7 @@ def bin_mean_array(data, xvals, division_factor):
     if np.prod(new_shape) != data.size:
         raise ValueError(
             "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) +
-            " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
+            ' Number of items before reshape: {} and after {}'.format(data.size, np.prod(new_shape)),
         )
     return np.reshape(data, new_shape).mean(axis=2), bin_mean_1D_array(xvals, new_shape)
 

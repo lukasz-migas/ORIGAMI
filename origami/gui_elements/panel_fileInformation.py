@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import wx
 
 
@@ -6,8 +8,10 @@ class panelInformation(wx.MiniFrame):
     """
 
     def __init__(self, parent, **kwargs):
-        wx.MiniFrame.__init__(self, parent, -1, 'Sample information', size=(300, 200),
-                              style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER)
+        wx.MiniFrame.__init__(
+            self, parent, -1, 'Sample information', size=(300, 200),
+            style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER,
+        )
 
         self.parent = parent
 
@@ -19,10 +23,10 @@ class panelInformation(wx.MiniFrame):
         self.Layout()
         self.SetFocus()
 
-        if "title" in kwargs:
+        if 'title' in kwargs:
             self.SetTitle(kwargs['title'])
 
-        if "information" in kwargs:
+        if 'information' in kwargs:
             self.information.SetLabel(kwargs['information'])
             self.information.Wrap(425)
 
@@ -64,10 +68,10 @@ class panelInformation(wx.MiniFrame):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         # make editor
-        self.information = wx.StaticText(panel, -1, "", size=(-1, -1))
+        self.information = wx.StaticText(panel, -1, '', size=(-1, -1))
 
         # make buttons
-        self.okBtn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
+        self.okBtn = wx.Button(panel, wx.ID_OK, 'OK', size=(-1, 22))
         self.okBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(5, 5)

@@ -2,12 +2,18 @@
      Waters
     MassLynx Python SDK
 '''
-
 import ctypes
+from ctypes import c_bool
+from ctypes import c_char
+from ctypes import c_char_p
+from ctypes import c_float
+from ctypes import c_int
+from ctypes import c_void_p
+from ctypes import cast
+from ctypes import POINTER
 
-from readers.waters.MassLynxRawReader import MassLynxRawReader
 from readers.waters.MassLynxRawReader import MassLynxBaseType
-from ctypes import c_int, c_void_p, POINTER, c_float, c_char_p, c_bool, c_char, cast
+from readers.waters.MassLynxRawReader import MassLynxRawReader
 
 # from enum import IntEnum
 
@@ -130,7 +136,12 @@ class MassLynxRawInfoReader(MassLynxRawReader):
 
         getScanItem = MassLynxRawReader.massLynxDll.getScanItems
         getScanItem.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_char_p), c_int, POINTER(c_char)]
-        super().CheckReturnCode(getScanItem(self._getReader(), whichFunction, whichScan, items, temp, nItems, delimiter))
+        super().CheckReturnCode(
+            getScanItem(
+                self._getReader(),
+                whichFunction, whichScan, items, temp, nItems, delimiter,
+            ),
+        )
 
         itemString = super().ToString(temp)
 

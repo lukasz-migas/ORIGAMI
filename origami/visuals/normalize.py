@@ -1,7 +1,8 @@
 """Visual normalization functions"""
-
-from matplotlib.colors import Normalize
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import numpy as np
+from matplotlib.colors import Normalize
 
 
 class MidpointNormalize(Normalize):

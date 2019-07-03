@@ -1,17 +1,22 @@
-from __future__ import division
-
-import numpy as np
-from scipy.signal import fftconvolve
-from scipy.stats import scoreatpercentile, mode
-from collections import deque
-
-# This file was taken from the repository of Zhi-Min Zhang (https://github.com/zmzhang/libPeak)
-# It is a pretty good wavelet-based peak picker that should be useful for DT peak picking
+"""
+This file was taken from the repository of Zhi-Min Zhang (https://github.com/zmzhang/libPeak)
+It is a pretty good wavelet-based peak picker that should be useful for DT peak picking
 
 # Modifications
 # - removed a lot of the redundant code
 # - cleaned up a little
 # - added some comments for my own usage
+"""
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
+from __future__ import division
+
+from collections import deque
+
+import numpy as np
+from scipy.signal import fftconvolve
+from scipy.stats import mode
+from scipy.stats import scoreatpercentile
 
 
 def mexican_hat(points, a):
@@ -29,13 +34,14 @@ def cwt(data, wavelet, widths):
     output = np.zeros([len(widths), len(data)])
     for ind, width in enumerate(widths):
         wavelet_data = wavelet(min(10 * width, len(data)), width)
-        output[ind, :] = fftconvolve(data, wavelet_data,
-                                     mode='same')
+        output[ind, :] = fftconvolve(
+            data, wavelet_data,
+            mode='same',
+        )
     return output
 
 
-def local_extreme(data, comparator,
-                  axis=0, order=1, mode='clip'):
+def local_extreme(data, comparator, axis=0, order=1, mode='clip'):
     if (int(order) != order) or (order < 1):
         raise ValueError('Order must be an int >= 1')
     datalen = data.shape[axis]
@@ -200,16 +206,18 @@ if __name__ == '__main__':
     from scipy.stats import norm
     import matplotlib.pyplot as plt
 
-    cs = [(255, 158, 74),
-          (237, 102, 93),
-          (173, 139, 201),
-          (114, 158, 206),
-          (103, 191, 92),
-          (237, 151, 202),
-          (205, 204, 93),
-          (168, 120, 110),
-          (162, 162, 162),
-          (109, 204, 218)]
+    cs = [
+        (255, 158, 74),
+        (237, 102, 93),
+        (173, 139, 201),
+        (114, 158, 206),
+        (103, 191, 92),
+        (237, 151, 202),
+        (205, 204, 93),
+        (168, 120, 110),
+        (162, 162, 162),
+        (109, 204, 218),
+    ]
 
     csn = [tuple([i / 255.0 for i in t]) for t in cs]
     lw = 2.0
@@ -228,6 +236,6 @@ if __name__ == '__main__':
     plt.figure(figsize=(9, 3))
     plt.plot(xa, x, linewidth=lw, color=csn[0])
     plt.plot(xa[peak_ind], x[peak_ind], 'bv', markersize=10)
-    plt.ylabel("Intensity")
+    plt.ylabel('Intensity')
 
     plt.show()

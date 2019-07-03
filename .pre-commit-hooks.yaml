@@ -3,7 +3,7 @@
   entry: autopep8
   language: python
   "types": [python]
-  args: ["--aggressive --aggressive --max-line-length=120"]
+  args: ["--in-place --aggressive --aggressive --max-line-length=120"]
   require_serial: false
   additional_dependencies: []
 - id: flake8

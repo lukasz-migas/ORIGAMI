@@ -1,11 +1,13 @@
-import os
-from utils.converters import byte2str
-
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import logging
+import os
 import shutil
-logger = logging.getLogger("origami")
 
-__all__ = ["get_path_and_fname", "clean_up_folder", "check_waters_path", "check_path_exists", "check_file_exists"]
+from utils.converters import byte2str
+logger = logging.getLogger('origami')
+
+__all__ = ['get_path_and_fname', 'clean_up_folder', 'check_waters_path', 'check_path_exists', 'check_file_exists']
 
 
 def get_path_and_fname(path, simple=False):
@@ -18,7 +20,7 @@ def get_path_and_fname(path, simple=False):
     """
 
     # strip file extension from path name
-    if path.endswith((".hdi", ".imzML", ".raw", ".pickle", ".csv", ".txt", ".RAW", ".mzML", ".mgf")):
+    if path.endswith(('.hdi', '.imzML', '.raw', '.pickle', '.csv', '.txt', '.RAW', '.mzML', '.mgf')):
         path, _ = os.path.splitext(path)
 
     full_path = path
@@ -45,8 +47,8 @@ def clean_up_folder(filepath):
 
 
 def check_waters_path(filepath):
-    if not filepath.endswith(".raw"):
-        filepath = filepath + ".raw"
+    if not filepath.endswith('.raw'):
+        filepath = filepath + '.raw'
 
     return filepath
 
@@ -67,7 +69,7 @@ def clean_up_MDD_path(path):
         path_split = path.split(':)')
         drive = path_split[0].split('(')
         drive = drive[-1]
-        path = "{}:{}".format(drive, path_split[1])
+        path = '{}:{}'.format(drive, path_split[1])
     except IndexError:
         path = path
     return path
@@ -78,11 +80,11 @@ def get_base_path(filepath):
 
 
 def clean_filename(filename):
-    filename = filename.replace(".csv", "").replace(".txt", "").replace(".raw", "")
-    filename = filename.replace(".tab", "").replace(".RAW", "").replace(".mgf", "")
-    filename = filename.replace(".mzML", "").replace(".mzIdentML", "").replace(":", "")
-    filename = filename.replace("/", "").replace("~", "").replace("@", "at")
-    filename = filename.replace("[", "_").replace("]", "_")
+    filename = filename.replace('.csv', '').replace('.txt', '').replace('.raw', '')
+    filename = filename.replace('.tab', '').replace('.RAW', '').replace('.mgf', '')
+    filename = filename.replace('.mzML', '').replace('.mzIdentML', '').replace(':', '')
+    filename = filename.replace('/', '').replace('~', '').replace('@', 'at')
+    filename = filename.replace('[', '_').replace(']', '_')
 
     return filename
 

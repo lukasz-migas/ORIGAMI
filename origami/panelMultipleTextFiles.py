@@ -1,66 +1,97 @@
 # -*- coding: utf-8 -*-
-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
+import logging
 import re
+from ast import literal_eval
 from copy import deepcopy
 from os.path import split
+
 import wx
-from numpy import arange
-
 from document import document as documents
-from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
-from styles import makeMenuItem, makeTooltip, ListCtrl
-from toolbox import (merge_two_dicts, removeListDuplicates)
-from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.dialog_ask import DialogAsk
-from gui_elements.misc_dialogs import dlgBox
-from ids import ID_textPanel_addToDocument, ID_textPanel_assignColor, ID_textPanel_editItem, ID_textPanel_show_heatmap, \
-    ID_textPanel_show_mobiligram, ID_textPanel_normalize1D, ID_useProcessedCombinedMenu, ID_textPanel_automaticOverlay, \
-    ID_textPanel_check_selected, ID_textPanel_check_all, ID_textPanel_delete_rightClick, ID_textPanel_add_menu, \
-    ID_textPanel_annotate_menu, ID_textPanel_remove_menu, ID_textPanel_process_menu, ID_textPanel_overlay_menu, \
-    ID_textSelectOverlayMethod, ID_textPanel_show_chromatogram, ID_textPanel_show_process_heatmap, \
-    ID_textPanel_annotate_charge_state, ID_textPanel_annotate_alpha, ID_textPanel_annotate_mask, ID_textPanel_annotate_min_threshold, \
-    ID_textPanel_annotate_max_threshold, ID_textPanel_changeColorBatch_color, ID_textPanel_changeColorBatch_palette, \
-    ID_textPanel_changeColorBatch_colormap, ID_textPanel_changeColormapBatch, ID_addNewOverlayDoc, ID_ionPanel_edit_all, \
-    ID_textPanel_edit_selected, ID_textPanel_clear_selected, ID_textPanel_table_startCE, ID_textPanel_delete_all, \
-    ID_textPanel_delete_selected, ID_textPanel_clear_all, ID_textPanel_process_selected, ID_textPanel_process_all, \
-    ID_overlayTextfromList1D, ID_overlayTextfromListRT, ID_overlayTextFromList, ID_overlayTextfromListWaterfall, \
-    ID_load_multiple_text_2D, ID_textPanel_table_endCE, ID_textPanel_table_charge, ID_textPanel_table_color, \
-    ID_textPanel_table_colormap, ID_textPanel_table_alpha, ID_textPanel_table_mask, ID_textPanel_table_document, \
-    ID_textPanel_table_label, ID_textPanel_table_shape, ID_textPanel_table_hideAll, ID_textPanel_table_restoreAll, \
-    ID_textPanel_about_info
-from utils.color import convertRGB1to255, determineFontColor, convertRGB255to1, randomColorGenerator, roundRGB
-from utils.check import isempty
-from utils.time import getTime
-from utils.random import randomIntegerGenerator
-
-import logging
-from ast import literal_eval
 from gui_elements.dialog_color_picker import DialogColorPicker
-logger = logging.getLogger("origami")
+from gui_elements.dialog_select_document import DialogSelectDocument
+from gui_elements.misc_dialogs import dlgBox
+from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
+from ids import ID_addNewOverlayDoc
+from ids import ID_ionPanel_edit_all
+from ids import ID_load_multiple_text_2D
+from ids import ID_overlayTextFromList
+from ids import ID_overlayTextfromList1D
+from ids import ID_overlayTextfromListRT
+from ids import ID_overlayTextfromListWaterfall
+from ids import ID_textPanel_about_info
+from ids import ID_textPanel_add_menu
+from ids import ID_textPanel_addToDocument
+from ids import ID_textPanel_annotate_alpha
+from ids import ID_textPanel_annotate_charge_state
+from ids import ID_textPanel_annotate_mask
+from ids import ID_textPanel_annotate_max_threshold
+from ids import ID_textPanel_annotate_menu
+from ids import ID_textPanel_annotate_min_threshold
+from ids import ID_textPanel_assignColor
+from ids import ID_textPanel_automaticOverlay
+from ids import ID_textPanel_changeColorBatch_color
+from ids import ID_textPanel_changeColorBatch_colormap
+from ids import ID_textPanel_changeColorBatch_palette
+from ids import ID_textPanel_changeColormapBatch
+from ids import ID_textPanel_check_all
+from ids import ID_textPanel_check_selected
+from ids import ID_textPanel_clear_all
+from ids import ID_textPanel_clear_selected
+from ids import ID_textPanel_delete_all
+from ids import ID_textPanel_delete_rightClick
+from ids import ID_textPanel_delete_selected
+from ids import ID_textPanel_edit_selected
+from ids import ID_textPanel_editItem
+from ids import ID_textPanel_normalize1D
+from ids import ID_textPanel_overlay_menu
+from ids import ID_textPanel_process_all
+from ids import ID_textPanel_process_menu
+from ids import ID_textPanel_process_selected
+from ids import ID_textPanel_remove_menu
+from ids import ID_textPanel_show_chromatogram
+from ids import ID_textPanel_show_heatmap
+from ids import ID_textPanel_show_mobiligram
+from ids import ID_textPanel_show_process_heatmap
+from ids import ID_textPanel_table_alpha
+from ids import ID_textPanel_table_charge
+from ids import ID_textPanel_table_color
+from ids import ID_textPanel_table_colormap
+from ids import ID_textPanel_table_document
+from ids import ID_textPanel_table_endCE
+from ids import ID_textPanel_table_hideAll
+from ids import ID_textPanel_table_label
+from ids import ID_textPanel_table_mask
+from ids import ID_textPanel_table_restoreAll
+from ids import ID_textPanel_table_shape
+from ids import ID_textPanel_table_startCE
+from ids import ID_textSelectOverlayMethod
+from ids import ID_useProcessedCombinedMenu
+from numpy import arange
+from styles import ListCtrl
+from styles import makeMenuItem
+from styles import makeTooltip
+from toolbox import merge_two_dicts
+from toolbox import removeListDuplicates
+from utils.check import isempty
+from utils.color import convertRGB1to255
+from utils.color import convertRGB255to1
+from utils.color import determineFontColor
+from utils.color import randomColorGenerator
+from utils.color import roundRGB
+from utils.random import randomIntegerGenerator
+from utils.time import getTime
+logger = logging.getLogger('origami')
 
 
 class panelMultipleTextFiles (wx.Panel):
 
     def __init__(self, parent, config, icons, presenter):
-        wx.Panel.__init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                          size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL)
+        wx.Panel.__init__(
+            self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+            size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL,
+        )
 
         self.view = parent
         self.config = config
@@ -72,17 +103,18 @@ class panelMultipleTextFiles (wx.Panel):
         self.plotAutomatically = True
 
         self._textPanel_peaklist = {
-            0: {"name": "", "tag": "check", "type": "bool"},
-            1: {"name": "min CE", "tag": "start", "type": "float"},
-            2: {"name": "max CE", "tag": "end", "type": "float"},
-            3: {"name": "z", "tag": "charge", "type": "int"},
-            4: {"name": "color", "tag": "color", "type": "color"},
-            5: {"name": "colormap", "tag": "colormap", "type": "str"},
-            6: {"name": "\N{GREEK SMALL LETTER ALPHA}", "tag": "alpha", "type": "float"},
-            7: {"name": "mask", "tag": "mask", "type": "float"},
-            8: {"name": "label", "tag": "label", "type": "str"},
-            9: {"name": "shape", "tag": "shape", "type": "str"},
-            10: {"name": "file", "tag": "document", "type": "str"}}
+            0: {'name': '', 'tag': 'check', 'type': 'bool'},
+            1: {'name': 'min CE', 'tag': 'start', 'type': 'float'},
+            2: {'name': 'max CE', 'tag': 'end', 'type': 'float'},
+            3: {'name': 'z', 'tag': 'charge', 'type': 'int'},
+            4: {'name': 'color', 'tag': 'color', 'type': 'color'},
+            5: {'name': 'colormap', 'tag': 'colormap', 'type': 'str'},
+            6: {'name': '\N{GREEK SMALL LETTER ALPHA}', 'tag': 'alpha', 'type': 'float'},
+            7: {'name': 'mask', 'tag': 'mask', 'type': 'float'},
+            8: {'name': 'label', 'tag': 'label', 'type': 'str'},
+            9: {'name': 'shape', 'tag': 'shape', 'type': 'str'},
+            10: {'name': 'file', 'tag': 'document', 'type': 'str'},
+        }
 
         self.editItemDlg = None
 
@@ -152,8 +184,10 @@ class panelMultipleTextFiles (wx.Panel):
                 width = item['width']
             else:
                 width = 0
-            self.peaklist.InsertColumn(order, name, width=width,
-                                       format=wx.LIST_FORMAT_CENTER)
+            self.peaklist.InsertColumn(
+                order, name, width=width,
+                format=wx.LIST_FORMAT_CENTER,
+            )
 
         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_right_click)
@@ -180,60 +214,89 @@ class panelMultipleTextFiles (wx.Panel):
 
         self.add_btn = wx.BitmapButton(
             self, ID_textPanel_add_menu, self.icons.iconsLib['add16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        self.add_btn.SetToolTip(makeTooltip("Add..."))
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.add_btn.SetToolTip(makeTooltip('Add...'))
 
         self.remove_btn = wx.BitmapButton(
             self, ID_textPanel_remove_menu, self.icons.iconsLib['remove16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        self.remove_btn.SetToolTip(makeTooltip("Remove..."))
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.remove_btn.SetToolTip(makeTooltip('Remove...'))
 
         self.annotate_btn = wx.BitmapButton(
             self, ID_textPanel_annotate_menu, self.icons.iconsLib['annotate16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        self.annotate_btn.SetToolTip(makeTooltip("Annotate..."))
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.annotate_btn.SetToolTip(makeTooltip('Annotate...'))
 
         self.process_btn = wx.BitmapButton(
             self, ID_textPanel_process_menu, self.icons.iconsLib['process16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        self.process_btn.SetToolTip(makeTooltip("Process..."))
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.process_btn.SetToolTip(makeTooltip('Process...'))
 
         self.overlay_btn = wx.BitmapButton(
             self, ID_textPanel_overlay_menu, self.icons.iconsLib['overlay16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        self.overlay_btn.SetToolTip(makeTooltip("Overlay selected ions..."))
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.overlay_btn.SetToolTip(makeTooltip('Overlay selected ions...'))
 
-        self.combo = wx.ComboBox(self,
-                                 ID_textSelectOverlayMethod,
-                                 size=(105, -1),
-                                 choices=self.config.overlayChoices,
-                                 style=wx.CB_READONLY)
+        self.combo = wx.ComboBox(
+            self,
+            ID_textSelectOverlayMethod,
+            size=(105, -1),
+            choices=self.config.overlayChoices,
+            style=wx.CB_READONLY,
+        )
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
         self.info_btn = wx.BitmapButton(
             self, ID_textPanel_about_info, self.icons.iconsLib['info16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        self.info_btn.SetToolTip(makeTooltip("Information..."))
+            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.info_btn.SetToolTip(makeTooltip('Information...'))
 
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
-        btn_grid_vert.Add(self.add_btn, (x, 0), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.remove_btn, (x, 1), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.annotate_btn, (x, 2), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.process_btn, (x, 3), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.overlay_btn, (x, 4), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid_vert.Add(self.combo, (x, 5), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(
+            self.add_btn, (x, 0), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
+        btn_grid_vert.Add(
+            self.remove_btn, (x, 1), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
+        btn_grid_vert.Add(
+            self.annotate_btn, (x, 2), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
+        btn_grid_vert.Add(
+            self.process_btn, (x, 3), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
+        btn_grid_vert.Add(
+            self.overlay_btn, (x, 4), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
+        btn_grid_vert.Add(
+            self.combo, (x, 5), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
         btn_grid_vert.Add(vertical_line_1, (x, 6), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid_vert.Add(self.info_btn, (x, 7), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid_vert.Add(
+            self.info_btn, (x, 7), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
 
         return btn_grid_vert
 
@@ -250,27 +313,51 @@ class panelMultipleTextFiles (wx.Panel):
 
         self.peaklist.item_id = evt.GetIndex()
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_show_chromatogram,
-                                     text='Show chromatogram',
-                                     bitmap=self.icons.iconsLib['chromatogram_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_show_mobiligram,
-                                     text='Show mobiligram\tM',
-                                     bitmap=self.icons.iconsLib['mobiligram_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_show_heatmap,
-                                     text='Show heatmap\tH',
-                                     bitmap=self.icons.iconsLib['heatmap_16']))
-        menu.Append(ID_textPanel_show_process_heatmap, "Process and show heatmap")
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_show_chromatogram,
+                text='Show chromatogram',
+                bitmap=self.icons.iconsLib['chromatogram_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_show_mobiligram,
+                text='Show mobiligram\tM',
+                bitmap=self.icons.iconsLib['mobiligram_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_show_heatmap,
+                text='Show heatmap\tH',
+                bitmap=self.icons.iconsLib['heatmap_16'],
+            ),
+        )
+        menu.Append(ID_textPanel_show_process_heatmap, 'Process and show heatmap')
         menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_assignColor,
-                                     text='Assign new color\tC',
-                                     bitmap=self.icons.iconsLib['color_panel_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_editItem,
-                                     text='Edit file information\tE',
-                                     bitmap=self.icons.iconsLib['info16']))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_assignColor,
+                text='Assign new color\tC',
+                bitmap=self.icons.iconsLib['color_panel_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_editItem,
+                text='Edit file information\tE',
+                bitmap=self.icons.iconsLib['info16'],
+            ),
+        )
         menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_delete_rightClick,
-                                     text='Remove item\tDelete',
-                                     bitmap=self.icons.iconsLib['bin16']))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_delete_rightClick,
+                text='Remove item\tDelete',
+                bitmap=self.icons.iconsLib['bin16'],
+            ),
+        )
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -287,34 +374,70 @@ class panelMultipleTextFiles (wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_change_item_colormap, id=ID_textPanel_changeColormapBatch)
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_charge_state,
-                                     text='Assign charge state to selected items',
-                                     bitmap=self.icons.iconsLib['assign_charge_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_alpha,
-                                     text='Assign transparency value to selected ions',
-                                     bitmap=self.icons.iconsLib['transparency_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_mask,
-                                     text='Assign mask value to selected items',
-                                     bitmap=self.icons.iconsLib['mask_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_min_threshold,
-                                     text='Assign minimum threshold to selected items',
-                                     bitmap=self.icons.iconsLib['min_threshold_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_annotate_max_threshold,
-                                     text='Assign maximum threshold to selected items',
-                                     bitmap=self.icons.iconsLib['max_threshold_16']))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_annotate_charge_state,
+                text='Assign charge state to selected items',
+                bitmap=self.icons.iconsLib['assign_charge_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_annotate_alpha,
+                text='Assign transparency value to selected ions',
+                bitmap=self.icons.iconsLib['transparency_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_annotate_mask,
+                text='Assign mask value to selected items',
+                bitmap=self.icons.iconsLib['mask_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_annotate_min_threshold,
+                text='Assign minimum threshold to selected items',
+                bitmap=self.icons.iconsLib['min_threshold_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_annotate_max_threshold,
+                text='Assign maximum threshold to selected items',
+                bitmap=self.icons.iconsLib['max_threshold_16'],
+            ),
+        )
         menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_changeColorBatch_color,
-                                     text='Assign color for selected items',
-                                     bitmap=self.icons.iconsLib['color_panel_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_changeColorBatch_palette,
-                                     text='Color selected items using color palette',
-                                     bitmap=self.icons.iconsLib['blank_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_changeColorBatch_colormap,
-                                     text='Color selected items using colormap',
-                                     bitmap=self.icons.iconsLib['blank_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_changeColormapBatch,
-                                     text='Randomize colormap for selected items',
-                                     bitmap=self.icons.iconsLib['randomize_16']))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_changeColorBatch_color,
+                text='Assign color for selected items',
+                bitmap=self.icons.iconsLib['color_panel_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_changeColorBatch_palette,
+                text='Color selected items using color palette',
+                bitmap=self.icons.iconsLib['blank_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_changeColorBatch_colormap,
+                text='Color selected items using colormap',
+                bitmap=self.icons.iconsLib['blank_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_changeColormapBatch,
+                text='Randomize colormap for selected items',
+                bitmap=self.icons.iconsLib['randomize_16'],
+            ),
+        )
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -325,13 +448,21 @@ class panelMultipleTextFiles (wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_load_multiple_text_2D,
-                                     text='Add files\tCtrl+W',
-                                     bitmap=self.icons.iconsLib['file_csv_16']))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_load_multiple_text_2D,
+                text='Add files\tCtrl+W',
+                bitmap=self.icons.iconsLib['file_csv_16'],
+            ),
+        )
         menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_addNewOverlayDoc,
-                                     text='Create blank COMPARISON document\tAlt+D',
-                                     bitmap=self.icons.iconsLib['new_document_16']))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_addNewOverlayDoc,
+                text='Create blank COMPARISON document\tAlt+D',
+                bitmap=self.icons.iconsLib['new_document_16'],
+            ),
+        )
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -345,13 +476,17 @@ class panelMultipleTextFiles (wx.Panel):
         self.Bind(wx.EVT_MENU, self.peaklist.on_clear_table_all, id=ID_textPanel_clear_selected)
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_clear_all,
-                                     text='Clear table',
-                                     bitmap=self.icons.iconsLib['clear_16']))
-        menu.Append(ID_textPanel_clear_selected, "Clear selected")
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_clear_all,
+                text='Clear table',
+                bitmap=self.icons.iconsLib['clear_16'],
+            ),
+        )
+        menu.Append(ID_textPanel_clear_selected, 'Clear selected')
         menu.AppendSeparator()
-        menu.Append(ID_textPanel_delete_selected, "Delete selected files")
-        menu.Append(ID_textPanel_delete_all, "Delete all files")
+        menu.Append(ID_textPanel_delete_selected, 'Delete selected files')
+        menu.Append(ID_textPanel_delete_all, 'Delete all files')
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -362,8 +497,8 @@ class panelMultipleTextFiles (wx.Panel):
         self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_textPanel_process_all)
 
         menu = wx.Menu()
-        menu.Append(ID_textPanel_process_selected, "Process selected files")
-        menu.Append(ID_textPanel_process_all, "Process all files")
+        menu.Append(ID_textPanel_process_selected, 'Process selected files')
+        menu.Append(ID_textPanel_process_all, 'Process all files')
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -381,30 +516,38 @@ class panelMultipleTextFiles (wx.Panel):
 
         menu = wx.Menu()
         self.addToDocument_check = menu.AppendCheckItem(
-            ID_textPanel_addToDocument, "Add overlay plots to document\tA",
-            help="Add overlay results to comparison document")
+            ID_textPanel_addToDocument, 'Add overlay plots to document\tA',
+            help='Add overlay results to comparison document',
+        )
         self.addToDocument_check.Check(self.addToDocument)
         menu.AppendSeparator()
         self.normalize1D_check = menu.AppendCheckItem(
-            ID_textPanel_normalize1D, "Normalize mobiligram/chromatogram dataset\tN",
-            help="Normalize mobiligram/chromatogram before overlaying")
+            ID_textPanel_normalize1D, 'Normalize mobiligram/chromatogram dataset\tN',
+            help='Normalize mobiligram/chromatogram before overlaying',
+        )
         self.normalize1D_check.Check(self.normalize1D)
-        menu.Append(ID_overlayTextfromList1D, "Overlay mobiligrams (selected)")
-        menu.Append(ID_overlayTextfromListRT, "Overlay chromatograms (selected)")
+        menu.Append(ID_overlayTextfromList1D, 'Overlay mobiligrams (selected)')
+        menu.Append(ID_overlayTextfromListRT, 'Overlay chromatograms (selected)')
         menu.AppendSeparator()
         self.useProcessed_check = menu.AppendCheckItem(
-            ID_useProcessedCombinedMenu, "Use processed data (when available)\tP",
-            help="When checked, processed data is used in the overlay (2D) plots.")
+            ID_useProcessedCombinedMenu, 'Use processed data (when available)\tP',
+            help='When checked, processed data is used in the overlay (2D) plots.',
+        )
         self.useProcessed_check.Check(self.config.overlay_usedProcessed)
         menu.AppendSeparator()
         self.automaticPlot_check = menu.AppendCheckItem(
-            ID_textPanel_automaticOverlay, "Overlay automatically\tO",
-            help="Ions will be extracted automatically")
+            ID_textPanel_automaticOverlay, 'Overlay automatically\tO',
+            help='Ions will be extracted automatically',
+        )
         self.automaticPlot_check.Check(self.plotAutomatically)
-        menu.Append(ID_overlayTextfromListWaterfall, "Overlay as waterfall (selected)")
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_overlayTextFromList,
-                                     text='Overlay heatmaps (selected)\tAlt+W',
-                                     bitmap=self.icons.iconsLib['heatmap_grid_16']))
+        menu.Append(ID_overlayTextfromListWaterfall, 'Overlay as waterfall (selected)')
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_overlayTextFromList,
+                text='Overlay heatmaps (selected)\tAlt+W',
+                bitmap=self.icons.iconsLib['heatmap_grid_16'],
+            ),
+        )
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -455,12 +598,20 @@ class panelMultipleTextFiles (wx.Panel):
         self.table_filename = menu.AppendCheckItem(ID_textPanel_table_document, 'Table: Filename')
         self.table_filename.Check(self.config._textlistSettings[n]['show'])
         menu.AppendSeparator()
-        self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_table_hideAll,
-                                                        text='Table: Hide all',
-                                                        bitmap=self.icons.iconsLib['hide_table_16']))
-        self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_textPanel_table_restoreAll,
-                                                        text='Table: Restore all',
-                                                        bitmap=self.icons.iconsLib['show_table_16']))
+        self.table_index = menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_table_hideAll,
+                text='Table: Hide all',
+                bitmap=self.icons.iconsLib['hide_table_16'],
+            ),
+        )
+        self.table_index = menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_textPanel_table_restoreAll,
+                text='Table: Restore all',
+                bitmap=self.icons.iconsLib['show_table_16'],
+            ),
+        )
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -488,7 +639,7 @@ class panelMultipleTextFiles (wx.Panel):
                 try:
                     self.onUpdateDocument(evt=None)
                 except TypeError:
-                    print("Please select item")
+                    print('Please select item')
 
     def on_change_item_color_batch(self, evt):
         # get number of checked items
@@ -574,38 +725,47 @@ class panelMultipleTextFiles (wx.Panel):
             static_text = 'Assign charge state to selected items.'
             ask_kwargs = {
                 'static_text': static_text,
-                'value_text': "",
+                'value_text': '',
                 'validator': 'integer',
-                'keyword': 'charge'}
+                'keyword': 'charge',
+            }
 
         elif evt.GetId() == ID_textPanel_annotate_alpha:
-            static_text = "Assign new transparency value to selected items \n" + \
-                          "Typical transparency values: 0.5\nRange 0-1"
-            ask_kwargs = {'static_text': static_text,
-                          'value_text': 0.5,
-                          'validator': 'float',
-                          'keyword': 'alpha'}
+            static_text = 'Assign new transparency value to selected items \n' + \
+                          'Typical transparency values: 0.5\nRange 0-1'
+            ask_kwargs = {
+                'static_text': static_text,
+                'value_text': 0.5,
+                'validator': 'float',
+                'keyword': 'alpha',
+            }
 
         elif evt.GetId() == ID_textPanel_annotate_mask:
             static_text = 'Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1'
-            ask_kwargs = {'static_text': static_text,
-                          'value_text': 0.25,
-                          'validator': 'float',
-                          'keyword': 'mask'}
+            ask_kwargs = {
+                'static_text': static_text,
+                'value_text': 0.25,
+                'validator': 'float',
+                'keyword': 'mask',
+            }
 
         elif evt.GetId() == ID_textPanel_annotate_min_threshold:
             static_text = 'Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1'
-            ask_kwargs = {'static_text': static_text,
-                          'value_text': 0.0,
-                          'validator': 'float',
-                          'keyword': 'min_threshold'}
+            ask_kwargs = {
+                'static_text': static_text,
+                'value_text': 0.0,
+                'validator': 'float',
+                'keyword': 'min_threshold',
+            }
 
         elif evt.GetId() == ID_textPanel_annotate_max_threshold:
             static_text = 'Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1'
-            ask_kwargs = {'static_text': static_text,
-                          'value_text': 1.0,
-                          'validator': 'float',
-                          'keyword': 'max_threshold'}
+            ask_kwargs = {
+                'static_text': static_text,
+                'value_text': 1.0,
+                'validator': 'float',
+                'keyword': 'max_threshold',
+            }
 
         ask_dialog = DialogAsk(self, **ask_kwargs)
         if ask_dialog.ShowModal() != wx.ID_OK:
@@ -618,7 +778,7 @@ class panelMultipleTextFiles (wx.Panel):
         for row in range(rows):
             if self.peaklist.IsChecked(index=row):
                 itemInfo = self.OnGetItemInformation(row)
-                document = self.data_handling._on_get_document(itemInfo["document"])
+                document = self.data_handling._on_get_document(itemInfo['document'])
 
                 if not ask_kwargs['keyword'] in ['min_threshold', 'max_threshold']:
                     column = self.config.textlistColNames[ask_kwargs['keyword']]
@@ -639,19 +799,19 @@ class panelMultipleTextFiles (wx.Panel):
 
         if evtID == ID_useProcessedCombinedMenu:
             self.config.overlay_usedProcessed = not self.config.overlay_usedProcessed
-            msg = "Peak list panel: Using processing data was switched to {}".format(self.config.overlay_usedProcessed)
+            msg = 'Peak list panel: Using processing data was switched to {}'.format(self.config.overlay_usedProcessed)
 
         elif evtID == ID_textPanel_addToDocument:
             self.addToDocument = not self.addToDocument
-            msg = "Adding data to comparison document was set to: {}".format(self.addToDocument)
+            msg = 'Adding data to comparison document was set to: {}'.format(self.addToDocument)
 
         if evtID == ID_textPanel_normalize1D:
             self.normalize1D = not self.normalize1D
-            msg = "Normalization of mobiligrams/chromatograms was set to: {}".format(self.normalize1D)
+            msg = 'Normalization of mobiligrams/chromatograms was set to: {}'.format(self.normalize1D)
 
         if evtID == ID_textPanel_automaticOverlay:
             self.plotAutomatically = not self.plotAutomatically
-            msg = "Automatic 2D overlaying was set to: {}".format(self.plotAutomatically)
+            msg = 'Automatic 2D overlaying was set to: {}'.format(self.plotAutomatically)
 
             if self.plotAutomatically:
                 self.combo.Bind(wx.EVT_COMBOBOX, self.on_overlay_heatmap)
@@ -714,17 +874,21 @@ class panelMultipleTextFiles (wx.Panel):
 
         else:
             # Extract 2D data from the document
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
-                                                                                               dataType='plot',
-                                                                                               compact=False)
+            zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(
+                dictionary=data,
+                dataType='plot',
+                compact=False,
+            )
 
-            if isempty(xvals) or isempty(yvals) or xvals is "" or yvals is "":
-                msg1 = "Missing x- and/or y-axis labels. Cannot continue!"
-                msg2 = "Add x- and/or y-axis labels to each file before continuing!"
+            if isempty(xvals) or isempty(yvals) or xvals == '' or yvals == '':
+                msg1 = 'Missing x- and/or y-axis labels. Cannot continue!'
+                msg2 = 'Add x- and/or y-axis labels to each file before continuing!'
                 msg = '\n'.join([msg1, msg2])
-                dlgBox(exceptionTitle='Missing data',
-                       exceptionMsg=msg,
-                       type="Error")
+                dlgBox(
+                    exceptionTitle='Missing data',
+                    exceptionMsg=msg,
+                    type='Error',
+                )
                 return
 
             # Process data
@@ -734,14 +898,15 @@ class panelMultipleTextFiles (wx.Panel):
                 # zvals = self.presenter.process2Ddata(zvals=zvals.copy(), return_data=True)
 
             self.presenter.view.panelPlots.on_plot_2D(
-                zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
+                zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True,
+            )
 
     def onOverlayWaterfall(self, evt):
         rows = self.peaklist.GetItemCount()
 
         # Iterate over row and columns to get data
         xvals, yvals, zvals, colors, labels = [], [], [], [], []
-        item_name = "Waterfall overlay:"
+        item_name = 'Waterfall overlay:'
         for row in range(rows):
             if not self.peaklist.IsChecked(index=row):
                 continue
@@ -774,36 +939,39 @@ class panelMultipleTextFiles (wx.Panel):
             labels.append(itemInfo['label'])
 
             if self.addToDocument:
-                if itemInfo['label'] != "":
+                if itemInfo['label'] != '':
                     item_label = itemInfo['label']
                 else:
                     item_label = ion_title
 
                 if len(xvals) == 1:
-                    item_name = "{} {}".format(item_name, item_label)
+                    item_name = '{} {}'.format(item_name, item_label)
                 else:
-                    item_name = "{}, {}".format(item_name, item_label)
+                    item_name = '{}, {}'.format(item_name, item_label)
 
         if len(xvals) > 0:
             xlabel = data['xlabels']
             ylabel = data['ylabels']
             self.presenter.view.panelPlots.on_plot_waterfall_overlay(
-                xvals, yvals, zvals, colors, xlabel, ylabel, labels)
+                xvals, yvals, zvals, colors, xlabel, ylabel, labels,
+            )
             self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Waterfall'])
 
         # add data to document
         if self.addToDocument:
             _document = self.onGetOverlayDocument()
             checkExist = _document.IMS2DoverlayData.get(item_name, None)
-            data = {"xvals": xvals, "yvals": yvals, "zvals": zvals,
-                    "colors": colors, "xlabel": xlabel, "ylabel": ylabel,
-                    "labels": labels}
+            data = {
+                'xvals': xvals, 'yvals': yvals, 'zvals': zvals,
+                'colors': colors, 'xlabel': xlabel, 'ylabel': ylabel,
+                'labels': labels,
+            }
             if checkExist is not None:
                 # retrieve and merge
                 old_data = document.IMS2DoverlayData.get(item_name, {})
                 data = merge_two_dicts(old_data, data)
             else:
-                data.update(title="", header="", footnote="")
+                data.update(title='', header='', footnote='')
 
             _document.gotOverlay = True
             _document.IMS2DoverlayData[item_name] = data
@@ -817,8 +985,10 @@ class panelMultipleTextFiles (wx.Panel):
         else:
             docList = self.presenter.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
             if len(docList) == 0:
-                dlg = wx.FileDialog(self.presenter.view, "Please select a name for the comparison document",
-                                    "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                dlg = wx.FileDialog(
+                    self.presenter.view, 'Please select a name for the comparison document',
+                    '', '', '', wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                )
                 if dlg.ShowModal() == wx.ID_OK:
                     path, idName = split(dlg.GetPath())
                 else:
@@ -838,18 +1008,20 @@ class panelMultipleTextFiles (wx.Panel):
 
                 # Check that document exists
                 if self.presenter.currentDoc is None:
-                    self.presenter.onThreading(None, ('Please select comparison document', 4),
-                                               action='updateStatusbar')
+                    self.presenter.onThreading(
+                        None, ('Please select comparison document', 4),
+                        action='updateStatusbar',
+                    )
                     return
                 document = self.presenter.documentsDict[self.presenter.currentDoc]
 
-        if document.dataType != "Type: Comparison":
-            print("This is not a comparison document")
+        if document.dataType != 'Type: Comparison':
+            print('This is not a comparison document')
             docList = self.presenter.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
             if len(docList) == 1:
                 document = self.presenter.documentsDict[docList[0]]
 
-        args = ("Using document: {}".format(document.title), 4)
+        args = ('Using document: {}'.format(document.title), 4)
         self.presenter.onThreading(None, args, action='updateStatusbar')
         return document
 
@@ -858,7 +1030,7 @@ class panelMultipleTextFiles (wx.Panel):
         while (currentItems >= 0):
             itemInfo = self.OnGetItemInformation(currentItems)
             if itemInfo['document'] == fileName:
-                logger.info("File {} already in the table - skipping".format(itemInfo['document']))
+                logger.info('File {} already in the table - skipping'.format(itemInfo['document']))
                 currentItems = 0
                 return True
             currentItems -= 1
@@ -885,12 +1057,16 @@ class panelMultipleTextFiles (wx.Panel):
             tempData.append(tempRow)
 
         # Remove duplicates
-        tempData = removeListDuplicates(input=tempData,
-                                        columnsIn=["check", 'start', 'end', 'charge',
-                                                   'color', 'colormap', 'alpha', 'mask',
-                                                   'label', 'shape', 'filename', 'check', 'rgb',
-                                                   'font_color'],
-                                        limitedCols=['filename'])
+        tempData = removeListDuplicates(
+            input=tempData,
+            columnsIn=[
+                'check', 'start', 'end', 'charge',
+                'color', 'colormap', 'alpha', 'mask',
+                'label', 'shape', 'filename', 'check', 'rgb',
+                'font_color',
+            ],
+            limitedCols=['filename'],
+        )
         rows = len(tempData)
         # Clear table
         self.peaklist.DeleteAllItems()
@@ -929,9 +1105,9 @@ class panelMultipleTextFiles (wx.Panel):
 
         try:
             flag_error = False
-            document = self.data_handling._on_get_document(information["document"])
+            document = self.data_handling._on_get_document(information['document'])
         except KeyError as e:
-            logger.error("File: {} is missing. Error: {}".format(information["document"], e))
+            logger.error('File: {} is missing. Error: {}'.format(information['document'], e))
             flag_error = True
             try:
                 document_title, ion_title = re.split(': ', information['document'])
@@ -982,7 +1158,7 @@ class panelMultipleTextFiles (wx.Panel):
     def OnGetColor(self, evt):
 
         dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == "ok":
+        if dlg.ShowModal() == 'ok':
             __, color_1, __ = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
 
@@ -1011,9 +1187,11 @@ class panelMultipleTextFiles (wx.Panel):
             newColour = list(data.GetColour().Get())
             dlg.Destroy()
             # Assign color
-            self.peaklist.SetItem(self.peaklist.item_id,
-                                  self.config.textlistColNames['color'],
-                                  str(convertRGB255to1(newColour)))
+            self.peaklist.SetItem(
+                self.peaklist.item_id,
+                self.config.textlistColNames['color'],
+                str(convertRGB255to1(newColour)),
+            )
             self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
             self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
             # Retrieve custom colors
@@ -1031,8 +1209,10 @@ class panelMultipleTextFiles (wx.Panel):
             except Exception:
                 newColour = self.config.customColors[randomIntegerGenerator(0, 15)]
             # Assign color
-            self.peaklist.SetItem(self.peaklist.item_id, self.config.textlistColNames['color'],
-                                  str(convertRGB255to1(newColour)))
+            self.peaklist.SetItem(
+                self.peaklist.item_id, self.config.textlistColNames['color'],
+                str(convertRGB255to1(newColour)),
+            )
             self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
             self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
             if give_value:
@@ -1044,15 +1224,17 @@ class panelMultipleTextFiles (wx.Panel):
         if itemInfo is None:
             itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
 
-        keywords = ['color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold',
-                    'max_threshold', 'charge', 'cmap']
+        keywords = [
+            'color', 'colormap', 'alpha', 'mask', 'label', 'min_threshold',
+            'max_threshold', 'charge', 'cmap',
+        ]
 
         # get item
         try:
             document = self.presenter.documentsDict[itemInfo['document']]
             for keyword in keywords:
-                if keyword == "cmap":
-                    keyword_name = "colormap"
+                if keyword == 'cmap':
+                    keyword_name = 'colormap'
                 else:
                     keyword_name = keyword
                 if document.got2DIMS:
@@ -1063,8 +1245,8 @@ class panelMultipleTextFiles (wx.Panel):
             document_title, ion_title = re.split(': ', itemInfo['document'])
             document = self.presenter.documentsDict[document_title]
             for keyword in keywords:
-                if keyword == "cmap":
-                    keyword_name = "colormap"
+                if keyword == 'cmap':
+                    keyword_name = 'colormap'
                 else:
                     keyword_name = keyword
                 if ion_title in document.IMS2DcompData:
@@ -1091,7 +1273,8 @@ class panelMultipleTextFiles (wx.Panel):
             dlg_kwargs = self.OnGetItemInformation(self.peaklist.item_id)
 
             self.editItemDlg = panelModifyTextSettings(
-                self, self.presenter, self.config, **dlg_kwargs)
+                self, self.presenter, self.config, **dlg_kwargs
+            )
             self.editItemDlg.Centre()
             self.editItemDlg.Show()
         elif evtID == ID_textPanel_edit_selected:
@@ -1099,38 +1282,44 @@ class panelMultipleTextFiles (wx.Panel):
                 if self.peaklist.IsChecked(rows):
                     information = self.OnGetItemInformation(rows)
 
-                    dlg_kwargs = {'select': self.peaklist.IsChecked(rows),
-                                  'color': information['color'],
-                                  'title': information['document'],
-                                  'min_threshold': information['min_threshold'],
-                                  'max_threshold': information['max_threshold'],
-                                  'label': information['label'],
-                                  'id': rows
-                                  }
+                    dlg_kwargs = {
+                        'select': self.peaklist.IsChecked(rows),
+                        'color': information['color'],
+                        'title': information['document'],
+                        'min_threshold': information['min_threshold'],
+                        'max_threshold': information['max_threshold'],
+                        'label': information['label'],
+                        'id': rows,
+                    }
 
-                    self.editItemDlg = panelModifyTextSettings(self,
-                                                               self.presenter,
-                                                               self.config,
-                                                               **dlg_kwargs)
+                    self.editItemDlg = panelModifyTextSettings(
+                        self,
+                        self.presenter,
+                        self.config,
+                        **dlg_kwargs
+                    )
                     self.editItemDlg.Show()
                 rows -= 1
         elif evtID == ID_ionPanel_edit_all:
             for row in range(rows):
                 information = self.OnGetItemInformation(row)
 
-                dlg_kwargs = {'select': self.peaklist.IsChecked(row),
-                              'color': information['color'],
-                              'title': information['document'],
-                              'min_threshold': information['min_threshold'],
-                              'max_threshold': information['max_threshold'],
-                              'label': information['label'],
-                              'id': row
-                              }
+                dlg_kwargs = {
+                    'select': self.peaklist.IsChecked(row),
+                    'color': information['color'],
+                    'title': information['document'],
+                    'min_threshold': information['min_threshold'],
+                    'max_threshold': information['max_threshold'],
+                    'label': information['label'],
+                    'id': row,
+                }
 
-                self.editItemDlg = panelModifyTextSettings(self,
-                                                           self.presenter,
-                                                           self.config,
-                                                           **dlg_kwargs)
+                self.editItemDlg = panelModifyTextSettings(
+                    self,
+                    self.presenter,
+                    self.config,
+                    **dlg_kwargs
+                )
                 self.editItemDlg.Show()
 
     def on_remove_deleted_item(self, document):
@@ -1148,19 +1337,19 @@ class panelMultipleTextFiles (wx.Panel):
         while (row >= 0):
             info = self.OnGetItemInformation(itemID=row)
             for document_title in document_list:
-                if info['document'] == document_title or document_title in info["document"]:
+                if info['document'] == document_title or document_title in info['document']:
                     self.peaklist.DeleteItem(row)
                     del document_list[document_list.index(document_title)]
             row -= 1
 
     def on_overlay_mobiligram(self, evt):
-        self.data_handling.on_overlay_1D(source="text", plot_type="mobiligram")
+        self.data_handling.on_overlay_1D(source='text', plot_type='mobiligram')
 
     def on_overlay_chromatogram(self, evt):
-        self.data_handling.on_overlay_1D(source="text", plot_type="chromatogram")
+        self.data_handling.on_overlay_1D(source='text', plot_type='chromatogram')
 
     def on_overlay_heatmap(self, evt):
-        self.presenter.on_overlay_2D(source="text")
+        self.presenter.on_overlay_2D(source='text')
 
     def on_check_duplicate_colors(self, new_color):
         """
@@ -1187,29 +1376,35 @@ class panelMultipleTextFiles (wx.Panel):
     def on_add_to_table(self, add_dict, check_color=True, return_color=False):
 
         # get color
-        color = add_dict.get("color", self.config.customColors[randomIntegerGenerator(0, 15)])
+        color = add_dict.get('color', self.config.customColors[randomIntegerGenerator(0, 15)])
         # check for duplicate color
         if check_color:
             color = self.on_check_duplicate_colors(color)
 
         # add to filelist
-        self.peaklist.Append(["",
-                              str(add_dict.get("energy_start", "")),
-                              str(add_dict.get("energy_end", "")),
-                              str(add_dict.get("charge", "")),
-                              str(roundRGB(convertRGB255to1(color))),
-                              str(add_dict.get("colormap", "")),
-                              str(add_dict.get("alpha", "")),
-                              str(add_dict.get("mask", "")),
-                              str(add_dict.get("label", "")),
-                              str(add_dict.get("shape", "")),
-                              str(add_dict.get("document", ""))])
-        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1,
-                                              color)
+        self.peaklist.Append([
+            '',
+            str(add_dict.get('energy_start', '')),
+            str(add_dict.get('energy_end', '')),
+            str(add_dict.get('charge', '')),
+            str(roundRGB(convertRGB255to1(color))),
+            str(add_dict.get('colormap', '')),
+            str(add_dict.get('alpha', '')),
+            str(add_dict.get('mask', '')),
+            str(add_dict.get('label', '')),
+            str(add_dict.get('shape', '')),
+            str(add_dict.get('document', '')),
+        ])
+        self.peaklist.SetItemBackgroundColour(
+            self.peaklist.GetItemCount() - 1,
+            color,
+        )
 
         font_color = determineFontColor(color, return_rgb=True)
-        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1,
-                                        font_color)
+        self.peaklist.SetItemTextColour(
+            self.peaklist.GetItemCount() - 1,
+            font_color,
+        )
 
         if return_color:
             return color
@@ -1217,16 +1412,20 @@ class panelMultipleTextFiles (wx.Panel):
     def on_delete_item(self, evt):
 
         itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
-        msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(
-            itemInfo['document'])
-        dlg = dlgBox(type="Question",
-                     exceptionMsg=msg)
+        msg = 'Are you sure you would like to delete {}?\nThis action cannot be undone.'.format(
+            itemInfo['document'],
+        )
+        dlg = dlgBox(
+            type='Question',
+            exceptionMsg=msg,
+        )
         if dlg == wx.ID_NO:
-            print("The operation was cancelled")
+            print('The operation was cancelled')
             return
 
         self.view.panelDocuments.documents.on_delete_data__document(
-            itemInfo['document'], ask_permission=False)
+            itemInfo['document'], ask_permission=False,
+        )
 
     def on_delete_selected(self, evt):
 
@@ -1235,15 +1434,17 @@ class panelMultipleTextFiles (wx.Panel):
         while (itemID >= 0):
             if self.peaklist.IsChecked(index=itemID):
                 itemInfo = self.OnGetItemInformation(itemID=itemID)
-                msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(
-                    itemInfo['document'])
-                dlg = dlgBox(exceptionMsg=msg, type="Question")
+                msg = 'Are you sure you would like to delete {}?\nThis action cannot be undone.'.format(
+                    itemInfo['document'],
+                )
+                dlg = dlgBox(exceptionMsg=msg, type='Question')
                 if dlg == wx.ID_NO:
-                    print("The operation was cancelled")
+                    print('The operation was cancelled')
                     continue
                 try:
                     self.view.panelDocuments.documents.on_delete_data__document(
-                        itemInfo['document'], ask_permission=False)
+                        itemInfo['document'], ask_permission=False,
+                    )
                 # item does not exist
                 except KeyError:
                     self.on_remove_deleted_item(itemInfo['document'])
@@ -1252,15 +1453,16 @@ class panelMultipleTextFiles (wx.Panel):
 
     def on_delete_all(self, evt):
 
-        msg = "Are you sure you would like to delete all [2D IM-MS documents] from the list?\nThis action cannot be undone."
-        dlg = dlgBox(exceptionMsg=msg, type="Question")
+        msg = 'Are you sure you would like to delete all [2D IM-MS documents] from the list?\nThis action cannot be undone.'
+        dlg = dlgBox(exceptionMsg=msg, type='Question')
         if dlg == wx.ID_NO:
-            print("The operation was cancelled")
+            print('The operation was cancelled')
             return
 
         itemID = self.peaklist.GetItemCount() - 1
         while (itemID >= 0):
             itemInfo = self.OnGetItemInformation(itemID=itemID)
             self.view.panelDocuments.documents.on_delete_data__document(
-                itemInfo['document'], ask_permission=False)
+                itemInfo['document'], ask_permission=False,
+            )
             itemID -= 1

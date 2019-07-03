@@ -4,18 +4,18 @@
 
 There are several different ways how you can load your data
 
-* Use the file menu. File -> Open...  
-* Use the toolbar. Click on any of the available buttons  
+* Use the file menu. File -> Open...
+* Use the toolbar. Click on any of the available buttons
 * Use a keyboard shortcut:
-  * **CTRL+SHIFT+P** - open ORIGAMI project file  
+  * **CTRL+SHIFT+P** - open ORIGAMI project file
   * **CTRL+R** - open Waters (.raw) file - IM-MS
-  * **CTRL+C** - open Waters (.raw) file - CCS calibration  
-  * **CTRL+F** - open Waters (.raw) file - DT-IMS  
-  * **CTRL+T** - open heatmap text (.csv/.txt/.tab) file  
-  * **CTRL+SHIFT+C** - open *multiple* heatmap text (.csv/.txt/.tab) files  
-  * **CTRL+V** - get mass spectrum from clipboard  
-* Load directly from data panels (Multiple files, DT-IMS, Text files)  
-* Drag-and-drop files in the window or into the panel  
+  * **CTRL+C** - open Waters (.raw) file - CCS calibration
+  * **CTRL+F** - open Waters (.raw) file - DT-IMS
+  * **CTRL+T** - open heatmap text (.csv/.txt/.tab) file
+  * **CTRL+SHIFT+C** - open *multiple* heatmap text (.csv/.txt/.tab) files
+  * **CTRL+V** - get mass spectrum from clipboard
+* Load directly from data panels (Multiple files, DT-IMS, Text files)
+* Drag-and-drop files in the window or into the panel
 
 ## Supported file formats
 

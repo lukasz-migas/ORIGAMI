@@ -15,7 +15,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with multiplierz.  If not, see <http://www.gnu.org/licenses/>.
-
 import logging
 import os
 import sys
@@ -39,7 +38,7 @@ def _get_home():
     path = ''
 
     try:
-        path = os.path.expanduser("~")
+        path = os.path.expanduser('~')
     except Exception:
         pass
 
@@ -64,8 +63,8 @@ def _get_home():
 myHome = _get_home()
 
 # multiplierz data folder
-myData = os.path.join(myHome, ".multiplierz")
-myTemp = os.path.join(myData, "TEMP")
+myData = os.path.join(myHome, '.multiplierz')
+myTemp = os.path.join(myData, 'TEMP')
 # SettingsFile = os.path.join(myData, 'settings.txt')
 modFile = os.path.join(myData, 'mods.txt')
 
@@ -146,7 +145,7 @@ def fastaList():
 def initialSettings():
     # Can't be in settings because that module can't be imported until
     # a settings file exists.
-    defaultSettingsFile = """
+    defaultSettingsFile = r"""
     # Multiplierz Settings File
     # Lines beginning with a '#' are considered comments.
 
@@ -214,7 +213,7 @@ def deployUnimod():
                 break
 
     if not unimodFile:
-        print("WARNING: No unimod.sqlite found in %s (%s)" % (basedir, sys.executable))
+        print('WARNING: No unimod.sqlite found in {} ({})'.format(basedir, sys.executable))
     else:
         shutil.copy(unimodFile, os.path.join(myData, 'unimod.sqlite'))
 
@@ -237,23 +236,27 @@ def initializeFasta():
 
 
 if not os.path.exists(myData):
-    print("Multiplierz directory (%s) not found; creating it." % myData)
+    print('Multiplierz directory (%s) not found; creating it.' % myData)
     os.mkdir(myData)
 
-requiredFiles = [('settings.txt', initialSettings),
-                 ('unimod.sqlite', deployUnimod),
-                 ('mods.txt', initialMods),
-                 ('fastafiles.txt', initializeFasta)]
-requiredSubdirs = ['TEMP',  # Still used by old mzReport imaging functions.
-                   'pyCometDatabases']  # Probably obsolete from fastafiles.txt?
+requiredFiles = [
+    ('settings.txt', initialSettings),
+    ('unimod.sqlite', deployUnimod),
+    ('mods.txt', initialMods),
+    ('fastafiles.txt', initializeFasta),
+]
+requiredSubdirs = [
+    'TEMP',  # Still used by old mzReport imaging functions.
+    'pyCometDatabases',
+]  # Probably obsolete from fastafiles.txt?
 
 for subdir in requiredSubdirs:
     if not os.path.exists(os.path.join(myData, subdir)):
-        print("Required multiplierz data directory %s not found!  Creating it." % subdir)
+        print('Required multiplierz data directory %s not found!  Creating it.' % subdir)
         os.mkdir(os.path.join(myData, subdir))
 for filename, initializer in requiredFiles:
     if not os.path.exists(os.path.join(myData, filename)):
-        print("Required multiplierz data file %s not found!  Creating it." % filename)
+        print('Required multiplierz data file %s not found!  Creating it.' % filename)
         initializer()
 
 protonMass = 1.0072764  # Used at various points.

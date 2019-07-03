@@ -2,9 +2,9 @@
 
 ## Reference
 
-If you use ORIGAMI, please consider citing it in your work:  
+If you use ORIGAMI, please consider citing it in your work:
 
-[L. G. Migas, A. P. France, B. Bellina, P. E. Barran, "ORIGAMI: A software suite for activated ion mobility mass spectrometry (aIM-MS) applied to multimeric protein assemblies”, Int. J. Mass Spectrom., 2017](https://doi.org/10.1016/j.ijms.2017.08.014)  
+[L. G. Migas, A. P. France, B. Bellina, P. E. Barran, "ORIGAMI: A software suite for activated ion mobility mass spectrometry (aIM-MS) applied to multimeric protein assemblies”, Int. J. Mass Spectrom., 2017](https://doi.org/10.1016/j.ijms.2017.08.014)
 
 ## RIS
 
@@ -32,8 +32,8 @@ KW  - Ion mobility (IM)
 KW  - Mass spectrometry (MS)
 KW  - Software
 KW  - Python
-AB  - 
-ER  - 
+AB  -
+ER  -
 ```
 
 ## BibTex

@@ -6,11 +6,11 @@ You can easily export heatmaps and share them with the scientific world!
 
 [See figure in another tab](html-files/heatmap.html)
 
-<iframe 
-    width="620" 
-    frameborder="0" 
+<iframe
+    width="620"
+    frameborder="0"
     height="650"
-    src="html-files/heatmap.html" 
+    src="html-files/heatmap.html"
     style="background: #FFFFFF;"
 ></iframe>
 
@@ -20,10 +20,10 @@ You can also annotate figure with multiple widgets that can improve the visualis
 
 [See figure in another tab](html-files/widgets-heatmap.html)
 
-<iframe 
-    width="620" 
-    frameborder="0" 
+<iframe
+    width="620"
+    frameborder="0"
     height="745"
-    src="html-files/widgets-heatmap.html" 
+    src="html-files/widgets-heatmap.html"
     style="background: #FFFFFF;"
 ></iframe>

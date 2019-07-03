@@ -15,7 +15,6 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with multiplierz.  If not, see <http://www.gnu.org/licenses/>.
-
 """Common API for multiple mass spectrometry instrument file access
 
 mzAPI unifies access to MS data files by referring to scans by time.
@@ -87,7 +86,7 @@ class mzInfoFile(tuple):
 
     def __init__(self, s):
         tuple.__init__(self, s)
-        self.index_dict = dict((d["time"], i) for i, d in enumerate(self))
+        self.index_dict = {d['time']: i for i, d in enumerate(self)}
 
     def field_list(self):
         """Returns keys for dictionary stored in each list element.
@@ -133,7 +132,7 @@ class mzInfoFile(tuple):
 
     def closest(self, key, value):
         closest_item = self[0]
-        if key == "time":
+        if key == 'time':
             if value in self.index_dict:
                 closest_item = self[self.index_dict[value]]
                 return closest_item
@@ -183,22 +182,28 @@ class mzFile(object):
         bitness = platform.architecture()[0]
         if bitness != '64bit':
             if '32bit' in bitness:
-                raise Exception("mzAPI does not support 32-bit Python!")
+                raise Exception('mzAPI does not support 32-bit Python!')
             else:
-                print(("WARNING- System architecture string %s not "
-                       "recognized.  Is this 64-bit Windows Python?") % bitness)
+                print(
+                    (
+                        'WARNING- System architecture string %s not '
+                        'recognized.  Is this 64-bit Windows Python?'
+                    ) % bitness,
+                )
 
         if not (data_file.lower().startswith('http://') or os.path.exists(data_file)):
-            raise IOError("%s not found." % data_file)
+            raise IOError('%s not found.' % data_file)
 
         elif data_file.lower().endswith('.raw'):
             from utils.multiplierz_lite.mzAPI import raw
             self.__class__ = raw.mzFile
             self.format = 'raw'
             raw.mzFile.__init__(self, data_file, **kwargs)
-        elif (data_file.lower().endswith('.mzml') or
-              data_file.lower().endswith('.mzml.gz') or
-              data_file.lower().endswith('.mzmlsql')):
+        elif (
+            data_file.lower().endswith('.mzml') or
+            data_file.lower().endswith('.mzml.gz') or
+            data_file.lower().endswith('.mzmlsql')
+        ):
             from utils.multiplierz_lite.mzAPI import mzML
             self.__class__ = mzML.mzFile
             self.format = 'mzml'

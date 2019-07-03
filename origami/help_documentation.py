@@ -1,26 +1,10 @@
 # -*- coding: utf-8 -*-
-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-#	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-#	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
 from icons import IconContainer as icons
 
 
 class OrigamiHelp:
+
     def __init__(self):
         """
         Initilize help
@@ -33,8 +17,8 @@ class OrigamiHelp:
 
     def _tool_tip_help(self):
 
-        msg = "A new window/tab in your prefered browser will open the playlist" + \
-              " with most recent ORIGAMI videos."
+        msg = 'A new window/tab in your prefered browser will open the playlist' + \
+              ' with most recent ORIGAMI videos.'
         self.link_youtube = msg
 
     def _super_tip_help(self):
@@ -46,140 +30,186 @@ class OrigamiHelp:
         # Peaklist panel
         msg = 'If checked, any data that was previously generated (i.e. combined)\n' + \
               'will be overwritten with new dataset based on the selected parameters.'
-        self.ionPanel_overwrite = {'help_title': 'Overwriting previous results', 'help_msg': msg,
-                                   'header_img': None,
-                                   'header_line': header_line, 'footer_line': footer_line}
+        self.ionPanel_overwrite = {
+            'help_title': 'Overwriting previous results', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'If checked, any processing (i.e. combining collision voltage scans)\n' + \
               'will be performed with parameters that are already retained within the\n' + \
               'the ORIGAMI document. If these parameters are NOT present, parameters currently\n' + \
               'entered in the ORIGAMI GUI will be used instead.'
-        self.ionPanel_useInternalParams = {'help_title': 'Use internal parameters', 'help_msg': msg,
-                                           'header_img': None,
-                                           'header_line': header_line, 'footer_line': footer_line}
+        self.ionPanel_useInternalParams = {
+            'help_title': 'Use internal parameters', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
     # -----------
         # Tandem MS panel
-        msg = "If checked, a mirror/butterfly plot will be generated with the\n" + \
-              "tandem MS on the top and a predicted spectrum on the bottom.\n" + \
-              "Fragments are annotated and the difference in m/z between the calculated\n" + \
-              "and measured peak is due to the error (always < than selected tolerance)."
-        self.tandem_butterfly = {'help_title': 'Butterfly plots', 'help_msg': msg,
-                                 'header_img': None,
-                                 'header_line': header_line, 'footer_line': footer_line}
+        msg = 'If checked, a mirror/butterfly plot will be generated with the\n' + \
+              'tandem MS on the top and a predicted spectrum on the bottom.\n' + \
+              'Fragments are annotated and the difference in m/z between the calculated\n' + \
+              'and measured peak is due to the error (always < than selected tolerance).'
+        self.tandem_butterfly = {
+            'help_title': 'Butterfly plots', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Maximum number of labels that will be predicted for each m/z value in the peaklist.\n" + \
-              "If the value is above 1 (default), more than one fragment can corresponded to particular m/z\n" + \
+        msg = 'Maximum number of labels that will be predicted for each m/z value in the peaklist.\n' + \
+              'If the value is above 1 (default), more than one fragment can corresponded to particular m/z\n' + \
               "so please make sure that you've selected appropriate tolerance value!"
-        self.tandem_max_labels = {'help_title': 'Butterfly plots', 'help_msg': msg,
-                                  'header_img': None,
-                                  'header_line': header_line, 'footer_line': footer_line}
+        self.tandem_max_labels = {
+            'help_title': 'Butterfly plots', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
     # -----------
         # Process panel (Extract)
-        msg = "Pusher frequency in microseconds. Only used when drift time values\n" + \
-              "are entered in miliseconds as the extraction program expects bins."
-        self.extract_pusherFreq = {'help_title': 'Pusher frequency', 'help_msg': msg,
-                                   'header_img': None,
-                                   'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Pusher frequency in microseconds. Only used when drift time values\n' + \
+              'are entered in miliseconds as the extraction program expects bins.'
+        self.extract_pusherFreq = {
+            'help_title': 'Pusher frequency', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'Scan time in seconds. Only used when the retention time is entered in\n' + \
               'scans as the extraction program expects minutes.'
-        self.extract_scanTime = {'help_title': 'Scan time', 'help_msg': msg,
-                                 'header_img': None,
-                                 'header_line': header_line, 'footer_line': footer_line}
+        self.extract_scanTime = {
+            'help_title': 'Scan time', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "If checked, retention time will be assumed to be in scans rather\n" + \
-              "than in minutes."
-        self.extract_in_scans = {'help_title': 'Retention time units', 'help_msg': msg,
-                                 'header_img': None,
-                                 'header_line': header_line, 'footer_line': footer_line}
+        msg = 'If checked, retention time will be assumed to be in scans rather\n' + \
+              'than in minutes.'
+        self.extract_in_scans = {
+            'help_title': 'Retention time units', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "If checked, drift time will be assumed to be miliseconds\n" + \
-              "rather than in bins."
-        self.extract_in_ms = {'help_title': 'Drift time units', 'help_msg': msg,
-                              'header_img': None,
-                              'header_line': header_line, 'footer_line': footer_line}
+        msg = 'If checked, drift time will be assumed to be miliseconds\n' + \
+              'rather than in bins.'
+        self.extract_in_ms = {
+            'help_title': 'Drift time units', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Enter retention time values. Values typically in minutes."
-        self.extract_rt = {'help_title': 'Retention time', 'help_msg': msg,
-                           'header_img': None,
-                           'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Enter retention time values. Values typically in minutes.'
+        self.extract_rt = {
+            'help_title': 'Retention time', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Enter drift time values. Values typically in bins."
-        self.extract_dt = {'help_title': 'Drift time', 'help_msg': msg,
-                           'header_img': None,
-                           'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Enter drift time values. Values typically in bins.'
+        self.extract_dt = {
+            'help_title': 'Drift time', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Enter m/z values."
-        self.extract_mz = {'help_title': 'Mass spectra', 'help_msg': msg,
-                           'header_img': None,
-                           'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Enter m/z values.'
+        self.extract_mz = {
+            'help_title': 'Mass spectra', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
     # -----------
         # Process panel (UniDec)
-        msg = "Open a new HTML window with information about UniDec\n"
-        self.unidec_about = {'help_title': 'About UniDec', 'help_msg': msg,
-                             'header_img': None,
-                             'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Open a new HTML window with information about UniDec\n'
+        self.unidec_about = {
+            'help_title': 'About UniDec', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Minimum m/z of the data\n"
-        self.unidec_min_mz = {'help_title': 'Minimum m/z', 'help_msg': msg,
-                              'header_img': None,
-                              'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Minimum m/z of the data\n'
+        self.unidec_min_mz = {
+            'help_title': 'Minimum m/z', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Maximum m/z of the data\n"
-        self.unidec_max_mz = {'help_title': 'Maximum m/z', 'help_msg': msg,
-                              'header_img': None,
-                              'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Maximum m/z of the data\n'
+        self.unidec_max_mz = {
+            'help_title': 'Maximum m/z', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Minimum allowed charge state in the deconvolution\n"
-        self.unidec_min_z = {'help_title': 'Minimum charge state', 'help_msg': msg,
-                             'header_img': None,
-                             'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Minimum allowed charge state in the deconvolution\n'
+        self.unidec_min_z = {
+            'help_title': 'Minimum charge state', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Maximum allowed charge state in the deconvolution\n"
-        self.unidec_max_z = {'help_title': 'Maximum charge state', 'help_msg': msg,
-                             'header_img': None,
-                             'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Maximum allowed charge state in the deconvolution\n'
+        self.unidec_max_z = {
+            'help_title': 'Maximum charge state', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Minimum allowed mass in deconvolution\n"
-        self.unidec_min_mw = {'help_title': 'Minimum molecular weight', 'help_msg': msg,
-                              'header_img': None,
-                              'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Minimum allowed mass in deconvolution\n'
+        self.unidec_min_mw = {
+            'help_title': 'Minimum molecular weight', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Maximum allowed mass in deconvolution\n"
-        self.unidec_max_mw = {'help_title': 'Maximum molecular weight', 'help_msg': msg,
-                              'header_img': None,
-                              'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Maximum allowed mass in deconvolution\n'
+        self.unidec_max_mw = {
+            'help_title': 'Maximum molecular weight', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Sets the resolution of the zero-charge mass spectrum\n"
-        self.unidec_mw_resolution = {'help_title': 'Zero-charge spectrum resolution', 'help_msg': msg,
-                                     'header_img': None,
-                                     'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Sets the resolution of the zero-charge mass spectrum\n'
+        self.unidec_mw_resolution = {
+            'help_title': 'Zero-charge spectrum resolution', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Controls Linearization.\nConstant bin size (Da) for Linear m/z\nMinimum bin size (Da) for Linear Resolution\nNumber of data points compressed together for Nonlinear\n"
-        self.unidec_linearization = {'help_title': 'Linearization information', 'help_msg': msg,
-                                     'header_img': None,
-                                     'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Controls Linearization.\nConstant bin size (Da) for Linear m/z\nMinimum bin size (Da) for Linear Resolution\nNumber of data points compressed together for Nonlinear\n'
+        self.unidec_linearization = {
+            'help_title': 'Linearization information', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Expected peak at full width half maximum in m/z (Da)\n"
-        self.unidec_peak_FWHM = {'help_title': 'Peak width', 'help_msg': msg,
-                                 'header_img': None,
-                                 'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Expected peak at full width half maximum in m/z (Da)\n'
+        self.unidec_peak_FWHM = {
+            'help_title': 'Peak width', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "Sort mass list by molecular weight or relative percentage"
-        self.unidec_sort_mw_list = {'help_title': 'Sort molecular weight list', 'help_msg': msg,
-                                    'header_img': None,
-                                    'header_line': header_line, 'footer_line': footer_line}
+        msg = 'Sort mass list by molecular weight or relative percentage'
+        self.unidec_sort_mw_list = {
+            'help_title': 'Sort molecular weight list', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
     # -----------
         # Process panel (MS)
         msg = 'If checked, when extracting several scans from the\n' + \
               'chromatogram (RT) window, the mass spectra will be\n' + \
               'binned according to the values shown below.'
-        self.bin_MS_in_RT = {'help_title': 'Linearization in chromatogram window', 'help_msg': msg,
-                             'header_img': None,
-                             'header_line': header_line, 'footer_line': footer_line}
+        self.bin_MS_in_RT = {
+            'help_title': 'Linearization in chromatogram window', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'If checked, when loading a list of multiple files,\n' + \
               'the mass spectra will be automatically binned\n' + \
@@ -189,170 +219,220 @@ class OrigamiHelp:
             'help_msg': msg,
             'header_img': None,
             'header_line': header_line,
-            'footer_line': footer_line}
+            'footer_line': footer_line,
+        }
 
         msg = "The 'Process' button will use the currently selected dataset\n" + \
-              "and using the selected processing settings generate a new dataset which\n" + \
-              "will be added to the document."
-        self.process_mass_spectra_processesBtn = {'help_title': 'Processing mass spectra...', 'help_msg': msg,
-                                                  'header_img': None,
-                                                  'header_line': header_line, 'footer_line': footer_line}
+              'and using the selected processing settings generate a new dataset which\n' + \
+              'will be added to the document.'
+        self.process_mass_spectra_processesBtn = {
+            'help_title': 'Processing mass spectra...', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = "The 'Replot' button will use the currently selected dataset\n" + \
-              "and replot the data while also applying the processing parameters.\n" + \
-              "This data will not be added to the document.\n"
-        self.process_mass_spectra_replotBtn = {'help_title': 'Replotting mass spectra...', 'help_msg': msg,
-                                               'header_img': None,
-                                               'header_line': header_line, 'footer_line': footer_line}
+              'and replot the data while also applying the processing parameters.\n' + \
+              'This data will not be added to the document.\n'
+        self.process_mass_spectra_replotBtn = {
+            'help_title': 'Replotting mass spectra...', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
     # -----------
         # Process panel (peak fitting)
         msg = 'If checked, the algorithm will attempt to predict the charge state of \n' + \
               'found peaks. The algorithm looks for features in a narrow MS window \n' + \
               'which can be usually found if the peak resolution is sufficiently high.'
-        self.fit_highRes = {'help_title': 'Predict charge states', 'help_msg': msg,
-                            'header_img': None,
-                            'header_line': header_line, 'footer_line': footer_line}
+        self.fit_highRes = {
+            'help_title': 'Predict charge states', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'If checked, isotopic peaks will be shown in the mass spectrum using\n' + \
               'using red circles. Adjust window size, threshold and peak width for best results.'
-        self.fit_showIsotopes = {'help_title': 'Show isotopic peaks in mass spectrum', 'help_msg': msg,
-                                 'header_img': None,
-                                 'header_line': header_line, 'footer_line': footer_line}
+        self.fit_showIsotopes = {
+            'help_title': 'Show isotopic peaks in mass spectrum', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
     # -----------
         # Compare MS panel
         msg = 'If checked, each mass spectrum will be smoothed,\n' + \
               'baseline subtracted and normalised. The type of preprocessing\n' + \
               'depends on the parameters shown in the Process: Mass spectrum panel.\n' + \
               'You can change these to obtain best results.\n'
-        self.compareMS_preprocess = {'help_title': 'Pre-processing mass spectra', 'help_msg': msg,
-                                     'header_img': self.icons.iconsLib['process_ms_16'],
-                                     'header_line': header_line, 'footer_line': footer_line}
+        self.compareMS_preprocess = {
+            'help_title': 'Pre-processing mass spectra', 'help_msg': msg,
+            'header_img': self.icons.iconsLib['process_ms_16'],
+            'header_line': header_line, 'footer_line': footer_line,
+        }
     # -----------
         msg = 'Opens new window with plot settings.\n'
-        self.compareMS_open_plot1D_settings = {'help_title': 'Editing plot parameters', 'help_msg': msg,
-                                               'header_img': self.icons.iconsLib['panel_plot1D_16'],
-                                               'header_line': header_line, 'footer_line': footer_line}
+        self.compareMS_open_plot1D_settings = {
+            'help_title': 'Editing plot parameters', 'help_msg': msg,
+            'header_img': self.icons.iconsLib['panel_plot1D_16'],
+            'header_line': header_line, 'footer_line': footer_line,
+        }
     # -----------
         msg = 'Opens new window with legend settings.\n'
-        self.compareMS_open_legend_settings = {'help_title': 'Editing legend parameters', 'help_msg': msg,
-                                               'header_img': self.icons.iconsLib['panel_legend_16'],
-                                               'header_line': header_line, 'footer_line': footer_line}
+        self.compareMS_open_legend_settings = {
+            'help_title': 'Editing legend parameters', 'help_msg': msg,
+            'header_img': self.icons.iconsLib['panel_legend_16'],
+            'header_line': header_line, 'footer_line': footer_line,
+        }
     # -----------
         msg = 'Opens new window with mass spectrum processing settings.\n'
-        self.compareMS_open_processMS_settings = {'help_title': 'Editing processing parameters', 'help_msg': msg,
-                                                  'header_img': self.icons.iconsLib['process_ms_16'],
-                                                  'header_line': header_line, 'footer_line': footer_line}
+        self.compareMS_open_processMS_settings = {
+            'help_title': 'Editing processing parameters', 'help_msg': msg,
+            'header_img': self.icons.iconsLib['process_ms_16'],
+            'header_line': header_line, 'footer_line': footer_line,
+        }
     # -----------
     # Plotting panel - General settings
         msg = 'Please select which plot you would like to adjust. Names are simply the \n' + \
               'representations shown as the tab names in the Plots panel.'
-        self.general_plotName = {'help_title': 'Plot options - plot name', 'help_msg': msg,
-                                 'header_img': None,
-                                 'header_line': header_line, 'footer_line': footer_line}
+        self.general_plotName = {
+            'help_title': 'Plot options - plot name', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The distance between the edge and the plot. Small values might not show labels.\n' + \
               'Values are shown as a proportion of the window (0-1).'
-        self.general_leftAxes = {'help_title': 'Plot options - left edge', 'help_msg': msg,
-                                 'header_img': None,
-                                 'header_line': header_line, 'footer_line': footer_line}
+        self.general_leftAxes = {
+            'help_title': 'Plot options - left edge', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The distance between the edge and the plot. Small values might not show labels.\n' + \
               'Values are shown as a proportion of the window (0-1).'
-        self.general_bottomAxes = {'help_title': 'Plot options - bottom edge', 'help_msg': msg,
-                                   'header_img': None,
-                                   'header_line': header_line, 'footer_line': footer_line}
+        self.general_bottomAxes = {
+            'help_title': 'Plot options - bottom edge', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The width of the plot. This value compliments the LEFT edge.\n' + \
               ' When combined, it should not be larger than 1.\n' + \
               'Values are shown as a proportion of the window (0-1).'
-        self.general_widthAxes = {'help_title': 'Plot options - width', 'help_msg': msg,
-                                  'header_img': None,
-                                  'header_line': header_line, 'footer_line': footer_line}
+        self.general_widthAxes = {
+            'help_title': 'Plot options - width', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The height of the plot. This value compliments the BOTTOM edge.\n' + \
               ' When combined, it should not be larger than 1.\n' + \
               'Values are shown as a proportion of the window (0-1).'
-        self.general_heightAxes = {'help_title': 'Plot options - height', 'help_msg': msg,
-                                   'header_img': None,
-                                   'header_line': header_line, 'footer_line': footer_line}
+        self.general_heightAxes = {
+            'help_title': 'Plot options - height', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The distance between the edge and the plot. Small values might not show labels.\n' + \
               'These value differ from the ones shown above, as the figure export size can differ,\n' + \
               'from the one displayed in ORIGAMI GUI.\n' + \
               'Values are shown as a proportion of the window (0-1).'
-        self.general_leftAxes_export = {'help_title': 'Plot options - left edge', 'help_msg': msg,
-                                        'header_img': None,
-                                        'header_line': header_line, 'footer_line': footer_line}
+        self.general_leftAxes_export = {
+            'help_title': 'Plot options - left edge', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The distance between the edge and the plot. Small values might not show labels.\n' + \
               'These value differ from the ones shown above, as the figure export size can differ,\n' + \
               'from the one displayed in ORIGAMI GUI.\n' + \
               'Values are shown as a proportion of the window (0-1).'
-        self.general_bottomAxes_export = {'help_title': 'Plot options - bottom edge', 'help_msg': msg,
-                                          'header_img': None,
-                                          'header_line': header_line, 'footer_line': footer_line}
+        self.general_bottomAxes_export = {
+            'help_title': 'Plot options - bottom edge', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The width of the plot. This value compliments the LEFT edge.\n' + \
               'These value differ from the ones shown above, as the figure export size can differ,\n' + \
               'from the one displayed in ORIGAMI GUI.\n' + \
               ' When combined, it should not be larger than 1.\n' + \
               'Values are shown as a proportion of the window (0-1).'
-        self.general_widthAxes_export = {'help_title': 'Plot options - width', 'help_msg': msg,
-                                         'header_img': None,
-                                         'header_line': header_line, 'footer_line': footer_line}
+        self.general_widthAxes_export = {
+            'help_title': 'Plot options - width', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The height of the plot. This value compliments the BOTTOM edge.\n' + \
               'These value differ from the ones shown above, as the figure export size can differ,\n' + \
               'from the one displayed in ORIGAMI GUI.\n' + \
               ' When combined, it should not be larger than 1.\n' + \
               'Values are shown as a proportion of the window (0-1).'
-        self.general_heightAxes_export = {'help_title': 'Plot options - height', 'help_msg': msg,
-                                          'header_img': None,
-                                          'header_line': header_line, 'footer_line': footer_line}
+        self.general_heightAxes_export = {
+            'help_title': 'Plot options - height', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The width of the plot in inches. Ensures consistent plot size when exporting figures.'
-        self.general_widthPlot_inch = {'help_title': 'Plot options - width', 'help_msg': msg,
-                                       'header_img': None,
-                                       'header_line': header_line, 'footer_line': footer_line}
+        self.general_widthPlot_inch = {
+            'help_title': 'Plot options - width', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The height of the plot. Ensures consistent plot size when exporting figures.'
-        self.general_heightPlot_inch = {'help_title': 'Plot options - height', 'help_msg': msg,
-                                        'header_img': None,
-                                        'header_line': header_line, 'footer_line': footer_line}
+        self.general_heightPlot_inch = {
+            'help_title': 'Plot options - height', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = 'The fraction at which the zooming tool changes from line to rectangle.\n' + \
               'The lower the value, the more sensitive the zooming becomes. Default: 0.03'
-        self.general_zoom_crossover = {'help_title': 'Zoom crossover sensitivity', 'help_msg': msg,
-                                       'header_img': None,
-                                       'header_line': header_line, 'footer_line': footer_line}
+        self.general_zoom_crossover = {
+            'help_title': 'Zoom crossover sensitivity', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "When checked, figures will be automatically plotted when an appropriate item\n" + \
-              "was selected in the Document Tree."
-        self.general_instantPlot = {'help_title': 'Instant plot', 'help_msg': msg,
-                                    'header_img': None,
-                                    'header_line': header_line, 'footer_line': footer_line}
+        msg = 'When checked, figures will be automatically plotted when an appropriate item\n' + \
+              'was selected in the Document Tree.'
+        self.general_instantPlot = {
+            'help_title': 'Instant plot', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
         msg = "When checked, some of the 'slower' functions are exectured on a separate CPU thread\n" + \
-              "meaning the GUI will not get locked (unusable). While it has been extensively tested\n" + \
-              "this can still cause some problems and occasionally cause a crash."
-        self.general_multiThreading = {'help_title': 'Multi-threading', 'help_msg': msg,
-                                       'header_img': None,
-                                       'header_line': header_line, 'footer_line': footer_line}
+              'meaning the GUI will not get locked (unusable). While it has been extensively tested\n' + \
+              'this can still cause some problems and occasionally cause a crash.'
+        self.general_multiThreading = {
+            'help_title': 'Multi-threading', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "When checked, a new log file will appear in the ORIGAMI folder which keeps track of all your\n" + \
-              "actions and in some cases, errors or warnings."
-        self.general_logToFile = {'help_title': 'Log events to file', 'help_msg': msg,
-                                  'header_img': None,
-                                  'header_line': header_line, 'footer_line': footer_line}
+        msg = 'When checked, a new log file will appear in the ORIGAMI folder which keeps track of all your\n' + \
+              'actions and in some cases, errors or warnings.'
+        self.general_logToFile = {
+            'help_title': 'Log events to file', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
-        msg = "When checked, settings will be automatically saved in the ORIGAMI directory\n" + \
-              "with the file name configOut.xml"
-        self.general_autoSaveSettings = {'help_title': 'Auto-save settings', 'help_msg': msg,
-                                         'header_img': None,
-                                         'header_line': header_line, 'footer_line': footer_line}
+        msg = 'When checked, settings will be automatically saved in the ORIGAMI directory\n' + \
+              'with the file name configOut.xml'
+        self.general_autoSaveSettings = {
+            'help_title': 'Auto-save settings', 'help_msg': msg,
+            'header_img': None,
+            'header_line': header_line, 'footer_line': footer_line,
+        }
 
 
 class HTMLHelp:
+
     def __init__(self):
         self.helpPages()
 
@@ -369,15 +449,19 @@ class HTMLHelp:
         <p>This is 'limited' but functional version of UniDec and it might lack certain features so for full version I would highly recommend downloading UniDec to give it a try yourself. It is available from <a href="https://github.com/michaelmarty/UniDec/releases">here</a>.</p>
         <p><strong>UniDec engine version 2.6.7.</strong></p>
         """.strip()
-        self.page_UniDec_info = {'msg': msg,
-                                 'title': "About UniDec...",
-                                 'window_size': (550, 300)}
+        self.page_UniDec_info = {
+            'msg': msg,
+            'title': 'About UniDec...',
+            'window_size': (550, 300),
+        }
 
         msg = """
         """.strip()
-        self.page_data_getting_started = {'msg': msg,
-                                          'title': "Learn about: Getting started",
-                                          'window_size': (1250, 800)}
+        self.page_data_getting_started = {
+            'msg': msg,
+            'title': 'Learn about: Getting started',
+            'window_size': (1250, 800),
+        }
 
         msg = """
         <p><strong>Loading data</strong></p>
@@ -416,9 +500,11 @@ class HTMLHelp:
         <p>&nbsp;</p>
         <p><strong>Please let me know if I should include anAnnotated data format.</strong></p>
         """.strip()
-        self.page_data_loading_info = {'msg': msg,
-                                       'title': "Learn about: Loading data",
-                                       'window_size': (1250, 800)}
+        self.page_data_loading_info = {
+            'msg': msg,
+            'title': 'Learn about: Loading data',
+            'window_size': (1250, 800),
+        }
 
         msg = """
         <p><strong>Data extraction<br /></strong></p>
@@ -453,9 +539,11 @@ class HTMLHelp:
         <p><strong>Figure 2. Extraction panel</strong></p>
         <p><strong><img src="images/panel_process_data_extraction.png" width="470" height="390" /></strong></p>
         """.strip()
-        self.page_data_extraction_info = {'msg': msg,
-                                          'title': "Learn about: Extracting data",
-                                          'window_size': (750, 800)}
+        self.page_data_extraction_info = {
+            'msg': msg,
+            'title': 'Learn about: Extracting data',
+            'window_size': (750, 800),
+        }
 
         msg = """
         <p><strong>About UniDec</strong></p>
@@ -480,9 +568,11 @@ class HTMLHelp:
         <p>&nbsp;</p>
         <p>&nbsp;</p>
         """.strip()
-        self.page_deconvolution_info = {'msg': msg,
-                                        'title': "Learn about: MS deconvolution using UniDec",
-                                        'window_size': (1250, 800)}
+        self.page_deconvolution_info = {
+            'msg': msg,
+            'title': 'Learn about: MS deconvolution using UniDec',
+            'window_size': (1250, 800),
+        }
 
         msg = """
         <p><strong>Manual CIU datasets<br /></strong></p>
@@ -539,9 +629,11 @@ class HTMLHelp:
         <p><strong>Figure 8. Overlay examples</strong></p>
         <p><strong><img src="images/multiple_export_overlay.png" alt="" width="601" height="941" /></strong></p>
         """.strip()
-        self.page_multiple_files_info = {'msg': msg,
-                                         'title': "Learn about: Manual CIU (multiple files)",
-                                         'window_size': (1210, 800)}
+        self.page_multiple_files_info = {
+            'msg': msg,
+            'title': 'Learn about: Manual CIU (multiple files)',
+            'window_size': (1210, 800),
+        }
 
         msg = """
         <p><strong>Interactive output<br /></strong></p>
@@ -592,9 +684,11 @@ class HTMLHelp:
         <p><strong>Figure 7. Barplot</strong></p>
         <p><strong><img src="images/html_barplot.png" alt="" /></strong></p>
         """.strip()
-        self.page_interactive_output_info = {'msg': msg,
-                                             'title': "Learn about: Interactive documents",
-                                             'window_size': (1100, 800)}
+        self.page_interactive_output_info = {
+            'msg': msg,
+            'title': 'Learn about: Interactive documents',
+            'window_size': (1100, 800),
+        }
 
         msg = """
         <p><strong>ORIGAMI-MS format and its analysis</strong></p>
@@ -669,9 +763,11 @@ class HTMLHelp:
         <p><strong>Figure 8. Document panel view of analysed ORIGAMI file</strong></p>
         <p><strong><img src="images/panel_document_tree_data.png" width="270" height="596" /></strong></p>
         """.strip()
-        self.page_origami_info = {'msg': msg,
-                                  'title': "Learn about: Automated CIU (ORIGAMI-MS)",
-                                  'window_size': (1250, 800)}
+        self.page_origami_info = {
+            'msg': msg,
+            'title': 'Learn about: Automated CIU (ORIGAMI-MS)',
+            'window_size': (1250, 800),
+        }
 
         msg = """
         <p><strong>Overlaying items</strong></p>
@@ -700,9 +796,11 @@ class HTMLHelp:
         <p><strong><img src="images/plot_origami_compare_gridNxN.png" alt="" width="1047" height="933" /></strong></p>
         <p>&nbsp;</p>
         """.strip()
-        self.page_overlay_info = {'msg': msg,
-                                  'title': "Learn about: Overlaying items",
-                                  'window_size': (1250, 800)}
+        self.page_overlay_info = {
+            'msg': msg,
+            'title': 'Learn about: Overlaying items',
+            'window_size': (1250, 800),
+        }
 
         msg = """
         <h2><strong>Loading of non-MS datasets ("other" data)</strong></h2>
@@ -756,9 +854,11 @@ class HTMLHelp:
         <p><img src="images/plot_other_data_examples.png" alt="" width="1485" height="1615" /></p>
         <p>&nbsp;</p>
         """.strip()
-        self.page_other_data_info = {'msg': msg,
-                                     'title': "Learn about: Annotated datasets",
-                                     'window_size': (1250, 800)}
+        self.page_other_data_info = {
+            'msg': msg,
+            'title': 'Learn about: Annotated datasets',
+            'window_size': (1250, 800),
+        }
 
         msg = """
         <h3>Annotating mass spectra</h3>
@@ -810,15 +910,21 @@ class HTMLHelp:
         <p><img src="images/panel_interactive_text_annotations_settings.png" width="304" height="98" /></p>
 
         """.strip()
-        self.page_annotating_mass_spectra = {'msg': msg,
-                                             'title': "Learn about: Annotating mass spectra",
-                                             'window_size': (1250, 800)}
+        self.page_annotating_mass_spectra = {
+            'msg': msg,
+            'title': 'Learn about: Annotating mass spectra',
+            'window_size': (1250, 800),
+        }
 
         # ignore for now
-        self.page_ccs_calibration_info = {'msg': fail_msg,
-                                          'title': "Learn about: CCS calibration",
-                                          'window_size': (1250, 800)}
+        self.page_ccs_calibration_info = {
+            'msg': fail_msg,
+            'title': 'Learn about: CCS calibration',
+            'window_size': (1250, 800),
+        }
 
-        self.page_linear_dt_info = {'msg': fail_msg,
-                                    'title': "Learn about: Linear drift-time analysis",
-                                    'window_size': (1250, 800)}
+        self.page_linear_dt_info = {
+            'msg': fail_msg,
+            'title': 'Learn about: Linear drift-time analysis',
+            'window_size': (1250, 800),
+        }

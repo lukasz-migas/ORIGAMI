@@ -1,6 +1,7 @@
 """Test utils.color.py"""
-
-from utils.color import convertRGB1to255, convertRGB255to1, determineFontColor
+from utils.color import convertRGB1to255
+from utils.color import convertRGB255to1
+from utils.color import determineFontColor
 
 
 def test_convertRGB1to255():
@@ -39,14 +40,14 @@ def test_determineFontColor_return_string_1to_255():
 
 
 def test_determineFontColor_return_string_white():
-    expected_value = "white"  # white
+    expected_value = 'white'  # white
     return_value = determineFontColor([0., 0., 0.], return_rgb=False)
 
     assert expected_value == return_value
 
 
 def test_determineFontColor_return_string_black():
-    expected_value = "black"  # black
+    expected_value = 'black'  # black
     return_value = determineFontColor([255, 255, 255], return_rgb=False)
 
     assert expected_value == return_value

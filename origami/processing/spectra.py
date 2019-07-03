@@ -1,29 +1,13 @@
 # -*- coding: utf-8 -*-
-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
 import math
-import numpy as np
 from bisect import bisect_left
-from scipy.signal import savgol_filter
-from scipy.ndimage import gaussian_filter
+
+import numpy as np
 from gui_elements.misc_dialogs import dlgBox
 from scipy.interpolate.interpolate import interp1d
+from scipy.ndimage import gaussian_filter
+from scipy.signal import savgol_filter
 
 
 def remove_noise_1D(inputData=None, threshold=0):
@@ -32,9 +16,10 @@ def remove_noise_1D(inputData=None, threshold=0):
     if (threshold > np.max(inputData)) or (threshold < 0):
         dlgBox(
             exceptionTitle='Warning',
-            exceptionMsg="Threshold value was too high - the maximum value is %s. Value was reset to 0. Consider reducing your threshold value." %
+            exceptionMsg='Threshold value was too high - the maximum value is %s. Value was reset to 0. Consider reducing your threshold value.' %
             np.max(inputData),
-            type="Warning")
+            type='Warning',
+        )
         threshold = 0
     elif threshold == 0.0:
         pass
@@ -44,9 +29,10 @@ def remove_noise_1D(inputData=None, threshold=0):
             threshold = 0
         dlgBox(
             exceptionTitle='Warning',
-            exceptionMsg="Threshold value was too low - the maximum value is %s. Value was reset to 0. Consider increasing your threshold value." %
+            exceptionMsg='Threshold value was too low - the maximum value is %s. Value was reset to 0. Consider increasing your threshold value.' %
             np.max(inputData),
-            type="Warning")
+            type='Warning',
+        )
         threshold = 0
     # Or leave it as is if the values are correct
     else:
@@ -56,14 +42,14 @@ def remove_noise_1D(inputData=None, threshold=0):
     return inputData
 
 
-def normalize_1D(inputData=None, mode="Maximum"):  # normalizeMS
+def normalize_1D(inputData=None, mode='Maximum'):  # normalizeMS
     # Normalize data to maximum intensity of 1
     try:
         inputData = inputData.astype(np.float64)
     except AttributeError:
         inputData = np.array(inputData, dtype=np.float64)
 
-    if mode == "Maximum":
+    if mode == 'Maximum':
         max_val = np.max(inputData)
         normData = np.divide(inputData, max_val)
     elif mode == 'tic':
@@ -116,9 +102,11 @@ def linearize_data(msX, msY, **kwargs):
     binsize = kwargs['mz_bin']
     msCentre = get_linearization_range(mzStart, mzEnd, binsize, kwargs['linearization_mode'])
 
-    msCentre, msYbin = linearize(data=np.transpose([msX, msY]), binsize=binsize,
-                                 mode=kwargs['linearization_mode'],
-                                 input_list=msCentre)
+    msCentre, msYbin = linearize(
+        data=np.transpose([msX, msY]), binsize=binsize,
+        mode=kwargs['linearization_mode'],
+        input_list=msCentre,
+    )
     msYbin = np.nan_to_num(msYbin)
 
     return msCentre, msYbin
@@ -143,7 +131,7 @@ def crop_1D_data(msX, msY, **kwargs):
         crop_max = data_max
 
     if crop_min == crop_max:
-        print("Please widen the mass range")
+        print('Please widen the mass range')
         return msX, msY
 
     # get spectrum
@@ -207,9 +195,11 @@ def smooth_gaussian_1D(data=None, sigma=1):  # smooth1D
     if data is None or len(data) == 0:
         return None
     if sigma < 0:
-        dlgBox(exceptionTitle='Warning',
-               exceptionMsg="Value of sigma is too low. Value was reset to 1",
-               type="Warning")
+        dlgBox(
+            exceptionTitle='Warning',
+            exceptionMsg='Value of sigma is too low. Value was reset to 1',
+            type='Warning',
+        )
         sigma = 1
     else:
         sigma = sigma
@@ -242,9 +232,11 @@ def smooth_1D(data=None, smoothMode='Gaussian', **kwargs):  # smooth_1D
             return None
 
         try:
-            dataOut = savgol_filter(data, polyorder=polyOrder,
-                                    window_length=windowSize,
-                                    axis=0)
+            dataOut = savgol_filter(
+                data, polyorder=polyOrder,
+                window_length=windowSize,
+                axis=0,
+            )
         except (ValueError, TypeError, MemoryError) as error:
             print(error)
             return data
@@ -255,10 +247,10 @@ def smooth_1D(data=None, smoothMode='Gaussian', **kwargs):  # smooth_1D
         return data
 
 
-def bin_1D(x=None, y=None, bins=None, binmode="Bin"):  # binMSdata
+def bin_1D(x=None, y=None, bins=None, binmode='Bin'):  # binMSdata
     """Bin data"""
     # Bin data using numpy histogram function
-    if binmode == "Bin":
+    if binmode == 'Bin':
         msYbin, __ = np.histogram(x, bins=bins, weights=y)
 
     return msYbin
@@ -303,7 +295,7 @@ def nearest(array, target):
 
 
 def get_linearization_range(mzStart, mzEnd, binsize, mode):
-    if mode in ["Linear m/z", "Linear interpolation"]:
+    if mode in ['Linear m/z', 'Linear interpolation']:
         msList = np.arange(mzStart, mzEnd, binsize)
     else:
         msList = nonlinear_axis(mzStart, mzEnd, mzStart / binsize)
@@ -317,7 +309,7 @@ def linearize(data, binsize, mode, input_list=[]):
         firstpoint = math.ceil(data[0, 0] / binsize) * binsize
         lastpoint = math.floor(data[length - 1, 0] / binsize) * binsize
 
-        if mode in ["Linear m/z", "Linear interpolation"]:
+        if mode in ['Linear m/z', 'Linear interpolation']:
             #     if mode in [0, 3]:
             intx = np.arange(firstpoint, lastpoint, binsize)
         else:
@@ -325,7 +317,7 @@ def linearize(data, binsize, mode, input_list=[]):
     else:
         intx = input_list
 
-    if mode in ["Linear m/z", "Linear resolution"]:
+    if mode in ['Linear m/z', 'Linear resolution']:
         #     if mode < 2:
         newdat = lintegrate(data, intx)
     else:
@@ -426,5 +418,7 @@ def nonlinearize(data, num_compressed):
         return data
     else:
         num_compressed = int(num_compressed)
-        return np.array([np.mean(data[index:index + num_compressed], axis=0) for index in
-                         range(0, len(data), num_compressed)])
+        return np.array([
+            np.mean(data[index:index + num_compressed], axis=0) for index in
+            range(0, len(data), num_compressed)
+        ])

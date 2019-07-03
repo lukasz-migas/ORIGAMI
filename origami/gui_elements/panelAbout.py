@@ -1,34 +1,22 @@
 # -*- coding: utf-8 -*-
-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
 import wx
-
-from ids import (ID_helpCite, ID_helpGitHub, ID_helpReportBugs, ID_helpNewFeatures,
-                 ID_helpHomepage, ID_helpAuthor)
+from ids import ID_helpAuthor
+from ids import ID_helpCite
+from ids import ID_helpGitHub
+from ids import ID_helpHomepage
+from ids import ID_helpNewFeatures
+from ids import ID_helpReportBugs
 
 
 class panelAbout(wx.MiniFrame):
     """About panel."""
 
     def __init__(self, parent, presenter, frameTitle, config, icons):
-        wx.MiniFrame.__init__(self, parent, -1, frameTitle, style=wx.DEFAULT_FRAME_STYLE
-                              & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX))
+        wx.MiniFrame.__init__(
+            self, parent, -1, frameTitle, style=wx.DEFAULT_FRAME_STYLE
+            & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX),
+        )
 
         self.parent = parent
         self.presenter = presenter
@@ -64,28 +52,28 @@ class panelAbout(wx.MiniFrame):
         message = wx.StaticText(panel, -1, about_msg)
         message.SetFont(wx.NORMAL_FONT)
 
-        university = wx.StaticText(panel, -1, "University of Manchester")
+        university = wx.StaticText(panel, -1, 'University of Manchester')
         university.SetFont(wx.SMALL_FONT)
 
-        copyright_text = wx.StaticText(panel, -1, "(c) 2017-18 Lukasz G. Migas")
+        copyright_text = wx.StaticText(panel, -1, '(c) 2017-18 Lukasz G. Migas')
         copyright_text.SetFont(NORMAL_FONT)
 
-        homepageBtn = wx.Button(panel, ID_helpHomepage, "Homepage", size=(150, -1))
+        homepageBtn = wx.Button(panel, ID_helpHomepage, 'Homepage', size=(150, -1))
         homepageBtn.Bind(wx.EVT_BUTTON, self.parent.on_open_link)
 
-        githubBtn = wx.Button(panel, ID_helpGitHub, "GitHub", size=(150, -1))
+        githubBtn = wx.Button(panel, ID_helpGitHub, 'GitHub', size=(150, -1))
         githubBtn.Bind(wx.EVT_BUTTON, self.parent.on_open_link)
 
-        citeBtn = wx.Button(panel, ID_helpCite, "How to Cite", size=(150, -1))
+        citeBtn = wx.Button(panel, ID_helpCite, 'How to Cite', size=(150, -1))
         citeBtn.Bind(wx.EVT_BUTTON, self.parent.on_open_link)
 
-        newFeaturesBtn = wx.Button(panel, ID_helpNewFeatures, "Request New Features", size=(150, -1))
+        newFeaturesBtn = wx.Button(panel, ID_helpNewFeatures, 'Request New Features', size=(150, -1))
         newFeaturesBtn.Bind(wx.EVT_BUTTON, self.parent.on_open_link)
 
-        reportBugBtn = wx.Button(panel, ID_helpReportBugs, "Report Bugs", size=(150, -1))
+        reportBugBtn = wx.Button(panel, ID_helpReportBugs, 'Report Bugs', size=(150, -1))
         reportBugBtn.Bind(wx.EVT_BUTTON, self.parent.on_open_link)
 
-        authorBtn = wx.Button(panel, ID_helpAuthor, "About author", size=(150, -1))
+        authorBtn = wx.Button(panel, ID_helpAuthor, 'About author', size=(150, -1))
         authorBtn.Bind(wx.EVT_BUTTON, self.parent.on_open_link)
 
         btn_grid = wx.GridBagSizer(2, 2)

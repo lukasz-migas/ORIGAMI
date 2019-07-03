@@ -1,24 +1,8 @@
 # -*- coding: utf-8 -*-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
 # Load libraries
 import logging
 import os
-import sys
 import webbrowser
 from time import gmtime
 from time import sleep
@@ -1586,7 +1570,7 @@ class MyFrame(wx.Frame):
             ['Z', self.openSaveAsDlg, wx.ACCEL_SHIFT],
             ['G', self.presenter.on_open_directory, wx.ACCEL_CTRL],
         ]
-        keyIDs = [wx.NewId() for a in ctrlkeys]
+        keyIDs = [wx.NewId() for item in ctrlkeys]
         ctrllist = []
         for i, k in enumerate(ctrlkeys):
             self.Bind(wx.EVT_MENU, k[1], id=keyIDs[i])
@@ -2367,10 +2351,7 @@ class MyFrame(wx.Frame):
         except RuntimeError as err:
             print(err)
         except Exception as err:
-            try:
-                logger.warning('Could not update statusbar :: {}'.format(err))
-            except Exception as err:
-                print(err)
+            print(err)
 
     def updatePlots(self, evt):
         """
@@ -2398,9 +2379,11 @@ class MyFrame(wx.Frame):
     def onEnableDisableThreading(self, evt):
 
         if self.config.threading:
+            msg = 'Multi-threading is only an experimental feature for now! It might occasionally crash ORIGAMI,' + \
+                ' in which case you will lose your processed data!'
             dlgBox(
                 exceptionTitle='Warning',
-                exceptionMsg='Multi-threading is only an experimental feature for now! It might occasionally crash ORIGAMI, in which case you will lose your processed data!',
+                exceptionMsg=msg,
                 type='Warning',
             )
         if evt is not None:
@@ -2441,7 +2424,8 @@ class MyFrame(wx.Frame):
             # Check if driftscope exists
             if not os.path.isdir(self.config.driftscopePath):
                 print('Could not find Driftscope path')
-                msg = r'Could not localise Driftscope directory. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib'
+                msg = r'Could not localise Driftscope directory. Please setup path to Dritscope lib folder.' + \
+                    r' It usually exists under C:\DriftScope\lib'
                 dlgBox(
                     exceptionTitle='Could not find Driftscope',
                     exceptionMsg=msg, type='Warning',
@@ -2449,7 +2433,8 @@ class MyFrame(wx.Frame):
 
             if not os.path.isfile(self.config.driftscopePath + r'\imextract.exe'):
                 print('Could not find imextract.exe')
-                msg = r'Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder. It usually exists under C:\DriftScope\lib'
+                msg = r'Could not localise Driftscope imextract.exe program. Please setup path to Dritscope' + \
+                    r' lib folder. It usually exists under C:\DriftScope\lib'
                 dlgBox(
                     exceptionTitle='Could not find Driftscope',
                     exceptionMsg=msg, type='Warning',

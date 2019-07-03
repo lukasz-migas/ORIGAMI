@@ -1,8 +1,15 @@
 ''' Waters
     MassLynx Python Chromatogram reader SDK
 '''
-from ctypes import c_void_p, c_int, POINTER, c_bool, c_float, cast
-from readers.waters.MassLynxRawReader import MassLynxBaseType, MassLynxRawReader
+from ctypes import c_bool
+from ctypes import c_float
+from ctypes import c_int
+from ctypes import c_void_p
+from ctypes import cast
+from ctypes import POINTER
+
+from readers.waters.MassLynxRawReader import MassLynxBaseType
+from readers.waters.MassLynxRawReader import MassLynxRawReader
 
 
 class MassLynxRawChromatogramReader(MassLynxRawReader):
@@ -10,14 +17,6 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
 
     def __init__(self, source):
         super().__init__(source, MassLynxBaseType.CHROM)
-
-    # @classmethod
-    # def CreateFromPath( cls, path ):                      # alternative constructor - pass class to constructor
-    #    return cls(MassLynxRawReader.fromPath( path, 3 ))                     # initalise with reader
-
-    # @classmethod
-    # def CreateFromReader( cls, sourceReader ):                  # alternative constructor - pass class to constructor
-    #     return cls(MassLynxRawReader.fromReader( sourceReader, 3 ))                     # initalise with reader
 
     def ReadTIC(self, whichFunction):
         #         times = []
@@ -100,8 +99,11 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
         pIntensities = c_void_p()
 
         readMassChroms = MassLynxRawReader.massLynxDll.readMassChromatograms
-        readMassChroms.argtypes = [c_void_p, c_int, POINTER(c_float), c_int, POINTER(
-            c_void_p), POINTER(c_void_p), c_float, c_bool, POINTER(c_int)]
+        readMassChroms.argtypes = [
+            c_void_p, c_int, POINTER(c_float), c_int, POINTER(
+                c_void_p,
+            ), POINTER(c_void_p), c_float, c_bool, POINTER(c_int),
+        ]
         super().CheckReturnCode(
             readMassChroms(
                 self._getReader(),
@@ -112,7 +114,9 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
                 pIntensities,
                 massTollerance,
                 daughters,
-                size))
+                size,
+            ),
+        )
 
         # fill the array and free memory
         pT = cast(pTimes, POINTER(c_float))
@@ -127,69 +131,3 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
         MassLynxRawReader.ReleaseMemory(pIntensities)
 
         return times, intensities
-
-    # def getMRMsinFunction( self, whichFunction ):
-    #     try:
-    #         # get the number of MRM transitions
-    #         numberMRMs = 0
-    #         getMRMsInFunction = RawReader.massLynxDll.getMRMsInFunction
-    #         getMRMsInFunction.argtypes = [c_void_p, c_int, POINTER(c_int)]
-    #         RawReader.CheckReturnCode(getMRMsInFunction(RawReader.getReader(self), whichFunction, numberMRMs))
-
-    #     except MassLynxException as e:
-    #         e.Handler()
-    #         return 0
-
-    #     return numberMRMs;
-
-    # def readMRM( self, whichFunction, whichMRM ):
-    #     try:
-    #         # check we are requesting a valid MRM index - no...
-    #         # client  code should not know about data
-    # #         if ( self.getMRMsinFunction( whichFunction ) > whichMRM ):
-
-    #         # create the float array
-    #         scans = self.getScansInFunction(whichFunction)
-    #         times = (c_float*scans)()
-    #         intensities = (c_float*scans)()
-
-    #         # check we have some scans ?
-
-    #         readMRM = RawReader.massLynxDll.readMRMChromatogram
-    #         readMRM.argtypes = [c_void_p, c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-    # RawReader.CheckReturnCode( readMRM( RawReader.getReader(self),
-    # whichFunction, whichMRM, times, intensities)) # test with invalid MRM
-
-    #     except MassLynxException as e:
-    #         e.Handler()
-    #         return [], []
-
-    #     return list(times), list(intensities)
-
-    # def readMRMs( self, whichFunction ):
-    #     try:
-    #         numberMRMs = self.getMRMsinFunction( whichFunction )
-
-    #         # create the float arrays
-    #         scans = self.getScansInFunction(whichFunction)
-    #         times = (c_float*scans)()
-
-    #         # create array of pointers to hold return intensities
-    #         intensities = (POINTER(c_float) * numberMRMs)()
-    #         for index in range(0, numberMRMs ):
-    #             intensities[ index ] = (c_float * scans)()
-
-    #         readMRMs = RawReader.massLynxDll.readMRMChromatograms
-    #         readMRMs.argtypes = [c_void_p, c_int, c_int, POINTER(c_float), POINTER(POINTER(c_float))]
-    #         RawReader.CheckReturnCode( readMRMs( RawReader.getReader(self), whichFunction, numberMRMs, times, intensities,))
-
-    #     except MassLynxException as e:
-    #         e.Handler()
-    #         return [], []
-
-    #     # create the return types
-    #     intensities_lists = []
-    #     for index in range(0, numberMRMs ):
-    #         intensities_lists.append( intensities[index][0:scans] )
-
-    #     return list(times), intensities_lists

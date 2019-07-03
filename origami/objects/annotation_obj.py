@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 """Annotation object"""
 
 
@@ -22,7 +24,7 @@ class Annotation:
         self.span_min = 0
         self.span_max = 0
         self.charge = 0
-        self.label = ""
+        self.label = ''
 
         # peak information
         self.peak_x = 0

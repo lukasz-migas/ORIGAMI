@@ -1,24 +1,6 @@
 # -*- coding: utf-8 -*-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-# IMPORT LIBS
-from os.path import basename
-from os.path import join
-from os.path import splitext
+import os
 
 import matplotlib
 import matplotlib.patches as patches
@@ -32,7 +14,6 @@ from numpy import amax
 from numpy import divide
 from PIL import Image
 from PIL import ImageChops
-from pubsub import pub
 from ZoomBox import GetXValues
 from ZoomBox import ZoomBox
 matplotlib.use('WXAgg')
@@ -389,9 +370,9 @@ class mpl_plotter(wx.Window):
                 type='Error',
             )
             # get file extension
-            fname, delimiter_txt = splitext(path)
+            fname, delimiter_txt = os.path.splitext(path)
             try:
-                bname = basename(fname)
+                bname = os.path.basename(fname)
             except Exception:
                 bname = ''
 
@@ -403,8 +384,8 @@ class mpl_plotter(wx.Window):
             dlg.SetFilename(bname)
 
             if dlg.ShowModal() == wx.ID_OK:
-                fname, __ = splitext(dlg.GetPath())
-                path = join(fname + delimiter_txt)
+                fname, __ = os.path.splitext(dlg.GetPath())
+                path = os.path.join(fname + delimiter_txt)
 
                 # reset axes, again
                 if resizeSize is not None and not self.lock_plot_from_updating_size:

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import wx
 from help_documentation import OrigamiHelp
 from styles import makeCheckbox
@@ -6,9 +8,13 @@ from styles import makeCheckbox
 class panelExportSettings(wx.MiniFrame):
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
-        wx.MiniFrame.__init__(self, parent, -1, 'Import/Export parameters', size=(-1, -1),
-                              style=(wx.DEFAULT_FRAME_STYLE |
-                                     wx.MAXIMIZE_BOX | wx.CLOSE_BOX))
+        wx.MiniFrame.__init__(
+            self, parent, -1, 'Import/Export parameters', size=(-1, -1),
+            style=(
+                wx.DEFAULT_FRAME_STYLE |
+                wx.MAXIMIZE_BOX | wx.CLOSE_BOX
+            ),
+        )
 
         self.parent = parent
         self.presenter = presenter
@@ -17,8 +23,10 @@ class panelExportSettings(wx.MiniFrame):
         self.help = OrigamiHelp()
 
         self.importEvent = False
-        self.windowSizes = {'Peaklist': (250, 110), 'Image': (250, 150),
-                            'Files': (310, 140)}
+        self.windowSizes = {
+            'Peaklist': (250, 110), 'Image': (250, 150),
+            'Files': (310, 140),
+        }
 
         # make gui items
         self.make_gui()
@@ -69,18 +77,21 @@ class panelExportSettings(wx.MiniFrame):
 
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         # Setup notebook
-        self.mainBook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition,
-                                    wx.DefaultSize, style=wx.NB_MULTILINE)
+        self.mainBook = wx.Notebook(
+            self, wx.ID_ANY, wx.DefaultPosition,
+            wx.DefaultSize, style=wx.NB_MULTILINE,
+        )
 
         self.parameters_peaklist = wx.Panel(
-            self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.make_panel_Peaklist(self.parameters_peaklist), "Peaklist", False)
+            self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL,
+        )
+        self.mainBook.AddPage(self.make_panel_Peaklist(self.parameters_peaklist), 'Peaklist', False)
         # ------
         self.parameters_image = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.make_panel_Image(self.parameters_image), "Image", False)
+        self.mainBook.AddPage(self.make_panel_Image(self.parameters_image), 'Image', False)
         # ------
         self.parameters_files = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.make_panel_Files(self.parameters_files), "Files", False)
+        self.mainBook.AddPage(self.make_panel_Files(self.parameters_files), 'Files', False)
 
         self.mainSizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 2)
 
@@ -90,16 +101,18 @@ class panelExportSettings(wx.MiniFrame):
     def make_panel_Peaklist(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        useInternal_label = wx.StaticText(panel, wx.ID_ANY, "Override imported values:")
-        self.peaklist_useInternalWindow_check = makeCheckbox(panel, "")
+        useInternal_label = wx.StaticText(panel, wx.ID_ANY, 'Override imported values:')
+        self.peaklist_useInternalWindow_check = makeCheckbox(panel, '')
         self.peaklist_useInternalWindow_check.SetValue(self.config.useInternalMZwindow)
         self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        windowSize_label = wx.StaticText(panel, wx.ID_ANY, "± m/z (Da):")
-        self.peaklist_windowSize_value = wx.SpinCtrlDouble(panel, -1, value=str(0),
-                                                           min=0.5, max=50, initial=0, inc=1,
-                                                           size=(60, -1))
+        windowSize_label = wx.StaticText(panel, wx.ID_ANY, '± m/z (Da):')
+        self.peaklist_windowSize_value = wx.SpinCtrlDouble(
+            panel, -1, value=str(0),
+            min=0.5, max=50, initial=0, inc=1,
+            size=(60, -1),
+        )
         self.peaklist_windowSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.peaklist_windowSize_value.SetValue(self.config.mzWindowSize)
 
@@ -107,8 +120,11 @@ class panelExportSettings(wx.MiniFrame):
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(useInternal_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.peaklist_useInternalWindow_check, (n, 1), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(
+            self.peaklist_useInternalWindow_check, (n, 1), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT,
+        )
         n = n + 1
         grid.Add(windowSize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.peaklist_windowSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
@@ -123,26 +139,30 @@ class panelExportSettings(wx.MiniFrame):
     def make_panel_Image(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        fileFormat_label = wx.StaticText(panel, wx.ID_ANY, "File format:")
-        self.image_fileFormat_choice = wx.Choice(panel, -1, choices=self.config.imageFormatType,
-                                                 size=(-1, -1))
+        fileFormat_label = wx.StaticText(panel, wx.ID_ANY, 'File format:')
+        self.image_fileFormat_choice = wx.Choice(
+            panel, -1, choices=self.config.imageFormatType,
+            size=(-1, -1),
+        )
         self.image_fileFormat_choice.SetStringSelection(self.config.imageFormat)
         self.image_fileFormat_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        resolution_label = wx.StaticText(panel, wx.ID_ANY, "Resolution:")
-        self.image_resolution = wx.SpinCtrlDouble(panel, -1, value=str(0),
-                                                  min=50, max=600, initial=0, inc=50,
-                                                  size=(60, -1))
+        resolution_label = wx.StaticText(panel, wx.ID_ANY, 'Resolution:')
+        self.image_resolution = wx.SpinCtrlDouble(
+            panel, -1, value=str(0),
+            min=50, max=600, initial=0, inc=50,
+            size=(60, -1),
+        )
         self.image_resolution.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.image_resolution.SetValue(self.config.dpi)
 
-        transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparent:")
-        self.image_transparency_check = makeCheckbox(panel, "")
+        transparency_label = wx.StaticText(panel, wx.ID_ANY, 'Transparent:')
+        self.image_transparency_check = makeCheckbox(panel, '')
         self.image_transparency_check.SetValue(self.config.transparent)
         self.image_transparency_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        resize_label = wx.StaticText(panel, wx.ID_ANY, "Resize:")
-        self.image_resize_check = makeCheckbox(panel, "")
+        resize_label = wx.StaticText(panel, wx.ID_ANY, 'Resize:')
+        self.image_resize_check = makeCheckbox(panel, '')
         self.image_resize_check.SetValue(self.config.resize)
         self.image_resize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -171,21 +191,26 @@ class panelExportSettings(wx.MiniFrame):
     def make_panel_Files(self, panel):
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        delimiter_label = wx.StaticText(panel, wx.ID_ANY, "Delimiter:")
-        self.file_delimiter_choice = wx.Choice(panel, -1, choices=list(self.config.textOutputDict.keys()),
-                                               size=(-1, -1))
+        delimiter_label = wx.StaticText(panel, wx.ID_ANY, 'Delimiter:')
+        self.file_delimiter_choice = wx.Choice(
+            panel, -1, choices=list(self.config.textOutputDict.keys()),
+            size=(-1, -1),
+        )
         self.file_delimiter_choice.SetStringSelection(self.config.saveDelimiterTXT)
         self.file_delimiter_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        default_name_label = wx.StaticText(panel, wx.ID_ANY, "Default name:")
-        self.file_default_name_choice = wx.Choice(panel, -1, choices=sorted(self.config._plotSettings.keys()),
-                                                  size=(-1, -1))
+        default_name_label = wx.StaticText(panel, wx.ID_ANY, 'Default name:')
+        self.file_default_name_choice = wx.Choice(
+            panel, -1, choices=sorted(self.config._plotSettings.keys()),
+            size=(-1, -1),
+        )
         self.file_default_name_choice.SetSelection(0)
         self.file_default_name_choice.Bind(wx.EVT_CHOICE, self.onSetupPlotName)
 
-        self.file_default_name = wx.TextCtrl(panel, -1, "", size=(210, -1))
+        self.file_default_name = wx.TextCtrl(panel, -1, '', size=(210, -1))
         self.file_default_name.SetValue(
-            self.config._plotSettings[self.file_default_name_choice.GetStringSelection()]['default_name'])
+            self.config._plotSettings[self.file_default_name_choice.GetStringSelection()]['default_name'],
+        )
         self.file_default_name.Bind(wx.EVT_TEXT, self.on_apply)
 
         # add to grid
@@ -197,8 +222,10 @@ class panelExportSettings(wx.MiniFrame):
         grid.Add(default_name_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.file_default_name_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n = n + 1
-        grid.Add(self.file_default_name, (n, 1), wx.GBSpan(1, 2),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(
+            self.file_default_name, (n, 1), wx.GBSpan(1, 2),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT | wx.EXPAND,
+        )
         mainSizer.Add(grid, 0, wx.ALIGN_LEFT, 10)
 
         # fit layout

@@ -1,21 +1,29 @@
-import wx
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import os
 import webbrowser
+
+import wx
 
 
 class panelHTMLViewer(wx.MiniFrame):
 
     def __init__(self, parent, config, msg=None, title=None, **kwargs):
-        wx.MiniFrame.__init__(self, parent, -1, 'HTML viewer', size=(-1, -1),
-                              style=(wx.DEFAULT_FRAME_STYLE |
-                                     wx.MAXIMIZE_BOX | wx.CLOSE_BOX))
+        wx.MiniFrame.__init__(
+            self, parent, -1, 'HTML viewer', size=(-1, -1),
+            style=(
+                wx.DEFAULT_FRAME_STYLE |
+                wx.MAXIMIZE_BOX | wx.CLOSE_BOX
+            ),
+        )
 
         self.parent = parent
         self.config = config
 
         self.label_header = wx.html.HtmlWindow(
             self, style=wx.TE_READONLY | wx.TE_MULTILINE |
-            wx.html.HW_SCROLLBAR_AUTO | wx.BORDER_NONE | wx.html.HTML_URL_IMAGE)
+            wx.html.HW_SCROLLBAR_AUTO | wx.BORDER_NONE | wx.html.HTML_URL_IMAGE,
+        )
 
         if msg is None:
             msg = kwargs['html_msg']

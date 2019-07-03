@@ -1,6 +1,6 @@
 import base64
-import pickle as pickle
 import multiprocessing
+import pickle as pickle
 import sqlite3
 import struct
 import xml.etree.ElementTree as xml
@@ -35,17 +35,23 @@ def child(element, tag):
     return [x for x in element if x.tag == ns(tag)][0]
 
 
-def cvp(parent, cvRef='MS', unitCvRef='MS',
-        **parameters):
-    return xml.SubElement(parent, ns('cvParam'), cvRef=cvRef, unitCvRef=unitCvRef,
-                          **parameters)
+def cvp(
+    parent, cvRef='MS', unitCvRef='MS',
+    **parameters
+):
+    return xml.SubElement(
+        parent, ns('cvParam'), cvRef=cvRef, unitCvRef=unitCvRef,
+        **parameters
+    )
 
 
 def uncvp(el):
     assert el.tag == ns('cvParam')
-    return {'name': el.get('name'),
-            'units': el.get('unitName'),
-            'value': el.get('value')}
+    return {
+        'name': el.get('name'),
+        'units': el.get('unitName'),
+        'value': el.get('value'),
+    }
 
 
 def encodeBinaryFloats(floats, compression=False):
@@ -85,11 +91,11 @@ def makeSpectrumXML(specData):
     specEl.set('index', specData['index'])
     specEl.set('sourceFileRef', specData['Source'])
 
-    cvp(specEl, accession="MS:1000789", name='enhanced multiply charged spectrum')  # I guess?
+    cvp(specEl, accession='MS:1000789', name='enhanced multiply charged spectrum')  # I guess?
     if specData['centroid']:
-        cvp(specEl, accession="MS:000127", name='centroid spectrum')
+        cvp(specEl, accession='MS:000127', name='centroid spectrum')
     else:
-        cvp(specEl, accession="MS:1000128", name='profile spectrum')
+        cvp(specEl, accession='MS:1000128', name='profile spectrum')
 
     if specData['MS Level'] == 'MS1':
         cvp(specEl, accession='MS:1000579', name='MS1 spectrum')
@@ -100,47 +106,63 @@ def makeSpectrumXML(specData):
 
     # I'm assuming there's only one scan.
     # No idea what multiple scans per spectrum would even mean.
-    scanlistdataEl = xml.SubElement(specEl, ns('scanList'),
-                                    count=1)
-    scanEl = xml.SubElement(scanlistdataEl, ns('scan'),
-                            sourceFileRef=specData['Source'],
-                            spectrumRef=specData['Spectrum Description'])
+    scanlistdataEl = xml.SubElement(
+        specEl, ns('scanList'),
+        count=1,
+    )
+    scanEl = xml.SubElement(
+        scanlistdataEl, ns('scan'),
+        sourceFileRef=specData['Source'],
+        spectrumRef=specData['Spectrum Description'],
+    )
 
     windowList = xml.SubElement(scanEl, ns('scanWindowList'), count=2)
-    cvp(windowList, accession="MS:1000501", name="scan window lower limit",
-        unitAccession="MS:1000040", unitName="m/z", value=specData['mz range'][0])
-    cvp(windowList, accession="MS:1000500", name="scan window upper limit",
-        unitAccession="MS:1000040", unitName="m/z", value=specData['mz range'][1])
+    cvp(
+        windowList, accession='MS:1000501', name='scan window lower limit',
+        unitAccession='MS:1000040', unitName='m/z', value=specData['mz range'][0],
+    )
+    cvp(
+        windowList, accession='MS:1000500', name='scan window upper limit',
+        unitAccession='MS:1000040', unitName='m/z', value=specData['mz range'][1],
+    )
 
     if specData['MS Level'] != 'MS1':
         # Not include this for MS1 scans?
         precList = xml.SubElement(scanEl, ns('precursorList'), count=1)
-        precEl = xml.SubElement(precList, ns('precursor'),
-                                sourceFileRef=specData['Source'],
-                                spectrumRef=specData['previous MS1'])
+        precEl = xml.SubElement(
+            precList, ns('precursor'),
+            sourceFileRef=specData['Source'],
+            spectrumRef=specData['previous MS1'],
+        )
         isoWinEl = xml.SubElement(precEl, ns('isolationWindow'))
-        cvp(isoWinEl, accession="MS:1000827", name="isolation window target m/z",
-            unitAccession="MS:1000040", unitName="m/z", value=specData['precursor'])
+        cvp(
+            isoWinEl, accession='MS:1000827', name='isolation window target m/z',
+            unitAccession='MS:1000040', unitName='m/z', value=specData['precursor'],
+        )
         # Dunno how to get isolation width from most formats?
 
         selIonList = xml.SubElement(precEl, ns('selectedIonList'), count=1)
         selIonEl = xml.SubElement(selIonList, ns('selectedIon'), count=1)
-        cvp(selIonEl, accession="MS:1000744", name="selected ion m/z",
-            unitAccession="MS:1000040", unitName="m/z", value=specData['precursor'])
+        cvp(
+            selIonEl, accession='MS:1000744', name='selected ion m/z',
+            unitAccession='MS:1000040', unitName='m/z', value=specData['precursor'],
+        )
         # This 'precursor' value is the ion itself, whereas the previous is the
         # isolation window; different?  Where to derive the difference?
         if specData['charge']:
-            cvp(selIonEl, accession='MS:1000041', name='charge state',
-                value=specData['charge'])
+            cvp(
+                selIonEl, accession='MS:1000041', name='charge state',
+                value=specData['charge'],
+            )
 
         # How to deal with MS1s here?
         activationEl = xml.SubElement(precEl, ns('precursor'))
         if specData['dissociation mode'] == 'cid':
-            cvp(activationEl, accession="MS:1000133", name="collision-induced dissociation")
+            cvp(activationEl, accession='MS:1000133', name='collision-induced dissociation')
         elif specData['dissociation mode'] == 'hcd':
-            cvp(activationEl, accession="MS:1000422", name="high-energy collision-induced dissociation")
+            cvp(activationEl, accession='MS:1000422', name='high-energy collision-induced dissociation')
         elif specData['dissociation mode'] == 'etd':
-            cvp(activationEl, accession="MS:1000250", name="electron capture dissociation")
+            cvp(activationEl, accession='MS:1000250', name='electron capture dissociation')
         else:
             raise NotImplementedError("Can't encode dissociation mode %s" % specData['dissociation mode'])
 
@@ -148,16 +170,20 @@ def makeSpectrumXML(specData):
     encodedInts = encodeBinaryFloats(x[1] for x in specData['spectrum'])
 
     binaryDataArrayList = xml.SubElement(specEl, ns('binaryDataArrayList'), count=2)
-    mzDataArray = xml.SubElement(binaryDataArrayList, ns('binaryDataArray'),
-                                 arrayLength=len(specData['spectrum']),
-                                 encodedLength=len(encodedMZs))
+    mzDataArray = xml.SubElement(
+        binaryDataArrayList, ns('binaryDataArray'),
+        arrayLength=len(specData['spectrum']),
+        encodedLength=len(encodedMZs),
+    )
     cvp(mzDataArray, accession='MS:1000574', name='zlib compression')
     cvp(mzDataArray, accession='MS:1000514', name='m/z array')
     mzBinary = xml.SubElement(mzDataArray, ns('binary'))
     mzBinary.text = encodedMZs
-    intDataArray = xml.SubElement(binaryDataArrayList, ns('binaryDataArray'),
-                                  arrayLength=len(specData['spectrum']),
-                                  encodedLength=len(encodedInts))
+    intDataArray = xml.SubElement(
+        binaryDataArrayList, ns('binaryDataArray'),
+        arrayLength=len(specData['spectrum']),
+        encodedLength=len(encodedInts),
+    )
     cvp(intDataArray, accession='MS:1000574', name='zlib compression')
     cvp(intDataArray, accession='MS:1000515', name='intensity array')
     intBinary = xml.SubElement(intDataArray, ns('binary'))
@@ -168,7 +194,7 @@ def makeSpectrumXML(specData):
 
 def readSpectrumXML(spectrumEl):
     cvparams = [uncvp(x) for x in list(spectrumEl) if x.tag == ns('cvParam')]
-    cvparams = dict([(x['name'], x) for x in cvparams])
+    cvparams = {x['name']: x for x in cvparams}
 
     specdata = {}
     specdata['index'] = spectrumEl.attrib['index']
@@ -181,7 +207,7 @@ def readSpectrumXML(spectrumEl):
         specdata['mz range'] = None, None
 
     scan = child(child(spectrumEl, 'scanList'), 'scan')
-    scancvps = dict([(uncvp(x)['name'], uncvp(x)) for x in list(scan) if x.tag == ns('cvParam')])
+    scancvps = {uncvp(x)['name']: uncvp(x) for x in list(scan) if x.tag == ns('cvParam')}
     specdata['time'] = scancvps['scan start time']['value']
     if 'filter string' in scancvps:
         specdata['filter'] = scancvps['filter string']['value']
@@ -219,12 +245,12 @@ def readSpectrumXML(spectrumEl):
 
 def readChromatoXML(chromatoEl):
     cvparams = [uncvp(x) for x in list(chromatoEl) if x.tag == ns('cvParam')]
-    cvparams = dict([(x['name'], x) for x in cvparams])
+    cvparams = {x['name']: x for x in cvparams}
 
     if 'total ion current chromatogram' in cvparams:
         span = 'total'
     else:
-        raise NotImplementedError("Non-total XIC element.")
+        raise NotImplementedError('Non-total XIC element.')
 
     for array in list(child(chromatoEl, 'binaryDataArrayList')):
         assert array.tag == ns('binaryDataArray')
@@ -321,9 +347,9 @@ def mzmlToSqlite_writer(sqlitefile, inputs):
     connection = sqlite3.connect(sqlitefile)
     cursor = connection.cursor()
 
-    createSpectrumTable = "CREATE TABLE spectra(ind int, mz real, rt int, data blob)"
+    createSpectrumTable = 'CREATE TABLE spectra(ind int, mz real, rt int, data blob)'
     cursor.execute(createSpectrumTable)
-    createChromatoTable = "CREATE TABLE chromato(ind int, startmz real, stopmz real, startrt real, stoprt real, data blob)"
+    createChromatoTable = 'CREATE TABLE chromato(ind int, startmz real, stopmz real, startrt real, stoprt real, data blob)'
     cursor.execute(createChromatoTable)
     connection.commit()
 
@@ -333,14 +359,16 @@ def mzmlToSqlite_writer(sqlitefile, inputs):
         if task == 'spectrum':
             pdata = marshal(data)
             index, prec, time = data['index'], data['precursor'], data['time']
-            cursor.execute('INSERT INTO spectra VALUES (%s,%s,%s,"%s")' % (index, prec, time, pdata))
+            cursor.execute('INSERT INTO spectra VALUES ({},{},{},"{}")'.format(index, prec, time, pdata))
         elif task == 'chromatogram':
             pdata = marshal(data)
             if data[0] == 'total':
                 cursor.execute('INSERT INTO chromato VALUES (0,0,0,0,0,"%s")' % pdata)
             else:
-                cursor.execute('INSERT INTO chromato VALUES (%s,%s,%s,%s,%s,"%s")'
-                               % span + (pdata,))
+                cursor.execute(
+                    'INSERT INTO chromato VALUES (%s,%s,%s,%s,%s,"%s")'
+                    % span + (pdata,),
+                )
         elif task == 'stop':
             break
         else:
@@ -360,8 +388,10 @@ def mzmlToSqlite(xmlfile, sqlitefile):
     parser = xml.iterparse(xmlfile)
 
     writeQueue = multiprocessing.Queue()
-    writerProc = multiprocessing.Process(target=mzmlToSqlite_writer,
-                                         args=(sqlitefile, writeQueue))
+    writerProc = multiprocessing.Process(
+        target=mzmlToSqlite_writer,
+        args=(sqlitefile, writeQueue),
+    )
     writerProc.start()
 
     for evt, obj in parser:
@@ -394,11 +424,11 @@ class mzmlsql_reader(object):
         return demarshal(self.cursor.fetchone()[0])
 
     def scans_by_mz(self, mzstart, mzstop):
-        self.cursor.execute('SELECT ind, mz, data FROM spectra WHERE mz >= %s AND mz <= %s' % (mzstart, mzstop))
+        self.cursor.execute('SELECT ind, mz, data FROM spectra WHERE mz >= {} AND mz <= {}'.format(mzstart, mzstop))
         return [(x[0], x[1], demarshal(x[2])) for x in self.cursor.fetchall()]
 
     def scans_by_rt(self, rtstart, rtstop):
-        self.cursor.execute('SELECT ind, rt, data FROM spectra WHERE rt >= %s AND rt <= %s' % (rtstart, rtstop))
+        self.cursor.execute('SELECT ind, rt, data FROM spectra WHERE rt >= {} AND rt <= {}'.format(rtstart, rtstop))
         return [(x[0], x[1], demarshal(x[2])) for x in self.cursor.fetchall()]
 
     def scan_manifest(self):
@@ -411,7 +441,8 @@ class mzmlsql_reader(object):
 
     def total_xic(self):
         self.cursor.execute(
-            'SELECT data FROM chromato WHERE ind=0 AND startmz=0 AND stopmz=0 AND startrt=0 AND stopmz=0')
+            'SELECT data FROM chromato WHERE ind=0 AND startmz=0 AND stopmz=0 AND startrt=0 AND stopmz=0',
+        )
         return demarshal(self.cursor.fetchone()[0])
 
     def close(self):

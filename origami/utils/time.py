@@ -1,5 +1,7 @@
-from datetime import datetime
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import time
+from datetime import datetime
 
 
 def getTime():

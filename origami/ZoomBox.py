@@ -1,32 +1,13 @@
 # -*- coding: utf-8 -*-
-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
+import logging
 
-import wx
 import numpy as np
+import wx
 from matplotlib.patches import Rectangle
 from matplotlib.text import Text
 from pubsub import pub
-
-from toolbox import dir_extra
-
-import logging
-logger = logging.getLogger("origami")
+logger = logging.getLogger('origami')
 
 # TODO: add dragging in the labels area - should be able to grab and drag so its easier
 #       to manipulate plot area
@@ -249,20 +230,22 @@ class ZoomBox:
     Main class to enable zoom in 1D, 2D and 3D plots
     """
 
-    def __init__(self, axes, onselect, drawtype='box',
-                 minspanx=None,
-                 minspany=None,
-                 useblit=False,
-                 lineprops=None,
-                 rectprops=None,
-                 onmove_callback=None,
-                 spancoords='data',
-                 button=None,
-                 data_lims=None,
-                 plotName=None,
-                 plotParameters=None,
-                 allowWheel=True,
-                 preventExtraction=True):
+    def __init__(
+        self, axes, onselect, drawtype='box',
+        minspanx=None,
+        minspany=None,
+        useblit=False,
+        lineprops=None,
+        rectprops=None,
+        onmove_callback=None,
+        spancoords='data',
+        button=None,
+        data_lims=None,
+        plotName=None,
+        plotParameters=None,
+        allowWheel=True,
+        preventExtraction=True,
+    ):
         """
         Create a selector in axes.  When a selection is made, clear
         the span and call onselect with
@@ -431,7 +414,7 @@ class ZoomBox:
         self.mark_annotation = state
 
     def on_pick_event(self, event):
-        " Store which text object was picked and were the pick event occurs."
+        ' Store which text object was picked and were the pick event occurs.'
 
         if isinstance(event.artist, Text):
             self.dragged = event.artist
@@ -463,10 +446,12 @@ class ZoomBox:
             self.cids.append(self.canvas.mpl_connect('scroll_event', self.onWheelEvent))
 
         if rectprops is None:
-            rectprops = dict(facecolor='white',
-                             edgecolor='black',
-                             alpha=0.5,
-                             fill=False)
+            rectprops = dict(
+                facecolor='white',
+                edgecolor='black',
+                alpha=0.5,
+                fill=False,
+            )
         self.rectprops = rectprops
 
         # Pre-set keys
@@ -549,9 +534,11 @@ class ZoomBox:
             return
 
         # Update cursor
-        motion_mode = [self.shiftKey, self.ctrlKey, self.altKey,
-                       self.addToTable, True, self.buttonDown,
-                       self.dragged]
+        motion_mode = [
+            self.shiftKey, self.ctrlKey, self.altKey,
+            self.addToTable, True, self.buttonDown,
+            self.dragged,
+        ]
         pub.sendMessage('motion_mode', dataOut=motion_mode)
 
         if self.allowWheel:
@@ -582,7 +569,7 @@ class ZoomBox:
                     if newXmax > xmax:
                         newXmax = xmax
                     axes.set_xlim((newXmin, newXmax))
-                    if self.plotName == "MSDT":
+                    if self.plotName == 'MSDT':
                         pub.sendMessage('change_zoom_dtms', xmin=newXmin, xmax=newXmax, ymin=ymin, ymax=ymax)
 
                 # Zoom in Y-axis only
@@ -591,7 +578,7 @@ class ZoomBox:
                     if self.plotName in ['1D', 'CalibrationDT', 'MS']:
                         stepSize = evt.step * ((y1 - y0) / 25)
                         axes.set_ylim((0, y1 + stepSize))
-                    elif self.plotName == "MSDT":
+                    elif self.plotName == 'MSDT':
                         try:
                             y0_diff, y1_diff = evt.ydata - y0, y1 - evt.ydata
                             y_sum = y0_diff + y1_diff
@@ -659,9 +646,11 @@ class ZoomBox:
         if any((self.ctrlKey, self.shiftKey, self.altKey)):
             self.keyPress = True
 
-        motion_mode = [self.shiftKey, self.ctrlKey, self.altKey,
-                       self.addToTable, self.wheel, self.buttonDown,
-                       self.dragged]
+        motion_mode = [
+            self.shiftKey, self.ctrlKey, self.altKey,
+            self.addToTable, self.wheel, self.buttonDown,
+            self.dragged,
+        ]
         pub.sendMessage('motion_mode', dataOut=motion_mode)
 
 #     def onChangeLabels(self):
@@ -721,8 +710,10 @@ class ZoomBox:
             return evt.inaxes not in self.axes
 
         # If a button pressed, check if the release-button is the same
-        return (evt.inaxes not in self.axes or
-                evt.button != self.eventpress.button)
+        return (
+            evt.inaxes not in self.axes or
+            evt.button != self.eventpress.button
+        )
 
     def press(self, evt):
         'on button press event'
@@ -813,8 +804,10 @@ class ZoomBox:
         try:
             if self.dragged is not None:
                 old_pos = self.dragged.get_position()
-                new_pos = (old_pos[0] + evt.xdata - self.pick_pos[0],
-                           old_pos[1] + evt.ydata - self.pick_pos[1])
+                new_pos = (
+                    old_pos[0] + evt.xdata - self.pick_pos[0],
+                    old_pos[1] + evt.ydata - self.pick_pos[1],
+                )
                 self.dragged.set_position(new_pos)
                 if self.dragged.obj_name is not None:
                     pub.sendMessage('update_text_position', text_obj=self.dragged)
@@ -861,7 +854,7 @@ class ZoomBox:
 
             if self.plotName == 'RMSF':
                 pub.sendMessage('change_zoom_rmsd', xmin=xmin, xmax=xmax)
-            elif self.plotName == "MSDT":
+            elif self.plotName == 'MSDT':
                 pub.sendMessage('change_zoom_dtms', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
             self.canvas.draw()
@@ -885,8 +878,10 @@ class ZoomBox:
 
             # A dirty way to prevent users from trying to extract data from the wrong places
             if not self.mark_annotation:
-                if self.plotName in ['MSDT', "2D"] and (self.eventpress.xdata != evt.xdata and
-                                                        self.eventpress.ydata != evt.ydata):
+                if self.plotName in ['MSDT', '2D'] and (
+                    self.eventpress.xdata != evt.xdata and
+                    self.eventpress.ydata != evt.ydata
+                ):
                     pub.sendMessage('extract_from_plot_2D', dataOut=[xmin, xmax, ymin, ymax])
                 elif self.plotName != 'CalibrationDT' and self.eventpress.xdata != evt.xdata:
                     pub.sendMessage('extract_from_plot_1D', xvalsMin=xmin, xvalsMax=xmax, yvalsMax=ymax)
@@ -978,7 +973,7 @@ class ZoomBox:
 
         if self.plotName == 'RMSF':
             pub.sendMessage('change_zoom_rmsd', xmin=xmin, xmax=xmax)
-        elif self.plotName == "MSDT" and not self.addToTable:
+        elif self.plotName == 'MSDT' and not self.addToTable:
             pub.sendMessage('change_zoom_dtms', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
         self.canvas.draw()

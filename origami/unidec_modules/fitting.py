@@ -1,8 +1,8 @@
 import numpy as np
-from scipy.optimize import curve_fit
-from scipy import stats
-from scipy import special
 import scipy.optimize as opt
+from scipy import special
+from scipy import stats
+from scipy.optimize import curve_fit
 
 
 def poisson(x, mu, A):
@@ -311,7 +311,7 @@ def fit_peak(xvals, yvals, psfun, midguess, fwhmguess, aguess, bguess):
     else:
         popt = guess
         pcov = np.ones((len(guess), len(guess)))
-        print("Failed")
+        print('Failed')
 
     fitdat = psfit(xvals, popt[0], popt[1], popt[2], popt[3], psfun)
     return popt, np.sqrt(np.diag(pcov)), fitdat
@@ -436,9 +436,9 @@ def complex_poisson(datatop, oarray=[1, 2], background=False):
     return fit, fitdat, integrals, integrals2
 
 
-if __name__ == "__main__":
-    path = "C:\\UniDecPastedSpectra\PastedSpectrum_2017_Dec_11_09_02_49_unidecfiles\Extract_total_2D_Extract.txt"
-    path = "C:\\UniDecPastedSpectra\PastedSpectrum_2017_Dec_11_11_30_45_unidecfiles\Extract_total_2D_Extract.txt"
+if __name__ == '__main__':
+    path = 'C:\\UniDecPastedSpectra\\PastedSpectrum_2017_Dec_11_09_02_49_unidecfiles\\Extract_total_2D_Extract.txt'
+    path = 'C:\\UniDecPastedSpectra\\PastedSpectrum_2017_Dec_11_11_30_45_unidecfiles\\Extract_total_2D_Extract.txt'
     data = np.loadtxt(path)[1:18]
     data[:, 1] -= np.amin(data[:, 1])
 

@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import wx
-
 from icons import IconContainer as icons
 from styles import makeCheckbox
 from utils.check import check_value
@@ -10,8 +11,10 @@ class panelModifyManualFiles(wx.MiniFrame):
     """
 
     def __init__(self, parent, presenter, config, **kwargs):
-        wx.MiniFrame.__init__(self, parent, -1, 'Modify settings...', size=(-1, -1),
-                              style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER)
+        wx.MiniFrame.__init__(
+            self, parent, -1, 'Modify settings...', size=(-1, -1),
+            style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER,
+        )
 
         self.parent = parent
         self.presenter = presenter
@@ -23,7 +26,7 @@ class panelModifyManualFiles(wx.MiniFrame):
 
         # check values
         if self.itemInfo['energy'] in ['', None, 'None']:
-            self.itemInfo['energy'] = ""
+            self.itemInfo['energy'] = ''
 
         if self.itemInfo['color'][0] == -1:
             self.itemInfo['color'] = (1, 1, 1, 255)
@@ -43,7 +46,7 @@ class panelModifyManualFiles(wx.MiniFrame):
         self.on_setup_gui()
 
     def __generate_title(self):
-        title = "{}: {}".format(self.itemInfo["document"], self.itemInfo["filename"])
+        title = '{}: {}'.format(self.itemInfo['document'], self.itemInfo['filename'])
         return title
 
     def on_keyboard_event(self, evt):
@@ -75,37 +78,41 @@ class panelModifyManualFiles(wx.MiniFrame):
         panel = wx.Panel(self, -1, size=(-1, -1))
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        check_label = wx.StaticText(panel, wx.ID_ANY, "Check:")
-        self.check_value = makeCheckbox(panel, "")
+        check_label = wx.StaticText(panel, wx.ID_ANY, 'Check:')
+        self.check_value = makeCheckbox(panel, '')
         self.check_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        document_label = wx.StaticText(panel, wx.ID_ANY, "Document:")
-        self.document_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
+        document_label = wx.StaticText(panel, wx.ID_ANY, 'Document:')
+        self.document_value = wx.TextCtrl(panel, wx.ID_ANY, '', style=wx.TE_READONLY)
 
-        filename_label = wx.StaticText(panel, wx.ID_ANY, "Filename:")
-        self.filename_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
+        filename_label = wx.StaticText(panel, wx.ID_ANY, 'Filename:')
+        self.filename_value = wx.TextCtrl(panel, wx.ID_ANY, '', style=wx.TE_READONLY)
 
-        label_label = wx.StaticText(panel, wx.ID_ANY, "Label:", wx.DefaultPosition,
-                                    wx.DefaultSize, wx.ALIGN_LEFT)
-        self.label_value = wx.TextCtrl(panel, -1, "", size=(90, -1))
+        label_label = wx.StaticText(
+            panel, wx.ID_ANY, 'Label:', wx.DefaultPosition,
+            wx.DefaultSize, wx.ALIGN_LEFT,
+        )
+        self.label_value = wx.TextCtrl(panel, -1, '', size=(90, -1))
         self.label_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        variable_label = wx.StaticText(panel, wx.ID_ANY, "Variable:")
-        self.variable_value = wx.TextCtrl(panel, -1, "", size=(90, -1))
+        variable_label = wx.StaticText(panel, wx.ID_ANY, 'Variable:')
+        self.variable_value = wx.TextCtrl(panel, -1, '', size=(90, -1))
 
         self.variable_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        color_label = wx.StaticText(panel, -1, "Color:")
-        self.color_value = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition,
-                                     wx.Size(26, 26), 0)
+        color_label = wx.StaticText(panel, -1, 'Color:')
+        self.color_value = wx.Button(
+            panel, wx.ID_ANY, '', wx.DefaultPosition,
+            wx.Size(26, 26), 0,
+        )
         self.color_value.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        self.showBtn = wx.Button(panel, wx.ID_OK, "Show", size=(-1, 22))
-        self.previousBtn = wx.Button(panel, wx.ID_OK, "Previous", size=(-1, 22))
-        self.nextBtn = wx.Button(panel, wx.ID_OK, "Next", size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
+        self.showBtn = wx.Button(panel, wx.ID_OK, 'Show', size=(-1, 22))
+        self.previousBtn = wx.Button(panel, wx.ID_OK, 'Previous', size=(-1, 22))
+        self.nextBtn = wx.Button(panel, wx.ID_OK, 'Next', size=(-1, 22))
+        self.cancelBtn = wx.Button(panel, wx.ID_OK, 'Close', size=(-1, 22))
 
         self.showBtn.Bind(wx.EVT_BUTTON, self.on_show)
         self.nextBtn.Bind(wx.EVT_BUTTON, self.on_get_next)
@@ -159,12 +166,12 @@ class panelModifyManualFiles(wx.MiniFrame):
         energy_value = self.variable_value.GetValue()
         label_value = self.label_value.GetValue()
 
-        self.parent.on_update_value_in_peaklist(self.itemInfo["id"], "check", self.check_value.GetValue())
-        self.parent.on_update_value_in_peaklist(self.itemInfo["id"], "energy", energy_value)
-        self.parent.on_update_value_in_peaklist(self.itemInfo["id"], "label", label_value)
+        self.parent.on_update_value_in_peaklist(self.itemInfo['id'], 'check', self.check_value.GetValue())
+        self.parent.on_update_value_in_peaklist(self.itemInfo['id'], 'energy', energy_value)
+        self.parent.on_update_value_in_peaklist(self.itemInfo['id'], 'label', label_value)
 
-        self.itemInfo["energy"] = energy_value
-        self.itemInfo["label"] = label_value
+        self.itemInfo['energy'] = energy_value
+        self.itemInfo['label'] = label_value
 
         self.parent.onUpdateDocument(itemInfo=self.itemInfo)
 
@@ -204,9 +211,9 @@ class panelModifyManualFiles(wx.MiniFrame):
     def on_setup_gui(self):
         self.importEvent = True
 
-        self.check_value.SetValue(self.itemInfo["select"])
-        self.document_value.SetLabel(self.itemInfo["document"])
-        self.filename_value.SetLabel(self.itemInfo["filename"])
+        self.check_value.SetValue(self.itemInfo['select'])
+        self.document_value.SetLabel(self.itemInfo['document'])
+        self.filename_value.SetLabel(self.itemInfo['filename'])
         self.label_value.SetLabel(check_value(self.itemInfo['label']))
         self.variable_value.SetLabel(check_value(self.itemInfo['energy']))
         self.color_value.SetBackgroundColour(self.itemInfo['color'])
@@ -216,11 +223,12 @@ class panelModifyManualFiles(wx.MiniFrame):
         self.on_check_id()
         if evt:
             color = self.parent.on_assign_color(
-                evt=None, itemID=self.itemInfo['id'], return_value=True)
+                evt=None, itemID=self.itemInfo['id'], return_value=True,
+            )
             self.color_value.SetBackgroundColour(color)
         else:
             color = self.color_value.GetBackgroundColour()
-            self.parent.on_update_value_in_peaklist(self.itemInfo["id"], "color_text", color)
+            self.parent.on_update_value_in_peaklist(self.itemInfo['id'], 'color_text', color)
 
     def on_check_id(self):
         information = self.parent.OnGetItemInformation(self.itemInfo['id'])

@@ -1,10 +1,10 @@
 Parameters for C:\MassLynx\BlueWater\tuneexp.exp
 Created by Masslynx v4.1
- 
- 
+
+
 Temperature Correction:
 Temperature Correction				Disabled
- 
+
 Instrument Configuration:
 Lteff						1800.0
 Veff						7242.48
@@ -22,7 +22,7 @@ ADC Pushes Per IMS Increment			1
 EDC Delay Coefficient				1.5700
 EDC Delay Offset				1.8100
 Tof Emulation Transfer Pulse Height (V)		0.1
- 
+
 Experimental Instrument Parameters
 Instrument Parameter Filename			C:\MassLynx\mbccms\mbccms.PRO\ACQUDB\Aidan_140416_NOSIDCELL_NATIVE_COMPLEXES_bigger_CONACIU.ipr (MODIFIED)
 Polarity					ES+
@@ -118,7 +118,7 @@ Mobility Trapping Release Time (µs)		200
 Mobility Trap Height (V)			40.0
 Mobility Extract Height (V)			0.0
 Trag Gate LUT table enabled			FALSE
-TriWave Trap Gate LookUp Table			
+TriWave Trap Gate LookUp Table
 Using Drift Time Trimming			FALSE
 Drift Time Bins					0
 Using Mobility Delay after Trap Release		TRUE
@@ -129,14 +129,14 @@ Wave Height Start (V)				8.0
 Wave Height End (V)				20.0
 Wave Height Using Full IMS			TRUE
 Wave Height Ramp (%)				100.0
-Wave Height Look Up Table			
+Wave Height Look Up Table
 Variable Wave Velocity Enabled			FALSE
 Wave Velocity Ramp Type				Linear
 Wave Velocity Start (m/s)			300.0
 Wave Velocity End (m/s)				600.0
 Wave Velocity Using Full IMS			TRUE
 Wave Velocity Ramp (%)				100.0
-Wave Velocity Look Up Table			
+Wave Velocity Look Up Table
 Backing						4.94e0
 Source						5.91e-3
 Sample Plate					1.00e-6
@@ -159,16 +159,16 @@ MSProfileDwellTime2				25
 MSProfileRampTime2				25
 MSProfileMass3					150
 LockMassValidSigma				5
- 
+
 Acquisition mass range
 Start mass					500.000
 End mass					7500.000
 Calibration mass range
 Start mass					1171.911
 End mass					11824.675
- 
+
 Experiment Reference Compound Name: N/A
- 
+
 Function Parameters - Function 1 - TOF MSMS FUNCTION
 Scan Time (sec)					5.000
 Interscan Time (sec)				0.024
@@ -190,4 +190,3 @@ Save Collapsed Retention Time Data		Yes
 Use Rule File Filtering				No
 FragmentationMode				CID
 Calibration					Dynamic 2
- 

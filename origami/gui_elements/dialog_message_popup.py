@@ -1,24 +1,8 @@
 # -*- coding: utf-8 -*-
-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-#     GitHub : https://github.com/lukasz-migas/ORIGAMI
-#     University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-#     Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
 import wx
-from styles import makeCheckbox, Dialog
+from styles import Dialog
+from styles import makeCheckbox
 
 
 class DialogMessagePopup(Dialog):
@@ -50,13 +34,15 @@ class DialogMessagePopup(Dialog):
     def make_panel(self):
         panel = wx.Panel(self, -1)
 
-        self.msg = wx.TextCtrl(panel, -1, "", size=(400, 40),
-                               style=wx.TE_READONLY | wx.TE_WORDWRAP)
+        self.msg = wx.TextCtrl(
+            panel, -1, '', size=(400, 40),
+            style=wx.TE_READONLY | wx.TE_WORDWRAP,
+        )
 
-        self.yes_btn = wx.Button(panel, wx.ID_ANY, "Yes", size=(-1, 22))
+        self.yes_btn = wx.Button(panel, wx.ID_ANY, 'Yes', size=(-1, 22))
         self.yes_btn.Bind(wx.EVT_BUTTON, self.ok_yes)
 
-        self.no_btn = wx.Button(panel, wx.ID_ANY, "No", size=(-1, 22))
+        self.no_btn = wx.Button(panel, wx.ID_ANY, 'No', size=(-1, 22))
         self.no_btn.Bind(wx.EVT_BUTTON, self.on_no)
 
         self.ask_again_check = makeCheckbox(panel, "Don't ask again")
@@ -69,8 +55,10 @@ class DialogMessagePopup(Dialog):
         y = y + 1
         grid.Add(self.yes_btn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(self.no_btn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.ask_again_check, (y, 3), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(
+            self.ask_again_check, (y, 3), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(grid, 0, wx.EXPAND, 10)

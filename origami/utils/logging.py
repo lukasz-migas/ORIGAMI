@@ -1,13 +1,17 @@
-"""Define py logger"""
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
+"""Define ORIGAMI logger"""
 import logging
 import sys
 
 __all__ = ['set_logger_level', 'set_logger']
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger('origami')
 
-LOGGING_TYPES = dict(DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WARNING, ERROR=logging.ERROR,
-                     CRITICAL=logging.CRITICAL)
+LOGGING_TYPES = dict(
+    DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WARNING, ERROR=logging.ERROR,
+    CRITICAL=logging.CRITICAL,
+)
 
 
 def set_logger(file_path=None, debug_mode=False):
@@ -31,7 +35,8 @@ def set_logger(file_path=None, debug_mode=False):
         level=logging.DEBUG,
         format=fmt,
         handlers=handlers,
-        datefmt='%Y/%m/%d %H:%M:%S')
+        datefmt='%Y/%m/%d %H:%M:%S',
+    )
 
 
 def set_logger_level(verbose=None):
@@ -50,7 +55,7 @@ def set_logger_level(verbose=None):
     logger = logging.getLogger('py')
 
     if verbose is None:
-        verbose = "INFO"
+        verbose = 'INFO'
     if isinstance(verbose, bool):
         verbose = 'INFO' if verbose else 'WARNING'
     if isinstance(verbose, str):
@@ -59,5 +64,7 @@ def set_logger_level(verbose=None):
             verbose = LOGGING_TYPES[verbose]
             logger.setLevel(verbose)
         else:
-            raise ValueError("verbose must be in "
-                             "{}".format(', '.join(LOGGING_TYPES)))
+            raise ValueError(
+                'verbose must be in '
+                '{}'.format(', '.join(LOGGING_TYPES)),
+            )

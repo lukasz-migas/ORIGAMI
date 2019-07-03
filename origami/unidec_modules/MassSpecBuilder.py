@@ -1,14 +1,13 @@
-
-
 import numpy as np
-
 from unidec_modules import unidectools as ud
 
 __author__ = 'Michael.Marty'
 
 
-def make_mass_spectrum(array, zrange=(10, 50), mzrange=(2000, 10000), mz_bin_size=1, adductmass=1.00727647, psfun=0,
-                       noise=0, baseline=0, **kwargs):
+def make_mass_spectrum(
+    array, zrange=(10, 50), mzrange=(2000, 10000), mz_bin_size=1, adductmass=1.00727647, psfun=0,
+    noise=0, baseline=0, **kwargs
+):
     """
     Create a new mass spectrum.
 
@@ -110,7 +109,8 @@ def simple_params(masslist, intlist=None, resolution=1000, zwidth=2, rlist=None,
     if rlist is None:
         rlist = np.ones(len(masslist)) * resolution
     params = np.array(
-        [[m, m / float(rlist[i]), ud.predict_charge(m), zwidth, intlist[i]] for i, m in enumerate(masslist)])
+        [[m, m / float(rlist[i]), ud.predict_charge(m), zwidth, intlist[i]] for i, m in enumerate(masslist)],
+    )
     return params
 
 
@@ -128,7 +128,7 @@ def simple_spectrum(masslist, **kwargs):
     return spec
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     dat, ztab = simple_spectrum([200000, 205000], intlist=[1, 2], resolution=500, psfun=2)

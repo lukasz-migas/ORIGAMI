@@ -1,45 +1,22 @@
 # -*- coding: utf-8 -*-
-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
-# This file contains a number of useful functions
-
-from builtins import str
-import wx
-import os
+import pickle as pickle
 import re
 import time
 import urllib.request
-import urllib.error
-import urllib.parse
-import numpy as np
-from numpy import savetxt
-from datetime import datetime
-from distutils.version import LooseVersion
+from builtins import str
 from collections import OrderedDict
+from distutils.version import LooseVersion
+
+import numpy as np
 import pandas as pd
-import pickle as pickle
+from numpy import savetxt
 
 
 def mlen(listitem, get_longest=False):
 
     for i, item in enumerate(listitem):
-        print("Item {} has length {}".format(i, len(item)))
+        print('Item {} has length {}'.format(i, len(item)))
 
 
 def remove_nan_from_list(data_list):
@@ -48,7 +25,7 @@ def remove_nan_from_list(data_list):
     return data_list
 
 
-def dir_extra(dirlist, keywords="get"):
+def dir_extra(dirlist, keywords='get'):
     """
     Quickly filter through keywords in dir list
     -----
@@ -90,12 +67,13 @@ def get_latest_version(link=None, get_webpage=False):
         webVersion = None
         for row in split:
             if '(' in row:
-                webVersion = row.strip("()")
+                webVersion = row.strip('()')
                 break
         return webVersion
     else:
         webpage = urllib.request.urlopen(
-            "https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md")
+            'https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md',
+        )
         return webpage.read().decode('utf-8')
 
 
@@ -125,14 +103,14 @@ def saveObject(filename=None, saveFile=None):
         saveFile = cleanup_document(saveFile)
         pickle.dump(saveFile, handle, protocol=pickle.HIGHEST_PROTOCOL)
     tend = time.clock()
-    print("Saved document in: {}. It took {:.4f} seconds.".format(filename, (tend - tstart)))
+    print('Saved document in: {}. It took {:.4f} seconds.'.format(filename, (tend - tstart)))
 
 
 def openObject(filename=None):
     """
     Simple tool to open pickled objects/dictionaries
     """
-    if filename.rstrip('/')[-7:] == ".pickle":
+    if filename.rstrip('/')[-7:] == '.pickle':
         with open(filename, 'rb') as f:
             try:
                 return pickle.load(f)
@@ -217,22 +195,26 @@ def removeListDuplicates(input, columnsIn=None, limitedCols=None):
     return output
 
 
-def saveAsText(filename, data, format='%.2f', delimiter=',',
-               header=""):
+def saveAsText(
+    filename, data, format='%.2f', delimiter=',',
+    header='',
+):
     """
     This function uses np.savetxt to save formatted data to file
     """
 
     try:
-        np.savetxt(filename,
-                   np.transpose(data),
-                   fmt=format,
-                   delimiter=delimiter,
-                   header=header)
+        np.savetxt(
+            filename,
+            np.transpose(data),
+            fmt=format,
+            delimiter=delimiter,
+            header=header,
+        )
     except IOError:
         print(''.join(["Cannot save file: '", filename, "' as it is currently open."]))
         return
-    print(''.join(["Saved: ", filename]))
+    print(''.join(['Saved: ', filename]))
 
 
 def find_nearest(array, value):

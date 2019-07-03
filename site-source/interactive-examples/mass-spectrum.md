@@ -6,11 +6,11 @@ You can easily export annotated mass spectrum and share it with the scientific w
 
 [See figure in another tab](html-files/mass-spectrum.html)
 
-<iframe 
-    width="620" 
-    frameborder="0" 
+<iframe
+    width="620"
+    frameborder="0"
     height="605"
-    src="html-files/mass-spectrum.html" 
+    src="html-files/mass-spectrum.html"
     style="background: #FFFFFF;"
 ></iframe>
 
@@ -20,10 +20,10 @@ You can also annotate figure with multiple widgets that can improve the visualis
 
 [See figure in another tab](html-files/widgets-mass-spectrum.html)
 
-<iframe 
-    width="620" 
-    frameborder="0" 
+<iframe
+    width="620"
+    frameborder="0"
     height="755"
-    src="html-files/widgets-mass-spectrum.html" 
+    src="html-files/widgets-mass-spectrum.html"
     style="background: #FFFFFF;"
 ></iframe>

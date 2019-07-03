@@ -1,9 +1,8 @@
 from copy import deepcopy
 
 import numpy as np
-
-from utils.multiplierz_lite.mzAPI import mzFile
 from unidec_modules.mzMLimporter import merge_spectra
+from utils.multiplierz_lite.mzAPI import mzFile
 
 
 class DataImporter:
@@ -29,7 +28,7 @@ class DataImporter:
             dlg.ShowModal()
             return
             """
-        print("Reading Data:", path)
+        print('Reading Data:', path)
         self.msrun = mzFile(path)
         self.scanrange = self.msrun.scan_range()
         self.scans = np.arange(self.scanrange[0], self.scanrange[1] + 1)
@@ -52,13 +51,13 @@ class DataImporter:
         data = deepcopy(self.data)
         if time_range is not None:
             scan_range = self.get_scans_from_times(time_range)
-            print("Getting times:", time_range)
+            print('Getting times:', time_range)
 
         if scan_range is not None:
             data = data[scan_range[0]:scan_range[1]]
-            print("Getting scans:", scan_range)
+            print('Getting scans:', scan_range)
         else:
-            print("Getting all scans, length:", len(self.scans))
+            print('Getting all scans, length:', len(self.scans))
 
         if len(data) > 1:
             try:
@@ -110,8 +109,8 @@ class DataImporter:
         return [min, avg, max]
 
 
-if __name__ == "__main__":
-    test = "Z:\Group Share\Scott\\test.RAW"
+if __name__ == '__main__':
+    test = 'Z:\\Group Share\\Scott\\test.RAW'
     d = DataImporter(test).get_data()
     exit()
     print(d.get_times_from_scans([15, 30]))

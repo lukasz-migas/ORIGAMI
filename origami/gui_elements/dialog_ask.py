@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# __author__ lukasz.g.migas
 import wx
 from styles import Dialog
 
@@ -8,7 +10,7 @@ class DialogAsk(Dialog):
     """
 
     def __init__(self, parent, **kwargs):
-        Dialog.__init__(self, parent, title="Edit parameters...", size=(400, 300))
+        Dialog.__init__(self, parent, title='Edit parameters...', size=(400, 300))
 #
         self.parent = parent
 
@@ -19,17 +21,17 @@ class DialogAsk(Dialog):
         self.return_value = None
 
         if kwargs['keyword'] == 'charge':
-            self.SetTitle("Assign charge...")
+            self.SetTitle('Assign charge...')
         elif kwargs['keyword'] == 'alpha':
-            self.SetTitle("Assign transparency...")
+            self.SetTitle('Assign transparency...')
         elif kwargs['keyword'] == 'mask':
-            self.SetTitle("Assign mask...")
+            self.SetTitle('Assign mask...')
         elif kwargs['keyword'] == 'min_threshold':
-            self.SetTitle("Assign minimum threshold...")
+            self.SetTitle('Assign minimum threshold...')
         elif kwargs['keyword'] == 'max_threshold':
-            self.SetTitle("Assign maximum threshold...")
+            self.SetTitle('Assign maximum threshold...')
         elif kwargs['keyword'] == 'label':
-            self.SetTitle("Assign label...")
+            self.SetTitle('Assign label...')
 
         # make gui items
         self.make_gui()
@@ -89,25 +91,29 @@ class DialogAsk(Dialog):
         panel = wx.Panel(self, -1)
         mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.input_label = wx.StaticText(panel, -1, "Enter value:")
+        self.input_label = wx.StaticText(panel, -1, 'Enter value:')
         self.input_label.SetLabel(self.item_label)
         self.input_label.SetFocus()
 
         if self.item_validator == 'integer':
-            self.input_value = wx.SpinCtrlDouble(panel, -1,
-                                                 value=str(self.item_value),
-                                                 min=1, max=200, initial=0, inc=1,
-                                                 size=(90, -1))
+            self.input_value = wx.SpinCtrlDouble(
+                panel, -1,
+                value=str(self.item_value),
+                min=1, max=200, initial=0, inc=1,
+                size=(90, -1),
+            )
         elif self.item_validator == 'float':
-            self.input_value = wx.SpinCtrlDouble(panel, -1,
-                                                 value=str(self.item_value),
-                                                 min=0, max=1, initial=0, inc=0.1,
-                                                 size=(90, -1))
+            self.input_value = wx.SpinCtrlDouble(
+                panel, -1,
+                value=str(self.item_value),
+                min=0, max=1, initial=0, inc=0.1,
+                size=(90, -1),
+            )
 
         self.input_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.okBtn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        self.okBtn = wx.Button(panel, wx.ID_OK, 'Select', size=(-1, 22))
+        self.cancelBtn = wx.Button(panel, -1, 'Cancel', size=(-1, 22))
 
         GRIDBAG_VSPACE = 7
         GRIDBAG_HSPACE = 5

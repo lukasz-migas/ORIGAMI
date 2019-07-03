@@ -10,7 +10,7 @@ If you have any questions, encounter problems or would like to chat, please cont
 
 ## Contributors
 
-Prof. Perdita E. Barran  
-Bruno Bellina  
-Aidan France  
+Prof. Perdita E. Barran
+Bruno Bellina
+Aidan France
 Florian Benoit

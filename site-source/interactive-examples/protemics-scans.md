@@ -20,10 +20,10 @@ Actions:
 
 ## Interactive figure
 
-<iframe 
-    width="800" 
-    frameborder="0" 
-    height="1100" 
-    src="html-files/proteomics-scans.html" 
+<iframe
+    width="800"
+    frameborder="0"
+    height="1100"
+    src="html-files/proteomics-scans.html"
     style="background: #FFFFFF;">
 </iframe>

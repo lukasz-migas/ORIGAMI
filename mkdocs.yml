@@ -54,7 +54,7 @@ nav:
         - 'Heatmap': interactive-examples/heatmap.md
         - 'CCS compendium': interactive-examples/ccs-compendium.md
         - 'Proteomics - MS/MS': interactive-examples/protemics-scans.md
-    - Changelog: 
+    - Changelog:
         - 'v1.2.1.4 - 27/12/2018': changelog/v1.2.1.4-9-1-2019.md
         - 'v1.2.0.3 - 7/11/2018': changelog/v1.2.0.3-5-11-2018.md
     - Request New Features: main/request.md
@@ -63,10 +63,10 @@ nav:
     - Cite: main/cite.md
     - About: main/about.md
 
-theme: 
+theme:
   name: material
   language: 'en'
-  include_sidebar: true 
+  include_sidebar: true
   palette:
     primary: 'blue grey'
     accent: 'teal'
@@ -84,5 +84,3 @@ extra:
       link: 'https://twitter.com/munieq11'
     - type: 'link'
       link: 'https://lukasz-migas.com'
-
-  

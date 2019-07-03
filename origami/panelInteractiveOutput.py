@@ -1,22 +1,5 @@
 # -*- coding: utf-8 -*-
-
-# -------------------------------------------------------------------------
-#    Copyright (C) 2017-2018 Lukasz G. Migas
-#    <lukasz.migas@manchester.ac.uk> OR <lukas.migas@yahoo.com>
-#
-# 	 GitHub : https://github.com/lukasz-migas/ORIGAMI
-# 	 University of Manchester IP : https://www.click2go.umip.com/i/s_w/ORIGAMI.html
-# 	 Cite : 10.1016/j.ijms.2017.08.014
-#
-#    This program is free software. Feel free to redistribute it and/or
-#    modify it under the condition you cite and credit the authors whenever
-#    appropriate.
-#    The program is distributed in the hope that it will be useful but is
-#    provided WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE
-# -------------------------------------------------------------------------
 # __author__ lukasz.g.migas
-
 # TODO: add support for holoviews
 # EXAMPLE
 # import holoviews as hv
@@ -25,94 +8,173 @@
 # np.random.seed(37)
 # violin = hv.Violin(np.random.randn(100), vdims='Value')
 # plot = renderer.get_plot(violin).state # need to grab the figure instance
-
-# load libs
-
-import wx
 import re
-import webbrowser
-import time
 import threading
-import wx.lib.scrolledpanel
-import numpy as np
-from seaborn import color_palette
-from natsort import natsorted
+import time
+import warnings
+import webbrowser
 from copy import deepcopy
 from math import sqrt
-import matplotlib.colors as colors
+
 import matplotlib.cm as cm
-
-from bokeh.plotting import figure, save, ColumnDataSource
-from bokeh.models import (HoverTool, LinearColorMapper, Label, ColorBar,
-                          AdaptiveTicker, BasicTickFormatter,
-                          FixedTicker, FuncTickFormatter, LabelSet,
-                          CustomJS, Toggle, Slider, Legend, Dropdown, Select,
-                          Select, Arrow, NormalHead, TapTool, OpenURL)
-from bokeh.layouts import (column, widgetbox, gridplot, row)
-from bokeh.layouts import layout as bokeh_layout
-from bokeh.models.widgets import Panel, Tabs, Div, RadioButtonGroup
+import matplotlib.colors as colors
+import numpy as np
+import wx.lib.scrolledpanel
 from bokeh import events
-from bokeh.resources import INLINE
-from bokeh.models.tickers import FixedTicker
 from bokeh.embed import components
-
+from bokeh.layouts import column
+from bokeh.layouts import gridplot
+from bokeh.layouts import layout as bokeh_layout
+from bokeh.layouts import row
+from bokeh.layouts import widgetbox
+from bokeh.models import AdaptiveTicker
+from bokeh.models import Arrow
+from bokeh.models import BasicTickFormatter
+from bokeh.models import ColorBar
+from bokeh.models import CustomJS
+from bokeh.models import Dropdown
+from bokeh.models import FixedTicker
+from bokeh.models import FuncTickFormatter
+from bokeh.models import HoverTool
+from bokeh.models import Label
+from bokeh.models import LabelSet
+from bokeh.models import Legend
+from bokeh.models import LinearColorMapper
+from bokeh.models import NormalHead
+from bokeh.models import OpenURL
+from bokeh.models import Select
+from bokeh.models import Slider
+from bokeh.models import TapTool
+from bokeh.models import Toggle
+from bokeh.models.tickers import FixedTicker
+from bokeh.models.widgets import Div
+from bokeh.models.widgets import Panel
+from bokeh.models.widgets import RadioButtonGroup
+from bokeh.models.widgets import Tabs
+from bokeh.plotting import ColumnDataSource
+from bokeh.plotting import figure
+from bokeh.plotting import save
+from bokeh.resources import INLINE
+from gui_elements.misc_dialogs import dlgAsk
+from gui_elements.misc_dialogs import dlgBox
+from ids import ID_assignColormapSelected_HTML
+from ids import ID_assignPageSelected_HTML
+from ids import ID_changeColorAnnotLabelInteractive
+from ids import ID_changeColorBackgroundInteractive
+from ids import ID_changeColorBackgroundNotationInteractive
+from ids import ID_changeColorGridLabelInteractive
+from ids import ID_changeColorGridLineInteractive
+from ids import ID_changeColorInteractive
+from ids import ID_changeColormapInteractive
+from ids import ID_changeColorNotationInteractive
+from ids import ID_helpHTMLEditor
+from ids import ID_interactivePanel_apply_all
+from ids import ID_interactivePanel_apply_annotations
+from ids import ID_interactivePanel_apply_batch_all
+from ids import ID_interactivePanel_apply_batch_annotations
+from ids import ID_interactivePanel_apply_batch_colorbar
+from ids import ID_interactivePanel_apply_batch_figure
+from ids import ID_interactivePanel_apply_batch_frame
+from ids import ID_interactivePanel_apply_batch_legend
+from ids import ID_interactivePanel_apply_batch_overlay
+from ids import ID_interactivePanel_apply_batch_plot
+from ids import ID_interactivePanel_apply_batch_plots
+from ids import ID_interactivePanel_apply_batch_preprocess
+from ids import ID_interactivePanel_apply_batch_tools
+from ids import ID_interactivePanel_apply_batch_widgets
+from ids import ID_interactivePanel_apply_colorbar
+from ids import ID_interactivePanel_apply_figure
+from ids import ID_interactivePanel_apply_frame
+from ids import ID_interactivePanel_apply_legend
+from ids import ID_interactivePanel_apply_overlay
+from ids import ID_interactivePanel_apply_plot
+from ids import ID_interactivePanel_apply_plots
+from ids import ID_interactivePanel_apply_preprocess
+from ids import ID_interactivePanel_apply_tools
+from ids import ID_interactivePanel_apply_widgets
+from ids import ID_interactivePanel_check_all
+from ids import ID_interactivePanel_check_dt1D
+from ids import ID_interactivePanel_check_dt2D
+from ids import ID_interactivePanel_check_menu
+from ids import ID_interactivePanel_check_ms
+from ids import ID_interactivePanel_check_other
+from ids import ID_interactivePanel_check_overlay
+from ids import ID_interactivePanel_check_rt
+from ids import ID_interactivePanel_check_unidec
+from ids import ID_interactivePanel_color_barEdge
+from ids import ID_interactivePanel_color_markerEdge
+from ids import ID_interactivePanel_copy_all
+from ids import ID_interactivePanel_copy_annotations
+from ids import ID_interactivePanel_copy_colorbar
+from ids import ID_interactivePanel_copy_figure
+from ids import ID_interactivePanel_copy_frame
+from ids import ID_interactivePanel_copy_legend
+from ids import ID_interactivePanel_copy_overlay
+from ids import ID_interactivePanel_copy_plot
+from ids import ID_interactivePanel_copy_plots
+from ids import ID_interactivePanel_copy_preprocess
+from ids import ID_interactivePanel_copy_tools
+from ids import ID_interactivePanel_copy_widgets
+from ids import ID_interactivePanel_customise_item
+from ids import ID_interactivePanel_table_colormap
+from ids import ID_interactivePanel_table_document
+from ids import ID_interactivePanel_table_file
+from ids import ID_interactivePanel_table_footnote
+from ids import ID_interactivePanel_table_header
+from ids import ID_interactivePanel_table_hideAll
+from ids import ID_interactivePanel_table_order
+from ids import ID_interactivePanel_table_page
+from ids import ID_interactivePanel_table_restoreAll
+from ids import ID_interactivePanel_table_title
+from ids import ID_interactivePanel_table_type
+from ids import ID_ionPanel_table_label
+from ids import ID_ionPanel_table_method
+from ids import ID_saveConfig
+from natsort import natsorted
 from panelCustomiseInteractive import panelCustomiseInteractive
-from styles import makeStaticBox, makeStaticText, makeCheckbox, makeMenuItem, ListCtrl
-from processing.spectra import linearize_data, crop_1D_data, normalize_1D
-
+from processing.spectra import crop_1D_data
+from processing.spectra import linearize_data
+from processing.spectra import normalize_1D
+from seaborn import color_palette
+from styles import ListCtrl
+from styles import makeCheckbox
+from styles import makeMenuItem
+from styles import makeStaticBox
+from styles import makeStaticText
+from toolbox import find_limits_all
+from toolbox import find_limits_list
+from toolbox import merge_two_dicts
+from toolbox import remove_nan_from_list
+from utils.color import convertHEXtoRGB255
+from utils.color import convertRGB1to255
+from utils.color import convertRGB1toHEX
+from utils.color import determineFontColor
+from utils.converters import str2int
+from utils.converters import str2num
+from utils.labels import _replace_labels
 # import cmaputil as cmu
 # import cmaputil.cvdutil as cvu
 # import holoviews as hv
 # hv.extension('bokeh')
-
-from gui_elements.misc_dialogs import dlgBox, dlgAsk
-from ids import ID_interactivePanel_customise_item, ID_interactivePanel_copy_all, ID_interactivePanel_copy_frame, \
-    ID_interactivePanel_copy_legend, ID_interactivePanel_copy_widgets, ID_interactivePanel_copy_plot, \
-    ID_interactivePanel_copy_figure, ID_interactivePanel_copy_annotations, ID_interactivePanel_copy_colorbar, \
-    ID_interactivePanel_copy_tools, ID_interactivePanel_copy_overlay, ID_interactivePanel_copy_plots, \
-    ID_interactivePanel_copy_preprocess, ID_interactivePanel_apply_all, ID_interactivePanel_apply_frame, \
-    ID_interactivePanel_apply_legend, ID_interactivePanel_apply_widgets, ID_interactivePanel_apply_plot, \
-    ID_interactivePanel_apply_figure, ID_interactivePanel_apply_annotations, ID_interactivePanel_apply_colorbar, \
-    ID_interactivePanel_apply_tools, ID_interactivePanel_apply_overlay, ID_interactivePanel_apply_plots, \
-    ID_interactivePanel_apply_preprocess, ID_interactivePanel_apply_batch_all, ID_interactivePanel_apply_batch_plot, \
-    ID_interactivePanel_apply_batch_figure, ID_interactivePanel_apply_batch_frame, \
-    ID_interactivePanel_apply_batch_legend, ID_interactivePanel_apply_batch_widgets, \
-    ID_interactivePanel_apply_batch_colorbar, ID_interactivePanel_apply_batch_annotations, \
-    ID_interactivePanel_apply_batch_tools, ID_interactivePanel_apply_batch_plots, \
-    ID_interactivePanel_apply_batch_preprocess, ID_interactivePanel_apply_batch_overlay, ID_helpHTMLEditor, \
-    ID_interactivePanel_check_menu, ID_assignPageSelected_HTML, ID_assignColormapSelected_HTML, \
-    ID_interactivePanel_check_all, ID_interactivePanel_check_ms, ID_interactivePanel_check_rt, \
-    ID_interactivePanel_check_dt1D, ID_interactivePanel_check_dt2D, ID_interactivePanel_check_overlay, \
-    ID_interactivePanel_check_unidec, ID_interactivePanel_check_other, ID_changeColorNotationInteractive, \
-    ID_changeColorBackgroundNotationInteractive, ID_interactivePanel_color_barEdge, \
-    ID_changeColorAnnotLabelInteractive, ID_interactivePanel_table_document, ID_interactivePanel_table_type, \
-    ID_interactivePanel_table_file, ID_interactivePanel_table_title, ID_interactivePanel_table_header, \
-    ID_interactivePanel_table_footnote, ID_interactivePanel_table_colormap, ID_interactivePanel_table_page, \
-    ID_interactivePanel_table_order, ID_ionPanel_table_label, ID_ionPanel_table_method, \
-    ID_interactivePanel_table_hideAll, ID_interactivePanel_table_restoreAll, ID_saveConfig, ID_changeColorInteractive, \
-    ID_changeColorGridLabelInteractive, ID_changeColorBackgroundInteractive, ID_changeColorGridLineInteractive, \
-    ID_changeColormapInteractive, ID_interactivePanel_color_markerEdge
-from utils.color import convertRGB1to255, convertRGB1toHEX, determineFontColor, convertHEXtoRGB255
-from utils.converters import str2int, str2num
-from toolbox import merge_two_dicts, find_limits_all, remove_nan_from_list, find_limits_list
-from utils.labels import _replace_labels
-
-import warnings
 # needed to avoid annoying warnings to be printed on console
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-warnings.filterwarnings("ignore", category=RuntimeWarning)
-warnings.filterwarnings("ignore", category=UserWarning)
-warnings.filterwarnings("ignore", category=FutureWarning)
-warnings.filterwarnings("ignore", category=UnicodeWarning)
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+warnings.filterwarnings('ignore', category=RuntimeWarning)
+warnings.filterwarnings('ignore', category=UserWarning)
+warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings('ignore', category=UnicodeWarning)
 
 
 class panelInteractiveOutput(wx.MiniFrame):
     """Save data in an interactive format"""
 
     def __init__(self, parent, icons, presenter, config):
-        wx.MiniFrame.__init__(self, parent, -1, "Export plots in interactive format...",
-                              style=(wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER |
-                                     wx.MAXIMIZE_BOX))
+        wx.MiniFrame.__init__(
+            self, parent, -1, 'Export plots in interactive format...',
+            style=(
+                wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER |
+                wx.MAXIMIZE_BOX
+            ),
+        )
 
         tstart = time.time()
         self.displaysize = wx.GetDisplaySize()
@@ -141,12 +203,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.listOfPlots = []
 
         # Set up tools
-        self.tools = ""
+        self.tools = ''
         self.activeDrag = None
         self.activeWheel = None
         self.activeInspect = None
 
-        self.tools_all = "save, pan, box_zoom, xbox_zoom, ybox_zoom, reset"
+        self.tools_all = 'save, pan, box_zoom, xbox_zoom, ybox_zoom, reset'
 
         self.allChecked = True
         self.reverse = False
@@ -169,7 +231,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.Layout()
         self.SetFocus()
 
-        print(("Startup of interactive panel took {:.3f} seconds".format(time.time() - tstart)))
+        print('Startup of interactive panel took {:.3f} seconds'.format(time.time() - tstart))
         # bind
         wx.EVT_CLOSE(self, self.on_close)
         wx.EVT_SPLITTER_DCLICK(self, wx.ID_ANY, self._onSash)
@@ -240,18 +302,30 @@ class panelInteractiveOutput(wx.MiniFrame):
         apply_style_menu.Append(ID_interactivePanel_apply_widgets, 'Paste: Widget parameters')
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_customise_item,
-                                     text='Customise plot...',
-                                     bitmap=self.icons.iconsLib['change_xlabels_16']))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_customise_item,
+                text='Customise plot...',
+                bitmap=self.icons.iconsLib['change_xlabels_16'],
+            ),
+        )
         menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_copy_all,
-                                     text='Copy style (all)',
-                                     bitmap=None))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_copy_all,
+                text='Copy style (all)',
+                bitmap=None,
+            ),
+        )
         menu.AppendMenu(wx.ID_ANY, 'Copy style...', copy_style_menu)
         menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_all,
-                                     text='Paste style (all)',
-                                     bitmap=None))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_all,
+                text='Paste style (all)',
+                bitmap=None,
+            ),
+        )
         menu.AppendMenu(wx.ID_ANY, 'Paste style...', apply_style_menu)
         self.PopupMenu(menu)
         menu.Destroy()
@@ -264,88 +338,90 @@ class panelInteractiveOutput(wx.MiniFrame):
         # retrieve item information
         name, key, innerKey = self.__get_item_details()
         data = self.__get_item_data(name, key, innerKey)
-        style_data = deepcopy(data.get("interactive_params", {}))
+        style_data = deepcopy(data.get('interactive_params', {}))
 
         self._item_style_.update(document_title=name, item_type=key, item_title=innerKey)
 
         evtID = evt.GetId()
         # get styles
         if evtID == ID_interactivePanel_copy_all:
-            frame_properties = style_data.get("frame_properties", {})
-            legend_properties = style_data.get("legend_properties", {})
-            tools = style_data.get("tools", {})
-            colorbar_properties = style_data.get("colorbar_properties", {})
-            overlay_properties = style_data.get("overlay_properties", {})
-            annotation_properties = style_data.get("annotation_properties", {})
-            preprocessing_properties = style_data.get("preprocessing_properties", {})
-            plot_properties = style_data.get("plot_properties", {})
-            widgets = style_data.get("widgets", {})
-            plot_height = style_data.get("plot_height", self.config.figHeight)
-            plot_width = style_data.get("plot_width", self.config.figWidth)
-            xlimits = style_data.get("xlimits", [])
-            ylimits = style_data.get("ylimits", [])
-            self._item_style_.update(frame_properties=frame_properties,
-                                     legend_properties=legend_properties,
-                                     tools=tools,
-                                     colorbar_properties=colorbar_properties,
-                                     overlay_properties=overlay_properties,
-                                     annotation_properties=annotation_properties,
-                                     preprocessing_properties=preprocessing_properties,
-                                     plot_properties=plot_properties,
-                                     widgets=widgets,
-                                     plot_height=plot_height,
-                                     plot_width=plot_width,
-                                     xlimits=xlimits,
-                                     ylimits=ylimits)
-            _copied_msg = "all"
+            frame_properties = style_data.get('frame_properties', {})
+            legend_properties = style_data.get('legend_properties', {})
+            tools = style_data.get('tools', {})
+            colorbar_properties = style_data.get('colorbar_properties', {})
+            overlay_properties = style_data.get('overlay_properties', {})
+            annotation_properties = style_data.get('annotation_properties', {})
+            preprocessing_properties = style_data.get('preprocessing_properties', {})
+            plot_properties = style_data.get('plot_properties', {})
+            widgets = style_data.get('widgets', {})
+            plot_height = style_data.get('plot_height', self.config.figHeight)
+            plot_width = style_data.get('plot_width', self.config.figWidth)
+            xlimits = style_data.get('xlimits', [])
+            ylimits = style_data.get('ylimits', [])
+            self._item_style_.update(
+                frame_properties=frame_properties,
+                legend_properties=legend_properties,
+                tools=tools,
+                colorbar_properties=colorbar_properties,
+                overlay_properties=overlay_properties,
+                annotation_properties=annotation_properties,
+                preprocessing_properties=preprocessing_properties,
+                plot_properties=plot_properties,
+                widgets=widgets,
+                plot_height=plot_height,
+                plot_width=plot_width,
+                xlimits=xlimits,
+                ylimits=ylimits,
+            )
+            _copied_msg = 'all'
         elif evtID == ID_interactivePanel_copy_frame:
-            frame_properties = style_data.get("frame_properties", {})
+            frame_properties = style_data.get('frame_properties', {})
             self._item_style_.update(frame_properties=frame_properties)
-            _copied_msg = "frame"
+            _copied_msg = 'frame'
         elif evtID == ID_interactivePanel_copy_legend:
-            legend_properties = style_data.get("legend_properties", {})
+            legend_properties = style_data.get('legend_properties', {})
             self._item_style_.update(legend_properties=legend_properties)
-            _copied_msg = "legend"
+            _copied_msg = 'legend'
         elif evtID == ID_interactivePanel_copy_tools:
-            tools = style_data.get("tools", {})
+            tools = style_data.get('tools', {})
             self._item_style_.update(tools=tools)
-            _copied_msg = "tools"
+            _copied_msg = 'tools'
         elif evtID == ID_interactivePanel_copy_annotations:
-            annotation_properties = style_data.get("annotation_properties", {})
+            annotation_properties = style_data.get('annotation_properties', {})
             self._item_style_.update(annotation_properties=annotation_properties)
-            _copied_msg = "annotations"
+            _copied_msg = 'annotations'
         elif evtID == ID_interactivePanel_copy_colorbar:
-            colorbar_properties = style_data.get("colorbar_properties", {})
+            colorbar_properties = style_data.get('colorbar_properties', {})
             self._item_style_.update(colorbar_properties=colorbar_properties)
-            _copied_msg = "colorbar"
+            _copied_msg = 'colorbar'
         elif evtID == ID_interactivePanel_copy_overlay:
-            overlay_properties = style_data.get("overlay_properties", {})
+            overlay_properties = style_data.get('overlay_properties', {})
             self._item_style_.update(overlay_properties=overlay_properties)
-            _copied_msg = "overlay"
+            _copied_msg = 'overlay'
         elif evtID == ID_interactivePanel_copy_widgets:
-            widgets = style_data.get("widgets", {})
+            widgets = style_data.get('widgets', {})
             self._item_style_.update(widgets=widgets)
-            _copied_msg = "widgets"
+            _copied_msg = 'widgets'
         elif evtID == ID_interactivePanel_copy_plots:
-            plot_properties = style_data.get("plot_properties", {})
+            plot_properties = style_data.get('plot_properties', {})
             self._item_style_.update(plot_properties=plot_properties)
-            _copied_msg = "plot"
+            _copied_msg = 'plot'
         elif evtID == ID_interactivePanel_copy_preprocess:
-            preprocessing_properties = style_data.get("preprocessing_properties", {})
+            preprocessing_properties = style_data.get('preprocessing_properties', {})
             self._item_style_.update(preprocessing_properties=preprocessing_properties)
-            _copied_msg = "pre-processing"
+            _copied_msg = 'pre-processing'
         elif evtID == ID_interactivePanel_copy_figure:
-            plot_height = style_data.get("plot_height", self.config.figHeight)
-            plot_width = style_data.get("plot_width", self.config.figWidth)
+            plot_height = style_data.get('plot_height', self.config.figHeight)
+            plot_width = style_data.get('plot_width', self.config.figWidth)
             self._item_style_.update(plot_height=plot_height, plot_width=plot_width)
-            _copied_msg = "figure size"
+            _copied_msg = 'figure size'
         elif evtID == ID_interactivePanel_copy_plot:
-            xlimits = style_data.get("xlimits", [])
-            ylimits = style_data.get("ylimits", [])
+            xlimits = style_data.get('xlimits', [])
+            ylimits = style_data.get('ylimits', [])
             self._item_style_.update(xlimits=xlimits, ylimits=ylimits)
-            _copied_msg = "plot limits"
+            _copied_msg = 'plot limits'
 
-        print(("Copied [{}] parameters from: {} - {} - {}".format(_copied_msg, name, key, innerKey)))
+        print('Copied [{}] parameters from: {} - {} - {}'.format(_copied_msg, name, key, innerKey))
 
     def on_apply_style(self, evt, itemID=None):
         """
@@ -369,95 +445,98 @@ class panelInteractiveOutput(wx.MiniFrame):
             evtID = evt.GetId()
 
         data = self.__get_item_data(name, key, innerKey)
-        style_data = deepcopy(data.get("interactive_params", {}))
-        _copied_msg = ""
+        style_data = deepcopy(data.get('interactive_params', {}))
+        _copied_msg = ''
 
         if len(self._item_style_) == 0:
             return
 
         if evtID == ID_interactivePanel_apply_all:
-            if "frame_properties" in self._item_style_:
+            if 'frame_properties' in self._item_style_:
                 style_data['frame_properties'] = self._item_style_['frame_properties']
-            if "legend_properties" in self._item_style_:
+            if 'legend_properties' in self._item_style_:
                 style_data['legend_properties'] = self._item_style_['legend_properties']
-            if "tools" in self._item_style_:
+            if 'tools' in self._item_style_:
                 style_data['tools'] = self._item_style_['tools']
-            if "colorbar_properties" in self._item_style_:
+            if 'colorbar_properties' in self._item_style_:
                 style_data['colorbar_properties'] = self._item_style_['colorbar_properties']
-            if "overlay_properties" in self._item_style_:
+            if 'overlay_properties' in self._item_style_:
                 style_data['overlay_properties'] = self._item_style_['overlay_properties']
-            if "plot_properties" in self._item_style_:
+            if 'plot_properties' in self._item_style_:
                 style_data['plot_properties'] = self._item_style_['plot_properties']
-            if "preprocessing_properties" in self._item_style_:
+            if 'preprocessing_properties' in self._item_style_:
                 style_data['preprocessing_properties'] = self._item_style_['preprocessing_properties']
-            if "annotation_properties" in self._item_style_:
+            if 'annotation_properties' in self._item_style_:
                 style_data['annotation_properties'] = self._item_style_['annotation_properties']
-            if "widgets" in self._item_style_:
+            if 'widgets' in self._item_style_:
                 style_data['widgets'] = self._item_style_['widgets']
-            if "plot_height" in self._item_style_:
+            if 'plot_height' in self._item_style_:
                 style_data['plot_height'] = self._item_style_['plot_height']
-            if "plot_width" in self._item_style_:
+            if 'plot_width' in self._item_style_:
                 style_data['plot_width'] = self._item_style_['plot_width']
-            if "xlimits" in self._item_style_:
+            if 'xlimits' in self._item_style_:
                 style_data['xlimits'] = self._item_style_['xlimits']
-            if "ylimits" in self._item_style_:
+            if 'ylimits' in self._item_style_:
                 style_data['ylimits'] = self._item_style_['ylimits']
-            _copied_msg = "all"
+            _copied_msg = 'all'
         elif evtID == ID_interactivePanel_apply_frame:
-            if "frame_properties" in self._item_style_:
+            if 'frame_properties' in self._item_style_:
                 style_data['frame_properties'] = self._item_style_['frame_properties']
-                _copied_msg = "frame"
+                _copied_msg = 'frame'
         elif evtID == ID_interactivePanel_apply_plots:
-            if "plot_properties" in self._item_style_:
+            if 'plot_properties' in self._item_style_:
                 style_data['plot_properties'] = self._item_style_['plot_properties']
-                _copied_msg = "plot"
+                _copied_msg = 'plot'
         elif evtID == ID_interactivePanel_apply_preprocess:
-            if "preprocessing_properties" in self._item_style_:
+            if 'preprocessing_properties' in self._item_style_:
                 style_data['preprocessing_properties'] = self._item_style_['preprocessing_properties']
-                _copied_msg = "pre-processing"
+                _copied_msg = 'pre-processing'
         elif evtID == ID_interactivePanel_apply_legend:
-            if "legend_properties" in self._item_style_:
+            if 'legend_properties' in self._item_style_:
                 style_data['legend_properties'] = self._item_style_['legend_properties']
-                _copied_msg = "legend"
+                _copied_msg = 'legend'
         elif evtID == ID_interactivePanel_apply_annotations:
-            if "annotation_properties" in self._item_style_:
+            if 'annotation_properties' in self._item_style_:
                 style_data['annotation_properties'] = self._item_style_['annotation_properties']
-                _copied_msg = "annotation"
+                _copied_msg = 'annotation'
         elif evtID == ID_interactivePanel_apply_colorbar:
-            if "colorbar_properties" in self._item_style_:
+            if 'colorbar_properties' in self._item_style_:
                 style_data['colorbar_properties'] = self._item_style_['colorbar_properties']
-                _copied_msg = "colorbar"
+                _copied_msg = 'colorbar'
         elif evtID == ID_interactivePanel_apply_tools:
-            if "tools" in self._item_style_:
+            if 'tools' in self._item_style_:
                 style_data['tools'] = self._item_style_['tools']
-                _copied_msg = "tools"
+                _copied_msg = 'tools'
         elif evtID == ID_interactivePanel_apply_overlay:
-            if "overlay_properties" in self._item_style_:
+            if 'overlay_properties' in self._item_style_:
                 style_data['overlay_properties'] = self._item_style_['overlay_properties']
-                _copied_msg = "overlay"
+                _copied_msg = 'overlay'
         elif evtID == ID_interactivePanel_apply_widgets:
-            if "widgets" in self._item_style_:
+            if 'widgets' in self._item_style_:
                 style_data['widgets'] = self._item_style_['widgets']
-                _copied_msg = "widgets"
+                _copied_msg = 'widgets'
         elif evtID == ID_interactivePanel_apply_figure:
-            if "plot_height" in self._item_style_:
+            if 'plot_height' in self._item_style_:
                 style_data['plot_height'] = self._item_style_['plot_height']
-            if "plot_width" in self._item_style_:
+            if 'plot_width' in self._item_style_:
                 style_data['plot_width'] = self._item_style_['plot_width']
-                _copied_msg = "figure size"
+                _copied_msg = 'figure size'
         elif evtID == ID_interactivePanel_apply_plot:
-            if "xlimits" in self._item_style_:
+            if 'xlimits' in self._item_style_:
                 style_data['xlimits'] = self._item_style_['xlimits']
-            if "ylimits" in self._item_style_:
+            if 'ylimits' in self._item_style_:
                 style_data['ylimits'] = self._item_style_['ylimits']
-            _copied_msg = "plot limits"
+            _copied_msg = 'plot limits'
 
         self.onUpdateItemParameters(name, key, innerKey, style_data)
 
-        print(("Applied [{}] parameters from {} - {} - {} to {} - {} - {}".format(
-            _copied_msg, self._item_style_['document_title'],
-            self._item_style_['item_type'], self._item_style_['item_title'],
-            name, key, innerKey)))
+        print(
+            'Applied [{}] parameters from {} - {} - {} to {} - {} - {}'.format(
+                _copied_msg, self._item_style_['document_title'],
+                self._item_style_['item_type'], self._item_style_['item_title'],
+                name, key, innerKey,
+            ),
+        )
 
     def on_apply_style_batch(self, evt):
         """
@@ -467,8 +546,10 @@ class panelInteractiveOutput(wx.MiniFrame):
             event used to figure out which action should be taken
         """
         if len(self._item_style_) == 0:
-            self.presenter.onThreading(None, ("Style clipboard is empty. Please try again", 4),
-                                       action='updateStatusbar')
+            self.presenter.onThreading(
+                None, ('Style clipboard is empty. Please try again', 4),
+                action='updateStatusbar',
+            )
             return
 
         # get event and decide event trigger
@@ -512,8 +593,10 @@ class panelInteractiveOutput(wx.MiniFrame):
             unused
         """
         if len(self._item_style_) == 0:
-            self.presenter.onThreading(None, ("Style clipboard is empty. Please try again", 4),
-                                       action='updateStatusbar')
+            self.presenter.onThreading(
+                None, ('Style clipboard is empty. Please try again', 4),
+                action='updateStatusbar',
+            )
             return
 
         self.Bind(wx.EVT_MENU, self.on_apply_style_batch, id=ID_interactivePanel_apply_batch_all)
@@ -530,42 +613,90 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.on_apply_style_batch, id=ID_interactivePanel_apply_batch_preprocess)
 
         menu = wx.Menu()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_all,
-                                     text='Paste: All (selected items)',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_plot,
-                                     text='Paste: X/Y limits (selected items)',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_figure,
-                                     text='Paste: Figure parameters (selected items)',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_frame,
-                                     text='Paste: Axes parameters (selected items)',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_preprocess,
-                                     text='Paste: Pre-processing parameters (selected items)',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_annotations,
-                                     text='Paste: Annotation parameters (selected items)',
-                                     bitmap=self.icons.iconsLib['annotate16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_plots,
-                                     text='Paste: Plot parameters (selected items)',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_colorbar,
-                                     text='Paste: Colorbar parameters (selected items)',
-                                     bitmap=self.icons.iconsLib['panel_colorbar_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_legend,
-                                     text='Paste: Legend parameters (selected items)',
-                                     bitmap=self.icons.iconsLib['panel_legend_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_overlay,
-                                     text='Paste: Overlay parameters (selected items)',
-                                     bitmap=self.icons.iconsLib['overlay_2D_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_tools,
-                                     text='Paste: Tools parameters (selected items)',
-                                     bitmap=self.icons.iconsLib['parameters_16']))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_apply_batch_widgets,
-                                     text='Paste: Widget parameters (selected items)',
-                                     bitmap=None))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_all,
+                text='Paste: All (selected items)',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_plot,
+                text='Paste: X/Y limits (selected items)',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_figure,
+                text='Paste: Figure parameters (selected items)',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_frame,
+                text='Paste: Axes parameters (selected items)',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_preprocess,
+                text='Paste: Pre-processing parameters (selected items)',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_annotations,
+                text='Paste: Annotation parameters (selected items)',
+                bitmap=self.icons.iconsLib['annotate16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_plots,
+                text='Paste: Plot parameters (selected items)',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_colorbar,
+                text='Paste: Colorbar parameters (selected items)',
+                bitmap=self.icons.iconsLib['panel_colorbar_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_legend,
+                text='Paste: Legend parameters (selected items)',
+                bitmap=self.icons.iconsLib['panel_legend_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_overlay,
+                text='Paste: Overlay parameters (selected items)',
+                bitmap=self.icons.iconsLib['overlay_2D_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_tools,
+                text='Paste: Tools parameters (selected items)',
+                bitmap=self.icons.iconsLib['parameters_16'],
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_apply_batch_widgets,
+                text='Paste: Widget parameters (selected items)',
+                bitmap=None,
+            ),
+        )
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -581,10 +712,10 @@ class panelInteractiveOutput(wx.MiniFrame):
     def on_generate_html_fcn(self, evt):
 
         if not self.config.threading:
-            print("Exporting interactive document using a non-threaded process")
+            print('Exporting interactive document using a non-threaded process')
             self.on_generate_html(None)
         else:
-            print("Exporting interactive document using a threaded process")
+            print('Exporting interactive document using a threaded process')
             th = threading.Thread(target=self.on_generate_html, args=(evt,))
             # Start thread
             try:
@@ -615,7 +746,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         try:
             name, key, innerKey = self.__get_item_details()
         except TypeError:
-            print("Please select an item in the table")
+            print('Please select an item in the table')
             return
         data = self.__get_item_data(name, key, innerKey)
 
@@ -696,11 +827,11 @@ class panelInteractiveOutput(wx.MiniFrame):
             document.massSpectrum['unidec'][innerKey]['interactive_params'] = parameters
 
         if key == 'UniDec, multiple' and innerKey != '':
-            unidecMethod = re.split(' \| ', innerKey)[0]
-            innerKey = re.split(' \| ', innerKey)[1]
+            unidecMethod = re.split(r' \| ', innerKey)[0]
+            innerKey = re.split(r' \| ', innerKey)[1]
             document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod]['interactive_params'] = parameters
 
-        if key == "MS/MS" and innerKey == '':
+        if key == 'MS/MS' and innerKey == '':
             document.tandem_spectra.update(interactive_params=parameters)
 
         # Update dictionary
@@ -730,8 +861,10 @@ class panelInteractiveOutput(wx.MiniFrame):
                 size_height = screen_height - 75
 
         # splitter window
-        self.split_panel = wx.SplitterWindow(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
-                                             wx.TAB_TRAVERSAL | wx.SP_3DSASH | wx.SP_LIVE_UPDATE)
+        self.split_panel = wx.SplitterWindow(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
+            wx.TAB_TRAVERSAL | wx.SP_3DSASH | wx.SP_LIVE_UPDATE,
+        )
 
         # make panels
         self.list_panel = self.make_list_panel(self.split_panel)
@@ -749,7 +882,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.split_panel.SplitVertically(self.list_panel, self.settings_panel)
         self.split_panel.SetSashGravity(0.0)
         self.split_panel.SetSashSize(2)
-        self.split_panel.SetSashPosition((size_left + 10))
+        self.split_panel.SetSashPosition(size_left + 10)
 
         # pack element
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -798,55 +931,72 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def make_pre_toolbar(self, panel):
 
-        checkAll = wx.BitmapButton(panel, ID_interactivePanel_check_menu, self.icons.iconsLib['check16'],
-                                   size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
+        checkAll = wx.BitmapButton(
+            panel, ID_interactivePanel_check_menu, self.icons.iconsLib['check16'],
+            size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
+        )
         self.Bind(wx.EVT_BUTTON, self.on_check_tool, id=ID_interactivePanel_check_menu)
 
-        document_label = wx.StaticText(panel, -1, "Document filter:")
+        document_label = wx.StaticText(panel, -1, 'Document filter:')
         docList = ['All'] + list(self.documentsDict.keys())
         self.docSelection_combo = wx.Choice(panel, -1, choices=docList, size=(160, -1))
-        self.docSelection_combo.SetStringSelection("All")
+        self.docSelection_combo.SetStringSelection('All')
         self.docSelection_combo.Bind(wx.EVT_CHOICE, self.OnShowOneDataType)
 
-        type_label = wx.StaticText(panel, -1, "Item type filter:")
-        self.dataSelection_combo = wx.Choice(panel, -1, choices=["Show all", "Show selected",
-                                                                 "Show MS (all)", "Show MS (multiple)",
-                                                                 "Show MS", "Show RT (all)", "Show RT",
-                                                                 "Show 1D (all)", "Show 1D IM-MS",
-                                                                 "Show 2D IM-MS", "Show 1D plots (MS, DT, RT)",
-                                                                 "Show Overlay", "Show Statistical",
-                                                                 "Show UniDec (all)",
-                                                                 "Show UniDec (processed)",
-                                                                 "Show UniDec (multiple)",
-                                                                 "Show Annotated data"],
-                                             size=(150, -1))
-        self.dataSelection_combo.SetStringSelection("Show All")
+        type_label = wx.StaticText(panel, -1, 'Item type filter:')
+        self.dataSelection_combo = wx.Choice(
+            panel, -1, choices=[
+                'Show all', 'Show selected',
+                'Show MS (all)', 'Show MS (multiple)',
+                'Show MS', 'Show RT (all)', 'Show RT',
+                'Show 1D (all)', 'Show 1D IM-MS',
+                'Show 2D IM-MS', 'Show 1D plots (MS, DT, RT)',
+                'Show Overlay', 'Show Statistical',
+                'Show UniDec (all)',
+                'Show UniDec (processed)',
+                'Show UniDec (multiple)',
+                'Show Annotated data',
+            ],
+            size=(150, -1),
+        )
+        self.dataSelection_combo.SetStringSelection('Show All')
         self.dataSelection_combo.Bind(wx.EVT_CHOICE, self.OnShowOneDataType)
 
-        output_label = wx.StaticText(panel, -1, "Assign output page:")
+        output_label = wx.StaticText(panel, -1, 'Assign output page:')
         self.pageLayoutSelect_toolbar = wx.Choice(panel, -1, choices=list(self.config.pageDict.keys()), size=(140, -1))
-        self.pageLayoutSelect_toolbar.SetStringSelection("None")
-        page_applyBtn = wx.BitmapButton(panel, ID_assignPageSelected_HTML, self.icons.iconsLib['tick16'],
-                                        size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
+        self.pageLayoutSelect_toolbar.SetStringSelection('None')
+        page_applyBtn = wx.BitmapButton(
+            panel, ID_assignPageSelected_HTML, self.icons.iconsLib['tick16'],
+            size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
+        )
         self.Bind(wx.EVT_BUTTON, self.on_change_page_for_items, id=ID_assignPageSelected_HTML)
 
-        colormap_label = wx.StaticText(panel, -1, "Assign colormap:")
-        self.colormapSelect_toolbar = wx.Choice(panel, -1, choices=self.config.cmaps2,
-                                                size=(-1, -1))
+        colormap_label = wx.StaticText(panel, -1, 'Assign colormap:')
+        self.colormapSelect_toolbar = wx.Choice(
+            panel, -1, choices=self.config.cmaps2,
+            size=(-1, -1),
+        )
         self.colormapSelect_toolbar.SetStringSelection(self.config.currentCmap)
         self.Bind(wx.EVT_BUTTON, self.on_change_colormap_for_items, id=ID_assignColormapSelected_HTML)
 
-        colormap_applyBtn = wx.BitmapButton(panel, ID_assignColormapSelected_HTML, self.icons.iconsLib['tick16'],
-                                            size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
+        colormap_applyBtn = wx.BitmapButton(
+            panel, ID_assignColormapSelected_HTML, self.icons.iconsLib['tick16'],
+            size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
+        )
 
-        self.apply_style_btn = wx.BitmapButton(panel, -1, self.icons.iconsLib['idea16'],
-                                               size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL)
+        self.apply_style_btn = wx.BitmapButton(
+            panel, -1, self.icons.iconsLib['idea16'],
+            size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
+        )
         self.apply_style_btn.Bind(wx.EVT_BUTTON, self.on_apply_style_menu)
 
-        sort_label = wx.StaticText(panel, -1, "Sort:")
+        sort_label = wx.StaticText(panel, -1, 'Sort:')
         self.sort_before_saving = wx.CheckBox(panel, -1, '', (15, 30))
-        self.sort_before_saving.SetToolTip(wx.ToolTip(
-            "When checked, table will be sorted by the # column before plots are exported."))
+        self.sort_before_saving.SetToolTip(
+            wx.ToolTip(
+                'When checked, table will be sorted by the # column before plots are exported.',
+            ),
+        )
         self.sort_before_saving.SetValue(self.config.interactive_sort_before_saving)
         self.sort_before_saving.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -877,8 +1027,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         grid.Add(self.colormapSelect_toolbar, (1, 9), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(colormap_applyBtn, (1, 10), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.apply_style_btn, (1, 12), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.sort_before_saving, (1, 14), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(
+            self.sort_before_saving, (1, 14), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL,
+        )
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(grid, 0, wx.ALL, 2)
@@ -889,9 +1041,11 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # init table
         kwargs = dict(trigger_parent=True)
-        itemsList = ListCtrl(panel, size=(750, -1),
-                             style=wx.LC_REPORT | wx.LC_VRULES,
-                             **kwargs)
+        itemsList = ListCtrl(
+            panel, size=(750, -1),
+            style=wx.LC_REPORT | wx.LC_VRULES,
+            **kwargs
+        )
         itemsList.SetFont(wx.SMALL_FONT)
 
         for item in self.config._interactiveSettings:
@@ -915,33 +1069,39 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def make_dialog_buttons(self, panel):
 
-        pathBtn = wx.Button(panel, -1, "Set Path", size=(-1, 22))
-        saveBtn = wx.Button(panel, -1, "Export HTML", size=(-1, 22))
-        cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        pathBtn = wx.Button(panel, -1, 'Set Path', size=(-1, 22))
+        saveBtn = wx.Button(panel, -1, 'Export HTML', size=(-1, 22))
+        cancelBtn = wx.Button(panel, -1, 'Cancel', size=(-1, 22))
 
-        openHTMLWebBtn = wx.Button(panel, ID_helpHTMLEditor, "HTML Editor", size=(-1, 22))
-        openHTMLWebBtn.SetToolTip(wx.ToolTip("Opens a web-based HTML editor"))
+        openHTMLWebBtn = wx.Button(panel, ID_helpHTMLEditor, 'HTML Editor', size=(-1, 22))
+        openHTMLWebBtn.SetToolTip(wx.ToolTip('Opens a web-based HTML editor'))
 
-        itemPath_label = wx.StaticText(panel, -1, "File path:")
-        self.itemPath_value = wx.TextCtrl(panel, -1, "", size=(350, -1))
+        itemPath_label = wx.StaticText(panel, -1, 'File path:')
+        self.itemPath_value = wx.TextCtrl(panel, -1, '', size=(350, -1))
         self.itemPath_value.SetValue(str(self.currentPath))
 
-        documentName_label = wx.StaticText(panel, -1, "Document title:")
-        self.documentName_value = wx.TextCtrl(panel, -1, "", size=(350, -1))
+        documentName_label = wx.StaticText(panel, -1, 'Document title:')
+        self.documentName_value = wx.TextCtrl(panel, -1, '', size=(350, -1))
         self.documentName_value.SetValue(str(self.currentDocumentName))
 
-        self.openInBrowserCheck = makeCheckbox(panel, "Open in browser after saving")
+        self.openInBrowserCheck = makeCheckbox(panel, 'Open in browser after saving')
         self.openInBrowserCheck.SetValue(self.config.openInteractiveOnSave)
 
-        self.addOfflineSupportCheck = makeCheckbox(panel, "Add offline support")
+        self.addOfflineSupportCheck = makeCheckbox(panel, 'Add offline support')
         self.addOfflineSupportCheck.SetValue(self.config.interactive_add_offline_support)
-        self.addOfflineSupportCheck.SetToolTip(wx.ToolTip(
-            "Will enable viewing HTML files offline. Beware: file size and time to generate the document will increase."))
+        self.addOfflineSupportCheck.SetToolTip(
+            wx.ToolTip(
+                'Will enable viewing HTML files offline. Beware: file size and time to generate the document will increase.',
+            ),
+        )
 
-        self.addWatermarkCheck = makeCheckbox(panel, "Add watermark")
+        self.addWatermarkCheck = makeCheckbox(panel, 'Add watermark')
         self.addWatermarkCheck.SetValue(True)
-        self.addWatermarkCheck.SetToolTip(wx.ToolTip(
-            "When checked, a watermark message will be displayed on each tab in the document. Only a little bit of advertising..."))
+        self.addWatermarkCheck.SetToolTip(
+            wx.ToolTip(
+                'When checked, a watermark message will be displayed on each tab in the document. Only a little bit of advertising...',
+            ),
+        )
 
         btnGrid = wx.GridBagSizer(1, 1)
         btnGrid.Add(openHTMLWebBtn, (0, 0), flag=wx.ALIGN_CENTER | wx.ALIGN_CENTER_HORIZONTAL)
@@ -977,22 +1137,25 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.editorBook = wx.Notebook(panel, wx.ID_ANY, wx.DefaultPosition, size=(-1, -1), style=0)
 
         self.htmlView = wx.lib.scrolledpanel.ScrolledPanel(
-            self.editorBook, wx.ID_ANY, wx.DefaultPosition, (-1, -1), wx.TAB_TRAVERSAL)
+            self.editorBook, wx.ID_ANY, wx.DefaultPosition, (-1, -1), wx.TAB_TRAVERSAL,
+        )
         self.htmlView.SetupScrolling()
         self.htmlView = self.make_html_view(self.htmlView)
-        self.editorBook.AddPage(self.htmlView, "HTML", False)
+        self.editorBook.AddPage(self.htmlView, 'HTML', False)
 
         self.pageView = wx.lib.scrolledpanel.ScrolledPanel(
-            self.editorBook, wx.ID_ANY, wx.DefaultPosition, (-1, -1), wx.TAB_TRAVERSAL)
+            self.editorBook, wx.ID_ANY, wx.DefaultPosition, (-1, -1), wx.TAB_TRAVERSAL,
+        )
         self.pageView.SetupScrolling()
         self.pageView = self.make_page_view(self.pageView)
-        self.editorBook.AddPage(self.pageView, "Output page", False)
+        self.editorBook.AddPage(self.pageView, 'Output page', False)
 
         self.propertiesView = wx.lib.scrolledpanel.ScrolledPanel(
-            self.editorBook, wx.ID_ANY, wx.DefaultPosition, (-1, -1), wx.TAB_TRAVERSAL)
+            self.editorBook, wx.ID_ANY, wx.DefaultPosition, (-1, -1), wx.TAB_TRAVERSAL,
+        )
         self.propertiesView.SetupScrolling()
         self.propertiesView = self.make_properties_view(self.propertiesView)
-        self.editorBook.AddPage(self.propertiesView, "Default settings", False)
+        self.editorBook.AddPage(self.propertiesView, 'Default settings', False)
 
         mainSizer.Add(self.editorBook, 1, wx.EXPAND | wx.ALL, 3)
         mainSizer.Fit(self.editorBook)
@@ -1007,85 +1170,101 @@ class panelInteractiveOutput(wx.MiniFrame):
     def make_page_view(self, panel):
         RICH_TEXT = wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2
 
-        self.mainBoxPage = makeStaticBox(panel, "Page properties", (-1, -1), wx.BLACK)
+        self.mainBoxPage = makeStaticBox(panel, 'Page properties', (-1, -1), wx.BLACK)
         self.mainBoxPage.SetSize((-1, -1))
         html_box_sizer = wx.StaticBoxSizer(self.mainBoxPage, wx.HORIZONTAL)
 
-        pageSelect_label = makeStaticText(panel, "Select page:")
-        self.pageLayoutSelect_propView = wx.ComboBox(panel, -1, choices=[],
-                                                     value="None", style=wx.CB_READONLY)
+        pageSelect_label = makeStaticText(panel, 'Select page:')
+        self.pageLayoutSelect_propView = wx.ComboBox(
+            panel, -1, choices=[],
+            value='None', style=wx.CB_READONLY,
+        )
         self.pageLayoutSelect_propView.Bind(wx.EVT_COMBOBOX, self.on_change_page)
 
         self.addPage = wx.Button(panel, wx.ID_ANY, size=(26, 26))
         self.addPage.SetBitmap(self.icons.iconsLib['add16'])
         self.addPage.Bind(wx.EVT_BUTTON, self.on_add_page)
-        self.addPage.SetToolTip(wx.ToolTip("Add new page. You can change settings below"))
+        self.addPage.SetToolTip(wx.ToolTip('Add new page. You can change settings below'))
 
         self.removePage = wx.Button(panel, wx.ID_ANY, size=(26, 26))
         self.removePage.SetBitmap(self.icons.iconsLib['remove16'])
         self.removePage.Bind(wx.EVT_BUTTON, self.on_remove_page)
-        self.removePage.SetToolTip(wx.ToolTip("Remove current page"))
+        self.removePage.SetToolTip(wx.ToolTip('Remove current page'))
 
         self.clearAllPages = wx.Button(panel, wx.ID_ANY, size=(26, 26))
         self.clearAllPages.SetBitmap(self.icons.iconsLib['bin16'])
         self.clearAllPages.Bind(wx.EVT_BUTTON, self.on_clear_pages)
-        self.clearAllPages.SetToolTip(wx.ToolTip("Remove ALL non-default pages"))
+        self.clearAllPages.SetToolTip(wx.ToolTip('Remove ALL non-default pages'))
 
-        layoutDoc_label = makeStaticText(panel, "Page layout:")
-        self.layoutDoc_combo = wx.ComboBox(panel, -1, choices=self.config.interactive_pageLayout_choices,
-                                           value=self.config.layoutModeDoc, style=wx.CB_READONLY)
-        self.layoutDoc_combo.SetToolTip(wx.ToolTip("Select type of layout for the page. Default: Individual"))
+        layoutDoc_label = makeStaticText(panel, 'Page layout:')
+        self.layoutDoc_combo = wx.ComboBox(
+            panel, -1, choices=self.config.interactive_pageLayout_choices,
+            value=self.config.layoutModeDoc, style=wx.CB_READONLY,
+        )
+        self.layoutDoc_combo.SetToolTip(wx.ToolTip('Select type of layout for the page. Default: Individual'))
         self.layoutDoc_combo.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.layoutDoc_combo.Bind(wx.EVT_COMBOBOX, self.on_select_page_properties)
 
-        columns_label = makeStaticText(panel, "Columns:")
-        self.columns_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
-        self.columns_value.SetToolTip(wx.ToolTip("Grid only. Number of columns in the grid"))
+        columns_label = makeStaticText(panel, 'Columns:')
+        self.columns_value = wx.TextCtrl(panel, -1, '', size=(50, -1))
+        self.columns_value.SetToolTip(wx.ToolTip('Grid only. Number of columns in the grid'))
         self.columns_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
 
-        self.grid_shared_tools = makeCheckbox(panel, "Shared tools")
+        self.grid_shared_tools = makeCheckbox(panel, 'Shared tools')
         self.grid_shared_tools.SetValue(True)
         self.grid_shared_tools.Bind(wx.EVT_CHECKBOX, self.on_select_page_properties)
 
-        self.grid_add_custom_js_widgets = makeCheckbox(panel, "Add widgets when available")
-        self.grid_add_custom_js_widgets.SetToolTip(wx.ToolTip(
-            "Grid/rows only. Add custom widgets that work for all plots in a grid."))
+        self.grid_add_custom_js_widgets = makeCheckbox(panel, 'Add widgets when available')
+        self.grid_add_custom_js_widgets.SetToolTip(
+            wx.ToolTip(
+                'Grid/rows only. Add custom widgets that work for all plots in a grid.',
+            ),
+        )
         self.grid_add_custom_js_widgets.SetValue(True)
         self.grid_add_custom_js_widgets.Bind(wx.EVT_CHECKBOX, self.on_select_page_properties)
 
-        height_label = makeStaticText(panel, "Plot height:")
-        self.grid_height_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
-        self.grid_height_value.SetToolTip(wx.ToolTip("Grid only. Height of individual plots"))
+        height_label = makeStaticText(panel, 'Plot height:')
+        self.grid_height_value = wx.TextCtrl(panel, -1, '', size=(50, -1))
+        self.grid_height_value.SetToolTip(wx.ToolTip('Grid only. Height of individual plots'))
         self.grid_height_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
 
-        width_label = makeStaticText(panel, "Plot width:")
-        self.grid_width_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
-        self.grid_width_value.SetToolTip(wx.ToolTip("Grid only. Width of individual plots"))
+        width_label = makeStaticText(panel, 'Plot width:')
+        self.grid_width_value = wx.TextCtrl(panel, -1, '', size=(50, -1))
+        self.grid_width_value.SetToolTip(wx.ToolTip('Grid only. Width of individual plots'))
         self.grid_width_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
 
         min_size_text = 525
-        itemName_label = wx.StaticText(panel, -1, "Title:", style=RICH_TEXT)
-        self.pageTitle_value = wx.TextCtrl(panel, -1, "", size=(-1, -1))
-        self.pageTitle_value.SetToolTip(wx.ToolTip("Title of the HTML page."))
+        itemName_label = wx.StaticText(panel, -1, 'Title:', style=RICH_TEXT)
+        self.pageTitle_value = wx.TextCtrl(panel, -1, '', size=(-1, -1))
+        self.pageTitle_value.SetToolTip(wx.ToolTip('Title of the HTML page.'))
         self.pageTitle_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
 
-        itemHeader_label = wx.StaticText(panel, -1, "Header:")
-        self.pageHeader_value = wx.TextCtrl(panel, -1, "", size=(min_size_text, 100), style=RICH_TEXT)
-        self.pageHeader_value.SetToolTip(wx.ToolTip(
-            "HTML-rich text to be used in the header of the interactive figure."))
+        itemHeader_label = wx.StaticText(panel, -1, 'Header:')
+        self.pageHeader_value = wx.TextCtrl(panel, -1, '', size=(min_size_text, 100), style=RICH_TEXT)
+        self.pageHeader_value.SetToolTip(
+            wx.ToolTip(
+                'HTML-rich text to be used in the header of the interactive figure.',
+            ),
+        )
         self.pageHeader_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
 
-        itemFootnote_label = wx.StaticText(panel, -1, "Footnote:")
-        self.pageFootnote_value = wx.TextCtrl(panel, -1, "", size=(min_size_text, 100), style=RICH_TEXT)
-        self.pageFootnote_value.SetToolTip(wx.ToolTip(
-            "HTML-rich text to be used in the footnote of the interactive figure."))
+        itemFootnote_label = wx.StaticText(panel, -1, 'Footnote:')
+        self.pageFootnote_value = wx.TextCtrl(panel, -1, '', size=(min_size_text, 100), style=RICH_TEXT)
+        self.pageFootnote_value.SetToolTip(
+            wx.ToolTip(
+                'HTML-rich text to be used in the footnote of the interactive figure.',
+            ),
+        )
         self.pageFootnote_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
 
         html_grid = wx.GridBagSizer(2, 5)
         n = 0
         html_grid.Add(pageSelect_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.pageLayoutSelect_propView, (n, 1), wx.GBSpan(
-            1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(
+            self.pageLayoutSelect_propView, (n, 1), wx.GBSpan(
+                1, 1,
+            ), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+        )
         html_grid.Add(self.addPage, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.removePage, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.clearAllPages, (n, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
@@ -1108,12 +1287,16 @@ class panelInteractiveOutput(wx.MiniFrame):
         html_grid.Add(self.pageTitle_value, (n, 1), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
         html_grid.Add(itemHeader_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
-        html_grid.Add(self.pageHeader_value, (n, 1), wx.GBSpan(1, 5),
-                      flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(
+            self.pageHeader_value, (n, 1), wx.GBSpan(1, 5),
+            flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+        )
         n = n + 1
         html_grid.Add(itemFootnote_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
-        html_grid.Add(self.pageFootnote_value, (n, 1), wx.GBSpan(1, 5),
-                      flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(
+            self.pageFootnote_value, (n, 1), wx.GBSpan(1, 5),
+            flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+        )
         html_box_sizer.Add(html_grid, 0, wx.EXPAND, 0)
 
         mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -1129,39 +1312,45 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         RICH_TEXT = wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2
 
-        self.mainBoxHTML = makeStaticBox(panel, "HTML properties", (-1, -1), wx.BLACK)
+        self.mainBoxHTML = makeStaticBox(panel, 'HTML properties', (-1, -1), wx.BLACK)
         self.mainBoxHTML.SetSize((-1, -1))
         html_box_sizer = wx.StaticBoxSizer(self.mainBoxHTML, wx.HORIZONTAL)
 
         min_size_text = 550
         # make elements
-        editing_label = wx.StaticText(panel, -1, "Document:")
-        self.document_value = wx.StaticText(panel, -1, "", size=(min_size_text, -1))
+        editing_label = wx.StaticText(panel, -1, 'Document:')
+        self.document_value = wx.StaticText(panel, -1, '', size=(min_size_text, -1))
 
-        type_label = wx.StaticText(panel, -1, "Type:")
-        self.type_value = wx.StaticText(panel, -1, "", size=(min_size_text, -1))
+        type_label = wx.StaticText(panel, -1, 'Type:')
+        self.type_value = wx.StaticText(panel, -1, '', size=(min_size_text, -1))
 
-        details_label = wx.StaticText(panel, -1, "Details:")
-        self.details_value = wx.StaticText(panel, -1, "", size=(min_size_text, -1))
+        details_label = wx.StaticText(panel, -1, 'Details:')
+        self.details_value = wx.StaticText(panel, -1, '', size=(min_size_text, -1))
 
-        itemInformation_label = wx.StaticText(panel, -1, "Information:")
-        self.itemInformation_value = wx.StaticText(panel, -1, "", size=(-1, 70))
+        itemInformation_label = wx.StaticText(panel, -1, 'Information:')
+        self.itemInformation_value = wx.StaticText(panel, -1, '', size=(-1, 70))
 
-        itemName_label = wx.StaticText(panel, -1, "Title:", style=RICH_TEXT)
-        self.itemName_value = wx.TextCtrl(panel, -1, "", size=(-1, -1))
-        self.itemName_value.SetToolTip(wx.ToolTip("Title of the HTML page. Might not be used."))
+        itemName_label = wx.StaticText(panel, -1, 'Title:', style=RICH_TEXT)
+        self.itemName_value = wx.TextCtrl(panel, -1, '', size=(-1, -1))
+        self.itemName_value.SetToolTip(wx.ToolTip('Title of the HTML page. Might not be used.'))
         self.itemName_value.Bind(wx.EVT_TEXT, self.on_annotate_item)
 
-        itemHeader_label = wx.StaticText(panel, -1, "Header:")
-        self.itemHeader_value = wx.TextCtrl(panel, -1, "", size=(-1, 120), style=RICH_TEXT)
-        self.itemHeader_value.SetToolTip(wx.ToolTip(
-            "HTML-rich text to be used in the header of the interactive figure."))
+        itemHeader_label = wx.StaticText(panel, -1, 'Header:')
+        self.itemHeader_value = wx.TextCtrl(panel, -1, '', size=(-1, 120), style=RICH_TEXT)
+        self.itemHeader_value.SetToolTip(
+            wx.ToolTip(
+                'HTML-rich text to be used in the header of the interactive figure.',
+            ),
+        )
         self.itemHeader_value.Bind(wx.EVT_TEXT, self.on_annotate_item)
 
-        itemFootnote_label = wx.StaticText(panel, -1, "Footnote:")
-        self.itemFootnote_value = wx.TextCtrl(panel, -1, "", size=(-1, 120), style=RICH_TEXT)
-        self.itemFootnote_value.SetToolTip(wx.ToolTip(
-            "HTML-rich text to be used in the footnote of the interactive figure."))
+        itemFootnote_label = wx.StaticText(panel, -1, 'Footnote:')
+        self.itemFootnote_value = wx.TextCtrl(panel, -1, '', size=(-1, 120), style=RICH_TEXT)
+        self.itemFootnote_value.SetToolTip(
+            wx.ToolTip(
+                'HTML-rich text to be used in the footnote of the interactive figure.',
+            ),
+        )
         self.itemFootnote_value.Bind(wx.EVT_TEXT, self.on_annotate_item)
 
         html_grid = wx.GridBagSizer(2, 5)
@@ -1176,33 +1365,40 @@ class panelInteractiveOutput(wx.MiniFrame):
         html_grid.Add(self.details_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
         html_grid.Add(itemInformation_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
-        html_grid.Add(self.itemInformation_value, (n, 1), wx.GBSpan(1, 1),
-                      flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(
+            self.itemInformation_value, (n, 1), wx.GBSpan(1, 1),
+            flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+        )
         n = n + 1
         html_grid.Add(itemName_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.itemName_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
         html_grid.Add(itemHeader_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
-        html_grid.Add(self.itemHeader_value, (n, 1), wx.GBSpan(1, 1),
-                      flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(
+            self.itemHeader_value, (n, 1), wx.GBSpan(1, 1),
+            flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+        )
         n = n + 1
         html_grid.Add(itemFootnote_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
-        html_grid.Add(self.itemFootnote_value, (n, 1), wx.GBSpan(1, 1),
-                      flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(
+            self.itemFootnote_value, (n, 1), wx.GBSpan(1, 1),
+            flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL,
+        )
         html_box_sizer.Add(html_grid, 0, wx.EXPAND, 0)
 
         # general subpanel
-        general_staticBox = makeStaticBox(panel, "General settings", size=(-1, -1), color=wx.BLACK)
+        general_staticBox = makeStaticBox(panel, 'General settings', size=(-1, -1), color=wx.BLACK)
         general_staticBox.SetSize((-1, -1))
         general_box_sizer = wx.StaticBoxSizer(general_staticBox, wx.HORIZONTAL)
 
-        page_label = makeStaticText(panel, "Output page:")
+        page_label = makeStaticText(panel, 'Output page:')
         self.pageLayoutSelect_htmlView = wx.ComboBox(
-            panel, -1, choices=[], value="None", style=wx.CB_READONLY, size=(200, -1))
+            panel, -1, choices=[], value='None', style=wx.CB_READONLY, size=(200, -1),
+        )
         self.pageLayoutSelect_htmlView.Bind(wx.EVT_COMBOBOX, self.on_change_page_for_item)
 
-        order_label = makeStaticText(panel, "Plot order:")
-        self.order_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
+        order_label = makeStaticText(panel, 'Plot order:')
+        self.order_value = wx.TextCtrl(panel, -1, '', size=(50, -1))
         self.order_value.Bind(wx.EVT_TEXT, self.on_annotate_item)
 
         general_grid = wx.GridBagSizer(2, 2)
@@ -1236,35 +1432,71 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         menu = wx.Menu()
         if self.allChecked:
-            menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_all,
-                                         text='Check all...',
-                                         bitmap=None))
+            menu.AppendItem(
+                makeMenuItem(
+                    parent=menu, id=ID_interactivePanel_check_all,
+                    text='Check all...',
+                    bitmap=None,
+                ),
+            )
         else:
-            menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_all,
-                                         text='Uncheck all...',
-                                         bitmap=None))
+            menu.AppendItem(
+                makeMenuItem(
+                    parent=menu, id=ID_interactivePanel_check_all,
+                    text='Uncheck all...',
+                    bitmap=None,
+                ),
+            )
         menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_ms,
-                                     text='Check MS only',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_rt,
-                                     text='Check RT only',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_dt1D,
-                                     text='Check DT (1D) only',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_dt2D,
-                                     text='Check DT (2D) only',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_overlay,
-                                     text='Check Overlay only',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_unidec,
-                                     text='Check UniDec only',
-                                     bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_other,
-                                     text='Check Other only',
-                                     bitmap=None))
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_check_ms,
+                text='Check MS only',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_check_rt,
+                text='Check RT only',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_check_dt1D,
+                text='Check DT (1D) only',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_check_dt2D,
+                text='Check DT (2D) only',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_check_overlay,
+                text='Check Overlay only',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_check_unidec,
+                text='Check UniDec only',
+                bitmap=None,
+            ),
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_check_other,
+                text='Check Other only',
+                bitmap=None,
+            ),
+        )
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -1312,34 +1544,42 @@ class panelInteractiveOutput(wx.MiniFrame):
         return panel
 
     def make_fonts_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Font properties", (210, -1), wx.BLACK)
+        mainBox = makeStaticBox(panel, 'Font properties', (210, -1), wx.BLACK)
         mainBox.SetSize((230, -1))
         mainSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
-        titleFontSize = makeStaticText(panel, "Title font size")
+        titleFontSize = makeStaticText(panel, 'Title font size')
 
-        self.titleSlider = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                             value=str(self.config.interactive_title_fontSize), min=8, max=32,
-                                             initial=self.config.interactive_title_fontSize, inc=1, size=(50, -1))
-        self.titleBoldCheck = makeCheckbox(panel, "Bold")
+        self.titleSlider = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_title_fontSize), min=8, max=32,
+            initial=self.config.interactive_title_fontSize, inc=1, size=(50, -1),
+        )
+        self.titleBoldCheck = makeCheckbox(panel, 'Bold')
         self.titleBoldCheck.SetValue(self.config.interactive_title_weight)
 
-        labelFontSize = makeStaticText(panel, "Label font size")
-        self.labelSlider = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                             value=str(self.config.interactive_label_fontSize), min=8, max=32,
-                                             initial=self.config.interactive_label_fontSize, inc=1, size=(50, -1))
+        labelFontSize = makeStaticText(panel, 'Label font size')
+        self.labelSlider = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_label_fontSize), min=8, max=32,
+            initial=self.config.interactive_label_fontSize, inc=1, size=(50, -1),
+        )
 
-        self.labelBoldCheck = makeCheckbox(panel, "Bold")
+        self.labelBoldCheck = makeCheckbox(panel, 'Bold')
         self.labelBoldCheck.SetValue(self.config.interactive_label_weight)
 
-        tickFontSize = makeStaticText(panel, "Tick font size")
-        self.tickSlider = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value=str(self.config.interactive_tick_fontSize), min=8, max=32,
-                                            initial=self.config.interactive_tick_fontSize, inc=1, size=(50, -1))
+        tickFontSize = makeStaticText(panel, 'Tick font size')
+        self.tickSlider = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_tick_fontSize), min=8, max=32,
+            initial=self.config.interactive_tick_fontSize, inc=1, size=(50, -1),
+        )
 
-        precision_label = makeStaticText(panel, "Tick precision")
-        self.tickPrecision = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                               value=str(self.config.interactive_tick_precision), min=0, max=5,
-                                               initial=self.config.interactive_tick_precision, inc=1, size=(50, -1))
+        precision_label = makeStaticText(panel, 'Tick precision')
+        self.tickPrecision = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_tick_precision), min=0, max=5,
+            initial=self.config.interactive_tick_precision, inc=1, size=(50, -1),
+        )
 
         self.tickUseScientific = wx.CheckBox(panel, -1, 'Scientific\nnotation', (15, 30))
         self.tickUseScientific.SetValue(self.config.interactive_tick_useScientific)
@@ -1348,26 +1588,50 @@ class panelInteractiveOutput(wx.MiniFrame):
         # Add to grid sizer
         grid = wx.GridBagSizer(2, 2)
         grid.Add(titleFontSize, wx.GBPosition(0, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.titleSlider, wx.GBPosition(1, 0), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.titleBoldCheck, wx.GBPosition(1, 1), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(
+            self.titleSlider, wx.GBPosition(1, 0), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            self.titleBoldCheck, wx.GBPosition(1, 1), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
 
         grid.Add(labelFontSize, wx.GBPosition(0, 2), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.labelSlider, wx.GBPosition(1, 2), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.labelBoldCheck, wx.GBPosition(1, 3), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(
+            self.labelSlider, wx.GBPosition(1, 2), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            self.labelBoldCheck, wx.GBPosition(1, 3), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
 
         grid.Add(tickFontSize, wx.GBPosition(2, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.tickSlider, wx.GBPosition(3, 0), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(precision_label, wx.GBPosition(2, 2), wx.GBSpan(
-            1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.tickPrecision, wx.GBPosition(3, 2), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.tickUseScientific, wx.GBPosition(3, 3), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(
+            self.tickSlider, wx.GBPosition(3, 0), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            precision_label, wx.GBPosition(2, 2), wx.GBSpan(
+                1, 2,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            self.tickPrecision, wx.GBPosition(3, 2), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            self.tickUseScientific, wx.GBPosition(3, 3), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
 
         mainSizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
         return mainSizer
@@ -1510,34 +1774,45 @@ class panelInteractiveOutput(wx.MiniFrame):
 #         return figSizer
 
     def make_rmsd_panel(self, panel):
-        rmsdBox = makeStaticBox(panel, "RMSD label properties", (200, -1), wx.BLACK)
+        rmsdBox = makeStaticBox(panel, 'RMSD label properties', (200, -1), wx.BLACK)
         rmsdSizer = wx.StaticBoxSizer(rmsdBox, wx.HORIZONTAL)
-        rmsdBox.SetToolTip(wx.ToolTip(""))
+        rmsdBox.SetToolTip(wx.ToolTip(''))
 
-        notationFontSize = makeStaticText(panel, "Label font size")
-        self.notationSlider = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                value=str(self.config.interactive_annotation_fontSize), min=8, max=32,
-                                                initial=self.config.interactive_annotation_fontSize, inc=1, size=(50, -1))
-        self.notationBoldCheck = makeCheckbox(panel, "Bold")
+        notationFontSize = makeStaticText(panel, 'Label font size')
+        self.notationSlider = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_annotation_fontSize), min=8, max=32,
+            initial=self.config.interactive_annotation_fontSize, inc=1, size=(50, -1),
+        )
+        self.notationBoldCheck = makeCheckbox(panel, 'Bold')
         self.notationBoldCheck.SetValue(self.config.interactive_annotation_weight)
 
-        interactive_annotation_color_label = makeStaticText(panel, "Font")
-        self.interactive_annotation_colorBtn = wx.Button(panel, ID_changeColorNotationInteractive,
-                                                         "", wx.DefaultPosition, wx.Size(26, 26), 0)
+        interactive_annotation_color_label = makeStaticText(panel, 'Font')
+        self.interactive_annotation_colorBtn = wx.Button(
+            panel, ID_changeColorNotationInteractive,
+            '', wx.DefaultPosition, wx.Size(26, 26), 0,
+        )
         self.interactive_annotation_colorBtn.SetBackgroundColour(
-            convertRGB1to255(self.config.interactive_annotation_color))
+            convertRGB1to255(self.config.interactive_annotation_color),
+        )
 
-        interactive_annotation_background_color_label = makeStaticText(panel, "Background")
-        self.interactive_annotation_colorBackgroundBtn = wx.Button(panel, ID_changeColorBackgroundNotationInteractive,
-                                                                   "", wx.DefaultPosition, wx.Size(26, 26), 0)
+        interactive_annotation_background_color_label = makeStaticText(panel, 'Background')
+        self.interactive_annotation_colorBackgroundBtn = wx.Button(
+            panel, ID_changeColorBackgroundNotationInteractive,
+            '', wx.DefaultPosition, wx.Size(26, 26), 0,
+        )
         self.interactive_annotation_colorBackgroundBtn.SetBackgroundColour(
-            convertRGB1to255(self.config.interactive_annotation_background_color))
+            convertRGB1to255(self.config.interactive_annotation_background_color),
+        )
 
-        interactive_transparency_label = makeStaticText(panel, "Transparency")
+        interactive_transparency_label = makeStaticText(panel, 'Transparency')
         self.rmsd_label_transparency = wx.SpinCtrlDouble(
             panel, wx.ID_ANY, value=str(
-                self.config.interactive_annotation_alpha), min=0, max=1, initial=self.config.interactive_annotation_alpha, inc=0.1, size=(
-                50, -1))
+                self.config.interactive_annotation_alpha,
+            ), min=0, max=1, initial=self.config.interactive_annotation_alpha, inc=0.1, size=(
+                50, -1,
+            ),
+        )
 
         self.titleSlider.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.titleBoldCheck.Bind(wx.EVT_CHECKBOX, self.on_apply)
@@ -1548,59 +1823,90 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.rmsd_label_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.notationBoldCheck.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.interactive_annotation_colorBtn.Bind(
-            wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorNotationInteractive)
+            wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorNotationInteractive,
+        )
         self.interactive_annotation_colorBackgroundBtn.Bind(
-            wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorBackgroundNotationInteractive)
+            wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorBackgroundNotationInteractive,
+        )
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(notationFontSize, wx.GBPosition(n, 0), wx.GBSpan(
-            1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(interactive_annotation_color_label, wx.GBPosition(n, 2),
-                 wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(interactive_annotation_background_color_label, wx.GBPosition(n, 3),
-                 wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(interactive_transparency_label, wx.GBPosition(n, 4), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(
+            notationFontSize, wx.GBPosition(n, 0), wx.GBSpan(
+                1, 2,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            interactive_annotation_color_label, wx.GBPosition(n, 2),
+            wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            interactive_annotation_background_color_label, wx.GBPosition(n, 3),
+            wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            interactive_transparency_label, wx.GBPosition(n, 4), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
         n = n + 1
-        grid.Add(self.notationSlider, wx.GBPosition(n, 0), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.notationBoldCheck, wx.GBPosition(n, 1), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.interactive_annotation_colorBtn, wx.GBPosition(n, 2),
-                 wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.interactive_annotation_colorBackgroundBtn, wx.GBPosition(n, 3),
-                 wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.rmsd_label_transparency, wx.GBPosition(n, 4), wx.GBSpan(
-            1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(
+            self.notationSlider, wx.GBPosition(n, 0), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            self.notationBoldCheck, wx.GBPosition(n, 1), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            self.interactive_annotation_colorBtn, wx.GBPosition(n, 2),
+            wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            self.interactive_annotation_colorBackgroundBtn, wx.GBPosition(n, 3),
+            wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
+        grid.Add(
+            self.rmsd_label_transparency, wx.GBPosition(n, 4), wx.GBSpan(
+                1, 1,
+            ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
+        )
 
         rmsdSizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
         return rmsdSizer
 
     def make_1D_settings_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Plot (1D) properties", (230, -1), wx.BLACK)
+        mainBox = makeStaticBox(panel, 'Plot (1D) properties', (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        lineWidth_label = makeStaticText(panel, "Line width:")
-        self.line_width = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                            value=str(self.config.interactive_line_width), min=0.5, max=10,
-                                            initial=self.config.interactive_line_width, inc=0.5, size=(50, -1))
+        lineWidth_label = makeStaticText(panel, 'Line width:')
+        self.line_width = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_line_width), min=0.5, max=10,
+            initial=self.config.interactive_line_width, inc=0.5, size=(50, -1),
+        )
         self.line_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        lineAlpha_label = makeStaticText(panel, "Transparency:")
-        self.line_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                   value=str(self.config.interactive_line_alpha), min=0, max=1,
-                                                   initial=self.config.interactive_line_alpha, inc=0.1, size=(50, -1))
+        lineAlpha_label = makeStaticText(panel, 'Transparency:')
+        self.line_transparency = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_line_alpha), min=0, max=1,
+            initial=self.config.interactive_line_alpha, inc=0.1, size=(50, -1),
+        )
         self.line_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        lineStyle_label = wx.StaticText(panel, -1, "Line style:")
-        self.line_style = wx.ComboBox(panel, -1, choices=self.config.interactive_line_style_choices,
-                                      value="", style=wx.CB_READONLY)
+        lineStyle_label = wx.StaticText(panel, -1, 'Line style:')
+        self.line_style = wx.ComboBox(
+            panel, -1, choices=self.config.interactive_line_style_choices,
+            value='', style=wx.CB_READONLY,
+        )
         self.line_style.SetStringSelection(self.config.interactive_line_style)
         self.line_style.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         self.hoverVlineCheck = wx.CheckBox(panel, -1, 'Link hover to X axis', (15, 30))
-        self.hoverVlineCheck.SetToolTip(wx.ToolTip("Hover tool information is linked to the X-axis"))
+        self.hoverVlineCheck.SetToolTip(wx.ToolTip('Hover tool information is linked to the X-axis'))
         self.hoverVlineCheck.SetValue(self.config.hoverVline)
         self.hoverVlineCheck.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -1620,14 +1926,19 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_overlay_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Overlay plot properties", (230, -1), wx.BLACK)
+        mainBox = makeStaticBox(panel, 'Overlay plot properties', (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        layout_label = makeStaticText(panel, "Layout")
-        self.layout_combo = wx.ComboBox(panel, -1, choices=['Rows', 'Columns'],
-                                        value=self.config.plotLayoutOverlay, style=wx.CB_READONLY)
-        self.layout_combo.SetToolTip(wx.ToolTip(
-            "Select type of layout for the 2D overlay plots. The HTML viewer does not allow a good enough overlay function, so column/row option is provided. Default: Rows"))
+        layout_label = makeStaticText(panel, 'Layout')
+        self.layout_combo = wx.ComboBox(
+            panel, -1, choices=['Rows', 'Columns'],
+            value=self.config.plotLayoutOverlay, style=wx.CB_READONLY,
+        )
+        self.layout_combo.SetToolTip(
+            wx.ToolTip(
+                'Select type of layout for the 2D overlay plots. The HTML viewer does not allow a good enough overlay function, so column/row option is provided. Default: Rows',
+            ),
+        )
 
         self.XYaxisLinkCheck = wx.CheckBox(panel, -1, 'Link XY axes', (15, 30))
         self.XYaxisLinkCheck.SetValue(self.config.linkXYaxes)
@@ -1646,39 +1957,47 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_barplot_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Plot (bar) properties", (230, -1), wx.BLACK)
+        mainBox = makeStaticBox(panel, 'Plot (bar) properties', (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        bar_width_label = wx.StaticText(panel, -1, "Bar width:")
-        self.bar_width_value = wx.SpinCtrlDouble(panel, -1,
-                                                 value=str(self.config.bar_width),
-                                                 min=0.01, max=10, inc=0.05,
-                                                 initial=self.config.bar_width,
-                                                 size=(50, -1))
+        bar_width_label = wx.StaticText(panel, -1, 'Bar width:')
+        self.bar_width_value = wx.SpinCtrlDouble(
+            panel, -1,
+            value=str(self.config.bar_width),
+            min=0.01, max=10, inc=0.05,
+            initial=self.config.bar_width,
+            size=(50, -1),
+        )
         self.bar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        bar_alpha_label = wx.StaticText(panel, -1, "transparency:")
-        self.bar_alpha_value = wx.SpinCtrlDouble(panel, -1,
-                                                 value=str(self.config.bar_alpha),
-                                                 min=0, max=1, initial=self.config.bar_alpha,
-                                                 inc=0.25, size=(50, -1))
+        bar_alpha_label = wx.StaticText(panel, -1, 'transparency:')
+        self.bar_alpha_value = wx.SpinCtrlDouble(
+            panel, -1,
+            value=str(self.config.bar_alpha),
+            min=0, max=1, initial=self.config.bar_alpha,
+            inc=0.25, size=(50, -1),
+        )
         self.bar_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        bar_lineWidth_label = wx.StaticText(panel, -1, "Line width:")
-        self.bar_lineWidth_value = wx.SpinCtrlDouble(panel, -1,
-                                                     value=str(self.config.bar_lineWidth),
-                                                     min=0, max=5, initial=self.config.bar_lineWidth,
-                                                     inc=1, size=(50, -1))
+        bar_lineWidth_label = wx.StaticText(panel, -1, 'Line width:')
+        self.bar_lineWidth_value = wx.SpinCtrlDouble(
+            panel, -1,
+            value=str(self.config.bar_lineWidth),
+            min=0, max=5, initial=self.config.bar_lineWidth,
+            inc=1, size=(50, -1),
+        )
         self.bar_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        bar_edgeColor_label = wx.StaticText(panel, -1, "Edge color:")
-        self.bar_edgeColorBtn = wx.Button(panel, ID_interactivePanel_color_barEdge,
-                                          "", wx.DefaultPosition,
-                                          wx.Size(26, 26), 0)
+        bar_edgeColor_label = wx.StaticText(panel, -1, 'Edge color:')
+        self.bar_edgeColorBtn = wx.Button(
+            panel, ID_interactivePanel_color_barEdge,
+            '', wx.DefaultPosition,
+            wx.Size(26, 26), 0,
+        )
         self.bar_edgeColorBtn.SetBackgroundColour(convertRGB1to255(self.config.bar_edge_color))
         self.bar_edgeColorBtn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
-        self.bar_colorEdge_check = makeCheckbox(panel, "Same as fill")
+        self.bar_colorEdge_check = makeCheckbox(panel, 'Same as fill')
         self.bar_colorEdge_check.SetValue(self.config.bar_sameAsFill)
         self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -1700,35 +2019,47 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_scatter_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Plot (scatter) properties", (230, -1), wx.BLACK)
+        mainBox = makeStaticBox(panel, 'Plot (scatter) properties', (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        marker_label = makeStaticText(panel, "Marker shape")
-        self.scatter_marker = wx.ComboBox(panel, -1,
-                                          choices=self.config.interactive_scatter_marker_choices,
-                                          value=self.config.interactive_scatter_marker, style=wx.CB_READONLY)
+        marker_label = makeStaticText(panel, 'Marker shape')
+        self.scatter_marker = wx.ComboBox(
+            panel, -1,
+            choices=self.config.interactive_scatter_marker_choices,
+            value=self.config.interactive_scatter_marker, style=wx.CB_READONLY,
+        )
         self.scatter_marker.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        marker_size_label = makeStaticText(panel, "Marker size:")
-        self.scatter_marker_size = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                     value=str(self.config.interactive_scatter_size), min=1, max=100,
-                                                     initial=self.config.interactive_scatter_size, inc=5, size=(50, -1))
+        marker_size_label = makeStaticText(panel, 'Marker size:')
+        self.scatter_marker_size = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_scatter_size), min=1, max=100,
+            initial=self.config.interactive_scatter_size, inc=5, size=(50, -1),
+        )
         self.scatter_marker_size.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        marker_alpha_label = makeStaticText(panel, "transparency:")
+        marker_alpha_label = makeStaticText(panel, 'transparency:')
         self.scatter_marker_alpha = wx.SpinCtrlDouble(
             panel, wx.ID_ANY, value=str(
-                self.config.interactive_scatter_alpha), min=0, max=1, initial=self.config.interactive_scatter_alpha, inc=0.1, size=(
-                50, -1))
+                self.config.interactive_scatter_alpha,
+            ), min=0, max=1, initial=self.config.interactive_scatter_alpha, inc=0.1, size=(
+                50, -1,
+            ),
+        )
         self.scatter_marker_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        marker_color_label = makeStaticText(panel, "Edge color:")
-        self.scatter_marker_edge_colorBtn = wx.Button(panel, ID_interactivePanel_color_markerEdge,
-                                                      "", wx.DefaultPosition, wx.Size(26, 26), 0)
+        marker_color_label = makeStaticText(panel, 'Edge color:')
+        self.scatter_marker_edge_colorBtn = wx.Button(
+            panel, ID_interactivePanel_color_markerEdge,
+            '', wx.DefaultPosition, wx.Size(26, 26), 0,
+        )
         self.scatter_marker_edge_colorBtn.SetBackgroundColour(
-            convertRGB1to255(self.config.interactive_scatter_edge_color))
-        self.scatter_marker_edge_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color,
-                                               id=ID_interactivePanel_color_markerEdge)
+            convertRGB1to255(self.config.interactive_scatter_edge_color),
+        )
+        self.scatter_marker_edge_colorBtn.Bind(
+            wx.EVT_BUTTON, self.on_change_color,
+            id=ID_interactivePanel_color_markerEdge,
+        )
 
         self.scatter_color_sameAsFill = wx.CheckBox(panel, -1, 'Same as fill', (15, 30))
         self.scatter_color_sameAsFill.SetValue(self.config.interactive_scatter_sameAsFill)
@@ -1753,26 +2084,36 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_customJS_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Custom JavaScript", (230, -1), wx.BLACK)
+        mainBox = makeStaticBox(panel, 'Custom JavaScript', (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         self.custom_js_events = wx.CheckBox(panel, -1, 'Add custom JS events when available', (15, 30))
-        self.custom_js_events.SetToolTip(wx.ToolTip(
-            "When checked, custom JavaScripts will be added to the plot to enable better operation (i.e. double-tap in plot area will restore original state of the plot)"))
+        self.custom_js_events.SetToolTip(
+            wx.ToolTip(
+                'When checked, custom JavaScripts will be added to the plot to enable better operation (i.e. double-tap in plot area will restore original state of the plot)',
+            ),
+        )
         self.custom_js_events.SetValue(self.config.interactive_custom_events)
         self.custom_js_events.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.custom_js_scripts = wx.CheckBox(panel, -1, 'Add custom JS scripts when available', (15, 30))
-        self.custom_js_scripts.SetToolTip(wx.ToolTip(
-            "When checked, custom JavaScript code snippets will be execute when triggered (i.e. toggle button to show/hide legend)"))
+        self.custom_js_scripts.SetToolTip(
+            wx.ToolTip(
+                'When checked, custom JavaScript code snippets will be execute when triggered (i.e. toggle button to show/hide legend)',
+            ),
+        )
         self.custom_js_scripts.SetValue(self.config.interactive_custom_scripts)
         self.custom_js_scripts.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        position_label = makeStaticText(panel, "Widget position")
-        self.custom_js_position = wx.ComboBox(panel, -1,
-                                              choices=["left", "right", "bottom_row",
-                                                       "bottom_column", "top_row", "top_column"],
-                                              value="right", style=wx.CB_READONLY)
+        position_label = makeStaticText(panel, 'Widget position')
+        self.custom_js_position = wx.ComboBox(
+            panel, -1,
+            choices=[
+                'left', 'right', 'bottom_row',
+                'bottom_column', 'top_row', 'top_column',
+            ],
+            value='right', style=wx.CB_READONLY,
+        )
         self.custom_js_position.SetStringSelection(self.config.interactive_custom_position)
 
         gridAnnot = wx.GridBagSizer(2, 2)
@@ -1789,7 +2130,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_annotations_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Annotation properties", (230, -1), wx.BLACK)
+        mainBox = makeStaticBox(panel, 'Annotation properties', (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         self.annot_peakLabel = wx.CheckBox(panel, -1, 'Label peak', (15, 30))
@@ -1800,39 +2141,50 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.annot_peakHighlight.SetValue(self.config.interactive_ms_annotations_highlight)
         self.annot_peakHighlight.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        annot_xpos_label = makeStaticText(panel, "Offset X:")
-        self.annot_xpos_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                  value=str(self.config.interactive_ms_annotations_offsetX), min=-100, max=100,
-                                                  initial=self.config.interactive_ms_annotations_offsetX, inc=5, size=(50, -1))
+        annot_xpos_label = makeStaticText(panel, 'Offset X:')
+        self.annot_xpos_value = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_ms_annotations_offsetX), min=-100, max=100,
+            initial=self.config.interactive_ms_annotations_offsetX, inc=5, size=(50, -1),
+        )
         self.annot_xpos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        annot_ypos_label = makeStaticText(panel, "Offset Y:")
-        self.annot_ypos_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                  value=str(self.config.interactive_ms_annotations_offsetY), min=-100, max=100,
-                                                  initial=self.config.interactive_ms_annotations_offsetY, inc=5, size=(50, -1))
+        annot_ypos_label = makeStaticText(panel, 'Offset Y:')
+        self.annot_ypos_value = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_ms_annotations_offsetY), min=-100, max=100,
+            initial=self.config.interactive_ms_annotations_offsetY, inc=5, size=(50, -1),
+        )
         self.annot_ypos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        annot_rotation_label = makeStaticText(panel, "Rotation:")
-        self.annot_rotation_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                      value=str(self.config.interactive_ms_annotations_rotation), min=0, max=180,
-                                                      initial=self.config.interactive_ms_annotations_rotation, inc=45, size=(50, -1))
+        annot_rotation_label = makeStaticText(panel, 'Rotation:')
+        self.annot_rotation_value = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_ms_annotations_rotation), min=0, max=180,
+            initial=self.config.interactive_ms_annotations_rotation, inc=45, size=(50, -1),
+        )
         self.annot_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        annot_fontSize_label = makeStaticText(panel, "Font size:")
-        self.annot_fontSize_value = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                      value=str(self.config.interactive_ms_annotations_fontSize), min=0, max=32,
-                                                      initial=self.config.interactive_ms_annotations_fontSize, inc=2, size=(50, -1))
+        annot_fontSize_label = makeStaticText(panel, 'Font size:')
+        self.annot_fontSize_value = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_ms_annotations_fontSize), min=0, max=32,
+            initial=self.config.interactive_ms_annotations_fontSize, inc=2, size=(50, -1),
+        )
         self.annot_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.annot_fontWeight_value = makeCheckbox(panel, "Bold")
+        self.annot_fontWeight_value = makeCheckbox(panel, 'Bold')
         self.annot_fontWeight_value.SetValue(self.config.interactive_ms_annotations_fontWeight)
         self.annot_fontWeight_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        annot_fontColor_label = makeStaticText(panel, "Color:")
-        self.annot_fontColor_colorBtn = wx.Button(panel, ID_changeColorAnnotLabelInteractive,
-                                                  "", wx.DefaultPosition, wx.Size(26, 26), 0)
+        annot_fontColor_label = makeStaticText(panel, 'Color:')
+        self.annot_fontColor_colorBtn = wx.Button(
+            panel, ID_changeColorAnnotLabelInteractive,
+            '', wx.DefaultPosition, wx.Size(26, 26), 0,
+        )
         self.annot_fontColor_colorBtn.SetBackgroundColour(
-            convertRGB1to255(self.config.interactive_ms_annotations_label_color))
+            convertRGB1to255(self.config.interactive_ms_annotations_label_color),
+        )
         self.annot_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorAnnotLabelInteractive)
 
         gridAnnot = wx.GridBagSizer(2, 2)
@@ -1858,68 +2210,98 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_colorbar_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Colorbar properties", (230, -1), wx.BLACK)
+        mainBox = makeStaticBox(panel, 'Colorbar properties', (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        colorbar_label = makeStaticText(panel, "Colorbar:")
+        colorbar_label = makeStaticText(panel, 'Colorbar:')
         self.interactive_colorbar = wx.CheckBox(panel, -1, '', (15, 30))
         self.interactive_colorbar.SetValue(self.config.interactive_colorbar)
         self.interactive_colorbar.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        precision_label = makeStaticText(panel, "Precision")
+        precision_label = makeStaticText(panel, 'Precision')
         self.interactive_colorbar_precision = wx.SpinCtrlDouble(
             panel, wx.ID_ANY, value=str(
-                self.config.interactive_colorbar_precision), min=0, max=5, initial=self.config.interactive_colorbar_precision, inc=1, size=(
-                50, -1))
-        self.interactive_colorbar_precision.SetToolTip(wx.ToolTip("Number of decimal places in the colorbar tickers"))
+                self.config.interactive_colorbar_precision,
+            ), min=0, max=5, initial=self.config.interactive_colorbar_precision, inc=1, size=(
+                50, -1,
+            ),
+        )
+        self.interactive_colorbar_precision.SetToolTip(wx.ToolTip('Number of decimal places in the colorbar tickers'))
 
         self.interactive_colorbar_useScientific = wx.CheckBox(panel, -1, 'Scientific\nnotation', (15, 30))
         self.interactive_colorbar_useScientific.SetValue(self.config.interactive_colorbar_useScientific)
-        self.interactive_colorbar_useScientific.SetToolTip(wx.ToolTip(
-            "Enable/disable scientific notation of colorbar tickers"))
+        self.interactive_colorbar_useScientific.SetToolTip(
+            wx.ToolTip(
+                'Enable/disable scientific notation of colorbar tickers',
+            ),
+        )
         self.interactive_colorbar_useScientific.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        labelOffset_label = makeStaticText(panel, "Label offset:")
+        labelOffset_label = makeStaticText(panel, 'Label offset:')
         self.interactive_colorbar_label_offset = wx.SpinCtrlDouble(
             panel, wx.ID_ANY, value=str(
-                self.config.interactive_colorbar_label_offset), min=0, max=100, initial=self.config.interactive_colorbar_label_offset, inc=5, size=(
-                50, -1))
-        self.interactive_colorbar_label_offset.SetToolTip(wx.ToolTip("Distance between the colorbar and labels"))
+                self.config.interactive_colorbar_label_offset,
+            ), min=0, max=100, initial=self.config.interactive_colorbar_label_offset, inc=5, size=(
+                50, -1,
+            ),
+        )
+        self.interactive_colorbar_label_offset.SetToolTip(wx.ToolTip('Distance between the colorbar and labels'))
 
-        location_label = makeStaticText(panel, "Position:")
-        self.interactive_colorbar_location = wx.ComboBox(panel, -1,
-                                                         choices=self.config.interactive_colorbarPosition_choices,
-                                                         value=self.config.interactive_colorbar_location, style=wx.CB_READONLY)
-        self.interactive_colorbar_location.SetToolTip(wx.ToolTip(
-            "Colorbar position next to the plot. The colorbar orientation changes automatically"))
+        location_label = makeStaticText(panel, 'Position:')
+        self.interactive_colorbar_location = wx.ComboBox(
+            panel, -1,
+            choices=self.config.interactive_colorbarPosition_choices,
+            value=self.config.interactive_colorbar_location, style=wx.CB_READONLY,
+        )
+        self.interactive_colorbar_location.SetToolTip(
+            wx.ToolTip(
+                'Colorbar position next to the plot. The colorbar orientation changes automatically',
+            ),
+        )
 
-        offsetX_label = makeStaticText(panel, "Offset X")
+        offsetX_label = makeStaticText(panel, 'Offset X')
         self.interactive_colorbar_offset_x = wx.SpinCtrlDouble(
             panel, wx.ID_ANY, value=str(
-                self.config.interactive_colorbar_offset_x), min=0, max=100, initial=self.config.interactive_colorbar_offset_x, inc=5, size=(
-                50, -1))
-        self.interactive_colorbar_offset_x.SetToolTip(wx.ToolTip(
-            "Colorbar position offset in the X axis. Adjust if colorbar is too close or too far away from the plot"))
+                self.config.interactive_colorbar_offset_x,
+            ), min=0, max=100, initial=self.config.interactive_colorbar_offset_x, inc=5, size=(
+                50, -1,
+            ),
+        )
+        self.interactive_colorbar_offset_x.SetToolTip(
+            wx.ToolTip(
+                'Colorbar position offset in the X axis. Adjust if colorbar is too close or too far away from the plot',
+            ),
+        )
 
-        offsetY_label = makeStaticText(panel, "Offset Y")
+        offsetY_label = makeStaticText(panel, 'Offset Y')
         self.interactive_colorbar_offset_y = wx.SpinCtrlDouble(
             panel, wx.ID_ANY, value=str(
-                self.config.interactive_colorbar_offset_y), min=0, max=100, initial=self.config.interactive_colorbar_offset_y, inc=5, size=(
-                50, -1))
-        self.interactive_colorbar_offset_y.SetToolTip(wx.ToolTip(
-            "Colorbar position offset in the Y axis. Adjust if colorbar is too close or too far away from the plot"))
+                self.config.interactive_colorbar_offset_y,
+            ), min=0, max=100, initial=self.config.interactive_colorbar_offset_y, inc=5, size=(
+                50, -1,
+            ),
+        )
+        self.interactive_colorbar_offset_y.SetToolTip(
+            wx.ToolTip(
+                'Colorbar position offset in the Y axis. Adjust if colorbar is too close or too far away from the plot',
+            ),
+        )
 
-        padding_label = makeStaticText(panel, "Pad")
-        self.colorbarPadding = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                 value=str(self.config.interactive_colorbar_padding), min=0, max=100,
-                                                 initial=self.config.interactive_colorbar_padding, inc=5, size=(50, -1))
-        self.colorbarPadding.SetToolTip(wx.ToolTip(""))
+        padding_label = makeStaticText(panel, 'Pad')
+        self.colorbarPadding = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_colorbar_padding), min=0, max=100,
+            initial=self.config.interactive_colorbar_padding, inc=5, size=(50, -1),
+        )
+        self.colorbarPadding.SetToolTip(wx.ToolTip(''))
 
-        margin_label = makeStaticText(panel, "Width")
-        self.colorbarWidth = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                               value=str(self.config.interactive_colorbar_width), min=0, max=100,
-                                               initial=self.config.interactive_colorbar_width, inc=5, size=(50, -1))
-        self.colorbarWidth.SetToolTip(wx.ToolTip(""))
+        margin_label = makeStaticText(panel, 'Width')
+        self.colorbarWidth = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_colorbar_width), min=0, max=100,
+            initial=self.config.interactive_colorbar_width, inc=5, size=(50, -1),
+        )
+        self.colorbarWidth.SetToolTip(wx.ToolTip(''))
 
         # bind
         self.interactive_colorbar_precision.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
@@ -1960,50 +2342,63 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_legend_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Legend properties", (210, -1), wx.BLACK)
+        mainBox = makeStaticBox(panel, 'Legend properties', (210, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        legend_label = makeStaticText(panel, "Legend:")
+        legend_label = makeStaticText(panel, 'Legend:')
         self.legend_legend = wx.CheckBox(panel, -1, '', (15, 30))
         self.legend_legend.SetValue(self.config.interactive_legend)
         self.legend_legend.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        position_label = makeStaticText(panel, "Position")
-        self.legend_position = wx.ComboBox(panel, -1,
-                                           choices=self.config.interactive_legend_location_choices,
-                                           value=self.config.interactive_legend_location, style=wx.CB_READONLY)
+        position_label = makeStaticText(panel, 'Position')
+        self.legend_position = wx.ComboBox(
+            panel, -1,
+            choices=self.config.interactive_legend_location_choices,
+            value=self.config.interactive_legend_location, style=wx.CB_READONLY,
+        )
         self.legend_position.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        orientation_label = makeStaticText(panel, "Orientation")
-        self.legend_orientation = wx.ComboBox(panel, -1,
-                                              choices=self.config.interactive_legend_orientation_choices,
-                                              value=self.config.interactive_legend_orientation, style=wx.CB_READONLY)
+        orientation_label = makeStaticText(panel, 'Orientation')
+        self.legend_orientation = wx.ComboBox(
+            panel, -1,
+            choices=self.config.interactive_legend_orientation_choices,
+            value=self.config.interactive_legend_orientation, style=wx.CB_READONLY,
+        )
         self.legend_orientation.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        legendAlpha_label = makeStaticText(panel, "Legend transparency")
-        self.legend_transparency = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                     value=str(self.config.interactive_legend_background_alpha), min=0, max=1,
-                                                     initial=self.config.interactive_legend_background_alpha, inc=0.1, size=(50, -1))
+        legendAlpha_label = makeStaticText(panel, 'Legend transparency')
+        self.legend_transparency = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_legend_background_alpha), min=0, max=1,
+            initial=self.config.interactive_legend_background_alpha, inc=0.1, size=(50, -1),
+        )
         self.legend_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        fontSize_label = makeStaticText(panel, "Font size")
-        self.legend_fontSize = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-                                                 value=str(self.config.interactive_legend_font_size), min=0, max=32,
-                                                 initial=self.config.interactive_legend_font_size, inc=2, size=(50, -1))
+        fontSize_label = makeStaticText(panel, 'Font size')
+        self.legend_fontSize = wx.SpinCtrlDouble(
+            panel, wx.ID_ANY,
+            value=str(self.config.interactive_legend_font_size), min=0, max=32,
+            initial=self.config.interactive_legend_font_size, inc=2, size=(50, -1),
+        )
         self.legend_fontSize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        action_label = makeStaticText(panel, "Action")
-        self.legend_click_policy = wx.ComboBox(panel, -1,
-                                               choices=self.config.interactive_legend_click_policy_choices,
-                                               value=self.config.interactive_legend_click_policy, style=wx.CB_READONLY)
+        action_label = makeStaticText(panel, 'Action')
+        self.legend_click_policy = wx.ComboBox(
+            panel, -1,
+            choices=self.config.interactive_legend_click_policy_choices,
+            value=self.config.interactive_legend_click_policy, style=wx.CB_READONLY,
+        )
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
 
-        muteAlpha_label = makeStaticText(panel, "Line transparency")
+        muteAlpha_label = makeStaticText(panel, 'Line transparency')
         self.legend_mute_transparency = wx.SpinCtrlDouble(
             panel, wx.ID_ANY, value=str(
-                self.config.interactive_legend_mute_alpha), min=0, max=1, initial=self.config.interactive_legend_mute_alpha, inc=0.1, size=(
-                50, -1))
+                self.config.interactive_legend_mute_alpha,
+            ), min=0, max=1, initial=self.config.interactive_legend_mute_alpha, inc=0.1, size=(
+                50, -1,
+            ),
+        )
         self.legend_mute_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         gridFigure = wx.GridBagSizer(2, 2)
@@ -2077,12 +2472,20 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.table_method = menu.AppendCheckItem(ID_interactivePanel_table_order, 'Table: Order')
         self.table_method.Check(self.config._interactiveSettings[n]['show'])
         menu.AppendSeparator()
-        self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_table_hideAll,
-                                                        text='Table: Hide all',
-                                                        bitmap=self.icons.iconsLib['hide_table_16']))
-        self.table_index = menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_table_restoreAll,
-                                                        text='Table: Restore all',
-                                                        bitmap=self.icons.iconsLib['show_table_16']))
+        self.table_index = menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_table_hideAll,
+                text='Table: Hide all',
+                bitmap=self.icons.iconsLib['hide_table_16'],
+            ),
+        )
+        self.table_index = menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_interactivePanel_table_restoreAll,
+                text='Table: Restore all',
+                bitmap=self.icons.iconsLib['show_table_16'],
+            ),
+        )
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -2157,16 +2560,18 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def on_clear_pages(self, evt):
 
-        dlg = dlgBox(exceptionTitle='Are you sure?',
-                     exceptionMsg="Are you sure you want to remove all pages?\nThis action is irreversible!",
-                     type="Question")
+        dlg = dlgBox(
+            exceptionTitle='Are you sure?',
+            exceptionMsg='Are you sure you want to remove all pages?\nThis action is irreversible!',
+            type='Question',
+        )
         if dlg == wx.ID_NO:
-            self.presenter.onThreading(evt, ("Cancelled operation", 4, 3), action='updateStatusbar')
+            self.presenter.onThreading(evt, ('Cancelled operation', 4, 3), action='updateStatusbar')
             return
 
         pages = self.pageLayoutSelect_propView.GetItems()
         for page in pages:
-            if page not in ["None", "Rows", "Columns"]:
+            if page not in ['None', 'Rows', 'Columns']:
                 del self.config.pageDict[page]
 
         # Clear list
@@ -2181,17 +2586,20 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.pageLayoutSelect_toolbar.AppendItems(sorted_page_list)
 
         # Preset
-        self.pageLayoutSelect_propView.SetStringSelection("None")
-        self.pageLayoutSelect_toolbar.SetStringSelection("None")
+        self.pageLayoutSelect_propView.SetStringSelection('None')
+        self.pageLayoutSelect_toolbar.SetStringSelection('None')
 
     def on_remove_page(self, evt):
         page_name = self.pageLayoutSelect_propView.GetStringSelection()
-        if page_name in ["None", "Rows", "Columns", ""]:
+        if page_name in ['None', 'Rows', 'Columns', '']:
             self.presenter.onThreading(
                 None,
-                ("Cannot remove '{}' page. Operation was cancelled".format(page_name),
-                 4),
-                action='updateStatusbar')
+                (
+                    "Cannot remove '{}' page. Operation was cancelled".format(page_name),
+                    4,
+                ),
+                action='updateStatusbar',
+            )
             return
 
         del self.config.pageDict[page_name]
@@ -2208,28 +2616,32 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.pageLayoutSelect_toolbar.AppendItems(sorted_page_list)
 
         # Preset
-        self.pageLayoutSelect_toolbar.SetStringSelection("None")
+        self.pageLayoutSelect_toolbar.SetStringSelection('None')
 
     def on_add_page(self, evt):
         pageName = dlgAsk('Please select page name.', defaultValue='')
         if pageName in ['', False]:
-            self.presenter.onThreading(None, ("Incorrect name. Operation was cancelled", 4), action='updateStatusbar')
+            self.presenter.onThreading(None, ('Incorrect name. Operation was cancelled', 4), action='updateStatusbar')
             return
         elif pageName == 'None':
             msg = 'This name is reserved. Please try again.'
-            dlgBox(exceptionTitle='Incorrect name',
-                   exceptionMsg=msg,
-                   type="Error")
+            dlgBox(
+                exceptionTitle='Incorrect name',
+                exceptionMsg=msg,
+                type='Error',
+            )
             return
 
         # If page name is correct, we can add it to the combo boxes
-        self.config.pageDict[pageName] = {'layout': 'Individual',
-                                          'rows': None,
-                                          'columns': None,
-                                          'name': pageName,
-                                          'grid_share_tools': True,
-                                          'header': "",
-                                          "footnote": ""}
+        self.config.pageDict[pageName] = {
+            'layout': 'Individual',
+            'rows': None,
+            'columns': None,
+            'name': pageName,
+            'grid_share_tools': True,
+            'header': '',
+            'footnote': '',
+        }
 
         self.pageLayoutSelect_propView.Append(pageName)
         self.pageLayoutSelect_htmlView.Append(pageName)
@@ -2281,11 +2693,11 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         selectedItem = self.pageLayoutSelect_propView.GetStringSelection()
 
-        colValue = str(self.config.pageDict[selectedItem].get('columns', ""))
+        colValue = str(self.config.pageDict[selectedItem].get('columns', ''))
         shareTools = self.config.pageDict[selectedItem].get('grid_share_tools', True)
         title = self.config.pageDict[selectedItem].get('title', selectedItem)
-        header = self.config.pageDict[selectedItem].get('header', "")
-        footnote = self.config.pageDict[selectedItem].get('footnote', "")
+        header = self.config.pageDict[selectedItem].get('header', '')
+        footnote = self.config.pageDict[selectedItem].get('footnote', '')
         plot_width = str(self.config.pageDict[selectedItem].get('grid_plot_width', 400))
         plot_height = str(self.config.pageDict[selectedItem].get('grid_plot_height', 500))
         addCustomJSWidgets = self.config.pageDict[selectedItem].get('add_js_widgets', False)
@@ -2313,8 +2725,10 @@ class panelInteractiveOutput(wx.MiniFrame):
             self.pageFootnote_value.Disable()
         else:
             self.layoutDoc_combo.Enable()
-            enableDisableList = [self.columns_value, self.grid_shared_tools, self.grid_height_value,
-                                 self.grid_width_value]
+            enableDisableList = [
+                self.columns_value, self.grid_shared_tools, self.grid_height_value,
+                self.grid_width_value,
+            ]
             if self.layoutDoc_combo.GetStringSelection() != 'Grid':
                 for item in enableDisableList:
                     item.Disable()
@@ -2322,7 +2736,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 for item in enableDisableList:
                     item.Enable()
 
-            if self.layoutDoc_combo.GetStringSelection() in ["Columns", "Grid", "Rows"]:
+            if self.layoutDoc_combo.GetStringSelection() in ['Columns', 'Grid', 'Rows']:
                 self.pageTitle_value.Enable()
                 self.pageHeader_value.Enable()
                 self.pageFootnote_value.Enable()
@@ -2335,16 +2749,18 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # Change values in dictionary
         if selectedItem != 'None':
-            self.config.pageDict[selectedItem] = {'layout': self.layoutDoc_combo.GetStringSelection(),
-                                                  'columns': str2int(self.columns_value.GetValue()),
-                                                  'rows': None, 'name': selectedItem,
-                                                  'grid_share_tools': self.grid_shared_tools.GetValue(),
-                                                  'title': self.pageTitle_value.GetValue(),
-                                                  'header': self.pageHeader_value.GetValue(),
-                                                  'footnote': self.pageFootnote_value.GetValue(),
-                                                  'grid_plot_height': str2int(self.grid_height_value.GetValue()),
-                                                  'grid_plot_width': str2int(self.grid_width_value.GetValue()),
-                                                  'add_js_widgets': self.grid_add_custom_js_widgets.GetValue()}
+            self.config.pageDict[selectedItem] = {
+                'layout': self.layoutDoc_combo.GetStringSelection(),
+                'columns': str2int(self.columns_value.GetValue()),
+                'rows': None, 'name': selectedItem,
+                'grid_share_tools': self.grid_shared_tools.GetValue(),
+                'title': self.pageTitle_value.GetValue(),
+                'header': self.pageHeader_value.GetValue(),
+                'footnote': self.pageFootnote_value.GetValue(),
+                'grid_plot_height': str2int(self.grid_height_value.GetValue()),
+                'grid_plot_width': str2int(self.grid_width_value.GetValue()),
+                'add_js_widgets': self.grid_add_custom_js_widgets.GetValue(),
+            }
 
     def on_apply(self, evt):
         """
@@ -2509,38 +2925,42 @@ class panelInteractiveOutput(wx.MiniFrame):
         if 'interactive_params' in dictionary:
             pass
         else:
-            dictionary['interactive_params'] = {'line_width': self.config.interactive_line_width,
-                                                'line_alpha': self.config.interactive_line_alpha,
-                                                'line_style': self.config.interactive_line_style,
-                                                'line_linkXaxis': self.config.hoverVline,
-                                                'overlay_layout': self.config.plotLayoutOverlay,
-                                                'overlay_linkXY': self.config.linkXYaxes,
-                                                'colorbar': self.config.interactive_colorbar,
-                                                'legend': self.config.interactive_legend}
+            dictionary['interactive_params'] = {
+                'line_width': self.config.interactive_line_width,
+                'line_alpha': self.config.interactive_line_alpha,
+                'line_style': self.config.interactive_line_style,
+                'line_linkXaxis': self.config.hoverVline,
+                'overlay_layout': self.config.plotLayoutOverlay,
+                'overlay_linkXY': self.config.linkXYaxes,
+                'colorbar': self.config.interactive_colorbar,
+                'legend': self.config.interactive_legend,
+            }
 
         dictionary = self._preset_interactive_parameters(dictionary)
 
         if 'interactive' in dictionary:
             pass
         else:
-            interactiveDict = {'order': '',
-                               'page': self.config.pageDict['None'],
-                               'tools': ''}
+            interactiveDict = {
+                'order': '',
+                'page': self.config.pageDict['None'],
+                'tools': '',
+            }
             dictionary['interactive'] = interactiveDict
 
         return dictionary
 
-    def check_figure_size(self, dictionary, data_type="1D"):
+    def check_figure_size(self, dictionary, data_type='1D'):
 
         try:
             plot_width = dictionary['interactive_params']['plot_width']
             plot_height = dictionary['interactive_params']['plot_height']
         except Exception:
-            if data_type in ["1D", "MS", "RT"]:
+            if data_type in ['1D', 'MS', 'RT']:
                 plot_width, plot_height = 800, 400
-            elif data_type == "2D":
+            elif data_type == '2D':
                 plot_width, plot_height = 600, 600
-            elif data_type == "Grid":
+            elif data_type == 'Grid':
                 plot_width, plot_height = 500, 300
             else:
                 plot_width, plot_height = 600, 600
@@ -2574,97 +2994,97 @@ class panelInteractiveOutput(wx.MiniFrame):
                 docData = self.documentsDict[key]
                 if docData.gotMS:
                     data = docData.massSpectrum
-                    if data.get('cmap', "") == "":
+                    if data.get('cmap', '') == '':
                         data['cmap'] = self.config.interactive_line_color
-                    kwargs = {"toolset": "MS", "color": (200, 236, 236)}
-                    self.append_to_table(data, key, "", "MS", **kwargs)
+                    kwargs = {'toolset': 'MS', 'color': (200, 236, 236)}
+                    self.append_to_table(data, key, '', 'MS', **kwargs)
 
                     if 'unidec' in docData.massSpectrum:
                         for innerKey in docData.massSpectrum['unidec']:
                             if innerKey in ['Charge information']:
                                 continue
                             data = docData.massSpectrum['unidec'][innerKey]
-                            kwargs = {"color": (176, 202, 220), "toolset": innerKey}
-                            self.append_to_table(data, key, innerKey, "UniDec", **kwargs)
+                            kwargs = {'color': (176, 202, 220), 'toolset': innerKey}
+                            self.append_to_table(data, key, innerKey, 'UniDec', **kwargs)
 
-                if hasattr(docData, "gotSmoothMS"):
+                if hasattr(docData, 'gotSmoothMS'):
                     if docData.gotSmoothMS:
                         data = docData.smoothMS
-                        if data.get('cmap', "") == "":
+                        if data.get('cmap', '') == '':
                             data['cmap'] = self.config.interactive_line_color
-                        kwargs = {"toolset": "MS", "color": (116, 185, 255)}
-                        self.append_to_table(data, key, "", "Processed MS", **kwargs)
+                        kwargs = {'toolset': 'MS', 'color': (116, 185, 255)}
+                        self.append_to_table(data, key, '', 'Processed MS', **kwargs)
 
                     if 'unidec' in docData.smoothMS:
                         for innerKey in docData.smoothMS['unidec']:
                             if innerKey in ['Charge information']:
                                 continue
                             data = docData.smoothMS['unidec'][innerKey]
-                            kwargs = {"color": (176, 202, 220), "toolset": innerKey}
-                            self.append_to_table(data, key, innerKey, "UniDec, processed", **kwargs)
+                            kwargs = {'color': (176, 202, 220), 'toolset': innerKey}
+                            self.append_to_table(data, key, innerKey, 'UniDec, processed', **kwargs)
 
                 if docData.got1RT:
                     data = docData.RT
-                    if data.get('cmap', "") == "":
+                    if data.get('cmap', '') == '':
                         data['cmap'] = self.config.interactive_line_color
-                    kwargs = {"toolset": "1D", "color": (219, 209, 255)}
-                    self.append_to_table(data, key, "", "RT", **kwargs)
+                    kwargs = {'toolset': '1D', 'color': (219, 209, 255)}
+                    self.append_to_table(data, key, '', 'RT', **kwargs)
 
                 if docData.got1DT:
                     data = docData.DT
-                    if data.get('cmap', "") == "":
+                    if data.get('cmap', '') == '':
                         data['cmap'] = self.config.interactive_line_color
-                    kwargs = {"toolset": "1D", "color": (255, 118, 117)}
-                    self.append_to_table(data, key, "", "1D", **kwargs)
+                    kwargs = {'toolset': '1D', 'color': (255, 118, 117)}
+                    self.append_to_table(data, key, '', '1D', **kwargs)
 
                 if docData.got2DIMS:
                     data = docData.IMS2D
-                    kwargs = {"toolset": "2D", "color": (255, 206, 252)}
-                    self.append_to_table(data, key, "", "2D", **kwargs)
+                    kwargs = {'toolset': '2D', 'color': (255, 206, 252)}
+                    self.append_to_table(data, key, '', '2D', **kwargs)
 
                 if docData.got2Dprocess:
                     data = docData.IMS2Dprocess
-                    kwargs = {"toolset": "2D", "color": (99, 110, 114)}
-                    self.append_to_table(data, key, "", "2D, processed", **kwargs)
+                    kwargs = {'toolset': '2D', 'color': (99, 110, 114)}
+                    self.append_to_table(data, key, '', '2D, processed', **kwargs)
 
                 if docData.gotExtractedIons:
                     for innerKey in docData.IMS2Dions:
                         data = docData.IMS2Dions[innerKey]
-                        kwargs = {"toolset": "2D", "color": (179, 180, 180)}
-                        self.append_to_table(data, key, innerKey, "2D", **kwargs)
+                        kwargs = {'toolset': '2D', 'color': (179, 180, 180)}
+                        self.append_to_table(data, key, innerKey, '2D', **kwargs)
 
                 if docData.gotMultipleMS:
                     for innerKey in docData.multipleMassSpectrum:
                         data = docData.multipleMassSpectrum[innerKey]
-                        if data.get('cmap', "") == "":
+                        if data.get('cmap', '') == '':
                             data['cmap'] = self.config.interactive_line_color
-                        kwargs = {"toolset": "MS", "color": (200, 236, 236)}
-                        self.append_to_table(data, key, innerKey, "MS, multiple", **kwargs)
+                        kwargs = {'toolset': 'MS', 'color': (200, 236, 236)}
+                        self.append_to_table(data, key, innerKey, 'MS, multiple', **kwargs)
 
                         if 'unidec' in docData.multipleMassSpectrum[innerKey]:
                             for innerInnerKey in docData.multipleMassSpectrum[innerKey]['unidec']:
                                 if innerInnerKey in ['Charge information']:
                                     continue
                                 data = docData.multipleMassSpectrum[innerKey]['unidec'][innerInnerKey]
-                                kwargs = {"color": (176, 202, 220), "toolset": innerInnerKey}
-                                innerInnerKeyLabel = "{} | {}".format(innerInnerKey, innerKey)
-                                self.append_to_table(data, key, innerInnerKeyLabel, "UniDec, multiple", **kwargs)
+                                kwargs = {'color': (176, 202, 220), 'toolset': innerInnerKey}
+                                innerInnerKeyLabel = '{} | {}'.format(innerInnerKey, innerKey)
+                                self.append_to_table(data, key, innerInnerKeyLabel, 'UniDec, multiple', **kwargs)
 
                 if hasattr(docData, 'gotMultipleRT'):
                     for innerKey in docData.multipleRT:
                         data = docData.multipleRT[innerKey]
-                        if data.get('cmap', "") == "":
+                        if data.get('cmap', '') == '':
                             data['cmap'] = self.config.interactive_line_color
-                        kwargs = {"toolset": "1D", "color": (219, 209, 255)}
-                        self.append_to_table(data, key, innerKey, "RT, multiple", **kwargs)
+                        kwargs = {'toolset': '1D', 'color': (219, 209, 255)}
+                        self.append_to_table(data, key, innerKey, 'RT, multiple', **kwargs)
 
                 if hasattr(docData, 'gotMultipleDT'):
                     for innerKey in docData.multipleDT:
                         data = docData.multipleDT[innerKey]
-                        if data.get('cmap', "") == "":
+                        if data.get('cmap', '') == '':
                             data['cmap'] = self.config.interactive_line_color
-                        kwargs = {"toolset": "1D", "color": (255, 118, 117)}
-                        self.append_to_table(data, key, innerKey, "1D, multiple", **kwargs)
+                        kwargs = {'toolset': '1D', 'color': (255, 118, 117)}
+                        self.append_to_table(data, key, innerKey, '1D, multiple', **kwargs)
 
                 if docData.gotExtractedDriftTimes:
                     for innerKey in docData.IMS1DdriftTimes:
@@ -2673,30 +3093,30 @@ class panelInteractiveOutput(wx.MiniFrame):
                         else:
                             tableKey = 'DT-IMS'
                         data = docData.IMS1DdriftTimes[innerKey]
-                        if data.get('cmap', "") == "":
+                        if data.get('cmap', '') == '':
                             data['cmap'] = self.config.interactive_line_color
-                        kwargs = {"toolset": "1D", "color": (154, 236, 219)}
+                        kwargs = {'toolset': '1D', 'color': (154, 236, 219)}
                         self.append_to_table(data, key, innerKey, tableKey, **kwargs)
 
                 if docData.gotCombinedExtractedIonsRT:
                     for innerKey in docData.IMSRTCombIons:
                         data = docData.IMSRTCombIons[innerKey]
-                        if data.get('cmap', "") == "":
+                        if data.get('cmap', '') == '':
                             data['cmap'] = self.config.interactive_line_color
-                        kwargs = {"toolset": "RT", "color": (219, 209, 255)}
-                        self.append_to_table(data, key, innerKey, "RT, combined", **kwargs)
+                        kwargs = {'toolset': 'RT', 'color': (219, 209, 255)}
+                        self.append_to_table(data, key, innerKey, 'RT, combined', **kwargs)
 
                 if docData.gotCombinedExtractedIons:
                     for innerKey in docData.IMS2DCombIons:
                         data = docData.IMS2DCombIons[innerKey]
-                        kwargs = {"toolset": "2D", "color": (255, 206, 252)}
-                        self.append_to_table(data, key, innerKey, "2D, combined", **kwargs)
+                        kwargs = {'toolset': '2D', 'color': (255, 206, 252)}
+                        self.append_to_table(data, key, innerKey, '2D, combined', **kwargs)
 
                 if docData.got2DprocessIons:
                     for innerKey in docData.IMS2DionsProcess:
                         data = docData.IMS2DionsProcess[innerKey]
-                        kwargs = {"toolset": "2D", "color": (255, 206, 252)}
-                        self.append_to_table(data, key, innerKey, "2D, processed", **kwargs)
+                        kwargs = {'toolset': '2D', 'color': (255, 206, 252)}
+                        self.append_to_table(data, key, innerKey, '2D, processed', **kwargs)
 
                 # Overlay data
                 if docData.gotOverlay:
@@ -2704,32 +3124,32 @@ class panelInteractiveOutput(wx.MiniFrame):
                         data = docData.IMS2DoverlayData[innerKey]
                         overlayMethod = re.split('-|,|:|__', innerKey)
                         if overlayMethod[0] in ['Mask', 'Transparent']:
-                            color_label = "{}/{}".format(data['cmap1'], data['cmap2'])
+                            color_label = '{}/{}'.format(data['cmap1'], data['cmap2'])
                         else:
-                            color_label = data.get('cmap', "")
-                        kwargs = {"toolset": "2D", "color_label": color_label, "color": (214, 220, 198)}
-                        self.append_to_table(data, key, innerKey, "Overlay", **kwargs)
+                            color_label = data.get('cmap', '')
+                        kwargs = {'toolset': '2D', 'color_label': color_label, 'color': (214, 220, 198)}
+                        self.append_to_table(data, key, innerKey, 'Overlay', **kwargs)
 
                 if docData.gotStatsData:
                     for innerKey in docData.IMS2DstatsData:
                         data = docData.IMS2DstatsData[innerKey]
                         overlayMethod = re.split('-|,|:|__', innerKey)
-                        kwargs = {"color": (222, 215, 255), "toolset": "2D"}
-                        self.append_to_table(data, key, innerKey, "Statistical", **kwargs)
+                        kwargs = {'color': (222, 215, 255), 'toolset': '2D'}
+                        self.append_to_table(data, key, innerKey, 'Statistical', **kwargs)
 
                 if len(docData.other_data) > 0:
                     for innerKey in docData.other_data:
                         data = docData.other_data[innerKey]
-                        kwargs = {"color": (215, 224, 184)}
-                        self.append_to_table(data, key, innerKey, "Annotated data", **kwargs)
+                        kwargs = {'color': (215, 224, 184)}
+                        self.append_to_table(data, key, innerKey, 'Annotated data', **kwargs)
 
                 # Tandem dat a
                 if len(docData.tandem_spectra) > 0:
                     data = docData.tandem_spectra
-                    if data.get('cmap', "") == "":
+                    if data.get('cmap', '') == '':
                         data['cmap'] = self.config.interactive_line_color
-                    kwargs = {"toolset": "1D", "color": (219, 209, 255)}
-                    self.append_to_table(data, key, "", "MS/MS", **kwargs)
+                    kwargs = {'toolset': '1D', 'color': (219, 209, 255)}
+                    self.append_to_table(data, key, '', 'MS/MS', **kwargs)
 
             self.on_add_page_choices(evt=None)
         else:
@@ -2740,7 +3160,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def append_to_table(self, data, key, innerKey, subKey, **kwargs):
         # check if has all keys
         data = self.check_html_keys(data)
-        data = self.check_figure_size(data, kwargs.get("toolset", "1D"))
+        data = self.check_figure_size(data, kwargs.get('toolset', '1D'))
 
         # extract data
         title = data['title']
@@ -2750,17 +3170,21 @@ class panelInteractiveOutput(wx.MiniFrame):
         page = data['page']['name']
         order = data['order']
 
-        if kwargs.get("color_label", False):
+        if kwargs.get('color_label', False):
             color = kwargs['color_label']
 
         # append item
-        self.peaklist.Append(["", key, subKey, innerKey, title, header,
-                              footnote, color, page, order])
-        if "color" in kwargs:
+        self.peaklist.Append([
+            '', key, subKey, innerKey, title, header,
+            footnote, color, page, order,
+        ])
+        if 'color' in kwargs:
             self.peaklist.SetItemBackgroundColour(
-                self.peaklist.GetItemCount() - 1, kwargs['color'])
+                self.peaklist.GetItemCount() - 1, kwargs['color'],
+            )
             self.peaklist.SetItemTextColour(
-                self.peaklist.GetItemCount() - 1, determineFontColor(kwargs['color'], return_rgb=True))
+                self.peaklist.GetItemCount() - 1, determineFontColor(kwargs['color'], return_rgb=True),
+            )
 
     def on_add_page_choices(self, evt=None):
         """
@@ -2799,58 +3223,63 @@ class panelInteractiveOutput(wx.MiniFrame):
         innerKey = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames['file']).GetText()
         color = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames['color']).GetText()
         order = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames['order']).GetText()
-        if color == "":
-            color = "(0, 0, 0)"
+        if color == '':
+            color = '(0, 0, 0)'
 
         # combine labels
-        self.document_value.SetLabel(name.replace("__", " ").replace(".raw", ""))
-        self.type_value.SetLabel(key.replace("__", " ").replace(".raw", ""))
-        self.details_value.SetLabel(innerKey.replace("__", " ").replace(".raw", ""))
+        self.document_value.SetLabel(name.replace('__', ' ').replace('.raw', ''))
+        self.type_value.SetLabel(key.replace('__', ' ').replace('.raw', ''))
+        self.details_value.SetLabel(innerKey.replace('__', ' ').replace('.raw', ''))
 
-        information = ""
+        information = ''
         # Determine which document was selected
         document = self.data_handling._on_get_document(name)
 #         document = self.documentsDict[name]
         docData = self.__get_item_data(name, key, innerKey)
 
         # build information
-        if key in ['MS', 'Processed MS', 'RT', 'RT, multiple', '1D', '1D, multiple',
-                   'MS, multiple', 'RT, combined']:
-            information = "Length: {} \nRange: x-axis = {}-{} | y-axis = {}-{}".format(
+        if key in [
+            'MS', 'Processed MS', 'RT', 'RT, multiple', '1D', '1D, multiple',
+            'MS, multiple', 'RT, combined',
+        ]:
+            information = 'Length: {} \nRange: x-axis = {}-{} | y-axis = {}-{}'.format(
                 len(docData['xvals']), np.round(docData['xvals'][0], 4), np.round(docData['xvals'][-1], 4),
-                np.round(np.min(docData['yvals']), 4), np.round(np.max(docData['yvals']), 4))
+                np.round(np.min(docData['yvals']), 4), np.round(np.max(docData['yvals']), 4),
+            )
         elif key in ['2D', '2D, processed', '2D, combined']:
-            information = "Shape: {} x {} \nRange: x-axis = {}-{} | y-axis = {}-{}".format(
+            information = 'Shape: {} x {} \nRange: x-axis = {}-{} | y-axis = {}-{}'.format(
                 docData['zvals'].shape[0], docData['zvals'].shape[1], np.round(docData['xvals'][0], 4),
                 np.round(docData['xvals'][-1], 4), np.round(np.min(docData['yvals']), 4),
-                np.round(np.max(docData['yvals']), 4))
-        if "annotations" in docData:
+                np.round(np.max(docData['yvals']), 4),
+            )
+        if 'annotations' in docData:
             if len(information) > 0:
                 try:
-                    information = "{}\nAnnotations: {}".format(information, len(docData["annotations"]))
+                    information = '{}\nAnnotations: {}'.format(information, len(docData['annotations']))
                 except Exception:
                     pass
             else:
                 try:
-                    information = "Annotations: {}".format(len(docData["annotations"]))
+                    information = 'Annotations: {}'.format(len(docData['annotations']))
                 except Exception:
-                    information = ""
+                    information = ''
 
-        if "annotated_item_list" in docData:
+        if 'annotated_item_list' in docData:
             if len(information) > 0:
                 try:
-                    information = "{}\nAnnotated mass spectra: {}".format(
-                        information, len(docData["annotated_item_list"]))
+                    information = '{}\nAnnotated mass spectra: {}'.format(
+                        information, len(docData['annotated_item_list']),
+                    )
                 except Exception:
                     pass
             else:
                 try:
-                    information = "Annotated mass spectra: {}".format(len(docData["annotated_item_list"]))
+                    information = 'Annotated mass spectra: {}'.format(len(docData['annotated_item_list']))
                 except Exception:
-                    information = ""
+                    information = ''
 
         # Retrieve information
-        title = docData.get('title', " ")
+        title = docData.get('title', ' ')
         header = docData['header']
         footnote = docData['footnote']
         page = docData['page']['name']
@@ -2912,12 +3341,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         if key == 'UniDec, processed' and innerKey != '':
             docData = deepcopy(document.smoothMS['unidec'][innerKey])
         if key == 'UniDec, multiple' and innerKey != '':
-            unidecMethod = re.split(' \| ', innerKey)[0]
-            innerKey = re.split(' \| ', innerKey)[1]
+            unidecMethod = re.split(r' \| ', innerKey)[0]
+            innerKey = re.split(r' \| ', innerKey)[1]
             docData = deepcopy(document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod])
-        if key == "Annotated data" and innerKey != "":
+        if key == 'Annotated data' and innerKey != '':
             docData = document.other_data[innerKey]
-        if key == "MS/MS" and innerKey == '':
+        if key == 'MS/MS' and innerKey == '':
             docData = document.tandem_spectra
 
         return docData
@@ -2931,14 +3360,16 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # Get current page selection
         page = self.pageLayoutSelect_htmlView.GetStringSelection()
-        self.peaklist.SetItem(self.peaklist.item_id,
-                              self.config.interactiveColNames['page'],
-                              str(page))
+        self.peaklist.SetItem(
+            self.peaklist.item_id,
+            self.config.interactiveColNames['page'],
+            str(page),
+        )
 
         name, key, innerKey = self.__get_item_details()
 
         pageData = self.config.pageDict[page]
-        self.on_update_document_keyword(name, key, innerKey, keyword="page", value=pageData)
+        self.on_update_document_keyword(name, key, innerKey, keyword='page', value=pageData)
 
     def on_change_page_for_items(self, evt):
         """ This function changes the output page for selected items (batch)"""
@@ -2947,13 +3378,15 @@ class panelInteractiveOutput(wx.MiniFrame):
         for row in range(rows):
             if self.peaklist.IsChecked(index=row):
                 self.peaklist.item_id = row
-                self.peaklist.SetItem(row,
-                                      self.config.interactiveColNames['page'],
-                                      page)
+                self.peaklist.SetItem(
+                    row,
+                    self.config.interactiveColNames['page'],
+                    page,
+                )
 
                 name, key, innerKey = self.__get_item_details()
                 pageData = self.config.pageDict[page]
-                self.on_update_document_keyword(name, key, innerKey, keyword="page", value=pageData)
+                self.on_update_document_keyword(name, key, innerKey, keyword='page', value=pageData)
 
     def on_change_colormap_for_items(self, evt):
         """ This function changes colormap for selected items (batch)"""
@@ -2965,10 +3398,12 @@ class panelInteractiveOutput(wx.MiniFrame):
                 name, key, innerKey = self.__get_item_details()
                 if key in ['2D', '2D, processed', '2D, combined', 'Overlay', 'Statistical']:
                     self.peaklist.item_id = row
-                    self.peaklist.SetItem(row,
-                                          self.config.interactiveColNames['colormap'],
-                                          str(colormap))
-                    self.on_update_document_keyword(name, key, innerKey, keyword="cmap", value=str(colormap))
+                    self.peaklist.SetItem(
+                        row,
+                        self.config.interactiveColNames['colormap'],
+                        str(colormap),
+                    )
+                    self.on_update_document_keyword(name, key, innerKey, keyword='cmap', value=str(colormap))
 
     def on_change_color(self, evt):
 
@@ -2976,16 +3411,17 @@ class panelInteractiveOutput(wx.MiniFrame):
             msg = 'Please select item first'
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
             return
-        if evt.GetId() in [ID_changeColorInteractive,
-                           ID_changeColorNotationInteractive,
-                           ID_changeColorBackgroundNotationInteractive,
-                           ID_changeColorGridLabelInteractive,
-                           ID_changeColorAnnotLabelInteractive,
-                           ID_interactivePanel_color_markerEdge,
-                           ID_interactivePanel_color_barEdge,
-                           ID_changeColorBackgroundInteractive,
-                           ID_changeColorGridLineInteractive
-                           ]:
+        if evt.GetId() in [
+            ID_changeColorInteractive,
+            ID_changeColorNotationInteractive,
+            ID_changeColorBackgroundNotationInteractive,
+            ID_changeColorGridLabelInteractive,
+            ID_changeColorAnnotLabelInteractive,
+            ID_interactivePanel_color_markerEdge,
+            ID_interactivePanel_color_barEdge,
+            ID_changeColorBackgroundInteractive,
+            ID_changeColorGridLineInteractive,
+        ]:
             # Show dialog and get new colour
             custom = wx.ColourData()
             for key in range(len(self.config.customColors)):
@@ -2996,14 +3432,18 @@ class panelInteractiveOutput(wx.MiniFrame):
             if dlg.ShowModal() == wx.ID_OK:
                 data = dlg.GetColourData()
                 newColour = list(data.GetColour().Get())
-                newColour255 = tuple([round((np.float(newColour[0]) / 255), 2),
-                                      round((np.float(newColour[1]) / 255), 2),
-                                      round((np.float(newColour[2]) / 255), 2)])
+                newColour255 = tuple([
+                    round((np.float(newColour[0]) / 255), 2),
+                    round((np.float(newColour[1]) / 255), 2),
+                    round((np.float(newColour[2]) / 255), 2),
+                ])
                 if evt.GetId() == ID_changeColorInteractive:
                     self.colorBtn.SetBackgroundColour(newColour)
-                    self.peaklist.SetItem(self.peaklist.item_id,
-                                          self.config.interactiveColNames['color'],
-                                          str(newColour255))
+                    self.peaklist.SetItem(
+                        self.peaklist.item_id,
+                        self.config.interactiveColNames['color'],
+                        str(newColour255),
+                    )
                 elif evt.GetId() == ID_changeColorNotationInteractive:
                     self.interactive_annotation_colorBtn.SetBackgroundColour(newColour)
                     self.config.interactive_annotation_color = newColour255
@@ -3029,9 +3469,11 @@ class panelInteractiveOutput(wx.MiniFrame):
                 return
         elif evt.GetId() == ID_changeColormapInteractive:
             colormap = self.comboCmapSelect.GetValue()
-            self.peaklist.SetItem(self.peaklist.item_id,
-                                  self.config.interactiveColNames['colormap'],
-                                  str(colormap))
+            self.peaklist.SetItem(
+                self.peaklist.item_id,
+                self.config.interactiveColNames['colormap'],
+                str(colormap),
+            )
             self.on_annotate_item(evt=None)
 
     def on_update_document_keyword(self, name, key, innerKey, keyword, value):
@@ -3099,8 +3541,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             document.massSpectrum['unidec'][innerKey][keyword] = value
 
         if key == 'UniDec, multiple' and innerKey != '':
-            unidecMethod = re.split(' \| ', innerKey)[0]
-            innerKey = re.split(' \| ', innerKey)[1]
+            unidecMethod = re.split(r' \| ', innerKey)[0]
+            innerKey = re.split(r' \| ', innerKey)[1]
             document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod][keyword] = value
 
         if key == 'MS/MS' and innerKey != '':
@@ -3112,7 +3554,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def on_update_document(self, name, key, innerKey, **kwargs):
         #         document = self.documentsDict[name]
         document = self.data_handling._on_get_document(name)
-        colorbar = kwargs.pop("colorbar", False)
+        colorbar = kwargs.pop('colorbar', False)
 
         if key == 'MS' and innerKey == '':
             document.massSpectrum = self.add_tags_to_data(document.massSpectrum, colorbar=False, **kwargs)
@@ -3134,19 +3576,23 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         if key == '1D, multiple' and innerKey != '':
             document.multipleDT[innerKey] = self.add_tags_to_data(
-                document.multipleDT[innerKey], colorbar=False, **kwargs)
+                document.multipleDT[innerKey], colorbar=False, **kwargs
+            )
 
         if key == 'MS, multiple' and innerKey != '':
             document.multipleMassSpectrum[innerKey] = self.add_tags_to_data(
-                document.multipleMassSpectrum[innerKey], colorbar=False, **kwargs)
+                document.multipleMassSpectrum[innerKey], colorbar=False, **kwargs
+            )
 
         if key == 'DT-IMS' and innerKey != '':
             document.IMS1DdriftTimes[innerKey] = self.add_tags_to_data(
-                document.IMS1DdriftTimes[innerKey], colorbar=False, **kwargs)
+                document.IMS1DdriftTimes[innerKey], colorbar=False, **kwargs
+            )
 
         if key == 'RT, combined' and innerKey != '':
             document.IMSRTCombIons[innerKey] = self.add_tags_to_data(
-                document.IMSRTCombIons[innerKey], colorbar=False, **kwargs)
+                document.IMSRTCombIons[innerKey], colorbar=False, **kwargs
+            )
 
         if key == '2D' and innerKey == '':
             document.IMS2D = self.add_tags_to_data(document.IMS2D, colorbar=colorbar, **kwargs)
@@ -3159,41 +3605,50 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         if key == '2D' and innerKey != '':
             document.IMS2Dions[innerKey] = self.add_tags_to_data(
-                document.IMS2Dions[innerKey], colorbar=colorbar, **kwargs)
+                document.IMS2Dions[innerKey], colorbar=colorbar, **kwargs
+            )
 
         if key == '2D, combined' and innerKey != '':
             document.IMS2DCombIons[innerKey] = self.add_tags_to_data(
-                document.IMS2DCombIons[innerKey], colorbar=colorbar, **kwargs)
+                document.IMS2DCombIons[innerKey], colorbar=colorbar, **kwargs
+            )
 
         if key == '2D, processed' and innerKey != '':
             document.IMS2DionsProcess[innerKey] = self.add_tags_to_data(
-                document.IMS2DionsProcess[innerKey], colorbar=colorbar, **kwargs)
+                document.IMS2DionsProcess[innerKey], colorbar=colorbar, **kwargs
+            )
 
         if key == 'Overlay' and innerKey != '':
             document.IMS2DoverlayData[innerKey] = self.add_tags_to_data(
-                document.IMS2DoverlayData[innerKey], colorbar=colorbar, **kwargs)
+                document.IMS2DoverlayData[innerKey], colorbar=colorbar, **kwargs
+            )
 
         if key == 'Statistical' and innerKey != '':
             document.IMS2DstatsData[innerKey] = self.add_tags_to_data(
-                document.IMS2DstatsData[innerKey], colorbar=colorbar, **kwargs)
+                document.IMS2DstatsData[innerKey], colorbar=colorbar, **kwargs
+            )
 
         if key == 'Annotated data' and innerKey != '':
             document.other_data[innerKey] = self.add_tags_to_data(
-                document.other_data[innerKey], colorbar=colorbar, **kwargs)
+                document.other_data[innerKey], colorbar=colorbar, **kwargs
+            )
 
         if key == 'UniDec' and innerKey != '':
             document.massSpectrum['unidec'][innerKey] = self.add_tags_to_data(
-                document.massSpectrum['unidec'][innerKey], colorbar=colorbar, **kwargs)
+                document.massSpectrum['unidec'][innerKey], colorbar=colorbar, **kwargs
+            )
 
         if key == 'UniDec, processed' and innerKey != '':
             document.massSpectrum['unidec'][innerKey] = self.add_tags_to_data(
-                document.smoothMS['unidec'][innerKey], colorbar=colorbar, **kwargs)
+                document.smoothMS['unidec'][innerKey], colorbar=colorbar, **kwargs
+            )
 
         if key == 'UniDec, multiple' and innerKey != '':
-            unidecMethod = re.split(' \| ', innerKey)[0]
-            innerKey = re.split(' \| ', innerKey)[1]
+            unidecMethod = re.split(r' \| ', innerKey)[0]
+            innerKey = re.split(r' \| ', innerKey)[1]
             document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod] = self.add_tags_to_data(
-                document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod], colorbar=colorbar, **kwargs)
+                document.multipleMassSpectrum[innerKey]['unidec'][unidecMethod], colorbar=colorbar, **kwargs
+            )
 
         # Update dictionary
         self.presenter.documentsDict[document.title] = document
@@ -3220,9 +3675,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         # Get data
         pageData = self.config.pageDict[page]
 
-        if any(key in method for method in ["MS", "RT", "1D", "RT, combined",
-                                            'MS, multiple', '1D, multiple',
-                                            'RT, multiple']):
+        if any(
+            key in method for method in [
+                'MS', 'RT', '1D', 'RT, combined',
+                'MS, multiple', '1D, multiple',
+                'RT, multiple',
+            ]
+        ):
             color = (eval(color))
 
         title = self.itemName_value.GetValue()
@@ -3235,71 +3694,90 @@ class panelInteractiveOutput(wx.MiniFrame):
         color_label = color
 
         # Retrieve and add data to dictionary
-        kwargs = {"title": _replace_labels(title), "header": header, "footnote": footnote,
-                  "order": orderNum, "color": color, "page": pageData,
-                  "interactive_parameters": interactive_params,
-                  }
+        kwargs = {
+            'title': _replace_labels(title), 'header': header, 'footnote': footnote,
+            'order': orderNum, 'color': color, 'page': pageData,
+            'interactive_parameters': interactive_params,
+        }
 
         self.on_update_document(name, key, innerKey, **kwargs)
 
         # Set new text for labels
-        self.peaklist.SetItem(self.peaklist.item_id,
-                              self.config.interactiveColNames['title'], title)
-        self.peaklist.SetItem(self.peaklist.item_id,
-                              self.config.interactiveColNames['header'], header)
-        self.peaklist.SetItem(self.peaklist.item_id,
-                              self.config.interactiveColNames['footnote'], footnote)
-        self.peaklist.SetItem(self.peaklist.item_id,
-                              self.config.interactiveColNames['color'], str(color_label))
-        self.peaklist.SetItem(self.peaklist.item_id,
-                              self.config.interactiveColNames['order'], orderNum)
-        self.peaklist.SetItem(self.peaklist.item_id,
-                              self.config.interactiveColNames['page'], page)
+        self.peaklist.SetItem(
+            self.peaklist.item_id,
+            self.config.interactiveColNames['title'], title,
+        )
+        self.peaklist.SetItem(
+            self.peaklist.item_id,
+            self.config.interactiveColNames['header'], header,
+        )
+        self.peaklist.SetItem(
+            self.peaklist.item_id,
+            self.config.interactiveColNames['footnote'], footnote,
+        )
+        self.peaklist.SetItem(
+            self.peaklist.item_id,
+            self.config.interactiveColNames['color'], str(color_label),
+        )
+        self.peaklist.SetItem(
+            self.peaklist.item_id,
+            self.config.interactiveColNames['order'], orderNum,
+        )
+        self.peaklist.SetItem(
+            self.peaklist.item_id,
+            self.config.interactiveColNames['page'], page,
+        )
 
     def add_tags_to_data(self, dictionary, colorbar=False, **kwargs):
         """
         Helper function to add title,header,footnote data
         to dictionary
         """
-        dictionary['title'] = kwargs.pop("title")
-        dictionary['header'] = kwargs.pop("header")
-        dictionary['footnote'] = kwargs.pop("footnote")
-        dictionary['order'] = kwargs.pop("order")
-        dictionary['cmap'] = kwargs.pop("color")
-        dictionary['page'] = kwargs.pop("page")
+        dictionary['title'] = kwargs.pop('title')
+        dictionary['header'] = kwargs.pop('header')
+        dictionary['footnote'] = kwargs.pop('footnote')
+        dictionary['order'] = kwargs.pop('order')
+        dictionary['cmap'] = kwargs.pop('color')
+        dictionary['page'] = kwargs.pop('page')
         dictionary['colorbar'] = colorbar
 
-        dictionary['interactive_params'] = merge_two_dicts(dictionary.get('interactive_params', {}),
-                                                           kwargs["interactive_parameters"])
+        dictionary['interactive_params'] = merge_two_dicts(
+            dictionary.get('interactive_params', {}),
+            kwargs['interactive_parameters'],
+        )
 
         try:
-            dictionary['cmap1'] = kwargs["interactive_parameters"]['overlay_color_1']
+            dictionary['cmap1'] = kwargs['interactive_parameters']['overlay_color_1']
         except Exception:
             pass
         try:
-            dictionary['cmap2'] = kwargs["interactive_parameters"]['overlay_color_2']
+            dictionary['cmap2'] = kwargs['interactive_parameters']['overlay_color_2']
         except Exception:
             pass
 
         return dictionary
 
     def linearize_spectrum(self, xvals, yvals, binsize):
-        kwargs = {'auto_range': self.config.ms_auto_range,
-                  'mz_min': np.round(np.min(xvals), 0),
-                  'mz_max': np.round(np.min(yvals), 0),
-                  'mz_bin': float(binsize),
-                  'linearization_mode': "Linear interpolation"}
+        kwargs = {
+            'auto_range': self.config.ms_auto_range,
+            'mz_min': np.round(np.min(xvals), 0),
+            'mz_max': np.round(np.min(yvals), 0),
+            'mz_bin': float(binsize),
+            'linearization_mode': 'Linear interpolation',
+        }
 
         msX, msY = linearize_data(xvals, yvals, **kwargs)
         if len(msX) > len(xvals):
-            print(("Chose not to linearize spectrum as it would increase it from {} to {}".format(len(xvals), len(msX))))
+            print('Chose not to linearize spectrum as it would increase it from {} to {}'.format(len(xvals), len(msX)))
             return xvals, yvals
         else:
-            print(("Linearized spectrum. Reduced spectrum from {} to {}".format(len(xvals), len(msX))))
+            print('Linearized spectrum. Reduced spectrum from {} to {}'.format(len(xvals), len(msX)))
             return msX, msY
 
-    def add_custom_js_widgets(self, bokehPlot, js_type="label_toggle",
-                              position="right", data={}, **kwargs):
+    def add_custom_js_widgets(
+        self, bokehPlot, js_type='label_toggle',
+        position='right', data={}, **kwargs
+    ):
         """
         Add custoom JS scripts to plots
         @param bokehPlot (figure): bokeh figure
@@ -3319,10 +3797,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         # get position
         position = self.custom_js_position.GetStringSelection()
         js_widgets = []
-        msg = "Added JS scripts: "
+        msg = 'Added JS scripts: '
         try:
-            if "label_toggle" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
+            if 'label_toggle' in js_type and 'labels' in kwargs:
+                labels = kwargs['labels']
                 js_code = '''\
                 if (toggle.active) {
                     labels.text_alpha = 1;
@@ -3336,59 +3814,67 @@ class panelInteractiveOutput(wx.MiniFrame):
                     }
                 '''
                 callback = CustomJS(code=js_code, args={})
-                toggle = Toggle(label="Hide labels", button_type="success", callback=callback, active=True,
-                                width=widget_width)
+                toggle = Toggle(
+                    label='Hide labels', button_type='success', callback=callback, active=True,
+                    width=widget_width,
+                )
                 callback.args = {'toggle': toggle, 'labels': labels, 'figure': bokehPlot}
                 js_widgets.append(toggle)
-                msg = "{} Annotation on/off toggle |".format(msg)
+                msg = '{} Annotation on/off toggle |'.format(msg)
 
-            if "label_size_slider" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
+            if 'label_size_slider' in js_type and 'labels' in kwargs:
+                labels = kwargs['labels']
                 js_code = '''\
                 label_size = slider.value;
                 labels.text_font_size = label_size + 'pt';
                 console.log('Font size: ' + label_size);
                 '''
                 callback = CustomJS(code=js_code, args={})
-                slider = Slider(start=6, end=16, step=0.5, value=self.config.interactive_ms_annotations_fontSize,
-                                callback=callback, title="Label fontsize",
-                                width=widget_width)
+                slider = Slider(
+                    start=6, end=16, step=0.5, value=self.config.interactive_ms_annotations_fontSize,
+                    callback=callback, title='Label fontsize',
+                    width=widget_width,
+                )
                 callback.args = {'slider': slider, 'labels': labels}
                 js_widgets.append(slider)
-                msg = "{} Annotation font size slider |".format(msg)
+                msg = '{} Annotation font size slider |'.format(msg)
 
-            if "label_offset_x" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
+            if 'label_offset_x' in js_type and 'labels' in kwargs:
+                labels = kwargs['labels']
                 js_code = '''\
                 x_offset = slider.value;
                 labels.x_offset = x_offset;
                 console.log('X offset: ' + x_offset);
                 '''
                 callback = CustomJS(code=js_code, args={})
-                slider = Slider(start=-100, end=100, step=5, value=self.config.interactive_ms_annotations_offsetX,
-                                callback=callback, title="Label x-axis offset",
-                                width=widget_width)
+                slider = Slider(
+                    start=-100, end=100, step=5, value=self.config.interactive_ms_annotations_offsetX,
+                    callback=callback, title='Label x-axis offset',
+                    width=widget_width,
+                )
                 callback.args = {'slider': slider, 'labels': labels}
                 js_widgets.append(slider)
-                msg = "{} Annotation x-axis offset slider |".format(msg)
+                msg = '{} Annotation x-axis offset slider |'.format(msg)
 
-            if "label_offset_y" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
+            if 'label_offset_y' in js_type and 'labels' in kwargs:
+                labels = kwargs['labels']
                 js_code = '''\
                 y_offset = slider.value;
                 labels.y_offset = y_offset;
                 console.log('Y offset: ' + y_offset);
                 '''
                 callback = CustomJS(code=js_code, args={})
-                slider = Slider(start=-100, end=100, step=5, value=self.config.interactive_ms_annotations_offsetY,
-                                callback=callback, title="Label y-axis offset",
-                                width=widget_width)
+                slider = Slider(
+                    start=-100, end=100, step=5, value=self.config.interactive_ms_annotations_offsetY,
+                    callback=callback, title='Label y-axis offset',
+                    width=widget_width,
+                )
                 callback.args = {'slider': slider, 'labels': labels}
                 js_widgets.append(slider)
-                msg = "{} Annotation y-axis offset slider |".format(msg)
+                msg = '{} Annotation y-axis offset slider |'.format(msg)
 
-            if "label_rotation" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
+            if 'label_rotation' in js_type and 'labels' in kwargs:
+                labels = kwargs['labels']
                 js_code = '''\
                 angle = slider.value * 0.0174533;
                 labels.angle_units = 'deg';
@@ -3401,31 +3887,35 @@ class panelInteractiveOutput(wx.MiniFrame):
                     end=180,
                     step=10,
                     value=kwargs.get(
-                        "label_rotation_angle",
-                        self.config.interactive_ms_annotations_rotation),
+                        'label_rotation_angle',
+                        self.config.interactive_ms_annotations_rotation,
+                    ),
                     callback=callback,
-                    title="Label rotation angle",
-                    width=widget_width)
+                    title='Label rotation angle',
+                    width=widget_width,
+                )
                 callback.args = {'slider': slider, 'labels': labels}
                 js_widgets.append(slider)
-                msg = "{} Annotation rotation slider |".format(msg)
+                msg = '{} Annotation rotation slider |'.format(msg)
 
-            if "slider_zoom" in js_type and "y_range_x1" in kwargs:
+            if 'slider_zoom' in js_type and 'y_range_x1' in kwargs:
                 js_code = '''\
                 zoom_value  = slider.value;
                 figure.y_range.end = {} * zoom_value;
                 console.log 'Y-axis zoom x ' + zoom_value;
-                '''.format(kwargs["y_range_x1"])
+                '''.format(kwargs['y_range_x1'])
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                slider = Slider(start=1, end=5, step=0.5, value=2,
-                                callback=callback, title="Y-axis zoom",
-                                width=widget_width)
+                slider = Slider(
+                    start=1, end=5, step=0.5, value=2,
+                    callback=callback, title='Y-axis zoom',
+                    width=widget_width,
+                )
                 callback.args = {'slider': slider, 'figure': bokehPlot}
                 js_widgets.append(slider)
-                msg = "{} Y-axis range slider |".format(msg)
+                msg = '{} Y-axis range slider |'.format(msg)
 
-            if "hover_mode" in js_type and "hover" in kwargs:
-                hover = kwargs["hover"]
+            if 'hover_mode' in js_type and 'hover' in kwargs:
+                hover = kwargs['hover']
                 js_code = '''\
                 if (radio.active == 0) {
                     hover.mode = 'mouse';
@@ -3437,22 +3927,26 @@ class panelInteractiveOutput(wx.MiniFrame):
                     }
                 '''
                 callback = CustomJS(code=js_code, args={})
-                if hover.mode == "mouse":
+                if hover.mode == 'mouse':
                     active_mode = 0
-                elif hover.mode == "vline":
+                elif hover.mode == 'vline':
                     active_mode = 1
-                elif hover.mode == "hline":
+                elif hover.mode == 'hline':
                     active_mode = 2
-                group = RadioButtonGroup(labels=["        Follow mouse        ",
-                                                 "    Follow vertical line    "],
-                                         active=active_mode, callback=callback,
-                                         width=widget_width)
+                group = RadioButtonGroup(
+                    labels=[
+                        '        Follow mouse        ',
+                        '    Follow vertical line    ',
+                    ],
+                    active=active_mode, callback=callback,
+                    width=widget_width,
+                )
                 callback.args = {'radio': group, 'hover': hover}
                 js_widgets.append(group)
-                msg = "{} Hovertool mode toggle |".format(msg)
+                msg = '{} Hovertool mode toggle |'.format(msg)
 
-            if "legend_toggle" in js_type and "legend" in kwargs:
-                legend = kwargs["legend"]
+            if 'legend_toggle' in js_type and 'legend' in kwargs:
+                legend = kwargs['legend']
                 js_code = '''\
                 if (toggle.active) {
                     legend.border_line_alpha = 0;
@@ -3469,15 +3963,17 @@ class panelInteractiveOutput(wx.MiniFrame):
                 figure.change.emit();
                 '''
                 callback = CustomJS(code=js_code, args={})
-                toggle = Toggle(label="Hide legend", button_type="success", callback=callback,
-                                active=True, width=widget_width)
+                toggle = Toggle(
+                    label='Hide legend', button_type='success', callback=callback,
+                    active=True, width=widget_width,
+                )
                 callback.args = {'toggle': toggle, 'legend': legend, 'figure': bokehPlot}
                 js_widgets.append(toggle)
-                msg = "{} Legend on/off toggle |".format(msg)
+                msg = '{} Legend on/off toggle |'.format(msg)
 
-            if "legend_toggle_multi" in js_type and "legends" in kwargs:
-                legends = kwargs["legends"]
-                figures = kwargs["figures"]
+            if 'legend_toggle_multi' in js_type and 'legends' in kwargs:
+                legends = kwargs['legends']
+                figures = kwargs['figures']
                 js_code = '''\
                 if (toggle.active {
                     for j, i in legends
@@ -3499,14 +3995,16 @@ class panelInteractiveOutput(wx.MiniFrame):
                     }
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                toggle = Toggle(label="Hide legend", button_type="success", callback=callback,
-                                active=True, width=widget_width)
+                toggle = Toggle(
+                    label='Hide legend', button_type='success', callback=callback,
+                    active=True, width=widget_width,
+                )
                 callback.args = {'toggle': toggle, 'legends': legends, 'figures': figures}
                 js_widgets.append(toggle)
-                msg = "{} Legend on/off toggle |".format(msg)
+                msg = '{} Legend on/off toggle |'.format(msg)
 
-            if "legend_position" in js_type and "legend" in kwargs:
-                legend = kwargs["legend"]
+            if 'legend_position' in js_type and 'legend' in kwargs:
+                legend = kwargs['legend']
                 js_code = '''\
                 position = dropdown.value;
                 legend.location = position;
@@ -3515,17 +4013,21 @@ class panelInteractiveOutput(wx.MiniFrame):
                 console.log('Legend position: ' + position);
                 '''
                 callback = CustomJS(code=js_code, args={})
-                menu = [("Top left", "top_left"), ("Top right", "top_right"),
-                        ("Bottom left", "bottom_left"), ("Bottom right", "bottom_right")]
-                dropdown = Dropdown(menu=menu, callback=callback, label="Legend position",
-                                    width=widget_width)
+                menu = [
+                    ('Top left', 'top_left'), ('Top right', 'top_right'),
+                    ('Bottom left', 'bottom_left'), ('Bottom right', 'bottom_right'),
+                ]
+                dropdown = Dropdown(
+                    menu=menu, callback=callback, label='Legend position',
+                    width=widget_width,
+                )
 
                 callback.args = {'dropdown': dropdown, 'legend': legend, 'figure': bokehPlot}
                 js_widgets.append(dropdown)
-                msg = "{} Legend position dropdown |".format(msg)
+                msg = '{} Legend position dropdown |'.format(msg)
 
-            if "legend_orientation" in js_type and "legend" in kwargs:
-                legend = kwargs["legend"]
+            if 'legend_orientation' in js_type and 'legend' in kwargs:
+                legend = kwargs['legend']
                 js_code = '''\
                 if (radio.active == 0) {
                     legend.orientation = 'vertical';
@@ -3538,22 +4040,27 @@ class panelInteractiveOutput(wx.MiniFrame):
                 figure.change.emit();
                 '''
                 callback = CustomJS(code=js_code, args={})
-                if user_kwargs["legend_properties"].get(
-                        "legend_orientation", self.config.interactive_legend_orientation) == "vertical":
+                if user_kwargs['legend_properties'].get(
+                        'legend_orientation', self.config.interactive_legend_orientation,
+                ) == 'vertical':
                     active_mode = 0
                 else:
                     active_mode = 1
 
-                group = RadioButtonGroup(labels=["      Legend: vertical      ",
-                                                 "     Legend: horizontal    "],
-                                         active=active_mode, callback=callback,
-                                         width=widget_width)
+                group = RadioButtonGroup(
+                    labels=[
+                        '      Legend: vertical      ',
+                        '     Legend: horizontal    ',
+                    ],
+                    active=active_mode, callback=callback,
+                    width=widget_width,
+                )
                 callback.args = {'radio': group, 'legend': legend, 'figure': bokehPlot}
                 js_widgets.append(group)
-                msg = "{} Legend orientation toggle |".format(msg)
+                msg = '{} Legend orientation toggle |'.format(msg)
 
-            if "legend_transparency" in js_type and "legend" in kwargs:
-                legend = kwargs["legend"]
+            if 'legend_transparency' in js_type and 'legend' in kwargs:
+                legend = kwargs['legend']
                 js_code = '''\
                 transparency = slider.value;
                 legend.background_fill_alpha = transparency;
@@ -3561,18 +4068,21 @@ class panelInteractiveOutput(wx.MiniFrame):
                 console.log('Legend transparency: ' + transparency);
                 '''
                 callback = CustomJS(code=js_code, args={})
-                slider = Slider(start=0, end=1, step=0.1,
-                                value=user_kwargs["legend_properties"].get(
-                                    "legend_background_alpha", self.config.interactive_legend_background_alpha),
-                                callback=callback, title="Legend transparency",
-                                width=widget_width)
+                slider = Slider(
+                    start=0, end=1, step=0.1,
+                    value=user_kwargs['legend_properties'].get(
+                        'legend_background_alpha', self.config.interactive_legend_background_alpha,
+                    ),
+                    callback=callback, title='Legend transparency',
+                    width=widget_width,
+                )
                 callback.args = {'slider': slider, 'legend': legend, 'figure': bokehPlot}
                 js_widgets.append(slider)
-                msg = "{} Legend transparency slider |".format(msg)
+                msg = '{} Legend transparency slider |'.format(msg)
 
-            if "legend_transparency_multi" in js_type and "legends" in kwargs:
-                legends = kwargs["legends"]
-                figures = kwargs["figures"]
+            if 'legend_transparency_multi' in js_type and 'legends' in kwargs:
+                legends = kwargs['legends']
+                figures = kwargs['figures']
                 js_code = '''\
                 transparency = slider.value;
                 for j, i in legends
@@ -3583,18 +4093,21 @@ class panelInteractiveOutput(wx.MiniFrame):
                 console.log('Legend transparency: ' + transparency);
                 '''
                 callback = CustomJS(code=js_code, args={})
-                slider = Slider(start=0, end=1, step=0.1,
-                                value=user_kwargs["legend_properties"].get(
-                                    "legend_background_alpha", self.config.interactive_legend_background_alpha),
-                                callback=callback, title="Legend transparency",
-                                width=widget_width)
+                slider = Slider(
+                    start=0, end=1, step=0.1,
+                    value=user_kwargs['legend_properties'].get(
+                        'legend_background_alpha', self.config.interactive_legend_background_alpha,
+                    ),
+                    callback=callback, title='Legend transparency',
+                    width=widget_width,
+                )
                 callback.args = {'slider': slider, 'legends': legends, 'figures': figures}
                 js_widgets.append(slider)
-                msg = "{} Legend transparency slider |".format(msg)
+                msg = '{} Legend transparency slider |'.format(msg)
 
-            if "colorblind_safe_1D" in js_type and "lines" in kwargs:
-                lines = kwargs["lines"]
-                patches = kwargs.get("patches", [])
+            if 'colorblind_safe_1D' in js_type and 'lines' in kwargs:
+                lines = kwargs['lines']
+                patches = kwargs.get('patches', [])
                 cvd_colors = kwargs['cvd_colors']
                 original_colors = kwargs['original_colors']
                 if len(patches) != len(lines):
@@ -3630,16 +4143,20 @@ class panelInteractiveOutput(wx.MiniFrame):
                     figure.change.emit()
                     '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                toggle = Toggle(label="Show in colorblind mode", button_type="success",
-                                callback=callback, active=True, width=widget_width)
-                callback.args = {'toggle': toggle, 'figure': bokehPlot, 'lines': lines, 'patches': patches,
-                                 'cvd_colors': cvd_colors, 'original_colors': original_colors}
+                toggle = Toggle(
+                    label='Show in colorblind mode', button_type='success',
+                    callback=callback, active=True, width=widget_width,
+                )
+                callback.args = {
+                    'toggle': toggle, 'figure': bokehPlot, 'lines': lines, 'patches': patches,
+                    'cvd_colors': cvd_colors, 'original_colors': original_colors,
+                }
                 js_widgets.append(toggle)
-                msg = "{} Colorblind toggle |".format(msg)
+                msg = '{} Colorblind toggle |'.format(msg)
 
-            if "colorblind_safe_1D_multi" in js_type and "lines" in kwargs:
-                lines = kwargs["lines"]
-                patches = kwargs.get("patches", [])
+            if 'colorblind_safe_1D_multi' in js_type and 'lines' in kwargs:
+                lines = kwargs['lines']
+                patches = kwargs.get('patches', [])
                 cvd_colors = kwargs['cvd_colors']
                 original_colors = kwargs['original_colors']
                 figures = kwargs['figures']
@@ -3669,15 +4186,19 @@ class panelInteractiveOutput(wx.MiniFrame):
                     figure.change.emit()
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                toggle = Toggle(label="Show in colorblind mode", button_type="success",
-                                callback=callback, active=True, width=widget_width)
-                callback.args = {'toggle': toggle, 'figures': figures, 'lines': lines, 'patches': patches,
-                                 'cvd_colors': cvd_colors, 'original_colors': original_colors}
+                toggle = Toggle(
+                    label='Show in colorblind mode', button_type='success',
+                    callback=callback, active=True, width=widget_width,
+                )
+                callback.args = {
+                    'toggle': toggle, 'figures': figures, 'lines': lines, 'patches': patches,
+                    'cvd_colors': cvd_colors, 'original_colors': original_colors,
+                }
                 js_widgets.append(toggle)
-                msg = "{} Colorblind toggle |".format(msg)
+                msg = '{} Colorblind toggle |'.format(msg)
 
-            if "colorblind_safe_scatter" in js_type and "scatters" in kwargs:
-                scatters = kwargs["scatters"]
+            if 'colorblind_safe_scatter' in js_type and 'scatters' in kwargs:
+                scatters = kwargs['scatters']
                 cvd_colors = kwargs['cvd_colors']
                 fill_colors = kwargs['fill_colors']
                 edge_colors = kwargs['edge_colors']
@@ -3697,16 +4218,20 @@ class panelInteractiveOutput(wx.MiniFrame):
                 figure.change.emit()
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                toggle = Toggle(label="Show in colorblind mode", button_type="success",
-                                callback=callback, active=True, width=widget_width)
-                callback.args = {'toggle': toggle, 'figure': bokehPlot, 'scatters': scatters,
-                                 'cvd_colors': cvd_colors, 'fill_colors': fill_colors, 'edge_colors': edge_colors}
+                toggle = Toggle(
+                    label='Show in colorblind mode', button_type='success',
+                    callback=callback, active=True, width=widget_width,
+                )
+                callback.args = {
+                    'toggle': toggle, 'figure': bokehPlot, 'scatters': scatters,
+                    'cvd_colors': cvd_colors, 'fill_colors': fill_colors, 'edge_colors': edge_colors,
+                }
                 js_widgets.append(toggle)
-                msg = "{} Colorblind toggle |".format(msg)
+                msg = '{} Colorblind toggle |'.format(msg)
 
-            if "colorblind_safe_2D" in js_type and "images" in kwargs:
-                images = kwargs["images"]
-                colorbars = kwargs.get("colorbars", None)
+            if 'colorblind_safe_2D' in js_type and 'images' in kwargs:
+                images = kwargs['images']
+                colorbars = kwargs.get('colorbars', None)
                 cvd_colors = kwargs['cvd_colors']
                 original_colors = kwargs['original_colors']
                 if colorbars is None or colorbars[0] is None:
@@ -3743,16 +4268,20 @@ class panelInteractiveOutput(wx.MiniFrame):
                     figure.change.emit()
                     '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                toggle = Toggle(label="Show in colorblind mode", button_type="success",
-                                callback=callback, active=True, width=widget_width)
-                callback.args = {'toggle': toggle, 'figure': bokehPlot, 'images': images,
-                                 'colorbars': colorbars, 'cvd_colors': cvd_colors, 'original_colors': original_colors}
+                toggle = Toggle(
+                    label='Show in colorblind mode', button_type='success',
+                    callback=callback, active=True, width=widget_width,
+                )
+                callback.args = {
+                    'toggle': toggle, 'figure': bokehPlot, 'images': images,
+                    'colorbars': colorbars, 'cvd_colors': cvd_colors, 'original_colors': original_colors,
+                }
                 js_widgets.append(toggle)
-                msg = "{} Colorblind toggle |".format(msg)
+                msg = '{} Colorblind toggle |'.format(msg)
 
-            if "colormap_change" in js_type and "images" in kwargs:
-                images = kwargs["images"]
-                colorbars = kwargs.get("colorbars", [])
+            if 'colormap_change' in js_type and 'images' in kwargs:
+                images = kwargs['images']
+                colorbars = kwargs.get('colorbars', [])
                 colormaps = kwargs['colormaps']
                 colormap_names = kwargs['colormap_names']
                 js_code = '''\
@@ -3767,17 +4296,23 @@ class panelInteractiveOutput(wx.MiniFrame):
                 console.log 'Changed colormap', cbar
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                menu = [("{}".format(colormap_names[0]), "0"), ("{}".format(colormap_names[1]), "1"),
-                        ("{}".format(colormap_names[2]), "2"), ("{}".format(colormap_names[3]), "3")]
-                dropdown = Dropdown(menu=menu, callback=callback, label="Colormap selection",
-                                    width=widget_width)
+                menu = [
+                    ('{}'.format(colormap_names[0]), '0'), ('{}'.format(colormap_names[1]), '1'),
+                    ('{}'.format(colormap_names[2]), '2'), ('{}'.format(colormap_names[3]), '3'),
+                ]
+                dropdown = Dropdown(
+                    menu=menu, callback=callback, label='Colormap selection',
+                    width=widget_width,
+                )
 
-                callback.args = {'dropdown': dropdown, 'colormaps': colormaps,
-                                 'figure': bokehPlot, 'images': images, 'colorbars': colorbars}
+                callback.args = {
+                    'dropdown': dropdown, 'colormaps': colormaps,
+                    'figure': bokehPlot, 'images': images, 'colorbars': colorbars,
+                }
                 js_widgets.append(dropdown)
-                msg = "{} Colormap dropdown |".format(msg)
+                msg = '{} Colormap dropdown |'.format(msg)
 
-            if "scatter_size" in js_type and "scatters" in kwargs:
+            if 'scatter_size' in js_type and 'scatters' in kwargs:
                 scatters = kwargs['scatters']
                 js_code = '''\
                 scatter_size = slider.value;
@@ -3787,14 +4322,16 @@ class panelInteractiveOutput(wx.MiniFrame):
                 console.log 'Scatter size: ' + scatter_size;
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                slider = Slider(start=1, end=100, step=1, value=self.config.interactive_scatter_size,
-                                callback=callback, title="Scatter size",
-                                width=widget_width)
+                slider = Slider(
+                    start=1, end=100, step=1, value=self.config.interactive_scatter_size,
+                    callback=callback, title='Scatter size',
+                    width=widget_width,
+                )
                 callback.args = {'slider': slider, 'scatters': scatters, 'figure': bokehPlot}
                 js_widgets.append(slider)
-                msg = "{} Scatter size slider |".format(msg)
+                msg = '{} Scatter size slider |'.format(msg)
 
-            if "scatter_transparency" in js_type and "scatters" in kwargs:
+            if 'scatter_transparency' in js_type and 'scatters' in kwargs:
                 scatters = kwargs['scatters']
                 js_code = '''\
                 scatter_alpha = slider.value;
@@ -3805,14 +4342,16 @@ class panelInteractiveOutput(wx.MiniFrame):
                 console.log 'Scatter transparency: ' + scatter_alpha;
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                slider = Slider(start=0, end=1, step=0.1, value=self.config.interactive_scatter_alpha,
-                                callback=callback, title="Scatter transparency",
-                                width=widget_width)
+                slider = Slider(
+                    start=0, end=1, step=0.1, value=self.config.interactive_scatter_alpha,
+                    callback=callback, title='Scatter transparency',
+                    width=widget_width,
+                )
                 callback.args = {'slider': slider, 'scatters': scatters, 'figure': bokehPlot}
                 js_widgets.append(slider)
-                msg = "{} Scatter size slider |".format(msg)
+                msg = '{} Scatter size slider |'.format(msg)
 
-            if "plot_size" in js_type:
+            if 'plot_size' in js_type:
                 js_code = '''\
                 width = slider_width.value;
                 height = slider_height.value;
@@ -3822,55 +4361,63 @@ class panelInteractiveOutput(wx.MiniFrame):
                 console.log 'Plot width: ' + width + ' height: ' + height;
                 '''
                 callback = CustomJS.from_coffeescript(code=js_code, args={})
-                slider_width = Slider(start=100, end=1000, step=50, value=kwargs['plot_width'],
-                                      callback=callback, title="Plot width")
-                slider_height = Slider(start=100, end=1000, step=50, value=kwargs['plot_height'],
-                                       callback=callback, title="Plot height")
-                callback.args = {'slider_width': slider_width,
-                                 'slider_height': slider_height,
-                                 'figure': bokehPlot}
+                slider_width = Slider(
+                    start=100, end=1000, step=50, value=kwargs['plot_width'],
+                    callback=callback, title='Plot width',
+                )
+                slider_height = Slider(
+                    start=100, end=1000, step=50, value=kwargs['plot_height'],
+                    callback=callback, title='Plot height',
+                )
+                callback.args = {
+                    'slider_width': slider_width,
+                    'slider_height': slider_height,
+                    'figure': bokehPlot,
+                }
                 js_widgets.append(slider_width)
                 js_widgets.append(slider_height)
-                msg = "{} Plot size sliders |".format(msg)
+                msg = '{} Plot size sliders |'.format(msg)
 
             # add controls to the plot at specified position
-            if position == "right":
+            if position == 'right':
                 bokehPlot = row(bokehPlot, widgetbox(js_widgets))
-            elif position == "left":
+            elif position == 'left':
                 bokehPlot = row(widgetbox(js_widgets), bokehPlot)
-            elif position == "top_row":
+            elif position == 'top_row':
                 bokehPlot = bokeh_layout([js_widgets, bokehPlot])
-            elif position == "top_column":
+            elif position == 'top_column':
                 bokehPlot = bokeh_layout([widgetbox(js_widgets), bokehPlot])
-            elif position == "bottom_row":
+            elif position == 'bottom_row':
                 bokehPlot = bokeh_layout([bokehPlot, js_widgets])
-            elif position == "bottom_column":
+            elif position == 'bottom_column':
                 bokehPlot = bokeh_layout([bokehPlot, widgetbox(js_widgets)])
 
-            msg = "{}. It took {:.3f} seconds".format(msg[:-2], (time.time() - tstart))
+            msg = '{}. It took {:.3f} seconds'.format(msg[:-2], (time.time() - tstart))
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
         except Exception as e:
             print(e)
 #         except RuntimeError:
-            msg = "ORIGAMI encountered an error when compiling custom JavaScript widgets. There are a few things you can do to fix this.\n" + \
-                  "1) Disable JavaScript widgets/events in the Annotations tab. OR\n" + \
+            msg = 'ORIGAMI encountered an error when compiling custom JavaScript widgets. There are a few things you can do to fix this.\n' + \
+                  '1) Disable JavaScript widgets/events in the Annotations tab. OR\n' + \
                   "2) Go to ORIGAMI's working directory and use attached JavaScript installer \n" + \
-                  "   (node-v10.14.1-x64.msi)\n" + \
-                  "   Execute the script and either restart ORIGAMI or close the Interactive panel and try again OR\n" + \
-                  "3) Go to https://nodejs.org/en/download/ and download the latest version of JavaScript installer \n" + \
-                  "   and execute same steps as in the above option.\n\n" + \
-                  "ORIGAMI directory: {}".format(self.config.cwd)
+                  '   (node-v10.14.1-x64.msi)\n' + \
+                  '   Execute the script and either restart ORIGAMI or close the Interactive panel and try again OR\n' + \
+                  '3) Go to https://nodejs.org/en/download/ and download the latest version of JavaScript installer \n' + \
+                  '   and execute same steps as in the above option.\n\n' + \
+                  'ORIGAMI directory: {}'.format(self.config.cwd)
 
-            dlgBox(exceptionTitle='No JavaScript available',
-                   exceptionMsg=msg,
-                   type="Error")
+            dlgBox(
+                exceptionTitle='No JavaScript available',
+                exceptionMsg=msg,
+                type='Error',
+            )
             self.config.interactive_custom_scripts = False
             self.custom_js_scripts.SetValue(False)
 
         # return plot with widgets
         return bokehPlot
 
-    def add_custom_js_events(self, bokehPlot, js_type="double_tap_unzoom", **kwargs):
+    def add_custom_js_events(self, bokehPlot, js_type='double_tap_unzoom', **kwargs):
         """
         Add custoom JS scripts to plots
         bokehPlot    figure    bokeh figure
@@ -3879,7 +4426,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         try:
             tstart = time.time()
-            msg = "Added JS events: "
+            msg = 'Added JS events: '
             if not isinstance(js_type, list):
                 js_type = [js_type]
 
@@ -3891,7 +4438,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 #             bokehPlot.js_on_event(events.PanStart, CustomJS.from_coffeescript(code=js_code, args={"figure":bokehPlot,
 #                                                                                                   "hover":hover}))
 
-            if "double_tap_unzoom" in js_type:
+            if 'double_tap_unzoom' in js_type:
                 # TODO: add support to programatically disable hover tool
                 # figure.toolbar.active_inspect.active = false;
                 # figure.change.emit()
@@ -3903,25 +4450,30 @@ class panelInteractiveOutput(wx.MiniFrame):
                 figure.reset.emit();
                 '''
 
-                bokehPlot.js_on_event(events.DoubleTap, CustomJS.from_coffeescript(
-                    code=js_code, args={"figure": bokehPlot}))
-                msg = "{} Double tap = unzoom |".format(msg)
+                bokehPlot.js_on_event(
+                    events.DoubleTap, CustomJS.from_coffeescript(
+                        code=js_code, args={'figure': bokehPlot},
+                    ),
+                )
+                msg = '{} Double tap = unzoom |'.format(msg)
 
-            msg = "{}. It took {:.3f} seconds".format(msg[:-2], (time.time() - tstart))
+            msg = '{}. It took {:.3f} seconds'.format(msg[:-2], (time.time() - tstart))
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
         except RuntimeError:
-            msg = "ORIGAMI encountered an error when compiling custom JavaScript widgets. There are a few things you can do to fix this.\n" + \
-                  "1) Disable JavaScript widgets/events in the Annotations tab. OR\n" + \
+            msg = 'ORIGAMI encountered an error when compiling custom JavaScript widgets. There are a few things you can do to fix this.\n' + \
+                  '1) Disable JavaScript widgets/events in the Annotations tab. OR\n' + \
                   "2) Go to ORIGAMI's working directory and use attached JavaScript installer \n" + \
-                  "   (node-v10.14.1-x64.msi).\n" + \
-                  "   Execute the script and either restart ORIGAMI or close the Interactive panel and try again OR\n" + \
-                  "3) Go to https://nodejs.org/en/download/ and download the latest version of JavaScript installer \n" + \
-                  "   and execute same steps as in the above option.\n\n" + \
-                  "ORIGAMI directory: {}".format(self.config.cwd)
+                  '   (node-v10.14.1-x64.msi).\n' + \
+                  '   Execute the script and either restart ORIGAMI or close the Interactive panel and try again OR\n' + \
+                  '3) Go to https://nodejs.org/en/download/ and download the latest version of JavaScript installer \n' + \
+                  '   and execute same steps as in the above option.\n\n' + \
+                  'ORIGAMI directory: {}'.format(self.config.cwd)
 
-            dlgBox(exceptionTitle='No JavaScript available',
-                   exceptionMsg=msg,
-                   type="Error")
+            dlgBox(
+                exceptionTitle='No JavaScript available',
+                exceptionMsg=msg,
+                type='Error',
+            )
             self.config.interactive_custom_events = False
             self.custom_js_events.SetValue(False)
         # return plot
@@ -3948,45 +4500,56 @@ class panelInteractiveOutput(wx.MiniFrame):
         quad_source, label_source, arrow_source = None, None, None
 
         # get color
-        label_use_preset_color = user_kwargs["annotation_properties"].get("label_use_preset_color", True)
-        label_color = convertRGB1toHEX(user_kwargs["annotation_properties"].get(
-            "label_color", self.config.interactive_ms_annotations_line_color))
+        label_use_preset_color = user_kwargs['annotation_properties'].get('label_use_preset_color', True)
+        label_color = convertRGB1toHEX(
+            user_kwargs['annotation_properties'].get(
+                'label_color', self.config.interactive_ms_annotations_line_color,
+            ),
+        )
 
         # add annotations iteratively
         for __, annotKey in enumerate(data['annotations']):
             # add patches
-            if user_kwargs["annotation_properties"].get(
-                    "show_patches", self.config.interactive_ms_annotations_highlight):
-                annot_xmin_list.append(data['annotations'][annotKey]["min"])
-                annot_xmax_list.append(data['annotations'][annotKey]["max"])
+            if user_kwargs['annotation_properties'].get(
+                    'show_patches', self.config.interactive_ms_annotations_highlight,
+            ):
+                annot_xmin_list.append(data['annotations'][annotKey]['min'])
+                annot_xmax_list.append(data['annotations'][annotKey]['max'])
                 annot_ymin_list.append(0)
                 annot_ymax_list.append(ylimits[1] + y_offset)
                 color_list.append(
                     convertRGB1toHEX(
                         data['annotations'][annotKey].get(
-                            "color",
+                            'color',
                             data.get(
-                                "interactive_params",
-                                {}).get(
-                                "annotation_properties",
-                                {}).get(
-                                "label_color",
-                                self.config.interactive_ms_annotations_line_color))))
+                                'interactive_params',
+                                {},
+                            ).get(
+                                'annotation_properties',
+                                {},
+                            ).get(
+                                'label_color',
+                                self.config.interactive_ms_annotations_line_color,
+                            ),
+                        ),
+                    ),
+                )
 
             # add labels
-            if user_kwargs["annotation_properties"].get(
-                    "show_labels", self.config.interactive_ms_annotations_labels):
+            if user_kwargs['annotation_properties'].get(
+                    'show_labels', self.config.interactive_ms_annotations_labels,
+            ):
                 # determine position of the ion/peak
                 if 'isotopic_x' in data['annotations'][annotKey]:
                     mz_value = data['annotations'][annotKey]['isotopic_x']
                 else:
-                    mz_value = data['annotations'][annotKey]["max"] - \
-                        (data['annotations'][annotKey]["max"] - data['annotations'][annotKey]["min"]) / 2.
+                    mz_value = data['annotations'][annotKey]['max'] - \
+                        (data['annotations'][annotKey]['max'] - data['annotations'][annotKey]['min']) / 2.
 
                 if 'isotopic_y' in data['annotations'][annotKey]:
                     intensity = data['annotations'][annotKey]['isotopic_y']
                 else:
-                    intensity = data['annotations'][annotKey]["intensity"]
+                    intensity = data['annotations'][annotKey]['intensity']
 
                 xpos = data['annotations'][annotKey].get('position_label_x', mz_value)
                 ypos = data['annotations'][annotKey].get('position_label_y', intensity)
@@ -3995,8 +4558,13 @@ class panelInteractiveOutput(wx.MiniFrame):
                 text_annot_ypos.append(ypos + y_offset)
 
                 if label_use_preset_color:
-                    label_color = convertRGB1toHEX(data['annotations'][annotKey].get("color", user_kwargs[
-                        "annotation_properties"].get("label_color", self.config.interactive_ms_annotations_line_color)))
+                    label_color = convertRGB1toHEX(
+                        data['annotations'][annotKey].get(
+                            'color', user_kwargs[
+                                'annotation_properties'
+                            ].get('label_color', self.config.interactive_ms_annotations_line_color),
+                        ),
+                    )
                 text_annot_color.append(label_color)
 
                 # determine position of arrow (if any)
@@ -4018,10 +4586,10 @@ class panelInteractiveOutput(wx.MiniFrame):
                     text_annot_ypos[-1] = ypos_start
 
                 # label
-                if data['annotations'][annotKey]["label"] not in ["", None]:
-                    label = "{}".format(_replace_labels(data['annotations'][annotKey]["label"]))
+                if data['annotations'][annotKey]['label'] not in ['', None]:
+                    label = '{}'.format(_replace_labels(data['annotations'][annotKey]['label']))
                 else:
-                    label = "{}".format(data['annotations'][annotKey]["charge"])
+                    label = '{}'.format(data['annotations'][annotKey]['charge'])
                 text_annot_label.append(label)
 
                 # check if need to add arrow
@@ -4033,27 +4601,40 @@ class panelInteractiveOutput(wx.MiniFrame):
                     text_annot_xpos_start.append(xpos_start)
                     text_annot_ypos_start.append(ypos_start)
 
-        if user_kwargs["annotation_properties"].get(
-                "show_patches", self.config.interactive_ms_annotations_highlight):
-            quad_source = ColumnDataSource(data=dict(top=annot_ymax_list,
-                                                     bottom=annot_ymin_list,
-                                                     left=annot_xmin_list,
-                                                     right=annot_xmax_list,
-                                                     color=color_list
-                                                     ))
-        if user_kwargs["annotation_properties"].get(
-                "show_labels", self.config.interactive_ms_annotations_labels):
+        if user_kwargs['annotation_properties'].get(
+                'show_patches', self.config.interactive_ms_annotations_highlight,
+        ):
+            quad_source = ColumnDataSource(
+                data=dict(
+                    top=annot_ymax_list,
+                    bottom=annot_ymin_list,
+                    left=annot_xmin_list,
+                    right=annot_xmax_list,
+                    color=color_list,
+                ),
+            )
+        if user_kwargs['annotation_properties'].get(
+                'show_labels', self.config.interactive_ms_annotations_labels,
+        ):
             ylimits[1] = max(text_annot_ypos) * 2
-            label_source = ColumnDataSource(data=dict(xpos=text_annot_xpos,
-                                                      ypos=text_annot_ypos,
-                                                      label=text_annot_label,
-                                                      color=text_annot_color))
+            label_source = ColumnDataSource(
+                data=dict(
+                    xpos=text_annot_xpos,
+                    ypos=text_annot_ypos,
+                    label=text_annot_label,
+                    color=text_annot_color,
+                ),
+            )
 
         if len(text_annot_xpos_start) > 0 and len(text_annot_ypos_start) > 0:
-            arrow_source = ColumnDataSource(data=dict(xpos_start=arrow_xpos_start,
-                                                      ypos_start=arrow_ypos_start,
-                                                      xpos_end=arrow_xpos_end,
-                                                      ypos_end=arrow_ypos_end))
+            arrow_source = ColumnDataSource(
+                data=dict(
+                    xpos_start=arrow_xpos_start,
+                    ypos_start=arrow_ypos_start,
+                    xpos_end=arrow_xpos_end,
+                    ypos_end=arrow_ypos_end,
+                ),
+            )
 
         return quad_source, label_source, arrow_source
 
@@ -4068,7 +4649,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         overlay_layout = interactive_params['overlay_layout']
         overlay_linkXY = interactive_params['overlay_linkXY']
         legend = interactive_params['legend']
-        title_label = interactive_params.get('title_label', "")
+        title_label = interactive_params.get('title_label', '')
         xpos = interactive_params.get('grid_xpos', self.config.interactive_grid_xpos)
         ypos = interactive_params.get('grid_ypos', self.config.interactive_grid_ypos)
         waterfall_increment = interactive_params.get('waterfall_increment', self.config.interactive_waterfall_increment)
@@ -4079,10 +4660,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         linearize_spectra = interactive_params.get('linearize_spectra', self.config.interactive_ms_linearize)
         show_annotations = interactive_params.get('show_annotations', self.config.interactive_ms_annotations)
         bin_size = interactive_params.get('bin_size', self.config.interactive_ms_binSize)
-        plot_width = interactive_params.get("plot_width", self.config.figWidth)
-        plot_height = interactive_params.get("plot_height", self.config.figHeight)
-        _xlimits_ = interactive_params.get("xlimits", None)
-        _ylimits_ = interactive_params.get("ylimits", None)
+        plot_width = interactive_params.get('plot_width', self.config.figWidth)
+        plot_height = interactive_params.get('plot_height', self.config.figHeight)
+        _xlimits_ = interactive_params.get('xlimits', None)
+        _ylimits_ = interactive_params.get('ylimits', None)
 
         # Check if we should lock the hoverline
         if hover_vline:
@@ -4090,81 +4671,95 @@ class panelInteractiveOutput(wx.MiniFrame):
         else:
             hoverMode = 'mouse'
 
-        plt_kwargs = {'hover_mode': hoverMode,
-                      'line_width': line_width,
-                      'line_alpha': line_alpha,
-                      'line_style': line_style,
-                      'overlay_layout': overlay_layout,
-                      'overlay_linkXY': overlay_linkXY,
-                      'add_legend': legend,
-                      'title_label': title_label,
-                      'xpos': xpos, 'ypos': ypos,
-                      'waterfall_increment': waterfall_increment,
-                      'linearize_spectra': linearize_spectra,
-                      'show_annotations': show_annotations,
-                      'bin_size': bin_size,
-                      'waterfall_shade': waterfall_shade,
-                      'waterfall_shade_transparency': waterfall_shade_transparency,
-                      'overlay_shade': overlay_shade,
-                      'overlay_shade_transparency': overlay_shade_transparency,
-                      'plot_width': plot_width,
-                      'plot_height': plot_height,
-                      '_xlimits_': _xlimits_,
-                      '_ylimits_': _ylimits_,
-                      }
+        plt_kwargs = {
+            'hover_mode': hoverMode,
+            'line_width': line_width,
+            'line_alpha': line_alpha,
+            'line_style': line_style,
+            'overlay_layout': overlay_layout,
+            'overlay_linkXY': overlay_linkXY,
+            'add_legend': legend,
+            'title_label': title_label,
+            'xpos': xpos, 'ypos': ypos,
+            'waterfall_increment': waterfall_increment,
+            'linearize_spectra': linearize_spectra,
+            'show_annotations': show_annotations,
+            'bin_size': bin_size,
+            'waterfall_shade': waterfall_shade,
+            'waterfall_shade_transparency': waterfall_shade_transparency,
+            'overlay_shade': overlay_shade,
+            'overlay_shade_transparency': overlay_shade_transparency,
+            'plot_width': plot_width,
+            'plot_height': plot_height,
+            '_xlimits_': _xlimits_,
+            '_ylimits_': _ylimits_,
+        }
 
         return plt_kwargs
 
-    def _setupPlotParameters(self, bokehPlot, data={}, plot_type="1D", **kwargs):
+    def _setupPlotParameters(self, bokehPlot, data={}, plot_type='1D', **kwargs):
 
-        if "xlimits" in kwargs:
+        if 'xlimits' in kwargs:
             bokehPlot.x_range.start = kwargs['xlimits'][0]
             bokehPlot.x_range.end = kwargs['xlimits'][1]
 
-        if "ylimits" in kwargs:
+        if 'ylimits' in kwargs:
             bokehPlot.y_range.start = kwargs['ylimits'][0]
             bokehPlot.y_range.end = kwargs['ylimits'][1]
 
         # common
-        bokehPlot.title.text_font_size = self._fontSizeConverter(data.get("interactive_params", {}).get(
-            "frame_properties", {}).get("title_fontsize", self.config.interactive_title_fontSize))
-        bokehPlot.title.text_font_style = self._fontWeightConverter(data.get("interactive_params", {}).get(
-            "frame_properties", {}).get("title_fontweight", self.config.interactive_title_weight))
+        bokehPlot.title.text_font_size = self._fontSizeConverter(
+            data.get('interactive_params', {}).get(
+                'frame_properties', {},
+            ).get('title_fontsize', self.config.interactive_title_fontSize),
+        )
+        bokehPlot.title.text_font_style = self._fontWeightConverter(
+            data.get('interactive_params', {}).get(
+                'frame_properties', {},
+            ).get('title_fontweight', self.config.interactive_title_weight),
+        )
 
-        if data.get("interactive_params", {}).get("frame_properties", {}).get(
-                "gridline", self.config.interactive_grid_line):
+        if data.get('interactive_params', {}).get('frame_properties', {}).get(
+                'gridline', self.config.interactive_grid_line,
+        ):
             bokehPlot.grid.grid_line_color = convertRGB1toHEX(
-                data.get("interactive_params", {}).get("frame_properties", {}).get(
-                    "gridline_color", self.config.interactive_grid_line_color))
+                data.get('interactive_params', {}).get('frame_properties', {}).get(
+                    'gridline_color', self.config.interactive_grid_line_color,
+                ),
+            )
 
         bokehPlot.background_fill_color = convertRGB1toHEX(
-            data.get("interactive_params", {}).get("frame_properties", {}).get(
-                "background_color", self.config.interactive_background_color))
+            data.get('interactive_params', {}).get('frame_properties', {}).get(
+                'background_color', self.config.interactive_background_color,
+            ),
+        )
 
         set_common_parameters = []
-        if plot_type == "1D":
+        if plot_type == '1D':
             set_common_parameters = ['label', 'frame', 'border']
 
-        elif plot_type == "Scatter":
+        elif plot_type == 'Scatter':
             set_common_parameters = ['legend', 'label', 'frame', 'border']
 
-        elif plot_type == "Waterfall":
+        elif plot_type == 'Waterfall':
             set_common_parameters = ['legend', 'label', 'frame', 'border']
 
-        elif plot_type == "Waterfall_overlay":
+        elif plot_type == 'Waterfall_overlay':
             set_common_parameters = ['legend', 'label', 'frame', 'border']
 
-        elif plot_type == "Overlay_1D":
+        elif plot_type == 'Overlay_1D':
             set_common_parameters = ['legend', 'label', 'frame', 'border']
 
-        elif plot_type == "2D":
+        elif plot_type == '2D':
             set_common_parameters = ['label', 'frame', 'border']
 
-        elif plot_type == "Matrix":
+        elif plot_type == 'Matrix':
             # X-axis
             bokehPlot.xaxis.major_label_orientation = data.get(
-                "interactive_params", {}).get("overlay_properties", {}).get(
-                    "rmsd_matrix_xaxis_rotation", 120) * 0.0174533
+                'interactive_params', {},
+            ).get('overlay_properties', {}).get(
+                'rmsd_matrix_xaxis_rotation', 120,
+            ) * 0.0174533
             bokehPlot.xaxis.major_label_standoff = 10
             # Y-axis
             bokehPlot.grid.grid_line_color = None
@@ -4173,114 +4768,168 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             set_common_parameters = ['label', 'frame', 'border']
 
-        elif plot_type == "RMSF":
+        elif plot_type == 'RMSF':
             # Add border
             bokehPlot.outline_line_width = data.get(
-                "interactive_params", {}).get("frame_properties", {}).get(
-                "outline_width", self.config.interactive_outline_width)
+                'interactive_params', {},
+            ).get('frame_properties', {}).get(
+                'outline_width', self.config.interactive_outline_width,
+            )
             bokehPlot.outline_line_alpha = data.get(
-                "interactive_params", {}).get("frame_properties", {}).get(
-                    "outline_alpha", self.config.interactive_outline_alpha)
+                'interactive_params', {},
+            ).get('frame_properties', {}).get(
+                'outline_alpha', self.config.interactive_outline_alpha,
+            )
 
             bokehPlot.outline_line_color = data.get(
-                "interactive_params", {}).get("frame_properties", {}).get(
-                    "outline_color", "#000000")
+                'interactive_params', {},
+            ).get('frame_properties', {}).get(
+                'outline_color', '#000000',
+            )
             # Y-axis
             bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
             bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
             bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
             # X-axis
-            bokehPlot.xaxis.axis_label_text_font_size = "0pt"
-            bokehPlot.xaxis.major_label_text_font_size = "0pt"
+            bokehPlot.xaxis.axis_label_text_font_size = '0pt'
+            bokehPlot.xaxis.major_label_text_font_size = '0pt'
 
         for param in set_common_parameters:
-            if param == "label":
+            if param == 'label':
                 # set label parameters
                 bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(
-                    data.get("interactive_params", {}).get("frame_properties", {}).get(
-                        "label_xaxis_fontsize", self.config.interactive_label_fontSize))
+                    data.get('interactive_params', {}).get('frame_properties', {}).get(
+                        'label_xaxis_fontsize', self.config.interactive_label_fontSize,
+                    ),
+                )
                 bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(
-                    data.get("interactive_params", {}).get("frame_properties", {}).get(
-                        "label_fontweight", self.config.interactive_label_weight))
+                    data.get('interactive_params', {}).get('frame_properties', {}).get(
+                        'label_fontweight', self.config.interactive_label_weight,
+                    ),
+                )
 
                 bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(
-                    data.get("interactive_params", {}).get("frame_properties", {}).get(
-                        "label_yaxis_fontsize", self.config.interactive_label_fontSize))
+                    data.get('interactive_params', {}).get('frame_properties', {}).get(
+                        'label_yaxis_fontsize', self.config.interactive_label_fontSize,
+                    ),
+                )
                 bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(
-                    data.get("interactive_params", {}).get("frame_properties", {}).get(
-                        "label_fontweight", self.config.interactive_label_weight))
+                    data.get('interactive_params', {}).get('frame_properties', {}).get(
+                        'label_fontweight', self.config.interactive_label_weight,
+                    ),
+                )
 
-            if param in ["frame", "ticks"]:
+            if param in ['frame', 'ticks']:
                 # set tick parameters
                 bokehPlot.xaxis.major_tick_line_color = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "ticks_xaxis_color", "#000000")
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'ticks_xaxis_color', '#000000',
+                )
                 bokehPlot.xaxis.minor_tick_line_color = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "ticks_xaxis_color", "#000000")
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'ticks_xaxis_color', '#000000',
+                )
                 bokehPlot.yaxis.major_tick_line_color = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "ticks_yaxis_color", "#000000")
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'ticks_yaxis_color', '#000000',
+                )
                 bokehPlot.yaxis.minor_tick_line_color = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "ticks_yaxis_color", "#000000")
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'ticks_yaxis_color', '#000000',
+                )
                 bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(
-                    data.get("interactive_params", {}).get("frame_properties", {}).get(
-                        "tick_labels_xaxis_fontsize", self.config.interactive_tick_fontSize))
+                    data.get('interactive_params', {}).get('frame_properties', {}).get(
+                        'tick_labels_xaxis_fontsize', self.config.interactive_tick_fontSize,
+                    ),
+                )
                 bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(
-                    data.get("interactive_params", {}).get("frame_properties", {}).get(
-                        "tick_labels_yaxis_fontsize", self.config.interactive_tick_fontSize))
+                    data.get('interactive_params', {}).get('frame_properties', {}).get(
+                        'tick_labels_yaxis_fontsize', self.config.interactive_tick_fontSize,
+                    ),
+                )
 
-            if param in ["legend"]:
+            if param in ['legend']:
                 bokehPlot.legend.location = data.get(
-                    "interactive_params", {}).get("legend_properties", {}).get(
-                        "legend_location", self.config.interactive_legend_location)
+                    'interactive_params', {},
+                ).get('legend_properties', {}).get(
+                    'legend_location', self.config.interactive_legend_location,
+                )
                 bokehPlot.legend.click_policy = data.get(
-                    "interactive_params", {}).get("legend_properties", {}).get(
-                        "legend_click_policy", self.config.interactive_legend_click_policy)
+                    'interactive_params', {},
+                ).get('legend_properties', {}).get(
+                    'legend_click_policy', self.config.interactive_legend_click_policy,
+                )
                 bokehPlot.legend.background_fill_alpha = data.get(
-                    "interactive_params", {}).get("legend_properties", {}).get(
-                        "legend_background_alpha", self.config.interactive_legend_background_alpha)
+                    'interactive_params', {},
+                ).get('legend_properties', {}).get(
+                    'legend_background_alpha', self.config.interactive_legend_background_alpha,
+                )
                 bokehPlot.legend.border_line_alpha = data.get(
-                    "interactive_params", {}).get("legend_properties", {}).get(
-                        "legend_background_alpha", self.config.interactive_legend_background_alpha)
-                bokehPlot.legend.label_text_font_size = self._fontSizeConverter(data.get(
-                    "interactive_params", {}).get("legend_font_size", {}).get(
-                        "legend_location", self.config.interactive_legend_font_size))
+                    'interactive_params', {},
+                ).get('legend_properties', {}).get(
+                    'legend_background_alpha', self.config.interactive_legend_background_alpha,
+                )
+                bokehPlot.legend.label_text_font_size = self._fontSizeConverter(
+                    data.get(
+                        'interactive_params', {},
+                    ).get('legend_font_size', {}).get(
+                        'legend_location', self.config.interactive_legend_font_size,
+                    ),
+                )
                 bokehPlot.legend.orientation = data.get(
-                    "interactive_params", {}).get("legend_properties", {}).get(
-                        "legend_orientation", self.config.interactive_legend_orientation)
+                    'interactive_params', {},
+                ).get('legend_properties', {}).get(
+                    'legend_orientation', self.config.interactive_legend_orientation,
+                )
                 bokehPlot.legend.border_line_width = 0
 
-            if param in ["border"]:
+            if param in ['border']:
                 # add outline
                 bokehPlot.outline_line_width = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "outline_width", self.config.interactive_outline_width)
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'outline_width', self.config.interactive_outline_width,
+                )
 
                 bokehPlot.outline_line_alpha = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "outline_alpha", self.config.interactive_outline_alpha)
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'outline_alpha', self.config.interactive_outline_alpha,
+                )
 
                 bokehPlot.outline_line_color = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "outline_color", "#000000")
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'outline_color', '#000000',
+                )
 
                 # add borders
                 bokehPlot.min_border_right = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "border_left", self.config.interactive_border_min_right)
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'border_left', self.config.interactive_border_min_right,
+                )
                 bokehPlot.min_border_left = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "border_right", self.config.interactive_border_min_left)
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'border_right', self.config.interactive_border_min_left,
+                )
                 bokehPlot.min_border_top = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "border_top", self.config.interactive_border_min_top)
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'border_top', self.config.interactive_border_min_top,
+                )
                 bokehPlot.min_border_bottom = data.get(
-                    "interactive_params", {}).get("frame_properties", {}).get(
-                        "border_bottom", self.config.interactive_border_min_bottom)
+                    'interactive_params', {},
+                ).get('frame_properties', {}).get(
+                    'border_bottom', self.config.interactive_border_min_bottom,
+                )
 
-                if kwargs.get("tight_layout", False):
+                if kwargs.get('tight_layout', False):
                     bokehPlot.min_border_right = 10
                     bokehPlot.min_border_left = 10
                     bokehPlot.min_border_top = 10
@@ -4290,7 +4939,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if self.config.interactive_custom_events:
             #             try:
             #
-            bokehPlot = self.add_custom_js_events(bokehPlot, js_type=["double_tap_unzoom"], **kwargs)
+            bokehPlot = self.add_custom_js_events(bokehPlot, js_type=['double_tap_unzoom'], **kwargs)
 #             except Exception: pass
         return bokehPlot
 
@@ -4391,7 +5040,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         # xvals, yvals, labels, colors, details
         mz_list_size = len(xvals_raw)
 
-        labels = [""] * mz_list_size
+        labels = [''] * mz_list_size
         details = deepcopy(labels)
         item_colors = [color_unlabelled] * mz_list_size
 
@@ -4401,10 +5050,11 @@ class panelInteractiveOutput(wx.MiniFrame):
             # support more than one label for one peak
             item_colors[i] = color_labelled
             mz_value = xvals_raw[i]
-            detail_label = "{}; z={}; error={} Da".format(
+            detail_label = '{}; z={}; error={} Da'.format(
                 data[mz_value][0]['peptide'],
                 data[mz_value][0]['charge'],
-                data[mz_value][0]['delta_mz'])
+                data[mz_value][0]['delta_mz'],
+            )
             details[i] = detail_label
             labels[i] = data[mz_value][0]['full_label']
 
@@ -4416,24 +5066,26 @@ class panelInteractiveOutput(wx.MiniFrame):
         seq_len, seq_split = 0, []
         for seq_n in seq:
             seq_n = wrap(seq_n, 10)
-            seq_n = " ".join(seq_n)
+            seq_n = ' '.join(seq_n)
             if len(seq_n) < 87:
-                seq_n = seq_n + "&nbsp;" * (87 - len(seq_n))
+                seq_n = seq_n + '&nbsp;' * (87 - len(seq_n))
             seq_len += 80
             seq_split.append("<font face='Courier New'><p>{}  {}</p>".format(seq_n, seq_len))
-        seq = "\n".join(seq_split)
+        seq = '\n'.join(seq_split)
 
         return seq
 
     def _prepare_protein_accession(self, accession):
-        if accession.startswith("sp|"):
-            accession_split = re.split("\|", accession)
+        if accession.startswith('sp|'):
+            accession_split = re.split(r'\|', accession)
             accession = '<a href="https://www.uniprot.org/uniprot/{}">{}</a>'.format(
-                accession_split[1], accession)
-        elif accession.startswith("gi|"):
-            accession_split = re.split("\|", accession)
+                accession_split[1], accession,
+            )
+        elif accession.startswith('gi|'):
+            accession_split = re.split(r'\|', accession)
             accession = '<a href="https://www.ncbi.nlm.nih.gov/protein/{}">{}</a>'.format(
-                accession_split[1], accession)
+                accession_split[1], accession,
+            )
 
         return accession
 
@@ -4442,28 +5094,30 @@ class panelInteractiveOutput(wx.MiniFrame):
         Generate html text for div
         """
 
-        protein_seq, protein_desc, protein_accession = "Sequence was not provided", "", ""
-        if "identification" in data[scanID]:
+        protein_seq, protein_desc, protein_accession = 'Sequence was not provided', '', ''
+        if 'identification' in data[scanID]:
             # get protein sequence
-            protein_seq = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("peptide_seq", "")
+            protein_seq = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get('peptide_seq', '')
             if protein_seq == {}:
-                protein_seq = "Sequence was not provided"
+                protein_seq = 'Sequence was not provided'
 
-            if protein_seq != "Sequence was not provided":
+            if protein_seq != 'Sequence was not provided':
                 protein_seq = self._prepare_protein_sequence(protein_seq)
             # get protein description
             protein_desc = data[scanID]['identification'][scan_num]['peptide_info'].get(
-                0, {}).get("protein_description", "")
+                0, {},
+            ).get('protein_description', '')
             # get protein accession
             protein_accession = data[scanID]['identification'][scan_num]['peptide_info'].get(
-                0, {}).get("accession", "Sequence was not provided")
+                0, {},
+            ).get('accession', 'Sequence was not provided')
             protein_accession = self._prepare_protein_accession(protein_accession)
 
             # get peptide sequence
             peptide_seq = data[scanID]['identification'][scan_num]['peptide_seq']
             # get peptide start/end
-            peptide_start = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("start", "")
-            peptide_end = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get("end", "")
+            peptide_start = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get('start', '')
+            peptide_end = data[scanID]['identification'][scan_num]['peptide_info'].get(0, {}).get('end', '')
 
             # get fragments
             n_fragments = len(data[scanID]['fragment_annotations'][scan_num].get('fragment_table', []))
@@ -4479,17 +5133,18 @@ class panelInteractiveOutput(wx.MiniFrame):
         <p><strong>Sequence</strong>:</p>
         <p>{}</p>
 
-        """.format(data[scanID]['scan_info']['title'],
-                   scanID,
-                   scan_num + 1,
-                   peptide_seq, peptide_start, peptide_end,
-                   data[scanID]['scan_info']['precursor_mz'],
-                   data[scanID]['scan_info']['precursor_charge'],
-                   n_fragments,
-                   protein_desc,
-                   protein_accession,
-                   protein_seq
-                   )
+        """.format(
+            data[scanID]['scan_info']['title'],
+            scanID,
+            scan_num + 1,
+            peptide_seq, peptide_start, peptide_end,
+            data[scanID]['scan_info']['precursor_mz'],
+            data[scanID]['scan_info']['precursor_charge'],
+            n_fragments,
+            protein_desc,
+            protein_accession,
+            protein_seq
+        )
 
         return html_title
 
@@ -4505,12 +5160,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         <p><strong>Precursor m/z</strong>: {}</p>
         <p><strong>Precursor charge</strong>: {}</p>
         <p><strong>Protein</strong>: {}</p>
-        """.format(data[scanID]['scan_info']['title'],
-                   scanID,
-                   scan_num + 1,
-                   data[scanID]['scan_info']['precursor_mz'],
-                   "",
-                   )
+        """.format(
+            data[scanID]['scan_info']['title'],
+            scanID,
+            scan_num + 1,
+            data[scanID]['scan_info']['precursor_mz'],
+            '',
+        )
 
         return html_title
 
@@ -4527,7 +5183,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         i = 0
         for key in data:
             # skip keys that are forbidden
-            if "Scan " not in key:
+            if 'Scan ' not in key:
                 continue
             if i >= hard_limit:
                 break
@@ -4541,54 +5197,63 @@ class panelInteractiveOutput(wx.MiniFrame):
             i += 1
 
         # create source data
-        source_list = ColumnDataSource(dict(
-            xvals_list=xvals_list,
-            yvals_list=yvals_list,
-            title_list=title_list,
-        ))
+        source_list = ColumnDataSource(
+            dict(
+                xvals_list=xvals_list,
+                yvals_list=yvals_list,
+                title_list=title_list,
+            ),
+        )
 
-        source = ColumnDataSource(dict(
-            xvals=xvals_list[0],
-            yvals=yvals_list[0],
-        ))
+        source = ColumnDataSource(
+            dict(
+                xvals=xvals_list[0],
+                yvals=yvals_list[0],
+            ),
+        )
 
         # Prepare hover tool
-        hoverTool = HoverTool(tooltips=[("m/z", '@xvals{0.00}'),
-                                        ("Intensity", '@yvals{0.00}'),
-                                        ], mode="mouse")
+        hoverTool = HoverTool(
+            tooltips=[
+                ('m/z', '@xvals{0.00}'),
+                ('Intensity', '@yvals{0.00}'),
+            ], mode='mouse',
+        )
         TOOLS = self._check_tools(hoverTool, data)
-        if user_kwargs['tools'].get("active_inspect", "auto") == "hover":
+        if user_kwargs['tools'].get('active_inspect', 'auto') == 'hover':
             inspect_tool = hoverTool
         else:
-            inspect_tool = user_kwargs['tools'].get("active_inspect", "auto")
+            inspect_tool = user_kwargs['tools'].get('active_inspect', 'auto')
 
         # create figure
         bokehPlot = figure(
             tools=TOOLS,
-            title=bkh_kwargs["title"],
-            active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-            active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
+            title=bkh_kwargs['title'],
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
             active_inspect=inspect_tool,
             plot_width=plt_kwargs['plot_width'],
             plot_height=plt_kwargs['plot_height'],
-            toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-            toolbar_sticky=False)
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         # add plot
         bokehPlot.segment(
-            x0="xvals", y0=0, x1="xvals", y1="yvals", line_color="#000000",
+            x0='xvals', y0=0, x1='xvals', y1='yvals', line_color='#000000',
             line_width=user_kwargs['plot_properties']['tandem_line_width'],
-            source=source)
+            source=source,
+        )
 
         # setup labels
-        bokehPlot.xaxis.axis_label = "m/z"
-        bokehPlot.yaxis.axis_label = "Intensity"
+        bokehPlot.xaxis.axis_label = 'm/z'
+        bokehPlot.yaxis.axis_label = 'Intensity'
 
         # generate js kwargs
         setup_kwargs = dict(hover=hoverTool)
 
         # setup common plot parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **setup_kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='1D', data=data, **setup_kwargs)
 
         # create div for scan information
         divHeader = Div(text=title_list[0])
@@ -4619,13 +5284,17 @@ class panelInteractiveOutput(wx.MiniFrame):
         source.change.emit();
         '''
 
-        callback = CustomJS(code=js_code,
-                            args={'figure': bokehPlot, 'source': source,
-                                  'source_list': source_list,
-                                  'title_list': annotated_ms_list,
-                                  'div': divHeader})
+        callback = CustomJS(
+            code=js_code,
+            args={
+                'figure': bokehPlot, 'source': source,
+                'source_list': source_list,
+                'title_list': annotated_ms_list,
+                'div': divHeader,
+            },
+        )
 
-        toggle = Select(title="Dataset (id):", value="0", options=options_list, callback=callback)
+        toggle = Select(title='Dataset (id):', value='0', options=options_list, callback=callback)
         js_widgets.append(toggle)
 
         # arrange
@@ -4638,13 +5307,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
 
-        annotated_ms_list = data.get("annotated_item_list", [])
+        annotated_ms_list = data.get('annotated_item_list', [])
         if len(annotated_ms_list) == 0:
             return
 
         # convert colors
-        color_labelled = convertRGB1toHEX(user_kwargs["plot_properties"]["tandem_line_color_labelled"])
-        color_unlabelled = convertRGB1toHEX(user_kwargs["plot_properties"]["tandem_line_color_unlabelled"])
+        color_labelled = convertRGB1toHEX(user_kwargs['plot_properties']['tandem_line_color_labelled'])
+        color_unlabelled = convertRGB1toHEX(user_kwargs['plot_properties']['tandem_line_color_unlabelled'])
 
         # sort list
         annotated_ms_list = natsorted(annotated_ms_list)
@@ -4653,18 +5322,19 @@ class panelInteractiveOutput(wx.MiniFrame):
         xvals_list, yvals_list, options_list = [], [], []
         item_colors_list, item_labels_list, item_details_list, title_list = [], [], [], []
         for scan_id in annotated_ms_list:
-            scan, id_num = re.split(":", scan_id)
+            scan, id_num = re.split(':', scan_id)
             id_num = int(id_num)
             # plot data
             xvals_list.append(data[scan]['xvals'])
             yvals_list.append(data[scan]['yvals'])
-            options_list.append("{}:{}".format(scan, id_num + 1))
+            options_list.append('{}:{}'.format(scan, id_num + 1))
 
             item_colors, labels, details = self._prepare_centroid_data(
                 data[scan]['xvals'],
                 data[scan]['fragment_annotations'][id_num]['fragment_mass_list'],
                 data[scan]['fragment_annotations'][id_num]['fragment_table'],
-                color_labelled, color_unlabelled)
+                color_labelled, color_unlabelled,
+            )
 
             item_colors_list.append(item_colors)
             item_labels_list.append(labels)
@@ -4673,62 +5343,71 @@ class panelInteractiveOutput(wx.MiniFrame):
             title_list.append(html_title)
 
         # create source data
-        source_list = ColumnDataSource(dict(
-            xvals_list=xvals_list,
-            yvals_list=yvals_list,
-            colors_frag_list=item_colors_list,
-            labels_frag_list=item_labels_list,
-            details_frag_list=item_details_list,
-            title_list=title_list,
-        ))
+        source_list = ColumnDataSource(
+            dict(
+                xvals_list=xvals_list,
+                yvals_list=yvals_list,
+                colors_frag_list=item_colors_list,
+                labels_frag_list=item_labels_list,
+                details_frag_list=item_details_list,
+                title_list=title_list,
+            ),
+        )
 
-        source = ColumnDataSource(dict(
-            xvals=xvals_list[0],
-            yvals=yvals_list[0],
-            colors=item_colors_list[0],
-            labels=item_labels_list[0],
-            details=item_details_list[0],
-        ))
+        source = ColumnDataSource(
+            dict(
+                xvals=xvals_list[0],
+                yvals=yvals_list[0],
+                colors=item_colors_list[0],
+                labels=item_labels_list[0],
+                details=item_details_list[0],
+            ),
+        )
 
         # Prepare hover tool
-        hoverTool = HoverTool(tooltips=[("m/z", '@xvals{0.00}'),
-                                        ("Intensity", '@yvals{0.00}'),
-                                        ("Label", "@labels"),
-                                        ("Details", "@details")
-                                        ], mode="mouse")
+        hoverTool = HoverTool(
+            tooltips=[
+                ('m/z', '@xvals{0.00}'),
+                ('Intensity', '@yvals{0.00}'),
+                ('Label', '@labels'),
+                ('Details', '@details'),
+            ], mode='mouse',
+        )
         TOOLS = self._check_tools(hoverTool, data)
-        if user_kwargs['tools'].get("active_inspect", "auto") == "hover":
+        if user_kwargs['tools'].get('active_inspect', 'auto') == 'hover':
             inspect_tool = hoverTool
         else:
-            inspect_tool = user_kwargs['tools'].get("active_inspect", "auto")
+            inspect_tool = user_kwargs['tools'].get('active_inspect', 'auto')
 
         # create figure
         bokehPlot = figure(
             tools=TOOLS,
-            title=bkh_kwargs["title"],
-            active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-            active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
+            title=bkh_kwargs['title'],
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
             active_inspect=inspect_tool,
             plot_width=plt_kwargs['plot_width'],
             plot_height=plt_kwargs['plot_height'],
-            toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-            toolbar_sticky=False)
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         # add plot
         bokehPlot.segment(
-            x0="xvals", y0=0, x1="xvals", y1="yvals", line_color="colors",
+            x0='xvals', y0=0, x1='xvals', y1='yvals', line_color='colors',
             line_width=user_kwargs['plot_properties']['tandem_line_width'],
-            source=source)
+            source=source,
+        )
 
         # setup labels
-        bokehPlot.xaxis.axis_label = "m/z"
-        bokehPlot.yaxis.axis_label = "Intensity"
+        bokehPlot.xaxis.axis_label = 'm/z'
+        bokehPlot.yaxis.axis_label = 'Intensity'
 
         # generate js kwargs
         setup_kwargs = dict(hover=hoverTool)
 
         # setup common plot parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **setup_kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='1D', data=data, **setup_kwargs)
 
         # create div for scan information
         # ("<p><strong>Current ID: {}<br /></strong></p>".format(annotated_ms_list[0])))
@@ -4767,20 +5446,26 @@ class panelInteractiveOutput(wx.MiniFrame):
         source.change.emit();
         '''
 
-        callback = CustomJS(code=js_code,
-                            args={'figure': bokehPlot,
-                                  'source': source,
-                                  'source_list': source_list,
-                                  'title_list': annotated_ms_list,
-                                  'div': divHeader})
+        callback = CustomJS(
+            code=js_code,
+            args={
+                'figure': bokehPlot,
+                'source': source,
+                'source_list': source_list,
+                'title_list': annotated_ms_list,
+                'div': divHeader,
+            },
+        )
 
-        toggle = Select(title="Dataset (id):", value="0", options=options_list, callback=callback)
+        toggle = Select(title='Dataset (id):', value='0', options=options_list, callback=callback)
         js_widgets.append(toggle)
 
         # arrange
 #         bokehPlot = row(bokehPlot, column(widgetbox(js_widgets), divHeader))
-        bokehPlot = column(children=[row(bokehPlot, widgetbox(js_widgets)), divHeader],
-                           sizing_mode="scale_width")
+        bokehPlot = column(
+            children=[row(bokehPlot, widgetbox(js_widgets)), divHeader],
+            sizing_mode='scale_width',
+        )
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height'], {}, dict(add_watermark=False)]
 
@@ -4790,17 +5475,19 @@ class panelInteractiveOutput(wx.MiniFrame):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
 
-        xvals, yvals, xlabel, cmap = self.presenter.get2DdataFromDictionary(dictionary=data,
-                                                                            plotType='1D',
-                                                                            dataType='plot',
-                                                                            compact=False)
+        xvals, yvals, xlabel, cmap = self.presenter.get2DdataFromDictionary(
+            dictionary=data,
+            plotType='1D',
+            dataType='plot',
+            compact=False,
+        )
         ylabel = data['ylabel']
         # check xlabel
         if xlabel == []:
             try:
                 xlabel = data['xlabel']
             except Exception:
-                xlabel = ""
+                xlabel = ''
 
         # unpack if embedded in a list
         if len(xvals) == 1:
@@ -4808,40 +5495,48 @@ class panelInteractiveOutput(wx.MiniFrame):
         if len(yvals) == 1:
             yvals = yvals[0]
 
-        if bkh_kwargs.get("test_x_axis", False):
+        if bkh_kwargs.get('test_x_axis', False):
             xvals, xlabel, __ = self._kda_test(xvals)
 
-        if cmap == "":
+        if cmap == '':
             cmap = [0, 0, 0]
 
         # Prepare hover tool
         if bkh_kwargs['plot_type'] in ['MS', 'MS, multiple', 'RT', 'RT, multiple', '1D', '1D, multiple']:
-            _tooltips = [(xlabel, '@xvals{0.00}'),
-                         (ylabel, '@yvals{0.00}')]
+            _tooltips = [
+                (xlabel, '@xvals{0.00}'),
+                (ylabel, '@yvals{0.00}'),
+            ]
             itemLabels = []
-        elif bkh_kwargs['plot_type'] == "Other 1D":
-            _tooltips = [(xlabel, '@xvals{0.00}'),
-                         (ylabel, '@yvals{0.00}')]
+        elif bkh_kwargs['plot_type'] == 'Other 1D':
+            _tooltips = [
+                (xlabel, '@xvals{0.00}'),
+                (ylabel, '@yvals{0.00}'),
+            ]
             itemLabels = data['itemLabels']
             hoverLabels = data['hover_labels']
             for i in range(len(itemLabels)):
                 try:
                     hover_label = hoverLabels[i]
                 except Exception:
-                    hover_label = "Label ({})".format(i)
+                    hover_label = 'Label ({})'.format(i)
                 _tooltips.append((hover_label, '@labels_{}'.format(i)))
 
         # create tooltip
         hoverTool = HoverTool(
             tooltips=_tooltips,
-            mode=user_kwargs["plot_properties"].get("hover_mode", "mouse"),
-            names=["plot"])
+            mode=user_kwargs['plot_properties'].get('hover_mode', 'mouse'),
+            names=['plot'],
+        )
 
         # downsample
-        if (user_kwargs["preprocessing_properties"]["linearize"] and
-                len(xvals) > user_kwargs["preprocessing_properties"].get("linearize_limit", 25000)):
+        if (
+            user_kwargs['preprocessing_properties']['linearize'] and
+            len(xvals) > user_kwargs['preprocessing_properties'].get('linearize_limit', 25000)
+        ):
             xvals, yvals = self.linearize_spectrum(
-                xvals, yvals, user_kwargs["preprocessing_properties"]["linearize_binsize"])
+                xvals, yvals, user_kwargs['preprocessing_properties']['linearize_binsize'],
+            )
 
         # check x/y limits
         xlimits = [min(xvals), max(xvals)]
@@ -4850,7 +5545,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         ylimits = self._check_limits(ylimits, plt_kwargs['_ylimits_'])
 
         # crop data with xlimits in mind
-        if plt_kwargs['_xlimits_'] is not None and bkh_kwargs['plot_type'] != "Other 1D":
+        if plt_kwargs['_xlimits_'] is not None and bkh_kwargs['plot_type'] != 'Other 1D':
             try:
                 kwargs = {'min': xlimits[0], 'max': xlimits[1]}
                 xvals, yvals = crop_1D_data(xvals, yvals, **kwargs)
@@ -4858,61 +5553,66 @@ class panelInteractiveOutput(wx.MiniFrame):
                 pass
 
         # check if annotations should prepared
-        if ("annotations" in data and len(data["annotations"]) > 0 and
-                user_kwargs["preprocessing_properties"].get("show_annotations", True)):
+        if (
+            'annotations' in data and len(data['annotations']) > 0 and
+            user_kwargs['preprocessing_properties'].get('show_annotations', True)
+        ):
             quad_source, label_source, arrow_source = self._prepare_annotations(data, yvals)
 
         # generate source data
         _sourceDict = dict(xvals=xvals, yvals=yvals)
         if len(itemLabels) > 0:
             for ilabel in range(len(itemLabels)):
-                dict_label = "labels_{}".format(ilabel)
+                dict_label = 'labels_{}'.format(ilabel)
                 if len(itemLabels[ilabel]) == len(xvals):
                     _labels = itemLabels[ilabel]
                 else:
-                    _labels = len(xvals) * [""]
+                    _labels = len(xvals) * ['']
                 _sourceDict[dict_label] = _labels
 
         ms_source = ColumnDataSource(data=_sourceDict)
 
         # prepare tools
         TOOLS = self._check_tools(hoverTool, data)
-        if user_kwargs['tools'].get("active_inspect", "auto") == "hover":
+        if user_kwargs['tools'].get('active_inspect', 'auto') == 'hover':
             inspect_tool = hoverTool
         else:
-            inspect_tool = user_kwargs['tools'].get("active_inspect", "auto")
+            inspect_tool = user_kwargs['tools'].get('active_inspect', 'auto')
 
         # create figure
         bokehPlot = figure(
             x_range=xlimits, y_range=ylimits,
             tools=TOOLS,
-            title=bkh_kwargs["title"],
-            active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-            active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
+            title=bkh_kwargs['title'],
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
             active_inspect=inspect_tool,
             plot_width=plt_kwargs['plot_width'],
             plot_height=plt_kwargs['plot_height'],
-            toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-            toolbar_sticky=False)
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         # add line plot
-        cmap = convertRGB1toHEX(user_kwargs["plot_properties"].get("line_color", cmap))
+        cmap = convertRGB1toHEX(user_kwargs['plot_properties'].get('line_color', cmap))
         line = bokehPlot.line(
-            "xvals", "yvals", source=ms_source,
+            'xvals', 'yvals', source=ms_source,
             line_color=cmap,
-            line_width=user_kwargs["plot_properties"]["line_transparency"],
-            line_dash=user_kwargs["plot_properties"]["line_style"],
-            line_alpha=user_kwargs["plot_properties"]["line_transparency"],
-            name="plot")
+            line_width=user_kwargs['plot_properties']['line_transparency'],
+            line_dash=user_kwargs['plot_properties']['line_style'],
+            line_alpha=user_kwargs['plot_properties']['line_transparency'],
+            name='plot',
+        )
         _lines, _patches = [line], []
 
         # add patch
-        if user_kwargs["plot_properties"].get("line_shade_under", False):
+        if user_kwargs['plot_properties'].get('line_shade_under', False):
             patch = bokehPlot.patch(
-                "xvals", "yvals", color=cmap,
-                fill_alpha=user_kwargs["plot_properties"].get("shade_transparency", self.config.interactive_line_alpha),
+                'xvals', 'yvals', color=cmap,
+                fill_alpha=user_kwargs['plot_properties'].get('shade_transparency', self.config.interactive_line_alpha),
                 line_alpha=0.,
-                source=ms_source)
+                source=ms_source,
+            )
             _patches = [patch]
 
         # setup labels
@@ -4922,57 +5622,66 @@ class panelInteractiveOutput(wx.MiniFrame):
         # generate js kwargs
         js_kwargs = dict(xlimits=xlimits, ylimits=ylimits, hover=hoverTool)
         # setup common plot parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **js_kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='1D', data=data, **js_kwargs)
 
         # add labels, patches and arrows
         labels = None
-        if "annotations" in data and len(data["annotations"]) > 0 and user_kwargs["annotation_properties"].get(
-                "show_annotations", plt_kwargs['show_annotations']):
-            if user_kwargs["annotation_properties"].get(
-                    "show_patches", self.config.interactive_ms_annotations_highlight):
+        if 'annotations' in data and len(data['annotations']) > 0 and user_kwargs['annotation_properties'].get(
+                'show_annotations', plt_kwargs['show_annotations'],
+        ):
+            if user_kwargs['annotation_properties'].get(
+                    'show_patches', self.config.interactive_ms_annotations_highlight,
+            ):
                 bokehPlot.quad(
-                    top="top", bottom="bottom", left="left", right="right", color="color",
-                    fill_alpha=user_kwargs["annotation_properties"].get(
-                        "patch_transparency", self.config.interactive_ms_annotations_transparency),
+                    top='top', bottom='bottom', left='left', right='right', color='color',
+                    fill_alpha=user_kwargs['annotation_properties'].get(
+                        'patch_transparency', self.config.interactive_ms_annotations_transparency,
+                    ),
                     source=quad_source,
-                    name="ignore_hover")
+                    name='ignore_hover',
+                )
 
-            if user_kwargs["annotation_properties"].get("show_labels", self.config.interactive_ms_annotations_labels):
+            if user_kwargs['annotation_properties'].get('show_labels', self.config.interactive_ms_annotations_labels):
                 bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source)
 
                 if arrow_source is not None:
                     bokehPlot, __ = self._add_plot_arrows(bokehPlot, data, arrow_source)
 
         # setup widgets
-        if user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts):
+        if user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts):
             js_type, js_code = [], {}
 
-            if user_kwargs["widgets"].get("hover_mode", True):
+            if user_kwargs['widgets'].get('hover_mode', True):
                 js_code.update(hover=hoverTool)
-                js_type.extend(["hover_mode"])
+                js_type.extend(['hover_mode'])
 
-            if user_kwargs["widgets"].get("colorblind_safe_1D", True):
+            if user_kwargs['widgets'].get('colorblind_safe_1D', True):
                 _original_colors = [cmap]
                 _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
                     None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines),
-                    return_colors=True, return_hex=True)
-                js_code.update(lines=_lines, original_colors=_original_colors,
-                               cvd_colors=_cvd_colors, patches=_patches)
-                js_type.extend(["colorblind_safe_1D"])
+                    return_colors=True, return_hex=True,
+                )
+                js_code.update(
+                    lines=_lines, original_colors=_original_colors,
+                    cvd_colors=_cvd_colors, patches=_patches,
+                )
+                js_type.extend(['colorblind_safe_1D'])
 
             if labels is not None:
-                js_code.update(labels=labels, y_range_shown=ylimits[1],
-                               y_range_hidden=ylimits[1] / 2, y_range_x1=ylimits[1] / 2)
-                if user_kwargs["widgets"].get("label_toggle", True):
-                    js_type.extend(["label_toggle"])
-                if user_kwargs["widgets"].get("label_size_slider", True):
-                    js_type.extend(["label_size_slider"])
-                if user_kwargs["widgets"].get("label_rotation", True):
-                    js_type.extend(["label_rotation"])
-                if user_kwargs["widgets"].get("label_offset_x", True):
-                    js_type.extend(["label_offset_x"])
-                if user_kwargs["widgets"].get("label_offset_y", True):
-                    js_type.extend(["label_offset_y"])
+                js_code.update(
+                    labels=labels, y_range_shown=ylimits[1],
+                    y_range_hidden=ylimits[1] / 2, y_range_x1=ylimits[1] / 2,
+                )
+                if user_kwargs['widgets'].get('label_toggle', True):
+                    js_type.extend(['label_toggle'])
+                if user_kwargs['widgets'].get('label_size_slider', True):
+                    js_type.extend(['label_size_slider'])
+                if user_kwargs['widgets'].get('label_rotation', True):
+                    js_type.extend(['label_rotation'])
+                if user_kwargs['widgets'].get('label_offset_x', True):
+                    js_type.extend(['label_offset_x'])
+                if user_kwargs['widgets'].get('label_offset_y', True):
+                    js_type.extend(['label_offset_y'])
 
             try:
                 bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
@@ -5053,10 +5762,14 @@ class panelInteractiveOutput(wx.MiniFrame):
         ylabel = _replace_labels(ylabel)
 
         # Prepare hover tool
-        hoverTool = HoverTool(tooltips=[(xlabel, '@xvals{0.00}'),
-                                        (ylabel, '@yvals{0.00}'),
-                                        ("Label", "@label")],
-                              mode=plt_kwargs['hover_mode'])
+        hoverTool = HoverTool(
+            tooltips=[
+                (xlabel, '@xvals{0.00}'),
+                (ylabel, '@yvals{0.00}'),
+                ('Label', '@label'),
+            ],
+            mode=plt_kwargs['hover_mode'],
+        )
 
         TOOLS = self._check_tools(hoverTool, data)
 
@@ -5064,15 +5777,16 @@ class panelInteractiveOutput(wx.MiniFrame):
         xlimits = self._check_limits(xlimits, plt_kwargs['_xlimits_'])
         ylimits = self._check_limits(ylimits, plt_kwargs['_ylimits_'])
 
-        bokehPlot = figure(x_range=xlimits, y_range=ylimits,
-                           tools=TOOLS, title=bkh_kwargs['title'],
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False
-                           )
+        bokehPlot = figure(
+            x_range=xlimits, y_range=ylimits,
+            tools=TOOLS, title=bkh_kwargs['title'],
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         # check in case only one item was passed
         # assumes xvals is a list in a list
@@ -5089,98 +5803,119 @@ class panelInteractiveOutput(wx.MiniFrame):
                 except Exception:
                     pass
 
-            if (user_kwargs["preprocessing_properties"]["linearize"] and
-                    len(xval) > user_kwargs["preprocessing_properties"].get("linearize_limit", 25000)):
+            if (
+                user_kwargs['preprocessing_properties']['linearize'] and
+                len(xval) > user_kwargs['preprocessing_properties'].get('linearize_limit', 25000)
+            ):
                 # TODO: implement better downsampling
                 # downsampling: https://github.com/devoxi/lttb-py/blob/master/lttb/lttb.py
                 xval, yval = self.linearize_spectrum(
-                    xval, yval, user_kwargs["preprocessing_properties"]["linearize_binsize"])
+                    xval, yval, user_kwargs['preprocessing_properties']['linearize_binsize'],
+                )
 
             try:
                 color = convertRGB1toHEX(color)
             except (SyntaxError, ValueError):
                 pass
-            source = ColumnDataSource(data=dict(xvals=xval,
-                                                yvals=yval,
-                                                label=([_replace_labels(label)] * len(xval))))
-            if not user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']):
+            source = ColumnDataSource(
+                data=dict(
+                    xvals=xval,
+                    yvals=yval,
+                    label=([_replace_labels(label)] * len(xval)),
+                ),
+            )
+            if not user_kwargs['legend_properties'].get('legend', plt_kwargs['add_legend']):
                 label = None
             else:
                 label = _replace_labels(label)
             line = bokehPlot.line(
-                x="xvals", y="yvals",
+                x='xvals', y='yvals',
                 line_color=color,
-                line_width=user_kwargs["plot_properties"]["line_width"],
-                line_alpha=user_kwargs["plot_properties"]["line_transparency"],
-                line_dash=user_kwargs["plot_properties"]["line_style"],
+                line_width=user_kwargs['plot_properties']['line_width'],
+                line_alpha=user_kwargs['plot_properties']['line_transparency'],
+                line_dash=user_kwargs['plot_properties']['line_style'],
                 legend=label,
-                muted_alpha=user_kwargs["legend_properties"].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha),
+                muted_alpha=user_kwargs['legend_properties'].get(
+                    'legend_mute_alpha', self.config.interactive_legend_mute_alpha,
+                ),
                 muted_color=color,
-                source=source)
+                source=source,
+            )
             _lines.append(line)
             _original_colors.append(color)
 
             if plt_kwargs['overlay_shade']:
                 patch = bokehPlot.patch(
-                    "xvals", "yvals", color=color,
+                    'xvals', 'yvals', color=color,
                     fill_alpha=plt_kwargs['overlay_shade_transparency'],
                     line_alpha=0., source=source,
-                    legend=label)
+                    legend=label,
+                )
                 _patches.append(patch)
 
-        if ("annotations" in data and len(data["annotations"]) > 0 and
-                user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs['show_annotations'])):
+        if (
+            'annotations' in data and len(data['annotations']) > 0 and
+            user_kwargs['annotation_properties'].get('show_annotations', plt_kwargs['show_annotations'])
+        ):
             __, label_source, __ = self._prepare_annotations(data, yvals)
-            bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
+            bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type='waterfall')
 
         # setup labelss
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
         # setup common parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Overlay_1D", data=data)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='Overlay_1D', data=data)
 
         plot_mods = {}
-        if user_kwargs["widgets"].get(
-                "add_custom_widgets",
-                self.config.interactive_custom_scripts) and bkh_kwargs['page_layout'] in [
-                "Individual",
-                "Columns"]:
+        if user_kwargs['widgets'].get(
+                'add_custom_widgets',
+                self.config.interactive_custom_scripts,
+        ) and bkh_kwargs['page_layout'] in [
+                'Individual',
+                'Columns',
+        ]:
             js_type, js_code = [], {}
-            if user_kwargs["widgets"].get("hover_mode", True):
+            if user_kwargs['widgets'].get('hover_mode', True):
                 js_code.update(hover=hoverTool)
-                js_type.extend(["hover_mode"])
+                js_type.extend(['hover_mode'])
 
-            if user_kwargs["widgets"].get("colorblind_safe_1D", True):
+            if user_kwargs['widgets'].get('colorblind_safe_1D', True):
                 _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
-                    None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True)
-                js_code.update(lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
-                               patches=_patches)
-                js_type.extend(["colorblind_safe_1D"])
+                    None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True, )
+                js_code.update(
+                    lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
+                    patches=_patches,
+                )
+                js_type.extend(['colorblind_safe_1D'])
 
-            if user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
+            if user_kwargs['legend_properties'].get('legend', plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
                 js_code.update(legend=bokehPlot.legend[0])
 
-                if user_kwargs["widgets"].get("legend_toggle", True):
-                    js_type.extend(["legend_toggle"])
-                if user_kwargs["widgets"].get("legend_position", True):
-                    js_type.extend(["legend_position"])
-                if user_kwargs["widgets"].get("legend_orientation", True):
-                    js_type.extend(["legend_orientation"])
-                if user_kwargs["widgets"].get("legend_transparency", True):
-                    js_type.extend(["legend_transparency"])
+                if user_kwargs['widgets'].get('legend_toggle', True):
+                    js_type.extend(['legend_toggle'])
+                if user_kwargs['widgets'].get('legend_position', True):
+                    js_type.extend(['legend_position'])
+                if user_kwargs['widgets'].get('legend_orientation', True):
+                    js_type.extend(['legend_orientation'])
+                if user_kwargs['widgets'].get('legend_transparency', True):
+                    js_type.extend(['legend_transparency'])
 
             try:
                 bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
             except Exception:
                 pass
-        elif self.config.interactive_custom_scripts and bkh_kwargs['page_layout'] not in ["Individual", "Columns"]:
+        elif self.config.interactive_custom_scripts and bkh_kwargs['page_layout'] not in ['Individual', 'Columns']:
             _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
-                None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True)
-            plot_mods.update(lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
-                             patches=_patches)
-            self.presenter.onThreading(None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment.", 4),
-                                       action='updateStatusbar')
+                None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True,
+            )
+            plot_mods.update(
+                lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
+                patches=_patches,
+            )
+            self.presenter.onThreading(
+                None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment.", 4),
+                action='updateStatusbar',
+            )
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height'], plot_mods]
 
@@ -5195,60 +5930,64 @@ class panelInteractiveOutput(wx.MiniFrame):
         ylabel = _replace_labels(data['ylabel'])
         labels = data['labels']
         colors_list = data['colors']
-        plot_modifiers = data["plot_modifiers"]
-        legend_labels = plot_modifiers["legend_labels"]
-        itemColors = data["itemColors"]
-        itemLabels = data["itemLabels"]
+        plot_modifiers = data['plot_modifiers']
+        legend_labels = plot_modifiers['legend_labels']
+        itemColors = data['itemColors']
+        itemLabels = data['itemLabels']
         xvalsErr = data['xvalsErr']
         yvalsErr = data['yvalsErr']
         hoverLabels = data.get('hover_labels', [])
         urls = data.get('urls', [])
 
         # Prepare hover tool
-        _tooltips = [(xlabel, '@xvals{0.00}'),
-                     (ylabel, '@yvals{0.00}')]
+        _tooltips = [
+            (xlabel, '@xvals{0.00}'),
+            (ylabel, '@yvals{0.00}'),
+        ]
         if len(xvalsErr) == len(yvals):
-            _tooltips.append(("Error (x)", '@xvalsErr{0.00}'))
-            plot_modifiers["bokeh_add_xerror"] = True
+            _tooltips.append(('Error (x)', '@xvalsErr{0.00}'))
+            plot_modifiers['bokeh_add_xerror'] = True
         if len(yvalsErr) == len(yvals):
-            _tooltips.append(("Error (y)", '@yvalsErr{0.00}'))
-            plot_modifiers["bokeh_add_yerror"] = True
+            _tooltips.append(('Error (y)', '@yvalsErr{0.00}'))
+            plot_modifiers['bokeh_add_yerror'] = True
 #             if len(labels) == len(yvals):
 #                 _tooltips.append(("Dataset", '@labels'))
 #                 plot_modifiers["bokeh_add_dataset_label"] = True
-        if plot_modifiers.get("label_items", False):
+        if plot_modifiers.get('label_items', False):
             if len(itemLabels) > len(yvals):
                 for i in range(len(itemLabels)):
                     try:
                         hover_label = hoverLabels[i]
                     except Exception:
-                        hover_label = "Label ({})".format(i)
+                        hover_label = 'Label ({})'.format(i)
                     _tooltips.append((_replace_labels(hover_label), '@labels_{}'.format(i)))
             elif len(itemLabels) == len(yvals):
                 i = 0
                 try:
                     hover_label = hoverLabels[i]
                 except Exception:
-                    hover_label = "Label"
+                    hover_label = 'Label'
                 _tooltips.append((_replace_labels(hover_label), '@labels_{}'.format(i)))
-            plot_modifiers["bokeh_add_item_label"] = True
+            plot_modifiers['bokeh_add_item_label'] = True
 
         # prepare tools
         hoverTool = HoverTool(tooltips=_tooltips, mode='mouse')
         # create tools
         TOOLS = self._check_tools(hoverTool, data)
         # add tap tool for url action
-        TOOLS.extend(["tap"])
+        TOOLS.extend(['tap'])
 
         # create figure
-        bokehPlot = figure(tools=TOOLS,
-                           title=bkh_kwargs["title"],
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        bokehPlot = figure(
+            tools=TOOLS,
+            title=bkh_kwargs['title'],
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         # add plots
         add_tap_url = False
@@ -5285,11 +6024,15 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             # create edge colors
             if user_kwargs['plot_properties'].get(
-                    "scatter_edge_color_sameAsFill", self.config.interactive_scatter_sameAsFill):
+                    'scatter_edge_color_sameAsFill', self.config.interactive_scatter_sameAsFill,
+            ):
                 edge_color = color
             else:
-                edge_color = convertRGB1toHEX(user_kwargs['plot_properties'].get(
-                    "scatter_edge_color", self.config.interactive_scatter_edge_color))
+                edge_color = convertRGB1toHEX(
+                    user_kwargs['plot_properties'].get(
+                        'scatter_edge_color', self.config.interactive_scatter_edge_color,
+                    ),
+                )
 
             # generate color list
             if len(color) != yval_size:
@@ -5299,27 +6042,27 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             # create source
             _sourceDict = dict(xvals=xval, yvals=yval, color=color, edge_color=edge_color)
-            if plot_modifiers.get("bokeh_add_xerror", False) and len(xvalsErr[i]) == yval_size:
-                _sourceDict["xvalsErr"] = xvalsErr[i]
+            if plot_modifiers.get('bokeh_add_xerror', False) and len(xvalsErr[i]) == yval_size:
+                _sourceDict['xvalsErr'] = xvalsErr[i]
 
-            if plot_modifiers.get("bokeh_add_yerror", False) and len(yvalsErr[i]) == yval_size:
-                _sourceDict["yvalsErr"] = yvalsErr[i]
+            if plot_modifiers.get('bokeh_add_yerror', False) and len(yvalsErr[i]) == yval_size:
+                _sourceDict['yvalsErr'] = yvalsErr[i]
 
-            if plot_modifiers.get("bokeh_add_dataset_label", False):
-                _sourceDict["labels"] = [labels[i]] * yval_size
+            if plot_modifiers.get('bokeh_add_dataset_label', False):
+                _sourceDict['labels'] = [labels[i]] * yval_size
 
-            if plot_modifiers.get("bokeh_add_item_label", False):
+            if plot_modifiers.get('bokeh_add_item_label', False):
                 if len(itemLabels) > len(yvals):
                     for ilabel in range(len(itemLabels)):
-                        dict_label = "labels_{}".format(ilabel)
+                        dict_label = 'labels_{}'.format(ilabel)
                         _sourceDict[dict_label] = itemLabels[ilabel]
                 elif len(itemLabels) == len(yvals):
-                    _sourceDict["labels_0"] = itemLabels[i]
+                    _sourceDict['labels_0'] = itemLabels[i]
                 else:
-                    _sourceDict["labels_0"] = itemLabels[0]
+                    _sourceDict['labels_0'] = itemLabels[0]
 
             if add_tap_url:
-                _sourceDict["urls"] = url
+                _sourceDict['urls'] = url
 
             if len(legend_labels) == len(yvals):
                 label = legend_labels[i]
@@ -5327,25 +6070,29 @@ class panelInteractiveOutput(wx.MiniFrame):
                 try:
                     label = labels[i]
                 except Exception:
-                    label = " "
+                    label = ' '
             source = ColumnDataSource(data=_sourceDict)
             scatter = bokehPlot.scatter(
-                x="xvals", y="yvals",
-                color="color", line_color="edge_color",
-                marker=user_kwargs['plot_properties'].get("scatter_shape", self.config.interactive_scatter_marker),
+                x='xvals', y='yvals',
+                color='color', line_color='edge_color',
+                marker=user_kwargs['plot_properties'].get('scatter_shape', self.config.interactive_scatter_marker),
                 fill_alpha=user_kwargs['plot_properties'].get(
-                    "scatter_transparency", self.config.interactive_scatter_alpha),
-                size=user_kwargs['plot_properties'].get("scatter_size", self.config.interactive_scatter_size),
+                    'scatter_transparency', self.config.interactive_scatter_alpha,
+                ),
+                size=user_kwargs['plot_properties'].get('scatter_size', self.config.interactive_scatter_size),
                 line_width=user_kwargs['plot_properties'].get(
-                    "scatter_line_width", self.config.interactive_scatter_lineWidth),
+                    'scatter_line_width', self.config.interactive_scatter_lineWidth,
+                ),
                 muted_alpha=user_kwargs['legend_properties'].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha),
+                    'legend_mute_alpha', self.config.interactive_legend_mute_alpha,
+                ),
                 source=source,
-                legend=label)
+                legend=label,
+            )
 
             # add tap tool
             if add_tap_url:
-                print("Added tap -> URL tool")
+                print('Added tap -> URL tool')
                 taptool = bokehPlot.select(type=TapTool)
                 jscode = """
                 var select_id = cb_data.source.selected['1d'].indices[0];
@@ -5362,50 +6109,56 @@ class panelInteractiveOutput(wx.MiniFrame):
             _edge_colors.append(edge_color[0])
 
         # add annotations
-        if ("annotations" in data and len(data["annotations"]) > 0 and
-                user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs['show_annotations'])):
+        if (
+            'annotations' in data and len(data['annotations']) > 0 and
+            user_kwargs['annotation_properties'].get('show_annotations', plt_kwargs['show_annotations'])
+        ):
             __, label_source, __ = self._prepare_annotations(data, yvals)
-            bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
+            bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type='waterfall')
 
         # setup labels
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
         # modify plot
-        bokehPlot = self._setupPlotParameters(bokehPlot, data=data, plot_type="Scatter")
+        bokehPlot = self._setupPlotParameters(bokehPlot, data=data, plot_type='Scatter')
 
         # add widgets
-        if (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
-                bkh_kwargs['page_layout'] in ["Individual", "Columns"]):
-            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(None, cmap=self.config.interactive_cvd_cmap,
-                                                                         n_colors=len(_scatter),
-                                                                         return_colors=True, return_hex=True)
+        if (
+            user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts) and
+            bkh_kwargs['page_layout'] in ['Individual', 'Columns']
+        ):
+            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+                None, cmap=self.config.interactive_cvd_cmap,
+                n_colors=len(_scatter),
+                return_colors=True, return_hex=True,
+            )
             js_type, js_code = [], {}
-            if user_kwargs["widgets"].get("hover_mode", True):
+            if user_kwargs['widgets'].get('hover_mode', True):
                 js_code.update(hover=hoverTool)
-                js_type.extend(["hover_mode"])
+                js_type.extend(['hover_mode'])
 
-            if user_kwargs["widgets"].get("colorblind_safe_scatter", True):
+            if user_kwargs['widgets'].get('colorblind_safe_scatter', True):
                 js_code.update(fill_colors=_colors, edge_colors=_edge_colors, cvd_colors=_cvd_colors, scatters=_scatter)
-                js_type.extend(["colorblind_safe_scatter"])
+                js_type.extend(['colorblind_safe_scatter'])
 
-            if user_kwargs["widgets"].get("scatter_size", True):
+            if user_kwargs['widgets'].get('scatter_size', True):
                 js_code.update(scatters=_scatter)
-                js_type.extend(["scatter_size"])
-            if user_kwargs["widgets"].get("scatter_transparency", True):
+                js_type.extend(['scatter_size'])
+            if user_kwargs['widgets'].get('scatter_transparency', True):
                 js_code.update(scatters=_scatter)
                 js_code.update(hover=hoverTool)
-                js_type.extend(["scatter_transparency"])
+                js_type.extend(['scatter_transparency'])
 
-            if user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
+            if user_kwargs['legend_properties'].get('legend', plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
                 js_code.update(legend=bokehPlot.legend[0])
-                if user_kwargs["widgets"].get("legend_toggle", True):
-                    js_type.extend(["legend_toggle"])
-                if user_kwargs["widgets"].get("legend_position", True):
-                    js_type.extend(["legend_position"])
-                if user_kwargs["widgets"].get("legend_orientation", True):
-                    js_type.extend(["legend_orientation"])
-                if user_kwargs["widgets"].get("legend_transparency", True):
-                    js_type.extend(["legend_transparency"])
+                if user_kwargs['widgets'].get('legend_toggle', True):
+                    js_type.extend(['legend_toggle'])
+                if user_kwargs['widgets'].get('legend_position', True):
+                    js_type.extend(['legend_position'])
+                if user_kwargs['widgets'].get('legend_orientation', True):
+                    js_type.extend(['legend_orientation'])
+                if user_kwargs['widgets'].get('legend_transparency', True):
+                    js_type.extend(['legend_transparency'])
 
             if len(js_type) > 0:
                 try:
@@ -5413,10 +6166,14 @@ class panelInteractiveOutput(wx.MiniFrame):
                 except Exception:
                     pass
 
-        elif (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
-              bkh_kwargs['page_layout'] not in ["Individual", "Columns"]):
-            self.presenter.onThreading(None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment.", 4),
-                                       action='updateStatusbar')
+        elif (
+            user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts) and
+            bkh_kwargs['page_layout'] not in ['Individual', 'Columns']
+        ):
+            self.presenter.onThreading(
+                None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment.", 4),
+                action='updateStatusbar',
+            )
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -5426,15 +6183,16 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # Unpacks data using a helper function
         zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(
-            dictionary=data, dataType='plot', plotType='2D', compact=False)
+            dictionary=data, dataType='plot', plotType='2D', compact=False,
+        )
 
         # test x-axis
-        if bkh_kwargs.get("test_x_axis", False):
+        if bkh_kwargs.get('test_x_axis', False):
             xvals, xlabel, __ = self._kda_test(xvals)
 
         try:
             shape = zvals.shape[1]
-            if shape > user_kwargs['preprocessing_properties'].get("subsample_limit", 20000):
+            if shape > user_kwargs['preprocessing_properties'].get('subsample_limit', 20000):
                 shape = True
             else:
                 shape = False
@@ -5442,103 +6200,127 @@ class panelInteractiveOutput(wx.MiniFrame):
             shape = True
 
         # reshape array to ro reduce size
-        if (user_kwargs['preprocessing_properties'].get("subsample", bkh_kwargs.get("reshape_array", False))
-                and shape):
+        if (
+            user_kwargs['preprocessing_properties'].get('subsample', bkh_kwargs.get('reshape_array', False))
+            and shape
+        ):
             xlen = len(xvals)
             ylen = len(yvals)
             zvals = np.transpose(np.reshape(zvals, (xlen, ylen)))
-            if zvals.shape[1] > user_kwargs['preprocessing_properties'].get("subsample_limit", 20000):
-                print("Have to subsample the grid as it is too big...")
-                zvals = zvals[:, ::user_kwargs['preprocessing_properties'].get("subsample_frequency", 20)].copy()
+            if zvals.shape[1] > user_kwargs['preprocessing_properties'].get('subsample_limit', 20000):
+                print('Have to subsample the grid as it is too big...')
+                zvals = zvals[:, ::user_kwargs['preprocessing_properties'].get('subsample_frequency', 20)].copy()
 
         # generate image data
-        z_data = dict(image=[zvals], x=[min(xvals)], y=[min(yvals)],
-                      dw=[max(xvals) - min(xvals)],
-                      dh=[max(yvals) - min(yvals)])
+        z_data = dict(
+            image=[zvals], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals) - min(xvals)],
+            dh=[max(yvals) - min(yvals)],
+        )
         cds = ColumnDataSource(data=z_data)
 
         # get colormapper and palette
-        cmap = user_kwargs['plot_properties'].get("colormap", cmap)
+        cmap = user_kwargs['plot_properties'].get('colormap', cmap)
         colorMapper, bokehpalette = self._convert_cmap_to_colormapper(cmap, zvals=zvals, return_palette=True)
         # create tooltip
-        hoverTool = HoverTool(tooltips=[
-            (xlabel, '$x{0.00}'), (ylabel, '$y{0.00}'),
-            ('Intensity', '@image')],
-            point_policy='follow_mouse')
+        hoverTool = HoverTool(
+            tooltips=[
+                (xlabel, '$x{0.00}'), (ylabel, '$y{0.00}'),
+                ('Intensity', '@image'),
+            ],
+            point_policy='follow_mouse',
+        )
 
         # check tools
         TOOLS = self._check_tools(hoverTool, data)
 
         # create figure
-        bokehPlot = figure(x_range=(min(xvals), max(xvals)),
-                           y_range=(min(yvals), max(yvals)),
-                           tools=TOOLS,
-                           # title=bkh_kwargs["title"],
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        bokehPlot = figure(
+            x_range=(min(xvals), max(xvals)),
+            y_range=(min(yvals), max(yvals)),
+            tools=TOOLS,
+            # title=bkh_kwargs["title"],
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
         # add image
         image = bokehPlot.image(source=cds, image='image', x='x', y='y', dw='dw', dh='dh', palette=bokehpalette)
 
         # add colorbar to the plot
         colorbar = None
-        if user_kwargs["colorbar_properties"].get(
-                "colorbar", self.config.interactive_colorbar):
+        if user_kwargs['colorbar_properties'].get(
+                'colorbar', self.config.interactive_colorbar,
+        ):
             # check if colorbar should be modified
-            modify_colorbar = data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("modify_ticks", bkh_kwargs.get("modify_colorbar", False))
+            modify_colorbar = data.get('interactive_params', {}).get(
+                'colorbar_properties', {},
+            ).get('modify_ticks', bkh_kwargs.get('modify_colorbar', False))
             if modify_colorbar:
                 colorbar_as_percentage = True
             else:
                 colorbar_as_percentage = False
-            bokehPlot, colorbar = self._add_colorbar(bokehPlot, zvals, colorMapper,
-                                                     modify_colorbar,
-                                                     as_percentage=colorbar_as_percentage,
-                                                     return_colorbar=True,
-                                                     data=data)
+            bokehPlot, colorbar = self._add_colorbar(
+                bokehPlot, zvals, colorMapper,
+                modify_colorbar,
+                as_percentage=colorbar_as_percentage,
+                return_colorbar=True,
+                data=data,
+            )
         # setup labels
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
 
         # setup common parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="2D", data=data)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='2D', data=data)
 
         # add widgets
-        if (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
-                bkh_kwargs['page_layout'] in ["Individual", "Columns"]):
+        if (
+            user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts) and
+            bkh_kwargs['page_layout'] in ['Individual', 'Columns']
+        ):
             js_type, js_code = [], {}
 
-            if user_kwargs["widgets"].get("colormap_change", True):
+            if user_kwargs['widgets'].get('colormap_change', True):
                 cmaps = []
                 zmin, zmax = np.round(np.min(zvals), 10), np.round(np.max(zvals), 10)
-                for alt_cmap in ["cividis", "viridis", "magma", "cubehelix"]:
+                for alt_cmap in ['cividis', 'viridis', 'magma', 'cubehelix']:
                     cmaps.append(self._convert_cmap_to_colormapper(alt_cmap, zmin=zmin, zmax=zmax))
 
-                js_code.update(colormaps=cmaps, colormap_names=[
-                               "cividis", "viridis", "magma", "cubehelix"], images=[image], colorbars=[colorbar])
-                js_type.extend(["colormap_change"])
+                js_code.update(
+                    colormaps=cmaps, colormap_names=[
+                        'cividis', 'viridis', 'magma', 'cubehelix',
+                    ], images=[image], colorbars=[colorbar],
+                )
+                js_type.extend(['colormap_change'])
 
-            if user_kwargs["widgets"].get("colorblind_safe_2D", True):
+            if user_kwargs['widgets'].get('colorblind_safe_2D', True):
                 zmin, zmax = np.round(np.min(zvals), 10), np.round(np.max(zvals), 10)
                 _cvd_colors = [self._convert_cmap_to_colormapper(self.config.interactive_cvd_cmap, zmin, zmax)]
                 _original_colors = [self._convert_cmap_to_colormapper(palette=bokehpalette, zmin=zmin, zmax=zmax)]
-                js_code.update(original_colors=_original_colors,
-                               cvd_colors=_cvd_colors, images=[image],
-                               colorbars=[colorbar])
-                js_type.extend(["colorblind_safe_2D"])
+                js_code.update(
+                    original_colors=_original_colors,
+                    cvd_colors=_cvd_colors, images=[image],
+                    colorbars=[colorbar],
+                )
+                js_type.extend(['colorblind_safe_2D'])
 
             if len(js_type) > 0:
                 try:
                     bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
                 except Exception:
                     pass
-        elif (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
-              bkh_kwargs['page_layout'] not in ["Individual", "Columns"]):
-            self.presenter.onThreading(None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment.", 4),
-                                       action='updateStatusbar')
+        elif (
+            user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts) and
+            bkh_kwargs['page_layout'] not in ['Individual', 'Columns']
+        ):
+            self.presenter.onThreading(
+                None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment.", 4),
+                action='updateStatusbar',
+            )
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -5547,16 +6329,18 @@ class panelInteractiveOutput(wx.MiniFrame):
         user_kwargs = deepcopy(data['interactive_params'])
 
         # Unpacks data using a helper function
-        zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(dictionary=data,
-                                                                                         dataType='plot',
-                                                                                         plotType='2D',
-                                                                                         compact=False)
-        if xlabel == "":
-            hover_xlabel = "x"
+        zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(
+            dictionary=data,
+            dataType='plot',
+            plotType='2D',
+            compact=False,
+        )
+        if xlabel == '':
+            hover_xlabel = 'x'
         else:
             hover_xlabel = xlabel
-        if ylabel == "":
-            hover_ylabel = "y"
+        if ylabel == '':
+            hover_ylabel = 'y'
         else:
             hover_ylabel = ylabel
 
@@ -5570,31 +6354,41 @@ class panelInteractiveOutput(wx.MiniFrame):
         rgb[:, :, 2] = zvals[:, :, 2]
         rgb[:, :, 3].fill(255)
 
-        z_data = dict(image=[rgb], x=[min(xvals)], y=[min(yvals)],
-                      dw=[max(xvals)], dh=[max(yvals)])
+        z_data = dict(
+            image=[rgb], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals)], dh=[max(yvals)],
+        )
         cds = ColumnDataSource(data=z_data)
-        hoverTool = HoverTool(tooltips=[(hover_xlabel, '$x{0}'),
-                                        (hover_ylabel, '$y{0}')],
-                              point_policy='follow_mouse')
+        hoverTool = HoverTool(
+            tooltips=[
+                (hover_xlabel, '$x{0}'),
+                (hover_ylabel, '$y{0}'),
+            ],
+            point_policy='follow_mouse',
+        )
 
         TOOLS = self._check_tools(hoverTool, data)
-        bokehPlot = figure(x_range=(min(xvals), max(xvals)),
-                           y_range=(min(yvals), max(yvals)),
-                           tools=TOOLS,
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        bokehPlot = figure(
+            x_range=(min(xvals), max(xvals)),
+            y_range=(min(yvals), max(yvals)),
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
         bokehPlot.image_rgba(source=cds, image='image', x='x', y='y', dw='dw', dh='dh')
-        bokehPlot.quad(top=max(yvals), bottom=min(yvals),
-                       left=min(xvals), right=max(xvals),
-                       alpha=0)
+        bokehPlot.quad(
+            top=max(yvals), bottom=min(yvals),
+            left=min(xvals), right=max(xvals),
+            alpha=0,
+        )
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
 
-        self._setupPlotParameters(bokehPlot, plot_type="2D", data=data)
+        self._setupPlotParameters(bokehPlot, plot_type='2D', data=data)
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -5604,20 +6398,26 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # get data
         zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(
-            dictionary=data, plotType='Matrix', compact=False)
+            dictionary=data, plotType='Matrix', compact=False,
+        )
 
         # rotate data
         zvals = np.rot90(np.fliplr(zvals))
 
         # get colormapper and palette
         colorMapper, bokehpalette = self._convert_cmap_to_colormapper(
-            user_kwargs["overlay_properties"].get("rmsd_matrix_colormap", cmap),
-            zvals=zvals, return_palette=True)
+            user_kwargs['overlay_properties'].get('rmsd_matrix_colormap', cmap),
+            zvals=zvals, return_palette=True,
+        )
         xlabel = 'Labels (x, y):'
-        ylabel = bkh_kwargs.get("hover_label", 'RMSD (%)')
-        hoverTool = HoverTool(tooltips=[(xlabel, '@xname, @yname'),
-                                        (ylabel, '@count')],
-                              point_policy='follow_mouse')
+        ylabel = bkh_kwargs.get('hover_label', 'RMSD (%)')
+        hoverTool = HoverTool(
+            tooltips=[
+                (xlabel, '@xname, @yname'),
+                (ylabel, '@count'),
+            ],
+            point_policy='follow_mouse',
+        )
         # Add tools
         TOOLS = self._check_tools(hoverTool, data)
 
@@ -5630,9 +6430,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         if len(set(yxlabels)) == 1:
             msg = 'Exporting RMSD Matrix to a HTML file is only possible with full list of x/y-axis labels.\n' + \
                   'Please add those to the file and try repeating.'
-            dlgBox(exceptionTitle='No file name',
-                   exceptionMsg=msg,
-                   type="Error")
+            dlgBox(
+                exceptionTitle='No file name',
+                exceptionMsg=msg,
+                type='Error',
+            )
             return None
         else:
             text_annot_xpos, text_annot_ypos, text_annot_label = [], [], []
@@ -5650,57 +6452,76 @@ class panelInteractiveOutput(wx.MiniFrame):
                     else:
                         alpha_val = 1.
                     alpha.append(alpha_val)  # min(zvals[i, j] / 3.0, 0.9) + 0.0)
-                    if user_kwargs["overlay_properties"].get("rmsd_matrix_auto_label_color", True):
+                    if user_kwargs['overlay_properties'].get('rmsd_matrix_auto_label_color', True):
                         label_color = determineFontColor(convertHEXtoRGB255(color[-1]), return_hex=True)
                     else:
-                        label_color = convertRGB1toHEX(user_kwargs["overlay_properties"].get(
-                            "rmsd_matrix_label_color", self.config.interactive_ms_annotations_label_color))
+                        label_color = convertRGB1toHEX(
+                            user_kwargs['overlay_properties'].get(
+                                'rmsd_matrix_label_color', self.config.interactive_ms_annotations_label_color,
+                            ),
+                        )
                     text_color.append(label_color)
 
         # create plot source
-        source = ColumnDataSource(data=dict(xname=xname, yname=yname,
-                                            count=zvals.flatten(),
-                                            alphas=alpha, colors=color))
+        source = ColumnDataSource(
+            data=dict(
+                xname=xname, yname=yname,
+                count=zvals.flatten(),
+                alphas=alpha, colors=color,
+            ),
+        )
 
         # create figure
-        bokehPlot = figure(x_range=yxlabels,
-                           y_range=yxlabels,
-                           tools=TOOLS,
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        bokehPlot = figure(
+            x_range=yxlabels,
+            y_range=yxlabels,
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
         # add plot
-        bokehPlot.rect('xname', 'yname', 1, 1,
-                       source=source, line_color=None,
-                       hover_line_color='black',
-                       alpha='alphas', hover_color='colors',
-                       color='colors')
+        bokehPlot.rect(
+            'xname', 'yname', 1, 1,
+            source=source, line_color=None,
+            hover_line_color='black',
+            alpha='alphas', hover_color='colors',
+            color='colors',
+        )
         # create label source
-        label_source = ColumnDataSource(data=dict(xpos=text_annot_xpos,
-                                                  ypos=text_annot_ypos,
-                                                  label=text_annot_label,
-                                                  text_color=text_color))
+        label_source = ColumnDataSource(
+            data=dict(
+                xpos=text_annot_xpos,
+                ypos=text_annot_ypos,
+                label=text_annot_label,
+                text_color=text_color,
+            ),
+        )
         # add labels
-        bokehPlot, __ = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
+        bokehPlot, __ = self._add_plot_labels(bokehPlot, data, label_source, plot_type='waterfall')
 
         # add colorbar
-        if user_kwargs["colorbar_properties"].get(
-                "colorbar", self.config.interactive_colorbar):
-            modify_colorbar = user_kwargs["colorbar_properties"].get(
-                "modify_ticks", bkh_kwargs.get("modify_colorbar", False))
+        if user_kwargs['colorbar_properties'].get(
+                'colorbar', self.config.interactive_colorbar,
+        ):
+            modify_colorbar = user_kwargs['colorbar_properties'].get(
+                'modify_ticks', bkh_kwargs.get('modify_colorbar', False),
+            )
             if modify_colorbar:
                 colorbar_as_percentage = True
             else:
                 colorbar_as_percentage = False
-            bokehPlot = self._add_colorbar(bokehPlot, zvals, colorMapper,
-                                           modify_colorbar, colorbar_as_percentage,
-                                           data=data)
+            bokehPlot = self._add_colorbar(
+                bokehPlot, zvals, colorMapper,
+                modify_colorbar, colorbar_as_percentage,
+                data=data,
+            )
 
         # setup plot parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Matrix", data=data)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='Matrix', data=data)
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -5710,55 +6531,70 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # get plot data
         zvals, xvals, xlabel, yvals, ylabel, rmsdLabel, cmap = self.presenter.get2DdataFromDictionary(
-            dictionary=data, plotType='RMSD', compact=True)
+            dictionary=data, plotType='RMSD', compact=True,
+        )
 
         # create plot source
-        z_data = dict(image=[zvals], x=[min(xvals)], y=[min(yvals)],
-                      dw=[max(xvals) - min(xvals)],
-                      dh=[max(yvals) - min(yvals)])
+        z_data = dict(
+            image=[zvals], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals) - min(xvals)],
+            dh=[max(yvals) - min(yvals)],
+        )
         cds = ColumnDataSource(data=z_data)
 
         # calculate position of RMSD label
         rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(
-            xlist=xvals, ylist=yvals)
+            xlist=xvals, ylist=yvals,
+        )
 
         # get colormapper and palette
         colorMapper, bokehpalette = self._convert_cmap_to_colormapper(cmap, zvals=zvals, return_palette=True)
         # create tooltip
-        hoverTool = HoverTool(tooltips=[(xlabel, '$x{0}'), (ylabel, '$y{0}'),
-                                        ('Intensity', '@image')],
-                              point_policy='follow_mouse')
+        hoverTool = HoverTool(
+            tooltips=[
+                (xlabel, '$x{0}'), (ylabel, '$y{0}'),
+                ('Intensity', '@image'),
+            ],
+            point_policy='follow_mouse',
+        )
 
         # Add tools
         TOOLS = self._check_tools(hoverTool, data)
         # create figure
-        bokehPlot = figure(x_range=(min(xvals), max(xvals)),
-                           y_range=(min(yvals), max(yvals)),
-                           tools=TOOLS,
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        bokehPlot = figure(
+            x_range=(min(xvals), max(xvals)),
+            y_range=(min(yvals), max(yvals)),
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
         # create plot
         bokehPlot.image(source=cds, image='image', x='x', y='y', dw='dw', dh='dh', palette=bokehpalette)
 
         # add colorbar
-        if user_kwargs["colorbar_properties"].get(
-                "colorbar", self.config.interactive_colorbar):
-            bokehPlot = self._add_colorbar(bokehPlot, zvals, colorMapper,
-                                           modify_colorbar=data.get(
-                                               "interactive_params", {}).get("colorbar_properties", {}).get(
-                                               "modify_ticks", bkh_kwargs.get("modify_colorbar", False)),
-                                           data=data)
+        if user_kwargs['colorbar_properties'].get(
+                'colorbar', self.config.interactive_colorbar,
+        ):
+            bokehPlot = self._add_colorbar(
+                bokehPlot, zvals, colorMapper,
+                modify_colorbar=data.get(
+                    'interactive_params', {},
+                ).get('colorbar_properties', {}).get(
+                    'modify_ticks', bkh_kwargs.get('modify_colorbar', False),
+                ),
+                data=data,
+            )
 
         # Add RMSD label to the plot
         self._add_rmsd_label(bokehPlot, rmsdLabel, rmsdXpos, rmsdYpos, data=data)
 
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="2D", data=data)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='2D', data=data)
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -5768,61 +6604,77 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # get plot data
         zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(
-            dictionary=data, plotType='RMSF', compact=True)
+            dictionary=data, plotType='RMSF', compact=True, )
 
         ylabelRMSF = ''.join([ylabelRMSF])
 
-        hoverToolRMSF = HoverTool(tooltips=[(xlabelRMSD, '$x{0.00}'),
-                                            (ylabelRMSF, '$y{0.00}')],
-                                  mode=plt_kwargs['hover_mode'])
+        hoverToolRMSF = HoverTool(
+            tooltips=[
+                (xlabelRMSD, '$x{0.00}'),
+                (ylabelRMSF, '$y{0.00}'),
+            ],
+            mode=plt_kwargs['hover_mode'],
+        )
 
         # Add tools
         TOOLS_RMSF = self._check_tools(hoverToolRMSF, data)
 
         # create rmsf figure
-        bokehPlotRMSF = figure(x_range=(min(xvals), max(xvals)),
-                               y_range=(min(yvalsRMSF), max(yvalsRMSF)),
-                               tools=TOOLS_RMSF,
-                               active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                               active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                               plot_width=plt_kwargs["plot_width"],
-                               plot_height=int(plt_kwargs["plot_height"] / 2),
-                               toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                               toolbar_sticky=False)
+        bokehPlotRMSF = figure(
+            x_range=(min(xvals), max(xvals)),
+            y_range=(min(yvalsRMSF), max(yvalsRMSF)),
+            tools=TOOLS_RMSF,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=int(plt_kwargs['plot_height'] / 2),
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
         # create rmsf plot
         color = convertRGB1to255(color, as_integer=True, as_tuple=True)
         rmsf_source = ColumnDataSource(data=dict(xvals=xvals, yvals=yvalsRMSF))
-        line = bokehPlotRMSF.line(x="xvals", y="yvals",
-                                  source=rmsf_source,
-                                  line_color=color,
-                                  line_width=user_kwargs["overlay_properties"]["rmsf_line_width"],
-                                  line_alpha=user_kwargs["overlay_properties"]["rmsf_line_transparency"],
-                                  line_dash=user_kwargs["overlay_properties"]["rmsf_line_style"])
+        line = bokehPlotRMSF.line(
+            x='xvals', y='yvals',
+            source=rmsf_source,
+            line_color=color,
+            line_width=user_kwargs['overlay_properties']['rmsf_line_width'],
+            line_alpha=user_kwargs['overlay_properties']['rmsf_line_transparency'],
+            line_dash=user_kwargs['overlay_properties']['rmsf_line_style'],
+        )
         bokehPlotRMSF.yaxis.axis_label = ylabelRMSF
 
         # add patch
-        if user_kwargs["overlay_properties"].get("rmsf_line_shade_under", False):
+        if user_kwargs['overlay_properties'].get('rmsf_line_shade_under', False):
             patch = bokehPlotRMSF.patch(
-                "xvals", "yvals", color=color,
-                fill_alpha=user_kwargs["overlay_properties"].get(
-                    "rmsf_shade_transparency", self.config.interactive_line_alpha),
-                line_alpha=0., source=rmsf_source)
+                'xvals', 'yvals', color=color,
+                fill_alpha=user_kwargs['overlay_properties'].get(
+                    'rmsf_shade_transparency', self.config.interactive_line_alpha,
+                ),
+                line_alpha=0., source=rmsf_source,
+            )
         # setup parameters
-        bokehPlotRMSF = self._setupPlotParameters(bokehPlotRMSF, plot_type="RMSF", data=data)
+        bokehPlotRMSF = self._setupPlotParameters(bokehPlotRMSF, plot_type='RMSF', data=data)
 
         # create data sourcee
-        z_data = dict(image=[zvals], x=[min(xvals)], y=[min(yvals)],
-                      dw=[max(xvals) - min(xvals)],
-                      dh=[max(yvals) - min(yvals)])
+        z_data = dict(
+            image=[zvals], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals) - min(xvals)],
+            dh=[max(yvals) - min(yvals)],
+        )
         cds = ColumnDataSource(data=z_data)
 
         # Calculate position of RMSD label
         rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xvals, ylist=yvals)
         colorMapper, bokehpalette = self._convert_cmap_to_colormapper(cmap, zvals=zvals, return_palette=True)
-        hoverTool = HoverTool(tooltips=[(xlabelRMSD, '$x{0.00}'),
-                                        (ylabelRMSD, '$y{0.00}'),
-                                        ('Intensity', '@image')],
-                              point_policy='follow_mouse')
+        hoverTool = HoverTool(
+            tooltips=[
+                (xlabelRMSD, '$x{0.00}'),
+                (ylabelRMSD, '$y{0.00}'),
+                ('Intensity', '@image'),
+            ],
+            point_policy='follow_mouse',
+        )
         # Add tools
         TOOLS = self._check_tools(hoverTool, data)
         if plt_kwargs['overlay_linkXY']:
@@ -5830,32 +6682,39 @@ class panelInteractiveOutput(wx.MiniFrame):
         else:
             x_range = (min(xvals), max(xvals))
 
-        bokehPlotRMSD = figure(x_range=x_range,
-                               y_range=(min(yvals), max(yvals)),
-                               tools=TOOLS,
-                               active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                               active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                               plot_width=plt_kwargs["plot_width"],
-                               plot_height=plt_kwargs["plot_height"],
-                               toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                               toolbar_sticky=False)
+        bokehPlotRMSD = figure(
+            x_range=x_range,
+            y_range=(min(yvals), max(yvals)),
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
         bokehPlotRMSD.image(source=cds, image='image', x='x', y='y', dw='dw', dh='dh', palette=bokehpalette)
 
         # add colorbar
-        if user_kwargs["colorbar_properties"].get(
-                "colorbar", self.config.interactive_colorbar):
-            bokehPlotRMSD = self._add_colorbar(bokehPlotRMSD, zvals, colorMapper,
-                                               modify_colorbar=data.get(
-                                                   "interactive_params", {}).get("colorbar_properties", {}).get(
-                                                       "modify_ticks", bkh_kwargs.get("modify_colorbar", False)),
-                                               data=data)
+        if user_kwargs['colorbar_properties'].get(
+                'colorbar', self.config.interactive_colorbar,
+        ):
+            bokehPlotRMSD = self._add_colorbar(
+                bokehPlotRMSD, zvals, colorMapper,
+                modify_colorbar=data.get(
+                    'interactive_params', {},
+                ).get('colorbar_properties', {}).get(
+                    'modify_ticks', bkh_kwargs.get('modify_colorbar', False),
+                ),
+                data=data,
+            )
 
         # Add RMSD label to the plot
         self._add_rmsd_label(bokehPlotRMSD, rmsdLabel, rmsdXpos, rmsdYpos, data=data)
 
         bokehPlotRMSD.xaxis.axis_label = xlabelRMSD
         bokehPlotRMSD.yaxis.axis_label = ylabelRMSD
-        bokehPlotRMSD = self._setupPlotParameters(bokehPlotRMSD, plot_type="2D", data=data)
+        bokehPlotRMSD = self._setupPlotParameters(bokehPlotRMSD, plot_type='2D', data=data)
 
         bokehPlot = gridplot([[bokehPlotRMSF], [bokehPlotRMSD]], merge_tools=False)
 
@@ -5866,47 +6725,64 @@ class panelInteractiveOutput(wx.MiniFrame):
         user_kwargs = deepcopy(data['interactive_params'])
 
         # get plot data
-        (zvals1, zvals2, cmapIon1, cmapIon2, __, __, xvals,
-         xlabel, yvals, ylabel, __, __) = self.presenter.get2DdataFromDictionary(
-             dictionary=data, dataType='plot', plotType='Overlay', compact=False)
+        (
+            zvals1, zvals2, cmapIon1, cmapIon2, __, __, xvals,
+            xlabel, yvals, ylabel, __, __,
+        ) = self.presenter.get2DdataFromDictionary(
+            dictionary=data, dataType='plot', plotType='Overlay', compact=False,
+        )
 
         if bkh_kwargs['plot_type'] == 'Mask':
             zvals1 = zvals1.filled(0)
             zvals2 = zvals2.filled(0)
 
         cmapIon1 = user_kwargs['overlay_properties'].get(
-            "overlay_colormap_1", plt_kwargs.get('overlay_color_1', cmapIon1))
+            'overlay_colormap_1', plt_kwargs.get('overlay_color_1', cmapIon1),
+        )
         cmapIon2 = user_kwargs['overlay_properties'].get(
-            "overlay_colormap_2", plt_kwargs.get('overlay_color_2', cmapIon2))
+            'overlay_colormap_2', plt_kwargs.get('overlay_color_2', cmapIon2),
+        )
 
         colorMapper1, bokehpalette1 = self._convert_cmap_to_colormapper(cmapIon1, zvals=zvals1, return_palette=True)
-        hoverTool1 = HoverTool(tooltips=[(xlabel, '$x{0.00}'),
-                                         (ylabel, '$y{0.00}'),
-                                         ('Intensity', '@image')],
-                               point_policy='follow_mouse')
+        hoverTool1 = HoverTool(
+            tooltips=[
+                (xlabel, '$x{0.00}'),
+                (ylabel, '$y{0.00}'),
+                ('Intensity', '@image'),
+            ],
+            point_policy='follow_mouse',
+        )
         # Add tools
         TOOLS1 = self._check_tools(hoverTool1, data)
 
         # create figure
-        leftPlot = figure(x_range=(min(xvals), max(xvals)),
-                          y_range=(min(yvals), max(yvals)),
-                          tools=TOOLS1,
-                          active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                          active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                          toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                          toolbar_sticky=False)
+        leftPlot = figure(
+            x_range=(min(xvals), max(xvals)),
+            y_range=(min(yvals), max(yvals)),
+            tools=TOOLS1,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
-        z_data = dict(image=[zvals1], x=[min(xvals)], y=[min(yvals)],
-                      dw=[max(xvals) - min(xvals)],
-                      dh=[max(yvals) - min(yvals)])
+        z_data = dict(
+            image=[zvals1], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals) - min(xvals)],
+            dh=[max(yvals) - min(yvals)],
+        )
         cds = ColumnDataSource(data=z_data)
         image_1 = leftPlot.image(source=cds, image='image', x='x', y='y', dw='dw', dh='dh', palette=bokehpalette1)
 
         colorMapper2, bokehpalette2 = self._convert_cmap_to_colormapper(cmapIon2, zvals=zvals2, return_palette=True)
-        hoverTool2 = HoverTool(tooltips=[(xlabel, '$x{0.00}'),
-                                         (ylabel, '$y{0.00}'),
-                                         ('Intensity', '@image')],
-                               point_policy='follow_mouse')
+        hoverTool2 = HoverTool(
+            tooltips=[
+                (xlabel, '$x{0.00}'),
+                (ylabel, '$y{0.00}'),
+                ('Intensity', '@image'),
+            ],
+            point_policy='follow_mouse',
+        )
         # Add tools
         TOOLS2 = self._check_tools(hoverTool2, data)
 
@@ -5917,28 +6793,33 @@ class panelInteractiveOutput(wx.MiniFrame):
             x_range = (min(xvals), max(xvals))
             y_range = (min(yvals), max(yvals))
 
-        rightPlot = figure(x_range=x_range, y_range=y_range,
-                           tools=TOOLS2,
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        rightPlot = figure(
+            x_range=x_range, y_range=y_range,
+            tools=TOOLS2,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
-        z_data = dict(image=[zvals2], x=[min(xvals)], y=[min(yvals)],
-                      dw=[max(xvals) - min(xvals)],
-                      dh=[max(yvals) - min(yvals)])
+        z_data = dict(
+            image=[zvals2], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals) - min(xvals)],
+            dh=[max(yvals) - min(yvals)],
+        )
         cds = ColumnDataSource(data=z_data)
         image_2 = rightPlot.image(source=cds, image='image', x='x', y='y', dw='dw', dh='dh', palette=bokehpalette2)
 
-        if user_kwargs["colorbar_properties"].get(
-                "colorbar", self.config.interactive_colorbar):
+        if user_kwargs['colorbar_properties'].get(
+                'colorbar', self.config.interactive_colorbar,
+        ):
             leftPlot = self._add_colorbar(leftPlot, zvals1, colorMapper1, True, True, data=data)
             rightPlot = self._add_colorbar(rightPlot, zvals2, colorMapper2, True, True, data=data)
 
         for plot in [leftPlot, rightPlot]:
-            plot = self._setupPlotParameters(plot, plot_type="2D", data=data)
+            plot = self._setupPlotParameters(plot, plot_type='2D', data=data)
 
         if user_kwargs['overlay_properties']['overlay_layout'] == 'Rows':
             for plot in [leftPlot, rightPlot]:
@@ -5946,16 +6827,20 @@ class panelInteractiveOutput(wx.MiniFrame):
             leftPlot.yaxis.axis_label = ylabel
             # Remove tick values from right plot
             rightPlot.yaxis.major_label_text_color = None  # turn off y-axis tick labels leaving space
-            bokehPlot = gridplot([[leftPlot, rightPlot]],
-                                 merge_tools=user_kwargs['overlay_properties'].get("overlay_merge_tools", False))
+            bokehPlot = gridplot(
+                [[leftPlot, rightPlot]],
+                merge_tools=user_kwargs['overlay_properties'].get('overlay_merge_tools', False),
+            )
             plt_kwargs['plot_width'] = plt_kwargs['plot_width'] * 2
         elif user_kwargs['overlay_properties']['overlay_layout'] == 'Columns':
             for plot in [leftPlot, rightPlot]:
                 plot.yaxis.axis_label = ylabel
             leftPlot.xaxis.major_label_text_color = None  # turn off y-axis tick labels leaving space
             rightPlot.xaxis.axis_label = xlabel
-            bokehPlot = gridplot([[leftPlot], [rightPlot]],
-                                 merge_tools=user_kwargs['overlay_properties'].get("overlay_merge_tools", False))
+            bokehPlot = gridplot(
+                [[leftPlot], [rightPlot]],
+                merge_tools=user_kwargs['overlay_properties'].get('overlay_merge_tools', False),
+            )
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -5963,8 +6848,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data['interactive_params'])
 
-        _markers_map = {'o': "circle", 'v': "inverted_triangle", '^': "triangle",
-                        '>': "cross", 's': "square", 'd': "diamond", '*': "asterisk"}
+        _markers_map = {
+            'o': 'circle', 'v': 'inverted_triangle', '^': 'triangle',
+            '>': 'cross', 's': 'square', 'd': 'diamond', '*': 'asterisk',
+        }
         _ydata, legend_handle = [], []
         xvals = data['xvals']
         yvals = data['yvals']
@@ -5972,107 +6859,143 @@ class panelInteractiveOutput(wx.MiniFrame):
         ylabel = data['ylabel']
 
         # Prepare hover tool
-        hoverTool = HoverTool(tooltips=[(xlabel, '@xvals{0.00}'),
-                                        ("Offset Intensity", '@yvals{0.00}'),
-                                        ("Label", "@label")],
-                              mode=plt_kwargs['hover_mode'])
+        hoverTool = HoverTool(
+            tooltips=[
+                (xlabel, '@xvals{0.00}'),
+                ('Offset Intensity', '@yvals{0.00}'),
+                ('Label', '@label'),
+            ],
+            mode=plt_kwargs['hover_mode'],
+        )
         TOOLS = self._check_tools(hoverTool, data)
 
-        if (user_kwargs["preprocessing_properties"]["linearize"] and
-                len(xvals) > user_kwargs["preprocessing_properties"].get("linearize_limit", 25000)):
+        if (
+            user_kwargs['preprocessing_properties']['linearize'] and
+            len(xvals) > user_kwargs['preprocessing_properties'].get('linearize_limit', 25000)
+        ):
             # TODO: implement better downsampling
             # downsampling: https://github.com/devoxi/lttb-py/blob/master/lttb/lttb.py
             xvals, yvals = self.linearize_spectrum(
-                xvals, yvals, user_kwargs["preprocessing_properties"]["linearize_binsize"])
+                xvals, yvals, user_kwargs['preprocessing_properties']['linearize_binsize'],
+            )
 
         xlimits = [np.amin(np.ravel(xvals)), np.amax(np.ravel(xvals))]
-        bokehPlot = figure(x_range=xlimits,
-                           tools=TOOLS,
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        bokehPlot = figure(
+            x_range=xlimits,
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
         # create dataframe
 
-        source = ColumnDataSource(data=dict(xvals=xvals,
-                                            yvals=yvals,
-                                            label=(["Raw"] * len(xvals))))
+        source = ColumnDataSource(
+            data=dict(
+                xvals=xvals,
+                yvals=yvals,
+                label=(['Raw'] * len(xvals)),
+            ),
+        )
         _ydata.extend(yvals)
-        if not user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']):
+        if not user_kwargs['legend_properties'].get('legend', plt_kwargs['add_legend']):
             label = None
         else:
-            label = "Raw"
+            label = 'Raw'
 
-        bokehPlot.line(x="xvals", y="yvals",
-                       line_color="black",
-                       line_width=user_kwargs["plot_properties"]["line_width"],
-                       line_alpha=user_kwargs["plot_properties"]["line_transparency"],
-                       line_dash=user_kwargs["plot_properties"]["line_style"],
-                       legend=label,
-                       muted_alpha=user_kwargs['legend_properties'].get(
-                           "legend_mute_alpha", self.config.interactive_legend_mute_alpha),
-                       muted_color="black",
-                       source=source)
+        bokehPlot.line(
+            x='xvals', y='yvals',
+            line_color='black',
+            line_width=user_kwargs['plot_properties']['line_width'],
+            line_alpha=user_kwargs['plot_properties']['line_transparency'],
+            line_dash=user_kwargs['plot_properties']['line_style'],
+            legend=label,
+            muted_alpha=user_kwargs['legend_properties'].get(
+                'legend_mute_alpha', self.config.interactive_legend_mute_alpha,
+            ),
+            muted_color='black',
+            source=source,
+        )
 
         for key in data:
-            if key.split(" ")[0] != "MW:":
+            if key.split(' ')[0] != 'MW:':
                 continue
 
             line_xvals = data[key]['line_xvals']
             line_yvals = data[key]['line_yvals']
 
-            if (user_kwargs["preprocessing_properties"]["linearize"] and
-                    len(line_xvals) > user_kwargs["preprocessing_properties"].get("linearize_limit", 25000)):
+            if (
+                user_kwargs['preprocessing_properties']['linearize'] and
+                len(line_xvals) > user_kwargs['preprocessing_properties'].get('linearize_limit', 25000)
+            ):
                 # TODO: implement better downsampling
                 # downsampling: https://github.com/devoxi/lttb-py/blob/master/lttb/lttb.py
                 line_xvals, line_yvals = self.linearize_spectrum(
-                    line_xvals, line_yvals, user_kwargs["preprocessing_properties"]["linearize_binsize"])
+                    line_xvals, line_yvals, user_kwargs['preprocessing_properties']['linearize_binsize'],
+                )
 
             _ydata.extend(line_yvals)
             color = convertRGB1to255(data[key]['color'], as_integer=True, as_tuple=True)
-            source = ColumnDataSource(data=dict(xvals=line_xvals,
-                                                yvals=line_yvals,
-                                                label=([data[key]['label']] * len(line_xvals))))
-            if not user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']):
+            source = ColumnDataSource(
+                data=dict(
+                    xvals=line_xvals,
+                    yvals=line_yvals,
+                    label=([data[key]['label']] * len(line_xvals)),
+                ),
+            )
+            if not user_kwargs['legend_properties'].get('legend', plt_kwargs['add_legend']):
                 label = None
             else:
                 label = data[key]['label']
 
-            bokehPlot.line(x="xvals", y="yvals",
-                           line_color=color,
-                           line_width=user_kwargs["plot_properties"]["line_width"],
-                           line_alpha=user_kwargs["plot_properties"]["line_transparency"],
-                           line_dash=user_kwargs["plot_properties"]["line_style"],
-                           legend=label,
-                           muted_alpha=user_kwargs['legend_properties'].get(
-                               "legend_mute_alpha", self.config.interactive_legend_mute_alpha),
-                           muted_color=color,
-                           source=source)
+            bokehPlot.line(
+                x='xvals', y='yvals',
+                line_color=color,
+                line_width=user_kwargs['plot_properties']['line_width'],
+                line_alpha=user_kwargs['plot_properties']['line_transparency'],
+                line_dash=user_kwargs['plot_properties']['line_style'],
+                legend=label,
+                muted_alpha=user_kwargs['legend_properties'].get(
+                    'legend_mute_alpha', self.config.interactive_legend_mute_alpha,
+                ),
+                muted_color=color,
+                source=source,
+            )
             legend_handle.append((label, [bokehPlot]))
 
-            source = ColumnDataSource(data=dict(xvals=data[key]['scatter_xvals'],
-                                                yvals=data[key]['scatter_yvals'],
-                                                label=([data[key]['label']] * len(data[key]['scatter_xvals']))))
+            source = ColumnDataSource(
+                data=dict(
+                    xvals=data[key]['scatter_xvals'],
+                    yvals=data[key]['scatter_yvals'],
+                    label=([data[key]['label']] * len(data[key]['scatter_xvals'])),
+                ),
+            )
 
             if self.config.interactive_scatter_sameAsFill:
                 edge_color = color
             else:
                 edge_color = convertRGB1toHEX(self.config.interactive_scatter_edge_color)
-            bokehPlot.scatter("xvals", "yvals",
-                              marker=_markers_map[data[key]['marker']],
-                              fill_alpha=user_kwargs['plot_properties'].get(
-                                  "scatter_transparency", self.config.interactive_scatter_alpha),
-                              size=user_kwargs['plot_properties'].get(
-                                  "scatter_line_width", self.config.interactive_scatter_size),
-                              line_width=user_kwargs['plot_properties'].get(
-                                  "scatter_line_width", self.config.interactive_scatter_lineWidth),
-                              source=source,
-                              legend=label,
-                              line_color=edge_color, fill_color=color, muted_color=color,
-                              muted_alpha=user_kwargs['legend_properties'].get(
-                                  "legend_mute_alpha", self.config.interactive_legend_mute_alpha))
+            bokehPlot.scatter(
+                'xvals', 'yvals',
+                marker=_markers_map[data[key]['marker']],
+                fill_alpha=user_kwargs['plot_properties'].get(
+                    'scatter_transparency', self.config.interactive_scatter_alpha,
+                ),
+                size=user_kwargs['plot_properties'].get(
+                    'scatter_line_width', self.config.interactive_scatter_size,
+                ),
+                line_width=user_kwargs['plot_properties'].get(
+                    'scatter_line_width', self.config.interactive_scatter_lineWidth,
+                ),
+                source=source,
+                legend=label,
+                line_color=edge_color, fill_color=color, muted_color=color,
+                muted_alpha=user_kwargs['legend_properties'].get(
+                    'legend_mute_alpha', self.config.interactive_legend_mute_alpha,
+                ),
+            )
 
 #             leg = Legend(items=legend_handle, location=(0, -60))
 #             print(leg)
@@ -6082,25 +7005,25 @@ class panelInteractiveOutput(wx.MiniFrame):
         # setup common parameters
         ylimits = [np.min(_ydata), np.max(_ydata)]
         js_kwargs = dict(xlimits=xlimits, ylimits=ylimits)
-        bokehPlot = self._setupPlotParameters(bokehPlot, data=data, plot_type="Overlay_1D", **js_kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, data=data, plot_type='Overlay_1D', **js_kwargs)
 
-        if user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts):
+        if user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts):
             js_type = []
-            js_code = {"hover": hoverTool}
-            if user_kwargs["widgets"].get("hover_mode", True):
-                js_type.extend(["hover_mode"])
+            js_code = {'hover': hoverTool}
+            if user_kwargs['widgets'].get('hover_mode', True):
+                js_type.extend(['hover_mode'])
 
-            if user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
+            if user_kwargs['legend_properties'].get('legend', plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
                 js_code.update(legend=bokehPlot.legend[0])
 
-                if user_kwargs["widgets"].get("legend_toggle", True):
-                    js_type.extend(["legend_toggle"])
-                if user_kwargs["widgets"].get("legend_position", True):
-                    js_type.extend(["legend_position"])
-                if user_kwargs["widgets"].get("legend_orientation", True):
-                    js_type.extend(["legend_orientation"])
-                if user_kwargs["widgets"].get("legend_transparency", True):
-                    js_type.extend(["legend_transparency"])
+                if user_kwargs['widgets'].get('legend_toggle', True):
+                    js_type.extend(['legend_toggle'])
+                if user_kwargs['widgets'].get('legend_position', True):
+                    js_type.extend(['legend_position'])
+                if user_kwargs['widgets'].get('legend_orientation', True):
+                    js_type.extend(['legend_orientation'])
+                if user_kwargs['widgets'].get('legend_transparency', True):
+                    js_type.extend(['legend_transparency'])
 
             if len(js_type) > 0:
                 try:
@@ -6124,53 +7047,65 @@ class panelInteractiveOutput(wx.MiniFrame):
         xlabel = data['xlabels']
         ylabel = data['ylabels']
         cmap = data['cmap']
-        if zvals.shape[1] > user_kwargs['preprocessing_properties'].get("subsample_limit", 20000):
-            print("Have to subsample the grid as it is too big...")
-            zvals = zvals[:, ::user_kwargs['preprocessing_properties'].get("subsample_frequency", 10)].copy()
+        if zvals.shape[1] > user_kwargs['preprocessing_properties'].get('subsample_limit', 20000):
+            print('Have to subsample the grid as it is too big...')
+            zvals = zvals[:, ::user_kwargs['preprocessing_properties'].get('subsample_frequency', 10)].copy()
 
-        if bkh_kwargs.get("test_x_axis", False):
+        if bkh_kwargs.get('test_x_axis', False):
             xvals, xlabel, __ = self._kda_test(xvals)
 
-        z_data = dict(image=[zvals], x=[min(xvals)], y=[min(yvals)],
-                      dw=[max(xvals) - min(xvals)],
-                      dh=[max(yvals) - min(yvals)])
+        z_data = dict(
+            image=[zvals], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals) - min(xvals)],
+            dh=[max(yvals) - min(yvals)],
+        )
 
         cds = ColumnDataSource(data=z_data)
-        hoverTool = HoverTool(tooltips=[(xlabel, '$x{0}'),
-                                        (ylabel, '$y{0}'),
-                                        ('Intensity', '@image')],
-                              point_policy='follow_mouse',
-                              )
+        hoverTool = HoverTool(
+            tooltips=[
+                (xlabel, '$x{0}'),
+                (ylabel, '$y{0}'),
+                ('Intensity', '@image'),
+            ],
+            point_policy='follow_mouse',
+        )
 
         TOOLS = self._check_tools(hoverTool, data)
 
-        bokehPlot = figure(x_range=(min(xvals), max(xvals)),
-                           y_range=(min(yvals), max(yvals)),
-                           tools=TOOLS,
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        bokehPlot = figure(
+            x_range=(min(xvals), max(xvals)),
+            y_range=(min(yvals), max(yvals)),
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         colorMapper = self._convert_cmap_to_colormapper(cmap, zvals=zvals)
         bokehPlot.image(source=cds, image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=colorMapper)
 
-        if user_kwargs["colorbar_properties"].get(
-                "colorbar", self.config.interactive_colorbar):
-            bokehPlot = self._add_colorbar(bokehPlot, zvals, colorMapper,
-                                           modify_colorbar=data.get(
-                                               "interactive_params", {}).get("colorbar_properties", {}).get(
-                                                   "modify_ticks", bkh_kwargs.get("modify_colorbar", False)),
-                                           as_percentage=True, data=data)
+        if user_kwargs['colorbar_properties'].get(
+                'colorbar', self.config.interactive_colorbar,
+        ):
+            bokehPlot = self._add_colorbar(
+                bokehPlot, zvals, colorMapper,
+                modify_colorbar=data.get(
+                    'interactive_params', {},
+                ).get('colorbar_properties', {}).get(
+                    'modify_ticks', bkh_kwargs.get('modify_colorbar', False),
+                ),
+                as_percentage=True, data=data,
+            )
 
         # setup labels
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
 
         # setup common parameters
-        self._setupPlotParameters(bokehPlot, plot_type="2D", data=data)
+        self._setupPlotParameters(bokehPlot, plot_type='2D', data=data)
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -6188,54 +7123,66 @@ class panelInteractiveOutput(wx.MiniFrame):
         for color in data['colors']:
             colorList.append(convertRGB1toHEX(color))
         for mw in data['legend']:
-            molweight.append(mw.split(" ")[1])
+            molweight.append(mw.split(' ')[1])
         legend = data['legend']
-        source = ColumnDataSource(data=dict(xvals=labels, yvals=yvals,
-                                            labels=labels, colors=colorList,
-                                            legend=legend, mw=molweight))
+        source = ColumnDataSource(
+            data=dict(
+                xvals=labels, yvals=yvals,
+                labels=labels, colors=colorList,
+                legend=legend, mw=molweight,
+            ),
+        )
 
         # Check if we should lock the hoverline
 
-        hoverTool = HoverTool(tooltips=[("Component", '@labels'),
-                                        ("Deconvoluted MW (Da)", '@mw'),
-                                        ("Intensity", '@yvals')],
-                              mode='mouse')
+        hoverTool = HoverTool(
+            tooltips=[
+                ('Component', '@labels'),
+                ('Deconvoluted MW (Da)', '@mw'),
+                ('Intensity', '@yvals'),
+            ],
+            mode='mouse',
+        )
 
         TOOLS = self._check_tools(hoverTool, data)
 
-        bokehPlot = figure(x_range=labels,
-                           y_range=(0, max(yvals) * 1.05),
-                           tools=TOOLS,
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
-        bokehPlot.vbar(x='xvals', top='yvals', width=0.9, source=source, legend="legend",
-                       fill_color="colors", line_color='white')
+        bokehPlot = figure(
+            x_range=labels,
+            y_range=(0, max(yvals) * 1.05),
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
+        bokehPlot.vbar(
+            x='xvals', top='yvals', width=0.9, source=source, legend='legend',
+            fill_color='colors', line_color='white',
+        )
 
         # setup labels
         bokehPlot.yaxis.axis_label = ylabel
         # setup common parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data)
-        if user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts):
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='1D', data=data)
+        if user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts):
             js_type, js_code = [], {}
 
-            if user_kwargs["widgets"].get("hover_mode", True):
+            if user_kwargs['widgets'].get('hover_mode', True):
                 js_code.update(hover=hoverTool)
-                js_type.extend(["hover_mode"])
+                js_type.extend(['hover_mode'])
 
-            if user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
+            if user_kwargs['legend_properties'].get('legend', plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
                 js_code.update(legend=bokehPlot.legend[0])
-                if user_kwargs["widgets"].get("legend_toggle", True):
-                    js_type.extend(["legend_toggle"])
-                if user_kwargs["widgets"].get("legend_position", True):
-                    js_type.extend(["legend_position"])
-                if user_kwargs["widgets"].get("legend_orientation", True):
-                    js_type.extend(["legend_orientation"])
-                if user_kwargs["widgets"].get("legend_transparency", True):
-                    js_type.extend(["legend_transparency"])
+                if user_kwargs['widgets'].get('legend_toggle', True):
+                    js_type.extend(['legend_toggle'])
+                if user_kwargs['widgets'].get('legend_position', True):
+                    js_type.extend(['legend_position'])
+                if user_kwargs['widgets'].get('legend_orientation', True):
+                    js_type.extend(['legend_orientation'])
+                if user_kwargs['widgets'].get('legend_transparency', True):
+                    js_type.extend(['legend_transparency'])
 
             if len(js_type) > 0:
                 try:
@@ -6260,11 +7207,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         xlabel = _replace_labels(xlabel)
         ylabel = _replace_labels(ylabel)
 
-        if ylabel in ["Intensity", "Normalized intensity", "Normalised intensity"]:
-            ylabel = "Offset intensity"
+        if ylabel in ['Intensity', 'Normalized intensity', 'Normalised intensity']:
+            ylabel = 'Offset intensity'
 
         # check parameters
-        if "waterfall_kwargs" in data:
+        if 'waterfall_kwargs' in data:
             labels = data['waterfall_kwargs']['labels']
         else:
             labels = data['labels']
@@ -6279,10 +7226,10 @@ class panelInteractiveOutput(wx.MiniFrame):
             try:
                 hover_label = hoverLabels[0]
             except Exception:
-                hover_label = "Label ({})".format(0)
+                hover_label = 'Label ({})'.format(0)
             _tooltips.append((hover_label, '@label'))
         else:
-            hover_label = "Label"
+            hover_label = 'Label'
             _tooltips.append((hover_label, '@label'))
         hoverTool = HoverTool(tooltips=_tooltips, mode=plt_kwargs['hover_mode'])
 
@@ -6294,18 +7241,20 @@ class panelInteractiveOutput(wx.MiniFrame):
         # create figure
         bokehPlot = figure(
             tools=TOOLS, title=bkh_kwargs['title'],
-            active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-            active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-            plot_width=plt_kwargs["plot_width"], plot_height=plt_kwargs["plot_height"],
-            toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-            toolbar_sticky=False)
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'], plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         i = len(xvals)
         _ydata = []
 
         # create empty label holders
-        if user_kwargs["annotation_properties"].get(
-                "show_labels", self.config.interactive_ms_annotations_labels):
+        if user_kwargs['annotation_properties'].get(
+                'show_labels', self.config.interactive_ms_annotations_labels,
+        ):
             text_annot_ypos, text_annot_label = [], []
 
         # add plots
@@ -6317,10 +7266,13 @@ class panelInteractiveOutput(wx.MiniFrame):
                 pass
 
             # linearize
-            if (user_kwargs["preprocessing_properties"]["linearize"] and
-                    len(xval) > user_kwargs["preprocessing_properties"].get("linearize_limit", 25000)):
+            if (
+                user_kwargs['preprocessing_properties']['linearize'] and
+                len(xval) > user_kwargs['preprocessing_properties'].get('linearize_limit', 25000)
+            ):
                 xval, yval = self.linearize_spectrum(
-                    xval, yval, user_kwargs["preprocessing_properties"]["linearize_binsize"])
+                    xval, yval, user_kwargs['preprocessing_properties']['linearize_binsize'],
+                )
 
             yval = np.asarray(yval)
 
@@ -6331,50 +7283,68 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             # create plot source
             source = ColumnDataSource(
-                data=dict(xvals=xval,
-                          yvals=yval + user_kwargs['plot_properties'].get(
-                              "waterfall_increment", self.config.interactive_waterfall_increment) * i,
-                          label=([_replace_labels(label)] * len(xval))))
+                data=dict(
+                    xvals=xval,
+                    yvals=yval + user_kwargs['plot_properties'].get(
+                        'waterfall_increment', self.config.interactive_waterfall_increment,
+                    ) * i,
+                    label=([_replace_labels(label)] * len(xval)),
+                ),
+            )
 
             # create legend label
-            if not user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']):
+            if not user_kwargs['legend_properties'].get('legend', plt_kwargs['add_legend']):
                 legend_label = None
             else:
                 legend_label = _replace_labels(label)
 
             line = bokehPlot.line(
-                x="xvals", y="yvals", line_color=color,
-                line_width=user_kwargs["plot_properties"]["line_width"],
+                x='xvals', y='yvals', line_color=color,
+                line_width=user_kwargs['plot_properties']['line_width'],
                 line_alpha=user_kwargs['plot_properties'].get(
-                    "line_transparency", self.config.interactive_line_alpha),
+                    'line_transparency', self.config.interactive_line_alpha,
+                ),
                 line_dash=user_kwargs['plot_properties'].get(
-                    "line_style", self.config.interactive_line_style),
+                    'line_style', self.config.interactive_line_style,
+                ),
                 legend=legend_label,
                 muted_alpha=user_kwargs['legend_properties'].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha),
+                    'legend_mute_alpha', self.config.interactive_legend_mute_alpha,
+                ),
                 muted_color=color,
-                source=source)
+                source=source,
+            )
 
             # add underline patch
             if user_kwargs['plot_properties'].get(
-                    "waterfall_shade_under", self.config.interactive_waterfall_shade_under):
+                    'waterfall_shade_under', self.config.interactive_waterfall_shade_under,
+            ):
                 patch = bokehPlot.patch(
-                    "xvals", "yvals", color=color,
+                    'xvals', 'yvals', color=color,
                     fill_alpha=user_kwargs['plot_properties'].get(
-                        "waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha),
-                    line_alpha=0., source=source, legend=legend_label)
+                        'waterfall_shade_transparency', self.config.interactive_waterfall_shade_alpha,
+                    ),
+                    line_alpha=0., source=source, legend=legend_label,
+                )
                 _patches.append(patch)
 
             # add labels
-            if user_kwargs["annotation_properties"].get(
-                    "show_labels", self.config.interactive_ms_annotations_labels):
-                text_annot_ypos.append(user_kwargs['plot_properties'].get(
-                    "waterfall_increment", self.config.interactive_waterfall_increment) * i)
+            if user_kwargs['annotation_properties'].get(
+                    'show_labels', self.config.interactive_ms_annotations_labels,
+            ):
+                text_annot_ypos.append(
+                    user_kwargs['plot_properties'].get(
+                        'waterfall_increment', self.config.interactive_waterfall_increment,
+                    ) * i,
+                )
                 text_annot_label.append(_replace_labels(label))
 
             # collect plot data for limit determination
-            _ydata.extend(yval + user_kwargs['plot_properties'].get(
-                "waterfall_increment", self.config.interactive_waterfall_increment) * i)
+            _ydata.extend(
+                yval + user_kwargs['plot_properties'].get(
+                    'waterfall_increment', self.config.interactive_waterfall_increment,
+                ) * i,
+            )
             _lines.append(line)
             _original_colors.append(color)
             i = i - 1
@@ -6390,24 +7360,35 @@ class panelInteractiveOutput(wx.MiniFrame):
         labels = None
 
         # add annotations
-        if ("annotations" in data and len(data["annotations"]) > 0 and
-                user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs['show_annotations'])):
-            quad_source, label_source, __ = self._prepare_annotations(data, yvals, y_offset=user_kwargs[
-                'plot_properties'].get(
-                    "waterfall_increment", self.config.interactive_waterfall_increment) * len(xvals))
+        if (
+            'annotations' in data and len(data['annotations']) > 0 and
+            user_kwargs['annotation_properties'].get('show_annotations', plt_kwargs['show_annotations'])
+        ):
+            quad_source, label_source, __ = self._prepare_annotations(
+                data, yvals, y_offset=user_kwargs[
+                    'plot_properties'
+                ].get(
+                    'waterfall_increment', self.config.interactive_waterfall_increment,
+                ) * len(xvals),
+            )
 
-            if user_kwargs["annotation_properties"].get(
-                    "show_patches", self.config.interactive_ms_annotations_highlight):
-                bokehPlot.quad(top="top", bottom="bottom", left="left", right="right",
-                               color="color",
-                               fill_alpha=user_kwargs["annotation_properties"].get(
-                                   "patch_transparency", self.config.interactive_ms_annotations_transparency),
-                               source=quad_source,
-                               name="ignore_hover")
+            if user_kwargs['annotation_properties'].get(
+                    'show_patches', self.config.interactive_ms_annotations_highlight,
+            ):
+                bokehPlot.quad(
+                    top='top', bottom='bottom', left='left', right='right',
+                    color='color',
+                    fill_alpha=user_kwargs['annotation_properties'].get(
+                        'patch_transparency', self.config.interactive_ms_annotations_transparency,
+                    ),
+                    source=quad_source,
+                    name='ignore_hover',
+                )
 
-            if user_kwargs["annotation_properties"].get(
-                    "show_labels", self.config.interactive_ms_annotations_labels):
-                bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
+            if user_kwargs['annotation_properties'].get(
+                    'show_labels', self.config.interactive_ms_annotations_labels,
+            ):
+                bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type='waterfall')
 
         # setup labels
         bokehPlot.xaxis.axis_label = xlabel
@@ -6415,58 +7396,71 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # setup common parameters
         js_kwargs = dict(xlimits=xlimits, ylimits=ylimits)
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Waterfall", data=data, **js_kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='Waterfall', data=data, **js_kwargs)
         plot_mods = {}
         # add widgets
-        if (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
-                bkh_kwargs['page_layout'] in ["Individual", "Columns"]):
-            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(None, cmap=self.config.interactive_cvd_cmap,
-                                                                         n_colors=len(_lines),
-                                                                         return_colors=True, return_hex=True)
+        if (
+            user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts) and
+            bkh_kwargs['page_layout'] in ['Individual', 'Columns']
+        ):
+            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+                None, cmap=self.config.interactive_cvd_cmap,
+                n_colors=len(_lines),
+                return_colors=True, return_hex=True,
+            )
             js_type, js_code = [], {}
-            if user_kwargs["widgets"].get("colorblind_safe_1D", True):
-                js_code.update(lines=_lines, original_colors=_original_colors,
-                               cvd_colors=_cvd_colors, patches=_patches)
-                js_type.extend(["colorblind_safe_1D"])
+            if user_kwargs['widgets'].get('colorblind_safe_1D', True):
+                js_code.update(
+                    lines=_lines, original_colors=_original_colors,
+                    cvd_colors=_cvd_colors, patches=_patches,
+                )
+                js_type.extend(['colorblind_safe_1D'])
 
-            if user_kwargs["widgets"].get("hover_mode", True):
+            if user_kwargs['widgets'].get('hover_mode', True):
                 js_code.update(hover=hoverTool)
-                js_type.extend(["hover_mode"])
+                js_type.extend(['hover_mode'])
 
-            if user_kwargs["legend_properties"].get("legend", plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
+            if user_kwargs['legend_properties'].get('legend', plt_kwargs['add_legend']) and len(bokehPlot.legend) > 0:
                 js_code.update(legend=bokehPlot.legend[0])
-                if user_kwargs["widgets"].get("legend_toggle", True):
-                    js_type.extend(["legend_toggle"])
-                if user_kwargs["widgets"].get("legend_position", True):
-                    js_type.extend(["legend_position"])
-                if user_kwargs["widgets"].get("legend_orientation", True):
-                    js_type.extend(["legend_orientation"])
-                if user_kwargs["widgets"].get("legend_transparency", True):
-                    js_type.extend(["legend_transparency"])
+                if user_kwargs['widgets'].get('legend_toggle', True):
+                    js_type.extend(['legend_toggle'])
+                if user_kwargs['widgets'].get('legend_position', True):
+                    js_type.extend(['legend_position'])
+                if user_kwargs['widgets'].get('legend_orientation', True):
+                    js_type.extend(['legend_orientation'])
+                if user_kwargs['widgets'].get('legend_transparency', True):
+                    js_type.extend(['legend_transparency'])
 
             if labels is not None:
                 js_code.update(labels=labels, y_range_shown=ylimits[1], y_range_hidden=ylimits[1])
-                if user_kwargs["widgets"].get("label_toggle", True):
-                    js_type.extend(["label_toggle"])
-                if user_kwargs["widgets"].get("label_size_slider", True):
-                    js_type.extend(["label_size_slider"])
-                if user_kwargs["widgets"].get("label_rotation", True):
-                    js_type.extend(["label_rotation"])
-                if user_kwargs["widgets"].get("label_offset_x", True):
-                    js_type.extend(["label_offset_x"])
-                if user_kwargs["widgets"].get("label_offset_y", True):
-                    js_type.extend(["label_offset_y"])
+                if user_kwargs['widgets'].get('label_toggle', True):
+                    js_type.extend(['label_toggle'])
+                if user_kwargs['widgets'].get('label_size_slider', True):
+                    js_type.extend(['label_size_slider'])
+                if user_kwargs['widgets'].get('label_rotation', True):
+                    js_type.extend(['label_rotation'])
+                if user_kwargs['widgets'].get('label_offset_x', True):
+                    js_type.extend(['label_offset_x'])
+                if user_kwargs['widgets'].get('label_offset_y', True):
+                    js_type.extend(['label_offset_y'])
 
             if len(js_type) > 0:
                 bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
-        elif (user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts) and
-              bkh_kwargs['page_layout'] not in ["Individual", "Columns"]):
+        elif (
+            user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts) and
+            bkh_kwargs['page_layout'] not in ['Individual', 'Columns']
+        ):
             _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
-                None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True)
-            plot_mods.update(lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
-                             patches=_patches)
-            self.presenter.onThreading(None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment.", 4),
-                                       action='updateStatusbar')
+                None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True,
+            )
+            plot_mods.update(
+                lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
+                patches=_patches,
+            )
+            self.presenter.onThreading(
+                None, ("Adding widgets to 'Grid'/'Rows' is not supported at the moment.", 4),
+                action='updateStatusbar',
+            )
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height'], plot_mods]
 
@@ -6485,39 +7479,46 @@ class panelInteractiveOutput(wx.MiniFrame):
         count = len(xvals)
 
         # swap labels in some cases
-        if xlabel not in ["m/z", "Mass (Da)", "Charge"]:
+        if xlabel not in ['m/z', 'Mass (Da)', 'Charge']:
             xlabel, ylabel = ylabel, xlabel
 
-        ylabel = "Offset intensity"
+        ylabel = 'Offset intensity'
 
         # create hover tool
-        hoverTool = HoverTool(tooltips=[(xlabel, '@xvals{0.00}'),
-                                        (ylabel, '@yvals{0.00}'),
-                                        ("Dataset", '@dataset'),
-                                        ("Label", "@label")],
-                              mode=plt_kwargs['hover_mode'])
+        hoverTool = HoverTool(
+            tooltips=[
+                (xlabel, '@xvals{0.00}'),
+                (ylabel, '@yvals{0.00}'),
+                ('Dataset', '@dataset'),
+                ('Label', '@label'),
+            ],
+            mode=plt_kwargs['hover_mode'],
+        )
         # Prepare MS file
         TOOLS = self._check_tools(hoverTool, data)
 
         xvals_list, __ = find_limits_list(xvals, yvals)
 
         # create figure
-        bokehPlot = figure(tools=TOOLS,
-                           title=bkh_kwargs['title'],
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        bokehPlot = figure(
+            tools=TOOLS,
+            title=bkh_kwargs['title'],
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         # generate labels
         if len(labels) == 0:
-            labels = [" "] * count
+            labels = [' '] * count
 
         # get colorblind colors
         cvd_colors = self.presenter.view.panelPlots.onChangePalette(
-            None, cmap=self.config.interactive_cvd_cmap, n_colors=len(xvals), return_colors=True, return_hex=True)
+            None, cmap=self.config.interactive_cvd_cmap, n_colors=len(xvals), return_colors=True, return_hex=True,
+        )
 
         # add plots
         _ydata = []
@@ -6531,21 +7532,26 @@ class panelInteractiveOutput(wx.MiniFrame):
             shade_color = convertRGB1toHEX(colorList[item])
             for irow in range(len(yval)):
                 if irow > 0:
-                    label = ""
+                    label = ''
 
                 yOffset = user_kwargs['plot_properties'].get(
-                    "waterfall_increment", self.config.interactive_waterfall_increment) * irow
+                    'waterfall_increment', self.config.interactive_waterfall_increment,
+                ) * irow
                 label = str(yval[irow])
                 y = zval[:, irow] + yOffset
                 # create source
                 source = ColumnDataSource(
-                    data=dict(xvals=xval, yvals=y,
-                              dataset=([dataset] * len(xval)),
-                              label=([label] * len(xval))))
+                    data=dict(
+                        xvals=xval, yvals=y,
+                        dataset=([dataset] * len(xval)),
+                        label=([label] * len(xval)),
+                    ),
+                )
 
                 # generate legend label
                 if not user_kwargs['legend_properties'].get(
-                        "legend", self.config.interactive_legend):
+                        'legend', self.config.interactive_legend,
+                ):
                     legend_label = None
                 elif irow == 0:
                     legend_label = dataset
@@ -6553,26 +7559,31 @@ class panelInteractiveOutput(wx.MiniFrame):
                     legend_label = None
 
                 line = bokehPlot.line(
-                    x="xvals", y="yvals",
+                    x='xvals', y='yvals',
                     line_color=line_color,
-                    line_width=user_kwargs["plot_properties"]["line_width"],
-                    line_alpha=user_kwargs["plot_properties"]["line_transparency"],
-                    line_dash=user_kwargs["plot_properties"]["line_style"],
+                    line_width=user_kwargs['plot_properties']['line_width'],
+                    line_alpha=user_kwargs['plot_properties']['line_transparency'],
+                    line_dash=user_kwargs['plot_properties']['line_style'],
                     legend=legend_label,
                     muted_alpha=user_kwargs['legend_properties'].get(
-                        "legend_mute_alpha", self.config.interactive_legend_mute_alpha),
+                        'legend_mute_alpha', self.config.interactive_legend_mute_alpha,
+                    ),
                     muted_color=line_color,
-                    source=source)
+                    source=source,
+                )
 
                 # add underline patch
                 if user_kwargs['plot_properties'].get(
-                        "waterfall_shade_under", self.config.interactive_waterfall_shade_under):
+                        'waterfall_shade_under', self.config.interactive_waterfall_shade_under,
+                ):
                     patch = bokehPlot.patch(
-                        "xvals", "yvals",
+                        'xvals', 'yvals',
                         color=shade_color,
                         fill_alpha=user_kwargs['plot_properties'].get(
-                            "waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha),
-                        line_alpha=0., source=source, legend=legend_label)
+                            'waterfall_shade_transparency', self.config.interactive_waterfall_shade_alpha,
+                        ),
+                        line_alpha=0., source=source, legend=legend_label,
+                    )
                     _patches.append(patch)
 
                 _ydata.extend(y)
@@ -6591,34 +7602,39 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # setup common parameters
         js_kwargs = dict(xlimits=xlimits, ylimits=ylimits)
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="Waterfall_overlay", data=data, **js_kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='Waterfall_overlay', data=data, **js_kwargs)
 
         # add widgets
-        if user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts):
+        if user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts):
             # get cvd colors
             js_type, js_code = [], {}
 
-            if user_kwargs["widgets"].get("colorblind_safe_1D", True):
-                js_code.update(lines=_lines, original_colors=_original_colors,
-                               cvd_colors=_cvd_colors, patches=_patches)
-                js_type.extend(["colorblind_safe_1D"])
+            if user_kwargs['widgets'].get('colorblind_safe_1D', True):
+                js_code.update(
+                    lines=_lines, original_colors=_original_colors,
+                    cvd_colors=_cvd_colors, patches=_patches,
+                )
+                js_type.extend(['colorblind_safe_1D'])
 
-            if user_kwargs["widgets"].get("hover_mode", True):
+            if user_kwargs['widgets'].get('hover_mode', True):
                 js_code.update(hover=hoverTool)
-                js_type.extend(["hover_mode"])
+                js_type.extend(['hover_mode'])
 
-            if (user_kwargs['legend_properties'].get(
-                "legend", self.config.interactive_legend) and
-                    len(bokehPlot.legend) > 0):
+            if (
+                user_kwargs['legend_properties'].get(
+                    'legend', self.config.interactive_legend,
+                ) and
+                    len(bokehPlot.legend) > 0
+            ):
                 js_code.update(legend=bokehPlot.legend[0])
-                if user_kwargs["widgets"].get("legend_toggle", True):
-                    js_type.extend(["legend_toggle"])
-                if user_kwargs["widgets"].get("legend_position", True):
-                    js_type.extend(["legend_position"])
-                if user_kwargs["widgets"].get("legend_orientation", True):
-                    js_type.extend(["legend_orientation"])
-                if user_kwargs["widgets"].get("legend_transparency", True):
-                    js_type.extend(["legend_transparency"])
+                if user_kwargs['widgets'].get('legend_toggle', True):
+                    js_type.extend(['legend_toggle'])
+                if user_kwargs['widgets'].get('legend_position', True):
+                    js_type.extend(['legend_position'])
+                if user_kwargs['widgets'].get('legend_orientation', True):
+                    js_type.extend(['legend_orientation'])
+                if user_kwargs['widgets'].get('legend_transparency', True):
+                    js_type.extend(['legend_transparency'])
 
             bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
 
@@ -6633,75 +7649,96 @@ class panelInteractiveOutput(wx.MiniFrame):
         xlabel, ylabel, rmsdLabel = data['xlabels'], data['ylabels'], data['rmsdLabel']
         cmap_1, cmap_2 = data['cmap_1'], data['cmap_2']
 
-        z_top_left_data = dict(image=[zvals_1], x=[min(xvals)], y=[min(yvals)],
-                               dw=[max(xvals)], dh=[max(yvals)])
+        z_top_left_data = dict(
+            image=[zvals_1], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals)], dh=[max(yvals)],
+        )
         cds_top_left = ColumnDataSource(data=z_top_left_data)
-        z_bottom_left_data = dict(image=[zvals_2], x=[min(xvals)], y=[min(yvals)],
-                                  dw=[max(xvals)], dh=[max(yvals)])
+        z_bottom_left_data = dict(
+            image=[zvals_2], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals)], dh=[max(yvals)],
+        )
         cds_bottom_left = ColumnDataSource(data=z_bottom_left_data)
-        z_right_data = dict(image=[zvals_cum], x=[min(xvals)], y=[min(yvals)],
-                            dw=[max(xvals)], dh=[max(yvals)])
+        z_right_data = dict(
+            image=[zvals_cum], x=[min(xvals)], y=[min(yvals)],
+            dw=[max(xvals)], dh=[max(yvals)],
+        )
         cds_right_left = ColumnDataSource(data=z_right_data)
 
-        hoverTool = HoverTool(tooltips=[(xlabel, '$x{0}'), (ylabel, '$y{0}'),
-                                        ('Intensity', '@image')],
-                              point_policy='follow_mouse')
+        hoverTool = HoverTool(
+            tooltips=[
+                (xlabel, '$x{0}'), (ylabel, '$y{0}'),
+                ('Intensity', '@image'),
+            ],
+            point_policy='follow_mouse',
+        )
 
         TOOLS = self._check_tools(hoverTool, data)
 
         colorMapper_top_left, colormap_top_left = self._convert_cmap_to_colormapper(
-            cmap_1, zvals=zvals_1, return_palette=True)
+            cmap_1, zvals=zvals_1, return_palette=True,
+        )
         colorMapper_bottom_left, colormap_bottom_left = self._convert_cmap_to_colormapper(
-            cmap_2, zvals=zvals_2, return_palette=True)
+            cmap_2, zvals=zvals_2, return_palette=True,
+        )
         colorMapper_right, colormap_right = self._convert_cmap_to_colormapper(
-            "coolwarm", zvals=zvals_cum, return_palette=True)
+            'coolwarm', zvals=zvals_cum, return_palette=True,
+        )
 
-        top_left = figure(x_range=(min(xvals), max(xvals)),
-                          y_range=(min(yvals), max(yvals)),
-                          tools=TOOLS,
-                          active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                          active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                          plot_width=int(self.config.figWidth * 0.5),
-                          plot_height=int(self.config.figHeight * 0.5),
-                          toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                          toolbar_sticky=False)
+        top_left = figure(
+            x_range=(min(xvals), max(xvals)),
+            y_range=(min(yvals), max(yvals)),
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=int(self.config.figWidth * 0.5),
+            plot_height=int(self.config.figHeight * 0.5),
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         top_left.image(source=cds_top_left, image='image', x='x', y='y', dw='dw', dh='dh', palette=colormap_top_left)
         top_left.yaxis.axis_label = ylabel
 
-        bottom_left = figure(x_range=top_left.x_range,
-                             y_range=top_left.y_range,
-                             tools=TOOLS,
-                             active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                             active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                             plot_width=int(self.config.figWidth * 0.5), plot_height=int(self.config.figHeight * 0.5),
-                             toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                             toolbar_sticky=False)
+        bottom_left = figure(
+            x_range=top_left.x_range,
+            y_range=top_left.y_range,
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=int(self.config.figWidth * 0.5), plot_height=int(self.config.figHeight * 0.5),
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
-        bottom_left.image(source=cds_bottom_left, image='image', x='x', y='y', dw='dw', dh='dh',
-                          palette=colormap_bottom_left)
+        bottom_left.image(
+            source=cds_bottom_left, image='image', x='x', y='y', dw='dw', dh='dh',
+            palette=colormap_bottom_left,
+        )
         bottom_left.xaxis.axis_label = xlabel
         bottom_left.yaxis.axis_label = ylabel
 
-        right = figure(x_range=top_left.x_range,
-                       y_range=top_left.y_range,
-                       tools=TOOLS,
-                       active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                       active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                       plot_width=self.config.figWidth, plot_height=(self.config.figHeight),
-                       toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                       toolbar_sticky=False)
+        right = figure(
+            x_range=top_left.x_range,
+            y_range=top_left.y_range,
+            tools=TOOLS,
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=self.config.figWidth, plot_height=(self.config.figHeight),
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         right.image(source=cds_right_left, image='image', x='x', y='y', dw='dw', dh='dh', palette=colormap_right)
         right.xaxis.axis_label = xlabel
 
         kwargs = {'tight_layout': True}
-        top_left = self._setupPlotParameters(top_left, plot_type="2D", data=data, **kwargs)
-        bottom_left = self._setupPlotParameters(bottom_left, plot_type="2D", data=data, **kwargs)
-        right = self._setupPlotParameters(right, plot_type="2D", data=data, **kwargs)
+        top_left = self._setupPlotParameters(top_left, plot_type='2D', data=data, **kwargs)
+        bottom_left = self._setupPlotParameters(bottom_left, plot_type='2D', data=data, **kwargs)
+        right = self._setupPlotParameters(right, plot_type='2D', data=data, **kwargs)
 
         left_column = column(top_left, bottom_left)
-        bokehPlot = gridplot([[left_column, right]], sizing_mode="fixed")
+        bokehPlot = gridplot([[left_column, right]], sizing_mode='fixed')
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
@@ -6718,27 +7755,31 @@ class panelInteractiveOutput(wx.MiniFrame):
         ylabel = data['ylabels']
         plot_parameters = data['plot_parameters']
 
-        if xlabel == "":
-            hover_xlabel = "x"
+        if xlabel == '':
+            hover_xlabel = 'x'
         else:
             hover_xlabel = xlabel
-        if ylabel == "":
-            hover_ylabel = "y"
+        if ylabel == '':
+            hover_ylabel = 'y'
         else:
             hover_ylabel = ylabel
 
-        hoverTool = HoverTool(tooltips=[(hover_xlabel, '$x{0.00}'),
-                                        (hover_ylabel, '$y{0.00}'),
-                                        ('Intensity', '@image')],
-                              point_policy='follow_mouse')
+        hoverTool = HoverTool(
+            tooltips=[
+                (hover_xlabel, '$x{0.00}'),
+                (hover_ylabel, '$y{0.00}'),
+                ('Intensity', '@image'),
+            ],
+            point_policy='follow_mouse',
+        )
 
         TOOLS = self._check_tools(hoverTool, data)
 
         plot_list = []
         n_grid = len(zvals_list)
         for i, zvals in enumerate(zvals_list):
-            row = int(i // plot_parameters["n_cols"])
-            col = i % plot_parameters["n_cols"]
+            row = int(i // plot_parameters['n_cols'])
+            col = i % plot_parameters['n_cols']
 
             if len(xvals) == n_grid:
                 xmin, xmax = np.min(xvals[i]), np.max(xvals[i])
@@ -6750,35 +7791,41 @@ class panelInteractiveOutput(wx.MiniFrame):
             data = dict(image=[zvals], x=[xmin], y=[ymin], dw=[xmax - xmin], dh=[ymax - ymin])
             cds = ColumnDataSource(data=data)
             __, colormap = self._convert_cmap_to_colormapper(cmap_list[i], zvals=zvals, return_palette=True)
-            plot_size_x = data.get("interactive_params", {}).get("grid_NxN", {}).get("plot_width", 400)
-            plot_size_y = data.get("interactive_params", {}).get("grid_NxN", {}).get("plot_height", 400)
-            if data.get("interactive_params", {}).get("grid_NxN", {}).get("link_xy", True):
+            plot_size_x = data.get('interactive_params', {}).get('grid_NxN', {}).get('plot_width', 400)
+            plot_size_y = data.get('interactive_params', {}).get('grid_NxN', {}).get('plot_height', 400)
+            if data.get('interactive_params', {}).get('grid_NxN', {}).get('link_xy', True):
                 if i == 0:
-                    plot = figure(x_range=(xmin, xmax),
-                                  y_range=(ymin, ymax),
-                                  tools=TOOLS, title=title_list[i],
-                                  active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                                  active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                                  plot_width=plot_size_x, plot_height=plot_size_y,
-                                  toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                                  toolbar_sticky=False)
+                    plot = figure(
+                        x_range=(xmin, xmax),
+                        y_range=(ymin, ymax),
+                        tools=TOOLS, title=title_list[i],
+                        active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+                        active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+                        plot_width=plot_size_x, plot_height=plot_size_y,
+                        toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+                        toolbar_sticky=False,
+                    )
                 else:
-                    plot = figure(x_range=plot_list[0].x_range,
-                                  y_range=plot_list[0].y_range,
-                                  tools=TOOLS, title=title_list[i],
-                                  active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                                  active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                                  plot_width=plot_size_x, plot_height=plot_size_y,
-                                  toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                                  toolbar_sticky=False)
+                    plot = figure(
+                        x_range=plot_list[0].x_range,
+                        y_range=plot_list[0].y_range,
+                        tools=TOOLS, title=title_list[i],
+                        active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+                        active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+                        plot_width=plot_size_x, plot_height=plot_size_y,
+                        toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+                        toolbar_sticky=False,
+                    )
             else:
-                plot = figure(x_range=(xmin, xmax), y_range=(ymin, ymax),
-                              tools=TOOLS, title=title_list[i],
-                              active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                              active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                              plot_width=plot_size_x, plot_height=plot_size_y,
-                              toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                              toolbar_sticky=False)
+                plot = figure(
+                    x_range=(xmin, xmax), y_range=(ymin, ymax),
+                    tools=TOOLS, title=title_list[i],
+                    active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+                    active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+                    plot_width=plot_size_x, plot_height=plot_size_y,
+                    toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+                    toolbar_sticky=False,
+                )
 
             plot.image(source=cds, image='image', x='x', y='y', dw='dw', dh='dh', palette=colormap)
 
@@ -6789,17 +7836,19 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             # Add RMSD label to the plot
             if plt_kwargs['title_label']:
-                plot = self._add_grid_label(plot, title_list[i],
-                                            plt_kwargs['xpos'], plt_kwargs['ypos'])
+                plot = self._add_grid_label(
+                    plot, title_list[i],
+                    plt_kwargs['xpos'], plt_kwargs['ypos'],
+                )
 
             kwargs = {'tight_layout': True}
-            plot = self._setupPlotParameters(plot, plot_type="2D", data=data, **kwargs)
+            plot = self._setupPlotParameters(plot, plot_type='2D', data=data, **kwargs)
             plot_list.append(plot)
 
             bokehPlot = gridplot(plot_list, ncols=plot_parameters['n_cols'], merge_tools=False)
 
-        plt_kwargs['plot_width'] = plot_size_x * plot_parameters["n_cols"]
-        plt_kwargs['plot_height'] = plot_size_y * plot_parameters["n_rows"]
+        plt_kwargs['plot_width'] = plot_size_x * plot_parameters['n_cols']
+        plt_kwargs['plot_height'] = plot_size_y * plot_parameters['n_rows']
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
     def _add_plot_grid_NxN_scatter(self, data, **bkh_kwargs):
@@ -6814,9 +7863,9 @@ class panelInteractiveOutput(wx.MiniFrame):
         ylabels = data['ylabels']
         labels = data['labels']
         colors_list = data['colors']
-        plot_modifiers = data["plot_modifiers"]
-        itemColors = data["itemColors"]
-        itemLabels = data["itemLabels"]
+        plot_modifiers = data['plot_modifiers']
+        itemColors = data['itemColors']
+        itemLabels = data['itemLabels']
         xvalsErr = data['xvalsErr']
         yvalsErr = data['yvalsErr']
         n_cols, n_rows, n_grid = plot_modifiers['n_cols'], plot_modifiers['n_rows'], plot_modifiers['n_grid']
@@ -6828,7 +7877,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # check length of labels
         if len(labels) != len(yvals):
-            labels = [""] * len(yvals)
+            labels = [''] * len(yvals)
 
         n_xvals = len(xvals)
         n_yvals = len(yvals)
@@ -6855,8 +7904,10 @@ class panelInteractiveOutput(wx.MiniFrame):
             label = labels[i]
             xmin, xmax = np.min(xval), np.max(xval)
             ymin, ymax = np.min(yval), np.max(yval)
-            _tooltips = [(xlabel, '@xvals{0.00}'),
-                         (ylabel, '@yvals{0.00}')]
+            _tooltips = [
+                (xlabel, '@xvals{0.00}'),
+                (ylabel, '@yvals{0.00}'),
+            ]
 
             if len(itemColors) > 0 and len(itemColors[0]) == yval_size:
                 color = self._convert_color_list(itemColors[0])
@@ -6876,25 +7927,27 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             _sourceDict = dict(xvals=xval, yvals=yval, color=color, edge_color=edge_color)
             if len(xvalsErr) == len(yvals) and len(xvalsErr[i]) == yval_size:
-                _sourceDict["xvalsErr"] = xvalsErr[i]
-                _tooltips.append(("Error (x)", '@xvalsErr{0.00}'))
+                _sourceDict['xvalsErr'] = xvalsErr[i]
+                _tooltips.append(('Error (x)', '@xvalsErr{0.00}'))
 
             if len(yvalsErr) == len(yvals) and len(yvalsErr[i]) == yval_size:
-                _sourceDict["yvalsErr"] = yvalsErr[i]
-                _tooltips.append(("Error (y)", '@yvalsErr{0.00}'))
+                _sourceDict['yvalsErr'] = yvalsErr[i]
+                _tooltips.append(('Error (y)', '@yvalsErr{0.00}'))
 
-            if plot_modifiers.get("bokeh_add_dataset_label", False):
-                _sourceDict["labels"] = [labels[i]] * yval_size
+            if plot_modifiers.get('bokeh_add_dataset_label', False):
+                _sourceDict['labels'] = [labels[i]] * yval_size
 
-            if plot_modifiers.get("label_items", False):
-                _sourceDict["itemLabels"] = itemLabels[0]
-                _tooltips.append(("Label", '@itemLabels'))
+            if plot_modifiers.get('label_items', False):
+                _sourceDict['itemLabels'] = itemLabels[0]
+                _tooltips.append(('Label', '@itemLabels'))
 
             xlabel = _replace_labels(xlabels[i])
             ylabel = _replace_labels(ylabels[i])
 
-            hoverTool = HoverTool(tooltips=_tooltips,
-                                  point_policy='follow_mouse')
+            hoverTool = HoverTool(
+                tooltips=_tooltips,
+                point_policy='follow_mouse',
+            )
             TOOLS = self._check_tools(hoverTool, data)
 
             plot_size_x, plot_size_y = 300, 300
@@ -6903,41 +7956,50 @@ class panelInteractiveOutput(wx.MiniFrame):
             else:
                 x_range, y_range = plot_list[0].x_range, plot_list[0].y_range
 
-            plot = figure(x_range=x_range, y_range=y_range,
-                          tools=TOOLS,
-                          title=label,
-                          active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                          active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                          plot_width=plot_size_x, plot_height=plot_size_y,
-                          toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                          toolbar_sticky=False)
+            plot = figure(
+                x_range=x_range, y_range=y_range,
+                tools=TOOLS,
+                title=label,
+                active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+                active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+                plot_width=plot_size_x, plot_height=plot_size_y,
+                toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+                toolbar_sticky=False,
+            )
 
             try:
                 label = labels[i]
             except Exception:
-                label = " "
+                label = ' '
             source = ColumnDataSource(data=_sourceDict)
 
-            plot.scatter(x="xvals", y="yvals",
-                         color="color", line_color="edge_color",
-                         marker=user_kwargs['plot_properties'].get(
-                             "scatter_shape", self.config.interactive_scatter_marker),
-                         fill_alpha=user_kwargs['plot_properties'].get(
-                             "scatter_transparency", self.config.interactive_scatter_alpha),
-                         size=user_kwargs['plot_properties'].get(
-                             "scatter_line_width", self.config.interactive_scatter_size),
-                         line_width=user_kwargs['plot_properties'].get(
-                             "scatter_line_width", self.config.interactive_scatter_lineWidth),
-                         muted_alpha=user_kwargs['legend_properties'].get(
-                             "legend_mute_alpha", self.config.interactive_legend_mute_alpha),
-                         source=source,
-                         legend=label)
+            plot.scatter(
+                x='xvals', y='yvals',
+                color='color', line_color='edge_color',
+                marker=user_kwargs['plot_properties'].get(
+                    'scatter_shape', self.config.interactive_scatter_marker,
+                ),
+                fill_alpha=user_kwargs['plot_properties'].get(
+                    'scatter_transparency', self.config.interactive_scatter_alpha,
+                ),
+                size=user_kwargs['plot_properties'].get(
+                    'scatter_line_width', self.config.interactive_scatter_size,
+                ),
+                line_width=user_kwargs['plot_properties'].get(
+                    'scatter_line_width', self.config.interactive_scatter_lineWidth,
+                ),
+                muted_alpha=user_kwargs['legend_properties'].get(
+                    'legend_mute_alpha', self.config.interactive_legend_mute_alpha,
+                ),
+                source=source,
+                legend=label,
+            )
 
             plot.xaxis.axis_label = xlabel
             plot.yaxis.axis_label = ylabel
 
             kwargs = {'tight_layout': True}
-            plot = self._setupPlotParameters(plot, plot_type="2D", data=data, **kwargs)
+            plot = self._setupPlotParameters(plot, plot_type='2D', data=data, **kwargs)
             plot_list.append(plot)
 
         plt_kwargs['plot_width'] = plot_size_x * n_cols
@@ -6958,7 +8020,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         ylabels = data['ylabels']
         labels = data['labels']
         colors_list = data['colors']
-        plot_modifiers = data["plot_modifiers"]
+        plot_modifiers = data['plot_modifiers']
         n_cols, n_rows, n_grid = plot_modifiers['n_cols'], plot_modifiers['n_rows'], plot_modifiers['n_grid']
 
         # check in case only one item was passed
@@ -6968,7 +8030,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # check length of labels
         if len(labels) != len(yvals):
-            labels = [""] * len(yvals)
+            labels = [''] * len(yvals)
 
         n_xvals = len(xvals)
         n_yvals = len(yvals)
@@ -6995,54 +8057,67 @@ class panelInteractiveOutput(wx.MiniFrame):
             xlabel = _replace_labels(xlabels[i])
             ylabel = _replace_labels(ylabels[i])
 
-            hoverTool = HoverTool(tooltips=[(xlabel, '$x{0.00}'),
-                                            (ylabel, '$y{0.00}')],
-                                  point_policy='follow_mouse')
+            hoverTool = HoverTool(
+                tooltips=[
+                    (xlabel, '$x{0.00}'),
+                    (ylabel, '$y{0.00}'),
+                ],
+                point_policy='follow_mouse',
+            )
             TOOLS = self._check_tools(hoverTool, data)
 
             plot_size_x, plot_size_y = 500, 300
-            plot = figure(x_range=(xmin, xmax),
-                          y_range=(ymin, ymax),
-                          tools=TOOLS,
-                          title=label,
-                          active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                          active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                          plot_width=plot_size_x, plot_height=plot_size_y,
-                          toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                          toolbar_sticky=False)
+            plot = figure(
+                x_range=(xmin, xmax),
+                y_range=(ymin, ymax),
+                tools=TOOLS,
+                title=label,
+                active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+                active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+                plot_width=plot_size_x, plot_height=plot_size_y,
+                toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+                toolbar_sticky=False,
+            )
 
-            if (user_kwargs["preprocessing_properties"]["linearize"] and
-                    len(xval) > user_kwargs["preprocessing_properties"].get("linearize_limit", 25000)):
+            if (
+                user_kwargs['preprocessing_properties']['linearize'] and
+                len(xval) > user_kwargs['preprocessing_properties'].get('linearize_limit', 25000)
+            ):
                 # TODO: implement better downsampling
                 # downsampling: https://github.com/devoxi/lttb-py/blob/master/lttb/lttb.py
                 xval, yval = self.linearize_spectrum(
-                    xval, yval, user_kwargs["preprocessing_properties"]["linearize_binsize"])
+                    xval, yval, user_kwargs['preprocessing_properties']['linearize_binsize'],
+                )
 
             try:
                 color = convertRGB1toHEX(color)
             except (SyntaxError, ValueError):
                 pass
             source = ColumnDataSource(data=dict(xvals=xval, yvals=yval))
-            plot.line(x="xvals", y="yvals",
-                      line_color=color,
-                      line_width=user_kwargs["plot_properties"]["line_width"],
-                      line_alpha=user_kwargs["plot_properties"]["line_transparency"],
-                      line_dash=user_kwargs["plot_properties"]["line_style"],
-                      muted_alpha=user_kwargs['legend_properties'].get(
-                          "legend_mute_alpha", self.config.interactive_legend_mute_alpha),
-                      muted_color=color,
-                      source=source)
+            plot.line(
+                x='xvals', y='yvals',
+                line_color=color,
+                line_width=user_kwargs['plot_properties']['line_width'],
+                line_alpha=user_kwargs['plot_properties']['line_transparency'],
+                line_dash=user_kwargs['plot_properties']['line_style'],
+                muted_alpha=user_kwargs['legend_properties'].get(
+                    'legend_mute_alpha', self.config.interactive_legend_mute_alpha,
+                ),
+                muted_color=color,
+                source=source,
+            )
             if plt_kwargs['overlay_shade']:
                 plot.patch(
-                    "xvals", "yvals", color=color,
+                    'xvals', 'yvals', color=color,
                     fill_alpha=plt_kwargs['overlay_shade_transparency'],
-                    line_alpha=0., source=source)
+                    line_alpha=0., source=source,
+                )
 
             plot.xaxis.axis_label = xlabel
             plot.yaxis.axis_label = ylabel
 
             kwargs = {'tight_layout': True}
-            plot = self._setupPlotParameters(plot, plot_type="2D", data=data, **kwargs)
+            plot = self._setupPlotParameters(plot, plot_type='2D', data=data, **kwargs)
             plot_list.append(plot)
 
         plt_kwargs['plot_width'] = plot_size_x * n_cols
@@ -7064,8 +8139,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         itemColors = data['itemColors']
         itemLabels = data['itemLabels']
         _colors = data['colors']
-        plot_modifiers = data["plot_modifiers"]
-        legend_labels = plot_modifiers["legend_labels"]
+        plot_modifiers = data['plot_modifiers']
+        legend_labels = plot_modifiers['legend_labels']
         hoverLabels = data.get('hover_labels', [])
 
         xvals_count = len(xvals)
@@ -7079,17 +8154,21 @@ class panelInteractiveOutput(wx.MiniFrame):
         if len(_colors) != len(xvals):
             _colors = self._get_colors(len(xvals))
 
-        if bkh_kwargs['plot_type'] == "H-bar":
-            _tooltips = [(ylabel, '@xvals{0.00}'),
-                         ("Min / max", '@yvals_min{0.00} / @yvals_max{0.00}'),
-                         ("Width", '@yvals_height{0.00}')]
+        if bkh_kwargs['plot_type'] == 'H-bar':
+            _tooltips = [
+                (ylabel, '@xvals{0.00}'),
+                ('Min / max', '@yvals_min{0.00} / @yvals_max{0.00}'),
+                ('Width', '@yvals_height{0.00}'),
+            ]
         else:
-            _tooltips = [(xlabel, '@xvals{0.00}'),
-                         ("Min / max", '@yvals_min{0.00} / @yvals_max{0.00}'),
-                         ("Height", '@yvals_height{0.00}')]
+            _tooltips = [
+                (xlabel, '@xvals{0.00}'),
+                ('Min / max', '@yvals_min{0.00} / @yvals_max{0.00}'),
+                ('Height', '@yvals_height{0.00}'),
+            ]
 
         if len(legend_labels) == len(xvals):
-            _tooltips.append(("Dataset", '@dataset'))
+            _tooltips.append(('Dataset', '@dataset'))
 
         if len(itemLabels) > 0:
             for i in range(len(itemLabels)):
@@ -7097,38 +8176,42 @@ class panelInteractiveOutput(wx.MiniFrame):
                     hover_label = hoverLabels[i]
                 except Exception:
                     if len(itemLabels) == 1:
-                        hover_label = "Label"
+                        hover_label = 'Label'
                     else:
-                        hover_label = "Label ({})".format(i)
+                        hover_label = 'Label ({})'.format(i)
                 _tooltips.append((_replace_labels(hover_label), '@labels_{}'.format(i)))
 
-        hoverTool = HoverTool(tooltips=_tooltips, mode="mouse")
+        hoverTool = HoverTool(tooltips=_tooltips, mode='mouse')
         TOOLS = self._check_tools(hoverTool, data)
 
-        bokehPlot = figure(tools=TOOLS, title=bkh_kwargs['title'],
-                           active_drag=user_kwargs['tools'].get("active_drag", "auto"),
-                           active_scroll=user_kwargs['tools'].get("active_wheel", "auto"),
-                           plot_width=plt_kwargs["plot_width"],
-                           plot_height=plt_kwargs["plot_height"],
-                           toolbar_location=user_kwargs['tools'].get("position", self.config.toolsLocation),
-                           toolbar_sticky=False)
+        bokehPlot = figure(
+            tools=TOOLS, title=bkh_kwargs['title'],
+            active_drag=user_kwargs['tools'].get('active_drag', 'auto'),
+            active_scroll=user_kwargs['tools'].get('active_wheel', 'auto'),
+            plot_width=plt_kwargs['plot_width'],
+            plot_height=plt_kwargs['plot_height'],
+            toolbar_location=user_kwargs['tools'].get('position', self.config.toolsLocation),
+            toolbar_sticky=False,
+        )
 
         # iterate over list of bar containers
         for i in range(len(xvals)):
             xval = xvals[i]
             yval_min = yvals_min[i]
             yval_max = yvals_max[i]
-            _sourceDict = dict(xvals=xval, yvals_min=yval_min, yvals_max=yval_max,
-                               yvals_height=yval_max - yval_min)
+            _sourceDict = dict(
+                xvals=xval, yvals_min=yval_min, yvals_max=yval_max,
+                yvals_height=yval_max - yval_min,
+            )
 
             # get labels
             if len(itemLabels) > 0:
                 for ilabel in range(len(itemLabels)):
-                    dict_label = "labels_{}".format(ilabel)
+                    dict_label = 'labels_{}'.format(ilabel)
                     if len(itemLabels[ilabel]) == len(xval):
                         _labels = itemLabels[ilabel]
                     else:
-                        _labels = len(xval) * ""
+                        _labels = len(xval) * ''
                     _sourceDict[dict_label] = _labels
 
             # convert colors back to hex
@@ -7142,39 +8225,52 @@ class panelInteractiveOutput(wx.MiniFrame):
             else:
                 colorList = len(xval) * [_colors[i]]
 
-            if user_kwargs['plot_properties'].get("bar_edge_color_sameAsFill", self.config.interactive_bar_sameAsFill):
+            if user_kwargs['plot_properties'].get('bar_edge_color_sameAsFill', self.config.interactive_bar_sameAsFill):
                 linecolorList = colorList
             else:
-                edgecolor = [convertRGB1toHEX(user_kwargs['plot_properties'].get(
-                    "bar_edge_color", self.config.interactive_bar_edge_color))]
+                edgecolor = [
+                    convertRGB1toHEX(
+                        user_kwargs['plot_properties'].get(
+                            'bar_edge_color', self.config.interactive_bar_edge_color,
+                        ),
+                    ),
+                ]
                 linecolorList = len(xval) * edgecolor
             _sourceDict.update(colors=colorList, linecolors=linecolorList)
 
             if len(legend_labels) == len(xvals):
-                _sourceDict["dataset"] = [_replace_labels(legend_labels[i])] * len(xval)
+                _sourceDict['dataset'] = [_replace_labels(legend_labels[i])] * len(xval)
 
             source = ColumnDataSource(data=_sourceDict)
-            if bkh_kwargs['plot_type'] == "H-bar":
-                bokehPlot.hbar(y="xvals", left='yvals_min', right='yvals_max', source=source,
-                               color="colors", line_color="linecolors",
-                               height=user_kwargs['plot_properties'].get(
-                                   "bar_width", self.config.interactive_bar_width),
-                               fill_alpha=user_kwargs['plot_properties'].get(
-                                   "bar_transparency", self.config.interactive_bar_alpha),
-                               line_width=user_kwargs['plot_properties'].get(
-                                   "bar_line_width", self.config.interactive_bar_lineWidth),
-                               )
+            if bkh_kwargs['plot_type'] == 'H-bar':
+                bokehPlot.hbar(
+                    y='xvals', left='yvals_min', right='yvals_max', source=source,
+                    color='colors', line_color='linecolors',
+                    height=user_kwargs['plot_properties'].get(
+                        'bar_width', self.config.interactive_bar_width,
+                    ),
+                    fill_alpha=user_kwargs['plot_properties'].get(
+                        'bar_transparency', self.config.interactive_bar_alpha,
+                    ),
+                    line_width=user_kwargs['plot_properties'].get(
+                        'bar_line_width', self.config.interactive_bar_lineWidth,
+                    ),
+                )
             else:
-                bokehPlot.vbar(x="xvals", top='yvals_min', bottom='yvals_max', source=source,
-                               color="colors", line_color="linecolors",
-                               width=user_kwargs['plot_properties'].get(
-                                   "bar_width", self.config.interactive_bar_width),
-                               fill_alpha=user_kwargs['plot_properties'].get(
-                                   "bar_transparency", self.config.interactive_bar_alpha),
-                               line_width=user_kwargs['plot_properties'].get(
-                                   "bar_line_width", self.config.interactive_bar_lineWidth)
+                bokehPlot.vbar(
+                    x='xvals', top='yvals_min', bottom='yvals_max', source=source,
+                    color='colors', line_color='linecolors',
+                    width=user_kwargs['plot_properties'].get(
+                        'bar_width', self.config.interactive_bar_width,
+                    ),
+                    fill_alpha=user_kwargs['plot_properties'].get(
+                        'bar_transparency', self.config.interactive_bar_alpha,
+                    ),
+                    line_width=user_kwargs['plot_properties'].get(
+                        'bar_line_width', self.config.interactive_bar_lineWidth,
+                    ),
 
-                               )
+                )
 
         ylimits = [bokehPlot.y_range.start, bokehPlot.y_range.end]
         ylimits = self._check_limits(ylimits, plt_kwargs['_ylimits_'])
@@ -7183,39 +8279,43 @@ class panelInteractiveOutput(wx.MiniFrame):
         bokehPlot.xaxis.axis_label = xlabel
         bokehPlot.yaxis.axis_label = ylabel
 
-        kwargs = {"bar_type": type, "ylimits": ylimits}
+        kwargs = {'bar_type': type, 'ylimits': ylimits}
         # setup common plot parameters
-        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type="1D", data=data, **kwargs)
+        bokehPlot = self._setupPlotParameters(bokehPlot, plot_type='1D', data=data, **kwargs)
 
-        if ("annotations" in data and len(data["annotations"]) > 0 and
-                user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs['show_annotations'])):
+        if (
+            'annotations' in data and len(data['annotations']) > 0 and
+            user_kwargs['annotation_properties'].get('show_annotations', plt_kwargs['show_annotations'])
+        ):
             __, label_source, __ = self._prepare_annotations(data, yvals=None, ylimits=ylimits)
-            bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
+            bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type='waterfall')
 
         # setup widgets
-        if user_kwargs["widgets"].get("add_custom_widgets", self.config.interactive_custom_scripts):
+        if user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts):
             js_type, js_code = [], {}
 
             if labels is not None:
                 js_code.update(labels=labels, y_range_shown=ylimits[1], y_range_hidden=ylimits[1])
-                if user_kwargs["widgets"].get("label_toggle", True):
-                    js_type.extend(["label_toggle"])
-                if user_kwargs["widgets"].get("label_size_slider", True):
-                    js_type.extend(["label_size_slider"])
-                if user_kwargs["widgets"].get("label_rotation", True):
-                    js_type.extend(["label_rotation"])
-                if user_kwargs["widgets"].get("label_offset_x", True):
-                    js_type.extend(["label_offset_x"])
-                if user_kwargs["widgets"].get("label_offset_y", True):
-                    js_type.extend(["label_offset_y"])
+                if user_kwargs['widgets'].get('label_toggle', True):
+                    js_type.extend(['label_toggle'])
+                if user_kwargs['widgets'].get('label_size_slider', True):
+                    js_type.extend(['label_size_slider'])
+                if user_kwargs['widgets'].get('label_rotation', True):
+                    js_type.extend(['label_rotation'])
+                if user_kwargs['widgets'].get('label_offset_x', True):
+                    js_type.extend(['label_offset_x'])
+                if user_kwargs['widgets'].get('label_offset_y', True):
+                    js_type.extend(['label_offset_y'])
 
             if len(js_type) > 0:
                 bokehPlot = self.add_custom_js_widgets(bokehPlot, js_type=js_type, data=data, **js_code)
 
         return [bokehPlot, plt_kwargs['plot_width'], plt_kwargs['plot_height']]
 
-    def _add_colorbar(self, bokehPlot, zvals, color_mapper, modify_ticks=True, as_percentage=False,
-                      return_colorbar=False, data={}, **kwargs):
+    def _add_colorbar(
+        self, bokehPlot, zvals, color_mapper, modify_ticks=True, as_percentage=False,
+        return_colorbar=False, data={}, **kwargs
+    ):
         """
         Add colorbar to bokeh plot
         ===
@@ -7240,67 +8340,106 @@ class panelInteractiveOutput(wx.MiniFrame):
                 zmin, zmax = np.round(np.min(zvals), 10), np.round(np.max(zvals), 10)
                 zmid = np.round(np.max(zvals) / 2., 10)
                 ticker = FixedTicker(ticks=[zmin, zmid, zmax])
-                formatter = FuncTickFormatter(code="""
+                formatter = FuncTickFormatter(
+                    code="""
                 data = {zmin: '0', zmid: '%', zmax: '100'}
                 return data[tick]
-                """.replace("zmin", str(zmin)).replace("zmid", str(zmid)).replace("zmax", str(zmax)))
+                """.replace('zmin', str(zmin)).replace('zmid', str(zmid)).replace('zmax', str(zmax))
+                )
             else:
                 ticker = FixedTicker(ticks=[-1., 0., 1.])
                 formatter = BasicTickFormatter(
-                    precision=user_kwargs["colorbar_properties"].get(
-                        "precision", self.config.interactive_colorbar_precision),
-                    use_scientific=user_kwargs["colorbar_properties"].get(
-                        "use_scientific", self.config.interactive_colorbar_useScientific))
+                    precision=user_kwargs['colorbar_properties'].get(
+                        'precision', self.config.interactive_colorbar_precision,
+                    ),
+                    use_scientific=user_kwargs['colorbar_properties'].get(
+                        'use_scientific', self.config.interactive_colorbar_useScientific,
+                    ),
+                )
         else:
             ticker = AdaptiveTicker()
             formatter = BasicTickFormatter(
-                precision=user_kwargs["colorbar_properties"].get(
-                    "precision", self.config.interactive_colorbar_precision),
-                use_scientific=user_kwargs["colorbar_properties"].get(
-                    "use_scientific", self.config.interactive_colorbar_useScientific))
+                precision=user_kwargs['colorbar_properties'].get(
+                    'precision', self.config.interactive_colorbar_precision,
+                ),
+                use_scientific=user_kwargs['colorbar_properties'].get(
+                    'use_scientific', self.config.interactive_colorbar_useScientific,
+                ),
+            )
 
         colorbar = ColorBar(
             color_mapper=color_mapper, ticker=ticker, formatter=formatter,
-            label_standoff=user_kwargs["colorbar_properties"].get(
-                "label_offset", self.config.interactive_colorbar_label_offset),
-            location=(user_kwargs["colorbar_properties"].get(
-                "position_offset_x", self.config.interactive_colorbar_offset_x),
-                user_kwargs["colorbar_properties"].get(
-                "position_offset_y", self.config.interactive_colorbar_offset_y)),
-            orientation=user_kwargs["colorbar_properties"].get(
-                "orientation", self.config.interactive_colorbar_orientation),
-            width=data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("width", "auto"),
-            height=data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("height", "auto"),
-            padding=data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("pad", self.config.interactive_colorbar_padding),
-            bar_line_width=data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("edge_width", self.config.interactive_colorbar_edge_width),
-            bar_line_color=convertRGB1to255(data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("edge_color", self.config.interactive_colorbar_edge_color),
-                as_integer=True, as_tuple=True),
-            bar_line_cap="square",
-            major_tick_line_color=convertRGB1to255(data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("edge_color", self.config.interactive_colorbar_edge_color),
-                as_integer=True, as_tuple=True),
-            major_tick_line_width=data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("edge_width", self.config.interactive_colorbar_edge_width),
-            minor_tick_line_color=convertRGB1to255(data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("edge_color", self.config.interactive_colorbar_edge_color),
-                as_integer=True, as_tuple=True),
-            minor_tick_line_width=data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("edge_width", self.config.interactive_colorbar_edge_width),
-            major_label_text_align=data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("label_align", "left"),
-            major_label_text_font_size=self._fontSizeConverter(data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("label_fontsize", self.config.interactive_colorbar_label_fontSize)),
-            major_label_text_font_style=self._fontWeightConverter(data.get("interactive_params", {}).get(
-                "colorbar_properties", {}).get("label_fontweight", self.config.interactive_colorbar_label_weight)),
+            label_standoff=user_kwargs['colorbar_properties'].get(
+                'label_offset', self.config.interactive_colorbar_label_offset,
+            ),
+            location=(
+                user_kwargs['colorbar_properties'].get(
+                    'position_offset_x', self.config.interactive_colorbar_offset_x,
+                ),
+                user_kwargs['colorbar_properties'].get(
+                    'position_offset_y', self.config.interactive_colorbar_offset_y,
+                ),
+            ),
+            orientation=user_kwargs['colorbar_properties'].get(
+                'orientation', self.config.interactive_colorbar_orientation,
+            ),
+            width=data.get('interactive_params', {}).get(
+                'colorbar_properties', {},
+            ).get('width', 'auto'),
+            height=data.get('interactive_params', {}).get(
+                'colorbar_properties', {},
+            ).get('height', 'auto'),
+            padding=data.get('interactive_params', {}).get(
+                'colorbar_properties', {},
+            ).get('pad', self.config.interactive_colorbar_padding),
+            bar_line_width=data.get('interactive_params', {}).get(
+                'colorbar_properties', {},
+            ).get('edge_width', self.config.interactive_colorbar_edge_width),
+            bar_line_color=convertRGB1to255(
+                data.get('interactive_params', {}).get(
+                    'colorbar_properties', {},
+                ).get('edge_color', self.config.interactive_colorbar_edge_color),
+                as_integer=True, as_tuple=True,
+            ),
+            bar_line_cap='square',
+            major_tick_line_color=convertRGB1to255(
+                data.get('interactive_params', {}).get(
+                    'colorbar_properties', {},
+                ).get('edge_color', self.config.interactive_colorbar_edge_color),
+                as_integer=True, as_tuple=True,
+            ),
+            major_tick_line_width=data.get('interactive_params', {}).get(
+                'colorbar_properties', {},
+            ).get('edge_width', self.config.interactive_colorbar_edge_width),
+            minor_tick_line_color=convertRGB1to255(
+                data.get('interactive_params', {}).get(
+                    'colorbar_properties', {},
+                ).get('edge_color', self.config.interactive_colorbar_edge_color),
+                as_integer=True, as_tuple=True,
+            ),
+            minor_tick_line_width=data.get('interactive_params', {}).get(
+                'colorbar_properties', {},
+            ).get('edge_width', self.config.interactive_colorbar_edge_width),
+            major_label_text_align=data.get('interactive_params', {}).get(
+                'colorbar_properties', {},
+            ).get('label_align', 'left'),
+            major_label_text_font_size=self._fontSizeConverter(
+                data.get('interactive_params', {}).get(
+                    'colorbar_properties', {},
+                ).get('label_fontsize', self.config.interactive_colorbar_label_fontSize),
+            ),
+            major_label_text_font_style=self._fontWeightConverter(
+                data.get('interactive_params', {}).get(
+                    'colorbar_properties', {},
+                ).get('label_fontweight', self.config.interactive_colorbar_label_weight),
+            ),
         )
 
-        bokehPlot.add_layout(colorbar, user_kwargs["colorbar_properties"].get(
-            "position", self.config.interactive_colorbar_location))
+        bokehPlot.add_layout(
+            colorbar, user_kwargs['colorbar_properties'].get(
+                'position', self.config.interactive_colorbar_location,
+            ),
+        )
 
         if return_colorbar:
             return bokehPlot, colorbar
@@ -7325,83 +8464,131 @@ class panelInteractiveOutput(wx.MiniFrame):
         rmsdAnnot = Label(
             x=xpos, y=ypos, x_units='data', y_units='data', render_mode='canvas',
             text=label,
-            text_color=convertRGB1toHEX(data.get("interactive_params", {}).get(
-                "overlay_properties", {}).get("rmsd_label_color", self.config.interactive_annotation_color)),
-            background_fill_color=convertRGB1toHEX(data.get("interactive_params", {}).get(
-                "overlay_properties", {}).get(
-                    "rmsd_background_color", self.config.interactive_annotation_background_color)),
-            text_font_size=self._fontSizeConverter(data.get("interactive_params", {}).get(
-                "overlay_properties", {}).get("rmsd_label_fontsize", self.config.interactive_annotation_fontSize)),
-            text_font_style=self._fontWeightConverter(data.get("interactive_params", {}).get(
-                "overlay_properties", {}).get("rmsd_label_fontweight", self.config.interactive_annotation_weight)),
-            background_fill_alpha=data.get("interactive_params", {}).get(
-                "overlay_properties", {}).get("rmsd_background_transparency", self.config.interactive_annotation_alpha))
+            text_color=convertRGB1toHEX(
+                data.get('interactive_params', {}).get(
+                    'overlay_properties', {},
+                ).get('rmsd_label_color', self.config.interactive_annotation_color),
+            ),
+            background_fill_color=convertRGB1toHEX(
+                data.get('interactive_params', {}).get(
+                    'overlay_properties', {},
+                ).get(
+                    'rmsd_background_color', self.config.interactive_annotation_background_color,
+                ),
+            ),
+            text_font_size=self._fontSizeConverter(
+                data.get('interactive_params', {}).get(
+                    'overlay_properties', {},
+                ).get('rmsd_label_fontsize', self.config.interactive_annotation_fontSize),
+            ),
+            text_font_style=self._fontWeightConverter(
+                data.get('interactive_params', {}).get(
+                    'overlay_properties', {},
+                ).get('rmsd_label_fontweight', self.config.interactive_annotation_weight),
+            ),
+            background_fill_alpha=data.get('interactive_params', {}).get(
+                'overlay_properties', {},
+            ).get('rmsd_background_transparency', self.config.interactive_annotation_alpha),
+        )
         bokehPlot.add_layout(rmsdAnnot)
 
         return bokehPlot
 
     def _add_grid_label(self, bokehPlot, label, xpos, ypos, **kwargs):
-        titleAnnot = Label(x=xpos, y=ypos, x_units='data', y_units='data',
-                           text=label, render_mode='canvas',
-                           text_color=convertRGB1toHEX(self.config.interactive_grid_label_color),
-                           text_font_size=self._fontSizeConverter(self.config.interactive_grid_label_size),
-                           text_font_style=self._fontWeightConverter(self.config.interactive_grid_label_weight),
-                           background_fill_alpha=0)
+        titleAnnot = Label(
+            x=xpos, y=ypos, x_units='data', y_units='data',
+            text=label, render_mode='canvas',
+            text_color=convertRGB1toHEX(self.config.interactive_grid_label_color),
+            text_font_size=self._fontSizeConverter(self.config.interactive_grid_label_size),
+            text_font_style=self._fontWeightConverter(self.config.interactive_grid_label_weight),
+            background_fill_alpha=0,
+        )
         bokehPlot.add_layout(titleAnnot)
         return bokehPlot
 
-    def _add_plot_labels(self, bokehPlot, data, label_source, plot_type="1D"):
+    def _add_plot_labels(self, bokehPlot, data, label_source, plot_type='1D'):
         user_kwargs = deepcopy(data['interactive_params'])
 
-        if plot_type in ["1D"]:
+        if plot_type in ['1D']:
             labels = LabelSet(
                 x='xpos', y='ypos', text='label', level='glyph',
-                x_offset=user_kwargs["annotation_properties"].get(
-                    "position_offset_x", self.config.interactive_ms_annotations_offsetX),
-                y_offset=user_kwargs["annotation_properties"].get(
-                    "position_offset_y", self.config.interactive_ms_annotations_offsetY),
-                text_align="center",
-                text_font_size=self._fontSizeConverter(user_kwargs["annotation_properties"].get(
-                    "label_fontsize", self.config.interactive_ms_annotations_fontSize)),
-                text_font_style=self._fontWeightConverter(user_kwargs["annotation_properties"].get(
-                    "label_fontweight", self.config.interactive_ms_annotations_fontWeight)),
-                text_color=convertRGB1to255(user_kwargs["annotation_properties"].get(
-                    "label_color", self.config.interactive_ms_annotations_label_color),
-                    as_integer=True, as_tuple=True),
-                angle=user_kwargs["annotation_properties"].get(
-                    "label_rotation", self.config.interactive_ms_annotations_rotation),
-                angle_units="deg",
-                source=label_source, render_mode='canvas')
-        elif plot_type in ["waterfall", "multi-line"]:
+                x_offset=user_kwargs['annotation_properties'].get(
+                    'position_offset_x', self.config.interactive_ms_annotations_offsetX,
+                ),
+                y_offset=user_kwargs['annotation_properties'].get(
+                    'position_offset_y', self.config.interactive_ms_annotations_offsetY,
+                ),
+                text_align='center',
+                text_font_size=self._fontSizeConverter(
+                    user_kwargs['annotation_properties'].get(
+                        'label_fontsize', self.config.interactive_ms_annotations_fontSize,
+                    ),
+                ),
+                text_font_style=self._fontWeightConverter(
+                    user_kwargs['annotation_properties'].get(
+                        'label_fontweight', self.config.interactive_ms_annotations_fontWeight,
+                    ),
+                ),
+                text_color=convertRGB1to255(
+                    user_kwargs['annotation_properties'].get(
+                        'label_color', self.config.interactive_ms_annotations_label_color,
+                    ),
+                    as_integer=True, as_tuple=True,
+                ),
+                angle=user_kwargs['annotation_properties'].get(
+                    'label_rotation', self.config.interactive_ms_annotations_rotation,
+                ),
+                angle_units='deg',
+                source=label_source, render_mode='canvas',
+            )
+        elif plot_type in ['waterfall', 'multi-line']:
             labels = LabelSet(
                 x='xpos', y='ypos', text='label', level='glyph',
-                x_offset=user_kwargs["annotation_properties"].get(
-                    "position_offset_x", self.config.interactive_ms_annotations_offsetX),
-                y_offset=user_kwargs["annotation_properties"].get(
-                    "position_offset_y", self.config.interactive_ms_annotations_offsetY),
-                text_align="center",
-                text_font_size=self._fontSizeConverter(user_kwargs["annotation_properties"].get(
-                    "label_fontsize", self.config.interactive_ms_annotations_fontSize)),
-                text_font_style=self._fontWeightConverter(data.get("interactive_params", {}).get(
-                    "annotation_properties", {}).get(
-                        "label_fontweight", self.config.interactive_ms_annotations_fontWeight)),
-                text_color="color",
-                angle=user_kwargs["annotation_properties"].get(
-                    "label_rotation", self.config.interactive_ms_annotations_rotation),
-                angle_units="deg",
-                source=label_source, render_mode='canvas')
-        elif plot_type in ["matrix"]:
+                x_offset=user_kwargs['annotation_properties'].get(
+                    'position_offset_x', self.config.interactive_ms_annotations_offsetX,
+                ),
+                y_offset=user_kwargs['annotation_properties'].get(
+                    'position_offset_y', self.config.interactive_ms_annotations_offsetY,
+                ),
+                text_align='center',
+                text_font_size=self._fontSizeConverter(
+                    user_kwargs['annotation_properties'].get(
+                        'label_fontsize', self.config.interactive_ms_annotations_fontSize,
+                    ),
+                ),
+                text_font_style=self._fontWeightConverter(
+                    data.get('interactive_params', {}).get(
+                        'annotation_properties', {},
+                    ).get(
+                        'label_fontweight', self.config.interactive_ms_annotations_fontWeight,
+                    ),
+                ),
+                text_color='color',
+                angle=user_kwargs['annotation_properties'].get(
+                    'label_rotation', self.config.interactive_ms_annotations_rotation,
+                ),
+                angle_units='deg',
+                source=label_source, render_mode='canvas',
+            )
+        elif plot_type in ['matrix']:
             labels = LabelSet(
-                x='xpos', y='ypos', text='label', level='glyph', text_align="center",
-                x_offset=user_kwargs["overlay_properties"].get("rmsd_matrix_position_offset_x", 0),
-                y_offset=user_kwargs["overlay_properties"].get("rmsd_matrix_position_offset_y", 0),
-                text_font_size=self._fontSizeConverter(user_kwargs["overlay_properties"].get(
-                    "rmsd_matrix_label_fontsize", self.config.interactive_ms_annotations_fontSize)),
-                text_font_style=self._fontWeightConverter(user_kwargs["overlay_properties"].get(
-                    "rmsd_matrix_label_fontweight", self.config.interactive_ms_annotations_fontWeight)),
-                text_color="text_color",
-                angle=0, angle_units="deg",
-                source=label_source, render_mode='canvas')
+                x='xpos', y='ypos', text='label', level='glyph', text_align='center',
+                x_offset=user_kwargs['overlay_properties'].get('rmsd_matrix_position_offset_x', 0),
+                y_offset=user_kwargs['overlay_properties'].get('rmsd_matrix_position_offset_y', 0),
+                text_font_size=self._fontSizeConverter(
+                    user_kwargs['overlay_properties'].get(
+                        'rmsd_matrix_label_fontsize', self.config.interactive_ms_annotations_fontSize,
+                    ),
+                ),
+                text_font_style=self._fontWeightConverter(
+                    user_kwargs['overlay_properties'].get(
+                        'rmsd_matrix_label_fontweight', self.config.interactive_ms_annotations_fontWeight,
+                    ),
+                ),
+                text_color='text_color',
+                angle=0, angle_units='deg',
+                source=label_source, render_mode='canvas',
+            )
 
         # add
         bokehPlot.add_layout(labels)
@@ -7410,9 +8597,10 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def _add_plot_arrows(self, bokehPlot, data, arrow_source):
         arrows = Arrow(
-            end=NormalHead(size=0), line_dash="dashed",
-            x_start="xpos_start", y_start="ypos_start", x_end="xpos_end", y_end="ypos_end",
-            source=arrow_source)
+            end=NormalHead(size=0), line_dash='dashed',
+            x_start='xpos_start', y_start='ypos_start', x_end='xpos_end', y_end='ypos_end',
+            source=arrow_source,
+        )
         bokehPlot.add_layout(arrows)
 
         return bokehPlot, arrows
@@ -7427,9 +8615,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         if self.currentPath is None:
             try:
                 msg = 'Please select file name'
-                dlgBox(exceptionTitle='No file name',
-                       exceptionMsg=msg,
-                       type="Error")
+                dlgBox(
+                    exceptionTitle='No file name',
+                    exceptionMsg=msg,
+                    type='Error',
+                )
                 self.on_get_path(evt=None)
             except Exception:
                 msg = 'Please select a path to save the file before continuing'
@@ -7444,7 +8634,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if self.peaklist.IsChecked(index=item):
                 page = self.peaklist.GetItem(item, self.config.interactiveColNames['page']).GetText()
                 if page not in pageItems:
-                    page = "None"
+                    page = 'None'
                 listOfPages.append(page)
 
         listOfPages = list(set(listOfPages))
@@ -7455,21 +8645,27 @@ class panelInteractiveOutput(wx.MiniFrame):
         # Pre-populate the dictionary with keys
         for key in listOfPages:
             plotDict[key] = []
-            widgetDict[key] = {"colorbars": [], "legends": [], "figures": [], "labels": [],
-                               "lines": [], "patches": [], "original_colors": [], "cvd_colors": [],
-                               "plot_width": []}
+            widgetDict[key] = {
+                'colorbars': [], 'legends': [], 'figures': [], 'labels': [],
+                'lines': [], 'patches': [], 'original_colors': [], 'cvd_colors': [],
+                'plot_width': [],
+            }
 
         # Sort the list based on which page each item belongs to
         if self.config.interactive_sort_before_saving:
-            self.peaklist.on_sort(self.config.interactiveColNames['order'],
-                                  False)
+            self.peaklist.on_sort(
+                self.config.interactiveColNames['order'],
+                False,
+            )
 
         # check if user selected anything in the list
         if len(listOfPages) == 0:
             msg = 'Please select items to plot'
-            dlgBox(exceptionTitle='No plots were selected',
-                   exceptionMsg=msg,
-                   type="Warning")
+            dlgBox(
+                exceptionTitle='No plots were selected',
+                exceptionMsg=msg,
+                type='Warning',
+            )
 
         itemCount = self.peaklist.GetItemCount()
         data_export_list = []
@@ -7497,8 +8693,8 @@ class panelInteractiveOutput(wx.MiniFrame):
                 self.presenter.onThreading(None, ('Overriding page name', 4), action='updateStatusbar')
                 page = self.config.pageDict[pageTable]
 
-            if page.get("name", False) not in pageItems:
-                page = deepcopy(self.config.pageDict["None"])
+            if page.get('name', False) not in pageItems:
+                page = deepcopy(self.config.pageDict['None'])
 
             if title == '':
                 if innerKey != '':
@@ -7506,67 +8702,71 @@ class panelInteractiveOutput(wx.MiniFrame):
                 else:
                     title = key
 
-            if any(key in itemType for itemType in ['MS', 'MS, multiple',
-                                                    'RT', 'RT, multiple', 'RT, combined',
-                                                    '1D', '1D, multiple']):
+            if any(
+                key in itemType for itemType in [
+                    'MS', 'MS, multiple',
+                    'RT', 'RT, multiple', 'RT, combined',
+                    '1D', '1D, multiple',
+                ]
+            ):
                 width = self.config.figWidth1D
             else:
                 width = self.config.figWidth
 
             bokehPlot = None
-            bkh_kwargs = {"title": title, "page_layout": page['layout']}
+            bkh_kwargs = {'title': title, 'page_layout': page['layout']}
             # Now generate plot
             if key in ['MS', 'MS, multiple', 'Processed MS']:
-                bkh_kwargs.update(plot_type="MS")
-                data['ylabel'] = "Intensity"
+                bkh_kwargs.update(plot_type='MS')
+                data['ylabel'] = 'Intensity'
                 bokehPlot = self._add_plot_1D(data, **bkh_kwargs)
 
-            elif key == "Annotated data":
+            elif key == 'Annotated data':
                 plot_type = data['plot_type']
-                if plot_type == "scatter":
+                if plot_type == 'scatter':
                     bokehPlot = self._add_plot_scatter(data, **bkh_kwargs)
 
-                elif plot_type == "waterfall":
+                elif plot_type == 'waterfall':
                     bkh_kwargs.update(test_x_axis=True)
                     bokehPlot = self._add_plot_waterfall(data, **bkh_kwargs)
 
-                elif plot_type == "multi-line":
+                elif plot_type == 'multi-line':
                     bokehPlot = self._add_plot_overlay_1D(data, **bkh_kwargs)
 
-                elif plot_type == "line":
-                    bkh_kwargs.update(plot_type="Other 1D")
+                elif plot_type == 'line':
+                    bkh_kwargs.update(plot_type='Other 1D')
                     bokehPlot = self._add_plot_1D(data, **bkh_kwargs)
 
-                elif plot_type == "grid-line":
+                elif plot_type == 'grid-line':
                     bokehPlot = self._add_plot_grid_NxN_1D(data, **bkh_kwargs)
 
-                elif plot_type == "grid-scatter":
+                elif plot_type == 'grid-scatter':
                     bokehPlot = self._add_plot_grid_NxN_scatter(data, **bkh_kwargs)
 
-                elif plot_type == "vertical-bar":
+                elif plot_type == 'vertical-bar':
                     bkh_kwargs.update(plot_type='V-bar')
                     bokehPlot = self._add_plot_barchart(data, **bkh_kwargs)
 
-                elif plot_type == "horizontal-bar":
+                elif plot_type == 'horizontal-bar':
                     bkh_kwargs.update(plot_type='H-bar')
                     bokehPlot = self._add_plot_barchart(data, **bkh_kwargs)
 
-                elif plot_type == "matrix":
+                elif plot_type == 'matrix':
                     bkh_kwargs.update(hover_label='Value')
                     bokehPlot = self._add_plot_matrix(data, **bkh_kwargs)
 
-            elif key in ['UniDec', 'UniDec, multiple', "UniDec, processed"]:
-                if key == "UniDec, multiple":
-                    innerKey = re.split(' \| ', innerKey)[0]
+            elif key in ['UniDec', 'UniDec, multiple', 'UniDec, processed']:
+                if key == 'UniDec, multiple':
+                    innerKey = re.split(r' \| ', innerKey)[0]
 
                 if innerKey == 'Processed':
-                    bkh_kwargs.update(plot_type="MS")
-                    data['ylabel'] = "Intensity"
+                    bkh_kwargs.update(plot_type='MS')
+                    data['ylabel'] = 'Intensity'
                     bokehPlot = self._add_plot_1D(data, **bkh_kwargs)
 
                 elif innerKey == 'MW distribution':
-                    bkh_kwargs.update(plot_type="MS", test_x_axis=True)
-                    data['ylabel'] = "Intensity"
+                    bkh_kwargs.update(plot_type='MS', test_x_axis=True)
+                    data['ylabel'] = 'Intensity'
                     bokehPlot = self._add_plot_1D(data, **bkh_kwargs)
 
                 elif innerKey == 'Fitted':
@@ -7581,7 +8781,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                     bokehPlot = self._add_plot_unidec_2D(data, **bkh_kwargs)
 
                 elif innerKey == 'Barchart':
-                    data['ylabel'] = "Intensity"
+                    data['ylabel'] = 'Intensity'
                     bokehPlot = self._add_plot_unidec_barchart(data, **bkh_kwargs)
 
                 elif innerKey == 'm/z with isolated species':
@@ -7589,13 +8789,13 @@ class panelInteractiveOutput(wx.MiniFrame):
                     bokehPlot = self._add_plot_unidec_1D(data, **bkh_kwargs)
 
             elif key in ['1D', '1D, multiple']:
-                bkh_kwargs.update(plot_type="1D")
-                data['ylabel'] = "Intensity"
+                bkh_kwargs.update(plot_type='1D')
+                data['ylabel'] = 'Intensity'
                 bokehPlot = self._add_plot_1D(data, **bkh_kwargs)
 
             elif key in ['RT', 'RT, multiple', 'RT, combined']:
-                bkh_kwargs.update(plot_type="RT")
-                data['ylabel'] = "Intensity"
+                bkh_kwargs.update(plot_type='RT')
+                data['ylabel'] = 'Intensity'
                 bokehPlot = self._add_plot_1D(data, **bkh_kwargs)
 
             elif key in ['2D', '2D, combined', '2D, processed']:
@@ -7616,7 +8816,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                     bokehPlot = self._add_plot_rmsd(data, **bkh_kwargs)
 
                 elif overlayMethod[0] in ['1D', 'RT']:
-                    data["ylabel"] = 'Intensity'
+                    data['ylabel'] = 'Intensity'
                     bokehPlot = self._add_plot_overlay_1D(data, **bkh_kwargs)
 
                 elif overlayMethod[0] == 'RGB':
@@ -7625,24 +8825,29 @@ class panelInteractiveOutput(wx.MiniFrame):
                 elif overlayMethod[0] == 'Grid (2':
                     bokehPlot = self._add_plot_grid_2to1(data, **bkh_kwargs)
 
-                elif overlayMethod[0] == "Grid (n x n)":
+                elif overlayMethod[0] == 'Grid (n x n)':
                     bokehPlot = self._add_plot_grid_NxN_2D(data, **bkh_kwargs)
 
-                elif overlayMethod[0] in ["Waterfall (Raw)", "Waterfall (Processed)", "Waterfall (Fitted)",
-                                          "Waterfall (Deconvoluted MW)", "Waterfall (Charge states)"]:
+                elif overlayMethod[0] in [
+                    'Waterfall (Raw)', 'Waterfall (Processed)', 'Waterfall (Fitted)',
+                    'Waterfall (Deconvoluted MW)', 'Waterfall (Charge states)',
+                ]:
                     bkh_kwargs.update(test_x_axis=True)
                     bokehPlot = self._add_plot_waterfall(data, **bkh_kwargs)
 
-                elif overlayMethod[0] == "Waterfall overlay":
+                elif overlayMethod[0] == 'Waterfall overlay':
                     bokehPlot = self._add_plot_waterfall_overlay(data, **bkh_kwargs)
 
                 else:
                     msg = "Cannot export '{} - {} ({})' in an interactive format yet".format(
-                        overlayMethod[0], key, innerKey) + \
-                        " - it will be available in the future updates. For now, please deselect it in the table. LM"
-                    dlgBox(exceptionTitle='Not supported yet',
-                           exceptionMsg=msg,
-                           type="Error")
+                        overlayMethod[0], key, innerKey,
+                    ) + \
+                        ' - it will be available in the future updates. For now, please deselect it in the table. LM'
+                    dlgBox(
+                        exceptionTitle='Not supported yet',
+                        exceptionMsg=msg,
+                        type='Error',
+                    )
                     continue
             elif key == 'Statistical':
                 overlayMethod = re.split('-|,|:|__', innerKey)
@@ -7652,27 +8857,31 @@ class panelInteractiveOutput(wx.MiniFrame):
                 elif overlayMethod[0] == 'RMSD Matrix':
                     bokehPlot = self._add_plot_matrix(data, **bkh_kwargs)
 
-            elif key == "MS/MS":
-                annotated_ms_list = data.get("annotated_item_list", [])
+            elif key == 'MS/MS':
+                annotated_ms_list = data.get('annotated_item_list', [])
                 if len(annotated_ms_list) == 0:
                     msg = "Cannot export '{} ({})' in an interactive format yet".format(key, innerKey) + \
-                        " - it will be available in the future updates. For now, please deselect it in the table. LM"
-                    dlgBox(exceptionTitle='Not supported yet',
-                           exceptionMsg=msg,
-                           type="Error")
+                        ' - it will be available in the future updates. For now, please deselect it in the table. LM'
+                    dlgBox(
+                        exceptionTitle='Not supported yet',
+                        exceptionMsg=msg,
+                        type='Error',
+                    )
                     continue
                 else:
                     bokehPlot = self._add_plot_centroid_with_annotations(data, **bkh_kwargs)
             else:
                 msg = "Cannot export '{} ({})' in an interactive format yet".format(key, innerKey) + \
-                    " - it will be available in the future updates. For now, please deselect it in the table. LM"
-                dlgBox(exceptionTitle='Not supported yet',
-                       exceptionMsg=msg,
-                       type="Error")
+                    ' - it will be available in the future updates. For now, please deselect it in the table. LM'
+                dlgBox(
+                    exceptionTitle='Not supported yet',
+                    exceptionMsg=msg,
+                    type='Error',
+                )
                 continue
 
             if bokehPlot is None:
-                print(("%s - %s plot was returned empty. Skipping") % (key, innerKey))
+                print(('%s - %s plot was returned empty. Skipping') % (key, innerKey))
                 continue
 
             # check if returned width and height
@@ -7687,8 +8896,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             elif len(bokehPlot) == 5:
                 bokehPlot, width, __, widget_kwargs, other_kwargs = bokehPlot
 
-            if "add_watermark" in other_kwargs:
-                add_watermark = other_kwargs["add_watermark"]
+            if 'add_watermark' in other_kwargs:
+                add_watermark = other_kwargs['add_watermark']
                 self.addWatermarkCheck.SetValue(add_watermark)
 
 #             Add possibility to export div/script
@@ -7700,25 +8909,25 @@ class panelInteractiveOutput(wx.MiniFrame):
             # add widget kwargs to dictionary
             if page['layout'] != 'Individual':
                 # figures
-                widgetDict[page['name']]["figures"].append(bokehPlot)
+                widgetDict[page['name']]['figures'].append(bokehPlot)
                 # cvd specific
-                widgetDict[page['name']]["lines"].append(widget_kwargs.get("lines", []))
-                widgetDict[page['name']]["patches"].append(widget_kwargs.get("patches", []))
-                widgetDict[page['name']]["original_colors"].append(widget_kwargs.get("original_colors", []))
-                widgetDict[page['name']]["cvd_colors"].append(widget_kwargs.get("cvd_colors", []))
+                widgetDict[page['name']]['lines'].append(widget_kwargs.get('lines', []))
+                widgetDict[page['name']]['patches'].append(widget_kwargs.get('patches', []))
+                widgetDict[page['name']]['original_colors'].append(widget_kwargs.get('original_colors', []))
+                widgetDict[page['name']]['cvd_colors'].append(widget_kwargs.get('cvd_colors', []))
                 # legend specific
                 try:
-                    widgetDict[page['name']]["legends"].append(bokehPlot.legend[0])
+                    widgetDict[page['name']]['legends'].append(bokehPlot.legend[0])
                 except Exception:
                     pass
 
             plot_output = [bokehPlot]
             # Generate header and footnote information
-            if header != "":
+            if header != '':
                 divHeader = Div(text=(header), width=width)
                 markupHeader = widgetbox(divHeader, width=width)
                 plot_output.insert(0, markupHeader)
-            if footnote != "":
+            if footnote != '':
                 divFootnote = Div(text=(footnote), width=width)
                 markupFootnote = widgetbox(divFootnote, width=width)
                 plot_output.append(markupFootnote)
@@ -7729,13 +8938,17 @@ class panelInteractiveOutput(wx.MiniFrame):
                     divWatermark = Div(text=str(self.config.watermark), width=width + add_width)
                     markupWatermark = widgetbox(divWatermark, width=width + add_width)
                     plot_output.append(markupWatermark)
-                bokehLayout = bokeh_layout(plot_output,
-                                           sizing_mode='fixed',
-                                           width=width + add_width)
+                bokehLayout = bokeh_layout(
+                    plot_output,
+                    sizing_mode='fixed',
+                    width=width + add_width,
+                )
             else:
-                bokehLayout = bokeh_layout(plot_output,
-                                           sizing_mode='fixed',
-                                           width=width + add_width)
+                bokehLayout = bokeh_layout(
+                    plot_output,
+                    sizing_mode='fixed',
+                    width=width + add_width,
+                )
             # Add to plot dictionary
             if page['layout'] == 'Individual':
                 bokehTab = Panel(child=bokehLayout, title=title)
@@ -7747,7 +8960,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             elif page['layout'] == 'Grid':
                 plotDict[page['name']].append(bokehLayout)
 
-            print(("Added {} - {} ({}) to the HTML file".format(key, innerKey, name)))
+            print('Added {} - {} ({}) to the HTML file'.format(key, innerKey, name))
 
         outList = []
         # Generate layout
@@ -7758,7 +8971,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         for pageKey in plotDict_list:
             try:
-                width = np.max(widgetDict[pageKey]["plot_width"])
+                width = np.max(widgetDict[pageKey]['plot_width'])
             except ValueError:
                 return
 
@@ -7770,7 +8983,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             # get page format
             page_format = self.config.pageDict.get(pageKey, None)
             if page_format is None:
-                page_format = self.config.pageDict["None"]
+                page_format = self.config.pageDict['None']
 
             # add page as INDIVIDUAL TAB
             if page_format['layout'] == 'Individual':
@@ -7778,10 +8991,12 @@ class panelInteractiveOutput(wx.MiniFrame):
                     for plot in range(len(plotDict[pageKey])):
                         outList.append(plotDict[pageKey][plot])
                 elif len(plotDict[pageKey]) == 0:
-                    msg = "The list of plots is empty. Please select supported plots and try again."
-                    dlgBox(exceptionTitle='Error',
-                           exceptionMsg=msg,
-                           type="Error")
+                    msg = 'The list of plots is empty. Please select supported plots and try again.'
+                    dlgBox(
+                        exceptionTitle='Error',
+                        exceptionMsg=msg,
+                        type='Error',
+                    )
                     return
                 else:
                     outList.append(plotDict[pageKey][0])
@@ -7789,60 +9004,68 @@ class panelInteractiveOutput(wx.MiniFrame):
             # add pages that are meant to be saved as ROW
             if page_format['layout'] == 'Rows':
                 bokeh_output = [[row(plotDict[pageKey])]]
-                if page_format.get("header", "") != "":
-                    pageHeaderDiv = Div(text=page_format.get("header", ""), width=(width) + add_width)
+                if page_format.get('header', '') != '':
+                    pageHeaderDiv = Div(text=page_format.get('header', ''), width=(width) + add_width)
                     pageHeader = widgetbox(pageHeaderDiv, width=(width) + add_width)
                     bokeh_output.insert(0, pageHeader)
-                if page_format.get("footnote", "") != "":
-                    pageFootnoteDiv = Div(text=page_format.get("footnote", ""), width=(width) + add_width)
+                if page_format.get('footnote', '') != '':
+                    pageFootnoteDiv = Div(text=page_format.get('footnote', ''), width=(width) + add_width)
                     pageFootnote = widgetbox(pageFootnoteDiv, width=(width) + add_width)
                     bokeh_output.append(pageFootnote)
                 if add_watermark:
                     bokeh_output.append(markupWatermark)
-                rowOutput = bokeh_layout(bokeh_output,
-                                         sizing_mode='fixed',
-                                         width=width + add_width)
+                rowOutput = bokeh_layout(
+                    bokeh_output,
+                    sizing_mode='fixed',
+                    width=width + add_width,
+                )
 
                 # add widgets
-                if page_format.get("add_js_widgets", False):
+                if page_format.get('add_js_widgets', False):
                     js_type, js_code = [], {}
-                    if len(widgetDict[pageKey]["legends"]) > 0:
-                        js_type.extend(["legend_toggle_multi", "legend_transparency_multi"])
-                        js_code.update(legends=widgetDict[pageKey]["legends"],
-                                       figures=widgetDict[pageKey]["figures"])
-                    if len(widgetDict[page['name']]["lines"]) > 0:
-                        js_type.extend(["colorblind_safe_1D_multi"])
-                        js_code.update(figures=widgetDict[pageKey]["figures"],
-                                       original_colors=widgetDict[pageKey]["original_colors"],
-                                       cvd_colors=widgetDict[pageKey]["cvd_colors"],
-                                       lines=widgetDict[pageKey]["lines"],
-                                       patches=widgetDict[pageKey]["patches"])
+                    if len(widgetDict[pageKey]['legends']) > 0:
+                        js_type.extend(['legend_toggle_multi', 'legend_transparency_multi'])
+                        js_code.update(
+                            legends=widgetDict[pageKey]['legends'],
+                            figures=widgetDict[pageKey]['figures'],
+                        )
+                    if len(widgetDict[page['name']]['lines']) > 0:
+                        js_type.extend(['colorblind_safe_1D_multi'])
+                        js_code.update(
+                            figures=widgetDict[pageKey]['figures'],
+                            original_colors=widgetDict[pageKey]['original_colors'],
+                            cvd_colors=widgetDict[pageKey]['cvd_colors'],
+                            lines=widgetDict[pageKey]['lines'],
+                            patches=widgetDict[pageKey]['patches'],
+                        )
 
                     try:
                         rowOutput = self.add_custom_js_widgets(rowOutput, js_type=js_type, data=data, **js_code)
                     except Exception:
                         pass
 
-                bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
+                bokehTab = Panel(child=rowOutput, title=page_format.get('title', page_format['name']))
                 outList.append(bokehTab)
 
             # add pages that are meant to be saved as COLUMN
             if page_format['layout'] == 'Columns':
                 bokeh_output = [[column(plotDict[pageKey])]]
-                if page_format.get("header", "") != "":
-                    pageHeaderDiv = Div(text=page_format.get("header", ""), width=(width))
+                if page_format.get('header', '') != '':
+                    pageHeaderDiv = Div(text=page_format.get('header', ''), width=(width))
                     pageHeader = widgetbox(pageHeaderDiv, width=(width))
                     bokeh_output.insert(0, pageHeader)
-                if page_format.get("footnote", "") != "":
-                    pageFootnoteDiv = Div(text=page_format.get("footnote", ""), width=(width))
+                if page_format.get('footnote', '') != '':
+                    pageFootnoteDiv = Div(text=page_format.get('footnote', ''), width=(width))
                     pageFootnote = widgetbox(pageFootnoteDiv, width=(width))
                     bokeh_output.append(pageFootnote)
                 if add_watermark:
                     bokeh_output.append(markupWatermark)
-                rowOutput = bokeh_layout(bokeh_output,
-                                         sizing_mode='fixed',
-                                         width=width + add_width)
-                bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
+                rowOutput = bokeh_layout(
+                    bokeh_output,
+                    sizing_mode='fixed',
+                    width=width + add_width,
+                )
+                bokehTab = Panel(child=rowOutput, title=page_format.get('title', page_format['name']))
                 outList.append(bokehTab)
 
             # add pages that are meant to be saved in GRID
@@ -7851,16 +9074,18 @@ class panelInteractiveOutput(wx.MiniFrame):
                 if columnVal in [None, '']:
                     columnVal = int(sqrt(len(plotDict[pageKey])))
 
-                rowOutput = gridplot(plotDict[pageKey],
-                                     ncols=columnVal,
-                                     merge_tools=page_format.get("grid_share_tools", True))
+                rowOutput = gridplot(
+                    plotDict[pageKey],
+                    ncols=columnVal,
+                    merge_tools=page_format.get('grid_share_tools', True),
+                )
                 bokeh_output = [[rowOutput]]
-                if page_format.get("header", "") != "":
-                    pageHeaderDiv = Div(text=page_format.get("header", ""), width=(width * columnVal))
+                if page_format.get('header', '') != '':
+                    pageHeaderDiv = Div(text=page_format.get('header', ''), width=(width * columnVal))
                     pageHeader = widgetbox(pageHeaderDiv, width=(width * columnVal))
                     bokeh_output.insert(0, pageHeader)
-                if page_format.get("footnote", "") != "":
-                    pageFootnoteDiv = Div(text=page_format.get("footnote", ""), width=(width * columnVal))
+                if page_format.get('footnote', '') != '':
+                    pageFootnoteDiv = Div(text=page_format.get('footnote', ''), width=(width * columnVal))
                     pageFootnote = widgetbox(pageFootnoteDiv, width=(width * columnVal))
                     bokeh_output.append(pageFootnote)
 
@@ -7869,31 +9094,37 @@ class panelInteractiveOutput(wx.MiniFrame):
                     markupWatermark = widgetbox(divWatermark, width=(width * columnVal) + add_width)
                     bokeh_output.append(markupWatermark)
 
-                rowOutput = bokeh_layout(bokeh_output,
-                                         sizing_mode='fixed',
-                                         width=(width * columnVal) + add_width)
+                rowOutput = bokeh_layout(
+                    bokeh_output,
+                    sizing_mode='fixed',
+                    width=(width * columnVal) + add_width,
+                )
 
                 # add widgets
-                if page_format.get("add_js_widgets", False):
+                if page_format.get('add_js_widgets', False):
                     js_type, js_code = [], {}
-                    if len(widgetDict[pageKey]["legends"]) > 0:
-                        js_type.extend(["legend_toggle_multi", "legend_transparency_multi"])
-                        js_code.update(legends=widgetDict[pageKey]["legends"],
-                                       figures=widgetDict[pageKey]["figures"])
-                    if len(widgetDict[page['name']]["lines"]) > 0:
-                        js_type.extend(["colorblind_safe_1D_multi"])
-                        js_code.update(figures=widgetDict[pageKey]["figures"],
-                                       original_colors=widgetDict[pageKey]["original_colors"],
-                                       cvd_colors=widgetDict[pageKey]["cvd_colors"],
-                                       lines=widgetDict[pageKey]["lines"],
-                                       patches=widgetDict[pageKey]["patches"])
+                    if len(widgetDict[pageKey]['legends']) > 0:
+                        js_type.extend(['legend_toggle_multi', 'legend_transparency_multi'])
+                        js_code.update(
+                            legends=widgetDict[pageKey]['legends'],
+                            figures=widgetDict[pageKey]['figures'],
+                        )
+                    if len(widgetDict[page['name']]['lines']) > 0:
+                        js_type.extend(['colorblind_safe_1D_multi'])
+                        js_code.update(
+                            figures=widgetDict[pageKey]['figures'],
+                            original_colors=widgetDict[pageKey]['original_colors'],
+                            cvd_colors=widgetDict[pageKey]['cvd_colors'],
+                            lines=widgetDict[pageKey]['lines'],
+                            patches=widgetDict[pageKey]['patches'],
+                        )
 
                     try:
                         rowOutput = self.add_custom_js_widgets(rowOutput, js_type=js_type, data=data, **js_code)
                     except Exception:
                         pass
 
-                bokehTab = Panel(child=rowOutput, title=page_format.get("title", page_format['name']))
+                bokehTab = Panel(child=rowOutput, title=page_format.get('title', page_format['name']))
                 outList.append(bokehTab)
 
         # Check how many items in the list
@@ -7904,8 +9135,8 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # get current document name
         self.currentDocumentName = self.documentName_value.GetValue()
-        if self.currentDocumentName in ["None", "", None]:
-            self.currentDocumentName = "ORIGAMI"
+        if self.currentDocumentName in ['None', '', None]:
+            self.currentDocumentName = 'ORIGAMI'
 
         # Save output
         filename = self.itemPath_value.GetValue()
@@ -7918,31 +9149,40 @@ class panelInteractiveOutput(wx.MiniFrame):
             # save
             save(obj=bokehOutput, filename=filename, title=self.currentDocumentName, resources=_resource)
         except IOError:
-            msg = "This file already exists and is currently in usage. " + \
-                "Try selecting a different file name or closing the file first."
-            dlgBox(exceptionTitle='Wrong file name',
-                   exceptionMsg=msg,
-                   type="Error")
+            msg = 'This file already exists and is currently in usage. ' + \
+                'Try selecting a different file name or closing the file first.'
+            dlgBox(
+                exceptionTitle='Wrong file name',
+                exceptionMsg=msg,
+                type='Error',
+            )
             return
         if self.openInBrowserCheck.GetValue():
             webbrowser.open(filename)
 
-        print(("It took {:.3f} seconds to generate interactive document. It was saved as {}".format(
-            time.time() - tstart, filename)))
+        print(
+            'It took {:.3f} seconds to generate interactive document. It was saved as {}'.format(
+                time.time() - tstart, filename,
+            ),
+        )
 
     def on_get_path(self, evt):
         """
         Select path to save interactive plot in in
         """
 
-        fileType = "HTML file|*.html"
+        fileType = 'HTML file|*.html'
         if self.config.saveInteractiveOverride:
-            dlg = wx.FileDialog(self, "Save interactive document to file...", "", "", fileType,
-                                wx.FD_SAVE)
+            dlg = wx.FileDialog(
+                self, 'Save interactive document to file...', '', '', fileType,
+                wx.FD_SAVE,
+            )
         else:
-            dlg = wx.FileDialog(self, "Save interactive document to file...", "", "", fileType,
-                                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        if self.currentDocumentName not in ["", None, False]:
+            dlg = wx.FileDialog(
+                self, 'Save interactive document to file...', '', '', fileType,
+                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            )
+        if self.currentDocumentName not in ['', None, False]:
             dlg.SetFilename(self.currentDocumentName)
         else:
             dlg.SetFilename('Interactive Output')
@@ -7954,7 +9194,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         if dlg.ShowModal() == wx.ID_OK:
             self.currentPath = dlg.GetPath()
-            print("You chose %s" % dlg.GetPath())
+            print('You chose %s' % dlg.GetPath())
             self.itemPath_value.SetValue(dlg.GetPath())
 
         self.presenter.currentPath = self.currentPath
@@ -7989,8 +9229,10 @@ class panelInteractiveOutput(wx.MiniFrame):
                     tempRow.append(self.peaklist.GetItemTextColour(row))
                     tempData.append(tempRow)
                 elif self.peaklist.IsChecked(index=row) and docFilter != 'All':
-                    if self.peaklist.GetItem(row,
-                                             self.config.interactiveColNames['document']).GetText() == docFilter:
+                    if self.peaklist.GetItem(
+                        row,
+                        self.config.interactiveColNames['document'],
+                    ).GetText() == docFilter:
                         for col in range(columns):
                             item = self.peaklist.GetItem(row, col)
                             tempRow.append(item.GetText())
@@ -8031,10 +9273,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         tempData = []
 
         if filter == 'Show all':
-            criteria = ['MS', 'Processed MS', 'RT', 'RT, multiple', '1D',
-                        '1D, multiple', '2D', '2D, processed', 'DT-IMS',
-                        'RT, combined', '2D, combined', 'Overlay', 'Statistical',
-                        'MS, multiple', 'UniDec', 'UniDec, multiple', 'Annotated data']
+            criteria = [
+                'MS', 'Processed MS', 'RT', 'RT, multiple', '1D',
+                '1D, multiple', '2D', '2D, processed', 'DT-IMS',
+                'RT, combined', '2D, combined', 'Overlay', 'Statistical',
+                'MS, multiple', 'UniDec', 'UniDec, multiple', 'Annotated data',
+            ]
         elif filter == 'Show MS (all)':
             criteria = ['MS', 'MS, multiple', 'Processed MS']
         elif filter == 'Show MS (multiple)':
@@ -8079,8 +9323,10 @@ class panelInteractiveOutput(wx.MiniFrame):
                 tempRow.append(self.peaklist.GetItemTextColour(row))
                 tempData.append(tempRow)
             elif itemType in criteria and docFilter != 'All':
-                if self.peaklist.GetItem(row,
-                                         self.config.interactiveColNames['document']).GetText() == docFilter:
+                if self.peaklist.GetItem(
+                    row,
+                    self.config.interactiveColNames['document'],
+                ).GetText() == docFilter:
                     for col in range(columns):
                         item = self.peaklist.GetItem(row, col)
                         tempRow.append(item.GetText())
@@ -8169,10 +9415,10 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def _check_tools(self, hoverTool, data):
 
-        if len(data['interactive_params']['tools'].get("on_tools", "")) > 0:
-            TOOLS = data['interactive_params']['tools'].get("on_tools", "")
-            if "hover" in TOOLS:
-                TOOLS = [hoverTool, TOOLS.replace("hover", "")]
+        if len(data['interactive_params']['tools'].get('on_tools', '')) > 0:
+            TOOLS = data['interactive_params']['tools'].get('on_tools', '')
+            if 'hover' in TOOLS:
+                TOOLS = [hoverTool, TOOLS.replace('hover', '')]
         else:
             if hoverTool is not None:
                 TOOLS = [hoverTool, self.tools_all]
@@ -8186,7 +9432,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             self.peaklist.item_id = itemID
 
         color = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames['color']).GetText()
-        if color != "" and "(" not in color and "[" not in color and color in self.config.cmaps2:
+        if color != '' and '(' not in color and '[' not in color and color in self.config.cmaps2:
             self.comboCmapSelect.SetStringSelection(color)
 
         title = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames['title']).GetText()
@@ -8199,38 +9445,48 @@ class panelInteractiveOutput(wx.MiniFrame):
         # Find one which (if any) wheel too is selected
 
         toolList = []
-        wheelDict = {'Wheel Zoom XY': 'wheel_zoom',
-                     'Wheel Zoom X': 'xwheel_zoom',
-                     'Wheel Zoom Y': 'ywheel_zoom'}
-        if tools['activeWheel'] not in ["None", "auto"]:
+        wheelDict = {
+            'Wheel Zoom XY': 'wheel_zoom',
+            'Wheel Zoom X': 'xwheel_zoom',
+            'Wheel Zoom Y': 'ywheel_zoom',
+        }
+        if tools['activeWheel'] not in ['None', 'auto']:
             wheelTool = wheelDict[tools['activeWheel']]
             toolList.append(wheelTool)
 
-        listToGetState = {'save': tools['save'],
-                          'pan': tools['pan'],
-                          'box_zoom': tools['boxzoom'],
-                          'xbox_zoom': tools['boxzoom_horizontal'],
-                          'ybox_zoom': tools['boxzoom_vertical'],
-                          'crosshair': tools['crosshair'],
-                          'reset': tools['reset']}
+        listToGetState = {
+            'save': tools['save'],
+            'pan': tools['pan'],
+            'box_zoom': tools['boxzoom'],
+            'xbox_zoom': tools['boxzoom_horizontal'],
+            'ybox_zoom': tools['boxzoom_vertical'],
+            'crosshair': tools['crosshair'],
+            'reset': tools['reset'],
+        }
         # Iterate over the list to get their state
         for item in listToGetState:
             itemState = listToGetState[item]
             if itemState:
                 toolList.append(item)
 
-        activeDragTools = {'Box Zoom': 'box_zoom', 'Pan': 'pan', 'Pan X': 'xpan', 'Pan Y': 'ypan',
-                           'Box Zoom X': 'xbox_zoom', 'Box Zoom Y': 'ybox_zoom',
-                           'auto': 'auto', 'None': None}
+        activeDragTools = {
+            'Box Zoom': 'box_zoom', 'Pan': 'pan', 'Pan X': 'xpan', 'Pan Y': 'ypan',
+            'Box Zoom X': 'xbox_zoom', 'Box Zoom Y': 'ybox_zoom',
+            'auto': 'auto', 'None': None,
+        }
 
-        activeWheelTools = {'Wheel Zoom XY': 'wheel_zoom',
-                            'Wheel Zoom X': 'xwheel_zoom',
-                            'Wheel Zoom Y': 'ywheel_zoom',
-                            'auto': 'auto', 'None': None}
+        activeWheelTools = {
+            'Wheel Zoom XY': 'wheel_zoom',
+            'Wheel Zoom X': 'xwheel_zoom',
+            'Wheel Zoom Y': 'ywheel_zoom',
+            'auto': 'auto', 'None': None,
+        }
 
-        activeHoverTools = {'Hover': 'hover',
-                            'Crosshair': 'crosshair',
-                            'auto': 'auto', 'None': None}
+        activeHoverTools = {
+            'Hover': 'hover',
+            'Crosshair': 'crosshair',
+            'auto': 'auto', 'None': None,
+        }
 
         # Match those values to dictionary
         self.activeDrag = activeDragTools[tools['activeDrag']]
@@ -8304,46 +9560,46 @@ class panelInteractiveOutput(wx.MiniFrame):
         data : dict
             dictionary object will all data
         """
-        if "widgets" not in data['interactive_params']:
-            data['interactive_params']["widgets"] = {}
+        if 'widgets' not in data['interactive_params']:
+            data['interactive_params']['widgets'] = {}
 
-        if "add_custom_widgets" not in data['interactive_params']['widgets']:
+        if 'add_custom_widgets' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['add_custom_widgets'] = False
-        if "label_toggle" not in data['interactive_params']['widgets']:
+        if 'label_toggle' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['label_toggle'] = False
-        if "label_size_slider" not in data['interactive_params']['widgets']:
+        if 'label_size_slider' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['label_size_slider'] = False
-        if "label_rotation" not in data['interactive_params']['widgets']:
+        if 'label_rotation' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['label_rotation'] = False
-        if "label_offset_x" not in data['interactive_params']['widgets']:
+        if 'label_offset_x' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['label_offset_x'] = False
-        if "label_offset_y" not in data['interactive_params']['widgets']:
+        if 'label_offset_y' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['label_offset_y'] = False
-        if "slider_zoom" not in data['interactive_params']['widgets']:
+        if 'slider_zoom' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['slider_zoom'] = False
-        if "hover_mode" not in data['interactive_params']['widgets']:
+        if 'hover_mode' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['hover_mode'] = False
-        if "colorblind_safe_1D" not in data['interactive_params']['widgets']:
+        if 'colorblind_safe_1D' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['colorblind_safe_1D'] = False
-        if "colorblind_safe_2D" not in data['interactive_params']['widgets']:
+        if 'colorblind_safe_2D' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['colorblind_safe_2D'] = False
-        if "colorblind_safe_scatter" not in data['interactive_params']['widgets']:
+        if 'colorblind_safe_scatter' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['colorblind_safe_scatter'] = False
-        if "colormap_change" not in data['interactive_params']['widgets']:
+        if 'colormap_change' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['colormap_change'] = False
-        if "legend_toggle" not in data['interactive_params']['widgets']:
+        if 'legend_toggle' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['legend_toggle'] = False
-        if "legend_position" not in data['interactive_params']['widgets']:
+        if 'legend_position' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['legend_position'] = False
-        if "legend_orientation" not in data['interactive_params']['widgets']:
+        if 'legend_orientation' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['legend_orientation'] = False
-        if "legend_transparency" not in data['interactive_params']['widgets']:
+        if 'legend_transparency' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['legend_transparency'] = False
-        if "scatter_size" not in data['interactive_params']['widgets']:
+        if 'scatter_size' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['scatter_size'] = False
-        if "scatter_transparency" not in data['interactive_params']['widgets']:
+        if 'scatter_transparency' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['scatter_transparency'] = False
-        if "processing_normalization" not in data['interactive_params']['widgets']:
+        if 'processing_normalization' not in data['interactive_params']['widgets']:
             data['interactive_params']['widgets']['processing_normalization'] = False
 
         return data
@@ -8357,70 +9613,76 @@ class panelInteractiveOutput(wx.MiniFrame):
         """
 
         _active_replace_ = {
-            'Box zoom (both)': "box_zoom", 'Box zoom (horizontal)': "xbox_zoom",
-            'Box zoom (vertical)': "ybox_zoom", 'Pan (both)': "pan", 'Pan (horizontal)': "xpan",
-            'Wheel zoom (both)': "wheel_zoom", 'Wheel zoom (horizontal)': "xwheel_zoom",
-            'Wheel zoom (vertical)': "ywheel_zoom", 'Pan (vertical)': "ypan", 'auto': "auto", 'None': None,
-            'Hover': 'hover', 'Crosshair': 'crosshair'}
+            'Box zoom (both)': 'box_zoom', 'Box zoom (horizontal)': 'xbox_zoom',
+            'Box zoom (vertical)': 'ybox_zoom', 'Pan (both)': 'pan', 'Pan (horizontal)': 'xpan',
+            'Wheel zoom (both)': 'wheel_zoom', 'Wheel zoom (horizontal)': 'xwheel_zoom',
+            'Wheel zoom (vertical)': 'ywheel_zoom', 'Pan (vertical)': 'ypan', 'auto': 'auto', 'None': None,
+            'Hover': 'hover', 'Crosshair': 'crosshair',
+        }
 
-        if "tools" not in data['interactive_params']:
-            data['interactive_params']["tools"] = {}
+        if 'tools' not in data['interactive_params']:
+            data['interactive_params']['tools'] = {}
 
-        if "position" not in data['interactive_params']['tools']:
-            data['interactive_params']['tools']['position'] = "right"
-        if "hover" not in data['interactive_params']['tools']:
+        if 'position' not in data['interactive_params']['tools']:
+            data['interactive_params']['tools']['position'] = 'right'
+        if 'hover' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['hover'] = True
-        if "pan" not in data['interactive_params']['tools']:
+        if 'pan' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['pan'] = True
-        if "xpan" not in data['interactive_params']['tools']:
+        if 'xpan' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['xpan'] = False
-        if "ypan" not in data['interactive_params']['tools']:
+        if 'ypan' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['ypan'] = False
-        if "box_zoom" not in data['interactive_params']['tools']:
+        if 'box_zoom' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['box_zoom'] = True
-        if "xbox_zoom" not in data['interactive_params']['tools']:
+        if 'xbox_zoom' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['xbox_zoom'] = False
-        if "ybox_zoom" not in data['interactive_params']['tools']:
+        if 'ybox_zoom' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['ybox_zoom'] = False
-        if "save" not in data['interactive_params']['tools']:
+        if 'save' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['save'] = True
-        if "crosshair" not in data['interactive_params']['tools']:
+        if 'crosshair' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['crosshair'] = True
-        if "reset" not in data['interactive_params']['tools']:
+        if 'reset' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['reset'] = True
-        if "wheel" not in data['interactive_params']['tools']:
+        if 'wheel' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['wheel'] = True
-        if "wheel_type" not in data['interactive_params']['tools']:
-            data['interactive_params']['tools']['wheel_type'] = "wheel zoom (both)"
-        if "wheel_zoom" not in data['interactive_params']['tools']:
+        if 'wheel_type' not in data['interactive_params']['tools']:
+            data['interactive_params']['tools']['wheel_type'] = 'wheel zoom (both)'
+        if 'wheel_zoom' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['wheel_zoom'] = True
-        if "xwheel_zoom" not in data['interactive_params']['tools']:
+        if 'xwheel_zoom' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['xwheel_zoom'] = False
-        if "ywheel_zoom" not in data['interactive_params']['tools']:
+        if 'ywheel_zoom' not in data['interactive_params']['tools']:
             data['interactive_params']['tools']['ywheel_zoom'] = False
 
-        if "active_drag_type" not in data['interactive_params']['tools']:
-            data['interactive_params']['tools']['active_drag_type'] = "Box zoom (both)"
+        if 'active_drag_type' not in data['interactive_params']['tools']:
+            data['interactive_params']['tools']['active_drag_type'] = 'Box zoom (both)'
             data['interactive_params']['tools']['active_drag'] = _active_replace_[
-                data['interactive_params']['tools']['active_drag_type']]
-        if "active_inspect_type" not in data['interactive_params']['tools']:
-            data['interactive_params']['tools']['active_inspect_type'] = "Hover"
+                data['interactive_params']['tools']['active_drag_type']
+            ]
+        if 'active_inspect_type' not in data['interactive_params']['tools']:
+            data['interactive_params']['tools']['active_inspect_type'] = 'Hover'
             data['interactive_params']['tools']['active_inspect'] = _active_replace_[
-                data['interactive_params']['tools']['active_inspect_type']]
-        if "active_wheel_type" not in data['interactive_params']['tools']:
-            data['interactive_params']['tools']['active_wheel_type'] = "None"
+                data['interactive_params']['tools']['active_inspect_type']
+            ]
+        if 'active_wheel_type' not in data['interactive_params']['tools']:
+            data['interactive_params']['tools']['active_wheel_type'] = 'None'
             data['interactive_params']['tools']['active_wheel'] = _active_replace_[
-                data['interactive_params']['tools']['active_wheel_type']]
+                data['interactive_params']['tools']['active_wheel_type']
+            ]
 
         # create string representation of tools
         on_tools = []
         for key in data['interactive_params']['tools']:
-            if key in ["on_tools", "wheel", "wheel_type", "position", "active_drag_type",
-                       "active_inspect_type", "active_wheel_type"]:
+            if key in [
+                'on_tools', 'wheel', 'wheel_type', 'position', 'active_drag_type',
+                'active_inspect_type', 'active_wheel_type',
+            ]:
                 continue
-            elif key in ["active_drag", "active_inspect", "active_wheel"]:
+            elif key in ['active_drag', 'active_inspect', 'active_wheel']:
                 active_value = data['interactive_params']['tools'][key]
-                if active_value not in ["auto", "None", None]:
+                if active_value not in ['auto', 'None', None]:
                     on_tools.append(active_value)
             elif data['interactive_params']['tools'][key]:
                 on_tools.append(key)
@@ -8434,61 +9696,75 @@ class panelInteractiveOutput(wx.MiniFrame):
         data : dict
             dictionary object will all data
         """
-        if "colorbar_properties" not in data['interactive_params']:
-            data['interactive_params']["colorbar_properties"] = {}
+        if 'colorbar_properties' not in data['interactive_params']:
+            data['interactive_params']['colorbar_properties'] = {}
 
-        if "colorbar" not in data['interactive_params']['colorbar_properties']:
+        if 'colorbar' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['colorbar'] = self.config.interactive_colorbar
-        if "precision" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['colorbar'] = self.config.interactive_colorbar
+        if 'precision' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['precision'] = self.config.interactive_colorbar_precision
-        if "use_scientific" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['precision'] = self.config.interactive_colorbar_precision
+        if 'use_scientific' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['use_scientific'] = self.config.interactive_colorbar_useScientific
-        if "label_offset" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['use_scientific'] = self.config.interactive_colorbar_useScientific
+        if 'label_offset' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['label_offset'] = self.config.interactive_colorbar_label_offset
-        if "position" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['label_offset'] = self.config.interactive_colorbar_label_offset
+        if 'position' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['position'] = self.config.interactive_colorbar_location
-        if "position_offset_x" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['position'] = self.config.interactive_colorbar_location
+        if 'position_offset_x' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['position_offset_x'] = self.config.interactive_colorbar_offset_x
-        if "position_offset_y" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['position_offset_x'] = self.config.interactive_colorbar_offset_x
+        if 'position_offset_y' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['position_offset_y'] = self.config.interactive_colorbar_offset_y
-        if "pad" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['position_offset_y'] = self.config.interactive_colorbar_offset_y
+        if 'pad' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['pad'] = self.config.interactive_colorbar_padding
-        if "width" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['pad'] = self.config.interactive_colorbar_padding
+        if 'width' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['width'] = self.config.interactive_colorbar_width
-        if "edge_width" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['width'] = self.config.interactive_colorbar_width
+        if 'edge_width' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['edge_width'] = self.config.interactive_colorbar_edge_width
-        if "modify_ticks" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['edge_width'] = self.config.interactive_colorbar_edge_width
+        if 'modify_ticks' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['modify_ticks'] = self.config.interactive_colorbar_modify_ticks
-        if "label_fontsize" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['modify_ticks'] = self.config.interactive_colorbar_modify_ticks
+        if 'label_fontsize' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['label_fontsize'] = self.config.interactive_colorbar_label_fontSize
-        if "label_fontweight" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['label_fontsize'] = self.config.interactive_colorbar_label_fontSize
+        if 'label_fontweight' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['label_fontweight'] = self.config.interactive_colorbar_label_weight
-        if "edge_color" not in data['interactive_params']['colorbar_properties']:
+                'colorbar_properties'
+            ]['label_fontweight'] = self.config.interactive_colorbar_label_weight
+        if 'edge_color' not in data['interactive_params']['colorbar_properties']:
             data['interactive_params'][
-                'colorbar_properties']['edge_color'] = self.config.interactive_colorbar_edge_color
+                'colorbar_properties'
+            ]['edge_color'] = self.config.interactive_colorbar_edge_color
 
         if data['interactive_params']['colorbar_properties']['position'] in ('right', 'left'):
             data['interactive_params']['colorbar_properties']['orientation'] = 'vertical'
-            data['interactive_params']['colorbar_properties']['height'] = "auto"
-            data['interactive_params']['colorbar_properties']['label_align'] = "left"
+            data['interactive_params']['colorbar_properties']['height'] = 'auto'
+            data['interactive_params']['colorbar_properties']['label_align'] = 'left'
         else:
             data['interactive_params']['colorbar_properties']['orientation'] = 'horizontal'
             data['interactive_params']['colorbar_properties']['height'] = self.config.interactive_colorbar_width
-            data['interactive_params']['colorbar_properties']['width'] = "auto"
-            data['interactive_params']['colorbar_properties']['label_align'] = "center"
+            data['interactive_params']['colorbar_properties']['width'] = 'auto'
+            data['interactive_params']['colorbar_properties']['label_align'] = 'center'
 
         return data
 
@@ -8499,30 +9775,37 @@ class panelInteractiveOutput(wx.MiniFrame):
         data : dict
             dictionary object will all data
         """
-        if "legend_properties" not in data['interactive_params']:
-            data['interactive_params']["legend_properties"] = {}
+        if 'legend_properties' not in data['interactive_params']:
+            data['interactive_params']['legend_properties'] = {}
 
-        if "legend" not in data['interactive_params']['legend_properties']:
+        if 'legend' not in data['interactive_params']['legend_properties']:
             data['interactive_params'][
-                'legend_properties']['legend'] = self.config.interactive_legend
-        if "legend_location" not in data['interactive_params']['legend_properties']:
+                'legend_properties'
+            ]['legend'] = self.config.interactive_legend
+        if 'legend_location' not in data['interactive_params']['legend_properties']:
             data['interactive_params'][
-                'legend_properties']['legend_location'] = self.config.interactive_legend_location
-        if "legend_click_policy" not in data['interactive_params']['legend_properties']:
+                'legend_properties'
+            ]['legend_location'] = self.config.interactive_legend_location
+        if 'legend_click_policy' not in data['interactive_params']['legend_properties']:
             data['interactive_params'][
-                'legend_properties']['legend_click_policy'] = self.config.interactive_legend_click_policy
-        if "legend_orientation" not in data['interactive_params']['legend_properties']:
+                'legend_properties'
+            ]['legend_click_policy'] = self.config.interactive_legend_click_policy
+        if 'legend_orientation' not in data['interactive_params']['legend_properties']:
             data['interactive_params'][
-                'legend_properties']['legend_orientation'] = self.config.interactive_legend_orientation
-        if "legend_font_size" not in data['interactive_params']['legend_properties']:
+                'legend_properties'
+            ]['legend_orientation'] = self.config.interactive_legend_orientation
+        if 'legend_font_size' not in data['interactive_params']['legend_properties']:
             data['interactive_params'][
-                'legend_properties']['legend_font_size'] = self.config.interactive_legend_font_size
-        if "legend_background_alpha" not in data['interactive_params']['legend_properties']:
+                'legend_properties'
+            ]['legend_font_size'] = self.config.interactive_legend_font_size
+        if 'legend_background_alpha' not in data['interactive_params']['legend_properties']:
             data['interactive_params'][
-                'legend_properties']['legend_background_alpha'] = self.config.interactive_legend_background_alpha
-        if "legend_mute_alpha" not in data['interactive_params']['legend_properties']:
+                'legend_properties'
+            ]['legend_background_alpha'] = self.config.interactive_legend_background_alpha
+        if 'legend_mute_alpha' not in data['interactive_params']['legend_properties']:
             data['interactive_params'][
-                'legend_properties']['legend_mute_alpha'] = self.config.interactive_legend_mute_alpha
+                'legend_properties'
+            ]['legend_mute_alpha'] = self.config.interactive_legend_mute_alpha
 
         return data
 
@@ -8533,28 +9816,34 @@ class panelInteractiveOutput(wx.MiniFrame):
         data : dict
             dictionary object will all data
         """
-        if "preprocessing_properties" not in data['interactive_params']:
-            data['interactive_params']["preprocessing_properties"] = {}
+        if 'preprocessing_properties' not in data['interactive_params']:
+            data['interactive_params']['preprocessing_properties'] = {}
 
-        if "linearize" not in data['interactive_params']['preprocessing_properties']:
+        if 'linearize' not in data['interactive_params']['preprocessing_properties']:
             data['interactive_params'][
-                'preprocessing_properties']['linearize'] = self.config.interactive_ms_linearize
-        if "linearize_binsize" not in data['interactive_params']['preprocessing_properties']:
+                'preprocessing_properties'
+            ]['linearize'] = self.config.interactive_ms_linearize
+        if 'linearize_binsize' not in data['interactive_params']['preprocessing_properties']:
             data['interactive_params'][
-                'preprocessing_properties']['linearize_binsize'] = self.config.interactive_ms_binSize
-        if "linearize_limit" not in data['interactive_params']['preprocessing_properties']:
+                'preprocessing_properties'
+            ]['linearize_binsize'] = self.config.interactive_ms_binSize
+        if 'linearize_limit' not in data['interactive_params']['preprocessing_properties']:
             data['interactive_params'][
-                'preprocessing_properties']['linearize_limit'] = 25000
+                'preprocessing_properties'
+            ]['linearize_limit'] = 25000
 
-        if "subsample" not in data['interactive_params']['preprocessing_properties']:
+        if 'subsample' not in data['interactive_params']['preprocessing_properties']:
             data['interactive_params'][
-                'preprocessing_properties']['subsample'] = True
-        if "subsample_frequency" not in data['interactive_params']['preprocessing_properties']:
+                'preprocessing_properties'
+            ]['subsample'] = True
+        if 'subsample_frequency' not in data['interactive_params']['preprocessing_properties']:
             data['interactive_params'][
-                'preprocessing_properties']['subsample_frequency'] = 20
-        if "subsample_limit" not in data['interactive_params']['preprocessing_properties']:
+                'preprocessing_properties'
+            ]['subsample_frequency'] = 20
+        if 'subsample_limit' not in data['interactive_params']['preprocessing_properties']:
             data['interactive_params'][
-                'preprocessing_properties']['subsample_limit'] = 20000
+                'preprocessing_properties'
+            ]['subsample_limit'] = 20000
 
         return data
 
@@ -8565,31 +9854,36 @@ class panelInteractiveOutput(wx.MiniFrame):
         data : dict
             dictionary object will all data
         """
-        if "plot_properties" not in data['interactive_params']:
-            data['interactive_params']["plot_properties"] = {}
+        if 'plot_properties' not in data['interactive_params']:
+            data['interactive_params']['plot_properties'] = {}
 
         # line plots
-        if "line_width" not in data['interactive_params']['plot_properties']:
+        if 'line_width' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['line_width'] = self.config.interactive_line_width
-        if "line_transparency" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['line_width'] = self.config.interactive_line_width
+        if 'line_transparency' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['line_transparency'] = self.config.interactive_line_alpha
-        if "line_style" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['line_transparency'] = self.config.interactive_line_alpha
+        if 'line_style' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['line_style'] = self.config.interactive_line_style
-        if "line_shade_under" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['line_style'] = self.config.interactive_line_style
+        if 'line_shade_under' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['line_shade_under'] = self.config.interactive_line_shade_under
-        if "shade_transparency" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['line_shade_under'] = self.config.interactive_line_shade_under
+        if 'shade_transparency' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['shade_transparency'] = self.config.interactive_line_shade_alpha
-        if "line_color" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['shade_transparency'] = self.config.interactive_line_shade_alpha
+        if 'line_color' not in data['interactive_params']['plot_properties']:
             color = data.get('cmap', self.config.interactive_line_color)
             if isinstance(color, str):
                 color = self.config.interactive_line_color
             data['interactive_params']['plot_properties']['line_color'] = color
-        if "hover_link_x" not in data['interactive_params']['plot_properties']:
+        if 'hover_link_x' not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['hover_link_x'] = self.config.linkXYaxes
 
             if data['interactive_params']['plot_properties']['hover_link_x']:
@@ -8598,66 +9892,80 @@ class panelInteractiveOutput(wx.MiniFrame):
                 data['interactive_params']['plot_properties']['hover_mode'] = 'mouse'
 
         # waterfall plots
-        if "waterfall_increment" not in data['interactive_params']['plot_properties']:
+        if 'waterfall_increment' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['waterfall_increment'] = self.config.interactive_waterfall_increment
-        if "waterfall_shade_under" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['waterfall_increment'] = self.config.interactive_waterfall_increment
+        if 'waterfall_shade_under' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['waterfall_shade_under'] = self.config.interactive_waterfall_shade_under
-        if "waterfall_shade_transparency" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['waterfall_shade_under'] = self.config.interactive_waterfall_shade_under
+        if 'waterfall_shade_transparency' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['waterfall_shade_transparency'] = self.config.interactive_waterfall_shade_alpha
+                'plot_properties'
+            ]['waterfall_shade_transparency'] = self.config.interactive_waterfall_shade_alpha
 
         # heatmaps
-        if "colormap" not in data['interactive_params']['plot_properties']:
+        if 'colormap' not in data['interactive_params']['plot_properties']:
             color = data.get('cmap', self.config.currentCmap)
             if not isinstance(color, str):
                 color = self.config.currentCmap
             data['interactive_params']['plot_properties']['colormap'] = color
 
         # bar
-        if "bar_width" not in data['interactive_params']['plot_properties']:
+        if 'bar_width' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['bar_width'] = self.config.interactive_bar_width
-        if "bar_transparency" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['bar_width'] = self.config.interactive_bar_width
+        if 'bar_transparency' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['bar_transparency'] = self.config.interactive_bar_alpha
-        if "bar_line_width" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['bar_transparency'] = self.config.interactive_bar_alpha
+        if 'bar_line_width' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['bar_line_width'] = self.config.interactive_bar_lineWidth
-        if "bar_edge_color_sameAsFill" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['bar_line_width'] = self.config.interactive_bar_lineWidth
+        if 'bar_edge_color_sameAsFill' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['bar_edge_color_sameAsFill'] = self.config.interactive_bar_sameAsFill
-        if "bar_edge_color" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['bar_edge_color_sameAsFill'] = self.config.interactive_bar_sameAsFill
+        if 'bar_edge_color' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['bar_edge_color'] = self.config.interactive_bar_edge_color
+                'plot_properties'
+            ]['bar_edge_color'] = self.config.interactive_bar_edge_color
 
         # scatter
-        if "scatter_shape" not in data['interactive_params']['plot_properties']:
+        if 'scatter_shape' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['scatter_shape'] = self.config.interactive_scatter_marker
-        if "scatter_size" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['scatter_shape'] = self.config.interactive_scatter_marker
+        if 'scatter_size' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['scatter_size'] = self.config.interactive_scatter_size
-        if "scatter_transparency" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['scatter_size'] = self.config.interactive_scatter_size
+        if 'scatter_transparency' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['scatter_transparency'] = self.config.interactive_scatter_alpha
-        if "scatter_line_width" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['scatter_transparency'] = self.config.interactive_scatter_alpha
+        if 'scatter_line_width' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['scatter_line_width'] = self.config.interactive_scatter_lineWidth
-        if "scatter_edge_color_sameAsFill" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['scatter_line_width'] = self.config.interactive_scatter_lineWidth
+        if 'scatter_edge_color_sameAsFill' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['scatter_edge_color_sameAsFill'] = self.config.interactive_scatter_sameAsFill
-        if "scatter_edge_color" not in data['interactive_params']['plot_properties']:
+                'plot_properties'
+            ]['scatter_edge_color_sameAsFill'] = self.config.interactive_scatter_sameAsFill
+        if 'scatter_edge_color' not in data['interactive_params']['plot_properties']:
             data['interactive_params'][
-                'plot_properties']['scatter_edge_color'] = self.config.interactive_scatter_edge_color
+                'plot_properties'
+            ]['scatter_edge_color'] = self.config.interactive_scatter_edge_color
 
         # tandem
-        if "tandem_line_width" not in data['interactive_params']['plot_properties']:
+        if 'tandem_line_width' not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['tandem_line_width'] = 1.
-        if "tandem_line_color_unlabelled" not in data['interactive_params']['plot_properties']:
+        if 'tandem_line_color_unlabelled' not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['tandem_line_color_unlabelled'] = (0., 0., 0.)
-        if "tandem_line_color_labelled" not in data['interactive_params']['plot_properties']:
+        if 'tandem_line_color_labelled' not in data['interactive_params']['plot_properties']:
             data['interactive_params']['plot_properties']['tandem_line_color_labelled'] = (1., 0., 0.)
 
         return data
@@ -8669,110 +9977,133 @@ class panelInteractiveOutput(wx.MiniFrame):
         data : dict
             dictionary object will all data
         """
-        if "overlay_properties" not in data['interactive_params']:
-            data['interactive_params']["overlay_properties"] = {}
+        if 'overlay_properties' not in data['interactive_params']:
+            data['interactive_params']['overlay_properties'] = {}
 
         # rmds
-        if "rmsd_label_fontsize" not in data['interactive_params']['overlay_properties']:
+        if 'rmsd_label_fontsize' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_label_fontsize'] = self.config.interactive_annotation_fontSize
-        if "rmsd_label_fontweight" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsd_label_fontsize'] = self.config.interactive_annotation_fontSize
+        if 'rmsd_label_fontweight' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_label_fontweight'] = self.config.interactive_annotation_weight
-        if "rmsd_background_transparency" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsd_label_fontweight'] = self.config.interactive_annotation_weight
+        if 'rmsd_background_transparency' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_background_transparency'] = self.config.interactive_annotation_alpha
-        if "rmsd_label_color" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsd_background_transparency'] = self.config.interactive_annotation_alpha
+        if 'rmsd_label_color' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_label_color'] = self.config.interactive_annotation_color
-        if "rmsd_background_color" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsd_label_color'] = self.config.interactive_annotation_color
+        if 'rmsd_background_color' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_background_color'] = self.config.interactive_annotation_background_color
+                'overlay_properties'
+            ]['rmsd_background_color'] = self.config.interactive_annotation_background_color
 
         # rmsd matrix
-        if "rmsd_matrix_position_offset_x" not in data['interactive_params']['overlay_properties']:
+        if 'rmsd_matrix_position_offset_x' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_matrix_position_offset_x'] = self.config.interactive_ms_annotations_offsetX
-        if "rmsd_matrix_position_offset_y" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsd_matrix_position_offset_x'] = self.config.interactive_ms_annotations_offsetX
+        if 'rmsd_matrix_position_offset_y' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_matrix_position_offset_y'] = self.config.interactive_ms_annotations_offsetY
-        if "rmsd_matrix_label_fontsize" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsd_matrix_position_offset_y'] = self.config.interactive_ms_annotations_offsetY
+        if 'rmsd_matrix_label_fontsize' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_matrix_label_fontsize'] = self.config.interactive_ms_annotations_fontSize
-        if "rmsd_matrix_label_fontweight" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsd_matrix_label_fontsize'] = self.config.interactive_ms_annotations_fontSize
+        if 'rmsd_matrix_label_fontweight' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_matrix_label_fontweight'] = self.config.interactive_ms_annotations_fontWeight
-        if "rmsd_matrix_xaxis_rotation" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsd_matrix_label_fontweight'] = self.config.interactive_ms_annotations_fontWeight
+        if 'rmsd_matrix_xaxis_rotation' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_matrix_xaxis_rotation'] = 120
-        if "rmsd_matrix_label_color" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsd_matrix_xaxis_rotation'] = 120
+        if 'rmsd_matrix_label_color' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsd_matrix_label_color'] = self.config.interactive_ms_annotations_label_color
-        if "rmsd_matrix_colormap" not in data['interactive_params']['overlay_properties']:
-            color = data.get('cmap', "coolwarm")
+                'overlay_properties'
+            ]['rmsd_matrix_label_color'] = self.config.interactive_ms_annotations_label_color
+        if 'rmsd_matrix_colormap' not in data['interactive_params']['overlay_properties']:
+            color = data.get('cmap', 'coolwarm')
             if not isinstance(color, str):
-                color = "coolwarm"
+                color = 'coolwarm'
             data['interactive_params']['overlay_properties']['rmsd_matrix_colormap'] = color
-        if "rmsd_matrix_auto_label_color" not in data['interactive_params']['overlay_properties']:
+        if 'rmsd_matrix_auto_label_color' not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['rmsd_matrix_auto_label_color'] = True
 
         # multi-line
-        if "multiline_shade_under" not in data['interactive_params']['overlay_properties']:
+        if 'multiline_shade_under' not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['multiline_shade_under'] = False
-        if "multiline_shade_transparency" not in data['interactive_params']['overlay_properties']:
+        if 'multiline_shade_transparency' not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['multiline_shade_transparency'] = 0.25
 
         # mask/transparency
-        if "overlay_link_xy" not in data['interactive_params']['overlay_properties']:
+        if 'overlay_link_xy' not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['overlay_link_xy'] = self.config.linkXYaxes
-        if "overlay_layout" not in data['interactive_params']['overlay_properties']:
+        if 'overlay_layout' not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['overlay_layout'] = self.config.plotLayoutOverlay
-        if "overlay_colormap_1" not in data['interactive_params']['overlay_properties']:
-            data['interactive_params']['overlay_properties']['overlay_colormap_1'] = data.get('cmap1', "Reds")
-        if "overlay_colormap_2" not in data['interactive_params']['overlay_properties']:
-            data['interactive_params']['overlay_properties']['overlay_colormap_2'] = data.get('cmap2', "Blues")
-        if "overlay_merge_tools" not in data['interactive_params']['overlay_properties']:
+        if 'overlay_colormap_1' not in data['interactive_params']['overlay_properties']:
+            data['interactive_params']['overlay_properties']['overlay_colormap_1'] = data.get('cmap1', 'Reds')
+        if 'overlay_colormap_2' not in data['interactive_params']['overlay_properties']:
+            data['interactive_params']['overlay_properties']['overlay_colormap_2'] = data.get('cmap2', 'Blues')
+        if 'overlay_merge_tools' not in data['interactive_params']['overlay_properties']:
             data['interactive_params']['overlay_properties']['overlay_merge_tools'] = False
 
         # grid (nxn)
-        if "overlay_grid_add_labels" not in data['interactive_params']['overlay_properties']:
+        if 'overlay_grid_add_labels' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['overlay_grid_add_labels'] = False
-        if "grid_label_fontsize" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['overlay_grid_add_labels'] = False
+        if 'grid_label_fontsize' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['grid_label_fontsize'] = self.config.interactive_grid_label_size
-        if "grid_label_fontweight" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['grid_label_fontsize'] = self.config.interactive_grid_label_size
+        if 'grid_label_fontweight' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['grid_label_fontweight'] = self.config.interactive_grid_label_weight
-        if "grid_position_offset_x" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['grid_label_fontweight'] = self.config.interactive_grid_label_weight
+        if 'grid_position_offset_x' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['grid_position_offset_x'] = self.config.interactive_ms_annotations_offsetX
-        if "grid_position_offset_y" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['grid_position_offset_x'] = self.config.interactive_ms_annotations_offsetX
+        if 'grid_position_offset_y' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['grid_position_offset_y'] = self.config.interactive_ms_annotations_offsetY
-        if "grid_label_color" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['grid_position_offset_y'] = self.config.interactive_ms_annotations_offsetY
+        if 'grid_label_color' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['grid_label_color'] = self.config.interactive_annotation_color
+                'overlay_properties'
+            ]['grid_label_color'] = self.config.interactive_annotation_color
 
         # rmsf
-        if "rmsf_line_width" not in data['interactive_params']['overlay_properties']:
+        if 'rmsf_line_width' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsf_line_width'] = self.config.interactive_line_width
-        if "rmsf_line_transparency" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsf_line_width'] = self.config.interactive_line_width
+        if 'rmsf_line_transparency' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsf_line_transparency'] = self.config.interactive_line_alpha
-        if "rmsf_line_style" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsf_line_transparency'] = self.config.interactive_line_alpha
+        if 'rmsf_line_style' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsf_line_style'] = self.config.interactive_line_style
-        if "rmsf_line_shade_under" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsf_line_style'] = self.config.interactive_line_style
+        if 'rmsf_line_shade_under' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsf_line_shade_under'] = False
-        if "rmsf_shade_transparency" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsf_line_shade_under'] = False
+        if 'rmsf_shade_transparency' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsf_shade_transparency'] = self.config.interactive_line_alpha
-        if "rmsf_line_color" not in data['interactive_params']['overlay_properties']:
+                'overlay_properties'
+            ]['rmsf_shade_transparency'] = self.config.interactive_line_alpha
+        if 'rmsf_line_color' not in data['interactive_params']['overlay_properties']:
             data['interactive_params'][
-                'overlay_properties']['rmsf_line_color'] = data.get("colorRMSF", (0., 0., 0.))
+                'overlay_properties'
+            ]['rmsf_line_color'] = data.get('colorRMSF', (0., 0., 0.))
 
         return data
 
@@ -8785,82 +10116,89 @@ class panelInteractiveOutput(wx.MiniFrame):
         """
 
         # plot parameters
-        if "xlimits" not in data['interactive_params']:
+        if 'xlimits' not in data['interactive_params']:
             data['interactive_params']['xlimits'] = None
-        if "ylimits" not in data['interactive_params']:
+        if 'ylimits' not in data['interactive_params']:
             data['interactive_params']['ylimits'] = None
 
-        if "frame_properties" not in data['interactive_params']:
-            data['interactive_params']["frame_properties"] = {}
+        if 'frame_properties' not in data['interactive_params']:
+            data['interactive_params']['frame_properties'] = {}
 
             # frame parameters
-        if "title_fontsize" not in data['interactive_params']['frame_properties']:
+        if 'title_fontsize' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['title_fontsize'] = self.config.interactive_title_fontSize
-        if "title_fontweight" not in data['interactive_params']['frame_properties']:
+        if 'title_fontweight' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['title_fontweight'] = self.config.interactive_title_weight
-        if "label_fontsize" not in data['interactive_params']['frame_properties']:
+        if 'label_fontsize' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['label_fontsize'] = self.config.interactive_label_fontSize
-        if "label_fontweight" not in data['interactive_params']['frame_properties']:
+        if 'label_fontweight' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['label_fontweight'] = self.config.interactive_label_weight
-        if "tick_fontsize" not in data['interactive_params']['frame_properties']:
+        if 'tick_fontsize' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['tick_fontsize'] = self.config.interactive_tick_fontSize
 
-        if "label_xaxis" not in data['interactive_params']['frame_properties']:
+        if 'label_xaxis' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['label_xaxis'] = True
-        if "label_xaxis_fontsize" not in data['interactive_params']['frame_properties']:
+        if 'label_xaxis_fontsize' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties'][
-                'label_xaxis_fontsize'] = data['interactive_params']['frame_properties']['label_fontsize']
-        if "label_yaxis" not in data['interactive_params']['frame_properties']:
+                'label_xaxis_fontsize'
+            ] = data['interactive_params']['frame_properties']['label_fontsize']
+        if 'label_yaxis' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['label_yaxis'] = True
-        if "label_yaxis_fontsize" not in data['interactive_params']['frame_properties']:
+        if 'label_yaxis_fontsize' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties'][
-                'label_yaxis_fontsize'] = data['interactive_params']['frame_properties']['label_fontsize']
+                'label_yaxis_fontsize'
+            ] = data['interactive_params']['frame_properties']['label_fontsize']
 
-        if "ticks_xaxis" not in data['interactive_params']['frame_properties']:
+        if 'ticks_xaxis' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties'][
-                'ticks_xaxis'] = data['interactive_params']['frame_properties']['tick_fontsize']
+                'ticks_xaxis'
+            ] = data['interactive_params']['frame_properties']['tick_fontsize']
             if data['interactive_params']['frame_properties']['ticks_xaxis']:
-                data['interactive_params']['frame_properties']['ticks_xaxis_color'] = "#000000"
+                data['interactive_params']['frame_properties']['ticks_xaxis_color'] = '#000000'
             else:
                 data['interactive_params']['frame_properties']['ticks_xaxis_color'] = None
 
-        if "ticks_yaxis" not in data['interactive_params']['frame_properties']:
+        if 'ticks_yaxis' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['ticks_yaxis'] = True
-        if "ticks_yaxis_color" not in data['interactive_params']['frame_properties']:
-            data['interactive_params']['frame_properties']['ticks_yaxis_color'] = "#000000"
+        if 'ticks_yaxis_color' not in data['interactive_params']['frame_properties']:
+            data['interactive_params']['frame_properties']['ticks_yaxis_color'] = '#000000'
 
-        if "tick_labels_xaxis" not in data['interactive_params']['frame_properties']:
+        if 'tick_labels_xaxis' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['tick_labels_xaxis'] = True
-        if "tick_labels_xaxis_fontsize" not in data['interactive_params']['frame_properties']:
+        if 'tick_labels_xaxis_fontsize' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties'][
-                'tick_labels_xaxis_fontsize'] = data['interactive_params']['frame_properties']['tick_fontsize']
-        if "tick_labels_yaxis" not in data['interactive_params']['frame_properties']:
+                'tick_labels_xaxis_fontsize'
+            ] = data['interactive_params']['frame_properties']['tick_fontsize']
+        if 'tick_labels_yaxis' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['tick_labels_yaxis'] = True
-        if "tick_labels_yaxis_fontsize" not in data['interactive_params']['frame_properties']:
+        if 'tick_labels_yaxis_fontsize' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties'][
-                'tick_labels_yaxis_fontsize'] = data['interactive_params']['frame_properties']['tick_fontsize']
+                'tick_labels_yaxis_fontsize'
+            ] = data['interactive_params']['frame_properties']['tick_fontsize']
 
             # border parameters
-        if "border_left" not in data['interactive_params']['frame_properties']:
+        if 'border_left' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['border_left'] = self.config.interactive_border_min_left
-        if "border_right" not in data['interactive_params']['frame_properties']:
+        if 'border_right' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['border_right'] = self.config.interactive_border_min_right
-        if "border_top" not in data['interactive_params']['frame_properties']:
+        if 'border_top' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['border_top'] = self.config.interactive_border_min_top
-        if "border_bottom" not in data['interactive_params']['frame_properties']:
+        if 'border_bottom' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['border_bottom'] = self.config.interactive_border_min_bottom
-        if "outline_width" not in data['interactive_params']['frame_properties']:
+        if 'outline_width' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['outline_width'] = self.config.interactive_outline_width
-        if "outline_transparency" not in data['interactive_params']['frame_properties']:
+        if 'outline_transparency' not in data['interactive_params']['frame_properties']:
             data['interactive_params'][
-                'frame_properties']['outline_transparency'] = self.config.interactive_outline_alpha
-        if "gridline" not in data['interactive_params']['frame_properties']:
+                'frame_properties'
+            ]['outline_transparency'] = self.config.interactive_outline_alpha
+        if 'gridline' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['gridline'] = self.config.interactive_grid_line
-        if "gridline_color" not in data['interactive_params']['frame_properties']:
+        if 'gridline_color' not in data['interactive_params']['frame_properties']:
             data['interactive_params']['frame_properties']['gridline_color'] = self.config.interactive_grid_line_color
-        if "background_color" not in data['interactive_params']['frame_properties']:
+        if 'background_color' not in data['interactive_params']['frame_properties']:
             data['interactive_params'][
-                'frame_properties']['background_color'] = self.config.interactive_background_color
+                'frame_properties'
+            ]['background_color'] = self.config.interactive_background_color
 
         return data
 
@@ -8871,53 +10209,62 @@ class panelInteractiveOutput(wx.MiniFrame):
         data : dict
             dictionary object will all data
         """
-        if "annotation_properties" not in data['interactive_params']:
-            data['interactive_params']["annotation_properties"] = {}
+        if 'annotation_properties' not in data['interactive_params']:
+            data['interactive_params']['annotation_properties'] = {}
 
-        if "show_annotations" not in data['interactive_params']['annotation_properties']:
+        if 'show_annotations' not in data['interactive_params']['annotation_properties']:
             data['interactive_params']['annotation_properties']['show_annotations'] = True
-        if "show_labels" not in data['interactive_params']['annotation_properties']:
+        if 'show_labels' not in data['interactive_params']['annotation_properties']:
             data['interactive_params'][
-                'annotation_properties']['show_labels'] = self.config.interactive_ms_annotations_labels
-        if "position_offset_x" not in data['interactive_params']['annotation_properties']:
+                'annotation_properties'
+            ]['show_labels'] = self.config.interactive_ms_annotations_labels
+        if 'position_offset_x' not in data['interactive_params']['annotation_properties']:
             data['interactive_params'][
-                'annotation_properties']['position_offset_x'] = self.config.interactive_ms_annotations_offsetX
-        if "position_offset_y" not in data['interactive_params']['annotation_properties']:
+                'annotation_properties'
+            ]['position_offset_x'] = self.config.interactive_ms_annotations_offsetX
+        if 'position_offset_y' not in data['interactive_params']['annotation_properties']:
             data['interactive_params'][
-                'annotation_properties']['position_offset_y'] = self.config.interactive_ms_annotations_offsetY
-        if "label_rotation" not in data['interactive_params']['annotation_properties']:
+                'annotation_properties'
+            ]['position_offset_y'] = self.config.interactive_ms_annotations_offsetY
+        if 'label_rotation' not in data['interactive_params']['annotation_properties']:
             data['interactive_params'][
-                'annotation_properties']['label_rotation'] = self.config.interactive_ms_annotations_rotation
-        if "label_fontsize" not in data['interactive_params']['annotation_properties']:
+                'annotation_properties'
+            ]['label_rotation'] = self.config.interactive_ms_annotations_rotation
+        if 'label_fontsize' not in data['interactive_params']['annotation_properties']:
             data['interactive_params'][
-                'annotation_properties']['label_fontsize'] = self.config.interactive_ms_annotations_fontSize
-        if "label_fontweight" not in data['interactive_params']['annotation_properties']:
+                'annotation_properties'
+            ]['label_fontsize'] = self.config.interactive_ms_annotations_fontSize
+        if 'label_fontweight' not in data['interactive_params']['annotation_properties']:
             data['interactive_params'][
-                'annotation_properties']['label_fontweight'] = self.config.interactive_ms_annotations_fontWeight
-        if "label_color" not in data['interactive_params']['annotation_properties']:
+                'annotation_properties'
+            ]['label_fontweight'] = self.config.interactive_ms_annotations_fontWeight
+        if 'label_color' not in data['interactive_params']['annotation_properties']:
             data['interactive_params'][
-                'annotation_properties']['label_color'] = self.config.interactive_ms_annotations_label_color
-        if "show_patches" not in data['interactive_params']['annotation_properties']:
+                'annotation_properties'
+            ]['label_color'] = self.config.interactive_ms_annotations_label_color
+        if 'show_patches' not in data['interactive_params']['annotation_properties']:
             data['interactive_params'][
-                'annotation_properties']['show_patches'] = self.config.interactive_ms_annotations_highlight
-        if "patch_transparency" not in data['interactive_params']['annotation_properties']:
+                'annotation_properties'
+            ]['show_patches'] = self.config.interactive_ms_annotations_highlight
+        if 'patch_transparency' not in data['interactive_params']['annotation_properties']:
             data['interactive_params'][
-                'annotation_properties']['patch_transparency'] = self.config.interactive_ms_annotations_transparency
-        if "label_use_preset_color" not in data['interactive_params']['annotation_properties']:
+                'annotation_properties'
+            ]['patch_transparency'] = self.config.interactive_ms_annotations_transparency
+        if 'label_use_preset_color' not in data['interactive_params']['annotation_properties']:
             data['interactive_params']['annotation_properties']['label_use_preset_color'] = True
 
         return data
 
     @staticmethod
     def _fontSizeConverter(value):
-        return "%spt" % value
+        return '%spt' % value
 
     @staticmethod
     def _fontWeightConverter(value):
         if value:
-            return "bold"
+            return 'bold'
         else:
-            return "normal"
+            return 'normal'
 
     @staticmethod
     def _kda_test(xvals):
@@ -8934,18 +10281,18 @@ class panelInteractiveOutput(wx.MiniFrame):
         try:
             if xvals[int(len(xvals) / 2)] > 100000 or xvals[len(xvals) - 1] > 1000000:
                 kdnorm = 1000.
-                xlabel = "Mass (kDa)"
+                xlabel = 'Mass (kDa)'
                 kda = True
             elif np.amax(xvals) > 10000:
                 kdnorm = 1000.
-                xlabel = "Mass (kDa)"
+                xlabel = 'Mass (kDa)'
                 kda = True
             else:
-                xlabel = "Mass (Da)"
+                xlabel = 'Mass (Da)'
                 kda = False
                 kdnorm = 1.
         except (TypeError, ValueError):
-            xlabel = "Mass (Da)"
+            xlabel = 'Mass (Da)'
             kdnorm = 1.
             kda = False
 
@@ -8955,8 +10302,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         return xvals, xlabel, kda
 
     @staticmethod
-    def _convert_cmap_to_colormapper(cmap=None, zmin=None, zmax=None, zvals=None, palette=None,
-                                     return_palette=False):
+    def _convert_cmap_to_colormapper(
+        cmap=None, zmin=None, zmax=None, zvals=None, palette=None,
+        return_palette=False,
+    ):
         if zmin is None or zmax is None and zvals is not None:
             zmin, zmax = np.round(np.min(zvals), 2), np.round(np.max(zvals), 2)
 
@@ -8987,9 +10336,9 @@ class panelInteractiveOutput(wx.MiniFrame):
         Check extent lists to ensure values are not bonkers
         """
         if new_limits is not None:
-            if new_limits[0] in [None, "None", ""] or new_limits[0] >= old_limits[1]:
+            if new_limits[0] in [None, 'None', ''] or new_limits[0] >= old_limits[1]:
                 new_limits[0] = old_limits[0]
-            if new_limits[1] in [None, "None", ""] or new_limits[1] <= old_limits[0]:
+            if new_limits[1] in [None, 'None', ''] or new_limits[1] <= old_limits[0]:
                 new_limits[1] = old_limits[1]
             old_limits = new_limits
 
