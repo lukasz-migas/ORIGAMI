@@ -2347,14 +2347,14 @@ class MyFrame(wx.Frame):
 
         # disable delay during testing
         if self.config.testing:
-            delay = 0
+            return
 
         try:
             self.SetStatusText(msg, number=position)
             sleep(delay)
             self.SetStatusText('', number=position)
         except Exception:
-            print(msg)
+            print(f"Statusbar update: {msg}")
 
     def updatePlots(self, evt):
         """
