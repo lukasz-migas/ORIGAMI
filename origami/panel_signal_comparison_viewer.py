@@ -181,8 +181,10 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.spectrum_1_spectrum_value.SetStringSelection(spectrum_1)
 
         spectrum_1_label_label = wx.StaticText(panel, -1, 'Label:')
-        self.spectrum_1_label_value = wx.TextCtrl(panel, -1, '', style=wx.TE_PROCESS_ENTER,
-                                                  name='label_1')
+        self.spectrum_1_label_value = wx.TextCtrl(
+            panel, -1, '', style=wx.TE_PROCESS_ENTER,
+            name='label_1',
+        )
 
         spectrum_1_color_label = wx.StaticText(panel, -1, 'Color:')
         self.spectrum_1_colorBtn = wx.Button(panel, size=wx.Size(26, 26), name='color_1')
@@ -225,8 +227,10 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.spectrum_2_spectrum_value.SetStringSelection(spectrum_2)
 
         spectrum_2_label_label = wx.StaticText(panel, -1, 'Label:')
-        self.spectrum_2_label_value = wx.TextCtrl(panel, -1, '', style=wx.TE_PROCESS_ENTER,
-                                                  name='label_2')
+        self.spectrum_2_label_value = wx.TextCtrl(
+            panel, -1, '', style=wx.TE_PROCESS_ENTER,
+            name='label_2',
+        )
 
         spectrum_2_color_label = wx.StaticText(panel, -1, 'Color:')
         self.spectrum_2_colorBtn = wx.Button(panel, size=wx.Size(26, 26), name='color_2')

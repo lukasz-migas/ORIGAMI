@@ -2354,7 +2354,7 @@ class MyFrame(wx.Frame):
             sleep(delay)
             self.SetStatusText('', number=position)
         except Exception:
-            return
+            print(msg)
 
     def updatePlots(self, evt):
         """
