@@ -2367,7 +2367,10 @@ class MyFrame(wx.Frame):
         except RuntimeError as err:
             print(err)
         except Exception as err:
-            logger.warning('Could not update statusbar :: {}'.format(err))
+            try:
+                logger.warning('Could not update statusbar :: {}'.format(err))
+            except Exception as err:
+                print(err)
 
     def updatePlots(self, evt):
         """
