@@ -35,6 +35,9 @@ def check_type(value, value_type):
 
 
 def check_value_order(value_min, value_max):
+    if not isnumber(value_min) or not isnumber(value_max):
+        return value_min, value_max
+
     if value_max < value_min:
         value_max, value_min = value_min, value_max
 
@@ -68,9 +71,9 @@ def isbool(value):
     return isinstance(value, bool)
 
 
-def isnumber(input):
+def isnumber(value):
     """ Quick and easy way to check if input is a number """
-    return isinstance(input, (int, float, complex))
+    return isinstance(value, (int, float, complex))
 
 
 def get_latest_version(link=None, get_webpage=False):

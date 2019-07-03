@@ -55,6 +55,7 @@ if platform == 'win32':
 logger = logging.getLogger('origami')
 
 
+# TODO: when setting document path, it currently removes the file extension which is probably a mistake
 class data_handling():
 
     def __init__(self, presenter, view, config):
@@ -139,12 +140,26 @@ class data_handling():
         if document_title is None or document_title == 'Documents':
             return None
 
-#         print(self.presenter.documentsDict.keys())
-
         document_title = byte2str(document_title)
         document = self.presenter.documentsDict[document_title]
 
         return document
+
+    def _on_get_document_path_and_title(self, document_title=None):
+        document = self._on_get_document(document_title)
+
+        path = document.path
+        title = document.title
+        if not check_path_exists(path):
+            logger.warning(f'Document path {path} does not exist on the disk drive.')
+            self._on_check_last_path()
+            path = self.config.lastDir
+
+        return path, title
+
+    def _on_check_last_path(self):
+        if not check_path_exists(self.config.lastDir):
+            self.config.lastDir = os.getcwd()
 
     def _on_get_path(self):
         dlg = wx.FileDialog(
@@ -1036,8 +1051,7 @@ class data_handling():
 
     def on_open_multiple_MassLynx_raw_fcn(self, evt):
 
-        if not check_path_exists(self.config.lastDir):
-            self.config.lastDir = os.getcwd()
+        self._on_check_last_path()
 
         dlg = DialogMultiDirectoryPicker(
             self.view,

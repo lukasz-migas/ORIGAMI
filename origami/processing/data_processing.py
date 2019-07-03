@@ -459,10 +459,12 @@ class data_processing():
                             if narrow_count > 0:
                                 if method == 1:  # old method
                                     highResPeaks = pr_utils.detect_peaks_spectrum(
-                                        data=mzNarrow, window=self.config.fit_highRes_window, threshold=self.config.fit_highRes_threshold, )
+                                        data=mzNarrow, window=self.config.fit_highRes_window, threshold=self.config.fit_highRes_threshold,
+                                    )
                                 else:
                                     highResPeaks = pr_utils.detect_peaks_spectrum2(
-                                        msXnarrow, msYnarrow, window=self.config.fit_highRes_window, threshold=self.config.fit_highRes_threshold, )
+                                        msXnarrow, msYnarrow, window=self.config.fit_highRes_window, threshold=self.config.fit_highRes_threshold,
+                                    )
                                 peakDiffs = np.diff(highResPeaks[:, 0])
                                 if len(peakDiffs) > 0:
                                     charge = int(np.round(1 / np.round(np.average(peakDiffs), 4), 0))
@@ -854,11 +856,9 @@ class data_processing():
 
         return xvals, zvals
 
-    def on_process_MS(
-        self, replot=False, msX=None, msY=None, return_data=False,
-        return_all=False, evt=None,
-    ):
-        if replot:
+    def on_process_MS(self, msX=None, msY=None, **kwargs):
+
+        if kwargs.get('replot', False):
             msX, msY, __ = self._get_replot_data('MS')
             if msX is None or msY is None:
                 return
@@ -869,30 +869,30 @@ class data_processing():
             self.view.panelProcessData.onSetupValues(evt=None)
 
         if self.config.ms_process_crop:
-            kwargs = {
+            pr_kwargs = {
                 'min': self.config.ms_crop_min,
                 'max': self.config.ms_crop_max,
             }
-            msX, msY = pr_spectra.crop_1D_data(msX, msY, **kwargs)
+            msX, msY = pr_spectra.crop_1D_data(msX, msY, **pr_kwargs)
 
         if self.config.ms_process_linearize and msX is not None:
-            kwargs = {
+            pr_kwargs = {
                 'auto_range': self.config.ms_auto_range,
                 'mz_min': self.config.ms_mzStart,
                 'mz_max': self.config.ms_mzEnd,
                 'mz_bin': self.config.ms_mzBinSize,
                 'linearization_mode': self.config.ms_linearization_mode,
             }
-            msX, msY = pr_spectra.linearize_data(msX, msY, **kwargs)
+            msX, msY = pr_spectra.linearize_data(msX, msY, **pr_kwargs)
 
         if self.config.ms_process_smooth:
             # Smooth data
-            kwargs = {
+            pr_kwargs = {
                 'sigma': self.config.ms_smooth_sigma,
                 'polyOrder': self.config.ms_smooth_polynomial,
                 'windowSize': self.config.ms_smooth_window,
             }
-            msY = pr_spectra.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **kwargs)
+            msY = pr_spectra.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **pr_kwargs)
 
         if self.config.ms_process_threshold:
             # Threshold data
@@ -906,21 +906,21 @@ class data_processing():
                     mode=self.config.ms_normalize_mode,
                 )
 
-        if replot:
+        if kwargs.get('replot', False):
             # Plot data
-            kwargsMS = {}
+            plot_kwargs = {}
             self.view.panelPlots.on_plot_MS(
                 msX=msX, msY=msY,
-                override=False, **kwargsMS
+                override=False, **plot_kwargs
             )
 
-        if return_data:
+        if kwargs.get('return_data', False):
             if msX is not None:
                 return msX, msY
             else:
                 return msY
 
-        if return_all:
+        if kwargs.get('return_all', False):
             parameters = {
                 'smooth_mode': self.config.ms_smooth_mode,
                 'sigma': self.config.ms_smooth_sigma,
@@ -1204,7 +1204,8 @@ class data_processing():
 
         # generate fragment lists
         fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list, frag_full_name_list = self.frag_generator.get_fragment_mass_list(
-            fragments, )
+            fragments,
+        )
         xvals, yvals = spectrum_dict['xvals'], spectrum_dict['yvals']
 
         # match fragments to peaks in the spectrum
@@ -1227,7 +1228,8 @@ class data_processing():
         # return data
         if get_lists:
             frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.frag_generator.get_fragment_lists(
-                found_peaks, get_calculated_mz=kwargs.get('get_calculated_mz', False), )
+                found_peaks, get_calculated_mz=kwargs.get('get_calculated_mz', False),
+            )
 
             return found_peaks, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list
 
@@ -2061,3 +2063,9 @@ class data_processing():
             mz_y = pr_spectra.smooth_gaussian_1D(mz_y, self.config.fit_smooth_sigma)
 
         return mz_y
+
+    def subtract_spectra(self, xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
+        """Subtract two spectra from one another"""
+        xvals_1, yvals_1, xvals_2, yvals_2 = pr_spectra.subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2)
+
+        return xvals_1, yvals_1, xvals_2, yvals_2

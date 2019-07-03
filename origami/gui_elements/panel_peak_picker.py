@@ -4,9 +4,11 @@ import logging
 
 import wx
 from styles import makeCheckbox
+from styles import makeMenuItem
 from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
+from utils.screen import calculate_window_size
 from utils.time import ttime
 from visuals import mpl_plots
 logger = logging.getLogger('origami')
@@ -36,9 +38,9 @@ class panel_peak_picker(wx.MiniFrame):
         self.data_processing = presenter.data_processing
         self.data_handling = presenter.data_handling
 
-        self.displaysize = wx.GetDisplaySize()
-        self.displayRes = (wx.GetDisplayPPI())
-        self.figsizeX = (self.displaysize[0] - 320) / self.displayRes[0]
+        self._display_size = wx.GetDisplaySize()
+        self._display_resolution = wx.ScreenDC().GetPPI()
+        self._window_size = calculate_window_size(self._display_size, [0.7, 0.6])
 
         # pre-allocate parameters
         self.recompute_peaks = True
@@ -67,6 +69,22 @@ class panel_peak_picker(wx.MiniFrame):
 
         # bind events
         wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+
+    def on_right_click(self, evt):
+
+        menu = wx.Menu()
+        save_figure_menu_item = makeMenuItem(
+            menu, id=wx.ID_ANY,
+            text='Save figure as...',
+            bitmap=self.icons.iconsLib['save16'],
+        )
+        menu.AppendItem(save_figure_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
 
     def on_close(self, evt):
         """Destroy this frame."""
@@ -77,16 +95,10 @@ class panel_peak_picker(wx.MiniFrame):
         panel = wx.Panel(self, -1, size=(-1, -1), name='main')
 
         self.settings_method = self.make_method_selection_panel(panel)
-
         self.settings_mass_range = self.make_mass_selection_panel(panel)
-
         self.settings_small = self.make_settings_panel_small_molecule(panel)
-
         self.settings_native = self.make_settings_panel_native(panel)
-
         self.settings_panel = self.make_settings_panel(panel)
-
-        self.plot_panel = self.make_plot_panel(panel)
 
         # pack settings panel
         self.settings_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -97,13 +109,17 @@ class panel_peak_picker(wx.MiniFrame):
         self.settings_sizer.Add(self.settings_panel, 1, wx.EXPAND)
         self.settings_sizer.Fit(panel)
 
+        self._settings_panel_size = self.settings_sizer.GetSize()
+
+        self.plot_panel = self.make_plot_panel(panel)
+
         # pack element
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.main_sizer.Add(self.settings_sizer, 1, wx.EXPAND)
         self.main_sizer.Add(self.plot_panel, 1, wx.EXPAND)
         self.main_sizer.Fit(panel)
 
-        self.SetSize((1100, 600))
+        self.SetSize(self._window_size)
         self.SetSizer(self.main_sizer)
         self.Layout()
 
@@ -540,8 +556,17 @@ class panel_peak_picker(wx.MiniFrame):
             wx.DefaultSize, wx.TAB_TRAVERSAL,
         )
 
+        pixel_size = [
+            (self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50),
+        ]
+        figsize = [
+            pixel_size[0] / self._display_resolution[0],
+            pixel_size[1] / self._display_resolution[1],
+        ]
+
         self.plot_window = mpl_plots.plots(
-            self.plot_panel, figsize=(self.figsizeX, 2),
+            self.plot_panel,
+            figsize=figsize,
             config=self.config,
         )
 
@@ -812,3 +837,13 @@ class panel_peak_picker(wx.MiniFrame):
                     'document': self.document_title,
                 }
                 self.ionPanel.on_add_to_table(add_dict)
+
+    def on_clear_plot(self, evt):
+        self.panel_plot.onClearPlot(None, None, plot_obj=self.plot_window)
+
+    def on_save_figure(self, evt):
+
+        plot_title = f'{self.document_title}_{self.dataset_name}'.replace(
+            ' ', '-',
+        ).replace(':', '')
+        self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)

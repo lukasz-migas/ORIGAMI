@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+import logging
 import math
 from bisect import bisect_left
 
 import numpy as np
 from gui_elements.misc_dialogs import dlgBox
+from processing.utils import get_narrow_data_range
 from scipy.interpolate.interpolate import interp1d
 from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter
+from utils.ranges import get_min_max
+logger = logging.getLogger('origami')
 
 
 def remove_noise_1D(inputData=None, threshold=0):
@@ -50,13 +54,14 @@ def normalize_1D(inputData=None, mode='Maximum'):  # normalizeMS
         inputData = np.array(inputData, dtype=np.float64)
 
     if mode == 'Maximum':
-        max_val = np.max(inputData)
-        normData = np.divide(inputData, max_val)
+        norm_data = np.divide(inputData, inputData.max())
     elif mode == 'tic':
-        normData = np.divide(inputData.astype(np.float64), np.sum(inputData))
-        normData = np.divide(normData.astype(np.float64), np.max(normData))
+        norm_data = np.divide(inputData.astype(np.float64), np.sum(inputData))
 
-    return normData
+    # replace nans
+    norm_data = np.nan_to_num(norm_data)
+
+    return norm_data
 
 
 def check_mass_range(ms_list=None, ms_dict=None):
@@ -136,7 +141,7 @@ def crop_1D_data(msX, msY, **kwargs):
 
     # get spectrum
     spectrum = np.transpose([msX, msY])
-    spectrum = getNarrow1Ddata(spectrum, mzRange=(crop_min, crop_max))
+    spectrum = get_narrow_data_range(spectrum, mzRange=(crop_min, crop_max))
 
     return spectrum[:, 0], spectrum[:, 1]
 
@@ -310,7 +315,6 @@ def linearize(data, binsize, mode, input_list=[]):
         lastpoint = math.floor(data[length - 1, 0] / binsize) * binsize
 
         if mode in ['Linear m/z', 'Linear interpolation']:
-            #     if mode in [0, 3]:
             intx = np.arange(firstpoint, lastpoint, binsize)
         else:
             intx = nonlinear_axis(firstpoint, lastpoint, firstpoint / binsize)
@@ -318,7 +322,6 @@ def linearize(data, binsize, mode, input_list=[]):
         intx = input_list
 
     if mode in ['Linear m/z', 'Linear resolution']:
-        #     if mode < 2:
         newdat = lintegrate(data, intx)
     else:
         newdat = linterpolate(data, intx)
@@ -422,3 +425,39 @@ def nonlinearize(data, num_compressed):
             np.mean(data[index:index + num_compressed], axis=0) for index in
             range(0, len(data), num_compressed)
         ])
+
+
+def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
+    n_size_1 = len(xvals_1)
+    n_size_2 = len(xvals_2)
+
+    if n_size_1 != n_size_2:
+        logger.warning(f'The two spectra are of different size. They will be interpolated to the same scale.')
+        # calculate plot size
+        ylimits_1 = get_min_max(xvals_1)
+        ylimits_2 = get_min_max(xvals_2)
+        ylimits = get_min_max(ylimits_1 + ylimits_2)
+        # calculate spacing
+        if n_size_1 > n_size_2:
+            mz_bin = np.diff(xvals_1).mean()
+        else:
+            mz_bin = np.diff(xvals_1).mean()
+
+        pr_kwargs = {
+            'auto_range': False, 'mz_min': ylimits[0], 'mz_max': ylimits[1],
+            'mz_bin': mz_bin, 'linearization_mode': 'Linear interpolation',
+        }
+        xvals_1, yvals_1 = linearize_data(xvals_1, yvals_1, **pr_kwargs)
+        xvals_2, yvals_2 = linearize_data(xvals_2, yvals_2, **pr_kwargs)
+
+    # calculate difference
+    yvals_1 = yvals_1 - yvals_2
+
+    # create copy of difference
+    yvals_2 = np.copy(yvals_1)
+
+    # recreate two arrays
+    yvals_1[yvals_1 <= 0] = 0
+    yvals_2[yvals_2 >= 0] = 0
+
+    return xvals_1, yvals_1, xvals_2, yvals_2

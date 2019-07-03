@@ -5,6 +5,7 @@ import logging
 import numpy as np
 from scipy.signal import find_peaks
 from scipy.signal import peak_widths
+from utils.check import isnumber
 from utils.time import ttime
 logger = logging.getLogger('origami')
 
@@ -140,9 +141,10 @@ def find_peaks_in_spectrum_local_search(data, window=10, threshold=0, mz_range=N
     # modify search space
     if mz_range is not None:
         mz_min, mz_max = mz_range
-        mz_start_idx = np.argmin(np.abs(data[:, 0] - mz_min))
-        mz_end_idx = np.argmin(np.abs(data[:, 0] - mz_max))
-        data = data[mz_start_idx:mz_end_idx, :]
+        if isnumber(mz_min) and isnumber(mz_max):
+            mz_start_idx = np.argmin(np.abs(data[:, 0] - mz_min))
+            mz_end_idx = np.argmin(np.abs(data[:, 0] - mz_max))
+            data = data[mz_start_idx:mz_end_idx, :]
 
     # pre-allocate space
     pks_idx, pks_x, pks_y = [], [], []

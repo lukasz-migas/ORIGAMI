@@ -70,6 +70,15 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
+    @staticmethod
+    def _get_dataset_index(source):
+        if source.endswith('_1'):
+            index = 0
+        elif source.endswith('_2'):
+            index = 1
+
+        return index
+
     def on_right_click(self, evt):
 
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
@@ -88,14 +97,23 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.resize_plot_check = menu.AppendCheckItem(
             ID_plotPanel_resize,
             'Resize on saving',
-            help='',
         )
         self.resize_plot_check.Check(self.config.resize)
-#         menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveMZDTImage, text=saveImageLabel,
-#                                      bitmap=self.icons.iconsLib['save16']))
-#         menu.AppendSeparator()
-#         menu.AppendItem(makeMenuItem(parent=menu, id=ID_clearPlot_MZDT, text="Clear plot",
-#                                      bitmap=self.icons.iconsLib['clear_16']))
+        save_figure_menu_item = makeMenuItem(
+            menu, id=wx.ID_ANY,
+            text='Save figure as...',
+            bitmap=self.icons.iconsLib['save16'],
+        )
+        menu.AppendItem(save_figure_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+
+        menu.AppendSeparator()
+        clear_plot_menu_item = makeMenuItem(
+            menu, id=wx.ID_ANY, text='Clear plot',
+            bitmap=self.icons.iconsLib['clear_16'],
+        )
+        menu.AppendItem(clear_plot_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -332,7 +350,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
-#         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.onPlot)
+        self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
+        self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
@@ -520,11 +539,6 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         return panel
 
-#         resizeSize = self.config._plotSettings[plotName]['gui_size']
-#         figsizeNarrowPix = (int(resizeSize[0] * dpi[0]), int(resizeSize[1] * dpi[1]))
-
-#         resize_plot.SetSize(figsizeNarrowPix)
-
     def update_gui(self, evt):
         evtID = evt.GetId()
         # update document list
@@ -552,6 +566,16 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         if evt is not None:
             self.on_plot_update_style(source)
+
+    def on_toggle_controls(self, evt):
+        if self.subtract_check.GetValue():
+            self.inverse_check.SetValue(False)
+            self.inverse_check.Disable()
+        else:
+            self.inverse_check.Enable()
+
+        if evt is not None:
+            evt.Skip()
 
     def update_spectrum(self, evt):
         spectrum_1_choice = [
@@ -634,9 +658,11 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
             )
 
     def on_plot_update_style(self, source):
-        kwargs = dict()
+        tstart = ttime()
+
         index = self._get_dataset_index(source)
 
+        kwargs = dict()
         if source.endswith('_1'):
             kwargs['color'] = self.config.lineColour_MS1
             kwargs['line_style'] = self.config.lineStyle_MS1
@@ -647,8 +673,10 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
             kwargs['transparency'] = self.config.lineTransparency_MS2
 
         self.panel_plot.plot_1D_update_style_by_label(index, plot=None, plot_obj=self.plot_window, **kwargs)
+        logger.info(f'Plot update took {ttime()-tstart:.2f} seconds.')
 
     def on_plot(self, evt):
+        tstart = ttime()
         self.update_spectrum(None)
 
         spectrum_1 = self.data_handling.get_spectrum(self.config.compare_massSpectrum[0][:2])
@@ -661,27 +689,25 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         yvals_2 = spectrum_2['yvals']
 
         if self.config.compare_massSpectrumParams['preprocess']:
-            print('Pre-process routine')
+            xvals_1, yvals_1 = self.data_processing.on_process_MS(xvals_1, yvals_1, return_data=True)
+            xvals_2, yvals_2 = self.data_processing.on_process_MS(xvals_2, yvals_2, return_data=True)
 
         if self.config.compare_massSpectrumParams['normalize']:
             yvals_1 = pr_spectra.normalize_1D(yvals_1)
             yvals_2 = pr_spectra.normalize_1D(yvals_2)
 
-        if self.config.compare_massSpectrumParams['inverse']:
+        if self.config.compare_massSpectrumParams['inverse'] and not self.config.compare_massSpectrumParams['subtract']:
             yvals_2 = -yvals_2
+
+        if self.config.compare_massSpectrumParams['subtract']:
+            xvals_1, yvals_1, xvals_2, yvals_2 = self.data_processing.subtract_spectra(
+                xvals_1, yvals_1, xvals_2, yvals_2,
+            )
 
         self.panel_plot.plot_compare_spectra(xvals_1, xvals_2, yvals_1, yvals_2, plot=None, plot_obj=self.plot_window)
 
         self._update_local_plot_information()
-
-    @staticmethod
-    def _get_dataset_index(source):
-        if source.endswith('_1'):
-            index = 0
-        elif source.endswith('_2'):
-            index = 1
-
-        return index
+        logger.info(f'Plot update took {ttime()-tstart:.2f} seconds.')
 
     def _update_local_plot_information(self):
         # update local information about the plots
@@ -691,3 +717,15 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         spectrum_2_choice.append(self.config.compare_massSpectrumParams['legend'][1])
 
         self.compare_massSpectrum = [spectrum_1_choice, spectrum_2_choice]
+
+    def on_clear_plot(self, evt):
+        self.panel_plot.onClearPlot(None, None, plot_obj=self.plot_window)
+
+    def on_save_figure(self, evt):
+        document_title_1, spectrum_1 = self.config.compare_massSpectrum[0][:2]
+        document_title_2, spectrum_2 = self.config.compare_massSpectrum[1][:2]
+
+        plot_title = f'{document_title_1}_{spectrum_1}__{document_title_2}_{spectrum_2}'.replace(
+            ' ', '-',
+        ).replace(':', '')
+        self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)

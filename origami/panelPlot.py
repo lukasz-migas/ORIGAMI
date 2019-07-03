@@ -790,7 +790,7 @@ class panelPlot(wx.Panel):
             menu.AppendItem(
                 makeMenuItem(
                     parent=menu, id=ID_processSettings_FindPeaks,
-                    text='Find peaks...',
+                    text='Open peak picker...',
                     bitmap=self.icons.iconsLib['process_fit_16'],
                 ),
             )
@@ -1536,10 +1536,12 @@ class panelPlot(wx.Panel):
 
         if isinstance(evt, int):
             evtID = evt
+        elif evt is None:
+            evtID = None
         else:
             evtID = evt.GetId()
 
-        path, title = self.presenter.getCurrentDocumentPath()
+        path, title = self.data_handling._on_get_document_path_and_title()
         if path is None:
             args = ('Could not find path', 4)
             self.presenter.onThreading(None, args, action='updateStatusbar')
@@ -1648,6 +1650,10 @@ class panelPlot(wx.Panel):
             defaultName = 'custom_plot'
             resizeName = None
             plotWindow = self.plotOther
+        elif evtID is None and 'plot_obj' in save_kwargs:
+            defaultName = save_kwargs.get('image_name')
+            resizeName = None
+            plotWindow = save_kwargs.pop('plot_obj')
 
         # generate a better default name and remove any silly characters
         if 'image_name' in save_kwargs:
@@ -1713,6 +1719,26 @@ class panelPlot(wx.Panel):
         else:
             args = ('Operation was cancelled', 4)
         self.presenter.onThreading(evt, args, action='updateStatusbar')
+
+    def get_plot_from_name(self, plot_name):
+        plot_dict = {
+            'MS': self.plot1,
+            'RT': self.plotRT,
+            '1D': self.plot1D,
+            '2D': self.plot2D,
+            'DT/MS': self.plot_DT_vs_MS,
+            'CalibrationMS': self.topPlotMS,
+            'CalibrationDT': self.bottomPlot1DT,
+            'Overlay': self.plot_overlay,
+            'RMSF': self.plot_RMSF,
+            'Compare': self.plotCompare,
+            'Waterfall': self.plot_waterfall,
+            'Other': self.plotOther,
+            '3D': self.plot3D,
+            'Matrix': self.plotCompare,
+        }
+
+        return plot_dict.get(plot_name, None)
 
     def onLockPlot(self, evt):
         if self.currentPage == 'Waterfall':
@@ -2065,12 +2091,14 @@ class panelPlot(wx.Panel):
 
 # plots
 
-    def onClearPlot(self, evt, plot=None):
+    def onClearPlot(self, evt, plot=None, **kwargs):
         """
         Clear selected plot
         """
 
-        eventID = evt.GetId()
+        eventID = None
+        if evt is not None:
+            eventID = evt.GetId()
 
         if plot == 'MS' or eventID == ID_clearPlot_MS:
             plot = self.plot1
@@ -2114,6 +2142,8 @@ class panelPlot(wx.Panel):
             plot = self.plotUnidec_barChart
         elif plot == 'UniDec' or eventID == ID_clearPlot_UniDec_chargeDistribution:
             plot = self.plotUnidec_chargeDistribution
+        elif plot is None and 'plot_obj' in kwargs:
+            plot = kwargs.pop('plot_obj')
 
         try:
             plot.clearPlot()
@@ -4493,16 +4523,6 @@ class panelPlot(wx.Panel):
     def on_clear_legend(self, plot, repaint=False):
         if plot == 'RT':
             self.plotRT.plot_remove_legend()
-
-    def get_plot_from_name(self, plot_name):
-        plot_dict = {
-            'MS': self.plot1,
-            'RT': self.plotRT,
-            'CalibrationMS': self.topPlotMS,
-            'CalibrationDT': self.bottomPlot1DT,
-        }
-
-        return plot_dict.get(plot_name, None)
 
     def on_add_marker(
         self, xvals=None, yvals=None, color='b', marker='o',
