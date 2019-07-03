@@ -741,6 +741,9 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         xvals_2 = spectrum_2['xvals']
         yvals_2 = spectrum_2['yvals']
 
+        if self.config.compare_massSpectrumParams['preprocess']:
+            print('Pre-process routine')
+
         if self.config.compare_massSpectrumParams['normalize']:
             yvals_1 = pr_spectra.normalize_1D(yvals_1)
             yvals_2 = pr_spectra.normalize_1D(yvals_2)

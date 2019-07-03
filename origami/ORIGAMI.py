@@ -209,14 +209,21 @@ class ORIGAMI(object):
             )
             self.data_handling.on_add_text_2D(None, path)
 
-#         if platform == "win32":
-#             # load Waters (.raw) file - MS only
-#             path = os.path.join(self.config.cwd, "example_files", "dt-ims", "LM_20151006_7_B_DV60.raw")
-#             self.data_handling.on_open_single_MassLynx_raw(path, "Type: MS")
-#
-#             # load Waters (.raw) file - IM-MS
-#             path = os.path.join(self.config.cwd, "example_files", "origami_ms", "ORIGAMI_ConA_z20.raw")
-#             self.data_handling.on_open_single_MassLynx_raw(path, "Type: ORIGAMI")
+        if platform == 'win32':
+            # load Waters (.raw) file - MS only
+            path = os.path.join(self.config.cwd, 'example_files', 'dt-ims', 'LM_20151006_7_B_DV60.raw')
+            self.data_handling.on_open_single_MassLynx_raw(path, 'Type: MS')
+
+            # load Waters (.raw) file - IM-MS
+            path = os.path.join(self.config.cwd, 'example_files', 'origami_ms', 'ORIGAMI_ConA_z20.raw')
+            self.data_handling.on_open_single_MassLynx_raw(path, 'Type: ORIGAMI')
+
+            # extract MS data
+            self.data_handling.on_extract_MS_from_chromatogram(5, 10)
+            self.data_handling.on_extract_MS_from_chromatogram(1.5, 1.7, 'Time (min)')
+            self.data_handling.on_extract_MS_from_chromatogram(1.7, 1.9, 'Retention time (min)')
+            self.data_handling.on_extract_MS_from_mobiligram(65, 75)
+            self.data_handling.on_extract_MS_from_mobiligram(11, 15, 'Arrival time (ms)')
 
         self.view.on_close(None, clean_exit=True, ignore_warning=True)
 

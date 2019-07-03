@@ -52,9 +52,6 @@ if platform == 'win32':
 
 logger = logging.getLogger('origami')
 
-# TODO: on_open_MassLynx_raw_MS_only: This function is currently broken:
-# OSError: [WinError -529697949] Windows Error 0xe06d7363
-
 
 class data_handling():
 
