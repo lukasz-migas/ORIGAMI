@@ -38,7 +38,6 @@ from utils.converters import str2int
 from utils.converters import str2num
 from utils.logging import set_logger
 from utils.logging import set_logger_level
-from utils.time import getTime
 from visuals.normalize import MidpointNormalize
 # if platform == "win32":
 #     import readers.io_waters_raw as io_waters
@@ -165,7 +164,7 @@ class ORIGAMI(object):
         self.view.panelMML._setup_handling_and_processing()
         self.view.panelPlots._setup_handling_and_processing()
 
-        if self.config.debug:
+        if self.config.debug and not self.config.testing:
             self._debug_()
 
         if self.config.testing:
@@ -210,6 +209,7 @@ class ORIGAMI(object):
             self.data_handling.on_extract_MS_from_mobiligram(65, 75)
             self.data_handling.on_extract_MS_from_mobiligram(11, 15, 'Arrival time (ms)')
 
+        # exit
         self.view.on_close(None, clean_exit=True, ignore_warning=True)
 
     def on_start_logging(self):

@@ -165,6 +165,7 @@ from styles import makeMenuItem
 from toolbox import compare_versions
 from toolbox import get_latest_version
 from utils.path import clean_directory
+
 logger = logging.getLogger('origami')
 
 
@@ -1969,6 +1970,11 @@ class MyFrame(wx.Frame):
             except Exception as err:
                 print(err)
 
+        if self.config.testing:
+            from utils.time import tsleep
+            logger.propagate = False
+            tsleep(5)
+
         self.Destroy()
 
     def disable_publisher(self):
@@ -2348,10 +2354,8 @@ class MyFrame(wx.Frame):
             self.SetStatusText(msg, number=position)
             sleep(delay)
             self.SetStatusText('', number=position)
-        except RuntimeError as err:
-            print(err)
-        except Exception as err:
-            print(err)
+        except Exception:
+            return
 
     def updatePlots(self, evt):
         """

@@ -29,7 +29,7 @@ class OrigamiConfig:
         self.loggingFile_path = None
         self.version = '1.3.0.0'
         self.debug = True
-        self.testing = False
+        self.testing = True
 
         self.document_version = '19-10-2018'
         self.unidec_engine = None
@@ -1875,7 +1875,9 @@ class OrigamiConfig:
         for key, __ in sorted(self._plotSettings.items()):
             ps = self._plotSettings[key]
             buff += '    <param name="{}" left_axes="{:.2f}" bottom_axes="{:.2f}" width_axes="{:.2f}" height_axes="{:.2f}" left_save="{:.2f}" bottom_save="{:.2f}" width_save="{:.2f}" height_save="{:.2f}" width_resize="{:.2f}" height_resize="{:.2f}" width_gui="{:.2f}" height_gui="{:.2f}" default_name="{}" type="float" />\n'.format(
-                key, ps['axes_size'][0], ps['axes_size'][1], ps['axes_size'][2], ps['axes_size'][3], ps['save_size'][0], ps['save_size'][1], ps['save_size'][2], ps['save_size'][3], ps['resize_size'][0], ps['resize_size'][1], ps['gui_size'][0], ps['gui_size'][1], ps['default_name'], )
+                key, ps['axes_size'][0], ps['axes_size'][1], ps['axes_size'][2], ps['axes_size'][3], ps['save_size'][0], ps['save_size'][1], ps[
+                    'save_size'][2], ps['save_size'][3], ps['resize_size'][0], ps['resize_size'][1], ps['gui_size'][0], ps['gui_size'][1], ps['default_name'],
+            )
         buff += '  </presets_gui_plotSizes>\n\n'
 
         # GUI settings
@@ -1889,11 +1891,13 @@ class OrigamiConfig:
                     ), str(
                         item['caption'],
                     ), bool(
-                        item['close_button'], ), bool(
+                        item['close_button'],
+                    ), bool(
                         item['floating'],
                     ), bool(
                         item['show'],
-                    ), )
+                    ),
+                )
             else:
                 buff += '    <param title="{}" gripper="{}" orientation="{}" close_button="{}" left_position="{}" top_position="{}" left_dockable="{}" right_dockable="{}" top_dockable="{}" bottom_dockable="{}" show="{}" type="mixed" />\n'.format(
                     item['title'], bool(
@@ -1901,18 +1905,21 @@ class OrigamiConfig:
                     ), item['orientation'], bool(
                         item['close_button'],
                     ), bool(
-                        item['left_position'], ), bool(
+                        item['left_position'],
+                    ), bool(
                         item['top_position'],
                     ), bool(
                         item['left_dockable'],
                     ), bool(
-                            item['right_dockable'],
+                        item['right_dockable'],
                     ), bool(
                         item['top_dockable'],
                     ), bool(
-                        item['bottom_dockable'], ), bool(
+                        item['bottom_dockable'],
+                    ), bool(
                         item['show'],
-                    ), )
+                    ),
+                )
         buff += '  </presets_gui_aui_settings>\n\n'
 
         # Plot presets - zoom
@@ -2571,14 +2578,15 @@ class OrigamiConfig:
                 key, bool(
                     ts['hover'],
                 ), bool(
-                    ts['save'], ), bool(
+                    ts['save'],
+                ), bool(
                     ts['pan'],
                 ), bool(
                     ts['boxzoom'],
                 ), bool(
-                        ts.get(
-                            'boxzoom_horizontal', True,
-                        ),
+                    ts.get(
+                        'boxzoom_horizontal', True,
+                    ),
                 ), bool(
                     ts.get(
                         'boxzoom_vertical', False,
@@ -2589,7 +2597,8 @@ class OrigamiConfig:
                     ts['reset'],
                 ), bool(
                     ts['wheel'],
-                ), ts['wheelType'], ts['activeDrag'], ts['activeWheel'], ts['activeInspect'], )
+                ), ts['wheelType'], ts['activeDrag'], ts['activeWheel'], ts['activeInspect'],
+            )
         buff += '  </presets_interactive_toolsets>\n\n'
 
         buff += '  <presets_interactive_pageLayouts>\n'
@@ -2597,7 +2606,8 @@ class OrigamiConfig:
         for key, __ in sorted(self.pageDict.items()):
             pl = self.pageDict[key]
             buff += '    <param page_name="{}" name="{}" layout="{}" rows="{}" columns="{}" grid_share_tools="{}" type="mixed" />\n'.format(
-                key, pl['name'], pl['layout'], pl.get('rows', None), pl['columns'], pl.get('grid_share_tools', True), )
+                key, pl['name'], pl['layout'], pl.get('rows', None), pl['columns'], pl.get('grid_share_tools', True),
+            )
         buff += '  </presets_interactive_pageLayouts>\n\n'
 
         buff += '  <presets_interactive_gui>\n'
