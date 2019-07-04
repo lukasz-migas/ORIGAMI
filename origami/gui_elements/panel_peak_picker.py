@@ -839,7 +839,7 @@ class panel_peak_picker(wx.MiniFrame):
                 self.ionPanel.on_add_to_table(add_dict)
 
     def on_clear_plot(self, evt):
-        self.panel_plot.onClearPlot(None, None, plot_obj=self.plot_window)
+        self.panel_plot.on_clear_plot(None, None, plot_obj=self.plot_window)
 
     def on_save_figure(self, evt):
 

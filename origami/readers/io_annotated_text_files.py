@@ -252,7 +252,7 @@ class MetaTextReader():
 
         # check if we need to add any metadata
         if len(colors) == 0 or len(colors) < len(yvals):
-            colors = self.presenter.view.panelPlots.onChangePalette(
+            colors = self.presenter.view.panelPlots.on_change_color_palette(
                 None,
                 n_colors=len(yvals),
                 return_colors=True,

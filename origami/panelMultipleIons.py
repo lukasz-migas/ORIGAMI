@@ -1671,7 +1671,7 @@ class panelMultipleIons(wx.Panel):
                 check_count += 1
 
         if evt.GetId() == ID_ionPanel_changeColorBatch_palette:
-            colors = self.presenter.view.panelPlots.onChangePalette(
+            colors = self.presenter.view.panelPlots.on_change_color_palette(
                 None, n_colors=check_count, return_colors=True,
             )
         elif evt.GetId() == ID_ionPanel_changeColorBatch_color:
@@ -1680,7 +1680,7 @@ class panelMultipleIons(wx.Panel):
                 return
             colors = [color_1] * check_count
         else:
-            colors = self.presenter.view.panelPlots.onGetColormapList(
+            colors = self.presenter.view.panelPlots.on_get_colors_from_colormap(
                 n_colors=check_count,
             )
 
@@ -1839,7 +1839,9 @@ class panelMultipleIons(wx.Panel):
 
             # get colorlist beforehand
             count = self.peaklist.GetItemCount() + len(peaklist)
-            colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=count + 1, return_colors=True)
+            colors = self.presenter.view.panelPlots.on_change_color_palette(
+                None, n_colors=count + 1, return_colors=True,
+            )
 
             # iterate
             for peak in range(len(peaklist)):

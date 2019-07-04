@@ -130,8 +130,8 @@ class ORIGAMI(object):
         self.config.temporary_data = temp_data_folder
 
         # Setup plot style
-        self.view.panelPlots.onChangePlotStyle(evt=None)
-        self.view.panelPlots.onChangePalette(evt=None)
+        self.view.panelPlots.on_change_plot_style(evt=None)
+        self.view.panelPlots.on_change_color_palette(evt=None)
         self.view.updateRecentFiles()
 
         self.logging = self.config.logging

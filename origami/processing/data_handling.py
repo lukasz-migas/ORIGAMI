@@ -127,7 +127,7 @@ class data_handling():
             logger.warning('Failed to execute the operation in threaded mode. Consider switching it off?')
             logger.error(e)
 
-    def __update_statusbar(self, msg, field):
+    def update_statusbar(self, msg, field):
         self.on_threading(args=(msg, field), action='statusbar.update')
 
     def _on_get_document(self, document_title=None):
@@ -297,7 +297,7 @@ class data_handling():
         document_list = self.__get_document_list_of_type(document_type=document_type)
 
         if len(document_list) == 0:
-            self.__update_statusbar('Did not find appropriate document. Creating a new one...', 4)
+            self.update_statusbar('Did not find appropriate document. Creating a new one...', 4)
             document = self.__create_new_document()
         elif len(document_list) == 1:
             document = self._on_get_document(document_list[0])
@@ -308,11 +308,11 @@ class data_handling():
 
             document_title = dlg.current_document
             if document_title is None:
-                self.__update_statusbar('Please select document', 4)
+                self.update_statusbar('Please select document', 4)
                 return
 
             document = self._on_get_document(document_title)
-            self.__update_statusbar('Will be using {} document'.format(document_title), 4)
+            self.update_statusbar('Will be using {} document'.format(document_title), 4)
 
         return document
 
@@ -475,7 +475,7 @@ class data_handling():
             msg = \
                 'The spacing between the energy variables is not even. Linear interpolation will be performed to' + \
                 ' ensure even spacing between values.'
-            self.__update_statusbar(msg, field=4)
+            self.update_statusbar(msg, field=4)
             logger.warning(msg)
 
             xvals, yvals, zvals = pr_heatmap.interpolate_2D(xvals, yvals, zvals)
@@ -777,7 +777,7 @@ class data_handling():
         # Extract heatmap from mass spectrum window
         elif self.plot_page == 'MS' or currentView == 'MS':
             if xvalsMin is None or xvalsMax is None:
-                self.__update_statusbar('Your extraction range was outside the window. Please try again', 4)
+                self.update_statusbar('Your extraction range was outside the window. Please try again', 4)
                 return
 
             if document.fileFormat == 'Format: Thermo (.RAW)':
@@ -813,7 +813,7 @@ class data_handling():
                     mzStart=str(mz_start), mzEnd=str(mz_end),
                 )
                 if outcome:
-                    self.__update_statusbar('Selected range already in the table', 4)
+                    self.update_statusbar('Selected range already in the table', 4)
                     if currentView == 'MS':
                         return outcome
                     return
@@ -942,11 +942,11 @@ class data_handling():
 
             # Get values
             if xvalsMin is None or xvalsMax is None:
-                self.__update_statusbar('Extraction range was from outside of the plot area. Please try again', 4)
+                self.update_statusbar('Extraction range was from outside of the plot area. Please try again', 4)
                 return
 
             if rt_label in ['Collision Voltage (V)']:
-                self.__update_statusbar(f'Cannot extract MS data when the x-axis is in {rt_label} format', 4)
+                self.update_statusbar(f'Cannot extract MS data when the x-axis is in {rt_label} format', 4)
                 return
 
             if rt_label == 'Scans':
@@ -978,7 +978,7 @@ class data_handling():
 
         xmin, xmax, ymin, ymax = dataOut
         if xmin is None or xmax is None or ymin is None or ymax is None:
-            self.__update_statusbar('Extraction range was from outside of the plot area. Please try again', 4)
+            self.update_statusbar('Extraction range was from outside of the plot area. Please try again', 4)
             return
 
         xmin = np.round(xmin, 2)
@@ -1126,12 +1126,12 @@ class data_handling():
 
         tstart_extraction = ttime()
         ms_x, ms_y = self._get_waters_api_spectrum_data(reader)
-        self.__update_statusbar(f'Extracted mass spectrum in {ttime()-tstart_extraction:.4f}', 4)
+        self.update_statusbar(f'Extracted mass spectrum in {ttime()-tstart_extraction:.4f}', 4)
 
         tstart_extraction = ttime()
         xvals_RT, yvals_RT = reader.get_TIC(0)
         xvals_RT = np.arange(1, len(xvals_RT) + 1)
-        self.__update_statusbar(f'Extracted chromatogram in {ttime()-tstart_extraction:.4f}', 4)
+        self.update_statusbar(f'Extracted chromatogram in {ttime()-tstart_extraction:.4f}', 4)
 
         if reader.n_functions == 1:
             data_type = 'Type: MS'
@@ -1142,12 +1142,12 @@ class data_handling():
             tstart_extraction = ttime()
             xvals_DT, yvals_DT = reader.get_TIC(1)
             xvals_DT = np.arange(1, len(xvals_DT) + 1)
-            self.__update_statusbar(f'Extracted mobiligram in {ttime()-tstart_extraction:.4f}', 4)
+            self.update_statusbar(f'Extracted mobiligram in {ttime()-tstart_extraction:.4f}', 4)
 
             # 2D
             tstart_extraction = ttime()
             xvals, yvals, zvals = self._get_driftscope_mobility_data(path)
-            self.__update_statusbar(f'Extracted heatmap in {ttime()-tstart_extraction:.4f}', 4)
+            self.update_statusbar(f'Extracted heatmap in {ttime()-tstart_extraction:.4f}', 4)
 
             # Plot MZ vs DT
             if self.config.showMZDT:
@@ -1155,7 +1155,7 @@ class data_handling():
                 xvals_MSDT, yvals_MSDT, zvals_MSDT = self._get_driftscope_mobility_vs_spectrum_data(
                     path, parameters['startMS'], parameters['endMS'],
                 )
-                self.__update_statusbar(f'Extracted DT/MS heatmap in {ttime()-tstart_extraction:.4f}', 4)
+                self.update_statusbar(f'Extracted DT/MS heatmap in {ttime()-tstart_extraction:.4f}', 4)
                 # Plot
                 xvals_MSDT, zvals_MSDT = self.data_processing.downsample_array(xvals_MSDT, zvals_MSDT)
                 self.plotsPanel.on_plot_MSDT(zvals_MSDT, xvals_MSDT, yvals_MSDT, 'm/z', 'Drift time (bins)')
@@ -1434,7 +1434,7 @@ class data_handling():
 
             # Check if the ion has been assigned a filename
             if document_title == '':
-                self.__update_statusbar('File name column was empty. Using the current document name instead', 4)
+                self.update_statusbar('File name column was empty. Using the current document name instead', 4)
                 document = self._on_get_document()
                 document_title = document.title
                 self.ionPanel.on_update_value_in_peaklist(ion_id, 'document', document_title)
@@ -1465,19 +1465,19 @@ class data_handling():
                 self.ionList.ToggleItem(index=ion_id)
                 msg = 'Ion: {} was below the minimum value in the mass spectrum.'.format(ion_name) + \
                     ' Consider removing it from the list'
-                self.__update_statusbar(msg, 4)
+                self.update_statusbar(msg, 4)
                 continue
 
             # Check whether this ion was already extracted
             if extract_type == 'new' and document.gotExtractedIons:
                 if ion_name in document.IMS2Dions:
-                    self.__update_statusbar('Data was already extracted for the : {} ion'.format(ion_name), 4)
+                    self.update_statusbar('Data was already extracted for the : {} ion'.format(ion_name), 4)
                     n_items -= 1
                     continue
 
             elif extract_type == 'new' and document.gotCombinedExtractedIons:
                 if ion_name in document.IMS2DCombIons:
-                    self.__update_statusbar('Data was already extracted for the : {} ion'.format(ion_name), 4)
+                    self.update_statusbar('Data was already extracted for the : {} ion'.format(ion_name), 4)
                     n_items -= 1
                     continue
 
@@ -1505,7 +1505,7 @@ class data_handling():
             else:
                 return
             msg = 'Extracted: {}/{}'.format((n_extracted), n_items)
-            self.__update_statusbar(msg, 4)
+            self.update_statusbar(msg, 4)
 
     def on_open_multiple_ML_files_fcn(self, open_type, pathlist=[]):
 
@@ -1522,7 +1522,7 @@ class data_handling():
             pathlist = dlg.GetPaths()
 
         if len(pathlist) == 0:
-            self.__update_statusbar('Please select at least one file in order to continue.', 4)
+            self.update_statusbar('Please select at least one file in order to continue.', 4)
             return
 
         # update lastdir
@@ -1633,7 +1633,7 @@ class data_handling():
             self.config.ms_mzBinSize,
             self.config.ms_auto_range,
         )
-        self.__update_statusbar(msg, 4)
+        self.update_statusbar(msg, 4)
 
         # check the min/max values in the mass spectrum
         if self.config.ms_auto_range:
@@ -1682,7 +1682,7 @@ class data_handling():
         self.filesList.on_remove_duplicates()
 
         # Update status bar with MS range
-        self.__update_statusbar(
+        self.update_statusbar(
             'Data extraction took {:.4f} seconds for {} files.'.format(
                 ttime() - tstart, i + 1,
             ), 4,
@@ -1718,7 +1718,7 @@ class data_handling():
         ion_data = {'xvals': rtDataX, 'yvals': rtDataY, 'xlabels': 'Scans'}
 
         msg = f'Extracted RT data for m/z: {mzStart}-{mzEnd} | dt: {dtStart}-{dtEnd}'
-        self.__update_statusbar(msg, 3)
+        self.update_statusbar(msg, 3)
 
         # Update document
         self.documentTree.on_update_data(ion_data, ion_name, document, data_type='extracted.chromatogram')
@@ -1806,7 +1806,7 @@ class data_handling():
         self.plotsPanel.on_plot_MS(mz_x, mz_y, xlimits=xlimits, show_in_window='RT', **name_kwargs)
         # Set status
         msg = f'Extracted MS data for rt: {startScan}-{endScan}'
-        self.__update_statusbar(msg, 3)
+        self.update_statusbar(msg, 3)
 
     def on_extract_MS_from_heatmap(
         self, startScan=None, endScan=None, dtStart=None,
@@ -1887,7 +1887,7 @@ class data_handling():
         self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
         # Set status
         msg = f'Extracted MS data for rt: {startScan}-{endScan}'
-        self.__update_statusbar(msg, 3)
+        self.update_statusbar(msg, 3)
 
     def on_save_all_documents_fcn(self, evt):
         if self.config.threading:
@@ -2034,7 +2034,7 @@ class data_handling():
                     logger.warning(f'When trying to create file error an error occurer. Error msg: {err}')
 
             if document.gotMS:
-                self.__update_statusbar('Loaded mass spectra', 4)
+                self.update_statusbar('Loaded mass spectra', 4)
                 msX = document.massSpectrum['xvals']
                 msY = document.massSpectrum['yvals']
                 color = document.lineColour
@@ -2051,7 +2051,7 @@ class data_handling():
                         plotType='MS',
                     )
             if document.got1DT:
-                self.__update_statusbar('Loaded mobiligrams (1D)', 4)
+                self.update_statusbar('Loaded mobiligrams (1D)', 4)
                 dtX = document.DT['xvals']
                 dtY = document.DT['yvals']
                 xlabel = document.DT['xlabels']
@@ -2064,7 +2064,7 @@ class data_handling():
                         xlabelDT=xlabel, plotType='1DT',
                     )
             if document.got1RT:
-                self.__update_statusbar('Loaded chromatograms', 4)
+                self.update_statusbar('Loaded chromatograms', 4)
                 rtX = document.RT['xvals']
                 rtY = document.RT['yvals']
                 xlabel = document.RT['xlabels']
@@ -2104,7 +2104,7 @@ class data_handling():
 
                     self.textPanel.on_add_to_table(add_dict, return_color=False)
 
-                self.__update_statusbar('Loaded mobiligrams (2D)', 4)
+                self.update_statusbar('Loaded mobiligrams (2D)', 4)
 
                 self.plotsPanel.on_plot_2D_data(
                     data=[
@@ -2177,7 +2177,7 @@ class data_handling():
             # Restore file list
             if document.dataType == 'Type: MANUAL':
                 count = self.filesList.GetItemCount() + len(document.multipleMassSpectrum)
-                colors = self.plotsPanel.onChangePalette(None, n_colors=count + 1, return_colors=True)
+                colors = self.plotsPanel.on_change_color_palette(None, n_colors=count + 1, return_colors=True)
                 for __, key in enumerate(document.multipleMassSpectrum):
                     energy = document.multipleMassSpectrum[key]['trap']
                     if 'color' in document.multipleMassSpectrum[key]:
@@ -2689,12 +2689,12 @@ class data_handling():
 
         # Make sure the document is of correct type.
         if not document.dataType == 'Type: ORIGAMI':
-            self.__update_statusbar('Please select correct document type - ORIGAMI', 4)
+            self.update_statusbar('Please select correct document type - ORIGAMI', 4)
             return
 
         # Check that the user combined scans already
         if not document.gotCombinedExtractedIons:
-            self.__update_statusbar('Please combine collision voltages first', 4)
+            self.update_statusbar('Please combine collision voltages first', 4)
             return
 
         reader = self._get_waters_api_reader(document)

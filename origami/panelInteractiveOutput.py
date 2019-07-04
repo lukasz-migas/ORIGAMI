@@ -5657,7 +5657,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             if user_kwargs['widgets'].get('colorblind_safe_1D', True):
                 _original_colors = [cmap]
-                _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+                _cvd_colors = self.presenter.view.panelPlots.on_change_color_palette(
                     None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines),
                     return_colors=True, return_hex=True,
                 )
@@ -5880,7 +5880,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 js_type.extend(['hover_mode'])
 
             if user_kwargs['widgets'].get('colorblind_safe_1D', True):
-                _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+                _cvd_colors = self.presenter.view.panelPlots.on_change_color_palette(
                     None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True, )
                 js_code.update(
                     lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
@@ -5905,7 +5905,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             except Exception:
                 pass
         elif self.config.interactive_custom_scripts and bkh_kwargs['page_layout'] not in ['Individual', 'Columns']:
-            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+            _cvd_colors = self.presenter.view.panelPlots.on_change_color_palette(
                 None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True,
             )
             plot_mods.update(
@@ -6127,7 +6127,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts) and
             bkh_kwargs['page_layout'] in ['Individual', 'Columns']
         ):
-            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+            _cvd_colors = self.presenter.view.panelPlots.on_change_color_palette(
                 None, cmap=self.config.interactive_cvd_cmap,
                 n_colors=len(_scatter),
                 return_colors=True, return_hex=True,
@@ -7403,7 +7403,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts) and
             bkh_kwargs['page_layout'] in ['Individual', 'Columns']
         ):
-            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+            _cvd_colors = self.presenter.view.panelPlots.on_change_color_palette(
                 None, cmap=self.config.interactive_cvd_cmap,
                 n_colors=len(_lines),
                 return_colors=True, return_hex=True,
@@ -7450,7 +7450,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             user_kwargs['widgets'].get('add_custom_widgets', self.config.interactive_custom_scripts) and
             bkh_kwargs['page_layout'] not in ['Individual', 'Columns']
         ):
-            _cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+            _cvd_colors = self.presenter.view.panelPlots.on_change_color_palette(
                 None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True,
             )
             plot_mods.update(
@@ -7516,7 +7516,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             labels = [' '] * count
 
         # get colorblind colors
-        cvd_colors = self.presenter.view.panelPlots.onChangePalette(
+        cvd_colors = self.presenter.view.panelPlots.on_change_color_palette(
             None, cmap=self.config.interactive_cvd_cmap, n_colors=len(xvals), return_colors=True, return_hex=True,
         )
 

@@ -26,7 +26,6 @@ from natsort import natsorted
 from panel_peak_annotation_editor import panel_peak_annotation_editor
 from panelInformation import panelDocumentInfo
 from panelTandemSpectra import panelTandemSpectra
-from processing import origami_ms
 from processing.spectra import normalize_1D
 from processing.spectra import subtract_1D
 from readers.io_text_files import text_heatmap_open
@@ -567,7 +566,7 @@ class documentsTree(wx.TreeCtrl):
         return xlabel_evt_dict.get(xlabel, ID_xlabel_2D_custom), ylabel_evt_dict.get(ylabel, ID_ylabel_2D_custom)
 
     # TODO: add option to do this for ALL items in the dataset
-    def on_check_xlabels_1D(self):  # checkCurrentXYlabels1D
+    def on_check_xlabels_1D(self):
         if self._document_type == 'Drift time (1D)':
             data = self._document_data.DT
 
@@ -584,7 +583,7 @@ class documentsTree(wx.TreeCtrl):
         return xlabel_evt_dict.get(xlabel, ID_ylabel_2D_bins)
 
     # TODO: add option to do this for ALL items in the dataset
-    def on_check_xlabels_DTMS(self):  # checkCurrentXYlabelsMSDT
+    def on_check_xlabels_DTMS(self):
         if self._document_type == 'DT/MS':
             data = self._document_data.DTMZ
 
@@ -1028,7 +1027,7 @@ class documentsTree(wx.TreeCtrl):
 
         # check if we need to add any metadata
         if len(colors) == 0 or len(colors) < len(yvals):
-            colors = self.panel_plot.onChangePalette(
+            colors = self.panel_plot.on_change_color_palette(
                 None,
                 n_colors=len(yvals),
                 return_colors=True,
@@ -1745,18 +1744,22 @@ class documentsTree(wx.TreeCtrl):
         )
         self.presenter.onThreading(None, (msg, 4, 5), action='updateStatusbar')
 
-    def _on_event_get_mass_spectrum(self):
+    def _on_event_get_mass_spectrum(self, **kwargs):
 
-        document_title = self._document_data.title
-        if self._document_type == 'Mass Spectrum':
-            dataset = 'Mass Spectrum'
-        elif self._document_type == 'Mass Spectrum (processed)':
-            dataset = 'Mass Spectrum (processed)'
-        elif self._document_type == 'Mass Spectra':
-            dataset = self._item_leaf
+        if 'document_title' not in kwargs and 'dataset_name' not in kwargs:
+            document_title = self._document_data.title
+            if self._document_type == 'Mass Spectrum':
+                dataset = 'Mass Spectrum'
+            elif self._document_type == 'Mass Spectrum (processed)':
+                dataset = 'Mass Spectrum (processed)'
+            elif self._document_type == 'Mass Spectra':
+                dataset = self._item_leaf
+        else:
+            document_title = kwargs.pop('document_name')
+            dataset = kwargs.pop('dataset_name')
 
         # form query
-        query = [self._document_data.title, dataset]
+        query = [document_title, dataset]
         # get dat and document
         data = self.data_handling.get_spectrum(query)
         document = self.data_handling._on_get_document(document_title)
@@ -4068,7 +4071,7 @@ class documentsTree(wx.TreeCtrl):
             data = self._document_data.multipleMassSpectrum
             document_title = self._document_data.title
             n_rows = len(data)
-            colors = self.panel_plot.onChangePalette(None, n_colors=n_rows, return_colors=True)
+            colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
             for i, key in enumerate(data):
                 count = filelist.GetItemCount()
                 label = data[key].get('label', os.path.splitext(key)[0])
@@ -4083,7 +4086,7 @@ class documentsTree(wx.TreeCtrl):
         elif evtID == ID_docTree_addOneToMMLTable:
             data = self._document_data.multipleMassSpectrum
             count = filelist.GetItemCount()
-            colors = self.panel_plot.onChangePalette(None, n_colors=count + 1, return_colors=True)
+            colors = self.panel_plot.on_change_color_palette(None, n_colors=count + 1, return_colors=True)
             key = self._item_leaf
             document_title = self._document_data.title
             label = data.get('label', key)
@@ -4099,7 +4102,7 @@ class documentsTree(wx.TreeCtrl):
             data = self._document_data.IMS2DcompData
             document_title = self._document_data.title
             n_rows = len(data)
-            colors = self.panel_plot.onChangePalette(None, n_colors=n_rows, return_colors=True)
+            colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
             for i, key in enumerate(data):
                 count = textlist.GetItemCount()
                 label = data[key].get('label', os.path.splitext(key)[0])
@@ -4121,7 +4124,7 @@ class documentsTree(wx.TreeCtrl):
             data = self._document_data.IMS2Dions
             document_title = self._document_data.title
             n_rows = len(data)
-            colors = self.panel_plot.onChangePalette(None, n_colors=n_rows, return_colors=True)
+            colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
             for i, key in enumerate(data):
                 count = textlist.GetItemCount()
                 label = data[key].get('label', os.path.splitext(key)[0])
@@ -4188,20 +4191,7 @@ class documentsTree(wx.TreeCtrl):
             **kwargs
         )
 
-    def onCompareMS(self, evt):
-        """ Open panel where user can select mas spectra to compare """
-        from panel_signal_comparison_viewer import panel_signal_comparison_viewer
-
-        if self._item_id is None:
-            return
-
-#         if self._document_data is None:
-#             self.presenter.onThreading(
-#                 None, ('Please click on any document in the document tree.', 4, 5),
-#                 action='updateStatusbar',
-#             )
-#             return
-
+    def _collect_mass_spectra_info(self):
         document_list, document_spectrum_list = [], {}
         count = 0
         for document_title in self.presenter.documentsDict:
@@ -4222,6 +4212,17 @@ class documentsTree(wx.TreeCtrl):
                 document_list.append(document_title)
             else:
                 del document_spectrum_list[document_title]
+
+        return count, document_list, document_spectrum_list
+
+    def onCompareMS(self, evt):
+        """ Open panel where user can select mas spectra to compare """
+        from panel_signal_comparison_viewer import panel_signal_comparison_viewer
+
+        if self._item_id is None:
+            return
+
+        count, document_list, document_spectrum_list = self._collect_mass_spectra_info()
 
         if count < 2:
             msg = 'There must be at least two mass spectra to compare!'
@@ -4569,7 +4570,8 @@ class documentsTree(wx.TreeCtrl):
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
                 self.presenter.documentsDict[self.title].IMS2DstatsData[new_name] = self.presenter.documentsDict[self.title].IMS2DstatsData.pop(
-                    self._item_leaf, )
+                    self._item_leaf,
+                )
                 self.Expand(docItem)
             elif self._document_type == 'Overlay':
                 # Change document tree
@@ -4578,7 +4580,8 @@ class documentsTree(wx.TreeCtrl):
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
                 self.presenter.documentsDict[self.title].IMS2DoverlayData[new_name] = self.presenter.documentsDict[self.title].IMS2DoverlayData.pop(
-                    self._item_leaf, )
+                    self._item_leaf,
+                )
                 self.Expand(docItem)
             elif self._document_type == 'Mass Spectra':
                 # Change document tree
@@ -4589,7 +4592,8 @@ class documentsTree(wx.TreeCtrl):
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
                 self.presenter.documentsDict[self.title].multipleMassSpectrum[new_name] = self.presenter.documentsDict[self.title].multipleMassSpectrum.pop(
-                    self._item_leaf, )
+                    self._item_leaf,
+                )
                 self.Expand(docItem)
                 # check if item is in other panels
                 try:
@@ -4607,7 +4611,8 @@ class documentsTree(wx.TreeCtrl):
                 # TODO: check if iterm is in the peaklist
                 # Change dictionary key
                 self.presenter.documentsDict[self.title].IMS2Dions[new_name] = self.presenter.documentsDict[self.title].IMS2Dions.pop(
-                    self._item_leaf, )
+                    self._item_leaf,
+                )
                 self.Expand(docItem)
             else:
                 return
@@ -5401,7 +5406,8 @@ class documentsTree(wx.TreeCtrl):
                     self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
             elif (out[0] == 'Mask' or out[0] == 'Transparent'):
                 zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, __, __, xvals, yvals, xlabels, ylabels = self.presenter.getOverlayDataFromDictionary(
-                    dictionary=data, dataType='plot', compact=False, )
+                    dictionary=data, dataType='plot', compact=False,
+                )
                 if out[0] == 'Mask':
                     defaultValue = 'Overlay_mask_{}'.format(basename)
                     self.panel_plot.on_plot_overlay_2D(
@@ -5429,7 +5435,8 @@ class documentsTree(wx.TreeCtrl):
 
             elif out[0] == 'RMSF':
                 zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType='RMSF', compact=True, )
+                    dictionary=data, plotType='RMSF', compact=True,
+                )
                 defaultValue = 'Overlay_RMSF_{}'.format(basename)
                 self.panel_plot.on_plot_RMSDF(
                     yvalsRMSF=yvalsRMSF,
@@ -5470,7 +5477,8 @@ class documentsTree(wx.TreeCtrl):
             elif out[0] == 'RMSD':
                 defaultValue = 'Overlay_RMSD_{}'.format(basename)
                 zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, rmsdLabel, cmap = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType='RMSD', compact=True, )
+                    dictionary=data, plotType='RMSD', compact=True,
+                )
                 self.panel_plot.on_plot_RMSD(
                     zvals, xaxisLabels, yaxisLabels, xlabel, ylabel,
                     cmap, plotType='RMSD', set_page=True,
@@ -7214,8 +7222,9 @@ class documentsTree(wx.TreeCtrl):
         )
         self.panel_extractDTMS .Show()
 
-    def on_open_peak_picker(self, evt):
-        document, data, dataset = self._on_event_get_mass_spectrum()
+    def on_open_peak_picker(self, evt, **kwargs):
+
+        document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
 
         from gui_elements.panel_peak_picker import panel_peak_picker
         panel_peak_picker = panel_peak_picker(

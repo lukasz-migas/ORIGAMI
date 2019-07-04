@@ -12,7 +12,7 @@ from ids import ID_compareMS_MS_2
 from ids import ID_extraSettings_legend
 from ids import ID_extraSettings_plot1D
 from ids import ID_plotPanel_resize
-from ids import ID_plots_customisePlot
+from ids import ID_plots_customise_plot
 from ids import ID_processSettings_MS
 from natsort import natsorted
 from styles import makeCheckbox
@@ -82,13 +82,13 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
     def on_right_click(self, evt):
 
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
-        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customisePlot)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
 
         menu = wx.Menu()
         menu.AppendItem(
             makeMenuItem(
                 parent=menu,
-                id=ID_plots_customisePlot,
+                id=ID_plots_customise_plot,
                 text='Customise plot...',
                 bitmap=self.icons.iconsLib['change_xlabels_16'],
             ),
@@ -121,8 +121,12 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
-        if key_code == wx.WXK_ESCAPE:  # key = esc
+        # exit window
+        if key_code == wx.WXK_ESCAPE:
             self.on_close(evt=None)
+#         # refresh document/spectrum views
+#         elif key_code == wx.WXK_F5:
+#             pass
 
         evt.Skip()
 
@@ -137,7 +141,7 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
     def on_customise_plot(self, evt):
         kwargs = dict(plot='MS...', plot_obj=self.plot_window)
-        self.panel_plot.customisePlot(None, **kwargs)
+        self.panel_plot.on_customise_plot(None, **kwargs)
 
     def on_ok(self, evt):
 
@@ -719,7 +723,7 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.compare_massSpectrum = [spectrum_1_choice, spectrum_2_choice]
 
     def on_clear_plot(self, evt):
-        self.panel_plot.onClearPlot(None, None, plot_obj=self.plot_window)
+        self.panel_plot.on_clear_plot(None, None, plot_obj=self.plot_window)
 
     def on_save_figure(self, evt):
         document_title_1, spectrum_1 = self.config.compare_massSpectrum[0][:2]

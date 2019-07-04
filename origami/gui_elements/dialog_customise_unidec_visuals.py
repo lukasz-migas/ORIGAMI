@@ -351,7 +351,7 @@ class dialog_customise_unidec_visuals(Dialog):
 
         return panel
 
-    def onChangePalette(self, evt):
+    def on_change_color_palette(self, evt):
         pass
 
     def onChangeColour(self, evt):

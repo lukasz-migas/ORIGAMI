@@ -36,6 +36,7 @@ from ids import ID_clearPlot_UniDec_mzGrid
 from ids import ID_clearPlot_UniDec_pickedPeaks
 from ids import ID_clearPlot_Watefall
 from ids import ID_clearPlot_Waterfall
+from ids import ID_docTree_action_open_peak_picker
 from ids import ID_extraSettings_colorbar
 from ids import ID_extraSettings_general_plot
 from ids import ID_extraSettings_legend
@@ -51,14 +52,14 @@ from ids import ID_plotPanel_binMS
 from ids import ID_plotPanel_lockPlot
 from ids import ID_plotPanel_resize
 from ids import ID_plots_customise_smart_zoom
-from ids import ID_plots_customisePlot
-from ids import ID_plots_customisePlot_unidec_chargeDist
-from ids import ID_plots_customisePlot_unidec_isolated_mz
-from ids import ID_plots_customisePlot_unidec_ms
-from ids import ID_plots_customisePlot_unidec_ms_barchart
-from ids import ID_plots_customisePlot_unidec_mw
-from ids import ID_plots_customisePlot_unidec_mw_v_charge
-from ids import ID_plots_customisePlot_unidec_mz_v_charge
+from ids import ID_plots_customise_plot
+from ids import ID_plots_customise_plot_unidec_chargeDist
+from ids import ID_plots_customise_plot_unidec_isolated_mz
+from ids import ID_plots_customise_plot_unidec_ms
+from ids import ID_plots_customise_plot_unidec_ms_barchart
+from ids import ID_plots_customise_plot_unidec_mw
+from ids import ID_plots_customise_plot_unidec_mw_v_charge
+from ids import ID_plots_customise_plot_unidec_mz_v_charge
 from ids import ID_plots_rotate90
 from ids import ID_plots_saveImage_unidec_chargeDist
 from ids import ID_plots_saveImage_unidec_isolated_mz
@@ -68,7 +69,6 @@ from ids import ID_plots_saveImage_unidec_mw
 from ids import ID_plots_saveImage_unidec_mw_v_charge
 from ids import ID_plots_saveImage_unidec_mz_v_charge
 from ids import ID_processSettings_2D
-from ids import ID_processSettings_FindPeaks
 from ids import ID_processSettings_MS
 from ids import ID_save1DImage
 from ids import ID_save1DImageDoc
@@ -100,7 +100,7 @@ from ids import ID_smooth1Ddata1DT
 from ids import ID_smooth1DdataMS
 from ids import ID_smooth1DdataRT
 from natsort import natsorted
-from panelCustomisePlot import panelCustomisePlot
+from panelCustomisePlot import panel_customise_plot
 from pubsub import pub
 from styles import makeMenuItem
 from toolbox import merge_two_dicts
@@ -108,6 +108,7 @@ from utils.check import isempty
 from utils.color import convertRGB1to255
 from utils.color import convertRGB1toHEX
 from utils.color import randomColorGenerator
+from utils.exceptions import MessageError
 from visuals import mpl_plots
 from visuals.normalize import MidpointNormalize
 logger = logging.getLogger('origami')
@@ -482,7 +483,7 @@ class panelPlot(wx.Panel):
 
         if self.config.unidec_plot_panel_view == 'Single page view':
             self.panelUniDec = wx.lib.scrolledpanel.ScrolledPanel(
-                self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,  # @UndefinedVariable
+                self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize,
                 wx.TAB_TRAVERSAL,
             )
             self.panelUniDec.SetupScrolling()
@@ -637,25 +638,11 @@ class panelPlot(wx.Panel):
         boxsizer_other.Add(self.plotOther, 1, wx.EXPAND)
         self.panelOther.SetSizer(boxsizer_other)
 
-#         # Plot MAYAVI
-#         self.mayaviPanel = wx.Panel( self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-#                                    wx.DefaultSize, wx.TAB_TRAVERSAL )
-#         self.mainBook.AddPage( self.mayaviPanel, u"Mayavi", False )
-#
-#         self.MV = plots.MayaviPanel()
-#         self.plotMayavi = self.MV.edit_traits(parent=self.mayaviPanel,
-#                                               kind='subpanel').control
-#
-#
-#         mayaviSizer = wx.BoxSizer(wx.VERTICAL)
-#         mayaviSizer.Add(self.plotMayavi, 1, wx.EXPAND)
-#         self.mayaviPanel.SetSizer(mayaviSizer)
-
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 1)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 1)
 
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
-        self.SetSizer(mainSizer)
+        self.SetSizer(main_sizer)
         self.Layout()
         self.Show(True)
 
@@ -675,29 +662,29 @@ class panelPlot(wx.Panel):
         self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1Ddata1DT)
         self.Bind(wx.EVT_MENU, self.presenter.on_highlight_selected_ions, id=ID_highlightRectAllIons)
         self.Bind(wx.EVT_MENU, self.data_processing.on_pick_peaks, id=ID_pickMSpeaksDocument)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_MS)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_RT)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_RT_MS)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_1D)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_1D_MS)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_2D)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_3D)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_RMSF)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_RMSD)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_Matrix)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_Overlay)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_Watefall)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_Calibration)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_MZDT)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_Waterfall)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_other)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_UniDec_MS)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_UniDec_mwDistribution)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_UniDec_mzGrid)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_UniDec_mwGrid)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_UniDec_pickedPeaks)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_UniDec_barchart)
-        self.Bind(wx.EVT_MENU, self.onClearPlot, id=ID_clearPlot_UniDec_chargeDistribution)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_MS)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RT)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RT_MS)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_1D)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_1D_MS)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_2D)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_3D)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RMSF)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RMSD)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Matrix)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Overlay)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Watefall)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Calibration)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_MZDT)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Waterfall)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_other)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_MS)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_mwDistribution)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_mzGrid)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_mwGrid)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_pickedPeaks)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_barchart)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_chargeDistribution)
 
         self.Bind(wx.EVT_MENU, self.on_clear_unidec, id=ID_clearPlot_UniDec_all)
         self.Bind(wx.EVT_MENU, self.onSetupMenus, id=ID_plotPanel_binMS)
@@ -705,14 +692,14 @@ class panelPlot(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_rotate_plot, id=ID_plots_rotate90)
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
 
-        self.Bind(wx.EVT_MENU, self.customisePlot, id=ID_plots_customisePlot)
-        self.Bind(wx.EVT_MENU, self.customisePlot, id=ID_plots_customisePlot_unidec_ms)
-        self.Bind(wx.EVT_MENU, self.customisePlot, id=ID_plots_customisePlot_unidec_mw)
-        self.Bind(wx.EVT_MENU, self.customisePlot, id=ID_plots_customisePlot_unidec_mz_v_charge)
-        self.Bind(wx.EVT_MENU, self.customisePlot, id=ID_plots_customisePlot_unidec_isolated_mz)
-        self.Bind(wx.EVT_MENU, self.customisePlot, id=ID_plots_customisePlot_unidec_mw_v_charge)
-        self.Bind(wx.EVT_MENU, self.customisePlot, id=ID_plots_customisePlot_unidec_ms_barchart)
-        self.Bind(wx.EVT_MENU, self.customisePlot, id=ID_plots_customisePlot_unidec_chargeDist)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_ms)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_mw)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_mz_v_charge)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_isolated_mz)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_mw_v_charge)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_ms_barchart)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_chargeDist)
 
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveOtherImage)
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveCompareMSImage)
@@ -726,59 +713,107 @@ class panelPlot(wx.Panel):
         self.Bind(wx.EVT_MENU, self.save_unidec_images, id=ID_saveUniDecAll)
 
         self.Bind(wx.EVT_MENU, self.on_customise_smart_zoom, id=ID_plots_customise_smart_zoom)
-
-        saveImageLabel = ''.join(['Save figure (.', self.config.imageFormat, ')'])
+        self.Bind(wx.EVT_MENU, self.on_open_peak_picker, id=ID_docTree_action_open_peak_picker)
 
         customiseUniDecMenu = wx.Menu()
-        customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_ms, 'Customise mass spectrum...')
-        customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_mw, 'Customise Zero charge mass spectrum...')
-        customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_mz_v_charge, 'Customise m/z vs charge...')
-        customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_mw_v_charge, 'Customise molecular weight vs charge...')
+        customiseUniDecMenu.Append(ID_plots_customise_plot_unidec_ms, 'Customise mass spectrum...')
+        customiseUniDecMenu.Append(ID_plots_customise_plot_unidec_mw, 'Customise Zero charge mass spectrum...')
+        customiseUniDecMenu.Append(ID_plots_customise_plot_unidec_mz_v_charge, 'Customise m/z vs charge...')
         customiseUniDecMenu.Append(
-            ID_plots_customisePlot_unidec_isolated_mz,
+            ID_plots_customise_plot_unidec_mw_v_charge,
+            'Customise molecular weight vs charge...',
+        )
+        customiseUniDecMenu.Append(
+            ID_plots_customise_plot_unidec_isolated_mz,
             'Customise mass spectrum with isolated species...',
         )
-        customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_ms_barchart, 'Customise barchart...')
-        customiseUniDecMenu.Append(ID_plots_customisePlot_unidec_chargeDist, 'Customise charge state distribution...')
+        customiseUniDecMenu.Append(ID_plots_customise_plot_unidec_ms_barchart, 'Customise barchart...')
+        customiseUniDecMenu.Append(
+            ID_plots_customise_plot_unidec_chargeDist,
+            'Customise charge state distribution...',
+        )
 
         saveUniDecMenu = wx.Menu()
-        saveUniDecMenu.Append(ID_plots_saveImage_unidec_ms, 'Save mass spectrum (.{})'.format(self.config.imageFormat))
-        saveUniDecMenu.Append(
-            ID_plots_saveImage_unidec_mw,
-            'Save Zero charge mass spectrum (.{})'.format(self.config.imageFormat),
-        )
-        saveUniDecMenu.Append(
-            ID_plots_saveImage_unidec_mz_v_charge,
-            'Save m/z vs charge (.{})'.format(self.config.imageFormat),
-        )
-        saveUniDecMenu.Append(
-            ID_plots_saveImage_unidec_mw_v_charge,
-            'Save molecular weight vs charge (.{})'.format(self.config.imageFormat),
-        )
-        saveUniDecMenu.Append(
-            ID_plots_saveImage_unidec_isolated_mz,
-            'Save mass spectrum with isolated species (.{})'.format(self.config.imageFormat),
-        )
-        saveUniDecMenu.Append(
-            ID_plots_saveImage_unidec_ms_barchart,
-            'Save barchart (.{})'.format(self.config.imageFormat),
-        )
-        saveUniDecMenu.Append(
-            ID_plots_saveImage_unidec_chargeDist,
-            'Save charge state distribution (.{})'.format(self.config.imageFormat),
-        )
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_ms, 'Save mass spectrum as...')
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_mw, 'Save Zero charge mass spectrum as...')
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_mz_v_charge, 'Save m/z vs charge as...')
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_mw_v_charge, 'Save molecular weight vs charge as...')
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_isolated_mz, 'Save mass spectrum with isolated species as...')
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_ms_barchart, 'Save barchart as...')
+        saveUniDecMenu.Append(ID_plots_saveImage_unidec_chargeDist, 'Save charge state distribution as...')
         saveUniDecMenu.AppendSeparator()
         saveUniDecMenu.AppendItem(
             makeMenuItem(
-                parent=saveUniDecMenu,
-                id=ID_saveUniDecAll,
-                text='Save all figures (.{})'.format(
-                    self.config.imageFormat,
-                ),
+                parent=saveUniDecMenu, id=ID_saveUniDecAll, text='Save all figures as...',
                 bitmap=self.icons.iconsLib['save16'],
             ),
         )
+
+        # make main menu
         menu = wx.Menu()
+
+        # pre-generate common menu items
+        menu_edit_general = makeMenuItem(
+            parent=menu, id=ID_extraSettings_general_plot,
+            text='Edit general parameters...',
+            bitmap=self.icons.iconsLib['panel_plot_general_16'],
+        )
+        menu_edit_plot_1D = makeMenuItem(
+            parent=menu, id=ID_extraSettings_plot1D,
+            text='Edit plot parameters...',
+            bitmap=self.icons.iconsLib['panel_plot1D_16'],
+        )
+        menu_edit_plot_2D = makeMenuItem(
+            parent=menu, id=ID_extraSettings_plot2D,
+            text='Edit plot parameters...',
+            bitmap=self.icons.iconsLib['panel_plot2D_16'],
+        )
+        menu_edit_plot_3D = makeMenuItem(
+            parent=menu, id=ID_extraSettings_plot3D,
+            text='Edit plot parameters...',
+            bitmap=self.icons.iconsLib['panel_plot3D_16'],
+        ),
+        menu_edit_colorbar = makeMenuItem(
+            parent=menu, id=ID_extraSettings_colorbar,
+            text='Edit colorbar parameters...',
+            bitmap=self.icons.iconsLib['panel_colorbar_16'],
+        )
+        menu_edit_legend = makeMenuItem(
+            parent=menu, id=ID_extraSettings_legend,
+            text='Edit legend parameters...',
+            bitmap=self.icons.iconsLib['panel_legend_16'],
+        )
+        menu_edit_rmsd = makeMenuItem(
+            parent=menu, id=ID_extraSettings_rmsd,
+            text='Edit plot parameters...',
+            bitmap=self.icons.iconsLib['panel_rmsd_16'],
+        )
+        menu_edit_waterfall = makeMenuItem(
+            parent=menu, id=ID_extraSettings_waterfall,
+            text='Edit waterfall parameters...',
+            bitmap=self.icons.iconsLib['panel_waterfall_16'],
+        )
+        menu_edit_violin = makeMenuItem(
+            parent=menu, id=ID_extraSettings_violin,
+            text='Edit violin parameters...',
+            bitmap=self.icons.iconsLib['panel_violin_16'],
+        )
+        menu_customise_plot = makeMenuItem(
+            parent=menu, id=ID_plots_customise_plot,
+            text='Customise plot...',
+            bitmap=self.icons.iconsLib['change_xlabels_16'],
+        )
+        menu_action_rotate90 = makeMenuItem(
+            parent=menu, id=ID_plots_rotate90,
+            text='Rotate 90°',
+            bitmap=self.icons.iconsLib['blank_16'],
+        )
+        menu_action_process_2D = makeMenuItem(
+            parent=menu, id=ID_processSettings_2D,
+            text='Process heatmap...',
+            bitmap=self.icons.iconsLib['process_2d_16'],
+        )
+
         if self.currentPage == 'MS':
             menu.AppendItem(
                 makeMenuItem(
@@ -789,7 +824,7 @@ class panelPlot(wx.Panel):
             )
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_processSettings_FindPeaks,
+                    parent=menu, id=ID_docTree_action_open_peak_picker,
                     text='Open peak picker...',
                     bitmap=self.icons.iconsLib['process_fit_16'],
                 ),
@@ -802,43 +837,25 @@ class panelPlot(wx.Panel):
                 ),
             )
             menu.AppendSeparator()
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_general_plot,
-                    text='Edit general parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot1D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot1D_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_1D)
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, 'Lock plot', help='')
             self.lock_plot_check.Check(self.plot1.lock_plot_from_updating)
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_plots_customisePlot,
-                    text='Customise plot...',
-                    bitmap=self.icons.iconsLib['change_xlabels_16'],
-                ),
-            )
+            menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
             self.resize_plot_check.Check(self.config.resize)
             if self.view.plot_name == 'compare_MS':
                 menu.AppendItem(
                     makeMenuItem(
-                        parent=menu, id=ID_saveCompareMSImage, text=saveImageLabel,
+                        parent=menu, id=ID_saveCompareMSImage, text='Save figure as...',
                         bitmap=self.icons.iconsLib['save16'],
                     ),
                 )
             else:
                 menu.AppendItem(
                     makeMenuItem(
-                        parent=menu, id=ID_saveMSImage, text=saveImageLabel,
+                        parent=menu, id=ID_saveMSImage, text='Save figure as...',
                         bitmap=self.icons.iconsLib['save16'],
                     ),
                 )
@@ -873,42 +890,18 @@ class panelPlot(wx.Panel):
                     ),
                 )
                 menu.AppendSeparator()
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_extraSettings_general_plot,
-                        text='Edit general parameters...',
-                        bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_extraSettings_plot1D,
-                        text='Edit plot parameters...',
-                        bitmap=self.icons.iconsLib['panel_plot1D_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_extraSettings_legend,
-                        text='Edit legend parameters...',
-                        bitmap=self.icons.iconsLib['panel_legend_16'],
-                    ),
-                )
+                menu.AppendItem(menu_edit_general)
+                menu.AppendItem(menu_edit_plot_1D)
+                menu.AppendItem(menu_edit_legend)
                 self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, 'Lock plot', help='')
                 self.lock_plot_check.Check(self.plotRT.lock_plot_from_updating)
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_plots_customisePlot,
-                        text='Customise plot...',
-                        bitmap=self.icons.iconsLib['change_xlabels_16'],
-                    ),
-                )
+                menu.AppendItem(menu_customise_plot)
                 menu.AppendSeparator()
                 self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
                 self.resize_plot_check.Check(self.config.resize)
                 menu.AppendItem(
                     makeMenuItem(
-                        parent=menu, id=ID_saveRTImage, text=saveImageLabel,
+                        parent=menu, id=ID_saveRTImage, text='Save figure as...',
                         bitmap=self.icons.iconsLib['save16'],
                     ),
                 )
@@ -943,42 +936,18 @@ class panelPlot(wx.Panel):
                     ),
                 )
                 menu.AppendSeparator()
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_extraSettings_general_plot,
-                        text='Edit general parameters...',
-                        bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_extraSettings_plot1D,
-                        text='Edit plot parameters...',
-                        bitmap=self.icons.iconsLib['panel_plot1D_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_extraSettings_legend,
-                        text='Edit legend parameters...',
-                        bitmap=self.icons.iconsLib['panel_legend_16'],
-                    ),
-                )
+                menu.AppendItem(menu_edit_general)
+                menu.AppendItem(menu_edit_plot_1D)
+                menu.AppendItem(menu_edit_legend)
                 self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, 'Lock plot', help='')
                 self.lock_plot_check.Check(self.plot1D.lock_plot_from_updating)
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_plots_customisePlot,
-                        text='Customise plot...',
-                        bitmap=self.icons.iconsLib['change_xlabels_16'],
-                    ),
-                )
+                menu.AppendItem(menu_customise_plot)
                 menu.AppendSeparator()
                 self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
                 self.resize_plot_check.Check(self.config.resize)
                 menu.AppendItem(
                     makeMenuItem(
-                        parent=menu, id=ID_save1DImage, text=saveImageLabel,
+                        parent=menu, id=ID_save1DImage, text='Save figure as...',
                         bitmap=self.icons.iconsLib['save16'],
                     ),
                 )
@@ -990,64 +959,22 @@ class panelPlot(wx.Panel):
                     ),
                 )
         elif self.currentPage == '2D':
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_processSettings_2D,
-                    text='Process heatmap...',
-                    bitmap=self.icons.iconsLib['process_2d_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_plots_rotate90,
-                    text='Rotate 90°',
-                    bitmap=self.icons.iconsLib['blank_16'],
-                ),
-            )
+            menu.AppendItem(menu_action_process_2D)
+            menu.AppendItem(menu_action_rotate90)
             menu.AppendSeparator()
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_general_plot,
-                    text='Edit general parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot2D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot2D_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_colorbar,
-                    text='Edit colorbar parameters...',
-                    bitmap=self.icons.iconsLib['panel_colorbar_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_legend,
-                    text='Edit legend parameters...',
-                    bitmap=self.icons.iconsLib['panel_legend_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_2D)
+            menu.AppendItem(menu_edit_colorbar)
+            menu.AppendItem(menu_edit_legend)
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, 'Lock plot', help='')
             self.lock_plot_check.Check(self.plot2D.lock_plot_from_updating)
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_plots_customisePlot,
-                    text='Customise plot...',
-                    bitmap=self.icons.iconsLib['change_xlabels_16'],
-                ),
-            )
+            menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_save2DImage, text=saveImageLabel,
+                    parent=menu, id=ID_save2DImage, text='Save figure as...',
                     bitmap=self.icons.iconsLib['save16'],
                 ),
             )
@@ -1059,20 +986,8 @@ class panelPlot(wx.Panel):
                 ),
             )
         elif self.currentPage == 'DT/MS':
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_processSettings_2D,
-                    text='Process heatmap...',
-                    bitmap=self.icons.iconsLib['process_2d_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_plots_rotate90,
-                    text='Rotate 90°',
-                    bitmap=self.icons.iconsLib['blank_16'],
-                ),
-            )
+            menu.AppendItem(menu_action_process_2D)
+            menu.AppendItem(menu_action_rotate90)
             menu.AppendSeparator()
             menu.AppendItem(
                 makeMenuItem(
@@ -1083,42 +998,18 @@ class panelPlot(wx.Panel):
                 ),
             )
             menu.AppendSeparator()
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_general_plot,
-                    text='Edit general parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot2D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot2D_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_colorbar,
-                    text='Edit colorbar parameters...',
-                    bitmap=self.icons.iconsLib['panel_colorbar_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_2D)
+            menu.AppendItem(menu_edit_colorbar)
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, 'Lock plot', help='')
             self.lock_plot_check.Check(self.plot_DT_vs_MS.lock_plot_from_updating)
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_plots_customisePlot,
-                    text='Customise plot...',
-                    bitmap=self.icons.iconsLib['change_xlabels_16'],
-                ),
-            )
+            menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_saveMZDTImage, text=saveImageLabel,
+                    parent=menu, id=ID_saveMZDTImage, text='Save figure as...',
                     bitmap=self.icons.iconsLib['save16'],
                 ),
             )
@@ -1130,19 +1021,13 @@ class panelPlot(wx.Panel):
                 ),
             )
         elif self.currentPage == '3D':
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot3D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot3D_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_plot_3D)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_save3DImage, text=saveImageLabel,
+                    parent=menu, id=ID_save3DImage, text='Save figure as...',
                     bitmap=self.icons.iconsLib['save16'],
                 ),
             )
@@ -1154,36 +1039,18 @@ class panelPlot(wx.Panel):
                 ),
             )
         elif self.currentPage == 'Overlay':
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_general_plot,
-                    text='Edit general parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot2D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot2D_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_2D)
             menu.AppendSeparator()
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, 'Lock plot', help='')
             self.lock_plot_check.Check(self.plot_overlay.lock_plot_from_updating)
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_plots_customisePlot,
-                    text='Customise plot...',
-                    bitmap=self.icons.iconsLib['change_xlabels_16'],
-                ),
-            )
+            menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_saveOverlayImage, text=saveImageLabel,
+                    parent=menu, id=ID_saveOverlayImage, text='Save figure as...',
                     bitmap=self.icons.iconsLib['save16'],
                 ),
             )
@@ -1195,56 +1062,20 @@ class panelPlot(wx.Panel):
                 ),
             )
         elif self.currentPage == 'Waterfall':
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_general_plot,
-                    text='Edit general parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot2D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot2D_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_legend,
-                    text='Edit legend parameters...',
-                    bitmap=self.icons.iconsLib['panel_legend_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_waterfall,
-                    text='Edit waterfall parameters...',
-                    bitmap=self.icons.iconsLib['panel_waterfall_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_violin,
-                    text='Edit violin parameters...',
-                    bitmap=self.icons.iconsLib['panel_violin_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_2D)
+            menu.AppendItem(menu_edit_legend)
+            menu.AppendItem(menu_edit_waterfall)
+            menu.AppendItem(menu_edit_violin)
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, 'Lock plot', help='')
             self.lock_plot_check.Check(self.plot_waterfall.lock_plot_from_updating)
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_plots_customisePlot,
-                    text='Customise plot...',
-                    bitmap=self.icons.iconsLib['change_xlabels_16'],
-                ),
-            )
+            menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_saveWaterfallImage, text=saveImageLabel,
+                    parent=menu, id=ID_saveWaterfallImage, text='Save figure as...',
                     bitmap=self.icons.iconsLib['save16'],
                 ),
             )
@@ -1256,33 +1087,15 @@ class panelPlot(wx.Panel):
                 ),
             )
         elif self.currentPage == 'RMSF':
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_general_plot,
-                    text='Edit general parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_rmsd,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_rmsd_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_plots_customisePlot,
-                    text='Customise plot...',
-                    bitmap=self.icons.iconsLib['change_xlabels_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_rmsd)
+            menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_saveRMSFImage, text=saveImageLabel,
+                    parent=menu, id=ID_saveRMSFImage, text='Save figure as...',
                     bitmap=self.icons.iconsLib['save16'],
                 ),
             )
@@ -1294,26 +1107,14 @@ class panelPlot(wx.Panel):
                 ),
             )
         elif self.currentPage == 'Comparison':
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_general_plot,
-                    text='Edit general parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_plots_customisePlot,
-                    text='Customise plot...',
-                    bitmap=self.icons.iconsLib['change_xlabels_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_saveRMSDmatrixImage, text=saveImageLabel,
+                    parent=menu, id=ID_saveRMSDmatrixImage, text='Save figure as...',
                     bitmap=self.icons.iconsLib['save16'],
                 ),
             )
@@ -1333,57 +1134,22 @@ class panelPlot(wx.Panel):
             )
         elif self.currentPage == 'UniDec':
 
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_general_plot,
-                    text='Edit general parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot1D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot1D_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot2D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot2D_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_colorbar,
-                    text='Edit colorbar parameters...',
-                    bitmap=self.icons.iconsLib['panel_colorbar_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_legend,
-                    text='Edit legend parameters...',
-                    bitmap=self.icons.iconsLib['panel_legend_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_1D)
+            menu.AppendItem(menu_edit_plot_2D)
+            menu.AppendItem(menu_edit_colorbar)
+            menu.AppendItem(menu_edit_legend)
             menu.AppendSeparator()
-            evtID = None
-            if self.view.plot_name == 'MS':
-                evtID = ID_plots_customisePlot_unidec_ms
-            elif self.view.plot_name == 'mwDistribution':
-                evtID = ID_plots_customisePlot_unidec_mw
-            elif self.view.plot_name == 'mzGrid':
-                evtID = ID_plots_customisePlot_unidec_mz_v_charge
-            elif self.view.plot_name == 'mwGrid':
-                evtID = ID_plots_customisePlot_unidec_mw_v_charge
-            elif self.view.plot_name == 'pickedPeaks':
-                evtID = ID_plots_customisePlot_unidec_isolated_mz
-            elif self.view.plot_name == 'Barchart':
-                evtID = ID_plots_customisePlot_unidec_ms_barchart
-            elif self.view.plot_name == 'ChargeDistribution':
-                evtID = ID_plots_customisePlot_unidec_chargeDist
+            evtID = {
+                'MS': ID_plots_customise_plot_unidec_ms,
+                'mwDistribution': ID_plots_customise_plot_unidec_mw,
+                'mzGrid': ID_plots_customise_plot_unidec_mz_v_charge,
+                'mwGrid': ID_plots_customise_plot_unidec_mw_v_charge,
+                'pickedPeaks': ID_plots_customise_plot_unidec_isolated_mz,
+                'Barchart': ID_plots_customise_plot_unidec_ms_barchart,
+                'ChargeDistribution': ID_plots_customise_plot_unidec_chargeDist
+            }.get(self.view.plot_name, None)
+
             if evtID is not None:
                 menu.AppendItem(
                     makeMenuItem(
@@ -1396,45 +1162,37 @@ class panelPlot(wx.Panel):
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, 'Resize on saving', help='')
             self.resize_plot_check.Check(self.config.resize)
-            evtID = None
-            if self.view.plot_name == 'MS':
-                evtID = ID_clearPlot_UniDec_MS
-            elif self.view.plot_name == 'mwDistribution':
-                evtID = ID_plots_saveImage_unidec_mw
-            elif self.view.plot_name == 'mzGrid':
-                evtID = ID_plots_saveImage_unidec_mz_v_charge
-            elif self.view.plot_name == 'mwGrid':
-                evtID = ID_plots_saveImage_unidec_mw_v_charge
-            elif self.view.plot_name == 'pickedPeaks':
-                evtID = ID_plots_saveImage_unidec_isolated_mz
-            elif self.view.plot_name == 'Barchart':
-                evtID = ID_plots_saveImage_unidec_ms_barchart
-            elif self.view.plot_name == 'ChargeDistribution':
-                evtID = ID_plots_saveImage_unidec_chargeDist
+
+            evtID = {
+                'MS': ID_plots_saveImage_unidec_ms,
+                'mwDistribution': ID_plots_saveImage_unidec_mw,
+                'mzGrid': ID_plots_saveImage_unidec_mz_v_charge,
+                'mwGrid': ID_plots_saveImage_unidec_mw_v_charge,
+                'pickedPeaks': ID_plots_saveImage_unidec_isolated_mz,
+                'Barchart': ID_plots_saveImage_unidec_ms_barchart,
+                'ChargeDistribution': ID_plots_saveImage_unidec_chargeDist
+            }.get(self.view.plot_name, None)
+
             if evtID is not None:
                 menu.AppendItem(
                     makeMenuItem(
-                        parent=menu, id=evtID, text=saveImageLabel,
+                        parent=menu, id=evtID, text='Save figure as...',
                         bitmap=self.icons.iconsLib['save16'],
                     ),
                 )
             menu.AppendMenu(wx.ID_ANY, 'Save figure...', saveUniDecMenu)
             menu.AppendSeparator()
-            evtID = None
-            if self.view.plot_name == 'MS':
-                evtID = ID_clearPlot_UniDec_MS
-            elif self.view.plot_name == 'mwDistribution':
-                evtID = ID_clearPlot_UniDec_mwDistribution
-            elif self.view.plot_name == 'mzGrid':
-                evtID = ID_clearPlot_UniDec_mzGrid
-            elif self.view.plot_name == 'mwGrid':
-                evtID = ID_clearPlot_UniDec_mwGrid
-            elif self.view.plot_name == 'pickedPeaks':
-                evtID = ID_clearPlot_UniDec_pickedPeaks
-            elif self.view.plot_name == 'Barchart':
-                evtID = ID_clearPlot_UniDec_barchart
-            elif self.view.plot_name == 'ChargeDistribution':
-                evtID = ID_clearPlot_UniDec_chargeDistribution
+
+            evtID = {
+                'MS': ID_clearPlot_UniDec_MS,
+                'mwDistribution': ID_clearPlot_UniDec_mwDistribution,
+                'mzGrid': ID_clearPlot_UniDec_mzGrid,
+                'mwGrid': ID_clearPlot_UniDec_mwGrid,
+                'pickedPeaks': ID_clearPlot_UniDec_pickedPeaks,
+                'Barchart': ID_clearPlot_UniDec_barchart,
+                'ChargeDistribution': ID_clearPlot_UniDec_chargeDistribution
+            }.get(self.view.plot_name, None)
+
             if evtID is not None:
                 menu.AppendItem(
                     makeMenuItem(
@@ -1450,59 +1208,17 @@ class panelPlot(wx.Panel):
                 ),
             )
         elif self.currentPage == 'Other':
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_general_plot,
-                    text='Edit general parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot_general_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot1D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot1D_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_plot2D,
-                    text='Edit plot parameters...',
-                    bitmap=self.icons.iconsLib['panel_plot2D_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_colorbar,
-                    text='Edit colorbar parameters...',
-                    bitmap=self.icons.iconsLib['panel_colorbar_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_legend,
-                    text='Edit legend parameters...',
-                    bitmap=self.icons.iconsLib['panel_legend_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_waterfall,
-                    text='Edit waterfall parameters...',
-                    bitmap=self.icons.iconsLib['panel_waterfall_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_extraSettings_violin,
-                    text='Edit violin parameters...',
-                    bitmap=self.icons.iconsLib['panel_violin_16'],
-                ),
-            )
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_1D)
+            menu.AppendItem(menu_edit_plot_2D)
+            menu.AppendItem(menu_edit_colorbar)
+            menu.AppendItem(menu_edit_legend)
+            menu.AppendItem(menu_edit_waterfall)
+            menu.AppendItem(menu_edit_violin)
             menu.AppendSeparator()
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_plots_customisePlot,
+                    parent=menu, id=ID_plots_customise_plot,
                     text='Customise plot...',
                     bitmap=self.icons.iconsLib['change_xlabels_16'],
                 ),
@@ -1512,7 +1228,7 @@ class panelPlot(wx.Panel):
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 makeMenuItem(
-                    parent=menu, id=ID_saveOtherImage, text=saveImageLabel,
+                    parent=menu, id=ID_saveOtherImage, text='Save figure as...',
                     bitmap=self.icons.iconsLib['save16'],
                 ),
             )
@@ -1691,7 +1407,7 @@ class panelPlot(wx.Panel):
         try:
             dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
         except Exception:
-            pass
+            logger.warning('Could not set image format')
 
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.clock()
@@ -1699,7 +1415,7 @@ class panelPlot(wx.Panel):
             __, extension = os.path.splitext(filename)
             self.config.imageFormat = extension[1::]
 
-            # Build kwargs
+            # build kwargs
             kwargs = {
                 'transparent': self.config.transparent,
                 'dpi': self.config.dpi,
@@ -1717,8 +1433,26 @@ class panelPlot(wx.Panel):
             msg = 'Saved figure to {}. It took {} s.'.format(path, str(np.round((tend - tstart), 4)))
             args = (msg, 4)
         else:
-            args = ('Operation was cancelled', 4)
-        self.presenter.onThreading(evt, args, action='updateStatusbar')
+            msg = 'Operation was cancelled'
+
+        self.data_handling.update_statusbar(msg, 4)
+
+    def on_open_peak_picker(self, evt):
+        plot_obj = self.get_plot_from_name('MS')
+
+        document_name = plot_obj.document_name
+        dataset_name = plot_obj.dataset_name
+        if document_name is None or dataset_name is None:
+            raise MessageError(
+                'No spectrum information',
+                'Document title and/or spectrum title were not recorded for this plot.' +
+                '\n\nYou can try peak picking by right-clicking in the document tree on the desired mass spectrum' +
+                ' and clicking on `Open peak picker`',
+            )
+
+        self.view.panelDocuments.documents.on_open_peak_picker(
+            None, document_name=document_name, dataset_name=dataset_name,
+        )
 
     def get_plot_from_name(self, plot_name):
         plot_dict = {
@@ -1766,7 +1500,7 @@ class panelPlot(wx.Panel):
         dlg = dialog_customise_smart_zoom(self, self.presenter, self.config)
         dlg.ShowModal()
 
-    def customisePlot(self, evt, **kwargs):
+    def on_customise_plot(self, evt, **kwargs):
         open_window, title = True, ''
 
         if 'plot' in kwargs and 'plot_obj' in kwargs:
@@ -1796,19 +1530,19 @@ class panelPlot(wx.Panel):
             plot, title = self.plotCompare, 'Comparison...'
         elif self.currentPage == 'UniDec':
             evtID = evt.GetId()
-            if evtID == ID_plots_customisePlot_unidec_ms:
+            if evtID == ID_plots_customise_plot_unidec_ms:
                 plot, title = self.plotUnidec_MS, 'UniDec - Mass spectrum...'
-            elif evtID == ID_plots_customisePlot_unidec_mw:
+            elif evtID == ID_plots_customise_plot_unidec_mw:
                 plot, title = self.plotUnidec_mwDistribution, 'UniDec - Molecular weight distribution...'
-            elif evtID == ID_plots_customisePlot_unidec_mz_v_charge:
+            elif evtID == ID_plots_customise_plot_unidec_mz_v_charge:
                 plot, title = self.plotUnidec_mzGrid, 'UniDec - Mass spectrum vs charge...'
-            elif evtID == ID_plots_customisePlot_unidec_isolated_mz:
+            elif evtID == ID_plots_customise_plot_unidec_isolated_mz:
                 plot, title = self.plotUnidec_individualPeaks, 'UniDec - Mass spectrum with individual species...'
-            elif evtID == ID_plots_customisePlot_unidec_mw_v_charge:
+            elif evtID == ID_plots_customise_plot_unidec_mw_v_charge:
                 plot, title = self.plotUnidec_mwVsZ, 'UniDec - molecular weight vs charge...'
-            elif evtID == ID_plots_customisePlot_unidec_ms_barchart:
+            elif evtID == ID_plots_customise_plot_unidec_ms_barchart:
                 plot, title = self.plotUnidec_barChart, 'UniDec - Barchart...'
-            elif evtID == ID_plots_customisePlot_unidec_chargeDist:
+            elif evtID == ID_plots_customise_plot_unidec_chargeDist:
                 plot, title = self.plotUnidec_chargeDistribution, 'UniDec - Charge state distribution...'
         elif self.currentPage == 'Other':
             plot, title = self.plotOther, 'Custom data...'
@@ -1882,7 +1616,7 @@ class panelPlot(wx.Panel):
             self.presenter.onThreading(None, args, action='updateStatusbar')
             return
 
-        dlg = panelCustomisePlot(self, self.presenter, self.config, **kwargs)
+        dlg = panel_customise_plot(self, self.presenter, self.config, **kwargs)
         dlg.ShowModal()
 
     def on_rotate_plot(self, evt):
@@ -1934,8 +1668,6 @@ class panelPlot(wx.Panel):
             'tiff': 5, 'raw': 6, 'ps': 7, 'pdf': 8,
         }
 
-#         tstart = time.clock()
-        # Build kwargs
         kwargs = {
             'transparent': self.config.transparent,
             'dpi': self.config.dpi,
@@ -2009,19 +1741,6 @@ class panelPlot(wx.Panel):
                 args = ('Mass spectra will be not binned when extracted from chromatogram and mobiligram windows', 4)
             self.presenter.onThreading(evt, args, action='updateStatusbar')
 
-    def OnAddDataToMZTable(self, evt):
-        self.view._mgr.GetPane(self.view.panelMultipleIons).Show()
-        self.view._mgr.Update()
-        xmin, xmax = self.getPlotExtent(evt=None)
-        self.view.panelMultipleIons.peaklist.Append([
-            round(xmin, 2),
-            round(xmax, 2),
-            '',
-        ])
-
-    def OnExtractRTDT(self, evt):
-        xmin, xmax, ymin, ymax = self.getPlotExtent(evt=None)
-
     def getPlotExtent(self, evt=None):
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
         if self.currentPage == 'MS':
@@ -2041,7 +1760,7 @@ class panelPlot(wx.Panel):
         else:
             pass
 
-    def onChangePlotStyle(self, evt, plot_style=None):
+    def on_change_plot_style(self, evt, plot_style=None):
 
         # https://tonysyu.github.io/raw_content/matplotlib-style-gallery/gallery.html
 
@@ -2054,7 +1773,7 @@ class panelPlot(wx.Panel):
         else:
             plt.style.use(self.config.currentStyle)
 
-    def onChangePalette(self, evt, cmap=None, n_colors=16, return_colors=False, return_hex=False):
+    def on_change_color_palette(self, evt, cmap=None, n_colors=16, return_colors=False, return_hex=False):
         if cmap is not None:
             palette_name = cmap
         else:
@@ -2077,7 +1796,7 @@ class panelPlot(wx.Panel):
             else:
                 return new_colors
 
-    def onGetColormapList(self, n_colors):
+    def on_get_colors_from_colormap(self, n_colors):
         colorlist = sns.color_palette(self.config.currentCmap, n_colors)
         return colorlist
 
@@ -2089,9 +1808,7 @@ class panelPlot(wx.Panel):
 
         return colorList_return
 
-# plots
-
-    def onClearPlot(self, evt, plot=None, **kwargs):
+    def on_clear_plot(self, evt, plot=None, **kwargs):
         """
         Clear selected plot
         """
@@ -3296,7 +3013,7 @@ class panelPlot(wx.Panel):
                     self.config.replotData['MS'] = {'xvals': msX, 'yvals': msY, 'xlimits': xlimits}
                 return
             except Exception as err:
-                pass
+                logger.warning(err)
 
         # check limits
         try:
@@ -3448,20 +3165,16 @@ class panelPlot(wx.Panel):
         Input format: zvals, xvals, xlabel, yvals, ylabel
         """
         if isempty(data[0]):
-            dlgBox(
-                exceptionTitle='Missing data',
-                exceptionMsg='Missing data. Cannot plot 2D plots.',
-                type='Error',
+            raise MessageError(
+                'Missing data',
+                'Missing data - cannot plot 2D plot',
             )
-            return
-        else:
-            pass
 
         # Unpack data
         if len(data) == 5:
             zvals, xvals, xlabel, yvals, ylabel = data
         elif len(data) == 6:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = data
+            zvals, xvals, xlabel, yvals, ylabel, __ = data
 
         # Check and change colormap if necessary
         cmapNorm = self.normalize_colormap(
@@ -3505,7 +3218,7 @@ class panelPlot(wx.Panel):
         if len(data) == 5:
             zvals, xvals, xlabel, yvals, ylabel = data
         elif len(data) == 6:
-            zvals, xvals, xlabel, yvals, ylabel, cmap = data
+            zvals, xvals, xlabel, yvals, ylabel, __ = data
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
         violin_kwargs = self._buildPlotParameters(plotType='violin')

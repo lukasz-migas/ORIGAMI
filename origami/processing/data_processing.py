@@ -1878,7 +1878,7 @@ class data_processing():
     def __combine_origami_linear(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage):
         if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage]):
             msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
-            self.__update_statusbar(msg, 4)
+            self.update_statusbar(msg, 4)
             return
 
         zvals, scan_list, parameters = pr_origami.origami_combine_linear(
@@ -1892,7 +1892,7 @@ class data_processing():
     ):
         if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, expIncrement, expPercentage]):
             msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
-            self.__update_statusbar(msg, 4)
+            self.update_statusbar(msg, 4)
             return
 
         zvals, scan_list, parameters = pr_origami.origami_combine_exponential(
@@ -1903,7 +1903,7 @@ class data_processing():
     def __combine_origami_fitted(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx):
         if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx]):
             msg = 'Cannot perform action. Missing fields in the ORIGAMI parameters panel'
-            self.__update_statusbar(msg, 4)
+            self.update_statusbar(msg, 4)
             return
 
         zvals, scan_list, parameters = pr_origami.origami_combine_boltzmann(
@@ -1921,7 +1921,7 @@ class data_processing():
             msg = 'The collision voltage list is of incorrect shape.'
 
         if msg is not None:
-            self.__update_statusbar(msg, 4)
+            self.update_statusbar(msg, 4)
             return
 
         zvals, xlabels, scan_list, parameters = pr_origami.origami_combine_userDefined(

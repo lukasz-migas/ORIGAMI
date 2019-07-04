@@ -649,12 +649,14 @@ class panelMultipleTextFiles (wx.Panel):
                 check_count += 1
 
         if evt.GetId() == ID_textPanel_changeColorBatch_palette:
-            colors = self.presenter.view.panelPlots.onChangePalette(None, n_colors=check_count, return_colors=True)
+            colors = self.presenter.view.panelPlots.on_change_color_palette(
+                None, n_colors=check_count, return_colors=True,
+            )
         elif evt.GetId() == ID_textPanel_changeColorBatch_color:
             color = self.OnGetColor(None)
             colors = [color] * check_count
         else:
-            colors = self.presenter.view.panelPlots.onGetColormapList(n_colors=check_count)
+            colors = self.presenter.view.panelPlots.on_get_colors_from_colormap(n_colors=check_count)
 
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):

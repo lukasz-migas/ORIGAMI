@@ -12,7 +12,7 @@ from utils.labels import _replace_labels
 from visuals.normalize import MidpointNormalize
 
 
-class panelCustomisePlot(wx.Dialog):
+class panel_customise_plot(wx.Dialog):
 
     def __init__(self, parent, presenter, config, **kwargs):
         wx.Dialog.__init__(

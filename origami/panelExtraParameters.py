@@ -651,7 +651,7 @@ class panelParametersEdit(wx.Panel):
             size=(-1, -1),
         )
         self.general_style_value.SetStringSelection(self.config.currentStyle)
-        self.general_style_value.Bind(wx.EVT_CHOICE, self.onChangePlotStyle)
+        self.general_style_value.Bind(wx.EVT_CHOICE, self.on_change_plot_style)
 
         palette_label = wx.StaticText(panel, -1, 'Color palette:')
         self.general_palette_value = BitmapComboBox(
@@ -678,7 +678,7 @@ class panelParametersEdit(wx.Panel):
 #         self.general_palette_value.Append("Modern UI 2", bitmap=self.icons.iconsLib['cmap_modern2'])
 
         self.general_palette_value.SetStringSelection(self.config.currentPalette)
-        self.general_palette_value.Bind(wx.EVT_COMBOBOX, self.onChangePalette)
+        self.general_palette_value.Bind(wx.EVT_COMBOBOX, self.on_change_color_palette)
 
 ########
         CTRL_SIZE = 60
@@ -3289,9 +3289,9 @@ class panelParametersEdit(wx.Panel):
         if evt is not None:
             evt.Skip()
 
-    def onChangePlotStyle(self, evt):
+    def on_change_plot_style(self, evt):
         self.config.currentStyle = self.general_style_value.GetStringSelection()
-        self.presenter.view.panelPlots.onChangePlotStyle(evt=None)
+        self.presenter.view.panelPlots.on_change_plot_style(evt=None)
 
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
@@ -3299,9 +3299,9 @@ class panelParametersEdit(wx.Panel):
         if evt is not None:
             evt.Skip()
 
-    def onChangePalette(self, evt):
+    def on_change_color_palette(self, evt):
         self.config.currentPalette = self.general_palette_value.GetStringSelection()
-        self.presenter.view.panelPlots.onChangePalette(evt=None)
+        self.presenter.view.panelPlots.on_change_color_palette(evt=None)
 
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
