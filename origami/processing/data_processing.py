@@ -35,7 +35,6 @@ class data_processing():
     def __init__(self, presenter, view, config, **kwargs):
         self.presenter = presenter
         self.view = view
-        self.documentTree = view.panelDocuments.documents
         self.config = config
 
         # panel links
@@ -57,6 +56,9 @@ class data_processing():
         # unidec parameters
         self.unidec_dataset = None
         self.unidec_document = None
+
+    def _setup_handling_and_processing(self):
+        self.data_handling = self.view.data_handling
 
     def _on_get_document(self):
         self.presenter.currentDoc = self.documentTree.on_enable_document()
@@ -170,7 +172,7 @@ class data_processing():
                 # Plot smoothed MS
                 name_kwargs = {'document': self.docs.title, 'dataset': 'Mass Spectrum'}
                 self.view.panelPlots.on_plot_MS(msX, msY, xlimits=self.docs.massSpectrum['xlimits'], **name_kwargs)
-                self.presenter.OnUpdateDocument(self.docs, 'document')
+                self.data_handling.on_update_document(self.docs, 'document')
 
         elif evt.GetId() == ID_smooth1Ddata1DT:
             if self.docs.got1DT:
@@ -814,7 +816,7 @@ class data_processing():
             else:
                 document.multipleMassSpectrum[dataset_title]['annotations'] = annotations
 
-            self.presenter.OnUpdateDocument(document, 'document')
+            self.data_handling.on_update_document(document, 'document')
 
     def downsample_array(self, xvals, zvals):
         """Downsample MS/DT array
@@ -980,7 +982,7 @@ class data_processing():
         # Plot processed MS
         name_kwargs = {'document': self.docs.title, 'dataset': new_dataset}
         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
-        self.presenter.OnUpdateDocument(self.docs, 'document')
+        self.data_handling.on_update_document(self.docs, 'document')
 
     def on_process_2D(
         self, zvals=None, replot=False, replot_type='2D',
@@ -1163,7 +1165,7 @@ class data_processing():
             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
 
         # Update file list
-        self.presenter.OnUpdateDocument(self.docs, 'document')
+        self.data_handling.on_update_document(self.docs, 'document')
 
     def on_get_peptide_fragments(
         self, spectrum_dict, label_format={}, get_lists=False,
@@ -1542,12 +1544,12 @@ class data_processing():
 
         # update document
         if dataset == 'Mass Spectra':
-            self.presenter.OnUpdateDocument(
+            self.data_handling.on_update_document(
                 document, expand_item='mass_spectra',
                 expand_item_title=self.dataset['MS'],
             )
         else:
-            self.presenter.OnUpdateDocument(document, expand_item='document')
+            self.data_handling.on_update_document(document, expand_item='document')
 
     def get_unidec_data(self, data_type='Individual MS', **kwargs):
 

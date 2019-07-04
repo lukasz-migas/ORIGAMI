@@ -638,15 +638,15 @@ class topPanel(wx.Panel):
             xlabelDT=xlabel, plotType='1DT',
         )
 
-        if peak[0] != '' and peak[1] != '' and peak[0] is not None and peak[1] is not None:
-            self.presenter.addMarkerMS(
-                xvals=peak[0],
-                yvals=peak[1],
-                color=self.config.annotColor,
-                marker=self.config.markerShape,
-                size=self.config.markerSize,
-                plot='CalibrationDT',
-            )
+        # if peak[0] != '' and peak[1] != '' and peak[0] is not None and peak[1] is not None:
+        #     self.presenter.addMarkerMS(
+        #         xvals=peak[0],
+        #         yvals=peak[1],
+        #         color=self.config.annotColor,
+        #         marker=self.config.markerShape,
+        #         size=self.config.markerSize,
+        #         plot='CalibrationDT',
+        #     )
 
     def onPlotTool(self, evt):
         menu = wx.Menu()

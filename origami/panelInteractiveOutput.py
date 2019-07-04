@@ -835,7 +835,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             document.tandem_spectra.update(interactive_params=parameters)
 
         # Update dictionary
-        self.presenter.OnUpdateDocument(document, 'no_refresh')
+        self.data_handling.on_update_document(document, 'no_refresh')
 
     def on_update_list(self):
 

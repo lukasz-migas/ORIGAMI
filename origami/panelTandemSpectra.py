@@ -321,7 +321,7 @@ class panelTandemSpectra(wx.MiniFrame):
         # ensure there are no duplicates in the list
         document.tandem_spectra['annotated_item_list'] = list(set(document.tandem_spectra['annotated_item_list']))
         # update document
-        self.presenter.OnUpdateDocument(document, 'no_refresh')
+        self.data_handling.on_update_document(document, 'no_refresh')
 
         print('Annotated {} scans in {:.4f} seconds.'. format(counter, ttime() - tstart))
 
@@ -355,7 +355,7 @@ class panelTandemSpectra(wx.MiniFrame):
             self._update_status_('Deleted all items.')
 
             # update document
-            self.presenter.OnUpdateDocument(document, 'no_refresh')
+            self.data_handling.on_update_document(document, 'no_refresh')
 
     def on_clear_annotations(self, evt):
 
@@ -374,7 +374,7 @@ class panelTandemSpectra(wx.MiniFrame):
                 counter += 1
 
         # update document
-        self.presenter.OnUpdateDocument(document, 'no_refresh')
+        self.data_handling.on_update_document(document, 'no_refresh')
 
     def peaklist_page_changed(self, evt):
         self.peaklist_page = self.peaklistBook.GetPageText(self.peaklistBook.GetSelection())

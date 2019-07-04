@@ -80,11 +80,11 @@ def get_base_path(filepath):
 
 
 def clean_filename(filename):
-    filename = filename.replace('.csv', '').replace('.txt', '').replace('.raw', '')
-    filename = filename.replace('.tab', '').replace('.RAW', '').replace('.mgf', '')
-    filename = filename.replace('.mzML', '').replace('.mzIdentML', '').replace(':', '')
-    filename = filename.replace('/', '').replace('~', '').replace('@', 'at')
-    filename = filename.replace('[', '_').replace(']', '_')
+    filename = filename.replace('.csv', '').replace('.txt', '').replace('.raw', '').replace('.tab', '').replace(
+        '.RAW', '',
+    ).replace('.mgf', '').replace('.mzML', '').replace('.mzIdentML', '').replace(':', '').replace(
+        '/', '',
+    ).replace('~', '').replace('@', 'at').replace('[', '_').replace(']', '_')
 
     return filename
 

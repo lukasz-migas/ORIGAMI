@@ -224,18 +224,18 @@ class topPanel(wx.Panel):
             xmin = str2num(self.peaklist.GetItem(itemId=row, col=0).GetText())
             xmax = str2num(self.peaklist.GetItem(itemId=row, col=1).GetText())
             width = xmax - xmin
-            if row == last:
-                self.presenter.addRectRT(
-                    xmin, ymin, width, height, color=self.config.annotColor,
-                    alpha=(self.config.annotTransparency / 100),
-                    repaint=True,
-                )
-            else:
-                self.presenter.addRectRT(
-                    xmin, ymin, width, height, color=self.config.annotColor,
-                    alpha=(self.config.annotTransparency / 100),
-                    repaint=False,
-                )
+            # if row == last:
+            #     self.presenter.addRectRT(
+            #         xmin, ymin, width, height, color=self.config.annotColor,
+            #         alpha=(self.config.annotTransparency / 100),
+            #         repaint=True,
+            #     )
+            # else:
+            #     self.presenter.addRectRT(
+            #         xmin, ymin, width, height, color=self.config.annotColor,
+            #         alpha=(self.config.annotTransparency / 100),
+            #         repaint=False,
+            #     )
 
     def OnDeleteAll(self, evt, ticked=False, selected=False, itemID=None):
         """
@@ -713,18 +713,18 @@ class bottomPanel(wx.Panel):
             xmin = str2num(self.peaklist.GetItem(itemId=row, col=0).GetText())
             xmax = str2num(self.peaklist.GetItem(itemId=row, col=1).GetText())
             width = xmax - xmin
-            if row == last:
-                self.presenter.addRectMS(
-                    xmin, ymin, width, height, color=self.config.annotColor,
-                    alpha=(self.config.annotTransparency / 100),
-                    repaint=True,
-                )
-            else:
-                self.presenter.addRectMS(
-                    xmin, ymin, width, height, color=self.config.annotColor,
-                    alpha=(self.config.annotTransparency / 100),
-                    repaint=False,
-                )
+            # if row == last:
+            #     self.presenter.addRectMS(
+            #         xmin, ymin, width, height, color=self.config.annotColor,
+            #         alpha=(self.config.annotTransparency / 100),
+            #         repaint=True,
+            #     )
+            # else:
+            #     self.presenter.addRectMS(
+            #         xmin, ymin, width, height, color=self.config.annotColor,
+            #         alpha=(self.config.annotTransparency / 100),
+            #         repaint=False,
+            #     )
 
     def OnGetItemInformation(self, itemID, return_list=False):
         # get item information

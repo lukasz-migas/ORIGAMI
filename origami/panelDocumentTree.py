@@ -39,6 +39,7 @@ from utils.color import determineFontColor
 from utils.converters import byte2str
 from utils.converters import str2int
 from utils.converters import str2num
+from utils.exceptions import MessageError
 from utils.labels import _replace_labels
 from utils.random import randomIntegerGenerator
 # enable on windowsOS only
@@ -337,50 +338,54 @@ class documentsTree(wx.TreeCtrl):
             'calibration_on': 16, 'overlay_on': 17,
         }
 
-    def onGetItemData(self, dataType=None, evt=None):
+    def onGetItemData(self, dataType):
         """
         This function retrieves data for currently selected item
         """
         if self._document_data is None:
             return
 
-        # Get data
-        if self._document_type == 'Drift time (2D)':
-            data = self._document_data.IMS2D
-        elif self._document_type == 'Drift time (2D, processed)':
-            data = self._document_data.IMS2Dprocess
-        elif self._document_type == 'Drift time (2D, EIC)':
-            if self._item_leaf == 'Drift time (2D, EIC)':
-                return
-            data = self._document_data.IMS2Dions[self._item_leaf]
-        elif self._document_type == 'Drift time (2D, combined voltages, EIC)':
-            if self._item_leaf == 'Drift time (2D, combined voltages, EIC)':
-                return
-            data = self._document_data.IMS2DCombIons[self._item_leaf]
-        elif self._document_type == 'Drift time (2D, processed, EIC)':
-            if self._item_leaf == 'Drift time (2D, processed, EIC)':
-                return
-            data = self._document_data.IMS2DionsProcess[self._item_leaf]
-        elif self._document_type == 'Input data':
-            if self._item_leaf == 'Input data':
-                return
-            data = self._document_data.IMS2DcompData[self._item_leaf]
-        elif self._document_type == 'Statistical':
-            if self._item_leaf == 'Statistical':
-                return
-            data = self._document_data.IMS2DstatsData[self._item_leaf]
-        elif self._document_type == 'Chromatograms (combined voltages, EIC)':
-            if self._item_leaf == 'Chromatograms (combined voltages, EIC)':
-                return
-            data = self._document_data.IMSRTCombIons[self._item_leaf]
-        elif self._document_type == 'Drift time (1D, EIC, DT-IMS)':
-            if self._item_leaf == 'Drift time (1D, EIC, DT-IMS)':
-                return
-            data = self._document_data.IMS1DdriftTimes[self._item_leaf]
-        elif self._document_type == 'Drift time (1D, EIC)':
-            if self._item_leaf == 'Drift time (1D, EIC)':
-                return
-            data = self._document_data.multipleDT[self._item_leaf]
+        __, data, __ = self._on_event_get_mobility_chromatogram_data()
+
+#         # Get data
+#         if self._document_type == 'Drift time (2D)':
+#             data = self._document_data.IMS2D
+#         elif self._document_type == 'Drift time (2D, processed)':
+#             data = self._document_data.IMS2Dprocess
+#         elif self._document_type == 'Drift time (2D, EIC)':
+#             if self._item_leaf == 'Drift time (2D, EIC)':
+#                 return
+#             data = self._document_data.IMS2Dions[self._item_leaf]
+#         elif self._document_type == 'Drift time (2D, combined voltages, EIC)':
+#             if self._item_leaf == 'Drift time (2D, combined voltages, EIC)':
+#                 return
+#             data = self._document_data.IMS2DCombIons[self._item_leaf]
+#         elif self._document_type == 'Drift time (2D, processed, EIC)':
+#             if self._item_leaf == 'Drift time (2D, processed, EIC)':
+#                 return
+#             data = self._document_data.IMS2DionsProcess[self._item_leaf]
+#         elif self._document_type == 'Input data':
+#             if self._item_leaf == 'Input data':
+#                 return
+#             data = self._document_data.IMS2DcompData[self._item_leaf]
+#         elif self._document_type == 'Statistical':
+#             if self._item_leaf == 'Statistical':
+#                 return
+#             data = self._document_data.IMS2DstatsData[self._item_leaf]
+#         elif self._document_type == 'Chromatograms (combined voltages, EIC)':
+#             if self._item_leaf == 'Chromatograms (combined voltages, EIC)':
+#                 return
+#             data = self._document_data.IMSRTCombIons[self._item_leaf]
+#         elif self._document_type == 'Drift time (1D, EIC, DT-IMS)':
+#             if self._item_leaf == 'Drift time (1D, EIC, DT-IMS)':
+#                 return
+#             data = self._document_data.IMS1DdriftTimes[self._item_leaf]
+#         elif self._document_type == 'Drift time (1D, EIC)':
+#             if self._item_leaf == 'Drift time (1D, EIC)':
+#                 return
+#             data = self._document_data.multipleDT[self._item_leaf]
+
+        return data.get(dataType, None)
 
         # Retrieve dataType
         if dataType == 'charge':
@@ -491,7 +496,7 @@ class documentsTree(wx.TreeCtrl):
                 pass
 
         # go to page
-        self.panel_plot.mainBook.SetSelection(go_to_page)
+        self.panel_plot._set_page(go_to_page)
 
     # TODO: add option to do this for ALL items in the dataset
     def on_check_xlabels_RT(self):
@@ -597,6 +602,102 @@ class documentsTree(wx.TreeCtrl):
         }
 
         return ylabel_evt_dict.get(ylabel, ID_ylabel_DTMS_bins)
+
+    def on_change_charge_state(self, evt):
+        """Change charge state for item in the document tree"""
+
+        # Check that the user hasn't selected the header
+        if self._document_type in [
+            'Drift time (2D, EIC)',
+            'Drift time (2D, combined voltages, EIC)',
+            'Drift time (2D, processed, EIC)',
+            'Input data',
+        ] and \
+            self._item_leaf in [
+                'Drift time (2D, EIC)',
+                'Drift time (2D, combined voltages, EIC)',
+                'Drift time (2D, processed, EIC)',
+                'Input data',
+        ]:
+            raise MessageError(
+                'Incorrect data type',
+                'Please select a single ion in the Document panel.\n\n',
+            )
+
+        current_charge = self.onGetItemData(dataType='charge')
+
+        charge = dlgAsk(
+            'Type in new charge state',
+            defaultValue=str(current_charge),
+        )
+
+        charge = str2int(charge)
+
+        if charge in ['', 'None', None]:
+            logger.warning(f'The defined value `{charge}` is not correct')
+            return
+
+        query_info = self._on_event_get_mobility_chromatogram_query()
+        document = self.data_handling.set_mobility_chromatographic_data(query_info, charge=charge)
+
+        # update data in side panel
+        self.ionPanel.on_find_and_update_values(query_info[2], charge=charge)
+
+        # update document
+        self.data_handling.on_update_document(document, 'no_refresh')
+
+    def _on_event_get_mass_spectrum(self, **kwargs):
+
+        if 'document_title' not in kwargs and 'dataset_name' not in kwargs:
+            document_title = self._document_data.title
+            if self._document_type == 'Mass Spectrum':
+                dataset_name = 'Mass Spectrum'
+            elif self._document_type == 'Mass Spectrum (processed)':
+                dataset_name = 'Mass Spectrum (processed)'
+            elif self._document_type == 'Mass Spectra':
+                dataset_name = self._item_leaf
+        else:
+            document_title = kwargs.pop('document_name')
+            dataset_name = kwargs.pop('dataset_name')
+
+        # form query
+        query = [document_title, dataset_name]
+        # get dat and document
+        document, data = self.data_handling.get_spectrum_data(query)
+
+        return document, data, dataset_name
+
+    def _on_event_get_mobility_chromatogram_query(self, **kwargs):
+        if 'document_title' not in kwargs \
+                and 'dataset_type' not in kwargs \
+                and 'dataset_name' not in kwargs:
+            document_title = self._document_data.title
+            dataset_name = None
+            dataset_type = self._document_type
+            if self._document_type in [
+                'Drift time (2D, EIC)',
+                'Drift time (2D, combined voltages, EIC)',
+                'Drift time (2D, processed, EIC)',
+                'Input data',
+                'Chromatograms (combined voltages, EIC)',
+                'Drift time (1D, EIC)',
+            ]:
+                dataset_name = self._item_leaf
+        else:
+            document_title = kwargs.pop('document_name')
+            dataset_type = kwargs.pop('dataset_type')
+            dataset_name = kwargs.pop('dataset_name')
+
+        query = [document_title, dataset_type, dataset_name]
+
+        return query
+
+    def _on_event_get_mobility_chromatogram_data(self, **kwargs):
+        query = self._on_event_get_mobility_chromatogram_query(**kwargs)
+
+        document, data = self.data_handling.get_mobility_chromatographic_data(query)
+
+        return document, data, query
 
     def onLoadInteractiveData(self, evt):
         """
@@ -784,7 +885,7 @@ class documentsTree(wx.TreeCtrl):
 
         dlg.Destroy()
 
-        self.presenter.OnUpdateDocument(document, 'document')
+        self.data_handling.on_update_document(document, 'document')
 
     def onLoadOtherData(self, fname):
         if fname.endswith('.csv'):
@@ -1606,7 +1707,7 @@ class documentsTree(wx.TreeCtrl):
 
         if item is not False and not set_data_only:
             self.append_annotation(item, annotation_data)
-            self.presenter.OnUpdateDocument(document, 'no_refresh')
+            self.data_handling.on_update_document(document, 'no_refresh')
         else:
             try:
                 docItem = self.getItemByData(document)
@@ -1616,7 +1717,7 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(docItem, document)
                 self.presenter.documentsDict[document.title] = document
             else:
-                self.presenter.OnUpdateDocument(document, 'document')
+                self.data_handling.on_update_document(document, 'document')
 
     def append_annotation(self, item, annotation_data, expand=True):
         """
@@ -1734,37 +1835,15 @@ class documentsTree(wx.TreeCtrl):
 
         if item is not False:
             self.append_annotation(item, annotation_data)
-            self.presenter.OnUpdateDocument(duplicate_document, 'no_refresh')
+            self.data_handling.on_update_document(duplicate_document, 'no_refresh')
         else:
-            self.presenter.OnUpdateDocument(duplicate_document, 'document')
+            self.data_handling.on_update_document(duplicate_document, 'document')
 
         msg = 'Duplicated annotations to {} - {}'.format(
             duplicate_document.title,
             duplicate_dataset,
         )
         self.presenter.onThreading(None, (msg, 4, 5), action='updateStatusbar')
-
-    def _on_event_get_mass_spectrum(self, **kwargs):
-
-        if 'document_title' not in kwargs and 'dataset_name' not in kwargs:
-            document_title = self._document_data.title
-            if self._document_type == 'Mass Spectrum':
-                dataset = 'Mass Spectrum'
-            elif self._document_type == 'Mass Spectrum (processed)':
-                dataset = 'Mass Spectrum (processed)'
-            elif self._document_type == 'Mass Spectra':
-                dataset = self._item_leaf
-        else:
-            document_title = kwargs.pop('document_name')
-            dataset = kwargs.pop('dataset_name')
-
-        # form query
-        query = [document_title, dataset]
-        # get dat and document
-        data = self.data_handling.get_spectrum(query)
-        document = self.data_handling._on_get_document(document_title)
-
-        return document, data, dataset
 
     def onShowAnnotations(self, evt):
         """
@@ -1949,9 +2028,8 @@ class documentsTree(wx.TreeCtrl):
             self.currentData = None
 
         if self.config.debug:
-            msg = 'Item: {} | extract: {} | extract parent: {} | extract grandparent: {} | indent: {}'.format(
-                self._document_type, self._item_leaf, self._item_branch, self._item_root, self._indent,
-            )
+            msg = f'DEBUG: _document_type: {self._document_type} | _item_leaf: {self._item_leaf} | ' + \
+                f'_item_branch: {self._item_branch} | _item_root: {self._item_root} | _indent: {self._indent}'
             print(msg)
 
         # load data
@@ -2075,7 +2153,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotRTDocument)
         self.Bind(wx.EVT_MENU, self.onShowPlot, id=ID_showPlotMSDocument)
         self.Bind(wx.EVT_MENU, self.onProcess, id=ID_process2DDocument)
-        self.Bind(wx.EVT_MENU, self.presenter.onChangeChargeState, id=ID_assignChargeState)
+        self.Bind(wx.EVT_MENU, self.on_change_charge_state, id=ID_assignChargeState)
         self.Bind(wx.EVT_MENU, self.onGoToDirectory, id=ID_goToDirectory)
         self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveDataCSVDocument)
         self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveDataCSVDocument1D)
@@ -3591,7 +3669,8 @@ class documentsTree(wx.TreeCtrl):
         menu.Destroy()
         self.SetFocus()
 
-    def on_change_xy_values_and_labels(self, evt):  # onUpdateXYaxisLabels
+    # TODO: FIXME
+    def on_change_xy_values_and_labels(self, evt):
         """
         Change xy-axis labels
         """
@@ -3884,12 +3963,12 @@ class documentsTree(wx.TreeCtrl):
                 self.SetPyData(docItem, data)
                 self.presenter.documentsDict[document.title] = document
             except Exception:
-                self.presenter.OnUpdateDocument(
+                self.data_handling.on_update_document(
                     document, expand_item,
                     expand_item_title=expand_item_title,
                 )
         else:
-            self.presenter.OnUpdateDocument(
+            self.data_handling.on_update_document(
                 document, expand_item,
                 expand_item_title=expand_item_title,
             )
@@ -4319,11 +4398,11 @@ class documentsTree(wx.TreeCtrl):
 #                                                             'Drift time (2D, processed, EIC)',
 #                                                             'Input data', 'Statistical']):
 #             self.presenter.process2Ddata2()
-#             self.panel_plot.mainBook.SetSelection(self.config.panelNames['2D'])
+#             self_set_pageSetSelection(self.config.panelNames['2D'])
 #
 #         elif self._document_type == 'DT/MS':
 #             self.presenter.process2Ddata2(mode='MSDT')
-#             self.panel_plot.mainBook.SetSelection(self.config.panelNames['MZDT'])
+#             self.panel_plot._set_page(self.config.panelNames['MZDT'])
 
     def updateComparisonMS(self, evt):
         msg = 'Comparing {} ({}) vs {} ({})'.format(
@@ -4457,14 +4536,14 @@ class documentsTree(wx.TreeCtrl):
                 self.presenter.documentsDict[title].multipleMassSpectrum[copy_name] = self.presenter.documentsDict[self.title].multipleMassSpectrum[self._item_leaf].copy(
                 )
                 document = self.presenter.documentsDict[title]
-                self.presenter.OnUpdateDocument(document, 'document')
+                self.data_handling.on_update_document(document, 'document')
                 self.Expand(docItem)
         elif evtID == ID_docTree_duplicate_document:
             title = self._document_data.title
             document = deepcopy(self.presenter.documentsDict[title])
             document.title = '{} - copy'.format(title)
 
-            self.presenter.OnUpdateDocument(document, 'document')
+            self.data_handling.on_update_document(document, 'document')
 
     def onRenameItem(self, evt):
 
@@ -4533,7 +4612,7 @@ class documentsTree(wx.TreeCtrl):
                 del self.presenter.documentsDict[current_name]
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
-                self.presenter.OnUpdateDocument(document, 'document')
+                self.data_handling.on_update_document(document, 'document')
                 self.Expand(docItem)
 
                 # check if item is in other panels
@@ -4831,10 +4910,9 @@ class documentsTree(wx.TreeCtrl):
             unidec_engine_data = self._document_data.multipleMassSpectrum[self._item_root]['unidec']
             plot_type = self._item_leaf
 
+        change_page = False
         if self.config.unidec_plot_panel_view == 'Tabbed view' and plot_type != 'all':
             change_page = True
-        else:
-            change_page = False
 
         kwargs = {
             'show_markers': self.config.unidec_show_markers,
@@ -4844,7 +4922,7 @@ class documentsTree(wx.TreeCtrl):
         }
 
         # change page
-        self.panel_plot.mainBook.SetSelection(self.config.panelNames['UniDec'])
+        self.panel_plot._set_page(self.config.panelNames['UniDec'])
 
         if plot_type == 'all':
             self.panel_plot.on_clear_unidec()
@@ -4855,15 +4933,15 @@ class documentsTree(wx.TreeCtrl):
                     replot=unidec_engine_data['Fitted'],
                     **kwargs
                 )
-            except Exception:
-                print('Failed to plot MS vs Fit plot')
+            except (KeyError, TypeError, ValueError) as err:
+                print(f'Failed to plot MS vs Fit plot. Error: {err}')
                 try:
                     self.panel_plot.on_plot_unidec_MS(
                         replot=unidec_engine_data['Processed'],
                         **kwargs
                     )
-                except Exception:
-                    print('Failed to plot MS plot')
+                except (KeyError, TypeError, ValueError) as err:
+                    print(f'Failed to plot MS plot. Error: {err}')
 
         if plot_type in ['all', 'MW distribution']:
             try:
@@ -4879,8 +4957,8 @@ class documentsTree(wx.TreeCtrl):
                     )
                 except Exception:
                     pass
-            except Exception:
-                print('Failed to plot MW distribution plot')
+            except (KeyError, TypeError, ValueError) as err:
+                print(f'Failed to plot MW distribution plot. Error: {err}')
 
         if plot_type in ['all', 'm/z vs Charge']:
             try:
@@ -4888,8 +4966,8 @@ class documentsTree(wx.TreeCtrl):
                     replot=unidec_engine_data['m/z vs Charge'],
                     **kwargs
                 )
-            except Exception:
-                print('Failed to plot m/z vs charge plot')
+            except (KeyError, TypeError, ValueError) as err:
+                print(f'Failed to plot m/z vs charge plot. Error: {err}')
 
         if plot_type in ['all', 'm/z with isolated species']:
             try:
@@ -4897,8 +4975,8 @@ class documentsTree(wx.TreeCtrl):
                     replot=unidec_engine_data['m/z with isolated species'],
                     **kwargs
                 )
-            except Exception:
-                print('Failed to plot individual MS plot')
+            except (KeyError, TypeError, ValueError) as err:
+                print(f'Failed to plot individual MS plot. Error: {err}')
 
         if plot_type in ['all', 'MW vs Charge']:
             try:
@@ -4907,7 +4985,7 @@ class documentsTree(wx.TreeCtrl):
                     **kwargs
                 )
             except Exception:
-                print('Failed to plot MW vs charge plot')
+                print(f'Failed to plot MW vs charge plot. Error: {err}')
 
         if plot_type in ['all', 'Barchart']:
             try:
@@ -4915,8 +4993,8 @@ class documentsTree(wx.TreeCtrl):
                     replot=unidec_engine_data['Barchart'],
                     **kwargs
                 )
-            except Exception:
-                print('Failed to plot barplot')
+            except (KeyError, TypeError, ValueError) as err:
+                print(f'Failed to plot barplot. Error: {err}')
 
         if plot_type in ['all', 'Charge information']:
             try:
@@ -4925,8 +5003,8 @@ class documentsTree(wx.TreeCtrl):
                     unidec_engine_data['Charge information'][:, 1],
                     **kwargs
                 )
-            except Exception:
-                print('Failed to plot charge distribution')
+            except (KeyError, TypeError, ValueError) as err:
+                print(f'Failed to plot charge distribution. Error: {err}')
 
     def onShowPlot(self, evt, data_type=None, save_image=False):
         """ This will send data, plot and change window"""
@@ -5347,7 +5425,7 @@ class documentsTree(wx.TreeCtrl):
             # Change panel and plot data
             self.panel_plot.on_plot_2D_data(data=dataOut)
             if not self.config.waterfall:
-                self.panel_plot.mainBook.SetSelection(self.config.panelNames['2D'])
+                self.panel_plot._set_page(self.config.panelNames['2D'])
             if save_image:
                 save_kwargs = {'image_name': defaultValue}
                 self.panel_plot.save_images(evt=ID_save2DImageDoc, **save_kwargs)
@@ -5587,7 +5665,7 @@ class documentsTree(wx.TreeCtrl):
                 )
                 # Change panel and plot data
                 self.panel_plot.on_plot_2D_data(data=dataOut)
-                self.panel_plot.mainBook.SetSelection(self.config.panelNames['2D'])
+                self.panel_plot._set_page(self.config.panelNames['2D'])
                 if save_image:
                     save_kwargs = {'image_name': defaultValue}
                     self.panel_plot.save_images(evt=ID_save2DImageDoc, **save_kwargs)
@@ -7139,7 +7217,7 @@ class documentsTree(wx.TreeCtrl):
                 title=title,
             )
 
-            self.presenter.OnUpdateDocument(document, 'document')
+            self.data_handling.on_update_document(document, 'document')
             print('It took {:.4f} seconds to load {}'.format(time.time() - tstart, basename))
 
     def on_open_MGF_file_fcn(self, evt):
@@ -7180,7 +7258,7 @@ class documentsTree(wx.TreeCtrl):
                 title=title,
             )
 
-            self.presenter.OnUpdateDocument(document, 'document')
+            self.data_handling.on_update_document(document, 'document')
             print('It took {:.4f} seconds to load {}'.format(time.time() - tstart, basename))
 
     def on_open_mzML_file_fcn(self, evt):
@@ -7285,7 +7363,7 @@ class documentsTree(wx.TreeCtrl):
 
             document.tandem_spectra = tandem_spectra
 
-            self.presenter.OnUpdateDocument(document, 'document')
+            self.data_handling.on_update_document(document, 'document')
             print('It took {:.4f} seconds to annotate {}'.format(time.time() - tstart, document.title))
 
     def on_add_mzID_file_fcn(self, evt):
@@ -7356,7 +7434,7 @@ class documentsTree(wx.TreeCtrl):
 
             document.file_reader = {'data_reader': reader}
 
-            self.presenter.OnUpdateDocument(document, 'document')
+            self.data_handling.on_update_document(document, 'document')
             print('It took {:.4f} seconds to load {}'.format(time.time() - tstart, document.title))
 
     def on_delete_data__ions(

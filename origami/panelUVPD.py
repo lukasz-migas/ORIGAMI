@@ -1420,7 +1420,7 @@ class panelUVPD(wx.MiniFrame):
         document.gotMultipleMS = True
 
         # Update document
-        self.presenter.OnUpdateDocument(document, 'mass_spectra')
+        self.data_handling.on_update_document(document, 'mass_spectra')
         gc.collect()
 
         print('In total, it took {:.4f} seconds.'.format(ttime() - tstart))

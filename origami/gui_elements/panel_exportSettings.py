@@ -30,7 +30,7 @@ class panelExportSettings(wx.MiniFrame):
 
         # make gui items
         self.make_gui()
-        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
+        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
         self.mainBook.SetSelection(self.config.importExportParamsWindow[kwargs['window']])
 
         # bind
@@ -44,7 +44,7 @@ class panelExportSettings(wx.MiniFrame):
         self.SetFocus()
 
         # fire-up start events
-        self.onPageChanged(evt=None)
+        self.on_page_changed(evt=None)
         self.on_toggle_controls(evt=None)
 
     def on_key_event(self, evt):
@@ -55,14 +55,14 @@ class panelExportSettings(wx.MiniFrame):
         if evt is not None:
             evt.Skip()
 
-    def onPageChanged(self, evt):
+    def on_page_changed(self, evt):
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
         self.SetSize(self.windowSizes[self.currentPage])
         self.Layout()
 
     def onSetPage(self, **kwargs):
         self.mainBook.SetSelection(self.config.importExportParamsWindow[kwargs['window']])
-        self.onPageChanged(evt=None)
+        self.on_page_changed(evt=None)
 
     def onSelect(self, evt):
         self.Destroy()

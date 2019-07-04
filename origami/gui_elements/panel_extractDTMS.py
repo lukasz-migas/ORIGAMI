@@ -330,7 +330,7 @@ class panel_extractDTMS(wx.MiniFrame):
             'ylabels': 'Drift time (bins)',
             'cmap': self.config.currentCmap,
         }
-        self.presenter.OnUpdateDocument(document, 'document')
+        self.presenter.self.data_handling.on_update_document(document, 'document')
 
     def on_save(self, evt):
         if not self.on_check_data():

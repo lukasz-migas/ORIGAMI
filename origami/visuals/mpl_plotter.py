@@ -315,7 +315,7 @@ class mpl_plotter(wx.Window):
         """
         self.figure.savefig(path, transparent=transparent, dpi=dpi, **kwargs)
 
-    def saveFigure2(self, path, **kwargs):
+    def save_figure(self, path, **kwargs):
         """
         Saves figures in specified location.
         Transparency and DPI taken from config file

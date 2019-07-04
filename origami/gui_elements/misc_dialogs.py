@@ -21,6 +21,7 @@ def dlgBox(exceptionTitle='', exceptionMsg='', type='Error', exceptionPrint=True
 
     if exceptionPrint:
         print(exceptionMsg)
+
     dlg = wx.MessageDialog(None, exceptionMsg, exceptionTitle, dlgStyle)
     result = dlg.ShowModal()
 
@@ -28,16 +29,17 @@ def dlgBox(exceptionTitle='', exceptionMsg='', type='Error', exceptionPrint=True
         return result
 
 
-def dlgAsk(message='', defaultValue=''):
+def dlgAsk(message='', title='', defaultValue=''):
     dlg = wx.TextEntryDialog(
         None,  # parent
         message,
+        title,
         defaultValue,
     )
     dlg.CentreOnScreen()
 
     if dlg.ShowModal() == wx.ID_CANCEL:
-        return False
+        return None
 
     result = dlg.GetValue()
     dlg.Destroy()

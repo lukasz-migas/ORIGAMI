@@ -2717,16 +2717,82 @@ class data_handling():
 
             self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type='extracted.spectrum')
 
-    def get_spectrum(self, query_info, **kwargs):
+    def get_spectrum_data(self, query_info, **kwargs):
+        """Retrieve data for specified query items.
+
+        Parameters
+        ----------
+        query_info: list
+             query should be formed as a list containing two elements [document title, dataset title]
+
+        Returns
+        -------
+        document: document object
+        data: dictionary
+            dictionary with all data associated with the [document, dataset] combo
+        """
 
         document_title, spectrum_title = query_info
         document = self._on_get_document(document_title)
 
         if spectrum_title == 'Mass Spectrum':
-            dataset = document.massSpectrum
+            data = document.massSpectrum
         elif spectrum_title == 'Mass Spectrum (processed)':
-            dataset = document.smoothMS
+            data = document.smoothMS
         else:
-            dataset = document.multipleMassSpectrum.get(spectrum_title, dict())
+            data = document.multipleMassSpectrum.get(spectrum_title, dict())
 
-        return dataset
+        return document, data
+
+    def get_mobility_chromatographic_data(self, query_info, **kwargs):
+
+        document_title, dataset_type, dataset_name = query_info
+        document = self._on_get_document(document_title)
+
+        if dataset_type == 'Drift time (2D)':
+            data = document.IMS2D
+        elif dataset_type == 'Drift time (2D, processed)':
+            data = document.IMS2Dprocess
+        elif dataset_type == 'Drift time (2D, EIC)' and dataset_name is not None:
+            data = document.IMS2Dions[dataset_name]
+        elif dataset_type == 'Drift time (2D, combined voltages, EIC)' and dataset_name is not None:
+            data = document.IMS2DCombIons[dataset_name]
+        elif dataset_type == 'Drift time (2D, processed, EIC)' and dataset_name is not None:
+            data = document.IMS2DionsProcess[dataset_name]
+        elif dataset_type == 'Input data' and dataset_name is not None:
+            data = document.IMS2DcompData[dataset_name]
+        elif dataset_type == 'Chromatograms (combined voltages, EIC)' and dataset_name is not None:
+            data = document.IMSRTCombIons[dataset_name]
+        elif dataset_type == 'Drift time (1D, EIC)' and dataset_name is not None:
+            data = document.IMS1DdriftTimes[dataset_name]
+        elif dataset_type == 'Drift time (1D, EIC, DT-IMS)' and dataset_name is not None:
+            data = document.IMS1DdriftTimes[dataset_name]
+        elif dataset_type == 'Statistical' and dataset_name is not None:
+            data = document.IMS2DstatsData[dataset_name]
+
+        return document, data
+
+    def set_mobility_chromatographic_data(self, query_info, **kwargs):
+
+        document_title, dataset_type, dataset_name = query_info
+        document = self._on_get_document(document_title)
+
+        for keyword in kwargs:
+            if dataset_type == 'Drift time (2D)':
+                document.IMS2D[keyword] = kwargs[keyword]
+            elif dataset_type == 'Drift time (2D, processed)':
+                document.IMS2Dprocess[keyword] = kwargs[keyword]
+            elif dataset_type == 'Drift time (2D, EIC)' and dataset_name is not None:
+                document.IMS2Dions[dataset_name][keyword] = kwargs[keyword]
+            elif dataset_type == 'Drift time (2D, combined voltages, EIC)' and dataset_name is not None:
+                document.IMS2DCombIons[dataset_name][keyword] = kwargs[keyword]
+            elif dataset_type == 'Drift time (2D, processed, EIC)' and dataset_name is not None:
+                document.IMS2DionsProcess[dataset_name][keyword] = kwargs[keyword]
+            elif dataset_type == 'Input data' and dataset_name is not None:
+                document.IMS2DcompData[dataset_name][keyword] = kwargs[keyword]
+            elif dataset_type == 'Chromatograms (combined voltages, EIC)' and dataset_name is not None:
+                document.IMSRTCombIons[dataset_name][keyword] = kwargs[keyword]
+            elif dataset_type == 'Drift time (1D, EIC)' and dataset_name is not None:
+                document.IMS1DdriftTimes[dataset_name][keyword] = kwargs[keyword]
+
+        return document

@@ -450,7 +450,7 @@ class panel_customise_plot(wx.Dialog):
 
         self.lock_size_plot = makeCheckbox(panel, 'Lock size')
         self.lock_size_plot.SetValue(self.plot.lock_plot_from_updating_size)
-        self.lock_size_plot.Bind(wx.EVT_CHECKBOX, self.onLockPlotSize)
+        self.lock_size_plot.Bind(wx.EVT_CHECKBOX, self.on_lock_plot_size)
 
         # add elements to grids
         axes_grid = wx.GridBagSizer(2, 2)
@@ -484,7 +484,7 @@ class panel_customise_plot(wx.Dialog):
 
         self.lock_plot = makeCheckbox(panel, 'Lock plot look')
         self.lock_plot.SetValue(self.plot.lock_plot_from_updating)
-        self.lock_plot.Bind(wx.EVT_CHECKBOX, self.onLockPlot)
+        self.lock_plot.Bind(wx.EVT_CHECKBOX, self.on_lock_plot)
 
         self.resetBtn = wx.Button(panel, wx.ID_ANY, 'Reset', size=(-1, 22))
         self.cancelBtn = wx.Button(panel, -1, 'Cancel', size=(-1, 22))
@@ -937,56 +937,18 @@ class panel_customise_plot(wx.Dialog):
         self.plot.repaint()
         self.onPopulatePanel()
 
-    def onLockPlotSize(self, evt):
+    def on_lock_plot_size(self, evt):
         if self.lock_size_plot.GetValue():
             self.plot.lock_plot_from_updating_size = True
         else:
             self.plot.lock_plot_from_updating_size = False
 
-    def onLockPlot(self, evt):
+    def on_lock_plot(self, evt):
         if self.lock_plot.GetValue():
             self.plot.lock_plot_from_updating = True
         else:
             self.plot.lock_plot_from_updating = False
 
     def saveImage(self, evt):
-        wildcard = 'SVG Scalable Vector Graphic (*.svg)|*.svg|' + \
-                   'SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|' + \
-                   'PNG Portable Network Graphic (*.png)|*.png|' + \
-                   'Enhanced Windows Metafile (*.eps)|*.eps|' + \
-                   'JPEG File Interchange Format (*.jpeg)|*.jpeg|' + \
-                   'TIFF Tag Image File Format (*.tiff)|*.tiff|' + \
-                   'RAW Image File Format (*.raw)|*.raw|' + \
-                   'PS PostScript Image File Format (*.ps)|*.ps|' + \
-                   'PDF Portable Document Format (*.pdf)|*.pdf'
 
-        wildcard_dict = {
-            'svg': 0, 'svgz': 1, 'png': 2, 'eps': 3, 'jpeg': 4,
-            'tiff': 5, 'raw': 6, 'ps': 7, 'pdf': 8,
-        }
-
-        dlg = wx.FileDialog(
-            self, 'Please select a name for the file',
-            '', '', wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-        )
-        dlg.CentreOnParent()
-        try:
-            dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
-        except Exception:
-            pass
-
-        if dlg.ShowModal() == wx.ID_OK:
-            filename = dlg.GetPath()
-            __, extension = os.path.splitext(filename)
-            self.config.imageFormat = extension[1::]
-
-            # Build kwargs
-            kwargs = {
-                'transparent': self.config.transparent,
-                'dpi': self.config.dpi,
-                'format': extension[1::],
-                'compression': 'zlib',
-                'resize': None,
-            }
-
-            self.plot.saveFigure2(path=filename, **kwargs)
+        self.parent.save_images(None, plot_obj=self.plot, image_name='')

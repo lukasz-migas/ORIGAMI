@@ -413,15 +413,6 @@ class MyFrame(wx.Frame):
         if evt is not None:
             evt.Skip()
 
-    # def makeBindings(self):
-    #     '''
-    #     Collection of all bindings for various functions
-    #     '''
-    #     self.Bind(wx.EVT_TOOL, self.data_handling.on_open_multiple_text_2D, id=ID_load_multiple_text_2D)
-    #     self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_textPanel_process_selected)
-    #     self.Bind(wx.EVT_TOOL, self.presenter.on_overlay_2D, id=ID_overlayTextFromList)
-    #     self.Bind(wx.EVT_TOOL, self.presenter.onExtractDToverMZrangeMultiple, id=ID_extractDriftVoltagesForEachIon)
-
     def make_statusbar(self):
 
         self.mainStatusbar = self.CreateStatusBar(6, wx.STB_SIZEGRIP, wx.ID_ANY)
@@ -1587,7 +1578,7 @@ class MyFrame(wx.Frame):
             # ["C", self.presenter.onCombineCEvoltagesMultiple, wx.ACCEL_ALT, ID_combineCEscans],
             ['R', self.panelDocuments.documents.onRenameItem, wx.ACCEL_ALT, ID_renameItem],
             ['X', self.panelDocuments.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotMSDocument],
-            ['Z', self.presenter.onChangeChargeState, wx.ACCEL_ALT, ID_assignChargeState],
+            ['Z', self.presenter.on_change_charge_state, wx.ACCEL_ALT, ID_assignChargeState],
             ['V', self.panelDocuments.documents.onSaveCSV, wx.ACCEL_ALT, ID_saveDataCSVDocument],
         ]
 

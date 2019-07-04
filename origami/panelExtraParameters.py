@@ -52,6 +52,7 @@ class panelParametersEdit(wx.Panel):
         self.presenter = presenter
         self.config = config
         self.icons = icons
+        self.panel_plot = self.parent.panelPlots
         self.help = OrigamiHelp()
 
         self.importEvent = False
@@ -68,7 +69,7 @@ class panelParametersEdit(wx.Panel):
         self.make_gui()
 #         self.makeStatusBar()
 
-        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
+        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
         if kwargs['window'] is not None:
             self.mainBook.SetSelection(self.config.extraParamsWindow[kwargs['window']])
 
@@ -92,7 +93,7 @@ class panelParametersEdit(wx.Panel):
 
         self.onSetupRMSDPosition(evt=None)
         self.onSetupPlotSizes(evt=None)
-        self.onPageChanged(evt=None)
+        self.on_page_changed(evt=None)
 #         self.updateStatusbar()
         print('Startup took {:.3f} seconds'.format(time.time() - tstart))
 
@@ -113,7 +114,7 @@ class panelParametersEdit(wx.Panel):
         if evt is not None:
             evt.Skip()
 
-    def onPageChanged(self, evt):
+    def on_page_changed(self, evt):
         self.windowSizes = {
             'General': (540, 340), 'Plot 1D': (540, 530),
             'Plot 2D': (540, 295), 'Plot 3D': (540, 385),
@@ -133,7 +134,7 @@ class panelParametersEdit(wx.Panel):
 
     def onSetPage(self, **kwargs):
         self.mainBook.SetSelection(self.config.extraParamsWindow[kwargs['window']])
-        self.onPageChanged(evt=None)
+        self.on_page_changed(evt=None)
 
     def on_close(self, evt):
         """Destroy this frame."""
@@ -141,7 +142,6 @@ class panelParametersEdit(wx.Panel):
         self.config.extraParamsWindow_on_off = False
         self.parent._mgr.GetPane(self).Hide()
         self.parent._mgr.Update()
-    # ----
 
     def make_gui(self):
 
@@ -2468,63 +2468,6 @@ class panelParametersEdit(wx.Panel):
 
         return panel
 
-    def plot_update_size(self, plotName=None):
-        dpi = wx.ScreenDC().GetPPI()
-        resizeSize = self.config._plotSettings[plotName]['gui_size']
-        figsizeNarrowPix = (int(resizeSize[0] * dpi[0]), int(resizeSize[1] * dpi[1]))
-
-        if plotName == 'MS':
-            resize_plot = self.presenter.view.panelPlots.plot1
-        elif plotName == 'MS (compare)':
-            resize_plot = self.presenter.view.panelPlots.plot1
-        elif plotName == 'RT':
-            resize_plot = self.presenter.view.panelPlots.plotRT
-        elif plotName == 'DT':
-            resize_plot = self.presenter.view.panelPlots.plot1D
-        elif plotName == '2D':
-            resize_plot = self.presenter.view.panelPlots.plot2D
-        elif plotName == 'Waterfall':
-            resize_plot = self.presenter.view.panelPlots.plot_waterfall
-        elif plotName == 'RMSD':
-            resize_plot = self.presenter.view.panelPlots.plot_RMSF
-        elif plotName in ['Comparison', 'Matrix']:
-            resize_plot = self.presenter.view.panelPlots.plotCompare
-        elif plotName == 'DT/MS':
-            resize_plot = self.presenter.view.panelPlots.plot_DT_vs_MS
-        elif plotName in ['Overlay', 'Overlay (Grid)']:
-            resize_plot = self.presenter.view.panelPlots.plot_overlay
-        elif plotName == 'Calibration (MS)':
-            resize_plot = self.presenter.view.panelPlots.topPlotMS
-        elif plotName == 'Calibration (DT)':
-            resize_plot = self.presenter.view.panelPlots.bottomPlot1DT
-        elif plotName == '3D':
-            resize_plot = self.presenter.view.panelPlots.plot3D
-        elif plotName == 'UniDec (MS)':
-            resize_plot = self.presenter.view.panelPlots.plotUnidec_MS
-        elif plotName == 'UniDec (MW)':
-            resize_plot = self.presenter.view.panelPlots.plotUnidec_mwDistribution
-        elif plotName == 'UniDec (m/z vs Charge)':
-            resize_plot = self.presenter.view.panelPlots.plotUnidec_mzGrid
-        elif plotName == 'UniDec (Isolated MS)':
-            resize_plot = self.presenter.view.panelPlots.plotUnidec_individualPeaks
-        elif plotName == 'UniDec (MW vs Charge)':
-            resize_plot = self.presenter.view.panelPlots.plotUnidec_mwVsZ
-        elif plotName == 'UniDec (Barplot)':
-            resize_plot = self.presenter.view.panelPlots.plotUnidec_barChart
-        elif plotName == 'UniDec (Charge Distribution)':
-            resize_plot = self.presenter.view.panelPlots.plotUnidec_chargeDistribution
-
-        try:
-            if resize_plot.lock_plot_from_updating:
-                msg = 'This plot is locked and you cannot use global setting updated. \n' + \
-                      'Please right-click in the plot area and select Customise plot...' + \
-                      ' to adjust plot settings.'
-                print(msg)
-                return
-            resize_plot.SetSize(figsizeNarrowPix)
-        except (AttributeError, UnboundLocalError):
-            pass
-
     def on_apply_1D(self, evt):
         # plot 1D
         self.config.lineWidth_1D = str2num(self.plot1D_lineWidth_value.GetValue()) / 10
@@ -2632,9 +2575,9 @@ class panelParametersEdit(wx.Panel):
         self.config._plotSettings[plotName]['gui_size'] = plotSizes
 
         # fire events
-        self.presenter.plot_update_axes(plotName=plotName)
+        self.panel_plot.plot_update_axes(plotName=plotName)
 
-        self.plot_update_size(plotName=plotName)
+        self.panel_plot.plot_update_size(plotName=plotName)
 
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
@@ -2878,7 +2821,7 @@ class panelParametersEdit(wx.Panel):
         self.on_apply(None)
         self.onSetupRMSDPosition(None)
 
-        self.parent.panelPlots.plot_2D_update_label()
+        self.panel_plot.plot_2D_update_label()
 
         if evt is not None:
             evt.Skip()
@@ -2886,7 +2829,7 @@ class panelParametersEdit(wx.Panel):
     def onUpdateLabel_Matrix(self, evt):
         self.on_apply(None)
 
-        self.parent.panelPlots.plot_2D_matrix_update_label()
+        self.panel_plot.plot_2D_matrix_update_label()
 
         if evt is not None:
             evt.Skip()
@@ -2894,42 +2837,42 @@ class panelParametersEdit(wx.Panel):
     def onUpdate(self, evt):
 
         self.on_apply_1D(None)
-        if self.parent.panelPlots.currentPage in ['MS', 'RT', '1D']:
-            if self.parent.panelPlots.window_plot1D == 'MS':
-                self.parent.panelPlots.plot_1D_update(plotName='MS')
+        if self.panel_plot.currentPage in ['MS', 'RT', '1D']:
+            if self.panel_plot.window_plot1D == 'MS':
+                self.panel_plot.plot_1D_update(plotName='MS')
 
-            elif self.parent.panelPlots.window_plot1D == 'RT':
-                self.parent.panelPlots.plot_1D_update(plotName='RT')
+            elif self.panel_plot.window_plot1D == 'RT':
+                self.panel_plot.plot_1D_update(plotName='RT')
 
-            elif self.parent.panelPlots.window_plot1D == '1D':
-                self.parent.panelPlots.plot_1D_update(plotName='1D')
+            elif self.panel_plot.window_plot1D == '1D':
+                self.panel_plot.plot_1D_update(plotName='1D')
 
-        if self.parent.panelPlots.currentPage in ['2D', 'DT/MS', 'Waterfall']:
-            if self.parent.panelPlots.window_plot2D == '2D':
-                self.parent.panelPlots.plot_2D_update(plotName='2D')
+        if self.panel_plot.currentPage in ['2D', 'DT/MS', 'Waterfall']:
+            if self.panel_plot.window_plot2D == '2D':
+                self.panel_plot.plot_2D_update(plotName='2D')
 
-            elif self.parent.panelPlots.window_plot2D == 'DT/MS':
-                self.parent.panelPlots.plot_2D_update(plotName='DT/MS')
+            elif self.panel_plot.window_plot2D == 'DT/MS':
+                self.panel_plot.plot_2D_update(plotName='DT/MS')
 
-            elif self.parent.panelPlots.window_plot2D == 'Waterfall':
+            elif self.panel_plot.window_plot2D == 'Waterfall':
                 try:
                     source = evt.GetEventObject().GetName()
                 except Exception:
                     source = 'axes'
-                self.parent.panelPlots.plot_1D_waterfall_update(which=source)
+                self.panel_plot.plot_1D_waterfall_update(which=source)
 
-        if self.parent.panelPlots.currentPage == 'Other':
+        if self.panel_plot.currentPage == 'Other':
             try:
                 source = evt.GetEventObject().GetName()
             except Exception:
                 source = 'axes'
             try:
-                if self.parent.panelPlots.plotOther.plot_type == 'waterfall':
-                    self.parent.panelPlots.plot_1D_waterfall_update(which=source)
+                if self.panel_plot.plotOther.plot_type == 'waterfall':
+                    self.panel_plot.plot_1D_waterfall_update(which=source)
             except Exception:
                 pass
 
-        if self.parent.panelPlots.window_plot3D == '3D':
+        if self.panel_plot.window_plot3D == '3D':
             self.presenter.plot_3D_update(plotName='3D')
 
         if evt is not None:
@@ -2938,14 +2881,14 @@ class panelParametersEdit(wx.Panel):
     def onUpdate1D(self, evt):
 
         self.on_apply_1D(None)
-        if self.parent.panelPlots.window_plot1D == 'MS':
-            self.parent.panelPlots.plot_1D_update(plotName='MS')
+        if self.panel_plot.window_plot1D == 'MS':
+            self.panel_plot.plot_1D_update(plotName='MS')
 
-        elif self.parent.panelPlots.window_plot1D == 'RT':
-            self.parent.panelPlots.plot_1D_update(plotName='RT')
+        elif self.panel_plot.window_plot1D == 'RT':
+            self.panel_plot.plot_1D_update(plotName='RT')
 
-        elif self.parent.panelPlots.window_plot1D == '1D':
-            self.parent.panelPlots.plot_1D_update(plotName='1D')
+        elif self.panel_plot.window_plot1D == '1D':
+            self.panel_plot.plot_1D_update(plotName='1D')
 
         if evt is not None:
             evt.Skip()
@@ -2959,44 +2902,44 @@ class panelParametersEdit(wx.Panel):
         except Exception:
             source = 'all'
 
-        if self.parent.panelPlots.window_plot2D == '2D':
+        if self.panel_plot.window_plot2D == '2D':
             if source == 'colorbar':
-                self.parent.panelPlots.plot_colorbar_update()
+                self.panel_plot.plot_colorbar_update()
             elif source == 'normalization':
-                self.parent.panelPlots.plot_normalization_update()
+                self.panel_plot.plot_normalization_update()
             else:
-                self.parent.panelPlots.plot_2D_update(plotName='2D')
+                self.panel_plot.plot_2D_update(plotName='2D')
 
-        elif self.parent.panelPlots.window_plot2D == 'RMSF':
+        elif self.panel_plot.window_plot2D == 'RMSF':
             if source == 'colorbar':
-                self.parent.panelPlots.plot_colorbar_update()
+                self.panel_plot.plot_colorbar_update()
             elif source == 'rmsf':
-                self.parent.panelPlots.plot_1D_update(plotName='RMSF')
+                self.panel_plot.plot_1D_update(plotName='RMSF')
 
-        elif self.parent.panelPlots.window_plot2D == 'Comparison':
-            self.parent.panelPlots.plot_colorbar_update()
+        elif self.panel_plot.window_plot2D == 'Comparison':
+            self.panel_plot.plot_colorbar_update()
 
-        elif self.parent.panelPlots.window_plot2D == 'DT/MS':
-            self.parent.panelPlots.plot_2D_update(plotName='DT/MS')
+        elif self.panel_plot.window_plot2D == 'DT/MS':
+            self.panel_plot.plot_2D_update(plotName='DT/MS')
 
-        elif self.parent.panelPlots.window_plot2D == 'UniDec':
+        elif self.panel_plot.window_plot2D == 'UniDec':
             if source == 'colorbar':
-                self.parent.panelPlots.plot_colorbar_update()
+                self.panel_plot.plot_colorbar_update()
             elif source == 'normalization':
-                self.parent.panelPlots.plot_normalization_update()
+                self.panel_plot.plot_normalization_update()
             else:
-                self.parent.panelPlots.plot_2D_update(plotName='UniDec')
+                self.panel_plot.plot_2D_update(plotName='UniDec')
 
         elif (
-            self.parent.panelPlots.window_plot2D == 'Waterfall' or
-            self.parent.panelPlots.currentPage == 'Other'
+            self.panel_plot.window_plot2D == 'Waterfall' or
+            self.panel_plot.currentPage == 'Other'
         ):
             try:
                 source = evt.GetEventObject().GetName()
             except Exception:
                 source = 'color'
             self.on_apply(None)
-            self.parent.panelPlots.plot_1D_waterfall_update(which=source)
+            self.panel_plot.plot_1D_waterfall_update(which=source)
 
         if evt is not None:
             evt.Skip()
@@ -3004,7 +2947,7 @@ class panelParametersEdit(wx.Panel):
     def onUpdate3D(self, evt):
 
         self.on_apply_3D(None)
-        if self.parent.panelPlots.window_plot3D == '3D':
+        if self.panel_plot.window_plot3D == '3D':
             self.presenter.plot_3D_update(plotName='3D')
 
         if evt is not None:
@@ -3013,28 +2956,28 @@ class panelParametersEdit(wx.Panel):
     def onReplot1D(self, evt):
 
         self.on_apply_1D(None)
-        if self.parent.panelPlots.window_plot1D == 'MS':
-            self.parent.panelPlots.on_plot_MS(replot=True)
+        if self.panel_plot.window_plot1D == 'MS':
+            self.panel_plot.on_plot_MS(replot=True)
 
-        elif self.parent.panelPlots.window_plot1D == 'RT':
-            self.parent.panelPlots.on_plot_RT(replot=True)
+        elif self.panel_plot.window_plot1D == 'RT':
+            self.panel_plot.on_plot_RT(replot=True)
 
-        elif self.parent.panelPlots.window_plot1D == '1D':
-            self.parent.panelPlots.on_plot_1D(replot=True)
+        elif self.panel_plot.window_plot1D == '1D':
+            self.panel_plot.on_plot_1D(replot=True)
 
         if evt is not None:
             evt.Skip()
 
     def onReplot2D(self, evt):
         self.on_apply_2D(None)
-        if self.parent.panelPlots.window_plot2D == '2D':
-            self.parent.panelPlots.on_plot_2D(replot=True)
+        if self.panel_plot.window_plot2D == '2D':
+            self.panel_plot.on_plot_2D(replot=True)
 
-        elif self.parent.panelPlots.window_plot2D == 'DT/MS':
-            self.parent.panelPlots.on_plot_MSDT(replot=True)
+        elif self.panel_plot.window_plot2D == 'DT/MS':
+            self.panel_plot.on_plot_MSDT(replot=True)
 
-        elif self.parent.panelPlots.window_plot2D == 'Comparison':
-            self.parent.panelPlots.on_plot_matrix(replot=True)
+        elif self.panel_plot.window_plot2D == 'Comparison':
+            self.panel_plot.on_plot_matrix(replot=True)
 
         if evt is not None:
             evt.Skip()
@@ -3042,8 +2985,8 @@ class panelParametersEdit(wx.Panel):
     def onReplot3D(self, evt):
 
         self.on_apply_3D(None)
-        if self.parent.panelPlots.window_plot3D == '3D':
-            self.parent.panelPlots.on_plot_3D(replot=True)
+        if self.panel_plot.window_plot3D == '3D':
+            self.panel_plot.on_plot_3D(replot=True)
 
         if evt is not None:
             evt.Skip()
@@ -3291,7 +3234,7 @@ class panelParametersEdit(wx.Panel):
 
     def on_change_plot_style(self, evt):
         self.config.currentStyle = self.general_style_value.GetStringSelection()
-        self.presenter.view.panelPlots.on_change_plot_style(evt=None)
+        self.panel_plot.on_change_plot_style(evt=None)
 
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
@@ -3301,7 +3244,7 @@ class panelParametersEdit(wx.Panel):
 
     def on_change_color_palette(self, evt):
         self.config.currentPalette = self.general_palette_value.GetStringSelection()
-        self.presenter.view.panelPlots.on_change_color_palette(evt=None)
+        self.panel_plot.on_change_color_palette(evt=None)
 
         if self.config.autoSaveSettings:
             self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)

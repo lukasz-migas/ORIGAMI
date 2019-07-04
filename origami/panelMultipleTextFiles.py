@@ -978,7 +978,7 @@ class panelMultipleTextFiles (wx.Panel):
             _document.gotOverlay = True
             _document.IMS2DoverlayData[item_name] = data
 
-            self.presenter.OnUpdateDocument(_document, 'document')
+            self.data_handling.on_update_document(_document, 'document')
 
     def onGetOverlayDocument(self):
 
@@ -1257,7 +1257,7 @@ class panelMultipleTextFiles (wx.Panel):
                     document.IMS2Dions[ion_title][keyword] = itemInfo[keyword_name]
 
         # Update file list
-        self.presenter.OnUpdateDocument(document, 'no_refresh')
+        self.data_handling.on_update_document(document, 'no_refresh')
 
     def OnOpenEditor(self, evt):
 

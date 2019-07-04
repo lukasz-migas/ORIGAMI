@@ -117,9 +117,9 @@ class Peaks:
             self.peaks[i].textmarker = self.textmarkers[i % self.marklen]
             self.peaks[i].color = self.peakcolors[i]
             if i >= 26:
-                self.peaks[i].label = string.uppercase[i % 26] + str(int(math.floor(i / 26) + 1))
+                self.peaks[i].label = string.ascii_uppercase[i % 26] + str(int(math.floor(i / 26) + 1))
             else:
-                self.peaks[i].label = string.uppercase[i % 26]
+                self.peaks[i].label = string.ascii_uppercase[i % 26]
 
     def get_mass_defects(self, kendrickmass, mode=0):
         """

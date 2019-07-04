@@ -51,7 +51,6 @@ from ids import ID_pickMSpeaksDocument
 from ids import ID_plotPanel_binMS
 from ids import ID_plotPanel_lockPlot
 from ids import ID_plotPanel_resize
-from ids import ID_plots_customise_smart_zoom
 from ids import ID_plots_customise_plot
 from ids import ID_plots_customise_plot_unidec_chargeDist
 from ids import ID_plots_customise_plot_unidec_isolated_mz
@@ -60,6 +59,7 @@ from ids import ID_plots_customise_plot_unidec_ms_barchart
 from ids import ID_plots_customise_plot_unidec_mw
 from ids import ID_plots_customise_plot_unidec_mw_v_charge
 from ids import ID_plots_customise_plot_unidec_mz_v_charge
+from ids import ID_plots_customise_smart_zoom
 from ids import ID_plots_rotate90
 from ids import ID_plots_saveImage_unidec_chargeDist
 from ids import ID_plots_saveImage_unidec_isolated_mz
@@ -109,6 +109,7 @@ from utils.color import convertRGB1to255
 from utils.color import convertRGB1toHEX
 from utils.color import randomColorGenerator
 from utils.exceptions import MessageError
+from utils.path import clean_filename
 from visuals import mpl_plots
 from visuals.normalize import MidpointNormalize
 logger = logging.getLogger('origami')
@@ -141,14 +142,14 @@ class panelPlot(wx.Panel):
         self.window_plot1D = 'MS'
         self.window_plot2D = '2D'
         self.window_plot3D = '3D'
-        self.makeNotebook()
+        self.make_notebook()
         self.current_plot = self.plot1
 
         # bind events
-        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
+        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
 
         # initialise
-        self.onPageChanged(evt=None)
+        self.on_page_changed(evt=None)
 
         # initilise pub
         pub.subscribe(self._update_label_position, 'update_text_position')
@@ -203,7 +204,7 @@ class panelPlot(wx.Panel):
             annotations, document_title, dataset_name, set_data_only=True,
         )
 
-    def onPageChanged(self, evt):
+    def on_page_changed(self, evt):
         # get current page
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
 
@@ -235,10 +236,7 @@ class panelPlot(wx.Panel):
         elif self.currentPage == 'Other':
             self.current_plot = self.plotOther
 
-        if self.config.extraParamsWindow_on_off:
-            self.view.panelParametersEdit.updateStatusbar()
-
-    def makeNotebook(self):
+    def make_notebook(self):
         # Setup notebook
         self.mainBook = wx.Notebook(
             self, wx.ID_ANY, wx.DefaultPosition,
@@ -660,7 +658,7 @@ class panelPlot(wx.Panel):
         self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1DdataMS)
         self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1DdataRT)
         self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1Ddata1DT)
-        self.Bind(wx.EVT_MENU, self.presenter.on_highlight_selected_ions, id=ID_highlightRectAllIons)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_highlight_selected_ions, id=ID_highlightRectAllIons)
         self.Bind(wx.EVT_MENU, self.data_processing.on_pick_peaks, id=ID_pickMSpeaksDocument)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_MS)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RT)
@@ -688,7 +686,7 @@ class panelPlot(wx.Panel):
 
         self.Bind(wx.EVT_MENU, self.on_clear_unidec, id=ID_clearPlot_UniDec_all)
         self.Bind(wx.EVT_MENU, self.onSetupMenus, id=ID_plotPanel_binMS)
-        self.Bind(wx.EVT_MENU, self.onLockPlot, id=ID_plotPanel_lockPlot)
+        self.Bind(wx.EVT_MENU, self.on_lock_plot, id=ID_plotPanel_lockPlot)
         self.Bind(wx.EVT_MENU, self.on_rotate_plot, id=ID_plots_rotate90)
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
 
@@ -814,14 +812,14 @@ class panelPlot(wx.Panel):
             bitmap=self.icons.iconsLib['process_2d_16'],
         )
 
+        menu_action_process_MS = makeMenuItem(
+            parent=menu, id=ID_processSettings_MS,
+            text='Process mass spectrum...',
+            bitmap=self.icons.iconsLib['process_ms_16'],
+        )
+
         if self.currentPage == 'MS':
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_processSettings_MS,
-                    text='Process mass spectrum...',
-                    bitmap=self.icons.iconsLib['process_ms_16'],
-                ),
-            )
+            menu.AppendItem(menu_action_process_MS)
             menu.AppendItem(
                 makeMenuItem(
                     parent=menu, id=ID_docTree_action_open_peak_picker,
@@ -882,13 +880,7 @@ class panelPlot(wx.Panel):
                     help='',
                 )
                 self.binMS_check.Check(self.config.ms_enable_in_RT)
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_processSettings_MS,
-                        text='Edit extraction parameters...',
-                        bitmap=self.icons.iconsLib['process_ms_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_process_MS)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_edit_general)
                 menu.AppendItem(menu_edit_plot_1D)
@@ -928,13 +920,7 @@ class panelPlot(wx.Panel):
                     help='',
                 )
                 self.binMS_check.Check(self.config.ms_enable_in_RT)
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_processSettings_MS,
-                        text='Edit extraction parameters...',
-                        bitmap=self.icons.iconsLib['process_ms_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_process_MS)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_edit_general)
                 menu.AppendItem(menu_edit_plot_1D)
@@ -1239,17 +1225,31 @@ class panelPlot(wx.Panel):
                     bitmap=self.icons.iconsLib['clear_16'],
                 ),
             )
-        else:
-            pass
+
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
 
+    def onSetupMenus(self, evt):
+
+        evtID = evt.GetId()
+
+        if evtID == ID_plotPanel_binMS:
+            check_value = not self.config.ms_enable_in_RT
+            self.config.ms_enable_in_RT = check_value
+            if self.config.ms_enable_in_RT:
+                args = ('Mass spectra will be binned when extracted from chromatogram and mobiligram windows', 4)
+            else:
+                args = ('Mass spectra will be not binned when extracted from chromatogram and mobiligram windows', 4)
+            self.presenter.onThreading(evt, args, action='updateStatusbar')
+
     def save_images(self, evt, path=None, **save_kwargs):
         """ Save figure depending on the event ID """
         args = ('Saving image. Please wait...', 4, 10)
-        self.presenter.onThreading(evt, args, action='updateStatusbar')
 
+        self.data_handling.update_statusbar('Saving image...', 4)
+
+        # retrieve event ID
         if isinstance(evt, int):
             evtID = evt
         elif evt is None:
@@ -1265,43 +1265,43 @@ class panelPlot(wx.Panel):
 
         # Select default name + link to the plot
         if evtID in [ID_saveMSImage, ID_saveMSImageDoc]:
-            defaultName = self.config._plotSettings['MS']['default_name']
+            image_name = self.config._plotSettings['MS']['default_name']
             resizeName = 'MS'
             plotWindow = self.plot1
 
         # Select default name + link to the plot
         elif evtID in [ID_saveCompareMSImage]:
-            defaultName = self.config._plotSettings['MS (compare)']['default_name']
+            image_name = self.config._plotSettings['MS (compare)']['default_name']
             resizeName = 'MS (compare)'
             plotWindow = self.plot1
 
         elif evtID in [ID_saveRTImage, ID_saveRTImageDoc]:
-            defaultName = self.config._plotSettings['RT']['default_name']
+            image_name = self.config._plotSettings['RT']['default_name']
             resizeName = 'RT'
             plotWindow = self.plotRT
 
         elif evtID in [ID_save1DImage, ID_save1DImageDoc]:
-            defaultName = self.config._plotSettings['DT']['default_name']
+            image_name = self.config._plotSettings['DT']['default_name']
             resizeName = 'DT'
             plotWindow = self.plot1D
 
         elif evtID in [ID_save2DImage, ID_save2DImageDoc]:
             plotWindow = self.plot2D
-            defaultName = self.config._plotSettings['2D']['default_name']
+            image_name = self.config._plotSettings['2D']['default_name']
             resizeName = '2D'
 
         elif evtID in [ID_save3DImage, ID_save3DImageDoc]:
-            defaultName = self.config._plotSettings['3D']['default_name']
+            image_name = self.config._plotSettings['3D']['default_name']
             resizeName = '3D'
             plotWindow = self.plot3D
 
         elif evtID in [ID_saveWaterfallImage, ID_saveWaterfallImageDoc]:
             plotWindow = self.plot_waterfall
             if plotWindow.plot_name == 'Violin':
-                defaultName = self.config._plotSettings['Violin']['default_name']
+                image_name = self.config._plotSettings['Violin']['default_name']
                 resizeName = 'Violin'
             else:
-                defaultName = self.config._plotSettings['Waterfall']['default_name']
+                image_name = self.config._plotSettings['Waterfall']['default_name']
                 resizeName = 'Waterfall'
 
         elif evtID in [
@@ -1309,78 +1309,76 @@ class panelPlot(wx.Panel):
             ID_saveRMSFImage, ID_saveRMSFImageDoc,
         ]:
             plotWindow = self.plot_RMSF
-            defaultName = self.config._plotSettings['RMSD']['default_name']
+            image_name = self.config._plotSettings['RMSD']['default_name']
             resizeName = plotWindow.get_plot_name()
 
         elif evtID in [ID_saveOverlayImage, ID_saveOverlayImageDoc]:
             plotWindow = self.plot_overlay
-            defaultName = plotWindow.get_plot_name()
+            image_name = plotWindow.get_plot_name()
             resizeName = 'Overlay'
 
         elif evtID in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc]:
-            defaultName = self.config._plotSettings['Matrix']['default_name']
+            image_name = self.config._plotSettings['Matrix']['default_name']
             resizeName = 'Matrix'
             plotWindow = self.plotCompare
 
         elif evtID in [ID_saveMZDTImage, ID_saveMZDTImageDoc]:
-            defaultName = self.config._plotSettings['DT/MS']['default_name']
+            image_name = self.config._plotSettings['DT/MS']['default_name']
             resizeName = 'DT/MS'
             plotWindow = self.plot_DT_vs_MS
 
         elif evtID in [ID_plots_saveImage_unidec_ms]:
-            defaultName = self.config._plotSettings['UniDec (MS)']['default_name']
+            image_name = self.config._plotSettings['UniDec (MS)']['default_name']
             resizeName = 'UniDec (MS)'
             plotWindow = self.plotUnidec_MS
 
         elif evtID in [ID_plots_saveImage_unidec_mw]:
-            defaultName = self.config._plotSettings['UniDec (MW)']['default_name']
+            image_name = self.config._plotSettings['UniDec (MW)']['default_name']
             resizeName = 'UniDec (MW)'
             plotWindow = self.plotUnidec_mwDistribution
 
         elif evtID in [ID_plots_saveImage_unidec_mz_v_charge]:
-            defaultName = self.config._plotSettings['UniDec (m/z vs Charge)']['default_name']
+            image_name = self.config._plotSettings['UniDec (m/z vs Charge)']['default_name']
             resizeName = 'UniDec (m/z vs Charge)'
             plotWindow = self.plotUnidec_mzGrid
 
         elif evtID in [ID_plots_saveImage_unidec_isolated_mz]:
-            defaultName = self.config._plotSettings['UniDec (Isolated MS)']['default_name']
+            image_name = self.config._plotSettings['UniDec (Isolated MS)']['default_name']
             resizeName = 'UniDec (Isolated MS)'
             plotWindow = self.plotUnidec_individualPeaks
 
         elif evtID in [ID_plots_saveImage_unidec_mw_v_charge]:
-            defaultName = self.config._plotSettings['UniDec (MW vs Charge)']['default_name']
+            image_name = self.config._plotSettings['UniDec (MW vs Charge)']['default_name']
             resizeName = 'UniDec (MW vs Charge)'
             plotWindow = self.plotUnidec_mwVsZ
 
         elif evtID in [ID_plots_saveImage_unidec_ms_barchart]:
-            defaultName = self.config._plotSettings['UniDec (Barplot)']['default_name']
+            image_name = self.config._plotSettings['UniDec (Barplot)']['default_name']
             resizeName = 'UniDec (Barplot)'
             plotWindow = self.plotUnidec_barChart
 
         elif evtID in [ID_plots_saveImage_unidec_chargeDist]:
-            defaultName = self.config._plotSettings['UniDec (Charge Distribution)']['default_name']
+            image_name = self.config._plotSettings['UniDec (Charge Distribution)']['default_name']
             resizeName = 'UniDec (Charge Distribution)'
             plotWindow = self.plotUnidec_chargeDistribution
 
         elif evtID in [ID_saveOtherImageDoc, ID_saveOtherImage]:
-            defaultName = 'custom_plot'
+            image_name = 'custom_plot'
             resizeName = None
             plotWindow = self.plotOther
         elif evtID is None and 'plot_obj' in save_kwargs:
-            defaultName = save_kwargs.get('image_name')
+            image_name = save_kwargs.get('image_name')
             resizeName = None
             plotWindow = save_kwargs.pop('plot_obj')
 
         # generate a better default name and remove any silly characters
         if 'image_name' in save_kwargs:
-            defaultName = save_kwargs.pop('image_name')
-            if defaultName is None:
-                defaultName = '{}_{}'.format(title, defaultName)
+            image_name = save_kwargs.pop('image_name')
+            if image_name is None:
+                image_name = '{}_{}'.format(title, image_name)
         else:
-            defaultName = '{}_{}'.format(title, defaultName)
-        defaultName = defaultName.replace(' ', '').replace(':', '').replace(' ', '').replace(
-            '.csv', '',
-        ).replace('.txt', '').replace('.raw', '').replace('.d', '').replace('.', '')
+            image_name = '{}_{}'.format(title, image_name)
+        image_name = clean_filename(image_name)
 
         # Setup filename
         wildcard = 'SVG Scalable Vector Graphic (*.svg)|*.svg|' + \
@@ -1399,15 +1397,17 @@ class panelPlot(wx.Panel):
         }
 
         dlg = wx.FileDialog(
-            self, 'Please select a name for the file',
-            '', '', wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            self,
+            'Save as...', '', '',
+            wildcard=wildcard,
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
         )
         dlg.CentreOnParent()
-        dlg.SetFilename(defaultName)
+        dlg.SetFilename(image_name)
         try:
             dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
         except Exception:
-            logger.warning('Could not set image format')
+            logger.error('Could not set image format')
 
         if dlg.ShowModal() == wx.ID_OK:
             tstart = time.clock()
@@ -1427,7 +1427,7 @@ class panelPlot(wx.Panel):
             if self.config.resize:
                 kwargs['resize'] = resizeName
 
-            plotWindow.saveFigure2(path=filename, **kwargs)
+            plotWindow.save_figure(path=filename, **kwargs)
 
             tend = time.clock()
             msg = 'Saved figure to {}. It took {} s.'.format(path, str(np.round((tend - tstart), 4)))
@@ -1474,7 +1474,7 @@ class panelPlot(wx.Panel):
 
         return plot_dict.get(plot_name, None)
 
-    def onLockPlot(self, evt):
+    def on_lock_plot(self, evt):
         if self.currentPage == 'Waterfall':
             plot = self.plot_waterfall
         elif self.currentPage == 'MS':
@@ -1651,30 +1651,6 @@ class panelPlot(wx.Panel):
 
     def save_unidec_images(self, evt, path=None):
         """ Save figure depending on the event ID """
-        print('Saving image. Please wait...')
-        # Setup filename
-        wildcard = 'SVG Scalable Vector Graphic (*.svg)|*.svg|' + \
-                   'SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|' + \
-                   'PNG Portable Network Graphic (*.png)|*.png|' + \
-                   'Enhanced Windows Metafile (*.eps)|*.eps|' + \
-                   'JPEG File Interchange Format (*.jpeg)|*.jpeg|' + \
-                   'TIFF Tag Image File Format (*.tiff)|*.tiff|' + \
-                   'RAW Image File Format (*.raw)|*.raw|' + \
-                   'PS PostScript Image File Format (*.ps)|*.ps|' + \
-                   'PDF Portable Document Format (*.pdf)|*.pdf'
-
-        wildcard_dict = {
-            'svg': 0, 'svgz': 1, 'png': 2, 'eps': 3, 'jpeg': 4,
-            'tiff': 5, 'raw': 6, 'ps': 7, 'pdf': 8,
-        }
-
-        kwargs = {
-            'transparent': self.config.transparent,
-            'dpi': self.config.dpi,
-            'format': self.config.imageFormat,
-            'compression': 'zlib',
-            'resize': None,
-        }
 
         path, document_name = self.presenter.getCurrentDocumentPath()
         document_name = document_name.replace('.raw', '').replace(' ', '')
@@ -1694,70 +1670,133 @@ class panelPlot(wx.Panel):
         }
 
         for plot in plots:
-            defaultName = self.config._plotSettings[plot]['default_name']
+            image_name = self.config._plotSettings[plot]['default_name']
 
             # generate a better default name and remove any silly characters
-            defaultName = '{}_{}'.format(document_name, defaultName)
-            defaultName = defaultName.replace(' ', '').replace(':', '').replace(' ', '').replace(
-                '.csv', '',
-            ).replace('.txt', '').replace('.raw', '').replace('.d', '')
+            image_name = '{}_{}'.format(document_name, image_name)
+            image_name = clean_filename(image_name)
 
-            dlg = wx.FileDialog(
-                self, 'Please select a name for the file',
-                '', '', wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-            )
-            dlg.CentreOnParent()
-            dlg.SetFilename(defaultName)
-            try:
-                dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
-            except Exception:
-                pass
-            plotWindow = plots[plot]
-            if dlg.ShowModal() == wx.ID_OK:
-                filename = dlg.GetPath()
-                __, extension = os.path.splitext(filename)
-                self.config.imageFormat = extension[1::]
+            self.save_images(None, plot_obj=plots[plot], image_name=image_name)
 
-                if self.config.resize:
-                    kwargs['resize'] = plot
+    def plot_update_axes(self, plotName):
 
-                try:
-                    plotWindow.saveFigure2(path=filename, **kwargs)
-                    print('Saved {}'.format(filename))
-                except Exception:
-                    print('Could not save {}. Moving on...'.format(filename))
+        # get current sizes
+        axes_sizes = self.config._plotSettings[plotName]['axes_size']
+
+        # get link to the plot
+        if plotName == 'MS':
+            resize_plot = [self.plot1, self.plot_RT_MS, self.plot_DT_MS]
+        elif plotName == 'MS (compare)':
+            resize_plot = self.plot1
+        elif plotName == 'RT':
+            resize_plot = self.plotRT
+        elif plotName == 'DT':
+            resize_plot = self.plot1D
+        elif plotName == '2D':
+            resize_plot = self.plot2D
+        elif plotName == 'Waterfall':
+            resize_plot = self.plot_waterfall
+        elif plotName == 'RMSD':
+            resize_plot = self.plot_RMSF
+        elif plotName in ['Comparison', 'Matrix']:
+            resize_plot = self.plotCompare
+        elif plotName == 'DT/MS':
+            resize_plot = self.plot_DT_vs_MS
+        elif plotName in ['Overlay', 'Overlay (Grid)']:
+            resize_plot = self.plot_overlay
+        elif plotName == 'Calibration (MS)':
+            resize_plot = self.topPlotMS
+        elif plotName == 'Calibration (DT)':
+            resize_plot = self.bottomPlot1DT
+        elif plotName == '3D':
+            resize_plot = self.plot3D
+        elif plotName == 'UniDec (MS)':
+            resize_plot = self.plotUnidec_MS
+        elif plotName == 'UniDec (MW)':
+            resize_plot = self.plotUnidec_mwDistribution
+        elif plotName == 'UniDec (m/z vs Charge)':
+            resize_plot = self.plotUnidec_mzGrid
+        elif plotName == 'UniDec (Isolated MS)':
+            resize_plot = self.plotUnidec_individualPeaks
+        elif plotName == 'UniDec (MW vs Charge)':
+            resize_plot = self.plotUnidec_mwVsZ
+        elif plotName == 'UniDec (Barplot)':
+            resize_plot = self.plotUnidec_barChart
+        elif plotName == 'UniDec (Charge Distribution)':
+            resize_plot = self.plotUnidec_chargeDistribution
+
+        # apply new size
+        try:
+            if not isinstance(resize_plot, list):
+                resize_plot = [resize_plot]
+            for plot in resize_plot:
+                if plot.lock_plot_from_updating:
+                    msg = 'This plot is locked and you cannot use global setting updated. \n' + \
+                          'Please right-click in the plot area and select Customise plot...' + \
+                          ' to adjust plot settings.'
+                    print(msg)
                     continue
-
-    def onSetupMenus(self, evt):
-
-        evtID = evt.GetId()
-
-        if evtID == ID_plotPanel_binMS:
-            check_value = not self.config.ms_enable_in_RT
-            self.config.ms_enable_in_RT = check_value
-            if self.config.ms_enable_in_RT:
-                args = ('Mass spectra will be binned when extracted from chromatogram and mobiligram windows', 4)
-            else:
-                args = ('Mass spectra will be not binned when extracted from chromatogram and mobiligram windows', 4)
-            self.presenter.onThreading(evt, args, action='updateStatusbar')
-
-    def getPlotExtent(self, evt=None):
-        self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
-        if self.currentPage == 'MS':
-            return self.plot1.plotMS.get_xlim()
-        elif self.currentPage == 'RT':
+                plot.plot_update_axes(axes_sizes)
+                plot.repaint()
+                plot._axes = axes_sizes
+        except (AttributeError, UnboundLocalError):
             pass
-        elif self.currentPage == '1D':
-            pass
-        elif self.currentPage == '2D':
-            xmin, xmax = self.plot2D.plotMS.get_xlim()
-            ymin, ymax = self.plot2D.plotMS.get_ylim()
-            return round(xmin, 0), round(xmax, 0), round(ymin, 0), round(ymax, 0)
-        elif self.currentPage == '':
-            xmin, xmax = self.plot_DT_vs_MS.plotMS.get_xlim()
-            ymin, ymax = self.plot_DT_vs_MS.plotMS.get_ylim()
-            return round(xmin, 0), round(xmax, 0), round(ymin, 0), round(ymax, 0)
-        else:
+
+    def plot_update_size(self, plotName=None):
+        dpi = wx.ScreenDC().GetPPI()
+        resizeSize = self.config._plotSettings[plotName]['gui_size']
+        figsizeNarrowPix = (int(resizeSize[0] * dpi[0]), int(resizeSize[1] * dpi[1]))
+
+        if plotName == 'MS':
+            resize_plot = self.plot1
+        elif plotName == 'MS (compare)':
+            resize_plot = self.plot1
+        elif plotName == 'RT':
+            resize_plot = self.plotRT
+        elif plotName == 'DT':
+            resize_plot = self.plot1D
+        elif plotName == '2D':
+            resize_plot = self.plot2D
+        elif plotName == 'Waterfall':
+            resize_plot = self.plot_waterfall
+        elif plotName == 'RMSD':
+            resize_plot = self.plot_RMSF
+        elif plotName in ['Comparison', 'Matrix']:
+            resize_plot = self.plotCompare
+        elif plotName == 'DT/MS':
+            resize_plot = self.plot_DT_vs_MS
+        elif plotName in ['Overlay', 'Overlay (Grid)']:
+            resize_plot = self.plot_overlay
+        elif plotName == 'Calibration (MS)':
+            resize_plot = self.topPlotMS
+        elif plotName == 'Calibration (DT)':
+            resize_plot = self.bottomPlot1DT
+        elif plotName == '3D':
+            resize_plot = self.plot3D
+        elif plotName == 'UniDec (MS)':
+            resize_plot = self.plotUnidec_MS
+        elif plotName == 'UniDec (MW)':
+            resize_plot = self.plotUnidec_mwDistribution
+        elif plotName == 'UniDec (m/z vs Charge)':
+            resize_plot = self.plotUnidec_mzGrid
+        elif plotName == 'UniDec (Isolated MS)':
+            resize_plot = self.plotUnidec_individualPeaks
+        elif plotName == 'UniDec (MW vs Charge)':
+            resize_plot = self.plotUnidec_mwVsZ
+        elif plotName == 'UniDec (Barplot)':
+            resize_plot = self.plotUnidec_barChart
+        elif plotName == 'UniDec (Charge Distribution)':
+            resize_plot = self.plotUnidec_chargeDistribution
+
+        try:
+            if resize_plot.lock_plot_from_updating:
+                msg = 'This plot is locked and you cannot use global setting updated. \n' + \
+                      'Please right-click in the plot area and select Customise plot...' + \
+                      ' to adjust plot settings.'
+                print(msg)
+                return
+            resize_plot.SetSize(figsizeNarrowPix)
+        except (AttributeError, UnboundLocalError):
             pass
 
     def on_change_plot_style(self, evt, plot_style=None):
@@ -3851,7 +3890,7 @@ class panelPlot(wx.Panel):
 
         # MS plot
         if plotType == 'both' or plotType == 'MS':
-            self.view.panelPlots.topPlotMS.clearPlot()
+            self.topPlotMS.clearPlot()
             # get kwargs
             plt_kwargs = self._buildPlotParameters(plotType='1D')
             self.topPlotMS.plot_1D(
@@ -3874,7 +3913,7 @@ class panelPlot(wx.Panel):
             # 1DT plot
             self.bottomPlot1DT.clearPlot()
             # get kwargs
-            plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='1D')
+            plt_kwargs = self._buildPlotParameters(plotType='1D')
             self.bottomPlot1DT.plot_1D(
                 xvals=dtX, yvals=dtY,
                 xlabel=xlabelDT, ylabel=ylabel,
@@ -3898,7 +3937,7 @@ class panelPlot(wx.Panel):
         # 1DT plot
         self.bottomPlot1DT.clearPlot()
         # get kwargs
-        plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='1D')
+        plt_kwargs = self._buildPlotParameters(plotType='1D')
         self.bottomPlot1DT.plot_1D(
             xvals=dtX, yvals=dtY, xlabel=xlabel, ylabel=ylabel,
             axesSize=self.config._plotSettings['Calibration (DT)']['axes_size'],
@@ -4323,69 +4362,33 @@ class panelPlot(wx.Panel):
             if repaint:
                 self.plot1.repaint()
 
-    def addRectRT(
-        self, x, y, width, height, color='r', alpha=0.5,
-        repaint=False,
-    ):  # addRectRT
-        self.view.panelPlots.plotRT.addRectangle(
-            x, y,
-            width,
-            height,
-            color=color,
-            alpha=alpha,
-        )
-        if not repaint:
-            return
-        else:
-            self.view.panelPlots.plotRT.repaint()
-
-    def addTextMS(self, x, y, text, rotation, color='k'):  # addTextMS
-        self.view.panelPlots.plot1.addText(x, y, text, rotation, color)
-        self.view.panelPlots.plot1.repaint()
-
     def addTextRMSD(self, x, y, text, rotation, color='k', plot='RMSD'):  # addTextRMSD
 
         if plot == 'RMSD':
-            self.view.panelPlots.plot_RMSF.addText(
+            self.plot_RMSF.addText(
                 x, y, text, rotation,
                 color=self.config.rmsd_color,
                 fontsize=self.config.rmsd_fontSize,
                 weight=self.config.rmsd_fontWeight,
             )
-            self.view.panelPlots.plot_RMSF.repaint()
+            self.plot_RMSF.repaint()
         elif plot == 'RMSF':
-            self.view.panelPlots.plot_RMSF.addText(
+            self.plot_RMSF.addText(
                 x, y, text, rotation,
                 color=self.config.rmsd_color,
                 fontsize=self.config.rmsd_fontSize,
                 weight=self.config.rmsd_fontWeight,
             )
-            self.view.panelPlots.plot_RMSF.repaint()
+            self.plot_RMSF.repaint()
         elif plot == 'Grid':
-            self.view.panelPlots.plot_overlay.addText(
+            self.plot_overlay.addText(
                 x, y, text, rotation,
                 color=self.config.rmsd_color,
                 fontsize=self.config.rmsd_fontSize,
                 weight=self.config.rmsd_fontWeight,
                 plot=plot,
             )
-            self.view.panelPlots.plot_overlay.repaint()
-
-    def onAddMarker1D(self, xval=None, yval=None, color='r', marker='o'):  # onAddMarker1D
-        """
-        This function adds marker to 1D plot
-        """
-        # Check yaxis labels
-        ydivider = self.testXYmaxVals(values=yval)
-        yval = yval / ydivider
-        # Add single point
-        self.view.panelPlots.bottomPlot1DT.onAddMarker(
-            xval=xval,
-            yval=yval,
-            color=color,
-            marker=marker,
-        )
-        self.view.panelPlots.bottomPlot1DT.repaint()
+            self.plot_overlay.repaint()
 
     def _buildPlotParameters(self, plotType=None, evt=None):
         add_frame_width = True

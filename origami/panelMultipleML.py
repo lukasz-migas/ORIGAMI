@@ -916,7 +916,7 @@ class panelMML(wx.Panel):
         }
 
         # update document
-        self.presenter.OnUpdateDocument(
+        self.data_handling.on_update_document(
             document, expand_item='overlay',
             expand_item_title=overlay_title,
         )

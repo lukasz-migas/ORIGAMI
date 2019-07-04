@@ -683,8 +683,8 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         tstart = ttime()
         self.update_spectrum(None)
 
-        spectrum_1 = self.data_handling.get_spectrum(self.config.compare_massSpectrum[0][:2])
-        spectrum_2 = self.data_handling.get_spectrum(self.config.compare_massSpectrum[1][:2])
+        spectrum_1 = self.data_handling.get_spectrum_data(self.config.compare_massSpectrum[0][:2])
+        spectrum_2 = self.data_handling.get_spectrum_data(self.config.compare_massSpectrum[1][:2])
 
         xvals_1 = spectrum_1['xvals']
         yvals_1 = spectrum_1['yvals']

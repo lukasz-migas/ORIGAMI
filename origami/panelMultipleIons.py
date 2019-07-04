@@ -1422,9 +1422,6 @@ class panelMultipleIons(wx.Panel):
             if tempRow[0] == mzStart and tempRow[1] == mzEnd and tempRow[2] == filename:
                 return row
 
-        # If found nothing, return nothing
-        return None
-
     def OnGetItemInformation(self, itemID, return_list=False):
         information = self.peaklist.on_get_item_information(itemID)
 
@@ -1482,6 +1479,15 @@ class panelMultipleIons(wx.Panel):
             return information['label']
         elif value_type == 'ionName':
             return information['ionName']
+
+    def on_find_and_update_values(self, ion_name, **kwargs):
+        item_count = self.peaklist.GetItemCount()
+
+        for item_id in range(item_count):
+            information = self.OnGetItemInformation(item_id)
+            if ion_name == information['ionName']:
+                for keyword in kwargs:
+                    self.on_update_value_in_peaklist(item_id, keyword, kwargs[keyword])
 
     def on_update_value_in_peaklist(self, item_id, value_type, value):
 

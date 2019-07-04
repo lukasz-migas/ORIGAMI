@@ -67,6 +67,7 @@ class panelProcessData(wx.MiniFrame):
         self.icons = icons
         self.help = OrigamiHelp()
         self.data_processing = self.parent.data_processing
+        self.data_handling = self.parent.data_handling
 
         self.importEvent = False
         self.currentPage = None
@@ -114,7 +115,7 @@ class panelProcessData(wx.MiniFrame):
 
         # make gui items
         self.make_gui()
-        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged)
+        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
         self.mainBook.SetSelection(self.config.processParamsWindow[kwargs['window']])
 
         # check if new title is present
@@ -134,7 +135,7 @@ class panelProcessData(wx.MiniFrame):
         self.SetFocus()
 
         # fire-up start events
-        self.onPageChanged(evt=None)
+        self.on_page_changed(evt=None)
 #         self.updateStatusbar()
         self.onUpdateUniDecPanel()
         logger.info(f'Processing panel: startup took {ttime()-tstart:.4f}')
@@ -190,7 +191,7 @@ class panelProcessData(wx.MiniFrame):
         if evt is not None:
             evt.Skip()
 
-    def onPageChanged(self, evt):
+    def on_page_changed(self, evt):
 
         self.windowSizes = {
             'Extract': (470, 385), 'ORIGAMI': (412, 335),
@@ -221,7 +222,7 @@ class panelProcessData(wx.MiniFrame):
 
     def onSetPage(self, **kwargs):
         self.mainBook.SetSelection(self.config.processParamsWindow[kwargs['window']])
-        self.onPageChanged(evt=None)
+        self.on_page_changed(evt=None)
         self.onUpdateKwargs(
             data_type=kwargs['processKwargs'].get('update_mode', None),
             **kwargs['processKwargs']
@@ -2510,7 +2511,7 @@ class panelProcessData(wx.MiniFrame):
 
         # Update document
         if add_to_document:
-            self.presenter.OnUpdateDocument(document, 'document')
+            self.data_handling.on_update_document(document, 'document')
 
     def on_change_validator(self, evt):
 
@@ -2637,7 +2638,7 @@ class panelProcessData(wx.MiniFrame):
             else:
                 document.multipleMassSpectrum[dataset_title]['annotations'] = annotations
 
-            self.presenter.OnUpdateDocument(document, 'document')
+            self.data_handling.on_update_document(document, 'document')
 
     def onThreading(self, evt, args, action='pick_peaks'):
         # Setup thread
