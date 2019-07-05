@@ -5,7 +5,7 @@ from operator import itemgetter
 
 import wx
 import wx.lib.mixins.listctrl as listmix
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from ids import *
 from utils.converters import str2int
 from utils.converters import str2num
@@ -255,7 +255,7 @@ class topPanel(wx.Panel):
             self.peaklist.DeleteItem(self.currentItem)
         else:
             # Ask if you want to delete all items
-            dlg = dlgBox(
+            dlg = DialogBox(
                 exceptionTitle='Are you sure?',
                 exceptionMsg='Are you sure you would like to delete ALL RT peaks from the table?',
                 type='Question',
@@ -276,7 +276,7 @@ class topPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = dlgBox(
+        dlg = DialogBox(
             exceptionTitle='Are you sure?',
             exceptionMsg='Are you sure you would like to clear the table??',
             type='Question',
@@ -572,7 +572,7 @@ class bottomPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = dlgBox(
+        dlg = DialogBox(
             exceptionTitle='Are you sure?',
             exceptionMsg='Are you sure you would like to clear the table??',
             type='Question',
@@ -650,7 +650,7 @@ class bottomPanel(wx.Panel):
             self.peaklist.DeleteItem(self.currentItem)
         else:
             # Ask if you want to delete all items
-            dlg = dlgBox(
+            dlg = DialogBox(
                 exceptionTitle='Are you sure?',
                 exceptionMsg='Are you sure you would like to delete ALL ions from the table?',
                 type='Question',

@@ -7,8 +7,8 @@ from time import time as ttime
 
 import numpy as np
 import wx
-from gui_elements.dialog_customise_peptide_annotations import dialog_customise_peptide_annotations
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
+from gui_elements.misc_dialogs import DialogBox
 from ids import ID_tandemPanel_otherSettings
 from ids import ID_tandemPanel_peaklist_show_selected
 from ids import ID_tandemPanel_showPTMs
@@ -21,7 +21,6 @@ from styles import makeCheckbox
 from styles import makeMenuItem
 from styles import makeStaticBox
 from toolbox import (removeListDuplicates)
-from utils.converters import str2bool
 from utils.converters import str2int
 from utils.converters import str2num
 logger = logging.getLogger('origami')
@@ -224,7 +223,7 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def onCustomiseParameters(self, evt):
 
-        dlg = dialog_customise_peptide_annotations(self, self.config)
+        dlg = DialogCustomisePeptideAnnotations(self, self.config)
         dlg.ShowModal()
 
     def on_show_PTMs_peaklist(self, evt):
@@ -295,7 +294,8 @@ class panelTandemSpectra(wx.MiniFrame):
             if check:
                 # get fragments
                 itemInfo, document, fragments, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.on_get_fragments(
-                    itemID=i, document=document, )
+                    itemID=i, document=document,
+                )
 
                 # add fragmentation to document
                 if 'fragment_annotations' not in document.tandem_spectra[itemInfo['scanID']]:
@@ -327,7 +327,7 @@ class panelTandemSpectra(wx.MiniFrame):
 
     def on_delete_all_annotations(self, evt):
 
-        dlg = dlgBox(
+        dlg = DialogBox(
             exceptionTitle='Are you sure?',
             exceptionMsg='Are you sure you want to remove all annotations from the document? This action is irreversible.',
             type='Question',
@@ -1554,7 +1554,8 @@ class panelTandemSpectra(wx.MiniFrame):
         # plot data
         if len(fragments) > 0:
             self.presenter.view.panelPlots.on_add_centroid_MS_and_labels(
-                frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list, butterfly_plot=self.butterfly_plot, )
+                frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list, butterfly_plot=self.butterfly_plot,
+            )
             self.on_populate_peptide_table(fragments)
         else:
             self.presenter.view.panelPlots.plot1.repaint()

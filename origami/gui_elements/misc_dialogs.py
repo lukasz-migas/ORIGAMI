@@ -3,7 +3,7 @@
 import wx
 
 
-def dlgBox(exceptionTitle='', exceptionMsg='', type='Error', exceptionPrint=True):
+def DialogBox(exceptionTitle='', exceptionMsg='', type='Error', exceptionPrint=True):
     """
     Generic message box
     """
@@ -29,7 +29,7 @@ def dlgBox(exceptionTitle='', exceptionMsg='', type='Error', exceptionPrint=True
         return result
 
 
-def dlgAsk(message='', title='', defaultValue=''):
+def DialogSimpleAsk(message='', title='', defaultValue=''):
     dlg = wx.TextEntryDialog(
         None,  # parent
         message,

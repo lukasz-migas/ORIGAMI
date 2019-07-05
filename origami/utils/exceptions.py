@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 
 
 class IncorrectValueError(Exception):
@@ -22,4 +22,4 @@ class MessageError(Exception):
         self.title = title
         self.message = message
 
-        dlgBox(title, message, type='Error')
+        DialogBox(title, message, type='Error')

@@ -7,7 +7,7 @@ from os.path import splitext
 import numpy as np
 import wx
 from gui_elements.dialog_color_picker import DialogColorPicker
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_modifyManualFiles import panelModifyManualFiles
 from ids import ID_mmlPanel_about_info
 from ids import ID_mmlPanel_add_files_toCurrentDoc
@@ -57,7 +57,7 @@ from utils.color import convertRGB1to255
 from utils.color import convertRGB255to1
 from utils.color import determineFontColor
 from utils.color import randomColorGenerator
-from utils.random import randomIntegerGenerator
+from utils.random import get_random_int
 logger = logging.getLogger('origami')
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 
@@ -678,7 +678,7 @@ class panelMML(wx.Panel):
                 xlimits = document.massSpectrum['xlimits']
                 name_kwargs = {'document': itemInfo['document'], 'dataset': 'Mass Spectrum'}
             except KeyError:
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Error',
                     exceptionMsg='Document does not have averaged mass spectrum',
                     type='Error',
@@ -708,7 +708,7 @@ class panelMML(wx.Panel):
 
             self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, full_repaint=True, set_page=True)
         except KeyError:
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Error',
                 exceptionMsg='No mobility data present for selected item',
                 type='Error',
@@ -972,7 +972,7 @@ class panelMML(wx.Panel):
             return
 
         # get color
-        color = add_dict.get('color', self.config.customColors[randomIntegerGenerator(0, 15)])
+        color = add_dict.get('color', self.config.customColors[get_random_int(0, 15)])
         color = convertRGB1to255(color)
 
         document_title = add_dict.get('document', None)
@@ -1021,7 +1021,7 @@ class panelMML(wx.Panel):
     def on_delete_item(self, evt):
 
         itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
-        dlg = dlgBox(
+        dlg = DialogBox(
             type='Question',
             exceptionMsg='Are you sure you would like to delete {} from {}?\nThis action cannot be undone.'.format(
                 itemInfo['filename'],
@@ -1048,7 +1048,7 @@ class panelMML(wx.Panel):
                 msg = 'Are you sure you would like to delete {} from {}?\nThis action cannot be undone.'.format(
                     itemInfo['filename'], itemInfo['document'],
                 )
-                dlg = dlgBox(exceptionMsg=msg, type='Question')
+                dlg = DialogBox(exceptionMsg=msg, type='Question')
                 if dlg == wx.ID_NO:
                     print('The operation was cancelled')
                     continue
@@ -1063,7 +1063,7 @@ class panelMML(wx.Panel):
     def on_delete_all(self, evt):
 
         msg = 'Are you sure you would like to delete all classifiers from all documents?\nThis action cannot be undone.'
-        dlg = dlgBox(exceptionMsg=msg, type='Question')
+        dlg = DialogBox(exceptionMsg=msg, type='Question')
         if dlg == wx.ID_NO:
             print('The operation was cancelled')
             return

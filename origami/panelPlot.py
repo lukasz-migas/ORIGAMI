@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import wx
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from icons import IconContainer as icons
 from ids import ID_clearPlot_1D
 from ids import ID_clearPlot_1D_MS
@@ -200,7 +200,7 @@ class panelPlot(wx.Panel):
                 pass
 
         # update annotation
-        self.view.panelDocuments.documents.onUpdateAnotations(
+        self.view.panelDocuments.documents.on_update_annotation(
             annotations, document_title, dataset_name, set_data_only=True,
         )
 
@@ -3229,7 +3229,7 @@ class panelPlot(wx.Panel):
             if len(xvals) > 500:
                 msg = 'There are {} scans in this dataset'.format(len(xvals)) + \
                     ' (it could be slow to plot Waterfall plot...). Would you like to continue?'
-                dlg = dlgBox(
+                dlg = DialogBox(
                     exceptionTitle='Would you like to continue?',
                     exceptionMsg=msg,
                     type='Question',
@@ -3288,7 +3288,7 @@ class panelPlot(wx.Panel):
                 if zvals.shape[1] > 500:
                     msg = 'There are {} scans in this dataset'.format(len(xvals)) + \
                         ' (this could be slow...). Would you like to continue?'
-                    dlg = dlgBox(
+                    dlg = DialogBox(
                         exceptionTitle='Would you like to continue?',
                         exceptionMsg=msg,
                         type='Question',

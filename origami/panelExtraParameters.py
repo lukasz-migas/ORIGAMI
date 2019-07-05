@@ -3266,7 +3266,7 @@ class panelParametersEdit(wx.Panel):
             else:
                 msg = 'Instant plotting was disabled'
             # fire events
-            self.presenter.view.panelDocuments.documents.onNotUseQuickDisplay(evt=None)
+            self.presenter.view.panelDocuments.documents.toggle_quick_display(evt=None)
 
         elif evtID == ID_extraSettings_multiThreading:
             if self.config.threading:

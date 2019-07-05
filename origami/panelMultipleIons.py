@@ -8,7 +8,7 @@ import wx
 from gui_elements.dialog_ask import DialogAsk
 from gui_elements.dialog_color_picker import DialogColorPicker
 from gui_elements.dialog_select_document import DialogSelectDocument
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_modifyIonSettings import panelModifyIonSettings
 from ids import ID_addIonsMenu
 from ids import ID_addManyIonsCSV
@@ -98,7 +98,7 @@ from utils.color import determineFontColor
 from utils.color import randomColorGenerator
 from utils.color import roundRGB
 from utils.converters import str2num
-from utils.random import randomIntegerGenerator
+from utils.random import get_random_int
 logger = logging.getLogger('origami')
 
 
@@ -1217,7 +1217,7 @@ class panelMultipleIons(wx.Panel):
 
         # Check if data was extracted
         if selectedItem == '':
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Extract data first',
                 exceptionMsg='Please extract data first',
                 type='Error',
@@ -1306,7 +1306,7 @@ class panelMultipleIons(wx.Panel):
             if isempty(xvals) or isempty(yvals) or xvals == '' or yvals == '':
                 msg = 'Missing x/y-axis labels. Cannot continue! \nAdd x/y-axis labels to each file before continuing.'
                 print(msg)
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Missing data',
                     exceptionMsg=msg,
                     type='Error',
@@ -1625,7 +1625,7 @@ class panelMultipleIons(wx.Panel):
             try:
                 color_255 = convertRGB1to255(literal_eval(self.OnGetValue(value_type='color')), 3)
             except Exception:
-                color_255 = self.config.customColors[randomIntegerGenerator(0, 15)]
+                color_255 = self.config.customColors[get_random_int(0, 15)]
 
             self.on_update_value_in_peaklist(itemID, 'color_text', color_255)
             if give_value:
@@ -1880,7 +1880,7 @@ class panelMultipleIons(wx.Panel):
                     str(charge_value),
                     '',
                     str(roundRGB(color_value)),
-                    self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps))],
+                    self.config.overlay_cmaps[get_random_int(0, len(self.config.overlay_cmaps))],
                     str(self.config.overlay_defaultAlpha),
                     str(self.config.overlay_defaultMask),
                     str(label_value),
@@ -1933,7 +1933,7 @@ class panelMultipleIons(wx.Panel):
     def on_add_to_table(self, add_dict, check_color=True):
 
         # get color
-        color = add_dict.get('color', self.config.customColors[randomIntegerGenerator(0, 15)])
+        color = add_dict.get('color', self.config.customColors[get_random_int(0, 15)])
         # check for duplicate color
         if check_color:
             color = self.on_check_duplicate_colors(color)
@@ -2044,7 +2044,7 @@ class panelMultipleIons(wx.Panel):
     def on_delete_item(self, evt):
 
         itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
-        dlg = dlgBox(
+        dlg = DialogBox(
             type='Question',
             exceptionMsg='Are you sure you would like to delete {} from {}?\nThis action cannot be undone.'.format(
                 itemInfo['ionName'],
@@ -2071,7 +2071,7 @@ class panelMultipleIons(wx.Panel):
                 msg = 'Are you sure you would like to delete {} from {}?\nThis action cannot be undone.'.format(
                     itemInfo['ionName'], itemInfo['document'],
                 )
-                dlg = dlgBox(exceptionMsg=msg, type='Question')
+                dlg = DialogBox(exceptionMsg=msg, type='Question')
                 if dlg == wx.ID_NO:
                     print('The operation was cancelled')
                     continue
@@ -2086,7 +2086,7 @@ class panelMultipleIons(wx.Panel):
     def on_delete_all(self, evt):
 
         msg = 'Are you sure you would like to delete all classifiers from all documents?\nThis action cannot be undone.'
-        dlg = dlgBox(exceptionMsg=msg, type='Question')
+        dlg = DialogBox(exceptionMsg=msg, type='Question')
         if dlg == wx.ID_NO:
             print('The operation was cancelled')
             return

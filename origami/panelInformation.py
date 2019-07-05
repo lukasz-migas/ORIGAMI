@@ -1088,4 +1088,4 @@ class panelDocumentInfo(wx.MiniFrame):
     def onReplot(self, evt):
 
         self.on_apply(evt=None)
-        self.parent.onShowPlot(evt=None)
+        self.parent.on_show_plot(evt=None)

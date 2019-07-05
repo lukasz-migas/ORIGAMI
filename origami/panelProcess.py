@@ -9,7 +9,7 @@ from sys import platform
 import numpy as np
 import wx
 from gui_elements.dialog_customise_unidec_visuals import dialog_customise_unidec_visuals
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_htmlViewer import panelHTMLViewer
 from gui_elements.panel_peakWidthTool import panelPeakWidthTool
 from help_documentation import OrigamiHelp
@@ -2580,7 +2580,7 @@ class panelProcessData(wx.MiniFrame):
                 'yvals': self.config.unidec_engine.data.data2[:, 1],
             }
         except Exception:
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Error',
                 exceptionMsg='Please initilise and process data first!',
                 type='Error',

@@ -2,7 +2,7 @@
 # __author__ lukasz.g.migas
 import wx
 from gui_elements.dialog_color_picker import DialogColorPicker
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from ids import ID_unidecPanel_barEdgeColor
 from ids import ID_unidecPanel_fitLineColor
 from styles import Dialog
@@ -393,7 +393,7 @@ class dialog_customise_unidec_visuals(Dialog):
     def onUniDecView(self, evt):
         self.config.unidec_plot_panel_view = self.unidec_view_value.GetStringSelection()
 
-        dlgBox(
+        DialogBox(
             exceptionTitle='Warning',
             exceptionMsg='Changing the panel view will not take place until you restart ORIGAMI.',
             type='Warning',

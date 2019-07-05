@@ -6,7 +6,7 @@ from subprocess import CREATE_NEW_CONSOLE
 from subprocess import Popen
 
 import numpy as np
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from readers.io_utils import clean_up
 from toolbox import strictly_increasing
 from utils.path import check_waters_path
@@ -54,7 +54,7 @@ def driftscope_extract_MS(
     try:
         input_file = open(range_file, 'w')
     except IOError as err:
-        dlgBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
         return
 
     input_file.write(
@@ -141,7 +141,7 @@ def driftscope_extract_RT(
     try:
         input_file = open(range_file, 'w')
     except IOError as err:
-        dlgBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
         return
     input_file.write(
         '{} {} 1\n{} {} 5000\n{} {} 1'.format(
@@ -214,7 +214,7 @@ def driftscope_extract_DT(
     try:
         input_file = open(range_file, 'w')
     except IOError as err:
-        dlgBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
         return
     input_file.write(
         '{} {} 1\n{} {} 1\n{} {} 200'.format(
@@ -286,7 +286,7 @@ def driftscope_extract_2D(
     try:
         input_file = open(range_file, 'w')
     except IOError as err:
-        dlgBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
         return
     input_file.write(
         '{} {} 1\n{} {} 5000\n{} {} 200'.format(
@@ -369,7 +369,7 @@ def driftscope_extract_MZDT(
     try:
         input_file = open(range_file, 'w')
     except IOError as err:
-        dlgBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
         return
     input_file.write(
         '{} {} {}\n0.0 9999.0 1\n{} {} 200'.format(
@@ -436,7 +436,7 @@ def rawMassLynx_MZDT_load(path=None, inputFile='output.2dDTMZ', normalize=False,
 # #     try:
 #     filePointer = mlLib.newCMassLynxRawReader(filename)
 # #     except WindowsError as err:
-# #         dlgBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
+# #         DialogBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
 # #         return
 #
 #     # Setup scan reader

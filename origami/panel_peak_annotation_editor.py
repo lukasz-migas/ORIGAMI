@@ -10,8 +10,8 @@ from gui_elements.dialog_ask import DialogAsk
 from gui_elements.dialog_color_picker import DialogColorPicker
 from gui_elements.dialog_customise_user_annotations import \
     DialogCustomiseUserAnnotations
-from gui_elements.misc_dialogs import dlgAsk
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
+from gui_elements.misc_dialogs import DialogSimpleAsk
 from help_documentation import OrigamiHelp
 from ids import ID_annotPanel_addAnnotations
 from ids import ID_annotPanel_assignChargeState_selected
@@ -234,7 +234,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         add_arrow_to_peak = wx.StaticText(panel, -1, 'add arrow:')
         self.add_arrow_to_peak = makeCheckbox(panel, '')
         self.add_arrow_to_peak.SetValue(False)
-        self.add_arrow_to_peak.Bind(wx.EVT_CHECKBOX, self.onAddAnnotation)
+        self.add_arrow_to_peak.Bind(wx.EVT_CHECKBOX, self.on_add_annotation)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
@@ -274,7 +274,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         )
 
         self.markTgl.Bind(wx.EVT_TOGGLEBUTTON, self.onMarkOnSpectrum)
-        self.addBtn.Bind(wx.EVT_BUTTON, self.onAddAnnotation)
+        self.addBtn.Bind(wx.EVT_BUTTON, self.on_add_annotation)
         self.removeBtn.Bind(wx.EVT_BUTTON, self.onRemove)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
         self.showBtn.Bind(wx.EVT_BUTTON, self.on_plot_tools)
@@ -378,7 +378,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
             print('Please check at least one annotation the table...')
             return
 
-        n_duplicates = dlgAsk(
+        n_duplicates = DialogSimpleAsk(
             'How many times would you like to duplicate this annotations?',
             defaultValue='1',
         )
@@ -408,7 +408,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                 self.kwargs['annotations'][name] = _annotation
                 self.peaklist.Append(['', xmin, xmax, position, intensity, charge, label, color, str(add_arrow)])
 
-        self.documentTree.onUpdateAnotations(
+        self.documentTree.on_update_annotation(
             self.kwargs['annotations'],
             self.kwargs['document'],
             self.kwargs['dataset'],
@@ -580,7 +580,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                 self.onUpdateAnnotation(row)
 
         # update document
-        self.documentTree.onUpdateAnotations(
+        self.documentTree.on_update_annotation(
             self.kwargs['annotations'],
             self.kwargs['document'],
             self.kwargs['dataset'],
@@ -731,7 +731,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                 name = '{} - {}'.format(min_value, max_value)
                 self.kwargs['annotations'][name] = annotation_dict
 
-            self.documentTree.onUpdateAnotations(
+            self.documentTree.on_update_annotation(
                 self.kwargs['annotations'],
                 self.kwargs['document'],
                 self.kwargs['dataset'],
@@ -775,7 +775,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                 self.onUpdateAnnotation(row)
 
         # update document
-        self.documentTree.onUpdateAnotations(
+        self.documentTree.on_update_annotation(
             self.kwargs['annotations'],
             self.kwargs['document'],
             self.kwargs['dataset'],
@@ -814,7 +814,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                     self.onUpdateAnnotation(row)
 
             # update document
-            self.documentTree.onUpdateAnotations(
+            self.documentTree.on_update_annotation(
                 self.kwargs['annotations'],
                 self.kwargs['document'],
                 self.kwargs['dataset'],
@@ -1003,7 +1003,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         name = '{} - {}'.format(min_value, max_value)
         return self.kwargs['annotations'].get(name, {})
 
-    def onAddAnnotation(self, evt):
+    def on_add_annotation(self, evt):
         if self.item_loading_lock:
             return
 
@@ -1061,7 +1061,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                 self.kwargs['annotations'][name]['color'] = literal_eval(color_value)
                 self.peaklist.SetStringItem(index, self.annotation_list['color'], color_value)
 
-            self.documentTree.onUpdateAnotations(
+            self.documentTree.on_update_annotation(
                 self.kwargs['annotations'],
                 self.kwargs['document'],
                 self.kwargs['dataset'],
@@ -1070,7 +1070,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
             return
 
         if min_value is None or max_value is None:
-            dlgBox(
+            DialogBox(
                 'Error', 'Please fill min, max fields at least!',
                 type='Error',
             )
@@ -1128,7 +1128,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
             )
             self.plot.repaint()
 
-        self.documentTree.onUpdateAnotations(
+        self.documentTree.on_update_annotation(
             self.kwargs['annotations'],
             self.kwargs['document'],
             self.kwargs['dataset'],
@@ -1147,7 +1147,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
             del self.kwargs['annotations'][name]
             print('Removed {} from annotations'.format(name))
             # update annotations
-            self.documentTree.onUpdateAnotations(
+            self.documentTree.on_update_annotation(
                 self.kwargs['annotations'],
                 self.kwargs['document'],
                 self.kwargs['dataset'],
@@ -1266,7 +1266,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
                     self.onUpdateAnnotation(row)
 
             # update document
-            self.documentTree.onUpdateAnotations(
+            self.documentTree.on_update_annotation(
                 self.kwargs['annotations'],
                 self.kwargs['document'],
                 self.kwargs['dataset'],

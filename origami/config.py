@@ -10,7 +10,7 @@ from collections import OrderedDict
 
 import defusedxml.minidom
 import numpy as np
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from matplotlib.pyplot import colormaps
 from utils.converters import str2bool
 from utils.converters import str2int
@@ -1536,7 +1536,7 @@ class OrigamiConfig:
             if not os.path.isdir(alternative_driftscope_path):
                 msg = 'Could not localise Driftscope directory. Please setup path to Dritscope lib folder.' + \
                     r' It usually exists under C:\DriftScope\lib'
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Could not find Driftscope',
                     exceptionMsg=msg,
                     type='Warning',
@@ -1547,7 +1547,7 @@ class OrigamiConfig:
         if not os.path.isfile(self.driftscopePath + r'\imextract.exe'):
             msg = 'Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder.' + \
                 r' It usually exists under C:\DriftScope\lib'
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Could not find Driftscope',
                 exceptionMsg=msg,
                 type='Warning',

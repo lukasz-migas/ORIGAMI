@@ -8,7 +8,7 @@ import matplotlib
 import matplotlib.cm as cm
 import matplotlib.patches as patches
 import numpy as np
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from matplotlib import gridspec
 from matplotlib.collections import LineCollection
 from matplotlib.ticker import MaxNLocator
@@ -3363,7 +3363,7 @@ class plots(mpl_plotter):
 
         # Plot RMSF data (top plot)
         if len(labelsX) != len(yvalsRMSF):
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Missing data',
                 exceptionMsg='Missing x-axis labels! Cannot execute this action!',
                 type='Error',

@@ -3,14 +3,14 @@
 import random
 import string
 
-__all__ = ['random_int_0_to_255', 'randomIntegerGenerator', 'randomStringGenerator']
+__all__ = ['random_int_0_to_255', 'get_random_int', 'randomStringGenerator']
 
 
 def random_int_0_to_255():
     return random.randint(0, 255)
 
 
-def randomIntegerGenerator(min_int, max_int):
+def get_random_int(min_int, max_int):
     return random.randint(min_int, max_int)
 
 

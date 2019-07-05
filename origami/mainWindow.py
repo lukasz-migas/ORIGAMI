@@ -13,7 +13,7 @@ import psutil
 import wx.aui
 from gui_elements.dialog_notify_new_version import DialogNewVersion
 from gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_exportSettings import panelExportSettings
 from gui_elements.panel_htmlViewer import panelHTMLViewer
 from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
@@ -1391,7 +1391,7 @@ class MyFrame(wx.Frame):
             if not update:
                 try:
                     if evt.GetId() == ID_CHECK_VERSION:
-                        dlgBox(
+                        DialogBox(
                             exceptionTitle='ORIGAMI',
                             exceptionMsg='You are using the most up to date version {}.'.format(
                                 self.config.version,
@@ -1570,15 +1570,13 @@ class MyFrame(wx.Frame):
 
         # Add more shortcuts with known IDs
         extraKeys = [
-            #             ["E", self.presenter.on_extract_2D_from_mass_range_threaded, wx.ACCEL_ALT, ID_extractAllIons],
             ['Q', self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayMZfromList],
             ['W', self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayTextFromList],
-            ['S', self.panelDocuments.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotDocument],
+            ['S', self.panelDocuments.documents.on_show_plot, wx.ACCEL_ALT, ID_showPlotDocument],
             ['P', self.panelDocuments.documents.onProcess, wx.ACCEL_ALT, ID_process2DDocument],
-            # ["C", self.presenter.onCombineCEvoltagesMultiple, wx.ACCEL_ALT, ID_combineCEscans],
             ['R', self.panelDocuments.documents.onRenameItem, wx.ACCEL_ALT, ID_renameItem],
-            ['X', self.panelDocuments.documents.onShowPlot, wx.ACCEL_ALT, ID_showPlotMSDocument],
-            ['Z', self.presenter.on_change_charge_state, wx.ACCEL_ALT, ID_assignChargeState],
+            ['X', self.panelDocuments.documents.on_show_plot, wx.ACCEL_ALT, ID_showPlotMSDocument],
+            ['Z', self.panelDocuments.documents.on_change_charge_state, wx.ACCEL_ALT, ID_assignChargeState],
             ['V', self.panelDocuments.documents.onSaveCSV, wx.ACCEL_ALT, ID_saveDataCSVDocument],
         ]
 
@@ -2155,7 +2153,7 @@ class MyFrame(wx.Frame):
             self.panelProcessData.Show()
         except (ValueError, AttributeError, TypeError, KeyError, wx._core.PyAssertionError) as e:
             self.config.processParamsWindow_on_off = False
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Failed to open panel',
                 exceptionMsg=str(e),
                 type='Error',
@@ -2190,7 +2188,7 @@ class MyFrame(wx.Frame):
             self.panelImportExportParameters.Show()
         except (ValueError, AttributeError, TypeError, KeyError) as e:
             self.config.importExportParamsWindow_on_off = False
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Failed to open panel',
                 exceptionMsg=str(e),
                 type='Error',
@@ -2222,7 +2220,7 @@ class MyFrame(wx.Frame):
         self.interactivePanel.Show()
 #         except (ValueError, AttributeError, TypeError, KeyError, NameError) as e:
 #             self.config.interactiveParamsWindow_on_off = False
-#             dlgBox(exceptionTitle='Failed to open panel',
+#             DialogBox(exceptionTitle='Failed to open panel',
 #                    exceptionMsg=str(e),
 #                    type="Error")
 #             return
@@ -2375,7 +2373,7 @@ class MyFrame(wx.Frame):
         if self.config.threading:
             msg = 'Multi-threading is only an experimental feature for now! It might occasionally crash ORIGAMI,' + \
                 ' in which case you will lose your processed data!'
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Warning',
                 exceptionMsg=msg,
                 type='Warning',
@@ -2420,7 +2418,7 @@ class MyFrame(wx.Frame):
                 print('Could not find Driftscope path')
                 msg = r'Could not localise Driftscope directory. Please setup path to Dritscope lib folder.' + \
                     r' It usually exists under C:\DriftScope\lib'
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Could not find Driftscope',
                     exceptionMsg=msg, type='Warning',
                 )
@@ -2429,7 +2427,7 @@ class MyFrame(wx.Frame):
                 print('Could not find imextract.exe')
                 msg = r'Could not localise Driftscope imextract.exe program. Please setup path to Dritscope' + \
                     r' lib folder. It usually exists under C:\DriftScope\lib'
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Could not find Driftscope',
                     exceptionMsg=msg, type='Warning',
                 )
@@ -2439,7 +2437,7 @@ class MyFrame(wx.Frame):
         check = self.config.initilize_paths(return_check=True)
         if check:
             wx.Bell()
-            dlgBox(
+            DialogBox(
                 exceptionTitle='DriftScope path looks good',
                 exceptionMsg='Found DriftScope on your PC. You are good to go.',
                 type='Info',

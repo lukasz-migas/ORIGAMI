@@ -5,7 +5,7 @@ import os
 import matplotlib
 import matplotlib.patches as patches
 import wx
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from matplotlib import interactive
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
@@ -363,7 +363,7 @@ class mpl_plotter(wx.Window):
                 self.plotMS.set_position(oldAxesSize)
                 self.on_resize()
             # warn user
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Warning',
                 exceptionMsg="Cannot save file: %s as it appears to be currently open or the folder doesn't exist" %
                 path,

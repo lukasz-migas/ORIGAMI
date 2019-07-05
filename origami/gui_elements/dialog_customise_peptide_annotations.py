@@ -7,7 +7,7 @@ from styles import makeTooltip
 from utils.color import convertRGB1to255
 
 
-class dialog_customise_peptide_annotations(wx.Dialog):
+class DialogCustomisePeptideAnnotations(wx.Dialog):
 
     def __init__(self, parent, config, **kwargs):
         wx.Dialog.__init__(

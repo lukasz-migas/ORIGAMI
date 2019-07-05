@@ -2,7 +2,7 @@
 # __author__ lukasz.g.migas
 import numpy as np
 import wx
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from help_documentation import OrigamiHelp
 from processing.utils import get_narrow_data_range
 from styles import makeSuperTip
@@ -131,7 +131,7 @@ class panelPeakWidthTool(wx.MiniFrame):
         width = self.unidec_fit_peakWidth_value.GetValue()
         function = self.unidec_peakFcn_choice.GetStringSelection()
         if width == '' or width is None:
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Error',
                 exceptionMsg='Could not complete action. Pick peaks first?',
                 type='Error',

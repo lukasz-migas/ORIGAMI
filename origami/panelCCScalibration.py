@@ -5,7 +5,7 @@ from operator import itemgetter
 
 import wx
 import wx.lib.mixins.listctrl as listmix
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from ids import ID_addCCScalibrantFile
 from ids import ID_addCCScalibrantMenu
 from ids import ID_addNewCalibrationDoc
@@ -840,7 +840,7 @@ class topPanel(wx.Panel):
                 pass
         else:
             # Ask if you are sure to delete it!
-            dlg = dlgBox(
+            dlg = DialogBox(
                 exceptionTitle='Are you sure?',
                 exceptionMsg='Are you sure you would like to delete ALL text documents?',
                 type='Question',
@@ -1024,7 +1024,7 @@ class topPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = dlgBox(
+        dlg = DialogBox(
             exceptionTitle='Are you sure?',
             exceptionMsg='Are you sure you would like to clear the table??',
             type='Question',
@@ -1445,7 +1445,7 @@ class bottomPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = dlgBox(
+        dlg = DialogBox(
             exceptionTitle='Are you sure?',
             exceptionMsg='Are you sure you would like to clear the table??',
             type='Question',

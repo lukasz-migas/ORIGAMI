@@ -19,8 +19,8 @@ import wx
 from gui_elements.dialog_ask_override import DialogAskOverride
 from gui_elements.dialog_rename import DialogRenameObject
 from gui_elements.dialog_select_dataset import DialogSelectDataset
-from gui_elements.misc_dialogs import DialogBox
-from gui_elements.misc_dialogs import DialogSimpleAsk
+from gui_elements.misc_dialogs import dlgAsk
+from gui_elements.misc_dialogs import dlgBox
 from ids import *
 from natsort import natsorted
 from panel_peak_annotation_editor import panel_peak_annotation_editor
@@ -114,7 +114,7 @@ class documentsTree(wx.TreeCtrl):
         # init bullets
         self.bullets = wx.ImageList(13, 12)
         self.SetImageList(self.bullets)
-        self.reset_document_tree_bullets()
+        self._resetBullets()
 
         # add root
         root = self.AddRoot('Documents')
@@ -253,7 +253,7 @@ class documentsTree(wx.TreeCtrl):
             elif self._item_branch == 'UniDec':
                 self.on_show_unidec_results(None, plot_type=self._item_leaf)
             elif self._item_leaf == 'Annotations':
-                self.on_add_annotation(None)
+                self.onAddAnnotation(None)
         elif self._document_type in [
             'Chromatogram', 'Chromatograms (EIC)', 'Annotated data',
             'Drift time (1D)', 'Drift time (1D, EIC, DT-IMS)', 'Drift time (1D, EIC)',
@@ -287,7 +287,7 @@ class documentsTree(wx.TreeCtrl):
         except Exception:
             print("Failed to execute the '{}' operation in threaded mode. Consider switching it off?".format(action))
 
-    def toggle_quick_display(self, evt):
+    def onNotUseQuickDisplay(self, evt):
         """
         Function to either allow or disallow quick plotting selection of datasets
         """
@@ -300,7 +300,7 @@ class documentsTree(wx.TreeCtrl):
         if evt is not None:
             evt.Skip()
 
-    def reset_document_tree_bullets(self):
+    def _resetBullets(self):
         """Erase all bullets and make defaults."""
         self.bullets.RemoveAll()
         self.bullets.Add(self.icons.bulletsLib['bulletsDoc'])
@@ -332,6 +332,64 @@ class documentsTree(wx.TreeCtrl):
             'calibration_on': 16, 'overlay_on': 17,
         }
 
+    def onGetItemData(self, dataType):
+        """
+        This function retrieves data for currently selected item
+        """
+        if self._document_data is None:
+            return
+
+        __, data, __ = self._on_event_get_mobility_chromatogram_data()
+
+#         # Get data
+#         if self._document_type == 'Drift time (2D)':
+#             data = self._document_data.IMS2D
+#         elif self._document_type == 'Drift time (2D, processed)':
+#             data = self._document_data.IMS2Dprocess
+#         elif self._document_type == 'Drift time (2D, EIC)':
+#             if self._item_leaf == 'Drift time (2D, EIC)':
+#                 return
+#             data = self._document_data.IMS2Dions[self._item_leaf]
+#         elif self._document_type == 'Drift time (2D, combined voltages, EIC)':
+#             if self._item_leaf == 'Drift time (2D, combined voltages, EIC)':
+#                 return
+#             data = self._document_data.IMS2DCombIons[self._item_leaf]
+#         elif self._document_type == 'Drift time (2D, processed, EIC)':
+#             if self._item_leaf == 'Drift time (2D, processed, EIC)':
+#                 return
+#             data = self._document_data.IMS2DionsProcess[self._item_leaf]
+#         elif self._document_type == 'Input data':
+#             if self._item_leaf == 'Input data':
+#                 return
+#             data = self._document_data.IMS2DcompData[self._item_leaf]
+#         elif self._document_type == 'Statistical':
+#             if self._item_leaf == 'Statistical':
+#                 return
+#             data = self._document_data.IMS2DstatsData[self._item_leaf]
+#         elif self._document_type == 'Chromatograms (combined voltages, EIC)':
+#             if self._item_leaf == 'Chromatograms (combined voltages, EIC)':
+#                 return
+#             data = self._document_data.IMSRTCombIons[self._item_leaf]
+#         elif self._document_type == 'Drift time (1D, EIC, DT-IMS)':
+#             if self._item_leaf == 'Drift time (1D, EIC, DT-IMS)':
+#                 return
+#             data = self._document_data.IMS1DdriftTimes[self._item_leaf]
+#         elif self._document_type == 'Drift time (1D, EIC)':
+#             if self._item_leaf == 'Drift time (1D, EIC)':
+#                 return
+#             data = self._document_data.multipleDT[self._item_leaf]
+
+        return data.get(dataType, None)
+
+        # Retrieve dataType
+        if dataType == 'charge':
+            dataOut = data.get('charge', None)
+        elif dataType == 'cmap':
+            dataOut = data.get('cmap', self.config.currentCmap)
+
+        # Return data
+        return dataOut
+
     def on_save_as_document(self, evt):
         """
         Save current document. With asking for path.
@@ -348,6 +406,15 @@ class documentsTree(wx.TreeCtrl):
             self.data_handling.on_save_document_fcn,
             document_title, save_as=False,
         )
+#         self.data_handling.on_save_document_fcn(document_title, save_as=False)
+
+#     def on_save_all_documents(self, evt):
+#         """
+#         Save all currently opened documents and save them to file.
+#         """
+#
+#         for document_title in self.presenter.documentsDict:
+#             self.data_handling.on_save_document_fcn(document_title)
 
     def on_refresh_document(self, evt=None):
         document = self.presenter.documentsDict.get(self.title, None)
@@ -361,13 +428,13 @@ class documentsTree(wx.TreeCtrl):
             mass_spectrum, chromatogram, mobiligram, heatmap = True, True, True, True
             go_to_page = self.config.panelNames['MS']
         elif document.dataType == 'Type: MANUAL':
-            mass_spectrum = True
+            mass_spectrum, chromatogram, mobiligram, heatmap = True, False, False, False
             go_to_page = self.config.panelNames['MS']
         elif document.dataType == 'Type: Multifield Linear DT':
             mass_spectrum, chromatogram, mobiligram, heatmap = True, True, True, True
             go_to_page = self.config.panelNames['MS']
         elif document.dataType == 'Type: 2D IM-MS':
-            heatmap = True
+            mass_spectrum, chromatogram, mobiligram, heatmap = False, False, False, True
             go_to_page = self.config.panelNames['2D']
         else:
             return
@@ -425,8 +492,9 @@ class documentsTree(wx.TreeCtrl):
         # go to page
         self.panel_plot._set_page(go_to_page)
 
+    # TODO: add option to do this for ALL items in the dataset
     def on_check_xlabels_RT(self):
-        """Check label of the chromatogram dataset"""
+        """Change x-axis labels of a chromatogram"""
 
         data = self.GetPyData(self._item_id)
         xlabel = data['xlabels']
@@ -439,8 +507,12 @@ class documentsTree(wx.TreeCtrl):
 
         return xlabel_evt_dict.get(xlabel, None)
 
-    def on_check_xylabels_2D(self):
-        """Check label of the 2D datasets"""
+    # TODO: add option to do this for ALL items in the dataset
+    def on_check_xylabels_2D(self):  # checkCurrentXYlabels
+        """
+        This function checks what is the current X/Y-axis label
+        Its kind of dirty and needs to be improved in future!
+        """
 
         xlabel_evt_dict = {
             'Scans': ID_xlabel_2D_scans,
@@ -492,9 +564,10 @@ class documentsTree(wx.TreeCtrl):
 
         return xlabel_evt_dict.get(xlabel, ID_xlabel_2D_custom), ylabel_evt_dict.get(ylabel, ID_ylabel_2D_custom)
 
+    # TODO: add option to do this for ALL items in the dataset
     def on_check_xlabels_1D(self):
-        """Check labels of the mobilogram dataset"""
-        data = self.GetPyData(self._item_id)
+        if self._document_type == 'Drift time (1D)':
+            data = self._document_data.DT
 
         # Get labels
         xlabel = data['xlabels']
@@ -508,8 +581,8 @@ class documentsTree(wx.TreeCtrl):
 
         return xlabel_evt_dict.get(xlabel, ID_ylabel_2D_bins)
 
+    # TODO: add option to do this for ALL items in the dataset
     def on_check_xlabels_DTMS(self):
-        """Check labels of the DT/MS dataset"""
         if self._document_type == 'DT/MS':
             data = self._document_data.DTMZ
 
@@ -545,10 +618,9 @@ class documentsTree(wx.TreeCtrl):
                 'Please select a single ion in the Document panel.\n\n\n',
             )
 
-        __, data, __ = self._on_event_get_mobility_chromatogram_data()
-        current_charge = data.get('charge', None)
+        current_charge = self.onGetItemData(dataType='charge')
 
-        charge = DialogSimpleAsk(
+        charge = dlgAsk(
             'Type in new charge state',
             defaultValue=str(current_charge),
         )
@@ -621,7 +693,7 @@ class documentsTree(wx.TreeCtrl):
 
         return document, data, query
 
-    def on_load_custom_data(self, evt):
+    def onLoadInteractiveData(self, evt):
         """
         Load data into interactive document
         """
@@ -1039,7 +1111,7 @@ class documentsTree(wx.TreeCtrl):
             elif n_grid in [17, 18, 19, 20, 21, 22, 23, 24, 25]:
                 n_rows, n_cols = 5, 5
             else:
-                DialogBox(
+                dlgBox(
                     exceptionTitle='Error',
                     exceptionMsg='Cannot plot grid larger than 5 x 5 (25 cells). You have selected {}'.format(n_grid),
                     type='Error',
@@ -1428,7 +1500,7 @@ class documentsTree(wx.TreeCtrl):
     def on_delete_all_documents(self, evt):
         """ Alternative function to delete documents """
 
-        dlg = DialogBox(
+        dlg = dlgBox(
             exceptionTitle='Are you sure?',
             exceptionMsg=''.join(['Are you sure you would like to delete ALL documents?']),
             type='Question',
@@ -1488,7 +1560,7 @@ class documentsTree(wx.TreeCtrl):
         if evt is not None:
             evt.Skip()
 
-    def on_add_annotation(self, evt):
+    def onAddAnnotation(self, evt):
         data = self.GetPyData(self._item_id)
 
         document = self._document_data.title
@@ -1517,7 +1589,7 @@ class documentsTree(wx.TreeCtrl):
             msg = 'An instance of annotation window is already open. Please close it first.'
             args = (msg, 4, 5)
             self.presenter.onThreading(None, args, action='updateStatusbar')
-            DialogBox(
+            dlgBox(
                 exceptionTitle='Window already open',
                 exceptionMsg=msg, type='Error',
             )
@@ -1582,7 +1654,7 @@ class documentsTree(wx.TreeCtrl):
 
         return document, annotations
 
-    def on_update_annotation(self, annotations, document, dataset, set_data_only=False):
+    def onUpdateAnotations(self, annotations, document, dataset, set_data_only=False):
         """
         Update annotations in specified document/dataset
         ----------
@@ -1674,7 +1746,7 @@ class documentsTree(wx.TreeCtrl):
         if expand:
             self.Expand(itemAnnot)
 
-    def on_duplicate_annotations(self, evt):
+    def onDuplicateAnnotations(self, evt):
         """
         Duplicate annotations from one spectrum to another
         ----------
@@ -1694,10 +1766,8 @@ class documentsTree(wx.TreeCtrl):
             annotations = deepcopy(document.multipleMassSpectrum[self._item_leaf].get('annotations', None))
 
         if annotations is None or len(annotations) == 0:
-            raise MessageError(
-                'Annotations were not found',
-                'This item has no annotations to duplicate.\n\n\n',
-            )
+            raise MessageError("Annotations were not found",
+                               'This item has no annotations to duplicate.\n\n\n')
 
         # ask which document to add it to
         document_list, document_spectrum_list = [], {}
@@ -1766,7 +1836,7 @@ class documentsTree(wx.TreeCtrl):
         )
         self.presenter.onThreading(None, (msg, 4, 5), action='updateStatusbar')
 
-    def on_show_annotations(self, evt):
+    def onShowAnnotations(self, evt):
         """
         Show annotations in the currently shown mass spectrum
         ----------
@@ -1866,8 +1936,8 @@ class documentsTree(wx.TreeCtrl):
         plot_obj.repaint()
 
     def on_action_ORIGAMI_MS(self, evt):
-        from gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
-        dlg = DialogCustomiseORIGAMI(self, self.presenter, self.config)
+        from gui_elements.dialog_customise_origami import dialog_customise_origami
+        dlg = dialog_customise_origami(self, self.presenter, self.config)
         dlg.ShowModal()
 
     def _bind_change_label_events(self):
@@ -2147,9 +2217,9 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToTextTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addInteractiveToTextTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneInteractiveToTextTable)
-        self.Bind(wx.EVT_MENU, self.on_add_annotation, id=ID_docTree_add_annotations)
-        self.Bind(wx.EVT_MENU, self.on_show_annotations, id=ID_docTree_show_annotations)
-        self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, id=ID_docTree_duplicate_annotations)
+        self.Bind(wx.EVT_MENU, self.onAddAnnotation, id=ID_docTree_add_annotations)
+        self.Bind(wx.EVT_MENU, self.onShowAnnotations, id=ID_docTree_show_annotations)
+        self.Bind(wx.EVT_MENU, self.onDuplicateAnnotations, id=ID_docTree_duplicate_annotations)
         self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_docTree_duplicate_document)
         self.Bind(wx.EVT_MENU, self.on_refresh_document, id=ID_docTree_show_refresh_document)
         self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_removeItemDocument)
@@ -2168,13 +2238,13 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveRMSDmatrixImageDoc)
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveOtherImageDoc)
         self.Bind(wx.EVT_MENU, self.on_process_UVPD, id=ID_docTree_plugin_UVPD)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_MS_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_RT_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_DT_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_2DT_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_other_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_matrix_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_comparison_to_interactive)
+        self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_MS_to_interactive)
+        self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_RT_to_interactive)
+        self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_DT_to_interactive)
+        self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_2DT_to_interactive)
+        self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_other_to_interactive)
+        self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_matrix_to_interactive)
+        self.Bind(wx.EVT_MENU, self.onLoadInteractiveData, id=ID_docTree_add_comparison_to_interactive)
         self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_csv)
         self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_pickle)
         self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_excel)
@@ -2202,102 +2272,102 @@ class documentsTree(wx.TreeCtrl):
             parent=menu, id=ID_docTree_add_annotations,
             text='Show annotations panel...',
             bitmap=self.icons.iconsLib['annotate16'],
-        )
+            )
         menu_show_comparison_panel = makeMenuItem(
             parent=menu, id=ID_docTree_compareMS,
             text='Compare mass spectra...',
             bitmap=self.icons.iconsLib['compare_mass_spectra_16'],
-        )
+            )
         menu_show_peak_picker_panel = makeMenuItem(
             parent=menu, id=ID_docTree_action_open_peak_picker,
             text='Open peak picker...',
             bitmap=self.icons.iconsLib['highlight_16'],
-        )
+            )
         menu_action_delete_item = makeMenuItem(
             parent=menu, id=ID_removeItemDocument,
             text='Delete item\tDelete',
             bitmap=self.icons.iconsLib['clear_16'],
-        )
+            )
         menu_action_show_annotations = makeMenuItem(
             parent=menu, id=ID_docTree_show_annotations,
             text='Show annotations on plot',
             bitmap=self.icons.iconsLib['highlight_16'],
-        )
+            )
         menu_action_show_plot = makeMenuItem(
             parent=menu, id=ID_showPlotDocument,
             text='Show plot\tAlt+S',
             bitmap=self.icons.iconsLib['blank_16'],
-        )
+            )
         menu_action_show_plot_spectrum = makeMenuItem(
             parent=menu, id=ID_showPlotDocument,
             text='Show mass spectrum\tAlt+S',
             bitmap=self.icons.iconsLib['mass_spectrum_16'],
-        )
+            )
         menu_action_show_plot_mobilogram = makeMenuItem(
             parent=menu, id=ID_showPlotDocument,
             text='Show mobiligram\tAlt+S',
             bitmap=self.icons.iconsLib['mobiligram_16'],
-        )
+            )
         menu_action_show_plot_chromatogram = makeMenuItem(
             parent=menu, id=ID_showPlotDocument,
             text='Show chromatogram\tAlt+S',
             bitmap=self.icons.iconsLib['chromatogram_16'],
-        )
+            )
         menu_action_show_plot_2D = makeMenuItem(
             parent=menu, id=ID_showPlotDocument,
             text='Show heatmap\tAlt+S',
             bitmap=self.icons.iconsLib['heatmap_16'],
-        )
+            )
         menu_action_show_plot_violin = makeMenuItem(
             parent=menu, id=ID_showPlotDocument_violin,
             text='Show violin plot',
             bitmap=self.icons.iconsLib['panel_violin_16'],
-        )
+            )
         menu_action_show_plot_waterfall = makeMenuItem(
             parent=menu, id=ID_showPlotDocument_waterfall,
             text='Show waterfall plot',
             bitmap=self.icons.iconsLib['panel_waterfall_16'],
-        )
+            )
         menu_action_duplicate_annotations = makeMenuItem(
             parent=menu, id=ID_docTree_duplicate_annotations,
             text='Duplicate annotations...',
             bitmap=self.icons.iconsLib['blank_16'],
-        )
+            )
         menu_action_process_ms = makeMenuItem(
             parent=menu, id=ID_docTree_processMS,
             text='Process...\tP',
             bitmap=self.icons.iconsLib['process_ms_16'],
-        )
+            )
         menu_action_process_2D = makeMenuItem(
             parent=menu, id=ID_docTree_process2D,
             text='Process...\tP',
             bitmap=self.icons.iconsLib['process_2d_16'],
-        )
+            )
         menu_action_assign_charge = makeMenuItem(
             parent=menu, id=ID_assignChargeState,
             text='Assign charge state...\tAlt+Z',
             bitmap=self.icons.iconsLib['assign_charge_16'],
-        )
+            )
         menu_show_unidec_panel = makeMenuItem(
             parent=menu, id=ID_docTree_UniDec,
             text='Deconvolute using UniDec...',
             bitmap=self.icons.iconsLib['process_unidec_16'],
-        )
+            )
         menu_action_add_spectrum_to_panel = makeMenuItem(
             parent=menu, id=ID_docTree_addOneToMMLTable,
             text='Add spectrum to multiple files panel',
             bitmap=None,
-        )
+            )
         menu_action_show_unidec_results = makeMenuItem(
             parent=menu, id=ID_docTree_show_unidec,
             text='Show UniDec results',
             bitmap=None,
-        )
+            )
         menu_action_save_mobilogram_image_as = makeMenuItem(
             parent=menu, id=ID_save1DImageDoc,
             text='Save image as...',
             bitmap=self.icons.iconsLib['file_png_16'],
-        )
+            )
 
         if self._document_data.dataType == 'Type: Interactive':
             if self._document_type == 'Annotated data' and self._item_leaf != self._document_type:
@@ -3214,7 +3284,7 @@ class documentsTree(wx.TreeCtrl):
             elif evtID == ID_xlabel_2D_ccs:
                 newXlabel = 'Collision Cross Section (Å²)'
             elif evtID == ID_xlabel_2D_custom:
-                newXlabel = DialogSimpleAsk('Please type in your new label...')
+                newXlabel = dlgAsk('Please type in your new label...')
             elif evtID == ID_xlabel_2D_restore:
                 newXlabel = data['defaultX']['xlabels']
                 restoreX = True
@@ -3237,7 +3307,7 @@ class documentsTree(wx.TreeCtrl):
             elif evtID == ID_ylabel_2D_ccs:
                 newYlabel = 'Collision Cross Section (Å²)'
             elif evtID == ID_ylabel_2D_custom:
-                newYlabel = DialogSimpleAsk('Please type in your new label...')
+                newYlabel = dlgAsk('Please type in your new label...')
             elif evtID == ID_ylabel_2D_restore:
                 newYlabel = data['defaultY']['ylabels']
                 restoreY = True
@@ -3667,7 +3737,7 @@ class documentsTree(wx.TreeCtrl):
         data = self._document_data.multipleMassSpectrum
         spectra_count = len(list(data.keys()))
         if spectra_count > 50:
-            dlg = DialogBox(
+            dlg = dlgBox(
                 exceptionTitle='Would you like to continue?',
                 exceptionMsg='There are {} mass spectra in this document. Would you like to continue?'.format(
                     spectra_count,
@@ -3853,7 +3923,7 @@ class documentsTree(wx.TreeCtrl):
             else:
                 spectrum_1 = self.presenter.documentsDict[document_1].multipleMassSpectrum[dataset_1]
         except Exception:
-            DialogBox(
+            dlgBox(
                 exceptionTitle='Incorrect data',
                 exceptionMsg='Could not find requested dataset. Try resellecting the document in the Documents Panel or opening this dialog again.',
                 type='Error',
@@ -3869,7 +3939,7 @@ class documentsTree(wx.TreeCtrl):
             else:
                 spectrum_2 = self.presenter.documentsDict[document_2].multipleMassSpectrum[dataset_2]
         except Exception:
-            DialogBox(
+            dlgBox(
                 exceptionTitle='Incorrect data',
                 exceptionMsg='Could not find requested dataset. Try resellecting the document in the Documents Panel or opening this dialog again.',
                 type='Error',
@@ -3883,7 +3953,7 @@ class documentsTree(wx.TreeCtrl):
             msY_1 = spectrum_1['yvals']
             msY_2 = spectrum_2['yvals']
         except KeyError:
-            DialogBox(
+            dlgBox(
                 exceptionTitle='Incorrect data',
                 exceptionMsg='Could not find requested dataset. Try resellecting the document in the Documents Panel or opening this dialog again.',
                 type='Error',
@@ -3913,7 +3983,7 @@ class documentsTree(wx.TreeCtrl):
                     len(msX), len(msY_1), len(msY_2),
                 )
                 self.presenter.onThreading(None, (msg, 4, 5), action='updateStatusbar')
-                DialogBox(
+                dlgBox(
                     exceptionTitle='Incorrect size',
                     exceptionMsg=msg,
                     type='Error',
@@ -4455,7 +4525,7 @@ class documentsTree(wx.TreeCtrl):
             if self._item_leaf == 'Annotated data':
                 return
             if self._item_leaf == 'Annotations':
-                self.on_add_annotation(None)
+                self.onAddAnnotation(None)
                 return
             data = deepcopy(self.GetPyData(self._item_id))
             try:
@@ -4535,7 +4605,7 @@ class documentsTree(wx.TreeCtrl):
                 msg = 'Plot: {} is not supported yet. Please contact Lukasz Migas \n'.format(plot_type) + \
                       'if you would like to include a new plot type in ORIGAMI. Currently \n' + \
                       'supported plots include: line, multi-line, waterfall, scatter and grid.'
-                DialogBox(
+                dlgBox(
                     exceptionTitle='Plot type not supported',
                     exceptionMsg=msg,
                     type='Error',
@@ -4816,7 +4886,7 @@ class documentsTree(wx.TreeCtrl):
                     dictionary=data, dataType='plot', compact=False,
                 )
                 if len(xvals) > 500:
-                    dlg = DialogBox(
+                    dlg = dlgBox(
                         exceptionTitle='Would you like to continue?',
                         exceptionMsg='There are {} scans in this dataset (this could be slow...). Would you like to continue?'.format(
                             len(xvals),
@@ -6186,7 +6256,7 @@ class documentsTree(wx.TreeCtrl):
             __, cookie = self.GetFirstChild(self.GetRootItem())
 
             if ask_permission:
-                dlg = DialogBox(
+                dlg = dlgBox(
                     exceptionTitle='Are you sure?',
                     exceptionMsg=''.join([
                         'Are you sure you would like to delete: ',
@@ -6683,7 +6753,7 @@ class documentsTree(wx.TreeCtrl):
                 elif document.fileFormat == 'Format: .mzML':
                     document.file_reader['data_reader'] = io_mzml.mzMLreader(filename=document.path)
                 else:
-                    DialogBox(
+                    dlgBox(
                         exceptionTitle='Error',
                         exceptionMsg='{} not supported yet!'.format(document.fileFormat),
                         type='Error', exceptionPrint=True,
@@ -6692,7 +6762,7 @@ class documentsTree(wx.TreeCtrl):
                 try:
                     index_dict = document.file_reader['data_reader'].create_title_map(document.tandem_spectra)
                 except AttributeError:
-                    DialogBox(
+                    dlgBox(
                         exceptionTitle='Error',
                         exceptionMsg='Cannot add identification information to {} yet!'.format(document.fileFormat),
                         type='Error', exceptionPrint=True,
@@ -6813,7 +6883,7 @@ class documentsTree(wx.TreeCtrl):
         if confirm_deletion:
             msg = 'Are you sure you want to continue with this action?' + \
                   '\nThis action cannot be undone.'
-            dlg = DialogBox(exceptionMsg=msg, type='Question')
+            dlg = dlgBox(exceptionMsg=msg, type='Question')
             if dlg == wx.ID_NO:
                 logger.info('The operation was cancelled')
                 return document, True
@@ -6885,7 +6955,7 @@ class documentsTree(wx.TreeCtrl):
         if confirm_deletion:
             msg = 'Are you sure you want to continue with this action?' + \
                   '\nThis action cannot be undone.'
-            dlg = DialogBox(exceptionMsg=msg, type='Question')
+            dlg = dlgBox(exceptionMsg=msg, type='Question')
             if dlg == wx.ID_NO:
                 logger.info('The operation was cancelled')
                 return document, True
@@ -6931,7 +7001,7 @@ class documentsTree(wx.TreeCtrl):
         document = self.data_handling._on_get_document(document_title)
 
         if ask_permission:
-            dlg = DialogBox(
+            dlg = dlgBox(
                 exceptionTitle='Are you sure?',
                 exceptionMsg='Are you sure you would like to delete {}'.format(document_title),
                 type='Question',
@@ -7026,7 +7096,7 @@ class documentsTree(wx.TreeCtrl):
         if confirm_deletion:
             msg = 'Are you sure you want to continue with this action?' + \
                   '\nThis action cannot be undone.'
-            dlg = DialogBox(exceptionMsg=msg, type='Question')
+            dlg = dlgBox(exceptionMsg=msg, type='Question')
             if dlg == wx.ID_NO:
                 logger.info('The operation was cancelled')
                 return document, True
@@ -7198,7 +7268,7 @@ class documentsTree(wx.TreeCtrl):
         if confirm_deletion:
             msg = 'Are you sure you want to continue with this action?' + \
                   '\nThis action cannot be undone.'
-            dlg = DialogBox(exceptionMsg=msg, type='Question')
+            dlg = dlgBox(exceptionMsg=msg, type='Question')
             if dlg == wx.ID_NO:
                 logger.info('The operation was cancelled')
                 return document, True
@@ -7271,7 +7341,7 @@ class documentsTree(wx.TreeCtrl):
         if confirm_deletion:
             msg = 'Are you sure you want to continue with this action?' + \
                   '\nThis action cannot be undone.'
-            dlg = DialogBox(exceptionMsg=msg, type='Question')
+            dlg = dlgBox(exceptionMsg=msg, type='Question')
             if dlg == wx.ID_NO:
                 logger.info('The operation was cancelled')
                 return document, True

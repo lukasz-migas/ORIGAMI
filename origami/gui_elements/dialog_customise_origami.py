@@ -3,13 +3,13 @@
 import numpy as np
 import processing.origami_ms as pr_origami
 import wx
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
 
 
-class dialog_customise_origami(wx.Dialog):
+class DialogCustomiseORIGAMI(wx.Dialog):
     """Dialog to setup ORIGAMI-MS settings"""
 
     def __init__(self, parent, presenter, config, **kwargs):
@@ -68,7 +68,7 @@ class dialog_customise_origami(wx.Dialog):
         if self.user_settings_changed:
             msg = "You've made some changes to the ORIGAMI-MS settings but have not saved them.\n" + \
                   'Would you like to continue?'
-            dlg = dlgBox(
+            dlg = DialogBox(
                 exceptionTitle='Would you like to continue?',
                 exceptionMsg=msg,
                 type='Question',

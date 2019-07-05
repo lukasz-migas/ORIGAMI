@@ -22,8 +22,8 @@ import wx
 from config import OrigamiConfig as config
 from document import document as documents
 from gui_elements.dialog_select_document import DialogSelectDocument
-from gui_elements.misc_dialogs import dlgAsk
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
+from gui_elements.misc_dialogs import DialogSimpleAsk
 from help_documentation import OrigamiHelp
 from icons import IconContainer as icons
 from ids import *
@@ -393,7 +393,7 @@ class ORIGAMI(object):
 #             path = self.checkIfRawFile(dlg.GetPath())
 #             if path is None:
 #                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format."
-#                 dlgBox(exceptionTitle='Please load MassLynx (.raw) file',
+#                 DialogBox(exceptionTitle='Please load MassLynx (.raw) file',
 #                        exceptionMsg=msg,
 #                        type="Error")
 #                 return
@@ -957,7 +957,7 @@ class ORIGAMI(object):
         # Check whether the user selected at least two files (and no more than 2 for certain functions)
         if tempAccumulator < 2:
             msg = 'Please select at least two files'
-            dlgBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+            DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
             return
 
         # Remove duplicates from list
@@ -971,7 +971,7 @@ class ORIGAMI(object):
         if ((zvalsIon1plot.shape != zvalsIon2plot.shape) and
                 self.config.overlayMethod not in ['Grid (n x n)']):
             msg = 'Comparing ions: {} and {}. These files are NOT of identical shape!'.format(name1, name2)
-            dlgBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+            DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
             return
 
         defaultVals = ['Reds', 'Greens']
@@ -1116,7 +1116,7 @@ class ORIGAMI(object):
             elif n_grid in list(range(26, 37)):
                 n_rows, n_cols = 6, 6
             else:
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Error',
                     exceptionMsg='Cannot plot grid larger than 6 x 6. You have selected'.format(n_grid),
                     type='Error', exceptionPrint=True,
@@ -1168,7 +1168,7 @@ class ORIGAMI(object):
             if tempAccumulator > 2:
                 msg = 'Currently only supporting an overlay of two ions.\n' + \
                       'Comparing: {} and {}.'.format(compList[0], compList[1])
-                dlgBox(exceptionTitle='Warning', exceptionMsg=msg, type='Warning')
+                DialogBox(exceptionTitle='Warning', exceptionMsg=msg, type='Warning')
                 print(msg)
 
             if self.config.overlayMethod == 'Transparent':
@@ -1798,18 +1798,18 @@ class ORIGAMI(object):
             else:
                 return None
         elif not prefix:
-            saveFileName = dlgAsk(
+            saveFileName = DialogSimpleAsk(
                 'Please enter a new filename for the images. Names will be appended with the item keyword.',
                 defaultValue=defaultValue,
             )
         else:
             if not csv:
-                saveFileName = dlgAsk(
+                saveFileName = DialogSimpleAsk(
                     'Please enter a new prefix for the images. Names will be appended with the item keyword.',
                     defaultValue=defaultValue,
                 )
             else:
-                saveFileName = dlgAsk(
+                saveFileName = DialogSimpleAsk(
                     'Please enter a new prefix for the output file. Names will be appended with the item keyword.',
                     defaultValue=defaultValue,
                 )
@@ -1836,7 +1836,7 @@ class ORIGAMI(object):
                 peaklist['m/z']
             except KeyError:
                 msg = 'Please make sure your file contains headers. i.e. m/z | window | z (optional)'
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Incorrect input',
                     exceptionMsg=msg,
                     type='Error',
@@ -1852,7 +1852,7 @@ class ORIGAMI(object):
                         mzAdd = peaklist['window'][peak]
                     except KeyError:
                         msg = 'Please make sure your file contains headers. i.e. m/z | window | z (optional)'
-                        dlgBox(
+                        DialogBox(
                             exceptionTitle='Incorrect input',
                             exceptionMsg=msg,
                             type='Error',
@@ -2184,7 +2184,7 @@ class ORIGAMI(object):
 # #                 elif charge == 0:
 # #                     msg = "%s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (
 # #                         rangeName, filename)
-# #                     dlgBox(exceptionTitle='Missing charge information',
+# #                     DialogBox(exceptionTitle='Missing charge information',
 # #                            exceptionMsg=msg,
 # #                            type="Warning")
 # #                     continue
@@ -2208,7 +2208,7 @@ class ORIGAMI(object):
 # #                 if (pusherFreq == 1 or not isnumber(pusherFreq)) and ylabel != 'Drift time (ms)':
 # #                     msg = "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (
 # #                         filename, rangeName)
-# #                     dlgBox(exceptionTitle='Missing data',
+# #                     DialogBox(exceptionTitle='Missing data',
 # #                            exceptionMsg=msg,
 # #                            type="Error")
 # #                     continue
@@ -2260,7 +2260,7 @@ class ORIGAMI(object):
 # #                                                                 format='Format: DataFrame')
 # #                     if len(docList) == 0:
 # #                         msg = "Cound not find calibration document or calibration file. Please create or load one in first"
-# #                         dlgBox(exceptionTitle='Missing data',
+# #                         DialogBox(exceptionTitle='Missing data',
 # #                                exceptionMsg=msg,
 # #                                type="Error")
 # #                         return
@@ -2908,7 +2908,7 @@ class ORIGAMI(object):
         try:
             os.startfile(path)
         except WindowsError:
-            dlgBox(
+            DialogBox(
                 exceptionTitle='This folder does not exist',
                 exceptionMsg='Could not open the directory - this folder does not exist',
                 type='Error',
@@ -2923,7 +2923,7 @@ class ORIGAMI(object):
         self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(
             getSelected=True,
         )
-        indent = self.view.panelDocuments.documents.getItemIndent(selectedItem)
+        indent = self.view.panelDocuments.documents.get_item_indent(selectedItem)
         if self.currentDoc == 'Documents':
             return None, None
         elif indent > 2:
@@ -3123,7 +3123,7 @@ class ORIGAMI(object):
 #             if not update:
 #                 try:
 #                     if evt.GetId() == ID_CHECK_VERSION:
-#                         dlgBox(exceptionTitle='ORIGAMI',
+#                         DialogBox(exceptionTitle='ORIGAMI',
 #                                exceptionMsg='You are using the most up to date version %s.' % (self.config.version),
 #                                type="Info")
 #                 except Exception:                    pass

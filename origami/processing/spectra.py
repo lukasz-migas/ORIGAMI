@@ -5,7 +5,7 @@ import math
 from bisect import bisect_left
 
 import numpy as np
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from processing.utils import get_narrow_data_range
 from scipy.interpolate.interpolate import interp1d
 from scipy.ndimage import gaussian_filter
@@ -18,7 +18,7 @@ def remove_noise_1D(inputData=None, threshold=0):
     # Check whether threshold values meet the criteria.
     # First check if value is not above the maximum or below 0
     if (threshold > np.max(inputData)) or (threshold < 0):
-        dlgBox(
+        DialogBox(
             exceptionTitle='Warning',
             exceptionMsg='Threshold value was too high - the maximum value is %s. Value was reset to 0. Consider reducing your threshold value.' %
             np.max(inputData),
@@ -31,7 +31,7 @@ def remove_noise_1D(inputData=None, threshold=0):
     elif (threshold < (np.max(inputData) / 10000)):  # This is somewhat guesswork! It won't be 100 % fool proof
         if (threshold > 1) or (threshold <= 0):
             threshold = 0
-        dlgBox(
+        DialogBox(
             exceptionTitle='Warning',
             exceptionMsg='Threshold value was too low - the maximum value is %s. Value was reset to 0. Consider increasing your threshold value.' %
             np.max(inputData),
@@ -200,7 +200,7 @@ def smooth_gaussian_1D(data=None, sigma=1):  # smooth1D
     if data is None or len(data) == 0:
         return None
     if sigma < 0:
-        dlgBox(
+        DialogBox(
             exceptionTitle='Warning',
             exceptionMsg='Value of sigma is too low. Value was reset to 1',
             type='Warning',

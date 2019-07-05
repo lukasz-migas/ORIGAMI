@@ -12,8 +12,8 @@ import processing.spectra as pr_spectra
 import processing.utils as pr_utils
 import unidec as unidec
 from document import document as documents
-from gui_elements.misc_dialogs import dlgAsk
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
+from gui_elements.misc_dialogs import DialogSimpleAsk
 from ids import ID_combineCEscansSelectedIons
 from ids import ID_smooth1Ddata1DT
 from ids import ID_smooth1DdataMS
@@ -26,7 +26,7 @@ from utils.check import isempty
 from utils.color import convertRGB255to1
 from utils.converters import str2num
 from utils.path import clean_filename
-from utils.random import randomIntegerGenerator
+from utils.random import get_random_int
 logger = logging.getLogger('origami')
 
 
@@ -151,7 +151,7 @@ class data_processing():
         if self.docs is None:
             return
 
-        sigma = dlgAsk(
+        sigma = DialogSimpleAsk(
             'Spectrum smoothing using Gaussian filter. Sigma value:',
             defaultValue='',
         )
@@ -725,14 +725,14 @@ class data_processing():
                                         'mz_end': xmax,
                                         'charge': charge,
                                         'color': self.config.customColors[
-                                            randomIntegerGenerator(
+                                            get_random_int(
                                                 0,
                                                 15,
                                             )
                                         ],
                                         'mz_ymax': intensity,
                                         'colormap': self.config.overlay_cmaps[
-                                            randomIntegerGenerator(
+                                            get_random_int(
                                                 0,
                                                 len(self.config.overlay_cmaps) - 1,
                                             )
@@ -1337,7 +1337,7 @@ class data_processing():
                 msg = "Interpolation range is above the 'true' data range." + \
                       'Consider reducing interpolation range to cover the span of the mass spectrum'
                 self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Error',
                     exceptionMsg=msg,
                     type='Error',
@@ -1358,7 +1358,7 @@ class data_processing():
                 self.config.unidec_engine.run_unidec()
                 self.config.unidec_peakWidth = self.config.unidec_engine.config.mzsig
             except IndexError:
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Error',
                     exceptionMsg='Load and pre-process data first',
                     type='Error',
@@ -1380,11 +1380,11 @@ class data_processing():
                 msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'. " + \
                       "This value should be >= 'Sample frequency (Da)'"
                 self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-                dlgBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+                DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
                 return
             except IndexError as e:
                 print(e)
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Error',
                     exceptionMsg="Index error. Try reducing value of 'Sample frequency (Da)'",
                     type='Error',
@@ -1396,7 +1396,7 @@ class data_processing():
             except OverflowError:
                 msg = "Too many peaks! Try again with larger 'Peak detection threshold' or 'Peak detection window (Da).'"
                 self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-                dlgBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+                DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
                 return
             self.presenter.onThreading(None, ('UniDec: Finished picking peaks...', 4, 2), action='updateStatusbar')
 
@@ -1409,10 +1409,10 @@ class data_processing():
                 msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'" + \
                       "to be same or larger than 'Sample frequency (Da)'."
                 self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-                dlgBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+                DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
                 return
             except IndexError:
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Error',
                     exceptionMsg='Please run UniDec first',
                     type='Error',
@@ -1444,7 +1444,7 @@ class data_processing():
         try:
             document = self.presenter.documentsDict[document_title]
         except KeyError:
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Error',
                 exceptionMsg='Please create or load a document first',
                 type='Error',
@@ -1658,7 +1658,7 @@ class data_processing():
                 document = self.presenter.documentsDict[document_title]
             except KeyError:
                 if kwargs.get('notify_of_error', True):
-                    dlgBox(
+                    DialogBox(
                         exceptionTitle='Error',
                         exceptionMsg='Please create or load a document first',
                         type='Error',
@@ -1686,7 +1686,7 @@ class data_processing():
                 document = self.presenter.documentsDict[document_title]
             except KeyError:
                 if kwargs.get('notify_of_error', True):
-                    dlgBox(
+                    DialogBox(
                         exceptionTitle='Error',
                         exceptionMsg='Please create or load a document first',
                         type='Error',
@@ -1740,7 +1740,7 @@ class data_processing():
                 data = document.IMS2Dions
             else:
                 msg = 'Data was not extracted yet. Please extract before continuing.'
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Missing data',
                     exceptionMsg=msg,
                     type='Error',
@@ -1814,7 +1814,7 @@ class data_processing():
                 msg = 'With your current input, there would be too many scans in your file! ' + \
                       'There are %s scans in your file and your settings suggest there should be %s' \
                       % (zvals[2], zvals[1])
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Are your settings correct?',
                     exceptionMsg=msg, type='Warning',
                 )
@@ -1835,8 +1835,8 @@ class data_processing():
             yvalsRT = np.sum(zvals, axis=0)
             # Check if item has labels, alpha, charge
             charge = data[ion_name].get('charge', None)
-            cmap = data[ion_name].get('cmap', self.config.overlay_cmaps[randomIntegerGenerator(0, 5)])
-            color = data[ion_name].get('color', self.config.customColors[randomIntegerGenerator(0, 15)])
+            cmap = data[ion_name].get('cmap', self.config.overlay_cmaps[get_random_int(0, 5)])
+            color = data[ion_name].get('color', self.config.customColors[get_random_int(0, 15)])
             label = data[ion_name].get('label', None)
             alpha = data[ion_name].get('alpha', self.config.overlay_defaultAlpha)
             mask = data[ion_name].get('mask', self.config.overlay_defaultMask)

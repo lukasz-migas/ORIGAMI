@@ -11,7 +11,7 @@ from document import document as documents
 from gui_elements.dialog_ask import DialogAsk
 from gui_elements.dialog_color_picker import DialogColorPicker
 from gui_elements.dialog_select_document import DialogSelectDocument
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
 from ids import ID_addNewOverlayDoc
 from ids import ID_ionPanel_edit_all
@@ -80,7 +80,7 @@ from utils.color import convertRGB255to1
 from utils.color import determineFontColor
 from utils.color import randomColorGenerator
 from utils.color import roundRGB
-from utils.random import randomIntegerGenerator
+from utils.random import get_random_int
 from utils.time import getTime
 logger = logging.getLogger('origami')
 
@@ -886,7 +886,7 @@ class panelMultipleTextFiles (wx.Panel):
                 msg1 = 'Missing x- and/or y-axis labels. Cannot continue!'
                 msg2 = 'Add x- and/or y-axis labels to each file before continuing!'
                 msg = '\n'.join([msg1, msg2])
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Missing data',
                     exceptionMsg=msg,
                     type='Error',
@@ -1209,7 +1209,7 @@ class panelMultipleTextFiles (wx.Panel):
             try:
                 newColour = convertRGB1to255(literal_eval(self.OnGetValue(value_type='color')), 3)
             except Exception:
-                newColour = self.config.customColors[randomIntegerGenerator(0, 15)]
+                newColour = self.config.customColors[get_random_int(0, 15)]
             # Assign color
             self.peaklist.SetItem(
                 self.peaklist.item_id, self.config.textlistColNames['color'],
@@ -1378,7 +1378,7 @@ class panelMultipleTextFiles (wx.Panel):
     def on_add_to_table(self, add_dict, check_color=True, return_color=False):
 
         # get color
-        color = add_dict.get('color', self.config.customColors[randomIntegerGenerator(0, 15)])
+        color = add_dict.get('color', self.config.customColors[get_random_int(0, 15)])
         # check for duplicate color
         if check_color:
             color = self.on_check_duplicate_colors(color)
@@ -1417,7 +1417,7 @@ class panelMultipleTextFiles (wx.Panel):
         msg = 'Are you sure you would like to delete {}?\nThis action cannot be undone.'.format(
             itemInfo['document'],
         )
-        dlg = dlgBox(
+        dlg = DialogBox(
             type='Question',
             exceptionMsg=msg,
         )
@@ -1439,7 +1439,7 @@ class panelMultipleTextFiles (wx.Panel):
                 msg = 'Are you sure you would like to delete {}?\nThis action cannot be undone.'.format(
                     itemInfo['document'],
                 )
-                dlg = dlgBox(exceptionMsg=msg, type='Question')
+                dlg = DialogBox(exceptionMsg=msg, type='Question')
                 if dlg == wx.ID_NO:
                     print('The operation was cancelled')
                     continue
@@ -1456,7 +1456,7 @@ class panelMultipleTextFiles (wx.Panel):
     def on_delete_all(self, evt):
 
         msg = 'Are you sure you would like to delete all [2D IM-MS documents] from the list?\nThis action cannot be undone.'
-        dlg = dlgBox(exceptionMsg=msg, type='Question')
+        dlg = DialogBox(exceptionMsg=msg, type='Question')
         if dlg == wx.ID_NO:
             print('The operation was cancelled')
             return

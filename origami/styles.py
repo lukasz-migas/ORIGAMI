@@ -7,7 +7,7 @@ from operator import itemgetter
 import numpy as np
 import wx
 import wx.lib.mixins.listctrl as listmix
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from natsort.natsort import natsorted
 from utils.color import convertRGB255to1
 from utils.converters import byte2str
@@ -363,7 +363,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         document tree
         """
         # Ask if you want to delete all items
-        dlg = dlgBox(
+        dlg = DialogBox(
             exceptionMsg='Are you sure you would like to clear the table?',
             type='Question',
         )
@@ -502,7 +502,7 @@ class SimpleListCtrl(wx.ListCtrl):
         document tree
         """
         # Ask if you want to delete all items
-        dlg = dlgBox(
+        dlg = DialogBox(
             exceptionMsg='Are you sure you would like to clear the table?',
             type='Question',
         )

@@ -3,7 +3,7 @@
 import logging
 
 import numpy as np
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter
 from sklearn.preprocessing import normalize
@@ -52,7 +52,7 @@ def smooth_gaussian_2D(inputData=None, sigma=2):  # smoothDataGaussian
     if inputData is None or len(inputData) == 0:
         return None
     if sigma < 0:
-        dlgBox(
+        DialogBox(
             exceptionTitle='Warning',
             exceptionMsg='Value of sigma is too low. Value was reset to 1',
             type='Warning',
@@ -72,7 +72,7 @@ def smooth_savgol_2D(inputData=None, polyOrder=2, windowSize=5):  # smoothDataSa
         return None
     # Check whether polynomial order is of correct size
     if (polyOrder <= 0):
-        dlgBox(
+        DialogBox(
             exceptionTitle='Warning',
             exceptionMsg='Polynomial order is too small. Value was reset to 2',
             type='Warning',
@@ -86,7 +86,7 @@ def smooth_savgol_2D(inputData=None, polyOrder=2, windowSize=5):  # smoothDataSa
     elif (windowSize % 2) and (windowSize > polyOrder):
         windowSize = windowSize
     elif windowSize <= polyOrder:
-        dlgBox(
+        DialogBox(
             exceptionTitle='Warning',
             exceptionMsg='Window size was smaller than the polynomial order. Value was reset to %s' %
             (

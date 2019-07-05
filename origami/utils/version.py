@@ -12,7 +12,7 @@
 #         if not update:
 #             try:
 #                 if evt.GetId() == ID_CHECK_VERSION:
-#                     dlgBox(exceptionTitle='ORIGAMI',
+#                     DialogBox(exceptionTitle='ORIGAMI',
 #                            exceptionMsg='You are using the most up to date version %s.' % (self.config.version),
 #                            type="Info")
 #             except Exception:

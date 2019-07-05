@@ -55,8 +55,8 @@ from bokeh.plotting import ColumnDataSource
 from bokeh.plotting import figure
 from bokeh.plotting import save
 from bokeh.resources import INLINE
-from gui_elements.misc_dialogs import dlgAsk
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
+from gui_elements.misc_dialogs import DialogSimpleAsk
 from ids import ID_assignColormapSelected_HTML
 from ids import ID_assignPageSelected_HTML
 from ids import ID_changeColorAnnotLabelInteractive
@@ -2560,7 +2560,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def on_clear_pages(self, evt):
 
-        dlg = dlgBox(
+        dlg = DialogBox(
             exceptionTitle='Are you sure?',
             exceptionMsg='Are you sure you want to remove all pages?\nThis action is irreversible!',
             type='Question',
@@ -2619,13 +2619,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.pageLayoutSelect_toolbar.SetStringSelection('None')
 
     def on_add_page(self, evt):
-        pageName = dlgAsk('Please select page name.', defaultValue='')
+        pageName = DialogSimpleAsk('Please select page name.', defaultValue='')
         if pageName in ['', False]:
             self.presenter.onThreading(None, ('Incorrect name. Operation was cancelled', 4), action='updateStatusbar')
             return
         elif pageName == 'None':
             msg = 'This name is reserved. Please try again.'
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Incorrect name',
                 exceptionMsg=msg,
                 type='Error',
@@ -2650,13 +2650,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.on_change_page(preset=pageName, evt=None)
 
 #     def onAddToolSet(self, evt):
-#         toolName = dialogs.dlgAsk('Please select ToolSet name.', defaultValue='')
+#         toolName = dialogs.DialogSimpleAsk('Please select ToolSet name.', defaultValue='')
 #         if toolName in ['', False]:
 #             self.presenter.onThreading(None, ("Operation was cancelled", 4), action='updateStatusbar')
 #             return
 #         elif toolName == '1D' or toolName == '2D' or toolName == 'Overlay':
 #                 msg = "'%s' name is reserved. Please try again." % (toolName)
-#                 dlgBox(exceptionTitle='Incorrect name',
+#                 DialogBox(exceptionTitle='Incorrect name',
 #                                exceptionMsg=msg,
 #                                type="Error")
 #                 return
@@ -4406,7 +4406,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                   '   and execute same steps as in the above option.\n\n' + \
                   'ORIGAMI directory: {}'.format(self.config.cwd)
 
-            dlgBox(
+            DialogBox(
                 exceptionTitle='No JavaScript available',
                 exceptionMsg=msg,
                 type='Error',
@@ -4469,7 +4469,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                   '   and execute same steps as in the above option.\n\n' + \
                   'ORIGAMI directory: {}'.format(self.config.cwd)
 
-            dlgBox(
+            DialogBox(
                 exceptionTitle='No JavaScript available',
                 exceptionMsg=msg,
                 type='Error',
@@ -6430,7 +6430,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if len(set(yxlabels)) == 1:
             msg = 'Exporting RMSD Matrix to a HTML file is only possible with full list of x/y-axis labels.\n' + \
                   'Please add those to the file and try repeating.'
-            dlgBox(
+            DialogBox(
                 exceptionTitle='No file name',
                 exceptionMsg=msg,
                 type='Error',
@@ -8615,7 +8615,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if self.currentPath is None:
             try:
                 msg = 'Please select file name'
-                dlgBox(
+                DialogBox(
                     exceptionTitle='No file name',
                     exceptionMsg=msg,
                     type='Error',
@@ -8661,7 +8661,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         # check if user selected anything in the list
         if len(listOfPages) == 0:
             msg = 'Please select items to plot'
-            dlgBox(
+            DialogBox(
                 exceptionTitle='No plots were selected',
                 exceptionMsg=msg,
                 type='Warning',
@@ -8843,7 +8843,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         overlayMethod[0], key, innerKey,
                     ) + \
                         ' - it will be available in the future updates. For now, please deselect it in the table. LM'
-                    dlgBox(
+                    DialogBox(
                         exceptionTitle='Not supported yet',
                         exceptionMsg=msg,
                         type='Error',
@@ -8862,7 +8862,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 if len(annotated_ms_list) == 0:
                     msg = "Cannot export '{} ({})' in an interactive format yet".format(key, innerKey) + \
                         ' - it will be available in the future updates. For now, please deselect it in the table. LM'
-                    dlgBox(
+                    DialogBox(
                         exceptionTitle='Not supported yet',
                         exceptionMsg=msg,
                         type='Error',
@@ -8873,7 +8873,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             else:
                 msg = "Cannot export '{} ({})' in an interactive format yet".format(key, innerKey) + \
                     ' - it will be available in the future updates. For now, please deselect it in the table. LM'
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Not supported yet',
                     exceptionMsg=msg,
                     type='Error',
@@ -8992,7 +8992,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         outList.append(plotDict[pageKey][plot])
                 elif len(plotDict[pageKey]) == 0:
                     msg = 'The list of plots is empty. Please select supported plots and try again.'
-                    dlgBox(
+                    DialogBox(
                         exceptionTitle='Error',
                         exceptionMsg=msg,
                         type='Error',
@@ -9151,7 +9151,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         except IOError:
             msg = 'This file already exists and is currently in usage. ' + \
                 'Try selecting a different file name or closing the file first.'
-            dlgBox(
+            DialogBox(
                 exceptionTitle='Wrong file name',
                 exceptionMsg=msg,
                 type='Error',

@@ -17,7 +17,7 @@ import wx
 from document import document as documents
 from gui_elements.dialog_multi_directory_picker import DialogMultiDirectoryPicker
 from gui_elements.dialog_select_document import DialogSelectDocument
-from gui_elements.misc_dialogs import dlgBox
+from gui_elements.misc_dialogs import DialogBox
 from ids import ID_load_masslynx_raw
 from ids import ID_load_origami_masslynx_raw
 from ids import ID_openIRRawFile
@@ -43,7 +43,7 @@ from utils.path import check_path_exists
 from utils.path import check_waters_path
 from utils.path import get_base_path
 from utils.path import get_path_and_fname
-from utils.random import randomIntegerGenerator
+from utils.random import get_random_int
 from utils.ranges import get_min_max
 from utils.time import getTime
 from utils.time import ttime
@@ -349,7 +349,7 @@ class data_handling():
                   ' or has been moved. You can change the document path by right-clicking\n' + \
                   ' on the document in the Document Tree and \n' + \
                   ' selecting Notes, Information, Labels...'
-            dlgBox(exceptionTitle='Missing folder', exceptionMsg=msg, type='Error')
+            DialogBox(exceptionTitle='Missing folder', exceptionMsg=msg, type='Error')
             return
         # RT
         __, yvals_RT, __ = self._get_driftscope_chromatography_data(path, **kwargs)
@@ -412,7 +412,7 @@ class data_handling():
                         'by updating the document path by right-clicking on the document and selecting\n' + \
                         "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
                         'After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n'
-                    dlgBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+                    DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
                     return
 
             # Get height of the peak
@@ -564,7 +564,7 @@ class data_handling():
 
             msg = 'Missing x/y-axis labels for {}!'.format(filename) + \
                 ' Consider adding x/y-axis to your file to obtain full functionality.'
-            dlgBox(exceptionTitle='Missing data', exceptionMsg=msg, type='Warning')
+            DialogBox(exceptionTitle='Missing data', exceptionMsg=msg, type='Warning')
         else:
             xlabel_start, xlabel_end = xvals[0], xvals[-1]
 
@@ -572,8 +572,8 @@ class data_handling():
             'energy_start': xlabel_start,
             'energy_end': xlabel_end,
             'charge': '',
-            'color': self.config.customColors[randomIntegerGenerator(0, 15)],
-            'colormap': self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)],
+            'color': self.config.customColors[get_random_int(0, 15)],
+            'colormap': self.config.overlay_cmaps[get_random_int(0, len(self.config.overlay_cmaps) - 1)],
             'alpha': self.config.overlay_defaultAlpha,
             'mask': self.config.overlay_defaultMask,
             'label': '',
@@ -801,10 +801,10 @@ class data_handling():
                 ms[:, 0], ms[:, 1], (mz_start, mz_end),
             )
             color = self.ionPanel.on_check_duplicate_colors(
-                self.config.customColors[randomIntegerGenerator(0, 15)],
+                self.config.customColors[get_random_int(0, 15)],
             )
             color = convertRGB255to1(color)
-            colormap = self.config.overlay_cmaps[randomIntegerGenerator(0, len(self.config.overlay_cmaps) - 1)]
+            colormap = self.config.overlay_cmaps[get_random_int(0, len(self.config.overlay_cmaps) - 1)]
 
             if document.dataType in ['Type: ORIGAMI', 'Type: MANUAL', 'Type: Infrared']:
                 self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
@@ -1065,7 +1065,7 @@ class data_handling():
             for path in pathlist:
                 if not check_waters_path(path):
                     msg = "The path ({}) you've selected does not end with .raw"
-                    dlgBox(
+                    DialogBox(
                         exceptionTitle='Please load MassLynx (.raw) file',
                         exceptionMsg=msg,
                         type='Error',
@@ -1098,7 +1098,7 @@ class data_handling():
             path = dlg.GetPath()
             if not check_waters_path(path):
                 msg = "The path ({}) you've selected does not end with .raw"
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Please load MassLynx (.raw) file',
                     exceptionMsg=msg,
                     type='Error',
@@ -1339,7 +1339,7 @@ class data_handling():
 
             if not check_waters_path(path):
                 msg = "The path ({}) you've selected does not end with .raw"
-                dlgBox(
+                DialogBox(
                     exceptionTitle='Please load MassLynx (.raw) file',
                     exceptionMsg=msg,
                     type='Error',
@@ -1444,7 +1444,7 @@ class data_handling():
             path = check_waters_path(path)
             if not check_path_exists(path):
                 msg = 'File with {} path no longer exists'.format(path)
-                dlgBox('File no longer exists', msg, type='Error')
+                DialogBox('File no longer exists', msg, type='Error')
                 return
 
             # Extract information from the table
@@ -2012,7 +2012,7 @@ class data_handling():
             try:
                 self._load_document_data(document=open_py_object(filename=file_path))
             except (ValueError, AttributeError, TypeError, IOError) as e:
-                dlgBox(exceptionTitle='Failed to load document on load.', exceptionMsg=str(e), type='Error')
+                DialogBox(exceptionTitle='Failed to load document on load.', exceptionMsg=str(e), type='Error')
                 return
 
         self.view.updateRecentFiles(path={'file_type': 'pickle', 'file_path': file_path})
@@ -2086,11 +2086,11 @@ class data_handling():
                         'charge': '',
                         'color': data.get(
                             'color',
-                            self.config.customColors[randomIntegerGenerator(0, 15)],
+                            self.config.customColors[get_random_int(0, 15)],
                         ),
                         'colormap': data.get(
                             'cmap', self.config.overlay_cmaps[
-                                randomIntegerGenerator(
+                                get_random_int(
                                     0, len(self.config.overlay_cmaps) - 1,
                                 )
                             ],
