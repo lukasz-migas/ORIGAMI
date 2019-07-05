@@ -343,11 +343,12 @@ class documentsTree(wx.TreeCtrl):
         """
         Save current document. Without asking for path.
         """
-        document_title = self._document_data.title
-        wx.CallAfter(
-            self.data_handling.on_save_document_fcn,
-            document_title, save_as=False,
-        )
+        if self._document_data is not None:
+            document_title = self._document_data.title
+            wx.CallAfter(
+                self.data_handling.on_save_document_fcn,
+                document_title, save_as=False,
+            )
 
     def on_refresh_document(self, evt=None):
         document = self.presenter.documentsDict.get(self.title, None)
@@ -3791,29 +3792,22 @@ class documentsTree(wx.TreeCtrl):
             **kwargs
         )
 
-    def onProcessMS(self, evt):
-        try:
-            evtID = evt.GetId()
-        except Exception:
-            evtID = ID_processSettings_MS
+    def onProcessMS(self, evt, **kwargs):
+        from gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
-        pKwargs = {
-            'document_MS': self._document_data.title,
-            'dataset_MS': self._item_leaf,
-            'ionName_MS': '',
-            'update_mode': 'MS',
-        }
-        # call function
-        if evtID == ID_docTree_UniDec:
-            self.presenter.view.onProcessParameters(
-                evt=ID_processSettings_UniDec,
-                **pKwargs
-            )
-        else:
-            self.presenter.view.onProcessParameters(
-                evt=ID_processSettings_MS,
-                **pKwargs
-            )
+        document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
+
+        panel = PanelProcessMassSpectrum(
+            self.presenter.view,
+            self.presenter,
+            self.config,
+            self.icons,
+            document=document,
+            mz_data=data,
+            dataset_name=dataset,
+            document_title=document.title,
+        )
+        panel.Show()
 
     def onProcess(self, evt=None):
         if self._document_data is None:
@@ -3900,8 +3894,8 @@ class documentsTree(wx.TreeCtrl):
 
         # Normalize 1D data
         if self.config.compare_massSpectrumParams['normalize']:
-            msY_1 = normalize_1D(inputData=msY_1)
-            msY_2 = normalize_1D(inputData=msY_2)
+            msY_1 = normalize_1D(msY_1)
+            msY_2 = normalize_1D(msY_2)
 
         if self.config.compare_massSpectrumParams['subtract']:
             if len(msX) != len(msY_1) or len(msX) != len(msY_2) or len(msY_1) != len(msY_2):
@@ -6644,7 +6638,6 @@ class documentsTree(wx.TreeCtrl):
         self.panel_extractDTMS .Show()
 
     def on_open_peak_picker(self, evt, **kwargs):
-
         document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
 
         from gui_elements.panel_peak_picker import panel_peak_picker

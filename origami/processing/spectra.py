@@ -7,56 +7,70 @@ from bisect import bisect_left
 import numpy as np
 from gui_elements.misc_dialogs import DialogBox
 from processing.utils import get_narrow_data_range
+from scipy import sparse
 from scipy.interpolate.interpolate import interp1d
 from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter
+from scipy.sparse.linalg import spsolve
+from utils.exceptions import MessageError
 from utils.ranges import get_min_max
 logger = logging.getLogger('origami')
 
 
-def remove_noise_1D(inputData=None, threshold=0):
-    # Check whether threshold values meet the criteria.
-    # First check if value is not above the maximum or below 0
-    if (threshold > np.max(inputData)) or (threshold < 0):
-        DialogBox(
-            exceptionTitle='Warning',
-            exceptionMsg='Threshold value was too high - the maximum value is %s. Value was reset to 0. Consider reducing your threshold value.' %
-            np.max(inputData),
-            type='Warning',
-        )
-        threshold = 0
-    elif threshold == 0.0:
-        pass
-    # Check if the value is a fraction (i.e. if working on a normalized dataset)
-    elif (threshold < (np.max(inputData) / 10000)):  # This is somewhat guesswork! It won't be 100 % fool proof
-        if (threshold > 1) or (threshold <= 0):
-            threshold = 0
-        DialogBox(
-            exceptionTitle='Warning',
-            exceptionMsg='Threshold value was too low - the maximum value is %s. Value was reset to 0. Consider increasing your threshold value.' %
-            np.max(inputData),
-            type='Warning',
-        )
-        threshold = 0
-    # Or leave it as is if the values are correct
-    else:
-        threshold = threshold
+def baseline_als(y, lam, p, niter=10):
+    """Asymmetric Least Squares smoothing. There are two parameters p for asymmetry and lambda for smoothness.
+    Values of p should range between 0.001 and 0.1 and lambda between 10^2 to 10^9
 
-    inputData[inputData <= threshold] = 0
-    return inputData
+    """
+    from scipy import sparse
+    from scipy.sparse.linalg import spsolve
+    # taken from: https://stackoverflow.com/questions/29156532/python-baseline-correction-library/29185844
+    L = len(y)
+    D = sparse.diags([1, -2, 1], [0, -1, -2], shape=(L, L - 2))
+    w = np.ones(L)
+    while niter > 0:
+        W = sparse.spdiags(w, 0, L, L)
+        Z = W + lam * D.dot(D.transpose())
+        z = spsolve(Z, w * y)
+        w = p * (y > z) + (1 - p) * (y < z)
+        niter -= 1
+        print(niter)
+    return z
 
 
-def normalize_1D(inputData=None, mode='Maximum'):  # normalizeMS
-    # Normalize data to maximum intensity of 1
-    try:
-        inputData = inputData.astype(np.float64)
-    except AttributeError:
-        inputData = np.array(inputData, dtype=np.float64)
+def remove_noise_1D(data, threshold=0):
+    value_max = np.max(data)
+    if threshold < 0:
+        raise MessageError('Incorrect input', 'Value should be above 0')
+
+    if threshold > value_max:
+        raise MessageError('Incorrect input', f'Value {threshold} is above the maximum {value_max}')
+
+    data[data <= threshold] = 0
+    return data
+
+
+def normalize_1D(data, mode='Maximum'):
+    # ensure data is in 64-bit format
+    data = np.array(data, dtype=np.float64)
 
     if mode == 'Maximum':
-        norm_data = np.divide(inputData, inputData.max())
-    elif mode == 'tic':
-        norm_data = np.divide(inputData.astype(np.float64), np.sum(inputData))
+        norm_data = np.divide(data, data.max())
+    elif mode == 'Total Ion Current (TIC)':
+        norm_data = np.divide(data, np.sum(data))
+        norm_data = np.divide(norm_data, norm_data.max())
+    elif mode == 'Highest peak':
+        norm_data = np.divide(data, data[data.argmax()])
+#         norm_data = np.divide(norm_data, norm_data.max())
+    elif mode == 'Root Mean Square (RMS)':
+        norm_data = np.divide(data, np.sqrt(np.mean(data ** 2)))
+#         norm_data = np.divide(norm_data, norm_data.max())
+    elif mode == 'Log':
+        norm_data = np.divide(data, np.sum(np.log(data[np.nonzero(data)])))
+#         norm_data = np.divide(norm_data, norm_data.max())
+    elif mode == 'Square root':
+        norm_data = np.divide(data, np.sum(np.sqrt(data)))
+#         norm_data = np.divide(norm_data, norm_data.max())
 
     # replace nans
     norm_data = np.nan_to_num(norm_data)

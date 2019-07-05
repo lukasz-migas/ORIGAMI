@@ -46,9 +46,9 @@ def compute_RMSF(inputData1=None, inputData2=None):  # computeRMSF
         for row in range(0, size, 1):
             # Before computing the value of RMSF, we have to normalize to 1
             # to convert to percentage
-            inputData1norm = normalize_1D(inputData=inputData1[:, row])
+            inputData1norm = normalize_1D(inputData1[:, row])
             np.nan_to_num(inputData1norm, copy=False)
-            inputData2norm = normalize_1D(inputData=inputData2[:, row])
+            inputData2norm = normalize_1D(inputData2[:, row])
             np.nan_to_num(inputData2norm, copy=False)
             # Compute difference
             tempArray = (inputData1norm - inputData2norm)

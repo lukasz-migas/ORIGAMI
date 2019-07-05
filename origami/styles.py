@@ -168,11 +168,29 @@ def mac_app_init():
 
 
 class Dialog(wx.Dialog):
+    """Proxy of Dialog"""
 
     def __init__(self, parent, **kwargs):
         wx.Dialog.__init__(
             self, parent, -1,
             style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
+            **kwargs
+        )
+
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+    def on_close(self, evt):
+        """Destroy this frame."""
+        self.Destroy()
+
+
+class MiniFrame(wx.MiniFrame):
+    """Proxy of MiniFrame"""
+
+    def __init__(self, parent, **kwargs):
+        wx.MiniFrame.__init__(
+            self, parent, -1, size=(-1, -1),
+            style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP,
             **kwargs
         )
 

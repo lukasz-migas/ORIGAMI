@@ -182,17 +182,17 @@ class topPanel(wx.Panel):
         self.makeListCtrl()
         self.calibrationSubPanel = self.makeCalibrationSubPanel()
 
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(toolbar, 0, wx.EXPAND, 0)
-        self.mainSizer.Add(self.peaklist, 1, wx.EXPAND, 0)
-        self.mainSizer.Add(self.calibrationSubPanel, 0, wx.EXPAND)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(toolbar, 0, wx.EXPAND, 0)
+        self.main_sizer.Add(self.peaklist, 1, wx.EXPAND, 0)
+        self.main_sizer.Add(self.calibrationSubPanel, 0, wx.EXPAND)
 
         if self.flag:
-            self.mainSizer.Show(2)
+            self.main_sizer.Show(2)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_toolbar(self):
 
@@ -265,19 +265,19 @@ class topPanel(wx.Panel):
     def onShowHidePanel(self, evt):
         """ Show/hide annotation panel """
         if self.flag:
-            self.mainSizer.Show(2)
+            self.main_sizer.Show(2)
             self.flag = False
         else:
-            self.mainSizer.Hide(2)
+            self.main_sizer.Hide(2)
             self.flag = True
 
-        layout(self, self.mainSizer)
+        layout(self, self.main_sizer)
         self.parent.showHidePanel(evt=None)
 
     def makeCalibrationSubPanel(self):
         self.annotationBox = wx.StaticBox(self, -1, 'Annotating: ', size=(200, 200))
 
-        mainSizer = wx.StaticBoxSizer(self.annotationBox, wx.VERTICAL)
+        main_sizer = wx.StaticBoxSizer(self.annotationBox, wx.VERTICAL)
 
         TEXT_SIZE = 240
         TEXT_SIZE_SMALL = 80
@@ -377,7 +377,7 @@ class topPanel(wx.Panel):
         y = 5
         grid.Add(self.applyBtn, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_RIGHT)
 
-        mainSizer.Add(grid, 0, wx.EXPAND | wx.ALIGN_CENTER | wx.ALL, 2)
+        main_sizer.Add(grid, 0, wx.EXPAND | wx.ALIGN_CENTER | wx.ALL, 2)
 
         # bind
         self.applyBtn.Bind(wx.EVT_BUTTON, self.onAnnotateItems)
@@ -395,7 +395,7 @@ class topPanel(wx.Panel):
         self.ccs_value.Bind(wx.EVT_TEXT_ENTER, self.onAnnotateItems)
         self.gas_value.Bind(wx.EVT_COMBOBOX, self.onAnnotateItems)
 
-        return mainSizer
+        return main_sizer
 
     def onItemSelected(self, evt):
         """ Populate text fields based on selection """
@@ -1188,7 +1188,7 @@ class bottomPanel(wx.Panel):
         evt.Skip()
 
     def makeListCtrl(self):
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.peaklist = ListCtrl(self, style=wx.LC_REPORT)
         self.peaklist.InsertColumn(0, 'file', width=50)
         self.peaklist.InsertColumn(1, 'min m/z ', width=55)
@@ -1203,9 +1203,9 @@ class bottomPanel(wx.Panel):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
 
-        mainSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
-        mainSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
-        self.SetSizer(mainSizer)
+        main_sizer.Add(self.toolbar, 0, wx.EXPAND, 0)
+        main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
+        self.SetSizer(main_sizer)
 
     def onRemoveTool(self, evt):
         # Make bindings

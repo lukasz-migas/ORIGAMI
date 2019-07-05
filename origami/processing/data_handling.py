@@ -2362,7 +2362,7 @@ class data_handling():
                         yvals = data['yvals1D']
                         if normalize_dataset:
                             yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-                            yvals = pr_spectra.normalize_1D(inputData=yvals)
+                            yvals = pr_spectra.normalize_1D(yvals)
                         xlabels = data['ylabels']  # data was rotated so using ylabel for xlabel
 
                     elif plot_type == 'chromatogram':
@@ -2370,7 +2370,7 @@ class data_handling():
                         yvals = data['yvalsRT']
                         if normalize_dataset:
                             yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-                            yvals = pr_spectra.normalize_1D(inputData=yvals)
+                            yvals = pr_spectra.normalize_1D(yvals)
                         xlabels = data['xlabels']
 
                     # Append data to list
@@ -2427,7 +2427,7 @@ class data_handling():
                             yvals = np.sum(data['zvals'], axis=1).T
                         if normalize_dataset:
                             yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-                            yvals = pr_spectra.normalize_1D(inputData=yvals)
+                            yvals = pr_spectra.normalize_1D(yvals)
                         xlabels = data['ylabels']  # data was rotated so using ylabel for xlabel
 
                     elif plot_type == 'chromatogram':
@@ -2438,7 +2438,7 @@ class data_handling():
                             yvals = np.sum(data['zvals'], axis=0)
                         if normalize_dataset:
                             yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-                            yvals = pr_spectra.normalize_1D(inputData=yvals)
+                            yvals = pr_spectra.normalize_1D(yvals)
                         xlabels = data['xlabels']
 
                     # Append data to list
@@ -2599,7 +2599,7 @@ class data_handling():
 
             # Sum y-axis data
             msDataY = np.sum(combMS, axis=1)
-            msDataY = pr_spectra.normalize_1D(inputData=msDataY)
+            msDataY = pr_spectra.normalize_1D(msDataY)
             xlimits = [
                 document.parameters['startMS'],
                 document.parameters['endMS'],

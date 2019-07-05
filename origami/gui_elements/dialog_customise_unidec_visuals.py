@@ -24,11 +24,6 @@ class dialog_customise_unidec_visuals(Dialog):
         self.make_gui()
         self.CentreOnParent()
 
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
-    # ----
-
     def onOK(self, evt):
         self.EndModal(wx.OK)
 
@@ -38,12 +33,12 @@ class dialog_customise_unidec_visuals(Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 0, wx.EXPAND, 10)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 0, wx.EXPAND, 10)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
         panel = wx.Panel(self, -1)
@@ -336,18 +331,18 @@ class dialog_customise_unidec_visuals(Dialog):
         color_grid.Add(self.color_palette_value, (y, 1), flag=wx.EXPAND)
         color_box_sizer.Add(color_grid, 0, wx.EXPAND, 10)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(general_box_sizer, 0, wx.EXPAND, 10)
-        mainSizer.Add(MS_box_sizer, 0, wx.EXPAND, 10)
-        mainSizer.Add(contour_box_sizer, 0, wx.EXPAND, 10)
-        mainSizer.Add(MW_box_sizer, 0, wx.EXPAND, 10)
-        mainSizer.Add(isolatedMS_box_sizer, 0, wx.EXPAND, 10)
-        mainSizer.Add(bar_box_sizer, 0, wx.EXPAND, 10)
-        mainSizer.Add(color_box_sizer, 0, wx.EXPAND, 10)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(general_box_sizer, 0, wx.EXPAND, 10)
+        main_sizer.Add(MS_box_sizer, 0, wx.EXPAND, 10)
+        main_sizer.Add(contour_box_sizer, 0, wx.EXPAND, 10)
+        main_sizer.Add(MW_box_sizer, 0, wx.EXPAND, 10)
+        main_sizer.Add(isolatedMS_box_sizer, 0, wx.EXPAND, 10)
+        main_sizer.Add(bar_box_sizer, 0, wx.EXPAND, 10)
+        main_sizer.Add(color_box_sizer, 0, wx.EXPAND, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

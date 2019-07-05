@@ -151,12 +151,12 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 1, wx.EXPAND, 5)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_peaklist(self, panel):
 
@@ -182,7 +182,7 @@ class panel_peak_annotation_editor(wx.MiniFrame):
     def make_panel(self):
 
         panel = wx.Panel(self, -1, size=(-1, -1))
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # make peaklist
         self.make_peaklist(panel)
@@ -342,12 +342,12 @@ class panel_peak_annotation_editor(wx.MiniFrame):
         y = y + 1
         grid.Add(btn_grid, (y, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
-        mainSizer.Add(grid, 0, wx.EXPAND, 10)
-        mainSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 2)
+        main_sizer.Add(grid, 0, wx.EXPAND, 10)
+        main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 2)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

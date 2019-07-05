@@ -195,13 +195,13 @@ class panelMultipleIons(wx.Panel):
         toolbar = self.make_toolbar()
         self.make_listctrl()
 
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(toolbar, 0, wx.EXPAND, 0)
-        self.mainSizer.Add(self.peaklist, 1, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(toolbar, 0, wx.EXPAND, 0)
+        self.main_sizer.Add(self.peaklist, 1, wx.EXPAND, 0)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
         self.SetSize((300, -1))
         self.Layout()
 
@@ -2146,12 +2146,12 @@ class panelExportData(wx.MiniFrame):
         peaklist = self.makePeaklistPanel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(peaklist, 0, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(peaklist, 0, wx.EXPAND, 0)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
         self.Center()
 
     def on_close(self, evt):
@@ -2221,13 +2221,13 @@ class panelExportData(wx.MiniFrame):
 
         grid2.Add(self.exportBtn, (3, 0))
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid1, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
-        mainSizer.Add(grid2, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid1, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid2, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         self.exportBtn.Bind(wx.EVT_BUTTON, self.onExportFile)
 
@@ -2298,21 +2298,21 @@ class panelDuplicateIons(wx.MiniFrame):
         panel = self.makeDuplicatePanel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 0, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 0, wx.EXPAND, 0)
 
         # bind
         self.okBtn.Bind(wx.EVT_BUTTON, self.onDuplicate)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def makeDuplicatePanel(self):
 
         panel = wx.Panel(self, -1)
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         duplicateFrom_label = wx.StaticText(panel, -1, 'Duplicate from:')
         self.documentListFrom_choice = wx.Choice(panel, -1, choices=self.duplicateList, size=(300, -1))
@@ -2350,11 +2350,11 @@ class panelDuplicateIons(wx.MiniFrame):
         grid.Add(self.okBtn, (3, 1), wx.GBSpan(1, 1))
         grid.Add(self.cancelBtn, (3, 2), wx.GBSpan(1, 1))
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 

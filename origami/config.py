@@ -893,7 +893,10 @@ class OrigamiConfig:
 
         # Process MS
         self.ms_normalize = True
-        self.ms_normalize_choices = ['Maximum']
+        self.ms_normalize_choices = [
+            'Maximum', 'Total Ion Current (TIC)', 'Highest peak', 'Square root', 'Log',
+            'Root Mean Square (RMS)',
+        ]
         self.ms_normalize_mode = 'Maximum'
         self.ms_smooth_choices = ['None', 'Gaussian', 'Savitzky-Golay']
         self.ms_smooth_mode = 'None'

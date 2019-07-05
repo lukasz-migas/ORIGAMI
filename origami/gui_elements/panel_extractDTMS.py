@@ -5,22 +5,19 @@ import math
 
 import numpy as np
 import wx
+from styles import MiniFrame
 from styles import validator
 from utils.converters import str2num
 logger = logging.getLogger('origami')
 
 
-class panel_extractDTMS(wx.MiniFrame):
+class panel_extractDTMS(MiniFrame):
     """
     Miniframe enabling extraction of DT/MS heatmap
     """
 
     def __init__(self, parent, presenter, config, icons):
-        wx.MiniFrame.__init__(
-            self, parent, -1, 'Extract DT/MS...', size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER |
-            wx.MAXIMIZE_BOX,
-        )
+        MiniFrame.__init__(self, parent, title='Extract DT/MS...')
         self.view = parent
         self.presenter = presenter
         self.documentTree = self.view.panelDocuments.documents
@@ -43,29 +40,22 @@ class panel_extractDTMS(wx.MiniFrame):
         self.CentreOnScreen()
         self.SetFocus()
 
-        # bind events
-        wx.EVT_CLOSE(self, self.on_close)
-
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
-
     def make_gui(self):
 
         # make panel
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 1, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 0)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
         panel = wx.Panel(self, -1, size=(-1, -1))
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # add extraction controls
         self.info_bar = wx.StaticText(panel, -1, '')
@@ -151,11 +141,11 @@ class panel_extractDTMS(wx.MiniFrame):
             flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
         )
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

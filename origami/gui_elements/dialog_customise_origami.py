@@ -4,19 +4,17 @@ import numpy as np
 import processing.origami_ms as pr_origami
 import wx
 from gui_elements.misc_dialogs import DialogBox
+from styles import Dialog
 from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
 
 
-class DialogCustomiseORIGAMI(wx.Dialog):
+class DialogCustomiseORIGAMI(Dialog):
     """Dialog to setup ORIGAMI-MS settings"""
 
     def __init__(self, parent, presenter, config, **kwargs):
-        wx.Dialog.__init__(
-            self, parent, -1, 'ORIGAMI-MS settings...', size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
-        )
+        Dialog.__init__(self, parent, title='ORIGAMI-MS settings...')
 
         self.parent = parent
         self.presenter = presenter
@@ -88,16 +86,16 @@ class DialogCustomiseORIGAMI(wx.Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 1, wx.EXPAND, 10)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 10)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
         panel = wx.Panel(self, -1)
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         acquisition_label = wx.StaticText(panel, wx.ID_ANY, 'Acquisition method:')
         self.origami_method_choice = wx.Choice(
@@ -229,11 +227,11 @@ class DialogCustomiseORIGAMI(wx.Dialog):
             flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL,
         )
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

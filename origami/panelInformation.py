@@ -90,21 +90,21 @@ class panelDocumentInfo(wx.MiniFrame):
         notes = self.makeNotesPanel()
 
         # pack elements
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(toolbar, 0, wx.EXPAND, 0)
-        self.mainSizer.Add(summary, 1, wx.EXPAND, 0)
-        self.mainSizer.Add(spectrum, 1, wx.EXPAND, 0)
-        self.mainSizer.Add(plot2D, 1, wx.EXPAND, 0)
-        self.mainSizer.Add(calibration, 1, wx.EXPAND, 0)
-        self.mainSizer.Add(notes, 1, wx.EXPAND, 0)
-        self.mainSizer.Add(buttons, 0, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(toolbar, 0, wx.EXPAND, 0)
+        self.main_sizer.Add(summary, 1, wx.EXPAND, 0)
+        self.main_sizer.Add(spectrum, 1, wx.EXPAND, 0)
+        self.main_sizer.Add(plot2D, 1, wx.EXPAND, 0)
+        self.main_sizer.Add(calibration, 1, wx.EXPAND, 0)
+        self.main_sizer.Add(notes, 1, wx.EXPAND, 0)
+        self.main_sizer.Add(buttons, 0, wx.EXPAND, 0)
 
         # enable/disable
         self.onEnableDisable(evt=None)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_toolbar(self):
         """Make toolbar."""
@@ -186,10 +186,10 @@ class panelDocumentInfo(wx.MiniFrame):
         self.toolbar.Add(self.presets_butt, 0, wx.ALIGN_CENTER_VERTICAL)
         self.toolbar.AddSpacer(toolbar_rspace)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(self.toolbar, 1, wx.EXPAND)
-        panel.SetSizer(mainSizer)
-        mainSizer.Fit(panel)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.toolbar, 1, wx.EXPAND)
+        panel.SetSizer(main_sizer)
+        main_sizer.Fit(panel)
 
         return panel
     # ----
@@ -206,16 +206,16 @@ class panelDocumentInfo(wx.MiniFrame):
 #         panel_space_main = 10
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
         grid.Add(applyBtn, (0, 0), flag=wx.ALIGN_CENTER | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(self.plotBtn, (0, 1), flag=wx.ALIGN_CENTER | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(cancelBtn, (0, 2), flag=wx.ALIGN_CENTER | wx.ALIGN_CENTER_HORIZONTAL)
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         # Bind
         applyBtn.Bind(wx.EVT_BUTTON, self.on_apply)
@@ -237,15 +237,15 @@ class panelDocumentInfo(wx.MiniFrame):
         self.notes_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(
             self.notes_value, 1, wx.EXPAND | wx.ALIGN_CENTER | wx.ALL,
             PANEL_SPACE_MAIN,
         )
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
     # ----
@@ -326,12 +326,12 @@ class panelDocumentInfo(wx.MiniFrame):
 
         grid.Add(self.chgDirBtn, (6, 2))
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
     # ----
@@ -492,12 +492,12 @@ class panelDocumentInfo(wx.MiniFrame):
         grid.Add(headerInfo_label, (9, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.headerInfo_value, (9, 1), wx.GBSpan(2, 2))
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -628,12 +628,12 @@ class panelDocumentInfo(wx.MiniFrame):
         grid.Add(colormap_label, (7, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.colormap_value, (7, 1), wx.GBSpan(1, 2))
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
     # ----
@@ -756,24 +756,24 @@ class panelDocumentInfo(wx.MiniFrame):
         grid.Add(self.r2Linear_value, (7, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         grid.Add(self.r2Power_value, (7, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL | wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL | wx.EXPAND, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
     def makeEmptyPanel(self):
         panel = wx.Panel(self, -1)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
         grid = wx.GridBagSizer(2, 2)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 20)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 20)
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -797,37 +797,37 @@ class panelDocumentInfo(wx.MiniFrame):
                 tool = 'notes'
 
         # hide panels
-        self.mainSizer.Hide(1)
-        self.mainSizer.Hide(2)
-        self.mainSizer.Hide(3)
-        self.mainSizer.Hide(4)
-        self.mainSizer.Hide(5)
+        self.main_sizer.Hide(1)
+        self.main_sizer.Hide(2)
+        self.main_sizer.Hide(3)
+        self.main_sizer.Hide(4)
+        self.main_sizer.Hide(5)
 
         if tool == 'summary':
             self.SetTitle('Document Information')
-            self.mainSizer.Show(1)
+            self.main_sizer.Show(1)
             self.plotBtn.Hide()
         elif tool == 'spectrum':
             self.SetTitle('Document Summary')
-            self.mainSizer.Show(2)
+            self.main_sizer.Show(2)
             self.plotBtn.Hide()
         elif tool == 'plot2D':
             if not self.plot2Dtitle:
                 self.SetTitle('Plot (2D) Summary')
             else:
                 self.SetTitle(self.plot2Dtitle)
-            self.mainSizer.Show(3)
+            self.main_sizer.Show(3)
             self.plotBtn.Show()
         elif tool == 'plotCalibration':
             self.SetTitle('CCS Calibration Summary')
             self.plotBtn.Hide()
-            self.mainSizer.Show(4)
+            self.main_sizer.Show(4)
         elif tool == 'notes':
             self.SetTitle('Notes')
-            self.mainSizer.Show(5)
+            self.main_sizer.Show(5)
             self.plotBtn.Hide()
 
-        layout(self, self.mainSizer)
+        layout(self, self.main_sizer)
 
     def on_apply(self, evt):
         """

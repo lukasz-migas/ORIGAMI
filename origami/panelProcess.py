@@ -128,7 +128,7 @@ class panelProcessData(wx.MiniFrame):
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
-        self.mainSizer.Fit(self)
+        self.main_sizer.Fit(self)
         self.Centre()
         self.Layout()
         self.Show(True)
@@ -239,7 +239,7 @@ class panelProcessData(wx.MiniFrame):
 
     def make_gui(self):
 
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         # Setup notebook
         self.mainBook = wx.Notebook(
             self, wx.ID_ANY, wx.DefaultPosition,
@@ -280,13 +280,13 @@ class panelProcessData(wx.MiniFrame):
             'UniDec', False,
         )
 
-        self.mainSizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 2)
+        self.main_sizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 2)
 
         # fire-up a couple of events
         self.on_toggle_controls(evt=None)
 
     def make_panel_UniDec(self, panel):
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         TEXTCTRL_SIZE = (60, -1)
         BTN_SIZE = (100, 22)
@@ -821,7 +821,7 @@ class panelProcessData(wx.MiniFrame):
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 10), flag=wx.EXPAND)
         n = n + 1
         grid.Add(button_grid, (n, 0), wx.GBSpan(1, 10), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # bind events
         self.unidec_load.Bind(wx.EVT_BUTTON, self.on_run_unidec_fcn)
@@ -836,13 +836,13 @@ class panelProcessData(wx.MiniFrame):
         self.unidec_customise_Btn.Bind(wx.EVT_BUTTON, self.onCustomiseUniDecParameters)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 
 #     def make_panel_peak_finding(self, panel):
-#         mainSizer = wx.BoxSizer(wx.VERTICAL)
+#         main_sizer = wx.BoxSizer(wx.VERTICAL)
 #
 #         fitPlot_label = wx.StaticText(panel, wx.ID_ANY, "Search plot:")
 #         self.fit_fitPlot_choice = wx.Choice(panel, -1, choices=["MS", "RT", "MS + RT"],  # self.config.fit_type_choices,
@@ -1067,16 +1067,16 @@ class panelProcessData(wx.MiniFrame):
 #         grid.Add(self.fit_findPeaksBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
 #         grid.Add(self.fit_cancelBtn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
 #
-#         mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+#         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 #
 #         # fit layout
-#         mainSizer.Fit(panel)
-#         panel.SetSizerAndFit(mainSizer)
+#         main_sizer.Fit(panel)
+#         panel.SetSizerAndFit(main_sizer)
 #
 #         return panel
 
     def make_panel_MS(self, panel):
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         crop_staticBox = makeStaticBox(panel, 'Crop parameters', size=(-1, -1), color=wx.BLACK)
         crop_staticBox.SetSize((-1, -1))
@@ -1341,16 +1341,16 @@ class panelProcessData(wx.MiniFrame):
         grid.Add(self.ms_processBtn, (n, 1), wx.GBSpan(1, 1))
         grid.Add(self.ms_cancelBtn, (n, 2), wx.GBSpan(1, 1))
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 
     def make_panel_2D(self, panel):
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         smoothFcn_label = wx.StaticText(panel, wx.ID_ANY, 'Smooth function:')
         self.plot2D_smoothFcn_choice = wx.Choice(
@@ -1446,18 +1446,18 @@ class panelProcessData(wx.MiniFrame):
         grid.Add(self.plot2D_processBtn, (n, 1), wx.GBSpan(1, 1))
         grid.Add(self.plot2D_cancelBtn, (n, 2), wx.GBSpan(1, 1))
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 
     def make_panel_extract_data(self, panel):
         BOLD_STYLE = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
         extractData_sep_label = wx.StaticText(panel, -1, 'Extract data')
         extractData_sep_label.SetFont(BOLD_STYLE)
 
@@ -1705,11 +1705,11 @@ class panelProcessData(wx.MiniFrame):
         grid.Add(self.extract_extractBtn, (n, 1), wx.GBSpan(1, 1))
         grid.Add(self.extract_cancelBtn, (n, 2), wx.GBSpan(1, 1))
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

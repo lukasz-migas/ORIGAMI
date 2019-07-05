@@ -166,7 +166,7 @@ class data_processing():
                 msY = self.docs.massSpectrum['yvals']
                 # Smooth data
                 msY = pr_spectra.smooth_gaussian_1D(data=msY, sigma=str2num(sigma))
-                msY = pr_spectra.normalize_1D(inputData=msY)
+                msY = pr_spectra.normalize_1D(msY)
                 self.docs.gotSmoothMS = True
                 self.docs.smoothMS = {'xvals': msX, 'yvals': msY, 'smoothSigma': sigma}
                 # Plot smoothed MS
@@ -181,7 +181,7 @@ class data_processing():
                 xlabel = self.docs.DT['xlabels']
                 # Smooth data
                 dtY = pr_spectra.smooth_gaussian_1D(data=dtY, sigma=str2num(sigma))
-                dtY = pr_spectra.normalize_1D(inputData=dtY)
+                dtY = pr_spectra.normalize_1D(dtY)
                 # Plot smoothed MS
                 self.view.panelPlots.on_plot_1D(dtX, dtY, xlabel)
 
@@ -192,7 +192,7 @@ class data_processing():
                 xlabel = self.docs.RT['xlabels']
                 # Smooth data
                 rtY = pr_spectra.smooth_gaussian_1D(data=rtY, sigma=str2num(sigma))
-                rtY = pr_spectra.normalize_1D(inputData=rtY)
+                rtY = pr_spectra.normalize_1D(rtY)
                 self.view.panelPlots.on_plot_RT(rtX, rtY, xlabel)
 
     def predict_charge_state(self, msX, msY, mz_range, std_dev=0.05):
@@ -370,7 +370,7 @@ class data_processing():
                     msY = document.massSpectrum['yvals']
                     # Smooth data
                     msY = pr_spectra.smooth_gaussian_1D(data=msY, sigma=self.config.fit_smooth_sigma)
-                    msY = pr_spectra.normalize_1D(inputData=msY)
+                    msY = pr_spectra.normalize_1D(msY)
                 else:
                     msX = document.massSpectrum['xvals']
                     msY = document.massSpectrum['yvals']
@@ -894,19 +894,17 @@ class data_processing():
                 'polyOrder': self.config.ms_smooth_polynomial,
                 'windowSize': self.config.ms_smooth_window,
             }
-            msY = pr_spectra.smooth_1D(data=msY, smoothMode=self.config.ms_smooth_mode, **pr_kwargs)
+            msY = pr_spectra.smooth_1D(msY, smoothMode=self.config.ms_smooth_mode, **pr_kwargs)
 
         if self.config.ms_process_threshold:
             # Threshold data
-            msY = pr_spectra.remove_noise_1D(inputData=msY, threshold=self.config.ms_threshold)
+            msY = pr_spectra.remove_noise_1D(msY, threshold=self.config.ms_threshold)
+#             msY = pr_spectra.baseline_als(msY, 0.001, 20000)
 
+        # Normalize data
         if self.config.ms_process_normalize:
-            # Normalize data
             if self.config.ms_normalize:
-                msY = pr_spectra.normalize_1D(
-                    inputData=np.asarray(msY),
-                    mode=self.config.ms_normalize_mode,
-                )
+                msY = pr_spectra.normalize_1D(msY, mode=self.config.ms_normalize_mode)
 
         if kwargs.get('replot', False):
             # Plot data

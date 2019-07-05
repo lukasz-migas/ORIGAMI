@@ -83,17 +83,17 @@ class panelModifyTextSettings(wx.MiniFrame):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 1, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 0)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
 
         panel = wx.Panel(self, -1, size=(-1, -1))
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         select_label = wx.StaticText(panel, wx.ID_ANY, 'Select:')
         self.text_select_value = makeCheckbox(panel, '')
@@ -237,11 +237,11 @@ class panelModifyTextSettings(wx.MiniFrame):
         grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
         grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        mainSizer.Add(grid, 0, wx.EXPAND, 10)
+        main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

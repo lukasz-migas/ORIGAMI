@@ -84,12 +84,12 @@ class panelParametersEdit(wx.Panel):
         self.onEnableDisableFeatures_rmsd(evt=None)
         self.onEnableDisableFeatures_general(evt=None)
 
-        self.mainSizer.Fit(self)
+        self.main_sizer.Fit(self)
         self.Centre()
         self.Layout()
         self.Show(True)
         self.SetFocus()
-        self.SetSizer(self.mainSizer)
+        self.SetSizer(self.main_sizer)
 
         self.onSetupRMSDPosition(evt=None)
         self.onSetupPlotSizes(evt=None)
@@ -145,7 +145,7 @@ class panelParametersEdit(wx.Panel):
 
     def make_gui(self):
 
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         # Setup notebook
         self.mainBook = wx.Notebook(
             self, wx.ID_ANY, wx.DefaultPosition,
@@ -243,7 +243,7 @@ class panelParametersEdit(wx.Panel):
         )
 
         # fit sizer
-        self.mainSizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 2)
+        self.main_sizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 2)
 
         # setup color
         self.mainBook.SetBackgroundColour((240, 240, 240))
@@ -494,12 +494,12 @@ class panelParametersEdit(wx.Panel):
         grid.Add(font_box_sizer, (y, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -944,12 +944,12 @@ class panelParametersEdit(wx.Panel):
         grid.Add(gui_box_sizer, (y, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -1184,12 +1184,12 @@ class panelParametersEdit(wx.Panel):
         grid.Add(rmsd_matrix_box_sizer, (y, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -1384,12 +1384,12 @@ class panelParametersEdit(wx.Panel):
         grid.Add(self.violin_nLimit_value, (y, 1), flag=wx.EXPAND)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -1656,12 +1656,12 @@ class panelParametersEdit(wx.Panel):
 #         grid.Add(self.waterfall_useColormap_check, (y,1), flag=wx.EXPAND)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -1752,12 +1752,12 @@ class panelParametersEdit(wx.Panel):
 #         grid.Add(self.plotColorbarBtn, (y,1), flag=wx.ALIGN_CENTER_VERTICAL)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -1884,12 +1884,12 @@ class panelParametersEdit(wx.Panel):
         grid.Add(self.legend_fancyBox_check, (y, 1), flag=wx.EXPAND)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -2139,12 +2139,12 @@ class panelParametersEdit(wx.Panel):
         grid.Add(self.plot1DBtn, (y, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -2262,12 +2262,12 @@ class panelParametersEdit(wx.Panel):
         grid.Add(self.plot2DBtn, (y, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -2459,12 +2459,12 @@ class panelParametersEdit(wx.Panel):
         grid.Add(self.plot3DBtn, (y, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 

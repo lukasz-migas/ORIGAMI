@@ -2,29 +2,22 @@
 # __author__ lukasz.g.migas
 import wx
 from gui_elements.dialog_color_picker import DialogColorPicker
+from styles import Dialog
 from styles import makeCheckbox
 from styles import makeTooltip
 from utils.color import convertRGB1to255
 
 
-class DialogCustomisePeptideAnnotations(wx.Dialog):
+class DialogCustomisePeptideAnnotations(Dialog):
 
     def __init__(self, parent, config, **kwargs):
-        wx.Dialog.__init__(
-            self, parent, -1, 'Other parameters...', size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE & ~
-            (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
-        )
+        Dialog.__init__(self, parent, title='Other parameters...')
 
         self.parent = parent
         self.config = config
 
         self.make_gui()
         self.CentreOnParent()
-
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
 
     def onOK(self, evt):
         self.EndModal(wx.OK)
@@ -35,16 +28,16 @@ class DialogCustomisePeptideAnnotations(wx.Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 0, wx.EXPAND, 50)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 0, wx.EXPAND, 50)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
         panel = wx.Panel(self, -1)
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         add_arrows_check = wx.StaticText(panel, -1, 'Add arrows to labels:')
         self.add_arrows_check = makeCheckbox(panel, '')
@@ -279,11 +272,11 @@ class DialogCustomisePeptideAnnotations(wx.Dialog):
         grid.Add(label_show_name, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         y = y + 1
         grid.Add(label_grid, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        mainSizer.Add(grid, 0, wx.EXPAND, 10)
+        main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import wx
+from styles import Dialog
 from styles import makeCheckbox
 
 
-class dialog_customise_smart_zoom(wx.Dialog):
+class dialog_customise_smart_zoom(Dialog):
     """Dialog to control how smart-zoom behaves in the MS/DT panel"""
 
     def __init__(self, parent, presenter, config, **kwargs):
-        wx.Dialog.__init__(
-            self, parent, -1, 'Smart zoom settings...', size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
-        )
+        Dialog.__init__(self, parent, title='Smart zoom settings...')
 
         self.parent = parent
         self.presenter = presenter
@@ -34,16 +32,16 @@ class dialog_customise_smart_zoom(wx.Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 1, wx.EXPAND, 10)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 10)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
         panel = wx.Panel(self, -1)
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         visualisation_mode = wx.StaticText(panel, -1, 'Visualisation mode:')
         self.visualisation_mode = wx.Choice(
@@ -142,11 +140,11 @@ class dialog_customise_smart_zoom(wx.Dialog):
         y = y + 1
         grid.Add(smart_zoom_subsample_default, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.smart_zoom_subsample_default, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        mainSizer.Add(grid, 0, wx.EXPAND, 10)
+        main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

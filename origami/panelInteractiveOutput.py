@@ -225,8 +225,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         self._setup_handling_and_processing()
 
         # fit layout
-        self.mainSizer.Fit(self.split_panel)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self.split_panel)
+        self.SetSizer(self.main_sizer)
         self.CenterOnParent()
         self.Layout()
         self.SetFocus()
@@ -885,8 +885,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.split_panel.SetSashPosition(size_left + 10)
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(self.split_panel, 1, wx.EXPAND)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(self.split_panel, 1, wx.EXPAND)
 
         # fit layout
         split_size = (size_left + size_right, size_height)
@@ -901,12 +901,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.peaklist.on_select_item = self.on_select_item
 
         # Add to grid sizer
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(preToolbar, 0, wx.EXPAND, 0)
-        mainSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 0)
-        mainSizer.Fit(panel)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(preToolbar, 0, wx.EXPAND, 0)
+        main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 0)
+        main_sizer.Fit(panel)
 
-        panel.SetSizer(mainSizer)
+        panel.SetSizer(main_sizer)
         panel.Layout()
 
         return panel
@@ -917,14 +917,14 @@ class panelInteractiveOutput(wx.MiniFrame):
         editor = self.makeItemEditor(panel)
         buttons = self.make_dialog_buttons(panel)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(editor, 1, wx.EXPAND | wx.ALL, 0)
-        mainSizer.Add(buttons, 0, wx.EXPAND, 0)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(editor, 1, wx.EXPAND | wx.ALL, 0)
+        main_sizer.Add(buttons, 0, wx.EXPAND, 0)
 
         # pack elements
-#         mainSizer = wx.BoxSizer( wx.VERTICAL)
-#         mainSizer.Add(sizer_right, 1, wx.EXPAND |wx.ALL, 0)
-        panel.SetSizer(mainSizer)
+#         main_sizer = wx.BoxSizer( wx.VERTICAL)
+#         main_sizer.Add(sizer_right, 1, wx.EXPAND |wx.ALL, 0)
+        panel.SetSizer(main_sizer)
         panel.Layout()
 
         return panel
@@ -1032,9 +1032,9 @@ class panelInteractiveOutput(wx.MiniFrame):
             flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL,
         )
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALL, 2)
-        return mainSizer
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALL, 2)
+        return main_sizer
 
     def make_peaklist(self, panel):
         """Make list for items."""
@@ -1124,16 +1124,16 @@ class panelInteractiveOutput(wx.MiniFrame):
         cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
         pathBtn.Bind(wx.EVT_BUTTON, self.on_get_path)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(docGrid, 0, wx.EXPAND, 0)
-        mainSizer.Add(btnGrid, 0, wx.EXPAND, 0)
-        mainSizer.Fit(panel)
-        return mainSizer
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(docGrid, 0, wx.EXPAND, 0)
+        main_sizer.Add(btnGrid, 0, wx.EXPAND, 0)
+        main_sizer.Fit(panel)
+        return main_sizer
 
     def makeItemEditor(self, panel):
         """Make items editor."""
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.editorBook = wx.Notebook(panel, wx.ID_ANY, wx.DefaultPosition, size=(-1, -1), style=0)
 
         self.htmlView = wx.lib.scrolledpanel.ScrolledPanel(
@@ -1157,15 +1157,15 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.propertiesView = self.make_properties_view(self.propertiesView)
         self.editorBook.AddPage(self.propertiesView, 'Default settings', False)
 
-        mainSizer.Add(self.editorBook, 1, wx.EXPAND | wx.ALL, 3)
-        mainSizer.Fit(self.editorBook)
+        main_sizer.Add(self.editorBook, 1, wx.EXPAND | wx.ALL, 3)
+        main_sizer.Fit(self.editorBook)
 
         # run events
 #         self.onSetupTools(evt=None)
         self.on_select_page_properties(evt=None)
         self.on_change_page(evt=None)
 
-        return mainSizer
+        return main_sizer
 
     def make_page_view(self, panel):
         RICH_TEXT = wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2
@@ -1299,11 +1299,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         html_box_sizer.Add(html_grid, 0, wx.EXPAND, 0)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(html_box_sizer, 0, wx.EXPAND, 0)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(html_box_sizer, 0, wx.EXPAND, 0)
 
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
         panel.SetBackgroundColour((240, 240, 240))
 
         return panel
@@ -1410,11 +1410,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         general_grid.Add(self.order_value, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
         general_box_sizer.Add(general_grid, 0, wx.EXPAND, 10)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(html_box_sizer, 0, wx.EXPAND, 0)
-        mainSizer.Add(general_box_sizer, 0, wx.EXPAND, 0)
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(html_box_sizer, 0, wx.EXPAND, 0)
+        main_sizer.Add(general_box_sizer, 0, wx.EXPAND, 0)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
         panel.SetBackgroundColour((240, 240, 240))
 
         return panel
@@ -1546,7 +1546,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def make_fonts_panel(self, panel):
         mainBox = makeStaticBox(panel, 'Font properties', (210, -1), wx.BLACK)
         mainBox.SetSize((230, -1))
-        mainSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
+        main_sizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
         titleFontSize = makeStaticText(panel, 'Title font size')
 
         self.titleSlider = wx.SpinCtrlDouble(
@@ -1633,8 +1633,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             ), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2,
         )
 
-        mainSizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
-        return mainSizer
+        main_sizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
+        return main_sizer
 
 #     def makeImageSubPanel(self):
 #         imageBox = makeStaticBox(panel, "Image properties", (230,-1), wx.BLACK)
@@ -7279,7 +7279,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             # normalize data
             normalize = True  # TODO: add to parameters
             if normalize:
-                yval = normalize_1D(inputData=yval)
+                yval = normalize_1D(yval)
 
             # create plot source
             source = ColumnDataSource(

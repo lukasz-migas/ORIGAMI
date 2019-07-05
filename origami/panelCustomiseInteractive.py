@@ -182,7 +182,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         allowed_windows = self._check_allowed_windows()
 
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         # Setup notebook
         self.mainBook = wx.Notebook(
             self, wx.ID_ANY, wx.DefaultPosition,
@@ -673,12 +673,12 @@ class panelCustomiseInteractive(wx.MiniFrame):
         y = y + 1
         grid.Add(frame_box_sizer, (y, 0), flag=wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, wx.ALIGN_CENTER_HORIZONTAL, 2)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, wx.ALIGN_CENTER_HORIZONTAL, 2)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -1143,13 +1143,13 @@ class panelCustomiseInteractive(wx.MiniFrame):
         sizer_right.Add(bar_box_sizer, 0, wx.EXPAND, 0)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        mainSizer.Add(sizer_left, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
-        mainSizer.Add(sizer_right, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer.Add(sizer_left, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        main_sizer.Add(sizer_right, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -1243,13 +1243,13 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid.Add(self.preprocess_subsample_limit_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         heatmap_box_sizer.Add(grid, 0, wx.EXPAND, 10)
 
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        mainSizer.Add(grid_box_sizer, wx.ALIGN_CENTER_HORIZONTAL, 2)
-        mainSizer.Add(heatmap_box_sizer, wx.ALIGN_CENTER_HORIZONTAL, 2)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer.Add(grid_box_sizer, wx.ALIGN_CENTER_HORIZONTAL, 2)
+        main_sizer.Add(heatmap_box_sizer, wx.ALIGN_CENTER_HORIZONTAL, 2)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -1846,13 +1846,13 @@ class panelCustomiseInteractive(wx.MiniFrame):
         sizer_right.Add(multiline_box_sizer, 0, wx.EXPAND, 0)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        mainSizer.Add(sizer_left, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
-        mainSizer.Add(sizer_right, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer.Add(sizer_left, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        main_sizer.Add(sizer_right, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -2048,12 +2048,12 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid.Add(self.annotation_patch_transparency_value, (n, 1), flag=wx.EXPAND)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_LEFT | wx.ALL, 2)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_LEFT | wx.ALL, 2)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -2179,12 +2179,12 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid.Add(self.legend_mute_transparency, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_LEFT | wx.ALL, 2)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_LEFT | wx.ALL, 2)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -2430,12 +2430,12 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid.Add(self.colorbar_width, (n, 1), flag=wx.EXPAND)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid, 0, wx.ALIGN_LEFT | wx.ALL, 2)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_LEFT | wx.ALL, 2)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -2622,9 +2622,9 @@ class panelCustomiseInteractive(wx.MiniFrame):
         sizer_right.Add(processing_box_sizer, 0, wx.EXPAND, 0)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.HORIZONTAL)
-        mainSizer.Add(sizer_left, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
-        mainSizer.Add(sizer_right, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer.Add(sizer_left, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        main_sizer.Add(sizer_right, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
 
 #         grid_1 = wx.GridBagSizer(2, 2)
 #         y = 0
@@ -2642,12 +2642,12 @@ class panelCustomiseInteractive(wx.MiniFrame):
 #         grid_1.Add(processing_box_sizer, (y,1), wx.GBSpan(1,1), flag=wx.EXPAND|wx.ALIGN_LEFT)
 #
 #         # pack elements
-#         mainSizer = wx.BoxSizer(wx.VERTICAL)
-#         mainSizer.Add(grid_1, 0, wx.ALIGN_LEFT|wx.ALL, 2)
+#         main_sizer = wx.BoxSizer(wx.VERTICAL)
+#         main_sizer.Add(grid_1, 0, wx.ALIGN_LEFT|wx.ALL, 2)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 
@@ -2815,12 +2815,12 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid_main.Add(active_box_sizer, (y, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
 
         # pack elements
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(grid_main, 0, wx.ALIGN_LEFT | wx.ALL, 2)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid_main, 0, wx.ALIGN_LEFT | wx.ALL, 2)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 

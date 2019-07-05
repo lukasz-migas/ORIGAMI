@@ -65,8 +65,8 @@ class panel_customise_plot(wx.Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 0, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 0, wx.EXPAND, 0)
 
         # bind
         self.resetBtn.Bind(wx.EVT_BUTTON, self.onReset)
@@ -75,8 +75,8 @@ class panel_customise_plot(wx.Dialog):
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
 
@@ -84,7 +84,7 @@ class panel_customise_plot(wx.Dialog):
         TEXT_SIZE_SMALL = TEXT_SIZE / 2
 
         panel = wx.Panel(self, -1)
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         xaxis_label = wx.StaticText(panel, -1, 'X-axis:')
         yaxis_label = wx.StaticText(panel, -1, 'Y-axis:')
@@ -528,11 +528,11 @@ class panel_customise_plot(wx.Dialog):
         n = n + 1
         grid.Add(self.lock_plot, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 

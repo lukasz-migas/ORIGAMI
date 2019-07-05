@@ -75,21 +75,21 @@ class DialogAsk(Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 0, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 0, wx.EXPAND, 0)
 
         # bind
         self.okBtn.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
 
         panel = wx.Panel(self, -1)
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.input_label = wx.StaticText(panel, -1, 'Enter value:')
         self.input_label.SetLabel(self.item_label)
@@ -129,11 +129,11 @@ class DialogAsk(Dialog):
         grid.Add(self.okBtn, (2, 2), wx.GBSpan(1, 1))
         grid.Add(self.cancelBtn, (2, 3), wx.GBSpan(1, 1))
 
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizer(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizer(main_sizer)
 
         return panel
 

@@ -2285,7 +2285,7 @@ class plots(mpl_plotter):
                 y = zvals[:, int(i)]
 
                 if kwargs.get('normalize', True):
-                    y = normalize_1D(inputData=y)
+                    y = normalize_1D(y)
 
                 if kwargs['line_color_as_shade']:
                     line_color = colorlist[int(i)]
@@ -2380,7 +2380,7 @@ class plots(mpl_plotter):
                 # Always normalizes data - otherwise it looks pretty bad
 
                 if kwargs['increment'] != 0 and kwargs.get('normalize', True):
-                    yvals[irow] = normalize_1D(inputData=yvals[irow])
+                    yvals[irow] = normalize_1D(yvals[irow])
                 else:
                     ylabel = 'Intensity'
                     try:
@@ -2391,7 +2391,7 @@ class plots(mpl_plotter):
                             ylabel = ''.join([ylabel, ' [', offset_text, ']'])
                     except AttributeError:
                         kwargs['increment'] = 0.00001
-                        yvals[irow] = normalize_1D(inputData=yvals[irow])
+                        yvals[irow] = normalize_1D(yvals[irow])
 
                 voltage_idx = np.linspace(0, n_colors - 1, n_colors)
                 if kwargs['line_color_as_shade']:
@@ -2542,7 +2542,7 @@ class plots(mpl_plotter):
 
                 zval_one = np.asarray(zval[:, irow])
                 if kwargs['increment'] != 0 and kwargs.get('normalize', True):
-                    zval_one = normalize_1D(inputData=zval_one)
+                    zval_one = normalize_1D(zval_one)
 
                 y = zval_one + yOffset
                 self.plotMS.plot(
@@ -2658,7 +2658,7 @@ class plots(mpl_plotter):
             # get yvals
             yvals_in = zvals[:, i]
             if normalize:
-                yvals_in = normalize_1D(inputData=yvals_in)
+                yvals_in = normalize_1D(yvals_in)
 
             # calculate offset
             max_value = np.max(yvals_in)

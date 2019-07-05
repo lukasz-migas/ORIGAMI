@@ -109,7 +109,7 @@ class topPanel(wx.Panel):
         self.SetFocus()
 
     def makeListCtrl(self):
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT)
         self.peaklist.InsertColumn(0, 'min RT', width=70)
         self.peaklist.InsertColumn(1, 'max RT', width=60)
@@ -117,9 +117,9 @@ class topPanel(wx.Panel):
         self.peaklist.InsertColumn(3, 'dv (V)', width=60)
         self.peaklist.InsertColumn(4, 'file', width=60)
 
-        mainSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
-        mainSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
-        self.SetSizer(mainSizer)
+        main_sizer.Add(self.toolbar, 0, wx.EXPAND, 0)
+        main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
+        self.SetSizer(main_sizer)
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)
@@ -401,7 +401,7 @@ class bottomPanel(wx.Panel):
 
         self.Bind(wx.EVT_TOOL, self.onRemoveTool, id=ID_removeFilesMenuDT)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT)
         self.peaklist.InsertColumn(0, 'min m/z', width=70)
         self.peaklist.InsertColumn(1, 'max m/z', width=60)
@@ -409,9 +409,9 @@ class bottomPanel(wx.Panel):
         self.peaklist.InsertColumn(3, 'z', width=40)
         self.peaklist.InsertColumn(4, 'file', width=40)
 
-        mainSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
-        mainSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
-        self.SetSizer(mainSizer)
+        main_sizer.Add(self.toolbar, 0, wx.EXPAND, 0)
+        main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
+        self.SetSizer(main_sizer)
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClickMenu)

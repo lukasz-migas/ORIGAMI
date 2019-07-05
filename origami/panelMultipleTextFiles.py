@@ -163,13 +163,13 @@ class panelMultipleTextFiles (wx.Panel):
         toolbar = self.make_toolbar()
         self.makeListCtrl()
 
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(toolbar, 0, wx.EXPAND, 0)
-        self.mainSizer.Add(self.peaklist, 1, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(toolbar, 0, wx.EXPAND, 0)
+        self.main_sizer.Add(self.peaklist, 1, wx.EXPAND, 0)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
         self.SetSize((300, -1))
         self.Layout()
 

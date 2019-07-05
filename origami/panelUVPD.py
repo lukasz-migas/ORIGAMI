@@ -381,12 +381,12 @@ class panelUVPD(wx.MiniFrame):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 1, wx.EXPAND, 5)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
 
         self.SetSize((450, 450))
         self.Layout()
@@ -608,13 +608,13 @@ class panelUVPD(wx.MiniFrame):
         tableSizer.Add(fragSizer, 1, wx.EXPAND | wx.ALL, 2)
         tableSizer.Add(monitorSizer, 1, wx.EXPAND | wx.ALL, 2)
 
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
-        mainSizer.Add(peakFinding_boxSizer, 0, wx.EXPAND, 0)
-        mainSizer.Add(tableSizer, 1, wx.EXPAND, 0)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(peakFinding_boxSizer, 0, wx.EXPAND, 0)
+        main_sizer.Add(tableSizer, 1, wx.EXPAND, 0)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

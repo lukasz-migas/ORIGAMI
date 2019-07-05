@@ -47,18 +47,18 @@ class DialogRenameObject(Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 1, wx.EXPAND, 10)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 10)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
         self.SetMinSize((500, 100))
 
     def make_panel(self):
 
         panel = wx.Panel(self, -1)
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         BOX_SIZE = 400
         oldName_label = wx.StaticText(panel, -1, 'Current name:')
@@ -98,11 +98,11 @@ class DialogRenameObject(Dialog):
         grid.Add(self.ok_btn, (4, 0), wx.GBSpan(1, 1))
         grid.Add(self.cancel_btn, (4, 1), wx.GBSpan(1, 1))
 
-        mainSizer.Add(grid, 0, wx.EXPAND, 10)
+        main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 

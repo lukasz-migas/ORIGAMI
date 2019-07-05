@@ -62,8 +62,8 @@ class panelCalibrantDB(wx.MiniFrame):
         panel = self.makeDatabasePanel()
 
         # pack element
-        self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self.mainSizer.Add(panel, 1, wx.EXPAND, 0)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 0)
 
         if self.mode == 'calibrants':
             size = (800, 400)
@@ -71,14 +71,14 @@ class panelCalibrantDB(wx.MiniFrame):
             size = (400, 400)
 
         # fit layout
-        self.mainSizer.Fit(self)
-        self.SetSizer(self.mainSizer)
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
         self.SetMinSize(size)
 
     def makeDatabasePanel(self):
 
         panel = wx.Panel(self, -1, size=(-1, -1))
-        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.peaklist = ListCtrl(panel, style=wx.LC_REPORT)
         self.peaklist.InsertColumn(0, 'protein', width=150)
@@ -115,12 +115,12 @@ class panelCalibrantDB(wx.MiniFrame):
         grid.Add(self.selectBtn, (0, 1), wx.GBSpan(1, 1))
         grid.Add(self.cancelBtn, (0, 2), wx.GBSpan(1, 1))
 
-        mainSizer.Add(self.peaklist, 1, wx.EXPAND, 2)
-        mainSizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(self.peaklist, 1, wx.EXPAND, 2)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # fit layout
-        mainSizer.Fit(panel)
-        panel.SetSizerAndFit(mainSizer)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
 
         return panel
 
