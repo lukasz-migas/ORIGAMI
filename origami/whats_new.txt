@@ -101,6 +101,8 @@ Processing:
         - one that is pretty good for native MS and is based on local maxima search - data should be smoothed first
 - [changed] moved the processing MS module away from the multi-page window into its own, individual frame
 - [new] added new normalization methods in the MS module
+- [new] added new smoothing method (moving average) in the MS module
+- [new] added new baseline subtraction methods (polynomial and curved) in the MS module
 
 Ion panel:
 - [fix] when assigning single color to multiple items and the action was cancelled, an error would occur

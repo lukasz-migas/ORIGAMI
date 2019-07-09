@@ -5,16 +5,110 @@ import math
 from bisect import bisect_left
 
 import numpy as np
-from gui_elements.misc_dialogs import DialogBox
+import scipy.linalg as LA
 from processing.utils import get_narrow_data_range
-from scipy import sparse
 from scipy.interpolate.interpolate import interp1d
 from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter
-from scipy.sparse.linalg import spsolve
 from utils.exceptions import MessageError
 from utils.ranges import get_min_max
+
 logger = logging.getLogger('origami')
+
+
+def baseline_curve(data, window, **kwargs):
+    """Based on massign method: https://pubs.acs.org/doi/abs/10.1021/ac300056a
+
+    We initlise an array which has the same length as the input array, subsequently smooth the spectrum  and then
+    subtract the background from the spectrum
+
+    Parameters
+    ----------
+    data: np.array
+        intensity array
+    window: int
+        window integer
+
+    Returns
+    -------
+    data: np.array
+        data without background
+
+    """
+    if window <= 0:
+        raise MessageError('Incorrect input', 'Value should be above 0')
+
+    length = data.shape[0]
+    mins = list(range(0, length))
+    indexes = list(range(0, length))
+
+    for i in indexes:
+        mins[i] = np.amin(data[int(max([0, i - abs(window)])):int(min([i + abs(window), length]))])
+    background = gaussian_filter(mins, abs(window) * 2)
+    return data - background
+
+
+def baseline_polynomial(y, deg=None, max_it=None, tol=None, **kwargs):
+    """
+    Taken from: https://peakutils.readthedocs.io/en/latest/index.html
+    -----------------------------------------------------------------
+    Computes the baseline of a given data.
+
+    Iteratively performs a polynomial fitting in the data to detect its
+    baseline. At every iteration, the fitting weights on the regions with
+    peaks are reduced to identify the baseline only.
+
+    Parameters
+    ----------
+    y : ndarray
+        Data to detect the baseline.
+    deg : int (default: 3)
+        Degree of the polynomial that will estimate the data baseline. A low
+        degree may fail to detect all the baseline present, while a high
+        degree may make the data too oscillatory, especially at the edges.
+    max_it : int (default: 100)
+        Maximum number of iterations to perform.
+    tol : float (default: 1e-3)
+        Tolerance to use when comparing the difference between the current
+        fit coefficients and the ones from the last iteration. The iteration
+        procedure will stop when the difference between them is lower than
+        *tol*.
+
+    Returns
+    -------
+    ndarray
+        Array with the baseline amplitude for every original point in *y*
+    """
+    # for not repeating ourselves in `envelope`
+    if deg is None:
+        deg = 4
+    if max_it is None:
+        max_it = 100
+    if tol is None:
+        tol = 1e-3
+
+    order = deg + 1
+    coeffs = np.ones(order)
+
+    # try to avoid numerical issues
+    cond = math.pow(abs(y).max(), 1. / order)
+    x = np.linspace(0., cond, y.size)
+    base = y.copy()
+
+    vander = np.vander(x, order)
+    vander_pinv = LA.pinv2(vander)
+
+    for _ in range(max_it):
+        coeffs_new = np.dot(vander_pinv, y)
+
+        if LA.norm(coeffs_new - coeffs) / LA.norm(coeffs) < tol:
+            break
+
+        coeffs = coeffs_new
+        base = np.dot(vander, coeffs)
+        y = np.minimum(y, base)
+
+    return base
 
 
 def baseline_als(y, lam, p, niter=10):
@@ -38,7 +132,7 @@ def baseline_als(y, lam, p, niter=10):
     return z
 
 
-def remove_noise_1D(data, threshold=0):
+def baseline_linear(data, threshold=0, **kwargs):
     value_max = np.max(data)
     if threshold < 0:
         raise MessageError('Incorrect input', 'Value should be above 0')
@@ -47,6 +141,24 @@ def remove_noise_1D(data, threshold=0):
         raise MessageError('Incorrect input', f'Value {threshold} is above the maximum {value_max}')
 
     data[data <= threshold] = 0
+
+    return data
+
+
+def baseline_1D(data, mode='Linear', **kwargs):
+    # ensure data is in 64-bit format
+    data = np.array(data, dtype=np.float64)
+
+    if mode == 'Linear':
+        data = baseline_linear(data, **kwargs)
+    elif mode == 'Polynomial':
+        baseline = baseline_polynomial(data, **kwargs)
+        data = data - baseline
+    elif mode == 'Curved':
+        data = baseline_curve(data, **kwargs)
+
+    data[data <= 0] = 0
+
     return data
 
 
@@ -58,7 +170,7 @@ def normalize_1D(data, mode='Maximum'):
         norm_data = np.divide(data, data.max())
     elif mode == 'Total Ion Current (TIC)':
         norm_data = np.divide(data, np.sum(data))
-        norm_data = np.divide(norm_data, norm_data.max())
+#         norm_data = np.divide(norm_data, norm_data.max())
     elif mode == 'Highest peak':
         norm_data = np.divide(data, data[data.argmax()])
 #         norm_data = np.divide(norm_data, norm_data.max())
@@ -207,66 +319,67 @@ def subtract_1D(msY_1, msY_2):  # subtractMS
     return out_1, out_2
 
 
-def smooth_gaussian_1D(data=None, sigma=1):  # smooth1D
-    """
-    This function uses Gaussian filter to smooth 1D data
-    """
-    if data is None or len(data) == 0:
-        return None
+def smooth_gaussian_1D(data=None, sigma=1, **kwargs):
+    """Smooth using Gaussian filter"""
     if sigma < 0:
-        DialogBox(
-            exceptionTitle='Warning',
-            exceptionMsg='Value of sigma is too low. Value was reset to 1',
-            type='Warning',
+        raise MessageError(
+            'Incorrest value of `sigma`',
+            'Value of `sigma` is too low. Value must be larger than 0',
         )
-        sigma = 1
-    else:
-        sigma = sigma
+
     dataOut = gaussian_filter(data, sigma=sigma, order=0)
     return dataOut
 
 
-def smooth_1D(data=None, smoothMode='Gaussian', **kwargs):  # smooth_1D
+def smooth_moving_average_1D(x, **kwargs):
+    """Smooth using moving average"""
+    # get parameters
+    N = kwargs.pop('N')
+    if N <= 0:
+        raise MessageError(
+            'Incorrest value of `window size`',
+            'Value of `window size` is too low. Value must be larger than 0',
+        )
+
+    return np.convolve(x, np.ones((N,)) / N, mode='same')
+
+
+def smooth_sav_gol_1D(data, **kwargs):
+    """Smooth using Savitzky-Golay filter"""
+    # get parameters
+    polyOrder = kwargs.pop('polyOrder')
+    windowSize = kwargs.pop('windowSize')
+    try:
+        dataOut = savgol_filter(
+            data, polyorder=polyOrder,
+            window_length=windowSize,
+            axis=0,
+        )
+    except (ValueError, TypeError, MemoryError) as err:
+        logger.error(err)
+        return data
+
+    return dataOut
+
+
+def smooth_1D(data=None, smoothMode='Gaussian', **kwargs):
     """
     This function uses Gaussian filter to smooth 1D data
     """
     if smoothMode == 'Gaussian':
-        sigma = kwargs.pop('sigma')
-        if data is None or len(data) == 0:
-            return None
-        if sigma < 0:
-            sigma = 1
-        # Smooth array
-        try:
-            dataOut = gaussian_filter(data, sigma=sigma, order=0)
-        except (ValueError, TypeError, MemoryError) as error:
-            return data
-        return dataOut
-
+        data = smooth_gaussian_1D(data, **kwargs)
     elif smoothMode == 'Savitzky-Golay':
-        polyOrder = kwargs.pop('polyOrder')
-        windowSize = kwargs.pop('windowSize')
-        # Check if input data is there
-        if data is None or len(data) == 0:
-            return None
+        data = smooth_sav_gol_1D(data, **kwargs)
+    elif smoothMode == 'Moving average':
+        data = smooth_moving_average_1D(data, **kwargs)
 
-        try:
-            dataOut = savgol_filter(
-                data, polyorder=polyOrder,
-                window_length=windowSize,
-                axis=0,
-            )
-        except (ValueError, TypeError, MemoryError) as error:
-            print(error)
-            return data
-        # Remove values below zero
-        dataOut[dataOut < 0] = 0  # Remove any values that are below 0
-        return dataOut
-    else:
-        return data
+    # Remove values below zero
+    data[data < 0] = 0  # Remove any values that are below 0
+
+    return data
 
 
-def bin_1D(x=None, y=None, bins=None, binmode='Bin'):  # binMSdata
+def bin_1D(x=None, y=None, bins=None, binmode='Bin'):
     """Bin data"""
     # Bin data using numpy histogram function
     if binmode == 'Bin':

@@ -677,10 +677,7 @@ class plots(mpl_plotter):
 #         lines[0].set_color(kwargs['line_color'])
 #         lines[0].set_linestyle(kwargs['line_style'])
 
-    def plot_1D_update_data(
-        self, xvals, yvals, xlabel, ylabel, testMax='yvals',
-        **kwargs
-    ):
+    def plot_1D_update_data(self, xvals, yvals, xlabel, ylabel, testMax='yvals', **kwargs):
         if self.plot_name in ['compare', 'Compare']:
             raise Exception('Wrong plot name - resetting')
         # override parameters

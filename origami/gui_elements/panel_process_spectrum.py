@@ -3,14 +3,16 @@
 import logging
 
 import wx
-from styles import validator, MiniFrame, makeCheckbox, makeToggleBtn
-from utils.converters import str2num, str2int
+from styles import makeCheckbox
+from styles import MiniFrame
+from styles import validator
+from utils.converters import str2int
+from utils.converters import str2num
 logger = logging.getLogger('origami')
 
 
 class PanelProcessMassSpectrum(MiniFrame):
-    """
-    """
+    """Mass spectrum processing panel"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
         MiniFrame.__init__(self, parent, title='Process mass spectrum...')
@@ -33,7 +35,9 @@ class PanelProcessMassSpectrum(MiniFrame):
 
         self.make_gui()
         self.on_toggle_controls(None)
+        self.on_update_info()
 
+        # setup layout
         self.CentreOnScreen()
         self.SetFocus()
 
@@ -54,7 +58,14 @@ class PanelProcessMassSpectrum(MiniFrame):
         panel = wx.Panel(self, -1, size=(-1, -1))
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.ms_process_crop = makeCheckbox(panel, 'Crop spectrum')
+        document_info_text = wx.StaticText(panel, -1, 'Document:')
+        self.document_info_text = wx.StaticText(panel, -1, '')
+
+        dataset_info_text = wx.StaticText(panel, -1, 'Dataset:')
+        self.dataset_info_text = wx.StaticText(panel, -1, '')
+
+        ms_process_crop = wx.StaticText(panel, -1, 'Crop spectrum:')
+        self.ms_process_crop = makeCheckbox(panel, '')
         self.ms_process_crop.SetValue(self.config.ms_process_crop)
         self.ms_process_crop.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_crop.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -75,7 +86,8 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.crop_max_value.SetValue(str(self.config.ms_crop_max))
         self.crop_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.ms_process_linearize = makeCheckbox(panel, 'Linearize spectrum')
+        ms_process_linearize = wx.StaticText(panel, -1, 'Linearize spectrum:')
+        self.ms_process_linearize = makeCheckbox(panel, '')
         self.ms_process_linearize.SetValue(self.config.ms_process_linearize)
         self.ms_process_linearize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_linearize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -117,7 +129,8 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.bin_mzBinSize_value.SetValue(str(self.config.ms_mzBinSize))
         self.bin_mzBinSize_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.ms_process_smooth = makeCheckbox(panel, 'Smooth spectrum')
+        ms_process_smooth = wx.StaticText(panel, -1, 'Smooth spectrum:')
+        self.ms_process_smooth = makeCheckbox(panel, '')
         self.ms_process_smooth.SetValue(self.config.ms_process_smooth)
         self.ms_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -131,7 +144,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
         self.ms_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
-        polynomial_label = wx.StaticText(panel, wx.ID_ANY, 'Polynomial:')
+        polynomial_label = wx.StaticText(panel, wx.ID_ANY, 'Savitzky-Golay polynomial order:')
         self.ms_polynomial_value = wx.TextCtrl(
             panel, -1, '', size=(-1, -1),
             validator=validator('intPos'),
@@ -139,7 +152,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_polynomial_value.SetValue(str(self.config.ms_smooth_polynomial))
         self.ms_polynomial_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        window_label = wx.StaticText(panel, wx.ID_ANY, 'Window size:')
+        window_label = wx.StaticText(panel, wx.ID_ANY, 'Savitzky-Golay window size:')
         self.ms_window_value = wx.TextCtrl(
             panel, -1, '', size=(-1, -1),
             validator=validator('intPos'),
@@ -147,7 +160,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_window_value.SetValue(str(self.config.ms_smooth_window))
         self.ms_window_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        sigma_label = wx.StaticText(panel, wx.ID_ANY, 'Sigma:')
+        sigma_label = wx.StaticText(panel, wx.ID_ANY, 'Gaussian sigma:')
         self.ms_sigma_value = wx.TextCtrl(
             panel, -1, '', size=(-1, -1),
             validator=validator('floatPos'),
@@ -155,12 +168,28 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_sigma_value.SetValue(str(self.config.ms_smooth_sigma))
         self.ms_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.ms_process_threshold = makeCheckbox(panel, 'Baseline subtract')
+        ms_smooth_moving_window = wx.StaticText(panel, wx.ID_ANY, 'Moving average window size:')
+        self.ms_smooth_moving_window = wx.TextCtrl(
+            panel, -1, '', size=(-1, -1),
+            validator=validator('intPos'),
+        )
+        self.ms_smooth_moving_window.SetValue(str(self.config.ms_smooth_moving_window))
+        self.ms_smooth_moving_window.Bind(wx.EVT_TEXT, self.on_apply)
+
+        ms_process_threshold = wx.StaticText(panel, -1, 'Subtract baseline:')
+        self.ms_process_threshold = makeCheckbox(panel, '')
         self.ms_process_threshold.SetValue(self.config.ms_process_threshold)
         self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        threshold_label = wx.StaticText(panel, wx.ID_ANY, 'Baseline subtraction:')
+        baseline_label = wx.StaticText(panel, wx.ID_ANY, 'Subtraction mode:')
+
+        self.ms_baseline_choice = wx.Choice(panel, choices=self.config.ms_baseline_choices)
+        self.ms_baseline_choice.SetStringSelection(self.config.ms_baseline)
+        self.ms_baseline_choice.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.ms_baseline_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
+
+        threshold_label = wx.StaticText(panel, wx.ID_ANY, 'Threshold:')
         self.ms_threshold_value = wx.TextCtrl(
             panel, -1, '', size=(-1, -1),
             validator=validator('floatPos'),
@@ -168,7 +197,24 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_threshold_value.SetValue(str(self.config.ms_threshold))
         self.ms_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.ms_process_normalize = makeCheckbox(panel, 'Normalize')
+        ms_baseline_polynomial_order = wx.StaticText(panel, wx.ID_ANY, 'Polynomial order:')
+        self.ms_baseline_polynomial_order = wx.TextCtrl(
+            panel, -1, '', size=(-1, -1),
+            validator=validator('intPos'),
+        )
+        self.ms_baseline_polynomial_order.SetValue(str(self.config.ms_baseline_polynomial_order))
+        self.ms_baseline_polynomial_order.Bind(wx.EVT_TEXT, self.on_apply)
+
+        ms_baseline_curved_window = wx.StaticText(panel, wx.ID_ANY, 'Window:')
+        self.ms_baseline_curved_window = wx.TextCtrl(
+            panel, -1, '', size=(-1, -1),
+            validator=validator('intPos'),
+        )
+        self.ms_baseline_curved_window.SetValue(str(self.config.ms_baseline_curved_window))
+        self.ms_baseline_curved_window.Bind(wx.EVT_TEXT, self.on_apply)
+
+        ms_process_normalize = wx.StaticText(panel, -1, 'Normalize spectrum:')
+        self.ms_process_normalize = makeCheckbox(panel, '')
         self.ms_process_normalize.SetValue(self.config.ms_process_normalize)
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -189,6 +235,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.cancel_btn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
+        horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -197,7 +244,16 @@ class PanelProcessMassSpectrum(MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(self.ms_process_crop, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(document_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.document_info_text, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(dataset_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.dataset_info_text, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(ms_process_crop, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_process_crop, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
         grid.Add(crop_min_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.crop_min_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -207,7 +263,8 @@ class PanelProcessMassSpectrum(MiniFrame):
         n += 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(self.ms_process_linearize, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(ms_process_linearize, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_process_linearize, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
         grid.Add(linearizationMode_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.bin_linearizationMode_choice, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -224,7 +281,8 @@ class PanelProcessMassSpectrum(MiniFrame):
         n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(self.ms_process_smooth, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(ms_process_smooth, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_process_smooth, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
         grid.Add(smoothFcn_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_smoothFcn_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
@@ -238,16 +296,30 @@ class PanelProcessMassSpectrum(MiniFrame):
         grid.Add(sigma_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_sigma_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
+        grid.Add(ms_smooth_moving_window, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_smooth_moving_window, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(self.ms_process_threshold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(ms_process_threshold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_process_threshold, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        n += 1
+        grid.Add(baseline_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_baseline_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
+        grid.Add(ms_baseline_polynomial_order, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_baseline_polynomial_order, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(ms_baseline_curved_window, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_baseline_curved_window, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
         grid.Add(horizontal_line_4, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(self.ms_process_normalize, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(ms_process_normalize, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_process_normalize, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
         grid.Add(normalize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
         grid.Add(self.ms_normalizeFcn_choice, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
@@ -266,11 +338,19 @@ class PanelProcessMassSpectrum(MiniFrame):
 
         return panel
 
+    def on_update_info(self, **kwargs):
+        document_title = kwargs.get('document_title', self.document_title)
+        dataset_name = kwargs.get('dataset_name', self.dataset_name)
+
+        self.document_info_text.SetLabel(document_title)
+        self.dataset_info_text.SetLabel(dataset_name)
+
     def on_plot(self, evt):
-        mz_x = self.mz_data["xvals"]
-        mz_y = self.mz_data["yvals"]
+        mz_x = self.mz_data['xvals']
+        mz_y = self.mz_data['yvals']
         mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
 
+#         self.panel_plot.on_simple_plot_1D(mz_x, mz_y, xlabel="m/z", ylabel="Intensity", plot="MS")
         self.panel_plot.on_plot_MS(mz_x, mz_y)
 
     def on_add_to_document(self, evt):
@@ -285,8 +365,10 @@ class PanelProcessMassSpectrum(MiniFrame):
 
         # linearize
         self.config.ms_process_linearize = self.ms_process_linearize.GetValue()
-        obj_list = [self.bin_linearizationMode_choice, self.bin_mzBinSize_value,
-                    self.bin_mzStart_value, self.bin_mzEnd_value, self.bin_autoRange_check]
+        obj_list = [
+            self.bin_linearizationMode_choice, self.bin_mzBinSize_value,
+            self.bin_mzStart_value, self.bin_mzEnd_value, self.bin_autoRange_check,
+        ]
         for item in obj_list:
             item.Enable(enable=self.config.ms_process_linearize)
 
@@ -297,30 +379,43 @@ class PanelProcessMassSpectrum(MiniFrame):
 
         # smooth
         self.config.ms_process_smooth = self.ms_process_smooth.GetValue()
-        obj_list = [self.ms_smoothFcn_choice, self.ms_sigma_value, self.ms_polynomial_value,
-                    self.ms_window_value]
+        obj_list = [
+            self.ms_sigma_value, self.ms_polynomial_value,
+            self.ms_window_value, self.ms_smooth_moving_window,
+        ]
         for item in obj_list:
-            item.Enable(enable=self.config.ms_process_smooth)
+            item.Enable(enable=False)
+        self.ms_smoothFcn_choice.Enable(self.config.ms_process_smooth)
 
         self.config.ms_smooth_mode = self.ms_smoothFcn_choice.GetStringSelection()
         if self.config.ms_process_smooth:
-            if self.config.ms_smooth_mode == 'None':
-                for item in [self.ms_polynomial_value, self.ms_sigma_value, self.ms_window_value]:
-                    item.Disable()
-            elif self.config.ms_smooth_mode == 'Gaussian':
-                for item in [self.ms_polynomial_value, self.ms_window_value]:
-                    item.Disable()
+            if self.config.ms_smooth_mode == 'Gaussian':
                 self.ms_sigma_value.Enable()
-            else:
+            elif self.config.ms_smooth_mode == 'Savitzky-Golay':
                 for item in [self.ms_polynomial_value, self.ms_window_value]:
                     item.Enable()
-                self.ms_sigma_value.Disable()
+            elif self.config.ms_smooth_mode == 'Moving average':
+                self.ms_smooth_moving_window.Enable()
 
         # threshold
         self.config.ms_process_threshold = self.ms_process_threshold.GetValue()
-        obj_list = [self.ms_threshold_value]
+        self.config.ms_baseline = self.ms_baseline_choice.GetStringSelection()
+        obj_list = [
+            self.ms_threshold_value, self.ms_baseline_choice, self.ms_baseline_polynomial_order,
+            self.ms_baseline_curved_window,
+        ]
         for item in obj_list:
-            item.Enable(enable=self.config.ms_process_threshold)
+            item.Enable(enable=False)
+        self.ms_baseline_choice.Enable(enable=self.config.ms_process_threshold)
+
+        if self.config.ms_process_threshold:
+            print(self.config.ms_baseline)
+            if self.config.ms_baseline == 'Linear':
+                self.ms_threshold_value.Enable()
+            elif self.config.ms_baseline == 'Polynomial':
+                self.ms_baseline_polynomial_order.Enable()
+            elif self.config.ms_baseline == 'Curved':
+                self.ms_baseline_curved_window.Enable()
 
         # normalize
         self.config.ms_process_normalize = self.ms_process_normalize.GetValue()
@@ -351,7 +446,12 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.config.ms_smooth_sigma = str2num(self.ms_sigma_value.GetValue())
         self.config.ms_smooth_window = str2int(self.ms_window_value.GetValue())
         self.config.ms_smooth_polynomial = str2int(self.ms_polynomial_value.GetValue())
+        self.config.ms_smooth_moving_window = str2int(self.ms_smooth_moving_window.GetValue())
+
         self.config.ms_threshold = str2num(self.ms_threshold_value.GetValue())
+        self.config.ms_baseline = self.ms_baseline_choice.GetStringSelection()
+        self.config.ms_baseline_polynomial_order = str2int(self.ms_baseline_polynomial_order.GetValue())
+        self.config.ms_baseline_curved_window = str2int(self.ms_baseline_curved_window.GetValue())
 
         self.config.ms_crop_min = str2num(self.crop_min_value.GetValue())
         self.config.ms_crop_max = str2num(self.crop_max_value.GetValue())

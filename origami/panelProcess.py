@@ -254,12 +254,12 @@ class panelProcessData(wx.MiniFrame):
             self.make_panel_extract_data(self.parameters_Extract),
             'Extract', False,
         )
-        self.parameters_MS = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-
-        self.mainBook.AddPage(
-            self.make_panel_MS(self.parameters_MS),
-            'Mass spectrum', False,
-        )
+#         self.parameters_MS = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+#
+#         self.mainBook.AddPage(
+#             self.make_panel_MS(self.parameters_MS),
+#             'Mass spectrum', False,
+#         )
         self.parameters_2D = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
 
         self.mainBook.AddPage(
@@ -834,514 +834,6 @@ class panelProcessData(wx.MiniFrame):
         self.unidec_info.Bind(wx.EVT_BUTTON, self.openHTMLViewer)
         self.unidec_peakTool.Bind(wx.EVT_BUTTON, self.openWidthTool)
         self.unidec_customise_Btn.Bind(wx.EVT_BUTTON, self.onCustomiseUniDecParameters)
-
-        # fit layout
-        main_sizer.Fit(panel)
-        panel.SetSizerAndFit(main_sizer)
-
-        return panel
-
-#     def make_panel_peak_finding(self, panel):
-#         main_sizer = wx.BoxSizer(wx.VERTICAL)
-#
-#         fitPlot_label = wx.StaticText(panel, wx.ID_ANY, "Search plot:")
-#         self.fit_fitPlot_choice = wx.Choice(panel, -1, choices=["MS", "RT", "MS + RT"],  # self.config.fit_type_choices,
-#                                             size=(-1, -1))
-#         self.fit_fitPlot_choice.SetStringSelection(self.config.fit_type)
-#         self.fit_fitPlot_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-#         self.fit_fitPlot_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
-#
-#         threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
-#         self.fit_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-#                                                validator=validator('floatPos'))
-#         self.fit_threshold_value.SetValue(str(self.config.fit_threshold))
-#         self.fit_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         window_label = wx.StaticText(panel, wx.ID_ANY, "Window size (points):")
-#         self.fit_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-#                                             validator=validator('intPos'))
-#         self.fit_window_value.SetValue(str(self.config.fit_window))
-#         self.fit_window_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         width_label = wx.StaticText(panel, wx.ID_ANY, "Peak width:")
-#         self.fit_width_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-#                                            validator=validator('floatPos'))
-#         self.fit_width_value.SetValue(str(self.config.fit_width))
-#         self.fit_width_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         asymmetricity_label = wx.StaticText(panel, wx.ID_ANY, "Peak asymmetricity:")
-#         self.fit_asymmetricRatio_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-#                                                      validator=validator('float'))
-#         self.fit_asymmetricRatio_value.SetValue(str(self.config.fit_asymmetric_ratio))
-#         self.fit_asymmetricRatio_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         smooth_label = wx.StaticText(panel, wx.ID_ANY, "Smooth peaks:")
-#         self.fit_smooth_check = makeCheckbox(panel, "")
-#         self.fit_smooth_check.SetValue(self.config.fit_smoothPeaks)
-#         self.fit_smooth_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#         self.fit_smooth_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-#
-#         sigma_label = wx.StaticText(panel, wx.ID_ANY, "Gaussian sigma:")
-#         self.fit_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1),
-#                                            validator=validator('floatPos'))
-#         self.fit_sigma_value.SetValue(str(self.config.fit_smooth_sigma))
-#         self.fit_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         self.fit_show_smoothed = makeCheckbox(panel, "Show")
-#         self.fit_show_smoothed.SetValue(self.show_smoothed)
-#         self.fit_show_smoothed.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#
-#         highRes_staticBox = makeStaticBox(panel, "Charge state prediction", size=(-1, -1), color=wx.BLACK)
-#         highRes_staticBox.SetSize((-1, -1))
-#         highRes_box_sizer = wx.StaticBoxSizer(highRes_staticBox, wx.HORIZONTAL)
-#
-#         highRes_label = wx.StaticText(panel, wx.ID_ANY, "Enable:")
-#         self.fit_highRes_check = makeCheckbox(panel, "")
-#         self.fit_highRes_check.SetValue(self.config.fit_highRes)
-#         self.fit_highRes_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#         self.fit_highRes_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-#         __fit_highRes_tip = makeSuperTip(self.fit_highRes_check, **self.help.fit_highRes)
-#
-#         threshold_highRes_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
-#         self.fit_thresholdHighRes_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
-#         self.fit_thresholdHighRes_value.SetValue(str(self.config.fit_highRes_threshold))
-#         self.fit_thresholdHighRes_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         window_highRes_label = wx.StaticText(panel, wx.ID_ANY, "Window size (points):")
-#         self.fit_windowHighRes_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
-#         self.fit_windowHighRes_value.SetValue(str(self.config.fit_highRes_window))
-#         self.fit_windowHighRes_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         width_highRes_label = wx.StaticText(panel, wx.ID_ANY, "Peak width:")
-#         self.fit_widthHighRes_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
-#         self.fit_widthHighRes_value.SetValue(str(self.config.fit_highRes_width))
-#         self.fit_widthHighRes_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         fitChargeStates_label = wx.StaticText(panel, wx.ID_ANY, "Isotopic fit:")
-#         self.fit_isotopes_check = makeCheckbox(panel, "")
-#         self.fit_isotopes_check.SetValue(self.config.fit_highRes_isotopicFit)
-#         self.fit_isotopes_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#         __fit_isotopes_tip = makeSuperTip(self.fit_isotopes_check, **self.help.fit_showIsotopes)
-#
-#         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-#         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-#         horizontal_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-#
-#         highlight_label = wx.StaticText(panel, wx.ID_ANY, "Highlight:")
-#         self.fit_highlight_check = makeCheckbox(panel, "")
-#         self.fit_highlight_check.SetValue(self.config.fit_highlight)
-#         self.fit_highlight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#
-#         labels_label = wx.StaticText(panel, wx.ID_ANY, "Labels:")
-#         self.fit_show_labels_check = makeCheckbox(panel, "")
-#         self.fit_show_labels_check.SetValue(self.config.fit_show_labels)
-#         self.fit_show_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#         self.fit_show_labels_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-#
-#         max_labels_label = wx.StaticText(panel, wx.ID_ANY, "Max no. labels:")
-#         self.fit_max_labels = wx.SpinCtrlDouble(panel, -1,
-#                                                 value=str(self.config.fit_show_labels_max_count),
-#                                                 min=0, max=250,
-#                                                 initial=self.config.fit_show_labels_max_count,
-#                                                 inc=50, size=(90, -1))
-#         self.fit_max_labels.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-#
-#         self.fit_show_labels_mz_check = makeCheckbox(panel, "m/z")
-#         self.fit_show_labels_mz_check.SetValue(self.config.fit_show_labels_mz)
-#         self.fit_show_labels_mz_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#
-#         self.fit_show_labels_int_check = makeCheckbox(panel, "intensity")
-#         self.fit_show_labels_int_check.SetValue(self.config.fit_show_labels_int)
-#         self.fit_show_labels_int_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#
-#         remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, "Optimise label position:")
-#         self.fit_labels_optimise_position_check = makeCheckbox(panel, "")
-#         self.fit_labels_optimise_position_check.SetValue(self.config.fit_labels_optimise_position)
-#         self.fit_labels_optimise_position_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#
-#         annot_grid = wx.GridBagSizer(5, 5)
-#         n = 0
-#         annot_grid.Add(highlight_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         annot_grid.Add(self.fit_highlight_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         annot_grid.Add(labels_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         annot_grid.Add(self.fit_show_labels_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         annot_grid.Add(max_labels_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         annot_grid.Add(self.fit_max_labels, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         annot_grid.Add(self.fit_show_labels_mz_check, (n, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         annot_grid.Add(self.fit_show_labels_int_check, (n, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         annot_grid.Add(remove_label_overlap_label, (n, 0), wx.GBSpan(
-#             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         annot_grid.Add(self.fit_labels_optimise_position_check, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-#
-#         xaxisLimit_label = wx.StaticText(panel, wx.ID_ANY, "Use current x-axis range:")
-#         self.fit_xaxisLimit_check = makeCheckbox(panel, "")
-#         self.fit_xaxisLimit_check.SetValue(self.config.fit_xaxis_limit)
-#         self.fit_xaxisLimit_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#
-#         addPeaks_label = wx.StaticText(panel, wx.ID_ANY, "Add peaks to peak list:")
-#         self.fit_addPeaks_check = makeCheckbox(panel, "")
-#         self.fit_addPeaks_check.SetValue(self.config.fit_addPeaks)
-#         self.fit_addPeaks_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#
-#         addPeaksToAnnotations_label = wx.StaticText(panel, wx.ID_ANY, "Add peaks to annotations:")
-#         self.fit_addPeaksToAnnotations_check = makeCheckbox(panel, "")
-#         self.fit_addPeaksToAnnotations_check.SetValue(self.config.fit_addPeaksToAnnotations)
-#         self.fit_addPeaksToAnnotations_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#
-#         check_grid = wx.GridBagSizer(5, 5)
-#         n = 0
-#         check_grid.Add(xaxisLimit_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         check_grid.Add(self.fit_xaxisLimit_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         check_grid.Add(addPeaks_label, (n, 0), wx.GBSpan(1, 1),
-#                        flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, border=20)
-#         check_grid.Add(self.fit_addPeaks_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         check_grid.Add(addPeaksToAnnotations_label, (n, 2), wx.GBSpan(1, 1),
-#                        flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT, border=20)
-#         check_grid.Add(self.fit_addPeaksToAnnotations_check, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#
-#         self.fit_findPeaksBtn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, 22))
-#         self.fit_findPeaksBtn.Bind(wx.EVT_BUTTON, self.onPickPeaksThreaded)
-#
-#         self.fit_cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
-#         self.fit_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
-#
-#         # pack elements
-#         grid = wx.GridBagSizer(5, 5)
-#         n = 0
-#         grid.Add(fitPlot_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.fit_fitPlot_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.fit_threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(window_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.fit_window_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(width_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.fit_width_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(asymmetricity_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.fit_asymmetricRatio_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(smooth_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.fit_smooth_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(sigma_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.fit_sigma_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         grid.Add(self.fit_show_smoothed, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#
-#         highRes_grid = wx.GridBagSizer(2, 2)
-#         n = 0
-#         highRes_grid.Add(highRes_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         highRes_grid.Add(self.fit_highRes_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         highRes_grid.Add(threshold_highRes_label, (n, 0), wx.GBSpan(
-#             1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         highRes_grid.Add(self.fit_thresholdHighRes_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         highRes_grid.Add(window_highRes_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         highRes_grid.Add(self.fit_windowHighRes_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         highRes_grid.Add(width_highRes_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         highRes_grid.Add(self.fit_widthHighRes_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n = n + 1
-#         highRes_grid.Add(fitChargeStates_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         highRes_grid.Add(self.fit_isotopes_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         highRes_box_sizer.Add(highRes_grid, 0, wx.EXPAND, 10)
-#         n = 7
-#         grid.Add(highRes_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
-#         n = n + 1
-#         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(annot_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(check_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-#         n = n + 1
-#         grid.Add(self.fit_findPeaksBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         grid.Add(self.fit_cancelBtn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#
-#         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
-#
-#         # fit layout
-#         main_sizer.Fit(panel)
-#         panel.SetSizerAndFit(main_sizer)
-#
-#         return panel
-
-    def make_panel_MS(self, panel):
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        crop_staticBox = makeStaticBox(panel, 'Crop parameters', size=(-1, -1), color=wx.BLACK)
-        crop_staticBox.SetSize((-1, -1))
-        crop_box_sizer = wx.StaticBoxSizer(crop_staticBox, wx.HORIZONTAL)
-
-        crop_min_label = wx.StaticText(panel, wx.ID_ANY, 'm/z start:')
-        self.crop_min_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.crop_min_value.SetValue(str(self.config.ms_crop_min))
-        self.crop_min_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        crop_max_label = wx.StaticText(panel, wx.ID_ANY, 'end:')
-        self.crop_max_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.crop_max_value.SetValue(str(self.config.ms_crop_max))
-        self.crop_max_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        massSpec_staticBox = makeStaticBox(panel, 'Linearization parameters', size=(-1, -1), color=wx.BLACK)
-        massSpec_staticBox.SetSize((-1, -1))
-        massSpec_box_sizer = wx.StaticBoxSizer(massSpec_staticBox, wx.HORIZONTAL)
-
-        self.bin_RT_window_check = makeCheckbox(panel, 'Enable MS linearization in chromatogram/mobiligram window')
-        self.bin_RT_window_check.SetValue(self.config.ms_enable_in_RT)
-        self.bin_RT_window_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        __bin_RT_window_tip = makeSuperTip(self.bin_RT_window_check, **self.help.bin_MS_in_RT)
-
-        self.bin_MML_window_check = makeCheckbox(panel, 'Enable MS linearization when loading Manual aIM-MS datasets')
-        self.bin_MML_window_check.SetValue(self.config.ms_enable_in_MML_start)
-        self.bin_MML_window_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        __bin_MML_window_tip = makeSuperTip(self.bin_MML_window_check, **self.help.bin_MS_when_loading_MML)
-
-        linearizationMode_label = wx.StaticText(panel, wx.ID_ANY, 'Linearization mode:')
-        self.bin_linearizationMode_choice = wx.Choice(
-            panel, -1, choices=self.config.ms_linearization_mode_choices,
-            size=(-1, -1),
-        )
-        self.bin_linearizationMode_choice.SetStringSelection(self.config.ms_linearization_mode)
-        self.bin_linearizationMode_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-
-        bin_ms_min_label = wx.StaticText(panel, wx.ID_ANY, 'm/z start:')
-        self.bin_mzStart_value = wx.TextCtrl(
-            panel, -1, '', size=(65, -1),
-            validator=validator('floatPos'),
-        )
-        self.bin_mzStart_value.SetValue(str(self.config.ms_mzStart))
-        self.bin_mzStart_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        bin_ms_max_label = wx.StaticText(panel, wx.ID_ANY, 'end:')
-        self.bin_mzEnd_value = wx.TextCtrl(
-            panel, -1, '', size=(65, -1),
-            validator=validator('floatPos'),
-        )
-        self.bin_mzEnd_value.SetValue(str(self.config.ms_mzEnd))
-        self.bin_mzEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        self.bin_autoRange_check = makeCheckbox(panel, 'Automatic range')
-        self.bin_autoRange_check.SetValue(self.config.ms_auto_range)
-        self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-#         self.bin_autoRange_check = makeSuperTip(self.bin_MML_window_check, **self.help.bin_MS_when_loading_MML)
-
-        bin_ms_binsize_label = wx.StaticText(panel, wx.ID_ANY, 'm/z bin size:')
-        self.bin_mzBinSize_value = wx.TextCtrl(
-            panel, -1, '', size=(65, -1),
-            validator=validator('floatPos'),
-        )
-        self.bin_mzBinSize_value.SetValue(str(self.config.ms_mzBinSize))
-        self.bin_mzBinSize_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        process_staticBox = makeStaticBox(
-            panel, 'Smoothing and normalization parameters', size=(-1, -1), color=wx.BLACK,
-        )
-        process_staticBox.SetSize((-1, -1))
-        process_box_sizer = wx.StaticBoxSizer(process_staticBox, wx.HORIZONTAL)
-
-        smoothFcn_label = wx.StaticText(panel, wx.ID_ANY, 'Smooth function:')
-        self.ms_smoothFcn_choice = wx.Choice(
-            panel, -1, choices=self.config.ms_smooth_choices,
-            size=(-1, -1),
-        )
-        self.ms_smoothFcn_choice.SetStringSelection(self.config.ms_smooth_mode)
-        self.ms_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.ms_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
-
-        polynomial_label = wx.StaticText(panel, wx.ID_ANY, 'Polynomial:')
-        self.ms_polynomial_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('intPos'),
-        )
-        self.ms_polynomial_value.SetValue(str(self.config.ms_smooth_polynomial))
-        self.ms_polynomial_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        window_label = wx.StaticText(panel, wx.ID_ANY, 'Window size:')
-        self.ms_window_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('intPos'),
-        )
-        self.ms_window_value.SetValue(str(self.config.ms_smooth_window))
-        self.ms_window_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        sigma_label = wx.StaticText(panel, wx.ID_ANY, 'Sigma:')
-        self.ms_sigma_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.ms_sigma_value.SetValue(str(self.config.ms_smooth_sigma))
-        self.ms_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        threshold_label = wx.StaticText(panel, wx.ID_ANY, 'Baseline subtraction:')
-        self.ms_threshold_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.ms_threshold_value.SetValue(str(self.config.ms_threshold))
-        self.ms_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        normalize_label = wx.StaticText(panel, wx.ID_ANY, 'Normalize:')
-        self.ms_normalizeTgl = makeToggleBtn(panel, 'Off', wx.RED)
-        self.ms_normalizeTgl.SetValue(self.config.ms_normalize)
-        self.ms_normalizeTgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_apply)
-        self.ms_normalizeTgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls)
-
-        self.ms_normalizeFcn_choice = wx.Choice(
-            panel, -1,
-            choices=self.config.ms_normalize_choices,
-            size=(-1, -1),
-        )
-        self.ms_normalizeFcn_choice.SetStringSelection(self.config.ms_normalize_mode)
-        self.ms_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.ms_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
-
-        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-
-        self.ms_applyBtn = wx.Button(panel, ID_processSettings_replotMS, 'Replot', size=(-1, 22))
-        __ms_applyBtn_tip = makeSuperTip(self.ms_applyBtn, **self.help.process_mass_spectra_replotBtn)
-
-        self.ms_processBtn = wx.Button(panel, ID_processSettings_processMS, 'Process', size=(-1, 22))
-        __ms_processBtn_tip = makeSuperTip(self.ms_processBtn, **self.help.process_mass_spectra_processesBtn)
-
-        self.ms_cancelBtn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
-
-        self.ms_applyBtn.Bind(wx.EVT_BUTTON, self.onProcessMS)
-        self.ms_processBtn.Bind(wx.EVT_BUTTON, self.onProcessMS)
-        self.ms_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
-
-        steps_staticBox = makeStaticBox(panel, 'Processing steps...', size=(-1, -1), color=wx.BLACK)
-        steps_staticBox.SetSize((-1, -1))
-        steps_box_sizer = wx.StaticBoxSizer(steps_staticBox, wx.HORIZONTAL)
-
-        self.ms_process_crop = makeCheckbox(panel, 'Crop spectrum')
-        self.ms_process_crop.SetValue(self.config.ms_process_crop)
-        self.ms_process_crop.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.ms_process_linearize = makeCheckbox(panel, 'Linearize spectrum')
-        self.ms_process_linearize.SetValue(self.config.ms_process_linearize)
-        self.ms_process_linearize.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.ms_process_smooth = makeCheckbox(panel, 'Smooth spectrum')
-        self.ms_process_smooth.SetValue(self.config.ms_process_smooth)
-        self.ms_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.ms_process_threshold = makeCheckbox(panel, 'Baseline subtract')
-        self.ms_process_threshold.SetValue(self.config.ms_process_threshold)
-        self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.ms_process_normalize = makeCheckbox(panel, 'Normalize')
-        self.ms_process_normalize.SetValue(self.config.ms_process_normalize)
-        self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        # pack elements
-        steps_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        steps_grid.Add(self.ms_process_crop, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        steps_grid.Add(self.ms_process_linearize, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        steps_grid.Add(self.ms_process_smooth, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        steps_grid.Add(self.ms_process_threshold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        steps_grid.Add(self.ms_process_normalize, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        steps_box_sizer.Add(steps_grid, 0, wx.EXPAND, 10)
-
-        crop_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        crop_grid.Add(crop_min_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        crop_grid.Add(self.crop_min_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        crop_grid.Add(crop_max_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        crop_grid.Add(self.crop_max_value, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        crop_box_sizer.Add(crop_grid, 0, wx.EXPAND, 10)
-
-        ms_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        ms_grid.Add(linearizationMode_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms_grid.Add(
-            self.bin_linearizationMode_choice, (n, 1), wx.GBSpan(
-                1, 4,
-            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
-        )
-        n = n + 1
-        ms_grid.Add(bin_ms_min_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms_grid.Add(self.bin_mzStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        ms_grid.Add(bin_ms_max_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms_grid.Add(self.bin_mzEnd_value, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        ms_grid.Add(self.bin_autoRange_check, (n, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        ms_grid.Add(bin_ms_binsize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms_grid.Add(self.bin_mzBinSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        ms_grid.Add(self.bin_RT_window_check, (n, 0), wx.GBSpan(1, 5), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        ms_grid.Add(self.bin_MML_window_check, (n, 0), wx.GBSpan(1, 5), flag=wx.ALIGN_CENTER_VERTICAL)
-        massSpec_box_sizer.Add(ms_grid, 0, wx.EXPAND, 10)
-
-#         dtms_grid = wx.GridBagSizer(2, 2)
-#         n = 0
-#         dtms_grid.Add(bin_msdt_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         dtms_grid.Add(self.bin_msdt_binSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-#         dtms_box_sizer.Add(dtms_grid, 0, wx.EXPAND, 10)
-
-        process_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        process_grid.Add(smoothFcn_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        process_grid.Add(self.ms_smoothFcn_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        process_grid.Add(polynomial_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        process_grid.Add(self.ms_polynomial_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        process_grid.Add(window_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        process_grid.Add(self.ms_window_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        process_grid.Add(sigma_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        process_grid.Add(self.ms_sigma_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        process_grid.Add(threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        process_grid.Add(self.ms_threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        process_grid.Add(normalize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        process_grid.Add(self.ms_normalizeTgl, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        process_grid.Add(self.ms_normalizeFcn_choice, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        process_box_sizer.Add(process_grid, 0, wx.EXPAND, 10)
-
-        grid = wx.GridBagSizer(2, 2)
-        n = 0
-#         grid.Add(dtms_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
-#         n = n + 1
-        grid.Add(crop_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        n = n + 1
-        grid.Add(massSpec_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        n = n + 1
-        grid.Add(process_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        n = n + 1
-        grid.Add(steps_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        n = n + 1
-        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(self.ms_applyBtn, (n, 0), wx.GBSpan(1, 1))
-        grid.Add(self.ms_processBtn, (n, 1), wx.GBSpan(1, 1))
-        grid.Add(self.ms_cancelBtn, (n, 2), wx.GBSpan(1, 1))
-
-        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -1959,33 +1451,6 @@ class panelProcessData(wx.MiniFrame):
         self.config.extract_dtStart = str2num(self.extract_dtStart_value.GetValue())
         self.config.extract_dtEnd = str2num(self.extract_dtEnd_value.GetValue())
 
-        # Mass spectrum
-        self.config.ms_process_crop = self.ms_process_crop.GetValue()
-        self.config.ms_process_linearize = self.ms_process_linearize.GetValue()
-        self.config.ms_process_smooth = self.ms_process_smooth.GetValue()
-        self.config.ms_process_threshold = self.ms_process_threshold.GetValue()
-        self.config.ms_process_normalize = self.ms_process_normalize.GetValue()
-
-        self.config.ms_mzStart = str2num(self.bin_mzStart_value.GetValue())
-        self.config.ms_mzEnd = str2num(self.bin_mzEnd_value.GetValue())
-        self.config.ms_mzBinSize = str2num(self.bin_mzBinSize_value.GetValue())
-        self.config.ms_enable_in_RT = self.bin_RT_window_check.GetValue()
-        self.config.ms_enable_in_MML_start = self.bin_MML_window_check.GetValue()
-
-        self.config.ms_linearization_mode = self.bin_linearizationMode_choice.GetStringSelection()
-        self.config.ms_auto_range = self.bin_autoRange_check.GetValue()
-
-        self.config.ms_normalize = self.ms_normalizeTgl.GetValue()
-        self.config.ms_normalize_mode = self.ms_normalizeFcn_choice.GetStringSelection()
-        self.config.ms_smooth_mode = self.ms_smoothFcn_choice.GetStringSelection()
-        self.config.ms_smooth_sigma = str2num(self.ms_sigma_value.GetValue())
-        self.config.ms_smooth_window = str2int(self.ms_window_value.GetValue())
-        self.config.ms_smooth_polynomial = str2int(self.ms_polynomial_value.GetValue())
-        self.config.ms_threshold = str2num(self.ms_threshold_value.GetValue())
-
-        self.config.ms_crop_min = str2num(self.crop_min_value.GetValue())
-        self.config.ms_crop_max = str2num(self.crop_max_value.GetValue())
-
         # 2D
         self.config.plot2D_normalize = self.plot2D_normalizeTgl.GetValue()
         self.config.plot2D_normalize_mode = self.plot2D_normalizeFcn_choice.GetStringSelection()
@@ -2025,28 +1490,6 @@ class panelProcessData(wx.MiniFrame):
                 pass
 
     def on_toggle_controls(self, evt):
-        #         enableDisableList = [self.fit_show_labels_int_check, self.fit_show_labels_mz_check,
-        #                              self.fit_max_labels]
-        #
-        #         if self.fit_show_labels_check.GetValue():
-        #             for item in enableDisableList:
-        #                 item.Enable()
-        #         else:
-        #             for item in enableDisableList:
-        #                 item.Disable()
-
-        if self.bin_autoRange_check.GetValue():
-            self.bin_mzStart_value.Disable()
-            self.bin_mzEnd_value.Disable()
-        else:
-            self.bin_mzStart_value.Enable()
-            self.bin_mzEnd_value.Enable()
-
-        # check if MS process data is present
-        if self.document.get('MS', None) is None or self.dataset.get('MS', None) is None:
-            self.ms_processBtn.Disable()
-        else:
-            self.ms_processBtn.Enable()
 
         # check if 2D process data is present
         if self.document.get('2D', None) is None or self.dataset.get('2D', None) is None:
@@ -2100,98 +1543,6 @@ class panelProcessData(wx.MiniFrame):
         else:
             self.extract_pusherFreq_value.Disable()
 
-#         # origami panel
-#         self.config.origami_acquisition = self.origami_method_choice.GetStringSelection()
-#         if self.config.origami_acquisition == 'Linear':
-#             enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
-#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-#                           self.origami_scansPerVoltage_value]
-#             disableList = [self.origami_boltzmannOffset_value, self.origami_exponentialIncrement_value,
-#                            self.origami_exponentialPercentage_value, self.origami_loadListBtn]
-#         elif self.config.origami_acquisition == 'Exponential':
-#             enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
-#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-#                           self.origami_scansPerVoltage_value, self.origami_exponentialIncrement_value,
-#                            self.origami_exponentialPercentage_value]
-#             disableList = [self.origami_boltzmannOffset_value, self.origami_loadListBtn]
-#         elif self.config.origami_acquisition == 'Boltzmann':
-#             enableList = [self.origami_startScan_value, self.origami_startVoltage_value,
-#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-#                           self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value]
-#             disableList = [self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
-#                            self.origami_loadListBtn]
-#         elif self.config.origami_acquisition == 'User-defined':
-#             disableList = [self.origami_startVoltage_value,
-#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-#                           self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
-#                           self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value]
-#             enableList = [self.origami_loadListBtn, self.origami_startScan_value]
-#         else:
-#             disableList = [self.origami_startScan_value, self.origami_startVoltage_value,
-#                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-#                           self.origami_exponentialIncrement_value, self.origami_exponentialPercentage_value,
-#                           self.origami_scansPerVoltage_value, self.origami_boltzmannOffset_value,
-#                           self.origami_loadListBtn]
-#             enableList = []
-
-#         # iterate
-#         for item in enableList:
-#             item.Enable()
-#         for item in disableList:
-#             item.Disable()
-
-        # peak fitting
-#         self.config.fit_type = self.fit_fitPlot_choice.GetStringSelection()
-#         self.config.fit_highRes = self.fit_highRes_check.GetValue()
-#
-#         enableDisableList = [self.fit_thresholdHighRes_value, self.fit_windowHighRes_value,
-#                              self.fit_widthHighRes_value, self.fit_isotopes_check]
-#         if self.config.fit_highRes and self.config.fit_type in ['MS', 'MS + RT']:
-#             for item in enableDisableList:
-#                 item.Enable()
-#         else:
-#             for item in enableDisableList:
-#                 item.Disable()
-#
-#         if self.config.fit_type == 'RT':
-#             self.fit_highRes_check.Disable()
-#         else:
-#             self.fit_highRes_check.Enable()
-#
-#         self.config.fit_smoothPeaks = self.fit_smooth_check.GetValue()
-#         if self.config.fit_smoothPeaks:
-#             self.fit_sigma_value.Enable()
-#             self.fit_show_smoothed.Enable()
-#         else:
-#             self.fit_sigma_value.Disable()
-#             self.fit_show_smoothed.Disable()
-
-        # mass spectrum panel
-        self.config.ms_smooth_mode = self.ms_smoothFcn_choice.GetStringSelection()
-        if self.config.ms_smooth_mode == 'None':
-            for item in [self.ms_polynomial_value, self.ms_sigma_value, self.ms_window_value]:
-                item.Disable()
-        elif self.config.ms_smooth_mode == 'Gaussian':
-            for item in [self.ms_polynomial_value, self.ms_window_value]:
-                item.Disable()
-            self.ms_sigma_value.Enable()
-        else:
-            for item in [self.ms_polynomial_value, self.ms_window_value]:
-                item.Enable()
-            self.ms_sigma_value.Disable()
-
-        self.config.ms_normalize = self.ms_normalizeTgl.GetValue()
-        if self.config.ms_normalize:
-            self.ms_normalizeFcn_choice.Enable()
-            self.ms_normalizeTgl.SetLabel('On')
-            self.ms_normalizeTgl.SetForegroundColour(wx.WHITE)
-            self.ms_normalizeTgl.SetBackgroundColour(wx.BLUE)
-        else:
-            self.ms_normalizeFcn_choice.Disable()
-            self.ms_normalizeTgl.SetLabel('Off')
-            self.ms_normalizeTgl.SetForegroundColour(wx.WHITE)
-            self.ms_normalizeTgl.SetBackgroundColour(wx.RED)
-
         # 2D panel
         self.config.plot2D_smooth_mode = self.plot2D_smoothFcn_choice.GetStringSelection()
         if self.config.plot2D_smooth_mode == 'None':
@@ -2234,11 +1585,6 @@ class panelProcessData(wx.MiniFrame):
 
         self.importEvent = True
 
-        # panel mass spectrum
-        self.ms_sigma_value.SetValue(str(self.config.ms_smooth_sigma))
-        self.ms_window_value.SetValue(str(self.config.ms_smooth_window))
-        self.ms_polynomial_value.SetValue(str(self.config.ms_smooth_polynomial))
-
         # panel 2D
         self.plot2D_sigma_value.SetValue(str(self.config.plot2D_smooth_sigma))
         self.plot2D_window_value.SetValue(str(self.config.plot2D_smooth_window))
@@ -2270,27 +1616,27 @@ class panelProcessData(wx.MiniFrame):
         if evt is not None:
             evt.Skip()
 
-    def onProcessMS(self, evt):
-        """
-        Automatically process and replot MS array
-        """
-        evtID = evt.GetId()
-
-        try:
-            args = ('Processing document: {} | dataset: {}'.format(self.document['MS'], self.dataset['MS']), 4)
-            self.presenter.onThreading(evt, args, action='updateStatusbar')
-        except KeyError:
-            pass
-
-        # only replotting
-        if evtID == ID_processSettings_replotMS:
-            self.data_processing.on_process_MS(replot=True)
-        # processing and adding to dictionary
-        elif evtID == ID_processSettings_processMS:
-            self.data_processing.on_process_MS_and_add_data(self.document['MS'], self.dataset['MS'])
-
-        if evt is not None:
-            evt.Skip()
+#     def onProcessMS(self, evt):
+#         """
+#         Automatically process and replot MS array
+#         """
+#         evtID = evt.GetId()
+#
+#         try:
+#             args = ('Processing document: {} | dataset: {}'.format(self.document['MS'], self.dataset['MS']), 4)
+#             self.presenter.onThreading(evt, args, action='updateStatusbar')
+#         except KeyError:
+#             pass
+#
+#         # only replotting
+#         if evtID == ID_processSettings_replotMS:
+#             self.data_processing.on_process_MS(replot=True)
+#         # processing and adding to dictionary
+#         elif evtID == ID_processSettings_processMS:
+#             self.data_processing.on_process_MS_and_add_data(self.document['MS'], self.dataset['MS'])
+#
+#         if evt is not None:
+#             evt.Skip()
 
     # TODO: this function should be moved to data_handling and split into smaller functions
     def on_extract_data(self, evt):

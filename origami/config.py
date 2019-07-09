@@ -896,14 +896,19 @@ class OrigamiConfig:
         self.ms_normalize_choices = [
             'Maximum', 'Total Ion Current (TIC)', 'Highest peak', 'Square root', 'Log',
             'Root Mean Square (RMS)',
-        ]
+        ]  # new in v1.3.0.0
         self.ms_normalize_mode = 'Maximum'
-        self.ms_smooth_choices = ['None', 'Gaussian', 'Savitzky-Golay']
+        self.ms_smooth_choices = ['None', 'Gaussian', 'Savitzky-Golay', 'Moving average']  # new in v1.3.0.0
         self.ms_smooth_mode = 'None'
         self.ms_smooth_sigma = 1
         self.ms_smooth_window = 3
         self.ms_smooth_polynomial = 1
-        self.ms_threshold = 0.0
+        self.ms_smooth_moving_window = 5  # new in v1.3.0.0
+        self.ms_baseline_choices = ['Linear', 'Polynomial', 'Curved']  # new in v1.3.0.0
+        self.ms_baseline = 'Linear'
+        self.ms_threshold = 0.0  # new in v1.3.0.0
+        self.ms_baseline_polynomial_order = 3  # new in v1.3.0.0
+        self.ms_baseline_curved_window = 500  # new in v1.3.0.0
 
         self.ms_crop_min = 500
         self.ms_crop_max = 8000

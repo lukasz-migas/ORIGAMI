@@ -893,13 +893,18 @@ class data_processing():
                 'sigma': self.config.ms_smooth_sigma,
                 'polyOrder': self.config.ms_smooth_polynomial,
                 'windowSize': self.config.ms_smooth_window,
+                'N': self.config.ms_smooth_moving_window,
             }
             msY = pr_spectra.smooth_1D(msY, smoothMode=self.config.ms_smooth_mode, **pr_kwargs)
 
         if self.config.ms_process_threshold:
             # Threshold data
-            msY = pr_spectra.remove_noise_1D(msY, threshold=self.config.ms_threshold)
-#             msY = pr_spectra.baseline_als(msY, 0.001, 20000)
+            msY = pr_spectra.baseline_1D(
+                msY,
+                self.config.ms_baseline,
+                threshold=self.config.ms_threshold,
+                window=self.config.ms_baseline_curved_window,
+            )
 
         # Normalize data
         if self.config.ms_process_normalize:

@@ -641,7 +641,7 @@ class data_handling():
         self.plotsPanel.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
 
         # Update document
-        self.view.updateRecentFiles(path={'file_type': 'Text_MS', 'file_path': path})
+#         self.view.updateRecentFiles(path={'file_type': 'Text_MS', 'file_path': path})
 
     def on_update_document(self, document, expand_item='document', expand_item_title=None):
 

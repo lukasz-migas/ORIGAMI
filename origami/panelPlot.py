@@ -2992,6 +2992,35 @@ class panelPlot(wx.Panel):
         plot_obj.plot_1D_update_data_only(xvals, yvals)
         plot_obj.repaint()
 
+    def on_simple_plot_1D(self, xvals, yvals, **kwargs):
+        plot = kwargs.pop('plot', None)
+
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
+        # get kwargs
+        plt_kwargs = self._buildPlotParameters(plotType='1D')
+
+        try:
+            plot_obj.plot_1D_update_data_only(xvals, yvals)
+        except Exception as err:
+            print(err)
+
+            plot_obj.clearPlot()
+            plot_obj.plot_1D(
+                xvals=xvals,
+                yvals=yvals,
+                xlabel=kwargs.pop('xlabel', ''),
+                ylabel=kwargs.pop('ylabel', ''),
+                #                 axesSize=self.config._plotSettings['DT']['axes_size'],
+                plotType='1D',
+                **plt_kwargs
+            )
+        # show the plot
+        plot_obj.repaint()
+
     def on_plot_MS(
         self, msX=None, msY=None, xlimits=None, override=True, replot=False,
         full_repaint=False, set_page=False, show_in_window='MS', view_range=[], **kwargs
