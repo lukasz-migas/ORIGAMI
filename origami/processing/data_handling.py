@@ -46,6 +46,7 @@ from utils.path import get_path_and_fname
 from utils.random import get_random_int
 from utils.ranges import get_min_max
 from utils.time import getTime
+from utils.time import tsleep
 from utils.time import ttime
 # enable on windowsOS only
 if platform == 'win32':
@@ -639,9 +640,6 @@ class data_handling():
         # Plot
         name_kwargs = {'document': document.title, 'dataset': 'Mass Spectrum'}
         self.plotsPanel.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
-
-        # Update document
-#         self.view.updateRecentFiles(path={'file_type': 'Text_MS', 'file_path': path})
 
     def on_update_document(self, document, expand_item='document', expand_item_title=None):
 
@@ -2736,13 +2734,41 @@ class data_handling():
         document = self._on_get_document(document_title)
 
         if spectrum_title == 'Mass Spectrum':
-            data = document.massSpectrum
+            data = copy.deepcopy(document.massSpectrum)
         elif spectrum_title == 'Mass Spectrum (processed)':
-            data = document.smoothMS
+            data = copy.deepcopy(document.smoothMS)
         else:
-            data = document.multipleMassSpectrum.get(spectrum_title, dict())
+            data = copy.deepcopy(document.multipleMassSpectrum.get(spectrum_title, dict()))
 
         return document, data
+
+    def set_spectrum_data(self, query_info, data, **kwargs):
+        """Set data for specified query items.
+
+        Parameters
+        ----------
+        query_info: list
+             query should be formed as a list containing two elements [document title, dataset title]
+
+        Returns
+        -------
+        document: document object
+        data: dictionary
+            dictionary with all data associated with the [document, dataset] combo
+        """
+
+        document_title, spectrum_title = query_info
+        document = self._on_get_document(document_title)
+
+        if data is not None:
+            if spectrum_title == 'Mass Spectrum':
+                self.documentTree.on_update_data(data, '', document, data_type='main.spectrum')
+            elif spectrum_title == 'Mass Spectrum (processed)':
+                self.documentTree.on_update_data(data, '', document, data_type='processed.spectrum')
+            else:
+                self.documentTree.on_update_data(data, spectrum_title, document, data_type='extracted.spectrum')
+
+        return document
 
     def get_mobility_chromatographic_data(self, query_info, **kwargs):
 

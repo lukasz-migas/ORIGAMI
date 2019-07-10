@@ -52,6 +52,7 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.data_handling = presenter.data_handling
         self.data_processing = presenter.data_processing
         self.panel_plot = self.presenter.view.panelPlots
+        self.document_tree = self.presenter.view.panelDocuments.documents
 
         self._display_size = wx.GetDisplaySize()
         self._display_resolution = wx.ScreenDC().GetPPI()
@@ -140,11 +141,11 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.panel_plot.on_resize_check(None)
 
     def on_customise_plot(self, evt):
-        kwargs = dict(plot='MS...', plot_obj=self.plot_window)
-        self.panel_plot.on_customise_plot(None, **kwargs)
+        self.panel_plot.on_customise_plot(
+            None, plot='MS...', plot_obj=self.plot_window,
+        )
 
     def on_ok(self, evt):
-
         self.update_spectrum(evt=None)
         self.Destroy()
 
@@ -362,7 +363,7 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
 
         self.settings_btn.Bind(wx.EVT_BUTTON, self.presenter.view.onPlotParameters)
         self.legend_btn.Bind(wx.EVT_BUTTON, self.presenter.view.onPlotParameters)
-        self.process_btn.Bind(wx.EVT_BUTTON, self.presenter.view.onProcessParameters)
+        self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_MS_settings)
 
         GRIDBAG_VSPACE = 7
         GRIDBAG_HSPACE = 5
@@ -733,3 +734,6 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
             ' ', '-',
         ).replace(':', '')
         self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
+
+    def on_open_process_MS_settings(self, evt):
+        self.document_tree.on_open_process_MS_settings(disable_plot_and_process=True)

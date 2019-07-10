@@ -3760,52 +3760,70 @@ class documentsTree(wx.TreeCtrl):
         self.compareMSDlg.Show()
 
     def onProcess2D(self, evt):
-        if self._document_type in ['Drift time (2D)', 'Drift time (2D, processed)']:
-            dataset = self._document_type
-            ionName = ''
-        elif self._document_type in [
-            'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
-            'Drift time (2D, processed, EIC)', 'Input data',
-            'Statistical',
-        ] and self._indent > 2:
-            dataset = self._document_type
-            ionName = self._item_leaf
-        elif self._document_type == 'DT/MS':
-            dataset = self._document_type
-            ionName = ''
-#         elif self._document_type in ['Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
-#                                'Drift time (2D, processed, EIC)','Input data',
-#                                'Statistical'] and self._indent == 2:
-#             dataset = self._document_type
-#             ionName = 'all'
 
-        # create processing kwargs
-        kwargs = {
-            'document_2D': self._document_data.title,
-            'dataset_2D': dataset,
-            'ionName_2D': ionName,
-            'update_mode': '2D',
-        }
-        # call function
-        self.presenter.view.onProcessParameters(
-            evt=ID_processSettings_2D,
+        self.on_open_process_2D_settings()
+#         if self._document_type in ['Drift time (2D)', 'Drift time (2D, processed)']:
+#             dataset = self._document_type
+#             ionName = ''
+#         elif self._document_type in [
+#             'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
+#             'Drift time (2D, processed, EIC)', 'Input data',
+#             'Statistical',
+#         ] and self._indent > 2:
+#             dataset = self._document_type
+#             ionName = self._item_leaf
+#         elif self._document_type == 'DT/MS':
+#             dataset = self._document_type
+#             ionName = ''
+# #         elif self._document_type in ['Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
+# #                                'Drift time (2D, processed, EIC)','Input data',
+# #                                'Statistical'] and self._indent == 2:
+# #             dataset = self._document_type
+# #             ionName = 'all'
+#
+#         # create processing kwargs
+#         kwargs = {
+#             'document_2D': self._document_data.title,
+#             'dataset_2D': dataset,
+#             'ionName_2D': ionName,
+#             'update_mode': '2D',
+#         }
+#         # call function
+#         self.presenter.view.onProcessParameters(
+#             evt=ID_processSettings_2D,
+#             **kwargs
+#         )
+
+    def on_open_process_2D_settings(self, **kwargs):
+        from gui_elements.panel_process_heatmap import PanelProcessHeatmap
+
+        panel = PanelProcessHeatmap(
+            self.presenter.view,
+            self.presenter,
+            self.config,
+            self.icons,
             **kwargs
         )
+        panel.Show()
 
     def onProcessMS(self, evt, **kwargs):
-        from gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
-
         document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
+        self.on_open_process_MS_settings(
+            mz_data=data,
+            document=document,
+            document_title=document.title,
+            dataset_name=dataset,
+        )
+
+    def on_open_process_MS_settings(self, **kwargs):
+        from gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
         panel = PanelProcessMassSpectrum(
             self.presenter.view,
             self.presenter,
             self.config,
             self.icons,
-            document=document,
-            mz_data=data,
-            dataset_name=dataset,
-            document_title=document.title,
+            **kwargs
         )
         panel.Show()
 
@@ -6287,9 +6305,15 @@ class documentsTree(wx.TreeCtrl):
             return text
 
     def onShowSampleInfo(self, evt=None):
+
+        try:
+            sample_information = self._document_data.fileInformation.get('SampleDescription', 'None')
+        except AttributeError:
+            sample_information = 'N/A'
+
         kwargs = {
             'title': 'Sample information...',
-            'information': self._document_data.fileInformation.get('SampleDescription', 'None'),
+            'information': sample_information,
         }
 
         from gui_elements.panel_fileInformation import panelInformation
@@ -7320,6 +7344,11 @@ class documentsTree(wx.TreeCtrl):
             document.gotMS = True
             document.massSpectrum = item_data
 
+        elif data_type == 'processed.spectrum':
+            item = self.getItemByData(document.smoothMS)
+            document.gotSmoothMS = True
+            document.smoothMS = item_data
+
         elif data_type == 'extracted.spectrum':
             item = self.getItemByData(document.multipleMassSpectrum)
             document.gotMultipleMS = True
@@ -7364,6 +7393,8 @@ class documentsTree(wx.TreeCtrl):
             # add main spectrum
             if data_type == 'main.spectrum':
                 self.update_one_item(item, document.massSpectrum, image=data_type)
+            elif data_type == 'processed.spectrum':
+                self.update_one_item(item, document.smoothMS, image=data_type)
             # add base heatmap
             elif data_type == 'main.heatmap':
                 self.update_one_item(item, document.IMS2D, image=data_type)
@@ -7430,7 +7461,7 @@ class documentsTree(wx.TreeCtrl):
         self.panel_plot.plot_repaint(plot_window='MS')
 
     def get_item_image(self, image_type):
-        if image_type in ['main.spectrum', 'extracted.spectrum']:
+        if image_type in ['main.spectrum', 'extracted.spectrum', 'processed.spectrum']:
             image = self.bulets_dict['mass_spec_on']
         elif image_type == ['ion.heatmap.combined', 'ion.heatmap.raw', 'ion.heatmap.processed', 'main.heatmap']:
             image = self.bulets_dict['heatmap_on']

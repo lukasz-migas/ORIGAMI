@@ -874,6 +874,11 @@ class OrigamiConfig:
         self.extract_dtms_mzBinSize = 0.1
 
         # Process 2D
+        self.plot2D_process_crop = False  # new in v1.3.0.0
+        self.plot2D_process_interpolate = True  # new in v1.3.0.0
+        self.plot2D_process_smooth = True  # new in v1.3.0.0
+        self.plot2D_process_threshold = True  # new in v1.3.0.0
+
         self.plot2D_normalize = False
         self.plot2D_normalize_choices = [
             'Maximum',

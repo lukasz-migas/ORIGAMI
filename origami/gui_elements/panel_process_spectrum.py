@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+import copy
 import logging
 
 import wx
@@ -9,6 +10,8 @@ from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
 logger = logging.getLogger('origami')
+
+# TODO: speed up plotting
 
 
 class PanelProcessMassSpectrum(MiniFrame):
@@ -32,6 +35,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.document_title = kwargs.pop('document_title', None)
         self.dataset_name = kwargs.pop('dataset_name', None)
         self.mz_data = kwargs.pop('mz_data', None)
+        self.disable_plot_and_process = kwargs.get('disable_plot_and_process', False)
 
         self.make_gui()
         self.on_toggle_controls(None)
@@ -39,24 +43,45 @@ class PanelProcessMassSpectrum(MiniFrame):
 
         # setup layout
         self.CentreOnScreen()
+        self.Show(True)
         self.SetFocus()
 
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+
+    def on_key_event(self, evt):
+        """Trigger event based on keyboard input"""
+        key_code = evt.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.on_close(None)
+        elif key_code in [66, 67, 76, 78, 83]:
+            click_dict = {76: 'linearize', 83: 'smooth', 67: 'crop', 66: 'baseline', 78: 'normalize'}
+            self.on_click_on_setting(click_dict.get(key_code))
+        elif key_code == 80 and not self.disable_plot_and_process:
+            self.on_plot(None)
+        elif key_code == 65 and not self.disable_plot_and_process:
+            self.on_add_to_document(None)
+
+        if evt is not None:
+            evt.Skip()
+
     def make_gui(self):
+        """Make and arrange main panel"""
 
         # make panel
         panel = self.make_panel()
 
         # pack element
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 0)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
 
         # fit layout
         self.main_sizer.Fit(self)
         self.SetSizer(self.main_sizer)
+        self.Layout()
 
     def make_panel(self):
+        """Make settings panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         document_info_text = wx.StaticText(panel, -1, 'Document:')
         self.document_info_text = wx.StaticText(panel, -1, '')
@@ -219,18 +244,12 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        normalize_label = wx.StaticText(panel, wx.ID_ANY, 'Normalization mode:')
+        if not self.disable_plot_and_process:
+            self.plot_btn = wx.Button(panel, wx.ID_OK, 'Plot', size=(-1, 22))
+            self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
 
-        self.ms_normalizeFcn_choice = wx.Choice(panel, choices=self.config.ms_normalize_choices)
-        self.ms_normalizeFcn_choice.SetStringSelection(self.config.ms_normalize_mode)
-        self.ms_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.ms_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
-
-        self.plot_btn = wx.Button(panel, wx.ID_OK, 'Plot', size=(-1, 22))
-        self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
-
-        self.add_to_document_btn = wx.Button(panel, wx.ID_OK, 'Add to document', size=(-1, 22))
-        self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
+            self.add_to_document_btn = wx.Button(panel, wx.ID_OK, 'Add to document', size=(-1, 22))
+            self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
         self.cancel_btn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
@@ -245,10 +264,10 @@ class PanelProcessMassSpectrum(MiniFrame):
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(document_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.document_info_text, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.document_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(dataset_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.dataset_info_text, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.dataset_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
@@ -321,40 +340,46 @@ class PanelProcessMassSpectrum(MiniFrame):
         grid.Add(ms_process_normalize, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_process_normalize, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(normalize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.ms_normalizeFcn_choice, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(self.plot_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.add_to_document_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        if not self.disable_plot_and_process:
+            grid.Add(self.plot_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+            grid.Add(self.add_to_document_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         grid.Add(self.cancel_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
-        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
-
         # fit layout
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND, 5)
         main_sizer.Fit(panel)
+
         panel.SetSizerAndFit(main_sizer)
 
         return panel
 
     def on_update_info(self, **kwargs):
+        """Update information labels"""
         document_title = kwargs.get('document_title', self.document_title)
         dataset_name = kwargs.get('dataset_name', self.dataset_name)
+
+        if document_title is None:
+            document_title = 'N/A'
+        if dataset_name is None:
+            dataset_name = 'N/A'
 
         self.document_info_text.SetLabel(document_title)
         self.dataset_info_text.SetLabel(dataset_name)
 
     def on_plot(self, evt):
-        mz_x = self.mz_data['xvals']
-        mz_y = self.mz_data['yvals']
+        """Plot data"""
+        mz_x = copy.deepcopy(self.mz_data['xvals'])
+        mz_y = copy.deepcopy(self.mz_data['yvals'])
         mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
 
 #         self.panel_plot.on_simple_plot_1D(mz_x, mz_y, xlabel="m/z", ylabel="Intensity", plot="MS")
         self.panel_plot.on_plot_MS(mz_x, mz_y)
 
     def on_add_to_document(self, evt):
-        pass
+        self.data_processing.on_process_MS_and_add_data(self.document_title, self.dataset_name)
 
     def on_toggle_controls(self, evt):
         # crop
@@ -409,20 +434,12 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_baseline_choice.Enable(enable=self.config.ms_process_threshold)
 
         if self.config.ms_process_threshold:
-            print(self.config.ms_baseline)
             if self.config.ms_baseline == 'Linear':
                 self.ms_threshold_value.Enable()
             elif self.config.ms_baseline == 'Polynomial':
                 self.ms_baseline_polynomial_order.Enable()
             elif self.config.ms_baseline == 'Curved':
                 self.ms_baseline_curved_window.Enable()
-
-        # normalize
-        self.config.ms_process_normalize = self.ms_process_normalize.GetValue()
-        obj_list = [self.ms_normalizeFcn_choice]
-
-        for item in obj_list:
-            item.Enable(enable=self.config.ms_process_normalize)
 
         if evt is not None:
             evt.Skip()
@@ -441,7 +458,6 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.config.ms_linearization_mode = self.bin_linearizationMode_choice.GetStringSelection()
         self.config.ms_auto_range = self.bin_autoRange_check.GetValue()
 
-        self.config.ms_normalize_mode = self.ms_normalizeFcn_choice.GetStringSelection()
         self.config.ms_smooth_mode = self.ms_smoothFcn_choice.GetStringSelection()
         self.config.ms_smooth_sigma = str2num(self.ms_sigma_value.GetValue())
         self.config.ms_smooth_window = str2int(self.ms_window_value.GetValue())
@@ -458,3 +474,23 @@ class PanelProcessMassSpectrum(MiniFrame):
 
         if evt is not None:
             evt.Skip()
+
+    def on_click_on_setting(self, setting):
+        """Change setting value based on keyboard event"""
+        if setting == 'linearize':
+            self.config.ms_process_linearize = not self.config.ms_process_linearize
+            self.ms_process_linearize.SetValue(self.config.ms_process_linearize)
+        elif setting == 'smooth':
+            self.config.ms_process_smooth = not self.config.ms_process_smooth
+            self.ms_process_smooth.SetValue(self.config.ms_process_smooth)
+        elif setting == 'crop':
+            self.config.ms_process_crop = not self.config.ms_process_crop
+            self.ms_process_crop.SetValue(self.config.ms_process_crop)
+        elif setting == 'baseline':
+            self.config.ms_process_threshold = not self.config.ms_process_threshold
+            self.ms_process_threshold.SetValue(self.config.ms_process_threshold)
+        elif setting == 'normalize':
+            self.config.ms_process_normalize = not self.config.ms_process_normalize
+            self.ms_process_normalize.SetValue(self.config.ms_process_normalize)
+
+        self.on_toggle_controls(None)

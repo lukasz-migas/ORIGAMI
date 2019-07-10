@@ -16,6 +16,7 @@ from utils.ranges import get_min_max
 logger = logging.getLogger('origami')
 
 
+# TODO: should try to speed this up as the for-loop makes this very computationally expensive
 def baseline_curve(data, window, **kwargs):
     """Based on massign method: https://pubs.acs.org/doi/abs/10.1021/ac300056a
 
@@ -38,13 +39,19 @@ def baseline_curve(data, window, **kwargs):
     if window <= 0:
         raise MessageError('Incorrect input', 'Value should be above 0')
 
-    length = data.shape[0]
-    mins = list(range(0, length))
-    indexes = list(range(0, length))
+    window = abs(window)
 
-    for i in indexes:
-        mins[i] = np.amin(data[int(max([0, i - abs(window)])):int(min([i + abs(window), length]))])
-    background = gaussian_filter(mins, abs(window) * 2)
+    length = data.shape[0]
+    mins = np.zeros((length), dtype=np.int32)
+
+    for i in range(length):
+        mins[i] = np.amin(
+            data[
+                int(max([0, i - window])):
+                int(min([i + window, length]))
+            ],
+        )
+    background = gaussian_filter(mins, window * 2)
     return data - background
 
 
@@ -166,23 +173,23 @@ def normalize_1D(data, mode='Maximum'):
     # ensure data is in 64-bit format
     data = np.array(data, dtype=np.float64)
 
-    if mode == 'Maximum':
-        norm_data = np.divide(data, data.max())
-    elif mode == 'Total Ion Current (TIC)':
-        norm_data = np.divide(data, np.sum(data))
-#         norm_data = np.divide(norm_data, norm_data.max())
-    elif mode == 'Highest peak':
-        norm_data = np.divide(data, data[data.argmax()])
-#         norm_data = np.divide(norm_data, norm_data.max())
-    elif mode == 'Root Mean Square (RMS)':
-        norm_data = np.divide(data, np.sqrt(np.mean(data ** 2)))
-#         norm_data = np.divide(norm_data, norm_data.max())
-    elif mode == 'Log':
-        norm_data = np.divide(data, np.sum(np.log(data[np.nonzero(data)])))
-#         norm_data = np.divide(norm_data, norm_data.max())
-    elif mode == 'Square root':
-        norm_data = np.divide(data, np.sum(np.sqrt(data)))
-#         norm_data = np.divide(norm_data, norm_data.max())
+#     if mode == 'Maximum':
+    norm_data = np.divide(data, data.max())
+#     elif mode == 'Total Ion Current (TIC)':
+#         norm_data = np.divide(data, np.sum(data))
+# #         norm_data = np.divide(norm_data, norm_data.max())
+#     elif mode == 'Highest peak':
+#         norm_data = np.divide(data, data[data.argmax()])
+# #         norm_data = np.divide(norm_data, norm_data.max())
+#     elif mode == 'Root Mean Square (RMS)':
+#         norm_data = np.divide(data, np.sqrt(np.mean(data ** 2)))
+# #         norm_data = np.divide(norm_data, norm_data.max())
+#     elif mode == 'Log':
+#         norm_data = np.divide(data, np.sum(np.log(data[np.nonzero(data)])))
+# #         norm_data = np.divide(norm_data, norm_data.max())
+#     elif mode == 'Square root':
+#         norm_data = np.divide(data, np.sum(np.sqrt(data)))
+# #         norm_data = np.divide(norm_data, norm_data.max())
 
     # replace nans
     norm_data = np.nan_to_num(norm_data)

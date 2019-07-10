@@ -860,24 +860,32 @@ class data_processing():
 
     def on_process_MS(self, msX=None, msY=None, **kwargs):
 
+        # check if data should be replotted (e.g. taken from the plot pre-set data)
         if kwargs.get('replot', False):
             msX, msY, __ = self._get_replot_data('MS')
             if msX is None or msY is None:
                 return
 
-        # Check values
+        # ensure input values are correct
         self.config.on_check_parameters(data_type='process')
         if self.config.processParamsWindow_on_off:
             self.view.panelProcessData.onSetupValues(evt=None)
 
+        process_msg = ''
+
+        # crop spectrum
         if self.config.ms_process_crop:
+            tstart = ttime()
             pr_kwargs = {
                 'min': self.config.ms_crop_min,
                 'max': self.config.ms_crop_max,
             }
             msX, msY = pr_spectra.crop_1D_data(msX, msY, **pr_kwargs)
+            process_msg += f'Crop:{ttime()-tstart:.4f}s | '
 
+        # linear spectrum
         if self.config.ms_process_linearize and msX is not None:
+            tstart = ttime()
             pr_kwargs = {
                 'auto_range': self.config.ms_auto_range,
                 'mz_min': self.config.ms_mzStart,
@@ -886,9 +894,11 @@ class data_processing():
                 'linearization_mode': self.config.ms_linearization_mode,
             }
             msX, msY = pr_spectra.linearize_data(msX, msY, **pr_kwargs)
+            process_msg += f'Linearize:{ttime()-tstart:.4f}s | '
 
+        # smooth spectrum
         if self.config.ms_process_smooth:
-            # Smooth data
+            tstart = ttime()
             pr_kwargs = {
                 'sigma': self.config.ms_smooth_sigma,
                 'polyOrder': self.config.ms_smooth_polynomial,
@@ -896,21 +906,33 @@ class data_processing():
                 'N': self.config.ms_smooth_moving_window,
             }
             msY = pr_spectra.smooth_1D(msY, smoothMode=self.config.ms_smooth_mode, **pr_kwargs)
+            process_msg += f'Smooth:{ttime()-tstart:.4f}s | '
 
+        # subtract baseline
         if self.config.ms_process_threshold:
-            # Threshold data
+            tstart = ttime()
             msY = pr_spectra.baseline_1D(
                 msY,
                 self.config.ms_baseline,
                 threshold=self.config.ms_threshold,
                 window=self.config.ms_baseline_curved_window,
             )
+            process_msg += f'Baseline:{ttime()-tstart:.4f}s | '
 
-        # Normalize data
+        # normalize data
         if self.config.ms_process_normalize:
+            tstart = ttime()
             if self.config.ms_normalize:
                 msY = pr_spectra.normalize_1D(msY, mode=self.config.ms_normalize_mode)
+                process_msg += f'Normalize:{ttime()-tstart:.4f}s'
 
+        if process_msg.endswith(' | '):
+            process_msg = process_msg[:-2]
+
+        if process_msg != '':
+            logger.info(process_msg)
+
+        # replot data
         if kwargs.get('replot', False):
             # Plot data
             plot_kwargs = {}
@@ -919,73 +941,61 @@ class data_processing():
                 override=False, **plot_kwargs
             )
 
+        # return data
         if kwargs.get('return_data', False):
             if msX is not None:
                 return msX, msY
             else:
                 return msY
 
+        # return results and processing parameters
         if kwargs.get('return_all', False):
             parameters = {
+                'crop': self.config.ms_process_crop,
+                'crop_min': self.config.ms_crop_min,
+                'crop_max': self.config.ms_crop_max,
+                'auto_range': self.config.ms_auto_range,
+                'mz_min': self.config.ms_mzStart,
+                'mz_max': self.config.ms_mzEnd,
+                'mz_bin': self.config.ms_mzBinSize,
+                'linearization_mode': self.config.ms_linearization_mode,
                 'smooth_mode': self.config.ms_smooth_mode,
                 'sigma': self.config.ms_smooth_sigma,
                 'polyOrder': self.config.ms_smooth_polynomial,
                 'windowSize': self.config.ms_smooth_window,
+                'baseline_mode': self.config.ms_baseline,
                 'threshold': self.config.ms_threshold,
+                'N': self.config.ms_smooth_moving_window,
             }
             return msX, msY, parameters
 
-    def on_process_MS_and_add_data(self, document=None, dataset=None):
-
-        if document is None or dataset is None:
-            self.docs = self._on_get_document()
-            if self.docs is None:
-                return
-        else:
-            self.docs = self.presenter.documentsDict[document]
-
-        # select dataset
-        if dataset == 'Mass Spectrum':
-            if self.docs.gotMS:
-                data = self.docs.massSpectrum
-        else:
-            if self.docs.gotMultipleMS:
-                data = self.docs.multipleMassSpectrum[dataset]
+    def on_process_MS_and_add_data(self, document_title, dataset):
+        __, data = self.data_handling.get_spectrum_data([document_title, dataset])
 
         # retrieve plot data
-        msX = data['xvals']
-        msY = data['yvals']
-        annotations = data.get('annotations', {})
-        title = data.get('header', '')
-        header = data.get('header', '')
-        footnote = data.get('footnote', '')
+        msX = data.pop('xvals')
+        msY = data.pop('yvals')
+
+        # process data
         msX, msY, params = self.on_process_MS(msX=msX, msY=msY, return_all=True)
         xlimits = [np.min(msX), np.max(msX)]
-        ms_data = {
-            'xvals': msX, 'yvals': msY,
-            'xlabels': 'm/z (Da)',
-            'parameters': params,
-            'annotations': annotations, 'title': title,
-            'header': header, 'footnote': footnote,
-            'xlimits': xlimits,
-        }
 
-        # add data to dictionary
+        data.update(xvals=msX, yvals=msY, xlimits=xlimits, parameters=params)
+
+        # setup new name
         if dataset == 'Mass Spectrum':
-            self.docs.gotSmoothMS = True
-            self.docs.smoothMS = ms_data
             new_dataset = 'Mass Spectrum (processed)'
         else:
             # strip any processed string from the title
             if '(processed)' in dataset:
                 dataset = dataset.split(' (')[0]
-            new_dataset = '%s (processed)' % dataset
-            self.docs.multipleMassSpectrum[new_dataset] = ms_data
+            new_dataset = f'{dataset} (processed)'
 
-        # Plot processed MS
-        name_kwargs = {'document': self.docs.title, 'dataset': new_dataset}
-        self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
-        self.data_handling.on_update_document(self.docs, 'document')
+        # update dataset and document
+        document = self.data_handling.set_spectrum_data([document_title, new_dataset], data)
+
+        # plot data
+        self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, document=document_title, dataset=new_dataset)
 
     def on_process_2D(
         self, zvals=None, replot=False, replot_type='2D',
