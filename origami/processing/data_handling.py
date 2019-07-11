@@ -14,6 +14,7 @@ import processing.origami_ms as pr_origami
 import processing.spectra as pr_spectra
 import readers.io_text_files as io_text
 import wx
+from bokeh.protocol.message import Message
 from document import document as documents
 from gui_elements.dialog_multi_directory_picker import DialogMultiDirectoryPicker
 from gui_elements.dialog_select_document import DialogSelectDocument
@@ -39,6 +40,7 @@ from utils.color import randomColorGenerator
 from utils.converters import byte2str
 from utils.converters import str2int
 from utils.converters import str2num
+from utils.exceptions import MessageError
 from utils.path import check_path_exists
 from utils.path import check_waters_path
 from utils.path import get_base_path
@@ -350,8 +352,8 @@ class data_handling():
                   ' or has been moved. You can change the document path by right-clicking\n' + \
                   ' on the document in the Document Tree and \n' + \
                   ' selecting Notes, Information, Labels...'
-            DialogBox(exceptionTitle='Missing folder', exceptionMsg=msg, type='Error')
-            return
+            raise MessageError('Missing folder', msg)
+
         # RT
         __, yvals_RT, __ = self._get_driftscope_chromatography_data(path, **kwargs)
 
@@ -413,8 +415,7 @@ class data_handling():
                         'by updating the document path by right-clicking on the document and selecting\n' + \
                         "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n" + \
                         'After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n'
-                    DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
-                    return
+                    raise MessageError('Error', msg)
 
             # Get height of the peak
             self.ionPanel.on_update_value_in_peaklist(ion_id, 'method', 'Manual')
@@ -479,7 +480,7 @@ class data_handling():
             self.update_statusbar(msg, field=4)
             logger.warning(msg)
 
-            xvals, yvals, zvals = pr_heatmap.interpolate_2D(xvals, yvals, zvals)
+            xvals, yvals, zvals = pr_heatmap.equalize_heatmap_spacing(xvals, yvals, zvals)
 
         # Combine 2D array into 1D
         rt_y = np.sum(zvals, axis=0)
@@ -1063,12 +1064,7 @@ class data_handling():
             for path in pathlist:
                 if not check_waters_path(path):
                     msg = "The path ({}) you've selected does not end with .raw"
-                    DialogBox(
-                        exceptionTitle='Please load MassLynx (.raw) file',
-                        exceptionMsg=msg,
-                        type='Error',
-                    )
-                    return
+                    raise MessageError('Please load MassLynx (.raw) file', msg)
 
                 if not self.config.threading:
                     self.on_open_single_MassLynx_raw(path, data_type)
@@ -1096,12 +1092,7 @@ class data_handling():
             path = dlg.GetPath()
             if not check_waters_path(path):
                 msg = "The path ({}) you've selected does not end with .raw"
-                DialogBox(
-                    exceptionTitle='Please load MassLynx (.raw) file',
-                    exceptionMsg=msg,
-                    type='Error',
-                )
-                return
+                raise MessageError('Please load MassLynx (.raw) file', msg)
 
             if not self.config.threading:
                 self.on_open_single_MassLynx_raw(path, data_type)
@@ -1337,12 +1328,7 @@ class data_handling():
 
             if not check_waters_path(path):
                 msg = "The path ({}) you've selected does not end with .raw"
-                DialogBox(
-                    exceptionTitle='Please load MassLynx (.raw) file',
-                    exceptionMsg=msg,
-                    type='Error',
-                )
-                return
+                raise MessageError('Please load MassLynx (.raw) file', msg)
 
             if not self.config.threading:
                 self.on_open_MassLynx_raw_MS_only(path)
@@ -1440,10 +1426,9 @@ class data_handling():
             document = self._on_get_document(document_title)
             path = document.path
             path = check_waters_path(path)
-            if not check_path_exists(path):
-                msg = 'File with {} path no longer exists'.format(path)
-                DialogBox('File no longer exists', msg, type='Error')
-                return
+
+            if not check_path_exists(path) and document.dataType != 'Type: MANUAL':
+                raise MessageError('Missing file', f'File with {path} path no longer exists')
 
             # Extract information from the table
             mz_start = item_information['start']
@@ -2010,8 +1995,7 @@ class data_handling():
             try:
                 self._load_document_data(document=open_py_object(filename=file_path))
             except (ValueError, AttributeError, TypeError, IOError) as e:
-                DialogBox(exceptionTitle='Failed to load document on load.', exceptionMsg=str(e), type='Error')
-                return
+                raise MessageError('Failed to load document on load.', str(e))
 
         self.view.updateRecentFiles(path={'file_type': 'pickle', 'file_path': file_path})
 
@@ -2790,7 +2774,7 @@ class data_handling():
         elif dataset_type == 'Chromatograms (combined voltages, EIC)' and dataset_name is not None:
             data = document.IMSRTCombIons[dataset_name]
         elif dataset_type == 'Drift time (1D, EIC)' and dataset_name is not None:
-            data = document.IMS1DdriftTimes[dataset_name]
+            data = document.multipleDT[dataset_name]
         elif dataset_type == 'Drift time (1D, EIC, DT-IMS)' and dataset_name is not None:
             data = document.IMS1DdriftTimes[dataset_name]
         elif dataset_type == 'Statistical' and dataset_name is not None:
@@ -2819,6 +2803,8 @@ class data_handling():
             elif dataset_type == 'Chromatograms (combined voltages, EIC)' and dataset_name is not None:
                 document.IMSRTCombIons[dataset_name][keyword] = kwargs[keyword]
             elif dataset_type == 'Drift time (1D, EIC)' and dataset_name is not None:
+                document.multipleDT[dataset_name][keyword] = kwargs[keyword]
+            elif dataset_type == 'Drift time (1D, EIC, DT-IMS)' and dataset_name is not None:
                 document.IMS1DdriftTimes[dataset_name][keyword] = kwargs[keyword]
 
         return document

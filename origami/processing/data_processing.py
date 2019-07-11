@@ -905,7 +905,7 @@ class data_processing():
                 'windowSize': self.config.ms_smooth_window,
                 'N': self.config.ms_smooth_moving_window,
             }
-            msY = pr_spectra.smooth_1D(msY, smoothMode=self.config.ms_smooth_mode, **pr_kwargs)
+            msY = pr_spectra.smooth_1D(msY, mode=self.config.ms_smooth_mode, **pr_kwargs)
             process_msg += f'Smooth:{ttime()-tstart:.4f}s | '
 
         # subtract baseline
@@ -992,22 +992,18 @@ class data_processing():
             new_dataset = f'{dataset} (processed)'
 
         # update dataset and document
-        document = self.data_handling.set_spectrum_data([document_title, new_dataset], data)
+        __ = self.data_handling.set_spectrum_data([document_title, new_dataset], data)
 
         # plot data
         self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, document=document_title, dataset=new_dataset)
 
-    def on_process_2D(
-        self, zvals=None, replot=False, replot_type='2D',
-        return_data=False, return_all=False, e=None,
-    ):
-        """
-        Process data - smooth, threshold and normalize 2D data
-        """
+    def on_process_2D(self, xvals=None, yvals=None, zvals=None, **kwargs):
+        """Process heatmap data"""
 
-        if replot:
-            data = self._get_replot_data(replot_type)
-            zvals = data[0]
+        # check if data should be replotted (e.g. taken from the plot pre-set data)
+        if kwargs.get('replot', False):
+            data = self._get_replot_data(kwargs['replot_type'])
+            zvals, xvals, yvals = data[0:2]
 
         # make sure any data was retrieved
         if zvals is None:
@@ -1021,33 +1017,44 @@ class data_processing():
         if self.config.processParamsWindow_on_off:
             self.view.panelProcessData.onSetupValues(evt=None)
 
+        # interpolate
+        if self.config.plot2D_process_interpolate:
+            xvals, yvals, zvals = pr_heatmap.interpolate_2D(
+                xvals, yvals, zvals,
+                fold=self.config.plot2D_interpolate_fold,
+                mode=self.config.plot2D_interpolate_mode,
+                x_axis=self.config.plot2D_interpolate_xaxis,
+                y_axis=self.config.plot2D_interpolate_yaxis,
+            )
+
+        # crop
+        if self.config.plot2D_process_crop:
+            print('crop')
+
         # smooth data
-        if self.config.plot2D_smooth_mode is not None:
-            if self.config.plot2D_smooth_mode == 'Gaussian':
-                zvals = pr_heatmap.smooth_gaussian_2D(
-                    zvals, sigma=self.config.plot2D_smooth_sigma,
-                )
-            elif self.config.plot2D_smooth_mode == 'Savitzky-Golay':
-                zvals = pr_heatmap.smooth_savgol_2D(
-                    zvals, polyOrder=self.config.plot2D_smooth_polynomial,
-                    windowSize=self.config.plot2D_smooth_window,
-                )
+        if self.config.plot2D_process_smooth:
+            pr_kwargs = {
+                'sigma': self.config.plot2D_smooth_sigma,
+                'polyOrder': self.config.plot2D_smooth_polynomial,
+                'windowSize': self.config.plot2D_smooth_window,
+            }
+            zvals = pr_heatmap.smooth_2D(zvals, **pr_kwargs)
 
         # threshold
-        zvals = pr_heatmap.remove_noise_2D(zvals, self.config.plot2D_threshold)
+        if self.config.plot2D_process_threshold:
+            zvals = pr_heatmap.remove_noise_2D(zvals, self.config.plot2D_threshold)
 
         # normalize
         if self.config.plot2D_normalize:
-            zvals = pr_heatmap.normalize_2D(
-                zvals, mode=self.config.plot2D_normalize_mode,
-            )
+            zvals = pr_heatmap.normalize_2D(zvals, mode=self.config.plot2D_normalize_mode)
 
         # As a precaution, remove inf
         zvals[zvals == -np.inf] = 0
 
-        if replot:
+        # replot data
+        if kwargs.get('replot', False):
             xvals, yvals, xlabel, ylabel = data[1::]
-            if replot_type == '2D':
+            if kwargs['replot_type'] == '2D':
                 self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
                 if self.config.waterfall:
                     self.view.panelPlots.on_plot_waterfall(
@@ -1063,14 +1070,16 @@ class data_processing():
                     pass
                 if not self.config.waterfall:
                     self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
-            elif replot_type == 'DT/MS':
+            elif kwargs['replot_type'] == 'DT/MS':
                 self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, override=False)
                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
 
-        if return_data:
-            return zvals
+        # return data
+        if kwargs.get('return_data', False):
+            return xvals, yvals, zvals
 
-        if return_all:
+        # return data and parameters
+        if kwargs.get('return_all', False):
             parameters = {
                 'smooth_mode': self.config.plot2D_smooth_mode,
                 'sigma': self.config.plot2D_smooth_sigma,

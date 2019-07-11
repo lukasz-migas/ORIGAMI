@@ -27,7 +27,6 @@ from panel_peak_annotation_editor import panel_peak_annotation_editor
 from panelInformation import panelDocumentInfo
 from panelTandemSpectra import panelTandemSpectra
 from processing.spectra import normalize_1D
-from processing.spectra import subtract_1D
 from readers.io_text_files import text_heatmap_open
 from styles import makeMenuItem
 from toolbox import merge_two_dicts
@@ -526,7 +525,10 @@ class documentsTree(wx.TreeCtrl):
         return ylabel_evt_dict.get(ylabel, ID_ylabel_DTMS_bins)
 
     def on_change_charge_state(self, evt):
-        """Change charge state for item in the document tree"""
+        """Change charge state for item in the document tree
+
+        TODO: this will not update the ionPanel when assigning charge to Drift time (1D, EIC, DT-IMS)
+        """
 
         # Check that the user hasn't selected the header
         if self._document_type in [
@@ -604,6 +606,7 @@ class documentsTree(wx.TreeCtrl):
                 'Input data',
                 'Chromatograms (combined voltages, EIC)',
                 'Drift time (1D, EIC)',
+                'Drift time (1D, EIC, DT-IMS)',
             ]:
                 dataset_name = self._item_leaf
         else:
@@ -3761,7 +3764,15 @@ class documentsTree(wx.TreeCtrl):
 
     def onProcess2D(self, evt):
 
-        self.on_open_process_2D_settings()
+        document, data, query = self._on_event_get_mobility_chromatogram_data()
+
+        self.on_open_process_2D_settings(
+            data=data,
+            document=document,
+            document_title=document.title,
+            dataset_type=query[1],
+            dataset_name=query[2],
+        )
 #         if self._document_type in ['Drift time (2D)', 'Drift time (2D, processed)']:
 #             dataset = self._document_type
 #             ionName = ''
@@ -3845,117 +3856,6 @@ class documentsTree(wx.TreeCtrl):
 #         elif self._document_type == 'DT/MS':
 #             self.presenter.process2Ddata2(mode='MSDT')
 #             self.panel_plot._set_page(self.config.panelNames['MZDT'])
-
-    def updateComparisonMS(self, evt):
-        msg = 'Comparing {} ({}) vs {} ({})'.format(
-            self.compareMSDlg.output['spectrum_1'][1],
-            self.compareMSDlg.output['spectrum_1'][0],
-            self.compareMSDlg.output['spectrum_2'][1],
-            self.compareMSDlg.output['spectrum_2'][0],
-        )
-        self.presenter.onThreading(None, (msg, 4, 5), action='updateStatusbar')
-        # get data
-        try:
-            document_1 = self.compareMSDlg.output['spectrum_1'][0]
-            dataset_1 = self.compareMSDlg.output['spectrum_1'][1]
-            if dataset_1 == 'Mass Spectrum':
-                spectrum_1 = self.presenter.documentsDict[document_1].massSpectrum
-            elif dataset_1 == 'Mass Spectrum (processed)':
-                spectrum_1 = self.presenter.documentsDict[document_1].smoothMS
-            else:
-                spectrum_1 = self.presenter.documentsDict[document_1].multipleMassSpectrum[dataset_1]
-        except Exception:
-            DialogBox(
-                exceptionTitle='Incorrect data',
-                exceptionMsg='Could not find requested dataset. Try resellecting the document in the Documents Panel or opening this dialog again.',
-                type='Error',
-            )
-            return
-        try:
-            document_2 = self.compareMSDlg.output['spectrum_2'][0]
-            dataset_2 = self.compareMSDlg.output['spectrum_2'][1]
-            if dataset_2 == 'Mass Spectrum':
-                spectrum_2 = self.presenter.documentsDict[document_2].massSpectrum
-            elif dataset_2 == 'Mass Spectrum (processed)':
-                spectrum_2 = self.presenter.documentsDict[document_2].smoothMS
-            else:
-                spectrum_2 = self.presenter.documentsDict[document_2].multipleMassSpectrum[dataset_2]
-        except Exception:
-            DialogBox(
-                exceptionTitle='Incorrect data',
-                exceptionMsg='Could not find requested dataset. Try resellecting the document in the Documents Panel or opening this dialog again.',
-                type='Error',
-            )
-            return
-
-        try:
-            msX = spectrum_1['xvals']
-            msX_1 = spectrum_1['xvals']
-            msX_2 = spectrum_2['xvals']
-            msY_1 = spectrum_1['yvals']
-            msY_2 = spectrum_2['yvals']
-        except KeyError:
-            DialogBox(
-                exceptionTitle='Incorrect data',
-                exceptionMsg='Could not find requested dataset. Try resellecting the document in the Documents Panel or opening this dialog again.',
-                type='Error',
-            )
-            return
-
-        # Pre-process
-        if self.config.compare_massSpectrumParams['preprocess']:
-            msX_1, msY_1 = self.data_processing.on_process_MS(msX=msX_1, msY=msY_1, return_data=True)
-            msX_2, msY_2 = self.data_processing.on_process_MS(msX=msX_2, msY=msY_2, return_data=True)
-
-        if len(msX_1) == len(msX_2):
-            msX = msX_1
-
-        # Normalize 1D data
-        if self.config.compare_massSpectrumParams['normalize']:
-            msY_1 = normalize_1D(msY_1)
-            msY_2 = normalize_1D(msY_2)
-
-        if self.config.compare_massSpectrumParams['subtract']:
-            if len(msX) != len(msY_1) or len(msX) != len(msY_2) or len(msY_1) != len(msY_2):
-                try:
-                    self.compareMSDlg.error_handler(flag='subtract')
-                except Exception:
-                    pass
-                msg = 'Mass spectra are not of the same size. X-axis: {} Y-axis (1): {} | Y-axis (2): {}'.format(
-                    len(msX), len(msY_1), len(msY_2),
-                )
-                self.presenter.onThreading(None, (msg, 4, 5), action='updateStatusbar')
-                DialogBox(
-                    exceptionTitle='Incorrect size',
-                    exceptionMsg=msg,
-                    type='Error',
-                )
-                return
-            # If normalizing, there should be no issues in signal intensity
-            if self.config.compare_massSpectrumParams['normalize']:
-                self.config.compare_massSpectrumParams['subtract'] = False
-                msY_1, msY_2 = subtract_1D(msY_1, msY_2)
-                self.panel_plot.plot_compare(
-                    msX=msX,
-                    msY_1=msY_1,
-                    msY_2=msY_2,
-                    xlimits=None,
-                )
-            # Sometimes, it is necessary to plot the MS as ordinary 1 color plots
-            else:
-                msY = msY_1 - msY_2
-                self.presenter.plot_compareMS(
-                    msX=msX, msY=msY,
-                    msY_1=msY_1, msY_2=msY_2,
-                )
-        else:
-            self.panel_plot.plot_compare(
-                msX_1=msX_1,
-                msX_2=msX_2,
-                msY_1=msY_1,
-                msY_2=msY_2,
-                xlimits=None,
-            )
 
     def onShow_and_SavePlot(self, evt):
         """

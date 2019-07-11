@@ -2246,7 +2246,7 @@ class plots(mpl_plotter):
 
             # Always normalizes data - otherwise it looks pretty bad
             if kwargs['increment'] != 0 and kwargs.get('normalize', True):
-                zvals = normalize_2D(inputData=zvals)
+                zvals = normalize_2D(zvals)
             else:
                 ylabel = 'Intensity'
                 ydivider, expo = self.testXYmaxValsUpdated(values=zvals)

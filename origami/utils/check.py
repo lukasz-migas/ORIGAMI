@@ -14,24 +14,22 @@ def is_prime(a):
 
 def check_axes_spacing(values):
     spacing = np.diff(values)
+
     if len(np.unique(spacing)) > 1:
         return False
-    else:
-        return True
+    return True
 
 
 def check_value(value):
     if value is None:
         return ''
-    else:
-        return str(value)
+    return str(value)
 
 
 def check_type(value, value_type):
     if isinstance(value, value_type):
         return True
-    else:
-        return False
+    return False
 
 
 def check_value_order(value_min, value_max):
@@ -51,8 +49,7 @@ def check_range(value, range_min, range_max):
 
     if range_min <= value <= range_max:
         return True
-    else:
-        return False
+    return False
 
 
 def isempty(val):

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+import copy
 import logging
 
 import wx
-import copy
 from styles import makeCheckbox
 from styles import MiniFrame
 from styles import validator
@@ -18,7 +18,7 @@ class PanelProcessHeatmap(MiniFrame):
     """Heatmap processing panel"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
-        MiniFrame.__init__(self, parent, title='Process mass spectrum...')
+        MiniFrame.__init__(self, parent, title='Process heatmap...')
         self.view = parent
         self.presenter = presenter
         self.documentTree = self.view.panelDocuments.documents
@@ -33,9 +33,10 @@ class PanelProcessHeatmap(MiniFrame):
         # setup kwargs
         self.document = kwargs.pop('document', None)
         self.document_title = kwargs.pop('document_title', None)
+        self.dataset_type = kwargs.pop('dataset_type', None)
         self.dataset_name = kwargs.pop('dataset_name', None)
-        self.mz_data = kwargs.pop('mz_data', None)
-        self.disable_plot_and_process = kwargs.get("disable_plot_and_process", False)
+        self.data = kwargs.pop('data', None)
+        self.disable_plot_and_process = kwargs.get('disable_plot_and_process', False)
 
         self.make_gui()
         self.on_toggle_controls(None)
@@ -53,8 +54,8 @@ class PanelProcessHeatmap(MiniFrame):
         key_code = evt.GetKeyCode()
         if key_code == wx.WXK_ESCAPE:  # key = esc
             self.on_close(None)
-        elif key_code in [66, 67, 76, 78, 83]:
-            click_dict = {76: "linearize", 83: "smooth", 67: "crop", 66: "baseline", 78: "normalize"}
+        elif key_code in [66, 67, 73, 78, 83]:
+            click_dict = {73: 'interpolate', 83: 'smooth', 67: 'crop', 66: 'baseline', 78: 'normalize'}
             self.on_click_on_setting(click_dict.get(key_code))
         elif key_code == 80 and not self.disable_plot_and_process:
             self.on_plot(None)
@@ -95,64 +96,53 @@ class PanelProcessHeatmap(MiniFrame):
         self.plot2D_process_crop.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot2D_process_crop.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        crop_min_label = wx.StaticText(panel, wx.ID_ANY, 'start:')
-        self.crop_min_value = wx.TextCtrl(
+        plot2D_crop_xmin = wx.StaticText(panel, wx.ID_ANY, 'start (x-axis):')
+        self.plot2D_crop_xmin = wx.TextCtrl(
             panel, -1, '', size=(-1, -1),
             validator=validator('floatPos'),
         )
-#         self.crop_min_value.SetValue(str(self.config.ms_crop_min))
-        self.crop_min_value.Bind(wx.EVT_TEXT, self.on_apply)
+        self.plot2D_crop_xmin.SetValue(str(self.config.plot2D_crop_xmin))
+        self.plot2D_crop_xmin.Bind(wx.EVT_TEXT, self.on_apply)
 
-        crop_max_label = wx.StaticText(panel, wx.ID_ANY, 'end:')
-        self.crop_max_value = wx.TextCtrl(
+        plot2D_crop_xmax = wx.StaticText(panel, wx.ID_ANY, 'end (x-axis):')
+        self.plot2D_crop_xmax = wx.TextCtrl(
             panel, -1, '', size=(-1, -1),
             validator=validator('floatPos'),
         )
-#         self.crop_max_value.SetValue(str(self.config.ms_crop_max))
-        self.crop_max_value.Bind(wx.EVT_TEXT, self.on_apply)
+        self.plot2D_crop_xmax.SetValue(str(self.config.plot2D_crop_xmax))
+        self.plot2D_crop_xmax.Bind(wx.EVT_TEXT, self.on_apply)
 
-        plot2D_process_interpolate = wx.StaticText(panel, -1, 'Inerpolate heatmap:')
+        plot2D_process_interpolate = wx.StaticText(panel, -1, 'Interpolate heatmap:')
         self.plot2D_process_interpolate = makeCheckbox(panel, '')
         self.plot2D_process_interpolate.SetValue(self.config.plot2D_process_interpolate)
         self.plot2D_process_interpolate.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot2D_process_interpolate.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-#
-#         linearizationMode_label = wx.StaticText(panel, wx.ID_ANY, 'Linearization mode:')
-#         self.bin_linearizationMode_choice = wx.Choice(
-#             panel, -1, choices=self.config.ms_linearization_mode_choices,
-#             size=(-1, -1),
-#         )
-#         self.bin_linearizationMode_choice.SetStringSelection(self.config.ms_linearization_mode)
-#         self.bin_linearizationMode_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-#
-#         bin_ms_min_label = wx.StaticText(panel, wx.ID_ANY, 'm/z start:')
-#         self.bin_mzStart_value = wx.TextCtrl(
-#             panel, -1, '', size=(65, -1),
-#             validator=validator('floatPos'),
-#         )
-#         self.bin_mzStart_value.SetValue(str(self.config.ms_mzStart))
-#         self.bin_mzStart_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         bin_ms_max_label = wx.StaticText(panel, wx.ID_ANY, 'end:')
-#         self.bin_mzEnd_value = wx.TextCtrl(
-#             panel, -1, '', size=(65, -1),
-#             validator=validator('floatPos'),
-#         )
-#         self.bin_mzEnd_value.SetValue(str(self.config.ms_mzEnd))
-#         self.bin_mzEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
-#
-#         self.bin_autoRange_check = makeCheckbox(panel, 'Automatic range')
-#         self.bin_autoRange_check.SetValue(self.config.ms_auto_range)
-#         self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-#         self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-#
-#         bin_ms_binsize_label = wx.StaticText(panel, wx.ID_ANY, 'm/z bin size:')
-#         self.bin_mzBinSize_value = wx.TextCtrl(
-#             panel, -1, '', size=(65, -1),
-#             validator=validator('floatPos'),
-#         )
-#         self.bin_mzBinSize_value.SetValue(str(self.config.ms_mzBinSize))
-#         self.bin_mzBinSize_value.Bind(wx.EVT_TEXT, self.on_apply)
+
+        plot2D_interpolate_mode = wx.StaticText(panel, wx.ID_ANY, 'Interpolation method:')
+        self.plot2D_interpolate_mode = wx.Choice(
+            panel, -1, choices=self.config.plot2D_interpolate_choices,
+            size=(-1, -1),
+        )
+        self.plot2D_interpolate_mode.SetStringSelection(self.config.plot2D_interpolate_mode)
+        self.plot2D_interpolate_mode.Bind(wx.EVT_CHOICE, self.on_apply)
+
+        plot2D_interpolate_fold = wx.StaticText(panel, wx.ID_ANY, 'Fold:')
+        self.plot2D_interpolate_fold = wx.TextCtrl(
+            panel, -1, '', size=(65, -1),
+            validator=validator('floatPos'),
+        )
+        self.plot2D_interpolate_fold.SetValue(str(self.config.plot2D_interpolate_fold))
+        self.plot2D_interpolate_fold.Bind(wx.EVT_TEXT, self.on_apply)
+
+        plot2D_interpolate_xaxis = wx.StaticText(panel, -1, 'x-axis:')
+        self.plot2D_interpolate_xaxis = makeCheckbox(panel, '')
+        self.plot2D_interpolate_xaxis.SetValue(self.config.plot2D_interpolate_xaxis)
+        self.plot2D_interpolate_xaxis.Bind(wx.EVT_CHECKBOX, self.on_apply)
+
+        plot2D_interpolate_yaxis = wx.StaticText(panel, -1, 'y-axis:')
+        self.plot2D_interpolate_yaxis = makeCheckbox(panel, '')
+        self.plot2D_interpolate_yaxis.SetValue(self.config.plot2D_interpolate_yaxis)
+        self.plot2D_interpolate_yaxis.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         plot2D_process_smooth = wx.StaticText(panel, -1, 'Smooth heatmap:')
         self.plot2D_process_smooth = makeCheckbox(panel, '')
@@ -162,7 +152,7 @@ class PanelProcessHeatmap(MiniFrame):
 
         smoothFcn_label = wx.StaticText(panel, wx.ID_ANY, 'Smooth function:')
         self.plot2D_smoothFcn_choice = wx.Choice(
-            panel, -1, choices=self.config.ms_smooth_choices,
+            panel, -1, choices=self.config.plot2D_smooth_choices,
             size=(-1, -1),
         )
         self.plot2D_smoothFcn_choice.SetStringSelection(self.config.ms_smooth_mode)
@@ -174,7 +164,7 @@ class PanelProcessHeatmap(MiniFrame):
             panel, -1, '', size=(-1, -1),
             validator=validator('intPos'),
         )
-        self.plot2D_polynomial_value.SetValue(str(self.config.ms_smooth_polynomial))
+        self.plot2D_polynomial_value.SetValue(str(self.config.plot2D_smooth_polynomial))
         self.plot2D_polynomial_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         window_label = wx.StaticText(panel, wx.ID_ANY, 'Savitzky-Golay window size:')
@@ -182,7 +172,7 @@ class PanelProcessHeatmap(MiniFrame):
             panel, -1, '', size=(-1, -1),
             validator=validator('intPos'),
         )
-        self.plot2D_window_value.SetValue(str(self.config.ms_smooth_window))
+        self.plot2D_window_value.SetValue(str(self.config.plot2D_smooth_window))
         self.plot2D_window_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         sigma_label = wx.StaticText(panel, wx.ID_ANY, 'Gaussian sigma:')
@@ -190,29 +180,14 @@ class PanelProcessHeatmap(MiniFrame):
             panel, -1, '', size=(-1, -1),
             validator=validator('floatPos'),
         )
-        self.plot2D_sigma_value.SetValue(str(self.config.ms_smooth_sigma))
+        self.plot2D_sigma_value.SetValue(str(self.config.plot2D_smooth_sigma))
         self.plot2D_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        plot2D_smooth_moving_window = wx.StaticText(panel, wx.ID_ANY, 'Moving average window size:')
-        self.plot2D_smooth_moving_window = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('intPos'),
-        )
-#         self.plot2D_smooth_moving_window.SetValue(str(self.config.plot2D_smooth_moving_window))
-        self.plot2D_smooth_moving_window.Bind(wx.EVT_TEXT, self.on_apply)
 
         plot2D_process_threshold = wx.StaticText(panel, -1, 'Subtract baseline:')
         self.plot2D_process_threshold = makeCheckbox(panel, '')
-#         self.plot2D_process_threshold.SetValue(self.config.plot2D_process_threshold)
+        self.plot2D_process_threshold.SetValue(self.config.plot2D_process_threshold)
         self.plot2D_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot2D_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-
-#         baseline_label = wx.StaticText(panel, wx.ID_ANY, 'Subtraction mode:')
-#
-#         self.ms_baseline_choice = wx.Choice(panel, choices=self.config.ms_baseline_choices)
-#         self.ms_baseline_choice.SetStringSelection(self.config.ms_baseline)
-#         self.ms_baseline_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-#         self.ms_baseline_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         threshold_label = wx.StaticText(panel, wx.ID_ANY, 'Threshold:')
         self.plot2D_threshold_value = wx.TextCtrl(
@@ -222,25 +197,9 @@ class PanelProcessHeatmap(MiniFrame):
         self.plot2D_threshold_value.SetValue(str(self.config.ms_threshold))
         self.plot2D_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        ms_baseline_polynomial_order = wx.StaticText(panel, wx.ID_ANY, 'Polynomial order:')
-        self.ms_baseline_polynomial_order = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('intPos'),
-        )
-        self.ms_baseline_polynomial_order.SetValue(str(self.config.ms_baseline_polynomial_order))
-        self.ms_baseline_polynomial_order.Bind(wx.EVT_TEXT, self.on_apply)
-
-#         ms_baseline_curved_window = wx.StaticText(panel, wx.ID_ANY, 'Window:')
-#         self.ms_baseline_curved_window = wx.TextCtrl(
-#             panel, -1, '', size=(-1, -1),
-#             validator=validator('intPos'),
-#         )
-#         self.ms_baseline_curved_window.SetValue(str(self.config.ms_baseline_curved_window))
-#         self.ms_baseline_curved_window.Bind(wx.EVT_TEXT, self.on_apply)
-
         plot2D_process_normalize = wx.StaticText(panel, -1, 'Normalize heatmap:')
         self.plot2D_process_normalize = makeCheckbox(panel, '')
-#         self.plot2D_process_normalize.SetValue(self.config.plot2D_process_normalize)
+        self.plot2D_process_normalize.SetValue(self.config.plot2D_normalize)
         self.plot2D_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot2D_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -251,8 +210,7 @@ class PanelProcessHeatmap(MiniFrame):
             size=(-1, -1),
         )
         self.plot2D_normalizeFcn_choice.SetStringSelection(self.config.plot2D_normalize_mode)
-#         self.plot2D_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-#         self.plot2D_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
+        self.plot2D_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         if not self.disable_plot_and_process:
             self.plot_btn = wx.Button(panel, wx.ID_OK, 'Plot', size=(-1, 22))
@@ -284,29 +242,29 @@ class PanelProcessHeatmap(MiniFrame):
         grid.Add(plot2D_process_crop, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_process_crop, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(crop_min_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.crop_min_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_crop_xmin, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_crop_xmin, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(crop_max_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.crop_max_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_crop_xmax, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_crop_xmax, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
         grid.Add(plot2D_process_interpolate, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_process_interpolate, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-#         n += 1
-#         grid.Add(linearizationMode_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.bin_linearizationMode_choice, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-#         n = n + 1
-#         grid.Add(bin_ms_min_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.bin_mzStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-#         n += 1
-#         grid.Add(bin_ms_max_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.bin_mzEnd_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-#         grid.Add(self.bin_autoRange_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-#         n = n + 1
-#         grid.Add(bin_ms_binsize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.bin_mzBinSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.plot2D_process_interpolate, (n, 1), wx.GBSpan(
+            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        n += 1
+        grid.Add(plot2D_interpolate_mode, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_interpolate_mode, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(plot2D_interpolate_fold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_interpolate_fold, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(plot2D_interpolate_xaxis, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_interpolate_xaxis, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(plot2D_interpolate_yaxis, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_interpolate_yaxis, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
@@ -325,25 +283,13 @@ class PanelProcessHeatmap(MiniFrame):
         grid.Add(sigma_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_sigma_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(plot2D_smooth_moving_window, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_smooth_moving_window, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n += 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
         grid.Add(plot2D_process_threshold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_process_threshold, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-#         n += 1
-#         grid.Add(baseline_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.ms_baseline_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n += 1
-        grid.Add(ms_baseline_polynomial_order, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.ms_baseline_polynomial_order, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-#         n += 1
-#         grid.Add(ms_baseline_curved_window, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         grid.Add(self.ms_baseline_curved_window, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_4, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
@@ -351,8 +297,10 @@ class PanelProcessHeatmap(MiniFrame):
         grid.Add(self.plot2D_process_normalize, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
         grid.Add(normalize_mode, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_normalizeFcn_choice, (n, 1), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(
+            self.plot2D_normalizeFcn_choice, (n, 1), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT,
+        )
         n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
@@ -373,140 +321,126 @@ class PanelProcessHeatmap(MiniFrame):
     def on_update_info(self, **kwargs):
         """Update information labels"""
         document_title = kwargs.get('document_title', self.document_title)
+        dataset_type = kwargs.get('dataset_type', self.dataset_type)
         dataset_name = kwargs.get('dataset_name', self.dataset_name)
 
         if document_title is None:
-            document_title = "N/A"
+            document_title = 'N/A'
+        if dataset_type is None:
+            dataset_type = 'N/A'
         if dataset_name is None:
-            dataset_name = "N/A"
+            dataset_name = 'N/A'
+
+        if dataset_name not in ['N/A']:
+            dataset_type = f'{dataset_type} : {dataset_name}'
 
         self.document_info_text.SetLabel(document_title)
-        self.dataset_info_text.SetLabel(dataset_name)
+        self.dataset_info_text.SetLabel(dataset_type)
 
     def on_plot(self, evt):
         """Plot data"""
-        mz_x = copy.deepcopy(self.mz_data['xvals'])
-        mz_y = copy.deepcopy(self.mz_data['yvals'])
-        mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
-
-#         self.panel_plot.on_simple_plot_1D(mz_x, mz_y, xlabel="m/z", ylabel="Intensity", plot="MS")
-        self.panel_plot.on_plot_MS(mz_x, mz_y)
+        xvals = copy.deepcopy(self.data['xvals'])
+        yvals = copy.deepcopy(self.data['yvals'])
+        zvals = copy.deepcopy(self.data['zvals'])
+        xvals, yvals, zvals = self.data_processing.on_process_2D(xvals, yvals, zvals, return_data=True)
+        self.panel_plot.on_plot_2D(zvals, xvals, yvals, self.data['xlabels'], self.data['ylabels'], override=False)
 
     def on_add_to_document(self, evt):
-        self.data_processing.on_process_MS_and_add_data(self.document_title, self.dataset_name)
+        pass
+#         self.data_processing.on_process_MS_and_add_data(self.document_title, self.dataset_name)
 
     def on_toggle_controls(self, evt):
-#         # crop
-#         self.config.plot2D_process_crop = self.plot2D_process_crop.GetValue()
-#         obj_list = [self.crop_min_value, self.crop_max_value]
-#         for item in obj_list:
-#             item.Enable(enable=self.config.plot2D_process_crop)
-#
-#         # linearize
-#         self.config.plot2D_process_interpolate = self.plot2D_process_interpolate.GetValue()
-#         obj_list = [
-#             self.bin_linearizationMode_choice, self.bin_mzBinSize_value,
-#             self.bin_mzStart_value, self.bin_mzEnd_value, self.bin_autoRange_check,
-#         ]
-#         for item in obj_list:
-#             item.Enable(enable=self.config.plot2D_process_interpolate)
-#
-#         self.config.ms_auto_range = self.bin_autoRange_check.GetValue()
-#         if self.config.plot2D_process_interpolate:
-#             self.bin_mzStart_value.Enable(enable=not self.config.ms_auto_range)
-#             self.bin_mzEnd_value.Enable(enable=not self.config.ms_auto_range)
-#
-#         # smooth
-#         self.config.plot2D_process_smooth = self.plot2D_process_smooth.GetValue()
-#         obj_list = [
-#             self.plot2D_sigma_value, self.plot2D_polynomial_value,
-#             self.plot2D_window_value, self.plot2D_smooth_moving_window,
-#         ]
-#         for item in obj_list:
-#             item.Enable(enable=False)
-#         self.plot2D_smoothFcn_choice.Enable(self.config.plot2D_process_smooth)
-#
-#         self.config.ms_smooth_mode = self.plot2D_smoothFcn_choice.GetStringSelection()
-#         if self.config.plot2D_process_smooth:
-#             if self.config.ms_smooth_mode == 'Gaussian':
-#                 self.plot2D_sigma_value.Enable()
-#             elif self.config.ms_smooth_mode == 'Savitzky-Golay':
-#                 for item in [self.plot2D_polynomial_value, self.plot2D_window_value]:
-#                     item.Enable()
-#             elif self.config.ms_smooth_mode == 'Moving average':
-#                 self.plot2D_smooth_moving_window.Enable()
-#
-#         # threshold
-#         self.config.plot2D_process_threshold = self.plot2D_process_threshold.GetValue()
-#         self.config.ms_baseline = self.ms_baseline_choice.GetStringSelection()
-#         obj_list = [
-#             self.plot2D_threshold_value, self.ms_baseline_choice, self.ms_baseline_polynomial_order,
-#             self.ms_baseline_curved_window,
-#         ]
-#         for item in obj_list:
-#             item.Enable(enable=False)
-#         self.ms_baseline_choice.Enable(enable=self.config.plot2D_process_threshold)
-#
-#         if self.config.plot2D_process_threshold:
-#             if self.config.ms_baseline == 'Linear':
-#                 self.plot2D_threshold_value.Enable()
-#             elif self.config.ms_baseline == 'Polynomial':
-#                 self.ms_baseline_polynomial_order.Enable()
-#             elif self.config.ms_baseline == 'Curved':
-#                 self.ms_baseline_curved_window.Enable()
+        # crop
+        self.config.plot2D_process_crop = self.plot2D_process_crop.GetValue()
+        obj_list = [self.plot2D_crop_xmin, self.plot2D_crop_xmax]
+        for item in obj_list:
+            item.Enable(enable=self.config.plot2D_process_crop)
+
+        # linearize
+        self.config.plot2D_process_interpolate = self.plot2D_process_interpolate.GetValue()
+        obj_list = [
+            self.plot2D_interpolate_mode, self.plot2D_interpolate_fold,
+            self.plot2D_interpolate_xaxis, self.plot2D_interpolate_yaxis,
+        ]
+        for item in obj_list:
+            item.Enable(enable=self.config.plot2D_process_interpolate)
+
+        # smooth
+        self.config.plot2D_process_smooth = self.plot2D_process_smooth.GetValue()
+        obj_list = [
+            self.plot2D_sigma_value, self.plot2D_polynomial_value,
+            self.plot2D_window_value,
+        ]
+        for item in obj_list:
+            item.Enable(enable=False)
+        self.plot2D_smoothFcn_choice.Enable(self.config.plot2D_process_smooth)
+
+        self.config.ms_smooth_mode = self.plot2D_smoothFcn_choice.GetStringSelection()
+        if self.config.plot2D_process_smooth:
+            if self.config.ms_smooth_mode == 'Gaussian':
+                self.plot2D_sigma_value.Enable()
+            elif self.config.ms_smooth_mode == 'Savitzky-Golay':
+                for item in [self.plot2D_polynomial_value, self.plot2D_window_value]:
+                    item.Enable()
+
+        # threshold
+        self.config.plot2D_process_threshold = self.plot2D_process_threshold.GetValue()
+        obj_list = [self.plot2D_threshold_value]
+        for item in obj_list:
+            item.Enable(enable=self.config.plot2D_process_threshold)
+
+        # normalize
+        self.config.plot2D_normalize = self.plot2D_process_normalize.GetValue()
+        obj_list = [self.plot2D_normalizeFcn_choice]
+        for item in obj_list:
+            item.Enable(enable=self.config.plot2D_normalize)
 
         if evt is not None:
             evt.Skip()
 
     def on_apply(self, evt):
-#         self.config.plot2D_process_crop = self.plot2D_process_crop.GetValue()
-#         self.config.plot2D_process_interpolate = self.plot2D_process_interpolate.GetValue()
-#         self.config.plot2D_process_smooth = self.plot2D_process_smooth.GetValue()
-#         self.config.plot2D_process_threshold = self.plot2D_process_threshold.GetValue()
-#         self.config.plot2D_normalize = self.plot2D_normalizeTgl.GetValue()
-#
-#         self.config.ms_mzStart = str2num(self.bin_mzStart_value.GetValue())
-#         self.config.ms_mzEnd = str2num(self.bin_mzEnd_value.GetValue())
-#         self.config.ms_mzBinSize = str2num(self.bin_mzBinSize_value.GetValue())
-#
-#         self.config.ms_linearization_mode = self.bin_linearizationMode_choice.GetStringSelection()
-#         self.config.ms_auto_range = self.bin_autoRange_check.GetValue()
-#
-#         self.config.plot2D_smooth_mode = self.plot2D_smoothFcn_choice.GetStringSelection()
-#         self.config.plot2D_smooth_sigma = str2num(self.plot2D_sigma_value.GetValue())
-#         self.config.plot2D_smooth_window = str2int(self.plot2D_window_value.GetValue())
-#         self.config.plot2D_smooth_polynomial = str2int(self.plot2D_polynomial_value.GetValue())
-#         self.config.plot2D_smooth_moving_window = str2int(self.plot2D_smooth_moving_window.GetValue())
-#
-#         self.config.plot2D_threshold = str2num(self.plot2D_threshold_value.GetValue())
-#         self.config.ms_baseline = self.ms_baseline_choice.GetStringSelection()
-#         self.config.ms_baseline_polynomial_order = str2int(self.ms_baseline_polynomial_order.GetValue())
-#         self.config.ms_baseline_curved_window = str2int(self.ms_baseline_curved_window.GetValue())
-#
-#         self.config.ms_crop_min = str2num(self.crop_min_value.GetValue())
-#         self.config.ms_crop_max = str2num(self.crop_max_value.GetValue())
+        self.config.plot2D_process_crop = self.plot2D_process_crop.GetValue()
+        self.config.plot2D_process_interpolate = self.plot2D_process_interpolate.GetValue()
+        self.config.plot2D_process_smooth = self.plot2D_process_smooth.GetValue()
+        self.config.plot2D_process_threshold = self.plot2D_process_threshold.GetValue()
+        self.config.plot2D_normalize = self.plot2D_process_normalize.GetValue()
 
-#         self.config.plot2D_normalize_mode = self.plot2D_normalizeFcn_choice.GetStringSelection()
+        self.config.plot2D_interpolate_fold = str2num(self.plot2D_interpolate_fold.GetValue())
+        self.config.plot2D_interpolate_mode = self.plot2D_interpolate_mode.GetStringSelection()
+        self.config.plot2D_interpolate_xaxis = self.plot2D_interpolate_xaxis.GetValue()
+        self.config.plot2D_interpolate_yaxis = self.plot2D_interpolate_yaxis.GetValue()
+
+        self.config.plot2D_crop_xmin = str2num(self.plot2D_crop_xmin.GetValue())
+        self.config.plot2D_crop_xmax = str2num(self.plot2D_crop_xmax.GetValue())
+
+        self.config.plot2D_smooth_mode = self.plot2D_smoothFcn_choice.GetStringSelection()
+        self.config.plot2D_smooth_sigma = str2num(self.plot2D_sigma_value.GetValue())
+        self.config.plot2D_smooth_window = str2int(self.plot2D_window_value.GetValue())
+        self.config.plot2D_smooth_polynomial = str2int(self.plot2D_polynomial_value.GetValue())
+
+        self.config.plot2D_threshold = str2num(self.plot2D_threshold_value.GetValue())
+
+        self.config.plot2D_normalize_mode = self.plot2D_normalizeFcn_choice.GetStringSelection()
 
         if evt is not None:
             evt.Skip()
 
     def on_click_on_setting(self, setting):
         """Change setting value based on keyboard event"""
-        if setting == "linearize":
+        if setting == 'interpolate':
             self.config.plot2D_process_interpolate = not self.config.plot2D_process_interpolate
             self.plot2D_process_interpolate.SetValue(self.config.plot2D_process_interpolate)
-        elif setting == "smooth":
+        elif setting == 'smooth':
             self.config.plot2D_process_smooth = not self.config.plot2D_process_smooth
             self.plot2D_process_smooth.SetValue(self.config.plot2D_process_smooth)
-        elif setting == "crop":
+        elif setting == 'crop':
             self.config.plot2D_process_crop = not self.config.plot2D_process_crop
             self.plot2D_process_crop.SetValue(self.config.plot2D_process_crop)
-        elif setting == "baseline":
+        elif setting == 'baseline':
             self.config.plot2D_process_threshold = not self.config.plot2D_process_threshold
             self.plot2D_process_threshold.SetValue(self.config.plot2D_process_threshold)
-        elif setting == "normalize":
-            self.config.plot2D_process_normalize = not self.config.plot2D_process_normalize
-            self.plot2D_process_normalize.SetValue(self.config.plot2D_process_normalize)
+        elif setting == 'normalize':
+            self.config.plot2D_normalize = not self.config.plot2D_normalize
+            self.plot2D_process_normalize.SetValue(self.config.plot2D_normalize)
 
         self.on_toggle_controls(None)

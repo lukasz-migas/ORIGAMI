@@ -279,7 +279,7 @@ def crop_1D_data(msX, msY, **kwargs):
     return spectrum[:, 0], spectrum[:, 1]
 
 
-def sum_1D(data):  # sumClassMSdata
+def sum_1D(data):
     """
     @param data (dict): dictionary with mass spectra [keys: xvals, yvals]
     """
@@ -294,7 +294,7 @@ def sum_1D(data):  # sumClassMSdata
     return msY
 
 
-def sum_1D_dictionary(ydict=None):  # sumMSdata
+def sum_1D_dictionary(ydict=None):
     """
     Sum binned data
     Input
@@ -311,19 +311,6 @@ def sum_1D_dictionary(ydict=None):  # sumMSdata
     msSum = np.sum(msOut, axis=0)
 
     return ydict[key][0], msSum
-
-
-def subtract_1D(msY_1, msY_2):  # subtractMS
-
-    # Subtract values
-    out_1 = msY_1 - msY_2
-    out_2 = msY_1 - msY_2
-
-    # Return all positive/negative values as two lists
-    out_1[out_1 < 0] = 0
-    out_2[out_2 > 0] = 0
-
-    return out_1, out_2
 
 
 def smooth_gaussian_1D(data=None, sigma=1, **kwargs):
@@ -369,39 +356,29 @@ def smooth_sav_gol_1D(data, **kwargs):
     return dataOut
 
 
-def smooth_1D(data=None, smoothMode='Gaussian', **kwargs):
-    """
-    This function uses Gaussian filter to smooth 1D data
-    """
-    if smoothMode == 'Gaussian':
+def smooth_1D(data=None, mode='Gaussian', **kwargs):
+    """Smooth data"""
+
+    if mode == 'Gaussian':
         data = smooth_gaussian_1D(data, **kwargs)
-    elif smoothMode == 'Savitzky-Golay':
+    elif mode == 'Savitzky-Golay':
         data = smooth_sav_gol_1D(data, **kwargs)
-    elif smoothMode == 'Moving average':
+    elif mode == 'Moving average':
         data = smooth_moving_average_1D(data, **kwargs)
 
-    # Remove values below zero
-    data[data < 0] = 0  # Remove any values that are below 0
+    # remove values below zero
+    data[data < 0] = 0
 
     return data
 
 
-def bin_1D(x=None, y=None, bins=None, binmode='Bin'):
-    """Bin data"""
-    # Bin data using numpy histogram function
-    if binmode == 'Bin':
-        msYbin, __ = np.histogram(x, bins=bins, weights=y)
-
-    return msYbin
-
-
-def sum_spectrum_to_chromatogram(ydict=None):  # sumMSdata2RT
+def sum_spectrum_to_chromatogram(ydict=None):
     """ sum data in direction to obtain retention times plot """
     rtX, rtY = [], []
     for key in ydict:
         rtX.append(key)
         rtY.append(np.sum(ydict[key][1]))
-    # Return data
+
     return np.asarray(rtX), np.asarray(rtY)
 
 

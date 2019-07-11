@@ -19,8 +19,8 @@ def compute_RMSD(inputData1=None, inputData2=None):  # computeRMSD
     else:
         # Before computing RMSD, we need to normalize to 1
         tempArray = (
-            normalize_2D(inputData=inputData1) -
-            normalize_2D(inputData=inputData2)
+            normalize_2D(inputData1) -
+            normalize_2D(inputData2)
         )
         tempArray2 = tempArray ** 2
         RMSD = ((np.average(tempArray2)) ** 0.5)

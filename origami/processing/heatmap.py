@@ -8,10 +8,11 @@ from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter
 from sklearn.preprocessing import normalize
 from utils.check import is_prime
+from utils.exceptions import MessageError
 logger = logging.getLogger('origami')
 
 
-def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.0):  # threshold2D
+def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.0):
 
     # Check min_threshold is larger than max_threshold
     if min_threshold > max_threshold:
@@ -47,101 +48,139 @@ def remove_noise_2D(inputData, threshold=0):
     return inputData
 
 
-def smooth_gaussian_2D(inputData=None, sigma=2):  # smoothDataGaussian
-    # Check if input data is there
-    if inputData is None or len(inputData) == 0:
-        return None
+def smooth_2D(data, mode='Gaussian', **kwargs):
+
+    if mode == 'Gaussian':
+        data = smooth_gaussian_2D(data, **kwargs)
+    elif mode == 'Savitzky-Golay':
+        data = smooth_gaussian_2D(data, **kwargs)
+
+    # remove values below 0
+    data[data < 0] = 0
+
+    return data
+
+
+def smooth_gaussian_2D(data, **kwargs):
+    sigma = kwargs.pop('sigma')
+
     if sigma < 0:
-        DialogBox(
-            exceptionTitle='Warning',
-            exceptionMsg='Value of sigma is too low. Value was reset to 1',
-            type='Warning',
+        raise MessageError(
+            'Incorrect value of `sigma`',
+            'Value of `sigma` must be larger than 0',
         )
-        sigma = 1
-    else:
-        sigma = sigma
-    dataOut = gaussian_filter(inputData, sigma=sigma, order=0)
-    dataOut[dataOut < 0] = 0
+
+    dataOut = gaussian_filter(data, sigma=sigma, order=0)
+
     return dataOut
-# ------------ #
 
 
-def smooth_savgol_2D(inputData=None, polyOrder=2, windowSize=5):  # smoothDataSavGol
-    # Check if input data is there
-    if inputData is None or len(inputData) == 0:
-        return None
-    # Check whether polynomial order is of correct size
-    if (polyOrder <= 0):
-        DialogBox(
-            exceptionTitle='Warning',
-            exceptionMsg='Polynomial order is too small. Value was reset to 2',
-            type='Warning',
-        )
-        polyOrder = 2
-    else:
-        polyOrder = polyOrder
-    # Check whether window size is of correct size
-    if windowSize is None:
-        windowSize = polyOrder + 1
-    elif (windowSize % 2) and (windowSize > polyOrder):
-        windowSize = windowSize
-    elif windowSize <= polyOrder:
-        DialogBox(
-            exceptionTitle='Warning',
-            exceptionMsg='Window size was smaller than the polynomial order. Value was reset to %s' %
-            (
-                polyOrder +
-                1
-            ),
-            type='Warning',
-        )
-        windowSize = polyOrder + 1
-    else:
-        print('Window size is even. Adding 1 to make it odd.')
-        windowSize = windowSize + 1
+def smooth_savgol_2D(data, **kwargs):
+    # get parameters
+    polyOrder = kwargs.pop('polyOrder')
+    windowSize = kwargs.pop('windowSize')
 
-    dataOut = savgol_filter(inputData, polyorder=polyOrder, window_length=windowSize, axis=0)
-    dataOut[dataOut < 0] = 0  # Remove any values that are below 0
+    dataOut = savgol_filter(data, polyorder=polyOrder, window_length=windowSize, axis=0)
+
     return dataOut
-# ------------ #
 
 
-def normalize_2D(inputData=None, mode='Maximum'):  # normalizeIMS
+def normalize_2D(data, mode='Maximum'):
+    """Normalize heatmap
+
+    Parameters
+    ----------
+    data : np.array
+        input array
+    mode : {'Maximum', 'Logarithmic', 'Natural log', 'Square root', 'Least Abs Deviation', 'Least Squares'}, optional
+        normalization mode
+
+    Returns
+    -------
+    norm_data : np.array
+        normalized array
     """
-    Normalize 2D array to appropriate mode
-    """
-    inputData = np.nan_to_num(inputData)
-#      Normalize 2D array to maximum intensity of 1
+    # replace NaNs with 0s
+    data = np.nan_to_num(data)
+    # ensure its in float64 formt
+    data = data.astype(np.float64)
+
+    # normalize data
     if mode == 'Maximum':
-        normData = normalize(inputData.astype(np.float64), axis=0, norm='max')
+        norm_data = normalize(data, axis=0, norm='max')
     elif mode == 'Logarithmic':
-        normData = np.log10(inputData.astype(np.float64))
+        norm_data = np.log10(data)
     elif mode == 'Natural log':
-        normData = np.log(inputData.astype(np.float64))
+        norm_data = np.log(data)
     elif mode == 'Square root':
-        normData = np.sqrt(inputData.astype(np.float64))
+        norm_data = np.sqrt(data)
     elif mode == 'Least Abs Deviation':
-        normData = normalize(inputData.astype(np.float64), axis=0, norm='l1')
+        norm_data = normalize(data, axis=0, norm='l1')
     elif mode == 'Least Squares':
-        normData = normalize(inputData.astype(np.float64), axis=0, norm='l2')
-    return normData
+        norm_data = normalize(data, axis=0, norm='l2')
+
+    # replace NaNs with 0s
+    norm_data = np.nan_to_num(norm_data)
+
+    return norm_data
 
 
-def interpolate_2D(xvals, yvals, zvals, new_xvals=None, new_yvals=None):
+def calculate_interpolation_axes(vals, fold):
+    start, end = vals[0], vals[-1]
+    new_n_bins = (len(vals) - 1) * fold + 1
+    new_vals = np.linspace(start, end, new_n_bins)
+
+    return new_vals
+
+
+def equalize_heatmap_spacing(xvals, yvals, zvals):
+
+    spacing = np.diff(xvals)
+    n_bins = len(np.arange(xvals[0], xvals[-1], min(spacing))) + 1
+    new_xvals = np.linspace(xvals[0], xvals[-1], n_bins)
+
+    spacing = np.diff(yvals)
+    n_bins = len(np.arange(yvals[0], yvals[-1], min(spacing))) + 1
+    new_yvals = np.linspace(yvals[0], yvals[-1], n_bins)
+
+    return interpolate_2D(xvals, yvals, zvals, new_xvals=new_xvals, new_yvals=new_yvals)
+
+
+def interpolate_2D(xvals, yvals, zvals, fold=1, mode='linear', **kwargs):
+    """Interpolate along given axis
+
+    Parameters
+    ----------
+    xvals : np.array
+    yvals : np.array
+    zvals : np.array
+    fold: float
+    mode : {'linear', 'cubic', 'quintic'}, optional
+
+    Returns
+    -------
+    new_xvals : np.array
+    yvals : np.array
+    new_zvals : np.array
+    """
     from scipy.interpolate.interpolate import interp2d
-    if new_xvals is None:
-        spacing = np.diff(xvals)
-        n_bins = len(np.arange(xvals[0], xvals[-1], min(spacing))) + 1
-        new_xvals = np.linspace(xvals[0], xvals[-1], n_bins)
-    if new_yvals is None:
-        spacing = np.diff(yvals)
-        n_bins = len(np.arange(yvals[0], yvals[-1], min(spacing))) + 1
-        new_yvals = np.linspace(yvals[0], yvals[-1], n_bins)
+    mode = mode.lower()
 
-    fcn = interp2d(xvals, yvals, zvals, kind='linear')
+    if fold <= 0:
+        raise MessageError('Incorrect value of `fold`', 'The value of `fold` must be larger than 0')
+
+    new_xvals = kwargs.pop('new_xvals', xvals)
+    if kwargs.get('x_axis', False):
+        new_xvals = calculate_interpolation_axes(xvals, fold)
+
+    new_yvals = kwargs.pop('new_yvals', yvals)
+    if kwargs.get('y_axis', False):
+        new_yvals = calculate_interpolation_axes(yvals, fold)
+
+    fcn = interp2d(xvals, yvals, zvals, kind=mode)
     new_zvals = fcn(new_xvals, new_yvals)
 
-    return new_xvals, yvals, new_zvals
+    return new_xvals, new_yvals, new_zvals
 
 
 def calculate_division_factors(value, min_division=1, max_division=20, subsampling_default=5):

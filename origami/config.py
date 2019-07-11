@@ -889,12 +889,20 @@ class OrigamiConfig:
             'Least Squares',
         ]
         self.plot2D_normalize_mode = 'Maximum'
-        self.plot2D_smooth_choices = ['None', 'Gaussian', 'Savitzky-Golay']
-        self.plot2D_smooth_mode = 'None'
+        self.plot2D_smooth_choices = ['Gaussian', 'Savitzky-Golay']
+        self.plot2D_smooth_mode = 'Gaussian'
         self.plot2D_smooth_sigma = 1
         self.plot2D_smooth_window = 3
         self.plot2D_smooth_polynomial = 1
         self.plot2D_threshold = 0.0
+
+        self.plot2D_interpolate_choices = ['Linear', 'Cubic', 'Quintic']
+        self.plot2D_interpolate_mode = 'Linear'
+        self.plot2D_interpolate_xaxis = True
+        self.plot2D_interpolate_yaxis = False
+        self.plot2D_interpolate_fold = 2  # new in v1.3.0.0
+        self.plot2D_crop_xmin = 0  # new in v1.3.0.0
+        self.plot2D_crop_xmax = 5000  # new in v1.3.0.0
 
         # Process MS
         self.ms_normalize = True
@@ -903,8 +911,8 @@ class OrigamiConfig:
             'Root Mean Square (RMS)',
         ]  # new in v1.3.0.0
         self.ms_normalize_mode = 'Maximum'
-        self.ms_smooth_choices = ['None', 'Gaussian', 'Savitzky-Golay', 'Moving average']  # new in v1.3.0.0
-        self.ms_smooth_mode = 'None'
+        self.ms_smooth_choices = ['Gaussian', 'Savitzky-Golay', 'Moving average']  # new in v1.3.0.0
+        self.ms_smooth_mode = 'Gaussian'
         self.ms_smooth_sigma = 1
         self.ms_smooth_window = 3
         self.ms_smooth_polynomial = 1
