@@ -26,7 +26,28 @@ from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
 from help_documentation import OrigamiHelp
 from icons import IconContainer as icons
-from ids import *
+from ids import ID_addNewCalibrationDoc
+from ids import ID_addNewInteractiveDoc
+from ids import ID_addNewManualDoc
+from ids import ID_addNewOverlayDoc
+from ids import ID_helpCite
+from ids import ID_helpGitHub
+from ids import ID_helpGuide
+from ids import ID_helpHomepage
+from ids import ID_helpHTMLEditor
+from ids import ID_helpNewFeatures
+from ids import ID_helpNewVersion
+from ids import ID_helpReportBugs
+from ids import ID_helpYoutube
+from ids import ID_openAsConfig
+from ids import ID_openConfig
+from ids import ID_processAllIons
+from ids import ID_processSelectedIons
+from ids import ID_saveAsConfig
+from ids import ID_saveConfig
+from ids import ID_textPanel_process_all
+from ids import ID_window_ionList
+from ids import ID_window_textList
 from numpy.ma import masked_array
 from toolbox import checkExtension
 from toolbox import find_nearest
@@ -34,12 +55,10 @@ from toolbox import removeDuplicates
 from utils.color import combine_rgb
 from utils.color import convertRGB255to1
 from utils.color import make_rgb
-from utils.converters import str2int
 from utils.converters import str2num
 from utils.logging import set_logger
 from utils.logging import set_logger_level
 from utils.time import getTime
-from visuals.normalize import MidpointNormalize
 # if platform == "win32":
 #     import readers.io_waters_raw as io_waters
 
@@ -822,7 +841,7 @@ class ORIGAMI(object):
                     tempAccumulator = tempAccumulator + 1
 
                     selectedItemUnique = 'ion={} ({})'.format(ionName, self.currentDoc)
-                    zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, cmap = self.get2DdataFromDictionary(
+                    zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, __ = self.get2DdataFromDictionary(
                         dictionary=dataIn, dataType='plot', compact=False,
                     )
 
@@ -2565,10 +2584,6 @@ class ORIGAMI(object):
             xlabel = dictionary['xlabels']
             yvals = dictionary['yvals']
             ylabel = dictionary['ylabels']
-            file1 = dictionary['file1']
-            file2 = dictionary['file2']
-            label1 = dictionary['label1']
-            label2 = dictionary['label2']
             try:
                 charge1 = dictionary['charge1']
                 charge2 = dictionary['charge2']
@@ -2639,8 +2654,6 @@ class ORIGAMI(object):
         alpha2 = dictionary['alpha2']
         mask1 = dictionary['mask1']
         mask2 = dictionary['mask2']
-        label1 = dictionary['label1']
-        label2 = dictionary['label2']
         xvals = dictionary['xvals']
         xlabels = dictionary['xlabels']
         yvals = dictionary['yvals']
@@ -2920,18 +2933,11 @@ class ORIGAMI(object):
         Function used to get the path to current document
         '''
         # Gather info about the file and document
-        self.currentDoc, selectedItem, selectedText = self.view.panelDocuments.documents.enableCurrentDocument(
+        self.currentDoc, __, __ = self.view.panelDocuments.documents.enableCurrentDocument(
             getSelected=True,
         )
-        indent = self.view.panelDocuments.documents.get_item_indent(selectedItem)
         if self.currentDoc == 'Documents':
             return None, None
-        elif indent > 2:
-            selectedItemParent, selectedItemParentText = self.view.panelDocuments.documents.getParentItem(
-                selectedItem, 2, getSelected=True,
-            )
-        else:
-            pass
         document = self.documentsDict[self.currentDoc]
         return document.path, document.title
 

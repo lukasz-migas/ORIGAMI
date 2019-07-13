@@ -461,11 +461,15 @@ class data_processing():
                             if narrow_count > 0:
                                 if method == 1:  # old method
                                     highResPeaks = pr_utils.detect_peaks_spectrum(
-                                        data=mzNarrow, window=self.config.fit_highRes_window, threshold=self.config.fit_highRes_threshold,
+                                        data=mzNarrow,
+                                        window=self.config.fit_highRes_window,
+                                        threshold=self.config.fit_highRes_threshold,
                                     )
                                 else:
                                     highResPeaks = pr_utils.detect_peaks_spectrum2(
-                                        msXnarrow, msYnarrow, window=self.config.fit_highRes_window, threshold=self.config.fit_highRes_threshold,
+                                        msXnarrow, msYnarrow,
+                                        window=self.config.fit_highRes_window,
+                                        threshold=self.config.fit_highRes_threshold,
                                     )
                                 peakDiffs = np.diff(highResPeaks[:, 0])
                                 if len(peakDiffs) > 0:
@@ -533,123 +537,6 @@ class data_processing():
                                 alpha=(self.config.markerTransparency_1D),
                                 repaint=repaint, plot=markerPlot,
                             )
-
-#                     if self.config.fit_highlight or self.config.fit_show_labels:
-#                         # Iterate over list and add rectangles
-#                         last = len(peakList)-1
-#                         self.presenter.view.panelPlots.on_clear_labels()
-#                         for i, mz in enumerate(peakList):
-#                             peak = mz[0]
-#                             # New in 1.0.4: Added slightly assymetric character to the peak envelope
-#                             xmin = peak-(self.config.fit_width*self.config.fit_asymmetric_ratio)
-#                             width = (self.config.fit_width*2)
-#                             xmax = xmin + width
-#
-#                             if i == last: repaint = True
-#                             else: repaint = False
-#                             if self.config.fit_highlight:
-#                                 self.presenter.view.panelPlots.on_plot_patches(xmin, ymin, width, height,
-#                                                                                color=self.config.markerColor_1D,
-#                                                                                alpha=(self.config.markerTransparency_1D),
-#                                                                                repaint=repaint, plot=markerPlot)
-#
-#                             if self.config.fit_show_labels and peak_count <= self.config.fit_show_labels_max_count and not self.config.fit_highRes:
-#                                 label_height = np.round(pr_utils.find_peak_maximum(pr_utils.get_narrow_data_range(msList, mzRange=[xmin, xmax])), 2)
-#                                 if self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
-#                                     label = "{:.2f}\n{:.2f}".format(peak, label_height)
-#                                 elif self.config.fit_show_labels_mz and not self.config.fit_show_labels_int:
-#                                     label = "{:.2f}".format(peak)
-#                                 elif not self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
-#                                     label = "{:.2f}".format(label_height)
-#
-#                                 self.presenter.view.panelPlots.on_plot_labels(xpos=peak, yval=label_height/dataPlot.y_divider,
-#                                                                               label=label, repaint=repaint,
-#                                                                               optimise_labels=self.config.fit_labels_optimise_position)
-#
-#                         # Need to check whether there were any ions in the table already
-#                         last = tempList.GetItemCount()-1
-#                         for item in xrange(tempList.GetItemCount()):
-#                             if self.config.fit_addPeaks:
-#                                 if self.docs.dataType == 'Type: ORIGAMI' or self.docs.dataType == 'Type: MANUAL':
-#                                     filename = tempList.GetItem(item,self.config.peaklistColNames['filename']).GetText()
-#                                 elif self.docs.dataType == 'Type: Multifield Linear DT':
-#                                     filename = tempList.GetItem(item,self.config.driftBottomColNames['filename']).GetText()
-#                                 elif self.docs.dataType == 'Type: CALIBRANT':
-#                                     filename = tempList.GetItem(item,self.config.ccsTopColNames['filename']).GetText()
-#
-#                                 if filename != self.presenter.currentDoc: continue
-#                                 xmin = str2num(tempList.GetItem(item, listLinks['start']).GetText())
-#                                 width = str2num(tempList.GetItem(item, listLinks['end']).GetText())-xmin
-#                                 if item == last: repaint = True
-#                                 else: repaint = False
-#                                 self.view.panelPlots.on_add_patch(xmin, ymin, width, height,
-#                                                                   color=self.config.markerColor_1D,
-#                                                                   alpha=(self.config.markerTransparency_1D),
-#                                                                   repaint=repaint, plot=markerPlot)
-#
-#
-#                     # Attempt to assign charge state
-#                     if self.config.fit_highRes:
-#                         # Extend peaklist with empty columns
-#                         peakList = np.c_[peakList, np.zeros(len(peakList)), np.empty(len(peakList)), np.empty(len(peakList))]
-#                         # Iterate over the peaklist
-#                         last = len(peakList)-1
-#                         isotope_peaks_x, isotope_peaks_y = [], []
-#                         for i, peak in enumerate(peakList):
-#                             if i == last: repaint = True
-#                             else: repaint = False
-#                             mzStart = peak[0]-(self.config.fit_highRes_width*self.config.fit_asymmetric_ratio)
-#                             width = (self.config.fit_highRes_width*2)
-#                             mzEnd = mzStart+width
-#                             mzNarrow = pr_utils.get_narrow_data_range(data=msList, mzRange=(mzStart, mzEnd))
-#                             if len(mzNarrow) > 0:
-#                                 highResPeaks = pr_utils.detect_peaks_spectrum(data=mzNarrow,
-#                                                              window=self.config.fit_highRes_window,
-#                                                              threshold=self.config.fit_highRes_threshold)
-#                                 peakDiffs = np.diff(highResPeaks[:,0])
-#                                 if len(peakDiffs) > 0:
-#                                     charge = int(np.round(1/np.round(np.average(peakDiffs),4),0))
-#                                 else:
-#                                     charge = 0
-#
-#                                 try:
-#                                     max_index = np.where(highResPeaks[:,1] == np.max(highResPeaks[:,1]))
-#                                     isotopic_max_val_x, isotopic_max_val_y = highResPeaks[max_index,:][0][0][0], highResPeaks[max_index,:][0][0][1]
-#                                 except Exception:
-#                                     isotopic_max_val_x, isotopic_max_val_y = None, None
-#
-#                                 # Assumes positive mode
-#                                 peakList[i,2] = charge # np.abs(charge)
-#                                 if isotopic_max_val_x is not None:
-#                                     peakList[i,3] = isotopic_max_val_x
-#                                     peakList[i,4] = isotopic_max_val_y
-#
-#                                 if self.config.fit_highRes_isotopicFit:
-#                                     isotope_peaks_x.append(highResPeaks[:,0].tolist())
-#                                     isotope_peaks_y.append(highResPeaks[:,1].tolist())
-#
-#                             if self.config.fit_show_labels and peak_count <= self.config.fit_show_labels_max_count:
-#                                 label_height = np.round(pr_utils.find_peak_maximum(mzNarrow),2)
-#                                 if self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
-#                                     label = "{:.2f}, {:.2f}\nz={}".format(peak[0], label_height, charge)
-#                                 elif self.config.fit_show_labels_mz and not self.config.fit_show_labels_int:
-#                                     label = "{:.2f}\nz={}".format(peak[0], charge)
-#                                 elif not self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
-#                                     label = "{:.2f}\nz={}".format(label_height, charge)
-#
-#                                 self.presenter.view.panelPlots.on_plot_labels(xpos=peak[0],
-#                                                                               yval=label_height/dataPlot.y_divider, label=label,
-#                                                                               repaint=repaint)
-#
-#                         if self.config.fit_highRes_isotopicFit:
-#                             flat_x = [item for sublist in isotope_peaks_x for item in sublist]
-#                             flat_y = [item for sublist in isotope_peaks_y for item in sublist]
-#                             self.presenter.view.panelPlots.on_plot_markers(xvals=flat_x, yvals=flat_y,
-#                                                                            color=(1,0,0), marker='o',
-#                                                                            size=10, plot=markerPlot)# using shortcut
-#
-#
-#
                     # add peaks to annotations dictionary
                     if self.config.fit_addPeaksToAnnotations:
                         # get document annotations
@@ -1246,9 +1133,8 @@ class data_processing():
         )
 
         # generate fragment lists
-        fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list, frag_full_name_list = self.frag_generator.get_fragment_mass_list(
-            fragments,
-        )
+        fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list, frag_full_name_list = \
+            self.frag_generator.get_fragment_mass_list(fragments)
         xvals, yvals = spectrum_dict['xvals'], spectrum_dict['yvals']
 
         # match fragments to peaks in the spectrum
@@ -1270,9 +1156,11 @@ class data_processing():
 
         # return data
         if get_lists:
-            frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.frag_generator.get_fragment_lists(
-                found_peaks, get_calculated_mz=kwargs.get('get_calculated_mz', False),
-            )
+            frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = \
+                self.frag_generator.get_fragment_lists(
+                    found_peaks,
+                    get_calculated_mz=kwargs.get('get_calculated_mz', False),
+                )
 
             return found_peaks, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list
 
@@ -1331,7 +1219,9 @@ class data_processing():
             self.config.unidec_engine.config.startz = self.config.unidec_zStart
             self.config.unidec_engine.config.endz = self.config.unidec_zEnd
             self.config.unidec_engine.config.numz = self.config.unidec_zEnd - self.config.unidec_zStart
-            self.config.unidec_engine.config.psfun = self.config.unidec_peakFunction_choices[self.config.unidec_peakFunction]
+            self.config.unidec_engine.config.psfun = self.config.unidec_peakFunction_choices[
+                self.config.unidec_peakFunction
+            ]
 
             # peak finding
             self.config.unidec_engine.config.peaknorm = self.config.unidec_peakNormalization_choices[
@@ -1435,7 +1325,8 @@ class data_processing():
             try:
                 self.config.unidec_engine.convolve_peaks()
             except OverflowError:
-                msg = "Too many peaks! Try again with larger 'Peak detection threshold' or 'Peak detection window (Da).'"
+                msg = \
+                    "Too many peaks! Try again with larger 'Peak detection threshold' or 'Peak detection window (Da).'"
                 self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
                 DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
                 return
@@ -1621,7 +1512,6 @@ class data_processing():
                         colors.append(color)
                         labels.append('MW: {:.2f}'.format(p.mass))
                         legend_text.append([color, 'MW: {:.2f}'.format(p.mass)])
-#                         self._calculate_peak_widths(charges, p.mass, self.config.unidec_engine.config.mzsig, adductIon)
 
                         individual_dict['MW: {:.2f}'.format(p.mass)] = {
                             'scatter_xvals': np.array(list1),
