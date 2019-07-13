@@ -125,14 +125,14 @@ def find_peak_maximum_1D(yvals, fail_value=1):
     return ymax
 
 
-def find_nearest_value(data, value):
+def find_nearest_index(data, value):
     return np.argmin(np.abs(data - value))
 
 
 def get_narrow_data_range(data, mzRange=None):  # getNarrow1Ddata
     """ Find and return a narrow data range """
-    start = find_nearest_value(data[:, 0], mzRange[0])  # np.argmin(np.abs(data[:, 0] - mzRange[0]))
-    end = find_nearest_value(data[:, 0], mzRange[1])  # np.argmin(np.abs(data[:, 0] - mzRange[1]))
+    start = find_nearest_index(data[:, 0], mzRange[0])  # np.argmin(np.abs(data[:, 0] - mzRange[0]))
+    end = find_nearest_index(data[:, 0], mzRange[1])  # np.argmin(np.abs(data[:, 0] - mzRange[1]))
 
     start, end = check_value_order(start, end)
 

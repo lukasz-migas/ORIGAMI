@@ -13,8 +13,8 @@ import processing.heatmap as pr_heatmap
 import processing.origami_ms as pr_origami
 import processing.spectra as pr_spectra
 import readers.io_text_files as io_text
+import utils.labels as ut_labels
 import wx
-from bokeh.protocol.message import Message
 from document import document as documents
 from gui_elements.dialog_multi_directory_picker import DialogMultiDirectoryPicker
 from gui_elements.dialog_select_document import DialogSelectDocument
@@ -26,7 +26,7 @@ from ids import ID_window_ccsList
 from ids import ID_window_ionList
 from ids import ID_window_multiFieldList
 from ids import ID_window_multipleMLList
-from processing.utils import find_nearest_value
+from processing.utils import find_nearest_index
 from processing.utils import get_maximum_value_in_range
 from pubsub import pub
 from readers.io_document import open_py_object
@@ -48,7 +48,6 @@ from utils.path import get_path_and_fname
 from utils.random import get_random_int
 from utils.ranges import get_min_max
 from utils.time import getTime
-from utils.time import tsleep
 from utils.time import ttime
 # enable on windowsOS only
 if platform == 'win32':
@@ -2000,9 +1999,9 @@ class data_handling():
         self.view.updateRecentFiles(path={'file_type': 'pickle', 'file_path': file_path})
 
     def _load_document_data(self, document=None):
-        """
-        Function to iterate over the whole document to ensure complete loading of the data
-        Once document is re-loaded, data and GUI are restored to appropriate format
+        """Load data that is stored in the pickle file
+
+        Iterate over each dictionary item in the document and add it to the document tree and various sub panels
         """
         if document is not None:
             document_title = document.title
@@ -2106,6 +2105,7 @@ class data_handling():
                 ])
                 and document.dataType != 'Type: Interactive'
             ):
+
                 if len(document.IMS2DCombIons) > 0:
                     dataset = document.IMS2DCombIons
                 elif len(document.IMS2DCombIons) == 0:
@@ -2114,9 +2114,9 @@ class data_handling():
                     dataset = {}
 
                 for _, key in enumerate(dataset):
-                    mz_split = re.split('-| |,|', key)
-                    mz_start = mz_split[0]
-                    mz_end = mz_split[1]
+                    if key.endswith('(processed)'):
+                        continue
+                    mz_start, mz_end = ut_labels.get_ion_name_from_label(key)
                     charge = dataset[key].get('charge', '')
                     label = dataset[key].get('label', '')
                     alpha = dataset[key].get('alpha', 0.5)
@@ -2503,8 +2503,8 @@ class data_handling():
             return
 
         # reduce size of the array to match data extraction window
-        xmin_idx, xmax_idx = find_nearest_value(xvals, xmin), find_nearest_value(xvals, xmax)
-        ymin_idx, ymax_idx = find_nearest_value(yvals, ymin), find_nearest_value(yvals, ymax)
+        xmin_idx, xmax_idx = find_nearest_index(xvals, xmin), find_nearest_index(xvals, xmax)
+        ymin_idx, ymax_idx = find_nearest_index(yvals, ymin), find_nearest_index(yvals, ymax)
         zvals = zvals[ymin_idx:ymax_idx, xmin_idx:xmax_idx]
         xvals = xvals[xmin_idx:xmax_idx]
         yvals = yvals[ymin_idx:ymax_idx + 1]
@@ -2737,8 +2737,6 @@ class data_handling():
         Returns
         -------
         document: document object
-        data: dictionary
-            dictionary with all data associated with the [document, dataset] combo
         """
 
         document_title, spectrum_title = query_info
@@ -2760,29 +2758,71 @@ class data_handling():
         document = self._on_get_document(document_title)
 
         if dataset_type == 'Drift time (2D)':
-            data = document.IMS2D
+            data = copy.deepcopy(document.IMS2D)
         elif dataset_type == 'Drift time (2D, processed)':
-            data = document.IMS2Dprocess
+            data = copy.deepcopy(document.IMS2Dprocess)
+        elif dataset_type == 'DT/MS':
+            data = copy.deepcopy(document.DTMZ)
         elif dataset_type == 'Drift time (2D, EIC)' and dataset_name is not None:
-            data = document.IMS2Dions[dataset_name]
+            data = copy.deepcopy(document.IMS2Dions[dataset_name])
         elif dataset_type == 'Drift time (2D, combined voltages, EIC)' and dataset_name is not None:
-            data = document.IMS2DCombIons[dataset_name]
+            data = copy.deepcopy(document.IMS2DCombIons[dataset_name])
         elif dataset_type == 'Drift time (2D, processed, EIC)' and dataset_name is not None:
-            data = document.IMS2DionsProcess[dataset_name]
+            data = copy.deepcopy(document.IMS2DionsProcess[dataset_name])
         elif dataset_type == 'Input data' and dataset_name is not None:
-            data = document.IMS2DcompData[dataset_name]
+            data = copy.deepcopy(document.IMS2DcompData[dataset_name])
         elif dataset_type == 'Chromatograms (combined voltages, EIC)' and dataset_name is not None:
-            data = document.IMSRTCombIons[dataset_name]
+            data = copy.deepcopy(document.IMSRTCombIons[dataset_name])
         elif dataset_type == 'Drift time (1D, EIC)' and dataset_name is not None:
-            data = document.multipleDT[dataset_name]
+            data = copy.deepcopy(document.multipleDT[dataset_name])
         elif dataset_type == 'Drift time (1D, EIC, DT-IMS)' and dataset_name is not None:
-            data = document.IMS1DdriftTimes[dataset_name]
+            data = copy.deepcopy(document.IMS1DdriftTimes[dataset_name])
         elif dataset_type == 'Statistical' and dataset_name is not None:
-            data = document.IMS2DstatsData[dataset_name]
+            data = copy.deepcopy(document.IMS2DstatsData[dataset_name])
 
         return document, data
 
-    def set_mobility_chromatographic_data(self, query_info, **kwargs):
+    def set_mobility_chromatographic_data(self, query_info, data, **kwargs):
+
+        document_title, dataset_type, dataset_name = query_info
+        document = self._on_get_document(document_title)
+
+        if data is not None:
+            if dataset_type == 'Drift time (2D)':
+                self.documentTree.on_update_data(data, '', document, data_type='main.heatmap')
+            elif dataset_type == 'Drift time (2D, processed)':
+                self.documentTree.on_update_data(data, '', document, data_type='processed.heatmap')
+            elif dataset_type == 'Drift time (2D, EIC)' and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type='ion.heatmap.raw')
+            elif dataset_type == 'Drift time (2D, combined voltages, EIC)' and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type='ion.heatmap.combined')
+            elif dataset_type == 'Drift time (2D, processed, EIC)' and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type='ion.heatmap.processed')
+            elif dataset_type == 'Input data' and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type='ion.heatmap.comparison')
+            elif dataset_type == 'Chromatograms (combined voltages, EIC)' and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type='ion.chromatogram.combined')
+            elif dataset_type == 'Drift time (1D, EIC)' and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type='ion.mobiligram.raw')
+            elif dataset_type == 'Drift time (1D, EIC, DT-IMS)' and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type='ion.mobiligram')
+
+        return document
+
+    def set_mobility_chromatographic_keyword_data(self, query_info, **kwargs):
+        """Set keyword(s) data for specified query items.
+
+        Parameters
+        ----------
+        query_info: list
+             query should be formed as a list containing two elements [document title, dataset title]
+        kwargs : dict
+            dictionary with keyword : value to be set for each item in the query
+
+        Returns
+        -------
+        document: document object
+        """
 
         document_title, dataset_type, dataset_name = query_info
         document = self._on_get_document(document_title)

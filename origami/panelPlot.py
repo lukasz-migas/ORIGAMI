@@ -4349,36 +4349,23 @@ class panelPlot(wx.Panel):
         if repaint:
             plot_obj.repaint()
 
-    def on_zoom_1D(self, startX, endX, endY, plot='MS', set_page=False):  # onZoomMS
+    def on_zoom_1D_x_axis(self, startX, endX, endY=None, set_page=False, plot='MS', repaint=True, **kwargs):
 
-        if plot == 'MS':
-            self.plot1.onZoomIn(startX, endX, endY)
-            self.plot1.repaint()
-            if set_page:
-                self._set_page(self.config.panelNames['MS'])
-        elif plot == 'CalibrationMS':
-            self.topPlotMS.onZoomIn(startX, endX, endY)
-            self.plot1.repaint()
-            if set_page:
-                self._set_page(self.config.panelNames['1D'])
-
-    def on_zoom_1D_x_axis(self, startX, endX, endY=None, set_page=False, plot='MS', repaint=True):
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
 
         if set_page:
             self._set_page(self.config.panelNames['MS'])
 
-        if plot == 'MS':
-            if endY is None:
-                self.plot1.on_zoom_x_axis(startX, endX)
-            else:
-                self.plot1.on_zoom(startX, endX, endY)
+        if endY is None:
+            plot_obj.on_zoom_x_axis(startX, endX)
+        else:
+            plot_obj.on_zoom(startX, endX, endY)
 
-            if repaint:
-                self.plot1.repaint()
-        elif plot == 'calibration_MS':
-            self.topPlotMS.on_zoom_x_axis(startX, endX)
-            if repaint:
-                self.topPlotMS.repaint()
+        if repaint:
+            plot_obj.repaint()
 
     def on_zoom_1D_xy_axis(self, startX, endX, startY, endY, set_page=False, plot='MS', repaint=True):
 

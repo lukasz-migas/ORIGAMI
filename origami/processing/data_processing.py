@@ -926,10 +926,9 @@ class data_processing():
                 msY = pr_spectra.normalize_1D(msY, mode=self.config.ms_normalize_mode)
                 process_msg += f'Normalize:{ttime()-tstart:.4f}s'
 
-        if process_msg.endswith(' | '):
-            process_msg = process_msg[:-2]
-
         if process_msg != '':
+            if process_msg.endswith(' | '):
+                process_msg = process_msg[:-2]
             logger.info(process_msg)
 
         # replot data
@@ -1009,6 +1008,8 @@ class data_processing():
         if zvals is None:
             return
 
+        process_msg = ''
+
         # create a copy
         zvals = zvals.copy()
 
@@ -1019,6 +1020,7 @@ class data_processing():
 
         # interpolate
         if self.config.plot2D_process_interpolate:
+            tstart = ttime()
             xvals, yvals, zvals = pr_heatmap.interpolate_2D(
                 xvals, yvals, zvals,
                 fold=self.config.plot2D_interpolate_fold,
@@ -1026,30 +1028,64 @@ class data_processing():
                 x_axis=self.config.plot2D_interpolate_xaxis,
                 y_axis=self.config.plot2D_interpolate_yaxis,
             )
+            process_msg += f'Interpolation:{ttime()-tstart:.4f}s | '
 
         # crop
         if self.config.plot2D_process_crop:
-            print('crop')
+            tstart = ttime()
+            xvals, yvals, zvals = pr_heatmap.crop_2D(
+                xvals, yvals, zvals,
+                self.config.plot2D_crop_xmin,
+                self.config.plot2D_crop_xmax,
+                self.config.plot2D_crop_ymin,
+                self.config.plot2D_crop_ymax,
+            )
+            process_msg += f'Crop:{ttime()-tstart:.4f}s | '
 
         # smooth data
         if self.config.plot2D_process_smooth:
+            tstart = ttime()
             pr_kwargs = {
                 'sigma': self.config.plot2D_smooth_sigma,
                 'polyOrder': self.config.plot2D_smooth_polynomial,
                 'windowSize': self.config.plot2D_smooth_window,
             }
             zvals = pr_heatmap.smooth_2D(zvals, **pr_kwargs)
+            process_msg += f'Smooth:{ttime()-tstart:.4f}s | '
 
         # threshold
         if self.config.plot2D_process_threshold:
+            tstart = ttime()
             zvals = pr_heatmap.remove_noise_2D(zvals, self.config.plot2D_threshold)
 
         # normalize
         if self.config.plot2D_normalize:
+            tstart = ttime()
             zvals = pr_heatmap.normalize_2D(zvals, mode=self.config.plot2D_normalize_mode)
+            process_msg += f'Normalize:{ttime()-tstart:.4f}s | '
 
         # As a precaution, remove inf
         zvals[zvals == -np.inf] = 0
+
+        if process_msg != '':
+            if process_msg.endswith(' | '):
+                process_msg = process_msg[:-2]
+            logger.info(process_msg)
+
+        # return data
+        if kwargs.get('return_data', False):
+            return xvals, yvals, zvals
+
+        # return data and parameters
+        if kwargs.get('return_all', False):
+            parameters = {
+                'smooth_mode': self.config.plot2D_smooth_mode,
+                'sigma': self.config.plot2D_smooth_sigma,
+                'polyOrder': self.config.plot2D_smooth_polynomial,
+                'windowSize': self.config.plot2D_smooth_window,
+                'threshold': self.config.plot2D_threshold,
+            }
+            return xvals, yvals, zvals, parameters
 
         # replot data
         if kwargs.get('replot', False):
@@ -1074,120 +1110,103 @@ class data_processing():
                 self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, override=False)
                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
 
-        # return data
-        if kwargs.get('return_data', False):
-            return xvals, yvals, zvals
-
-        # return data and parameters
-        if kwargs.get('return_all', False):
-            parameters = {
-                'smooth_mode': self.config.plot2D_smooth_mode,
-                'sigma': self.config.plot2D_smooth_sigma,
-                'polyOrder': self.config.plot2D_smooth_polynomial,
-                'windowSize': self.config.plot2D_smooth_window,
-                'threshold': self.config.plot2D_threshold,
-            }
-            return zvals, parameters
-
-    def on_process_2D_and_add_data(self, document=None, dataset=None, ionName=None):
-        if document is None or dataset is None:
-            self.docs = self._on_get_document()
-            if self.docs is None:
-                return
-        else:
-            self.docs = self.presenter.documentsDict[document]
-
-        # get data
-        if dataset == 'Drift time (2D)':
-            data = self.docs.IMS2D
-        elif dataset == 'Drift time (2D, processed)':
-            data = self.docs.IMS2Dprocess
-        elif dataset == 'Drift time (2D, EIC)':
-            data = self.docs.IMS2Dions[ionName]
-        elif dataset == 'Drift time (2D, processed, EIC)':
-            data = self.docs.IMS2DionsProcess[ionName]
-        elif dataset == 'Drift time (2D, combined voltages, EIC)':
-            data = self.docs.IMS2DCombIons[ionName]
-        elif dataset == 'Input data':
-            data = self.docs.IMS2DcompData[ionName]
-        elif dataset == 'Statistical':
-            data = self.docs.IMS2DstatsData[ionName]
-        elif dataset == 'DT/MS':
-            data = self.docs.DTMZ
+    def on_process_2D_and_add_data(self, document_title, dataset_type, dataset_name):
+        document, data = self.data_handling.get_mobility_chromatographic_data(
+            [document_title, dataset_type, dataset_name],
+        )
 
         # unpact data
-        zvals = data['zvals']
         xvals = data['xvals']
         yvals = data['yvals']
-        xlabel = data['xlabels']
-        ylabel = data['ylabels']
+        zvals = data['zvals']
 
-        zvals, params = self.on_process_2D(zvals=zvals.copy(), return_all=True)
+        xvals, yvals, zvals, parameters = self.on_process_2D(xvals, yvals, zvals, return_all=True)
 
-        # strip any processed string from the title
-        if ionName is not None:
-            if '(processed)' in ionName:
-                dataset = ionName.split(' (')[0]
-            new_dataset = '%s (processed)' % ionName
+        # update data
+        data.update(xvals=xvals, yvals=yvals, zvals=zvals, process_parameters=parameters)
 
-        if dataset == 'Drift time (2D)':
-            self.docs.got2Dprocess = True
-            self.docs.IMS2Dprocess = self.docs.IMS2D.copy()
-            self.docs.IMS2Dprocess['zvals'] = zvals
-            self.docs.IMS2Dprocess['process_parameters'] = params
-            self.docs.IMS2D['process_parameters'] = params
-        if dataset == 'Drift time (2D, EIC)':
-            self.docs.IMS2Dions[new_dataset] = self.docs.IMS2Dions[ionName].copy()
-            self.docs.IMS2Dions[new_dataset]['zvals'] = zvals
-            self.docs.IMS2Dions[new_dataset]['process_parameters'] = params
-        elif dataset == 'Drift time (2D, processed, EIC)':
-            self.docs.IMS2DionsProcess[new_dataset] = self.docs.IMS2DionsProcess[ionName].copy()
-            self.docs.IMS2DionsProcess[new_dataset]['zvals'] = zvals
-            self.docs.IMS2DionsProcess[new_dataset]['process_parameters'] = params
-        elif dataset == 'Drift time (2D, combined voltages, EIC)':
-            self.docs.IMS2DCombIons[new_dataset] = self.docs.IMS2DCombIons[ionName].copy()
-            self.docs.IMS2DCombIons[new_dataset]['zvals'] = zvals
-            self.docs.IMS2DCombIons[new_dataset]['process_parameters'] = params
-        elif dataset == 'Input data':
-            self.docs.IMS2DcompData[new_dataset] = self.docs.IMS2DcompData[ionName].copy()
-            self.docs.IMS2DcompData[new_dataset]['zvals'] = zvals
-            self.docs.IMS2DcompData[new_dataset]['process_parameters'] = params
-        elif dataset == 'Statistical':
-            self.docs.IMS2DstatsData[new_dataset] = self.docs.IMS2DstatsData[ionName].copy()
-            self.docs.IMS2DstatsData[new_dataset]['zvals'] = zvals
-            self.docs.IMS2DstatsData[new_dataset]['process_parameters'] = params
-        elif dataset == 'DT/MS':
-            self.docs.DTMZ['zvals'] = zvals
-            self.docs.DTMZ['process_parameters'] = params
+        # setup new name
+        if dataset_type == 'Drift time (2D)' and dataset_name is None:
+            dataset_type = 'Drift time (2D, processed)'
+            new_dataset = None
+        else:
+            # strip any processed string from the title
+            if 'processed)' in dataset_name:
+                dataset = dataset_name.split(' processed)')[0]
+            new_dataset = f'{dataset_name} (processed)'
 
-        # replot
-        if dataset in [
-            'Drift time (2D)', 'Drift time (2D, processed)',
-            'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
-            'Drift time (2D, processed, EIC)', 'Input data', 'Statistical',
-        ]:
-            self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
-            if self.config.waterfall:
-                self.view.panelPlots.on_plot_waterfall(
-                    yvals=xvals, xvals=yvals, zvals=zvals,
-                    xlabel=xlabel, ylabel=ylabel,
-                )
-            try:
-                self.view.panelPlots.on_plot_3D(
-                    zvals=zvals, labelsX=xvals, labelsY=yvals,
-                    xlabel=xlabel, ylabel=ylabel, zlabel='Intensity',
-                )
-            except Exception:
-                pass
-            # change to correct plot window
-            if not self.config.waterfall:
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
-        elif dataset == 'DT/MS':
-            self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel)
-            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
+        print(document_title, dataset_type, dataset_name, new_dataset)
 
-        # Update file list
-        self.data_handling.on_update_document(self.docs, 'document')
+        # update dataset and document
+        __ = self.data_handling.set_mobility_chromatographic_data([document_title, dataset_type, new_dataset], data)
+
+        # plot data
+        self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, data['xlabels'], data['ylabels'], override=False)
+#
+#         # strip any processed string from the title
+#         if ionName is not None:
+#             if '(processed)' in ionName:
+#                 dataset = ionName.split(' (')[0]
+#             new_dataset = '%s (processed)' % ionName
+#
+#         if dataset == 'Drift time (2D)':
+#             self.docs.got2Dprocess = True
+#             self.docs.IMS2Dprocess = self.docs.IMS2D.copy()
+#             self.docs.IMS2Dprocess['zvals'] = zvals
+#             self.docs.IMS2Dprocess['process_parameters'] = params
+#             self.docs.IMS2D['process_parameters'] = params
+#         if dataset == 'Drift time (2D, EIC)':
+#             self.docs.IMS2Dions[new_dataset] = self.docs.IMS2Dions[ionName].copy()
+#             self.docs.IMS2Dions[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2Dions[new_dataset]['process_parameters'] = params
+#         elif dataset == 'Drift time (2D, processed, EIC)':
+#             self.docs.IMS2DionsProcess[new_dataset] = self.docs.IMS2DionsProcess[ionName].copy()
+#             self.docs.IMS2DionsProcess[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2DionsProcess[new_dataset]['process_parameters'] = params
+#         elif dataset == 'Drift time (2D, combined voltages, EIC)':
+#             self.docs.IMS2DCombIons[new_dataset] = self.docs.IMS2DCombIons[ionName].copy()
+#             self.docs.IMS2DCombIons[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2DCombIons[new_dataset]['process_parameters'] = params
+#         elif dataset == 'Input data':
+#             self.docs.IMS2DcompData[new_dataset] = self.docs.IMS2DcompData[ionName].copy()
+#             self.docs.IMS2DcompData[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2DcompData[new_dataset]['process_parameters'] = params
+#         elif dataset == 'Statistical':
+#             self.docs.IMS2DstatsData[new_dataset] = self.docs.IMS2DstatsData[ionName].copy()
+#             self.docs.IMS2DstatsData[new_dataset]['zvals'] = zvals
+#             self.docs.IMS2DstatsData[new_dataset]['process_parameters'] = params
+#         elif dataset == 'DT/MS':
+#             self.docs.DTMZ['zvals'] = zvals
+#             self.docs.DTMZ['process_parameters'] = params
+#
+#         # replot
+#         if dataset in [
+#             'Drift time (2D)', 'Drift time (2D, processed)',
+#             'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
+#             'Drift time (2D, processed, EIC)', 'Input data', 'Statistical',
+#         ]:
+#             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
+#             if self.config.waterfall:
+#                 self.view.panelPlots.on_plot_waterfall(
+#                     yvals=xvals, xvals=yvals, zvals=zvals,
+#                     xlabel=xlabel, ylabel=ylabel,
+#                 )
+#             try:
+#                 self.view.panelPlots.on_plot_3D(
+#                     zvals=zvals, labelsX=xvals, labelsY=yvals,
+#                     xlabel=xlabel, ylabel=ylabel, zlabel='Intensity',
+#                 )
+#             except Exception:
+#                 pass
+#             # change to correct plot window
+#             if not self.config.waterfall:
+#                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+#         elif dataset == 'DT/MS':
+#             self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel)
+#             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
+#
+#         # Update file list
+#         self.data_handling.on_update_document(self.docs, 'document')
 
     def on_get_peptide_fragments(
         self, spectrum_dict, label_format={}, get_lists=False,

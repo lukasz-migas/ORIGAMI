@@ -4,9 +4,11 @@ import logging
 
 import numpy as np
 from gui_elements.misc_dialogs import DialogBox
+from processing.utils import find_nearest_index
 from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter
 from sklearn.preprocessing import normalize
+from utils.check import check_value_order
 from utils.check import is_prime
 from utils.exceptions import MessageError
 logger = logging.getLogger('origami')
@@ -46,6 +48,37 @@ def remove_noise_2D(inputData, threshold=0):
 
     inputData[inputData <= threshold] = 0
     return inputData
+
+
+def crop_2D(xvals, yvals, data, xmin, xmax, ymin, ymax):
+    """Crop array"""
+    # ensure order of values is correct
+    xmin, xmax = check_value_order(xmin, xmax)
+    ymin, ymax = check_value_order(ymin, ymax)
+
+    # check if values are not the same
+    crop_x = True
+    if xmin == xmax:
+        crop_x = False
+    crop_y = True
+    if ymin == ymax:
+        crop_y = False
+
+    # find nearest index
+    xmin_idx = find_nearest_index(xvals, xmin)
+    xmax_idx = find_nearest_index(xvals, xmax)
+    ymin_idx = find_nearest_index(yvals, ymin)
+    ymax_idx = find_nearest_index(yvals, ymax)
+
+    if crop_x:
+        xvals = xvals[xmin_idx:xmax_idx + 1]
+        data = data[:, xmin_idx:xmax_idx + 1]
+
+    if crop_y:
+        yvals = yvals[ymin_idx:ymax_idx + 1]
+        data = data[ymin_idx:ymax_idx + 1]
+
+    return xvals, yvals, data
 
 
 def smooth_2D(data, mode='Gaussian', **kwargs):

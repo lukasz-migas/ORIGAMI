@@ -896,13 +896,15 @@ class OrigamiConfig:
         self.plot2D_smooth_polynomial = 1
         self.plot2D_threshold = 0.0
 
-        self.plot2D_interpolate_choices = ['Linear', 'Cubic', 'Quintic']
-        self.plot2D_interpolate_mode = 'Linear'
-        self.plot2D_interpolate_xaxis = True
-        self.plot2D_interpolate_yaxis = False
+        self.plot2D_interpolate_choices = ['Linear', 'Cubic', 'Quintic']  # new in v1.3.0.0s
+        self.plot2D_interpolate_mode = 'Linear'  # new in v1.3.0.0
+        self.plot2D_interpolate_xaxis = True  # new in v1.3.0.0
+        self.plot2D_interpolate_yaxis = False  # new in v1.3.0.0
         self.plot2D_interpolate_fold = 2  # new in v1.3.0.0
         self.plot2D_crop_xmin = 0  # new in v1.3.0.0
         self.plot2D_crop_xmax = 5000  # new in v1.3.0.0
+        self.plot2D_crop_ymin = 0  # new in v1.3.0.0
+        self.plot2D_crop_ymax = 200  # new in v1.3.0.0
 
         # Process MS
         self.ms_normalize = True

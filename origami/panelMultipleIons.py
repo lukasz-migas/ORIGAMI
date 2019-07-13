@@ -1240,22 +1240,6 @@ class panelMultipleIons(wx.Panel):
         else:
             return
 
-        if data is None:
-            self.presenter.onThreading(
-                evt, ('Please extract data before trying to view it', 4, 3),
-                action='updateStatusbar',
-            )
-            if evt.GetId() == ID_ionPanel_show_zoom_in_MS:
-                try:
-                    self.presenter.view.panelPlots.on_zoom_1D_x_axis(
-                        str2num(mzStart) - self.config.zoomWindowX,
-                        str2num(mzEnd) + self.config.zoomWindowX,
-                        set_page=True,
-                    )
-                except Exception:
-                    pass
-            return
-
         if evt.GetId() == ID_ionPanel_show_mobiligram:
             xvals = data[rangeName]['yvals']  # normally this would be the y-axis
             yvals = data[rangeName]['yvals1D']
@@ -1269,24 +1253,17 @@ class panelMultipleIons(wx.Panel):
             self.presenter.view.panelPlots.on_plot_RT(xvals, yvals, xlabels, set_page=True)
 
         elif evt.GetId() == ID_ionPanel_show_zoom_in_MS:
-            """
-            This simply zooms in on an ion
-            """
-            if selectedItem != self.presenter.currentDoc:
-                self.presenter.onThreading(
-                    evt, ('This ion belongs to different document', 4, 3),
-                    action='updateStatusbar',
-                )
             startX = str2num(mzStart) - self.config.zoomWindowX
             endX = str2num(mzEnd) + self.config.zoomWindowX
             try:
                 endY = str2num(intensity) / 100
             except TypeError:
                 endY = 1.001
+
             if endY == 0:
                 endY = 1.001
             try:
-                self.presenter.view.panelPlots.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
+                self.presenter.view.panelPlots.on_zoom_1D_x_axis(startX=startX, endX=endX, set_page=True, plot='MS')
             except AttributeError:
                 self.presenter.onThreading(
                     evt, (

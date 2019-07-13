@@ -1,6 +1,22 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 """Utility tools for label replacements"""
+import re
+
+
+def get_ion_name_from_label(ion_name):
+    """Extrac mz values from label
+
+    Parameters
+    ----------
+    ion_name : str
+        ion label with name format MZMIN-MZMAX - can have some supplement afterwards
+    """
+    ion_label = re.split(r'-|\(|:|,', ion_name)
+    mz_min = ion_label[0]
+    mz_max = ion_label[1]
+
+    return mz_min, mz_max
 
 
 def _replace_labels(label):

@@ -15,6 +15,7 @@ import pandas as pd
 import readers.io_mgf as io_mgf
 import readers.io_mzid as io_mzid
 import readers.io_mzml as io_mzml
+import utils.labels as ut_labels
 import wx
 from gui_elements.dialog_ask_override import DialogAskOverride
 from gui_elements.dialog_rename import DialogRenameObject
@@ -26,7 +27,6 @@ from natsort import natsorted
 from panel_peak_annotation_editor import panel_peak_annotation_editor
 from panelInformation import panelDocumentInfo
 from panelTandemSpectra import panelTandemSpectra
-from processing.spectra import normalize_1D
 from readers.io_text_files import text_heatmap_open
 from styles import makeMenuItem
 from toolbox import merge_two_dicts
@@ -563,7 +563,7 @@ class documentsTree(wx.TreeCtrl):
             return
 
         query_info = self._on_event_get_mobility_chromatogram_query()
-        document = self.data_handling.set_mobility_chromatographic_data(query_info, charge=charge)
+        document = self.data_handling.set_mobility_chromatographic_keyword_data(query_info, charge=charge)
 
         # update data in side panel
         self.ionPanel.on_find_and_update_values(query_info[2], charge=charge)
@@ -2435,9 +2435,7 @@ class documentsTree(wx.TreeCtrl):
                                 bitmap=None,
                             ),
                         )
-                    menu.AppendSeparator()
                     menu.AppendItem(menu_action_process_ms)
-
                     menu.AppendItem(menu_show_unidec_panel)
                     menu.AppendSeparator()
                     menu.AppendItem(
@@ -2486,9 +2484,9 @@ class documentsTree(wx.TreeCtrl):
                         menu.AppendItem(menu_action_show_plot_spectrum)
                         menu.AppendItem(menu_show_annotations_panel)
                         menu.AppendItem(menu_action_duplicate_annotations)
-                        menu.AppendSeparator()
                         menu.AppendItem(menu_action_process_ms)
                         menu.AppendItem(menu_show_unidec_panel)
+                        menu.AppendSeparator()
                         menu.AppendItem(menu_action_add_spectrum_to_panel)
                         menu.Append(ID_duplicateItem, 'Duplicate item')
                         menu.Append(ID_renameItem, 'Rename\tF2')
@@ -2623,6 +2621,7 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendItem(menu_show_annotations_panel)
                 menu.AppendItem(menu_action_duplicate_annotations)
                 menu.AppendItem(menu_show_peak_picker_panel)
+                menu.AppendItem(menu_action_process_ms)
 
                 # check if deconvolution results are present
                 try:
@@ -2639,8 +2638,6 @@ class documentsTree(wx.TreeCtrl):
                         )
                 except Exception:
                     pass
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_process_ms)
                 menu.AppendItem(menu_show_unidec_panel)
                 menu.AppendSeparator()
                 menu.AppendItem(
@@ -2691,9 +2688,9 @@ class documentsTree(wx.TreeCtrl):
                     menu.AppendItem(menu_show_annotations_panel)
                     menu.AppendItem(menu_action_duplicate_annotations)
                     menu.AppendItem(menu_show_peak_picker_panel)
-                    menu.AppendSeparator()
                     menu.AppendItem(menu_action_process_ms)
                     menu.AppendItem(menu_show_unidec_panel)
+                    menu.AppendSeparator()
                     menu.AppendItem(menu_action_add_spectrum_to_panel)
                     menu.Append(ID_duplicateItem, 'Duplicate item')
                     menu.Append(ID_renameItem, 'Rename\tF2')
@@ -2827,6 +2824,7 @@ class documentsTree(wx.TreeCtrl):
                             bitmap=self.icons.iconsLib['chromatogram_16'],
                         ),
                     )
+                else:
                     menu.PrependItem(
                         makeMenuItem(
                             parent=menu, id=ID_showPlotMSDocument,
@@ -4575,20 +4573,17 @@ class documentsTree(wx.TreeCtrl):
                 data = self._document_data.calibrationDataset[self._item_leaf]['data']
                 defaultValue = 'DT_calibrants_{}_{}'.format(basename, self._item_leaf)
 
-            # Check to see if we should zoom-in on MS peak
             # triggered when clicked on the 1D plot but asking for the MS
             if evtID == ID_showPlotMSDocument and self._document_type == 'Drift time (1D, EIC, DT-IMS)':
-                out = re.split('-|,|', self._item_leaf)
-                startX = str2num(out[0]) - self.config.zoomWindowX
-                endX = str2num(out[1]) + self.config.zoomWindowX
-                endY = 1.02
+                mz_min, mz_max = ut_labels.get_ion_name_from_label(self._item_leaf)
                 try:
-                    startX = (data['xylimits'][0] - self.config.zoomWindowX)
-                    endX = (data['xylimits'][1] + self.config.zoomWindowX)
-                    endY = ((self.config.zoomWindowY + data['xylimits'][2]) / 100)
-                except KeyError:
-                    pass
-                self.panel_plot.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
+                    mz_min = str2num(mz_min) - self.config.zoomWindowX
+                    mz_max = str2num(mz_max) + self.config.zoomWindowX
+                except:
+                    mz_min = data['xylimits'][0] - self.config.zoomWindowX
+                    mz_max = data['xylimits'][1] + self.config.zoomWindowX
+
+                self.panel_plot.on_zoom_1D_x_axis(mz_min, mz_max, set_page=True, plot='MS')
                 return
             # extract x/y axis values
             dtX = data['xvals']
@@ -4689,20 +4684,15 @@ class documentsTree(wx.TreeCtrl):
             # get data for selected item
             data = self.GetPyData(self._item_id)
             if evtID == ID_showPlotMSDocument:
-                out = re.split('-|,| ', self._item_leaf)
+                mz_min, mz_max = ut_labels.get_ion_name_from_label(self._item_leaf)
                 try:
-                    startX = str2num(out[0]) - self.config.zoomWindowX
-                    endX = str2num(out[1]) + self.config.zoomWindowX
-                except TypeError:
-                    return
-                endY = 1.05
-                try:
-                    startX = (data['xylimits'][0] - self.config.zoomWindowX)
-                    endX = (data['xylimits'][1] + self.config.zoomWindowX)
-                    endY = (data['xylimits'][2] / 100)
-                except KeyError:
-                    pass
-                self.panel_plot.on_zoom_1D(startX=startX, endX=endX, endY=endY, set_page=True)
+                    mz_min = str2num(mz_min) - self.config.zoomWindowX
+                    mz_max = str2num(mz_max) + self.config.zoomWindowX
+                except:
+                    mz_min = data['xylimits'][0] - self.config.zoomWindowX
+                    mz_max = data['xylimits'][1] + self.config.zoomWindowX
+
+                self.panel_plot.on_zoom_1D_x_axis(mz_min, mz_max, set_page=True, plot='MS')
                 return
             elif evtID == ID_showPlot1DDocument:
                 self.panel_plot.on_plot_1D(
@@ -7238,7 +7228,7 @@ class documentsTree(wx.TreeCtrl):
         set_data_only: bool
             specify whether data should be added with full refresh or just set
         """
-        # get object
+        # spectrum
         if data_type == 'main.spectrum':
             item = self.getItemByData(document.massSpectrum)
             document.gotMS = True
@@ -7254,6 +7244,7 @@ class documentsTree(wx.TreeCtrl):
             document.gotMultipleMS = True
             document.multipleMassSpectrum[item_name] = item_data
 
+        # mobiligram
         elif data_type == 'main.mobiligram':
             item = self.getItemByData(document.DT)
             document.got1DT = True
@@ -7264,6 +7255,12 @@ class documentsTree(wx.TreeCtrl):
             document.gotExtractedDriftTimes = True
             document.IMS1DdriftTimes[item_name] = item_data
 
+        elif data_type == 'ion.mobiligram.raw':
+            item = self.getItemByData(document.multipleDT)
+            document.gotMultipleDT = True
+            document.multipleDT[item_name] = item_data
+
+        # chromatogram
         elif data_type == 'main.chromatogram':
             item = self.getItemByData(document.RT)
             document.got1RT = True
@@ -7274,10 +7271,21 @@ class documentsTree(wx.TreeCtrl):
             document.gotMultipleRT = True
             document.multipleRT[item_name] = item_data
 
+        elif data_type == 'ion.chromatogram.combined':
+            item = self.getItemByData(document.IMSRTCombIons)
+            document.gotCombinedExtractedIonsRT = True
+            document.IMSRTCombIons[item_name] = item_data
+
+        # heatmap
         elif data_type == 'main.heatmap':
             item = self.getItemByData(document.IMS2D)
             document.got2DIMS = True
             document.IMS2D = item_data
+
+        elif data_type == 'processed.heatmap':
+            item = self.getItemByData(document.IMS2Dprocess)
+            document.got2Dprocess = True
+            document.IMS2Dprocess = item_data
 
         elif data_type == 'ion.heatmap.raw':
             item = self.getItemByData(document.IMS2Dions)
@@ -7288,6 +7296,16 @@ class documentsTree(wx.TreeCtrl):
             item = self.getItemByData(document.IMS2DCombIons)
             document.gotCombinedExtractedIons = True
             document.IMS2DCombIons[item_name] = item_data
+
+        elif data_type == 'ion.heatmap.processed':
+            item = self.getItemByData(document.IMS2DionsProcess)
+            document.got2DprocessIons = True
+            document.IMS2DionsProcess[item_name] = item_data
+
+        elif data_type == 'ion.heatmap.comparison':
+            item = self.getItemByData(document.IMS2DcompData)
+            document.gotComparisonData = True
+            document.IMS2DcompData[item_name] = item_data
 
         if item is not False and not set_data_only:
             # add main spectrum

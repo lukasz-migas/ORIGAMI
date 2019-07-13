@@ -112,6 +112,22 @@ class PanelProcessHeatmap(MiniFrame):
         self.plot2D_crop_xmax.SetValue(str(self.config.plot2D_crop_xmax))
         self.plot2D_crop_xmax.Bind(wx.EVT_TEXT, self.on_apply)
 
+        plot2D_crop_ymin = wx.StaticText(panel, wx.ID_ANY, 'start (y-axis):')
+        self.plot2D_crop_ymin = wx.TextCtrl(
+            panel, -1, '', size=(-1, -1),
+            validator=validator('floatPos'),
+        )
+        self.plot2D_crop_ymin.SetValue(str(self.config.plot2D_crop_ymin))
+        self.plot2D_crop_ymin.Bind(wx.EVT_TEXT, self.on_apply)
+
+        plot2D_crop_ymax = wx.StaticText(panel, wx.ID_ANY, 'end (y-axis):')
+        self.plot2D_crop_ymax = wx.TextCtrl(
+            panel, -1, '', size=(-1, -1),
+            validator=validator('floatPos'),
+        )
+        self.plot2D_crop_ymax.SetValue(str(self.config.plot2D_crop_ymax))
+        self.plot2D_crop_ymax.Bind(wx.EVT_TEXT, self.on_apply)
+
         plot2D_process_interpolate = wx.StaticText(panel, -1, 'Interpolate heatmap:')
         self.plot2D_process_interpolate = makeCheckbox(panel, '')
         self.plot2D_process_interpolate.SetValue(self.config.plot2D_process_interpolate)
@@ -248,11 +264,20 @@ class PanelProcessHeatmap(MiniFrame):
         grid.Add(plot2D_crop_xmax, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_crop_xmax, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
+        grid.Add(plot2D_crop_ymin, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_crop_ymin, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(plot2D_crop_ymax, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_crop_ymax, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
         grid.Add(plot2D_process_interpolate, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_process_interpolate, (n, 1), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(
+            self.plot2D_process_interpolate, (n, 1), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT,
+        )
         n += 1
         grid.Add(plot2D_interpolate_mode, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_interpolate_mode, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -346,13 +371,12 @@ class PanelProcessHeatmap(MiniFrame):
         self.panel_plot.on_plot_2D(zvals, xvals, yvals, self.data['xlabels'], self.data['ylabels'], override=False)
 
     def on_add_to_document(self, evt):
-        pass
-#         self.data_processing.on_process_MS_and_add_data(self.document_title, self.dataset_name)
+        self.data_processing.on_process_2D_and_add_data(self.document_title, self.dataset_type, self.dataset_name)
 
     def on_toggle_controls(self, evt):
         # crop
         self.config.plot2D_process_crop = self.plot2D_process_crop.GetValue()
-        obj_list = [self.plot2D_crop_xmin, self.plot2D_crop_xmax]
+        obj_list = [self.plot2D_crop_xmin, self.plot2D_crop_xmax, self.plot2D_crop_ymin, self.plot2D_crop_ymax]
         for item in obj_list:
             item.Enable(enable=self.config.plot2D_process_crop)
 
@@ -395,6 +419,8 @@ class PanelProcessHeatmap(MiniFrame):
         for item in obj_list:
             item.Enable(enable=self.config.plot2D_normalize)
 
+        self.on_plot(None)
+
         if evt is not None:
             evt.Skip()
 
@@ -412,6 +438,8 @@ class PanelProcessHeatmap(MiniFrame):
 
         self.config.plot2D_crop_xmin = str2num(self.plot2D_crop_xmin.GetValue())
         self.config.plot2D_crop_xmax = str2num(self.plot2D_crop_xmax.GetValue())
+        self.config.plot2D_crop_ymin = str2num(self.plot2D_crop_ymin.GetValue())
+        self.config.plot2D_crop_ymax = str2num(self.plot2D_crop_ymax.GetValue())
 
         self.config.plot2D_smooth_mode = self.plot2D_smoothFcn_choice.GetStringSelection()
         self.config.plot2D_smooth_sigma = str2num(self.plot2D_sigma_value.GetValue())
