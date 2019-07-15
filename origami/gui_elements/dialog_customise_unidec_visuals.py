@@ -8,11 +8,13 @@ from ids import ID_unidecPanel_fitLineColor
 from styles import Dialog
 from styles import makeCheckbox
 from styles import makeStaticBox
+from styles import validator
 from utils.color import convertRGB1to255
+from utils.converters import str2int
 from wx.adv import BitmapComboBox
 
 
-class dialog_customise_unidec_visuals(Dialog):
+class DialogCustomiseUniDecVisuals(Dialog):
 
     def __init__(self, parent, config, icons, **kwargs):
         Dialog.__init__(self, parent, title='Other parameters...')
@@ -55,6 +57,22 @@ class dialog_customise_unidec_visuals(Dialog):
         self.unidec_view_value.SetStringSelection(self.config.unidec_plot_panel_view)
         self.unidec_view_value.Bind(wx.EVT_CHOICE, self.onUniDecView)
 
+        unidec_max_iters_label = wx.StaticText(panel, wx.ID_ANY, 'No. max iterations:')
+        self.unidec_maxIters_value = wx.TextCtrl(
+            panel, -1, '', size=(-1, -1),
+            validator=validator('intPos'),
+        )
+        self.unidec_maxIters_value.SetValue(str(self.config.unidec_maxIterations))
+        self.unidec_maxIters_value.Bind(wx.EVT_TEXT, self.on_apply)
+
+        unidec_max_shown_label = wx.StaticText(panel, wx.ID_ANY, 'No. max shown lines:')
+        self.unidec_maxShownLines_value = wx.TextCtrl(
+            panel, -1, '', size=(-1, -1),
+            validator=validator('intPos'),
+        )
+        self.unidec_maxShownLines_value.SetValue(str(self.config.unidec_maxShown_individualLines))
+        self.unidec_maxShownLines_value.Bind(wx.EVT_TEXT, self.on_apply)
+
         remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, 'Optimise label position:')
         self.unidec_labels_optimise_position_check = makeCheckbox(panel, '')
         self.unidec_labels_optimise_position_check.SetValue(self.config.unidec_optimiseLabelPositions)
@@ -64,7 +82,13 @@ class dialog_customise_unidec_visuals(Dialog):
         y = 0
         general_grid.Add(unidec_view_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         general_grid.Add(self.unidec_view_value, (y, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
+        general_grid.Add(unidec_max_iters_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        general_grid.Add(self.unidec_maxIters_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        general_grid.Add(unidec_max_shown_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        general_grid.Add(self.unidec_maxShownLines_value, (y, 1), flag=wx.EXPAND)
+        y += 1
         general_grid.Add(remove_label_overlap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         general_grid.Add(self.unidec_labels_optimise_position_check, (y, 1), flag=wx.EXPAND)
         general_box_sizer.Add(general_grid, 0, wx.EXPAND, 10)
@@ -112,7 +136,7 @@ class dialog_customise_unidec_visuals(Dialog):
         y = 0
         contour_grid.Add(speedy_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         contour_grid.Add(self.speedy_check, (y, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         contour_grid.Add(contour_levels_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         contour_grid.Add(self.contour_levels_value, (y, 1), flag=wx.EXPAND)
         contour_box_sizer.Add(contour_grid, 0, wx.EXPAND, 10)
@@ -140,7 +164,7 @@ class dialog_customise_unidec_visuals(Dialog):
         y = 0
         MW_grid.Add(MW_show_markers, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         MW_grid.Add(self.MW_show_markers_check, (y, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         MW_grid.Add(MW_markerSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         MW_grid.Add(self.MW_markerSize_value, (y, 1), flag=wx.EXPAND)
         MW_box_sizer.Add(MW_grid, 0, wx.EXPAND, 10)
@@ -166,7 +190,7 @@ class dialog_customise_unidec_visuals(Dialog):
 #         y = 0
 #         MW_grid.Add(MW_show_markers, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
 #         MW_grid.Add(self.MW_show_markers_check, (y,1), flag=wx.EXPAND)
-#         y = y + 1
+#         y += 1
 #         MW_grid.Add(MW_markerSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
 #         MW_grid.Add(self.MW_markerSize_value, (y,1), flag=wx.EXPAND)
 #         MW_box_sizer.Add(MW_grid, 0, wx.EXPAND, 10)
@@ -254,19 +278,19 @@ class dialog_customise_unidec_visuals(Dialog):
         y = 0
         bar_grid.Add(bar_markerSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         bar_grid.Add(self.bar_markerSize_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         bar_grid.Add(bar_width_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         bar_grid.Add(self.bar_width_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         bar_grid.Add(bar_alpha_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         bar_grid.Add(self.bar_alpha_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         bar_grid.Add(bar_lineWidth_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         bar_grid.Add(self.bar_lineWidth_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         bar_grid.Add(bar_edgeColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         bar_grid.Add(self.bar_edgeColor_Btn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         bar_grid.Add(bar_colorEdge_check_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         bar_grid.Add(self.bar_colorEdge_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         bar_box_sizer.Add(bar_grid, 0, wx.EXPAND, 10)
@@ -323,10 +347,10 @@ class dialog_customise_unidec_visuals(Dialog):
         y = 0
         color_grid.Add(color_scheme_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         color_grid.Add(self.colorScheme_value, (y, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         color_grid.Add(colormap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         color_grid.Add(self.colormap_value, (y, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         color_grid.Add(palette_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         color_grid.Add(self.color_palette_value, (y, 1), flag=wx.EXPAND)
         color_box_sizer.Add(color_grid, 0, wx.EXPAND, 10)
@@ -384,6 +408,8 @@ class dialog_customise_unidec_visuals(Dialog):
 
         self.config.unidec_optimiseLabelPositions = self.unidec_labels_optimise_position_check.GetValue()
         self.config.unidec_speedy = self.speedy_check.GetValue()
+        self.config.unidec_maxShown_individualLines = str2int(self.unidec_maxShownLines_value.GetValue())
+        self.config.unidec_maxIterations = str2int(self.unidec_maxIters_value.GetValue())
 
     def onUniDecView(self, evt):
         self.config.unidec_plot_panel_view = self.unidec_view_value.GetStringSelection()

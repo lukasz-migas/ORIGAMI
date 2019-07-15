@@ -1176,8 +1176,130 @@ class data_processing():
             if self.config.unidec_mzEnd > kwargs['mz_max']:
                 self.config.unidec_mzEnd = np.round(kwargs['mz_max'], 0)
 
-    def on_run_unidec(self, dataset, task):
+    def _unidec_initilize(self, document_title, dataset, msX, msY):
+        logger.info('UniDec: Loading data...')
 
+        file_name = ''.join([document_title, '_', dataset])
+        file_name = clean_filename(file_name)
+        folder = self.config.temporary_data
+        kwargs = {'clean': True}
+        self.config.unidec_engine.open_file(
+            file_name=file_name,
+            file_directory=folder,
+            data_in=np.transpose([msX, msY]),
+            **kwargs
+        )
+        logger.info('UniDec: Finished loading data...')
+
+    def _unidec_preprocess(self, dataset):
+        logger.info('UniDec: Pre-processing...')
+        # preprocess
+        try:
+            self.config.unidec_engine.process_data()
+        except IndexError:
+            self.on_run_unidec(dataset, task='load_data_unidec')
+            self.presenter.onThreading(
+                None,
+                ('No data was loaded. Trying to load it automatically', 4),
+                action='updateStatusbar',
+            )
+            return
+        except ValueError:
+            msg = "Interpolation range is above the 'true' data range." + \
+                  'Consider reducing interpolation range to cover the span of the mass spectrum'
+            self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
+            DialogBox(
+                exceptionTitle='Error',
+                exceptionMsg=msg,
+                type='Error',
+            )
+            return
+        logger.info('UniDec: Finished pre-processing...')
+
+    def _unidec_run(self):
+        logger.info('UniDec: Deconvoluting...')
+
+        if self.config.unidec_peakWidth_auto:
+            self.config.unidec_engine.get_auto_peak_width()
+        else:
+            self.config.unidec_engine.config.mzsig = self.config.unidec_peakWidth
+
+        try:
+            self.config.unidec_engine.run_unidec()
+            self.config.unidec_peakWidth = self.config.unidec_engine.config.mzsig
+        except IndexError:
+            DialogBox(
+                exceptionTitle='Error',
+                exceptionMsg='Load and pre-process data first',
+                type='Error',
+            )
+            return
+        except ValueError:
+            self.presenter.onThreading(None, ('Could not perform task', 4), action='updateStatusbar')
+            return
+        logger.info('UniDec: Finished deconvoluting...')
+
+    def _unidec_find_peaks(self):
+        logger.info('UniDec: Picking peaks...')
+
+        try:
+            self.config.unidec_engine.pick_peaks()
+        except (ValueError, ZeroDivisionError) as e:
+            print(e)
+            msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'. " + \
+                  "This value should be >= 'Sample frequency (Da)'"
+            self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
+            DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+            return
+        except IndexError as e:
+            print(e)
+            DialogBox(
+                exceptionTitle='Error',
+                exceptionMsg="Index error. Try reducing value of 'Sample frequency (Da)'",
+                type='Error',
+            )
+            return
+
+        try:
+            self.config.unidec_engine.convolve_peaks()
+        except OverflowError:
+            msg = \
+                "Too many peaks! Try again with larger 'Peak detection threshold' or 'Peak detection window (Da).'"
+            self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
+            DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+            return
+        logger.info('UniDec: Finished picking peaks...')
+
+    def _unidec_isolate(self):
+        logger.info('UniDec: Isolating MW...')
+        self.presenter.onThreading(None, ('UniDec: ', 4, 1), action='updateStatusbar')
+        try:
+            self.config.unidec_engine.pick_peaks()
+        except (ValueError, ZeroDivisionError):
+            msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'" + \
+                  "to be same or larger than 'Sample frequency (Da)'."
+            self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
+            DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+            return
+        except IndexError:
+            DialogBox(
+                exceptionTitle='Error',
+                exceptionMsg='Please run UniDec first',
+                type='Error',
+            )
+            return
+        logger.info('UniDec: Finished isolating a single MW...')
+
+    def _unidec_autorun(self):
+        logger.info('UniDec: Started Autorun...')
+        self.config.unidec_engine.autorun()
+        self.config.unidec_engine.convolve_peaks()
+        logger.info('UniDec: Finished Autorun...')
+
+    def on_run_unidec(self, dataset, task):
+        """Runner function"""
+
+        # retrive dataset and document
         self.unidec_dataset = dataset
         data, __, document_title = self.get_unidec_data(data_type='document_all')
 
@@ -1188,6 +1310,7 @@ class data_processing():
             self.config.unidec_engine = unidec.UniDec()
             self.config.unidec_engine.config.UniDecPath = self.config.unidec_path
 
+        # check which tasks are carried out
         if task in ['auto_unidec', 'load_data_unidec', 'run_all_unidec']:
             msX = data['xvals']
             msY = data['yvals']
@@ -1195,6 +1318,7 @@ class data_processing():
             check_kwargs = {'mz_min': msX[0], 'mz_max': msX[-1]}
             self._check_unidec_input(**check_kwargs)
 
+        # setup parameters
         if task not in ['auto_unidec']:
             # set common parameters
             self.config.unidec_engine.config.numit = self.config.unidec_maxIterations
@@ -1228,157 +1352,42 @@ class data_processing():
             self.config.unidec_engine.config.peakthresh = self.config.unidec_peakDetectionThreshold
             self.config.unidec_engine.config.separation = self.config.unidec_lineSeparation
 
+#         kwargs = dict(document_title=document_title,
+#                       dataset=dataset,
+#                       msX=msX,
+#                       msY=msY)
+
         # load data
         if task in ['auto_unidec', 'load_data_unidec', 'run_all_unidec']:
-            self.presenter.onThreading(None, ('UniDec: Loading data...', 4, 1), action='updateStatusbar')
-#             # reshape spectra
-#             msX = data['xvals']
-#             msY = data['yvals']
+            self._unidec_initilize(document_title, dataset, msX, msY)
 
-            file_name = ''.join([document_title, '_', dataset])
-            file_name = clean_filename(file_name)
-            folder = self.config.temporary_data
-            kwargs = {'clean': True}
-            self.config.unidec_engine.open_file(
-                file_name=file_name,
-                file_directory=folder,
-                data_in=np.transpose([msX, msY]),
-                **kwargs
-            )
-
-            self.presenter.onThreading(None, ('UniDec: Finished loading data...', 4, 1), action='updateStatusbar')
         # pre-process
         if task in ['run_all_unidec', 'preprocess_unidec']:
-            self.presenter.onThreading(None, ('UniDec: Pre-processing...', 4, 3), action='updateStatusbar')
-            # preprocess
-            try:
-                self.config.unidec_engine.process_data()
-            except IndexError:
-                self.on_run_unidec(dataset, task='load_data_unidec')
-                self.presenter.onThreading(
-                    None,
-                    ('No data was loaded. Trying to load it automatically', 4),
-                    action='updateStatusbar',
-                )
-                return
-            except ValueError:
-                msg = "Interpolation range is above the 'true' data range." + \
-                      'Consider reducing interpolation range to cover the span of the mass spectrum'
-                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-                DialogBox(
-                    exceptionTitle='Error',
-                    exceptionMsg=msg,
-                    type='Error',
-                )
-                return
-            self.presenter.onThreading(None, ('UniDec: Finished pre-processing...', 4, 2), action='updateStatusbar')
+            self._unidec_preprocess(dataset)
 
         # deconvolute
         if task in ['run_all_unidec', 'run_unidec']:
-            self.presenter.onThreading(None, ('UniDec: Deconvoluting...', 4, 5), action='updateStatusbar')
-
-            if self.config.unidec_peakWidth_auto:
-                self.config.unidec_engine.get_auto_peak_width()
-            else:
-                self.config.unidec_engine.config.mzsig = self.config.unidec_peakWidth
-
-            try:
-                self.config.unidec_engine.run_unidec()
-                self.config.unidec_peakWidth = self.config.unidec_engine.config.mzsig
-            except IndexError:
-                DialogBox(
-                    exceptionTitle='Error',
-                    exceptionMsg='Load and pre-process data first',
-                    type='Error',
-                )
-                return
-            except ValueError:
-                self.presenter.onThreading(None, ('Could not perform task', 4), action='updateStatusbar')
-                return
-            self.presenter.onThreading(None, ('UniDec: Finished deconvoluting...', 4, 2), action='updateStatusbar')
+            self._unidec_run()
 
         # find peaks
         if task in ['run_all_unidec', 'pick_peaks_unidec']:
-            self.presenter.onThreading(None, ('UniDec: Picking peaks...', 4, 5), action='updateStatusbar')
-
-            try:
-                self.config.unidec_engine.pick_peaks()
-            except (ValueError, ZeroDivisionError) as e:
-                print(e)
-                msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'. " + \
-                      "This value should be >= 'Sample frequency (Da)'"
-                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-                DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
-                return
-            except IndexError as e:
-                print(e)
-                DialogBox(
-                    exceptionTitle='Error',
-                    exceptionMsg="Index error. Try reducing value of 'Sample frequency (Da)'",
-                    type='Error',
-                )
-                return
-
-            try:
-                self.config.unidec_engine.convolve_peaks()
-            except OverflowError:
-                msg = \
-                    "Too many peaks! Try again with larger 'Peak detection threshold' or 'Peak detection window (Da).'"
-                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-                DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
-                return
-            self.presenter.onThreading(None, ('UniDec: Finished picking peaks...', 4, 2), action='updateStatusbar')
+            self._unidec_find_peaks()
 
         # isolate peak
         if task in ['isolate_mw_unidec']:
-            self.presenter.onThreading(None, ('UniDec: Isolating MW...', 4, 1), action='updateStatusbar')
-            try:
-                self.config.unidec_engine.pick_peaks()
-            except (ValueError, ZeroDivisionError):
-                msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'" + \
-                      "to be same or larger than 'Sample frequency (Da)'."
-                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-                DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
-                return
-            except IndexError:
-                DialogBox(
-                    exceptionTitle='Error',
-                    exceptionMsg='Please run UniDec first',
-                    type='Error',
-                )
-                return
+            self._unidec_isolate()
 
-            self.presenter.onThreading(
-                None, ('UniDec: Finished isolating a single MW...', 4, 5), action='updateStatusbar',
-            )
-
+        # run auto
         if task in ['auto_unidec']:
-            self.presenter.onThreading(None, ('UniDec: Autorun...', 4, 1), action='updateStatusbar')
-            self.config.unidec_engine.autorun()
-            self.config.unidec_engine.convolve_peaks()
-            self.presenter.onThreading(None, ('UniDec: Finished autorun...', 4, 2), action='updateStatusbar')
+            self._unidec_autorun()
 
         # add data to document
         self.on_add_unidec(task, dataset, document_title=document_title)
 
     def on_add_unidec(self, task, dataset, document_title=None):
+        """Convenience function to add data to document"""
 
-        #         # export current MS to file
-        #         if 'MS' in self.document:
-        #             document_title = self.document['MS']
-        #         else:
-        #             document = self._on_get_document()
-        #             document_title = document.title
-
-        try:
-            document = self.presenter.documentsDict[document_title]
-        except KeyError:
-            DialogBox(
-                exceptionTitle='Error',
-                exceptionMsg='Please create or load a document first',
-                type='Error',
-            )
-            return
+        document = self.data_handling._on_get_document(document_title)
 
         # initilise data in the mass spectrum dictionary
         if dataset == 'Mass Spectrum':
@@ -1396,7 +1405,7 @@ class data_processing():
 
         # clear old data
         if task in ['auto_unidec', 'run_all_unidec', 'preprocess_unidec']:
-            data['unidec'] = {}
+            data['unidec'].clear()
 
         if task in ['auto_unidec', 'run_all_unidec', 'preprocess_unidec']:
             raw_data = {
@@ -1581,17 +1590,6 @@ class data_processing():
                 if document is None:
                     return
                 document_title = document.title
-
-            try:
-                document = self.presenter.documentsDict[document_title]
-            except KeyError:
-                if kwargs.get('notify_of_error', True):
-                    DialogBox(
-                        exceptionTitle='Error',
-                        exceptionMsg='Please create or load a document first',
-                        type='Error',
-                    )
-                return
 
             if self.unidec_dataset == 'Mass Spectrum':
                 data = document.massSpectrum

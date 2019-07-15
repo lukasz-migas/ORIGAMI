@@ -11,7 +11,7 @@ import numpy as np
 import seaborn as sns
 import wx
 from gui_elements.misc_dialogs import DialogBox
-from icons import IconContainer as icons
+from icons.icons import IconContainer
 from ids import ID_clearPlot_1D
 from ids import ID_clearPlot_1D_MS
 from ids import ID_clearPlot_2D
@@ -126,7 +126,7 @@ class panelPlot(wx.Panel):
         self.config = config
         self.view = parent
         self.presenter = presenter
-        self.icons = icons()
+        self.icons = IconContainer()
 
         self.currentPage = None
         # Extract size of screen
@@ -3339,7 +3339,7 @@ class panelPlot(wx.Panel):
     def on_plot_2D(
         self, zvals=None, xvals=None, yvals=None, xlabel=None,
         ylabel=None, cmap=None, cmapNorm=None, plotType=None,
-        override=True, replot=False, e=None, set_page=False,
+        override=True, replot=False, set_page=False,
     ):
 
         # change page
@@ -3351,9 +3351,6 @@ class panelPlot(wx.Panel):
             zvals, xvals, yvals, xlabel, ylabel = self.presenter._get_replot_data('2D')
             if zvals is None or xvals is None or yvals is None:
                 return
-
-        # Update values
-        # self.presenter.getXYlimits2D(xvals, yvals, zvals)
 
         # Check if cmap should be overwritten
         if self.config.useCurrentCmap:

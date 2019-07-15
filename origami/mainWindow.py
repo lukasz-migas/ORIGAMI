@@ -1261,9 +1261,9 @@ class MyFrame(wx.Frame):
         dlg.ShowModal()
 
     def on_customise_unidec_plot_parameters(self, evt):
-        from gui_elements.dialog_customise_unidec_visuals import dialog_customise_unidec_visuals
+        from gui_elements.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
 
-        dlg = dialog_customise_unidec_visuals(self, self.config, self.icons)
+        dlg = DialogCustomiseUniDecVisuals(self, self.config, self.icons)
         dlg.ShowModal()
 
     def on_add_blank_document_manual(self, evt):

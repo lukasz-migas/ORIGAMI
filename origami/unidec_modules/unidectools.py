@@ -2150,6 +2150,7 @@ def peaks_error_mean(pks, data, ztab, massdat, config):
         endindmass = nearest(massdat[:, 0], massdat[index, 0] + config.peakwindow)
         # plotmasses = massdat[startindmass:endindmass, 0]
         for z in range(0, len(ztab)):
+            print('charge', z)
             startind = startindmass + (z * length)
             endind = endindmass + (z * length)
             tmparr = data[startind:endind]

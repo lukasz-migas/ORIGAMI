@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import wx
-from icons import IconContainer as icons
+from icons.icons import IconContainer
 from styles import makeCheckbox
 from utils.check import check_value
 
@@ -19,7 +19,7 @@ class panelModifyManualFiles(wx.MiniFrame):
         self.parent = parent
         self.presenter = presenter
         self.config = config
-        self.icons = icons()
+        self.icons = IconContainer()
         self.importEvent = False
 
         self.itemInfo = kwargs

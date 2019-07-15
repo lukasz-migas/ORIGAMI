@@ -12,7 +12,7 @@ from utils.converters import str2num
 from visuals import mpl_plots
 
 
-class panelPeakWidthTool(wx.MiniFrame):
+class PanelPeakWidthTool(wx.MiniFrame):
     """
     """
 

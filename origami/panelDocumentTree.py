@@ -2156,13 +2156,10 @@ class documentsTree(wx.TreeCtrl):
             # Check what is the current label for this particular dataset
             try:
                 idX, idY = self.on_check_xylabels_2D()
-            except UnboundLocalError:
-                return
-            try:
                 xlabel_2D_menu.FindItemById(idX).Check(True)
                 ylabel_2D_menu.FindItemById(idY).Check(True)
-            except TypeError:
-                pass
+            except (UnboundLocalError, TypeError, KeyError):
+                logger.warning(f'Failed to setup x/y labels for `{self._document_type}` item`')
 
         # Change x-axis label (1D)
         xlabel_1D_menu = wx.Menu()
@@ -2173,13 +2170,12 @@ class documentsTree(wx.TreeCtrl):
         xlabel_1D_menu.AppendSeparator()
         xlabel_1D_menu.Append(ID_xlabel_1D_restore, 'Restore default', '')
 
-        if self._document_type == 'Drift time (1D)':
+        if self._document_type in ['Drift time (1D)', 'Drift time (1D, EIC)']:
             try:
                 idX = self.on_check_xlabels_1D()
-            except UnboundLocalError:
-                return
-
-            xlabel_1D_menu.FindItemById(idX).Check(True)
+                xlabel_1D_menu.FindItemById(idX).Check(True)
+            except (UnboundLocalError, TypeError, KeyError):
+                logger.warning(f'Failed to setup labels for `{self._document_type}` item`')
 
         # Change x-axis label (RT)
         xlabel_RT_menu = wx.Menu()
@@ -2196,13 +2192,9 @@ class documentsTree(wx.TreeCtrl):
         )):
             try:
                 idX = self.on_check_xlabels_RT()
-            except UnboundLocalError:
-                return
-
-            try:
                 xlabel_RT_menu.FindItemById(idX).Check(True)
-            except TypeError:
-                pass
+            except (UnboundLocalError, TypeError, KeyError):
+                logger.warning(f'Failed to setup labels for `{self._document_type}` item`')
 
         # change y-axis label (DT/MS)
         ylabel_DTMS_menu = wx.Menu()
@@ -2215,10 +2207,9 @@ class documentsTree(wx.TreeCtrl):
         if self._document_type == 'DT/MS':
             try:
                 idX = self.on_check_xlabels_DTMS()
-            except UnboundLocalError:
-                return
-
-            ylabel_DTMS_menu.FindItemById(idX).Check(True)
+                ylabel_DTMS_menu.FindItemById(idX).Check(True)
+            except (UnboundLocalError, TypeError, KeyError):
+                logger.warning(f'Failed to setup labels for `{self._document_type}` item`')
 
         action_menu = wx.Menu()
         action_menu.Append(ID_docTree_action_open_origami_ms, 'Setup ORIGAMI-MS parameters...')
@@ -2306,6 +2297,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
         self.Bind(wx.EVT_MENU, self.on_open_peak_picker, id=ID_docTree_action_open_peak_picker)
         self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
+        self.Bind(wx.EVT_MENU, self.on_open_UniDec, id=ID_docTree_UniDec)
 
         # Get label
         if self._item_leaf is not None:
@@ -2399,11 +2391,18 @@ class documentsTree(wx.TreeCtrl):
             bitmap=self.icons.iconsLib['chromatogram_16'],
         )
 
+        menu_action_rename_item = makeMenuItem(
+            parent=menu, id=ID_renameItem,
+            text='Rename\tF2',
+            bitmap=self.icons.iconsLib['rename_16'],
+        )
+
         menu_action_duplicate_annotations = makeMenuItem(
             parent=menu, id=ID_docTree_duplicate_annotations,
             text='Duplicate annotations...',
-            bitmap=self.icons.iconsLib['blank_16'],
+            bitmap=self.icons.iconsLib['duplicate_item_16'],
         )
+
         menu_action_process_ms = makeMenuItem(
             parent=menu, id=ID_docTree_processMS,
             text='Process...\tP',
@@ -2492,6 +2491,7 @@ class documentsTree(wx.TreeCtrl):
             bitmap=self.icons.iconsLib['file_png_16'],
         )
 
+        # INTERACTIVE DATASET ONLY
         if self._document_data.dataType == 'Type: Interactive':
             if self._document_type == 'Annotated data' and self._item_leaf != self._document_type:
                 if self._item_leaf == 'Annotations':
@@ -2514,12 +2514,11 @@ class documentsTree(wx.TreeCtrl):
                     or (self._document_type == 'Drift time (2D, EIC)' and self._item_leaf != self._document_type)
             ):
                 menu.AppendItem(menu_action_show_plot_2D)
-
                 menu.AppendItem(menu_action_show_plot_violin)
                 menu.AppendItem(menu_action_show_plot_waterfall)
                 menu.AppendItem(menu_action_process_2D)
                 menu.AppendSeparator()
-                menu.Append(ID_renameItem, 'Rename\tF2')
+                menu.AppendItem(menu_action_rename_item)
                 menu.AppendItem(menu_action_assign_charge)
                 menu.AppendMenu(wx.ID_ANY, 'Set X-axis label as...', xlabel_2D_menu)
                 menu.AppendMenu(wx.ID_ANY, 'Set Y-axis label as...', ylabel_2D_menu)
@@ -2610,7 +2609,7 @@ class documentsTree(wx.TreeCtrl):
                         menu.AppendSeparator()
                         menu.AppendItem(menu_action_add_spectrum_to_panel)
                         menu.Append(ID_duplicateItem, 'Duplicate item')
-                        menu.Append(ID_renameItem, 'Rename\tF2')
+                        menu.AppendItem(menu_action_rename_item)
                         menu.AppendSeparator()
                         menu.AppendItem(menu_action_save_spectrum_image_as)
                         menu.AppendItem(menu_action_save_data_as)
@@ -2662,7 +2661,7 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, 'Import data...', load_data_menu)
 
-        # all other files!
+        # ALL OTHER DATASETS
         elif (self._document_type in ['Mass Spectrum', 'Mass Spectrum (processed)', 'Mass Spectra']):
             if (
                 (self._document_type in ['Mass Spectrum', 'Mass Spectrum (processed)', 'Mass Spectra']) and
@@ -2761,7 +2760,7 @@ class documentsTree(wx.TreeCtrl):
                     menu.AppendSeparator()
                     menu.AppendItem(menu_action_add_spectrum_to_panel)
                     menu.Append(ID_duplicateItem, 'Duplicate item')
-                    menu.Append(ID_renameItem, 'Rename\tF2')
+                    menu.AppendItem(menu_action_rename_item)
                     menu.AppendSeparator()
                     menu.AppendItem(menu_action_save_spectrum_image_as)
                     menu.AppendItem(menu_action_save_data_as)
@@ -2806,7 +2805,10 @@ class documentsTree(wx.TreeCtrl):
             # Only if clicked on an item and not header
             if (
                 self._document_type in ['Drift time (2D)', 'Drift time (2D, processed)']
-                or (self._document_type == 'Drift time (2D, EIC)' and self._item_leaf != self._document_type)
+                or (
+                    self._document_type == 'Drift time (2D, EIC)'
+                    and self._item_leaf != self._document_type
+                )
                 or (
                     self._document_type == 'Drift time (2D, combined voltages, EIC)'
                     and self._item_leaf != self._document_type
@@ -2829,10 +2831,9 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendItem(menu_action_save_1D_data_as)
                 menu.AppendItem(menu_action_save_2D_data_as)
                 menu.AppendItem(menu_action_delete_item)
-                if itemType not in ['Drift time (2D)', 'Drift time (2D, processed)']:
+                if self._document_type not in ['Drift time (2D)', 'Drift time (2D, processed)']:
                     menu.PrependItem(menu_action_show_plot_as_mobiligram)
                     menu.PrependItem(menu_action_show_plot_as_chromatogram)
-                else:
                     menu.PrependItem(menu_action_show_highlights)
             # Only if clicked on a header
             else:
@@ -2878,22 +2879,22 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
                 menu.AppendSeparator()
-                menu.Append(ID_renameItem, 'Rename\tF2')
+                menu.AppendItem(menu_action_rename_item)
             # Only if on a header
             else:
                 menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
+
         # Drift time (1D) (batch)
         elif itemType in ['Drift time (1D, EIC, DT-IMS)', 'Drift time (1D, EIC)']:
             # Only if clicked on an item and not header
-            if (
-                self._item_leaf != 'Drift time (1D, EIC, DT-IMS)' and
-                itemType != 'Drift time (1D, EIC)'
-            ):
+            if (self._item_leaf != 'Drift time (1D, EIC, DT-IMS)' and itemType != 'Drift time (1D, EIC)'):
                 menu.AppendItem(menu_action_show_highlights)
-            if not self._item_leaf == 'Drift time (1D, EIC, DT-IMS)':
+
+            if self._item_leaf not in ['Drift time (1D, EIC)', 'Drift time (1D, EIC, DT-IMS)']:
                 menu.AppendItem(menu_action_show_plot_mobilogram)
                 menu.AppendSeparator()
+                menu.AppendMenu(wx.ID_ANY, 'Change x-axis to...', xlabel_1D_menu)
                 menu.AppendItem(menu_action_assign_charge)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_save_mobilogram_image_as)
@@ -2959,7 +2960,7 @@ class documentsTree(wx.TreeCtrl):
                     menu.AppendItem(menu_action_save_heatmap_image_as)
                 menu.AppendItem(menu_action_delete_item)
                 menu.AppendSeparator()
-                menu.Append(ID_renameItem, 'Rename\tF2')
+                menu.AppendItem(menu_action_rename_item)
             # Header only
             else:
                 menu.AppendSeparator()
@@ -2996,7 +2997,7 @@ class documentsTree(wx.TreeCtrl):
                     bitmap=self.icons.iconsLib['duplicate_16'],
                 ),
             )
-            menu.Append(ID_renameItem, 'Rename document\tF2')
+            menu.AppendItem(menu_action_rename_item)
             menu.AppendSeparator()
 
         menu.AppendMenu(wx.ID_ANY, 'Action...', action_menu)
@@ -3761,7 +3762,7 @@ class documentsTree(wx.TreeCtrl):
             document_title=document.title,
             dataset_name=dataset,
             disable_plot=True,
-            disable_process=True,
+            disable_process=False,
             process_all=True,
         )
 
@@ -6478,14 +6479,14 @@ class documentsTree(wx.TreeCtrl):
         self.panelUVPD.Show()
 
     def on_open_extract_DTMS(self, evt):
-        from gui_elements.panel_extractDTMS import panel_extractDTMS
-        self.panel_extractDTMS = panel_extractDTMS(
+        from gui_elements.panel_process_extract_DTMS import PanelProcessExtractDTMS
+        self.PanelProcessExtractDTMS = PanelProcessExtractDTMS(
             self.presenter.view,
             self.presenter,
             self.config,
             self.icons,
         )
-        self.panel_extractDTMS .Show()
+        self.PanelProcessExtractDTMS .Show()
 
     def on_open_peak_picker(self, evt, **kwargs):
         """Open peak picker"""
@@ -6522,6 +6523,25 @@ class documentsTree(wx.TreeCtrl):
             document_title=document.title,
         )
         self.PanelProcessExtractData.Show()
+
+    def on_open_UniDec(self, evt, **kwargs):
+        from widgets.panel_process_UniDec import PanelProcessUniDec
+
+        document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
+
+        # initilize data extraction panel
+        self.PanelProcessUniDec = PanelProcessUniDec(
+            self.presenter.view,
+            self.presenter,
+            self.config,
+            self.icons,
+            document=document,
+            mz_data=data,
+            dataset_name=dataset,
+            document_title=document.title,
+            **kwargs
+        )
+        self.PanelProcessUniDec.Show()
 
     def on_add_mzID_file(self, evt):
         document = self.data_handling._on_get_document()

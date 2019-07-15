@@ -201,10 +201,14 @@ class Dialog(wx.Dialog):
 class MiniFrame(wx.MiniFrame):
     """Proxy of MiniFrame"""
 
-    def __init__(self, parent, **kwargs):
+    def __init__(
+        self, parent,
+        style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP,
+        **kwargs
+    ):
         wx.MiniFrame.__init__(
             self, parent, -1, size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP,
+            style=style,
             **kwargs
         )
 

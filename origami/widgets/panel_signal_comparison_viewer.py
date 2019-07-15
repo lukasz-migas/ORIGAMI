@@ -35,7 +35,7 @@ class PanelSignalComparisonViewer(wx.MiniFrame):
     def __init__(self, parent, presenter, config, icons, **kwargs):
         wx.MiniFrame.__init__(
             self, parent, -1, 'Compare mass spectra...', size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER,
+            style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
 
         self.parent = parent

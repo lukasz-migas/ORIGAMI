@@ -18,7 +18,10 @@ class PanelProcessMassSpectrum(MiniFrame):
     """Mass spectrum processing panel"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
-        MiniFrame.__init__(self, parent, title='Process mass spectrum...')
+        MiniFrame.__init__(
+            self, parent, title='Process mass spectrum...',
+            style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER,
+        )
         self.view = parent
         self.presenter = presenter
         self.documentTree = self.view.panelDocuments.documents
@@ -59,8 +62,10 @@ class PanelProcessMassSpectrum(MiniFrame):
             click_dict = {76: 'linearize', 83: 'smooth', 67: 'crop', 66: 'baseline', 78: 'normalize'}
             self.on_click_on_setting(click_dict.get(key_code))
         elif key_code == 80 and not self.disable_plot and not self.disable_process:
+            logger.info('Processing data')
             self.on_plot(None)
         elif key_code == 65 and not self.disable_plot and not self.disable_process:
+            logger.info('Processing and adding data to document')
             self.on_add_to_document(None)
 
         if evt is not None:
@@ -247,14 +252,23 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         if not self.disable_plot:
-            self.plot_btn = wx.Button(panel, wx.ID_OK, 'Plot', size=(-1, 22))
+            self.plot_btn = wx.Button(panel, wx.ID_OK, 'Plot', size=(120, 22))
             self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
+
         if not self.disable_process:
-            self.add_to_document_btn = wx.Button(panel, wx.ID_OK, 'Add to document', size=(-1, 22))
+            self.add_to_document_btn = wx.Button(panel, wx.ID_OK, 'Add to document', size=(120, 22))
             self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(120, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
+
+        btn_grid = wx.GridBagSizer(2, 2)
+        n = 0
+        if not self.disable_plot:
+            btn_grid.Add(self.plot_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        if not self.disable_process:
+            btn_grid.Add(self.add_to_document_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -343,12 +357,11 @@ class PanelProcessMassSpectrum(MiniFrame):
         grid.Add(self.ms_process_normalize, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n += 1
-        if not self.disable_plot:
-            grid.Add(self.plot_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        if not self.disable_process:
-            grid.Add(self.add_to_document_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.cancel_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n = n + 1
+        grid.Add(
+            btn_grid, (n, 0), wx.GBSpan(1, 3),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)

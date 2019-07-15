@@ -24,7 +24,7 @@ from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
 from help_documentation import OrigamiHelp
-from icons import IconContainer as icons
+from icons.icons import IconContainer
 from ids import ID_addNewCalibrationDoc
 from ids import ID_addNewInteractiveDoc
 from ids import ID_addNewManualDoc
@@ -110,7 +110,7 @@ class ORIGAMI(object):
 
     def init(self, *args, **kwargs):
         self.config = config()
-        self.icons = icons()
+        self.icons = IconContainer()
         self.docs = documents()
         self.help = OrigamiHelp()
 

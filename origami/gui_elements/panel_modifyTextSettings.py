@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import wx
-from icons import IconContainer as icons
+from icons.icons import IconContainer
 from styles import makeCheckbox
 from styles import validator
 from utils.converters import num2str

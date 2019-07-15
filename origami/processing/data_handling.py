@@ -89,7 +89,7 @@ class data_handling():
         pub.subscribe(self.extract_from_plot_1D, 'extract_from_plot_1D')
         pub.subscribe(self.extract_from_plot_2D, 'extract_from_plot_2D')
 
-    def on_threading(self, action, args):
+    def on_threading(self, action, args, **kwargs):
         """
         Execute action using new thread
         args: list/dict
@@ -118,9 +118,10 @@ class data_handling():
             th = threading.Thread(target=self.on_save_document, args=args)
         elif action == 'save.all.document':
             th = threading.Thread(target=self.on_save_all_documents, args=args)
-
         elif action == 'load.document':
             th = threading.Thread(target=self.on_open_document, args=args)
+        elif action == 'extract.data.user':
+            th = threading.Thread(target=self.on_extract_data_from_user_input, args=args, **kwargs)
 
         # Start thread
         try:
@@ -440,6 +441,12 @@ class data_handling():
             dt_end = dt_range[1]
 
         return mz_start, mz_end, rt_start, rt_end, dt_start, dt_end
+
+    def on_extract_data_from_user_input_fcn(self, document_title=None, **kwargs):
+        if not self.config.threading:
+            self.on_extract_data_from_user_input(document_title, **kwargs)
+        else:
+            self.on_threading(action='extract.data.user', args=(document_title,), kwargs=kwargs)
 
     def on_extract_data_from_user_input(self, document_title=None, **kwargs):
         """Extract MS/RT/DT/2DT data based on user input"""

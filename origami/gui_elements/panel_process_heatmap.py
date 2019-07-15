@@ -18,7 +18,10 @@ class PanelProcessHeatmap(MiniFrame):
     """Heatmap processing panel"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
-        MiniFrame.__init__(self, parent, title='Process heatmap...')
+        MiniFrame.__init__(
+            self, parent, title='Process heatmap...',
+            style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER,
+        )
         self.view = parent
         self.presenter = presenter
         self.documentTree = self.view.panelDocuments.documents
@@ -234,15 +237,23 @@ class PanelProcessHeatmap(MiniFrame):
         self.plot2D_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         if not self.disable_plot:
-            self.plot_btn = wx.Button(panel, wx.ID_OK, 'Plot', size=(-1, 22))
+            self.plot_btn = wx.Button(panel, wx.ID_OK, 'Plot', size=(120, 22))
             self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
 
         if not self.disable_process:
-            self.add_to_document_btn = wx.Button(panel, wx.ID_OK, 'Add to document', size=(-1, 22))
+            self.add_to_document_btn = wx.Button(panel, wx.ID_OK, 'Add to document', size=(120, 22))
             self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(120, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
+
+        btn_grid = wx.GridBagSizer(2, 2)
+        n = 0
+        if not self.disable_plot:
+            btn_grid.Add(self.plot_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        if not self.disable_process:
+            btn_grid.Add(self.add_to_document_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -337,12 +348,11 @@ class PanelProcessHeatmap(MiniFrame):
         )
         n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n += 1
-        if not self.disable_plot:
-            grid.Add(self.plot_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        if not self.disable_process:
-            grid.Add(self.add_to_document_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.cancel_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n = n + 1
+        grid.Add(
+            btn_grid, (n, 0), wx.GBSpan(1, 3),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -379,7 +389,13 @@ class PanelProcessHeatmap(MiniFrame):
         yvals = copy.deepcopy(self.data['yvals'])
         zvals = copy.deepcopy(self.data['zvals'])
         xvals, yvals, zvals = self.data_processing.on_process_2D(xvals, yvals, zvals, return_data=True)
-        self.panel_plot.on_plot_2D(zvals, xvals, yvals, self.data['xlabels'], self.data['ylabels'], override=False)
+        if 'DT/MS' in self.dataset_type:
+            self.panel_plot.on_plot_MSDT(
+                zvals, xvals, yvals, self.data['xlabels'], self.data['ylabels'],
+                override=True,
+            )
+        else:
+            self.panel_plot.on_plot_2D(zvals, xvals, yvals, self.data['xlabels'], self.data['ylabels'], override=False)
 
     def on_add_to_document(self, evt):
         if self.process_all:

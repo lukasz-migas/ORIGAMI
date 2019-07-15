@@ -3,10 +3,10 @@
 import logging
 
 import wx
+from styles import make_spin_ctrl
 from styles import makeCheckbox
 from styles import MiniFrame
 from styles import validator
-from styles import make_spin_ctrl
 from utils.converters import str2num
 logger = logging.getLogger('origami')
 
@@ -17,7 +17,10 @@ class PanelProcessExtractData(MiniFrame):
     """Extract data"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
-        MiniFrame.__init__(self, parent, title='Extract data...')
+        MiniFrame.__init__(
+            self, parent, title='Extract data...',
+            style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER,
+        )
         self.view = parent
         self.presenter = presenter
         self.documentTree = self.view.panelDocuments.documents
@@ -40,7 +43,7 @@ class PanelProcessExtractData(MiniFrame):
             try:
                 self.extraction_ranges = self.data_handling._get_waters_extraction_ranges(self.document)
             except (TypeError, ValueError, IndexError):
-                logger.warning("Could not determine extraction ranges")
+                logger.warning('Could not determine extraction ranges')
 
         self.disable_plot = kwargs.get('disable_plot', False)
         self.disable_process = kwargs.get('disable_process', False)
@@ -67,13 +70,12 @@ class PanelProcessExtractData(MiniFrame):
         key_code = evt.GetKeyCode()
         if key_code == wx.WXK_ESCAPE:  # key = esc
             self.on_close(None)
-#         elif key_code in [66, 67, 73, 78, 83]:
-#             click_dict = {73: 'interpolate', 83: 'smooth', 67: 'crop', 66: 'baseline', 78: 'normalize'}
-#             self.on_click_on_setting(click_dict.get(key_code))
-#         elif key_code == 80 and not self.disable_plot and not self.disable_process:
-#             self.on_plot(None)
-#         elif key_code == 65 and not self.disable_plot and not self.disable_process:
-#             self.on_add_to_document(None)
+        elif key_code == 69:
+            logger.info('Extracting data')
+            self.on_extract(None)
+        elif key_code == 65:
+            logger.info('Extracting and adding data to document')
+            self.on_add_to_document(None)
 
         if evt is not None:
             evt.Skip()
@@ -101,24 +103,29 @@ class PanelProcessExtractData(MiniFrame):
         self.document_info_text = wx.StaticText(panel, -1, '')
 
         extraction_info_text = wx.StaticText(panel, -1, 'Extraction \nranges:')
-        self.extraction_info_text = wx.StaticText(panel, -1, '\n\n')
+        self.extraction_info_text = wx.StaticText(panel, -1, '\n\n\n\n')
 
         start_label = wx.StaticText(panel, wx.ID_ANY, 'Min:')
         end_label = wx.StaticText(panel, wx.ID_ANY, 'Max:')
 
+        mass_range = self.extraction_ranges.get('mass_range', [0, 99999])
         self.mz_label = wx.StaticText(panel, wx.ID_ANY, 'm/z (Da):')
-        self.extract_mzStart_value = make_spin_ctrl(panel,
-                                                    self.config.extract_mzStart,
-                                                    self.extraction_ranges.get("mass_range", [0, 99999])[0],
-                                                    self.extraction_ranges.get("mass_range", [0, 99999])[1],
-                                                    100)
+        self.extract_mzStart_value = make_spin_ctrl(
+            panel,
+            self.config.extract_mzStart,
+            mass_range[0],
+            mass_range[1],
+            100,
+        )
         self.extract_mzStart_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.extract_mzEnd_value = make_spin_ctrl(panel,
-                                                    self.config.extract_mzEnd,
-                                                    self.extraction_ranges.get("mass_range", [0, 99999])[0],
-                                                    self.extraction_ranges.get("mass_range", [0, 99999])[1],
-                                                    100)
+        self.extract_mzEnd_value = make_spin_ctrl(
+            panel,
+            self.config.extract_mzEnd,
+            mass_range[0],
+            mass_range[1],
+            100,
+        )
         self.extract_mzEnd_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         self.rt_label = wx.StaticText(panel, wx.ID_ANY, 'RT (min): ')
@@ -137,6 +144,7 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_rtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.extract_rt_scans_check = makeCheckbox(panel, 'In scans')
+        self.extract_rt_scans_check.SetValue(self.config.extract_rt_use_scans)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -165,6 +173,7 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_dtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.extract_dt_ms_check = makeCheckbox(panel, 'In ms')
+        self.extract_dt_ms_check.SetValue(self.config.extract_dt_use_ms)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -252,6 +261,23 @@ class PanelProcessExtractData(MiniFrame):
             btn_grid.Add(self.add_to_document_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
         btn_grid.Add(self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
+        ms_grid = wx.GridBagSizer(2, 2)
+        ms_grid.Add(self.extract_extractMS_ms_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        ms_grid.Add(self.extract_extractMS_rt_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        ms_grid.Add(self.extract_extractMS_dt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+
+        rt_grid = wx.GridBagSizer(2, 2)
+        rt_grid.Add(self.extract_extractRT_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        rt_grid.Add(self.extract_extractRT_dt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+
+        dt_grid = wx.GridBagSizer(2, 2)
+        dt_grid.Add(self.extract_extractDT_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        dt_grid.Add(self.extract_extractDT_rt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+
+        heatmap_grid = wx.GridBagSizer(2, 2)
+        heatmap_grid.Add(self.extract_extract2D_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        heatmap_grid.Add(self.extract_extract2D_rt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -261,13 +287,16 @@ class PanelProcessExtractData(MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(document_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(
+            document_info_text, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND,
+        )
         grid.Add(self.document_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(extraction_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.extraction_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
+        grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
         grid.Add(start_label, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
         grid.Add(end_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
@@ -279,51 +308,45 @@ class PanelProcessExtractData(MiniFrame):
         grid.Add(self.rt_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.extract_rtStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.extract_rtEnd_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_rt_scans_check, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        grid.Add(scanTime_label, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.extract_scanTime_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(scanTime_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.extract_scanTime_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.extract_rt_scans_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
         grid.Add(self.dt_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.extract_dtStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.extract_dtEnd_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_dt_ms_check, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        grid.Add(pusherFreq_label, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.extract_pusherFreq_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(pusherFreq_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.extract_pusherFreq_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.extract_dt_ms_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.extract_extractMS_check, (n, 1), wx.GBSpan(1, 3), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(self.extract_extractMS_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(ms_grid, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
         n = n + 1
-        grid.Add(self.extract_extractMS_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_extractMS_rt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_extractMS_dt_check, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
+        grid.Add(self.extract_extractRT_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(rt_grid, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
         n = n + 1
-        grid.Add(self.extract_extractRT_check, (n, 1), wx.GBSpan(1, 3), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.extract_extractRT_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_extractRT_dt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.extract_extractDT_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(dt_grid, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
         n = n + 1
-        grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
+        grid.Add(horizontal_line_4, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.extract_extractDT_check, (n, 1), wx.GBSpan(1, 3), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(self.extract_extract2D_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(heatmap_grid, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
         n = n + 1
-        grid.Add(self.extract_extractDT_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_extractDT_rt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(horizontal_line_4, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(self.extract_extract2D_check, (n, 1), wx.GBSpan(1, 3), flag=wx.ALIGN_LEFT | wx.EXPAND)
-        n = n + 1
-        grid.Add(self.extract_extract2D_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_extract2D_rt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
-        grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 4), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(
+            btn_grid, (n, 0), wx.GBSpan(1, 3),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+        )
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -348,38 +371,36 @@ class PanelProcessExtractData(MiniFrame):
         if not kwargs:
             kwargs = self.extraction_ranges
 
-        mass_range = kwargs.get("mass_range", ["N/A", "N/A"])
-        xvals_RT_mins = kwargs.get("xvals_RT_mins", ["N/A", "N/A"])
-        xvals_RT_scans = kwargs.get("xvals_RT_scans", ["N/A", "N/A"])
-        xvals_DT_ms = kwargs.get("xvals_DT_ms", ["N/A", "N/A"])
-        xvals_DT_bins = kwargs.get("xvals_DT_bins", ["N/A", "N/A"])
+        mass_range = kwargs.get('mass_range', ['N/A', 'N/A'])
+        xvals_RT_mins = kwargs.get('xvals_RT_mins', ['N/A', 'N/A'])
+        xvals_RT_scans = kwargs.get('xvals_RT_scans', ['N/A', 'N/A'])
+        xvals_DT_ms = kwargs.get('xvals_DT_ms', ['N/A', 'N/A'])
+        xvals_DT_bins = kwargs.get('xvals_DT_bins', ['N/A', 'N/A'])
 
         try:
             info = \
-                f"m/z (Da): {mass_range[0]:.2f}-{mass_range[1]:.2f}\n" + \
-                f"RT (scans): {xvals_RT_scans[0]:d}-{xvals_RT_scans[1]:d} | " + \
-                f"RT (mins): {xvals_RT_mins[0]:.2f}-{xvals_RT_mins[1]:.2f}\n" + \
-                f"DT (bins): {xvals_DT_bins[0]:d}-{xvals_DT_bins[1]:d} | " + \
-                f"DT (ms): {xvals_DT_ms[0]:.2f}-{xvals_DT_ms[1]:.2f}"
+                f'm/z (Da): {mass_range[0]:.2f}-{mass_range[1]:.2f}\n' + \
+                f'RT (scans): {xvals_RT_scans[0]:d}-{xvals_RT_scans[1]:d} \n' + \
+                f'RT (mins): {xvals_RT_mins[0]:.2f}-{xvals_RT_mins[1]:.2f}\n' + \
+                f'DT (bins): {xvals_DT_bins[0]:d}-{xvals_DT_bins[1]:d} \n' + \
+                f'DT (ms): {xvals_DT_ms[0]:.2f}-{xvals_DT_ms[1]:.2f}'
         except ValueError:
-            info = "N/A"
+            info = 'N/A'
         self.extraction_info_text.SetLabel(info)
         self.Layout()
 
-    def on_extract(self, evt):
+    def on_extract(self, evt, **kwargs):
         """Extract data without adding it to the document"""
-
-        self.data_handling.on_extract_data_from_user_input(
-            self.document_title,
-            scan_time=str2num(self.extract_scanTime_value.GetValue()),
-            pusher_frequency=str2num(self.extract_pusherFreq_value.GetValue()))
-
-    def on_add_to_document(self, evt):
-        self.data_handling.on_extract_data_from_user_input(
+        self.on_check_user_input()
+        self.data_handling.on_extract_data_from_user_input_fcn(
             self.document_title,
             scan_time=str2num(self.extract_scanTime_value.GetValue()),
             pusher_frequency=str2num(self.extract_pusherFreq_value.GetValue()),
-            add_to_document=True)
+            **kwargs
+        )
+
+    def on_add_to_document(self, evt):
+        self.on_extract(None, add_to_document=True)
 
     def on_toggle_controls(self, evt):
         self.config.extract_massSpectra = self.extract_extractMS_check.GetValue()
@@ -436,26 +457,6 @@ class PanelProcessExtractData(MiniFrame):
         if evt is not None:
             evt.Skip()
 
-    def on_click_on_setting(self, setting):
-        """Change setting value based on keyboard event"""
-#         if setting == 'interpolate':
-#             self.config.plot2D_process_interpolate = not self.config.plot2D_process_interpolate
-#             self.plot2D_process_interpolate.SetValue(self.config.plot2D_process_interpolate)
-#         elif setting == 'smooth':
-#             self.config.plot2D_process_smooth = not self.config.plot2D_process_smooth
-#             self.plot2D_process_smooth.SetValue(self.config.plot2D_process_smooth)
-#         elif setting == 'crop':
-#             self.config.plot2D_process_crop = not self.config.plot2D_process_crop
-#             self.plot2D_process_crop.SetValue(self.config.plot2D_process_crop)
-#         elif setting == 'baseline':
-#             self.config.plot2D_process_threshold = not self.config.plot2D_process_threshold
-#             self.plot2D_process_threshold.SetValue(self.config.plot2D_process_threshold)
-#         elif setting == 'normalize':
-#             self.config.plot2D_normalize = not self.config.plot2D_normalize
-#             self.plot2D_process_normalize.SetValue(self.config.plot2D_normalize)
-
-        self.on_toggle_controls(None)
-
     def on_change_validator(self, evt):
 
         self.config.extract_rt_use_scans = self.extract_rt_scans_check.GetValue()
@@ -486,3 +487,52 @@ class PanelProcessExtractData(MiniFrame):
 
         if evt is not None:
             evt.Skip()
+
+    def on_check_user_input(self):
+        if self.extraction_ranges:
+            # check mass range
+            mass_range = self.extraction_ranges.get('mass_range')
+            if self.config.extract_mzStart < mass_range[0]:
+                self.config.extract_mzStart = mass_range[0]
+                self.extract_mzStart_value.SetValue(f'{self.config.extract_mzStart}')
+            if self.config.extract_mzEnd > mass_range[1]:
+                self.config.extract_mzEnd = mass_range[1]
+                self.extract_mzEnd_value.SetValue(f'{self.config.extract_mzEnd}')
+
+            # check chromatographic range
+            if self.config.extract_rt_use_scans:
+                rt_range = self.extraction_ranges.get('xvals_RT_scans')
+            else:
+                rt_range = self.extraction_ranges.get('xvals_RT_mins')
+
+            if self.config.extract_rtStart < rt_range[0]:
+                self.config.extract_rtStart = rt_range[0]
+                self.extract_rtStart_value.SetValue(f'{self.config.extract_rtStart}')
+            if self.config.extract_rtStart > rt_range[1]:
+                self.config.extract_rtStart = rt_range[1]
+                self.extract_rtStart_value.SetValue(f'{self.config.extract_rtStart}')
+            if self.config.extract_rtEnd < rt_range[0]:
+                self.config.extract_rtEnd = rt_range[0]
+                self.extract_rtEnd_value.SetValue(f'{self.config.extract_rtEnd}')
+            if self.config.extract_rtEnd > rt_range[1]:
+                self.config.extract_rtEnd = rt_range[1]
+                self.extract_rtEnd_value.SetValue(f'{self.config.extract_rtEnd}')
+
+            # check mobility range
+            if self.config.extract_dt_use_ms:
+                dt_range = self.extraction_ranges.get('xvals_DT_ms')
+            else:
+                dt_range = self.extraction_ranges.get('xvals_DT_bins')
+
+            if self.config.extract_dtStart < dt_range[0]:
+                self.config.extract_dtStart = dt_range[0]
+                self.extract_dtStart_value.SetValue(f'{self.config.extract_dtStart}')
+            if self.config.extract_dtStart > dt_range[1]:
+                self.config.extract_dtStart = dt_range[1]
+                self.extract_dtStart_value.SetValue(f'{self.config.extract_dtStart}')
+            if self.config.extract_dtEnd < dt_range[0]:
+                self.config.extract_dtEnd = dt_range[0]
+                self.extract_dtEnd_value.SetValue(f'{self.config.extract_dtEnd}')
+            if self.config.extract_dtEnd > dt_range[1]:
+                self.config.extract_dtEnd = dt_range[1]
+                self.extract_dtEnd_value.SetValue(f'{self.config.extract_dtEnd}')

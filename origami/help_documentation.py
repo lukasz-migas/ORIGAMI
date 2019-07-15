@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-from icons import IconContainer as icons
+from icons.icons import IconContainer
 
 
 class OrigamiHelp:
@@ -10,7 +10,7 @@ class OrigamiHelp:
         Initilize help
         """
         # load icons
-        self.icons = icons()
+        self.icons = IconContainer()
 
         self._tool_tip_help()
         self._super_tip_help()

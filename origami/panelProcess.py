@@ -8,7 +8,7 @@ from sys import platform
 
 import numpy as np
 import wx
-from gui_elements.dialog_customise_unidec_visuals import dialog_customise_unidec_visuals
+from gui_elements.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_htmlViewer import panelHTMLViewer
 from gui_elements.panel_peakWidthTool import panelPeakWidthTool
@@ -801,7 +801,7 @@ class panelProcessData(wx.MiniFrame):
         self.unidec_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
         self.unidec_info.Bind(wx.EVT_BUTTON, self.openHTMLViewer)
         self.unidec_peakTool.Bind(wx.EVT_BUTTON, self.openWidthTool)
-        self.unidec_customise_Btn.Bind(wx.EVT_BUTTON, self.onCustomiseUniDecParameters)
+        self.unidec_customise_Btn.Bind(wx.EVT_BUTTON, self.on_open_unidec_customisation_settings)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -1530,7 +1530,7 @@ class panelProcessData(wx.MiniFrame):
         self.unidec_weightList_choice.SetItems(mass_list)
         self.unidec_weightList_choice.SetStringSelection(mass_list[0])
 
-    def onCustomiseUniDecParameters(self, evt):
+    def on_open_unidec_customisation_settings(self, evt):
 
-        dlg = dialog_customise_unidec_visuals(self, self.config, self.icons)
+        dlg = DialogCustomiseUniDecVisuals(self, self.config, self.icons)
         dlg.ShowModal()

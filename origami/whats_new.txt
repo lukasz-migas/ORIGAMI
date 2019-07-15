@@ -84,6 +84,8 @@ Document tree:
 - [new] added option to 'Process all...' items in grouped items (e.g. Mass Spectra, Drift time (2D, EIC), etc). Selecting
     this option will open new window where you can specify your desired parameters  and click on 'Add to document' which
     will process each item and add it to the document.
+TODO: Add option to change x/y-axis for ALL items in specified branch
+TODO: Add option to change charge for AL items in specified branch
 
 Processing:
 - [changed] moved ORIGAMI-MS settings away from the processing window. Now, in order to setup FILE specific settings,
@@ -115,6 +117,9 @@ Processing:
 - [changed] moved the processing `Extract data` module away from the multi-page window into its own, individual frame
     which can be accessed by right-clicking anywhere on the document and selecting
     `Action -> Open data extraction panel...`
+- [improved] Extracting arbirary data from Waters files (using Driftscope) is a lot improved as I've removed whacky
+    controls that were causing all sorts of UI issues. Data extraction is also done in a multi-threaded manner, which
+    should speed things up
 
 Ion panel:
 - [fix] when assigning single color to multiple items and the action was cancelled, an error would occur

@@ -11,7 +11,7 @@ from utils.converters import str2num
 logger = logging.getLogger('origami')
 
 
-class panel_extractDTMS(MiniFrame):
+class PanelProcessExtractDTMS(MiniFrame):
     """
     Miniframe enabling extraction of DT/MS heatmap
     """
@@ -320,7 +320,7 @@ class panel_extractDTMS(MiniFrame):
             'ylabels': 'Drift time (bins)',
             'cmap': self.config.currentCmap,
         }
-        self.presenter.self.data_handling.on_update_document(document, 'document')
+        self.data_handling.on_update_document(document, 'document')
 
     def on_save(self, evt):
         if not self.on_check_data():
