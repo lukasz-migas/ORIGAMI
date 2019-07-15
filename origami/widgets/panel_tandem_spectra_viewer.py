@@ -26,7 +26,7 @@ from utils.converters import str2num
 logger = logging.getLogger('origami')
 
 
-class panelTandemSpectra(wx.MiniFrame):
+class PanelTandemSpectraViewer(wx.MiniFrame):
     """
     Simple GUI to visualise and edit features
     """

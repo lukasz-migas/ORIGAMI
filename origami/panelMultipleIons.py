@@ -1291,7 +1291,7 @@ class panelMultipleIons(wx.Panel):
                 return
             # Process data
             if evt.GetId() == ID_ionPanel_show_process_heatmap:
-                zvals = self.data_processing.on_process_2D(zvals=zvals, return_data=True)
+                xvals, yvals, zvals = self.data_processing.on_process_2D(xvals, yvals, zvals, return_data=True)
             # Plot data
             self.presenter.view.panelPlots.on_plot_2D(
                 zvals, xvals, yvals, xlabel, ylabel, cmap, override=True,

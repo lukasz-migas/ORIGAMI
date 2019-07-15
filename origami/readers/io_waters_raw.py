@@ -199,8 +199,6 @@ def driftscope_extract_DT(
     path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
     mz_start=0, mz_end=999999, driftscope_path=r'C:\DriftScope\lib', **kwargs
 ):
-    """
-    """
     # check if data should be extracted to data folder OR temporary folder
     if kwargs.get('use_temp_folder', True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder

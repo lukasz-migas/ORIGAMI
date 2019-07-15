@@ -27,7 +27,7 @@ from visuals import mpl_plots
 logger = logging.getLogger('origami')
 
 
-class panel_signal_comparison_viewer(wx.MiniFrame):
+class PanelSignalComparisonViewer(wx.MiniFrame):
     """
     Simple GUI to select mass spectra to compare
     """
@@ -736,4 +736,4 @@ class panel_signal_comparison_viewer(wx.MiniFrame):
         self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
 
     def on_open_process_MS_settings(self, evt):
-        self.document_tree.on_open_process_MS_settings(disable_plot_and_process=True)
+        self.document_tree.on_open_process_MS_settings(disable_plot=True, disable_process=True)

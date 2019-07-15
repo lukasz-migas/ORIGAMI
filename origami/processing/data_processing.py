@@ -11,6 +11,7 @@ import processing.peptide_annotation as pr_frag
 import processing.spectra as pr_spectra
 import processing.utils as pr_utils
 import unidec as unidec
+import utils.labels as ut_labels
 from document import document as documents
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
@@ -147,7 +148,7 @@ class data_processing():
             return zvals, xylabels, cmap
 
     def on_smooth_1D_and_add_data(self, evt):
-        self.docs = self._on_get_document()
+        self.docs = self.data_handling._on_get_document()
         if self.docs is None:
             return
 
@@ -221,7 +222,7 @@ class data_processing():
         """
         This function finds peaks from 1D array
         """
-        document = self._on_get_document()
+        document = self.data_handling._on_get_document()
 
         tstart = ttime()
         if document.dataType in ['Type: ORIGAMI', 'Type: MANUAL', 'Type: Infrared', 'Type: MassLynx', 'Type: MS']:
@@ -591,7 +592,7 @@ class data_processing():
                             annotations[name] = annotation_dict
 
                         self.set_document_annotations(annotations)
-#                         self.on_update_document(document)
+#                         self.data_handling.on_update_document(document)
 
                     # add found peaks to the table
                     if self.config.fit_addPeaks:
@@ -873,8 +874,7 @@ class data_processing():
             new_dataset = 'Mass Spectrum (processed)'
         else:
             # strip any processed string from the title
-            if '(processed)' in dataset:
-                dataset = dataset.split(' (')[0]
+            dataset = ut_labels.get_clean_label_without_tag(dataset, 'processed')
             new_dataset = f'{dataset} (processed)'
 
         # update dataset and document
@@ -998,7 +998,7 @@ class data_processing():
                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
 
     def on_process_2D_and_add_data(self, document_title, dataset_type, dataset_name):
-        document, data = self.data_handling.get_mobility_chromatographic_data(
+        __, data = self.data_handling.get_mobility_chromatographic_data(
             [document_title, dataset_type, dataset_name],
         )
 
@@ -1018,11 +1018,8 @@ class data_processing():
             new_dataset = None
         else:
             # strip any processed string from the title
-            if 'processed)' in dataset_name:
-                dataset = dataset_name.split(' processed)')[0]
+            dataset_name = ut_labels.get_clean_label_without_tag(dataset_name, 'processed')
             new_dataset = f'{dataset_name} (processed)'
-
-        print(document_title, dataset_type, dataset_name, new_dataset)
 
         # update dataset and document
         __ = self.data_handling.set_mobility_chromatographic_data([document_title, dataset_type, new_dataset], data)
@@ -1580,7 +1577,7 @@ class data_processing():
             if 'document_title' in kwargs:
                 document_title = kwargs['document_title']
             else:
-                document = self._on_get_document()
+                document = self.data_handling._on_get_document()
                 if document is None:
                     return
                 document_title = document.title
@@ -1610,7 +1607,7 @@ class data_processing():
             if 'document_title' in kwargs:
                 document_title = kwargs['document_title']
             else:
-                document = self._on_get_document()
+                document = self.data_handling._on_get_document()
                 document_title = document.title
 
             try:
@@ -1664,7 +1661,7 @@ class data_processing():
 
             itemInfo = self.ionPanel.OnGetItemInformation(itemID=ion_id)
             document_title = itemInfo['document']
-            document = self._on_get_document(document_title)
+            document = self.data_handling._on_get_document(document_title)
 
             # Check that this data was opened in ORIGAMI mode and has extracted data
             if document.dataType == 'Type: ORIGAMI' and document.gotExtractedIons:
@@ -1806,7 +1803,7 @@ class data_processing():
             }
 
             # Update document
-            self.on_update_document(document, 'combined_ions')
+            self.data_handling.on_update_document(document, 'combined_ions')
 
     def __combine_origami_linear(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage):
         if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage]):

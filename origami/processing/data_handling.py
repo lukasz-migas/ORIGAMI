@@ -176,14 +176,16 @@ class data_handling():
         else:
             return None, None
 
-    def _get_waters_api_reader(self, document):
+    @staticmethod
+    def _get_waters_api_reader(document):
         reader = document.file_reader.get('data_reader', None)
         if reader is None:
             reader = io_waters_raw_api.WatersRawReader(check_waters_path(document.path))
 
         return reader
 
-    def _get_waters_api_spectrum_data(self, reader, **kwargs):
+    @staticmethod
+    def _get_waters_api_spectrum_data(reader, **kwargs):
         fcn = 0
         if not hasattr(reader, 'mz_spacing'):
             __, __ = reader.generate_mz_interpolation_range(fcn)
@@ -199,8 +201,45 @@ class data_handling():
 
         return mz_x, mz_y
 
+    @staticmethod
+    def _check_driftscope_input(**kwargs):
+        """Check Driftscope input is correct"""
+        if 'dt_start' in kwargs:
+            if kwargs['dt_start'] < 0:
+                kwargs['dt_start'] = 0
+        if 'dt_end' in kwargs:
+            if kwargs['dt_end'] > 200:
+                kwargs['dt_end'] = 200
+
+        return kwargs
+
+    @staticmethod
+    def _get_waters_api_nearest_RT_in_minutes(reader, rt_start, rt_end):
+        xvals, __ = reader.get_TIC(0)
+        xvals = np.asarray(xvals)
+
+        rt_start = int(rt_start)
+        rt_end = int(rt_end)
+
+        if rt_start < 0:
+            rt_start = 0
+        if rt_end > xvals.shape[0]:
+            rt_end = xvals.shape[0] - 1
+        return xvals[rt_start], xvals[rt_end]
+
+    @staticmethod
+    def _get_waters_api_nearest_DT_in_bins(reader, dt_start, dt_end):
+        xvals, __ = reader.get_TIC(1)
+        xvals = np.asarray(xvals)
+
+        dt_start = find_nearest_index(xvals, dt_start)
+        dt_end = find_nearest_index(xvals, dt_end)
+
+        return dt_start, dt_end
+
     def _get_driftscope_spectrum_data(self, path, **kwargs):
         kwargs.update({'return_data': True})
+        kwargs = self._check_driftscope_input(**kwargs)
         ms_x, ms_y = io_waters.driftscope_extract_MS(
             path=path, driftscope_path=self.config.driftscopePath, **kwargs
         )
@@ -209,6 +248,7 @@ class data_handling():
 
     def _get_driftscope_chromatography_data(self, path, **kwargs):
         kwargs.update({'return_data': True, 'normalize': True})
+        kwargs = self._check_driftscope_input(**kwargs)
         xvals_RT, yvals_RT, yvals_RT_norm = io_waters.driftscope_extract_RT(
             path=path, driftscope_path=self.config.driftscopePath, **kwargs
         )
@@ -217,6 +257,7 @@ class data_handling():
 
     def _get_driftscope_mobiligram_data(self, path, **kwargs):
         kwargs.update({'return_data': True})
+        kwargs = self._check_driftscope_input(**kwargs)
         xvals_DT, yvals_DT = io_waters.driftscope_extract_DT(
             path=path, driftscope_path=self.config.driftscopePath, **kwargs
         )
@@ -225,6 +266,7 @@ class data_handling():
 
     def _get_driftscope_mobility_data(self, path, **kwargs):
         kwargs.update({'return_data': True})
+        kwargs = self._check_driftscope_input(**kwargs)
         zvals = io_waters.driftscope_extract_2D(
             path=path, driftscope_path=self.config.driftscopePath, **kwargs
         )
@@ -337,6 +379,217 @@ class data_handling():
         document.userParameters['date'] = getTime()
 
         return document
+
+    def _get_waters_extraction_ranges(self, document):
+        """Retrieve extraction ranges for specified file
+
+        Parameters
+        ----------
+        document : document instance
+
+        Returns
+        -------
+        extraction_ranges : dict
+            dictionary with all extraction ranges including m/z, RT and DT
+        """
+        reader = self._get_waters_api_reader(document)
+        mass_range = reader.stats_in_functions.get(0, 1)['mass_range']
+
+        xvals_RT_mins, __ = reader.get_TIC(0)
+        xvals_RT_scans = np.arange(0, len(xvals_RT_mins))
+
+        xvals_DT_ms, __ = reader.get_TIC(1)
+        xvals_DT_bins = np.arange(0, len(xvals_DT_ms))
+
+        extraction_ranges = dict(
+            mass_range=get_min_max(mass_range),
+            xvals_RT_mins=get_min_max(xvals_RT_mins),
+            xvals_RT_scans=get_min_max(xvals_RT_scans),
+            xvals_DT_ms=get_min_max(xvals_DT_ms),
+            xvals_DT_bins=get_min_max(xvals_DT_bins),
+        )
+
+        return extraction_ranges
+
+    def _check_waters_input(self, reader, mz_start, mz_end, rt_start, rt_end, dt_start, dt_end):
+        """Check input for waters files"""
+        # check mass range
+        mass_range = reader.stats_in_functions.get(0, 1)['mass_range']
+        if mz_start < mass_range[0]:
+            mz_start = mass_range[0]
+        if mz_end > mass_range[1]:
+            mz_end = mass_range[1]
+
+        # check chromatographic range
+        xvals, __ = reader.get_TIC(0)
+        rt_range = get_min_max(xvals)
+        if rt_start < rt_range[0]:
+            rt_start = rt_range[0]
+        if rt_start > rt_range[1]:
+            rt_start = rt_range[1]
+        if rt_end > rt_range[1]:
+            rt_end = rt_range[1]
+
+        # check mobility range
+        dt_range = [0, 199]
+        if dt_start < dt_range[0]:
+            dt_start = dt_range[0]
+        if dt_start > dt_range[1]:
+            dt_start = dt_range[1]
+        if dt_end > dt_range[1]:
+            dt_end = dt_range[1]
+
+        return mz_start, mz_end, rt_start, rt_end, dt_start, dt_end
+
+    def on_extract_data_from_user_input(self, document_title=None, **kwargs):
+        """Extract MS/RT/DT/2DT data based on user input"""
+        # TODO: This function should check against xvals_mins / xvals_ms to get accurate times
+        document = self._on_get_document(document_title)
+        try:
+            reader = self._get_waters_api_reader(document)
+        except (AttributeError, ValueError, TypeError):
+            reader = None
+
+        # check if data should be added to document
+        add_to_document = kwargs.pop('add_to_document', False)
+
+        # get m/z limits
+        mz_start = self.config.extract_mzStart
+        mz_end = self.config.extract_mzEnd
+        mz_start, mz_end = check_value_order(mz_start, mz_end)
+
+        # get RT limits
+        rt_start = self.config.extract_rtStart
+        rt_end = self.config.extract_rtEnd
+        rt_start, rt_end = check_value_order(rt_start, rt_end)
+
+        # get DT limits
+        dt_start = self.config.extract_dtStart
+        dt_end = self.config.extract_dtEnd
+        dt_start, dt_end = check_value_order(dt_start, dt_end)
+
+        # convert scans to minutes
+        if self.config.extract_rt_use_scans:
+            if reader is not None:
+                rt_start, rt_end = self._get_waters_api_nearest_RT_in_minutes(
+                    reader, rt_start, rt_end,
+                )
+            else:
+                scan_time = kwargs.pop('scan_time', document.parameters['scanTime'])
+                rt_start = ((rt_start + 1) * scan_time) / 60
+                rt_end = ((rt_end + 1) * scan_time) / 60
+
+        # convert ms to drift bins
+        if self.config.extract_dt_use_ms:
+            if reader is not None:
+                dt_start, dt_end = self._get_waters_api_nearest_DT_in_bins(
+                    reader, dt_start, dt_end,
+                )
+            else:
+                pusher_frequency = kwargs.pop('pusher_frequency', document.parameters['pusherFreq'])
+                dt_start = int(dt_start / (pusher_frequency * 0.001))
+                dt_end = int(dt_end / (pusher_frequency * 0.001))
+
+        # check input
+        if reader is not None:
+            mz_start, mz_end, rt_start, rt_end, dt_start, dt_end = \
+                self._check_waters_input(reader, mz_start, mz_end, rt_start, rt_end, dt_start, dt_end)
+
+        # extract mass spectrum
+        if self.config.extract_massSpectra:
+            mz_kwargs = dict()
+            spectrum_name = ''
+            if self.config.extract_massSpectra_use_mz:
+                mz_kwargs.update(mz_start=mz_start, mz_end=mz_end)
+                spectrum_name += f'ion={mz_start:.2f}-{mz_end:.2f}'
+            if self.config.extract_massSpectra_use_rt:
+                mz_kwargs.update(rt_start=rt_start, rt_end=rt_end)
+                spectrum_name += f' rt={rt_start:.2f}-{rt_end:.2f}'
+            if self.config.extract_massSpectra_use_dt:
+                mz_kwargs.update(dt_start=dt_start, dt_end=dt_end)
+                spectrum_name += f' dt={int(dt_start)}-{int(dt_end)}'
+            spectrum_name = spectrum_name.lstrip()
+            if mz_kwargs:
+                mz_x, mz_y = self._get_driftscope_spectrum_data(document.path, **mz_kwargs)
+                self.plotsPanel.on_plot_MS(mz_x, mz_y)
+                if add_to_document:
+                    data = {
+                        'xvals': mz_x, 'yvals': mz_y, 'xlabels': 'm/z (Da)', 'xlimits': get_min_max(mz_x),
+                    }
+                    self.documentTree.on_update_data(data, spectrum_name, document, data_type='extracted.spectrum')
+
+        # extract chromatogram
+        if self.config.extract_chromatograms:
+            rt_kwargs = dict()
+            chrom_name = ''
+            if self.config.extract_chromatograms_use_mz:
+                rt_kwargs.update(mz_start=mz_start, mz_end=mz_end)
+                chrom_name += f'ion={mz_start:.2f}-{mz_end:.2f}'
+            if self.config.extract_chromatograms_use_dt:
+                rt_kwargs.update(dt_start=dt_start, dt_end=dt_end)
+                chrom_name += f' rt={rt_start:.2f}-{rt_end:.2f}'
+            if rt_kwargs:
+                xvals_RT, yvals_RT, __ = self._get_driftscope_chromatography_data(document.path, **rt_kwargs)
+                self.plotsPanel.on_plot_RT(xvals_RT, yvals_RT, 'Scans')
+                if add_to_document:
+                    data = {
+                        'xvals': xvals_RT, 'yvals': yvals_RT, 'xlabels': 'Scans',
+                        'ylabels': 'Intensity', 'xlimits': get_min_max(xvals_RT),
+                    }
+                    self.documentTree.on_update_data(data, chrom_name, document, data_type='extracted.chromatogram')
+
+        # extract mobilogram
+        if self.config.extract_driftTime1D:
+            dt_kwargs = dict()
+            dt_name = ''
+            if self.config.extract_driftTime1D_use_mz:
+                dt_kwargs.update(mz_start=mz_start, mz_end=mz_end)
+                dt_name += f'ion={mz_start:.2f}-{mz_end:.2f}'
+            if self.config.extract_driftTime1D_use_rt:
+                dt_kwargs.update(rt_start=rt_start, rt_end=rt_end)
+                dt_name += f' rt={rt_start:.2f}-{rt_end:.2f}'
+
+            if dt_kwargs:
+                xvals_DT, yvals_DT = self._get_driftscope_mobiligram_data(document.path, **dt_kwargs)
+                self.plotsPanel.on_plot_1D(xvals_DT, yvals_DT, 'Drift time (bins)')
+                if add_to_document:
+                    data = {
+                        'xvals': xvals_DT, 'yvals': yvals_DT, 'xlabels': 'Drift time (bins)',
+                        'ylabels': 'Intensity', 'xlimits': get_min_max(xvals_DT),
+                    }
+                    self.documentTree.on_update_data(data, dt_name, document, data_type='ion.mobiligram.raw')
+
+        # extract heatmap
+        if self.config.extract_driftTime2D:
+            heatmap_kwargs = dict()
+            dt_name = ''
+            if self.config.extract_driftTime2D_use_mz:
+                heatmap_kwargs.update(mz_start=mz_start, mz_end=mz_end)
+                dt_name += f'ion={mz_start:.2f}-{mz_end:.2f}'
+            if self.config.extract_driftTime2D_use_rt:
+                heatmap_kwargs.update(rt_start=rt_start, rt_end=rt_end)
+                dt_name += f' rt={rt_start:.2f}-{rt_end:.2f}'
+
+            if heatmap_kwargs:
+                xvals, yvals, zvals = self._get_driftscope_mobility_data(document.path, **heatmap_kwargs)
+                self.plotsPanel.on_plot_2D_data(data=[zvals, xvals, 'Scans', yvals, 'Drift time (bins)'])
+                if add_to_document:
+                    __, yvals_RT, __ = self._get_driftscope_chromatography_data(document.path, **kwargs)
+                    __, yvals_DT = self._get_driftscope_mobiligram_data(document.path, **kwargs)
+                    data = {
+                        'zvals': zvals,
+                        'xvals': xvals,
+                        'xlabels': 'Scans',
+                        'yvals': yvals,
+                        'ylabels': 'Drift time (bins)',
+                        'cmap': self.config.currentCmap,
+                        'yvals1D': yvals_DT,
+                        'yvalsRT': yvals_RT,
+                        'title': '', 'label': '', 'charge': 1, 'alpha': self.config.overlay_defaultAlpha,
+                        'mask': self.config.overlay_defaultMask, 'color': randomColorGenerator(),
+                        'min_threshold': 0, 'max_threshold': 1, 'xylimits': [mz_start, mz_end, 1],
+                    }
+                    self.documentTree.on_update_data(data, dt_name, document, data_type='ion.heatmap.raw')
 
     def on_add_ion_ORIGAMI(
         self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name,
@@ -1117,8 +1370,8 @@ class data_handling():
         self.update_statusbar(f'Extracted mass spectrum in {ttime()-tstart_extraction:.4f}', 4)
 
         tstart_extraction = ttime()
-        xvals_RT, yvals_RT = reader.get_TIC(0)
-        xvals_RT = np.arange(1, len(xvals_RT) + 1)
+        xvals_RT_mins, yvals_RT = reader.get_TIC(0)
+        xvals_RT = np.arange(1, len(xvals_RT_mins) + 1)
         self.update_statusbar(f'Extracted chromatogram in {ttime()-tstart_extraction:.4f}', 4)
 
         if reader.n_functions == 1:
@@ -1128,8 +1381,8 @@ class data_handling():
 
             # DT
             tstart_extraction = ttime()
-            xvals_DT, yvals_DT = reader.get_TIC(1)
-            xvals_DT = np.arange(1, len(xvals_DT) + 1)
+            xvals_DT_ms, yvals_DT = reader.get_TIC(1)
+            xvals_DT = np.arange(1, len(xvals_DT_ms) + 1)
             self.update_statusbar(f'Extracted mobiligram in {ttime()-tstart_extraction:.4f}', 4)
 
             # 2D
@@ -1179,6 +1432,7 @@ class data_handling():
         document.got1RT = True
         document.RT = {
             'xvals': xvals_RT,
+            'xvals_mins': xvals_RT_mins,
             'yvals': yvals_RT,
             'xlabels': 'Scans',
         }
@@ -1190,6 +1444,7 @@ class data_handling():
             document.DT = {
                 'xvals': xvals_DT,
                 'yvals': yvals_DT,
+                'yvals_ms': xvals_DT_ms,
                 'xlabels': 'Drift time (bins)',
                 'ylabels': 'Intensity',
             }
@@ -2721,6 +2976,8 @@ class data_handling():
             data = copy.deepcopy(document.massSpectrum)
         elif spectrum_title == 'Mass Spectrum (processed)':
             data = copy.deepcopy(document.smoothMS)
+        elif spectrum_title == 'Mass Spectra':
+            data = copy.deepcopy(document.multipleMassSpectrum)
         else:
             data = copy.deepcopy(document.multipleMassSpectrum.get(spectrum_title, dict()))
 
@@ -2763,20 +3020,50 @@ class data_handling():
             data = copy.deepcopy(document.IMS2Dprocess)
         elif dataset_type == 'DT/MS':
             data = copy.deepcopy(document.DTMZ)
+        # 2D - EIC
+        elif dataset_type == 'Drift time (2D, EIC)' and dataset_name == 'Drift time (2D, EIC)':
+            data = copy.deepcopy(document.IMS2Dions)
         elif dataset_type == 'Drift time (2D, EIC)' and dataset_name is not None:
             data = copy.deepcopy(document.IMS2Dions[dataset_name])
+        # 2D - combined voltages
+        elif (
+            dataset_type == 'Drift time (2D, combined voltages, EIC)'
+            and dataset_name == 'Drift time (2D, combined voltages, EIC)'
+        ):
+            data = copy.deepcopy(document.IMS2DCombIons)
         elif dataset_type == 'Drift time (2D, combined voltages, EIC)' and dataset_name is not None:
             data = copy.deepcopy(document.IMS2DCombIons[dataset_name])
+        # 2D - processed
+        elif dataset_type == 'Drift time (2D, processed, EIC)' and dataset_name == 'Drift time (2D, processed, EIC)':
+            data = copy.deepcopy(document.IMS2DionsProcess)
         elif dataset_type == 'Drift time (2D, processed, EIC)' and dataset_name is not None:
             data = copy.deepcopy(document.IMS2DionsProcess[dataset_name])
+        # 2D - input data
+        elif dataset_type == 'Input data' and dataset_name == 'Input data':
+            data = copy.deepcopy(document.IMS2DcompData)
         elif dataset_type == 'Input data' and dataset_name is not None:
             data = copy.deepcopy(document.IMS2DcompData[dataset_name])
+        # RT - combined voltages
+        elif (
+            dataset_type == 'Chromatograms (combined voltages, EIC)'
+            and dataset_name == 'Chromatograms (combined voltages, EIC)'
+        ):
+            data = copy.deepcopy(document.IMSRTCombIons)
         elif dataset_type == 'Chromatograms (combined voltages, EIC)' and dataset_name is not None:
             data = copy.deepcopy(document.IMSRTCombIons[dataset_name])
+        # 1D - EIC
+        elif dataset_type == 'Drift time (1D, EIC)' and dataset_name == 'Drift time (1D, EIC)':
+            data = copy.deepcopy(document.multipleDT)
         elif dataset_type == 'Drift time (1D, EIC)' and dataset_name is not None:
             data = copy.deepcopy(document.multipleDT[dataset_name])
+        # 1D - EIC - DTIMS
+        elif dataset_type == 'Drift time (1D, EIC, DT-IMS)' and dataset_name == 'Drift time (1D, EIC, DT-IMS)':
+            data = copy.deepcopy(document.IMS1DdriftTimes)
         elif dataset_type == 'Drift time (1D, EIC, DT-IMS)' and dataset_name is not None:
             data = copy.deepcopy(document.IMS1DdriftTimes[dataset_name])
+        # Statistical
+        elif dataset_type == 'Statistical' and dataset_name == 'Statistical':
+            data = copy.deepcopy(document.IMS2DstatsData)
         elif dataset_type == 'Statistical' and dataset_name is not None:
             data = copy.deepcopy(document.IMS2DstatsData[dataset_name])
 

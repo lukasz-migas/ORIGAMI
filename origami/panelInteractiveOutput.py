@@ -21,7 +21,6 @@ import matplotlib.colors as colors
 import numpy as np
 import wx.lib.scrolledpanel
 from bokeh import events
-from bokeh.embed import components
 from bokeh.layouts import column
 from bokeh.layouts import gridplot
 from bokeh.layouts import layout as bokeh_layout
@@ -33,15 +32,12 @@ from bokeh.models import BasicTickFormatter
 from bokeh.models import ColorBar
 from bokeh.models import CustomJS
 from bokeh.models import Dropdown
-from bokeh.models import FixedTicker
 from bokeh.models import FuncTickFormatter
 from bokeh.models import HoverTool
 from bokeh.models import Label
 from bokeh.models import LabelSet
-from bokeh.models import Legend
 from bokeh.models import LinearColorMapper
 from bokeh.models import NormalHead
-from bokeh.models import OpenURL
 from bokeh.models import Select
 from bokeh.models import Slider
 from bokeh.models import TapTool
@@ -150,8 +146,11 @@ from utils.color import convertRGB1to255
 from utils.color import convertRGB1toHEX
 from utils.color import determineFontColor
 from utils.converters import str2int
-from utils.converters import str2num
 from utils.labels import _replace_labels
+# from bokeh.embed import components
+# from bokeh.models import FixedTicker
+# from bokeh.models import Legend
+# from bokeh.models import OpenURL
 # import cmaputil as cmu
 # import cmaputil.cvdutil as cvu
 # import holoviews as hv
@@ -3234,7 +3233,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         information = ''
         # Determine which document was selected
         document = self.data_handling._on_get_document(name)
-#         document = self.documentsDict[name]
         docData = self.__get_item_data(name, key, innerKey)
 
         # build information
@@ -5881,7 +5879,8 @@ class panelInteractiveOutput(wx.MiniFrame):
 
             if user_kwargs['widgets'].get('colorblind_safe_1D', True):
                 _cvd_colors = self.presenter.view.panelPlots.on_change_color_palette(
-                    None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True, )
+                    None, cmap=self.config.interactive_cvd_cmap, n_colors=len(_lines), return_colors=True, return_hex=True,
+                )
                 js_code.update(
                     lines=_lines, original_colors=_original_colors, cvd_colors=_cvd_colors,
                     patches=_patches,
@@ -6604,7 +6603,8 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # get plot data
         zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(
-            dictionary=data, plotType='RMSF', compact=True, )
+            dictionary=data, plotType='RMSF', compact=True,
+        )
 
         ylabelRMSF = ''.join([ylabelRMSF])
 
@@ -6634,7 +6634,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         # create rmsf plot
         color = convertRGB1to255(color, as_integer=True, as_tuple=True)
         rmsf_source = ColumnDataSource(data=dict(xvals=xvals, yvals=yvalsRMSF))
-        line = bokehPlotRMSF.line(
+        __ = bokehPlotRMSF.line(
             x='xvals', y='yvals',
             source=rmsf_source,
             line_color=color,

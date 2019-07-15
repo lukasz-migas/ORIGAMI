@@ -48,7 +48,7 @@ from utils.labels import _replace_labels
 # TODO: need to override the on_select_item with the built-in method OR call after with similar method
 
 
-class panel_peak_annotation_editor(wx.MiniFrame):
+class PanelPeakAnnotationEditor(wx.MiniFrame):
     """
     Simple GUI to view and annotate mass spectra
     """

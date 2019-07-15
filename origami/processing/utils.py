@@ -126,6 +126,7 @@ def find_peak_maximum_1D(yvals, fail_value=1):
 
 
 def find_nearest_index(data, value):
+    data = np.asarray(data)
     return np.argmin(np.abs(data - value))
 
 

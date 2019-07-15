@@ -31,6 +31,20 @@ LISTCTRL_SORT = 1
 SLIDER_STYLE = wx.SL_HORIZONTAL | wx.SL_MIN_MAX_LABELS | wx.SL_VALUE_LABEL
 
 
+def make_spin_ctrl(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1):
+    """Convenient way to initilize SpinCtrlDouble"""
+    spin_ctrl = wx.SpinCtrlDouble(
+        parent, evtid,
+        value=str(value),
+        min=min_value,
+        max=max_value,
+        initial=value,
+        inc=increment_value,
+        size=size,
+    )
+    return spin_ctrl
+
+
 def makeMenuItem(
     parent, text, id=-1, bitmap=None, help_text=None,
     kind=wx.ITEM_NORMAL,

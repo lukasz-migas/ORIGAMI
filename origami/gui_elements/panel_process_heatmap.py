@@ -36,7 +36,9 @@ class PanelProcessHeatmap(MiniFrame):
         self.dataset_type = kwargs.pop('dataset_type', None)
         self.dataset_name = kwargs.pop('dataset_name', None)
         self.data = kwargs.pop('data', None)
-        self.disable_plot_and_process = kwargs.get('disable_plot_and_process', False)
+        self.disable_plot = kwargs.get('disable_plot', False)
+        self.disable_process = kwargs.get('disable_process', False)
+        self.process_all = kwargs.get('process_all', False)
 
         self.make_gui()
         self.on_toggle_controls(None)
@@ -57,9 +59,9 @@ class PanelProcessHeatmap(MiniFrame):
         elif key_code in [66, 67, 73, 78, 83]:
             click_dict = {73: 'interpolate', 83: 'smooth', 67: 'crop', 66: 'baseline', 78: 'normalize'}
             self.on_click_on_setting(click_dict.get(key_code))
-        elif key_code == 80 and not self.disable_plot_and_process:
+        elif key_code == 80 and not self.disable_plot and not self.disable_process:
             self.on_plot(None)
-        elif key_code == 65 and not self.disable_plot_and_process:
+        elif key_code == 65 and not self.disable_plot and not self.disable_process:
             self.on_add_to_document(None)
 
         if evt is not None:
@@ -87,7 +89,10 @@ class PanelProcessHeatmap(MiniFrame):
         document_info_text = wx.StaticText(panel, -1, 'Document:')
         self.document_info_text = wx.StaticText(panel, -1, '')
 
-        dataset_info_text = wx.StaticText(panel, -1, 'Dataset:')
+        dataset_type_info_text = wx.StaticText(panel, -1, 'Dataset type:')
+        self.dataset_type_info_text = wx.StaticText(panel, -1, '')
+
+        dataset_info_text = wx.StaticText(panel, -1, 'Dataset name:')
         self.dataset_info_text = wx.StaticText(panel, -1, '')
 
         plot2D_process_crop = wx.StaticText(panel, -1, 'Crop heatmap:')
@@ -228,10 +233,11 @@ class PanelProcessHeatmap(MiniFrame):
         self.plot2D_normalizeFcn_choice.SetStringSelection(self.config.plot2D_normalize_mode)
         self.plot2D_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        if not self.disable_plot_and_process:
+        if not self.disable_plot:
             self.plot_btn = wx.Button(panel, wx.ID_OK, 'Plot', size=(-1, 22))
             self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
 
+        if not self.disable_process:
             self.add_to_document_btn = wx.Button(panel, wx.ID_OK, 'Add to document', size=(-1, 22))
             self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
@@ -249,6 +255,9 @@ class PanelProcessHeatmap(MiniFrame):
         n = 0
         grid.Add(document_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.document_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(dataset_type_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.dataset_type_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(dataset_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.dataset_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -329,8 +338,9 @@ class PanelProcessHeatmap(MiniFrame):
         n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        if not self.disable_plot_and_process:
+        if not self.disable_plot:
             grid.Add(self.plot_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        if not self.disable_process:
             grid.Add(self.add_to_document_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         grid.Add(self.cancel_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
@@ -356,14 +366,15 @@ class PanelProcessHeatmap(MiniFrame):
         if dataset_name is None:
             dataset_name = 'N/A'
 
-        if dataset_name not in ['N/A']:
-            dataset_type = f'{dataset_type} : {dataset_name}'
-
         self.document_info_text.SetLabel(document_title)
-        self.dataset_info_text.SetLabel(dataset_type)
+        self.dataset_type_info_text.SetLabel(dataset_type)
+        self.dataset_info_text.SetLabel(dataset_name)
 
     def on_plot(self, evt):
         """Plot data"""
+        if self.disable_plot:
+            return
+
         xvals = copy.deepcopy(self.data['xvals'])
         yvals = copy.deepcopy(self.data['yvals'])
         zvals = copy.deepcopy(self.data['zvals'])
@@ -371,6 +382,15 @@ class PanelProcessHeatmap(MiniFrame):
         self.panel_plot.on_plot_2D(zvals, xvals, yvals, self.data['xlabels'], self.data['ylabels'], override=False)
 
     def on_add_to_document(self, evt):
+        if self.process_all:
+            for dataset_name in self.data:
+                self.data_processing.on_process_2D_and_add_data(
+                    self.document_title,
+                    self.dataset_type,
+                    dataset_name,
+                )
+            return
+
         self.data_processing.on_process_2D_and_add_data(self.document_title, self.dataset_type, self.dataset_name)
 
     def on_toggle_controls(self, evt):

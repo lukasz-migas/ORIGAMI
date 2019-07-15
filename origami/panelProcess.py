@@ -18,11 +18,7 @@ from ids import ID_processSettings_isolateZUniDec
 from ids import ID_processSettings_loadDataUniDec
 from ids import ID_processSettings_pickPeaksUniDec
 from ids import ID_processSettings_preprocessUniDec
-from ids import ID_processSettings_process2D
-from ids import ID_processSettings_processMS
-from ids import ID_processSettings_replot2D
 from ids import ID_processSettings_replotAll
-from ids import ID_processSettings_replotMS
 from ids import ID_processSettings_restoreIsolatedAll
 from ids import ID_processSettings_runAll
 from ids import ID_processSettings_runUniDec
@@ -32,8 +28,6 @@ from ids import ID_saveConfig
 from natsort import natsorted
 from styles import makeCheckbox
 from styles import makeStaticBox
-from styles import makeSuperTip
-from styles import makeToggleBtn
 from styles import makeTooltip
 from styles import validator
 from utils.check import check_value_order
@@ -245,32 +239,6 @@ class panelProcessData(wx.MiniFrame):
             self, wx.ID_ANY, wx.DefaultPosition,
             wx.DefaultSize, style=wx.NB_MULTILINE,
         )
-
-        self.parameters_Extract = wx.Panel(
-            self.mainBook, wx.ID_ANY, wx.DefaultPosition,
-            wx.DefaultSize, wx.TAB_TRAVERSAL,
-        )
-        self.mainBook.AddPage(
-            self.make_panel_extract_data(self.parameters_Extract),
-            'Extract', False,
-        )
-#         self.parameters_MS = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-#
-#         self.mainBook.AddPage(
-#             self.make_panel_MS(self.parameters_MS),
-#             'Mass spectrum', False,
-#         )
-        self.parameters_2D = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-
-        self.mainBook.AddPage(
-            self.make_panel_2D(self.parameters_2D),
-            '2D', False,
-        )
-#         self.parameters_peakFitting = wx.Panel(
-#             self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-#
-#         self.mainBook.AddPage(self.make_panel_peak_finding(self.parameters_peakFitting),
-#                               "Peak fitting", False)
         self.parameters_unidec = wx.Panel(
             self.mainBook, wx.ID_ANY, wx.DefaultPosition,
             wx.DefaultSize, wx.TAB_TRAVERSAL,
@@ -841,370 +809,6 @@ class panelProcessData(wx.MiniFrame):
 
         return panel
 
-    def make_panel_2D(self, panel):
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        smoothFcn_label = wx.StaticText(panel, wx.ID_ANY, 'Smooth function:')
-        self.plot2D_smoothFcn_choice = wx.Choice(
-            panel, -1, choices=self.config.plot2D_smooth_choices,
-            size=(-1, -1),
-        )
-        self.plot2D_smoothFcn_choice.SetStringSelection(self.config.plot2D_smooth_mode)
-        self.plot2D_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.plot2D_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
-
-        polynomial_label = wx.StaticText(panel, wx.ID_ANY, 'Polynomial:')
-        self.plot2D_polynomial_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('intPos'),
-        )
-        self.plot2D_polynomial_value.SetValue(str(self.config.plot2D_smooth_polynomial))
-        self.plot2D_polynomial_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        window_label = wx.StaticText(panel, wx.ID_ANY, 'Window size:')
-        self.plot2D_window_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('intPos'),
-        )
-        self.plot2D_window_value.SetValue(str(self.config.plot2D_smooth_window))
-        self.plot2D_window_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        sigma_label = wx.StaticText(panel, wx.ID_ANY, 'Sigma:')
-        self.plot2D_sigma_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.plot2D_sigma_value.SetValue(str(self.config.plot2D_smooth_sigma))
-        self.plot2D_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        threshold_label = wx.StaticText(panel, wx.ID_ANY, 'Threshold:')
-        self.plot2D_threshold_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.plot2D_threshold_value.SetValue(str(self.config.plot2D_threshold))
-        self.plot2D_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        normalize_label = wx.StaticText(panel, wx.ID_ANY, 'Normalize:')
-        self.plot2D_normalizeTgl = makeToggleBtn(panel, 'Off', wx.RED)
-        self.plot2D_normalizeTgl.SetValue(self.config.plot2D_normalize)
-        self.plot2D_normalizeTgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_apply)
-        self.plot2D_normalizeTgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls)
-
-        self.plot2D_normalizeFcn_choice = wx.Choice(
-            panel, -1,
-            choices=self.config.plot2D_normalize_choices,
-            size=(-1, -1),
-        )
-        self.plot2D_normalizeFcn_choice.SetStringSelection(self.config.plot2D_normalize_mode)
-        self.plot2D_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.plot2D_normalizeFcn_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
-
-        self.plot2D_applyBtn = wx.Button(panel, ID_processSettings_replot2D, 'Replot', size=(-1, 22))
-        self.plot2D_processBtn = wx.Button(panel, ID_processSettings_process2D, 'Process', size=(-1, 22))
-        self.plot2D_cancelBtn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
-
-        horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-
-        self.plot2D_applyBtn.Bind(wx.EVT_BUTTON, self.onProcess2D)
-        self.plot2D_processBtn.Bind(wx.EVT_BUTTON, self.onProcess2D)
-        self.plot2D_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
-
-        # pack elements
-        grid = wx.GridBagSizer(2, 2)
-        n = 0
-        grid.Add(smoothFcn_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_smoothFcn_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(polynomial_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_polynomial_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(window_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_window_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(sigma_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_sigma_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(normalize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_normalizeTgl, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.plot2D_normalizeFcn_choice, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(self.plot2D_applyBtn, (n, 0), wx.GBSpan(1, 1))
-        grid.Add(self.plot2D_processBtn, (n, 1), wx.GBSpan(1, 1))
-        grid.Add(self.plot2D_cancelBtn, (n, 2), wx.GBSpan(1, 1))
-
-        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
-
-        # fit layout
-        main_sizer.Fit(panel)
-        panel.SetSizerAndFit(main_sizer)
-
-        return panel
-
-    def make_panel_extract_data(self, panel):
-        BOLD_STYLE = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        extractData_sep_label = wx.StaticText(panel, -1, 'Extract data')
-        extractData_sep_label.SetFont(BOLD_STYLE)
-
-        self.mz_label = wx.StaticText(panel, wx.ID_ANY, 'm/z (Da):')
-        self.rt_label = wx.StaticText(panel, wx.ID_ANY, 'RT (min): ')
-        self.dt_label = wx.StaticText(panel, wx.ID_ANY, 'DT (bins):')
-        start_label = wx.StaticText(panel, wx.ID_ANY, 'Min:')
-        end_label = wx.StaticText(panel, wx.ID_ANY, 'Max:')
-        pusherFreq_label = wx.StaticText(panel, wx.ID_ANY, 'Pusher frequency:')
-        scanTime_label = wx.StaticText(panel, wx.ID_ANY, 'Scan time:')
-
-        self.extract_mzStart_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_mzStart_value.SetValue(str(self.config.extract_mzStart))
-        self.extract_mzStart_value.Bind(wx.EVT_TEXT, self.on_apply)
-        _extract_mzStart_value = makeSuperTip(self.extract_mzStart_value, **self.help.extract_mz)
-
-        self.extract_mzEnd_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_mzEnd_value.SetValue(str(self.config.extract_mzEnd))
-        self.extract_mzEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
-        _extract_mzEnd_value = makeSuperTip(self.extract_mzEnd_value, **self.help.extract_mz)
-
-        self.extract_rtStart_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_rtStart_value.SetValue(str(self.config.extract_rtStart))
-        self.extract_rtStart_value.Bind(wx.EVT_TEXT, self.on_apply)
-        _extract_rtStart_value = makeSuperTip(self.extract_rtStart_value, **self.help.extract_rt)
-
-        self.extract_rtEnd_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_rtEnd_value.SetValue(str(self.config.extract_rtEnd))
-        self.extract_rtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
-        _extract_rtEnd_value = makeSuperTip(self.extract_rtEnd_value, **self.help.extract_rt)
-
-        self.extract_rt_scans_check = makeCheckbox(panel, 'In scans')
-        self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
-        self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-        _extract_rt_scans_check = makeSuperTip(self.extract_rt_scans_check, **self.help.extract_in_scans)
-
-        self.extract_scanTime_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_scanTime_value.SetValue(str(self.parameters.get('scanTime', 1)))
-        self.extract_scanTime_value.Bind(wx.EVT_TEXT, self.on_apply)
-        _extract_scanTime_value = makeSuperTip(self.extract_scanTime_value, **self.help.extract_scanTime)
-
-        self.extract_dtStart_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_dtStart_value.SetValue(str(self.config.extract_dtStart))
-        self.extract_dtStart_value.Bind(wx.EVT_TEXT, self.on_apply)
-        _extract_dtStart_value = makeSuperTip(self.extract_dtStart_value, **self.help.extract_dt)
-
-        self.extract_dtEnd_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_dtEnd_value.SetValue(str(self.config.extract_dtEnd))
-        self.extract_dtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
-        _extract_dtEnd_value = makeSuperTip(self.extract_dtEnd_value, **self.help.extract_dt)
-
-        self.extract_dt_ms_check = makeCheckbox(panel, 'In ms')
-        self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
-        self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-        _extract_dt_ms_check = makeSuperTip(self.extract_dt_ms_check, **self.help.extract_in_ms)
-
-        self.extract_pusherFreq_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_pusherFreq_value.SetValue(str(self.parameters.get('pusherFreq', 1)))
-        self.extract_pusherFreq_value.Bind(wx.EVT_TEXT, self.on_apply)
-        _extract_pusherFreq_value = makeSuperTip(self.extract_pusherFreq_value, **self.help.extract_pusherFreq)
-
-        ms_staticBox = makeStaticBox(panel, 'Mass spectrum', size=(-1, -1), color=wx.BLACK)
-        ms_staticBox.SetSize((-1, -1))
-        ms_box_sizer = wx.StaticBoxSizer(ms_staticBox, wx.HORIZONTAL)
-
-        self.extract_extractMS_check = makeCheckbox(panel, 'Enable')
-        self.extract_extractMS_check.SetValue(self.config.extract_massSpectra)
-        self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-
-        self.extract_extractMS_ms_check = makeCheckbox(panel, 'm/z')
-        self.extract_extractMS_ms_check.SetValue(False)
-        self.extract_extractMS_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.extract_extractMS_rt_check = makeCheckbox(panel, 'RT')
-        self.extract_extractMS_rt_check.SetValue(True)
-        self.extract_extractMS_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.extract_extractMS_dt_check = makeCheckbox(panel, 'DT')
-        self.extract_extractMS_dt_check.SetValue(True)
-        self.extract_extractMS_dt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        rt_staticBox = makeStaticBox(panel, 'Chromatogram', size=(-1, -1), color=wx.BLACK)
-        rt_staticBox.SetSize((-1, -1))
-        rt_box_sizer = wx.StaticBoxSizer(rt_staticBox, wx.HORIZONTAL)
-
-        self.extract_extractRT_check = makeCheckbox(panel, 'Enable')
-        self.extract_extractRT_check.SetValue(self.config.extract_chromatograms)
-        self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-
-        self.extract_extractRT_ms_check = makeCheckbox(panel, 'm/z')
-        self.extract_extractRT_ms_check.SetValue(True)
-        self.extract_extractRT_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.extract_extractRT_dt_check = makeCheckbox(panel, 'DT')
-        self.extract_extractRT_dt_check.SetValue(True)
-        self.extract_extractRT_dt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        dt_staticBox = makeStaticBox(panel, 'Drift time (1D)', size=(-1, -1), color=wx.BLACK)
-        dt_staticBox.SetSize((-1, -1))
-        dt_box_sizer = wx.StaticBoxSizer(dt_staticBox, wx.HORIZONTAL)
-
-        self.extract_extractDT_check = makeCheckbox(panel, 'Enable')
-        self.extract_extractDT_check.SetValue(self.config.extract_driftTime1D)
-        self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-
-        self.extract_extractDT_ms_check = makeCheckbox(panel, 'm/z')
-        self.extract_extractDT_ms_check.SetValue(True)
-        self.extract_extractDT_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.extract_extractDT_rt_check = makeCheckbox(panel, 'RT')
-        self.extract_extractDT_rt_check.SetValue(True)
-        self.extract_extractDT_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        dt2d_staticBox = makeStaticBox(panel, 'Drift time (2D)', size=(-1, -1), color=wx.BLACK)
-        dt2d_staticBox.SetSize((-1, -1))
-        dt2d_box_sizer = wx.StaticBoxSizer(dt2d_staticBox, wx.HORIZONTAL)
-
-        self.extract_extract2D_check = makeCheckbox(panel, 'Enable')
-        self.extract_extract2D_check.SetValue(self.config.extract_driftTime2D)
-        self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-
-        self.extract_extract2D_ms_check = makeCheckbox(panel, 'm/z')
-        self.extract_extract2D_ms_check.SetValue(True)
-        self.extract_extract2D_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.extract_extract2D_rt_check = makeCheckbox(panel, 'RT')
-        self.extract_extract2D_rt_check.SetValue(True)
-        self.extract_extract2D_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-
-        add_to_document_label = wx.StaticText(panel, wx.ID_ANY, 'Add data to document:')
-        self.extract_add_to_document = makeCheckbox(panel, '')
-        self.extract_add_to_document.SetValue(False)
-        self.extract_add_to_document.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.extract_extractBtn = wx.Button(panel, wx.ID_OK, 'Extract', size=(-1, 22))
-        self.extract_cancelBtn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
-
-        self.extract_extractBtn.Bind(wx.EVT_BUTTON, self.on_extract_data)
-        self.extract_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
-
-        # pack elements
-        grid = wx.GridBagSizer(2, 2)
-        n = 0
-        grid.Add(
-            extractData_sep_label, (n, 0), wx.GBSpan(1, 3),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
-        )
-        n = n + 1
-        grid.Add(start_label, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        grid.Add(end_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        n = n + 1
-        grid.Add(self.mz_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.extract_mzStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.extract_mzEnd_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        grid.Add(self.rt_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.extract_rtStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.extract_rtEnd_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.extract_rt_scans_check, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        grid.Add(scanTime_label, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.extract_scanTime_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        grid.Add(self.dt_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.extract_dtStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.extract_dtEnd_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.extract_dt_ms_check, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        grid.Add(pusherFreq_label, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.extract_pusherFreq_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        grid.Add(self.extract_extractMS_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.extract_extractRT_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.extract_extractDT_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.extract_extract2D_check, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
-
-        # extract MS
-        extract_ms_grid = wx.GridBagSizer(2, 2)
-        extract_ms_grid.Add(self.extract_extractMS_ms_check, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        extract_ms_grid.Add(self.extract_extractMS_rt_check, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        extract_ms_grid.Add(self.extract_extractMS_dt_check, (2, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        ms_box_sizer.Add(extract_ms_grid, 0, wx.EXPAND, 10)
-
-        # extract RT
-        extract_rt_grid = wx.GridBagSizer(2, 2)
-        extract_rt_grid.Add(self.extract_extractRT_ms_check, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        extract_rt_grid.Add(self.extract_extractRT_dt_check, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        rt_box_sizer.Add(extract_rt_grid, 0, wx.EXPAND, 10)
-
-        # extract DT
-        extract_dt_grid = wx.GridBagSizer(2, 2)
-        extract_dt_grid.Add(self.extract_extractDT_ms_check, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        extract_dt_grid.Add(self.extract_extractDT_rt_check, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        dt_box_sizer.Add(extract_dt_grid, 0, wx.EXPAND, 10)
-
-        # extract 2D
-        extract_2d_grid = wx.GridBagSizer(2, 2)
-        extract_2d_grid.Add(self.extract_extract2D_ms_check, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        extract_2d_grid.Add(self.extract_extract2D_rt_check, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        dt2d_box_sizer.Add(extract_2d_grid, 0, wx.EXPAND, 10)
-
-        n = n + 1
-        grid.Add(ms_box_sizer, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(rt_box_sizer, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(dt_box_sizer, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(dt2d_box_sizer, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_HORIZONTAL)
-        n = n + 1
-        grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n = n + 1
-        grid.Add(add_to_document_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.extract_add_to_document, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
-        grid.Add(self.extract_extractBtn, (n, 1), wx.GBSpan(1, 1))
-        grid.Add(self.extract_cancelBtn, (n, 2), wx.GBSpan(1, 1))
-
-        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
-
-        # fit layout
-        main_sizer.Fit(panel)
-        panel.SetSizerAndFit(main_sizer)
-
-        return panel
-
     def on_run_unidec_fcn(self, evt):
         if not self.config.threading:
             self.onRunUnidec(evt)
@@ -1443,46 +1047,6 @@ class panelProcessData(wx.MiniFrame):
         self.config.unidec_maxShown_individualLines = str2int(self.unidec_maxShownLines_value.GetValue())
 #         self.config.unidec_show_chargeStates = self.unidec_chargeStates_check.GetValue()
 
-        # Extract
-        self.config.extract_mzStart = str2num(self.extract_mzStart_value.GetValue())
-        self.config.extract_mzEnd = str2num(self.extract_mzEnd_value.GetValue())
-        self.config.extract_rtStart = str2num(self.extract_rtStart_value.GetValue())
-        self.config.extract_rtEnd = str2num(self.extract_rtEnd_value.GetValue())
-        self.config.extract_dtStart = str2num(self.extract_dtStart_value.GetValue())
-        self.config.extract_dtEnd = str2num(self.extract_dtEnd_value.GetValue())
-
-        # 2D
-        self.config.plot2D_normalize = self.plot2D_normalizeTgl.GetValue()
-        self.config.plot2D_normalize_mode = self.plot2D_normalizeFcn_choice.GetStringSelection()
-        self.config.plot2D_smooth_mode = self.plot2D_smoothFcn_choice.GetStringSelection()
-        self.config.plot2D_smooth_sigma = str2num(self.plot2D_sigma_value.GetValue())
-        self.config.plot2D_smooth_window = str2int(self.plot2D_window_value.GetValue())
-        self.config.plot2D_smooth_polynomial = str2int(self.plot2D_polynomial_value.GetValue())
-        self.config.plot2D_threshold = str2num(self.plot2D_threshold_value.GetValue())
-
-        # Peak fitting
-#         self.config.fit_addPeaksToAnnotations = self.fit_addPeaksToAnnotations_check.GetValue()
-#         self.config.fit_highlight = self.fit_highlight_check.GetValue()
-#         self.config.fit_show_labels = self.fit_show_labels_check.GetValue()
-#         self.config.fit_show_labels_mz = self.fit_show_labels_mz_check.GetValue()
-#         self.config.fit_show_labels_int = self.fit_show_labels_int_check.GetValue()
-#         self.config.fit_show_labels_max_count = str2int(self.fit_max_labels.GetValue())
-#         self.config.fit_addPeaks = self.fit_addPeaks_check.GetValue()
-#         self.config.fit_xaxis_limit = self.fit_xaxisLimit_check.GetValue()
-#         self.config.fit_type = self.fit_fitPlot_choice.GetStringSelection()
-#         self.config.fit_threshold = str2num(self.fit_threshold_value.GetValue())
-#         self.config.fit_window = str2int(self.fit_window_value.GetValue())
-#         self.config.fit_width = str2num(self.fit_width_value.GetValue())
-#         self.config.fit_asymmetric_ratio = str2num(self.fit_asymmetricRatio_value.GetValue())
-#         self.config.fit_smoothPeaks = self.fit_smooth_check.GetValue()
-#         self.config.fit_smooth_sigma = str2num(self.fit_sigma_value.GetValue())
-#         self.config.fit_highRes = self.fit_highRes_check.GetValue()
-#         self.config.fit_highRes_threshold = str2num(self.fit_thresholdHighRes_value.GetValue())
-#         self.config.fit_highRes_window = str2int(self.fit_windowHighRes_value.GetValue())
-#         self.config.fit_highRes_width = str2num(self.fit_widthHighRes_value.GetValue())
-#         self.config.fit_highRes_isotopicFit = self.fit_isotopes_check.GetValue()
-#         self.config.fit_labels_optimise_position = self.fit_labels_optimise_position_check.GetValue()
-
         if self.config.autoSaveSettings:
             try:
                 self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
@@ -1490,84 +1054,6 @@ class panelProcessData(wx.MiniFrame):
                 pass
 
     def on_toggle_controls(self, evt):
-
-        # check if 2D process data is present
-        if self.document.get('2D', None) is None or self.dataset.get('2D', None) is None:
-            self.plot2D_processBtn.Disable()
-        else:
-            self.plot2D_processBtn.Enable()
-
-        # extract panel
-        enableDisable_MS = [
-            self.extract_extractMS_dt_check, self.extract_extractMS_rt_check,
-            self.extract_extractMS_ms_check,
-        ]
-        if self.extract_extractMS_check.GetValue():
-            for item in enableDisable_MS:
-                item.Enable()
-        else:
-            for item in enableDisable_MS:
-                item.Disable()
-
-        enableDisable_RT = [self.extract_extractRT_dt_check, self.extract_extractRT_ms_check]
-        if self.extract_extractRT_check.GetValue():
-            for item in enableDisable_RT:
-                item.Enable()
-        else:
-            for item in enableDisable_RT:
-                item.Disable()
-
-        enableDisable_DT = [self.extract_extractDT_ms_check, self.extract_extractDT_rt_check]
-        if self.extract_extractDT_check.GetValue():
-            for item in enableDisable_DT:
-                item.Enable()
-        else:
-            for item in enableDisable_DT:
-                item.Disable()
-
-        enableDisable_2D = [self.extract_extract2D_ms_check, self.extract_extract2D_rt_check]
-        if self.extract_extract2D_check.GetValue():
-            for item in enableDisable_2D:
-                item.Enable()
-        else:
-            for item in enableDisable_2D:
-                item.Disable()
-
-        if self.extract_rt_scans_check.GetValue():
-            self.extract_scanTime_value.Enable()
-        else:
-            self.extract_scanTime_value.Disable()
-
-        if self.extract_dt_ms_check.GetValue():
-            self.extract_pusherFreq_value.Enable()
-        else:
-            self.extract_pusherFreq_value.Disable()
-
-        # 2D panel
-        self.config.plot2D_smooth_mode = self.plot2D_smoothFcn_choice.GetStringSelection()
-        if self.config.plot2D_smooth_mode == 'None':
-            for item in [self.plot2D_polynomial_value, self.plot2D_sigma_value, self.plot2D_window_value]:
-                item.Disable()
-        elif self.config.plot2D_smooth_mode == 'Gaussian':
-            for item in [self.plot2D_polynomial_value, self.plot2D_window_value]:
-                item.Disable()
-            self.plot2D_sigma_value.Enable()
-        else:
-            for item in [self.plot2D_polynomial_value, self.plot2D_window_value]:
-                item.Enable()
-            self.plot2D_sigma_value.Disable()
-
-        self.config.plot2D_normalize = self.plot2D_normalizeTgl.GetValue()
-        if self.config.plot2D_normalize:
-            self.plot2D_normalizeFcn_choice.Enable()
-            self.plot2D_normalizeTgl.SetLabel('On')
-            self.plot2D_normalizeTgl.SetForegroundColour(wx.WHITE)
-            self.plot2D_normalizeTgl.SetBackgroundColour(wx.BLUE)
-        else:
-            self.plot2D_normalizeFcn_choice.Disable()
-            self.plot2D_normalizeTgl.SetLabel('Off')
-            self.plot2D_normalizeTgl.SetForegroundColour(wx.WHITE)
-            self.plot2D_normalizeTgl.SetBackgroundColour(wx.RED)
 
         # unidec
         self.config.unidec_peakWidth_auto = self.unidec_fit_peakWidth_check.GetValue()
@@ -1594,49 +1080,6 @@ class panelProcessData(wx.MiniFrame):
         self.importEvent = False
         if evt is not None:
             evt.Skip()
-
-    def onProcess2D(self, evt):
-        """
-        Automatically process and replot 2D array
-        """
-        evtID = evt.GetId()
-
-        self.config.on_check_parameters(data_type='process')
-        self.onSetupValues()
-
-        if evtID == ID_processSettings_replot2D:
-            if self.parent.panelPlots.window_plot2D == '2D':
-                self.data_processing.on_process_2D(replot=True, replot_type='2D')
-            elif self.parent.panelPlots.window_plot2D == 'DT/MS':
-                self.data_processing.on_process_2D(replot=True, replot_type='DT/MS')
-
-        elif evtID == ID_processSettings_process2D:
-            self.data_processing.on_process_2D_and_add_data(self.document['2D'], self.dataset['2D'], self.ionName['2D'])
-
-        if evt is not None:
-            evt.Skip()
-
-#     def onProcessMS(self, evt):
-#         """
-#         Automatically process and replot MS array
-#         """
-#         evtID = evt.GetId()
-#
-#         try:
-#             args = ('Processing document: {} | dataset: {}'.format(self.document['MS'], self.dataset['MS']), 4)
-#             self.presenter.onThreading(evt, args, action='updateStatusbar')
-#         except KeyError:
-#             pass
-#
-#         # only replotting
-#         if evtID == ID_processSettings_replotMS:
-#             self.data_processing.on_process_MS(replot=True)
-#         # processing and adding to dictionary
-#         elif evtID == ID_processSettings_processMS:
-#             self.data_processing.on_process_MS_and_add_data(self.document['MS'], self.dataset['MS'])
-#
-#         if evt is not None:
-#             evt.Skip()
 
     # TODO: this function should be moved to data_handling and split into smaller functions
     def on_extract_data(self, evt):
@@ -1885,14 +1328,6 @@ class panelProcessData(wx.MiniFrame):
 
     def on_check_parameters(self, evt):
 
-        # get values
-        self.config.extract_mzStart = str2num(self.extract_mzStart_value.GetValue())
-        self.config.extract_mzEnd = str2num(self.extract_mzEnd_value.GetValue())
-        self.config.extract_rtStart = str2num(self.extract_rtStart_value.GetValue())
-        self.config.extract_rtEnd = str2num(self.extract_rtEnd_value.GetValue())
-        self.config.extract_dtStart = str2num(self.extract_dtStart_value.GetValue())
-        self.config.extract_dtEnd = str2num(self.extract_dtEnd_value.GetValue())
-
         if not self.config.fit_show_labels_mz and not self.config.fit_show_labels_int:
             self.fit_show_labels_check.SetValue(False)
             self.config.fit_show_labels = False
@@ -1988,9 +1423,7 @@ class panelProcessData(wx.MiniFrame):
 
     def onThreading(self, evt, args, action='pick_peaks'):
         # Setup thread
-        if action == 'pick_peaks':
-            th = threading.Thread(target=self.data_processing.on_pick_peaks, args=(evt,))
-        elif action == 'unidec':
+        if action == 'unidec':
             th = threading.Thread(target=self.onRunUnidec, args=(evt,))
 
         # Start thread

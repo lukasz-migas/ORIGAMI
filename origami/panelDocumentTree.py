@@ -23,6 +23,7 @@ from gui_elements.dialog_select_dataset import DialogSelectDataset
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
 from ids import ID_assignChargeState
+from ids import ID_docTree_action_open_extract
 from ids import ID_docTree_action_open_extractDTMS
 from ids import ID_docTree_action_open_origami_ms
 from ids import ID_docTree_action_open_peak_picker
@@ -46,7 +47,9 @@ from ids import ID_docTree_duplicate_annotations
 from ids import ID_docTree_duplicate_document
 from ids import ID_docTree_plugin_UVPD
 from ids import ID_docTree_process2D
+from ids import ID_docTree_process2D_all
 from ids import ID_docTree_processMS
+from ids import ID_docTree_processMS_all
 from ids import ID_docTree_save_unidec
 from ids import ID_docTree_show_annotations
 from ids import ID_docTree_show_refresh_document
@@ -131,9 +134,7 @@ from ids import ID_ylabel_DTMS_ms
 from ids import ID_ylabel_DTMS_ms_arrival
 from ids import ID_ylabel_DTMS_restore
 from natsort import natsorted
-from panel_peak_annotation_editor import panel_peak_annotation_editor
 from panelInformation import panelDocumentInfo
-from panelTandemSpectra import panelTandemSpectra
 from readers.io_text_files import text_heatmap_open
 from styles import makeMenuItem
 from toolbox import merge_two_dicts
@@ -268,7 +269,7 @@ class documentsTree(wx.TreeCtrl):
                 self.on_delete_item(evt=None)
         elif key == 80:
             if self._document_type in ['Drift time (2D)', 'Drift time (2D, processed)']:
-                self.onProcess2D(evt=None)
+                self.on_process_2D(evt=None)
             elif (
                 self._document_type in [
                     'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
@@ -279,12 +280,12 @@ class documentsTree(wx.TreeCtrl):
                     'Drift time (2D, processed, EIC)', 'Input data', 'Statistical',
                 ]
             ):
-                self.onProcess2D(evt=None)
+                self.on_process_2D(evt=None)
             elif (
                 self._document_type in ['Mass Spectrum', 'Mass Spectrum (processed)', 'Mass Spectra'] and
                 self._item_leaf != 'Mass Spectra'
             ):
-                self.onProcessMS(evt=None)
+                self.on_process_MS(evt=None)
         elif key == 341:  # F2
             self.onRenameItem(None)
 
@@ -1315,12 +1316,16 @@ class documentsTree(wx.TreeCtrl):
             if self._item_leaf == 'UniDec' and self._indent == 4:
                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]['unidec']
             elif self._item_branch == 'UniDec' and self._indent == 5:
-                del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]['unidec'][self._item_leaf]
+                del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[
+                    self._item_root
+                ]['unidec'][self._item_leaf]
             # remove annotations
             elif 'Annotations' in self._item_leaf and self._indent == 4:
                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]['annotations']
             elif 'Annotations' in self._item_branch and self._indent == 5:
-                del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]['annotations'][self._item_leaf]
+                del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[
+                    self._item_root
+                ]['annotations'][self._item_leaf]
             # remove mass spectra
             elif self._item_branch == 'Mass Spectra':
                 document, delete_outcome = self.on_delete_data__mass_spectra(
@@ -1600,6 +1605,7 @@ class documentsTree(wx.TreeCtrl):
             evt.Skip()
 
     def on_add_annotation(self, evt):
+        from gui_elements.panel_peak_annotation_editor import PanelPeakAnnotationEditor
         data = self.GetPyData(self._item_id)
 
         document = self._document_data.title
@@ -1667,7 +1673,7 @@ class documentsTree(wx.TreeCtrl):
             'annotations': annotations,
         }
 
-        self.annotateDlg = panel_peak_annotation_editor(
+        self.annotateDlg = PanelPeakAnnotationEditor(
             self.parent, self, self.config,
             self.icons, **kwargs
         )
@@ -2215,8 +2221,9 @@ class documentsTree(wx.TreeCtrl):
             ylabel_DTMS_menu.FindItemById(idX).Check(True)
 
         action_menu = wx.Menu()
-        action_menu.Append(ID_docTree_action_open_extractDTMS, 'Open DT/MS extraction panel...')
         action_menu.Append(ID_docTree_action_open_origami_ms, 'Setup ORIGAMI-MS parameters...')
+        action_menu.Append(ID_docTree_action_open_extract, 'Open data extraction panel...')
+        action_menu.Append(ID_docTree_action_open_extractDTMS, 'Open DT/MS dataset settings...')
 
         # save dataframe
         save_data_submenu = wx.Menu()
@@ -2249,9 +2256,11 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.presenter.restoreComparisonToList, id=ID_restoreComparisonData)
         self.Bind(wx.EVT_MENU, self.onCompareMS, id=ID_docTree_compareMS)
         self.Bind(wx.EVT_MENU, self.onShowMassSpectra, id=ID_docTree_showMassSpectra)
-        self.Bind(wx.EVT_MENU, self.onProcessMS, id=ID_docTree_processMS)
-        self.Bind(wx.EVT_MENU, self.onProcess2D, id=ID_docTree_process2D)
-        self.Bind(wx.EVT_MENU, self.onProcessMS, id=ID_docTree_UniDec)
+        self.Bind(wx.EVT_MENU, self.on_process_MS, id=ID_docTree_processMS)
+        self.Bind(wx.EVT_MENU, self.on_process_MS_all, id=ID_docTree_processMS_all)
+        self.Bind(wx.EVT_MENU, self.on_process_2D, id=ID_docTree_process2D)
+        self.Bind(wx.EVT_MENU, self.on_process_all_2D, id=ID_docTree_process2D_all)
+#         self.Bind(wx.EVT_MENU, self.on_process_MS, id=ID_docTree_UniDec)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToMMLTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToMMLTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToTextTable)
@@ -2296,10 +2305,7 @@ class documentsTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_action_ORIGAMI_MS, id=ID_docTree_action_open_origami_ms)
         self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
         self.Bind(wx.EVT_MENU, self.on_open_peak_picker, id=ID_docTree_action_open_peak_picker)
-
-        saveCSVLabel = f'Save data ({self.config.saveExtension})\tAlt+V'
-        saveCSVLabel1D = f'Save data (1D, {self.config.saveExtension})'
-        saveCSVLabel2D = f'Save data (2D, {self.config.saveExtension})'
+        self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
 
         # Get label
         if self._item_leaf is not None:
@@ -2334,6 +2340,12 @@ class documentsTree(wx.TreeCtrl):
             text='Show annotations on plot',
             bitmap=self.icons.iconsLib['highlight_16'],
         )
+        menu_action_show_highlights = makeMenuItem(
+            parent=menu, id=ID_showPlotMSDocument,
+            text='Highlight ion in mass spectrum\tAlt+X',
+            bitmap=self.icons.iconsLib['zoom_16'],
+        )
+
         menu_action_show_plot = makeMenuItem(
             parent=menu, id=ID_showPlotDocument,
             text='Show plot\tAlt+S',
@@ -2343,6 +2355,11 @@ class documentsTree(wx.TreeCtrl):
             parent=menu, id=ID_showPlotDocument,
             text='Show mass spectrum\tAlt+S',
             bitmap=self.icons.iconsLib['mass_spectrum_16'],
+        )
+        menu_action_show_plot_spectrum_waterfall = makeMenuItem(
+            parent=menu, id=ID_docTree_showMassSpectra,
+            text='Show mass spectra (waterfall)',
+            bitmap=None,
         )
         menu_action_show_plot_mobilogram = makeMenuItem(
             parent=menu, id=ID_showPlotDocument,
@@ -2369,6 +2386,19 @@ class documentsTree(wx.TreeCtrl):
             text='Show waterfall plot',
             bitmap=self.icons.iconsLib['panel_waterfall_16'],
         )
+
+        menu_action_show_plot_as_mobiligram = makeMenuItem(
+            parent=menu, id=ID_showPlot1DDocument,
+            text='Show mobiligram',
+            bitmap=self.icons.iconsLib['mobiligram_16'],
+        )
+
+        menu_action_show_plot_as_chromatogram = makeMenuItem(
+            parent=menu, id=ID_showPlotRTDocument,
+            text='Show chromatogram',
+            bitmap=self.icons.iconsLib['chromatogram_16'],
+        )
+
         menu_action_duplicate_annotations = makeMenuItem(
             parent=menu, id=ID_docTree_duplicate_annotations,
             text='Duplicate annotations...',
@@ -2379,11 +2409,22 @@ class documentsTree(wx.TreeCtrl):
             text='Process...\tP',
             bitmap=self.icons.iconsLib['process_ms_16'],
         )
+        menu_action_process_ms_all = makeMenuItem(
+            parent=menu, id=ID_docTree_processMS_all,
+            text='Process all...',
+            bitmap=self.icons.iconsLib['process_ms_16'],
+        )
         menu_action_process_2D = makeMenuItem(
             parent=menu, id=ID_docTree_process2D,
             text='Process...\tP',
             bitmap=self.icons.iconsLib['process_2d_16'],
         )
+        menu_action_process_2D_all = makeMenuItem(
+            parent=menu, id=ID_docTree_process2D_all,
+            text='Process all...\tP',
+            bitmap=self.icons.iconsLib['process_2d_16'],
+        )
+
         menu_action_assign_charge = makeMenuItem(
             parent=menu, id=ID_assignChargeState,
             text='Assign charge state...\tAlt+Z',
@@ -2410,6 +2451,47 @@ class documentsTree(wx.TreeCtrl):
             bitmap=self.icons.iconsLib['file_png_16'],
         )
 
+        menu_action_save_heatmap_image_as = makeMenuItem(
+            parent=menu, id=ID_save2DImageDoc,
+            text='Save image as...',
+            bitmap=self.icons.iconsLib['file_png_16'],
+        )
+
+        menu_action_save_other_image_as = makeMenuItem(
+            parent=menu, id=ID_saveOtherImageDoc,
+            text='Save image as...',
+            bitmap=self.icons.iconsLib['file_png_16'],
+        )
+
+        menu_action_save_spectrum_image_as = makeMenuItem(
+            parent=menu, id=ID_saveMSImageDoc,
+            text='Save image as...',
+            bitmap=self.icons.iconsLib['file_csv_16'],
+        )
+
+        menu_action_save_data_as = makeMenuItem(
+            parent=menu, id=ID_saveDataCSVDocument,
+            text='Save data as...',
+            bitmap=self.icons.iconsLib['file_csv_16'],
+        )
+
+        menu_action_save_1D_data_as = makeMenuItem(
+            parent=menu, id=ID_saveDataCSVDocument1D,
+            text='Save 1D data as...',
+            bitmap=self.icons.iconsLib['file_csv_16'],
+        )
+
+        menu_action_save_2D_data_as = makeMenuItem(
+            parent=menu, id=ID_saveDataCSVDocument,
+            text='Save 2D data as...',
+            bitmap=self.icons.iconsLib['file_csv_16'],
+        )
+        menu_action_save_chromatogram_image_as = makeMenuItem(
+            parent=menu, id=ID_saveRTImageDoc,
+            text='Save image as...',
+            bitmap=self.icons.iconsLib['file_png_16'],
+        )
+
         if self._document_data.dataType == 'Type: Interactive':
             if self._document_type == 'Annotated data' and self._item_leaf != self._document_type:
                 if self._item_leaf == 'Annotations':
@@ -2425,13 +2507,7 @@ class documentsTree(wx.TreeCtrl):
                 ):
                     menu.AppendItem(menu_show_annotations_panel)
                 menu.AppendSeparator()
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveOtherImageDoc,
-                        text='Save image as...',
-                        bitmap=self.icons.iconsLib['file_png_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_save_other_image_as)
                 menu.AppendItem(menu_action_delete_item)
             if (
                 self._document_type in ['Drift time (2D)', 'Drift time (2D, processed)']
@@ -2448,49 +2524,18 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendMenu(wx.ID_ANY, 'Set X-axis label as...', xlabel_2D_menu)
                 menu.AppendMenu(wx.ID_ANY, 'Set Y-axis label as...', ylabel_2D_menu)
                 menu.AppendSeparator()
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_save2DImageDoc,
-                        text='Save image as...',
-                        bitmap=self.icons.iconsLib['file_png_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument1D,
-                        text=saveCSVLabel1D,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument,
-                        text=saveCSVLabel2D,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_save_heatmap_image_as)
+                menu.AppendItem(menu_action_save_1D_data_as)
+                menu.AppendItem(menu_action_save_2D_data_as)
                 menu.AppendItem(menu_action_delete_item)
                 if itemType not in ['Drift time (2D)', 'Drift time (2D, processed)']:
-                    menu.PrependItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_showPlot1DDocument,
-                            text='Show mobiligram',
-                            bitmap=self.icons.iconsLib['mobiligram_16'],
-                        ),
-                    )
-                    menu.PrependItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_showPlotRTDocument,
-                            text='Show chromatogram',
-                            bitmap=self.icons.iconsLib['chromatogram_16'],
-                        ),
-                    )
+                    menu.PrependItem(menu_action_show_plot_as_mobiligram)
+                    menu.PrependItem(menu_action_show_plot_as_chromatogram)
             elif self._document_type == 'Drift time (2D, EIC)' and self._item_leaf == self._document_type:
                 menu.AppendItem(
                     makeMenuItem(
                         parent=menu, id=ID_docTree_addInteractiveToTextTable,
                         text='Add to text file table',
-                        bitmap=None,
                     ),
                 )
             elif self._document_type in ['Mass Spectra']:
@@ -2504,7 +2549,6 @@ class documentsTree(wx.TreeCtrl):
                         makeMenuItem(
                             parent=menu, id=ID_docTree_save_unidec,
                             text='Save UniDec results ({})'.format(self.config.saveExtension),
-                            bitmap=None,
                         ),
                     )
                     menu.AppendItem(menu_action_delete_item)
@@ -2513,18 +2557,13 @@ class documentsTree(wx.TreeCtrl):
                         makeMenuItem(
                             parent=menu, id=ID_docTree_show_unidec,
                             text='Show plot - {}'.format(self._item_leaf),
-                            bitmap=None,
                         ),
                     )
                     menu.AppendItem(
                         makeMenuItem(
                             parent=menu,
                             id=ID_docTree_save_unidec,
-                            text='Save results - {} ({})'.format(
-                                self._item_leaf,
-                                self.config.saveExtension,
-                            ),
-                            bitmap=None,
+                            text=f'Save results - {self._item_leaf} ({self.config.saveExtension})',
                         ),
                     )
                     menu.AppendItem(menu_action_delete_item)
@@ -2538,39 +2577,20 @@ class documentsTree(wx.TreeCtrl):
                         menu.AppendItem(
                             makeMenuItem(
                                 parent=menu, id=ID_docTree_save_unidec,
-                                text='Save UniDec results ({})'.format(self.config.saveExtension),
+                                text=f'Save UniDec results ({self.config.saveExtension})',
                                 bitmap=None,
                             ),
                         )
                     menu.AppendItem(menu_action_process_ms)
                     menu.AppendItem(menu_show_unidec_panel)
                     menu.AppendSeparator()
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_saveMSImageDoc,
-                            text='Save image as...',
-                            bitmap=self.icons.iconsLib['file_png_16'],
-                        ),
-                    )
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_saveDataCSVDocument,
-                            text=saveCSVLabel,
-                            bitmap=self.icons.iconsLib['file_csv_16'],
-                        ),
-                    )
+                    menu.AppendItem(menu_action_save_spectrum_image_as)
+                    menu.AppendItem(menu_action_save_data_as)
                     menu.AppendItem(menu_action_delete_item)
                 else:
                     if self._item_leaf == 'Mass Spectra':
                         menu.AppendItem(menu_show_comparison_panel)
-
-                        menu.AppendItem(
-                            makeMenuItem(
-                                parent=menu, id=ID_docTree_showMassSpectra,
-                                text='Show mass spectra (waterfall)',
-                                bitmap=None,
-                            ),
-                        )
+                        menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
                         menu.AppendItem(
                             makeMenuItem(
                                 parent=menu, id=ID_docTree_addToMMLTable,
@@ -2579,13 +2599,7 @@ class documentsTree(wx.TreeCtrl):
                             ),
                         )
                         menu.AppendSeparator()
-                        menu.AppendItem(
-                            makeMenuItem(
-                                parent=menu, id=ID_saveDataCSVDocument,
-                                text=saveCSVLabel,
-                                bitmap=self.icons.iconsLib['file_csv_16'],
-                            ),
-                        )
+                        menu.AppendItem(menu_action_save_data_as)
                         menu.AppendMenu(wx.ID_ANY, 'Save to file...', save_data_submenu)
                     elif self._item_leaf != 'Mass Spectra' and 'UniDec (' not in self._item_leaf and self._indent < 4:
                         menu.AppendItem(menu_action_show_plot_spectrum)
@@ -2598,20 +2612,8 @@ class documentsTree(wx.TreeCtrl):
                         menu.Append(ID_duplicateItem, 'Duplicate item')
                         menu.Append(ID_renameItem, 'Rename\tF2')
                         menu.AppendSeparator()
-                        menu.AppendItem(
-                            makeMenuItem(
-                                parent=menu, id=ID_saveMSImageDoc,
-                                text='Save image as...',
-                                bitmap=self.icons.iconsLib['file_png_16'],
-                            ),
-                        )
-                        menu.AppendItem(
-                            makeMenuItem(
-                                parent=menu, id=ID_saveDataCSVDocument,
-                                text=saveCSVLabel,
-                                bitmap=self.icons.iconsLib['file_csv_16'],
-                            ),
-                        )
+                        menu.AppendItem(menu_action_save_spectrum_image_as)
+                        menu.AppendItem(menu_action_save_data_as)
                     elif self._item_leaf != 'Mass Spectra' and 'UniDec (' in self._item_leaf:
                         menu.AppendItem(menu_action_show_unidec_results)
                         menu.AppendItem(
@@ -2646,33 +2648,15 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, 'Set X-axis label as...', xlabel_RT_menu)
                 menu.AppendSeparator()
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveRTImageDoc,
-                        text='Save image as...',
-                        bitmap=self.icons.iconsLib['file_png_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument,
-                        text=saveCSVLabel,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_save_chromatogram_image_as)
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
             elif itemType in ['Drift time (1D)', 'Drift time (1D, EIC)']:
                 menu.AppendItem(menu_action_show_plot_mobilogram)
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, 'Change x-axis to...', xlabel_1D_menu)
                 menu.AppendItem(menu_action_save_mobilogram_image_as)
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument,
-                        text=saveCSVLabel,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
             if menu.MenuItemCount > 0:
                 menu.AppendSeparator()
@@ -2747,33 +2731,15 @@ class documentsTree(wx.TreeCtrl):
                     pass
                 menu.AppendItem(menu_show_unidec_panel)
                 menu.AppendSeparator()
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveMSImageDoc,
-                        text='Save image as...',
-                        bitmap=self.icons.iconsLib['file_png_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument,
-                        text=saveCSVLabel,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_save_spectrum_image_as)
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
             elif self._item_branch == 'Annotations' and self._indent in [4, 5]:
                 menu.AppendItem(menu_action_delete_item)
             else:
                 if self._item_leaf == 'Mass Spectra':
                     menu.AppendItem(menu_show_comparison_panel)
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_docTree_showMassSpectra,
-                            text='Show mass spectra (waterfall)',
-                            bitmap=None,
-                        ),
-                    )
+                    menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
                     menu.AppendItem(
                         makeMenuItem(
                             parent=menu, id=ID_docTree_addToMMLTable,
@@ -2781,14 +2747,9 @@ class documentsTree(wx.TreeCtrl):
                             bitmap=None,
                         ),
                     )
+                    menu.AppendItem(menu_action_process_ms_all)
                     menu.AppendSeparator()
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_saveDataCSVDocument,
-                            text=saveCSVLabel,
-                            bitmap=self.icons.iconsLib['file_csv_16'],
-                        ),
-                    )
+                    menu.AppendItem(menu_action_save_data_as)
                     menu.AppendMenu(wx.ID_ANY, 'Save to file...', save_data_submenu)
                 elif self._item_leaf != 'Mass Spectra' and 'UniDec (' not in self._item_leaf and self._indent != 4:
                     menu.AppendItem(menu_action_show_plot_spectrum)
@@ -2802,20 +2763,8 @@ class documentsTree(wx.TreeCtrl):
                     menu.Append(ID_duplicateItem, 'Duplicate item')
                     menu.Append(ID_renameItem, 'Rename\tF2')
                     menu.AppendSeparator()
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_saveMSImageDoc,
-                            text='Save image as...',
-                            bitmap=self.icons.iconsLib['file_png_16'],
-                        ),
-                    )
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_saveDataCSVDocument,
-                            text=saveCSVLabel,
-                            bitmap=self.icons.iconsLib['file_csv_16'],
-                        ),
-                    )
+                    menu.AppendItem(menu_action_save_spectrum_image_as)
+                    menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
 
         # tandem MS
@@ -2836,20 +2785,8 @@ class documentsTree(wx.TreeCtrl):
             menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, 'Change x-axis to...', xlabel_RT_menu)
             menu.AppendSeparator()
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_saveRTImageDoc,
-                    text='Save image as...',
-                    bitmap=self.icons.iconsLib['file_png_16'],
-                ),
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_saveDataCSVDocument,
-                    text=saveCSVLabel,
-                    bitmap=self.icons.iconsLib['file_csv_16'],
-                ),
-            )
+            menu.AppendItem(menu_action_save_chromatogram_image_as)
+            menu.AppendItem(menu_action_save_data_as)
             menu.AppendItem(menu_action_delete_item)
         # Drift time (1D)
         elif itemType == 'Drift time (1D)':
@@ -2858,14 +2795,7 @@ class documentsTree(wx.TreeCtrl):
             menu.AppendMenu(wx.ID_ANY, 'Change x-axis to...', xlabel_1D_menu)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_mobilogram_image_as)
-
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_saveDataCSVDocument,
-                    text=saveCSVLabel,
-                    bitmap=self.icons.iconsLib['file_csv_16'],
-                ),
-            )
+            menu.AppendItem(menu_action_save_data_as)
             menu.AppendItem(menu_action_delete_item)
         # Drift time (2D)
         elif itemType in [
@@ -2875,14 +2805,15 @@ class documentsTree(wx.TreeCtrl):
         ]:
             # Only if clicked on an item and not header
             if (
-                self._document_type in [
-                    'Drift time (2D)', 'Drift time (2D, processed)',
-                ] or (
-                    self._document_type == 'Drift time (2D, EIC)' and self._item_leaf != self._document_type
-                ) or (
-                    self._document_type == 'Drift time (2D, combined voltages, EIC)' and self._item_leaf != self._document_type
-                ) or (
-                    self._document_type == 'Drift time (2D, processed, EIC)' and self._item_leaf != self._document_type
+                self._document_type in ['Drift time (2D)', 'Drift time (2D, processed)']
+                or (self._document_type == 'Drift time (2D, EIC)' and self._item_leaf != self._document_type)
+                or (
+                    self._document_type == 'Drift time (2D, combined voltages, EIC)'
+                    and self._item_leaf != self._document_type
+                )
+                or (
+                    self._document_type == 'Drift time (2D, processed, EIC)'
+                    and self._item_leaf != self._document_type
                 )
             ):
                 menu.AppendItem(menu_action_show_plot_2D)
@@ -2894,67 +2825,21 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendMenu(wx.ID_ANY, 'Set X-axis label as...', xlabel_2D_menu)
                 menu.AppendMenu(wx.ID_ANY, 'Set Y-axis label as...', ylabel_2D_menu)
                 menu.AppendSeparator()
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_save2DImageDoc,
-                        text='Save image as...',
-                        bitmap=self.icons.iconsLib['file_png_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument1D,
-                        text=saveCSVLabel1D,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument,
-                        text=saveCSVLabel2D,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_save_heatmap_image_as)
+                menu.AppendItem(menu_action_save_1D_data_as)
+                menu.AppendItem(menu_action_save_2D_data_as)
                 menu.AppendItem(menu_action_delete_item)
-                if itemType in ['Drift time (2D)', 'Drift time (2D, processed)']:
-                    menu.PrependItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_showPlot1DDocument,
-                            text='Show mobiligram',
-                            bitmap=self.icons.iconsLib['mobiligram_16'],
-                        ),
-                    )
-                    menu.PrependItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_showPlotRTDocument,
-                            text='Show chromatogram',
-                            bitmap=self.icons.iconsLib['chromatogram_16'],
-                        ),
-                    )
+                if itemType not in ['Drift time (2D)', 'Drift time (2D, processed)']:
+                    menu.PrependItem(menu_action_show_plot_as_mobiligram)
+                    menu.PrependItem(menu_action_show_plot_as_chromatogram)
                 else:
-                    menu.PrependItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_showPlotMSDocument,
-                            text='Highlight ion in mass spectrum\tAlt+X',
-                            bitmap=self.icons.iconsLib['zoom_16'],
-                        ),
-                    )
+                    menu.PrependItem(menu_action_show_highlights)
             # Only if clicked on a header
             else:
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument1D,
-                        text=saveCSVLabel1D,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument,
-                        text=saveCSVLabel2D,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_process_2D_all)
+                menu.AppendSeparator()
+                menu.AppendItem(menu_action_save_1D_data_as)
+                menu.AppendItem(menu_action_save_2D_data_as)
                 menu.AppendItem(menu_action_delete_item)
         # Input data
         elif self._document_type == 'Input data':
@@ -2964,20 +2849,8 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, 'Set X-axis label as...', xlabel_2D_menu)
                 menu.AppendMenu(wx.ID_ANY, 'Set Y-axis label as...', ylabel_2D_menu)
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_save2DImageDoc,
-                        text='Save image as...',
-                        bitmap=self.icons.iconsLib['file_png_16'],
-                    ),
-                )
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument,
-                        text=saveCSVLabel,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_save_heatmap_image_as)
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
             # Only if clicked on a header
             else:
@@ -2988,16 +2861,7 @@ class documentsTree(wx.TreeCtrl):
                         bitmap=None,
                     ),
                 )
-#                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveImageDocument,
-#                                          text='Save image as...'All,
-#                                          bitmap=self.icons.iconsLib['file_png_16']))
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument,
-                        text=saveCSVLabel,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
         # Statistical method
         elif self._document_type == 'Statistical':
@@ -3010,55 +2874,34 @@ class documentsTree(wx.TreeCtrl):
                 elif plotLabel[0] == 'RMSD Matrix':
                     menu.Append(ID_saveRMSDmatrixImageDoc, 'Save image as...')
                 else:
-                    menu.Append(ID_save2DImageDoc, 'Save image as...')
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
+                    menu.AppendItem(menu_action_save_heatmap_image_as)
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
                 menu.AppendSeparator()
                 menu.Append(ID_renameItem, 'Rename\tF2')
             # Only if on a header
             else:
-                #                 menu.AppendItem(makeMenuItem(parent=menu, id=ID_saveImageDocument,
-                #                                          text='Save image as...'All,
-                #                                          bitmap=self.icons.iconsLib['file_png_16']))
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_saveDataCSVDocument,
-                        text=saveCSVLabel,
-                        bitmap=self.icons.iconsLib['file_csv_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
         # Drift time (1D) (batch)
         elif itemType in ['Drift time (1D, EIC, DT-IMS)', 'Drift time (1D, EIC)']:
             # Only if clicked on an item and not header
             if (
-                not self._item_leaf == 'Drift time (1D, EIC, DT-IMS)' and
+                self._item_leaf != 'Drift time (1D, EIC, DT-IMS)' and
                 itemType != 'Drift time (1D, EIC)'
             ):
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_showPlotMSDocument,
-                        text='Highlight ion in mass spectrum\tAlt+X',
-                        bitmap=self.icons.iconsLib['zoom_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_show_highlights)
             if not self._item_leaf == 'Drift time (1D, EIC, DT-IMS)':
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu, id=ID_showPlotDocument,
-                        text='Show mobiligram (EIC)\tAlt+S',
-                        bitmap=self.icons.iconsLib['mobiligram_16'],
-                    ),
-                )
+                menu.AppendItem(menu_action_show_plot_mobilogram)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_assign_charge)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_save_mobilogram_image_as)
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
             # Only if on a header
             else:
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
         elif itemType == 'Chromatograms (combined voltages, EIC)':
             # Only if clicked on an item and not header
@@ -3068,21 +2911,21 @@ class documentsTree(wx.TreeCtrl):
                 menu.AppendItem(menu_action_assign_charge)
                 menu.AppendSeparator()
                 menu.Append(ID_saveRTImageDoc, 'Save image as...')
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
             # Only if on a header
             else:
-                menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
+                menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
         elif itemType == 'Calibration Parameters':
-            menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
+            menu.AppendItem(menu_action_save_data_as)
             menu.AppendItem(menu_action_delete_item)
         elif (
             itemType == 'Calibration peaks' or
             itemType == 'Calibrants'
         ):
             if self._document_type != self._item_leaf:
-                menu.Append(ID_showPlotDocument, 'Show \tAlt+S')
+                menu.Append(menu_action_show_plot)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_delete_item)
         elif itemType == 'Overlay':
@@ -3091,23 +2934,13 @@ class documentsTree(wx.TreeCtrl):
                     'Waterfall (Raw)', 'Waterfall (Processed)', 'Waterfall (Fitted)',
                     'Waterfall (Deconvoluted MW)', 'Waterfall (Charge states)',
                 ]:
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_showPlotDocument,
-                            text='Show\tAlt+S', bitmap=None,
-                        ),
-                    )
+                    menu.AppendItem(menu_action_show_plot)
                     if self.splitText[0] in ['Waterfall (Raw)', 'Waterfall (Processed)']:
                         menu.AppendItem(menu_show_annotations_panel)
                 elif self.splitText[0] not in ['1D', 'RT']:
                     menu.AppendItem(menu_action_show_plot_2D)
                 else:
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_showPlotDocument,
-                            text='Show\tAlt+S', bitmap=None,
-                        ),
-                    )
+                    menu.AppendItem(menu_action_show_plot)
                 # Depending which plot is being saved, different event ID is used
                 if self.splitText[0] == 'RMSF':
                     menu.Append(ID_saveRMSFImageDoc, 'Save image as...')
@@ -3123,7 +2956,7 @@ class documentsTree(wx.TreeCtrl):
                 ]:
                     menu.Append(ID_saveWaterfallImageDoc, 'Save image as...')
                 else:
-                    menu.Append(ID_save2DImageDoc, 'Save image as...')
+                    menu.AppendItem(menu_action_save_heatmap_image_as)
                 menu.AppendItem(menu_action_delete_item)
                 menu.AppendSeparator()
                 menu.Append(ID_renameItem, 'Rename\tF2')
@@ -3146,7 +2979,7 @@ class documentsTree(wx.TreeCtrl):
             menu.AppendMenu(wx.ID_ANY, 'Set Y-axis label as...', ylabel_DTMS_menu)
             menu.AppendSeparator()
             menu.Append(ID_saveMZDTImage, 'Save image as...')
-            menu.Append(ID_saveDataCSVDocument, saveCSVLabel)
+            menu.AppendItem(menu_action_save_data_as)
         else:
             menu.Append(ID_docTree_add_MS_to_interactive, 'Add mass spectra')
             menu.Append(ID_docTree_add_other_to_interactive, 'Add other...')
@@ -3835,7 +3668,7 @@ class documentsTree(wx.TreeCtrl):
 
     def onCompareMS(self, evt):
         """ Open panel where user can select mas spectra to compare """
-        from panel_signal_comparison_viewer import panel_signal_comparison_viewer
+        from widgets.panel_signal_comparison_viewer import PanelSignalComparisonViewer
 
         if self._item_id is None:
             return
@@ -3858,7 +3691,7 @@ class documentsTree(wx.TreeCtrl):
             'document_spectrum_list': document_spectrum_list,
         }
 
-        self.compareMSDlg = panel_signal_comparison_viewer(
+        self.compareMSDlg = PanelSignalComparisonViewer(
             self.parent,
             self.presenter,
             self.config,
@@ -3867,7 +3700,8 @@ class documentsTree(wx.TreeCtrl):
         )
         self.compareMSDlg.Show()
 
-    def onProcess2D(self, evt):
+    def on_process_2D(self, evt):
+        """Process clicked heatmap item"""
 
         document, data, query = self._on_event_get_mobility_chromatogram_data()
 
@@ -3878,39 +3712,25 @@ class documentsTree(wx.TreeCtrl):
             dataset_type=query[1],
             dataset_name=query[2],
         )
-#         if self._document_type in ['Drift time (2D)', 'Drift time (2D, processed)']:
-#             dataset = self._document_type
-#             ionName = ''
-#         elif self._document_type in [
-#             'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
-#             'Drift time (2D, processed, EIC)', 'Input data',
-#             'Statistical',
-#         ] and self._indent > 2:
-#             dataset = self._document_type
-#             ionName = self._item_leaf
-#         elif self._document_type == 'DT/MS':
-#             dataset = self._document_type
-#             ionName = ''
-# #         elif self._document_type in ['Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
-# #                                'Drift time (2D, processed, EIC)','Input data',
-# #                                'Statistical'] and self._indent == 2:
-# #             dataset = self._document_type
-# #             ionName = 'all'
-#
-#         # create processing kwargs
-#         kwargs = {
-#             'document_2D': self._document_data.title,
-#             'dataset_2D': dataset,
-#             'ionName_2D': ionName,
-#             'update_mode': '2D',
-#         }
-#         # call function
-#         self.presenter.view.onProcessParameters(
-#             evt=ID_processSettings_2D,
-#             **kwargs
-#         )
+
+    def on_process_all_2D(self, evt):
+        """Process all clicked heatmap items"""
+
+        document, data, query = self._on_event_get_mobility_chromatogram_data()
+
+        self.on_open_process_2D_settings(
+            data=data,
+            document=document,
+            document_title=document.title,
+            dataset_type=query[1],
+            dataset_name=query[2],
+            disable_plot=True,
+            disable_process=False,
+            process_all=True,
+        )
 
     def on_open_process_2D_settings(self, **kwargs):
+        """Open heatmap processing settings"""
         from gui_elements.panel_process_heatmap import PanelProcessHeatmap
 
         panel = PanelProcessHeatmap(
@@ -3922,7 +3742,8 @@ class documentsTree(wx.TreeCtrl):
         )
         panel.Show()
 
-    def onProcessMS(self, evt, **kwargs):
+    def on_process_MS(self, evt, **kwargs):
+        """Process clicked mass spectrum item"""
         document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
         self.on_open_process_MS_settings(
             mz_data=data,
@@ -3931,7 +3752,21 @@ class documentsTree(wx.TreeCtrl):
             dataset_name=dataset,
         )
 
+    def on_process_MS_all(self, evt, **kwargs):
+        """Process all clicked mass spectra items"""
+        document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
+        self.on_open_process_MS_settings(
+            mz_data=data,
+            document=document,
+            document_title=document.title,
+            dataset_name=dataset,
+            disable_plot=True,
+            disable_process=True,
+            process_all=True,
+        )
+
     def on_open_process_MS_settings(self, **kwargs):
+        """Open mass spectrum processing settings"""
         from gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
         panel = PanelProcessMassSpectrum(
@@ -3980,8 +3815,8 @@ class documentsTree(wx.TreeCtrl):
                 docItem = self.getItemByData(self.presenter.documentsDict[title].multipleMassSpectrum[self._item_leaf])
                 copy_name = '{} - copy'.format(self._item_leaf)
                 # Change dictionary key
-                self.presenter.documentsDict[title].multipleMassSpectrum[copy_name] = self.presenter.documentsDict[self.title].multipleMassSpectrum[self._item_leaf].copy(
-                )
+                self.presenter.documentsDict[title].multipleMassSpectrum[copy_name] = \
+                    self.presenter.documentsDict[self.title].multipleMassSpectrum[self._item_leaf].copy()
                 document = self.presenter.documentsDict[title]
                 self.data_handling.on_update_document(document, 'document')
                 self.Expand(docItem)
@@ -4095,9 +3930,8 @@ class documentsTree(wx.TreeCtrl):
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
-                self.presenter.documentsDict[self.title].IMS2DstatsData[new_name] = self.presenter.documentsDict[self.title].IMS2DstatsData.pop(
-                    self._item_leaf,
-                )
+                self.presenter.documentsDict[self.title].IMS2DstatsData[new_name] = \
+                    self.presenter.documentsDict[self.title].IMS2DstatsData.pop(self._item_leaf)
                 self.Expand(docItem)
             elif self._document_type == 'Overlay':
                 # Change document tree
@@ -4105,9 +3939,8 @@ class documentsTree(wx.TreeCtrl):
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
-                self.presenter.documentsDict[self.title].IMS2DoverlayData[new_name] = self.presenter.documentsDict[self.title].IMS2DoverlayData.pop(
-                    self._item_leaf,
-                )
+                self.presenter.documentsDict[self.title].IMS2DoverlayData[new_name] = \
+                    self.presenter.documentsDict[self.title].IMS2DoverlayData.pop(self._item_leaf)
                 self.Expand(docItem)
             elif self._document_type == 'Mass Spectra':
                 # Change document tree
@@ -4117,9 +3950,8 @@ class documentsTree(wx.TreeCtrl):
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
-                self.presenter.documentsDict[self.title].multipleMassSpectrum[new_name] = self.presenter.documentsDict[self.title].multipleMassSpectrum.pop(
-                    self._item_leaf,
-                )
+                self.presenter.documentsDict[self.title].multipleMassSpectrum[new_name] = \
+                    self.presenter.documentsDict[self.title].multipleMassSpectrum.pop(self._item_leaf)
                 self.Expand(docItem)
                 # check if item is in other panels
                 try:
@@ -4136,9 +3968,8 @@ class documentsTree(wx.TreeCtrl):
 
                 # TODO: check if iterm is in the peaklist
                 # Change dictionary key
-                self.presenter.documentsDict[self.title].IMS2Dions[new_name] = self.presenter.documentsDict[self.title].IMS2Dions.pop(
-                    self._item_leaf,
-                )
+                self.presenter.documentsDict[self.title].IMS2Dions[new_name] = \
+                    self.presenter.documentsDict[self.title].IMS2Dions.pop(self._item_leaf)
                 self.Expand(docItem)
             else:
                 return
@@ -4825,13 +4656,9 @@ class documentsTree(wx.TreeCtrl):
                     dictionary=data, dataType='plot', compact=False,
                 )
                 if len(xvals) > 500:
-                    dlg = DialogBox(
-                        exceptionTitle='Would you like to continue?',
-                        exceptionMsg='There are {} scans in this dataset (this could be slow...). Would you like to continue?'.format(
-                            len(xvals),
-                        ),
-                        type='Question',
-                    )
+                    msg = f'There are {len(xvals)} scans in this dataset (this could be slow...). ' + \
+                        'Would you like to continue?'
+                    dlg = DialogBox('Would you like to continue?', msg, type='Question')
                     if dlg == wx.ID_NO:
                         return
 
@@ -4908,9 +4735,8 @@ class documentsTree(wx.TreeCtrl):
                     save_kwargs = {'image_name': defaultValue}
                     self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
             elif (out[0] == 'Mask' or out[0] == 'Transparent'):
-                zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, __, __, xvals, yvals, xlabels, ylabels = self.presenter.getOverlayDataFromDictionary(
-                    dictionary=data, dataType='plot', compact=False,
-                )
+                zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, __, __, xvals, yvals, xlabels, ylabels = \
+                    self.presenter.getOverlayDataFromDictionary(dictionary=data, dataType='plot', compact=False)
                 if out[0] == 'Mask':
                     defaultValue = 'Overlay_mask_{}'.format(basename)
                     self.panel_plot.on_plot_overlay_2D(
@@ -4937,9 +4763,8 @@ class documentsTree(wx.TreeCtrl):
                     self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
 
             elif out[0] == 'RMSF':
-                zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType='RMSF', compact=True,
-                )
+                zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = \
+                    self.presenter.get2DdataFromDictionary(dictionary=data, plotType='RMSF', compact=True)
                 defaultValue = 'Overlay_RMSF_{}'.format(basename)
                 self.panel_plot.on_plot_RMSDF(
                     yvalsRMSF=yvalsRMSF,
@@ -4979,9 +4804,8 @@ class documentsTree(wx.TreeCtrl):
 
             elif out[0] == 'RMSD':
                 defaultValue = 'Overlay_RMSD_{}'.format(basename)
-                zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, rmsdLabel, cmap = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType='RMSD', compact=True,
-                )
+                zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, rmsdLabel, cmap = \
+                    self.presenter.get2DdataFromDictionary(dictionary=data, plotType='RMSD', compact=True)
                 self.panel_plot.on_plot_RMSD(
                     zvals, xaxisLabels, yaxisLabels, xlabel, ylabel,
                     cmap, plotType='RMSD', set_page=True,
@@ -5106,7 +4930,10 @@ class documentsTree(wx.TreeCtrl):
                 if save_image:
                     save_kwargs = {'image_name': defaultValue}
                     self.panel_plot.save_images(evt=ID_saveRMSDmatrixImageDoc, **save_kwargs)
-        elif self._document_type == 'DT/MS' or evtID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_restore]:
+        elif (
+            self._document_type == 'DT/MS'
+            or evtID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_restore]
+        ):
             defaultValue = 'DTMS_{}'.format(basename)
             data = self.GetPyData(self._item_id)
             xvals = data['xvals']
@@ -5190,7 +5017,8 @@ class documentsTree(wx.TreeCtrl):
                     (filename, str(np.round(time.time() - tstart, 4))),
                 )
             except AttributeError:
-                args = ('This document does not have correctly formatted MS data. Please export each item separately', 4)
+                args = \
+                    ('This document does not have correctly formatted MS data. Please export each item separately', 4)
                 self.presenter.onThreading(None, args, action='updateStatusbar')
 
     def onSaveData(self, data=None, labels=None, data_format='%.4f', **kwargs):
@@ -6627,8 +6455,9 @@ class documentsTree(wx.TreeCtrl):
             self.onThreading(evt, (evt,), action='load_mzML')
 
     def on_open_MSMS_viewer(self, evt=None, **kwargs):
+        from widgets.panel_tandem_spectra_viewer import PanelTandemSpectraViewer
 
-        self.panelTandemSpectra = panelTandemSpectra(
+        self.panelTandemSpectra = PanelTandemSpectraViewer(
             self.presenter.view,
             self.presenter,
             self.config,
@@ -6638,8 +6467,8 @@ class documentsTree(wx.TreeCtrl):
         self.panelTandemSpectra.Show()
 
     def on_process_UVPD(self, evt=None, **kwargs):
-        from panelUVPD import panelUVPD
-        self.panelUVPD = panelUVPD(
+        from widgets.panel_UVPD_editor import PanelUVPDEditor
+        self.panelUVPD = PanelUVPDEditor(
             self.presenter.view,
             self.presenter,
             self.config,
@@ -6659,9 +6488,13 @@ class documentsTree(wx.TreeCtrl):
         self.panel_extractDTMS .Show()
 
     def on_open_peak_picker(self, evt, **kwargs):
+        """Open peak picker"""
+        from gui_elements.panel_peak_picker import panel_peak_picker
+
+        # get data
         document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
 
-        from gui_elements.panel_peak_picker import panel_peak_picker
+        # initilize peak picker
         panel_peak_picker = panel_peak_picker(
             self.presenter.view,
             self.presenter,
@@ -6674,8 +6507,24 @@ class documentsTree(wx.TreeCtrl):
         )
         panel_peak_picker .Show()
 
+    def on_open_extract_data(self, evt, **kwargs):
+        from gui_elements.panel_process_extract_data import PanelProcessExtractData
+
+        document = self.data_handling._on_get_document()
+
+        # initilize data extraction panel
+        self.PanelProcessExtractData = PanelProcessExtractData(
+            self.presenter.view,
+            self.presenter,
+            self.config,
+            self.icons,
+            document=document,
+            document_title=document.title,
+        )
+        self.PanelProcessExtractData.Show()
+
     def on_add_mzID_file(self, evt):
-        document = self.data_processing._on_get_document()
+        document = self.data_handling._on_get_document()
 
         dlg = wx.FileDialog(
             self.presenter.view, 'Open mzIdentML file', wildcard='*.mzid; *.mzid.gz; *mzid.zip',
@@ -7423,6 +7272,8 @@ class documentsTree(wx.TreeCtrl):
             # add base heatmap
             elif data_type == 'main.heatmap':
                 self.update_one_item(item, document.IMS2D, image=data_type)
+            elif data_type == 'processed.heatmap':
+                self.update_one_item(item, document.IMS2Dprocess, image=data_type)
             # add extracted spectrum
             elif data_type == 'extracted.spectrum':
                 self.add_one_to_group(
@@ -7435,10 +7286,20 @@ class documentsTree(wx.TreeCtrl):
                     item, document.multipleRT[item_name], item_name,
                     image=data_type,
                 )
+            elif data_type == 'ion.chromatogram.combined':
+                self.add_one_to_group(
+                    item, document.IMSRTCombIons[item_name], item_name,
+                    image=data_type,
+                )
             # add mobiligram data
             elif data_type == 'ion.mobiligram':
                 self.add_one_to_group(
                     item, document.IMS1DdriftTimes[item_name], item_name,
+                    image=data_type,
+                )
+            elif data_type == 'ion.mobiligram.raw':
+                self.add_one_to_group(
+                    item, document.multipleDT[item_name], item_name,
                     image=data_type,
                 )
             # add heatmap-raw data
@@ -7451,6 +7312,16 @@ class documentsTree(wx.TreeCtrl):
             elif data_type == 'ion.heatmap.combined':
                 self.add_one_to_group(
                     item, document.IMS2DCombIons[item_name], item_name,
+                    image=data_type,
+                )
+            elif data_type == 'ion.heatmap.processed':
+                self.add_one_to_group(
+                    item, document.IMS2DionsProcess[item_name], item_name,
+                    image=data_type,
+                )
+            elif data_type == 'ion.heatmap.comparison':
+                self.add_one_to_group(
+                    item, document.IMS2DcompData[item_name], item_name,
                     image=data_type,
                 )
             # add data to document without updating it
@@ -7488,11 +7359,14 @@ class documentsTree(wx.TreeCtrl):
     def get_item_image(self, image_type):
         if image_type in ['main.spectrum', 'extracted.spectrum', 'processed.spectrum']:
             image = self.bulets_dict['mass_spec_on']
-        elif image_type == ['ion.heatmap.combined', 'ion.heatmap.raw', 'ion.heatmap.processed', 'main.heatmap']:
+        elif image_type == [
+            'ion.heatmap.combined', 'ion.heatmap.raw', 'ion.heatmap.processed', 'main.heatmap',
+            'processed.heatmap', 'ion.heatmap.comparison',
+        ]:
             image = self.bulets_dict['heatmap_on']
-        elif image_type == 'ion.mobiligram':
+        elif image_type == ['ion.mobiligram', 'ion.mobiligram.raw']:
             image = self.bulets_dict['drift_time_on']
-        elif image_type in ['main.chromatogram', 'extracted.chromatogram']:
+        elif image_type in ['main.chromatogram', 'extracted.chromatogram', 'ion.chromatogram.combined']:
             image = self.bulets_dict['rt_on']
         else:
             image = self.bulets_dict['heatmap_on']

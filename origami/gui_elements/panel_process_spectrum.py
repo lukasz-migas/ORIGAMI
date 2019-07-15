@@ -35,7 +35,9 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.document_title = kwargs.pop('document_title', None)
         self.dataset_name = kwargs.pop('dataset_name', None)
         self.mz_data = kwargs.pop('mz_data', None)
-        self.disable_plot_and_process = kwargs.get('disable_plot_and_process', False)
+        self.disable_plot = kwargs.get('disable_plot', False)
+        self.disable_process = kwargs.get('disable_process', False)
+        self.process_all = kwargs.get('process_all', False)
 
         self.make_gui()
         self.on_toggle_controls(None)
@@ -56,9 +58,9 @@ class PanelProcessMassSpectrum(MiniFrame):
         elif key_code in [66, 67, 76, 78, 83]:
             click_dict = {76: 'linearize', 83: 'smooth', 67: 'crop', 66: 'baseline', 78: 'normalize'}
             self.on_click_on_setting(click_dict.get(key_code))
-        elif key_code == 80 and not self.disable_plot_and_process:
+        elif key_code == 80 and not self.disable_plot and not self.disable_process:
             self.on_plot(None)
-        elif key_code == 65 and not self.disable_plot_and_process:
+        elif key_code == 65 and not self.disable_plot and not self.disable_process:
             self.on_add_to_document(None)
 
         if evt is not None:
@@ -244,10 +246,10 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        if not self.disable_plot_and_process:
+        if not self.disable_plot:
             self.plot_btn = wx.Button(panel, wx.ID_OK, 'Plot', size=(-1, 22))
             self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
-
+        if not self.disable_process:
             self.add_to_document_btn = wx.Button(panel, wx.ID_OK, 'Add to document', size=(-1, 22))
             self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
@@ -342,8 +344,9 @@ class PanelProcessMassSpectrum(MiniFrame):
         n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        if not self.disable_plot_and_process:
+        if not self.disable_plot:
             grid.Add(self.plot_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        if not self.disable_process:
             grid.Add(self.add_to_document_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         grid.Add(self.cancel_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
@@ -379,6 +382,11 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.panel_plot.on_plot_MS(mz_x, mz_y)
 
     def on_add_to_document(self, evt):
+        if self.process_all:
+            for dataset_name in self.mz_data:
+                self.data_processing.on_process_MS_and_add_data(self.document_title, dataset_name)
+            return
+
         self.data_processing.on_process_MS_and_add_data(self.document_title, self.dataset_name)
 
     def on_toggle_controls(self, evt):

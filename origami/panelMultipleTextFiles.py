@@ -1455,7 +1455,8 @@ class panelMultipleTextFiles (wx.Panel):
 
     def on_delete_all(self, evt):
 
-        msg = 'Are you sure you would like to delete all [2D IM-MS documents] from the list?\nThis action cannot be undone.'
+        msg = 'Are you sure you would like to delete all [2D IM-MS documents]' + \
+            ' from the list?\nThis action cannot be undone.'
         dlg = DialogBox(exceptionMsg=msg, type='Question')
         if dlg == wx.ID_NO:
             print('The operation was cancelled')

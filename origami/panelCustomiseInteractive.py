@@ -1369,7 +1369,8 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.overlay_layout.Bind(wx.EVT_COMBOBOX, self.on_apply_overlay)
         self.overlay_layout.SetToolTip(
             wx.ToolTip(
-                'Layout to be used when creating mask/transparent plot. Currently, actual overlaying of two heatmaps is not possible',
+                'Layout to be used when creating mask/transparent plot. ' +
+                'Currently, actual overlaying of two heatmaps is not possible',
             ),
         )
 
@@ -2320,7 +2321,8 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.colorbar_position.SetToolTip(
             wx.ToolTip(
-                "Colorbar position next to the plot. The colorbar orientation changes automatically. If the value is set to 'above'/'below', you might want to set the position offset x/y to 0.",
+                'Colorbar position next to the plot. The colorbar orientation changes automatically. ' +
+                "If the value is set to 'above'/'below', you might want to set the position offset x/y to 0.",
             ),
         )
         self.colorbar_position.Bind(wx.EVT_COMBOBOX, self.on_apply_colorbar)
@@ -3076,13 +3078,15 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         self.kwargs['frame_properties']['tick_labels_xaxis'] = self.frame_tick_labels_xaxis_check.GetValue()
         if self.kwargs['frame_properties']['tick_labels_xaxis']:
-            self.kwargs['frame_properties']['tick_labels_xaxis_fontsize'] = self.kwargs['frame_properties']['tick_fontsize']
+            self.kwargs['frame_properties']['tick_labels_xaxis_fontsize'] = \
+                self.kwargs['frame_properties']['tick_fontsize']
         else:
             self.kwargs['frame_properties']['tick_labels_xaxis_fontsize'] = 0
 
         self.kwargs['frame_properties']['tick_labels_yaxis'] = self.frame_tick_labels_yaxis_check.GetValue()
         if self.kwargs['frame_properties']['tick_labels_yaxis']:
-            self.kwargs['frame_properties']['tick_labels_yaxis_fontsize'] = self.kwargs['frame_properties']['tick_fontsize']
+            self.kwargs['frame_properties']['tick_labels_yaxis_fontsize'] = \
+                self.kwargs['frame_properties']['tick_fontsize']
         else:
             self.kwargs['frame_properties']['tick_labels_yaxis_fontsize'] = 0
 
@@ -3168,13 +3172,16 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.kwargs['overlay_properties']['rmsd_matrix_position_offset_y'] = self.rmsd_matrix_ypos_value.GetValue()
         self.kwargs['overlay_properties']['rmsd_matrix_label_fontsize'] = self.rmsd_matrix_fontSize_value.GetValue()
         self.kwargs['overlay_properties']['rmsd_matrix_label_fontweight'] = self.rmsd_matrix_fontWeight_value.GetValue()
-        self.kwargs['overlay_properties']['rmsd_matrix_xaxis_rotation'] = self.rmsd_matrix_xaxis_rotation_value.GetValue()
+        self.kwargs['overlay_properties']['rmsd_matrix_xaxis_rotation'] = \
+            self.rmsd_matrix_xaxis_rotation_value.GetValue()
         self.kwargs['overlay_properties']['rmsd_matrix_colormap'] = self.rmsd_matrix_colormap.GetStringSelection()
-        self.kwargs['overlay_properties']['rmsd_matrix_auto_label_color'] = self.rmsd_matrix_auto_fontColor_value.GetValue()
+        self.kwargs['overlay_properties']['rmsd_matrix_auto_label_color'] = \
+            self.rmsd_matrix_auto_fontColor_value.GetValue()
 
         # multi-line
         self.kwargs['overlay_properties']['multiline_shade_under'] = self.multiline_shade_under_value.GetValue()
-        self.kwargs['overlay_properties']['multiline_shade_transparency'] = self.multiline_shade_transparency_value.GetValue()
+        self.kwargs['overlay_properties']['multiline_shade_transparency'] = \
+            self.multiline_shade_transparency_value.GetValue()
 
         # mask/transparency
         self.kwargs['overlay_properties']['overlay_merge_tools'] = self.overlay_merge_tools.GetValue()
@@ -3217,7 +3224,8 @@ class panelCustomiseInteractive(wx.MiniFrame):
         # waterfall plots
         self.kwargs['plot_properties']['waterfall_increment'] = self.waterfall_yaxis_increment_value.GetValue()
         self.kwargs['plot_properties']['waterfall_shade_under'] = self.waterfall_shade_under_value.GetValue()
-        self.kwargs['plot_properties']['waterfall_shade_transparency'] = self.waterfall_shade_transparency_value.GetValue()
+        self.kwargs['plot_properties']['waterfall_shade_transparency'] = \
+            self.waterfall_shade_transparency_value.GetValue()
 
         # heatmaps
         self.kwargs['plot_properties']['colormap'] = self.plot_colormap_choice.GetStringSelection()
@@ -3233,7 +3241,8 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.kwargs['plot_properties']['scatter_size'] = self.plot_scatter_size_value.GetValue()
         self.kwargs['plot_properties']['scatter_transparency'] = self.plot_scatter_transparency_value.GetValue()
         self.kwargs['plot_properties']['scatter_line_width'] = self.plot_scatter_line_width_value.GetValue()
-        self.kwargs['plot_properties']['scatter_edge_color_sameAsFill'] = self.plot_scatter_marker_edge_sameAsFill.GetValue()
+        self.kwargs['plot_properties']['scatter_edge_color_sameAsFill'] = \
+            self.plot_scatter_marker_edge_sameAsFill.GetValue()
 
         # tandem
         self.kwargs['plot_properties']['tandem_line_width'] = self.plot_tandem_line_width_value.GetValue()
@@ -3246,11 +3255,13 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         # line plots
         self.kwargs['preprocessing_properties']['linearize'] = self.preprocess_linearize_check.GetValue()
-        self.kwargs['preprocessing_properties']['linearize_binsize'] = self.preprocess_linearize_binsize_value.GetValue()
+        self.kwargs['preprocessing_properties']['linearize_binsize'] = \
+            self.preprocess_linearize_binsize_value.GetValue()
         self.kwargs['preprocessing_properties']['linearize_limit'] = self.preprocess_linearize_limit_value.GetValue()
 
         self.kwargs['preprocessing_properties']['subsample'] = self.preprocess_subsample_check.GetValue()
-        self.kwargs['preprocessing_properties']['subsample_frequency'] = self.preprocess_subsample_frequency_value.GetValue()
+        self.kwargs['preprocessing_properties']['subsample_frequency'] = \
+            self.preprocess_subsample_frequency_value.GetValue()
         self.kwargs['preprocessing_properties']['subsample_limit'] = self.preprocess_subsample_limit_value.GetValue()
 
         self.onUpdateDocument()

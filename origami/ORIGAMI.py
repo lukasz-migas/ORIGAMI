@@ -12,7 +12,6 @@ import webbrowser
 from sys import platform
 
 import mainWindow as mainWindow
-import matplotlib.colors as colors
 import numpy as np
 import pandas as pd
 import processing.activation as pr_activation
@@ -190,13 +189,6 @@ class ORIGAMI(object):
 
         if self.config.testing:
             self._test_()
-
-#         for file_path in [
-# #                         'Z:\###_PhD1_###\RebeccaBeveridge - P27 CdkCyclin Fdc1\p27_data_January2018\SynaptG2\LM_15012017_P27K56_2.pickle'
-#                         'Z:\###_PhD2_###\CIU\PythonCIU\ORIGAMI_2\_TEST_DATA\ubb.pickle',
-#                         'Z:\###_PhD2_###\CIU\PythonCIU\ORIGAMI_2\_TEST_DATA\ORIGAMI_ConA_z20.pickle'
-#                           ]:
-#             self.onOpenDocument(evt=None, file_path = file_path)
 
     def _test_(self):
         # load text MS file
@@ -2201,7 +2193,8 @@ class ORIGAMI(object):
 # #                     self.view.SetStatusText(msg, 3)
 # #                     return
 # #                 elif charge == 0:
-# #                     msg = "%s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (
+# #                     msg = "
+# %s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (
 # #                         rangeName, filename)
 # #                     DialogBox(exceptionTitle='Missing charge information',
 # #                            exceptionMsg=msg,
@@ -2225,7 +2218,8 @@ class ORIGAMI(object):
 # #                 pusherFreq = document.parameters.get('pusherFreq', 1)
 # #
 # #                 if (pusherFreq == 1 or not isnumber(pusherFreq)) and ylabel != 'Drift time (ms)':
-# #                     msg = "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (
+# #                     msg = \
+#     "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (
 # #                         filename, rangeName)
 # #                     DialogBox(exceptionTitle='Missing data',
 # #                            exceptionMsg=msg,
@@ -2278,7 +2272,8 @@ class ORIGAMI(object):
 # #                     docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
 # #                                                                 format='Format: DataFrame')
 # #                     if len(docList) == 0:
-# #                         msg = "Cound not find calibration document or calibration file. Please create or load one in first"
+# #                         msg = \
+#     "Cound not find calibration document or calibration file. Please create or load one in first"
 # #                         DialogBox(exceptionTitle='Missing data',
 # #                                exceptionMsg=msg,
 # #                                type="Error")

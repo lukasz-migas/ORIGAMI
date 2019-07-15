@@ -788,15 +788,26 @@ class OrigamiConfig:
 
         # Extracting
         self.extract_massSpectra = False
+        self.extract_massSpectra_use_mz = True
+        self.extract_massSpectra_use_rt = True
+        self.extract_massSpectra_use_dt = True
         self.extract_chromatograms = False
+        self.extract_chromatograms_use_mz = True
+        self.extract_chromatograms_use_dt = True
         self.extract_driftTime1D = False
+        self.extract_driftTime1D_use_mz = True
+        self.extract_driftTime1D_use_rt = True
         self.extract_driftTime2D = False
+        self.extract_driftTime2D_use_mz = True
+        self.extract_driftTime2D_use_rt = True
         self.extract_mzStart = 0
         self.extract_mzEnd = 0
         self.extract_rtStart = 0
         self.extract_rtEnd = 999
         self.extract_dtStart = 1
         self.extract_dtEnd = 200
+        self.extract_rt_use_scans = False  # new in v1.3.0.0
+        self.extract_dt_use_ms = False  # new in v1.3.0.0
 
         # Peak fitting
         self.fit_addPeaks = True

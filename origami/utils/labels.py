@@ -5,18 +5,49 @@ import re
 
 
 def get_ion_name_from_label(ion_name):
-    """Extrac mz values from label
+    """Extract mz values from label
 
     Parameters
     ----------
     ion_name : str
         ion label with name format MZMIN-MZMAX - can have some supplement afterwards
+
+    Returns
+    -------
+    mz_min : str
+        start m/z value
+    mz_max : str
+        end m/z value
     """
     ion_label = re.split(r'-|\(|:|,', ion_name)
     mz_min = ion_label[0]
     mz_max = ion_label[1]
 
     return mz_min, mz_max
+
+
+def get_clean_label_without_tag(label, tag):
+    """Remove tag from label
+
+    Parameters
+    ----------
+    label : str
+        label with (or without tag)
+    tag : str
+        component of label that should be removed
+
+    Returns
+    label : str
+        cleaned-up label
+    """
+    if f'({tag})' in label:
+        label = re.split(fr'\({tag}\)', label)[0]
+        label = label.rstrip()
+
+    if f', {tag})' in label:
+        label = re.split(fr', {tag}\)', label)[0]
+
+    return label
 
 
 def _replace_labels(label):

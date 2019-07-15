@@ -130,6 +130,7 @@ class WatersRawReader():
         return rt_x, rt_ys
 
     def get_mobilogram(self, mz_values, tolerance=0.05):
+        """Same as `get_chromatogram` but using function 1"""
         if not isinstance(mz_values):
             mz_values = [mz_values]
 
