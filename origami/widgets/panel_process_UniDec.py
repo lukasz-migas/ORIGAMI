@@ -3,13 +3,13 @@
 import logging
 
 import wx
-from styles import makeCheckbox, makeTooltip
+from styles import makeCheckbox
 from styles import makeMenuItem
+from styles import makeTooltip
 from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
 from utils.screen import calculate_window_size
-from utils.time import ttime
 from visuals import mpl_plots
 logger = logging.getLogger('origami')
 
@@ -77,8 +77,8 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.SetFocus()
 
     def on_close(self, evt):
-            """Destroy this frame."""
-            self.Destroy()
+        """Destroy this frame."""
+        self.Destroy()
 
     def make_gui(self):
         """Make miniframe"""
@@ -117,8 +117,10 @@ class PanelProcessUniDec(wx.MiniFrame):
         """Make plot panel"""
 
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
-        figsize = [pixel_size[0] / self._display_resolution[0],
-                   pixel_size[1] / self._display_resolution[1]]
+        figsize = [
+            pixel_size[0] / self._display_resolution[0],
+            pixel_size[1] / self._display_resolution[1],
+        ]
         figsize_1D = [figsize[0] / 2.75, figsize[1] / 3]
         figsize_2D = [figsize[0] / 2.75, figsize[1] / 1.5]
 
@@ -134,7 +136,9 @@ class PanelProcessUniDec(wx.MiniFrame):
 
             self.plotUnidec_mwVsZ = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_2D)
             self.plotUnidec_barChart = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_2D)
-            self.plotUnidec_chargeDistribution = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_1D)
+            self.plotUnidec_chargeDistribution = mpl_plots.plots(
+                self.plot_panel, config=self.config, figsize=figsize_1D,
+            )
 
             grid = wx.GridBagSizer(10, 10)
             n = 0
@@ -257,7 +261,7 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         self.unidec_load = wx.Button(
             panel, -1,
-#             ID_processSettings_loadDataUniDec,
+            #             ID_processSettings_loadDataUniDec,
             'Initilise UniDec',
             size=BTN_SIZE, name='load_data_unidec',
         )
@@ -286,12 +290,16 @@ class PanelProcessUniDec(wx.MiniFrame):
         grid.Add(unidec_ms_binsize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_mzBinSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(unidec_ms_gaussianFilter_label, (n, 0), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(
+            unidec_ms_gaussianFilter_label, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
         grid.Add(self.unidec_gaussianFilter_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(unidec_ms_accelerationV_label, (n, 0), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(
+            unidec_ms_accelerationV_label, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
         grid.Add(self.unidec_accelerationV_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
         grid.Add(unidec_linearization_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -376,8 +384,9 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_peakFcn_choice.SetStringSelection(self.config.unidec_peakFunction)
         self.unidec_peakFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        self.unidec_runUnidec = wx.Button(panel, -1,
-#             ID_processSettings_runUniDec,
+        self.unidec_runUnidec = wx.Button(
+            panel, -1,
+            #             ID_processSettings_runUniDec,
             'Run UniDec', size=BTN_SIZE, name='run_unidec',
         )
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -399,10 +408,14 @@ class PanelProcessUniDec(wx.MiniFrame):
         grid.Add(unidec_mw_max_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_mwEnd_value, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(unidec_mw_sampleFrequency_label, (n, 0), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_mw_sampleFrequency_value, (n, 1), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(
+            unidec_mw_sampleFrequency_label, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(
+            self.unidec_mw_sampleFrequency_value, (n, 1), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
+        )
         n += 1
         grid.Add(unidec_peakWidth_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_fit_peakWidth_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -469,7 +482,7 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         self.unidec_detectPeaks = wx.Button(
             panel, -1,
-#              ID_processSettings_pickPeaksUniDec,
+            #              ID_processSettings_pickPeaksUniDec,
             'Detect peaks',
             size=BTN_SIZE, name='pick_peaks_unidec',
         )
@@ -489,8 +502,10 @@ class PanelProcessUniDec(wx.MiniFrame):
         grid.Add(unidec_peak_threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_peakThreshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(unidec_peak_normalization_label, (n, 0), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(
+            unidec_peak_normalization_label, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
         grid.Add(self.unidec_peakNormalization_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
         grid.Add(unidec_peak_separation_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -519,7 +534,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         unidec_plotting_weights_label = wx.StaticText(panel, wx.ID_ANY, 'Molecular weights:')
         self.unidec_weightList_choice = wx.ComboBox(
             panel, -1,
-#             ID_processSettings_showZUniDec,
+            #             ID_processSettings_showZUniDec,
             choices=[],
             size=(150, -1), style=wx.CB_READONLY,
             name='ChargeStates',
@@ -538,7 +553,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         unidec_plotting_adduct_label = wx.StaticText(panel, wx.ID_ANY, 'Adduct:')
         self.unidec_adductMW_choice = wx.Choice(
             panel, -1,
-#             ID_processSettings_showZUniDec,
+            #             ID_processSettings_showZUniDec,
             choices=['H+', 'Na+', 'K+', 'NH4+', 'H-', 'Cl-'],
             size=(-1, -1), name='ChargeStates',
         )
@@ -567,19 +582,23 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         self.unidec_restoreAll_Btn = wx.Button(
             panel, -1,
-#             ID_processSettings_restoreIsolatedAll,
+            #             ID_processSettings_restoreIsolatedAll,
             'Restore all', size=(-1, 22),
         )
 #         self.unidec_restoreAll_Btn.Bind(wx.EVT_BUTTON, self.on_run_unidec_fcn)
 
-        self.unidec_chargeStates_Btn = wx.Button(panel, -1,
-#                                                  ID_processSettings_showZUniDec,
-                                                 'Label', size=(-1, 22))
+        self.unidec_chargeStates_Btn = wx.Button(
+            panel, -1,
+            #                                                  ID_processSettings_showZUniDec,
+            'Label', size=(-1, 22),
+        )
 #         self.unidec_chargeStates_Btn.Bind(wx.EVT_BUTTON, self.on_run_unidec_fcn)
 
-        self.unidec_isolateCharges_Btn = wx.Button(panel, -1,
-#                                                    ID_processSettings_isolateZUniDec,
-                                                   'Isolate', size=(-1, 22))
+        self.unidec_isolateCharges_Btn = wx.Button(
+            panel, -1,
+            #                                                    ID_processSettings_isolateZUniDec,
+            'Isolate', size=(-1, 22),
+        )
 #         self.unidec_isolateCharges_Btn.Bind(wx.EVT_BUTTON, self.on_run_unidec_fcn)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -593,27 +612,45 @@ class PanelProcessUniDec(wx.MiniFrame):
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(unidec_plotting_weights_label, (n, 0), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_weightList_choice, (n, 1), wx.GBSpan(1, 2),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.unidec_weightList_sort, (n, 3), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(
+            unidec_plotting_weights_label, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(
+            self.unidec_weightList_choice, (n, 1), wx.GBSpan(1, 2),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
+        )
+        grid.Add(
+            self.unidec_weightList_sort, (n, 3), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
+        )
         n += 1
-        grid.Add(unidec_plotting_adduct_label, (n, 0), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_adductMW_choice, (n, 1), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(
+            unidec_plotting_adduct_label, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(
+            self.unidec_adductMW_choice, (n, 1), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
+        )
         n += 1
-        grid.Add(unidec_charges_threshold_label, (n, 0), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_charges_threshold_value, (n, 1), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(
+            unidec_charges_threshold_label, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(
+            self.unidec_charges_threshold_value, (n, 1), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
         n += 1
-        grid.Add(unidec_charges_offset_label, (n, 0), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_charges_offset_value, (n, 1), wx.GBSpan(1, 1),
-                 flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(
+            unidec_charges_offset_label, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(
+            self.unidec_charges_offset_value, (n, 1), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.ALIGN_CENTER_HORIZONTAL, 2)
@@ -663,9 +700,11 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
         self.unidec_cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        self.unidec_customise_btn = wx.BitmapButton(panel, -1, self.icons.iconsLib['settings16_2'], size=(40, 22),
-                                                    style=wx.ALIGN_CENTER_VERTICAL)
-        self.unidec_customise_btn.SetToolTip(makeTooltip("Open customisation window..."))
+        self.unidec_customise_btn = wx.BitmapButton(
+            panel, -1, self.icons.iconsLib['settings16_2'], size=(40, 22),
+            style=wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.unidec_customise_btn.SetToolTip(makeTooltip('Open customisation window...'))
         self.unidec_customise_btn.Bind(wx.EVT_BUTTON, self.on_open_customisation_settings)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -734,7 +773,7 @@ class PanelProcessUniDec(wx.MiniFrame):
             evt.Skip()
 
     def on_clear_plot(self, evt):
-#         pass
+        #         pass
         self.panel_plot.on_clear_plot(None, None, plot_obj=self.plot_window)
 
     def on_save_figure(self, evt):

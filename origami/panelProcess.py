@@ -11,7 +11,7 @@ import wx
 from gui_elements.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_htmlViewer import panelHTMLViewer
-from gui_elements.panel_peakWidthTool import panelPeakWidthTool
+from gui_elements.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
 from help_documentation import OrigamiHelp
 from ids import ID_processSettings_autoUniDec
 from ids import ID_processSettings_isolateZUniDec
@@ -96,31 +96,8 @@ class panelProcessData(wx.MiniFrame):
         except Exception:
             self.currentDisplaySize = None
 
-        # get document
-        self.currentDoc = self.presenter.view.panelDocuments.documents.enableCurrentDocument()
-        try:
-            document = self.presenter.documentsDict[self.currentDoc]
-        except Exception:
-            document = None
-        try:
-            self.parameters = document.parameters
-        except Exception:
-            self.parameters = {}
-
         # make gui items
         self.make_gui()
-        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
-        self.mainBook.SetSelection(self.config.processParamsWindow[kwargs['window']])
-
-        # check if new title is present
-        if document is not None:
-            self.SetTitle('Processing - %s' % document.title)
-        elif kwargs.get('title', None) is not None:
-            self.SetTitle(kwargs['title'])
-
-        # bind
-        wx.EVT_CLOSE(self, self.on_close)
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
         self.main_sizer.Fit(self)
         self.Centre()
@@ -129,32 +106,7 @@ class panelProcessData(wx.MiniFrame):
         self.SetFocus()
 
         # fire-up start events
-        self.on_page_changed(evt=None)
-#         self.updateStatusbar()
         self.onUpdateUniDecPanel()
-        logger.info(f'Processing panel: startup took {ttime()-tstart:.4f}')
-
-    def onUpdateKwargs(self, data_type='MS', **kwargs):
-        if not hasattr(self, 'document'):
-            self.document = {}
-        if not hasattr(self, 'dataset'):
-            self.dataset = {}
-        if not hasattr(self, 'ionName'):
-            self.ionName = {}
-
-        if data_type == 'MS':
-            self.document['MS'] = kwargs['document_MS']
-            self.dataset['MS'] = kwargs['dataset_MS']
-            self.ionName['MS'] = kwargs['ionName_MS']
-        elif data_type == '2D':
-            self.document['2D'] = kwargs['document_2D']
-            self.dataset['2D'] = kwargs['dataset_2D']
-            self.ionName['2D'] = kwargs['ionName_2D']
-
-        try:
-            self.onUpdateUniDecPanel()
-        except Exception:
-            pass
 
     def onUpdateUniDecPanel(self):
         try:
@@ -173,62 +125,8 @@ class panelProcessData(wx.MiniFrame):
         except Exception:
             pass
 
-    def on_key_event(self, evt):
-        key_code = evt.GetKeyCode()
-        if key_code == wx.WXK_ESCAPE:  # key = esc
-            self.on_close(evt=None)
-        elif key_code == 65:  # key = a
-            self.on_apply(evt=None)
-#         elif key_code == 70 and self.currentPage == "Peak fitting":  # key = a
-#             self.onPickPeaksThreaded(evt=None)
-
-        if evt is not None:
-            evt.Skip()
-
-    def on_page_changed(self, evt):
-
-        self.windowSizes = {
-            'Extract': (470, 385), 'ORIGAMI': (412, 335),
-            'Mass spectrum': (412, 632), '2D': (412, 264),
-            'Peak fitting': (465, 568), 'UniDec': (740, 498),
-        }
-
-        self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
-        self.SetSize(self.windowSizes[self.currentPage])
-        self.SetMaxSize(self.windowSizes[self.currentPage])
-        self.SetSize(self.windowSizes[self.currentPage])
-        self.Layout()
-
-        # check if current tab is one of the following
-        if self.currentPage in ['Mass spectrum', '2D', 'Peak fitting']:
-            if self.currentPage == 'Mass spectrum':
-                try:
-                    self.SetTitle('{} - {}'.format(self.document['MS'], self.dataset['MS']))
-                except Exception:
-                    self.SetTitle('Processing...')
-            elif self.currentPage == '2D':
-                try:
-                    self.SetTitle('{} - {} - {}'.format(self.document['2D'], self.dataset['2D'], self.ionName['2D']))
-                except Exception:
-                    self.SetTitle('Processing...')
-        else:
-            self.SetTitle('Processing...')
-
-    def onSetPage(self, **kwargs):
-        self.mainBook.SetSelection(self.config.processParamsWindow[kwargs['window']])
-        self.on_page_changed(evt=None)
-        self.onUpdateKwargs(
-            data_type=kwargs['processKwargs'].get('update_mode', None),
-            **kwargs['processKwargs']
-        )
-
     def on_close(self, evt):
         """Destroy this frame."""
-        self.config.processParamsWindow_on_off = False
-        self.Destroy()
-    # ----
-
-    def onSelect(self, evt):
         self.Destroy()
 
     def make_gui(self):
@@ -1008,9 +906,6 @@ class panelProcessData(wx.MiniFrame):
                 )
                 self.presenter.view.panelPlots.on_plot_charge_states(peakpos, charges, **kwargs)
 
-    def onAddToAnnotations(self, evt):
-        pass
-
     def on_apply(self, evt):
         # prevent updating config
 
@@ -1081,258 +976,6 @@ class panelProcessData(wx.MiniFrame):
         if evt is not None:
             evt.Skip()
 
-    # TODO: this function should be moved to data_handling and split into smaller functions
-    def on_extract_data(self, evt):
-        # get document
-        self.currentDoc = self.presenter.view.panelDocuments.documents.enableCurrentDocument()
-        if self.currentDoc == 'Documents':
-            return
-        document = self.presenter.documentsDict[self.currentDoc]
-        parameters = document.parameters
-
-        # get parameters
-        scanTime = str2num(self.extract_scanTime_value.GetValue())
-        pusherFreq = str2num(self.extract_pusherFreq_value.GetValue())
-        add_to_document = self.extract_add_to_document.GetValue()
-
-        # mass spectra
-        if self.config.extract_mzStart == self.config.extract_mzEnd:
-            self.config.extract_mzEnd = +1
-            self.extract_mzEnd_value.SetValue(str(self.config.extract_mzEnd))
-        self.config.extract_mzStart, self.config.extract_mzEnd = check_value_order(
-            self.config.extract_mzEnd, self.config.extract_mzStart,
-        )
-
-        mzStart = self.config.extract_mzStart
-        mzEnd = self.config.extract_mzEnd
-        xlimits = [mzStart, mzEnd]
-
-        # chromatogram
-        if self.config.extract_rtStart == self.config.extract_rtEnd:
-            self.config.extract_rtEnd = +1
-            self.extract_rtEnd_value.SetValue(str(self.config.extract_rtEnd))
-
-        self.config.extract_rtStart, self.config.extract_rtEnd = check_value_order(
-            self.config.extract_rtEnd, self.config.extract_rtStart,
-        )
-
-        if self.extract_rt_scans_check.GetValue():
-            if scanTime in ['', 0, None]:
-                print('Scan time is incorrect. Setting value to 1')
-                scanTime = 1
-                self.extract_scanTime_value.SetValue(str(scanTime))
-            rtStart = ((self.config.extract_rtStart + 1) * scanTime) / 60
-            rtEnd = ((self.config.extract_rtEnd + 1) * scanTime) / 60
-        else:
-            rtStart = self.config.extract_rtStart
-            rtEnd = self.config.extract_rtEnd
-
-        # drift time
-        if self.config.extract_dtStart == self.config.extract_dtEnd:
-            self.config.extract_dtEnd = +1
-            self.extract_dtEnd_value.SetValue(str(self.config.extract_dtEnd))
-        self.config.extract_dtStart, self.config.extract_dtEnd = check_value_order(
-            self.config.extract_dtEnd, self.config.extract_dtStart,
-        )
-
-        if self.extract_dt_ms_check.GetValue():
-            if pusherFreq in ['', 0, None]:
-                print('Pusher frequency is incorrect. Setting value to 1')
-                pusherFreq = 1
-                self.extract_pusherFreq_value.SetValue(str(pusherFreq))
-            dtStart = int(self.config.extract_dtStart / (pusherFreq * 0.001))
-            dtEnd = int(self.config.extract_dtEnd / (pusherFreq * 0.001))
-        else:
-            dtStart = self.config.extract_dtStart
-            dtEnd = self.config.extract_dtEnd
-
-        # create titles
-        mz_title = 'ion={}-{}'.format(np.round(mzStart, 2), np.round(mzEnd, 2))
-        rt_title = 'rt={}-{}'.format(np.round(rtStart, 2), np.round(rtEnd, 2))
-        dt_title = 'dt={}-{}'.format(np.round(dtStart, 2), np.round(dtEnd, 2))
-
-        # extract mass spectrum
-        if self.extract_extractMS_check.GetValue():
-            if not self.extract_extractMS_ms_check.GetValue():
-                mzStart, mzEnd = 0, 999999
-                mz_title = 'ion=all'
-                xlimits = [parameters['startMS'], parameters['endMS']]
-            if not self.extract_extractMS_rt_check.GetValue():
-                rtStart, rtEnd = 0.0, 999.0
-                rt_title = 'rt=all'
-            if not self.extract_extractMS_dt_check.GetValue():
-                dtStart, dtEnd = 1, 200
-                dt_title = 'dt=all'
-            try:
-                extract_kwargs = {'return_data': True}
-                xvals_MS, yvals_MS = driftscope_extract_MS(
-                    path=document.path,
-                    mz_start=mzStart, mz_end=mzEnd,
-                    rt_start=rtStart, rt_end=rtEnd,
-                    dt_start=dtStart, dt_end=dtEnd,
-                    driftscope_path=self.config.driftscopePath,
-                    **extract_kwargs
-                )
-                self.presenter.view.panelPlots.on_plot_MS(xvals_MS, yvals_MS)
-                if add_to_document:
-                    item_name = '{}, {}, {}'.format(mz_title, rt_title, dt_title)
-                    document.gotMultipleMS = True
-                    document.multipleMassSpectrum[item_name] = {
-                        'xvals': xvals_MS,
-                        'yvals': yvals_MS,
-                        'xlabels': 'm/z (Da)',
-                        'xlimits': xlimits,
-                    }
-            except Exception:
-                msg = 'Failed to extract mass spectrum for selected range'
-                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-
-        # extract chromatogram
-        if self.extract_extractRT_check.GetValue():
-            if not self.extract_extractRT_ms_check.GetValue():
-                mzStart, mzEnd = 0, 999999
-                mz_title = 'ion=all'
-            if not self.extract_extractRT_dt_check.GetValue():
-                dtStart, dtEnd = 1, 200
-                dt_title = 'dt=all'
-            try:
-                extract_kwargs = {'return_data': True}
-                xvals_RT, yvals_RT = driftscope_extract_RT(
-                    path=document.path,
-                    mz_start=mzStart, mz_end=mzEnd,
-                    dt_start=dtStart, dt_end=dtEnd,
-                    driftscope_path=self.config.driftscopePath,
-                    **extract_kwargs
-                )
-                self.presenter.view.panelPlots.on_plot_RT(xvals_RT, yvals_RT, 'Scans')
-                if add_to_document:
-                    item_name = '{}, {}'.format(mz_title, dt_title)
-                    if not hasattr(document, 'gotMultipleRT'):
-                        setattr(document, 'gotMultipleRT', False)
-                    if not hasattr(document, 'multipleRT'):
-                        setattr(document, 'multipleRT', {})
-                    document.gotMultipleRT = True
-                    document.multipleRT[item_name] = {
-                        'xvals': xvals_RT,
-                        'yvals': yvals_RT,
-                        'xlabels': 'Scans',
-                        'ylabels': 'Intensity',
-                    }
-            except Exception:
-                msg = 'Failed to extract chromatogram for selected range'
-                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-
-        # extract drift time
-        if self.extract_extractDT_check.GetValue():
-            if not self.extract_extractDT_ms_check.GetValue():
-                mzStart, mzEnd = 0, 999999
-                mz_title = 'ion=all'
-            if not self.extract_extractDT_rt_check.GetValue():
-                rtStart, rtEnd = 0.0, 999.0
-                rt_title = 'rt=all'
-            try:
-                extract_kwargs = {'return_data': True}
-                xvals_DT, yvals_DT = driftscope_extract_DT(
-                    path=document.path,
-                    mz_start=mzStart, mz_end=mzEnd,
-                    rt_start=rtStart, rt_end=rtEnd,
-                    driftscope_path=self.config.driftscopePath,
-                    **extract_kwargs
-                )
-                self.presenter.view.panelPlots.on_plot_1D(xvals_DT, yvals_DT, 'Drift time (bins)')
-                if add_to_document:
-                    item_name = '{}, {}'.format(mz_title, rt_title)
-                    # check for attributes
-                    if not hasattr(document, 'gotMultipleDT'):
-                        setattr(document, 'gotMultipleDT', False)
-                    if not hasattr(document, 'multipleDT'):
-                        setattr(document, 'multipleDT', {})
-                    # add data
-                    document.gotMultipleDT = True
-                    document.multipleDT[item_name] = {
-                        'xvals': xvals_DT,
-                        'yvals': yvals_DT,
-                        'xlabels': 'Drift time (bins)',
-                        'ylabels': 'Intensity',
-                    }
-            except Exception:
-                msg = 'Failed to extract mobiligram for selected range'
-                self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
-
-        # extract drift time (2D)
-        if self.extract_extract2D_check.GetValue():
-            if not self.extract_extract2D_ms_check.GetValue():
-                mzStart, mzEnd = 0, 999999
-                mz_title = 'ion=all'
-            if not self.extract_extract2D_rt_check.GetValue():
-                rtStart, rtEnd = 0.0, 999.0
-                rt_title = 'rt=all'
-            try:
-                extract_kwargs = {'return_data': True}
-                zvals_2D = driftscope_extract_2D(
-                    path=document.path,
-                    mz_start=mzStart, mz_end=mzEnd,
-                    rt_start=rtStart, rt_end=rtEnd,
-                    driftscope_path=self.config.driftscopePath,
-                    **extract_kwargs
-                )
-                xvals_2D = 1 + np.arange(len(zvals_2D[1, :]))
-                yvals_2D = 1 + np.arange(len(zvals_2D[:, 1]))
-                yvals_1D = np.sum(zvals_2D, axis=1).T
-                yvals_RT = np.sum(zvals_2D, axis=0)
-                self.presenter.view.panelPlots.on_plot_2D_data(
-                    data=[zvals_2D, xvals_2D, 'Scans', yvals_2D, 'Drift time (bins)'],
-                )
-                if add_to_document:
-                    item_name = '{}, {}'.format(mz_title, rt_title)
-                    document.gotExtractedIons = True
-                    document.IMS2Dions[item_name] = {
-                        'zvals': zvals_2D,
-                        'xvals': xvals_2D,
-                        'yvals': yvals_2D,
-                        'yvals1D': yvals_1D,
-                        'yvalsRT': yvals_RT,
-                        'xlabels': 'Scans',
-                        'ylabels': 'Drift time (bins)',
-                    }
-            except Exception:
-                pass
-
-        # Update document
-        if add_to_document:
-            self.data_handling.on_update_document(document, 'document')
-
-    def on_change_validator(self, evt):
-
-        if self.extract_rt_scans_check.GetValue():
-            self.rt_label.SetLabel('RT (scans):')
-            self.extract_rtStart_value.SetValidator(validator('intPos'))
-            self.extract_rtStart_value.SetValue(str(int(self.config.extract_rtStart)))
-            self.extract_rtEnd_value.SetValidator(validator('intPos'))
-            self.extract_rtEnd_value.SetValue(str(int(self.config.extract_rtEnd)))
-        else:
-            self.rt_label.SetLabel('RT (mins): ')
-            self.extract_rtStart_value.SetValidator(validator('floatPos'))
-            self.extract_rtEnd_value.SetValidator(validator('floatPos'))
-
-        if self.extract_dt_ms_check.GetValue():
-            self.dt_label.SetLabel('DT (ms):')
-            self.extract_dtStart_value.SetValidator(validator('intPos'))
-            self.extract_dtStart_value.SetValue(str(int(self.config.extract_dtStart)))
-            self.extract_dtEnd_value.SetValidator(validator('intPos'))
-            self.extract_dtEnd_value.SetValue(str(int(self.config.extract_dtEnd)))
-        else:
-            self.dt_label.SetLabel('DT (bins):')
-            self.extract_dtStart_value.SetValidator(validator('floatPos'))
-            self.extract_dtEnd_value.SetValidator(validator('floatPos'))
-
-    def on_check_parameters(self, evt):
-
-        if not self.config.fit_show_labels_mz and not self.config.fit_show_labels_int:
-            self.fit_show_labels_check.SetValue(False)
-            self.config.fit_show_labels = False
-            self.on_toggle_controls(None)
-
     def openHTMLViewer(self, evt):
 
         evtID = evt.GetId()
@@ -1368,7 +1011,7 @@ class panelProcessData(wx.MiniFrame):
             )
             return
 
-        self.widthTool = panelPeakWidthTool(self, self.presenter, self.config, **kwargs)
+        self.widthTool = PanelPeakWidthTool(self, self.presenter, self.config, **kwargs)
         self.widthTool.Show()
 
 #     def onPickPeaksThreaded(self, evt):
@@ -1420,17 +1063,6 @@ class panelProcessData(wx.MiniFrame):
                 document.multipleMassSpectrum[dataset_title]['annotations'] = annotations
 
             self.data_handling.on_update_document(document, 'document')
-
-    def onThreading(self, evt, args, action='pick_peaks'):
-        # Setup thread
-        if action == 'unidec':
-            th = threading.Thread(target=self.onRunUnidec, args=(evt,))
-
-        # Start thread
-        try:
-            th.start()
-        except Exception:
-            print('Failed to execute the operation in threaded mode. Consider switching it off?')
 
     def _calculate_charge_positions(
         self, chargeList, selectedMW, msX,
@@ -1489,20 +1121,6 @@ class panelProcessData(wx.MiniFrame):
             name = '{} - {}'.format(np.round(min_value, 2), np.round(max_value, 2))
             mw_annotations[name] = annotation_dict
         return mw_annotations
-
-    def on_update_GUI(self, update_what='all'):
-        # TODO: add all available fields
-        """
-        Update panel with new values if they were changed elsewhere in the program.
-        You can selectively update ALL fields (i.e. if reloading configuration file) or
-        single set of fields.
-        ---
-        @param update_what (str): select what you would like to update
-        """
-        print(('??', self.config.ms_mzStart, self.config.ms_mzEnd, self.config))
-        if update_what in ['all', 'mass_spectra']:
-            self.bin_mzStart_value.SetValue(str(self.config.ms_mzStart))
-            self.bin_mzEnd_value.SetValue(str(self.config.ms_mzEnd))
 
     def on_sort_unidec_MW(self, evt):
         if self._unidec_sort_column == 0:
