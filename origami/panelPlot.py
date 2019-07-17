@@ -114,6 +114,14 @@ from visuals import mpl_plots
 from visuals.normalize import MidpointNormalize
 logger = logging.getLogger('origami')
 
+# TODO: Improve layout
+# TODO: Improve how plot panels are generated
+# TODO: Remove the following panels: Waterfall, UniDec, Overlay, RMSF, Calibration
+# TODO: Rename the following panels: MS -> Mass spectrum; RT -> Chromatogram; 1D -> Mobilogram; 2D -> Heatmap; Other -> Annotated (or else)
+# TODO: Make each function accept plot_obj and use the get_plot function
+# TODO: Standardize how plots are exported
+# TODO: Add option to copy plot clipboard
+
 
 class panelPlot(wx.Panel):
 
@@ -650,6 +658,16 @@ class panelPlot(wx.Panel):
 
         self.panel1D.SetMinimumPaneSize(half_size)
         self.panelRT.SetMinimumPaneSize(half_size)
+
+    def make_plot(self, parent, figsize):
+        plot_panel = wx.Panel(parent)
+        plot_window = mpl_plots.plots(plot_panel, config=self.config, figsize=figsize)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(plot_window, 1, wx.EXPAND)
+        plot_panel.SetSizer(sizer)
+        sizer.Fit(plot_panel)
+
+        return plot_panel, plot_window, sizer
 
     def on_right_click(self, evt):
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
@@ -1470,6 +1488,14 @@ class panelPlot(wx.Panel):
             'Other': self.plotOther,
             '3D': self.plot3D,
             'Matrix': self.plotCompare,
+            'UniDec_MS': self.plotUnidec_MS,
+            'UniDec_MW': self.plotUnidec_mwDistribution,
+            'UniDec_mz_v_charge': self.plotUnidec_mzGrid,
+            'UniDec_peaks': self.plotUnidec_individualPeaks,
+            'UniDec_mw_v_charge': self.plotUnidec_mwVsZ,
+            'UniDec_bar': self.plotUnidec_barChart,
+            'UniDec_charge': self.plotUnidec_chargeDistribution,
+
         }
 
         return plot_dict.get(plot_name, None)
@@ -2188,18 +2214,22 @@ class panelPlot(wx.Panel):
         # Show the mass spectrum
         self.plotUnidec_chargeDistribution.repaint()
 
-    def on_plot_unidec_MS(self, unidec_eng_data=None, replot=None, xlimits=None, **kwargs):
+    def on_plot_unidec_MS(self, unidec_eng_data=None, replot=None, xlimits=None, plot='UniDec_MS', **kwargs):
         """
         Plot simple Mass spectrum before it is pre-processed
         @param unidec_eng_data (object):  reference to unidec engine data structure
         @param xlimits: unused
         """
 
-        if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-            try:
-                self.unidec_notebook.SetSelection(0)
-            except Exception:
-                pass
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
+                try:
+                    self.unidec_notebook.SetSelection(0)
+                except Exception:
+                    pass
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
 
@@ -2207,8 +2237,8 @@ class panelPlot(wx.Panel):
             xvals = replot['xvals']
             yvals = replot['yvals']
 
-        self.plotUnidec_MS.clearPlot()
-        self.plotUnidec_MS.plot_1D(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D(
             xvals=xvals, yvals=yvals,
             xlimits=xlimits, xlabel='m/z',
             ylabel='Intensity',
@@ -2218,15 +2248,19 @@ class panelPlot(wx.Panel):
             **plt_kwargs
         )
         # Show the mass spectrum
-        self.plotUnidec_MS.repaint()
+        plot_obj.repaint()
 
-    def on_plot_unidec_MS_v_Fit(self, unidec_eng_data=None, replot=None, xlimits=None, **kwargs):
+    def on_plot_unidec_MS_v_Fit(self, unidec_eng_data=None, replot=None, xlimits=None, plot='UniDec_MS', **kwargs):
 
-        if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-            try:
-                self.unidec_notebook.SetSelection(0)
-            except Exception:
-                pass
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
+                try:
+                    self.unidec_notebook.SetSelection(0)
+                except Exception:
+                    pass
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2241,8 +2275,8 @@ class panelPlot(wx.Panel):
 
         colors[1] = plt_kwargs['fit_line_color']
 
-        self.plotUnidec_MS.clearPlot()
-        self.plotUnidec_MS.plot_1D_overlay(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_overlay(
             xvals=xvals,
             yvals=yvals,
             labels=labels,
@@ -2256,19 +2290,23 @@ class panelPlot(wx.Panel):
             **plt_kwargs
         )
         # Show the mass spectrum
-        self.plotUnidec_MS.repaint()
+        plot_obj.repaint()
 
-    def on_plot_unidec_mzGrid(self, unidec_eng_data=None, replot=None, **kwargs):
+    def on_plot_unidec_mzGrid(self, unidec_eng_data=None, replot=None, plot='UniDec_mz_v_charge', **kwargs):
         """
         Plot simple Mass spectrum before it is pre-processed
-        @param unidec_eng_data (object):  reference to unidec engine data structure
         """
 
-        if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-            try:
-                self.unidec_notebook.SetSelection(1)
-            except Exception:
-                pass
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
+            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
+                try:
+                    self.unidec_notebook.SetSelection(1)
+                except Exception:
+                    pass
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -2278,8 +2316,8 @@ class panelPlot(wx.Panel):
         if unidec_eng_data is None and replot is not None:
             grid = replot['grid']
 
-        self.plotUnidec_mzGrid.clearPlot()
-        self.plotUnidec_mzGrid.plot_2D_contour_unidec(
+        plot_obj.clearPlot()
+        plot_obj.plot_2D_contour_unidec(
             data=grid,
             xlabel='m/z (Da)',
             ylabel='Charge',
@@ -2295,20 +2333,25 @@ class panelPlot(wx.Panel):
             **plt_kwargs
         )
         # Show the mass spectrum
-        self.plotUnidec_mzGrid.repaint()
+        plot_obj.repaint()
 
-    def on_plot_unidec_mwDistribution(self, unidec_eng_data=None, replot=None, xlimits=None, **kwargs):
+    def on_plot_unidec_mwDistribution(self, unidec_eng_data=None, replot=None, xlimits=None, plot='UniDec_MW', **kwargs):
         """
         Plot simple Mass spectrum before it is pre-processed
         @param unidec_eng_data (object):  reference to unidec engine data structure
         @param xlimits: unused
         """
 
-        if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-            try:
-                self.unidec_notebook.SetSelection(3)
-            except Exception:
-                pass
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
+            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
+                try:
+                    self.unidec_notebook.SetSelection(3)
+                except Exception:
+                    pass
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2319,8 +2362,8 @@ class panelPlot(wx.Panel):
             xvals = replot['xvals']
             yvals = replot['yvals']
 
-        self.plotUnidec_mwDistribution.clearPlot()
-        self.plotUnidec_mwDistribution.plot_1D(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D(
             xvals=xvals,
             yvals=yvals,
             xlimits=xlimits,
@@ -2333,7 +2376,7 @@ class panelPlot(wx.Panel):
             **plt_kwargs
         )
         # Show the mass spectrum
-        self.plotUnidec_mwDistribution.repaint()
+        plot_obj.repaint()
 
     def on_plot_unidec_MW_add_markers(self, data, mw_data, **kwargs):
         # remove all markers
@@ -2381,7 +2424,10 @@ class panelPlot(wx.Panel):
         self.plotUnidec_mwDistribution.plot_1D_add_legend(legend_text, **plt_kwargs)
         self.plotUnidec_mwDistribution.repaint()
 
-    def on_plot_unidec_individualPeaks(self, unidec_eng_data=None, replot=None, xlimits=None, **kwargs):
+    def on_plot_unidec_individualPeaks(
+        self, unidec_eng_data=None, replot=None, xlimits=None, plot='UniDec_peaks',
+        **kwargs
+    ):
         """
         Plot simple Mass spectrum before it is pre-processed
         @param unidec_eng_data (object):  reference to unidec engine data structure
@@ -2487,17 +2533,21 @@ class panelPlot(wx.Panel):
         self.plotUnidec_individualPeaks.plot_1D_add_legend(legend_text, **plt_kwargs)
         self.plotUnidec_individualPeaks.repaint()
 
-    def on_plot_unidec_MW_v_Charge(self, unidec_eng_data=None, replot=None, **kwargs):
+    def on_plot_unidec_MW_v_Charge(self, unidec_eng_data=None, replot=None, plot='UniDec_mw_v_charge', **kwargs):
         """
         Plot simple Mass spectrum before it is pre-processed
         @param unidec_eng_data (object):  reference to unidec engine data structure
         """
 
-        if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-            try:
-                self.unidec_notebook.SetSelection(2)
-            except Exception:
-                pass
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
+                try:
+                    self.unidec_notebook.SetSelection(2)
+                except Exception:
+                    pass
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -2522,27 +2572,31 @@ class panelPlot(wx.Panel):
         )
         plt_kwargs['colormap_norm'] = cmapNorm
 
-        self.plotUnidec_mwVsZ.clearPlot()
-        self.plotUnidec_mwVsZ.plot_2D_contour_unidec(
+        plot_obj.clearPlot()
+        plot_obj.plot_2D_contour_unidec(
             xvals=xvals, yvals=yvals, zvals=zvals, xlabel='Mass (Da)',
             ylabel='Charge', axesSize=self.config._plotSettings['UniDec (MW vs Charge)']['axes_size'],
             plotType='MS', plotName='mwGrid', testX=True, speedy=kwargs.get('speedy', True),
             title='Mass vs Charge', **plt_kwargs
         )
         # Show the mass spectrum
-        self.plotUnidec_mwVsZ.repaint()
+        plot_obj.repaint()
 
-    def on_plot_unidec_barChart(self, unidec_eng_data=None, replot=None, show='height', **kwargs):
+    def on_plot_unidec_barChart(self, unidec_eng_data=None, replot=None, show='height', plot='UniDec_bar', **kwargs):
         """
         Plot simple Mass spectrum before it is pre-processed
         @param unidec_eng_data (object):  reference to unidec engine data structure
         """
 
-        if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-            try:
-                self.unidec_notebook.SetSelection(5)
-            except Exception:
-                pass
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
+                try:
+                    self.unidec_notebook.SetSelection(5)
+                except Exception:
+                    pass
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2574,8 +2628,8 @@ class panelPlot(wx.Panel):
         for i in range(len(legend_text)):
             legend_text[i][0] = colors[i]
 
-        self.plotUnidec_barChart.clearPlot()
-        self.plotUnidec_barChart.plot_1D_barplot(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_barplot(
             xvals, yvals, labels, colors,
             axesSize=self.config._plotSettings['UniDec (Barplot)']['axes_size'],
             title='Peak Intensities',
@@ -2589,7 +2643,7 @@ class panelPlot(wx.Panel):
                 for i in range(len(markers)):
                     if i >= plt_kwargs['maximum_shown_items']:
                         continue
-                    self.plotUnidec_barChart.plot_add_markers(
+                    plot_obj.plot_add_markers(
                         xvals[i], yvals[i],
                         color=colors[i],
                         marker=markers[i],
@@ -2597,8 +2651,8 @@ class panelPlot(wx.Panel):
                     )
 
         # Add legend
-        self.plotUnidec_barChart.plot_1D_add_legend(legend_text, **plt_kwargs)
-        self.plotUnidec_barChart.repaint()
+        plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
+        plot_obj.repaint()
 
     def plot_1D_update(self, plotName='all', evt=None):
 

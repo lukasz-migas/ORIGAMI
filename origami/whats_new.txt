@@ -120,6 +120,12 @@ Processing:
 - [improved] Extracting arbirary data from Waters files (using Driftscope) is a lot improved as I've removed whacky
     controls that were causing all sorts of UI issues. Data extraction is also done in a multi-threaded manner, which
     should speed things up
+- [changed] Moved UniDec deconvolution to its own, separate panel which will allow for easier to navigate experience.
+    The panel has its plotting window, meaning you can simply process and view data in one place rather than having
+    two separate windows.
+    Visualizing UniDec data is also easy. When you double-click (or right-click) on an item in the Document Tree,
+    the same panel will open, with UniDec results
+- [improved] Changed UniDec version to the latest (vX.X.X.X)
 
 Ion panel:
 - [fix] when assigning single color to multiple items and the action was cancelled, an error would occur

@@ -192,6 +192,13 @@ class Dialog(wx.Dialog):
         )
 
         self.Bind(wx.EVT_CLOSE, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+
+    def on_key_event(self, evt):
+        key_code = evt.GetKeyCode()
+        # exit window
+        if key_code == wx.WXK_ESCAPE:
+            self.on_close(evt=None)
 
     def on_close(self, evt):
         """Destroy this frame."""

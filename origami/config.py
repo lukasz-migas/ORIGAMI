@@ -739,7 +739,7 @@ class OrigamiConfig:
         self.unidec_mwFrequency = 100
         self.unidec_peakWidth = 2.0
         self.unidec_peakWidth_auto = True
-        self.unidec_peakFunction_choices = {'Gaussian': 0, 'Lorentzian': 1, 'Split G/L': ''}
+        self.unidec_peakFunction_choices = {'Gaussian': 0, 'Lorentzian': 1, 'Split G/L': 2}
         self.unidec_peakFunction = 'Lorentzian'
 
         self.unidec_peakDetectionWidth = 500.0

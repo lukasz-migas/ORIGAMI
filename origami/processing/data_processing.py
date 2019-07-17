@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import logging
+import threading
 from time import time as ttime
 
 import numpy as np
@@ -12,7 +13,6 @@ import processing.spectra as pr_spectra
 import processing.utils as pr_utils
 import unidec as unidec
 import utils.labels as ut_labels
-from document import document as documents
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
 from ids import ID_combineCEscansSelectedIons
@@ -1296,6 +1296,64 @@ class data_processing():
         self.config.unidec_engine.convolve_peaks()
         logger.info('UniDec: Finished Autorun...')
 
+    def _unidec_setup_paraemters(self):
+        # set common parameters
+        self.config.unidec_engine.config.numit = self.config.unidec_maxIterations
+        # preprocess
+        self.config.unidec_engine.config.minmz = self.config.unidec_mzStart
+        self.config.unidec_engine.config.maxmz = self.config.unidec_mzEnd
+        self.config.unidec_engine.config.mzbins = self.config.unidec_mzBinSize
+        self.config.unidec_engine.config.smooth = self.config.unidec_gaussianFilter
+        self.config.unidec_engine.config.accvol = self.config.unidec_accelerationV
+        self.config.unidec_engine.config.linflag = self.config.unidec_linearization_choices[
+            self.config.unidec_linearization
+        ]
+        self.config.unidec_engine.config.cmap = self.config.currentCmap
+
+        # unidec engine
+        self.config.unidec_engine.config.masslb = self.config.unidec_mwStart
+        self.config.unidec_engine.config.massub = self.config.unidec_mwEnd
+        self.config.unidec_engine.config.massbins = self.config.unidec_mwFrequency
+        self.config.unidec_engine.config.startz = self.config.unidec_zStart
+        self.config.unidec_engine.config.endz = self.config.unidec_zEnd
+        self.config.unidec_engine.config.numz = self.config.unidec_zEnd - self.config.unidec_zStart
+        self.config.unidec_engine.config.psfun = self.config.unidec_peakFunction_choices[
+            self.config.unidec_peakFunction
+        ]
+
+        # peak finding
+        self.config.unidec_engine.config.peaknorm = self.config.unidec_peakNormalization_choices[
+            self.config.unidec_peakNormalization
+        ]
+        self.config.unidec_engine.config.peakwindow = self.config.unidec_peakDetectionWidth
+        self.config.unidec_engine.config.peakthresh = self.config.unidec_peakDetectionThreshold
+        self.config.unidec_engine.config.separation = self.config.unidec_lineSeparation
+
+    def on_threading(self, action, args, **kwargs):
+        """
+        Execute action using new thread
+        args: list/dict
+            function arguments
+        action: str
+            decides which action should be taken
+        """
+
+        if action == 'process.unidec.run':
+            th = threading.Thread(target=self.on_run_unidec, args=args)
+
+        # Start thread
+        try:
+            th.start()
+        except Exception as e:
+            logger.warning('Failed to execute the operation in threaded mode. Consider switching it off?')
+            logger.error(e)
+
+    def on_run_unidec_fcn(self, dataset, task):
+        #         if not self.config.threading:
+        self.on_run_unidec(dataset, task)
+#         else:
+#             self.on_threading(action='process.unidec.run', args=(dataset, task,))
+
     def on_run_unidec(self, dataset, task):
         """Runner function"""
 
@@ -1320,42 +1378,7 @@ class data_processing():
 
         # setup parameters
         if task not in ['auto_unidec']:
-            # set common parameters
-            self.config.unidec_engine.config.numit = self.config.unidec_maxIterations
-            # preprocess
-            self.config.unidec_engine.config.minmz = self.config.unidec_mzStart
-            self.config.unidec_engine.config.maxmz = self.config.unidec_mzEnd
-            self.config.unidec_engine.config.mzbins = self.config.unidec_mzBinSize
-            self.config.unidec_engine.config.smooth = self.config.unidec_gaussianFilter
-            self.config.unidec_engine.config.accvol = self.config.unidec_accelerationV
-            self.config.unidec_engine.config.linflag = self.config.unidec_linearization_choices[
-                self.config.unidec_linearization
-            ]
-            self.config.unidec_engine.config.cmap = self.config.currentCmap
-
-            # unidec engine
-            self.config.unidec_engine.config.masslb = self.config.unidec_mwStart
-            self.config.unidec_engine.config.massub = self.config.unidec_mwEnd
-            self.config.unidec_engine.config.massbins = self.config.unidec_mwFrequency
-            self.config.unidec_engine.config.startz = self.config.unidec_zStart
-            self.config.unidec_engine.config.endz = self.config.unidec_zEnd
-            self.config.unidec_engine.config.numz = self.config.unidec_zEnd - self.config.unidec_zStart
-            self.config.unidec_engine.config.psfun = self.config.unidec_peakFunction_choices[
-                self.config.unidec_peakFunction
-            ]
-
-            # peak finding
-            self.config.unidec_engine.config.peaknorm = self.config.unidec_peakNormalization_choices[
-                self.config.unidec_peakNormalization
-            ]
-            self.config.unidec_engine.config.peakwindow = self.config.unidec_peakDetectionWidth
-            self.config.unidec_engine.config.peakthresh = self.config.unidec_peakDetectionThreshold
-            self.config.unidec_engine.config.separation = self.config.unidec_lineSeparation
-
-#         kwargs = dict(document_title=document_title,
-#                       dataset=dataset,
-#                       msX=msX,
-#                       msY=msY)
+            self._unidec_setup_paraemters()
 
         # load data
         if task in ['auto_unidec', 'load_data_unidec', 'run_all_unidec']:
@@ -1382,9 +1405,9 @@ class data_processing():
             self._unidec_autorun()
 
         # add data to document
-        self.on_add_unidec(task, dataset, document_title=document_title)
+        self.on_add_unidec_data(task, dataset, document_title=document_title)
 
-    def on_add_unidec(self, task, dataset, document_title=None):
+    def on_add_unidec_data(self, task, dataset, document_title=None):
         """Convenience function to add data to document"""
 
         document = self.data_handling._on_get_document(document_title)
@@ -1407,6 +1430,7 @@ class data_processing():
         if task in ['auto_unidec', 'run_all_unidec', 'preprocess_unidec']:
             data['unidec'].clear()
 
+        # add processed data
         if task in ['auto_unidec', 'run_all_unidec', 'preprocess_unidec']:
             raw_data = {
                 'xvals': self.config.unidec_engine.data.data2[:, 0],
@@ -1417,6 +1441,7 @@ class data_processing():
             # add data
             data['unidec']['Processed'] = raw_data
 
+        # add fitted and deconvolution data
         if task in ['auto_unidec', 'run_all_unidec', 'run_unidec']:
             fit_data = {
                 'xvals': [
@@ -1427,7 +1452,8 @@ class data_processing():
                     self.config.unidec_engine.data.data2[:, 1],
                     self.config.unidec_engine.data.fitdat,
                 ],
-                'colors': [[0, 0, 0], [1, 0, 0]], 'labels': ['Data', 'Fit Data'],
+                'colors': [[0, 0, 0], [1, 0, 0]],
+                'labels': ['Data', 'Fit Data'],
                 'xlabel': 'm/z', 'ylabel': 'Intensity',
                 'xlimits': [
                     np.min(self.config.unidec_engine.data.data2[:, 0]),
@@ -1452,12 +1478,13 @@ class data_processing():
                 'xlabels': 'Mass (Da)', 'ylabels': 'Charge',
                 'cmap': self.config.unidec_engine.config.cmap,
             }
-            # add data
+            # set data in the document store
             data['unidec']['Fitted'] = fit_data
             data['unidec']['MW distribution'] = mw_distribution_data
             data['unidec']['m/z vs Charge'] = mz_grid_data
             data['unidec']['MW vs Charge'] = mw_v_z_data
 
+        # add aux data
         if task in ['auto_unidec', 'run_all_unidec', 'pick_peaks_unidec']:
             # individually plotted
             individual_dict = self.get_unidec_data(data_type='Individual MS')
@@ -1470,6 +1497,7 @@ class data_processing():
             data['unidec']['Barchart'] = barchart_dict
             data['unidec']['Charge information'] = self.config.unidec_engine.get_charge_peaks()
 
+        # store unidec engine - cannot be pickled, so will be deleted when saving document
         data['temporary_unidec'] = self.config.unidec_engine
 
         # update data dictionary
@@ -1577,12 +1605,9 @@ class data_processing():
                         'legend_text': legend_text,
                         'markers': markers,
                     }
-#                 for k, v in vars(p).items():
-#                   print k, v
                 return barchart_dict
 
         elif data_type == 'document_all':
-
             if 'document_title' in kwargs:
                 document_title = kwargs['document_title']
             else:
