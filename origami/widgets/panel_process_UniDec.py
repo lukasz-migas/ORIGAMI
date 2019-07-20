@@ -477,6 +477,7 @@ class PanelProcessUniDec(wx.MiniFrame):
             'Detect peaks',
             size=BTN_SIZE, name='pick_peaks_unidec',
         )
+        self.unidec_detectPeaks.Bind(wx.EVT_BUTTON, self.on_detect_peaks_unidec)
 
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -846,7 +847,8 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.on_plot('run_unidec')
 
     def on_detect_peaks_unidec(self, evt):
-        self.data_processing.on_run_unidec(self.dataset_name, 'pick_peaks_unidec')
+        self.config.unidec_engine.get_auto_peak_width()
+#         self.data_processing.on_run_unidec(self.dataset_name, 'pick_peaks_unidec')
 
         # plot
         self.on_plot('pick_peaks_unidec')

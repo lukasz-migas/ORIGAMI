@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
-import unidec as unidec
+import processing.UniDec.unidec as unidec
 import wx
 from config import OrigamiConfig as config
 from document import document as documents
@@ -138,9 +138,6 @@ class ORIGAMI(object):
         # Set current working directory
         self.config.cwd = os.getcwd()
 
-        # Set unidec directory
-        self.config.unidec_path = os.path.join(os.getcwd(), 'unidec_bin\\UniDec.exe')
-
         # Set temporary data path
         temp_data_folder = os.path.join(os.getcwd(), 'temporary_data')
         if not os.path.exists(temp_data_folder):
@@ -168,6 +165,9 @@ class ORIGAMI(object):
 
         # add binding to UniDec engine
         self.config.unidec_engine = unidec.UniDec()
+
+        # Set unidec directory
+        self.config.unidec_path = self.config.unidec_engine.config.UniDecPath
 
         # check version
         self.onCheckVersion()
@@ -762,7 +762,7 @@ class ORIGAMI(object):
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, label, \
                         self.currentDoc, ionName, min_threshold, max_threshold \
-                        = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
+ = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
 
                     # processed name
                     ionNameProcessed = '%s (processed)' % ionName

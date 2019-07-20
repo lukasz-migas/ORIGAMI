@@ -5,29 +5,24 @@ import threading
 from time import time as ttime
 
 import numpy as np
+from processing.UniDec import unidec
 import processing.heatmap as pr_heatmap
 import processing.origami_ms as pr_origami
 import processing.peaks as pr_peaks
 import processing.peptide_annotation as pr_frag
 import processing.spectra as pr_spectra
 import processing.utils as pr_utils
-import unidec as unidec
 import utils.labels as ut_labels
-from gui_elements.misc_dialogs import DialogBox
-from gui_elements.misc_dialogs import DialogSimpleAsk
-from ids import ID_combineCEscansSelectedIons
-from ids import ID_smooth1Ddata1DT
-from ids import ID_smooth1DdataMS
-from ids import ID_smooth1DdataRT
-from ids import ID_window_ccsList
-from ids import ID_window_ionList
-from ids import ID_window_multiFieldList
-from utils.check import check_value_order
-from utils.check import isempty
+from gui_elements.misc_dialogs import DialogBox, DialogSimpleAsk
+from ids import (ID_combineCEscansSelectedIons, ID_smooth1Ddata1DT,
+                 ID_smooth1DdataMS, ID_smooth1DdataRT, ID_window_ccsList,
+                 ID_window_ionList, ID_window_multiFieldList)
+from utils.check import check_value_order, isempty
 from utils.color import convertRGB255to1
 from utils.converters import str2num
 from utils.path import clean_filename
 from utils.random import get_random_int
+
 logger = logging.getLogger('origami')
 
 
@@ -1296,9 +1291,11 @@ class data_processing():
         self.config.unidec_engine.convolve_peaks()
         logger.info('UniDec: Finished Autorun...')
 
-    def _unidec_setup_paraemters(self):
+    def _unidec_setup_parameters(self):
+
         # set common parameters
         self.config.unidec_engine.config.numit = self.config.unidec_maxIterations
+
         # preprocess
         self.config.unidec_engine.config.minmz = self.config.unidec_mzStart
         self.config.unidec_engine.config.maxmz = self.config.unidec_mzEnd
@@ -1349,10 +1346,10 @@ class data_processing():
             logger.error(e)
 
     def on_run_unidec_fcn(self, dataset, task):
-        #         if not self.config.threading:
-        self.on_run_unidec(dataset, task)
-#         else:
-#             self.on_threading(action='process.unidec.run', args=(dataset, task,))
+        if not self.config.threading:
+            self.on_run_unidec(dataset, task)
+        else:
+            self.on_threading(action='process.unidec.run', args=(dataset, task,))
 
     def on_run_unidec(self, dataset, task):
         """Runner function"""
@@ -1378,7 +1375,7 @@ class data_processing():
 
         # setup parameters
         if task not in ['auto_unidec']:
-            self._unidec_setup_paraemters()
+            self._unidec_setup_parameters()
 
         # load data
         if task in ['auto_unidec', 'load_data_unidec', 'run_all_unidec']:

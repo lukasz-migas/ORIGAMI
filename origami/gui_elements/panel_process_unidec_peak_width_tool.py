@@ -7,7 +7,7 @@ from help_documentation import OrigamiHelp
 from processing.utils import get_narrow_data_range
 from styles import makeTooltip
 from styles import validator
-from unidec_modules.fitting import isolated_peak_fit
+from processing.UniDec.unidec_modules.fitting import isolated_peak_fit
 from utils.converters import str2num
 from visuals import mpl_plots
 
