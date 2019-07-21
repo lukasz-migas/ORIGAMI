@@ -762,7 +762,7 @@ class ORIGAMI(object):
                     # Get data for each ion
                     __, __, charge, color, colormap, alpha, mask, label, \
                         self.currentDoc, ionName, min_threshold, max_threshold \
- = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
+                        = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
 
                     # processed name
                     ionNameProcessed = '%s (processed)' % ionName

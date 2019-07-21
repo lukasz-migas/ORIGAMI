@@ -4,10 +4,10 @@ import numpy as np
 import wx
 from gui_elements.misc_dialogs import DialogBox
 from help_documentation import OrigamiHelp
+from processing.UniDec.unidec_modules.fitting import isolated_peak_fit
 from processing.utils import get_narrow_data_range
 from styles import makeTooltip
 from styles import validator
-from processing.UniDec.unidec_modules.fitting import isolated_peak_fit
 from utils.converters import str2num
 from visuals import mpl_plots
 
@@ -113,8 +113,11 @@ class PanelPeakWidthTool(wx.MiniFrame):
         peak_grid.Add(self.unidec_peakFcn_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         peak_grid.Add(unidec_peakWidth_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        peak_grid.Add(self.unidec_fit_peakWidth_value, (n, 1), wx.GBSpan(
-            1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        peak_grid.Add(
+            self.unidec_fit_peakWidth_value, (n, 1), wx.GBSpan(
+                1, 1,
+            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
+        )
         n += 1
         peak_grid.Add(unidec_error_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         peak_grid.Add(self.unidec_error, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)

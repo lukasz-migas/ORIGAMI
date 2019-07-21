@@ -5,7 +5,6 @@ import threading
 from time import time as ttime
 
 import numpy as np
-from processing.UniDec import unidec
 import processing.heatmap as pr_heatmap
 import processing.origami_ms as pr_origami
 import processing.peaks as pr_peaks
@@ -13,11 +12,18 @@ import processing.peptide_annotation as pr_frag
 import processing.spectra as pr_spectra
 import processing.utils as pr_utils
 import utils.labels as ut_labels
-from gui_elements.misc_dialogs import DialogBox, DialogSimpleAsk
-from ids import (ID_combineCEscansSelectedIons, ID_smooth1Ddata1DT,
-                 ID_smooth1DdataMS, ID_smooth1DdataRT, ID_window_ccsList,
-                 ID_window_ionList, ID_window_multiFieldList)
-from utils.check import check_value_order, isempty
+from gui_elements.misc_dialogs import DialogBox
+from gui_elements.misc_dialogs import DialogSimpleAsk
+from ids import ID_combineCEscansSelectedIons
+from ids import ID_smooth1Ddata1DT
+from ids import ID_smooth1DdataMS
+from ids import ID_smooth1DdataRT
+from ids import ID_window_ccsList
+from ids import ID_window_ionList
+from ids import ID_window_multiFieldList
+from processing.UniDec import unidec
+from utils.check import check_value_order
+from utils.check import isempty
 from utils.color import convertRGB255to1
 from utils.converters import str2num
 from utils.path import clean_filename
@@ -1349,7 +1355,7 @@ class data_processing():
         if not self.config.threading:
             self.on_run_unidec(dataset, task)
         else:
-            self.on_threading(action='process.unidec.run', args=(dataset, task,))
+            self.on_threading(action='process.unidec.run', args=(dataset, task))
 
     def on_run_unidec(self, dataset, task):
         """Runner function"""

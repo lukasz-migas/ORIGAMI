@@ -10,12 +10,12 @@ import zipfile
 from copy import deepcopy
 
 import numpy as np
-import processing.UniDec.unidec_modules.unidectools as ud
-from processing.UniDec.unidec_modules import MassFitter
-from processing.UniDec.unidec_modules import peakstructure
-from processing.UniDec.unidec_modules import unidecstructure
-from processing.UniDec.unidec_modules.unidec_enginebase import UniDecEngine
+import unidec_modules.unidectools as ud
 from scipy.interpolate import interp1d
+from unidec_modules import MassFitter
+from unidec_modules import peakstructure
+from unidec_modules import unidecstructure
+from unidec_modules.unidec_enginebase import UniDecEngine
 
 __author__ = 'Michael.Marty'
 
@@ -112,6 +112,7 @@ class UniDec(UniDecEngine):
             except Exception:
                 print('Could not set directory. Saving data in {}'.format(os.getcwd()))
                 self.config.dirname = os.getcwd()
+                pass
 
             self.data.rawdata = data_in
             self.config.imflag = 0
@@ -259,7 +260,6 @@ class UniDec(UniDecEngine):
             return 1
 
         if self.config.imflag == 0:
-            print(self.config.infname)
             self.data.data2 = ud.dataprep(self.data.rawdata, self.config)
             ud.dataexport(self.data.data2, self.config.infname)
 #         else:
@@ -280,6 +280,7 @@ class UniDec(UniDecEngine):
         if 'silent' not in kwargs or not kwargs['silent']:
             print('Data Prep Done. Time: %.2gs' % (tend - tstart))
         # self.get_spectrum_peaks()
+        pass
 
     def run_unidec(self, silent=False, efficiency=False):
         """

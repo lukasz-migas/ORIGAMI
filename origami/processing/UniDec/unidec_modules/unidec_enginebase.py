@@ -10,13 +10,13 @@ class UniDecEngine:
         UniDec Engine Base
 
         Consists of three main subclasses: Config, DataContiner, Peaks
-        
+
         Establishes some core shared functions
 
         :return: None
         """
-        self.version = "3.2.0"
-        print("\nUniDec Engine v." + self.version)
+        self.version = '3.2.0'
+        print('\nUniDec Engine v.' + self.version)
         self.config = None
         self.config_history = []
         self.config_count = 0
@@ -55,7 +55,7 @@ class UniDecEngine:
             self.config.config_import(f_name)
             self.update_history()
         else:
-            print("Load Config Error: No file provided.")
+            print('Load Config Error: No file provided.')
 
     def export_config(self, f_name=None):
         """
@@ -111,7 +111,7 @@ class UniDecEngine:
 
     def copy_config(self, config):
         # return deepcopy(config)
-        return type("UniDecConfig", (object,), dict(config.__dict__))
+        return type('UniDecConfig', (object,), dict(config.__dict__))
 
     def clear_history(self):
         self.config_history = [self.copy_config(self.config)]
@@ -146,9 +146,9 @@ class UniDecEngine:
             fwhm, psfun, mid = ud.auto_peak_width(self.data.data2)
             self.config.psfun = psfun
             self.config.mzsig = fwhm
-            print("Automatic Peak Width:", fwhm)
+            print('Automatic Peak Width:', fwhm)
         except Exception as e:
-            print("Failed Automatic Peak Width:", e)
+            print('Failed Automatic Peak Width:', e)
 
     def check_badness(self):
         """
@@ -156,6 +156,6 @@ class UniDecEngine:
         :return:
         """
         badness, warning = self.config.check_badness()
-        if warning is not "":
+        if warning != '':
             print(warning)
         return badness

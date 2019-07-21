@@ -20,10 +20,6 @@ from ctypes import cdll
 import matplotlib.cm as cm
 import numpy as np
 import scipy.ndimage.filters as filt
-from scipy import fftpack
-from scipy import signal
-from scipy.interpolate import griddata
-from scipy.interpolate import interp1d
 from processing.UniDec.unidec_modules.fitting import isolated_peak_fit
 from processing.UniDec.unidec_modules.fitting import ldis
 from processing.UniDec.unidec_modules.fitting import logistic
@@ -31,6 +27,10 @@ from processing.UniDec.unidec_modules.fitting import ndis
 from processing.UniDec.unidec_modules.fitting import ndis_std
 from processing.UniDec.unidec_modules.fitting import splitdis
 from processing.UniDec.unidec_modules.fitting import stats
+from scipy import fftpack
+from scipy import signal
+from scipy.interpolate import griddata
+from scipy.interpolate import interp1d
 
 is_64bits = sys.maxsize > 2 ** 32
 
@@ -50,25 +50,7 @@ if os.path.isfile(testpath):
     dllpath = testpath
 else:
     pathtofile = os.getcwd()
-    dllpath = os.path.join(pathtofile, "processing", "UniDec", "unidec_bin", testpath)
-
-#     pathtofile = os.path.dirname(os.path.abspath(__file__))
-#     testpath = os.path.join(pathtofile, dllname)
-#     if os.path.isfile(testpath):
-#         dllpath = testpath
-#     else:
-#         # print testpath
-#         testpath = os.path.join(os.path.dirname(pathtofile), dllname)
-#         if os.path.isfile(testpath):
-#             dllpath = testpath
-#         else:
-#             # print testpath
-#             testpath = os.path.join(os.path.join(os.path.dirname(pathtofile), 'unidec_bin'), dllname)
-#             if os.path.isfile(testpath):
-#                 dllpath = testpath
-#             else:
-#                 # print testpath
-#                 print('Unable to find file', testpath)
+    dllpath = os.path.join(pathtofile, 'processing', 'UniDec', 'unidec_bin', testpath)
 
 try:
     libs = cdll.LoadLibrary(dllpath)
@@ -393,7 +375,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
         if window is not None:
             start = x - window
             end = x + window
-            val, junk = integrate(data, start, end)
+            val, __ = integrate(data, start, end)
         else:
             index = nearest(data[:, 0], x)
             val = data[index, 1]
@@ -403,9 +385,9 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
         if window is not None:
             start = x - window
             end = x + window
-            val, junk = center_of_mass(data, start, end)
+            val, __ = center_of_mass(data, start, end)
         else:
-            val, junk = center_of_mass(data, data[0, 0], data[len(data) - 1, 0])
+            val, __ = center_of_mass(data, data[0, 0], data[len(data) - 1, 0])
             print('No window set for center of mass!\nUsing entire data range....')
 
     elif extract_method == 4:
@@ -426,9 +408,9 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
         if window is not None:
             start = x - window
             end = x + window
-            val, junk = center_of_mass(cutdat, start, end)
+            val, __ = center_of_mass(cutdat, start, end)
         else:
-            val, junk = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
+            val, __ = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
             print('No window set for center of mass!\nUsing entire data range....')
 
     elif extract_method == 6:
@@ -440,9 +422,9 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
         if window is not None:
             start = x - window
             end = x + window
-            val, junk = center_of_mass(cutdat, start, end)
+            val, __ = center_of_mass(cutdat, start, end)
         else:
-            val, junk = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
+            val, __ = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
             print('No window set for center of mass!\nUsing entire data range....')
 
     else:
@@ -707,7 +689,7 @@ def auto_peak_width(datatop, psfun=None):
     try:
         ac, cpeaks = autocorr(datatop)
     except:
-        print("failed at auto")
+        print('failed at auto')
 
     if not isempty(cpeaks):
         sig = cpeaks[0, 0] / 2.

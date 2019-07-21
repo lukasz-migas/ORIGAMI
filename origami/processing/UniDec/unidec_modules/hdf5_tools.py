@@ -12,7 +12,7 @@ def replace_dataset(group, name, data):
 def replace_dataset_strings(group, name, data):
     if name in list(group.keys()):
         del group[name]
-    ascii = [n.encode("ascii", "ignore") for n in data]
+    ascii = [n.encode('ascii', 'ignore') for n in data]
     group.create_dataset(name, data=ascii)
     pass
 
@@ -38,11 +38,11 @@ def get_data(f, group, dataset):
 
 def get_metadata(f, key):
     hdf = h5py.File(f)
-    g = hdf.require_group("ms_dataset")
-    num = g.attrs["num"]
+    g = hdf.require_group('ms_dataset')
+    num = g.attrs['num']
     out = []
     for i in range(0, num):
-        g2 = hdf.require_group("ms_dataset/" + str(i))
+        g2 = hdf.require_group('ms_dataset/' + str(i))
         out.append(g2.attrs[key])
     hdf.close()
     return np.array(out)
@@ -50,8 +50,8 @@ def get_metadata(f, key):
 
 def get_num(f):
     hdf = h5py.File(f)
-    g = hdf.require_group("ms_dataset")
-    num = g.attrs["num"]
+    g = hdf.require_group('ms_dataset')
+    num = g.attrs['num']
     hdf.close()
     return num
 
@@ -69,6 +69,6 @@ def read_attr(thing, string, config):
 
 def get_param(f, parameter):
     hdf = h5py.File(f)
-    config_group = hdf.get("config")
+    config_group = hdf.get('config')
     val = read_attr(None, parameter, config_group)
     return val

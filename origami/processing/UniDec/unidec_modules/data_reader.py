@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import numpy as np
 from processing.UniDec.unidec_modules.mzMLimporter import merge_spectra
+from processing.UniDec.unidec_modules.unidectools import removeduplicates
 from utils.multiplierz_lite.mzAPI import mzFile
 
 
@@ -47,7 +48,6 @@ class DataImporter:
         Returns merged 1D MS data from mzML import
         :return: merged data
         """
-        from unidec_modules.unidectools import removeduplicates
         data = deepcopy(self.data)
         if time_range is not None:
             scan_range = self.get_scans_from_times(time_range)

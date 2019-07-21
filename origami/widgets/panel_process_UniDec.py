@@ -813,15 +813,18 @@ class PanelProcessUniDec(wx.MiniFrame):
                 replot_data = data.get('MW distribution', None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_mwDistribution(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwDistribution)
+                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwDistribution,
+                    )
                 replot_data = data.get('m/z vs Charge', None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_mzGrid(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_mzGrid)
+                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_mzGrid,
+                    )
                 replot_data = data.get('MW vs Charge', None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_MW_v_Charge(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwVsZ)
+                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwVsZ,
+                    )
 
             if task in ['all', 'pick_peaks_unidec']:
                 print('not yet')
