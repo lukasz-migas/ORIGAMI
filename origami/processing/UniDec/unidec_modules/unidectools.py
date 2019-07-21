@@ -55,7 +55,7 @@ else:
 try:
     libs = cdll.LoadLibrary(dllpath)
 except (OSError, NameError) as err:
-    print(err)
+    print(dllpath, err)
     print('Failed to load libmypfunc, convolutions in nonlinear mode might be slow')
 
 # ..........................
@@ -686,10 +686,7 @@ def auto_peak_width(datatop, psfun=None):
     maxval = datatop[maxpos, 0]
 
     # TODO: This is potentially dangerous if nonlinear!
-    try:
-        ac, cpeaks = autocorr(datatop)
-    except:
-        print('failed at auto')
+    __, cpeaks = autocorr(datatop)
 
     if not isempty(cpeaks):
         sig = cpeaks[0, 0] / 2.
@@ -703,7 +700,7 @@ def auto_peak_width(datatop, psfun=None):
         errors = [np.sum(np.array(isodat[:, 1] - f) ** 2.) for f in fits[:, 1]]
         if psfun is None:
             psfun = np.argmin(errors)
-        fit, fitdat = fits[psfun]
+        fit, __ = fits[psfun]
 
         fwhm = fit[0, 0]
     else:
@@ -958,38 +955,37 @@ def linear_interpolation(x1, x2, x):
     return float(x - x1) / float(x2 - x1)
 
 
-def lintegrate(datatop, intx):
+def lintegrate(data, intx):
     """
     Linearize x-axis by integration.
 
     Each intensity value in the old data gets proportionally added into the new x-axis.
 
     The total sum of the intensity values should be constant.
-    :param datatop: Data array
+    :param data: Data array
     :param intx: New x-axis for data
     :return: Integration of intensity from original data onto the new x-axis.
         Same shape as the old data but new length.
     """
-    length = len(datatop)
+    length = len(data)
     inty = np.zeros_like(intx)
+    length_x = len(intx)
     for i in range(0, length):
-        if intx[0] < datatop[i, 0] < intx[len(intx) - 1]:
-            index = nearest(intx, datatop[i, 0])
-            # inty[index]+=datatop[i,1]
-            if intx[index] == datatop[i, 0]:
-                inty[index] += datatop[i, 1]
-            if intx[index] < datatop[i, 0] and index < length - 1:
+        if intx[0] < data[i, 0] < intx[length_x - 1]:
+            index = nearest(intx, data[i, 0])
+            if intx[index] == data[i, 0]:
+                inty[index] += data[i, 1]
+            if intx[index] < data[i, 0]:  # and index < length - 1:
                 index2 = index + 1
-                interpos = linear_interpolation(intx[index], intx[index2], datatop[i, 0])
-                inty[index] += (1 - interpos) * datatop[i, 1]
-                inty[index2] += interpos * datatop[i, 1]
-            if intx[index] > datatop[i, 0] and index > 0:
+                interpos = linear_interpolation(intx[index], intx[index2], data[i, 0])
+                inty[index] += (1 - interpos) * data[i, 1]
+                inty[index2] += interpos * data[i, 1]
+            if intx[index] > data[i, 0]:  # and index > 0:
                 index2 = index - 1
-                interpos = linear_interpolation(intx[index], intx[index2], datatop[i, 0])
-                inty[index] += (1 - interpos) * datatop[i, 1]
-                inty[index2] += interpos * datatop[i, 1]
-    newdat = np.column_stack((intx, inty))
-    return newdat
+                interpos = linear_interpolation(intx[index], intx[index2], data[i, 0])
+                inty[index] += (1 - interpos) * data[i, 1]
+                inty[index2] += interpos * data[i, 1]
+    return np.column_stack((intx, inty))
 
 
 def linterpolate(datatop, intx):
@@ -1027,7 +1023,8 @@ def linearize(datatop, binsize, linflag):
     length = len(datatop)
     firstpoint = math.ceil(datatop[0, 0] / binsize) * binsize
     lastpoint = math.floor(datatop[length - 1, 0] / binsize) * binsize
-    if linflag == 0 or linflag == 3:
+
+    if linflag in [0, 3]:
         intx = np.arange(firstpoint, lastpoint, binsize)
     else:
         intx = nonlinear_axis(firstpoint, lastpoint, firstpoint / binsize)
@@ -1636,7 +1633,12 @@ def cconv(a, b):
     """
     # return np.fft.ifft(np.fft.fft(a) * np.fft.fft(b)).real
     # return np.convolve(a, np.roll(b, (len(b)) / 2 - 1 + len(b) % 2), mode="same")
-    return signal.fftconvolve(a, np.roll(b, (len(b)) / 2 - 1 + len(b) % 2), mode='same')
+    roll_value = round((len(b)) / 2 - 1 + len(b) % 2)
+    return signal.fftconvolve(
+        a,
+        np.roll(b, roll_value),
+        mode='same',
+    )
 
 
 def FD_gauss_wavelet(length, width):
@@ -1688,17 +1690,17 @@ def autocorr(datatop, config=None):
     :param config: Config file (optional file)
     :return: Autocorr spectrum, peaks in autocorrelation.
     """
+    data_size = len(datatop)
+
     corry = signal.fftconvolve(datatop[:, 1], datatop[:, 1][::-1], mode='same')
     corry /= np.amax(corry)
     maxpos1 = np.argmax(datatop[:, 1])
-    start = np.amax([maxpos1 - len(datatop) / 10, 0])
-    end = np.amin([len(datatop) - 1, maxpos1 + len(datatop) / 10])
+    start = np.amax([maxpos1 - data_size / 10, 0]).astype(np.int32)
+    end = np.amin([len(datatop) - 1, maxpos1 + data_size / 10]).astype(np.int32)
     cutdat = datatop[start:end]
     if len(cutdat) < 20:
         cutdat = datatop
-    # cutdat=datatop # Other old
     xdiff = np.mean(cutdat[1:, 0] - cutdat[:len(cutdat) - 1, 0])  # Less dangerous but still dangerous when non-linear
-    # xdiff = datatop[1, 0] - datatop[0, 0] #OLD
     corrx = np.arange(0.0, len(corry)) * xdiff
     maxpos = np.argmax(corry)
     corrx = corrx - corrx[maxpos]
@@ -2140,9 +2142,8 @@ def peaks_error_mean(pks, data, ztab, massdat, config):
         endindmass = nearest(massdat[:, 0], massdat[index, 0] + config.peakwindow)
         # plotmasses = massdat[startindmass:endindmass, 0]
         for z in range(0, len(ztab)):
-            print('charge', z)
-            startind = startindmass + (z * length)
-            endind = endindmass + (z * length)
+            startind = round(startindmass + (z * length))
+            endind = round(endindmass + (z * length))
             tmparr = data[startind:endind]
             ind = np.argmax(tmparr)
             ints.append(tmparr[ind])

@@ -464,10 +464,16 @@ def nonlinear_axis(start, end, res):
 
 def linear_interpolation(x1, x2, x):
     """
-    :param x1:
-    :param x2:
-    :param x:
-    :return: float(x - x1) / float(x2 - x1)
+
+    Parameters
+    ----------
+    x1 : np.array
+    x2 : np.array
+    x: : np.array
+
+    Returns
+    -------
+    float(x - x1) / float(x2 - x1)
     """
     return float(x - x1) / float(x2 - x1)
 
@@ -486,23 +492,23 @@ def lintegrate(data, intx):
     """
     length = len(data)
     inty = np.zeros_like(intx)
+    length_x = len(intx)
     for i in range(0, length):
-        if intx[0] < data[i, 0] < intx[len(intx) - 1]:
+        if intx[0] < data[i, 0] < intx[length_x - 1]:
             index = nearest(intx, data[i, 0])
             if intx[index] == data[i, 0]:
                 inty[index] += data[i, 1]
-            if intx[index] < data[i, 0] and index < length - 1:
+            if intx[index] < data[i, 0]:  # and index < length - 1:
                 index2 = index + 1
                 interpos = linear_interpolation(intx[index], intx[index2], data[i, 0])
                 inty[index] += (1 - interpos) * data[i, 1]
                 inty[index2] += interpos * data[i, 1]
-            if intx[index] > data[i, 0] and index > 0:
+            if intx[index] > data[i, 0]:  # and index > 0:
                 index2 = index - 1
                 interpos = linear_interpolation(intx[index], intx[index2], data[i, 0])
                 inty[index] += (1 - interpos) * data[i, 1]
                 inty[index2] += interpos * data[i, 1]
-    newdat = np.column_stack((intx, inty))
-    return newdat
+    return np.column_stack((intx, inty))
 
 
 def linterpolate(data, intx):

@@ -262,18 +262,6 @@ class UniDec(UniDecEngine):
             print(self.config.infname)
             self.data.data2 = ud.dataprep(self.data.rawdata, self.config)
             ud.dataexport(self.data.data2, self.config.infname)
-#         else:
-#             tstart2 = time.clock()
-#             mz, dt, i3 = IM_func.process_data_2d(self.data.rawdata3[:, 0], self.data.rawdata3[:, 1],
-#                                                  self.data.rawdata3[:, 2],
-#                                                  self.config)
-#             tend = time.clock()
-#             if "silent" not in kwargs or not kwargs["silent"]:
-#                 print "Time: %.2gs" % (tend - tstart2)
-#             self.data.data3 = np.transpose([np.ravel(mz), np.ravel(dt), np.ravel(i3)])
-#             self.data.data2 = np.transpose([np.unique(mz), np.sum(i3, axis=1)])
-#             ud.dataexport(self.data.data3, self.config.infname)
-#             pass
 
         self.config.procflag = 1
         tend = time.clock()
@@ -415,6 +403,7 @@ class UniDec(UniDecEngine):
             norm = np.amax(peaks[:, 1]) / self.config.massdatnormtop
             peaks[:, 1] = peaks[:, 1] / norm
             self.data.massdat[:, 1] = self.data.massdat[:, 1] / norm
+
         self.pks = peakstructure.Peaks()
         self.pks.add_peaks(peaks, massbins=self.config.massbins)
         self.pks.default_params(cmap=self.config.peakcmap)

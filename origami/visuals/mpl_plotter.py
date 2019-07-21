@@ -60,7 +60,7 @@ class mpl_plotter(wx.Window):
         self.data_limits = []
 
     def get_xlimits(self):
-        return [self.data_limits[0], self.data_limits[0]]
+        return [self.data_limits[0], self.data_limits[2]]
 
     def get_ylimits(self):
         return [self.data_limits[1], self.data_limits[3]]

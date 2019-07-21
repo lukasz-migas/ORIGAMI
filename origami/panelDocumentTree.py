@@ -1781,15 +1781,15 @@ class documentsTree(wx.TreeCtrl):
         if len(annotation_data) == 0:
             return
 
-        itemAnnot = self.AppendItem(item, 'Annotations')
-        self.SetItemImage(itemAnnot, self.bulets_dict['annot'], wx.TreeItemIcon_Normal)
+        annotation_item = self.AppendItem(item, 'Annotations')
+        self.SetItemImage(annotation_item, self.bulets_dict['annot'], wx.TreeItemIcon_Normal)
         for key in annotation_data:
-            itemAnnotIndividual = self.AppendItem(itemAnnot, key)
+            itemAnnotIndividual = self.AppendItem(annotation_item, key)
             self.SetPyData(itemAnnotIndividual, annotation_data[key])
             self.SetItemImage(itemAnnotIndividual, self.bulets_dict['annot'], wx.TreeItemIcon_Normal)
 
         if expand:
-            self.Expand(itemAnnot)
+            self.Expand(annotation_item)
 
     def on_duplicate_annotations(self, evt):
         """
@@ -7188,8 +7188,92 @@ class documentsTree(wx.TreeCtrl):
             self.Delete(docItem)
             return document, True
 
+    def on_update_unidec(self, unidec_data, document_title, dataset, set_data_only=False):
+        """
+        Update annotations in specified document/dataset
+        ----------
+        Parameters
+        ----------
+        annotations : dict
+            dictionary with annotations
+        document : str
+            name of the document
+        dataset : str
+            name of the dataset
+        set_data_only : bool
+            specify whether all annotations should be removed and readded or if
+            we it should simply set data
+        """
+
+        document = self.data_handling._on_get_document(document_title)
+        item = False
+        docItem = False
+        if dataset == 'Mass Spectrum':
+            item = self.getItemByData(document.massSpectrum)
+            document.massSpectrum['unidec'] = unidec_data
+        elif dataset == 'Mass Spectrum (processed)':
+            item = self.getItemByData(document.smoothMS)
+            document.smoothMS['unidec'] = unidec_data
+        else:
+            item = self.getItemByData(document.multipleMassSpectrum[dataset])
+            document.multipleMassSpectrum[dataset]['unidec'] = unidec_data
+
+        if item is not False and not set_data_only:
+            self.append_unidec(item, unidec_data)
+            self.data_handling.on_update_document(document, 'no_refresh')
+        else:
+            try:
+                docItem = self.getItemByData(document)
+            except Exception:
+                docItem = False
+            if docItem is not False:
+                self.SetPyData(docItem, document)
+                self.presenter.documentsDict[document.title] = document
+            else:
+                self.data_handling.on_update_document(document, 'document')
+
+    def append_unidec(self, item, unidec_data, expand=True):
+        """
+        Update annotations in the document tree
+        ----------
+        Parameters
+        ----------
+        item : wxPython document tree item
+            item in the document tree that should be cleared and re-filled
+        unidec_data : dict
+            dictionary with UniDec data
+        expand : bool
+            specify if tree item should be expanded
+
+        """
+        image = self.get_item_image('unidec')
+
+        child, cookie = self.GetFirstChild(item)
+        i = 0
+        while child.IsOk():
+            #             print("child", i, self.GetItemText(child))
+            if self.GetItemText(child) == 'UniDec':
+                self.Delete(child)
+            child, cookie = self.GetNextChild(item, cookie)
+            i += 1
+
+        if len(unidec_data) == 0:
+            return
+
+        unidec_item = self.AppendItem(item, 'UniDec')
+        self.SetPyData(unidec_item, unidec_data)
+        self.SetItemImage(unidec_item, image, wx.TreeItemIcon_Normal)
+
+        for key in unidec_data:
+            unidec_item_individual = self.AppendItem(unidec_item, key)
+            self.SetPyData(unidec_item_individual, unidec_data[key])
+            self.SetItemImage(unidec_item_individual, image, wx.TreeItemIcon_Normal)
+
+        if expand:
+            self.Expand(unidec_item)
+
     def on_update_data(self, item_data, item_name, document, data_type, set_data_only=False):
-        """Update document -> 2D (EIC)
+        """Update document data
 
         Parameters
         ----------
@@ -7209,6 +7293,11 @@ class documentsTree(wx.TreeCtrl):
             item = self.getItemByData(document.massSpectrum)
             document.gotMS = True
             document.massSpectrum = item_data
+
+        elif data_type == 'main.spectrum.unidec':
+            item = self.getItemByData(document.massSpectrum['unidec'])
+            document.gotMS = True
+            document.massSpectrum['unidec'] = item_data
 
         elif data_type == 'processed.spectrum':
             item = self.getItemByData(document.smoothMS)
@@ -7287,6 +7376,12 @@ class documentsTree(wx.TreeCtrl):
             # add main spectrum
             if data_type == 'main.spectrum':
                 self.update_one_item(item, document.massSpectrum, image=data_type)
+            elif data_type == 'main.spectrum.unidec':
+                self.update_one_item(
+                    item,
+                    document.massSpectrum,
+                    image=data_type,
+                )
             elif data_type == 'processed.spectrum':
                 self.update_one_item(item, document.smoothMS, image=data_type)
             # add base heatmap
@@ -7377,7 +7472,7 @@ class documentsTree(wx.TreeCtrl):
         self.panel_plot.plot_repaint(plot_window='MS')
 
     def get_item_image(self, image_type):
-        if image_type in ['main.spectrum', 'extracted.spectrum', 'processed.spectrum']:
+        if image_type in ['main.spectrum', 'extracted.spectrum', 'processed.spectrum', 'unidec']:
             image = self.bulets_dict['mass_spec_on']
         elif image_type == [
             'ion.heatmap.combined', 'ion.heatmap.raw', 'ion.heatmap.processed', 'main.heatmap',

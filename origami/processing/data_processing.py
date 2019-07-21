@@ -70,6 +70,28 @@ class data_processing():
 
         return document
 
+    def on_threading(self, action, args, **kwargs):
+        """
+        Execute action using new thread
+        args: list/dict
+            function arguments
+        action: str
+            decides which action should be taken
+        """
+
+        if action == 'process.unidec.run':
+            th = threading.Thread(target=self.on_run_unidec, args=args, **kwargs)
+        elif action == 'custom.action':
+            fcn = kwargs.pop('fcn')
+            th = threading.Thread(target=fcn, args=args, **kwargs)
+
+        # Start thread
+        try:
+            th.start()
+        except Exception as e:
+            logger.warning('Failed to execute the operation in threaded mode. Consider switching it off?')
+            logger.error(e)
+
     def _get_replot_data(self, data_format):
         """Quick function to retrieve plotting data without having to go into the document
 
@@ -1193,6 +1215,7 @@ class data_processing():
         logger.info('UniDec: Finished loading data...')
 
     def _unidec_preprocess(self, dataset):
+        tstart = ttime()
         logger.info('UniDec: Pre-processing...')
         # preprocess
         try:
@@ -1215,9 +1238,10 @@ class data_processing():
                 type='Error',
             )
             return
-        logger.info('UniDec: Finished pre-processing...')
+        logger.info(f'UniDec: Finished pre-processing in {ttime()-tstart:.2f} seconds')
 
     def _unidec_run(self):
+        tstart = ttime()
         logger.info('UniDec: Deconvoluting...')
 
         if self.config.unidec_peakWidth_auto:
@@ -1238,9 +1262,10 @@ class data_processing():
         except ValueError:
             self.presenter.onThreading(None, ('Could not perform task', 4), action='updateStatusbar')
             return
-        logger.info('UniDec: Finished deconvoluting...')
+        logger.info(f'UniDec: Finished deconvoluting in {ttime()-tstart:.2f} seconds')
 
     def _unidec_find_peaks(self):
+        tstart = ttime()
         logger.info('UniDec: Picking peaks...')
 
         try:
@@ -1269,19 +1294,20 @@ class data_processing():
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
             DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
             return
-        logger.info('UniDec: Finished picking peaks...')
+        logger.info(f'UniDec: Finished picking peaks in {ttime()-tstart:.2f} seconds')
 
     def _unidec_isolate(self):
+        tstart = ttime()
         logger.info('UniDec: Isolating MW...')
-        self.presenter.onThreading(None, ('UniDec: ', 4, 1), action='updateStatusbar')
+
         try:
             self.config.unidec_engine.pick_peaks()
         except (ValueError, ZeroDivisionError):
             msg = "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'" + \
                   "to be same or larger than 'Sample frequency (Da)'."
-            self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
             DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
             return
+
         except IndexError:
             DialogBox(
                 exceptionTitle='Error',
@@ -1289,13 +1315,15 @@ class data_processing():
                 type='Error',
             )
             return
-        logger.info('UniDec: Finished isolating a single MW...')
+
+        logger.info(f'UniDec: Finished isolating a single MW in {ttime()-tstart:.2f} seconds')
 
     def _unidec_autorun(self):
+        tstart = ttime()
         logger.info('UniDec: Started Autorun...')
         self.config.unidec_engine.autorun()
         self.config.unidec_engine.convolve_peaks()
-        logger.info('UniDec: Finished Autorun...')
+        logger.info(f'UniDec: Finished Autorun in {ttime()-tstart:.2f} seconds')
 
     def _unidec_setup_parameters(self):
 
@@ -1330,35 +1358,105 @@ class data_processing():
         ]
         self.config.unidec_engine.config.peakwindow = self.config.unidec_peakDetectionWidth
         self.config.unidec_engine.config.peakthresh = self.config.unidec_peakDetectionThreshold
-        self.config.unidec_engine.config.separation = self.config.unidec_lineSeparation
+        self.config.unidec_engine.separation = self.config.unidec_lineSeparation
 
-    def on_threading(self, action, args, **kwargs):
-        """
-        Execute action using new thread
-        args: list/dict
-            function arguments
-        action: str
-            decides which action should be taken
-        """
+    def _unidec_sort_MW_list(self, mass_list, column_id):
+        """Sort mass list based on MW or %"""
+        from natsort.natsort import natsorted
+        from operator import itemgetter
+        import re
 
-        if action == 'process.unidec.run':
-            th = threading.Thread(target=self.on_run_unidec, args=args)
+        _mass_list_sort = []
+        for item in mass_list:
+            item_split = re.split(r'MW: | \(| %\)', item)
+            _mass_list_sort.append([item_split[1], item_split[2]])
 
-        # Start thread
-        try:
-            th.start()
-        except Exception as e:
-            logger.warning('Failed to execute the operation in threaded mode. Consider switching it off?')
-            logger.error(e)
+        _mass_list_sort = natsorted(
+            _mass_list_sort,
+            key=itemgetter(column_id),
+            reverse=True,
+        )
 
-    def on_run_unidec_fcn(self, dataset, task):
+        mass_list = []
+        for item in _mass_list_sort:
+            mass_list.append('MW: {} ({} %)'.format(item[0], item[1]))
+
+        return mass_list
+
+    def _calculate_charge_positions(self, chargeList, selectedMW, msX, adductIon='H+', remove_below=0.01):
+
+        _adducts = {
+            'H+': 1.007276467, 'Na+': 22.989218, 'K+': 38.963158, 'NH4+': 18.033823,
+            'H-': -1.007276, 'Cl-': 34.969402,
+        }
+
+        # np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(self.config.unidec_engine.data.data2[:, 0])
+        min_mz, max_mz = np.min(msX), np.max(msX)
+        charges = np.array(list(map(int, np.arange(chargeList[0, 0], chargeList[-1, 0] + 1))))
+        peakpos = (float(selectedMW) + (charges * _adducts[adductIon])) / charges
+
+        ignore = (peakpos > min_mz) & (peakpos < max_mz)
+        peakpos, charges, intensity = peakpos[ignore], charges[ignore], chargeList[:, 1][ignore]
+
+        # remove peaks that are of poor intensity
+        max_intensity = np.amax(intensity) * remove_below
+        ignore = intensity > max_intensity
+        peakpos, charges, intensity = peakpos[ignore], charges[ignore], intensity[ignore]
+
+        return peakpos, charges, intensity
+
+    def _calculate_peak_widths(self, chargeList, selectedMW, peakWidth, adductIon='H+'):
+        _adducts = {
+            'H+': 1.007276467, 'Na+': 22.989218, 'K+': 38.963158, 'NH4+': 18.033823,
+            'H-': -1.007276, 'Cl-': 34.969402,
+        }
+        min_mz, max_mz = np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(
+            self.config.unidec_engine.data.data2[:, 0],
+        )
+        charges = np.array(list(map(int, np.arange(chargeList[0, 0], chargeList[-1, 0] + 1))))
+        peakpos = (float(selectedMW) + charges * _adducts[adductIon]) / charges
+
+        ignore = (peakpos > min_mz) & (peakpos < max_mz)
+        peakpos, charges, intensities = peakpos[ignore], charges[ignore], chargeList[:, 1][ignore]
+
+        # calculate min and max value based on the peak width
+        mw_annotations = {}
+        for peak, charge, intensity in zip(peakpos, charges, intensities):
+            min_value = peak - peakWidth / 2.
+            max_value = peak + peakWidth / 2.
+            label_value = 'MW: {}'.format(selectedMW)
+            annotation_dict = {
+                'min': min_value,
+                'max': max_value,
+                'charge': charge,
+                'intensity': intensity,
+                'label': label_value,
+                'color': self.config.interactive_ms_annotations_color,
+            }
+
+            name = '{} - {}'.format(np.round(min_value, 2), np.round(max_value, 2))
+            mw_annotations[name] = annotation_dict
+        return mw_annotations
+
+    def on_run_unidec_fcn(self, dataset, task, **kwargs):
         if not self.config.threading:
-            self.on_run_unidec(dataset, task)
+            self.on_run_unidec(dataset, task, **kwargs)
         else:
-            self.on_threading(action='process.unidec.run', args=(dataset, task))
+            self.on_threading(action='process.unidec.run', args=(dataset, task), kwargs=kwargs)
 
-    def on_run_unidec(self, dataset, task):
-        """Runner function"""
+    def on_run_unidec(self, dataset, task, **kwargs):
+        """Runner function
+
+        Parameters
+        ----------
+        dataset : str
+            type of data to be analysed using UniDec
+        task : str
+            task that should be carried out. Different tasks spawn different processes
+        call_after : bool
+            will call after function `fcn` with arguments `args` after the main part is executed - takes advantage
+            of the multi-threaded nature of the runner function
+        """
 
         # retrive dataset and document
         self.unidec_dataset = dataset
@@ -1372,7 +1470,7 @@ class data_processing():
             self.config.unidec_engine.config.UniDecPath = self.config.unidec_path
 
         # check which tasks are carried out
-        if task in ['auto_unidec', 'load_data_unidec', 'run_all_unidec']:
+        if task in ['auto_unidec', 'load_data_unidec', 'run_all_unidec', 'load_data_and_preprocess_unidec']:
             msX = data['xvals']
             msY = data['yvals']
 
@@ -1389,6 +1487,11 @@ class data_processing():
 
         # pre-process
         if task in ['run_all_unidec', 'preprocess_unidec']:
+            self._unidec_preprocess(dataset)
+
+        # load and pre-process
+        if task in ['load_data_and_preprocess_unidec']:
+            self._unidec_initilize(document_title, dataset, msX, msY)
             self._unidec_preprocess(dataset)
 
         # deconvolute
@@ -1410,6 +1513,12 @@ class data_processing():
         # add data to document
         self.on_add_unidec_data(task, dataset, document_title=document_title)
 
+        # add call-after
+        if kwargs.get('call_after', False):
+            fcn = kwargs.pop('fcn')
+            args = kwargs.pop('args')
+            fcn(args)
+
     def on_add_unidec_data(self, task, dataset, document_title=None):
         """Convenience function to add data to document"""
 
@@ -1430,11 +1539,11 @@ class data_processing():
             data = document.multipleMassSpectrum[dataset]
 
         # clear old data
-        if task in ['auto_unidec', 'run_all_unidec', 'preprocess_unidec']:
+        if task in ['auto_unidec', 'run_all_unidec', 'preprocess_unidec', 'load_data_and_preprocess_unidec']:
             data['unidec'].clear()
 
         # add processed data
-        if task in ['auto_unidec', 'run_all_unidec', 'preprocess_unidec']:
+        if task in ['auto_unidec', 'run_all_unidec', 'preprocess_unidec', 'load_data_and_preprocess_unidec']:
             raw_data = {
                 'xvals': self.config.unidec_engine.data.data2[:, 0],
                 'yvals': self.config.unidec_engine.data.data2[:, 1],
@@ -1503,22 +1612,7 @@ class data_processing():
         # store unidec engine - cannot be pickled, so will be deleted when saving document
         data['temporary_unidec'] = self.config.unidec_engine
 
-        # update data dictionary
-        if dataset == 'Mass Spectrum':
-            document.massSpectrum = data
-        elif dataset == 'Mass Spectrum (processed)':
-            document.smoothMS = data
-        else:
-            document.multipleMassSpectrum[dataset] = data
-
-        # update document
-        if dataset == 'Mass Spectra':
-            self.data_handling.on_update_document(
-                document, expand_item='mass_spectra',
-                expand_item_title=self.dataset['MS'],
-            )
-        else:
-            self.data_handling.on_update_document(document, expand_item='document')
+        self.documentTree.on_update_unidec(data['unidec'], document_title, dataset)
 
     def get_unidec_data(self, data_type='Individual MS', **kwargs):
 
@@ -1661,7 +1755,7 @@ class data_processing():
     def get_peak_maximum(self, data, xmin=None, xmax=None, xval=None):
 
         if xmin is None and xmax is None and xval is not None:
-            min_difference = data[1, 0] - data[0, 0]
+            min_difference = np.diff(data[:, 0]).mean()  # data[:, 1] - data[:, 0]
             xmin = xval - min_difference
             xmax = xval + min_difference
 

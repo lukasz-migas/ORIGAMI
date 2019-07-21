@@ -318,6 +318,25 @@ class plots(mpl_plotter):
     def on_zoom_x_axis(self, xmin, xmax):
         self.plotMS.set_xlim([xmin, xmax])
 
+    def on_zoom_y_axis(self, startY=None, endY=None, **kwargs):
+        xylimits = self.get_xylimits()
+
+        if startY is None:
+            startY = xylimits[2]
+
+        if endY is None:
+            endY = xylimits[3]
+
+        if kwargs.pop('convert_values', False):
+            try:
+                startY = np.divide(startY, self.y_divider)
+                endY = np.divide(endY, self.y_divider)
+            except Exception:
+                pass
+
+        self.plotMS.set_ylim([startY, endY])
+        self.update_y_extents(startY, endY)
+
     ### PURE UPDATING FUNCTIONS ###
 
     def on_zoom_xy(self, startX, endX, startY, endY):
@@ -342,25 +361,6 @@ class plots(mpl_plotter):
             self.repaint()
         except Exception:
             pass
-
-    def on_zoom_y_axis(self, startY=None, endY=None, **kwargs):
-        xylimits = self.get_xylimits()
-
-        if startY is None:
-            startY = xylimits[2]
-
-        if endY is None:
-            endY = xylimits[3]
-
-        if kwargs.pop('convert_values'):
-            try:
-                startY = np.divide(startY, self.y_divider)
-                endY = np.divide(endY, self.y_divider)
-            except Exception:
-                pass
-
-        self.plotMS.set_ylim([startY, endY])
-        self.update_y_extents(startY, endY)
 
     def on_rotate_90(self):
         # only works for 2D plots!
@@ -477,6 +477,13 @@ class plots(mpl_plotter):
 
         self.markers = []
         self.repaint()
+
+    def plot_remove_lines(self, label_starts_with):
+        lines = self.plotMS.get_lines()
+        for line in lines:
+            line_label = line.get_label()
+            if line_label.startswith(label_starts_with):
+                line.remove()
 
     def plot_add_text_and_lines(
         self, xpos, yval, label, vline=True, vline_position=None,
@@ -1366,6 +1373,9 @@ class plots(mpl_plotter):
         self, xvals, yvals, color, label='', setup_zoom=True,
         allowWheel=False, plot_name=None, **kwargs
     ):
+        # get current limits
+        xmin, xmax = self.plotMS.get_xlim()
+
         if plot_name is not None:
             self.plot_name = plot_name
         self.plotMS.plot(
@@ -1385,12 +1395,17 @@ class plots(mpl_plotter):
         self.plotMS.set_ylim([ylimits[0], ylimits[1] + 0.025])
 
         extent = [xlimits[0], ylimits[0], xlimits[-1], ylimits[-1] + 0.025]
+        if kwargs.get('update_extents', False):
+            self.update_extents(extent)
+            self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
         if setup_zoom:
             self.setup_zoom(
                 [self.plotMS], self.zoomtype, data_lims=extent,
                 plotName=plot_name, allowWheel=allowWheel,
             )
             self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+
+        self.on_zoom_x_axis(xmin, xmax)
 
     def plot_1D_add_legend(self, legend_text, **kwargs):
 

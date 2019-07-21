@@ -130,7 +130,7 @@ def find_nearest_index(data, value):
     return np.argmin(np.abs(data - value))
 
 
-def get_narrow_data_range(data, mzRange=None):  # getNarrow1Ddata
+def get_narrow_data_range(data, mzRange=None):
     """ Find and return a narrow data range """
     start = find_nearest_index(data[:, 0], mzRange[0])  # np.argmin(np.abs(data[:, 0] - mzRange[0]))
     end = find_nearest_index(data[:, 0], mzRange[1])  # np.argmin(np.abs(data[:, 0] - mzRange[1]))

@@ -994,8 +994,6 @@ class panelProcessData(wx.MiniFrame):
 
         htmlViewer = panelHTMLViewer(self, self.config, msg, title, **kwargs)
         htmlViewer.Show()
-#         if htmlViewer.ShowModal() == wx.ID_OK:
-#             pass
 
     def openWidthTool(self, evt):
         try:
@@ -1013,12 +1011,6 @@ class panelProcessData(wx.MiniFrame):
 
         self.widthTool = PanelPeakWidthTool(self, self.presenter, self.config, **kwargs)
         self.widthTool.Show()
-
-#     def onPickPeaksThreaded(self, evt):
-#         if not self.config.threading:
-#             self.data_processing.on_pick_peaks(None)
-#         else:
-#             self.onThreading(evt, {}, action='pick_peaks')
 
     def get_document_annotations(self):
         if (

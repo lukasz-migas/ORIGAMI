@@ -2158,47 +2158,61 @@ class panelPlot(wx.Panel):
 
         return colorlist
 
-    def on_plot_charge_states(self, position, charges, **kwargs):
+    def _on_change_unidec_page(self, page_id, **kwargs):
+        if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
+            try:
+                self.unidec_notebook.SetSelection(page_id)
+            except Exception:
+                pass
 
-        self.plotUnidec_individualPeaks.plot_remove_text_and_lines()
+    def on_plot_charge_states(self, position, charges, plot='UniDec_peaks', **kwargs):
+
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            self._on_change_unidec_page(4, **kwargs)
+
+        plot_obj.plot_remove_text_and_lines()
         for position, charge in zip(position, charges):
-            self.plotUnidec_individualPeaks.plot_add_text_and_lines(
+            plot_obj.plot_add_text_and_lines(
                 xpos=position,
                 yval=0.9, label=charge,
                 stick_to_intensity=True,
             )
+        plot_obj.repaint()
 
-        self.plotUnidec_individualPeaks.repaint()
+#         # optimise label positions
+#         if kwargs.get('optimise_positions', True):
+#             plot_obj._fix_label_positions()
 
-        if kwargs.get('optimise_positions', True):
-            self.plotUnidec_individualPeaks._fix_label_positions()
+        plot_obj.repaint()
 
-        self.plotUnidec_individualPeaks.repaint()
-
-    def on_plot_unidec_ChargeDistribution(self, xvals=None, yvals=None, replot=None, xlimits=None, **kwargs):
+    def on_plot_unidec_ChargeDistribution(
+        self, xvals=None, yvals=None, replot=None, xlimits=None,
+        plot='UniDec_charge', **kwargs
+    ):
         """
         Plot simple Mass spectrum before it is pre-processed
         @param unidec_eng_data (object):  reference to unidec engine data structure
         @param xlimits: unused
         """
 
-        if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-            try:
-                self.unidec_notebook.SetSelection(6)
-            except Exception:
-                pass
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            self._on_change_unidec_page(6, **kwargs)
+
+        if replot is not None:
+            xvals = replot[:, 0]
+            yvals = replot[:, 1]
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='1D')
 
-        self.plotUnidec_chargeDistribution.clearPlot()
-#         self.plotUnidec_barChart.plot_1D_barplot(xvals, yvals, xvals, colors,
-#                                                  axesSize=self.config._plotSettings['UniDec (Barplot)']['axes_size'],
-#                                                  title="Peak Intensities",
-#                                                  ylabel="Intensity",
-#                                                  plotType="Test",
-#                                                  **plt_kwargs)
-        self.plotUnidec_chargeDistribution.plot_1D(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D(
             xvals=xvals,
             yvals=yvals,
             xlimits=xlimits,
@@ -2212,7 +2226,7 @@ class panelPlot(wx.Panel):
             **plt_kwargs
         )
         # Show the mass spectrum
-        self.plotUnidec_chargeDistribution.repaint()
+        plot_obj.repaint()
 
     def on_plot_unidec_MS(self, unidec_eng_data=None, replot=None, xlimits=None, plot='UniDec_MS', **kwargs):
         """
@@ -2225,11 +2239,7 @@ class panelPlot(wx.Panel):
             plot_obj = kwargs.get('plot_obj')
         else:
             plot_obj = self.get_plot_from_name(plot)
-            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-                try:
-                    self.unidec_notebook.SetSelection(0)
-                except Exception:
-                    pass
+            self._on_change_unidec_page(0, **kwargs)
 
         plt_kwargs = self._buildPlotParameters(plotType='1D')
 
@@ -2256,11 +2266,7 @@ class panelPlot(wx.Panel):
             plot_obj = kwargs.get('plot_obj')
         else:
             plot_obj = self.get_plot_from_name(plot)
-            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-                try:
-                    self.unidec_notebook.SetSelection(0)
-                except Exception:
-                    pass
+            self._on_change_unidec_page(0, **kwargs)
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2301,12 +2307,7 @@ class panelPlot(wx.Panel):
             plot_obj = kwargs.get('plot_obj')
         else:
             plot_obj = self.get_plot_from_name(plot)
-
-            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-                try:
-                    self.unidec_notebook.SetSelection(1)
-                except Exception:
-                    pass
+            self._on_change_unidec_page(1, **kwargs)
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -2346,12 +2347,7 @@ class panelPlot(wx.Panel):
             plot_obj = kwargs.get('plot_obj')
         else:
             plot_obj = self.get_plot_from_name(plot)
-
-            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-                try:
-                    self.unidec_notebook.SetSelection(3)
-                except Exception:
-                    pass
+            self._on_change_unidec_page(3, **kwargs)
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2378,16 +2374,29 @@ class panelPlot(wx.Panel):
         # Show the mass spectrum
         plot_obj.repaint()
 
-    def on_plot_unidec_MW_add_markers(self, data, mw_data, **kwargs):
-        # remove all markers
-        self.plotUnidec_mwDistribution.plot_remove_markers()
+    def on_plot_unidec_MW_add_markers(self, data, mw_data, plot='UniDec_MW', **kwargs):
+        """Add markers to the MW plot to indicate found peaks"""
 
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            self._on_change_unidec_page(1, **kwargs)
+
+        # remove all markers
+        plot_obj.plot_remove_markers()
+
+        # build plot parameters
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
         unidec_kwargs = self._buildPlotParameters(plotType='UniDec')
         plt_kwargs = merge_two_dicts(plt1d_kwargs, unidec_kwargs)
 
+        # get legend text
         legend_text = data['legend_text']
-        mw = np.transpose([mw_data['xvals'], mw_data['yvals']])
+        mw = np.transpose([
+            mw_data['xvals'],
+            mw_data['yvals'],
+        ])
 
         num = 0
         for key in natsorted(list(data.keys())):
@@ -2397,22 +2406,23 @@ class panelPlot(wx.Panel):
                 continue
             num += 1
 
+        # get color list
         colors = self._get_color_list(None, count=num, **unidec_kwargs)
 
         num = 0
         for key in natsorted(list(data.keys())):
             if key.split(' ')[0] != 'MW:':
                 continue
-
             if num >= plt_kwargs['maximum_shown_items']:
                 continue
 
             xval = float(key.split(' ')[1])
             yval = self.data_processing.get_peak_maximum(mw, xval=xval)
+#             print(xval, yval)
             marker = data[key]['marker']
             color = colors[num]
 
-            self.plotUnidec_mwDistribution.plot_add_markers(
+            plot_obj.plot_add_markers(
                 xval, yval,
                 color=color, marker=marker,
                 size=plt_kwargs['MW_marker_size'],
@@ -2421,8 +2431,8 @@ class panelPlot(wx.Panel):
             )
             num += 1
 
-        self.plotUnidec_mwDistribution.plot_1D_add_legend(legend_text, **plt_kwargs)
-        self.plotUnidec_mwDistribution.repaint()
+        plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
+        plot_obj.repaint()
 
     def on_plot_unidec_individualPeaks(
         self, unidec_eng_data=None, replot=None, xlimits=None, plot='UniDec_peaks',
@@ -2434,11 +2444,11 @@ class panelPlot(wx.Panel):
         @param xlimits: unused
         """
 
-        if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-            try:
-                self.unidec_notebook.SetSelection(4)
-            except Exception:
-                pass
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            self._on_change_unidec_page(4, **kwargs)
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
@@ -2448,11 +2458,10 @@ class panelPlot(wx.Panel):
         if unidec_eng_data is None and replot is not None:
             xvals = replot['xvals']
             yvals = replot['yvals']
-            legend_text = replot['legend_text']
 
         # Plot MS
-        self.plotUnidec_individualPeaks.clearPlot()
-        self.plotUnidec_individualPeaks.plot_1D(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D(
             xvals=xvals, yvals=yvals,
             xlimits=xlimits, xlabel='m/z',
             ylabel='Intensity',
@@ -2461,10 +2470,39 @@ class panelPlot(wx.Panel):
             allowWheel=False,
             **plt_kwargs
         )
+        plot_obj.repaint()
+
+        # add lines and markers
+        self.on_plot_unidec_add_individual_lines_and_markers(replot=replot, plot=None, **kwargs)
+
+    def on_plot_unidec_add_individual_lines_and_markers(
+        self, unidec_eng_data=None, replot=None,
+        plot='UniDec_peaks', **kwargs
+    ):
+
+        if plot is None and 'plot_obj' in kwargs:
+            plot_obj = kwargs.get('plot_obj')
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            self._on_change_unidec_page(4, **kwargs)
+
+        # remove all markers/lines and reset y-axis zoom
+        plot_obj.plot_remove_markers()
+        plot_obj.plot_remove_lines('MW:')
+        plot_obj.on_zoom_y_axis(0)
+
+        # Build kwargs
+        plt1d_kwargs = self._buildPlotParameters(plotType='1D')
+        unidec_kwargs = self._buildPlotParameters(plotType='UniDec')
+        plt_kwargs = merge_two_dicts(plt1d_kwargs, unidec_kwargs)
+
+        if unidec_eng_data is None and replot is not None:
+            legend_text = replot['legend_text']
 
         if kwargs.get('show_isolated_mw', False):
             legend_text = [[[0, 0, 0], 'Raw']]
 
+        # get number of lines in the dataset
         num = 0
         for key in natsorted(list(replot.keys())):
             if key.split(' ')[0] != 'MW:':
@@ -2473,10 +2511,15 @@ class panelPlot(wx.Panel):
                 continue
             num += 1
 
+        # get colorlist
         colors = self._get_color_list(None, count=num, **unidec_kwargs)
 
-        num = 0
+        # iteratively add lines
+        num, mw_num = 0, 0
         for key in natsorted(list(replot.keys())):
+            if not kwargs['show_markers'] and not kwargs['show_individual_lines']:
+                break
+
             if key.split(' ')[0] != 'MW:':
                 continue
             if num >= plt_kwargs['maximum_shown_items']:
@@ -2487,51 +2530,58 @@ class panelPlot(wx.Panel):
 
             if kwargs.get('show_isolated_mw', False):
                 if key != kwargs['mw_selection']:
+                    mw_num += 1
                     continue
                 else:
+                    color = colors[mw_num]
                     legend_text.append([
-                        colors[num],  # replot[key]['color'],
+                        color,
                         replot[key]['label'],
                     ])
                     # adjust offset so its closer to the MS plot
                     offset = np.min(replot[key]['line_yvals']) + self.config.unidec_charges_offset
                     line_yvals = line_yvals - offset
             else:
-                legend_text[num + 1][0] = colors[num]
-
+                color = colors[num]
+                legend_text[num + 1][0] = color
+            # plot markers
             if kwargs['show_markers']:
-                self.plotUnidec_individualPeaks.plot_add_markers(
+                plot_obj.plot_add_markers(
                     replot[key]['scatter_xvals'],
                     scatter_yvals,
-                    color=colors[num],  # replot[key]['color'],
+                    color=color,  # colors[num],
                     marker=replot[key]['marker'],
                     size=plt_kwargs['isolated_marker_size'],
                     label=replot[key]['label'],
                 )
+            # plot lines
             if kwargs['show_individual_lines']:
-                self.plotUnidec_individualPeaks.plot_1D_add(
+                plot_obj.plot_1D_add(
                     replot[key]['line_xvals'],
                     line_yvals,
-                    color=colors[num],  # replot[key]['color'],
+                    color=color,  # colors[num],
                     label=replot[key]['label'],
                     allowWheel=False,
                     plot_name='pickedPeaks',
+                    update_extents=True,
+                    setup_zoom=False,
                     **plt_kwargs
                 )
-
             num += 1
 
+        # modify legend
         if len(legend_text) - 1 > plt_kwargs['maximum_shown_items']:
             msg = 'Only showing {} out of {} items.'.format(plt_kwargs['maximum_shown_items'], len(legend_text) - 1) + \
                 ' If you would like to see more go to Processing -> UniDec -> Max shown'
-            self.presenter.onThreading(None, (msg, 4, 7), action='updateStatusbar')
+            logger.info(msg)
 
+        legend_text = legend_text[:num + 1]
         # Add legend
         if len(legend_text) >= plt_kwargs['maximum_shown_items']:
             legend_text = legend_text[:plt_kwargs['maximum_shown_items']]
 
-        self.plotUnidec_individualPeaks.plot_1D_add_legend(legend_text, **plt_kwargs)
-        self.plotUnidec_individualPeaks.repaint()
+        plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
+        plot_obj.repaint()
 
     def on_plot_unidec_MW_v_Charge(self, unidec_eng_data=None, replot=None, plot='UniDec_mw_v_charge', **kwargs):
         """
@@ -2543,11 +2593,7 @@ class panelPlot(wx.Panel):
             plot_obj = kwargs.get('plot_obj')
         else:
             plot_obj = self.get_plot_from_name(plot)
-            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-                try:
-                    self.unidec_notebook.SetSelection(2)
-                except Exception:
-                    pass
+            self._on_change_unidec_page(2, **kwargs)
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType='2D')
@@ -2592,11 +2638,7 @@ class panelPlot(wx.Panel):
             plot_obj = kwargs.get('plot_obj')
         else:
             plot_obj = self.get_plot_from_name(plot)
-            if self.config.unidec_plot_panel_view == 'Tabbed view' and kwargs.get('set_page', False):
-                try:
-                    self.unidec_notebook.SetSelection(5)
-                except Exception:
-                    pass
+            self._on_change_unidec_page(5, **kwargs)
 
         # Build kwargs
         plt1d_kwargs = self._buildPlotParameters(plotType='1D')
