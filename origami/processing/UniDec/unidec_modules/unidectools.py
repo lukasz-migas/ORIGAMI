@@ -561,55 +561,6 @@ def waters_convert(path, config=None):
     return data
 
 
-def load_mz_file(path, config=None):
-    """
-    Loads a text or mzml file
-    :param path: File path to load
-    :param config: UniDecConfig object
-    :return: Data array
-    """
-    import processing.UniDec.unidec_modules.data_reader as data_reader
-
-    if config is None:
-        extension = os.path.splitext(path)[1]
-    else:
-        extension = config.extension.lower()
-
-    if not os.path.isfile(path):
-        if os.path.isdir(path) and os.path.splitext(path)[1].lower() == '.raw':
-            try:
-                print('Trying to convert Waters File')
-                data = waters_convert(path, config)
-            except Exception:
-                print('Attempted to convert Waters Raw file but failed')
-                raise IOError
-        else:
-            print('Attempted to open:', path)
-            print("\t but I couldn't find the file...")
-            raise IOError
-    else:
-
-        if extension == '.txt':
-            data = np.loadtxt(path, skiprows=header_test(path))
-        # elif extension == ".mzml":
-        #     data = mzMLimporter.mzMLimporter(path).get_data()
-        #     txtname = path[:-5] + ".txt"
-        #     np.savetxt(txtname, data)
-        #     print "Saved to:", txtname
-        elif extension.lower() == '.raw':
-            data = data_reader.DataImporter(path).get_data()
-            txtname = path[:-4] + '.txt'
-            np.savetxt(txtname, data)
-            print('Saved to:', txtname)
-        else:
-            try:
-                data = np.loadtxt(path, skiprows=header_test(path))
-            except IOError:
-                print('Failed to open:', path)
-                data = None
-    return data
-
-
 def zipdir(path, zip_handle):
     """
     Zips all the files in the path into the zip_handle

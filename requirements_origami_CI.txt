@@ -45,6 +45,7 @@ pycodestyle==2.5.0
 pyimzML==1.2.4
 pylint==2.3.1
 pymzml==2.0.6
+pynumpress
 pyparsing==2.3.1
 Pypubsub==4.0.3
 pyrsistent==0.14.11

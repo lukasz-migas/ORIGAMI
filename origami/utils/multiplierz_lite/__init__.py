@@ -22,7 +22,6 @@ import sys
 __author__ = 'Jignesh Parikh, James Webber, William Max Alexander'
 __version__ = '2.0.0'
 __all__ = ['mzAPI', 'logger_message', 'PY3']
-#            'SettingsFile',]
 
 PY3 = False
 if (sys.version_info > (3, 0)):
@@ -65,7 +64,6 @@ myHome = _get_home()
 # multiplierz data folder
 myData = os.path.join(myHome, '.multiplierz')
 myTemp = os.path.join(myData, 'TEMP')
-# SettingsFile = os.path.join(myData, 'settings.txt')
 modFile = os.path.join(myData, 'mods.txt')
 
 verbose_mode = True

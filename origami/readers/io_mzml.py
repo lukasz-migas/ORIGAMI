@@ -3,10 +3,11 @@
 from collections import OrderedDict
 
 import numpy as np
-from pymzml import run as pymzml_run  # @UnresolvedImport
+from pymzml import run as pymzml_run
 
 
 class mzMLreader():
+    """mzML reader"""
 
     def __init__(self, filename, **kwargs):
         self.filename = filename
