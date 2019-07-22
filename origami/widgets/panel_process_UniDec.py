@@ -3,6 +3,7 @@
 import logging
 
 import wx
+from ids import ID_plotPanel_resize
 from styles import makeCheckbox
 from styles import makeMenuItem
 from styles import makeTooltip
@@ -11,6 +12,7 @@ from utils.converters import str2int
 from utils.converters import str2num
 from utils.exceptions import MessageError
 from utils.screen import calculate_window_size
+from utils.time import ttime
 from visuals import mpl_plots
 
 logger = logging.getLogger('origami')
@@ -18,8 +20,6 @@ logger = logging.getLogger('origami')
 TEXTCTRL_SIZE = (60, -1)
 BTN_SIZE = (100, 22)
 
-# TODO: Migrate all UniDec code to widgets.unidec module
-# TODO: Update to latest version of UniDec
 # TODO: Remove UniDec plot panels from the main window and move them to here
 # TODO: Improve layout and add new functionality
 
@@ -34,6 +34,7 @@ class PanelProcessUniDec(wx.MiniFrame):
             style=wx.DEFAULT_FRAME_STYLE & ~
             (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
+        tstart = ttime()
         self.view = parent
         self.presenter = presenter
         self.document_tree = self.view.panelDocuments.documents
@@ -63,7 +64,8 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.document = kwargs.pop('document', None)
         self.document_title = kwargs.pop('document_title', None)
         self.dataset_name = kwargs.pop('dataset_name', None)
-        self.mz_data = kwargs.pop('mz_data', None)
+
+        print(self.document_title, self.dataset_name)
 
         # plot data at startup
         self.data_processing.on_threading('custom.action', ('all',), fcn=self.on_plot)
@@ -72,17 +74,44 @@ class PanelProcessUniDec(wx.MiniFrame):
         # bind events
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+        logger.info(f'UniDec panel startup took {ttime()-tstart:.2f} seconds.')
 
     def on_right_click(self, evt):
 
         menu = wx.Menu()
+
+        menu_customise_plot = makeMenuItem(
+            parent=menu, id=wx.ID_ANY,
+            text='Customise plot...',
+            bitmap=self.icons.iconsLib['change_xlabels_16'],
+        )
+        menu.AppendItem(menu_customise_plot)
+
+        menu.AppendSeparator()
+        self.resize_plot_check = menu.AppendCheckItem(
+            ID_plotPanel_resize,
+            'Resize on saving',
+        )
+        self.resize_plot_check.Check(self.config.resize)
+
         save_figure_menu_item = makeMenuItem(
             menu, id=wx.ID_ANY,
             text='Save figure as...',
             bitmap=self.icons.iconsLib['save16'],
         )
         menu.AppendItem(save_figure_menu_item)
+
+        clear_plot_menu_item = makeMenuItem(
+            menu, id=wx.ID_ANY, text='Clear plot',
+            bitmap=self.icons.iconsLib['clear_16'],
+        )
+        menu.AppendSeparator()
+        menu.AppendItem(clear_plot_menu_item)
+
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_customise_plot)
         self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -554,6 +583,13 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_weightList_sort.SetBackgroundColour((240, 240, 240))
         self.unidec_weightList_sort.Bind(wx.EVT_BUTTON, self.on_sort_unidec_MW)
 
+        charges_label = wx.StaticText(panel, wx.ID_ANY, 'Show charges:')
+        self.unidec_charges_check = makeCheckbox(panel, '')
+        self.unidec_charges_check.SetValue(self.config.unidec_show_chargeStates)
+        self.unidec_charges_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.unidec_charges_check.Bind(wx.EVT_CHECKBOX, self.on_show_charge_states_unidec)
+        self.unidec_charges_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
+
         unidec_plotting_adduct_label = wx.StaticText(panel, wx.ID_ANY, 'Adduct:')
         self.unidec_adductMW_choice = wx.Choice(
             panel, -1,
@@ -561,7 +597,7 @@ class PanelProcessUniDec(wx.MiniFrame):
             size=(-1, -1), name='ChargeStates',
         )
         self.unidec_adductMW_choice.SetStringSelection('H+')
-        self.unidec_adductMW_choice.Bind(wx.EVT_CHOICE, self.on_show_peaks_unidec)
+        self.unidec_adductMW_choice.Bind(wx.EVT_CHOICE, self.on_show_charge_states_unidec)
 
         unidec_charges_threshold_label = wx.StaticText(panel, wx.ID_ANY, 'Intensity threshold:')
         self.unidec_charges_threshold_value = wx.SpinCtrlDouble(
@@ -572,6 +608,7 @@ class PanelProcessUniDec(wx.MiniFrame):
             inc=0.01, size=(90, -1),
         )
         self.unidec_charges_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.unidec_charges_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_show_charge_states_unidec)
 
         unidec_charges_offset_label = wx.StaticText(panel, wx.ID_ANY, 'Vertical charge offset:')
         self.unidec_charges_offset_value = wx.SpinCtrlDouble(
@@ -582,6 +619,7 @@ class PanelProcessUniDec(wx.MiniFrame):
             inc=0.05, size=(90, -1),
         )
         self.unidec_charges_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.unidec_charges_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_show_charge_states_unidec)
 
         self.unidec_restoreAll_Btn = wx.Button(
             panel, -1,
@@ -621,6 +659,15 @@ class PanelProcessUniDec(wx.MiniFrame):
         )
         grid.Add(
             self.unidec_weightList_sort, (n, 3), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
+        )
+        n += 1
+        grid.Add(
+            charges_label, (n, 0), wx.GBSpan(1, 1),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(
+            self.unidec_charges_check, (n, 1), wx.GBSpan(1, 1),
             flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
         )
         n += 1
@@ -732,6 +779,14 @@ class PanelProcessUniDec(wx.MiniFrame):
         for item in obj_list:
             item.Enable(enable=not self.config.unidec_peakWidth_auto)
 
+        self.config.unidec_show_chargeStates = self.unidec_charges_check.GetValue()
+        obj_list = [
+            self.unidec_adductMW_choice, self.unidec_charges_threshold_value, self.unidec_charges_offset_value,
+            self.unidec_chargeStates_Btn,
+        ]
+        for item in obj_list:
+            item.Enable(enable=self.config.unidec_show_chargeStates)
+
         if evt is not None:
             evt.Skip()
 
@@ -763,20 +818,63 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         self.config.unidec_charges_label_charges = str2num(self.unidec_charges_threshold_value.GetValue())
         self.config.unidec_charges_offset = str2num(self.unidec_charges_offset_value.GetValue())
+        self.config.unidec_show_chargeStates = self.unidec_charges_check.GetValue()
 
         if evt is not None:
             evt.Skip()
 
+    def on_resize_check(self, evt):
+        self.panel_plot.on_resize_check(None)
+
+    def on_customise_plot(self, evt):
+        plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
+        self.panel_plot.on_customise_plot(
+            None, plot='UniDec plot...',
+            plot_obj=plot_obj,
+        )
+
     def on_clear_plot(self, evt):
-        #         pass
-        self.panel_plot.on_clear_plot(None, None, plot_obj=self.plot_window)
+        plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
+        plot_obj.clearPlot()
+
+    def on_clear_plot_as_task(self, task):
+
+        if task in ['all', 'load_data_and_preprocess_unidec', 'preprocess_unidec']:
+            self.plotUnidec_MS.clearPlot()
+
+        if task in ['all', 'load_data_and_preprocess_unidec', 'preprocess_unidec', 'run_unidec']:
+            self.plotUnidec_mzGrid.clearPlot()
+            self.plotUnidec_mwDistribution.clearPlot()
+            self.plotUnidec_mwVsZ.clearPlot()
+
+        if task in ['all', 'load_data_and_preprocess_unidec', 'preprocess_unidec', 'detect', 'run_unidec']:
+            self.plotUnidec_individualPeaks.clearPlot()
+            self.plotUnidec_barChart.clearPlot()
+            self.plotUnidec_chargeDistribution.clearPlot()
 
     def on_save_figure(self, evt):
-        pass
-#         plot_title = f'{self.document_title}_{self.dataset_name}'.replace(
-#             ' ', '-',
-#         ).replace(':', '')
-#         self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
+        plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
+        plot_title = f'{self.document_title}_{self.dataset_name}_{self.view.plot_name}'.replace(
+            ' ', '-',
+        ).replace(':', '')
+        self.panel_plot.save_images(
+            None, None,
+            plot_obj=plot_obj,
+            image_name=plot_title,
+        )
+
+    def on_get_plot_obj_from_name(self, plot_name):
+        plot_dict = {
+            'MS': self.plotUnidec_MS,
+            'mwDistribution': self.plotUnidec_mwDistribution,
+            'mzGrid': self.plotUnidec_mzGrid,
+            'pickedPeaks': self.plotUnidec_individualPeaks,
+            'mwGrid': self.plotUnidec_mwVsZ,
+            'Barchart': self.plotUnidec_barChart,
+            'ChargeDistribution': self.plotUnidec_chargeDistribution,
+        }
+
+        return plot_dict[plot_name]
 
     def on_open_customisation_settings(self, evt):
         """Call another function to open the customisation window"""
@@ -864,6 +962,7 @@ class PanelProcessUniDec(wx.MiniFrame):
                     self.panel_plot.on_plot_unidec_MW_v_Charge(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwVsZ, **kwargs
                     )
+
             # called after `detect peaks` is executed
             if task in ['all', 'pick_peaks_unidec']:
                 # update mass list
@@ -874,6 +973,7 @@ class PanelProcessUniDec(wx.MiniFrame):
                     self.panel_plot.on_plot_unidec_individualPeaks(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
                     )
+                    self.on_plot_MW_normalization()
                     self.panel_plot.on_plot_unidec_MW_add_markers(
                         data['m/z with isolated species'],
                         data['MW distribution'],
@@ -908,7 +1008,8 @@ class PanelProcessUniDec(wx.MiniFrame):
                 replot_data = data.get('m/z with isolated species', None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_add_individual_lines_and_markers(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
+                        replot=replot_data, plot=None,
+                        plot_obj=self.plotUnidec_individualPeaks, **kwargs
                     )
 
             # show individual charge states
@@ -929,8 +1030,25 @@ class PanelProcessUniDec(wx.MiniFrame):
                     **kwargs
                 )
 
+    def on_plot_MW_normalization(self):
+        """Trigger replot of the MW plot since the scaling might change"""
+        try:
+            replot_data = dict(
+                xvals=self.config.unidec_engine.data.massdat[:, 0],
+                yvals=self.config.unidec_engine.data.massdat[:, 1],
+            )
+        except IndexError:
+            return
+
+        if replot_data:
+            self.panel_plot.on_plot_unidec_mwDistribution(
+                replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwDistribution,
+            )
+
     def on_initilize_unidec(self, evt):
         task = 'load_data_and_preprocess_unidec'
+        self.on_clear_plot_as_task(task)
+
         self.data_processing.on_run_unidec_fcn(
             self.dataset_name, task,
             call_after=True,
@@ -940,6 +1058,7 @@ class PanelProcessUniDec(wx.MiniFrame):
 
     def on_process_unidec(self, evt):
         task = 'preprocess_unidec'
+        self.on_clear_plot_as_task(task)
         self.data_processing.on_run_unidec_fcn(
             self.dataset_name, task,
             call_after=True,
@@ -949,6 +1068,7 @@ class PanelProcessUniDec(wx.MiniFrame):
 
     def on_run_unidec(self, evt):
         task = 'run_unidec'
+        self.on_clear_plot_as_task(task)
         self.data_processing.on_run_unidec_fcn(
             self.dataset_name, task,
             call_after=True,
@@ -988,7 +1108,12 @@ class PanelProcessUniDec(wx.MiniFrame):
     def on_show_charge_states_unidec(self, evt):
         self.on_plot('charge_states')
 
+        if evt is not None:
+            evt.Skip()
+
     def on_update_mass_list(self):
-        massList, massMax = self.data_processing.get_unidec_data(data_type='mass_list')
+        data = self.on_get_unidec_data()
+        massList, massMax = data['m/z with isolated species']['_massList_']
+#         massList, massMax = self.data_processing.get_unidec_data(data_type='mass_list')
         self.unidec_weightList_choice.SetItems(massList)
         self.unidec_weightList_choice.SetStringSelection(massMax)

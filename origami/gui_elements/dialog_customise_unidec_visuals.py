@@ -55,7 +55,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
             size=(-1, -1),
         )
         self.unidec_view_value.SetStringSelection(self.config.unidec_plot_panel_view)
-        self.unidec_view_value.Bind(wx.EVT_CHOICE, self.onUniDecView)
+        self.unidec_view_value.Bind(wx.EVT_CHOICE, self.on_view_notification)
 
         unidec_max_iters_label = wx.StaticText(panel, wx.ID_ANY, 'No. max iterations:')
         self.unidec_maxIters_value = wx.TextCtrl(
@@ -105,7 +105,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
             wx.Size(26, 26), 0,
         )
         self.fit_lineColor_Btn.SetBackgroundColour(convertRGB1to255(self.config.unidec_plot_fit_lineColor))
-        self.fit_lineColor_Btn.Bind(wx.EVT_BUTTON, self.onChangeColour)
+        self.fit_lineColor_Btn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
         MS_grid = wx.GridBagSizer(2, 2)
         y = 0
@@ -267,7 +267,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
             wx.Size(26, 26), 0,
         )
         self.bar_edgeColor_Btn.SetBackgroundColour(convertRGB1to255(self.config.unidec_plot_bar_edge_color))
-        self.bar_edgeColor_Btn.Bind(wx.EVT_BUTTON, self.onChangeColour)
+        self.bar_edgeColor_Btn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
         bar_colorEdge_check_label = wx.StaticText(panel, -1, 'Same as fill:')
         self.bar_colorEdge_check = makeCheckbox(panel, '')
@@ -305,8 +305,9 @@ class DialogCustomiseUniDecVisuals(Dialog):
             panel, -1, choices=['Color palette', 'Colormap'],
             size=(-1, -1), name='color',
         )
-        self.colorScheme_value.SetStringSelection(self.config.violin_color_value)
+        self.colorScheme_value.SetStringSelection(self.config.unidec_plot_color_scheme)
         self.colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         cmap_list = self.config.cmaps2[:]
         cmap_list.remove('jet')
@@ -373,7 +374,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
     def on_change_color_palette(self, evt):
         pass
 
-    def onChangeColour(self, evt):
+    def on_change_color(self, evt):
         evtID = evt.GetId()
 
         dlg = DialogColorPicker(self, self.config.customColors)
@@ -411,11 +412,26 @@ class DialogCustomiseUniDecVisuals(Dialog):
         self.config.unidec_maxShown_individualLines = str2int(self.unidec_maxShownLines_value.GetValue())
         self.config.unidec_maxIterations = str2int(self.unidec_maxIters_value.GetValue())
 
-    def onUniDecView(self, evt):
+        if evt is not None:
+            evt.Skip()
+
+    def on_view_notification(self, evt):
         self.config.unidec_plot_panel_view = self.unidec_view_value.GetStringSelection()
 
         DialogBox(
             exceptionTitle='Warning',
-            exceptionMsg='Changing the panel view will not take place until you restart ORIGAMI.',
+            exceptionMsg='This will not take effect until the UniDec processing panel is restarted',
             type='Warning',
         )
+
+    def on_toggle_controls(self, evt):
+        self.config.unidec_plot_color_scheme = self.colorScheme_value.GetStringSelection()
+        if self.config.unidec_plot_color_scheme == 'Colormap':
+            self.colormap_value.Enable()
+            self.color_palette_value.Disable()
+        else:
+            self.colormap_value.Disable()
+            self.color_palette_value.Enable()
+
+        if evt is not None:
+            evt.Skip()

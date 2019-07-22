@@ -27,10 +27,12 @@ from utils.color import determineFontColor
 from utils.color import randomColorGenerator
 from utils.converters import str2int
 from utils.converters import str2num
+from utils.exceptions import MessageError
 from utils.labels import _replace_labels
 from utils.ranges import get_min_max
 from visuals.mpl_plotter import mpl_plotter
 from visuals.normalize import MidpointNormalize
+
 # needed to avoid annoying warnings to be printed on console
 # import matplotlib.colors as mpl_colors
 # import matplotlib as mpl
@@ -479,7 +481,10 @@ class plots(mpl_plotter):
         self.repaint()
 
     def plot_remove_lines(self, label_starts_with):
-        lines = self.plotMS.get_lines()
+        try:
+            lines = self.plotMS.get_lines()
+        except AttributeError:
+            raise MessageError('Error', 'Please plot something first')
         for line in lines:
             line_label = line.get_label()
             if line_label.startswith(label_starts_with):
@@ -492,8 +497,8 @@ class plots(mpl_plotter):
 
         try:
             ymin, ymax = self.plotMS.get_ylim()
-        except Exception:
-            return
+        except AttributeError:
+            raise MessageError('Error', 'Please plot something first')
 
         if stick_to_intensity:
             try:
@@ -719,6 +724,9 @@ class plots(mpl_plotter):
         if testMax == 'yvals':
             yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
 
+        if kwargs.pop('testX', False):
+            xvals, xlabel, __ = self.kda_test(xvals)
+
         lines[0].set_xdata(xvals)
         lines[0].set_ydata(yvals)
         lines[0].set_linewidth(kwargs['line_width'])
@@ -732,7 +740,10 @@ class plots(mpl_plotter):
 
         if kwargs['shade_under']:
             for shade in range(len(self.plotMS.collections)):
-                self.plotMS.collections[shade].remove()
+                try:
+                    self.plotMS.collections[shade].remove()
+                except IndexError:
+                    continue
             shade_kws = dict(
                 facecolor=kwargs['shade_under_color'],
                 alpha=kwargs.get('shade_under_transparency', 0.25),
@@ -1398,6 +1409,7 @@ class plots(mpl_plotter):
         if kwargs.get('update_extents', False):
             self.update_extents(extent)
             self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+
         if setup_zoom:
             self.setup_zoom(
                 [self.plotMS], self.zoomtype, data_lims=extent,

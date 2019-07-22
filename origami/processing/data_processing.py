@@ -26,6 +26,7 @@ from utils.check import check_value_order
 from utils.check import isempty
 from utils.color import convertRGB255to1
 from utils.converters import str2num
+from utils.exceptions import MessageError
 from utils.path import clean_filename
 from utils.random import get_random_int
 
@@ -1253,12 +1254,7 @@ class data_processing():
             self.config.unidec_engine.run_unidec()
             self.config.unidec_peakWidth = self.config.unidec_engine.config.mzsig
         except IndexError:
-            DialogBox(
-                exceptionTitle='Error',
-                exceptionMsg='Load and pre-process data first',
-                type='Error',
-            )
-            return
+            raise MessageError('Error', 'Please load and pre-process data first')
         except ValueError:
             self.presenter.onThreading(None, ('Could not perform task', 4), action='updateStatusbar')
             return
@@ -1267,6 +1263,10 @@ class data_processing():
     def _unidec_find_peaks(self):
         tstart = ttime()
         logger.info('UniDec: Picking peaks...')
+
+        # check if there is data in the dataset
+        if len(self.config.unidec_engine.data.massdat) == 0:
+            raise MessageError('Incorrect input', 'Please `Run UniDec` first as there is missing data')
 
         try:
             self.config.unidec_engine.pick_peaks()
@@ -1286,6 +1286,8 @@ class data_processing():
             )
             return
 
+        logger.info(f'UniDec: Finished picking peaks in {ttime()-tstart:.2f} seconds')
+        logger.info('UniDec: Convolving peaks...')
         try:
             self.config.unidec_engine.convolve_peaks()
         except OverflowError:
@@ -1294,7 +1296,7 @@ class data_processing():
             self.presenter.onThreading(None, (msg, 4), action='updateStatusbar')
             DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
             return
-        logger.info(f'UniDec: Finished picking peaks in {ttime()-tstart:.2f} seconds')
+        logger.info(f'UniDec: Finished convolving peaks in {ttime()-tstart:.2f} seconds')
 
     def _unidec_isolate(self):
         tstart = ttime()

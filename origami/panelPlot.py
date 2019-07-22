@@ -2174,12 +2174,15 @@ class panelPlot(wx.Panel):
             self._on_change_unidec_page(4, **kwargs)
 
         plot_obj.plot_remove_text_and_lines()
-        for position, charge in zip(position, charges):
-            plot_obj.plot_add_text_and_lines(
-                xpos=position,
-                yval=0.9, label=charge,
-                stick_to_intensity=True,
-            )
+
+        if self.config.unidec_show_chargeStates:
+            for position, charge in zip(position, charges):
+                plot_obj.plot_add_text_and_lines(
+                    xpos=position,
+                    yval=self.config.unidec_charges_offset,
+                    label=charge,
+                    stick_to_intensity=True,
+                )
         plot_obj.repaint()
 
 #         # optimise label positions
@@ -2358,20 +2361,26 @@ class panelPlot(wx.Panel):
             xvals = replot['xvals']
             yvals = replot['yvals']
 
-        plot_obj.clearPlot()
-        plot_obj.plot_1D(
-            xvals=xvals,
-            yvals=yvals,
-            xlimits=xlimits,
-            xlabel='Mass Distribution',
-            ylabel='Intensity',
-            axesSize=self.config._plotSettings['UniDec (MW)']['axes_size'],
-            plotType='mwDistribution', testMax=None, testX=True,
-            title='Zero-charge Mass Spectrum',
-            allowWheel=False,
-            **plt_kwargs
-        )
-        # Show the mass spectrum
+        try:
+            plot_obj.plot_1D_update_data(
+                xvals, yvals, 'Mass Distribution', 'Intensity',
+                testX=True,
+                **plt_kwargs
+            )
+        except AttributeError:
+            plot_obj.clearPlot()
+            plot_obj.plot_1D(
+                xvals=xvals,
+                yvals=yvals,
+                xlimits=xlimits,
+                xlabel='Mass Distribution',
+                ylabel='Intensity',
+                axesSize=self.config._plotSettings['UniDec (MW)']['axes_size'],
+                plotType='mwDistribution', testMax=None, testX=True,
+                title='Zero-charge Mass Spectrum',
+                allowWheel=False,
+                **plt_kwargs
+            )
         plot_obj.repaint()
 
     def on_plot_unidec_MW_add_markers(self, data, mw_data, plot='UniDec_MW', **kwargs):
@@ -2418,7 +2427,6 @@ class panelPlot(wx.Panel):
 
             xval = float(key.split(' ')[1])
             yval = self.data_processing.get_peak_maximum(mw, xval=xval)
-#             print(xval, yval)
             marker = data[key]['marker']
             color = colors[num]
 
@@ -2473,7 +2481,10 @@ class panelPlot(wx.Panel):
         plot_obj.repaint()
 
         # add lines and markers
-        self.on_plot_unidec_add_individual_lines_and_markers(replot=replot, plot=None, **kwargs)
+        self.on_plot_unidec_add_individual_lines_and_markers(
+            replot=replot,
+            plot=plot, **kwargs
+        )
 
     def on_plot_unidec_add_individual_lines_and_markers(
         self, unidec_eng_data=None, replot=None,
@@ -2489,6 +2500,7 @@ class panelPlot(wx.Panel):
         # remove all markers/lines and reset y-axis zoom
         plot_obj.plot_remove_markers()
         plot_obj.plot_remove_lines('MW:')
+        plot_obj.plot_remove_text_and_lines()
         plot_obj.on_zoom_y_axis(0)
 
         # Build kwargs
@@ -2539,7 +2551,7 @@ class panelPlot(wx.Panel):
                         replot[key]['label'],
                     ])
                     # adjust offset so its closer to the MS plot
-                    offset = np.min(replot[key]['line_yvals']) + self.config.unidec_charges_offset
+                    offset = np.min(replot[key]['line_yvals']) + self.config.unidec_lineSeparation
                     line_yvals = line_yvals - offset
             else:
                 color = colors[num]
@@ -2559,7 +2571,7 @@ class panelPlot(wx.Panel):
                 plot_obj.plot_1D_add(
                     replot[key]['line_xvals'],
                     line_yvals,
-                    color=color,  # colors[num],
+                    color=color,
                     label=replot[key]['label'],
                     allowWheel=False,
                     plot_name='pickedPeaks',
