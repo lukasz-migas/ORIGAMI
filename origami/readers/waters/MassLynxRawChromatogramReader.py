@@ -1,6 +1,6 @@
-''' Waters
+""" Waters
     MassLynx Python Chromatogram reader SDK
-'''
+"""
 from ctypes import c_bool
 from ctypes import c_float
 from ctypes import c_int
@@ -36,8 +36,8 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
         pT = cast(pTimes, POINTER(c_float))
         pI = cast(pIntensities, POINTER(c_float))
 
-        times = pT[0:size.value]
-        intensities = pI[0:size.value]
+        times = pT[0 : size.value]
+        intensities = pI[0 : size.value]
 
         # dealocate memory
         MassLynxRawReader.ReleaseMemory(pTimes)
@@ -63,8 +63,8 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
         pT = cast(pTimes, POINTER(c_float))
         pI = cast(pIntensities, POINTER(c_float))
 
-        times = pT[0:size.value]
-        intensities = pI[0:size.value]
+        times = pT[0 : size.value]
+        intensities = pI[0 : size.value]
 
         # dealocate memory
         MassLynxRawReader.ReleaseMemory(pTimes)
@@ -100,9 +100,15 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
 
         readMassChroms = MassLynxRawReader.massLynxDll.readMassChromatograms
         readMassChroms.argtypes = [
-            c_void_p, c_int, POINTER(c_float), c_int, POINTER(
-                c_void_p,
-            ), POINTER(c_void_p), c_float, c_bool, POINTER(c_int),
+            c_void_p,
+            c_int,
+            POINTER(c_float),
+            c_int,
+            POINTER(c_void_p),
+            POINTER(c_void_p),
+            c_float,
+            c_bool,
+            POINTER(c_int),
         ]
         super().CheckReturnCode(
             readMassChroms(
@@ -115,19 +121,19 @@ class MassLynxRawChromatogramReader(MassLynxRawReader):
                 massTollerance,
                 daughters,
                 size,
-            ),
+            )
         )
 
         # fill the array and free memory
         pT = cast(pTimes, POINTER(c_float))
-        times = pT[0:size.value]
+        times = pT[0 : size.value]
         MassLynxRawReader.ReleaseMemory(pTimes)
 
         # fill in the mass chroms and free memory
         pI = cast(pIntensities, POINTER(c_float))
         for index in range(0, numMasses):
-            intensities.append(pI[index * size.value:(index + 1) * size.value])
-#            MassLynxRawReader.ReleaseMemory( ppIntensities[ index] )
+            intensities.append(pI[index * size.value : (index + 1) * size.value])
+        #            MassLynxRawReader.ReleaseMemory( ppIntensities[ index] )
         MassLynxRawReader.ReleaseMemory(pIntensities)
 
         return times, intensities

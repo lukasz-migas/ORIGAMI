@@ -1,6 +1,6 @@
-''' Waters
+""" Waters
     MassLynx Python SDK
-'''
+"""
 # import string
 import ctypes
 import os
@@ -167,16 +167,15 @@ class MassLynxException(Exception):
 
 # string handler
 class MassLynxStringHandler(object):
-
     def __init__(self):
         return
 
     def ToString(self, chString, release):
-        if (None == chString):
-            return ''
+        if chString is None:
+            return ""
 
         strValue = chString.value.decode()
-        if (release):
+        if release:
             MassLynxRawReader.ReleaseMemory(chString)
 
         chString = None
@@ -185,7 +184,6 @@ class MassLynxStringHandler(object):
 
 
 class MassLynxCodeHandler(object):
-
     def __init__(self):
         self._code = 0
         self._stringHandler = MassLynxStringHandler()
@@ -194,10 +192,10 @@ class MassLynxCodeHandler(object):
     # three option true, false, throw exception
     def CheckReturnCode(self, code, throw=True):
         self._code = code
-        if (0 == code):
+        if code == 0:
             return True
 
-        if (throw):
+        if throw:
             raise MassLynxException(self.GetLastCode(), self.GetLastMessage())
 
         # get last error
@@ -213,7 +211,6 @@ class MassLynxCodeHandler(object):
 
         message = (c_char_p)()
         getErrorMessage(self.GetLastCode(), message)
-  #      exceptionMessage = "MassLynx Exception {} : {}".format( returnCode, message.value.decode())
 
         # release the memory
         return self._stringHandler.ToString(message, True)
@@ -224,11 +221,11 @@ class MassLynxRawReader(object):
 
     # load the dll
     current_directory = os.getcwd()
-    waters_path = os.path.join(current_directory, 'readers', 'waters')
+    waters_path = os.path.join(current_directory, "readers", "waters")
     os.chdir(waters_path)
-    dll_path = os.path.join(waters_path, 'MassLynxRaw.dll')
-    massLynxDll = ctypes.WinDLL('MassLynxRaw.dll')
-    version = '1.0'  # class variable
+    dll_path = os.path.join(waters_path, "MassLynxRaw.dll")
+    massLynxDll = ctypes.WinDLL("MassLynxRaw.dll")
+    version = "1.0"  # class variable
 
     os.chdir(current_directory)
 
@@ -239,14 +236,14 @@ class MassLynxRawReader(object):
         self._stringHandler = MassLynxStringHandler()
 
         # create scan reader from a path
-        if (isinstance(source, str)):
+        if isinstance(source, str):
             bytes = str.encode(source)
             createRawReaderFromPath = MassLynxRawReader.massLynxDll.createRawReaderFromPath
             createRawReaderFromPath.argtypes = [c_char_p, POINTER(c_void_p), c_int]
             self._codeHandler.CheckReturnCode(createRawReaderFromPath(bytes, self._getReader(), mlType))
 
         # create scan reader from a reader
-        elif (isinstance(source, MassLynxRawReader)):
+        elif isinstance(source, MassLynxRawReader):
             createRawReaderFromReader = MassLynxRawReader.massLynxDll.createRawReaderFromReader
             createRawReaderFromReader.argtypes = [c_void_p, POINTER(c_void_p), c_int]
             self._codeHandler.CheckReturnCode(createRawReaderFromReader(source._getReader(), self._getReader(), mlType))

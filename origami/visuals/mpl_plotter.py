@@ -16,33 +16,31 @@ from PIL import Image
 from PIL import ImageChops
 from ZoomBox import GetXValues
 from ZoomBox import ZoomBox
-matplotlib.use('WXAgg')
+
+matplotlib.use("WXAgg")
 
 interactive(True)
 
 
 class mpl_plotter(wx.Window):
-
     def __init__(self, *args, **kwargs):
 
-        if 'figsize' in kwargs:
-            self.figsize = kwargs.pop('figsize')
+        if "figsize" in kwargs:
+            self.figsize = kwargs.pop("figsize")
         else:
             self.figsize = [8, 2.5]
 
-        if 'axes_size' in kwargs:
-            self._axes = kwargs.pop('axes_size')
+        if "axes_size" in kwargs:
+            self._axes = kwargs.pop("axes_size")
         else:
             self._axes = [0.15, 0.12, 0.8, 0.8]
 
-        self.figure = Figure(
-            figsize=self.figsize,
-        )
+        self.figure = Figure(figsize=self.figsize)
 
-        if 'config' in kwargs:
-            self.config = kwargs.pop('config')
+        if "config" in kwargs:
+            self.config = kwargs.pop("config")
 
-        self.window_name = kwargs.pop('window_name', None)
+        self.window_name = kwargs.pop("window_name", None)
 
         wx.Window.__init__(self, *args, **kwargs)
         self.canvas = FigureCanvasWxAgg(self, -1, self.figure)
@@ -52,7 +50,7 @@ class mpl_plotter(wx.Window):
 
         # Prepare for zoom
         self.zoom = None
-        self.zoomtype = 'box'
+        self.zoomtype = "box"
         self.plotName = None
         self.resize = 1
 
@@ -65,26 +63,26 @@ class mpl_plotter(wx.Window):
     def get_ylimits(self):
         return [self.data_limits[1], self.data_limits[3]]
 
-#     def onPick(self, evt):
-#         pass
-        # to be used to improve 3D plot
-#         print(dir(evt.artist.get_xdata))
-#         print('pick')
+    #     def onPick(self, evt):
+    #         pass
+    # to be used to improve 3D plot
+    #         print(dir(evt.artist.get_xdata))
+    #         print('pick')
 
     def _generatePlotParameters(self):
         plot_parameters = {
-            'grid_show': self.config._plots_grid_show,
-            'grid_color': self.config._plots_grid_color,
-            'grid_line_width': self.config._plots_grid_line_width,
-            'extract_color': self.config._plots_extract_color,
-            'extract_line_width': self.config._plots_extract_line_width,
-            'extract_crossover_sensitivity_1D': self.config._plots_extract_crossover_1D,
-            'extract_crossover_sensitivity_2D': self.config._plots_extract_crossover_2D,
-            'zoom_color_vertical': self.config._plots_zoom_vertical_color,
-            'zoom_color_horizontal': self.config._plots_zoom_horizontal_color,
-            'zoom_color_box': self.config._plots_zoom_box_color,
-            'zoom_line_width': self.config._plots_zoom_line_width,
-            'zoom_crossover_sensitivity': self.config._plots_zoom_crossover,
+            "grid_show": self.config._plots_grid_show,
+            "grid_color": self.config._plots_grid_color,
+            "grid_line_width": self.config._plots_grid_line_width,
+            "extract_color": self.config._plots_extract_color,
+            "extract_line_width": self.config._plots_extract_line_width,
+            "extract_crossover_sensitivity_1D": self.config._plots_extract_crossover_1D,
+            "extract_crossover_sensitivity_2D": self.config._plots_extract_crossover_2D,
+            "zoom_color_vertical": self.config._plots_zoom_vertical_color,
+            "zoom_color_horizontal": self.config._plots_zoom_horizontal_color,
+            "zoom_color_box": self.config._plots_zoom_box_color,
+            "zoom_line_width": self.config._plots_zoom_line_width,
+            "zoom_crossover_sensitivity": self.config._plots_zoom_crossover,
         }
         return plot_parameters
 
@@ -92,8 +90,7 @@ class mpl_plotter(wx.Window):
         self.getxaxis = GetXValues(plots)
 
     def setup_zoom(
-        self, plots, zoom, data_lims=None, plotName=None,
-        plotParameters=None, allowWheel=True, preventExtraction=False,
+        self, plots, zoom, data_lims=None, plotName=None, plotParameters=None, allowWheel=True, preventExtraction=False
     ):
         if plotParameters is None:
             plotParameters = self._generatePlotParameters()
@@ -101,11 +98,15 @@ class mpl_plotter(wx.Window):
         self.data_limits = data_lims
 
         self.zoom = ZoomBox(
-            plots, None, drawtype='box',
-            useblit=True, button=1,
+            plots,
+            None,
+            drawtype="box",
+            useblit=True,
+            button=1,
             onmove_callback=None,
-            rectprops=dict(alpha=0.2, facecolor='yellow'),
-            spancoords='data', data_lims=data_lims,
+            rectprops=dict(alpha=0.2, facecolor="yellow"),
+            spancoords="data",
+            data_lims=data_lims,
             plotName=plotName,
             allowWheel=allowWheel,
             preventExtraction=preventExtraction,
@@ -145,26 +146,26 @@ class mpl_plotter(wx.Window):
         """
         try:
             if xvals[int(len(xvals) / 2)] > 100000 or xvals[len(xvals) - 1] > 1000000:
-                kdnorm = 1000.
-                xlabel = 'Mass (kDa)'
+                kdnorm = 1000.0
+                xlabel = "Mass (kDa)"
                 kda = True
             elif amax(xvals) > 10000:
-                kdnorm = 1000.
-                xlabel = 'Mass (kDa)'
+                kdnorm = 1000.0
+                xlabel = "Mass (kDa)"
                 kda = True
             else:
-                xlabel = 'Mass (Da)'
+                xlabel = "Mass (Da)"
                 kda = False
-                kdnorm = 1.
+                kdnorm = 1.0
         except (TypeError, ValueError):
             try:
                 if xvals > 10000:
-                    kdnorm = 1000.
-                    xlabel = 'Mass (kDa)'
+                    kdnorm = 1000.0
+                    xlabel = "Mass (kDa)"
                     kda = True
             except Exception:
-                xlabel = 'Mass (Da)'
-                kdnorm = 1.
+                xlabel = "Mass (Da)"
+                kdnorm = 1.0
                 kda = False
 
         # convert x-axis
@@ -196,6 +197,7 @@ class mpl_plotter(wx.Window):
             itemShape = values.shape
         except Exception:
             from numpy import array
+
             values = array(values)
             itemShape = values.shape
 
@@ -209,7 +211,7 @@ class mpl_plotter(wx.Window):
         while 10 <= (maxValue / divider) >= 1:
             divider = divider * increment
 
-        expo = len(str(divider)) - len(str(divider).rstrip('0'))
+        expo = len(str(divider)) - len(str(divider).rstrip("0"))
 
         return divider, expo
 
@@ -321,18 +323,18 @@ class mpl_plotter(wx.Window):
         Transparency and DPI taken from config file
         """
         # check if plot exists
-        if not hasattr(self, 'plotMS'):
-            print('Cannot save a plot that does not exist')
+        if not hasattr(self, "plotMS"):
+            print("Cannot save a plot that does not exist")
             return
 
         # Get resize parameter
-        resizeName = kwargs.get('resize', None)
+        resizeName = kwargs.get("resize", None)
         resizeSize = None
 
         if resizeName is not None:
-            resizeSize = self.config._plotSettings[resizeName]['resize_size']
+            resizeSize = self.config._plotSettings[resizeName]["resize_size"]
 
-        if not hasattr(self.plotMS, 'get_position'):
+        if not hasattr(self.plotMS, "get_position"):
             resizeSize = None
 
         if resizeSize is not None and not self.lock_plot_from_updating_size:
@@ -344,7 +346,7 @@ class mpl_plotter(wx.Window):
             self.canvas.draw()
             # Get old and new plot sizes
             oldAxesSize = self.plotMS.get_position()
-            newAxesSize = self.config._plotSettings[resizeName]['save_size']
+            newAxesSize = self.config._plotSettings[resizeName]["save_size"]
             try:
                 self.plotMS.set_position(newAxesSize)
             except RuntimeError:
@@ -354,7 +356,7 @@ class mpl_plotter(wx.Window):
 
         # Save figure
         try:
-            kwargs['bbox_inches'] = 'tight'
+            kwargs["bbox_inches"] = "tight"
             self.figure.savefig(path, **kwargs)
 
         except IOError:
@@ -364,23 +366,20 @@ class mpl_plotter(wx.Window):
                 self.on_resize()
             # warn user
             DialogBox(
-                exceptionTitle='Warning',
-                exceptionMsg="Cannot save file: %s as it appears to be currently open or the folder doesn't exist" %
-                path,
-                type='Error',
+                exceptionTitle="Warning",
+                exceptionMsg="Cannot save file: %s as it appears to be currently open or the folder doesn't exist"
+                % path,
+                type="Error",
             )
             # get file extension
             fname, delimiter_txt = os.path.splitext(path)
             try:
                 bname = os.path.basename(fname)
             except Exception:
-                bname = ''
+                bname = ""
 
-            fileType = 'Image file ({})|*{}'.format(delimiter_txt, delimiter_txt)
-            dlg = wx.FileDialog(
-                None, 'Save as...',
-                '', '', fileType, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-            )
+            fileType = "Image file ({})|*{}".format(delimiter_txt, delimiter_txt)
+            dlg = wx.FileDialog(None, "Save as...", "", "", fileType, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
             dlg.SetFilename(bname)
 
             if dlg.ShowModal() == wx.ID_OK:
@@ -398,11 +397,11 @@ class mpl_plotter(wx.Window):
                     self.repaint()
 
                 try:
-                    kwargs['bbox_inches'] = 'tight'
+                    kwargs["bbox_inches"] = "tight"
                     self.figure.savefig(path, **kwargs)
                 except Exception:
                     try:
-                        del kwargs['bbox_inches']
+                        del kwargs["bbox_inches"]
                         self.figure.savefig(path, **kwargs)
                     except Exception:
                         pass
@@ -412,78 +411,54 @@ class mpl_plotter(wx.Window):
             self.plotMS.set_position(oldAxesSize)
             self.on_resize()
 
-    def onAddMarker(
-        self, xval=None, yval=None, marker='s', color='r', size=5,
-        testMax='none', label='', as_line=True,
-    ):
+    def onAddMarker(self, xval=None, yval=None, marker="s", color="r", size=5, testMax="none", label="", as_line=True):
         """
         This function adds a marker to 1D plot
         """
-        if testMax == 'yvals':
+        if testMax == "yvals":
             ydivider, expo = self.testXYmaxValsUpdated(values=yval)
             if expo > 1:
                 yvals = divide(yval, float(ydivider))
 
         if as_line:
             self.plotMS.plot(
-                xval, yval, color=color, marker=marker,
-                linestyle='None', markersize=size,
-                markeredgecolor='k', label=label,
+                xval,
+                yval,
+                color=color,
+                marker=marker,
+                linestyle="None",
+                markersize=size,
+                markeredgecolor="k",
+                label=label,
             )
         else:
-            self.plotMS.scatter(
-                xval, yval, color=color, marker=marker,
-                s=size, edgecolor='k', label=label,
-                alpha=1.0,
-            )
+            self.plotMS.scatter(xval, yval, color=color, marker=marker, s=size, edgecolor="k", label=label, alpha=1.0)
 
-    def addText(
-        self, xval=None, yval=None, text=None, rotation=90, color='k',
-        fontsize=16, weight=True, plot=None,
-    ):
+    def addText(self, xval=None, yval=None, text=None, rotation=90, color="k", fontsize=16, weight=True, plot=None):
         """
         This function annotates the MS peak
         """
         # Change label weight
         if weight:
-            weight = 'bold'
+            weight = "bold"
         else:
-            weight = 'regular'
+            weight = "regular"
 
         if plot is None:
             self.text = self.plotMS.text(
-                x=xval, y=yval,
-                s=text,
-                fontsize=fontsize,
-                rotation=rotation,
-                weight=weight,
-                fontdict=None,
-                color=color,
+                x=xval, y=yval, s=text, fontsize=fontsize, rotation=rotation, weight=weight, fontdict=None, color=color
             )
-        elif plot == 'Grid':
+        elif plot == "Grid":
             self.text = self.plot2D_side.text(
-                x=xval, y=yval,
-                s=text,
-                fontsize=fontsize,
-                rotation=rotation,
-                weight=weight,
-                fontdict=None,
-                color=color,
+                x=xval, y=yval, s=text, fontsize=fontsize, rotation=rotation, weight=weight, fontdict=None, color=color
             )
 
-    def addRectangle(
-        self, x, y, width, height, color='green',
-        alpha=0.5, linewidth=0,
-    ):
+    def addRectangle(self, x, y, width, height, color="green", alpha=0.5, linewidth=0):
         """
         Add rect patch to plot
         """
         # (x,y), width, height, alpha, facecolor, linewidth
-        add_patch = patches.Rectangle(
-            (x, y), width, height,
-            color=color, alpha=alpha,
-            linewidth=linewidth,
-        )
+        add_patch = patches.Rectangle((x, y), width, height, color=color, alpha=alpha, linewidth=linewidth)
         self.plotMS.add_patch(add_patch)
 
     def onZoomIn(self, startX, endX, endY):
@@ -493,14 +468,14 @@ class mpl_plotter(wx.Window):
         x1, x2, y1, y2 = self.plotRMSF.axis()
         self.plotRMSF.axis([startX, endX, y1, y2])
 
-    def onGetXYvals(self, axes='both'):
+    def onGetXYvals(self, axes="both"):
         xvals = self.plotMS.get_xlim()
         yvals = self.plotMS.get_ylim()
-        if axes == 'both':
+        if axes == "both":
             return xvals, yvals
-        elif axes == 'x':
+        elif axes == "x":
             return xvals
-        elif axes == 'y':
+        elif axes == "y":
             return yvals
 
     def get_plot_name(self):

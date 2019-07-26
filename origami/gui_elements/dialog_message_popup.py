@@ -6,9 +6,8 @@ from styles import makeCheckbox
 
 
 class DialogMessagePopup(Dialog):
-
     def __init__(self, parent, title, msg, **kwargs):
-        Dialog.__init__(self, parent, title='Warning', **kwargs)
+        Dialog.__init__(self, parent, title="Warning", **kwargs)
 
         self.make_gui()
         self.CentreOnParent()
@@ -34,15 +33,12 @@ class DialogMessagePopup(Dialog):
     def make_panel(self):
         panel = wx.Panel(self, -1)
 
-        self.msg = wx.TextCtrl(
-            panel, -1, '', size=(400, 40),
-            style=wx.TE_READONLY | wx.TE_WORDWRAP,
-        )
+        self.msg = wx.TextCtrl(panel, -1, "", size=(400, 40), style=wx.TE_READONLY | wx.TE_WORDWRAP)
 
-        self.yes_btn = wx.Button(panel, wx.ID_ANY, 'Yes', size=(-1, 22))
+        self.yes_btn = wx.Button(panel, wx.ID_ANY, "Yes", size=(-1, 22))
         self.yes_btn.Bind(wx.EVT_BUTTON, self.ok_yes)
 
-        self.no_btn = wx.Button(panel, wx.ID_ANY, 'No', size=(-1, 22))
+        self.no_btn = wx.Button(panel, wx.ID_ANY, "No", size=(-1, 22))
         self.no_btn.Bind(wx.EVT_BUTTON, self.on_no)
 
         self.ask_again_check = makeCheckbox(panel, "Don't ask again")
@@ -56,8 +52,7 @@ class DialogMessagePopup(Dialog):
         grid.Add(self.yes_btn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(self.no_btn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(
-            self.ask_again_check, (y, 3), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.ask_again_check, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)

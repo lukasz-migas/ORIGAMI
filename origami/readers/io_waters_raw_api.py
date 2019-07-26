@@ -8,8 +8,7 @@ import readers.waters.MassLynxRawScanReader as MassLynxRawScanReader
 from scipy.interpolate import interpolate
 
 
-class WatersRawReader():
-
+class WatersRawReader:
     def __init__(self, filename, **kwargs):
         self.filename = filename
 
@@ -23,7 +22,7 @@ class WatersRawReader():
         self.stats_in_functions = self.get_functions_and_stats()
 
         # setup file mode
-        self.instrument_type = self.stats_in_functions[0]['ion_mode']
+        self.instrument_type = self.stats_in_functions[0]["ion_mode"]
 
     def create_file_parser(self):
         return MassLynxRawReader.MassLynxRawReader(self.filename, 1)
@@ -48,10 +47,10 @@ class WatersRawReader():
             fcn_type = self.info_reader.GetFunctionTypeString(self.info_reader.GetFunctionType(fcn))
 
             stats_in_functions[fcn] = {
-                'n_scans': scans,
-                'mass_range': mass_range,
-                'ion_mode': ion_mode,
-                'fcn_type': fcn_type,
+                "n_scans": scans,
+                "mass_range": mass_range,
+                "ion_mode": ion_mode,
+                "fcn_type": fcn_type,
             }
 
         return stats_in_functions
@@ -65,7 +64,7 @@ class WatersRawReader():
 
     def find_minimum_mz_spacing(self, fcn, n_scans, n_max_scans=500):
         if not self.check_fcn(fcn):
-            raise ValueError(f'Function {fcn} could not be found in the file.')
+            raise ValueError(f"Function {fcn} could not be found in the file.")
 
         mz_spacing_diff = np.zeros((0,))
         if n_scans > n_max_scans:
@@ -78,10 +77,10 @@ class WatersRawReader():
 
     def generate_mz_interpolation_range(self, fcn):
         if not self.check_fcn(fcn):
-            raise ValueError(f'Function {fcn} could not be found in the file.')
+            raise ValueError(f"Function {fcn} could not be found in the file.")
 
-        mass_range = self.stats_in_functions[fcn]['mass_range']
-        n_scans = self.stats_in_functions[fcn]['n_scans']
+        mass_range = self.stats_in_functions[fcn]["mass_range"]
+        n_scans = self.stats_in_functions[fcn]["n_scans"]
         mz_spacing = self.find_minimum_mz_spacing(fcn, n_scans)
         mz_x = np.arange(mass_range[0], mass_range[1], mz_spacing)
 
@@ -92,13 +91,13 @@ class WatersRawReader():
 
     def get_summed_spectrum(self, fcn, n_scans, mz_x, scan_list=None):
         if not self.check_fcn(fcn):
-            raise ValueError(f'Function {fcn} could not be found in the file.')
+            raise ValueError(f"Function {fcn} could not be found in the file.")
 
         if scan_list is None:
             scan_list = range(n_scans)
 
         if len(scan_list) == 0:
-            raise ValueError('Scan list is empty')
+            raise ValueError("Scan list is empty")
 
         mz_y = np.zeros_like(mz_x, dtype=np.float64)
         for scan_id in scan_list:
@@ -106,7 +105,7 @@ class WatersRawReader():
             xvals = np.array(xvals)
             yvals = np.array(yvals)
             if len(xvals) > 0:
-                f = interpolate.interp1d(xvals, yvals, 'linear', bounds_error=False, fill_value=0)
+                f = interpolate.interp1d(xvals, yvals, "linear", bounds_error=False, fill_value=0)
                 mz_y += f(mz_x)
 
         return mz_y
@@ -123,9 +122,7 @@ class WatersRawReader():
         if not isinstance(mz_values):
             mz_values = [mz_values]
 
-        rt_x, rt_ys = self.chrom_reader.ReadMassChromatograms(
-            0, mz_values, tolerance, 0,
-        )
+        rt_x, rt_ys = self.chrom_reader.ReadMassChromatograms(0, mz_values, tolerance, 0)
 
         return rt_x, rt_ys
 
@@ -134,8 +131,6 @@ class WatersRawReader():
         if not isinstance(mz_values):
             mz_values = [mz_values]
 
-        dt_x, dt_ys = self.chrom_reader.ReadMassChromatograms(
-            1, mz_values, tolerance, 0,
-        )
+        dt_x, dt_ys = self.chrom_reader.ReadMassChromatograms(1, mz_values, tolerance, 0)
 
         return dt_x, dt_ys

@@ -17,9 +17,12 @@ class panelCalibrantDB(wx.MiniFrame):
 
     def __init__(self, parent, presenter, config, mode):
         wx.MiniFrame.__init__(
-            self, parent, -1, 'Select protein...', size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER |
-            wx.MAXIMIZE_BOX,
+            self,
+            parent,
+            -1,
+            "Select protein...",
+            size=(-1, -1),
+            style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX,
         )
 
         self.parent = parent
@@ -65,7 +68,7 @@ class panelCalibrantDB(wx.MiniFrame):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.main_sizer.Add(panel, 1, wx.EXPAND, 0)
 
-        if self.mode == 'calibrants':
+        if self.mode == "calibrants":
             size = (800, 400)
         else:
             size = (400, 400)
@@ -81,27 +84,27 @@ class panelCalibrantDB(wx.MiniFrame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         self.peaklist = ListCtrl(panel, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0, 'protein', width=150)
-        self.peaklist.InsertColumn(1, 'MW (kDa)', width=80)
-        self.peaklist.InsertColumn(2, 'units', width=60)
-        if self.mode == 'calibrants':
+        self.peaklist.InsertColumn(0, "protein", width=150)
+        self.peaklist.InsertColumn(1, "MW (kDa)", width=80)
+        self.peaklist.InsertColumn(2, "units", width=60)
+        if self.mode == "calibrants":
             # TODO : add m/z
-            self.peaklist.InsertColumn(3, 'z', width=40)
-            self.peaklist.InsertColumn(4, 'm/z (kDa)', width=80)
-            self.peaklist.InsertColumn(5, 'He⁺', width=60)
-            self.peaklist.InsertColumn(6, 'N2⁺', width=60)
-            self.peaklist.InsertColumn(7, 'He⁻', width=60)
-            self.peaklist.InsertColumn(8, 'N2⁻', width=60)
-            self.peaklist.InsertColumn(9, 'state', width=100)
-            self.peaklist.InsertColumn(10, 'source', width=60)
+            self.peaklist.InsertColumn(3, "z", width=40)
+            self.peaklist.InsertColumn(4, "m/z (kDa)", width=80)
+            self.peaklist.InsertColumn(5, "He⁺", width=60)
+            self.peaklist.InsertColumn(6, "N2⁺", width=60)
+            self.peaklist.InsertColumn(7, "He⁻", width=60)
+            self.peaklist.InsertColumn(8, "N2⁻", width=60)
+            self.peaklist.InsertColumn(9, "state", width=100)
+            self.peaklist.InsertColumn(10, "source", width=60)
 
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
 
-        self.addBtn = wx.Button(panel, wx.ID_OK, 'Add', size=(-1, 22))
+        self.addBtn = wx.Button(panel, wx.ID_OK, "Add", size=(-1, 22))
         self.addBtn.Hide()
-        self.selectBtn = wx.Button(panel, wx.ID_OK, 'Select', size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
+        self.selectBtn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
+        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
 
         self.selectBtn.Bind(wx.EVT_BUTTON, self.onSelect)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
@@ -133,7 +136,7 @@ class panelCalibrantDB(wx.MiniFrame):
         if self.currentItem is None:
             return
 
-        if self.mode == 'calibrants':
+        if self.mode == "calibrants":
 
             columns = self.peaklist.GetColumnCount()
             tempRow = []
@@ -149,9 +152,9 @@ class panelCalibrantDB(wx.MiniFrame):
             if len(tempRow) != 0:
                 self.parent.panelCCS.topP.onAnnotateItems(evt=None, addProtein=True)
 
-        elif self.mode == 'proteins':
-            protein = self.peaklist.GetItem(self.currentItem, self.config.ccsDBColNames['protein']).GetText()
-            mw = self.peaklist.GetItem(self.currentItem, self.config.ccsDBColNames['mw']).GetText()
+        elif self.mode == "proteins":
+            protein = self.peaklist.GetItem(self.currentItem, self.config.ccsDBColNames["protein"]).GetText()
+            mw = self.peaklist.GetItem(self.currentItem, self.config.ccsDBColNames["mw"]).GetText()
 
             self.config.proteinData = [protein, mw]
             self.dataOut = [protein, mw]
@@ -162,7 +165,7 @@ class panelCalibrantDB(wx.MiniFrame):
 
     def onPopulateTable(self):
 
-        if self.mode == 'calibrants':
+        if self.mode == "calibrants":
             try:
                 if self.ccsDB is not None:
                     pass
@@ -171,20 +174,16 @@ class panelCalibrantDB(wx.MiniFrame):
                 for row in ccsDBlist:
                     self.peaklist.Append(row)
 
-        elif self.mode == 'proteins':
+        elif self.mode == "proteins":
             try:
                 if self.ccsDB is not None:
                     pass
             except TypeError:
                 # Convert the DB to dictionary --> list of lists
-                ccsDBDict = self.ccsDB.to_dict(orient='index')
+                ccsDBDict = self.ccsDB.to_dict(orient="index")
                 tempData = []
                 for key in ccsDBDict:
-                    tempData.append([
-                        ccsDBDict[key]['Protein'],
-                        ccsDBDict[key]['MW'],
-                        str(ccsDBDict[key]['Subunits']),
-                    ])
+                    tempData.append([ccsDBDict[key]["Protein"], ccsDBDict[key]["MW"], str(ccsDBDict[key]["Subunits"])])
 
                 tempData.sort()
                 tempData = list(item for item, _ in itertools.groupby(tempData))
@@ -221,22 +220,19 @@ class panelCalibrantDB(wx.MiniFrame):
                 item = self.peaklist.GetItem(itemId=row, col=col)
                 #  We want to make sure certain columns are numbers
                 if (
-                    col == self.config.ccsDBColNames['mw'] or
-                    col == self.config.ccsDBColNames['ion'] or
-                    col == self.config.ccsDBColNames['hePos'] or
-                    col == self.config.ccsDBColNames['n2Pos'] or
-                    col == self.config.ccsDBColNames['heNeg'] or
-                        col == self.config.ccsDBColNames['n2Neg']
+                    col == self.config.ccsDBColNames["mw"]
+                    or col == self.config.ccsDBColNames["ion"]
+                    or col == self.config.ccsDBColNames["hePos"]
+                    or col == self.config.ccsDBColNames["n2Pos"]
+                    or col == self.config.ccsDBColNames["heNeg"]
+                    or col == self.config.ccsDBColNames["n2Neg"]
                 ):
                     itemData = str2num(item.GetText())
                     if itemData is None:
                         itemData = 0
                     tempRow.append(itemData)
                 # Integers
-                elif (
-                    col == self.config.ccsDBColNames['units'] or
-                    col == self.config.ccsDBColNames['charge']
-                ):
+                elif col == self.config.ccsDBColNames["units"] or col == self.config.ccsDBColNames["charge"]:
                     itemData = str2int(item.GetText())
                     if itemData is None:
                         itemData = 0

@@ -13,20 +13,22 @@ from visuals.normalize import MidpointNormalize
 
 
 class panel_customise_plot(wx.Dialog):
-
     def __init__(self, parent, presenter, config, **kwargs):
         wx.Dialog.__init__(
-            self, parent, -1, 'Customise plot...', size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE & ~
-            (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
+            self,
+            parent,
+            -1,
+            "Customise plot...",
+            size=(-1, -1),
+            style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
 
         self.parent = parent
         self.presenter = presenter
         self.config = config
 
-        self.plot = kwargs['plot']
-        if not hasattr(self.plot, 'lock_plot_from_updating_size'):
+        self.plot = kwargs["plot"]
+        if not hasattr(self.plot, "lock_plot_from_updating_size"):
             self.plot.lock_plot_from_updating_size = False
 
         self.kwargs = kwargs
@@ -38,8 +40,8 @@ class panel_customise_plot(wx.Dialog):
         self.onCheckTools()
         self.loading = False
 
-        if 'window_title' in kwargs:
-            self.SetTitle('Customising - {}'.format(kwargs.pop('window_title')))
+        if "window_title" in kwargs:
+            self.SetTitle("Customising - {}".format(kwargs.pop("window_title")))
 
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
@@ -54,6 +56,7 @@ class panel_customise_plot(wx.Dialog):
     def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
+
     # ----
 
     def onOK(self, evt):
@@ -86,32 +89,32 @@ class panel_customise_plot(wx.Dialog):
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        xaxis_label = wx.StaticText(panel, -1, 'X-axis:')
-        yaxis_label = wx.StaticText(panel, -1, 'Y-axis:')
-        min_label = wx.StaticText(panel, -1, 'Min:')
-        max_label = wx.StaticText(panel, -1, 'Max:')
-        major_tickFreq_label = wx.StaticText(panel, -1, 'Major tick \nfrequency:')
-        minor_tickFreq_label = wx.StaticText(panel, -1, 'Minor tick \nfrequency:')
-        tick_division_label = wx.StaticText(panel, -1, 'Division \nfactor:')
+        xaxis_label = wx.StaticText(panel, -1, "X-axis:")
+        yaxis_label = wx.StaticText(panel, -1, "Y-axis:")
+        min_label = wx.StaticText(panel, -1, "Min:")
+        max_label = wx.StaticText(panel, -1, "Max:")
+        major_tickFreq_label = wx.StaticText(panel, -1, "Major tick \nfrequency:")
+        minor_tickFreq_label = wx.StaticText(panel, -1, "Minor tick \nfrequency:")
+        tick_division_label = wx.StaticText(panel, -1, "Division \nfactor:")
 
-        self.xaxis_min_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
-        self.xaxis_max_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
-        self.xaxis_minor_tickreq_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
-        self.xaxis_major_tickreq_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
+        self.xaxis_min_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.xaxis_max_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.xaxis_minor_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.xaxis_major_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
 
-        self.yaxis_min_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
-        self.yaxis_max_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
-        self.yaxis_minor_tickreq_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
-        self.yaxis_major_tickreq_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
+        self.yaxis_min_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.yaxis_max_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.yaxis_minor_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.yaxis_major_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
 
-        self.xaxis_tick_division_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
+        self.xaxis_tick_division_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
         self.xaxis_tick_division_value.Disable()
-        self.yaxis_tick_division_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1), validator=validator('float'))
+        self.yaxis_tick_division_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
         self.yaxis_tick_division_value.Disable()
 
-        self.override_defaults = makeCheckbox(panel, 'Override extents')
+        self.override_defaults = makeCheckbox(panel, "Override extents")
 
-        self.applyBtn = wx.Button(panel, wx.ID_ANY, 'Apply scales', size=(-1, 22))
+        self.applyBtn = wx.Button(panel, wx.ID_ANY, "Apply scales", size=(-1, 22))
         self.applyBtn.Bind(wx.EVT_BUTTON, self.on_apply_scales)
 
         scales_grid = wx.GridBagSizer(2, 2)
@@ -120,12 +123,10 @@ class panel_customise_plot(wx.Dialog):
         scales_grid.Add(max_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         scales_grid.Add(minor_tickFreq_label, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         scales_grid.Add(
-            major_tickFreq_label, (y, 4), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            major_tickFreq_label, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
         scales_grid.Add(
-            tick_division_label, (y, 5), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            tick_division_label, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
         y = y + 1
         scales_grid.Add(xaxis_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -143,32 +144,25 @@ class panel_customise_plot(wx.Dialog):
         scales_grid.Add(self.yaxis_tick_division_value, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
         y = y + 1
         scales_grid.Add(
-            self.override_defaults, (y, 0), wx.GBSpan(1, 2),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.override_defaults, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
         scales_grid.Add(
-            self.applyBtn, (y, 5), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.applyBtn, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
 
-        lineWidth_label = wx.StaticText(panel, -1, 'Line width:')
+        lineWidth_label = wx.StaticText(panel, -1, "Line width:")
         self.line_width_value = wx.SpinCtrlDouble(
-            panel, -1, value='', min=1, max=10, initial=0,
-            inc=1, size=(TEXT_SIZE, -1),
+            panel, -1, value="", min=1, max=10, initial=0, inc=1, size=(TEXT_SIZE, -1)
         )
         self.line_width_value.Bind(wx.EVT_TEXT, self.on_apply_plotSettings)
 
-        lineStyle_label = wx.StaticText(panel, -1, 'Line style:')
-        self.line_style_value = wx.Choice(
-            panel, -1, choices=self.config.lineStylesList,
-            size=(TEXT_SIZE, -1),
-        )
+        lineStyle_label = wx.StaticText(panel, -1, "Line style:")
+        self.line_style_value = wx.Choice(panel, -1, choices=self.config.lineStylesList, size=(TEXT_SIZE, -1))
         self.line_style_value.Bind(wx.EVT_CHOICE, self.on_apply_plotSettings)
 
-        shade_alpha_label = wx.StaticText(panel, -1, 'Shade transparency:')
+        shade_alpha_label = wx.StaticText(panel, -1, "Shade transparency:")
         self.shade_alpha_value = wx.SpinCtrlDouble(
-            panel, -1, value='', min=0, max=1, initial=0.25,
-            inc=0.25, size=(TEXT_SIZE, -1),
+            panel, -1, value="", min=0, max=1, initial=0.25, inc=0.25, size=(TEXT_SIZE, -1)
         )
         self.shade_alpha_value.Bind(wx.EVT_TEXT, self.on_apply_plotSettings)
 
@@ -182,22 +176,17 @@ class panel_customise_plot(wx.Dialog):
         line_grid.Add(shade_alpha_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         line_grid.Add(self.shade_alpha_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
-        legend_fontSize_label = wx.StaticText(panel, -1, 'Legend font size:')
-        self.legend_fontSize_value = wx.Choice(
-            panel, -1,
-            choices=self.config.legendFontChoice,
-            size=(-1, -1),
-        )
+        legend_fontSize_label = wx.StaticText(panel, -1, "Legend font size:")
+        self.legend_fontSize_value = wx.Choice(panel, -1, choices=self.config.legendFontChoice, size=(-1, -1))
         self.legend_fontSize_value.Bind(wx.EVT_CHOICE, self.on_apply_legendSettings)
 
-        legend_patch_alpha_label = wx.StaticText(panel, -1, 'Patch transparency:')
+        legend_patch_alpha_label = wx.StaticText(panel, -1, "Patch transparency:")
         self.legend_patch_alpha_value = wx.SpinCtrlDouble(
-            panel, -1, value='', min=0, max=1, initial=0.25,
-            inc=0.25, size=(TEXT_SIZE, -1),
+            panel, -1, value="", min=0, max=1, initial=0.25, inc=0.25, size=(TEXT_SIZE, -1)
         )
         self.legend_patch_alpha_value.Bind(wx.EVT_TEXT, self.on_apply_legendSettings)
 
-        self.legend_frame_check = makeCheckbox(panel, 'Frame')
+        self.legend_frame_check = makeCheckbox(panel, "Frame")
         self.legend_frame_check.Bind(wx.EVT_CHECKBOX, self.on_apply_legendSettings)
 
         legend_grid = wx.GridBagSizer(2, 2)
@@ -208,31 +197,25 @@ class panel_customise_plot(wx.Dialog):
         legend_grid.Add(self.legend_patch_alpha_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
         legend_grid.Add(self.legend_frame_check, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
-        colormap_label = wx.StaticText(panel, -1, 'Colormap:')
-        self.colormap_value = wx.Choice(
-            panel, -1, choices=self.config.cmaps2,
-            size=(-1, -1), name='color',
-        )
+        colormap_label = wx.StaticText(panel, -1, "Colormap:")
+        self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1), name="color")
         self.colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_colormap)
 
-        colormap_min_label = wx.StaticText(panel, -1, 'Min:')
+        colormap_min_label = wx.StaticText(panel, -1, "Min:")
         self.cmap_min_value = wx.SpinCtrlDouble(
-            panel, -1, value='', min=0, max=100, initial=0,
-            inc=10, size=(TEXT_SIZE_SMALL, -1),
+            panel, -1, value="", min=0, max=100, initial=0, inc=10, size=(TEXT_SIZE_SMALL, -1)
         )
         self.cmap_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colormap)
 
-        colormap_mid_label = wx.StaticText(panel, -1, 'Mid:')
+        colormap_mid_label = wx.StaticText(panel, -1, "Mid:")
         self.cmap_mid_value = wx.SpinCtrlDouble(
-            panel, -1, value='', min=0, max=100, initial=0,
-            inc=10, size=(TEXT_SIZE_SMALL, -1),
+            panel, -1, value="", min=0, max=100, initial=0, inc=10, size=(TEXT_SIZE_SMALL, -1)
         )
         self.cmap_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colormap)
 
-        colormap_max_label = wx.StaticText(panel, -1, 'Max:')
+        colormap_max_label = wx.StaticText(panel, -1, "Max:")
         self.cmap_max_value = wx.SpinCtrlDouble(
-            panel, -1, value='', min=0, max=100, initial=0,
-            inc=10, size=(TEXT_SIZE_SMALL, -1),
+            panel, -1, value="", min=0, max=100, initial=0, inc=10, size=(TEXT_SIZE_SMALL, -1)
         )
         self.cmap_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colormap)
 
@@ -247,50 +230,49 @@ class panel_customise_plot(wx.Dialog):
         colormap_grid.Add(colormap_max_label, (y, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         colormap_grid.Add(self.cmap_max_value, (y, 7), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
-        spines_label = wx.StaticText(panel, -1, 'Line:')
-        self.leftSpines_check = makeCheckbox(panel, 'Left')
+        spines_label = wx.StaticText(panel, -1, "Line:")
+        self.leftSpines_check = makeCheckbox(panel, "Left")
         self.leftSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        self.rightSpines_check = makeCheckbox(panel, 'Right')
+        self.rightSpines_check = makeCheckbox(panel, "Right")
         self.rightSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        self.topSpines_check = makeCheckbox(panel, 'Top')
+        self.topSpines_check = makeCheckbox(panel, "Top")
         self.topSpines_check.SetValue(self.config.spines_top_1D)
         self.topSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        self.bottomSpines_check = makeCheckbox(panel, 'Bottom')
+        self.bottomSpines_check = makeCheckbox(panel, "Bottom")
         self.bottomSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        ticks_label = wx.StaticText(panel, -1, 'Ticks:')
-        self.leftTicks_check = makeCheckbox(panel, 'Left')
+        ticks_label = wx.StaticText(panel, -1, "Ticks:")
+        self.leftTicks_check = makeCheckbox(panel, "Left")
         self.leftTicks_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        self.rightTicks_check = makeCheckbox(panel, 'Right')
+        self.rightTicks_check = makeCheckbox(panel, "Right")
         self.rightTicks_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        self.topTicks_check = makeCheckbox(panel, 'Top')
+        self.topTicks_check = makeCheckbox(panel, "Top")
         self.topTicks_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        self.bottomTicks_check = makeCheckbox(panel, 'Bottom')
+        self.bottomTicks_check = makeCheckbox(panel, "Bottom")
         self.bottomTicks_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        tickLabels_label = wx.StaticText(panel, -1, 'Tick labels:')
-        self.leftTickLabels_check = makeCheckbox(panel, 'Left')
+        tickLabels_label = wx.StaticText(panel, -1, "Tick labels:")
+        self.leftTickLabels_check = makeCheckbox(panel, "Left")
         self.leftTickLabels_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        self.rightTickLabels_check = makeCheckbox(panel, 'Right')
+        self.rightTickLabels_check = makeCheckbox(panel, "Right")
         self.rightTickLabels_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        self.topTickLabels_check = makeCheckbox(panel, 'Top')
+        self.topTickLabels_check = makeCheckbox(panel, "Top")
         self.topTickLabels_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        self.bottomTickLabels_check = makeCheckbox(panel, 'Bottom')
+        self.bottomTickLabels_check = makeCheckbox(panel, "Bottom")
         self.bottomTickLabels_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
-        frame_lineWidth_label = wx.StaticText(panel, -1, 'Frame width:')
+        frame_lineWidth_label = wx.StaticText(panel, -1, "Frame width:")
         self.frame_width_value = wx.SpinCtrlDouble(
-            panel, -1, value='1', min=0, max=10, initial=1,
-            inc=1, size=(TEXT_SIZE, -1),
+            panel, -1, value="1", min=0, max=10, initial=1, inc=1, size=(TEXT_SIZE, -1)
         )
         self.frame_width_value.Bind(wx.EVT_TEXT, self.on_apply_frame)
 
@@ -318,57 +300,41 @@ class panel_customise_plot(wx.Dialog):
         axis_grid.Add(frame_lineWidth_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_width_value, (y, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
 
-        title_label = wx.StaticText(panel, -1, 'Title:')
-        self.title_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1))
+        title_label = wx.StaticText(panel, -1, "Title:")
+        self.title_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1))
         self.title_value.Bind(wx.EVT_TEXT, self.on_apply_fonts)
 
-        xaxis_label_label = wx.StaticText(panel, -1, 'X axis label:')
-        self.xlabel_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1))
+        xaxis_label_label = wx.StaticText(panel, -1, "X axis label:")
+        self.xlabel_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1))
         self.xlabel_value.Bind(wx.EVT_TEXT, self.on_apply_fonts)
 
-        yaxis_label_label = wx.StaticText(panel, -1, 'Y axis label:')
-        self.ylabel_value = wx.TextCtrl(panel, -1, '', size=(TEXT_SIZE, -1))
+        yaxis_label_label = wx.StaticText(panel, -1, "Y axis label:")
+        self.ylabel_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1))
         self.ylabel_value.Bind(wx.EVT_TEXT, self.on_apply_fonts)
 
-        padding_label = wx.StaticText(panel, -1, 'Label pad:')
-        self.padding_value = wx.SpinCtrlDouble(
-            panel, -1,
-            min=0, max=100,
-            inc=5, size=(90, -1),
-        )
+        padding_label = wx.StaticText(panel, -1, "Label pad:")
+        self.padding_value = wx.SpinCtrlDouble(panel, -1, min=0, max=100, inc=5, size=(90, -1))
         self.padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_fonts)
 
-        titleFontSize_label = wx.StaticText(panel, -1, 'Title font size:')
-        self.titleFontSize_value = wx.SpinCtrlDouble(
-            panel, -1,
-            min=0, max=60,
-            inc=2, size=(90, -1),
-        )
+        titleFontSize_label = wx.StaticText(panel, -1, "Title font size:")
+        self.titleFontSize_value = wx.SpinCtrlDouble(panel, -1, min=0, max=60, inc=2, size=(90, -1))
         self.titleFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_fonts)
 
-        self.titleFontWeight_check = makeCheckbox(panel, 'Bold')
+        self.titleFontWeight_check = makeCheckbox(panel, "Bold")
         self.titleFontWeight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_fonts)
 
-        labelFontSize_label = wx.StaticText(panel, -1, 'Label font size:')
-        self.labelFontSize_value = wx.SpinCtrlDouble(
-            panel, -1,
-            min=0, max=60,
-            inc=2, size=(90, -1),
-        )
+        labelFontSize_label = wx.StaticText(panel, -1, "Label font size:")
+        self.labelFontSize_value = wx.SpinCtrlDouble(panel, -1, min=0, max=60, inc=2, size=(90, -1))
         self.labelFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_fonts)
 
-        self.labelFontWeight_check = makeCheckbox(panel, 'Bold')
+        self.labelFontWeight_check = makeCheckbox(panel, "Bold")
         self.labelFontWeight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_fonts)
 
-        tickFontSize_label = wx.StaticText(panel, -1, 'Tick font size:')
-        self.tickFontSize_value = wx.SpinCtrlDouble(
-            panel, -1,
-            min=0, max=60,
-            inc=2, size=(90, -1),
-        )
+        tickFontSize_label = wx.StaticText(panel, -1, "Tick font size:")
+        self.tickFontSize_value = wx.SpinCtrlDouble(panel, -1, min=0, max=60, inc=2, size=(90, -1))
         self.tickFontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_fonts)
 
-        self.tickFontWeight_check = makeCheckbox(panel, 'Bold')
+        self.tickFontWeight_check = makeCheckbox(panel, "Bold")
         self.tickFontWeight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_fonts)
         self.tickFontWeight_check.Disable()
 
@@ -397,58 +363,44 @@ class panel_customise_plot(wx.Dialog):
         font_grid.Add(self.tickFontSize_value, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
         font_grid.Add(self.tickFontWeight_check, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
-        plotSize_label = wx.StaticText(panel, -1, 'Plot size (proportion)')
+        plotSize_label = wx.StaticText(panel, -1, "Plot size (proportion)")
 
-        left_label = wx.StaticText(panel, -1, 'Left')
-        self.left_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0),
-            min=0.0, max=1, initial=0, inc=0.05,
-            size=(60, -1),
-        )
+        left_label = wx.StaticText(panel, -1, "Left")
+        self.left_value = wx.SpinCtrlDouble(panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(60, -1))
         self.left_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_axes)
 
-        bottom_label = wx.StaticText(panel, -1, 'Bottom')
+        bottom_label = wx.StaticText(panel, -1, "Bottom")
         self.bottom_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0),
-            min=0.0, max=1, initial=0, inc=0.05,
-            size=(60, -1),
+            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(60, -1)
         )
         self.bottom_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_axes)
 
-        width_label = wx.StaticText(panel, -1, 'Width')
+        width_label = wx.StaticText(panel, -1, "Width")
         self.width_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0),
-            min=0.0, max=1, initial=0, inc=0.05,
-            size=(60, -1),
+            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(60, -1)
         )
         self.width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_axes)
 
-        height_label = wx.StaticText(panel, -1, 'Height')
+        height_label = wx.StaticText(panel, -1, "Height")
         self.height_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0),
-            min=0.0, max=1, initial=0, inc=0.05,
-            size=(60, -1),
+            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(60, -1)
         )
         self.height_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_axes)
 
-        plotSize_window_inch_label = wx.StaticText(panel, -1, 'Plot size (inch)')
-        width_window_inch_label = wx.StaticText(panel, -1, 'Width')
+        plotSize_window_inch_label = wx.StaticText(panel, -1, "Plot size (inch)")
+        width_window_inch_label = wx.StaticText(panel, -1, "Width")
         self.width_window_inch_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0),
-            min=0.0, max=20, initial=0, inc=.5,
-            size=(60, -1),
+            panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=0.5, size=(60, -1)
         )
         self.width_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_size)
 
-        height_window_inch_label = wx.StaticText(panel, -1, 'Height')
+        height_window_inch_label = wx.StaticText(panel, -1, "Height")
         self.height_window_inch_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0),
-            min=0.0, max=20, initial=0, inc=.5,
-            size=(60, -1),
+            panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=0.5, size=(60, -1)
         )
         self.height_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_size)
 
-        self.lock_size_plot = makeCheckbox(panel, 'Lock size')
+        self.lock_size_plot = makeCheckbox(panel, "Lock size")
         self.lock_size_plot.SetValue(self.plot.lock_plot_from_updating_size)
         self.lock_size_plot.Bind(wx.EVT_CHECKBOX, self.on_lock_plot_size)
 
@@ -482,13 +434,13 @@ class panel_customise_plot(wx.Dialog):
         horizontal_line_6 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_7 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        self.lock_plot = makeCheckbox(panel, 'Lock plot look')
+        self.lock_plot = makeCheckbox(panel, "Lock plot look")
         self.lock_plot.SetValue(self.plot.lock_plot_from_updating)
         self.lock_plot.Bind(wx.EVT_CHECKBOX, self.on_lock_plot)
 
-        self.resetBtn = wx.Button(panel, wx.ID_ANY, 'Reset', size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, -1, 'Cancel', size=(-1, 22))
-        self.saveImageBtn = wx.Button(panel, wx.ID_ANY, 'Save image', size=(-1, 22))
+        self.resetBtn = wx.Button(panel, wx.ID_ANY, "Reset", size=(-1, 22))
+        self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        self.saveImageBtn = wx.Button(panel, wx.ID_ANY, "Save image", size=(-1, 22))
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -538,96 +490,93 @@ class panel_customise_plot(wx.Dialog):
 
     def onPopulatePanel(self):
         # populate all together
-        self.xaxis_min_value.SetValue(str(self.kwargs['xmin']))
-        self.xaxis_max_value.SetValue(str(self.kwargs['xmax']))
-        self.yaxis_min_value.SetValue(str(self.kwargs['ymin']))
-        self.yaxis_max_value.SetValue(str(self.kwargs['ymax']))
-        self.line_width_value.SetValue(self.plot.plot_parameters.get('line_width', 1.0))
+        self.xaxis_min_value.SetValue(str(self.kwargs["xmin"]))
+        self.xaxis_max_value.SetValue(str(self.kwargs["xmax"]))
+        self.yaxis_min_value.SetValue(str(self.kwargs["ymin"]))
+        self.yaxis_max_value.SetValue(str(self.kwargs["ymax"]))
+        self.line_width_value.SetValue(self.plot.plot_parameters.get("line_width", 1.0))
         try:
             self.line_style_value.SetStringSelection(
-                self.config.lineStylesDict[self.plot.plot_parameters.get('line_style', '-')],
+                self.config.lineStylesDict[self.plot.plot_parameters.get("line_style", "-")]
             )
         except Exception:
-            self.line_style_value.SetStringSelection(self.plot.plot_parameters.get('line_style', '-'))
+            self.line_style_value.SetStringSelection(self.plot.plot_parameters.get("line_style", "-"))
 
         self.xaxis_tick_division_value.SetValue(str(1))
         self.yaxis_tick_division_value.SetValue(str(1))
 
-        self.leftSpines_check.SetValue(self.plot.plot_parameters['spines_left'])
-        self.rightSpines_check.SetValue(self.plot.plot_parameters['spines_right'])
-        self.topSpines_check.SetValue(self.plot.plot_parameters['spines_top'])
-        self.bottomSpines_check.SetValue(self.plot.plot_parameters['spines_bottom'])
-        self.leftTicks_check.SetValue(self.plot.plot_parameters['ticks_left'])
-        self.rightTicks_check.SetValue(self.plot.plot_parameters['ticks_right'])
-        self.topTicks_check.SetValue(self.plot.plot_parameters['ticks_top'])
-        self.bottomTicks_check.SetValue(self.plot.plot_parameters['ticks_bottom'])
-        self.leftTickLabels_check.SetValue(self.plot.plot_parameters['tickLabels_left'])
-        self.rightTickLabels_check.SetValue(self.plot.plot_parameters['tickLabels_right'])
-        self.topTickLabels_check.SetValue(self.plot.plot_parameters['tickLabels_top'])
-        self.bottomTickLabels_check.SetValue(self.plot.plot_parameters['tickLabels_bottom'])
+        self.leftSpines_check.SetValue(self.plot.plot_parameters["spines_left"])
+        self.rightSpines_check.SetValue(self.plot.plot_parameters["spines_right"])
+        self.topSpines_check.SetValue(self.plot.plot_parameters["spines_top"])
+        self.bottomSpines_check.SetValue(self.plot.plot_parameters["spines_bottom"])
+        self.leftTicks_check.SetValue(self.plot.plot_parameters["ticks_left"])
+        self.rightTicks_check.SetValue(self.plot.plot_parameters["ticks_right"])
+        self.topTicks_check.SetValue(self.plot.plot_parameters["ticks_top"])
+        self.bottomTicks_check.SetValue(self.plot.plot_parameters["ticks_bottom"])
+        self.leftTickLabels_check.SetValue(self.plot.plot_parameters["tickLabels_left"])
+        self.rightTickLabels_check.SetValue(self.plot.plot_parameters["tickLabels_right"])
+        self.topTickLabels_check.SetValue(self.plot.plot_parameters["tickLabels_top"])
+        self.bottomTickLabels_check.SetValue(self.plot.plot_parameters["tickLabels_bottom"])
 
-        self.frame_width_value.SetValue(self.plot.plot_parameters.get('frame_width', 1.0))
+        self.frame_width_value.SetValue(self.plot.plot_parameters.get("frame_width", 1.0))
 
-        self.xlabel_value.SetValue(self.kwargs['xlabel'])
-        self.ylabel_value.SetValue(self.kwargs['ylabel'])
-        self.title_value.SetValue(self.kwargs['title'])
+        self.xlabel_value.SetValue(self.kwargs["xlabel"])
+        self.ylabel_value.SetValue(self.kwargs["ylabel"])
+        self.title_value.SetValue(self.kwargs["title"])
 
-        self.padding_value.SetValue(self.plot.plot_parameters['label_pad'])
-        self.titleFontSize_value.SetValue(self.plot.plot_parameters['title_size'])
-        self.labelFontSize_value.SetValue(self.plot.plot_parameters['label_size'])
-        self.tickFontSize_value.SetValue(self.plot.plot_parameters['tick_size'])
+        self.padding_value.SetValue(self.plot.plot_parameters["label_pad"])
+        self.titleFontSize_value.SetValue(self.plot.plot_parameters["title_size"])
+        self.labelFontSize_value.SetValue(self.plot.plot_parameters["label_size"])
+        self.tickFontSize_value.SetValue(self.plot.plot_parameters["tick_size"])
 
-        if not isinstance(self.plot.plot_parameters['title_weight'], bool):
-            if self.plot.plot_parameters['title_weight'] == 'normal':
-                self.plot.plot_parameters['title_weight'] = False
+        if not isinstance(self.plot.plot_parameters["title_weight"], bool):
+            if self.plot.plot_parameters["title_weight"] == "normal":
+                self.plot.plot_parameters["title_weight"] = False
             else:
-                self.plot.plot_parameters['title_weight'] = True
+                self.plot.plot_parameters["title_weight"] = True
 
-        if not isinstance(self.plot.plot_parameters['label_weight'], bool):
-            if self.plot.plot_parameters['label_weight'] == 'normal':
-                self.plot.plot_parameters['label_weight'] = False
+        if not isinstance(self.plot.plot_parameters["label_weight"], bool):
+            if self.plot.plot_parameters["label_weight"] == "normal":
+                self.plot.plot_parameters["label_weight"] = False
             else:
-                self.plot.plot_parameters['label_weight'] = True
+                self.plot.plot_parameters["label_weight"] = True
 
-        if not isinstance(self.plot.plot_parameters['tick_weight'], bool):
-            if self.plot.plot_parameters['tick_weight'] == 'normal':
-                self.plot.plot_parameters['tick_weight'] = False
+        if not isinstance(self.plot.plot_parameters["tick_weight"], bool):
+            if self.plot.plot_parameters["tick_weight"] == "normal":
+                self.plot.plot_parameters["tick_weight"] = False
             else:
-                self.plot.plot_parameters['tick_weight'] = True
+                self.plot.plot_parameters["tick_weight"] = True
 
-        self.titleFontWeight_check.SetValue(self.plot.plot_parameters['title_weight'])
-        self.labelFontWeight_check.SetValue(self.plot.plot_parameters['label_weight'])
-        self.tickFontWeight_check.SetValue(self.plot.plot_parameters['tick_weight'])
+        self.titleFontWeight_check.SetValue(self.plot.plot_parameters["title_weight"])
+        self.labelFontWeight_check.SetValue(self.plot.plot_parameters["label_weight"])
+        self.tickFontWeight_check.SetValue(self.plot.plot_parameters["tick_weight"])
 
-        self.width_window_inch_value.SetValue(self.kwargs['plot_size'][0])
-        self.height_window_inch_value.SetValue(self.kwargs['plot_size'][1])
+        self.width_window_inch_value.SetValue(self.kwargs["plot_size"][0])
+        self.height_window_inch_value.SetValue(self.kwargs["plot_size"][1])
 
-        self.left_value.SetValue(self.kwargs['plot_axes'][0])
-        self.bottom_value.SetValue(self.kwargs['plot_axes'][1])
-        self.width_value.SetValue(self.kwargs['plot_axes'][2])
-        self.height_value.SetValue(self.kwargs['plot_axes'][3])
+        self.left_value.SetValue(self.kwargs["plot_axes"][0])
+        self.bottom_value.SetValue(self.kwargs["plot_axes"][1])
+        self.width_value.SetValue(self.kwargs["plot_axes"][2])
+        self.height_value.SetValue(self.kwargs["plot_axes"][3])
 
-        self.shade_alpha_value.SetValue(self.plot.plot_parameters.get('shade_under_transparency', 0.25))
+        self.shade_alpha_value.SetValue(self.plot.plot_parameters.get("shade_under_transparency", 0.25))
 
-        self.legend_patch_alpha_value.SetValue(self.plot.plot_parameters.get('legend_patch_transparency', 0.25))
-        self.legend_fontSize_value.SetStringSelection(self.plot.plot_parameters.get('legend_font_size', 'large'))
-        self.legend_frame_check.SetValue(self.plot.plot_parameters.get('legend_frame_on', False))
+        self.legend_patch_alpha_value.SetValue(self.plot.plot_parameters.get("legend_patch_transparency", 0.25))
+        self.legend_fontSize_value.SetStringSelection(self.plot.plot_parameters.get("legend_font_size", "large"))
+        self.legend_frame_check.SetValue(self.plot.plot_parameters.get("legend_frame_on", False))
 
-        colormap = self.plot.plot_parameters.get('colormap', self.config.currentCmap)
+        colormap = self.plot.plot_parameters.get("colormap", self.config.currentCmap)
         if colormap not in self.config.cmaps2:
             colormap = self.config.currentCmap
         self.colormap_value.SetStringSelection(colormap)
-        self.cmap_min_value.SetValue(self.plot.plot_parameters.get('colormap_min', 0))
-        self.cmap_mid_value.SetValue(self.plot.plot_parameters.get('colormap_mid', 50))
-        self.cmap_max_value.SetValue(self.plot.plot_parameters.get('colormap_max', 100))
+        self.cmap_min_value.SetValue(self.plot.plot_parameters.get("colormap_min", 0))
+        self.cmap_mid_value.SetValue(self.plot.plot_parameters.get("colormap_mid", 50))
+        self.cmap_max_value.SetValue(self.plot.plot_parameters.get("colormap_max", 100))
 
-    def onCheckTools(self, check_type='all'):
-        if check_type in ['all', 'colormap']:
+    def onCheckTools(self, check_type="all"):
+        if check_type in ["all", "colormap"]:
             if self.plot.cax is None:
-                disableList = [
-                    self.colormap_value, self.cmap_mid_value,
-                    self.cmap_min_value, self.cmap_max_value,
-                ]
+                disableList = [self.colormap_value, self.cmap_mid_value, self.cmap_min_value, self.cmap_max_value]
                 for item in disableList:
                     item.Disable()
 
@@ -638,20 +587,20 @@ class panel_customise_plot(wx.Dialog):
         cmap_max = self.cmap_max_value.GetValue()
 
         self.plot.cax.set_cmap(colormap)
-        if hasattr(self.plot, 'plot_data'):
-            if 'zvals' in self.plot.plot_data:
+        if hasattr(self.plot, "plot_data"):
+            if "zvals" in self.plot.plot_data:
                 # normalize
-                zvals_max = np.max(self.plot.plot_data['zvals'])
-                cmap_min = (zvals_max * cmap_min) / 100.
-                cmap_mid = (zvals_max * cmap_mid) / 100.
-                cmap_max = (zvals_max * cmap_max) / 100.
+                zvals_max = np.max(self.plot.plot_data["zvals"])
+                cmap_min = (zvals_max * cmap_min) / 100.0
+                cmap_mid = (zvals_max * cmap_mid) / 100.0
+                cmap_max = (zvals_max * cmap_max) / 100.0
 
                 cmap_norm = MidpointNormalize(midpoint=cmap_mid, vmin=cmap_min, vmax=cmap_max)
-                self.plot.plot_parameters['colormap_norm'] = cmap_norm
+                self.plot.plot_parameters["colormap_norm"] = cmap_norm
 
-                if 'colormap_norm' in self.plot.plot_parameters:
-                    self.plot.cax.set_norm(self.plot.plot_parameters['colormap_norm'])
-#                     cbar_ticks = [cmap_min, median([cmap_min + cmap_max]), cmap_max]
+                if "colormap_norm" in self.plot.plot_parameters:
+                    self.plot.cax.set_norm(self.plot.plot_parameters["colormap_norm"])
+        #                     cbar_ticks = [cmap_min, median([cmap_min + cmap_max]), cmap_max]
 
         self.plot.lock_plot_from_updating = False
         self.plot.plot_2D_colorbar_update(**self.plot.plot_parameters)
@@ -659,19 +608,19 @@ class panel_customise_plot(wx.Dialog):
         self.plot.repaint()
 
         # update kwargs
-        self.plot.plot_parameters['colormap_min'] = self.cmap_min_value.GetValue()
-        self.plot.plot_parameters['colormap_mid'] = self.cmap_mid_value.GetValue()
-        self.plot.plot_parameters['colormap_max'] = self.cmap_max_value.GetValue()
-        self.plot.plot_parameters['colormap'] = colormap
+        self.plot.plot_parameters["colormap_min"] = self.cmap_min_value.GetValue()
+        self.plot.plot_parameters["colormap_mid"] = self.cmap_mid_value.GetValue()
+        self.plot.plot_parameters["colormap_max"] = self.cmap_max_value.GetValue()
+        self.plot.plot_parameters["colormap"] = colormap
 
     def on_apply_legendSettings(self, evt):
 
         leg = self.plot.plotMS.axes.get_legend()
         leg.set_frame_on(self.legend_frame_check.GetValue())
 
-#         print(self.plot.cbar.get_ylim())
-#         print(dir(self.plot.cbar))
-#         print(dir_extra(dir(self.plot.cbar), "get"))
+        #         print(self.plot.cbar.get_ylim())
+        #         print(dir(self.plot.cbar))
+        #         print(dir_extra(dir(self.plot.cbar), "get"))
         try:
             patches = leg.get_patches()
             legend_alpha = self.legend_patch_alpha_value.GetValue()
@@ -692,9 +641,9 @@ class panel_customise_plot(wx.Dialog):
 
         self.plot.repaint()
 
-        self.plot.plot_parameters['legend_font_size'] = self.legend_fontSize_value.GetStringSelection()
-        self.plot.plot_parameters['legend_patch_transparency'] = self.legend_patch_alpha_value.GetValue()
-        self.plot.plot_parameters['legend_frame_on'] = self.legend_frame_check.GetValue()
+        self.plot.plot_parameters["legend_font_size"] = self.legend_fontSize_value.GetStringSelection()
+        self.plot.plot_parameters["legend_patch_transparency"] = self.legend_patch_alpha_value.GetValue()
+        self.plot.plot_parameters["legend_frame_on"] = self.legend_frame_check.GetValue()
 
     def on_apply_plotSettings(self, evt):
         if self.loading:
@@ -718,9 +667,9 @@ class panel_customise_plot(wx.Dialog):
 
         self.plot.repaint()
 
-        self.plot.plot_parameters['line_width'] = self.line_width_value.GetValue()
-        self.plot.plot_parameters['line_style'] = self.line_style_value.GetStringSelection()
-        self.plot.plot_parameters['shade_under_transparency'] = self.shade_alpha_value.GetValue()
+        self.plot.plot_parameters["line_width"] = self.line_width_value.GetValue()
+        self.plot.plot_parameters["line_style"] = self.line_style_value.GetStringSelection()
+        self.plot.plot_parameters["shade_under_transparency"] = self.shade_alpha_value.GetValue()
 
     def on_apply_frame(self, evt):
         if self.loading:
@@ -728,7 +677,7 @@ class panel_customise_plot(wx.Dialog):
 
         frame_width = self.frame_width_value.GetValue()
         self.plot.plotMS.tick_params(
-            axis='both',
+            axis="both",
             left=self.leftTicks_check.GetValue(),
             right=self.rightTicks_check.GetValue(),
             top=self.topTicks_check.GetValue(),
@@ -740,59 +689,57 @@ class panel_customise_plot(wx.Dialog):
             width=frame_width,
         )
 
-        self.plot.plotMS.spines['left'].set_visible(self.leftSpines_check.GetValue())
-        self.plot.plotMS.spines['right'].set_visible(self.rightSpines_check.GetValue())
-        self.plot.plotMS.spines['top'].set_visible(self.topSpines_check.GetValue())
-        self.plot.plotMS.spines['bottom'].set_visible(self.bottomSpines_check.GetValue())
+        self.plot.plotMS.spines["left"].set_visible(self.leftSpines_check.GetValue())
+        self.plot.plotMS.spines["right"].set_visible(self.rightSpines_check.GetValue())
+        self.plot.plotMS.spines["top"].set_visible(self.topSpines_check.GetValue())
+        self.plot.plotMS.spines["bottom"].set_visible(self.bottomSpines_check.GetValue())
 
         [i.set_linewidth(frame_width) for i in self.plot.plotMS.spines.values()]
         self.plot.repaint()
 
-        self.plot.plot_parameters['spines_left'] = self.leftSpines_check.GetValue()
-        self.plot.plot_parameters['spines_right'] = self.rightSpines_check.GetValue()
-        self.plot.plot_parameters['spines_top'] = self.topSpines_check.GetValue()
-        self.plot.plot_parameters['spines_bottom'] = self.bottomSpines_check.GetValue()
-        self.plot.plot_parameters['ticks_left'] = self.leftTicks_check.GetValue()
-        self.plot.plot_parameters['ticks_right'] = self.rightTicks_check.GetValue()
-        self.plot.plot_parameters['ticks_top'] = self.topTicks_check.GetValue()
-        self.plot.plot_parameters['ticks_bottom'] = self.bottomTicks_check.GetValue()
-        self.plot.plot_parameters['tickLabels_left'] = self.leftTickLabels_check.GetValue()
-        self.plot.plot_parameters['tickLabels_right'] = self.rightTickLabels_check.GetValue()
-        self.plot.plot_parameters['tickLabels_top'] = self.topTickLabels_check.GetValue()
-        self.plot.plot_parameters['tickLabels_bottom'] = self.bottomTickLabels_check.GetValue()
-        self.plot.plot_parameters['frame_width'] = frame_width
+        self.plot.plot_parameters["spines_left"] = self.leftSpines_check.GetValue()
+        self.plot.plot_parameters["spines_right"] = self.rightSpines_check.GetValue()
+        self.plot.plot_parameters["spines_top"] = self.topSpines_check.GetValue()
+        self.plot.plot_parameters["spines_bottom"] = self.bottomSpines_check.GetValue()
+        self.plot.plot_parameters["ticks_left"] = self.leftTicks_check.GetValue()
+        self.plot.plot_parameters["ticks_right"] = self.rightTicks_check.GetValue()
+        self.plot.plot_parameters["ticks_top"] = self.topTicks_check.GetValue()
+        self.plot.plot_parameters["ticks_bottom"] = self.bottomTicks_check.GetValue()
+        self.plot.plot_parameters["tickLabels_left"] = self.leftTickLabels_check.GetValue()
+        self.plot.plot_parameters["tickLabels_right"] = self.rightTickLabels_check.GetValue()
+        self.plot.plot_parameters["tickLabels_top"] = self.topTickLabels_check.GetValue()
+        self.plot.plot_parameters["tickLabels_bottom"] = self.bottomTickLabels_check.GetValue()
+        self.plot.plot_parameters["frame_width"] = frame_width
 
     def on_apply_fonts(self, evt):
         if self.loading:
             return
 
-#         leg = self.plot.plotMS.axes.get_legend()
-#         leg.set_title("TESTST")
-#         leg.set_frame_on(True)
-#         leg.set_alpha(0.0)
-#         print(dir_extra(dir(leg), "set"))
+        #         leg = self.plot.plotMS.axes.get_legend()
+        #         leg.set_title("TESTST")
+        #         leg.set_frame_on(True)
+        #         leg.set_alpha(0.0)
+        #         print(dir_extra(dir(leg), "set"))
 
         # convert weights
         if self.titleFontWeight_check.GetValue():
-            title_weight = 'heavy'
+            title_weight = "heavy"
         else:
-            title_weight = 'normal'
+            title_weight = "normal"
 
         if self.labelFontWeight_check.GetValue():
-            label_weight = 'heavy'
+            label_weight = "heavy"
         else:
-            label_weight = 'normal'
+            label_weight = "normal"
 
         if self.tickFontWeight_check.GetValue():
-            tick_weight = 'heavy'
+            tick_weight = "heavy"
         else:
-            tick_weight = 'normal'
+            tick_weight = "normal"
 
         # update title
         self.plot.plotMS.set_title(
-            self.title_value.GetValue(),
-            fontsize=self.titleFontSize_value.GetValue(),
-            weight=title_weight,
+            self.title_value.GetValue(), fontsize=self.titleFontSize_value.GetValue(), weight=title_weight
         )
 
         # update labels
@@ -814,13 +761,13 @@ class panel_customise_plot(wx.Dialog):
         self.plot.repaint()
 
         # update plot kwargs
-        self.plot.plot_parameters['label_pad'] = self.padding_value.GetValue()
-        self.plot.plot_parameters['label_size'] = self.labelFontSize_value.GetValue()
-        self.plot.plot_parameters['label_weight'] = label_weight
-        self.plot.plot_parameters['tick_size'] = self.tickFontSize_value.GetValue()
-        self.plot.plot_parameters['tick_weight'] = tick_weight
-        self.plot.plot_parameters['title_size'] = self.titleFontSize_value.GetValue()
-        self.plot.plot_parameters['title_weight'] = title_weight
+        self.plot.plot_parameters["label_pad"] = self.padding_value.GetValue()
+        self.plot.plot_parameters["label_size"] = self.labelFontSize_value.GetValue()
+        self.plot.plot_parameters["label_weight"] = label_weight
+        self.plot.plot_parameters["tick_size"] = self.tickFontSize_value.GetValue()
+        self.plot.plot_parameters["tick_weight"] = tick_weight
+        self.plot.plot_parameters["title_size"] = self.titleFontSize_value.GetValue()
+        self.plot.plot_parameters["title_weight"] = title_weight
 
     def on_apply_size(self, evt):
         if self.loading:
@@ -833,7 +780,7 @@ class panel_customise_plot(wx.Dialog):
         self.plot.SetSize(figuire_size)
         self.plot.repaint()
 
-        self.plot.plot_parameters['panel_size'] = figuire_size
+        self.plot.plot_parameters["panel_size"] = figuire_size
 
     def on_apply_axes(self, evt):
         if self.loading:
@@ -924,15 +871,15 @@ class panel_customise_plot(wx.Dialog):
     def onReset(self, evt):
 
         # reset range
-        self.plot.plotMS.set_xlim((self.kwargs['xmin'], self.kwargs['xmax']))
-        self.plot.plotMS.set_ylim((self.kwargs['ymin'], self.kwargs['ymax']))
+        self.plot.plotMS.set_xlim((self.kwargs["xmin"], self.kwargs["xmax"]))
+        self.plot.plotMS.set_ylim((self.kwargs["ymin"], self.kwargs["ymax"]))
 
         # reset tickers
-        self.plot.plotMS.xaxis.set_major_locator(self.kwargs['major_xticker'])
-        self.plot.plotMS.yaxis.set_major_locator(self.kwargs['major_yticker'])
+        self.plot.plotMS.xaxis.set_major_locator(self.kwargs["major_xticker"])
+        self.plot.plotMS.yaxis.set_major_locator(self.kwargs["major_yticker"])
 
-        self.plot.plotMS.xaxis.set_minor_locator(self.kwargs['minor_xticker'])
-        self.plot.plotMS.yaxis.set_minor_locator(self.kwargs['minor_yticker'])
+        self.plot.plotMS.xaxis.set_minor_locator(self.kwargs["minor_xticker"])
+        self.plot.plotMS.yaxis.set_minor_locator(self.kwargs["minor_yticker"])
 
         self.plot.repaint()
         self.onPopulatePanel()
@@ -951,4 +898,4 @@ class panel_customise_plot(wx.Dialog):
 
     def saveImage(self, evt):
 
-        self.parent.save_images(None, plot_obj=self.plot, image_name='')
+        self.parent.save_images(None, plot_obj=self.plot, image_name="")

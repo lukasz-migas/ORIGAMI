@@ -3,7 +3,7 @@
 import random
 import string
 
-__all__ = ['random_int_0_to_255', 'get_random_int', 'randomStringGenerator']
+__all__ = ["random_int_0_to_255", "get_random_int", "randomStringGenerator"]
 
 
 def random_int_0_to_255():
@@ -15,4 +15,4 @@ def get_random_int(min_int, max_int):
 
 
 def randomStringGenerator(size=5, chars=string.ascii_uppercase + string.digits):
-    return ''.join(random.choice(chars) for _x in range(size))
+    return "".join(random.choice(chars) for _x in range(size))

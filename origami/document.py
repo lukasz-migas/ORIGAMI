@@ -3,7 +3,7 @@
 from collections import OrderedDict
 
 
-class document():
+class document:
     """
     Document object
     """
@@ -11,21 +11,21 @@ class document():
     def __init__(self):
 
         # File info
-        self.docVersion = '19-10-2018'  # to keep track of new features: add as date: DD-MM-YYYY
+        self.docVersion = "19-10-2018"  # to keep track of new features: add as date: DD-MM-YYYY
 
         self.last_saved = None  # added in 19-10-2018 / v1.2.1
-        self.title = ''
-        self.path = ''
-        self.notes = ''
+        self.title = ""
+        self.path = ""
+        self.notes = ""
 
-        self.dataType = ''
-        self.fileFormat = ''
+        self.dataType = ""
+        self.fileFormat = ""
         self.parameters = {}
         self.userParameters = {}
         self.fileInformation = {}
         self.moleculeDetails = {}
 
-        self.saveHMTLpath = ''
+        self.saveHMTLpath = ""
 
         # mass spectrum
         self.gotMS = False
@@ -120,8 +120,8 @@ class document():
 
         # Styles
         self.lineColour = (0, 0, 0)  # black
-        self.style = 'solid'
+        self.style = "solid"
         self.lineWidth = 1
-        self.colormap = 'inferno'
-        self.plot2Dtype = 'contour'  # contour/imshow
+        self.colormap = "inferno"
+        self.plot2Dtype = "contour"  # contour/imshow
         self.visible = True

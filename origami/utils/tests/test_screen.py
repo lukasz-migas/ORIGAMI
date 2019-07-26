@@ -2,7 +2,6 @@ from utils.screen import calculate_window_size
 
 
 class TestScreen(object):
-
     @staticmethod
     def test_calculate_window_size():
         return_size_x, return_size_y = calculate_window_size((1920, 1080), 0.8)

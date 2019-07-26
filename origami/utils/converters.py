@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 
-__all__ = ['byte2str', 'str2num', 'num2str', 'str2int', 'float2int', 'str2bool']
+__all__ = ["byte2str", "str2num", "num2str", "str2int", "float2int", "str2bool"]
 
 
 def byte2str(string):
@@ -44,9 +44,9 @@ def float2int(num):
 
 
 def str2bool(s):
-    if s == 'True':
+    if s == "True":
         return True
-    elif s == 'False':
+    elif s == "False":
         return False
     else:
         return False  # raise ValueError

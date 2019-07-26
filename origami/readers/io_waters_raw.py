@@ -10,24 +10,30 @@ from gui_elements.misc_dialogs import DialogBox
 from readers.io_utils import clean_up
 from toolbox import strictly_increasing
 from utils.path import check_waters_path
-logger = logging.getLogger('origami')
+
+logger = logging.getLogger("origami")
 
 # Load C library
 # mlLib = cdll.LoadLibrary(os.path.join("MassLynxRaw.dll"))
 
 # create data holder
-temp_data_folder = os.path.join(os.getcwd(), 'temporary_data')
+temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
 
 
 # ##
 # USE DRIFTSCOPE
 # ##
 def driftscope_extract_MS(
-    path, bin_size=10000,
-    rt_start=0, rt_end=99999.0,
-    dt_start=1, dt_end=200,
-    mz_start=0, mz_end=99999,
-    driftscope_path=r'C:\DriftScope\lib', **kwargs
+    path,
+    bin_size=10000,
+    rt_start=0,
+    rt_end=99999.0,
+    dt_start=1,
+    dt_end=200,
+    mz_start=0,
+    mz_end=99999,
+    driftscope_path=r"C:\DriftScope\lib",
+    **kwargs,
 ):
     """
     Extract MS data from MassLynx (.raw) file that has IMS data
@@ -42,7 +48,7 @@ def driftscope_extract_MS(
     @param driftscope_path (str): path to DriftScope directory
     """
     # check if data should be extracted to data folder OR temporary folder
-    if kwargs.get('use_temp_folder', True) and os.path.exists(temp_data_folder):
+    if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
     else:
         out_path = path
@@ -50,46 +56,42 @@ def driftscope_extract_MS(
     path = check_waters_path(path)
 
     # Write range file
-    range_file = os.path.join(out_path, '__.1dMZ.inp')
+    range_file = os.path.join(out_path, "__.1dMZ.inp")
     try:
-        input_file = open(range_file, 'w')
+        input_file = open(range_file, "w")
     except IOError as err:
-        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
         return
 
     input_file.write(
-        '{} {} {}\n{} {} 1\n{} {} 1'.format(
-            mz_start, mz_end, bin_size,
-            rt_start, rt_end,
-            dt_start, dt_end,
-        ),
+        "{} {} {}\n{} {} 1\n{} {} 1".format(mz_start, mz_end, bin_size, rt_start, rt_end, dt_start, dt_end)
     )
     input_file.close()
 
     # Create command for execution
     cmd = r'{}\imextract.exe -d "{}" -f 1 -o "{}\output.1dMZ" -t mobilicube -p "{}'.format(
-        driftscope_path, path, out_path, range_file,
+        driftscope_path, path, out_path, range_file
     )
 
     # Extract command
-    process_id = Popen(cmd, shell=kwargs.get('verbose', True), creationflags=CREATE_NEW_CONSOLE)
+    process_id = Popen(cmd, shell=kwargs.get("verbose", True), creationflags=CREATE_NEW_CONSOLE)
     process_id.wait()
 
     # return data
-    if kwargs.get('return_data', False):
+    if kwargs.get("return_data", False):
         msX, msY = rawMassLynx_MS_load(out_path)
         return msX, msY
     else:
         return None
 
 
-def rawMassLynx_MS_load(path=None, inputFile='output.1dMZ', normalize=True, **kwargs):
+def rawMassLynx_MS_load(path=None, inputFile="output.1dMZ", normalize=True, **kwargs):
     data_path = os.path.join(path, inputFile)
     # Load data into array
     data = np.fromfile(data_path, dtype=np.float32)
     data_clean = data[2:(-1)]
     n_rows = int(len(data_clean) / 2)
-    msDataReshape = data_clean.reshape((2, n_rows), order='F')
+    msDataReshape = data_clean.reshape((2, n_rows), order="F")
     # Extract MS data
     data_x = msDataReshape[1]
     data_y = msDataReshape[0]
@@ -101,8 +103,8 @@ def rawMassLynx_MS_load(path=None, inputFile='output.1dMZ', normalize=True, **kw
     else:
         firstBadIdx = np.where(data_x == firstBad)
         try:
-            data_x = data_x[0:(firstBadIdx[0][0] - 1)]
-            data_y = data_y[0:(firstBadIdx[0][0] - 1)]
+            data_x = data_x[0 : (firstBadIdx[0][0] - 1)]
+            data_y = data_y[0 : (firstBadIdx[0][0] - 1)]
         except IndexError:
             pass
 
@@ -110,7 +112,7 @@ def rawMassLynx_MS_load(path=None, inputFile='output.1dMZ', normalize=True, **kw
     try:
         clean_up(data_path)
     except Exception as e:
-        logger.warning('Failed to delete file. Error: {}'.format(e))
+        logger.warning("Failed to delete file. Error: {}".format(e))
 
     # Normalize MS data
     if normalize:
@@ -120,15 +122,21 @@ def rawMassLynx_MS_load(path=None, inputFile='output.1dMZ', normalize=True, **kw
 
 
 def driftscope_extract_RT(
-    path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
-    mz_start=0, mz_end=999999, driftscope_path=r'C:\DriftScope\lib',
-    **kwargs
+    path=None,
+    rt_start=0,
+    rt_end=99999.0,
+    dt_start=1,
+    dt_end=200,
+    mz_start=0,
+    mz_end=999999,
+    driftscope_path=r"C:\DriftScope\lib",
+    **kwargs,
 ):
     """
     Extract the retention time for specified (or not) mass range
     """
     # check if data should be extracted to data folder OR temporary folder
-    if kwargs.get('use_temp_folder', True) and os.path.exists(temp_data_folder):
+    if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
     else:
         out_path = path
@@ -136,33 +144,27 @@ def driftscope_extract_RT(
     path = check_waters_path(path)
 
     # Create input file
-    range_file = os.path.join(out_path, '__.1dRT.inp')
+    range_file = os.path.join(out_path, "__.1dRT.inp")
 
     try:
-        input_file = open(range_file, 'w')
+        input_file = open(range_file, "w")
     except IOError as err:
-        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
         return
-    input_file.write(
-        '{} {} 1\n{} {} 5000\n{} {} 1'.format(
-            mz_start, mz_end,
-            rt_start, rt_end,
-            dt_start, dt_end,
-        ),
-    )
+    input_file.write("{} {} 1\n{} {} 5000\n{} {} 1".format(mz_start, mz_end, rt_start, rt_end, dt_start, dt_end))
     input_file.close()
 
     # Create command for execution
     cmd = r'{}\imextract.exe -d "{}" -f 1 -o "{}\output.1dRT" -t mobilicube -p "{}'.format(
-        driftscope_path, path, out_path, range_file,
+        driftscope_path, path, out_path, range_file
     )
 
-    process_id = Popen(cmd, shell=kwargs.get('verbose', True), creationflags=CREATE_NEW_CONSOLE)
+    process_id = Popen(cmd, shell=kwargs.get("verbose", True), creationflags=CREATE_NEW_CONSOLE)
     process_id.wait()
 
     # return data
-    if kwargs.get('return_data', False):
-        if kwargs.get('normalize', False):
+    if kwargs.get("return_data", False):
+        if kwargs.get("normalize", False):
             rtY, rtYnorm = rawMassLynx_RT_load(out_path, normalize=True)
             rtX = np.arange(1, len(rtY) + 1)
             return rtX, rtY, rtYnorm
@@ -174,19 +176,19 @@ def driftscope_extract_RT(
         return None
 
 
-def rawMassLynx_RT_load(path=None, inputFile='output.1dRT', normalize=False, **kwargs):
+def rawMassLynx_RT_load(path=None, inputFile="output.1dRT", normalize=False, **kwargs):
     data_path = os.path.join(path, inputFile)
     data = np.fromfile(data_path, dtype=np.int32)
     n_scans = data[1]
     data_clean = data[3::]
-    data_reshape = data_clean.reshape((n_scans, 2), order='C')
+    data_reshape = data_clean.reshape((n_scans, 2), order="C")
     data_1D = data_reshape[:, 1]
 
     # clean-up filepath
     try:
         clean_up(data_path)
     except Exception as e:
-        logger.warning('Failed to delete file. Error: {}'.format(e))
+        logger.warning("Failed to delete file. Error: {}".format(e))
 
     if normalize:
         data_1D_norm = data_1D.astype(np.float64) / max(data_1D)
@@ -196,11 +198,18 @@ def rawMassLynx_RT_load(path=None, inputFile='output.1dRT', normalize=False, **k
 
 
 def driftscope_extract_DT(
-    path=None, rt_start=0, rt_end=99999.0, dt_start=1, dt_end=200,
-    mz_start=0, mz_end=999999, driftscope_path=r'C:\DriftScope\lib', **kwargs
+    path=None,
+    rt_start=0,
+    rt_end=99999.0,
+    dt_start=1,
+    dt_end=200,
+    mz_start=0,
+    mz_end=999999,
+    driftscope_path=r"C:\DriftScope\lib",
+    **kwargs,
 ):
     # check if data should be extracted to data folder OR temporary folder
-    if kwargs.get('use_temp_folder', True) and os.path.exists(temp_data_folder):
+    if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
     else:
         out_path = path
@@ -208,31 +217,25 @@ def driftscope_extract_DT(
     path = check_waters_path(path)
 
     # Create input file
-    range_file = os.path.join(out_path, '__.1dDT.inp')
+    range_file = os.path.join(out_path, "__.1dDT.inp")
     try:
-        input_file = open(range_file, 'w')
+        input_file = open(range_file, "w")
     except IOError as err:
-        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
         return
-    input_file.write(
-        '{} {} 1\n{} {} 1\n{} {} 200'.format(
-            mz_start, mz_end,
-            rt_start, rt_end,
-            dt_start, dt_end,
-        ),
-    )
+    input_file.write("{} {} 1\n{} {} 1\n{} {} 200".format(mz_start, mz_end, rt_start, rt_end, dt_start, dt_end))
     input_file.close()
 
     # Create command for execution
     cmd = r'{}\imextract.exe -d "{}" -f 1 -o "{}\output.1dDT" -t mobilicube -p "{}'.format(
-        driftscope_path, path, out_path, range_file,
+        driftscope_path, path, out_path, range_file
     )
-    process_id = Popen(cmd, shell=kwargs.get('verbose', True), creationflags=CREATE_NEW_CONSOLE)
+    process_id = Popen(cmd, shell=kwargs.get("verbose", True), creationflags=CREATE_NEW_CONSOLE)
     process_id.wait()
 
     # return data
-    if kwargs.get('return_data', False):
-        if kwargs.get('normalize', False):
+    if kwargs.get("return_data", False):
+        if kwargs.get("normalize", False):
             dtY, dtYnorm = rawMassLynx_DT_load(out_path, normalize=True)
             dtX = np.arange(1, len(dtY) + 1)
             return dtX, dtY, dtYnorm
@@ -244,21 +247,21 @@ def driftscope_extract_DT(
         return None
 
 
-def rawMassLynx_DT_load(path=None, inputFile='output.1dDT', normalize=False, **kwargs):
+def rawMassLynx_DT_load(path=None, inputFile="output.1dDT", normalize=False, **kwargs):
     """
     Load data for 1D IM-MS data
     """
     data_path = os.path.join(path, inputFile)
     data = np.fromfile(data_path, dtype=np.int32)
     data_clean = data[3::]
-    data_reshape = data_clean.reshape((200, 2), order='C')
+    data_reshape = data_clean.reshape((200, 2), order="C")
     data_1D = data_reshape[:, 1]
 
     # clean-up filepath
     try:
         clean_up(data_path)
     except Exception as e:
-        logger.warning('Failed to delete file. Error: {}'.format(e))
+        logger.warning("Failed to delete file. Error: {}".format(e))
 
     if normalize:
         data_1D_norm = data_1D.astype(np.float64) / max(data_1D)
@@ -268,11 +271,18 @@ def rawMassLynx_DT_load(path=None, inputFile='output.1dDT', normalize=False, **k
 
 
 def driftscope_extract_2D(
-    path=None, mz_start=0, mz_end=999999, rt_start=0, rt_end=99999.0,
-    dt_start=1, dt_end=200, driftscope_path=r'C:\DriftScope\lib', **kwargs
+    path=None,
+    mz_start=0,
+    mz_end=999999,
+    rt_start=0,
+    rt_end=99999.0,
+    dt_start=1,
+    dt_end=200,
+    driftscope_path=r"C:\DriftScope\lib",
+    **kwargs,
 ):
     # check if data should be extracted to data folder OR temporary folder
-    if kwargs.get('use_temp_folder', True) and os.path.exists(temp_data_folder):
+    if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
     else:
         out_path = path
@@ -280,31 +290,25 @@ def driftscope_extract_2D(
     path = check_waters_path(path)
 
     # Create input file
-    range_file = os.path.join(out_path, '__.2dRTDT.inp')
+    range_file = os.path.join(out_path, "__.2dRTDT.inp")
     try:
-        input_file = open(range_file, 'w')
+        input_file = open(range_file, "w")
     except IOError as err:
-        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
         return
-    input_file.write(
-        '{} {} 1\n{} {} 5000\n{} {} 200'.format(
-            mz_start, mz_end,
-            rt_start, rt_end,
-            dt_start, dt_end,
-        ),
-    )
+    input_file.write("{} {} 1\n{} {} 5000\n{} {} 200".format(mz_start, mz_end, rt_start, rt_end, dt_start, dt_end))
     input_file.close()
     # Create command for execution
     cmd = r'{}\imextract.exe -d "{}" -f 1 -o "{}\output.2dRTDT" -t mobilicube -b 1 -scans 0 -p "{}'.format(
-        driftscope_path, path, out_path, range_file,
+        driftscope_path, path, out_path, range_file
     )
 
-    process_id = Popen(cmd, shell=kwargs.get('verbose', True), creationflags=CREATE_NEW_CONSOLE)
+    process_id = Popen(cmd, shell=kwargs.get("verbose", True), creationflags=CREATE_NEW_CONSOLE)
     process_id.wait()
 
     # return data
-    if kwargs.get('return_data', False):
-        if kwargs.get('normalize', False):
+    if kwargs.get("return_data", False):
+        if kwargs.get("normalize", False):
             dt, dtnorm = rawMassLynx_2DT_load(out_path, normalize=True)
             return dt, dtnorm
         else:
@@ -314,12 +318,12 @@ def driftscope_extract_2D(
         return None
 
 
-def rawMassLynx_2DT_load(path=None, inputFile='output.2dRTDT', normalize=False, **kwargs):
+def rawMassLynx_2DT_load(path=None, inputFile="output.2dRTDT", normalize=False, **kwargs):
     data_path = os.path.join(path, inputFile)
     data = np.fromfile(data_path, dtype=np.int32)
     data_clean = data[3::]
     n_rows = data[1]
-    data_reshape = data_clean.reshape((200, n_rows), order='F')  # Reshapes the list to 2D array
+    data_reshape = data_clean.reshape((200, n_rows), order="F")  # Reshapes the list to 2D array
     data_split = np.hsplit(data_reshape, int(n_rows / 5))  # Splits the array into [scans,200,5] array
     data_split = np.sum(data_split, axis=2).T  # Sums each 5 RT scans together
 
@@ -341,21 +345,28 @@ def rawMassLynx_2DT_load(path=None, inputFile='output.2dRTDT', normalize=False, 
     try:
         clean_up(data_path)
     except Exception as e:
-        logger.warning('Failed to delete file. Error: {}'.format(e))
+        logger.warning("Failed to delete file. Error: {}".format(e))
 
     if normalize:
-        data_split_norm = normalize(data_split.astype(np.float64), axis=0, norm='max')  # Norm to 1
+        data_split_norm = normalize(data_split.astype(np.float64), axis=0, norm="max")  # Norm to 1
         return data_split, data_split_norm
     else:
         return data_split
 
 
 def driftscope_extract_MZDT(
-    path=None, mz_start=0, mz_end=999999, mz_nPoints=5000, dt_start=1, dt_end=200,
-    silent_extract=True, driftscope_path=r'C:\DriftScope\lib', **kwargs
+    path=None,
+    mz_start=0,
+    mz_end=999999,
+    mz_nPoints=5000,
+    dt_start=1,
+    dt_end=200,
+    silent_extract=True,
+    driftscope_path=r"C:\DriftScope\lib",
+    **kwargs,
 ):
     # check if data should be extracted to data folder OR temporary folder
-    if kwargs.get('use_temp_folder', True) and os.path.exists(temp_data_folder):
+    if kwargs.get("use_temp_folder", True) and os.path.exists(temp_data_folder):
         out_path = temp_data_folder
     else:
         out_path = path
@@ -363,31 +374,26 @@ def driftscope_extract_MZDT(
     path = check_waters_path(path)
 
     # Create input file
-    range_file = os.path.join(out_path, '__.2dDTMZ.inp')
+    range_file = os.path.join(out_path, "__.2dDTMZ.inp")
     try:
-        input_file = open(range_file, 'w')
+        input_file = open(range_file, "w")
     except IOError as err:
-        DialogBox(exceptionTitle='Error', exceptionMsg=str(err), type='Error')
+        DialogBox(exceptionTitle="Error", exceptionMsg=str(err), type="Error")
         return
-    input_file.write(
-        '{} {} {}\n0.0 9999.0 1\n{} {} 200'.format(
-            mz_start, mz_end, mz_nPoints,
-            dt_start, dt_end,
-        ),
-    )
+    input_file.write("{} {} {}\n0.0 9999.0 1\n{} {} 200".format(mz_start, mz_end, mz_nPoints, dt_start, dt_end))
     input_file.close()
 
     # Create command for execution
     cmd = r'{}\imextract.exe -d "{}" -f 1 -o "{}\output.2dDTMZ" -t mobilicube -p "{}'.format(
-        driftscope_path, path, out_path, range_file,
+        driftscope_path, path, out_path, range_file
     )
 
-    process_id = Popen(cmd, shell=kwargs.get('verbose', True), creationflags=CREATE_NEW_CONSOLE)
+    process_id = Popen(cmd, shell=kwargs.get("verbose", True), creationflags=CREATE_NEW_CONSOLE)
     process_id.wait()
 
     # return data
-    if kwargs.get('return_data', False):
-        if kwargs.get('normalize', False):
+    if kwargs.get("return_data", False):
+        if kwargs.get("normalize", False):
             dt, dtnorm = rawMassLynx_MZDT_load(out_path, normalize=True)
             return dt, dtnorm
         else:
@@ -397,24 +403,25 @@ def driftscope_extract_MZDT(
         return None
 
 
-def rawMassLynx_MZDT_load(path=None, inputFile='output.2dDTMZ', normalize=False, **kwargs):
+def rawMassLynx_MZDT_load(path=None, inputFile="output.2dDTMZ", normalize=False, **kwargs):
     data_path = os.path.join(path, inputFile)
     data = np.fromfile(data_path, dtype=np.int32)
     data_clean = data[3::]
     n_bins = data[0]
-    data_reshaped = data_clean.reshape((200, n_bins), order='C')  # Reshapes the list to 2D array
+    data_reshaped = data_clean.reshape((200, n_bins), order="C")  # Reshapes the list to 2D array
 
     # clean-up filepath
     try:
         clean_up(data_path)
     except Exception as e:
-        logger.warning('Failed to delete file. Error: {}'.format(e))
+        logger.warning("Failed to delete file. Error: {}".format(e))
 
     if normalize:
-        data_reshaped_norm = normalize(data_reshaped.astype(np.float64), axis=0, norm='max')  # Norm to 1
+        data_reshaped_norm = normalize(data_reshaped.astype(np.float64), axis=0, norm="max")  # Norm to 1
         return data_reshaped, data_reshaped_norm
     else:
         return data_reshaped
+
 
 # # ##
 # # USE C READER

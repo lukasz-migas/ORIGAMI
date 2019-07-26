@@ -7,7 +7,8 @@ from scipy.signal import find_peaks
 from scipy.signal import peak_widths
 from utils.check import isnumber
 from utils.time import ttime
-logger = logging.getLogger('origami')
+
+logger = logging.getLogger("origami")
 
 # TODO: add another peak method that will try to determine the charge state:
 # could be based on the the assumption that adjacent peaks will have same spacing when belonging to the same ion
@@ -21,24 +22,23 @@ def mask_peaks_props(pks_props, mask):
 
 
 def find_peaks_in_spectrum_peak_properties(
-        x_signal,
-        y_signal,
-        threshold=250,
-        width=0,
-        rel_height=0.5,
-        min_intensity=0.,
-        distance=1,
-        mz_min=None,
-        mz_max=None,
-        peak_width_modifier=1.0,
-        verbose=True,
+    x_signal,
+    y_signal,
+    threshold=250,
+    width=0,
+    rel_height=0.5,
+    min_intensity=0.0,
+    distance=1,
+    mz_min=None,
+    mz_max=None,
+    peak_width_modifier=1.0,
+    verbose=True,
 ):
     tstart = ttime()
 
     # find peaks
     pks_idx, pks_props = find_peaks(
-        y_signal, threshold=threshold, width=width, rel_height=rel_height,
-        distance=distance,
+        y_signal, threshold=threshold, width=width, rel_height=rel_height, distance=distance
     )
 
     # extract peak values
@@ -73,8 +73,8 @@ def find_peaks_in_spectrum_peak_properties(
     pks_y = y_signal[pks_idx]
 
     # round-up peak width index
-    pks_idx_width_half = np.ceil(pks_props['widths'] / 2).astype(np.int32)
-    pks_idx_width = np.ceil(pks_props['widths'] * peak_width_modifier).astype(np.int32)
+    pks_idx_width_half = np.ceil(pks_props["widths"] / 2).astype(np.int32)
+    pks_idx_width = np.ceil(pks_props["widths"] * peak_width_modifier).astype(np.int32)
 
     # collect peak widths
     pks_idx_minus_width = pks_idx - pks_idx_width_half
@@ -90,21 +90,20 @@ def find_peaks_in_spectrum_peak_properties(
     pks_mz_x_width = pks_mz_x_plus_width - pks_mz_x_minus_width
 
     if verbose:
-        logger.info(f'Found {len(pks_idx)} peaks in {ttime() - tstart:.4f} seconds')
+        logger.info(f"Found {len(pks_idx)} peaks in {ttime() - tstart:.4f} seconds")
 
-    peaks_dict = \
-        {
-            'peaks_x_values': pks_x,
-            'peaks_y_values': pks_y,
-            'peaks_x_minus_width': pks_mz_x_minus_width,
-            'peaks_x_plus_width': pks_mz_x_plus_width,
-            'peaks_x_width': pks_mz_x_width,
-            'peaks_index': pks_idx,
-            'peaks_index_width': pks_idx_width,
-            'peaks_index_x_minus_width': pks_idx_minus_width,
-            'peaks_index_x_plus_width': pks_idx_plus_width,
-            'peaks_properties': pks_props,
-        }
+    peaks_dict = {
+        "peaks_x_values": pks_x,
+        "peaks_y_values": pks_y,
+        "peaks_x_minus_width": pks_mz_x_minus_width,
+        "peaks_x_plus_width": pks_mz_x_plus_width,
+        "peaks_x_width": pks_mz_x_width,
+        "peaks_index": pks_idx,
+        "peaks_index_width": pks_idx_width,
+        "peaks_index_x_minus_width": pks_idx_minus_width,
+        "peaks_index_x_plus_width": pks_idx_plus_width,
+        "peaks_properties": pks_props,
+    }
 
     return peaks_dict
 
@@ -161,7 +160,7 @@ def find_peaks_in_spectrum_local_search(data, window=10, threshold=0, mz_range=N
                 start = 0
             if end > length:
                 end = length
-            testmax = np.amax(data[int(start):int(end) + 1, 1])
+            testmax = np.amax(data[int(start) : int(end) + 1, 1])
             if mz_y_value == testmax and mz_y_value != data[i - 1, 1]:
                 pks_idx.append(i)
                 pks_x.append(mz_x_value)
@@ -171,16 +170,8 @@ def find_peaks_in_spectrum_local_search(data, window=10, threshold=0, mz_range=N
     mz_x = data[:, 0]
     mz_y = data[:, 1]
 
-    pks_width, widths_height, left_ips, right_ips = peak_widths(
-        mz_y, pks_idx, rel_height=kwargs.get('rel_height', .5),
-    )
-    pks_props = \
-        {
-            'left_ips': left_ips,
-            'right_ips': right_ips,
-            'width_heights': widths_height,
-            'widths': pks_width,
-        }
+    pks_width, widths_height, left_ips, right_ips = peak_widths(mz_y, pks_idx, rel_height=kwargs.get("rel_height", 0.5))
+    pks_props = {"left_ips": left_ips, "right_ips": right_ips, "width_heights": widths_height, "widths": pks_width}
 
     # round-up peak width index
     pks_idx_width_half = np.ceil(pks_width / 2).astype(np.int32)
@@ -195,31 +186,27 @@ def find_peaks_in_spectrum_local_search(data, window=10, threshold=0, mz_range=N
     pks_mz_x_plus_width = mz_x[pks_idx_plus_width]
     pks_mz_x_width = pks_mz_x_plus_width - pks_mz_x_minus_width
 
-    if kwargs.get('verbose', False):
-        logger.info(f'Found {len(pks_idx)} peaks in {ttime() - tstart:.4f} seconds')
+    if kwargs.get("verbose", False):
+        logger.info(f"Found {len(pks_idx)} peaks in {ttime() - tstart:.4f} seconds")
 
     # generate output dictionary
-    peaks_dict = \
-        {
-            'peaks_x_values': pks_x,
-            'peaks_y_values': pks_y,
-            'peaks_x_minus_width': pks_mz_x_minus_width,
-            'peaks_x_plus_width': pks_mz_x_plus_width,
-            'peaks_x_width': pks_mz_x_width,
-            'peaks_index': pks_idx,
-            'peaks_index_width': pks_idx_width,
-            'peaks_index_x_minus_width': pks_idx_minus_width,
-            'peaks_index_x_plus_width': pks_idx_plus_width,
-            'peaks_properties': pks_props,
-        }
+    peaks_dict = {
+        "peaks_x_values": pks_x,
+        "peaks_y_values": pks_y,
+        "peaks_x_minus_width": pks_mz_x_minus_width,
+        "peaks_x_plus_width": pks_mz_x_plus_width,
+        "peaks_x_width": pks_mz_x_width,
+        "peaks_index": pks_idx,
+        "peaks_index_width": pks_idx_width,
+        "peaks_index_x_minus_width": pks_idx_minus_width,
+        "peaks_index_x_plus_width": pks_idx_plus_width,
+        "peaks_properties": pks_props,
+    }
 
     return peaks_dict
 
 
-def detectPeaks(
-    x, mph=None, mpd=1, threshold=0, edge='rising',
-    kpsh=False, valley=False, show=False, ax=None,
-):
+def detectPeaks(x, mph=None, mpd=1, threshold=0, edge="rising", kpsh=False, valley=False, show=False, ax=None):
     """Detect peaks in data based on their amplitude and other features.
     __author__ = "Marcos Duarte, https://github.com/demotu/BMC"
     Parameters
@@ -294,7 +281,7 @@ def detectPeaks(
     >>> detect_peaks(x, threshold = 2, show=True)
     """
 
-    x = np.atleast_1d(x).astype('float64')
+    x = np.atleast_1d(x).astype("float64")
     if x.size < 3:
         return np.array([], dtype=int)
     if valley:
@@ -310,9 +297,9 @@ def detectPeaks(
     if not edge:
         ine = np.where((np.hstack((dx, 0)) < 0) & (np.hstack((0, dx)) > 0))[0]
     else:
-        if edge.lower() in ['rising', 'both']:
+        if edge.lower() in ["rising", "both"]:
             ire = np.where((np.hstack((dx, 0)) <= 0) & (np.hstack((0, dx)) > 0))[0]
-        if edge.lower() in ['falling', 'both']:
+        if edge.lower() in ["falling", "both"]:
             ife = np.where((np.hstack((dx, 0)) < 0) & (np.hstack((0, dx)) >= 0))[0]
     ind = np.unique(np.hstack((ine, ire, ife)))
     # handle NaN's
@@ -338,8 +325,7 @@ def detectPeaks(
         for i in range(ind.size):
             if not idel[i]:
                 # keep peaks with the same height if kpsh is True
-                idel = idel | (ind >= ind[i] - mpd) & (ind <= ind[i] + mpd) \
-                    & (x[ind[i]] > x[ind] if kpsh else True)
+                idel = idel | (ind >= ind[i] - mpd) & (ind <= ind[i] + mpd) & (x[ind[i]] > x[ind] if kpsh else True)
                 idel[i] = 0  # Keep current peak
         # remove the small peaks and sort back the indices by their occurrence
         ind = np.sort(ind[~idel])

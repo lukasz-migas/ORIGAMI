@@ -9,7 +9,7 @@ class DialogSelectDataset(Dialog):
     """
 
     def __init__(self, parent, presenter, docList, dataList, **kwargs):
-        Dialog.__init__(self, parent, title='Copy annotations to document/dataset...', size=(400, 300))
+        Dialog.__init__(self, parent, title="Copy annotations to document/dataset...", size=(400, 300))
 
         self.parent = parent
         self.presenter = presenter
@@ -18,8 +18,8 @@ class DialogSelectDataset(Dialog):
 
         # make gui items
         self.make_gui()
-        if 'set_document' in kwargs:
-            self.document_list_choice.SetStringSelection(kwargs['set_document'])
+        if "set_document" in kwargs:
+            self.document_list_choice.SetStringSelection(kwargs["set_document"])
         else:
             self.document_list_choice.SetSelection(0)
         self.on_update_gui(None)
@@ -60,19 +60,18 @@ class DialogSelectDataset(Dialog):
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        documentList_label = wx.StaticText(panel, -1, 'Document:')
+        documentList_label = wx.StaticText(panel, -1, "Document:")
         self.document_list_choice = wx.ComboBox(
-            panel, -1, choices=self.documentList,
-            size=(300, -1), style=wx.CB_READONLY,
+            panel, -1, choices=self.documentList, size=(300, -1), style=wx.CB_READONLY
         )
         self.document_list_choice.Select(0)
         self.document_list_choice.Bind(wx.EVT_COMBOBOX, self.on_update_gui)
 
-        datasetList_label = wx.StaticText(panel, -1, 'Dataset:')
+        datasetList_label = wx.StaticText(panel, -1, "Dataset:")
         self.dataset_list_choice = wx.ComboBox(panel, -1, choices=[], size=(300, -1), style=wx.CB_READONLY)
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, 'Select', size=(-1, 22))
-        self.cancel_btn = wx.Button(panel, -1, 'Cancel', size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
 
         GRIDBAG_VSPACE = 7
         GRIDBAG_HSPACE = 5

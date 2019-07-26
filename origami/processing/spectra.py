@@ -13,7 +13,7 @@ from scipy.signal import savgol_filter
 from utils.exceptions import MessageError
 from utils.ranges import get_min_max
 
-logger = logging.getLogger('origami')
+logger = logging.getLogger("origami")
 
 
 # TODO: should try to speed this up as the for-loop makes this very computationally expensive
@@ -37,7 +37,7 @@ def baseline_curve(data, window, **kwargs):
 
     """
     if window <= 0:
-        raise MessageError('Incorrect input', 'Value should be above 0')
+        raise MessageError("Incorrect input", "Value should be above 0")
 
     window = abs(window)
 
@@ -45,12 +45,7 @@ def baseline_curve(data, window, **kwargs):
     mins = np.zeros((length), dtype=np.int32)
 
     for i in range(length):
-        mins[i] = np.amin(
-            data[
-                int(max([0, i - window])):
-                int(min([i + window, length]))
-            ],
-        )
+        mins[i] = np.amin(data[int(max([0, i - window])) : int(min([i + window, length]))])
     background = gaussian_filter(mins, window * 2)
     return data - background
 
@@ -98,8 +93,8 @@ def baseline_polynomial(y, deg=None, max_it=None, tol=None, **kwargs):
     coeffs = np.ones(order)
 
     # try to avoid numerical issues
-    cond = math.pow(abs(y).max(), 1. / order)
-    x = np.linspace(0., cond, y.size)
+    cond = math.pow(abs(y).max(), 1.0 / order)
+    x = np.linspace(0.0, cond, y.size)
     base = y.copy()
 
     vander = np.vander(x, order)
@@ -125,6 +120,7 @@ def baseline_als(y, lam, p, niter=10):
     """
     from scipy import sparse
     from scipy.sparse.linalg import spsolve
+
     # taken from: https://stackoverflow.com/questions/29156532/python-baseline-correction-library/29185844
     L = len(y)
     D = sparse.diags([1, -2, 1], [0, -1, -2], shape=(L, L - 2))
@@ -142,26 +138,26 @@ def baseline_als(y, lam, p, niter=10):
 def baseline_linear(data, threshold=0, **kwargs):
     value_max = np.max(data)
     if threshold < 0:
-        raise MessageError('Incorrect input', 'Value should be above 0')
+        raise MessageError("Incorrect input", "Value should be above 0")
 
     if threshold > value_max:
-        raise MessageError('Incorrect input', f'Value {threshold} is above the maximum {value_max}')
+        raise MessageError("Incorrect input", f"Value {threshold} is above the maximum {value_max}")
 
     data[data <= threshold] = 0
 
     return data
 
 
-def baseline_1D(data, mode='Linear', **kwargs):
+def baseline_1D(data, mode="Linear", **kwargs):
     # ensure data is in 64-bit format
     data = np.array(data, dtype=np.float64)
 
-    if mode == 'Linear':
+    if mode == "Linear":
         data = baseline_linear(data, **kwargs)
-    elif mode == 'Polynomial':
+    elif mode == "Polynomial":
         baseline = baseline_polynomial(data, **kwargs)
         data = data - baseline
-    elif mode == 'Curved':
+    elif mode == "Curved":
         data = baseline_curve(data, **kwargs)
 
     data[data <= 0] = 0
@@ -169,27 +165,27 @@ def baseline_1D(data, mode='Linear', **kwargs):
     return data
 
 
-def normalize_1D(data, mode='Maximum'):
+def normalize_1D(data, mode="Maximum"):
     # ensure data is in 64-bit format
     data = np.array(data, dtype=np.float64)
 
-#     if mode == 'Maximum':
+    #     if mode == 'Maximum':
     norm_data = np.divide(data, data.max())
-#     elif mode == 'Total Ion Current (TIC)':
-#         norm_data = np.divide(data, np.sum(data))
-# #         norm_data = np.divide(norm_data, norm_data.max())
-#     elif mode == 'Highest peak':
-#         norm_data = np.divide(data, data[data.argmax()])
-# #         norm_data = np.divide(norm_data, norm_data.max())
-#     elif mode == 'Root Mean Square (RMS)':
-#         norm_data = np.divide(data, np.sqrt(np.mean(data ** 2)))
-# #         norm_data = np.divide(norm_data, norm_data.max())
-#     elif mode == 'Log':
-#         norm_data = np.divide(data, np.sum(np.log(data[np.nonzero(data)])))
-# #         norm_data = np.divide(norm_data, norm_data.max())
-#     elif mode == 'Square root':
-#         norm_data = np.divide(data, np.sum(np.sqrt(data)))
-# #         norm_data = np.divide(norm_data, norm_data.max())
+    #     elif mode == 'Total Ion Current (TIC)':
+    #         norm_data = np.divide(data, np.sum(data))
+    # #         norm_data = np.divide(norm_data, norm_data.max())
+    #     elif mode == 'Highest peak':
+    #         norm_data = np.divide(data, data[data.argmax()])
+    # #         norm_data = np.divide(norm_data, norm_data.max())
+    #     elif mode == 'Root Mean Square (RMS)':
+    #         norm_data = np.divide(data, np.sqrt(np.mean(data ** 2)))
+    # #         norm_data = np.divide(norm_data, norm_data.max())
+    #     elif mode == 'Log':
+    #         norm_data = np.divide(data, np.sum(np.log(data[np.nonzero(data)])))
+    # #         norm_data = np.divide(norm_data, norm_data.max())
+    #     elif mode == 'Square root':
+    #         norm_data = np.divide(data, np.sum(np.sqrt(data)))
+    # #         norm_data = np.divide(norm_data, norm_data.max())
 
     # replace nans
     norm_data = np.nan_to_num(norm_data)
@@ -205,13 +201,13 @@ def check_mass_range(ms_list=None, ms_dict=None):
     mz_min, mz_max = [], []
     if ms_dict is not None:
         for key in ms_dict:
-            mz_min.append(ms_dict[key]['xvals'][0])
-            mz_max.append(ms_dict[key]['xvals'][-1])
+            mz_min.append(ms_dict[key]["xvals"][0])
+            mz_max.append(ms_dict[key]["xvals"][-1])
 
     if ms_list is not None:
         for i in range(len(ms_list)):
-            mz_min.append(ms_dict[i]['xvals'][0])
-            mz_max.append(ms_dict[i]['xvals'][-1])
+            mz_min.append(ms_dict[i]["xvals"][0])
+            mz_max.append(ms_dict[i]["xvals"][-1])
 
     # determine min and maximum value from the list
     return np.min(mz_min), np.max(mz_max)
@@ -226,24 +222,22 @@ def interpolate(x_short, y_short, x_long):
 
 def linearize_data(msX, msY, **kwargs):
 
-    if 'auto_range' in kwargs:
-        if kwargs['auto_range']:
+    if "auto_range" in kwargs:
+        if kwargs["auto_range"]:
             mzStart = msX[0]
             mzEnd = msY[-1]
         else:
-            mzStart = kwargs['mz_min']
-            mzEnd = kwargs['mz_max']
+            mzStart = kwargs["mz_min"]
+            mzEnd = kwargs["mz_max"]
     else:
-        mzStart = kwargs['mz_min']
-        mzEnd = kwargs['mz_max']
+        mzStart = kwargs["mz_min"]
+        mzEnd = kwargs["mz_max"]
 
-    binsize = kwargs['mz_bin']
-    msCentre = get_linearization_range(mzStart, mzEnd, binsize, kwargs['linearization_mode'])
+    binsize = kwargs["mz_bin"]
+    msCentre = get_linearization_range(mzStart, mzEnd, binsize, kwargs["linearization_mode"])
 
     msCentre, msYbin = linearize(
-        data=np.transpose([msX, msY]), binsize=binsize,
-        mode=kwargs['linearization_mode'],
-        input_list=msCentre,
+        data=np.transpose([msX, msY]), binsize=binsize, mode=kwargs["linearization_mode"], input_list=msCentre
     )
     msYbin = np.nan_to_num(msYbin)
 
@@ -256,7 +250,7 @@ def crop_1D_data(msX, msY, **kwargs):
     @param msY (list): y-axis list
     """
 
-    crop_min, crop_max = kwargs['min'], kwargs['max']
+    crop_min, crop_max = kwargs["min"], kwargs["max"]
 
     # get data min, max
     data_min, data_max = np.min(msX), np.max(msX)
@@ -269,7 +263,7 @@ def crop_1D_data(msX, msY, **kwargs):
         crop_max = data_max
 
     if crop_min == crop_max:
-        print('Please widen the mass range')
+        print("Please widen the mass range")
         return msX, msY
 
     # get spectrum
@@ -287,7 +281,7 @@ def sum_1D(data):
     ydata = []
     # Iterate over the whole dictionary to retrieve y-axis data
     for idx in range(len(data)):
-        ydata.append(data[idx]['yvals'])
+        ydata.append(data[idx]["yvals"])
     # Sum y-axis data
     msY = np.sum(ydata, axis=0)
 
@@ -316,10 +310,7 @@ def sum_1D_dictionary(ydict=None):
 def smooth_gaussian_1D(data=None, sigma=1, **kwargs):
     """Smooth using Gaussian filter"""
     if sigma < 0:
-        raise MessageError(
-            'Incorrest value of `sigma`',
-            'Value of `sigma` is too low. Value must be larger than 0',
-        )
+        raise MessageError("Incorrest value of `sigma`", "Value of `sigma` is too low. Value must be larger than 0")
 
     dataOut = gaussian_filter(data, sigma=sigma, order=0)
     return dataOut
@@ -328,27 +319,22 @@ def smooth_gaussian_1D(data=None, sigma=1, **kwargs):
 def smooth_moving_average_1D(x, **kwargs):
     """Smooth using moving average"""
     # get parameters
-    N = kwargs.pop('N')
+    N = kwargs.pop("N")
     if N <= 0:
         raise MessageError(
-            'Incorrest value of `window size`',
-            'Value of `window size` is too low. Value must be larger than 0',
+            "Incorrest value of `window size`", "Value of `window size` is too low. Value must be larger than 0"
         )
 
-    return np.convolve(x, np.ones((N,)) / N, mode='same')
+    return np.convolve(x, np.ones((N,)) / N, mode="same")
 
 
 def smooth_sav_gol_1D(data, **kwargs):
     """Smooth using Savitzky-Golay filter"""
     # get parameters
-    polyOrder = kwargs.pop('polyOrder')
-    windowSize = kwargs.pop('windowSize')
+    polyOrder = kwargs.pop("polyOrder")
+    windowSize = kwargs.pop("windowSize")
     try:
-        dataOut = savgol_filter(
-            data, polyorder=polyOrder,
-            window_length=windowSize,
-            axis=0,
-        )
+        dataOut = savgol_filter(data, polyorder=polyOrder, window_length=windowSize, axis=0)
     except (ValueError, TypeError, MemoryError) as err:
         logger.error(err)
         return data
@@ -356,14 +342,14 @@ def smooth_sav_gol_1D(data, **kwargs):
     return dataOut
 
 
-def smooth_1D(data=None, mode='Gaussian', **kwargs):
+def smooth_1D(data=None, mode="Gaussian", **kwargs):
     """Smooth data"""
 
-    if mode == 'Gaussian':
+    if mode == "Gaussian":
         data = smooth_gaussian_1D(data, **kwargs)
-    elif mode == 'Savitzky-Golay':
+    elif mode == "Savitzky-Golay":
         data = smooth_sav_gol_1D(data, **kwargs)
-    elif mode == 'Moving average':
+    elif mode == "Moving average":
         data = smooth_moving_average_1D(data, **kwargs)
 
     # remove values below zero
@@ -411,7 +397,7 @@ def nearest(array, target):
 
 
 def get_linearization_range(mzStart, mzEnd, binsize, mode):
-    if mode in ['Linear m/z', 'Linear interpolation']:
+    if mode in ["Linear m/z", "Linear interpolation"]:
         msList = np.arange(mzStart, mzEnd, binsize)
     else:
         msList = nonlinear_axis(mzStart, mzEnd, mzStart / binsize)
@@ -425,14 +411,14 @@ def linearize(data, binsize, mode, input_list=[]):
         firstpoint = math.ceil(data[0, 0] / binsize) * binsize
         lastpoint = math.floor(data[length - 1, 0] / binsize) * binsize
 
-        if mode in ['Linear m/z', 'Linear interpolation']:
+        if mode in ["Linear m/z", "Linear interpolation"]:
             intx = np.arange(firstpoint, lastpoint, binsize)
         else:
             intx = nonlinear_axis(firstpoint, lastpoint, firstpoint / binsize)
     else:
         intx = input_list
 
-    if mode in ['Linear m/z', 'Linear resolution']:
+    if mode in ["Linear m/z", "Linear resolution"]:
         newdat = lintegrate(data, intx)
     else:
         newdat = linterpolate(data, intx)
@@ -538,10 +524,9 @@ def nonlinearize(data, num_compressed):
         return data
     else:
         num_compressed = int(num_compressed)
-        return np.array([
-            np.mean(data[index:index + num_compressed], axis=0) for index in
-            range(0, len(data), num_compressed)
-        ])
+        return np.array(
+            [np.mean(data[index : index + num_compressed], axis=0) for index in range(0, len(data), num_compressed)]
+        )
 
 
 def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
@@ -549,7 +534,7 @@ def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
     n_size_2 = len(xvals_2)
 
     if n_size_1 != n_size_2:
-        logger.warning(f'The two spectra are of different size. They will be interpolated to the same scale.')
+        logger.warning(f"The two spectra are of different size. They will be interpolated to the same scale.")
         # calculate plot size
         ylimits_1 = get_min_max(xvals_1)
         ylimits_2 = get_min_max(xvals_2)
@@ -561,8 +546,11 @@ def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
             mz_bin = np.diff(xvals_1).mean()
 
         pr_kwargs = {
-            'auto_range': False, 'mz_min': ylimits[0], 'mz_max': ylimits[1],
-            'mz_bin': mz_bin, 'linearization_mode': 'Linear interpolation',
+            "auto_range": False,
+            "mz_min": ylimits[0],
+            "mz_max": ylimits[1],
+            "mz_bin": mz_bin,
+            "linearization_mode": "Linear interpolation",
         }
         xvals_1, yvals_1 = linearize_data(xvals_1, yvals_1, **pr_kwargs)
         xvals_2, yvals_2 = linearize_data(xvals_2, yvals_2, **pr_kwargs)

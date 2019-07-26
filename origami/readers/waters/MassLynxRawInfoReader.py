@@ -1,7 +1,7 @@
-'''
+"""
      Waters
     MassLynx Python SDK
-'''
+"""
 import ctypes
 from ctypes import c_bool
 from ctypes import c_char
@@ -19,7 +19,6 @@ from readers.waters.MassLynxRawReader import MassLynxRawReader
 
 
 class MassLynxRawInfoReader(MassLynxRawReader):
-
     def __init__(self, source):
         super().__init__(source, MassLynxBaseType.INFO)
 
@@ -137,10 +136,7 @@ class MassLynxRawInfoReader(MassLynxRawReader):
         getScanItem = MassLynxRawReader.massLynxDll.getScanItems
         getScanItem.argtypes = [c_void_p, c_int, c_int, POINTER(c_int), POINTER(c_char_p), c_int, POINTER(c_char)]
         super().CheckReturnCode(
-            getScanItem(
-                self._getReader(),
-                whichFunction, whichScan, items, temp, nItems, delimiter,
-            ),
+            getScanItem(self._getReader(), whichFunction, whichScan, items, temp, nItems, delimiter)
         )
 
         itemString = super().ToString(temp)
@@ -173,7 +169,7 @@ class MassLynxRawInfoReader(MassLynxRawReader):
 
         # fill the array
         pI = cast(pItems, POINTER(c_int))
-        items = pI[0:size.value]
+        items = pI[0 : size.value]
 
         # dealocate memory
         MassLynxRawReader.ReleaseMemory(pItems)

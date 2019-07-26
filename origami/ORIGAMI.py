@@ -58,25 +58,25 @@ from utils.converters import str2num
 from utils.logging import set_logger
 from utils.logging import set_logger_level
 from utils.time import getTime
+
 # if platform == "win32":
 #     import readers.io_waters_raw as io_waters
 
 # needed to avoid annoying warnings to be printed on console
-warnings.filterwarnings('ignore', category=DeprecationWarning)
-warnings.filterwarnings('ignore', category=RuntimeWarning)
-warnings.filterwarnings('ignore', category=UserWarning)
-warnings.filterwarnings('ignore', category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
-logger = logging.getLogger('origami')
+logger = logging.getLogger("origami")
 
 # disable MPL logger
-logging.getLogger('matplotlib').setLevel(logging.ERROR)
+logging.getLogger("matplotlib").setLevel(logging.ERROR)
 
 
 class ORIGAMI(object):
-
     def __init__(self, *args, **kwargs):
-        self.__wx_app = wx.App(redirect=False, filename='ORIGAMI')
+        self.__wx_app = wx.App(redirect=False, filename="ORIGAMI")
         self.view = None
         self.init(*args, **kwargs)
 
@@ -90,12 +90,7 @@ class ORIGAMI(object):
         """
         self.view.Destroy()
         self.view = None
-        self.view = mainWindow.MyFrame(
-            self,
-            config=self.config,
-            icons=self.icons,
-            title='ORIGAMI',
-        )
+        self.view = mainWindow.MyFrame(self, config=self.config, icons=self.icons, title="ORIGAMI")
         self.view.Show()
 
     def quit(self):
@@ -120,15 +115,11 @@ class ORIGAMI(object):
         # Setup variables
         self.initilize_state()
         self.view = mainWindow.MyFrame(
-            self,
-            config=self.config,
-            icons=self.icons,
-            helpInfo=self.help,
-            title='ORIGAMI - %s ' % self.config.version,
+            self, config=self.config, icons=self.icons, helpInfo=self.help, title="ORIGAMI - %s " % self.config.version
         )
         self.__wx_app.SetTopWindow(self.view)
-        self.__wx_app.SetAppName('ORIGAMI - %s ' % self.config.version)
-        self.__wx_app.SetVendorName('Lukasz G. Migas, University of Manchester')
+        self.__wx_app.SetAppName("ORIGAMI - %s " % self.config.version)
+        self.__wx_app.SetVendorName("Lukasz G. Migas, University of Manchester")
 
         # Assign standard input/output to variable
         self.config.stdin = sys.stdin
@@ -139,7 +130,7 @@ class ORIGAMI(object):
         self.config.cwd = os.getcwd()
 
         # Set temporary data path
-        temp_data_folder = os.path.join(os.getcwd(), 'temporary_data')
+        temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
         if not os.path.exists(temp_data_folder):
             os.makedirs(temp_data_folder)
         self.config.temporary_data = temp_data_folder
@@ -156,9 +147,9 @@ class ORIGAMI(object):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
 
-#         # Load protein/CCS database
-#         if self.config.loadCCSAtStart:
-#             self.onImportCCSDatabase(evt=None, onStart=True)
+        #         # Load protein/CCS database
+        #         if self.config.loadCCSAtStart:
+        #             self.onImportCCSDatabase(evt=None, onStart=True)
 
         gc.enable()
         self.on_start_logging()
@@ -173,7 +164,7 @@ class ORIGAMI(object):
         self.onCheckVersion()
 
         # only check if on Windows
-        if self.config.checkForDriftscopeAtStart and platform == 'win32':
+        if self.config.checkForDriftscopeAtStart and platform == "win32":
             self.config.initilize_paths()
 
         # add data handling and processing modules
@@ -192,58 +183,54 @@ class ORIGAMI(object):
 
     def _test_(self):
         # load text MS file
-        path = os.path.join(self.config.cwd, 'example_files', 'text_files', 'MS_p27-FL-K31.csv')
+        path = os.path.join(self.config.cwd, "example_files", "text_files", "MS_p27-FL-K31.csv")
         self.data_handling.on_add_text_MS(path)
 
         # load text 2D file
         for fname in [
-            '1_Linear_IMS2D_5140.73-5169.41.csv', '2_Exponential_IMS2D_5140.48-5164.36.csv',
-            '3_Boltzmann_IMS2D_5139.58-5170.58.csv',
+            "1_Linear_IMS2D_5140.73-5169.41.csv",
+            "2_Exponential_IMS2D_5140.48-5164.36.csv",
+            "3_Boltzmann_IMS2D_5139.58-5170.58.csv",
         ]:
-            path = os.path.join(
-                self.config.cwd, 'example_files', 'text_files',
-                fname,
-            )
+            path = os.path.join(self.config.cwd, "example_files", "text_files", fname)
             self.data_handling.on_add_text_2D(None, path)
 
-        if platform == 'win32':
+        if platform == "win32":
             # load Waters (.raw) file - MS only
-            path = os.path.join(self.config.cwd, 'example_files', 'dt-ims', 'LM_20151006_7_B_DV60.raw')
-            self.data_handling.on_open_single_MassLynx_raw(path, 'Type: MS')
+            path = os.path.join(self.config.cwd, "example_files", "dt-ims", "LM_20151006_7_B_DV60.raw")
+            self.data_handling.on_open_single_MassLynx_raw(path, "Type: MS")
 
             # load Waters (.raw) file - IM-MS
-            path = os.path.join(self.config.cwd, 'example_files', 'origami_ms', 'ORIGAMI_ConA_z20.raw')
-            self.data_handling.on_open_single_MassLynx_raw(path, 'Type: ORIGAMI')
+            path = os.path.join(self.config.cwd, "example_files", "origami_ms", "ORIGAMI_ConA_z20.raw")
+            self.data_handling.on_open_single_MassLynx_raw(path, "Type: ORIGAMI")
 
             # extract MS data
             self.data_handling.on_extract_MS_from_chromatogram(5, 10)
-            self.data_handling.on_extract_MS_from_chromatogram(1.5, 1.7, 'Time (min)')
-            self.data_handling.on_extract_MS_from_chromatogram(1.7, 1.9, 'Retention time (min)')
+            self.data_handling.on_extract_MS_from_chromatogram(1.5, 1.7, "Time (min)")
+            self.data_handling.on_extract_MS_from_chromatogram(1.7, 1.9, "Retention time (min)")
             self.data_handling.on_extract_MS_from_mobiligram(65, 75)
-            self.data_handling.on_extract_MS_from_mobiligram(11, 15, 'Arrival time (ms)')
+            self.data_handling.on_extract_MS_from_mobiligram(11, 15, "Arrival time (ms)")
 
         # exit
         self.view.on_close(None, clean_exit=True, ignore_warning=True)
 
     def on_start_logging(self):
 
-        log_directory = os.path.join(self.config.cwd, 'logs')
+        log_directory = os.path.join(self.config.cwd, "logs")
         if not os.path.exists(log_directory):
-            print('Directory logs did not exist - created a new one in {}'.format(log_directory))
+            print("Directory logs did not exist - created a new one in {}".format(log_directory))
             os.makedirs(log_directory)
 
         # Generate filename
         if self.config.loggingFile_path is None:
-            file_path = 'origami_{}.log'.format(self.config.startTime)
-            self.config.loggingFile_path = os.path.join(
-                log_directory, file_path,
-            )
+            file_path = "origami_{}.log".format(self.config.startTime)
+            self.config.loggingFile_path = os.path.join(log_directory, file_path)
 
         # setup logger
         set_logger(file_path=self.config.loggingFile_path, debug_mode=self.config.debug)
-        set_logger_level(verbose='DEBUG')
+        set_logger_level(verbose="DEBUG")
 
-        logger.info('Logs can be found in {}'.format(self.config.loggingFile_path))
+        logger.info("Logs can be found in {}".format(self.config.loggingFile_path))
 
     def initilize_state(self):
         """
@@ -265,349 +252,345 @@ class ORIGAMI(object):
         document.title = name
         document.path = path
         document.userParameters = self.config.userParameters
-        document.userParameters['date'] = getTime()
-        document.dataType = kwargs.get('data_type', 'Type: Other')
-        document.fileFormat = kwargs.get('file_format', 'Format: Other')
+        document.userParameters["date"] = getTime()
+        document.dataType = kwargs.get("data_type", "Type: Other")
+        document.fileFormat = kwargs.get("file_format", "Format: Other")
 
         return document
 
     def _debug_(self):
         import wx.lib.inspection
+
         wx.lib.inspection.InspectionTool().Show()
 
-    def onThreading(self, evt, args, action='loadOrigami'):
+    def onThreading(self, evt, args, action="loadOrigami"):
         # Setup thread
         #         if action == 'loadOrigami':
         #             th = threading.Thread(target=self.onLoadOrigamiDataThreaded, args=(args, evt))
 
-        if action == 'saveFigs':
+        if action == "saveFigs":
             target, path, kwargs = args
             th = threading.Thread(target=target.save_figure, args=(path,), kwargs=kwargs)
 
-        elif action == 'updateStatusbar':
+        elif action == "updateStatusbar":
             if len(args) == 2:
                 msg, position = args
                 th = threading.Thread(target=self.view.updateStatusbar, args=(msg, position))
             elif len(args) == 3:
                 msg, position, delay = args
                 th = threading.Thread(target=self.view.updateStatusbar, args=(msg, position, delay))
-        elif action == 'export_settings':
+        elif action == "export_settings":
             th = threading.Thread(target=self.config.saveConfigXML, args=args)
 
         # Start thread
         try:
             th.start()
         except Exception:
-            print('Failed to execute the operation in threaded mode. Consider switching it off?')
+            print("Failed to execute the operation in threaded mode. Consider switching it off?")
 
-#     def onLinearDTirectory(self, e=None):
-#         # self.config.ciuMode = 'LinearDT'
-#         # self.config.extractMode = 'singleIon'
-#
-#         # Reset arrays
-#         imsData2D = np.array([])
-#         dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-#                            style=wx.DD_DEFAULT_STYLE)
-#         if self.config.dirname == '':
-#             pass
-#         else:
-#             dlg.SetPath(self.config.dirname)
-#         if dlg.ShowModal() == wx.ID_OK:
-#             tstart = time.clock()
-#             print("You chose %s" % dlg.GetPath())
-#             # Update statusbar
-#             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-#             # Get experimental parameters
-#             parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
-#             xlimits = [parameters['startMS'], parameters['endMS']]
-#             # Mass spectra
-#             extract_kwargs = {'return_data': True}
-#             msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
-#                                                                 driftscope_path=self.config.driftscopePath,
-#                                                                 **extract_kwargs)
-#
-#             # RT
-#             extract_kwargs = {'return_data': True, 'normalize': True}
-#             xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
-#                                                                              driftscope_path=self.config.driftscopePath,
-#                                                                              **extract_kwargs)
-#
-#             # 2D
-#             extract_kwargs = {'return_data': True}
-#             imsData2D = io_waters.driftscope_extract_2D(path=dlg.GetPath(),
-#                                                           driftscope_path=self.config.driftscopePath,
-#                                                           **extract_kwargs)
-#             xlabels = 1 + np.arange(len(imsData2D[1, :]))
-#             ylabels = 1 + np.arange(len(imsData2D[:, 1]))
-#
-#             # Update status bar with MS range
-#             self.view.SetStatusText("{}-{}".format(parameters.get('startMS', ""), parameters.get('endMS', "")), 1)
-#             self.view.SetStatusText("MSMS: {}".format(parameters.get('setMS', "")), 2)
-#
-#             tend = time.clock()
-#             self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4), action='updateStatusbar')
-#
-#             # Add info to document
-#             __, idName = os.path.split(dlg.GetPath())
-#             idName = (''.join([idName])).encode('ascii', 'replace')
-#             self.docs = documents()
-#             self.docs.title = idName
-#             self.currentDoc = idName  # Currently plotted document
-#             self.docs.userParameters = self.config.userParameters
-#             self.docs.userParameters['date'] = getTime()
-#             self.docs.path = dlg.GetPath()
-#             self.docs.parameters = parameters
-#             self.docs.dataType = 'Type: Multifield Linear DT'
-#             self.docs.fileFormat = 'Format: MassLynx (.raw)'
-#             # Add data
-#             self.docs.gotMS = True
-#             self.docs.massSpectrum = {'xvals': msDataX,
-#                                       'yvals': msDataY,
-#                                       'xlabels': 'm/z (Da)',
-#                                       'xlimits': xlimits}
-#             self.docs.got1RT = True
-#             self.docs.RT = {'xvals': xvalsRT,
-#                             'yvals': rtDataYnorm,
-#                             'xlabels': 'Scans'}
-#             self.docs.got2DIMS = True
-#             # Format: zvals, xvals, xlabel, yvals, ylabel
-#             self.docs.IMS2D = {'zvals': imsData2D,
-#                                'xvals': xlabels,
-#                                 'xlabels': 'Scans',
-#                                 'yvals': ylabels,
-#                                 'ylabels': 'Drift time (bins)',
-#                                 'cmap': self.docs.colormap}
-#
-#             # Plots
-#             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
-#             name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
-#             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-#
-#             # Update document
-#             self.OnUpdateDocument(self.docs, 'document')
-#
-#         dlg.Destroy()
-#         return None
-#
-#     def onCalibrantRawDirectory(self, e=None):
-#         """
-#         This function opens calibrant file
-#         """
-#
-#         # Reset arrays
-#         dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-#                            style=wx.DD_DEFAULT_STYLE)
-#
-#         if dlg.ShowModal() == wx.ID_OK:
-#             tstart = time.clock()
-#             # Check whether appropriate calibration file was selected
-#             path = self.checkIfRawFile(dlg.GetPath())
-#             if path is None:
-#                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format."
-#                 DialogBox(exceptionTitle='Please load MassLynx (.raw) file',
-#                        exceptionMsg=msg,
-#                        type="Error")
-#                 return
-#             print("You chose %s" % dlg.GetPath())
-#             # Update statusbar
-#             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-#             # Get experimental parameters
-#             parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
-#             xlimits = [parameters['startMS'], parameters['endMS']]
-#             # Mass spectra
-#             extract_kwargs = {'return_data': True}
-#             msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
-#                                                                 driftscope_path=self.config.driftscopePath,
-#                                                                 **extract_kwargs)
-#             # RT
-#             extract_kwargs = {'return_data': True, 'normalize': True}
-#             xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
-#                                                                              driftscope_path=self.config.driftscopePath,
-#                                                                              **extract_kwargs)
-#
-#             # DT
-#             extract_kwargs = {'return_data': True}
-#             xvalsDT, imsData1D = io_waters.driftscope_extract_DT(path=dlg.GetPath(),
-#                                                                   driftscope_path=self.config.driftscopePath,
-#                                                                   **extract_kwargs)
-#
-#             # Update status bar with MS range
-#             self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
-#             self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
-#             tend = time.clock()
-#             self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4),
-#                              action='updateStatusbar')
-#
-#             # Add info to document
-#             __, idName = os.path.split(dlg.GetPath())
-#             idName = (''.join([idName])).encode('ascii', 'replace')
-#             self.docs = documents()
-#             self.docs.title = idName
-#             self.currentDoc = idName  # Currently plotted document
-#             self.docs.path = dlg.GetPath()
-#             self.docs.userParameters = self.config.userParameters
-#             self.docs.userParameters['date'] = getTime()
-#             self.docs.parameters = parameters
-#             self.docs.dataType = 'Type: CALIBRANT'
-#             self.docs.fileFormat = 'Format: MassLynx (.raw)'
-#             self.docs.corrC = parameters['corrC']
-#             # Add data
-#             self.docs.gotMS = True
-#             self.docs.massSpectrum = {'xvals': msDataX,
-#                                       'yvals': msDataY,
-#                                       'xlabels': 'm/z (Da)',
-#                                       'xlimits': xlimits}
-#             self.docs.got1RT = True
-#             self.docs.RT = {'xvals': xvalsRT,
-#                             'yvals': rtDataYnorm,
-#                             'xlabels': 'Scans'}
-#             self.docs.got1DT = True
-#             self.docs.DT = {'xvals': xvalsDT,
-#                             'yvals': imsData1D,
-#                             'xlabels': 'Drift time (bins)',
-#                             'ylabels': 'Intensity'}
-#
-#             # Add plots
-#             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
-#             self.onPlotMSDTCalibration(msX=msDataX,
-#                                        msY=msDataY,
-#                                        xlimits=xlimits,
-#                                        dtX=xvalsDT,
-#                                        dtY=imsData1D,
-#                                        xlabelDT='Drift time (bins)',
-#                                        color=self.docs.lineColour)
-#
-#             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Calibration'])
-#
-#             # Update document
-#             self.OnUpdateDocument(self.docs, 'document')
-#
-#         dlg.Destroy()
-#         return None
-#
-#     def onAddCalibrantMultiple(self, evt):
-#
-#         tempList = self.view.panelCCS.topP.peaklist
-#         for row in range(tempList.GetItemCount()):
-#             if evt.GetId() == ID_extractCCScalibrantAll:
-#                 pass
-#             elif evt.GetId() == ID_extractCCScalibrantSelected:
-#                 if not tempList.IsChecked(index=row):
-#                     continue
-#
-#             # Get values
-#             filename = tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['filename']).GetText()
-#             mzStart = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['start']).GetText())
-#             mzEnd = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['end']).GetText())
-#             rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
-#
-#             # Get the document
-#             document = self.documentsDict[filename]
-#             if document.fileFormat == 'Format: DataFrame':
-#                 print(('Skipping %s as this is a DataFrame document.' % rangeName))
-#                 continue
-#
-#             extract_kwargs = {'return_data': True}
-#             __, yvalsDT = io_waters.driftscope_extract_DT(path=document.path,
-#                                                            driftscope_path=self.config.driftscopePath,
-#                                                            **extract_kwargs)
-#             mphValue = (max(yvalsDT)) * 0.2  # 20 % cutoff
-#             # Get pusher
-#             pusherFreq = document.parameters.get('pusherFreq', 1)
-#
-#             if pusherFreq != 1:
-#                 xlabel = 'Drift time (ms)'
-#             else:
-#                 xlabel = 'Drift time (bins)'
-#             # Create x-labels in ms
-#             xvalsDT = (np.arange(1, len(yvalsDT) + 1) * pusherFreq) / 1000
-#
-#             # Detect peak
-#             ind = detectPeaks(x=yvalsDT, mph=mphValue)
-#             if len(ind) > 1:
-#                 self.view.SetStatusText('Found more than one peak. Selected the first one', 3)
-#                 tD = np.round(xvalsDT[ind[0]], 2)
-#                 print((ind[0], tD))
-#                 yval = np.round(yvalsDT[ind[0]], 2)
-#                 yval = pr_spectra.normalize_1D(yval)
-#             elif len(ind) == 0:
-#                 self.view.SetStatusText('Found no peaks', 3)
-#                 tD = ""
-#             else:
-#                 self.view.SetStatusText('Found one peak', 3)
-#                 tD = np.round(xvalsDT[ind[0]], 2)
-# #                 print(ind[0], tD)
-#                 yval = np.round(yvalsDT[ind[0]], 2)
-#                 yval = pr_spectra.normalize_1D(yval)
-#
-#             # Add data to document
-#             protein, charge, CCS, gas, mw = None, None, None, None, None
-#
-#             # Check whether the document has molecular weight
-#             mw = document.moleculeDetails.get('molWeight', None)
-#             protein = document.moleculeDetails.get('protein', None)
-#
-#             document.gotCalibration = True
-#             document.calibration[rangeName] = {'xrange': [mzStart, mzEnd],
-#                                                'xvals': xvalsDT,
-#                                                'yvals': yvalsDT,
-#                                                'xcentre': ((mzEnd + mzStart) / 2),
-#                                                'protein': protein,
-#                                                'charge': charge,
-#                                                'ccs': CCS, 'tD': tD,
-#                                                'gas': gas,
-#                                                'xlabels': xlabel,
-#                                                'peak': [tD, yval],
-#                                                'mw': mw
-#                                                }
-#             # Plot
-#             self.onPlot1DTCalibration(dtX=xvalsDT,
-#                                       dtY=yvalsDT,
-#                                       xlabel=xlabel,
-#                                       color=document.lineColour)
-#
-#             if tD != "":
-#                 self.addMarkerMS(xvals=tD,
-#                                  yvals=yval,
-#                                  color=self.config.annotColor,
-#                                  marker=self.config.markerShape,
-#                                  size=self.config.markerSize,
-#                                  plot='CalibrationDT')
-#
-#             # Update document
-#             self.OnUpdateDocument(document, 'document')
+    #     def onLinearDTirectory(self, e=None):
+    #         # self.config.ciuMode = 'LinearDT'
+    #         # self.config.extractMode = 'singleIon'
+    #
+    #         # Reset arrays
+    #         imsData2D = np.array([])
+    #         dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
+    #                            style=wx.DD_DEFAULT_STYLE)
+    #         if self.config.dirname == '':
+    #             pass
+    #         else:
+    #             dlg.SetPath(self.config.dirname)
+    #         if dlg.ShowModal() == wx.ID_OK:
+    #             tstart = time.clock()
+    #             print("You chose %s" % dlg.GetPath())
+    #             # Update statusbar
+    #             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
+    #             # Get experimental parameters
+    #             parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
+    #             xlimits = [parameters['startMS'], parameters['endMS']]
+    #             # Mass spectra
+    #             extract_kwargs = {'return_data': True}
+    #             msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
+    #                                                                 driftscope_path=self.config.driftscopePath,
+    #                                                                 **extract_kwargs)
+    #
+    #             # RT
+    #             extract_kwargs = {'return_data': True, 'normalize': True}
+    #             xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
+    #                                                                              driftscope_path=self.config.driftscopePath,
+    #                                                                              **extract_kwargs)
+    #
+    #             # 2D
+    #             extract_kwargs = {'return_data': True}
+    #             imsData2D = io_waters.driftscope_extract_2D(path=dlg.GetPath(),
+    #                                                           driftscope_path=self.config.driftscopePath,
+    #                                                           **extract_kwargs)
+    #             xlabels = 1 + np.arange(len(imsData2D[1, :]))
+    #             ylabels = 1 + np.arange(len(imsData2D[:, 1]))
+    #
+    #             # Update status bar with MS range
+    #             self.view.SetStatusText("{}-{}".format(parameters.get('startMS', ""), parameters.get('endMS', "")), 1)
+    #             self.view.SetStatusText("MSMS: {}".format(parameters.get('setMS', "")), 2)
+    #
+    #             tend = time.clock()
+    #             self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4), action='updateStatusbar')
+    #
+    #             # Add info to document
+    #             __, idName = os.path.split(dlg.GetPath())
+    #             idName = (''.join([idName])).encode('ascii', 'replace')
+    #             self.docs = documents()
+    #             self.docs.title = idName
+    #             self.currentDoc = idName  # Currently plotted document
+    #             self.docs.userParameters = self.config.userParameters
+    #             self.docs.userParameters['date'] = getTime()
+    #             self.docs.path = dlg.GetPath()
+    #             self.docs.parameters = parameters
+    #             self.docs.dataType = 'Type: Multifield Linear DT'
+    #             self.docs.fileFormat = 'Format: MassLynx (.raw)'
+    #             # Add data
+    #             self.docs.gotMS = True
+    #             self.docs.massSpectrum = {'xvals': msDataX,
+    #                                       'yvals': msDataY,
+    #                                       'xlabels': 'm/z (Da)',
+    #                                       'xlimits': xlimits}
+    #             self.docs.got1RT = True
+    #             self.docs.RT = {'xvals': xvalsRT,
+    #                             'yvals': rtDataYnorm,
+    #                             'xlabels': 'Scans'}
+    #             self.docs.got2DIMS = True
+    #             # Format: zvals, xvals, xlabel, yvals, ylabel
+    #             self.docs.IMS2D = {'zvals': imsData2D,
+    #                                'xvals': xlabels,
+    #                                 'xlabels': 'Scans',
+    #                                 'yvals': ylabels,
+    #                                 'ylabels': 'Drift time (bins)',
+    #                                 'cmap': self.docs.colormap}
+    #
+    #             # Plots
+    #             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
+    #             name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
+    #             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+    #
+    #             # Update document
+    #             self.OnUpdateDocument(self.docs, 'document')
+    #
+    #         dlg.Destroy()
+    #         return None
+    #
+    #     def onCalibrantRawDirectory(self, e=None):
+    #         """
+    #         This function opens calibrant file
+    #         """
+    #
+    #         # Reset arrays
+    #         dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
+    #                            style=wx.DD_DEFAULT_STYLE)
+    #
+    #         if dlg.ShowModal() == wx.ID_OK:
+    #             tstart = time.clock()
+    #             # Check whether appropriate calibration file was selected
+    #             path = self.checkIfRawFile(dlg.GetPath())
+    #             if path is None:
+    #                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format."
+    #                 DialogBox(exceptionTitle='Please load MassLynx (.raw) file',
+    #                        exceptionMsg=msg,
+    #                        type="Error")
+    #                 return
+    #             print("You chose %s" % dlg.GetPath())
+    #             # Update statusbar
+    #             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
+    #             # Get experimental parameters
+    #             parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
+    #             xlimits = [parameters['startMS'], parameters['endMS']]
+    #             # Mass spectra
+    #             extract_kwargs = {'return_data': True}
+    #             msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
+    #                                                                 driftscope_path=self.config.driftscopePath,
+    #                                                                 **extract_kwargs)
+    #             # RT
+    #             extract_kwargs = {'return_data': True, 'normalize': True}
+    #             xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
+    #                                                                              driftscope_path=self.config.driftscopePath,
+    #                                                                              **extract_kwargs)
+    #
+    #             # DT
+    #             extract_kwargs = {'return_data': True}
+    #             xvalsDT, imsData1D = io_waters.driftscope_extract_DT(path=dlg.GetPath(),
+    #                                                                   driftscope_path=self.config.driftscopePath,
+    #                                                                   **extract_kwargs)
+    #
+    #             # Update status bar with MS range
+    #             self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
+    #             self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
+    #             tend = time.clock()
+    #             self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4),
+    #                              action='updateStatusbar')
+    #
+    #             # Add info to document
+    #             __, idName = os.path.split(dlg.GetPath())
+    #             idName = (''.join([idName])).encode('ascii', 'replace')
+    #             self.docs = documents()
+    #             self.docs.title = idName
+    #             self.currentDoc = idName  # Currently plotted document
+    #             self.docs.path = dlg.GetPath()
+    #             self.docs.userParameters = self.config.userParameters
+    #             self.docs.userParameters['date'] = getTime()
+    #             self.docs.parameters = parameters
+    #             self.docs.dataType = 'Type: CALIBRANT'
+    #             self.docs.fileFormat = 'Format: MassLynx (.raw)'
+    #             self.docs.corrC = parameters['corrC']
+    #             # Add data
+    #             self.docs.gotMS = True
+    #             self.docs.massSpectrum = {'xvals': msDataX,
+    #                                       'yvals': msDataY,
+    #                                       'xlabels': 'm/z (Da)',
+    #                                       'xlimits': xlimits}
+    #             self.docs.got1RT = True
+    #             self.docs.RT = {'xvals': xvalsRT,
+    #                             'yvals': rtDataYnorm,
+    #                             'xlabels': 'Scans'}
+    #             self.docs.got1DT = True
+    #             self.docs.DT = {'xvals': xvalsDT,
+    #                             'yvals': imsData1D,
+    #                             'xlabels': 'Drift time (bins)',
+    #                             'ylabels': 'Intensity'}
+    #
+    #             # Add plots
+    #             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
+    #             self.onPlotMSDTCalibration(msX=msDataX,
+    #                                        msY=msDataY,
+    #                                        xlimits=xlimits,
+    #                                        dtX=xvalsDT,
+    #                                        dtY=imsData1D,
+    #                                        xlabelDT='Drift time (bins)',
+    #                                        color=self.docs.lineColour)
+    #
+    #             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Calibration'])
+    #
+    #             # Update document
+    #             self.OnUpdateDocument(self.docs, 'document')
+    #
+    #         dlg.Destroy()
+    #         return None
+    #
+    #     def onAddCalibrantMultiple(self, evt):
+    #
+    #         tempList = self.view.panelCCS.topP.peaklist
+    #         for row in range(tempList.GetItemCount()):
+    #             if evt.GetId() == ID_extractCCScalibrantAll:
+    #                 pass
+    #             elif evt.GetId() == ID_extractCCScalibrantSelected:
+    #                 if not tempList.IsChecked(index=row):
+    #                     continue
+    #
+    #             # Get values
+    #             filename = tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['filename']).GetText()
+    #             mzStart = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['start']).GetText())
+    #             mzEnd = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['end']).GetText())
+    #             rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
+    #
+    #             # Get the document
+    #             document = self.documentsDict[filename]
+    #             if document.fileFormat == 'Format: DataFrame':
+    #                 print(('Skipping %s as this is a DataFrame document.' % rangeName))
+    #                 continue
+    #
+    #             extract_kwargs = {'return_data': True}
+    #             __, yvalsDT = io_waters.driftscope_extract_DT(path=document.path,
+    #                                                            driftscope_path=self.config.driftscopePath,
+    #                                                            **extract_kwargs)
+    #             mphValue = (max(yvalsDT)) * 0.2  # 20 % cutoff
+    #             # Get pusher
+    #             pusherFreq = document.parameters.get('pusherFreq', 1)
+    #
+    #             if pusherFreq != 1:
+    #                 xlabel = 'Drift time (ms)'
+    #             else:
+    #                 xlabel = 'Drift time (bins)'
+    #             # Create x-labels in ms
+    #             xvalsDT = (np.arange(1, len(yvalsDT) + 1) * pusherFreq) / 1000
+    #
+    #             # Detect peak
+    #             ind = detectPeaks(x=yvalsDT, mph=mphValue)
+    #             if len(ind) > 1:
+    #                 self.view.SetStatusText('Found more than one peak. Selected the first one', 3)
+    #                 tD = np.round(xvalsDT[ind[0]], 2)
+    #                 print((ind[0], tD))
+    #                 yval = np.round(yvalsDT[ind[0]], 2)
+    #                 yval = pr_spectra.normalize_1D(yval)
+    #             elif len(ind) == 0:
+    #                 self.view.SetStatusText('Found no peaks', 3)
+    #                 tD = ""
+    #             else:
+    #                 self.view.SetStatusText('Found one peak', 3)
+    #                 tD = np.round(xvalsDT[ind[0]], 2)
+    # #                 print(ind[0], tD)
+    #                 yval = np.round(yvalsDT[ind[0]], 2)
+    #                 yval = pr_spectra.normalize_1D(yval)
+    #
+    #             # Add data to document
+    #             protein, charge, CCS, gas, mw = None, None, None, None, None
+    #
+    #             # Check whether the document has molecular weight
+    #             mw = document.moleculeDetails.get('molWeight', None)
+    #             protein = document.moleculeDetails.get('protein', None)
+    #
+    #             document.gotCalibration = True
+    #             document.calibration[rangeName] = {'xrange': [mzStart, mzEnd],
+    #                                                'xvals': xvalsDT,
+    #                                                'yvals': yvalsDT,
+    #                                                'xcentre': ((mzEnd + mzStart) / 2),
+    #                                                'protein': protein,
+    #                                                'charge': charge,
+    #                                                'ccs': CCS, 'tD': tD,
+    #                                                'gas': gas,
+    #                                                'xlabels': xlabel,
+    #                                                'peak': [tD, yval],
+    #                                                'mw': mw
+    #                                                }
+    #             # Plot
+    #             self.onPlot1DTCalibration(dtX=xvalsDT,
+    #                                       dtY=yvalsDT,
+    #                                       xlabel=xlabel,
+    #                                       color=document.lineColour)
+    #
+    #             if tD != "":
+    #                 self.addMarkerMS(xvals=tD,
+    #                                  yvals=yval,
+    #                                  color=self.config.annotColor,
+    #                                  marker=self.config.markerShape,
+    #                                  size=self.config.markerSize,
+    #                                  plot='CalibrationDT')
+    #
+    #             # Update document
+    #             self.OnUpdateDocument(document, 'document')
 
     def get_overlay_document(self):
         try:
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except Exception:
             return
-        if self.currentDoc == 'Documents':
+        if self.currentDoc == "Documents":
             return
 
         # Check if current document is a comparison document
         # If so, it will be used
-        if self.documentsDict[self.currentDoc].dataType == 'Type: Comparison':
+        if self.documentsDict[self.currentDoc].dataType == "Type: Comparison":
             document = self.documentsDict[self.currentDoc]
             self.onThreading(
-                None,
-                (
-                    'Using document: ' +
-                    document.title.encode(
-                        'ascii',
-                        'replace',
-                    ),
-                    4,
-                ),
-                action='updateStatusbar',
+                None, ("Using document: " + document.title.encode("ascii", "replace"), 4), action="updateStatusbar"
             )
         else:
-            docList = self.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
+            docList = self.checkIfAnyDocumentsAreOfType(type="Type: Comparison")
             if len(docList) == 0:
-                print('Did not find appropriate document.')
+                print("Did not find appropriate document.")
                 dlg = wx.FileDialog(
-                    self.view, 'Please select a name for the comparison document',
-                    '', '', '', wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                    self.view,
+                    "Please select a name for the comparison document",
+                    "",
+                    "",
+                    "",
+                    wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                 )
                 if dlg.ShowModal() == wx.ID_OK:
                     path, idName = os.path.split(dlg.GetPath())
@@ -618,9 +601,9 @@ class ORIGAMI(object):
                 document.title = idName
                 document.path = path
                 document.userParameters = self.config.userParameters
-                document.userParameters['date'] = getTime()
-                document.dataType = 'Type: Comparison'
-                document.fileFormat = 'Format: ORIGAMI'
+                document.userParameters["date"] = getTime()
+                document.dataType = "Type: Comparison"
+                document.fileFormat = "Format: ORIGAMI"
             else:
                 self.selectDocDlg = DialogSelectDocument(self.view, presenter=self, document_list=docList)
                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
@@ -628,20 +611,11 @@ class ORIGAMI(object):
 
                 # Check that document exists
                 if self.currentDoc is None:
-                    self.onThreading(None, ('Please select comparison document', 4), action='updateStatusbar')
+                    self.onThreading(None, ("Please select comparison document", 4), action="updateStatusbar")
                     return
                 document = self.documentsDict[self.currentDoc]
                 self.onThreading(
-                    None,
-                    (
-                        'Using document: ' +
-                        document.title.encode(
-                            'ascii',
-                            'replace',
-                        ),
-                        4,
-                    ),
-                    action='updateStatusbar',
+                    None, ("Using document: " + document.title.encode("ascii", "replace"), 4), action="updateStatusbar"
                 )
 
         return document
@@ -651,12 +625,12 @@ class ORIGAMI(object):
         This function enables overlaying multiple ions from the same CIU datasets together
         """
         # Check what is the ID
-        if source == 'ion':
+        if source == "ion":
             tempList = self.view.panelMultipleIons.peaklist
             col_order = self.config.peaklistColNames
             add_data_to_document = self.view.panelMultipleIons.addToDocument
             self.config.overlayMethod = self.view.panelMultipleIons.combo.GetStringSelection()
-        elif source == 'text':
+        elif source == "text":
             tempList = self.view.panelMultipleText.peaklist
             col_order = self.config.textlistColNames
             add_data_to_document = self.view.panelMultipleText.addToDocument
@@ -667,25 +641,16 @@ class ORIGAMI(object):
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except Exception:
             return
-        if self.currentDoc == 'Documents':
+        if self.currentDoc == "Documents":
             return
 
         # Check if current document is a comparison document
         # If so, it will be used
         if add_data_to_document:
-            if self.documentsDict[self.currentDoc].dataType == 'Type: Comparison':
+            if self.documentsDict[self.currentDoc].dataType == "Type: Comparison":
                 self.docs = self.documentsDict[self.currentDoc]
                 self.onThreading(
-                    None,
-                    (
-                        'Using document: ' +
-                        self.docs.title.encode(
-                            'ascii',
-                            'replace',
-                        ),
-                        4,
-                    ),
-                    action='updateStatusbar',
+                    None, ("Using document: " + self.docs.title.encode("ascii", "replace"), 4), action="updateStatusbar"
                 )
                 if self.docs.gotComparisonData:
                     compDict = self.docs.IMS2DcompData
@@ -695,15 +660,19 @@ class ORIGAMI(object):
                 else:
                     compDict, compList = {}, []
             else:
-                self.onThreading(None, ('Checking if there is a comparison document', 4), action='updateStatusbar')
-                docList = self.checkIfAnyDocumentsAreOfType(type='Type: Comparison')
+                self.onThreading(None, ("Checking if there is a comparison document", 4), action="updateStatusbar")
+                docList = self.checkIfAnyDocumentsAreOfType(type="Type: Comparison")
                 if len(docList) == 0:
                     self.onThreading(
-                        None, ('Did not find appropriate document. Creating a new one', 4), action='updateStatusbar',
+                        None, ("Did not find appropriate document. Creating a new one", 4), action="updateStatusbar"
                     )
                     dlg = wx.FileDialog(
-                        self.view, 'Please select a name for the comparison document',
-                        '', '', '', wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                        self.view,
+                        "Please select a name for the comparison document",
+                        "",
+                        "",
+                        "",
+                        wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                     )
                     if dlg.ShowModal() == wx.ID_OK:
                         path, idName = os.path.split(dlg.GetPath())
@@ -715,9 +684,9 @@ class ORIGAMI(object):
                     self.docs.title = idName
                     self.docs.path = path
                     self.docs.userParameters = self.config.userParameters
-                    self.docs.userParameters['date'] = getTime()
-                    self.docs.dataType = 'Type: Comparison'
-                    self.docs.fileFormat = 'Format: ORIGAMI'
+                    self.docs.userParameters["date"] = getTime()
+                    self.docs.dataType = "Type: Comparison"
+                    self.docs.fileFormat = "Format: ORIGAMI"
                     # Initiate empty list and dictionary
                     compDict, compList = {}, []
                 else:
@@ -727,22 +696,15 @@ class ORIGAMI(object):
 
                     # Check that document exists
                     if self.currentDoc is None:
-                        msg = 'Please select comparison document'
-                        self.onThreading(None, (msg, 4), action='updateStatusbar')
+                        msg = "Please select comparison document"
+                        self.onThreading(None, (msg, 4), action="updateStatusbar")
                         return
 
                     self.docs = self.documentsDict[self.currentDoc]
                     self.onThreading(
                         None,
-                        (
-                            'Using document: ' +
-                            self.docs.title.encode(
-                                'ascii',
-                                'replace',
-                            ),
-                            4,
-                        ),
-                        action='updateStatusbar',
+                        ("Using document: " + self.docs.title.encode("ascii", "replace"), 4),
+                        action="updateStatusbar",
                     )
                     if self.docs.gotComparisonData:
                         compDict = self.docs.IMS2DcompData
@@ -758,25 +720,25 @@ class ORIGAMI(object):
         # Get data for the dataset
         for row in range(tempList.GetItemCount()):
             if tempList.IsChecked(index=row):
-                if source == 'ion':
+                if source == "ion":
                     # Get data for each ion
-                    __, __, charge, color, colormap, alpha, mask, label, \
-                        self.currentDoc, ionName, min_threshold, max_threshold \
-                        = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
+                    __, __, charge, color, colormap, alpha, mask, label, self.currentDoc, ionName, min_threshold, max_threshold = self.view.panelMultipleIons.OnGetItemInformation(
+                        itemID=row, return_list=True
+                    )
 
                     # processed name
-                    ionNameProcessed = '%s (processed)' % ionName
+                    ionNameProcessed = "%s (processed)" % ionName
 
                     # Check that data was extracted first
-                    if self.currentDoc == '':
-                        msg = 'Please extract data first'
-                        self.onThreading(None, (msg, 4), action='updateStatusbar')
+                    if self.currentDoc == "":
+                        msg = "Please extract data first"
+                        self.onThreading(None, (msg, 4), action="updateStatusbar")
                         continue
                     document = self.documentsDict[self.currentDoc]
                     dataType = document.dataType
 
                     # ORIGAMI dataset
-                    if dataType in ['Type: ORIGAMI', 'Type: MANUAL'] and document.gotCombinedExtractedIons:
+                    if dataType in ["Type: ORIGAMI", "Type: MANUAL"] and document.gotCombinedExtractedIons:
                         if self.config.overlay_usedProcessed:
                             try:
                                 dataIn = document.IMS2DCombIons[ionNameProcessed]
@@ -799,7 +761,7 @@ class ORIGAMI(object):
                                     dataIn = document.IMS2Dions[ionName]
                                 except KeyError:
                                     continue
-                    elif dataType in ['Type: ORIGAMI', 'Type: MANUAL'] and not document.gotCombinedExtractedIons:
+                    elif dataType in ["Type: ORIGAMI", "Type: MANUAL"] and not document.gotCombinedExtractedIons:
                         if self.config.overlay_usedProcessed:
                             try:
                                 dataIn = document.IMS2Dions[ionNameProcessed]
@@ -814,15 +776,15 @@ class ORIGAMI(object):
                             except KeyError:
                                 continue
 
-#                     # MANUAL dataset
-#                     if dataType == 'Type: MANUAL' and document.gotCombinedExtractedIons:
-#                         try: tempData = document.IMS2DCombIons
-#                         except KeyError:
-#                             try: tempData = document.IMS2Dions
-#                             except KeyError: continue
+                    #                     # MANUAL dataset
+                    #                     if dataType == 'Type: MANUAL' and document.gotCombinedExtractedIons:
+                    #                         try: tempData = document.IMS2DCombIons
+                    #                         except KeyError:
+                    #                             try: tempData = document.IMS2Dions
+                    #                             except KeyError: continue
 
                     # INFRARED dataset
-                    if dataType == 'Type: Infrared' and document.gotCombinedExtractedIons:
+                    if dataType == "Type: Infrared" and document.gotCombinedExtractedIons:
                         try:
                             dataIn = document.IMS2DCombIons
                         except KeyError:
@@ -832,25 +794,25 @@ class ORIGAMI(object):
                                 continue
                     tempAccumulator = tempAccumulator + 1
 
-                    selectedItemUnique = 'ion={} ({})'.format(ionName, self.currentDoc)
+                    selectedItemUnique = "ion={} ({})".format(ionName, self.currentDoc)
                     zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, __ = self.get2DdataFromDictionary(
-                        dictionary=dataIn, dataType='plot', compact=False,
+                        dictionary=dataIn, dataType="plot", compact=False
                     )
 
-                elif source == 'text':
+                elif source == "text":
                     tempAccumulator += 1
                     comparisonFlag = False  # used only in case the user reloaded comparison document
                     # Get data for each ion
                     itemInfo = self.view.panelMultipleText.OnGetItemInformation(itemID=row)
-                    charge = itemInfo['charge']
-                    color = itemInfo['color']
-                    colormap = itemInfo['colormap']
-                    alpha = itemInfo['alpha']
-                    mask = itemInfo['mask']
-                    label = itemInfo['label']
-                    filename = itemInfo['document']
-                    min_threshold = itemInfo['min_threshold']
-                    max_threshold = itemInfo['max_threshold']
+                    charge = itemInfo["charge"]
+                    color = itemInfo["color"]
+                    colormap = itemInfo["colormap"]
+                    alpha = itemInfo["alpha"]
+                    mask = itemInfo["mask"]
+                    label = itemInfo["label"]
+                    filename = itemInfo["document"]
+                    min_threshold = itemInfo["min_threshold"]
+                    max_threshold = itemInfo["max_threshold"]
                     # get document
                     try:
                         document = self.documentsDict[filename]
@@ -867,247 +829,228 @@ class ORIGAMI(object):
                             try:
                                 tempData = document.IMS2D
                             except Exception:
-                                self.onThreading(None, ('No data for selected file', 4), action='updateStatusbar')
+                                self.onThreading(None, ("No data for selected file", 4), action="updateStatusbar")
                                 continue
 
-                        zvals = tempData['zvals']
-                        xaxisLabels = tempData['xvals']
-                        xlabel = tempData['xlabels']
-                        yaxisLabels = tempData['yvals']
-                        ylabel = tempData['ylabels']
+                        zvals = tempData["zvals"]
+                        xaxisLabels = tempData["xvals"]
+                        xlabel = tempData["xlabels"]
+                        yaxisLabels = tempData["yvals"]
+                        ylabel = tempData["ylabels"]
                         ionName = filename
                         # Populate x-axis labels
                         if isinstance(xaxisLabels, list):
                             pass
-                        elif xaxisLabels == '':
-                            startX = tempList.GetItem(
-                                itemId=row,
-                                col=self.config.textlistColNames['startX'],
-                            ).GetText()
-                            endX = tempList.GetItem(
-                                itemId=row,
-                                col=self.config.textlistColNames['endX'],
-                            ).GetText()
+                        elif xaxisLabels == "":
+                            startX = tempList.GetItem(itemId=row, col=self.config.textlistColNames["startX"]).GetText()
+                            endX = tempList.GetItem(itemId=row, col=self.config.textlistColNames["endX"]).GetText()
                             stepsX = len(zvals[0])
-                            if startX == '' or endX == '':
+                            if startX == "" or endX == "":
                                 pass
                             else:
                                 xaxisLabels = self.onPopulateXaxisTextLabels(
-                                    startVal=str2num(startX),
-                                    endVal=str2num(endX),
-                                    shapeVal=stepsX,
+                                    startVal=str2num(startX), endVal=str2num(endX), shapeVal=stepsX
                                 )
-                                document.IMS2D['xvals'] = xaxisLabels
+                                document.IMS2D["xvals"] = xaxisLabels
 
                         if not comparisonFlag:
-                            selectedItemUnique = 'file:%s' % filename
+                            selectedItemUnique = "file:%s" % filename
                     # only triggered when using data from comparison document
                     except Exception:
                         try:
                             comparisonFlag = True
-                            dpcument_filename, selectedItemUnique = re.split(': ', filename)
+                            dpcument_filename, selectedItemUnique = re.split(": ", filename)
                             document = self.documentsDict[dpcument_filename]
                             tempData = document.IMS2DcompData[selectedItemUnique]
                             # unpack data
-                            zvals = tempData['zvals']
-                            ionName = tempData['ion_name']
-                            xaxisLabels = tempData['xvals']
-                            yaxisLabels = tempData['yvals']
-                            ylabel = tempData['ylabels']
-                            xlabel = tempData['xlabels']
+                            zvals = tempData["zvals"]
+                            ionName = tempData["ion_name"]
+                            xaxisLabels = tempData["xvals"]
+                            yaxisLabels = tempData["yvals"]
+                            ylabel = tempData["ylabels"]
+                            xlabel = tempData["xlabels"]
                         # triggered when using data from interactive document
                         except Exception:
                             comparisonFlag = False
-                            dpcument_filename, selectedItemUnique = re.split(': ', filename)
+                            dpcument_filename, selectedItemUnique = re.split(": ", filename)
                             document = self.documentsDict[dpcument_filename]
                             tempData = document.IMS2Dions[selectedItemUnique]
                             # unpack data
-                            zvals = tempData['zvals']
+                            zvals = tempData["zvals"]
                             ionName = filename
-                            xaxisLabels = tempData['xvals']
-                            yaxisLabels = tempData['yvals']
-                            ylabel = tempData['ylabels']
-                            xlabel = tempData['xlabels']
+                            xaxisLabels = tempData["xvals"]
+                            yaxisLabels = tempData["yvals"]
+                            ylabel = tempData["ylabels"]
+                            xlabel = tempData["xlabels"]
 
                 if not comparisonFlag:
-                    if label == '' or label is None:
-                        label = ''
+                    if label == "" or label is None:
+                        label = ""
                     compList.insert(0, selectedItemUnique)
                     # Check if exists. We need to extract labels (header...)
                     checkExist = compDict.get(selectedItemUnique, None)
                     if checkExist is not None:
-                        title = compDict[selectedItemUnique].get('header', '')
-                        header = compDict[selectedItemUnique].get('header', '')
-                        footnote = compDict[selectedItemUnique].get('footnote', '')
+                        title = compDict[selectedItemUnique].get("header", "")
+                        header = compDict[selectedItemUnique].get("header", "")
+                        footnote = compDict[selectedItemUnique].get("footnote", "")
                     else:
-                        title, header, footnote = '', '', ''
+                        title, header, footnote = "", "", ""
                     compDict[selectedItemUnique] = {
-                        'zvals': zvals,
-                        'ion_name': ionName,
-                        'cmap': colormap,
-                        'color': color,
-                        'alpha': str2num(alpha),
-                        'mask': str2num(mask),
-                        'xvals': xaxisLabels,
-                        'xlabels': xlabel,
-                        'yvals': yaxisLabels,
-                        'charge': charge,
-                        'min_threshold': min_threshold,
-                        'max_threshold': max_threshold,
-                        'ylabels': ylabel,
-                        'index': row,
-                        'shape': zvals.shape,
-                        'label': label,
-                        'title': title,
-                        'header': header,
-                        'footnote': footnote,
+                        "zvals": zvals,
+                        "ion_name": ionName,
+                        "cmap": colormap,
+                        "color": color,
+                        "alpha": str2num(alpha),
+                        "mask": str2num(mask),
+                        "xvals": xaxisLabels,
+                        "xlabels": xlabel,
+                        "yvals": yaxisLabels,
+                        "charge": charge,
+                        "min_threshold": min_threshold,
+                        "max_threshold": max_threshold,
+                        "ylabels": ylabel,
+                        "index": row,
+                        "shape": zvals.shape,
+                        "label": label,
+                        "title": title,
+                        "header": header,
+                        "footnote": footnote,
                     }
                 else:
                     compDict[selectedItemUnique] = tempData
 
         # Check whether the user selected at least two files (and no more than 2 for certain functions)
         if tempAccumulator < 2:
-            msg = 'Please select at least two files'
-            DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+            msg = "Please select at least two files"
+            DialogBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
             return
 
         # Remove duplicates from list
         compList = removeDuplicates(compList)
 
-        zvalsIon1plot = compDict[compList[0]]['zvals']
-        zvalsIon2plot = compDict[compList[1]]['zvals']
+        zvalsIon1plot = compDict[compList[0]]["zvals"]
+        zvalsIon2plot = compDict[compList[1]]["zvals"]
         name1 = compList[0]
         name2 = compList[1]
         # Check if text files are of identical size
-        if ((zvalsIon1plot.shape != zvalsIon2plot.shape) and
-                self.config.overlayMethod not in ['Grid (n x n)']):
-            msg = 'Comparing ions: {} and {}. These files are NOT of identical shape!'.format(name1, name2)
-            DialogBox(exceptionTitle='Error', exceptionMsg=msg, type='Error')
+        if (zvalsIon1plot.shape != zvalsIon2plot.shape) and self.config.overlayMethod not in ["Grid (n x n)"]:
+            msg = "Comparing ions: {} and {}. These files are NOT of identical shape!".format(name1, name2)
+            DialogBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
             return
 
-        defaultVals = ['Reds', 'Greens']
-        ylabelRMSF = 'RMSD (%)'
+        defaultVals = ["Reds", "Greens"]
+        ylabelRMSF = "RMSD (%)"
         # Check if the table has information about colormap
-        if compDict[compList[0]]['cmap'] == '':
+        if compDict[compList[0]]["cmap"] == "":
             cmapIon1 = defaultVals[0]  # change here
-            compDict[compList[0]]['cmap'] = cmapIon1
-            tempList.SetStringItem(
-                index=compDict[compList[0]]['index'],
-                col=3, label=cmapIon1,
-            )
+            compDict[compList[0]]["cmap"] = cmapIon1
+            tempList.SetStringItem(index=compDict[compList[0]]["index"], col=3, label=cmapIon1)
         else:
-            cmapIon1 = compDict[compList[0]]['cmap']
+            cmapIon1 = compDict[compList[0]]["cmap"]
 
-        if compDict[compList[1]]['cmap'] == '':
+        if compDict[compList[1]]["cmap"] == "":
             cmapIon2 = defaultVals[1]
-            compDict[compList[1]]['cmap'] = cmapIon1
-            tempList.SetStringItem(
-                index=compDict[compList[1]]['index'],
-                col=3, label=cmapIon2,
-            )
+            compDict[compList[1]]["cmap"] = cmapIon1
+            tempList.SetStringItem(index=compDict[compList[1]]["index"], col=3, label=cmapIon2)
         else:
-            cmapIon2 = compDict[compList[1]]['cmap']
+            cmapIon2 = compDict[compList[1]]["cmap"]
 
         # Defaults for alpha and mask
         defaultVals_alpha = [1, 0.5]
         defaultVals_mask = [0.25, 0.25]
 
         # Check if the user set value of transparency (alpha)
-        if compDict[compList[0]]['alpha'] == '' or compDict[compList[0]]['alpha'] is None:
+        if compDict[compList[0]]["alpha"] == "" or compDict[compList[0]]["alpha"] is None:
             alphaIon1 = defaultVals_alpha[0]
-            compDict[compList[0]]['alpha'] = alphaIon1
-            tempList.SetStringItem(index=compDict[compList[0]]['index'], col=col_order['alpha'], label=str(alphaIon1))
+            compDict[compList[0]]["alpha"] = alphaIon1
+            tempList.SetStringItem(index=compDict[compList[0]]["index"], col=col_order["alpha"], label=str(alphaIon1))
         else:
-            alphaIon1 = str2num(compDict[compList[0]]['alpha'])
+            alphaIon1 = str2num(compDict[compList[0]]["alpha"])
 
-        if compDict[compList[1]]['alpha'] == '' or compDict[compList[1]]['alpha'] is None:
+        if compDict[compList[1]]["alpha"] == "" or compDict[compList[1]]["alpha"] is None:
             alphaIon2 = defaultVals_alpha[1]
-            compDict[compList[1]]['alpha'] = alphaIon2
-            tempList.SetStringItem(index=compDict[compList[1]]['index'], col=col_order['alpha'], label=str(alphaIon2))
+            compDict[compList[1]]["alpha"] = alphaIon2
+            tempList.SetStringItem(index=compDict[compList[1]]["index"], col=col_order["alpha"], label=str(alphaIon2))
         else:
-            alphaIon2 = str2num(compDict[compList[1]]['alpha'])
+            alphaIon2 = str2num(compDict[compList[1]]["alpha"])
 
         # Check if the user set value of transparency (mask)
-        if compDict[compList[0]]['mask'] == '' or compDict[compList[0]]['mask'] is None:
+        if compDict[compList[0]]["mask"] == "" or compDict[compList[0]]["mask"] is None:
             maskIon1 = defaultVals_mask[0]
-            compDict[compList[0]]['mask'] = maskIon1
-            tempList.SetStringItem(index=compDict[compList[0]]['index'], col=col_order['mask'], label=str(maskIon1))
+            compDict[compList[0]]["mask"] = maskIon1
+            tempList.SetStringItem(index=compDict[compList[0]]["index"], col=col_order["mask"], label=str(maskIon1))
         else:
-            maskIon1 = str2num(compDict[compList[0]]['mask'])
+            maskIon1 = str2num(compDict[compList[0]]["mask"])
 
-        if compDict[compList[1]]['mask'] == '' or compDict[compList[1]]['mask'] is None:
+        if compDict[compList[1]]["mask"] == "" or compDict[compList[1]]["mask"] is None:
             maskIon2 = defaultVals_mask[1]
-            compDict[compList[1]]['mask'] = maskIon2
-            tempList.SetStringItem(index=compDict[compList[1]]['index'], col=col_order['mask'], label=str(maskIon2))
+            compDict[compList[1]]["mask"] = maskIon2
+            tempList.SetStringItem(index=compDict[compList[1]]["index"], col=col_order["mask"], label=str(maskIon2))
         else:
-            maskIon2 = str2num(compDict[compList[1]]['mask'])
+            maskIon2 = str2num(compDict[compList[1]]["mask"])
 
         # Various comparison plots
-        if self.config.overlayMethod == 'Grid (2->1)':
-            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Overlay'])
+        if self.config.overlayMethod == "Grid (2->1)":
+            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Overlay"])
 
-            pRMSD, tempArray = pr_activation.compute_RMSD(
-                inputData1=zvalsIon1plot,
-                inputData2=zvalsIon2plot,
-            )
-            rmsdLabel = 'RMSD: %2.2f' % pRMSD
-            self.onThreading(None, ('RMSD: %2.2f' % pRMSD, 4), action='updateStatusbar')
+            pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot, inputData2=zvalsIon2plot)
+            rmsdLabel = "RMSD: %2.2f" % pRMSD
+            self.onThreading(None, ("RMSD: %2.2f" % pRMSD, 4), action="updateStatusbar")
             self.setXYlimitsRMSD2D(xaxisLabels, yaxisLabels)
             self.view.panelPlots.on_plot_grid(
-                zvalsIon1plot, zvalsIon2plot, tempArray, xaxisLabels,
-                yaxisLabels, xlabel, ylabel, cmapIon1, cmapIon2,
+                zvalsIon1plot, zvalsIon2plot, tempArray, xaxisLabels, yaxisLabels, xlabel, ylabel, cmapIon1, cmapIon2
             )
 
-#             # Add RMSD label
+            #             # Add RMSD label
             rmsdXpos, rmsdYpos = self.onCalculateRMSDposition(xlist=xaxisLabels, ylist=yaxisLabels)
             if rmsdXpos is not None and rmsdYpos is not None:
-                self.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot='Grid')
+                self.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot="Grid")
 
             # Add data to the dictionary (overlay data)
-            idName = '{}, {}'.format(compList[0], compList[1])
-            idName = '{}: {}'.format(self.config.overlayMethod, idName)
+            idName = "{}, {}".format(compList[0], compList[1])
+            idName = "{}: {}".format(self.config.overlayMethod, idName)
             if add_data_to_document:
                 self.docs.gotOverlay = True
                 # Add to the name to includ the method
                 # Check if exists. We need to extract labels (header...)
                 checkExist = self.docs.IMS2DoverlayData.get(idName, None)
                 if checkExist is not None:
-                    title = self.docs.IMS2DoverlayData[idName].get('header', '')
-                    header = self.docs.IMS2DoverlayData[idName].get('header', '')
-                    footnote = self.docs.IMS2DoverlayData[idName].get('footnote', '')
+                    title = self.docs.IMS2DoverlayData[idName].get("header", "")
+                    header = self.docs.IMS2DoverlayData[idName].get("header", "")
+                    footnote = self.docs.IMS2DoverlayData[idName].get("footnote", "")
                 else:
-                    title, header, footnote = '', '', ''
+                    title, header, footnote = "", "", ""
 
                 self.docs.IMS2DoverlayData[idName] = {
-                    'zvals_1': zvalsIon1plot,
-                    'zvals_2': zvalsIon2plot,
-                    'zvals_cum': tempArray,
-                    'cmap_1': cmapIon1,
-                    'cmap_2': cmapIon2,
-                    'xvals': xaxisLabels,
-                    'xlabels': xlabel,
-                    'yvals': yaxisLabels,
-                    'ylabels': ylabel,
-                    'rmsdLabel': rmsdLabel,
-                    'title': title,
-                    'header': header,
-                    'footnote': footnote,
+                    "zvals_1": zvalsIon1plot,
+                    "zvals_2": zvalsIon2plot,
+                    "zvals_cum": tempArray,
+                    "cmap_1": cmapIon1,
+                    "cmap_2": cmapIon2,
+                    "xvals": xaxisLabels,
+                    "xlabels": xlabel,
+                    "yvals": yaxisLabels,
+                    "ylabels": ylabel,
+                    "rmsdLabel": rmsdLabel,
+                    "title": title,
+                    "header": header,
+                    "footnote": footnote,
                 }
-        elif self.config.overlayMethod == 'Grid (n x n)':
-            zvals_list, xvals_list, yvals_list, cmap_list, title_list, idName = [], [], [], [], [], ''
+        elif self.config.overlayMethod == "Grid (n x n)":
+            zvals_list, xvals_list, yvals_list, cmap_list, title_list, idName = [], [], [], [], [], ""
             for row in range(tempAccumulator):
                 key = compList[row]
-                zvals_list.append(compDict[key]['zvals'])
-                cmap_list.append(compDict[key]['cmap'])
-                title_list.append(compDict[key]['label'])
-                xvals_list.append(compDict[key]['xvals'])
-                yvals_list.append(compDict[key]['yvals'])
+                zvals_list.append(compDict[key]["zvals"])
+                cmap_list.append(compDict[key]["cmap"])
+                title_list.append(compDict[key]["label"])
+                xvals_list.append(compDict[key]["xvals"])
+                yvals_list.append(compDict[key]["yvals"])
 
                 # Add new label
-                if idName == '':
+                if idName == "":
                     idName = compList[row]
                 else:
-                    idName = '{}, {}'.format(idName, compList[row])
+                    idName = "{}, {}".format(idName, compList[row])
 
             n_grid = len(zvals_list)
             if n_grid in [2]:
@@ -1128,62 +1071,58 @@ class ORIGAMI(object):
                 n_rows, n_cols = 6, 6
             else:
                 DialogBox(
-                    exceptionTitle='Error',
-                    exceptionMsg='Cannot plot grid larger than 6 x 6. You have selected'.format(n_grid),
-                    type='Error', exceptionPrint=True,
+                    exceptionTitle="Error",
+                    exceptionMsg="Cannot plot grid larger than 6 x 6. You have selected".format(n_grid),
+                    type="Error",
+                    exceptionPrint=True,
                 )
                 return
 
             checkExist = compDict.get(selectedItemUnique, None)
             if checkExist is not None:
-                title = compDict[selectedItemUnique].get('header', '')
-                header = compDict[selectedItemUnique].get('header', '')
-                footnote = compDict[selectedItemUnique].get('footnote', '')
+                title = compDict[selectedItemUnique].get("header", "")
+                header = compDict[selectedItemUnique].get("header", "")
+                footnote = compDict[selectedItemUnique].get("footnote", "")
             else:
-                title, header, footnote = '', '', ''
-            idName = '{}: {}'.format(self.config.overlayMethod, idName)
+                title, header, footnote = "", "", ""
+            idName = "{}: {}".format(self.config.overlayMethod, idName)
             # remove unnecessary file extensions from filename
             if len(idName) > 511:
-                print('Filename is too long. Reducing...')
-                idName = idName.replace('.csv', '').replace('.txt', '').replace('.raw', '').replace('.d', '')
+                print("Filename is too long. Reducing...")
+                idName = idName.replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "")
                 idName = idName[:500]
 
             self.view.panelPlots.on_plot_n_grid(
-                zvals_list, cmap_list,
-                title_list, xvals_list,
-                yvals_list, xlabel, ylabel,
+                zvals_list, cmap_list, title_list, xvals_list, yvals_list, xlabel, ylabel
             )
             if add_data_to_document:
                 self.docs.gotOverlay = True
                 self.docs.IMS2DoverlayData[idName] = {
-                    'zvals_list': zvals_list,
-                    'cmap_list': cmap_list,
-                    'title_list': title_list,
-                    'plot_parameters': {
-                        'n_grid': n_grid,
-                        'n_rows': n_rows,
-                        'n_cols': n_cols,
-                    },
-                    'xvals': xvals_list,
-                    'xlabels': xlabel,
-                    'yvals': yvals_list,
-                    'ylabels': ylabel,
-                    'title': title,
-                    'header': header,
-                    'footnote': footnote,
+                    "zvals_list": zvals_list,
+                    "cmap_list": cmap_list,
+                    "title_list": title_list,
+                    "plot_parameters": {"n_grid": n_grid, "n_rows": n_rows, "n_cols": n_cols},
+                    "xvals": xvals_list,
+                    "xlabels": xlabel,
+                    "yvals": yvals_list,
+                    "ylabels": ylabel,
+                    "title": title,
+                    "header": header,
+                    "footnote": footnote,
                 }
 
-        elif self.config.overlayMethod in ['Transparent', 'Mask', 'RMSD', 'RMSF']:
+        elif self.config.overlayMethod in ["Transparent", "Mask", "RMSD", "RMSF"]:
 
             # Check how many items were selected
             if tempAccumulator > 2:
-                msg = 'Currently only supporting an overlay of two ions.\n' + \
-                      'Comparing: {} and {}.'.format(compList[0], compList[1])
-                DialogBox(exceptionTitle='Warning', exceptionMsg=msg, type='Warning')
+                msg = "Currently only supporting an overlay of two ions.\n" + "Comparing: {} and {}.".format(
+                    compList[0], compList[1]
+                )
+                DialogBox(exceptionTitle="Warning", exceptionMsg=msg, type="Warning")
                 print(msg)
 
-            if self.config.overlayMethod == 'Transparent':
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Overlay'])
+            if self.config.overlayMethod == "Transparent":
+                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Overlay"])
                 # Overlay plot of two species to see whether there is a difference between
 
                 self.view.panelPlots.on_plot_overlay_2D(
@@ -1197,11 +1136,11 @@ class ORIGAMI(object):
                     yvals=yaxisLabels,
                     xlabel=xlabel,
                     ylabel=ylabel,
-                    flag='Text',
-                    plotName='Transparent',
+                    flag="Text",
+                    plotName="Transparent",
                 )
 
-            elif self.config.overlayMethod == 'Mask':
+            elif self.config.overlayMethod == "Mask":
                 # In this case, the values are not transparency but a threshold cutoff! Values between 0-1
                 cutoffIon1 = maskIon1
                 cutoffIon2 = maskIon2
@@ -1210,7 +1149,7 @@ class ORIGAMI(object):
                 zvalsIon1plot = zvalsIon1plotMask
                 zvalsIon2plotMask = masked_array(zvalsIon2plot, zvalsIon2plot < cutoffIon2)
                 zvalsIon2plot = zvalsIon2plotMask
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Overlay'])
+                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Overlay"])
                 self.view.panelPlots.on_plot_overlay_2D(
                     zvalsIon1=zvalsIon1plotMask,
                     cmapIon1=cmapIon1,
@@ -1222,37 +1161,37 @@ class ORIGAMI(object):
                     yvals=yaxisLabels,
                     xlabel=xlabel,
                     ylabel=ylabel,
-                    flag='Text',
-                    plotName='Mask',
+                    flag="Text",
+                    plotName="Mask",
                 )
 
-            elif self.config.overlayMethod == 'RMSD':
+            elif self.config.overlayMethod == "RMSD":
                 """ Compute RMSD of two selected files """
                 # Check whether we should be restricting the RMSD range
                 if self.config.restrictXYrangeRMSD:
                     zvalsIon1plot, xvals, yvals = self.restrictRMSDrange(
-                        zvalsIon1plot, xaxisLabels,
-                        yaxisLabels, self.config.xyLimitsRMSD,
+                        zvalsIon1plot, xaxisLabels, yaxisLabels, self.config.xyLimitsRMSD
                     )
 
                     zvalsIon2plot, xvals, yvals = self.restrictRMSDrange(
-                        zvalsIon2plot, xaxisLabels,
-                        yaxisLabels, self.config.xyLimitsRMSD,
+                        zvalsIon2plot, xaxisLabels, yaxisLabels, self.config.xyLimitsRMSD
                     )
                     xaxisLabels, yaxisLabels = xvals, yvals
 
-                pRMSD, tempArray = pr_activation.compute_RMSD(
-                    inputData1=zvalsIon1plot,
-                    inputData2=zvalsIon2plot,
-                )
-                rmsdLabel = 'RMSD: %2.2f' % pRMSD
-                self.onThreading(None, ('RMSD: %2.2f' % pRMSD, 4), action='updateStatusbar')
+                pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot, inputData2=zvalsIon2plot)
+                rmsdLabel = "RMSD: %2.2f" % pRMSD
+                self.onThreading(None, ("RMSD: %2.2f" % pRMSD, 4), action="updateStatusbar")
 
                 self.setXYlimitsRMSD2D(xaxisLabels, yaxisLabels)
 
                 self.view.panelPlots.on_plot_RMSD(
-                    tempArray, xaxisLabels, yaxisLabels, xlabel, ylabel,
-                    self.config.currentCmap, plotType='RMSD',
+                    tempArray,
+                    xaxisLabels,
+                    yaxisLabels,
+                    xlabel,
+                    ylabel,
+                    self.config.currentCmap,
+                    plotType="RMSD",
                     set_page=True,
                 )
                 # Add RMSD label
@@ -1261,242 +1200,233 @@ class ORIGAMI(object):
                     self.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0)
                 try:
                     self.view.panelPlots.on_plot_3D(
-                        zvals=tempArray, labelsX=xaxisLabels, labelsY=yaxisLabels,
-                        xlabel=xlabel, ylabel=ylabel, zlabel='Intensity',
+                        zvals=tempArray,
+                        labelsX=xaxisLabels,
+                        labelsY=yaxisLabels,
+                        xlabel=xlabel,
+                        ylabel=ylabel,
+                        zlabel="Intensity",
                         cmap=self.config.currentCmap,
                     )
                 except Exception:
                     pass
 
-            elif self.config.overlayMethod == 'RMSF':
+            elif self.config.overlayMethod == "RMSF":
                 """ Compute RMSF of two selected files """
                 self.rmsdfFlag = True
 
                 if self.config.restrictXYrangeRMSD:
                     zvalsIon1plot, xvals, yvals = self.restrictRMSDrange(
-                        zvalsIon1plot, xaxisLabels,
-                        yaxisLabels, self.config.xyLimitsRMSD,
+                        zvalsIon1plot, xaxisLabels, yaxisLabels, self.config.xyLimitsRMSD
                     )
 
                     zvalsIon2plot, xvals, yvals = self.restrictRMSDrange(
-                        zvalsIon2plot, xaxisLabels,
-                        yaxisLabels, self.config.xyLimitsRMSD,
+                        zvalsIon2plot, xaxisLabels, yaxisLabels, self.config.xyLimitsRMSD
                     )
                     xaxisLabels, yaxisLabels = xvals, yvals
 
                 pRMSFlist = pr_activation.compute_RMSF(inputData1=zvalsIon1plot, inputData2=zvalsIon2plot)
                 pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot, inputData2=zvalsIon2plot)
 
-                rmsdLabel = 'RMSD: %2.2f' % pRMSD
-                self.onThreading(None, ('RMSD: %2.2f' % pRMSD, 4), action='updateStatusbar')
-                xLabel = compDict[compList[0]]['xlabels']
-                yLabel = compDict[compList[0]]['ylabels']
+                rmsdLabel = "RMSD: %2.2f" % pRMSD
+                self.onThreading(None, ("RMSD: %2.2f" % pRMSD, 4), action="updateStatusbar")
+                xLabel = compDict[compList[0]]["xlabels"]
+                yLabel = compDict[compList[0]]["ylabels"]
                 pRMSFlist = pr_heatmap.smooth_gaussian_2D(inputData=pRMSFlist, sigma=1)
 
                 self.setXYlimitsRMSD2D(xaxisLabels, yaxisLabels)
                 self.view.panelPlots.on_plot_RMSDF(
                     yvalsRMSF=pRMSFlist,
                     zvals=tempArray,
-                    xvals=xaxisLabels, yvals=yaxisLabels,
-                    xlabelRMSD=xLabel, ylabelRMSD=yLabel,
+                    xvals=xaxisLabels,
+                    yvals=yaxisLabels,
+                    xlabelRMSD=xLabel,
+                    ylabelRMSD=yLabel,
                     ylabelRMSF=ylabelRMSF,
                     color=self.config.lineColour_1D,
                     cmap=self.config.currentCmap,
                 )
-#                 self.onPlotRMSDF(yvalsRMSF=pRMSFlist,
-#                                  zvals=tempArray,
-#                                  xvals=xaxisLabels, yvals=yaxisLabels,
-#                                  xlabelRMSD=xLabel, ylabelRMSD=yLabel,
-#                                  ylabelRMSF=ylabelRMSF,
-#                                  color=self.config.lineColour_1D,
-#                                  cmap=self.config.currentCmap)
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['RMSF'])
+                #                 self.onPlotRMSDF(yvalsRMSF=pRMSFlist,
+                #                                  zvals=tempArray,
+                #                                  xvals=xaxisLabels, yvals=yaxisLabels,
+                #                                  xlabelRMSD=xLabel, ylabelRMSD=yLabel,
+                #                                  ylabelRMSF=ylabelRMSF,
+                #                                  color=self.config.lineColour_1D,
+                #                                  cmap=self.config.currentCmap)
+                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["RMSF"])
                 # Add RMSD label
-                rmsdXpos, rmsdYpos = self.onCalculateRMSDposition(
-                    xlist=xaxisLabels,
-                    ylist=yaxisLabels,
-                )
+                rmsdXpos, rmsdYpos = self.onCalculateRMSDposition(xlist=xaxisLabels, ylist=yaxisLabels)
                 if rmsdXpos is not None and rmsdYpos is not None:
-                    self.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot='RMSF')
+                    self.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot="RMSF")
 
             # Add data to the dictionary (overlay data)
             if add_data_to_document:
                 self.docs.gotOverlay = True
                 # add label
-                idName = '{}, {}'.format(compList[0], compList[1])
+                idName = "{}, {}".format(compList[0], compList[1])
 
-                idName = '{}: {}'.format(self.config.overlayMethod, idName)
+                idName = "{}: {}".format(self.config.overlayMethod, idName)
                 # Add to the name to includ the method
                 # Check if exists. We need to extract labels (header...)
                 checkExist = self.docs.IMS2DoverlayData.get(idName, None)
                 if checkExist is not None:
-                    title = self.docs.IMS2DoverlayData[idName].get('header', '')
-                    header = self.docs.IMS2DoverlayData[idName].get('header', '')
-                    footnote = self.docs.IMS2DoverlayData[idName].get('footnote', '')
+                    title = self.docs.IMS2DoverlayData[idName].get("header", "")
+                    header = self.docs.IMS2DoverlayData[idName].get("header", "")
+                    footnote = self.docs.IMS2DoverlayData[idName].get("footnote", "")
                 else:
-                    title, header, footnote = '', '', ''
+                    title, header, footnote = "", "", ""
                 # Add data to dictionary
-                if self.config.overlayMethod in ['Mask', 'Transparent']:
+                if self.config.overlayMethod in ["Mask", "Transparent"]:
                     self.docs.IMS2DoverlayData[idName] = {
-                        'zvals1': zvalsIon1plot,
-                        'zvals2': zvalsIon2plot,
-                        'cmap1': cmapIon1,
-                        'cmap2': cmapIon2,
-                        'alpha1': alphaIon1,
-                        'alpha2': alphaIon2,
-                        'mask1': maskIon1,
-                        'mask2': maskIon2,
-                        'xvals': xaxisLabels,
-                        'xlabels': xlabel,
-                        'yvals': yaxisLabels,
-                        'ylabels': ylabel,
-                        'file1': compList[0],
-                        'file2': compList[1],
-                        'label1': compDict[compList[0]]['label'],
-                        'label2': compDict[compList[1]]['label'],
-                        'title': title,
-                        'header': header,
-                        'footnote': footnote,
+                        "zvals1": zvalsIon1plot,
+                        "zvals2": zvalsIon2plot,
+                        "cmap1": cmapIon1,
+                        "cmap2": cmapIon2,
+                        "alpha1": alphaIon1,
+                        "alpha2": alphaIon2,
+                        "mask1": maskIon1,
+                        "mask2": maskIon2,
+                        "xvals": xaxisLabels,
+                        "xlabels": xlabel,
+                        "yvals": yaxisLabels,
+                        "ylabels": ylabel,
+                        "file1": compList[0],
+                        "file2": compList[1],
+                        "label1": compDict[compList[0]]["label"],
+                        "label2": compDict[compList[1]]["label"],
+                        "title": title,
+                        "header": header,
+                        "footnote": footnote,
                     }
-                elif self.config.overlayMethod == 'RMSF':
+                elif self.config.overlayMethod == "RMSF":
                     self.docs.IMS2DoverlayData[idName] = {
-                        'yvalsRMSF': pRMSFlist,
-                        'zvals': tempArray,
-                        'xvals': xaxisLabels,
-                        'yvals': yaxisLabels,
-                        'ylabelRMSF': ylabelRMSF,
-                        'xlabelRMSD': xLabel,
-                        'ylabelRMSD': yLabel,
-                        'rmsdLabel': rmsdLabel,
-                        'colorRMSF': self.config.lineColour_1D,
-                        'cmapRMSF': self.config.currentCmap,
-                        'title': title,
-                        'header': header,
-                        'footnote': footnote,
+                        "yvalsRMSF": pRMSFlist,
+                        "zvals": tempArray,
+                        "xvals": xaxisLabels,
+                        "yvals": yaxisLabels,
+                        "ylabelRMSF": ylabelRMSF,
+                        "xlabelRMSD": xLabel,
+                        "ylabelRMSD": yLabel,
+                        "rmsdLabel": rmsdLabel,
+                        "colorRMSF": self.config.lineColour_1D,
+                        "cmapRMSF": self.config.currentCmap,
+                        "title": title,
+                        "header": header,
+                        "footnote": footnote,
                     }
-                elif self.config.overlayMethod == 'RMSD':
+                elif self.config.overlayMethod == "RMSD":
                     self.docs.IMS2DoverlayData[idName] = {
-                        'zvals': tempArray,
-                        'xvals': xaxisLabels,
-                        'yvals': yaxisLabels,
-                        'xlabel': xlabel,
-                        'ylabel': ylabel,
-                        'rmsdLabel': rmsdLabel,
-                        'cmap': self.config.currentCmap,
-                        'title': title,
-                        'header': header,
-                        'footnote': footnote,
+                        "zvals": tempArray,
+                        "xvals": xaxisLabels,
+                        "yvals": yaxisLabels,
+                        "xlabel": xlabel,
+                        "ylabel": ylabel,
+                        "rmsdLabel": rmsdLabel,
+                        "cmap": self.config.currentCmap,
+                        "title": title,
+                        "header": header,
+                        "footnote": footnote,
                     }
 
-        elif any(self.config.overlayMethod in method for method in ['Mean', 'Standard Deviation', 'Variance']):
+        elif any(self.config.overlayMethod in method for method in ["Mean", "Standard Deviation", "Variance"]):
             meanData = []
             for row in range(tempAccumulator):
                 key = compList[row]
-                meanData.append(compDict[key]['zvals'])
+                meanData.append(compDict[key]["zvals"])
 
-            xAxisLabels = compDict[key]['xvals']
-            xlabel = compDict[key]['xlabels']
-            yAxisLabels = compDict[key]['yvals']
-            ylabel = compDict[key]['ylabels']
-            msg = ''.join(['Computing ', self.config.textOverlayMethod, ' for ', str(len(meanData)), ' files.'])
-            self.onThreading(None, (msg, 4), action='updateStatusbar')
-            if self.config.overlayMethod == 'Mean':
+            xAxisLabels = compDict[key]["xvals"]
+            xlabel = compDict[key]["xlabels"]
+            yAxisLabels = compDict[key]["yvals"]
+            ylabel = compDict[key]["ylabels"]
+            msg = "".join(["Computing ", self.config.textOverlayMethod, " for ", str(len(meanData)), " files."])
+            self.onThreading(None, (msg, 4), action="updateStatusbar")
+            if self.config.overlayMethod == "Mean":
                 """ Computes mean of selected files """
                 zvals = pr_activation.compute_mean(inputData=meanData)
-            elif self.config.overlayMethod == 'Standard Deviation':
+            elif self.config.overlayMethod == "Standard Deviation":
                 """ Computes standard deviation of selected files """
                 zvals = pr_activation.compute_std_dev(inputData=meanData)
-            elif self.config.overlayMethod == 'Variance':
+            elif self.config.overlayMethod == "Variance":
                 """ Computes variance of selected files """
                 zvals = pr_activation.compute_variance(inputData=meanData)
             # Plot
             self.view.panelPlots.on_plot_2D_data(
-                data=[
-                    zvals,
-                    xAxisLabels,
-                    xlabel,
-                    yAxisLabels,
-                    ylabel,
-                    self.config.currentCmap,
-                ],
+                data=[zvals, xAxisLabels, xlabel, yAxisLabels, ylabel, self.config.currentCmap]
             )
-            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["2D"])
             if add_data_to_document:
                 self.docs.gotStatsData = True
                 # Check if exists. We need to extract labels (header...)
                 checkExist = self.docs.IMS2DstatsData.get(self.config.overlayMethod, None)
                 if checkExist is not None:
-                    title = self.docs.IMS2DstatsData[self.config.overlayMethod].get('header', '')
-                    header = self.docs.IMS2DstatsData[self.config.overlayMethod].get('header', '')
-                    footnote = self.docs.IMS2DstatsData[self.config.overlayMethod].get('footnote', '')
+                    title = self.docs.IMS2DstatsData[self.config.overlayMethod].get("header", "")
+                    header = self.docs.IMS2DstatsData[self.config.overlayMethod].get("header", "")
+                    footnote = self.docs.IMS2DstatsData[self.config.overlayMethod].get("footnote", "")
                 else:
-                    title, header, footnote = '', '', ''
+                    title, header, footnote = "", "", ""
 
                 # add label
-                idName = '{}, {}'.format(compList[0], compList[1])
-                idName = '{}: {}'.format(self.config.overlayMethod, idName)
+                idName = "{}, {}".format(compList[0], compList[1])
+                idName = "{}: {}".format(self.config.overlayMethod, idName)
 
                 self.docs.IMS2DstatsData[idName] = {
-                    'zvals': zvals,
-                    'xvals': xAxisLabels,
-                    'xlabels': xlabel,
-                    'yvals': yAxisLabels,
-                    'ylabels': ylabel,
-                    'cmap': self.config.currentCmap,
-                    'title': title,
-                    'header': header,
-                    'footnote': footnote,
+                    "zvals": zvals,
+                    "xvals": xAxisLabels,
+                    "xlabels": xlabel,
+                    "yvals": yAxisLabels,
+                    "ylabels": ylabel,
+                    "cmap": self.config.currentCmap,
+                    "title": title,
+                    "header": header,
+                    "footnote": footnote,
                 }
-        elif self.config.overlayMethod == 'RMSD Matrix':
+        elif self.config.overlayMethod == "RMSD Matrix":
             """ Compute RMSD matrix for selected files """
             zvals = np.zeros([tempAccumulator, tempAccumulator])
             tickLabels = []
             for row in range(tempAccumulator):
                 key = compList[row]
                 # Extract text labels from table
-                tickLabels.append(compDict[key]['label'])
+                tickLabels.append(compDict[key]["label"])
                 # Compute pairwise RMSD
                 for row2 in range(row + 1, tempAccumulator):
-                    zvalsIon1plot = compDict[compList[row]]['zvals']
-                    zvalsIon2plot = compDict[compList[row2]]['zvals']
-                    pRMSD, tempArray = pr_activation.compute_RMSD(
-                        inputData1=zvalsIon1plot,
-                        inputData2=zvalsIon2plot,
-                    )
+                    zvalsIon1plot = compDict[compList[row]]["zvals"]
+                    zvalsIon2plot = compDict[compList[row2]]["zvals"]
+                    pRMSD, tempArray = pr_activation.compute_RMSD(inputData1=zvalsIon1plot, inputData2=zvalsIon2plot)
                     zvals[row, row2] = np.round(pRMSD, 2)
             self.view.panelPlots.on_plot_matrix(zvals=zvals, xylabels=tickLabels, cmap=self.docs.colormap)
-            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Comparison'])
+            self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Comparison"])
             if add_data_to_document:
                 self.docs.gotStatsData = True
                 # Check if exists. We need to extract labels (header...)
                 checkExist = self.docs.IMS2DstatsData.get(self.config.overlayMethod, None)
                 if checkExist is not None:
-                    title = self.docs.IMS2DstatsData[self.config.overlayMethod].get('header', '')
-                    header = self.docs.IMS2DstatsData[self.config.overlayMethod].get('header', '')
-                    footnote = self.docs.IMS2DstatsData[self.config.overlayMethod].get('footnote', '')
+                    title = self.docs.IMS2DstatsData[self.config.overlayMethod].get("header", "")
+                    header = self.docs.IMS2DstatsData[self.config.overlayMethod].get("header", "")
+                    footnote = self.docs.IMS2DstatsData[self.config.overlayMethod].get("footnote", "")
                 else:
-                    title, header, footnote = '', '', ''
+                    title, header, footnote = "", "", ""
                 self.docs.IMS2DstatsData[self.config.overlayMethod] = {
-                    'zvals': zvals,
-                    'cmap': self.config.currentCmap,
-                    'matrixLabels': tickLabels,
-                    'title': title,
-                    'header': header,
-                    'footnote': footnote,
+                    "zvals": zvals,
+                    "cmap": self.config.currentCmap,
+                    "matrixLabels": tickLabels,
+                    "title": title,
+                    "header": header,
+                    "footnote": footnote,
                 }
 
-        elif self.config.overlayMethod == 'RGB':
-            data_list, idName = [], ''
+        elif self.config.overlayMethod == "RGB":
+            data_list, idName = [], ""
             legend_text = []
             for row in range(tempAccumulator):
                 key = compList[row]
-                data = compDict[key]['zvals']
-                color = convertRGB255to1(compDict[key]['color'])
-                min_threshold = compDict[key]['min_threshold']
-                max_threshold = compDict[key]['max_threshold']
-                label = compDict[key]['label']
-                if label == '':
-                    label = compDict[key]['ion_name']
+                data = compDict[key]["zvals"]
+                color = convertRGB255to1(compDict[key]["color"])
+                min_threshold = compDict[key]["min_threshold"]
+                max_threshold = compDict[key]["max_threshold"]
+                label = compDict[key]["label"]
+                if label == "":
+                    label = compDict[key]["ion_name"]
                 legend_text.append([color, label])
 
                 # Change intensity
@@ -1505,24 +1435,21 @@ class ORIGAMI(object):
                 rgb = make_rgb(data, color)
                 data_list.append(rgb)
                 # Add new label
-                if idName == '':
+                if idName == "":
                     idName = compList[row]
                 else:
-                    idName = '{}, {}'.format(idName, compList[row])
-            xAxisLabels = compDict[key]['xvals']
-            xlabel = compDict[key]['xlabels']
-            yAxisLabels = compDict[key]['yvals']
-            ylabel = compDict[key]['ylabels']
+                    idName = "{}, {}".format(idName, compList[row])
+            xAxisLabels = compDict[key]["xvals"]
+            xlabel = compDict[key]["xlabels"]
+            yAxisLabels = compDict[key]["yvals"]
+            ylabel = compDict[key]["ylabels"]
 
             # Sum rgb list
             if len(data_list) >= 1:
                 rgb_plot = combine_rgb(data_list)
 
-                self.view.panelPlots.on_plot_rgb(
-                    rgb_plot, xAxisLabels, yAxisLabels, xlabel,
-                    ylabel, legend_text,
-                )
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+                self.view.panelPlots.on_plot_rgb(rgb_plot, xAxisLabels, yAxisLabels, xlabel, ylabel, legend_text)
+                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["2D"])
 
             # Add data to the dictionary (overlay data)
             if add_data_to_document:
@@ -1531,29 +1458,29 @@ class ORIGAMI(object):
                 # Check if exists. We need to extract labels (header...)
                 checkExist = self.docs.IMS2DoverlayData.get(idName, None)
                 if checkExist is not None:
-                    title = self.docs.IMS2DoverlayData[idName].get('header', '')
-                    header = self.docs.IMS2DoverlayData[idName].get('header', '')
-                    footnote = self.docs.IMS2DoverlayData[idName].get('footnote', '')
+                    title = self.docs.IMS2DoverlayData[idName].get("header", "")
+                    header = self.docs.IMS2DoverlayData[idName].get("header", "")
+                    footnote = self.docs.IMS2DoverlayData[idName].get("footnote", "")
                 else:
-                    title, header, footnote = '', '', ''
-                idName = '{}: {}'.format(self.config.overlayMethod, idName)
+                    title, header, footnote = "", "", ""
+                idName = "{}: {}".format(self.config.overlayMethod, idName)
                 # remove unnecessary file extensions from filename
                 if len(idName) > 511:
-                    self.onThreading(None, ('Filename is too long. Reducing...', 4), action='updateStatusbar')
-                    idName = idName.replace('.csv', '').replace('.txt', '').replace('.raw', '').replace('.d', '')
+                    self.onThreading(None, ("Filename is too long. Reducing...", 4), action="updateStatusbar")
+                    idName = idName.replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "")
                     idName = idName[:500]
 
                 self.docs.IMS2DoverlayData[idName] = {
-                    'zvals': rgb_plot,
-                    'xvals': xaxisLabels,
-                    'xlabels': xlabel,
-                    'yvals': yaxisLabels,
-                    'ylabels': ylabel,
-                    'rgb_list': data_list,
-                    'legend_text': legend_text,
-                    'title': title,
-                    'header': header,
-                    'footnote': footnote,
+                    "zvals": rgb_plot,
+                    "xvals": xaxisLabels,
+                    "xlabels": xlabel,
+                    "yvals": yaxisLabels,
+                    "ylabels": ylabel,
+                    "rgb_list": data_list,
+                    "legend_text": legend_text,
+                    "title": title,
+                    "header": header,
+                    "footnote": footnote,
                 }
 
         # Add data to document
@@ -1563,7 +1490,7 @@ class ORIGAMI(object):
             self.currentDoc = self.docs.title
 
             # Update file list
-            self.OnUpdateDocument(self.docs, 'comparison_data')
+            self.OnUpdateDocument(self.docs, "comparison_data")
 
     def restrictRMSDrange(self, zvals, xvals, yvals, limits):
         """
@@ -1583,7 +1510,7 @@ class ORIGAMI(object):
             ymax = ymin
             ymin = ymin_temp
 
-#         print(xmin, xmax, ymin, ymax)
+        #         print(xmin, xmax, ymin, ymax)
 
         if xmin is None:
             xmin = xvals[0]
@@ -1601,27 +1528,27 @@ class ORIGAMI(object):
         __, idxYmax = find_nearest(np.array(yvals), ymax)
 
         # in case index is returned as 0, return original value
-        msg = ''.join([''])
+        msg = "".join([""])
         if idxXmax == 0:
-            msg = 'Your Xmax value is too small - reseting to maximum'
+            msg = "Your Xmax value is too small - reseting to maximum"
             idxXmax = len(xvals)
         if idxXmin == idxXmax:
-            msg = 'Your X-axis values are too close together - reseting to original view'
+            msg = "Your X-axis values are too close together - reseting to original view"
             idxXmin = 0
             idxXmax = len(xvals)
 
         if idxYmax == 0:
-            msg = 'Your Ymax value is too small - reseting to maximum'
+            msg = "Your Ymax value is too small - reseting to maximum"
             idxYmax = len(yvals)
         if idxYmin == idxYmax:
-            msg = 'Your Y-axis values are too close together - reseting to original view'
+            msg = "Your Y-axis values are too close together - reseting to original view"
             idxYmin = 0
             idxYmax = len(yvals)
 
         zvals = zvals[idxYmin:idxYmax, idxXmin:idxXmax]
         xvals = xvals[idxXmin:idxXmax]
         yvals = yvals[idxYmin:idxYmax]
-        self.onThreading(None, (msg, 4), action='updateStatusbar')
+        self.onThreading(None, (msg, 4), action="updateStatusbar")
 
         return zvals, xvals, yvals
 
@@ -1635,34 +1562,28 @@ class ORIGAMI(object):
             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
         except Exception:
             return
-        if self.currentDoc == 'Documents':
+        if self.currentDoc == "Documents":
             return
 
         # Make sure the document is of comparison type
-        if self.documentsDict[self.currentDoc].dataType == 'Type: Comparison':
+        if self.documentsDict[self.currentDoc].dataType == "Type: Comparison":
             # Enable text panel
             self.view.on_toggle_panel(evt=ID_window_textList, check=True)
-#             self.view.textView = False
-#             self.view.mainToolbar.ToggleTool(id=ID_OnOff_textView, toggle=True)
-#             self.view._mgr.GetPane(self.view.panelMultipleText).Show()
-#             self.view._mgr.Update()
+            #             self.view.textView = False
+            #             self.view.mainToolbar.ToggleTool(id=ID_OnOff_textView, toggle=True)
+            #             self.view._mgr.GetPane(self.view.panelMultipleText).Show()
+            #             self.view._mgr.Update()
             tempList = self.view.panelMultipleText.peaklist
             document = self.documentsDict[self.currentDoc]
             if document.gotComparisonData:
                 filename = document.title
                 for key in document.IMS2DcompData:
-                    xvals = document.IMS2DcompData[key]['xvals']
-                    shape = document.IMS2DcompData[key]['shape']
-                    label = document.IMS2DcompData[key]['label']
-                    cmap = document.IMS2DcompData[key]['cmap']
-                    alpha = document.IMS2DcompData[key]['alpha']
-                    tempList.Append([
-                        filename,
-                        xvals[0], xvals[-1],
-                        cmap, str(alpha),
-                        label, shape,
-                        key,
-                    ])
+                    xvals = document.IMS2DcompData[key]["xvals"]
+                    shape = document.IMS2DcompData[key]["shape"]
+                    label = document.IMS2DcompData[key]["label"]
+                    cmap = document.IMS2DcompData[key]["cmap"]
+                    alpha = document.IMS2DcompData[key]["alpha"]
+                    tempList.Append([filename, xvals[0], xvals[-1], cmap, str(alpha), label, shape, key])
 
     def onCalculateRMSDposition(self, xlist, ylist):
         """
@@ -1670,7 +1591,7 @@ class ORIGAMI(object):
         """
 
         # First determine whether we need label at all
-        if self.config.rmsd_position == 'none':
+        if self.config.rmsd_position == "none":
             return None, None
 
         # Get values
@@ -1684,8 +1605,8 @@ class ORIGAMI(object):
         rmsdXpos = xMin + ((xMax - xMin) * xMultiplier) / 100
         rmsdYpos = yMin + ((yMax - yMin) * yMultiplier) / 100
 
-        args = ('Added RMSD label at xpos: {} ypos {}'.format(rmsdXpos, rmsdYpos), 4)
-        self.onThreading(None, args, action='updateStatusbar')
+        args = ("Added RMSD label at xpos: {} ypos {}".format(rmsdXpos, rmsdYpos), 4)
+        self.onThreading(None, args, action="updateStatusbar")
 
         return rmsdXpos, rmsdYpos
 
@@ -1698,10 +1619,10 @@ class ORIGAMI(object):
 
         # Make a list of Documents
         for row in range(tempList.GetItemCount()):
-            self.currentDoc = tempList.GetItem(itemId=row, col=self.config.peaklistColNames['filename']).GetText()
+            self.currentDoc = tempList.GetItem(itemId=row, col=self.config.peaklistColNames["filename"]).GetText()
             # Check that data was extracted first
-            if self.currentDoc == '':
-                self.onThreading(None, ('Please extract data first', 4), action='updateStatusbar')
+            if self.currentDoc == "":
+                self.onThreading(None, ("Please extract data first", 4), action="updateStatusbar")
                 continue
             if evt.GetId() == ID_processAllIons:
                 pass
@@ -1709,98 +1630,88 @@ class ORIGAMI(object):
                 if not tempList.IsChecked(index=row):
                     continue
             # Extract ion name
-            mzStart = tempList.GetItem(itemId=row, col=self.config.peaklistColNames['start']).GetText()
-            mzEnd = tempList.GetItem(itemId=row, col=self.config.peaklistColNames['end']).GetText()
-            selectedItem = ''.join([str(mzStart), '-', str(mzEnd)])
+            mzStart = tempList.GetItem(itemId=row, col=self.config.peaklistColNames["start"]).GetText()
+            mzEnd = tempList.GetItem(itemId=row, col=self.config.peaklistColNames["end"]).GetText()
+            selectedItem = "".join([str(mzStart), "-", str(mzEnd)])
             # strip any processed string from the title
             dataset = selectedItem
-            if '(processed)' in selectedItem:
-                dataset = selectedItem.split(' (')[0]
-            new_dataset = '%s (processed)' % dataset
+            if "(processed)" in selectedItem:
+                dataset = selectedItem.split(" (")[0]
+            new_dataset = "%s (processed)" % dataset
             # Select document
             self.docs = self.documentsDict[self.currentDoc]
             dataType = self.docs.dataType
 
             # process data
-            if (
-                dataType in ['Type: ORIGAMI', 'Type: Infrared', 'Type: MANUAL'] and
-                self.docs.gotCombinedExtractedIons
-            ):
+            if dataType in ["Type: ORIGAMI", "Type: Infrared", "Type: MANUAL"] and self.docs.gotCombinedExtractedIons:
                 try:
                     tempData = self.docs.IMS2DCombIons[selectedItem]
                     imsData2D, params = self.data_processing.on_process_2D(
-                        zvals=tempData['zvals'].copy(),
-                        return_all=True,
+                        zvals=tempData["zvals"].copy(), return_all=True
                     )
                     imsData1D = np.sum(imsData2D, axis=1).T
                     rtDataY = np.sum(imsData2D, axis=0)
                     self.docs.IMS2DCombIons[new_dataset] = {
-                        'zvals': imsData2D,
-                        'xvals': tempData['xvals'],
-                        'xlabels': tempData['xlabels'],
-                        'yvals': tempData['yvals'],
-                        'ylabels': tempData['ylabels'],
-                        'yvals1D': imsData1D, 'yvalsRT': rtDataY,
-                        'cmap': tempData.get('cmap', self.config.currentCmap),
-                        'xylimits': tempData['xylimits'],
-                        'charge': tempData.get('charge', None),
-                        'label': tempData.get('label', None),
-                        'alpha': tempData.get('alpha', None),
-                        'mask': tempData.get('alpha', None),
-                        'process_parameters': params,
+                        "zvals": imsData2D,
+                        "xvals": tempData["xvals"],
+                        "xlabels": tempData["xlabels"],
+                        "yvals": tempData["yvals"],
+                        "ylabels": tempData["ylabels"],
+                        "yvals1D": imsData1D,
+                        "yvalsRT": rtDataY,
+                        "cmap": tempData.get("cmap", self.config.currentCmap),
+                        "xylimits": tempData["xylimits"],
+                        "charge": tempData.get("charge", None),
+                        "label": tempData.get("label", None),
+                        "alpha": tempData.get("alpha", None),
+                        "mask": tempData.get("alpha", None),
+                        "process_parameters": params,
                     }
                 except Exception:
                     pass
 
-            if (
-                dataType in ['Type: ORIGAMI', 'Type: Infrared'] and
-                self.docs.gotExtractedIons
-            ):
+            if dataType in ["Type: ORIGAMI", "Type: Infrared"] and self.docs.gotExtractedIons:
                 try:
                     tempData = self.docs.IMS2Dions[selectedItem]
                     imsData2D, params = self.data_processing.on_process_2D(
-                        zvals=tempData['zvals'].copy(),
-                        return_all=True,
+                        zvals=tempData["zvals"].copy(), return_all=True
                     )
                     imsData1D = np.sum(imsData2D, axis=1).T
                     rtDataY = np.sum(imsData2D, axis=0)
                     self.docs.IMS2Dions[new_dataset] = {
-                        'zvals': imsData2D,
-                        'xvals': tempData['xvals'],
-                        'xlabels': tempData['xlabels'],
-                        'yvals': tempData['yvals'],
-                        'ylabels': tempData['ylabels'],
-                        'yvals1D': imsData1D, 'yvalsRT': rtDataY,
-                        'cmap': tempData.get('cmap', self.config.currentCmap),
-                        'xylimits': tempData['xylimits'],
-                        'charge': tempData.get('charge', None),
-                        'label': tempData.get('label', None),
-                        'alpha': tempData.get('alpha', None),
-                        'mask': tempData.get('alpha', None),
-                        'process_parameters': params,
+                        "zvals": imsData2D,
+                        "xvals": tempData["xvals"],
+                        "xlabels": tempData["xlabels"],
+                        "yvals": tempData["yvals"],
+                        "ylabels": tempData["ylabels"],
+                        "yvals1D": imsData1D,
+                        "yvalsRT": rtDataY,
+                        "cmap": tempData.get("cmap", self.config.currentCmap),
+                        "xylimits": tempData["xylimits"],
+                        "charge": tempData.get("charge", None),
+                        "label": tempData.get("label", None),
+                        "alpha": tempData.get("alpha", None),
+                        "mask": tempData.get("alpha", None),
+                        "process_parameters": params,
                     }
                 except Exception:
                     pass
 
             # Update file list
-            self.OnUpdateDocument(self.docs, 'combined_ions')
+            self.OnUpdateDocument(self.docs, "combined_ions")
 
-    def getImageFilename(
-        self, prefix=False, csv=False, defaultValue='',
-        withPath=False, extension=None,
-    ):
+    def getImageFilename(self, prefix=False, csv=False, defaultValue="", withPath=False, extension=None):
         """
         Set-up a new filename for saved images
         """
 
         if withPath:
             if extension is None:
-                fileType = 'Text file|*%s' % self.config.saveExtension
+                fileType = "Text file|*%s" % self.config.saveExtension
             else:
                 fileType = extension
             dlg = wx.FileDialog(
-                self.view, 'Save data to file...', '', '', fileType,
-                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                self.view, "Save data to file...", "", "", fileType, wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             )
             dlg.SetFilename(defaultValue)
             if dlg.ShowModal() == wx.ID_OK:
@@ -1810,18 +1721,18 @@ class ORIGAMI(object):
                 return None
         elif not prefix:
             saveFileName = DialogSimpleAsk(
-                'Please enter a new filename for the images. Names will be appended with the item keyword.',
+                "Please enter a new filename for the images. Names will be appended with the item keyword.",
                 defaultValue=defaultValue,
             )
         else:
             if not csv:
                 saveFileName = DialogSimpleAsk(
-                    'Please enter a new prefix for the images. Names will be appended with the item keyword.',
+                    "Please enter a new prefix for the images. Names will be appended with the item keyword.",
                     defaultValue=defaultValue,
                 )
             else:
                 saveFileName = DialogSimpleAsk(
-                    'Please enter a new prefix for the output file. Names will be appended with the item keyword.',
+                    "Please enter a new prefix for the output file. Names will be appended with the item keyword.",
                     defaultValue=defaultValue,
                 )
 
@@ -1832,8 +1743,9 @@ class ORIGAMI(object):
         This function opens a formatted CSV file with peaks
         """
         dlg = wx.FileDialog(
-            self.view, 'Choose a text file (m/z, window size, charge):',
-            wildcard='*.csv;*.txt',
+            self.view,
+            "Choose a text file (m/z, window size, charge):",
+            wildcard="*.csv;*.txt",
             style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
         )
         if dlg.ShowModal() == wx.ID_CANCEL:
@@ -1841,17 +1753,13 @@ class ORIGAMI(object):
         else:
             # Create shortcut
             tempList = self.view.panelMultipleIons.peaklist
-            delimiter, __ = checkExtension(input=dlg.GetPath().encode('ascii', 'replace'))
+            delimiter, __ = checkExtension(input=dlg.GetPath().encode("ascii", "replace"))
             peaklist = pd.read_csv(dlg.GetPath(), delimiter=delimiter)
             try:
-                peaklist['m/z']
+                peaklist["m/z"]
             except KeyError:
-                msg = 'Please make sure your file contains headers. i.e. m/z | window | z (optional)'
-                DialogBox(
-                    exceptionTitle='Incorrect input',
-                    exceptionMsg=msg,
-                    type='Error',
-                )
+                msg = "Please make sure your file contains headers. i.e. m/z | window | z (optional)"
+                DialogBox(exceptionTitle="Incorrect input", exceptionMsg=msg, type="Error")
                 return
             for peak in range(len(peaklist)):
 
@@ -1860,29 +1768,25 @@ class ORIGAMI(object):
                     mzAdd = self.config.mzWindowSize
                 else:
                     try:
-                        mzAdd = peaklist['window'][peak]
+                        mzAdd = peaklist["window"][peak]
                     except KeyError:
-                        msg = 'Please make sure your file contains headers. i.e. m/z | window | z (optional)'
-                        DialogBox(
-                            exceptionTitle='Incorrect input',
-                            exceptionMsg=msg,
-                            type='Error',
-                        )
+                        msg = "Please make sure your file contains headers. i.e. m/z | window | z (optional)"
+                        DialogBox(exceptionTitle="Incorrect input", exceptionMsg=msg, type="Error")
                         return
                 # Generate mz start/end
-                mzMin = np.round((peaklist['m/z'][peak] - mzAdd), 2)
-                mzMax = np.round((peaklist['m/z'][peak] + mzAdd), 2)
+                mzMin = np.round((peaklist["m/z"][peak] - mzAdd), 2)
+                mzMax = np.round((peaklist["m/z"][peak] + mzAdd), 2)
                 # Get charge of ion
                 try:
-                    charge = peaklist['z'][peak]
+                    charge = peaklist["z"][peak]
                 except KeyError:
-                    charge = ''
+                    charge = ""
                 # Get label of the ion
                 try:
-                    label = peaklist['label'][peak]
+                    label = peaklist["label"][peak]
                 except KeyError:
-                    label = ''
-                tempList.Append([str(mzMin), str(mzMax), str(charge), '', '', '', '', '', str(label)])
+                    label = ""
+                tempList.Append([str(mzMin), str(mzMax), str(charge), "", "", "", "", "", str(label)])
         self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
         dlg.Destroy()
 
@@ -1890,14 +1794,14 @@ class ORIGAMI(object):
             evt.Skip()
 
     # TODOO: move to another panel
-#     def onSelectProtein(self, evt):
-#         if evt.GetId() == ID_selectCalibrant:
-#             mode = 'calibrants'
-#         else:
-#             mode = 'proteins'
-#
-#         self.selectProteinDlg = panelCalibrantDB(self.view, self, self.config, mode)
-#         self.selectProteinDlg.Show()
+    #     def onSelectProtein(self, evt):
+    #         if evt.GetId() == ID_selectCalibrant:
+    #             mode = 'calibrants'
+    #         else:
+    #             mode = 'proteins'
+    #
+    #         self.selectProteinDlg = panelCalibrantDB(self.view, self, self.config, mode)
+    #         self.selectProteinDlg.Show()
 
     # def onAddCalibrant(self, path=None, mzStart=None, mzEnd=None, mzCentre=None,
     #                    pusherFreq=None, tDout=False, e=None):
@@ -1982,454 +1886,454 @@ class ORIGAMI(object):
     #     if tDout:
     #         return tD
 
-#     def OnBuildCCSCalibrationDataset(self, evt):
-#
-#         # Create temporary dictionary
-#         tempDict = {}
-#         self.currentCalibrationParams = []
-#
-#         # Shortcut to the table
-#         tempList = self.view.panelCCS.topP.peaklist
-#         if tempList.GetItemCount() == 0:
-#             self.onThreading(
-#                 None,
-#                 ('Cannot build calibration curve as the calibration list is empty. Load data first.',
-#      4),
-#                 action='updateStatusbar')
-#         try:
-#             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#         except Exception:
-#             return
-#         if self.currentDoc == "Documents":
-#             return
-#
-#         # Check if the currently selected document is Calibration dataframe file
-#         if (self.documentsDict[self.currentDoc].dataType == 'Type: CALIBRANT' and
-#                 self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
-#             self.docs = self.documentsDict[self.currentDoc]
-#             self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
-#         else:
-#             self.onThreading(None, ('Checking if there is a calibration document', 4), action='updateStatusbar')
-#             docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
-#                                                         format='Format: DataFrame')
-#             if len(docList) == 0:
-#                 self.onThreading(
-#                     None,
-#                     ('Did not find appropriate document. Creating a new one...',
-#      4),
-#                     action='updateStatusbar')
-#                 dlg = wx.FileDialog(self.view, "Please select a name for the calibration document",
-#                                     "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-#                 if dlg.ShowModal() == wx.ID_OK:
-#                     path, idName = os.path.split(dlg.GetPath())
-#                 else:
-#                     return
-#
-#                 # Create document
-#                 self.docs = documents()
-#                 self.docs.title = idName
-#                 self.docs.path = path
-#                 self.docs.userParameters = self.config.userParameters
-#                 self.docs.userParameters['date'] = getTime()
-#                 self.docs.dataType = 'Type: CALIBRANT'
-#                 self.docs.fileFormat = 'Format: DataFrame'
-#             else:
-#                 self.selectDocDlg = DialogSelectDocument(self.view, self, docList)
-#                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
-#                     pass
-#
-#                 # Check that document exists
-#                 if self.currentDoc is None:
-#                     self.view.SetStatusText('Please select CCS calibration document', 3)
-#                     return
-#
-#                 self.docs = self.documentsDict[self.currentDoc]
-#                 self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
-#
-#         selectedIon = None
-#         calibrationDict = {}
-#         # Update CCS dataset
-#         for caliID in range(tempList.GetItemCount()):
-#             # Only add info if dataset was checked
-#             if tempList.IsChecked(index=caliID):
-#                 # Get document info
-#                 selectedItem = tempList.GetItem(caliID, self.config.ccsTopColNames['filename']).GetText()
-#                 mzStart = tempList.GetItem(caliID, self.config.ccsTopColNames['start']).GetText()
-#                 mzEnd = tempList.GetItem(caliID, self.config.ccsTopColNames['end']).GetText()
-#                 selectedIon = ''.join([str(mzStart), '-', str(mzEnd)])
-#                 document = self.documentsDict[selectedItem]
-#                 # Add to dictionary
-#                 calibrationDict[selectedIon] = document.calibration[selectedIon]
-#                 self.docs.gotCalibration = True
-#                 self.docs.calibration[selectedIon] = calibrationDict[selectedIon]
-#
-#         if len(calibrationDict) == 0:
-#             self.view.SetStatusText('The calibration dictionary was empty. Select items in the table first', 3)
-#             return
-#
-#         if selectedIon is None:
-#             self.view.SetStatusText('Please select items in the table - otherwise CCS calibration cannot be created', 3)
-#             return
-#
-#         # Determine what gas is used - selects it based on the last value in the list
-#         gas = self.config.elementalMass[calibrationDict[selectedIon]['gas']]
-#         self.docs.gas = gas
-#
-#         # Determine the c correction factor
-#         if isempty(self.docs.corrC):
-#             self.view.SetStatusText(
-#                 'Missing TOF correction factor - you can modify the value in the Document Information Panel', 3)
-#             return
-#
-#         # Build dataframe
-#         df = pd.DataFrame(columns=['m/z', 'z', 'tD', 'MW', 'CCS', 'RedMass', 'tDd', 'CCSd', 'lntDd',
-#                                    'lnCCSd', 'tDdd'],
-#                           index=np.arange(0, len(calibrationDict)))
-#
-#         # Populate dataframe
-#         for i, key in enumerate(calibrationDict):
-#             charge = calibrationDict[key]['charge']
-#             ccs = calibrationDict[key]['ccs']
-#             tD = calibrationDict[key]['tD']
-#             if not isnumber(charge) or not isnumber(ccs) or not isnumber(tD):
-#                 continue
-#             else:
-#                 if isnumber(calibrationDict[key]['mw']):
-#                     xcentre = ((self.config.elementalMass['Hydrogen'] * charge) +
-#                                calibrationDict[key]['mw'] / charge)
-#                 else:
-#                     xcentre = calibrationDict[key]['xcentre']
-#                 df['m/z'].loc[i] = xcentre
-#                 df['z'].loc[i] = charge
-#                 df['CCS'].loc[i] = ccs
-#                 df['tD'].loc[i] = tD
-#
-#         # Remove rows with NaNs
-#         df = df.dropna(how='all')
-#         if len(df) == 0:
-#             self.view.SetStatusText('Please make sure you fill in appropriate parameters', 3)
-#             return
-#
-#         # Compute variables
-#         df['MW'] = (df['m/z'] - (self.config.elementalMass['Hydrogen'] * df['z'])) * \
-#         df['z']  # calculate molecular weight
-#         df['RedMass'] = ((df['MW'] * self.docs.gas) / (df['MW'] + self.docs.gas))  # calculate reduced mass
-#         df['tDd'] = (df['tD'] - ((self.docs.corrC * df['m/z'].apply(sqrt)) / 1000))  # corrected drift time
-#         df['CCSd'] = df['CCS'] / (df['z'] * (1 / df['RedMass']).apply(sqrt))  # corrected ccs
-#         df['lntDd'] = df['tDd'].apply(log)  # log drift time
-#         df['lnCCSd'] = df['CCSd'].apply(log)  # log ccs
-#
-#         # Compute linear regression properties
-#         outLinear = linregress(df['tDd'].astype(np.float64), df['CCSd'].astype(np.float64))
-#         slopeLinear, interceptLinear = outLinear[0], outLinear[1]
-#         r2Linear = outLinear[2] * outLinear[2]
-#
-#         # Compute power regression properties
-#         out = linregress(df['lntDd'], df['lnCCSd'])
-#         slope, intercept = out[0], out[1]
-#         df['tDdd'] = df['tDd'].pow(slope) * df['z'] * df['RedMass'].apply(sqrt)
-#
-#         outPower = linregress(df['tDdd'].astype(np.float64), df['CCS'].astype(np.float64))
-#         slopePower, interceptPower = outPower[0], outPower[1]
-#         r2Power = outPower[2] * outPower[2]
-#
-#         # Add logarithmic method
-#
-#         df.fillna('')
-#         calibrationParams = {'linear': [slopeLinear, interceptLinear, r2Linear],
-#                              'power': [slopePower, interceptPower, r2Power],
-#                              'powerParms': [slope, intercept],
-#                              'gas': gas}
-#
-#         # Add calibration DataFrame to document
-#         self.docs.gotCalibrationParameters = True
-#         self.docs.calibrationParameters = {'dataframe': df,
-#                                            'parameters': calibrationParams}
-#
-#         # Calibration fit line
-#         xvalsLinear, yvalsLinear = pr_spectra.abline(np.asarray((df.tDd.min(), df.tDd.max())),
-#                                                      slopeLinear, interceptLinear)
-#         xvalsPower, yvalsPower = pr_spectra.abline(np.asarray((df.tDdd.min(), df.tDdd.max())),
-#                                                    slopePower, interceptPower)
-#         # Plot data
-#         # TODO: need to check this is correct
-# #         self.onPlotCalibrationCurve(xvals1=df['tDd'], yvals1=df['CCSd'], label1='Linear',
-# #                                     xvalsLinear=xvalsLinear, yvalsLinear=yvalsLinear,
-# #                                     xvals2=df['tDdd'], yvals2=df['CCS'], label2='Power',
-# #                                     xvalsPower=xvalsPower, yvalsPower=yvalsPower,
-# #                                     color='red', marker='o')
-#
-#         # Append to list
-#         self.documentsDict[self.docs.title] = self.docs
-#         # Update documents tree
-#         self.view.panelDocuments.documents.add_document(docData=self.docs)
-#
-#         # Set current calibration parameters
-#         self.currentCalibrationParams = self.docs.calibrationParameters
-#
-#         self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear, 4)),
-#                                          ' | R² (power): ', str(np.round(r2Power, 4)), ]), 3)
-#
-# #     def on_applyCCSCalibrationToSelectedIons(self, evt):
-# #
-# #         # Shortcut to the table
-# #         tempList = self.view.panelCCS.bottomP.peaklist
-# #         calibrationMode = self.view.panelCCS.bottomP.calibrationMode.GetStringSelection()
-# #         for caliID in range(tempList.GetItemCount()):
-# #             # Only add info if dataset was checked
-# #             if tempList.IsChecked(index=caliID):
-# #                 # Get document info
-# #                 filename = tempList.GetItem(caliID, self.config.ccsBottomColNames['filename']).GetText()
-# #                 mzStart = tempList.GetItem(caliID, self.config.ccsBottomColNames['start']).GetText()
-# #                 mzEnd = tempList.GetItem(caliID, self.config.ccsBottomColNames['end']).GetText()
-# #                 charge = str2int(tempList.GetItem(caliID, self.config.ccsBottomColNames['charge']).GetText())
-# #                 mzCentre = str2num(tempList.GetItem(caliID, self.config.ccsBottomColNames['ion']).GetText())
-# #                 selectedType = tempList.GetItem(caliID, self.config.ccsBottomColNames['format']).GetText()
-# #                 rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
-# #
-# #                 # Check these fields were filled in
-# #                 if isempty(charge) or isempty(mzCentre):
-# #                     msg = 'Please fill in the fields'
-# #                     self.view.SetStatusText(msg, 3)
-# #                     return
-# #                 elif charge == 0:
-# #                     msg = "
-# %s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (
-# #                         rangeName, filename)
-# #                     DialogBox(exceptionTitle='Missing charge information',
-# #                            exceptionMsg=msg,
-# #                            type="Warning")
-# #                     continue
-# #                 # Get document object based on the filename
-# #                 document = self.documentsDict[filename]
-# #
-# #                 # Select data based on the format of the object
-# #                 if selectedType == '2D, extracted':
-# #                     data = document.IMS2Dions[rangeName]
-# #                 elif selectedType == '2D, combined':
-# #                     data = document.IMS2DCombIons[rangeName]
-# #                 elif selectedType == '2D, processed':
-# #                     data = document.IMS2DionsProcess[rangeName]
-# #
-# #                 # Unpack data
-# #                 zvals, xvals, xlabel, yvals, ylabel, charge, mw, mzCentre = self.get2DdataFromDictionary(
-# #                     dictionary=data, dataType='calibration', compact=False)
-# #                 # Check that the object has pusher frequency
-# #                 pusherFreq = document.parameters.get('pusherFreq', 1)
-# #
-# #                 if (pusherFreq == 1 or not isnumber(pusherFreq)) and ylabel != 'Drift time (ms)':
-# #                     msg = \
-#     "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (
-# #                         filename, rangeName)
-# #                     DialogBox(exceptionTitle='Missing data',
-# #                            exceptionMsg=msg,
-# #                            type="Error")
-# #                     continue
-# #                 # Check if ylabel is in ms
-# #                 if ylabel != 'Drift time (ms)':
-# #                     if ylabel == 'Drift time (bins)':
-# #                         yvals = yvals * (pusherFreq / 1000)
-# #                     else:
-# #                         # Need to restore scans and convert them to ms
-# #                         yvals = 1 + np.arange(len(zvals[:, 1]))
-# #                         yvals = yvals * (pusherFreq / 1000)
-# #
-# #                 # Check for TOF correction factor
-# #                 if isempty(document.corrC) and document.parameters.get('corrC', None) is None:
-# #                     msg = 'Missing TOF correction factor'
-# #                     self.view.SetStatusText(msg, 3)
-# #                     return
-# #
-# #                 # Check for charge and m/z information
-# #                 if not isnumber(charge) or not isnumber(mzCentre):
-# #                     if not isnumber(charge):
-# #                         msg = 'Missing charge information'
-# #                     elif not isnumber(mzCentre):
-# #                         msg = 'Missing m/z information'
-# #                     self.view.SetStatusText(msg, 3)
-# #                     return
-# #
-# #                 # Create empty DataFrame to calculate CCS
-# #                 df = pd.DataFrame(columns=['m/z', 'z', 'tD', 'MW', 'RedMass', 'tDd', 'tDdd'],
-# #                                   index=np.arange(0, len(yvals)))
-# #                 df['m/z'] = float(mzCentre)
-# #                 df['z'] = int(charge)
-# #                 df['tD'] = yvals
-# #
-# #                 # Unpack calibration parameters
-# #                 if len(self.currentCalibrationParams) == 0:
-# #                     if document.gotCalibrationParameters:
-# #                         self.currentCalibrationParams = document.calibrationParameters
-# #
-# #                 # Now assign the calibration parameters
-# #                 try:
-# #                     calibrationParameters = self.currentCalibrationParams.get('parameters', None)
-# #                 except (IndexError, KeyError):
-# #                     calibrationParameters = None
-# #
-# #                 if calibrationParameters is None:
-# #                     # TODO: add function to search for calibration document
-# #                     docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
-# #                                                                 format='Format: DataFrame')
-# #                     if len(docList) == 0:
-# #                         msg = \
-#     "Cound not find calibration document or calibration file. Please create or load one in first"
-# #                         DialogBox(exceptionTitle='Missing data',
-# #                                exceptionMsg=msg,
-# #                                type="Error")
-# #                         return
-# #                     else:
-# #                         self.selectDocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
-# #                         if self.selectDocDlg.ShowModal() == wx.ID_OK:
-# #                             calibrationParameters = self.currentCalibrationParams.get('parameters', None)
-# #                             if calibrationParameters is None:
-# #                                 return
-# #                         return
-# #
-# #                 # Get parameters
-# #                 slopeLinear, interceptLinear, r2Linear = calibrationParameters['linear']
-# #                 slopePower, interceptPower, r2Power = calibrationParameters['power']
-# #                 slope, intercept = calibrationParameters['powerParms']
-# #                 gas = calibrationParameters['gas']
-# #
-# #                 # Fill in remaining details
-# #                 df['MW'] = (df['m/z'] - (self.config.elementalMass['Hydrogen'] * df['z'])) * df['z']
-# #                 df['RedMass'] = ((df['MW'] * gas) / (df['MW'] + gas))
-# #                 df['tDd'] = (df['tD'] - ((document.corrC * df['m/z'].apply(sqrt)) / 1000))
-# #
-# #                 # Linear law
-# #                 df['CCSd'] = slopeLinear * df['tDd'] + interceptLinear
-# #                 df['CCSlinear'] = df['CCSd'] * (df['z'] * (1 / df['RedMass']).apply(sqrt))
-# #                 # Power law
-# #                 df['tDdd'] = df['tDd'].pow(slope) * df['z'] * df['RedMass'].apply(sqrt)
-# #                 df['CCSpower'] = (df['tDdd'] * slopePower) + interceptPower
-# #
-# #                 # Update dictionary
-# #                 document.gotCalibrationParameters = True
-# #                 document.calibrationParameters = self.currentCalibrationParams
-# #                 document.calibrationParameters['mode'] = calibrationMode
-# #
-# #                 document.gas = gas
-# #
-# #                 if calibrationMode == 'Linear':
-# #                     ccsVals = pd.to_numeric(df['CCSlinear']).values
-# #                 elif calibrationMode == 'Power':
-# #                     ccsVals = pd.to_numeric(df['CCSpower']).values
-# #
-# #                 # Assign data
-# #                 if selectedType == '2D, extracted':
-# #                     document.IMS2Dions[rangeName]['yvals'] = ccsVals
-# #                     document.IMS2Dions[rangeName]['yvalsCCSBackup'] = ccsVals
-# #                     document.IMS2Dions[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
-# #                 elif selectedType == '2D, combined':
-# #                     document.IMS2DCombIons[rangeName]['yvals'] = ccsVals
-# #                     document.IMS2DCombIons[rangeName]['yvalsCCSBackup'] = ccsVals
-# #                     document.IMS2DCombIons[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
-# #                 elif selectedType == '2D, processed':
-# #                     document.IMS2DionsProcess[rangeName]['yvals'] = ccsVals
-# #                     document.IMS2DionsProcess[rangeName]['yvalsCCSBackup'] = ccsVals
-# #                     document.IMS2DionsProcess[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
-# #
-# #                 # Assign updated to dictionary
-# #                 self.documentsDict[document.title] = document
-# #
-# #                 # Update documents tree
-# #                 self.view.panelDocuments.documents.add_document(docData=document)
-# #
-# #         # Update status bar
-# #         try:
-# #             self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear, 4)),
-# #                                              ' | R² (power): ', str(np.round(r2Power, 4)),
-# #                                              ' | Used: ', calibrationMode, ' mode']), 3)
-# #         except Exception:            pass
-# #
-# #     def OnAddDataToCCSTable(self, filename=None, mzStart=None, mzEnd=None,
-# #                             mzCentre=None, charge=None, protein=None,
-# #                             format=None, evt=None):
-# #         """
-# #         Add data to table and prepare DataFrame for CCS calibration
-# #         """
-# #         # Shortcut to the table
-# #         tempList = self.view.panelCCS.bottomP.peaklist
-# #
-# #         # Add data to table
-# #         tempList.Append([filename, mzStart, mzEnd,
-# #                          mzCentre, protein, charge, format])
-# #
-# #         # Remove duplicates
-# #         self.view.panelCCS.bottomP.onRemoveDuplicates(evt=None)
-# #         # Enable and show CCS table
-# #         self.view.on_toggle_panel(evt=ID_window_ccsList, check=True)
-# #
-# #     def saveCCScalibrationToPickle(self, evt):
-# #         """
-# #         Save CCS calibration parameters to file
-# #         """
-# #         try:
-# #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-# #         except Exception:            return
-# #         if self.currentDoc == "Documents":
-# #             return
-# #
-# #         # Check if the currently selected document is Calibration dataframe file
-# #         if (self.documentsDict[self.currentDoc].dataType == 'Type: CALIBRANT' and
-# #                 self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
-# #             self.docs = self.documentsDict[self.currentDoc]
-# #             self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
-# #         else:
-# #             docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
-# #                                                         format='Format: DataFrame')
-# #             if len(docList) == 0:
-# #                 print('Did not find appropriate document.')
-# #                 return
-# #             else:
-# #                 self.DocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
-# #                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
-# #                     pass
-# #
-# #                 # Check that document exists
-# #                 if self.currentDoc is None:
-# #                     self.view.SetStatusText('Please select CCS calibration document', 3)
-# #                     return
-# #
-# #                 self.docs = self.documentsDict[self.currentDoc]
-# #                 self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
-# #
-# #         # Get calibration parameters
-# #         # Unpack calibration parameters
-# #         if len(self.currentCalibrationParams) == 0:
-# #             if self.docs.gotCalibrationParameters:
-# #                 self.currentCalibrationParams = self.docs.calibrationParameters
-# #
-# #         # Save parameters
-# #         fileType = "ORIGAMI Document File|*.pickle"
-# #         dlg = wx.FileDialog(self.view, "Save CCS calibration to file...", "", "", fileType,
-# #                             wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-# #         defaultFilename = self.docs.title.split(".")
-# #         defaultFilename = "".join([defaultFilename[0], '_CCScaliParams'])
-# #         dlg.SetFilename(defaultFilename)
-# #
-# #         if dlg.ShowModal() == wx.ID_OK:
-# #             saveFileName = dlg.GetPath()
-# #             # Save
-# #             saveObject(filename=saveFileName, saveFile=self.currentCalibrationParams)
-# #         else:
-# #             return
+    #     def OnBuildCCSCalibrationDataset(self, evt):
+    #
+    #         # Create temporary dictionary
+    #         tempDict = {}
+    #         self.currentCalibrationParams = []
+    #
+    #         # Shortcut to the table
+    #         tempList = self.view.panelCCS.topP.peaklist
+    #         if tempList.GetItemCount() == 0:
+    #             self.onThreading(
+    #                 None,
+    #                 ('Cannot build calibration curve as the calibration list is empty. Load data first.',
+    #      4),
+    #                 action='updateStatusbar')
+    #         try:
+    #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+    #         except Exception:
+    #             return
+    #         if self.currentDoc == "Documents":
+    #             return
+    #
+    #         # Check if the currently selected document is Calibration dataframe file
+    #         if (self.documentsDict[self.currentDoc].dataType == 'Type: CALIBRANT' and
+    #                 self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
+    #             self.docs = self.documentsDict[self.currentDoc]
+    #             self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
+    #         else:
+    #             self.onThreading(None, ('Checking if there is a calibration document', 4), action='updateStatusbar')
+    #             docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
+    #                                                         format='Format: DataFrame')
+    #             if len(docList) == 0:
+    #                 self.onThreading(
+    #                     None,
+    #                     ('Did not find appropriate document. Creating a new one...',
+    #      4),
+    #                     action='updateStatusbar')
+    #                 dlg = wx.FileDialog(self.view, "Please select a name for the calibration document",
+    #                                     "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+    #                 if dlg.ShowModal() == wx.ID_OK:
+    #                     path, idName = os.path.split(dlg.GetPath())
+    #                 else:
+    #                     return
+    #
+    #                 # Create document
+    #                 self.docs = documents()
+    #                 self.docs.title = idName
+    #                 self.docs.path = path
+    #                 self.docs.userParameters = self.config.userParameters
+    #                 self.docs.userParameters['date'] = getTime()
+    #                 self.docs.dataType = 'Type: CALIBRANT'
+    #                 self.docs.fileFormat = 'Format: DataFrame'
+    #             else:
+    #                 self.selectDocDlg = DialogSelectDocument(self.view, self, docList)
+    #                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
+    #                     pass
+    #
+    #                 # Check that document exists
+    #                 if self.currentDoc is None:
+    #                     self.view.SetStatusText('Please select CCS calibration document', 3)
+    #                     return
+    #
+    #                 self.docs = self.documentsDict[self.currentDoc]
+    #                 self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
+    #
+    #         selectedIon = None
+    #         calibrationDict = {}
+    #         # Update CCS dataset
+    #         for caliID in range(tempList.GetItemCount()):
+    #             # Only add info if dataset was checked
+    #             if tempList.IsChecked(index=caliID):
+    #                 # Get document info
+    #                 selectedItem = tempList.GetItem(caliID, self.config.ccsTopColNames['filename']).GetText()
+    #                 mzStart = tempList.GetItem(caliID, self.config.ccsTopColNames['start']).GetText()
+    #                 mzEnd = tempList.GetItem(caliID, self.config.ccsTopColNames['end']).GetText()
+    #                 selectedIon = ''.join([str(mzStart), '-', str(mzEnd)])
+    #                 document = self.documentsDict[selectedItem]
+    #                 # Add to dictionary
+    #                 calibrationDict[selectedIon] = document.calibration[selectedIon]
+    #                 self.docs.gotCalibration = True
+    #                 self.docs.calibration[selectedIon] = calibrationDict[selectedIon]
+    #
+    #         if len(calibrationDict) == 0:
+    #             self.view.SetStatusText('The calibration dictionary was empty. Select items in the table first', 3)
+    #             return
+    #
+    #         if selectedIon is None:
+    #             self.view.SetStatusText('Please select items in the table - otherwise CCS calibration cannot be created', 3)
+    #             return
+    #
+    #         # Determine what gas is used - selects it based on the last value in the list
+    #         gas = self.config.elementalMass[calibrationDict[selectedIon]['gas']]
+    #         self.docs.gas = gas
+    #
+    #         # Determine the c correction factor
+    #         if isempty(self.docs.corrC):
+    #             self.view.SetStatusText(
+    #                 'Missing TOF correction factor - you can modify the value in the Document Information Panel', 3)
+    #             return
+    #
+    #         # Build dataframe
+    #         df = pd.DataFrame(columns=['m/z', 'z', 'tD', 'MW', 'CCS', 'RedMass', 'tDd', 'CCSd', 'lntDd',
+    #                                    'lnCCSd', 'tDdd'],
+    #                           index=np.arange(0, len(calibrationDict)))
+    #
+    #         # Populate dataframe
+    #         for i, key in enumerate(calibrationDict):
+    #             charge = calibrationDict[key]['charge']
+    #             ccs = calibrationDict[key]['ccs']
+    #             tD = calibrationDict[key]['tD']
+    #             if not isnumber(charge) or not isnumber(ccs) or not isnumber(tD):
+    #                 continue
+    #             else:
+    #                 if isnumber(calibrationDict[key]['mw']):
+    #                     xcentre = ((self.config.elementalMass['Hydrogen'] * charge) +
+    #                                calibrationDict[key]['mw'] / charge)
+    #                 else:
+    #                     xcentre = calibrationDict[key]['xcentre']
+    #                 df['m/z'].loc[i] = xcentre
+    #                 df['z'].loc[i] = charge
+    #                 df['CCS'].loc[i] = ccs
+    #                 df['tD'].loc[i] = tD
+    #
+    #         # Remove rows with NaNs
+    #         df = df.dropna(how='all')
+    #         if len(df) == 0:
+    #             self.view.SetStatusText('Please make sure you fill in appropriate parameters', 3)
+    #             return
+    #
+    #         # Compute variables
+    #         df['MW'] = (df['m/z'] - (self.config.elementalMass['Hydrogen'] * df['z'])) * \
+    #         df['z']  # calculate molecular weight
+    #         df['RedMass'] = ((df['MW'] * self.docs.gas) / (df['MW'] + self.docs.gas))  # calculate reduced mass
+    #         df['tDd'] = (df['tD'] - ((self.docs.corrC * df['m/z'].apply(sqrt)) / 1000))  # corrected drift time
+    #         df['CCSd'] = df['CCS'] / (df['z'] * (1 / df['RedMass']).apply(sqrt))  # corrected ccs
+    #         df['lntDd'] = df['tDd'].apply(log)  # log drift time
+    #         df['lnCCSd'] = df['CCSd'].apply(log)  # log ccs
+    #
+    #         # Compute linear regression properties
+    #         outLinear = linregress(df['tDd'].astype(np.float64), df['CCSd'].astype(np.float64))
+    #         slopeLinear, interceptLinear = outLinear[0], outLinear[1]
+    #         r2Linear = outLinear[2] * outLinear[2]
+    #
+    #         # Compute power regression properties
+    #         out = linregress(df['lntDd'], df['lnCCSd'])
+    #         slope, intercept = out[0], out[1]
+    #         df['tDdd'] = df['tDd'].pow(slope) * df['z'] * df['RedMass'].apply(sqrt)
+    #
+    #         outPower = linregress(df['tDdd'].astype(np.float64), df['CCS'].astype(np.float64))
+    #         slopePower, interceptPower = outPower[0], outPower[1]
+    #         r2Power = outPower[2] * outPower[2]
+    #
+    #         # Add logarithmic method
+    #
+    #         df.fillna('')
+    #         calibrationParams = {'linear': [slopeLinear, interceptLinear, r2Linear],
+    #                              'power': [slopePower, interceptPower, r2Power],
+    #                              'powerParms': [slope, intercept],
+    #                              'gas': gas}
+    #
+    #         # Add calibration DataFrame to document
+    #         self.docs.gotCalibrationParameters = True
+    #         self.docs.calibrationParameters = {'dataframe': df,
+    #                                            'parameters': calibrationParams}
+    #
+    #         # Calibration fit line
+    #         xvalsLinear, yvalsLinear = pr_spectra.abline(np.asarray((df.tDd.min(), df.tDd.max())),
+    #                                                      slopeLinear, interceptLinear)
+    #         xvalsPower, yvalsPower = pr_spectra.abline(np.asarray((df.tDdd.min(), df.tDdd.max())),
+    #                                                    slopePower, interceptPower)
+    #         # Plot data
+    #         # TODO: need to check this is correct
+    # #         self.onPlotCalibrationCurve(xvals1=df['tDd'], yvals1=df['CCSd'], label1='Linear',
+    # #                                     xvalsLinear=xvalsLinear, yvalsLinear=yvalsLinear,
+    # #                                     xvals2=df['tDdd'], yvals2=df['CCS'], label2='Power',
+    # #                                     xvalsPower=xvalsPower, yvalsPower=yvalsPower,
+    # #                                     color='red', marker='o')
+    #
+    #         # Append to list
+    #         self.documentsDict[self.docs.title] = self.docs
+    #         # Update documents tree
+    #         self.view.panelDocuments.documents.add_document(docData=self.docs)
+    #
+    #         # Set current calibration parameters
+    #         self.currentCalibrationParams = self.docs.calibrationParameters
+    #
+    #         self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear, 4)),
+    #                                          ' | R² (power): ', str(np.round(r2Power, 4)), ]), 3)
+    #
+    # #     def on_applyCCSCalibrationToSelectedIons(self, evt):
+    # #
+    # #         # Shortcut to the table
+    # #         tempList = self.view.panelCCS.bottomP.peaklist
+    # #         calibrationMode = self.view.panelCCS.bottomP.calibrationMode.GetStringSelection()
+    # #         for caliID in range(tempList.GetItemCount()):
+    # #             # Only add info if dataset was checked
+    # #             if tempList.IsChecked(index=caliID):
+    # #                 # Get document info
+    # #                 filename = tempList.GetItem(caliID, self.config.ccsBottomColNames['filename']).GetText()
+    # #                 mzStart = tempList.GetItem(caliID, self.config.ccsBottomColNames['start']).GetText()
+    # #                 mzEnd = tempList.GetItem(caliID, self.config.ccsBottomColNames['end']).GetText()
+    # #                 charge = str2int(tempList.GetItem(caliID, self.config.ccsBottomColNames['charge']).GetText())
+    # #                 mzCentre = str2num(tempList.GetItem(caliID, self.config.ccsBottomColNames['ion']).GetText())
+    # #                 selectedType = tempList.GetItem(caliID, self.config.ccsBottomColNames['format']).GetText()
+    # #                 rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
+    # #
+    # #                 # Check these fields were filled in
+    # #                 if isempty(charge) or isempty(mzCentre):
+    # #                     msg = 'Please fill in the fields'
+    # #                     self.view.SetStatusText(msg, 3)
+    # #                     return
+    # #                 elif charge == 0:
+    # #                     msg = "
+    # %s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (
+    # #                         rangeName, filename)
+    # #                     DialogBox(exceptionTitle='Missing charge information',
+    # #                            exceptionMsg=msg,
+    # #                            type="Warning")
+    # #                     continue
+    # #                 # Get document object based on the filename
+    # #                 document = self.documentsDict[filename]
+    # #
+    # #                 # Select data based on the format of the object
+    # #                 if selectedType == '2D, extracted':
+    # #                     data = document.IMS2Dions[rangeName]
+    # #                 elif selectedType == '2D, combined':
+    # #                     data = document.IMS2DCombIons[rangeName]
+    # #                 elif selectedType == '2D, processed':
+    # #                     data = document.IMS2DionsProcess[rangeName]
+    # #
+    # #                 # Unpack data
+    # #                 zvals, xvals, xlabel, yvals, ylabel, charge, mw, mzCentre = self.get2DdataFromDictionary(
+    # #                     dictionary=data, dataType='calibration', compact=False)
+    # #                 # Check that the object has pusher frequency
+    # #                 pusherFreq = document.parameters.get('pusherFreq', 1)
+    # #
+    # #                 if (pusherFreq == 1 or not isnumber(pusherFreq)) and ylabel != 'Drift time (ms)':
+    # #                     msg = \
+    #     "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (
+    # #                         filename, rangeName)
+    # #                     DialogBox(exceptionTitle='Missing data',
+    # #                            exceptionMsg=msg,
+    # #                            type="Error")
+    # #                     continue
+    # #                 # Check if ylabel is in ms
+    # #                 if ylabel != 'Drift time (ms)':
+    # #                     if ylabel == 'Drift time (bins)':
+    # #                         yvals = yvals * (pusherFreq / 1000)
+    # #                     else:
+    # #                         # Need to restore scans and convert them to ms
+    # #                         yvals = 1 + np.arange(len(zvals[:, 1]))
+    # #                         yvals = yvals * (pusherFreq / 1000)
+    # #
+    # #                 # Check for TOF correction factor
+    # #                 if isempty(document.corrC) and document.parameters.get('corrC', None) is None:
+    # #                     msg = 'Missing TOF correction factor'
+    # #                     self.view.SetStatusText(msg, 3)
+    # #                     return
+    # #
+    # #                 # Check for charge and m/z information
+    # #                 if not isnumber(charge) or not isnumber(mzCentre):
+    # #                     if not isnumber(charge):
+    # #                         msg = 'Missing charge information'
+    # #                     elif not isnumber(mzCentre):
+    # #                         msg = 'Missing m/z information'
+    # #                     self.view.SetStatusText(msg, 3)
+    # #                     return
+    # #
+    # #                 # Create empty DataFrame to calculate CCS
+    # #                 df = pd.DataFrame(columns=['m/z', 'z', 'tD', 'MW', 'RedMass', 'tDd', 'tDdd'],
+    # #                                   index=np.arange(0, len(yvals)))
+    # #                 df['m/z'] = float(mzCentre)
+    # #                 df['z'] = int(charge)
+    # #                 df['tD'] = yvals
+    # #
+    # #                 # Unpack calibration parameters
+    # #                 if len(self.currentCalibrationParams) == 0:
+    # #                     if document.gotCalibrationParameters:
+    # #                         self.currentCalibrationParams = document.calibrationParameters
+    # #
+    # #                 # Now assign the calibration parameters
+    # #                 try:
+    # #                     calibrationParameters = self.currentCalibrationParams.get('parameters', None)
+    # #                 except (IndexError, KeyError):
+    # #                     calibrationParameters = None
+    # #
+    # #                 if calibrationParameters is None:
+    # #                     # TODO: add function to search for calibration document
+    # #                     docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
+    # #                                                                 format='Format: DataFrame')
+    # #                     if len(docList) == 0:
+    # #                         msg = \
+    #     "Cound not find calibration document or calibration file. Please create or load one in first"
+    # #                         DialogBox(exceptionTitle='Missing data',
+    # #                                exceptionMsg=msg,
+    # #                                type="Error")
+    # #                         return
+    # #                     else:
+    # #                         self.selectDocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
+    # #                         if self.selectDocDlg.ShowModal() == wx.ID_OK:
+    # #                             calibrationParameters = self.currentCalibrationParams.get('parameters', None)
+    # #                             if calibrationParameters is None:
+    # #                                 return
+    # #                         return
+    # #
+    # #                 # Get parameters
+    # #                 slopeLinear, interceptLinear, r2Linear = calibrationParameters['linear']
+    # #                 slopePower, interceptPower, r2Power = calibrationParameters['power']
+    # #                 slope, intercept = calibrationParameters['powerParms']
+    # #                 gas = calibrationParameters['gas']
+    # #
+    # #                 # Fill in remaining details
+    # #                 df['MW'] = (df['m/z'] - (self.config.elementalMass['Hydrogen'] * df['z'])) * df['z']
+    # #                 df['RedMass'] = ((df['MW'] * gas) / (df['MW'] + gas))
+    # #                 df['tDd'] = (df['tD'] - ((document.corrC * df['m/z'].apply(sqrt)) / 1000))
+    # #
+    # #                 # Linear law
+    # #                 df['CCSd'] = slopeLinear * df['tDd'] + interceptLinear
+    # #                 df['CCSlinear'] = df['CCSd'] * (df['z'] * (1 / df['RedMass']).apply(sqrt))
+    # #                 # Power law
+    # #                 df['tDdd'] = df['tDd'].pow(slope) * df['z'] * df['RedMass'].apply(sqrt)
+    # #                 df['CCSpower'] = (df['tDdd'] * slopePower) + interceptPower
+    # #
+    # #                 # Update dictionary
+    # #                 document.gotCalibrationParameters = True
+    # #                 document.calibrationParameters = self.currentCalibrationParams
+    # #                 document.calibrationParameters['mode'] = calibrationMode
+    # #
+    # #                 document.gas = gas
+    # #
+    # #                 if calibrationMode == 'Linear':
+    # #                     ccsVals = pd.to_numeric(df['CCSlinear']).values
+    # #                 elif calibrationMode == 'Power':
+    # #                     ccsVals = pd.to_numeric(df['CCSpower']).values
+    # #
+    # #                 # Assign data
+    # #                 if selectedType == '2D, extracted':
+    # #                     document.IMS2Dions[rangeName]['yvals'] = ccsVals
+    # #                     document.IMS2Dions[rangeName]['yvalsCCSBackup'] = ccsVals
+    # #                     document.IMS2Dions[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
+    # #                 elif selectedType == '2D, combined':
+    # #                     document.IMS2DCombIons[rangeName]['yvals'] = ccsVals
+    # #                     document.IMS2DCombIons[rangeName]['yvalsCCSBackup'] = ccsVals
+    # #                     document.IMS2DCombIons[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
+    # #                 elif selectedType == '2D, processed':
+    # #                     document.IMS2DionsProcess[rangeName]['yvals'] = ccsVals
+    # #                     document.IMS2DionsProcess[rangeName]['yvalsCCSBackup'] = ccsVals
+    # #                     document.IMS2DionsProcess[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
+    # #
+    # #                 # Assign updated to dictionary
+    # #                 self.documentsDict[document.title] = document
+    # #
+    # #                 # Update documents tree
+    # #                 self.view.panelDocuments.documents.add_document(docData=document)
+    # #
+    # #         # Update status bar
+    # #         try:
+    # #             self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear, 4)),
+    # #                                              ' | R² (power): ', str(np.round(r2Power, 4)),
+    # #                                              ' | Used: ', calibrationMode, ' mode']), 3)
+    # #         except Exception:            pass
+    # #
+    # #     def OnAddDataToCCSTable(self, filename=None, mzStart=None, mzEnd=None,
+    # #                             mzCentre=None, charge=None, protein=None,
+    # #                             format=None, evt=None):
+    # #         """
+    # #         Add data to table and prepare DataFrame for CCS calibration
+    # #         """
+    # #         # Shortcut to the table
+    # #         tempList = self.view.panelCCS.bottomP.peaklist
+    # #
+    # #         # Add data to table
+    # #         tempList.Append([filename, mzStart, mzEnd,
+    # #                          mzCentre, protein, charge, format])
+    # #
+    # #         # Remove duplicates
+    # #         self.view.panelCCS.bottomP.onRemoveDuplicates(evt=None)
+    # #         # Enable and show CCS table
+    # #         self.view.on_toggle_panel(evt=ID_window_ccsList, check=True)
+    # #
+    # #     def saveCCScalibrationToPickle(self, evt):
+    # #         """
+    # #         Save CCS calibration parameters to file
+    # #         """
+    # #         try:
+    # #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+    # #         except Exception:            return
+    # #         if self.currentDoc == "Documents":
+    # #             return
+    # #
+    # #         # Check if the currently selected document is Calibration dataframe file
+    # #         if (self.documentsDict[self.currentDoc].dataType == 'Type: CALIBRANT' and
+    # #                 self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
+    # #             self.docs = self.documentsDict[self.currentDoc]
+    # #             self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
+    # #         else:
+    # #             docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
+    # #                                                         format='Format: DataFrame')
+    # #             if len(docList) == 0:
+    # #                 print('Did not find appropriate document.')
+    # #                 return
+    # #             else:
+    # #                 self.DocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
+    # #                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
+    # #                     pass
+    # #
+    # #                 # Check that document exists
+    # #                 if self.currentDoc is None:
+    # #                     self.view.SetStatusText('Please select CCS calibration document', 3)
+    # #                     return
+    # #
+    # #                 self.docs = self.documentsDict[self.currentDoc]
+    # #                 self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
+    # #
+    # #         # Get calibration parameters
+    # #         # Unpack calibration parameters
+    # #         if len(self.currentCalibrationParams) == 0:
+    # #             if self.docs.gotCalibrationParameters:
+    # #                 self.currentCalibrationParams = self.docs.calibrationParameters
+    # #
+    # #         # Save parameters
+    # #         fileType = "ORIGAMI Document File|*.pickle"
+    # #         dlg = wx.FileDialog(self.view, "Save CCS calibration to file...", "", "", fileType,
+    # #                             wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+    # #         defaultFilename = self.docs.title.split(".")
+    # #         defaultFilename = "".join([defaultFilename[0], '_CCScaliParams'])
+    # #         dlg.SetFilename(defaultFilename)
+    # #
+    # #         if dlg.ShowModal() == wx.ID_OK:
+    # #             saveFileName = dlg.GetPath()
+    # #             # Save
+    # #             saveObject(filename=saveFileName, saveFile=self.currentCalibrationParams)
+    # #         else:
+    # #             return
 
-#     def onImportCCSDatabase(self, evt, onStart=False):
-#
-#         if not onStart:
-#             dlg = wx.FileDialog(self.view, "Choose a CCS database file:", wildcard="*.csv",
-#                                 style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-#             if dlg.ShowModal() == wx.ID_OK:
-#                 print("You chose %s" % dlg.GetPath())
-#
-#                 # Open database
-#                 self.config.ccsDB = io_text.text_ccs_database_open(dlg.GetPath())
-#         else:
-#             self.config.ccsDB = io_text.text_ccs_database_open(
-#                 filename=os.path.join(self.config.cwd, "example_files", "calibrantDB.csv"))
-#             print('Loaded CCS database')
+    #     def onImportCCSDatabase(self, evt, onStart=False):
+    #
+    #         if not onStart:
+    #             dlg = wx.FileDialog(self.view, "Choose a CCS database file:", wildcard="*.csv",
+    #                                 style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+    #             if dlg.ShowModal() == wx.ID_OK:
+    #                 print("You chose %s" % dlg.GetPath())
+    #
+    #                 # Open database
+    #                 self.config.ccsDB = io_text.text_ccs_database_open(dlg.GetPath())
+    #         else:
+    #             self.config.ccsDB = io_text.text_ccs_database_open(
+    #                 filename=os.path.join(self.config.cwd, "example_files", "calibrantDB.csv"))
+    #             print('Loaded CCS database')
 
     def onProcessMultipleTextFiles(self, evt):
 
@@ -2440,35 +2344,34 @@ class ORIGAMI(object):
         try:
             for row in range(tempList.GetItemCount()):
                 itemInfo = self.view.panelMultipleText.OnGetItemInformation(itemID=row)
-                if itemInfo['select']:
-                    self.docs = self.documentsDict[itemInfo['document']]
+                if itemInfo["select"]:
+                    self.docs = self.documentsDict[itemInfo["document"]]
                     imsData2D = self.data_processing.on_process_2D(
-                        zvals=self.docs.IMS2D['zvals'].copy(),
-                        return_data=True,
+                        zvals=self.docs.IMS2D["zvals"].copy(), return_data=True
                     )
                     self.docs.got2Dprocess = True
                     self.docs.IMS2Dprocess = {
-                        'zvals': imsData2D,
-                        'xvals': self.docs.IMS2D['xvals'],
-                        'xlabels': self.docs.IMS2D['xlabels'],
-                        'yvals': self.docs.IMS2D['yvals'],
-                        'ylabels': self.docs.IMS2D['ylabels'],
-                        'cmap': itemInfo['colormap'],
-                        'label': itemInfo['label'],
-                        'charge': itemInfo['charge'],
-                        'alpha': itemInfo['alpha'],
-                        'mask': itemInfo['mask'],
-                        'color': itemInfo['color'],
-                        'min_threshold': itemInfo['min_threshold'],
-                        'max_threshold': itemInfo['max_threshold'],
+                        "zvals": imsData2D,
+                        "xvals": self.docs.IMS2D["xvals"],
+                        "xlabels": self.docs.IMS2D["xlabels"],
+                        "yvals": self.docs.IMS2D["yvals"],
+                        "ylabels": self.docs.IMS2D["ylabels"],
+                        "cmap": itemInfo["colormap"],
+                        "label": itemInfo["label"],
+                        "charge": itemInfo["charge"],
+                        "alpha": itemInfo["alpha"],
+                        "mask": itemInfo["mask"],
+                        "color": itemInfo["color"],
+                        "min_threshold": itemInfo["min_threshold"],
+                        "max_threshold": itemInfo["max_threshold"],
                     }
 
                     # Update file list
-                    self.OnUpdateDocument(self.docs, 'document')
+                    self.OnUpdateDocument(self.docs, "document")
                 else:
                     pass
         except Exception:
-            print('Cannot process selected items. These belong to Comparison document')
+            print("Cannot process selected items. These belong to Comparison document")
             return
 
         if evt.GetId() == ID_textPanel_process_all:
@@ -2494,10 +2397,7 @@ class ORIGAMI(object):
             if self.documentsDict[key].dataType == type and format is None:
                 listOfDocs.append(key)
 
-            elif (
-                self.documentsDict[key].dataType == type and
-                self.documentsDict[key].fileFormat == format
-            ):
+            elif self.documentsDict[key].dataType == type and self.documentsDict[key].fileFormat == format:
                 listOfDocs.append(key)
 
             else:
@@ -2505,10 +2405,7 @@ class ORIGAMI(object):
 
         return listOfDocs
 
-    def get2DdataFromDictionary(
-        self, dictionary=None, dataType='plot',
-        compact=False, plotType='2D',
-    ):
+    def get2DdataFromDictionary(self, dictionary=None, dataType="plot", compact=False, plotType="2D"):
         """
         This is a helper function to extract relevant data from dictionary
         Params:
@@ -2519,116 +2416,126 @@ class ORIGAMI(object):
         """
         if dictionary is None:
             return
-        if plotType == '2D':
+        if plotType == "2D":
             # These are always there
-            zvals = dictionary['zvals'].copy()
-            xvals = dictionary['xvals']
-            xlabels = dictionary['xlabels']
-            yvals = dictionary['yvals']
-            ylabels = dictionary['ylabels']
-            cmap = dictionary.get('cmap', self.config.currentCmap)
-            charge = dictionary.get('charge', None)
-            mw = dictionary.get('mw', None)
-            mzCentre = dictionary.get('xcentre', None)
+            zvals = dictionary["zvals"].copy()
+            xvals = dictionary["xvals"]
+            xlabels = dictionary["xlabels"]
+            yvals = dictionary["yvals"]
+            ylabels = dictionary["ylabels"]
+            cmap = dictionary.get("cmap", self.config.currentCmap)
+            charge = dictionary.get("charge", None)
+            mw = dictionary.get("mw", None)
+            mzCentre = dictionary.get("xcentre", None)
 
-#             if cmap == '' or cmap is None: cmap = 'viridis'
-            if dataType == 'all':
+            #             if cmap == '' or cmap is None: cmap = 'viridis'
+            if dataType == "all":
                 if compact:
                     data = zvals, xvals, xlabels, yvals, ylabels, cmap, charge
                     return data
                 else:
                     return zvals, xvals, xlabels, yvals, ylabels, cmap, charge
-            elif dataType == 'plot':
+            elif dataType == "plot":
                 if compact:
                     data = zvals, xvals, xlabels, yvals, ylabels, cmap
                     return data
                 else:
                     return zvals, xvals, xlabels, yvals, ylabels, cmap
-            elif dataType == 'calibration':
+            elif dataType == "calibration":
                 return zvals, xvals, xlabels, yvals, ylabels, charge, mw, mzCentre
-        if plotType == '1D':
-            xvals = dictionary['xvals']
+        if plotType == "1D":
+            xvals = dictionary["xvals"]
             try:
-                xlabels = dictionary['xlabels']
+                xlabels = dictionary["xlabels"]
             except Exception:
-                xlabels = dictionary['xlabel']
-            yvals = dictionary['yvals']
+                xlabels = dictionary["xlabel"]
+            yvals = dictionary["yvals"]
             try:
-                cmap = dictionary['cmap']
+                cmap = dictionary["cmap"]
             except KeyError:
                 cmap = [0, 0, 0]
 
             try:
-                xlimits = dictionary['xlimits']
+                xlimits = dictionary["xlimits"]
             except KeyError:
                 xlimits = None
-            if dataType == 'plot':
+            if dataType == "plot":
                 if compact:
                     data = xvals, yvals, xlabels, cmap
                     return data
                 else:
                     return xvals, yvals, xlabels, cmap
-        elif plotType == 'Overlay':
-            zvals1 = dictionary['zvals1']
-            zvals2 = dictionary['zvals2']
-            cmapIon1 = dictionary['cmap1']
-            cmapIon2 = dictionary['cmap2']
-            alphaIon1 = dictionary['alpha1']
-            alphaIon2 = dictionary['alpha2']
-            xvals = dictionary['xvals']
-            xlabel = dictionary['xlabels']
-            yvals = dictionary['yvals']
-            ylabel = dictionary['ylabels']
+        elif plotType == "Overlay":
+            zvals1 = dictionary["zvals1"]
+            zvals2 = dictionary["zvals2"]
+            cmapIon1 = dictionary["cmap1"]
+            cmapIon2 = dictionary["cmap2"]
+            alphaIon1 = dictionary["alpha1"]
+            alphaIon2 = dictionary["alpha2"]
+            xvals = dictionary["xvals"]
+            xlabel = dictionary["xlabels"]
+            yvals = dictionary["yvals"]
+            ylabel = dictionary["ylabels"]
             try:
-                charge1 = dictionary['charge1']
-                charge2 = dictionary['charge2']
+                charge1 = dictionary["charge1"]
+                charge2 = dictionary["charge2"]
             except KeyError:
                 charge1 = None
                 charge2 = None
-            if dataType == 'plot':
+            if dataType == "plot":
                 if compact:
                     return
                 else:
                     return (
-                        zvals1, zvals2, cmapIon1, cmapIon2, alphaIon1, alphaIon2, xvals,
-                        xlabel, yvals, ylabel, charge1, charge2,
+                        zvals1,
+                        zvals2,
+                        cmapIon1,
+                        cmapIon2,
+                        alphaIon1,
+                        alphaIon2,
+                        xvals,
+                        xlabel,
+                        yvals,
+                        ylabel,
+                        charge1,
+                        charge2,
                     )
-        elif plotType == 'Matrix':
-            zvals = dictionary['zvals']
-            xylabels = dictionary['matrixLabels']
-            cmap = dictionary['cmap']
+        elif plotType == "Matrix":
+            zvals = dictionary["zvals"]
+            xylabels = dictionary["matrixLabels"]
+            cmap = dictionary["cmap"]
             return zvals, xylabels, cmap
-        elif plotType == 'RMSF':
-            zvals = dictionary['zvals']
-            yvalsRMSF = dictionary['yvalsRMSF']
-            xvals = dictionary['xvals']
-            yvals = dictionary['yvals']
-            xlabelRMSD = dictionary['xlabelRMSD']
-            ylabelRMSD = dictionary['ylabelRMSD']
-            ylabelRMSF = dictionary['ylabelRMSF']
-            color = dictionary['colorRMSF']
-            cmap = dictionary['cmapRMSF']
-            rmsdLabel = dictionary['rmsdLabel']
+        elif plotType == "RMSF":
+            zvals = dictionary["zvals"]
+            yvalsRMSF = dictionary["yvalsRMSF"]
+            xvals = dictionary["xvals"]
+            yvals = dictionary["yvals"]
+            xlabelRMSD = dictionary["xlabelRMSD"]
+            ylabelRMSD = dictionary["ylabelRMSD"]
+            ylabelRMSF = dictionary["ylabelRMSF"]
+            color = dictionary["colorRMSF"]
+            cmap = dictionary["cmapRMSF"]
+            rmsdLabel = dictionary["rmsdLabel"]
             return zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel
-        elif plotType == 'RMSD':
-            zvals = dictionary['zvals']
-            xvals = dictionary['xvals']
-            xlabels = dictionary['xlabel']
-            yvals = dictionary['yvals']
-            ylabels = dictionary['ylabel']
-            rmsdLabel = dictionary['rmsdLabel']
-            cmap = dictionary['cmap']
+        elif plotType == "RMSD":
+            zvals = dictionary["zvals"]
+            xvals = dictionary["xvals"]
+            xlabels = dictionary["xlabel"]
+            yvals = dictionary["yvals"]
+            ylabels = dictionary["ylabel"]
+            rmsdLabel = dictionary["rmsdLabel"]
+            cmap = dictionary["cmap"]
             return zvals, xvals, xlabels, yvals, ylabels, rmsdLabel, cmap
-        elif plotType == 'Overlay1D':
-            xvals = dictionary['xvals']
-            yvals = dictionary['yvals']
-            xlabels = dictionary['xlabel']
-            colors = dictionary['colors']
-            labels = dictionary['labels']
-            xlimits = dictionary.get('xlimits', None)
+        elif plotType == "Overlay1D":
+            xvals = dictionary["xvals"]
+            yvals = dictionary["yvals"]
+            xlabels = dictionary["xlabel"]
+            colors = dictionary["colors"]
+            labels = dictionary["labels"]
+            xlimits = dictionary.get("xlimits", None)
             return xvals, yvals, xlabels, colors, labels, xlimits
 
-    def getOverlayDataFromDictionary(self, dictionary=None, dataType='plot', compact=False):
+    def getOverlayDataFromDictionary(self, dictionary=None, dataType="plot", compact=False):
         """
         This is a helper function to extract relevant data from dictionary
         Params:
@@ -2641,24 +2548,21 @@ class ORIGAMI(object):
         if dictionary is None:
             return
         # These are always there
-        zvals1 = dictionary['zvals1']
-        zvals2 = dictionary['zvals2']
-        cmap1 = dictionary['cmap1']
-        cmap2 = dictionary['cmap2']
-        alpha1 = dictionary['alpha1']
-        alpha2 = dictionary['alpha2']
-        mask1 = dictionary['mask1']
-        mask2 = dictionary['mask2']
-        xvals = dictionary['xvals']
-        xlabels = dictionary['xlabels']
-        yvals = dictionary['yvals']
-        ylabels = dictionary['ylabels']
-        if dataType == 'plot':
+        zvals1 = dictionary["zvals1"]
+        zvals2 = dictionary["zvals2"]
+        cmap1 = dictionary["cmap1"]
+        cmap2 = dictionary["cmap2"]
+        alpha1 = dictionary["alpha1"]
+        alpha2 = dictionary["alpha2"]
+        mask1 = dictionary["mask1"]
+        mask2 = dictionary["mask2"]
+        xvals = dictionary["xvals"]
+        xlabels = dictionary["xlabels"]
+        yvals = dictionary["yvals"]
+        ylabels = dictionary["ylabels"]
+        if dataType == "plot":
             if compact:
-                data = [
-                    zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, mask1, mask2, xvals, yvals,
-                    xlabels, ylabels,
-                ]
+                data = [zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, mask1, mask2, xvals, yvals, xlabels, ylabels]
                 return data
             else:
                 return zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, mask1, mask2, xvals, yvals, xlabels, ylabels
@@ -2668,162 +2572,171 @@ class ORIGAMI(object):
         @param data_format (str): type of data to be returned
         """
         # new in 1.1.0
-        if data_format == '2D':
-            get_data = self.config.replotData.get('2D', None)
+        if data_format == "2D":
+            get_data = self.config.replotData.get("2D", None)
             zvals, xvals, yvals, xlabel, ylabel = None, None, None, None, None
             if get_data is not None:
-                zvals = get_data['zvals'].copy()
-                xvals = get_data['xvals']
-                yvals = get_data['yvals']
-                xlabel = get_data['xlabels']
-                ylabel = get_data['ylabels']
+                zvals = get_data["zvals"].copy()
+                xvals = get_data["xvals"]
+                yvals = get_data["yvals"]
+                xlabel = get_data["xlabels"]
+                ylabel = get_data["ylabels"]
             return zvals, xvals, yvals, xlabel, ylabel
-        elif data_format == 'RMSF':
-            get_data = self.config.replotData.get('RMSF', None)
+        elif data_format == "RMSF":
+            get_data = self.config.replotData.get("RMSF", None)
             zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF = None, None, None, None, None, None
             if get_data is not None:
-                zvals = get_data['zvals'].copy()
-                xvals = get_data['xvals']
-                yvals = get_data['yvals']
-                xlabelRMSD = get_data['xlabelRMSD']
-                ylabelRMSD = get_data['ylabelRMSD']
-                ylabelRMSF = get_data['ylabelRMSF']
+                zvals = get_data["zvals"].copy()
+                xvals = get_data["xvals"]
+                yvals = get_data["yvals"]
+                xlabelRMSD = get_data["xlabelRMSD"]
+                ylabelRMSD = get_data["ylabelRMSD"]
+                ylabelRMSF = get_data["ylabelRMSF"]
             return zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF
-        elif data_format == 'DT/MS':
-            get_data = self.config.replotData.get('DT/MS', None)
+        elif data_format == "DT/MS":
+            get_data = self.config.replotData.get("DT/MS", None)
             zvals, xvals, yvals, xlabel, ylabel = None, None, None, None, None
             if get_data is not None:
-                zvals = get_data['zvals'].copy()
-                xvals = get_data['xvals']
-                yvals = get_data['yvals']
-                xlabel = get_data['xlabels']
-                ylabel = get_data['ylabels']
+                zvals = get_data["zvals"].copy()
+                xvals = get_data["xvals"]
+                yvals = get_data["yvals"]
+                xlabel = get_data["xlabels"]
+                ylabel = get_data["ylabels"]
             return zvals, xvals, yvals, xlabel, ylabel
-        elif data_format == 'MS':
-            get_data = self.config.replotData.get('MS', None)
+        elif data_format == "MS":
+            get_data = self.config.replotData.get("MS", None)
             xvals, yvals, xlimits = None, None, None
             if get_data is not None:
-                xvals = get_data.get('xvals', None)
-                yvals = get_data.get('yvals', None)
-                xlimits = get_data.get('xlimits', None)
+                xvals = get_data.get("xvals", None)
+                yvals = get_data.get("yvals", None)
+                xlimits = get_data.get("xlimits", None)
             return xvals, yvals, xlimits
-        elif data_format == 'RT':
-            get_data = self.config.replotData.get('RT', None)
+        elif data_format == "RT":
+            get_data = self.config.replotData.get("RT", None)
             xvals, yvals, xlabel = None, None, None
             if get_data is not None:
-                xvals = get_data.get('xvals', None)
-                yvals = get_data.get('yvals', None)
-                xlabel = get_data.get('xlabel', None)
+                xvals = get_data.get("xvals", None)
+                yvals = get_data.get("yvals", None)
+                xlabel = get_data.get("xlabel", None)
             return xvals, yvals, xlabel
-        elif data_format == '1D':
-            get_data = self.config.replotData.get('1D', None)
+        elif data_format == "1D":
+            get_data = self.config.replotData.get("1D", None)
             xvals, yvals, xlabel = None, None, None
             if get_data is not None:
-                xvals = get_data.get('xvals', None)
-                yvals = get_data.get('yvals', None)
-                xlabel = get_data.get('xlabel', None)
+                xvals = get_data.get("xvals", None)
+                yvals = get_data.get("yvals", None)
+                xlabel = get_data.get("xlabel", None)
             return xvals, yvals, xlabel
-        elif data_format == 'Matrix':
-            get_data = self.config.replotData.get('Matrix', None)
+        elif data_format == "Matrix":
+            get_data = self.config.replotData.get("Matrix", None)
             zvals, xylabels, cmap = None, None, None
             if get_data is not None:
-                zvals = get_data.get('zvals', None)
-                xylabels = get_data.get('xylabels', None)
-                cmap = get_data.get('cmap', None)
+                zvals = get_data.get("zvals", None)
+                xylabels = get_data.get("xylabels", None)
+                cmap = get_data.get("cmap", None)
             return zvals, xylabels, cmap
 
-#     def plot_1D_update(self, plotName='all', evt=None):
-#
-#         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='1D')
-#
-#         if plotName in ['all', 'MS']:
-#             try:
-#                 self.view.panelPlots.plot1.plot_1D_update(**plt_kwargs)
-#                 self.view.panelPlots.plot1.repaint()
-#             except AttributeError:
-#                 pass
-#
-#         if plotName in ['all', 'RT']:
-#             try:
-#                 self.view.panelPlots.plotRT.plot_1D_update(**plt_kwargs)
-#                 self.view.panelPlots.plotRT.repaint()
-#             except AttributeError:
-#                 pass
-#
-#         if plotName in ['all', '1D']:
-#             try:
-#                 self.view.panelPlots.plot1D.plot_1D_update(**plt_kwargs)
-#                 self.view.panelPlots.plot1D.repaint()
-#             except AttributeError:
-#                 pass
-#
-#     def plot_2D_update(self, plotName='all', evt=None):
-#         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='2D')
-#
-#         if plotName in ['all', '2D']:
-#             try:
-#                 zvals, __, __, __, __ = self._get_replot_data('2D')
-#                 # normalize
-#                 cmapNorm = self.normalize_colormap(
-#                     zvals,
-#                     min=self.config.minCmap,
-#                     mid=self.config.midCmap,
-#                     max=self.config.maxCmap,
-#                 )
-#                 plt_kwargs['colormap_norm'] = cmapNorm
-#
-#                 self.view.panelPlots.plot2D.plot_2D_update(**plt_kwargs)
-#                 self.view.panelPlots.plot2D.repaint()
-#             except AttributeError:
-#                 pass
-#
-#         if plotName in ['all', 'DT/MS']:
-#             try:
-#                 zvals, __, __, __, __ = self._get_replot_data('DT/MS')
-#                 # normalize
-#                 cmapNorm = self.normalize_colormap(
-#                     zvals,
-#                     min=self.config.minCmap,
-#                     mid=self.config.midCmap,
-#                     max=self.config.maxCmap,
-#                 )
-#                 plt_kwargs['colormap_norm'] = cmapNorm
-#                 self.view.panelPlots.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
-#                 self.view.panelPlots.plot_DT_vs_MS.repaint()
-#             except AttributeError:
-#                 pass
-#
-#     def plot_3D_update(self, plotName='all', evt=None):
-#         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='3D')
-#
-#         if plotName in ['all', '3D']:
-#             try:
-#                 self.view.panelPlots.plot3D.plot_3D_update(**plt_kwargs)
-#                 self.view.panelPlots.plot3D.repaint()
-#             except AttributeError:
-#                 pass
+    #     def plot_1D_update(self, plotName='all', evt=None):
+    #
+    #         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='1D')
+    #
+    #         if plotName in ['all', 'MS']:
+    #             try:
+    #                 self.view.panelPlots.plot1.plot_1D_update(**plt_kwargs)
+    #                 self.view.panelPlots.plot1.repaint()
+    #             except AttributeError:
+    #                 pass
+    #
+    #         if plotName in ['all', 'RT']:
+    #             try:
+    #                 self.view.panelPlots.plotRT.plot_1D_update(**plt_kwargs)
+    #                 self.view.panelPlots.plotRT.repaint()
+    #             except AttributeError:
+    #                 pass
+    #
+    #         if plotName in ['all', '1D']:
+    #             try:
+    #                 self.view.panelPlots.plot1D.plot_1D_update(**plt_kwargs)
+    #                 self.view.panelPlots.plot1D.repaint()
+    #             except AttributeError:
+    #                 pass
+    #
+    #     def plot_2D_update(self, plotName='all', evt=None):
+    #         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='2D')
+    #
+    #         if plotName in ['all', '2D']:
+    #             try:
+    #                 zvals, __, __, __, __ = self._get_replot_data('2D')
+    #                 # normalize
+    #                 cmapNorm = self.normalize_colormap(
+    #                     zvals,
+    #                     min=self.config.minCmap,
+    #                     mid=self.config.midCmap,
+    #                     max=self.config.maxCmap,
+    #                 )
+    #                 plt_kwargs['colormap_norm'] = cmapNorm
+    #
+    #                 self.view.panelPlots.plot2D.plot_2D_update(**plt_kwargs)
+    #                 self.view.panelPlots.plot2D.repaint()
+    #             except AttributeError:
+    #                 pass
+    #
+    #         if plotName in ['all', 'DT/MS']:
+    #             try:
+    #                 zvals, __, __, __, __ = self._get_replot_data('DT/MS')
+    #                 # normalize
+    #                 cmapNorm = self.normalize_colormap(
+    #                     zvals,
+    #                     min=self.config.minCmap,
+    #                     mid=self.config.midCmap,
+    #                     max=self.config.maxCmap,
+    #                 )
+    #                 plt_kwargs['colormap_norm'] = cmapNorm
+    #                 self.view.panelPlots.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
+    #                 self.view.panelPlots.plot_DT_vs_MS.repaint()
+    #             except AttributeError:
+    #                 pass
+    #
+    #     def plot_3D_update(self, plotName='all', evt=None):
+    #         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='3D')
+    #
+    #         if plotName in ['all', '3D']:
+    #             try:
+    #                 self.view.panelPlots.plot3D.plot_3D_update(**plt_kwargs)
+    #                 self.view.panelPlots.plot3D.repaint()
+    #             except AttributeError:
+    #                 pass
 
-    def addTextRMSD(self, x, y, text, rotation, color='k', plot='RMSD'):
+    def addTextRMSD(self, x, y, text, rotation, color="k", plot="RMSD"):
 
-        if plot == 'RMSD':
+        if plot == "RMSD":
             self.view.panelPlots.plot_RMSF.addText(
-                x, y, text, rotation,
+                x,
+                y,
+                text,
+                rotation,
                 color=self.config.rmsd_color,
                 fontsize=self.config.rmsd_fontSize,
                 weight=self.config.rmsd_fontWeight,
             )
             self.view.panelPlots.plot_RMSF.repaint()
-        elif plot == 'RMSF':
+        elif plot == "RMSF":
             self.view.panelPlots.plot_RMSF.addText(
-                x, y, text, rotation,
+                x,
+                y,
+                text,
+                rotation,
                 color=self.config.rmsd_color,
                 fontsize=self.config.rmsd_fontSize,
                 weight=self.config.rmsd_fontWeight,
             )
             self.view.panelPlots.plot_RMSF.repaint()
-        elif plot == 'Grid':
+        elif plot == "Grid":
             self.view.panelPlots.plot_overlay.addText(
-                x, y, text, rotation,
+                x,
+                y,
+                text,
+                rotation,
                 color=self.config.rmsd_color,
                 fontsize=self.config.rmsd_fontSize,
                 weight=self.config.rmsd_fontWeight,
@@ -2851,29 +2764,24 @@ class ORIGAMI(object):
         """
         if not onStart:
             if evt.GetId() == ID_openConfig:
-                config_path = os.path.join(self.config.cwd, 'configOut.xml')
+                config_path = os.path.join(self.config.cwd, "configOut.xml")
                 self.onThreading(
-                    None, (
-                        'Imported configuration file: {}'.format(
-                            config_path,
-                        ), 4,
-                    ), action='updateStatusbar',
+                    None, ("Imported configuration file: {}".format(config_path), 4), action="updateStatusbar"
                 )
                 self.config.loadConfigXML(path=config_path, evt=None)
                 self.view.updateRecentFiles()
                 return
             elif evt.GetId() == ID_openAsConfig:
                 dlg = wx.FileDialog(
-                    self.view, 'Open Configuration File', wildcard='*.xml',
-                    style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
+                    self.view, "Open Configuration File", wildcard="*.xml", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
                 )
                 if dlg.ShowModal() == wx.ID_OK:
                     fileName = dlg.GetPath()
                     self.config.loadConfigXML(path=fileName, evt=None)
                     self.view.updateRecentFiles()
         else:
-            self.config.loadConfigXML(path='configOut.xml', evt=None)
-#             self.view.updateRecentFiles()
+            self.config.loadConfigXML(path="configOut.xml", evt=None)
+            #             self.view.updateRecentFiles()
             return
 
     def onExportConfig(self, evt, verbose=True):
@@ -2884,12 +2792,12 @@ class ORIGAMI(object):
 
         if evtID == ID_saveConfig:
             try:
-                save_dir = os.path.join(self.config.cwd, 'configOut.xml')
+                save_dir = os.path.join(self.config.cwd, "configOut.xml")
             except TypeError:
                 return
             if self.config.threading:
                 args = (save_dir, None, verbose)
-                self.onThreading(None, args, action='export_settings')
+                self.onThreading(None, args, action="export_settings")
             else:
                 try:
                     self.config.saveConfigXML(path=save_dir, evt=None, verbose=verbose)
@@ -2897,10 +2805,9 @@ class ORIGAMI(object):
                     pass
         elif evtID == ID_saveAsConfig:
             dlg = wx.FileDialog(
-                self.view, 'Save As Configuration File', wildcard='*.xml',
-                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                self.view, "Save As Configuration File", wildcard="*.xml", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             )
-            dlg.SetFilename('configOut.xml')
+            dlg.SetFilename("configOut.xml")
             if dlg.ShowModal() == wx.ID_OK:
                 fileName = dlg.GetPath()
                 self.config.saveConfigXML(path=fileName, evt=None, verbose=verbose)
@@ -2910,126 +2817,95 @@ class ORIGAMI(object):
         if path is None:
             path, title = self.getCurrentDocumentPath()
             if path is None or title is None:
-                self.view.SetStatusText('Please select a document')
+                self.view.SetStatusText("Please select a document")
                 return
 
         try:
             os.startfile(path)
         except WindowsError:
             DialogBox(
-                exceptionTitle='This folder does not exist',
-                exceptionMsg='Could not open the directory - this folder does not exist',
-                type='Error',
+                exceptionTitle="This folder does not exist",
+                exceptionMsg="Could not open the directory - this folder does not exist",
+                type="Error",
             )
             return
 
     def getCurrentDocumentPath(self):
-        '''
+        """
         Function used to get the path to current document
-        '''
+        """
         # Gather info about the file and document
-        self.currentDoc, __, __ = self.view.panelDocuments.documents.enableCurrentDocument(
-            getSelected=True,
-        )
-        if self.currentDoc == 'Documents':
+        self.currentDoc, __, __ = self.view.panelDocuments.documents.enableCurrentDocument(getSelected=True)
+        if self.currentDoc == "Documents":
             return None, None
         document = self.documentsDict[self.currentDoc]
         return document.path, document.title
 
     # TODO: move to data_handling module
-    def OnUpdateDocument(self, document, expand_item='document', expand_item_title=None):
+    def OnUpdateDocument(self, document, expand_item="document", expand_item_title=None):
 
-        if expand_item == 'document':
-            self.view.panelDocuments.documents.add_document(
-                docData=document,
-                expandItem=document,
-            )
-        elif expand_item == 'ions':
+        if expand_item == "document":
+            self.view.panelDocuments.documents.add_document(docData=document, expandItem=document)
+        elif expand_item == "ions":
             if expand_item_title is None:
-                self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2Dions,
-                )
+                self.view.panelDocuments.documents.add_document(docData=document, expandItem=document.IMS2Dions)
             else:
                 self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2Dions[expand_item_title],
+                    docData=document, expandItem=document.IMS2Dions[expand_item_title]
                 )
-        elif expand_item == 'combined_ions':
+        elif expand_item == "combined_ions":
             if expand_item_title is None:
-                self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2DCombIons,
-                )
+                self.view.panelDocuments.documents.add_document(docData=document, expandItem=document.IMS2DCombIons)
             else:
                 self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2DCombIons[expand_item_title],
+                    docData=document, expandItem=document.IMS2DCombIons[expand_item_title]
                 )
 
-        elif expand_item == 'processed_ions':
+        elif expand_item == "processed_ions":
             if expand_item_title is None:
-                self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2DionsProcess,
-                )
+                self.view.panelDocuments.documents.add_document(docData=document, expandItem=document.IMS2DionsProcess)
             else:
                 self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2DionsProcess[expand_item_title],
+                    docData=document, expandItem=document.IMS2DionsProcess[expand_item_title]
                 )
 
-        elif expand_item == 'ions_1D':
+        elif expand_item == "ions_1D":
             if expand_item_title is None:
-                self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.multipleDT,
-                )
+                self.view.panelDocuments.documents.add_document(docData=document, expandItem=document.multipleDT)
             else:
                 self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.multipleDT[expand_item_title],
+                    docData=document, expandItem=document.multipleDT[expand_item_title]
                 )
 
-        elif expand_item == 'comparison_data':
+        elif expand_item == "comparison_data":
             if expand_item_title is None:
-                self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2DcompData,
-                )
+                self.view.panelDocuments.documents.add_document(docData=document, expandItem=document.IMS2DcompData)
             else:
                 self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2DcompData[expand_item_title],
+                    docData=document, expandItem=document.IMS2DcompData[expand_item_title]
                 )
 
-        elif expand_item == 'mass_spectra':
+        elif expand_item == "mass_spectra":
             if expand_item_title is None:
                 self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.multipleMassSpectrum,
+                    docData=document, expandItem=document.multipleMassSpectrum
                 )
             else:
                 self.view.panelDocuments.documents.add_document(
-                    docData=document, expandItem=document.multipleMassSpectrum[expand_item_title],
+                    docData=document, expandItem=document.multipleMassSpectrum[expand_item_title]
                 )
 
-        elif expand_item == 'overlay':
+        elif expand_item == "overlay":
             if expand_item_title is None:
-                self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2DoverlayData,
-                )
+                self.view.panelDocuments.documents.add_document(docData=document, expandItem=document.IMS2DoverlayData)
             else:
                 self.view.panelDocuments.documents.add_document(
-                    docData=document,
-                    expandItem=document.IMS2DoverlayData[expand_item_title],
+                    docData=document, expandItem=document.IMS2DoverlayData[expand_item_title]
                 )
         # just set data
-        elif expand_item == 'no_refresh':
+        elif expand_item == "no_refresh":
             self.view.panelDocuments.documents.set_document(
-                document_old=self.documentsDict[document.title],
-                document_new=document,
+                document_old=self.documentsDict[document.title], document_new=document
             )
 
         # update dictionary
@@ -3043,8 +2919,12 @@ class ORIGAMI(object):
         """
 
         dlg = wx.FileDialog(
-            self.view, 'Please add name and select path for the document',
-            '', '', '', wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+            self.view,
+            "Please add name and select path for the document",
+            "",
+            "",
+            "",
+            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
         )
         if dlg.ShowModal() == wx.ID_OK:
             itemPath, idName = os.path.split(dlg.GetPath())
@@ -3063,25 +2943,25 @@ class ORIGAMI(object):
         document.path = itemPath
         self.currentDoc = idName
         document.userParameters = self.config.userParameters
-        document.userParameters['date'] = getTime()
+        document.userParameters["date"] = getTime()
         # Add method specific parameters
-        if evtID == ID_addNewOverlayDoc or document_type == 'overlay':
-            document.dataType = 'Type: Comparison'
-            document.fileFormat = 'Format: ORIGAMI'
+        if evtID == ID_addNewOverlayDoc or document_type == "overlay":
+            document.dataType = "Type: Comparison"
+            document.fileFormat = "Format: ORIGAMI"
 
-        elif evtID == ID_addNewCalibrationDoc or document_type == 'calibration':
-            document.dataType = 'Type: CALIBRANT'
-            document.fileFormat = 'Format: DataFrame'
+        elif evtID == ID_addNewCalibrationDoc or document_type == "calibration":
+            document.dataType = "Type: CALIBRANT"
+            document.fileFormat = "Format: DataFrame"
 
-        elif evtID == ID_addNewInteractiveDoc or document_type == 'interactive':
-            document.dataType = 'Type: Interactive'
-            document.fileFormat = 'Format: ORIGAMI'
+        elif evtID == ID_addNewInteractiveDoc or document_type == "interactive":
+            document.dataType = "Type: Interactive"
+            document.fileFormat = "Format: ORIGAMI"
 
-        elif evtID == ID_addNewManualDoc or document_type == 'manual':
-            document.dataType = 'Type: MANUAL'
-            document.fileFormat = 'Format: MassLynx (.raw)'
+        elif evtID == ID_addNewManualDoc or document_type == "manual":
+            document.dataType = "Type: MANUAL"
+            document.fileFormat = "Format: MassLynx (.raw)"
 
-        self.OnUpdateDocument(document, 'document')
+        self.OnUpdateDocument(document, "document")
 
     def on_open_weblink(self, evt):
         """Open selected webpage."""
@@ -3093,21 +2973,22 @@ class ORIGAMI(object):
 
         # set link
         links = {
-            ID_helpHomepage: 'home', ID_helpGitHub: 'github',
-            ID_helpCite: 'cite', ID_helpNewVersion: 'newVersion',
-            ID_helpYoutube: 'youtube', ID_helpGuide: 'guide',
-            ID_helpHTMLEditor: 'htmlEditor', ID_helpNewFeatures: 'newFeatures',
-            ID_helpReportBugs: 'reportBugs',
+            ID_helpHomepage: "home",
+            ID_helpGitHub: "github",
+            ID_helpCite: "cite",
+            ID_helpNewVersion: "newVersion",
+            ID_helpYoutube: "youtube",
+            ID_helpGuide: "guide",
+            ID_helpHTMLEditor: "htmlEditor",
+            ID_helpNewFeatures: "newFeatures",
+            ID_helpReportBugs: "reportBugs",
         }
 
         link = self.config.links[links[evtID]]
 
         # open webpage
         try:
-            self.onThreading(
-                None, ('Opening a link in your default internet browser', 4),
-                action='updateStatusbar',
-            )
+            self.onThreading(None, ("Opening a link in your default internet browser", 4), action="updateStatusbar")
             webbrowser.open(link, autoraise=1)
         except Exception:
             pass
@@ -3118,6 +2999,8 @@ class ORIGAMI(object):
         """
         # TODO: move his function to separate module (e.g. utils/version.py - can be unit tested)
         pass
+
+
 #         try:
 #             newVersion = get_latest_version(link=self.config.links['newVersion'])
 #             update = compare_versions(newVersion, self.config.version)
@@ -3199,6 +3082,6 @@ class ORIGAMI(object):
 #         htmlViewer.Show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = ORIGAMI(redirect=False)
     app.start()

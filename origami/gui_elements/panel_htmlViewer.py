@@ -7,28 +7,32 @@ import wx
 
 
 class panelHTMLViewer(wx.MiniFrame):
-
     def __init__(self, parent, config, msg=None, title=None, **kwargs):
         wx.MiniFrame.__init__(
-            self, parent, -1, 'HTML viewer', size=(-1, -1),
-            style=(
-                wx.DEFAULT_FRAME_STYLE |
-                wx.MAXIMIZE_BOX | wx.CLOSE_BOX
-            ),
+            self,
+            parent,
+            -1,
+            "HTML viewer",
+            size=(-1, -1),
+            style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.CLOSE_BOX),
         )
 
         self.parent = parent
         self.config = config
 
         self.label_header = wx.html.HtmlWindow(
-            self, style=wx.TE_READONLY | wx.TE_MULTILINE |
-            wx.html.HW_SCROLLBAR_AUTO | wx.BORDER_NONE | wx.html.HTML_URL_IMAGE,
+            self,
+            style=wx.TE_READONLY
+            | wx.TE_MULTILINE
+            | wx.html.HW_SCROLLBAR_AUTO
+            | wx.BORDER_NONE
+            | wx.html.HTML_URL_IMAGE,
         )
 
         if msg is None:
-            msg = kwargs['html_msg']
+            msg = kwargs["html_msg"]
         if title is None:
-            title = kwargs['title']
+            title = kwargs["title"]
 
         # get current working directory and temporarily change path
         cwd = os.getcwd()
@@ -49,18 +53,18 @@ class panelHTMLViewer(wx.MiniFrame):
         except Exception:
             currentDisplaySize = None
 
-        if 'window_size' in kwargs:
+        if "window_size" in kwargs:
             if currentDisplaySize is not None:
                 screen_width, screen_height = currentDisplaySize[2], currentDisplaySize[3]
-                kwargs['window_size'] = list(kwargs['window_size'])
+                kwargs["window_size"] = list(kwargs["window_size"])
 
-                if kwargs['window_size'][0] > screen_width:
-                    kwargs['window_size'][0] = screen_width
+                if kwargs["window_size"][0] > screen_width:
+                    kwargs["window_size"][0] = screen_width
 
-                if kwargs['window_size'][1] > screen_height:
-                    kwargs['window_size'][1] = screen_height - 75
+                if kwargs["window_size"][1] > screen_height:
+                    kwargs["window_size"][1] = screen_height - 75
 
-            self.SetSize(kwargs['window_size'])
+            self.SetSize(kwargs["window_size"])
 
         self.Show(True)
         self.CentreOnParent()

@@ -8,7 +8,8 @@ from styles import makeCheckbox
 from styles import MiniFrame
 from styles import validator
 from utils.converters import str2num
-logger = logging.getLogger('origami')
+
+logger = logging.getLogger("origami")
 
 # TODO: speed up plotting
 
@@ -17,10 +18,7 @@ class PanelProcessExtractData(MiniFrame):
     """Extract data"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
-        MiniFrame.__init__(
-            self, parent, title='Extract data...',
-            style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER,
-        )
+        MiniFrame.__init__(self, parent, title="Extract data...", style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER)
         self.view = parent
         self.presenter = presenter
         self.documentTree = self.view.panelDocuments.documents
@@ -33,8 +31,8 @@ class PanelProcessExtractData(MiniFrame):
         self.panel_plot = self.view.panelPlots
 
         # setup kwargs
-        self.document = kwargs.pop('document', None)
-        self.document_title = kwargs.pop('document_title', None)
+        self.document = kwargs.pop("document", None)
+        self.document_title = kwargs.pop("document_title", None)
         self.parameters = dict()
         self.extraction_ranges = dict()
 
@@ -43,11 +41,11 @@ class PanelProcessExtractData(MiniFrame):
             try:
                 self.extraction_ranges = self.data_handling._get_waters_extraction_ranges(self.document)
             except (TypeError, ValueError, IndexError):
-                logger.warning('Could not determine extraction ranges')
+                logger.warning("Could not determine extraction ranges")
 
-        self.disable_plot = kwargs.get('disable_plot', False)
-        self.disable_process = kwargs.get('disable_process', False)
-        self.process_all = kwargs.get('process_all', False)
+        self.disable_plot = kwargs.get("disable_plot", False)
+        self.disable_process = kwargs.get("disable_process", False)
+        self.process_all = kwargs.get("process_all", False)
 
         # make gui
         self.make_gui()
@@ -71,10 +69,10 @@ class PanelProcessExtractData(MiniFrame):
         if key_code == wx.WXK_ESCAPE:  # key = esc
             self.on_close(None)
         elif key_code == 69:
-            logger.info('Extracting data')
+            logger.info("Extracting data")
             self.on_extract(None)
         elif key_code == 65:
-            logger.info('Extracting and adding data to document')
+            logger.info("Extracting and adding data to document")
             self.on_add_to_document(None)
 
         if evt is not None:
@@ -99,158 +97,130 @@ class PanelProcessExtractData(MiniFrame):
         """Make settings panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))
 
-        document_info_text = wx.StaticText(panel, -1, 'Document:')
-        self.document_info_text = wx.StaticText(panel, -1, '')
+        document_info_text = wx.StaticText(panel, -1, "Document:")
+        self.document_info_text = wx.StaticText(panel, -1, "")
 
-        extraction_info_text = wx.StaticText(panel, -1, 'Extraction \nranges:')
-        self.extraction_info_text = wx.StaticText(panel, -1, '\n\n\n\n')
+        extraction_info_text = wx.StaticText(panel, -1, "Extraction \nranges:")
+        self.extraction_info_text = wx.StaticText(panel, -1, "\n\n\n\n")
 
-        start_label = wx.StaticText(panel, wx.ID_ANY, 'Min:')
-        end_label = wx.StaticText(panel, wx.ID_ANY, 'Max:')
+        start_label = wx.StaticText(panel, wx.ID_ANY, "Min:")
+        end_label = wx.StaticText(panel, wx.ID_ANY, "Max:")
 
-        mass_range = self.extraction_ranges.get('mass_range', [0, 99999])
-        self.mz_label = wx.StaticText(panel, wx.ID_ANY, 'm/z (Da):')
+        mass_range = self.extraction_ranges.get("mass_range", [0, 99999])
+        self.mz_label = wx.StaticText(panel, wx.ID_ANY, "m/z (Da):")
         self.extract_mzStart_value = make_spin_ctrl(
-            panel,
-            self.config.extract_mzStart,
-            mass_range[0],
-            mass_range[1],
-            100,
+            panel, self.config.extract_mzStart, mass_range[0], mass_range[1], 100
         )
         self.extract_mzStart_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.extract_mzEnd_value = make_spin_ctrl(
-            panel,
-            self.config.extract_mzEnd,
-            mass_range[0],
-            mass_range[1],
-            100,
-        )
+        self.extract_mzEnd_value = make_spin_ctrl(panel, self.config.extract_mzEnd, mass_range[0], mass_range[1], 100)
         self.extract_mzEnd_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.rt_label = wx.StaticText(panel, wx.ID_ANY, 'RT (min): ')
-        self.extract_rtStart_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
+        self.rt_label = wx.StaticText(panel, wx.ID_ANY, "RT (min): ")
+        self.extract_rtStart_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.extract_rtStart_value.SetValue(str(self.config.extract_rtStart))
         self.extract_rtStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_rtEnd_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
+        self.extract_rtEnd_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.extract_rtEnd_value.SetValue(str(self.config.extract_rtEnd))
         self.extract_rtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_rt_scans_check = makeCheckbox(panel, 'In scans')
+        self.extract_rt_scans_check = makeCheckbox(panel, "In scans")
         self.extract_rt_scans_check.SetValue(self.config.extract_rt_use_scans)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        scanTime_label = wx.StaticText(panel, wx.ID_ANY, 'Scan time (s):')
-        self.extract_scanTime_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_scanTime_value.SetValue(str(self.parameters.get('scanTime', 1)))
+        scanTime_label = wx.StaticText(panel, wx.ID_ANY, "Scan time (s):")
+        self.extract_scanTime_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.extract_scanTime_value.SetValue(str(self.parameters.get("scanTime", 1)))
         self.extract_scanTime_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.dt_label = wx.StaticText(panel, wx.ID_ANY, 'DT (bins):')
-        self.extract_dtStart_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
+        self.dt_label = wx.StaticText(panel, wx.ID_ANY, "DT (bins):")
+        self.extract_dtStart_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.extract_dtStart_value.SetValue(str(self.config.extract_dtStart))
         self.extract_dtStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_dtEnd_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
+        self.extract_dtEnd_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.extract_dtEnd_value.SetValue(str(self.config.extract_dtEnd))
         self.extract_dtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_dt_ms_check = makeCheckbox(panel, 'In ms')
+        self.extract_dt_ms_check = makeCheckbox(panel, "In ms")
         self.extract_dt_ms_check.SetValue(self.config.extract_dt_use_ms)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        pusherFreq_label = wx.StaticText(panel, wx.ID_ANY, 'Pusher frequency (ms):')
-        self.extract_pusherFreq_value = wx.TextCtrl(
-            panel, -1, '', size=(-1, -1),
-            validator=validator('floatPos'),
-        )
-        self.extract_pusherFreq_value.SetValue(str(self.parameters.get('pusherFreq', 1)))
+        pusherFreq_label = wx.StaticText(panel, wx.ID_ANY, "Pusher frequency (ms):")
+        self.extract_pusherFreq_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.extract_pusherFreq_value.SetValue(str(self.parameters.get("pusherFreq", 1)))
         self.extract_pusherFreq_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_extractMS_check = makeCheckbox(panel, 'Extract mass spectrum')
+        self.extract_extractMS_check = makeCheckbox(panel, "Extract mass spectrum")
         self.extract_extractMS_check.SetValue(self.config.extract_massSpectra)
         self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.extract_extractMS_ms_check = makeCheckbox(panel, 'm/z')
+        self.extract_extractMS_ms_check = makeCheckbox(panel, "m/z")
         self.extract_extractMS_ms_check.SetValue(False)
         self.extract_extractMS_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractMS_rt_check = makeCheckbox(panel, 'RT')
+        self.extract_extractMS_rt_check = makeCheckbox(panel, "RT")
         self.extract_extractMS_rt_check.SetValue(True)
         self.extract_extractMS_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractMS_dt_check = makeCheckbox(panel, 'DT')
+        self.extract_extractMS_dt_check = makeCheckbox(panel, "DT")
         self.extract_extractMS_dt_check.SetValue(True)
         self.extract_extractMS_dt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractRT_check = makeCheckbox(panel, 'Extract chromatogram')
+        self.extract_extractRT_check = makeCheckbox(panel, "Extract chromatogram")
         self.extract_extractRT_check.SetValue(self.config.extract_chromatograms)
         self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.extract_extractRT_ms_check = makeCheckbox(panel, 'm/z')
+        self.extract_extractRT_ms_check = makeCheckbox(panel, "m/z")
         self.extract_extractRT_ms_check.SetValue(True)
         self.extract_extractRT_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractRT_dt_check = makeCheckbox(panel, 'DT')
+        self.extract_extractRT_dt_check = makeCheckbox(panel, "DT")
         self.extract_extractRT_dt_check.SetValue(True)
         self.extract_extractRT_dt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractDT_check = makeCheckbox(panel, 'Extract mobilogram')
+        self.extract_extractDT_check = makeCheckbox(panel, "Extract mobilogram")
         self.extract_extractDT_check.SetValue(self.config.extract_driftTime1D)
         self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.extract_extractDT_ms_check = makeCheckbox(panel, 'm/z')
+        self.extract_extractDT_ms_check = makeCheckbox(panel, "m/z")
         self.extract_extractDT_ms_check.SetValue(True)
         self.extract_extractDT_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractDT_rt_check = makeCheckbox(panel, 'RT')
+        self.extract_extractDT_rt_check = makeCheckbox(panel, "RT")
         self.extract_extractDT_rt_check.SetValue(True)
         self.extract_extractDT_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extract2D_check = makeCheckbox(panel, 'Extract heatmap')
+        self.extract_extract2D_check = makeCheckbox(panel, "Extract heatmap")
         self.extract_extract2D_check.SetValue(self.config.extract_driftTime2D)
         self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.extract_extract2D_ms_check = makeCheckbox(panel, 'm/z')
+        self.extract_extract2D_ms_check = makeCheckbox(panel, "m/z")
         self.extract_extract2D_ms_check.SetValue(True)
         self.extract_extract2D_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extract2D_rt_check = makeCheckbox(panel, 'RT')
+        self.extract_extract2D_rt_check = makeCheckbox(panel, "RT")
         self.extract_extract2D_rt_check.SetValue(True)
         self.extract_extract2D_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         if not self.disable_plot:
-            self.extract_btn = wx.Button(panel, wx.ID_OK, 'Extract', size=(120, 22))
+            self.extract_btn = wx.Button(panel, wx.ID_OK, "Extract", size=(120, 22))
             self.extract_btn.Bind(wx.EVT_BUTTON, self.on_extract)
 
         if not self.disable_process:
-            self.add_to_document_btn = wx.Button(panel, wx.ID_OK, 'Add to document', size=(120, 22))
+            self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(120, 22))
             self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(120, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(120, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(2, 2)
@@ -288,8 +258,7 @@ class PanelProcessExtractData(MiniFrame):
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(
-            document_info_text, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND,
+            document_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND
         )
         grid.Add(self.document_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
@@ -343,10 +312,7 @@ class PanelProcessExtractData(MiniFrame):
         n = n + 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(
-            btn_grid, (n, 0), wx.GBSpan(1, 3),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
-        )
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -359,10 +325,10 @@ class PanelProcessExtractData(MiniFrame):
 
     def on_update_info(self, **kwargs):
         """Update information labels"""
-        document_title = kwargs.get('document_title', self.document_title)
+        document_title = kwargs.get("document_title", self.document_title)
 
         if document_title is None:
-            document_title = 'N/A'
+            document_title = "N/A"
 
         self.document_info_text.SetLabel(document_title)
         self.Layout()
@@ -371,21 +337,22 @@ class PanelProcessExtractData(MiniFrame):
         if not kwargs:
             kwargs = self.extraction_ranges
 
-        mass_range = kwargs.get('mass_range', ['N/A', 'N/A'])
-        xvals_RT_mins = kwargs.get('xvals_RT_mins', ['N/A', 'N/A'])
-        xvals_RT_scans = kwargs.get('xvals_RT_scans', ['N/A', 'N/A'])
-        xvals_DT_ms = kwargs.get('xvals_DT_ms', ['N/A', 'N/A'])
-        xvals_DT_bins = kwargs.get('xvals_DT_bins', ['N/A', 'N/A'])
+        mass_range = kwargs.get("mass_range", ["N/A", "N/A"])
+        xvals_RT_mins = kwargs.get("xvals_RT_mins", ["N/A", "N/A"])
+        xvals_RT_scans = kwargs.get("xvals_RT_scans", ["N/A", "N/A"])
+        xvals_DT_ms = kwargs.get("xvals_DT_ms", ["N/A", "N/A"])
+        xvals_DT_bins = kwargs.get("xvals_DT_bins", ["N/A", "N/A"])
 
         try:
-            info = \
-                f'm/z (Da): {mass_range[0]:.2f}-{mass_range[1]:.2f}\n' + \
-                f'RT (scans): {xvals_RT_scans[0]:d}-{xvals_RT_scans[1]:d} \n' + \
-                f'RT (mins): {xvals_RT_mins[0]:.2f}-{xvals_RT_mins[1]:.2f}\n' + \
-                f'DT (bins): {xvals_DT_bins[0]:d}-{xvals_DT_bins[1]:d} \n' + \
-                f'DT (ms): {xvals_DT_ms[0]:.2f}-{xvals_DT_ms[1]:.2f}'
+            info = (
+                f"m/z (Da): {mass_range[0]:.2f}-{mass_range[1]:.2f}\n"
+                + f"RT (scans): {xvals_RT_scans[0]:d}-{xvals_RT_scans[1]:d} \n"
+                + f"RT (mins): {xvals_RT_mins[0]:.2f}-{xvals_RT_mins[1]:.2f}\n"
+                + f"DT (bins): {xvals_DT_bins[0]:d}-{xvals_DT_bins[1]:d} \n"
+                + f"DT (ms): {xvals_DT_ms[0]:.2f}-{xvals_DT_ms[1]:.2f}"
+            )
         except ValueError:
-            info = 'N/A'
+            info = "N/A"
         self.extraction_info_text.SetLabel(info)
         self.Layout()
 
@@ -396,7 +363,7 @@ class PanelProcessExtractData(MiniFrame):
             self.document_title,
             scan_time=str2num(self.extract_scanTime_value.GetValue()),
             pusher_frequency=str2num(self.extract_pusherFreq_value.GetValue()),
-            **kwargs
+            **kwargs,
         )
 
     def on_add_to_document(self, evt):
@@ -461,27 +428,27 @@ class PanelProcessExtractData(MiniFrame):
 
         self.config.extract_rt_use_scans = self.extract_rt_scans_check.GetValue()
         if self.config.extract_rt_use_scans:
-            self.rt_label.SetLabel('RT (scans):')
-            self.extract_rtStart_value.SetValidator(validator('intPos'))
+            self.rt_label.SetLabel("RT (scans):")
+            self.extract_rtStart_value.SetValidator(validator("intPos"))
             self.extract_rtStart_value.SetValue(str(int(self.config.extract_rtStart)))
-            self.extract_rtEnd_value.SetValidator(validator('intPos'))
+            self.extract_rtEnd_value.SetValidator(validator("intPos"))
             self.extract_rtEnd_value.SetValue(str(int(self.config.extract_rtEnd)))
         else:
-            self.rt_label.SetLabel('RT (mins): ')
-            self.extract_rtStart_value.SetValidator(validator('floatPos'))
-            self.extract_rtEnd_value.SetValidator(validator('floatPos'))
+            self.rt_label.SetLabel("RT (mins): ")
+            self.extract_rtStart_value.SetValidator(validator("floatPos"))
+            self.extract_rtEnd_value.SetValidator(validator("floatPos"))
 
         self.config.extract_dt_use_ms = self.extract_dt_ms_check.GetValue()
         if self.config.extract_dt_use_ms:
-            self.dt_label.SetLabel('DT (ms):')
-            self.extract_dtStart_value.SetValidator(validator('intPos'))
+            self.dt_label.SetLabel("DT (ms):")
+            self.extract_dtStart_value.SetValidator(validator("intPos"))
             self.extract_dtStart_value.SetValue(str(int(self.config.extract_dtStart)))
-            self.extract_dtEnd_value.SetValidator(validator('intPos'))
+            self.extract_dtEnd_value.SetValidator(validator("intPos"))
             self.extract_dtEnd_value.SetValue(str(int(self.config.extract_dtEnd)))
         else:
-            self.dt_label.SetLabel('DT (bins):')
-            self.extract_dtStart_value.SetValidator(validator('floatPos'))
-            self.extract_dtEnd_value.SetValidator(validator('floatPos'))
+            self.dt_label.SetLabel("DT (bins):")
+            self.extract_dtStart_value.SetValidator(validator("floatPos"))
+            self.extract_dtEnd_value.SetValidator(validator("floatPos"))
 
         self.Layout()
 
@@ -491,48 +458,48 @@ class PanelProcessExtractData(MiniFrame):
     def on_check_user_input(self):
         if self.extraction_ranges:
             # check mass range
-            mass_range = self.extraction_ranges.get('mass_range')
+            mass_range = self.extraction_ranges.get("mass_range")
             if self.config.extract_mzStart < mass_range[0]:
                 self.config.extract_mzStart = mass_range[0]
-                self.extract_mzStart_value.SetValue(f'{self.config.extract_mzStart}')
+                self.extract_mzStart_value.SetValue(f"{self.config.extract_mzStart}")
             if self.config.extract_mzEnd > mass_range[1]:
                 self.config.extract_mzEnd = mass_range[1]
-                self.extract_mzEnd_value.SetValue(f'{self.config.extract_mzEnd}')
+                self.extract_mzEnd_value.SetValue(f"{self.config.extract_mzEnd}")
 
             # check chromatographic range
             if self.config.extract_rt_use_scans:
-                rt_range = self.extraction_ranges.get('xvals_RT_scans')
+                rt_range = self.extraction_ranges.get("xvals_RT_scans")
             else:
-                rt_range = self.extraction_ranges.get('xvals_RT_mins')
+                rt_range = self.extraction_ranges.get("xvals_RT_mins")
 
             if self.config.extract_rtStart < rt_range[0]:
                 self.config.extract_rtStart = rt_range[0]
-                self.extract_rtStart_value.SetValue(f'{self.config.extract_rtStart}')
+                self.extract_rtStart_value.SetValue(f"{self.config.extract_rtStart}")
             if self.config.extract_rtStart > rt_range[1]:
                 self.config.extract_rtStart = rt_range[1]
-                self.extract_rtStart_value.SetValue(f'{self.config.extract_rtStart}')
+                self.extract_rtStart_value.SetValue(f"{self.config.extract_rtStart}")
             if self.config.extract_rtEnd < rt_range[0]:
                 self.config.extract_rtEnd = rt_range[0]
-                self.extract_rtEnd_value.SetValue(f'{self.config.extract_rtEnd}')
+                self.extract_rtEnd_value.SetValue(f"{self.config.extract_rtEnd}")
             if self.config.extract_rtEnd > rt_range[1]:
                 self.config.extract_rtEnd = rt_range[1]
-                self.extract_rtEnd_value.SetValue(f'{self.config.extract_rtEnd}')
+                self.extract_rtEnd_value.SetValue(f"{self.config.extract_rtEnd}")
 
             # check mobility range
             if self.config.extract_dt_use_ms:
-                dt_range = self.extraction_ranges.get('xvals_DT_ms')
+                dt_range = self.extraction_ranges.get("xvals_DT_ms")
             else:
-                dt_range = self.extraction_ranges.get('xvals_DT_bins')
+                dt_range = self.extraction_ranges.get("xvals_DT_bins")
 
             if self.config.extract_dtStart < dt_range[0]:
                 self.config.extract_dtStart = dt_range[0]
-                self.extract_dtStart_value.SetValue(f'{self.config.extract_dtStart}')
+                self.extract_dtStart_value.SetValue(f"{self.config.extract_dtStart}")
             if self.config.extract_dtStart > dt_range[1]:
                 self.config.extract_dtStart = dt_range[1]
-                self.extract_dtStart_value.SetValue(f'{self.config.extract_dtStart}')
+                self.extract_dtStart_value.SetValue(f"{self.config.extract_dtStart}")
             if self.config.extract_dtEnd < dt_range[0]:
                 self.config.extract_dtEnd = dt_range[0]
-                self.extract_dtEnd_value.SetValue(f'{self.config.extract_dtEnd}')
+                self.extract_dtEnd_value.SetValue(f"{self.config.extract_dtEnd}")
             if self.config.extract_dtEnd > dt_range[1]:
                 self.config.extract_dtEnd = dt_range[1]
-                self.extract_dtEnd_value.SetValue(f'{self.config.extract_dtEnd}')
+                self.extract_dtEnd_value.SetValue(f"{self.config.extract_dtEnd}")

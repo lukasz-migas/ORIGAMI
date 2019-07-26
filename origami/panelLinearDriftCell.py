@@ -31,11 +31,9 @@ from utils.converters import str2num
 
 
 class panelLinearDriftCell(wx.Panel):
-
     def __init__(self, parent, config, icons, presenter):
         wx.Panel.__init__(
-            self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-            size=wx.Size(300, 400), style=wx.TAB_TRAVERSAL,
+            self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, 400), style=wx.TAB_TRAVERSAL
         )
 
         self.parent = parent
@@ -57,10 +55,7 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrl
     Editable list
     """
 
-    def __init__(
-        self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition,
-        size=wx.DefaultSize, style=0,
-    ):
+    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, style=0):
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.TextEditMixin.__init__(self)
         listmix.CheckListCtrlMixin.__init__(self)
@@ -91,24 +86,20 @@ class topPanel(wx.Panel):
         self.toolbar = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.TB_DOCKABLE, id=wx.ID_ANY)
         self.toolbar.SetToolBitmapSize((16, 16))
         self.toolbar.AddLabelTool(
-            ID_removeFilesMenuDT_RT, '', self.icons.iconsLib['remove16'],
-            shortHelp='Remove one from table',
+            ID_removeFilesMenuDT_RT, "", self.icons.iconsLib["remove16"], shortHelp="Remove one from table"
         )
         self.toolbar.AddLabelTool(
-            ID_extractDriftVoltagesForEachIon, '', self.icons.iconsLib['extract16'],
-            shortHelp='Extract drift voltages listed in the table',
+            ID_extractDriftVoltagesForEachIon,
+            "",
+            self.icons.iconsLib["extract16"],
+            shortHelp="Extract drift voltages listed in the table",
+        )
+        self.toolbar.AddLabelTool(ID_processIons, "", self.icons.iconsLib["process16"], shortHelp="Process ions")
+        self.toolbar.AddLabelTool(
+            ID_saveMZList, "", self.icons.iconsLib["save16"], shortHelp="Save current list to .csv files"
         )
         self.toolbar.AddLabelTool(
-            ID_processIons, '', self.icons.iconsLib['process16'],
-            shortHelp='Process ions',
-        )
-        self.toolbar.AddLabelTool(
-            ID_saveMZList, '', self.icons.iconsLib['save16'],
-            shortHelp='Save current list to .csv files',
-        )
-        self.toolbar.AddLabelTool(
-            ID_removeAllMZfromList, '', self.icons.iconsLib['bin16'],
-            shortHelp='Clear all ions from the table',
+            ID_removeAllMZfromList, "", self.icons.iconsLib["bin16"], shortHelp="Clear all ions from the table"
         )
         self.toolbar.Realize()
 
@@ -119,10 +110,10 @@ class topPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_clearTableDT_RT)
 
         menu = wx.Menu()
-        menu.Append(ID_clearTableDT_RT, 'Clear table')
+        menu.Append(ID_clearTableDT_RT, "Clear table")
         menu.AppendSeparator()
-        menu.Append(ID_removeSelectedFileDT_RT, 'Remove selected item')
-        menu.Append(ID_removeAllFilesDT_RT, 'Remove all item')
+        menu.Append(ID_removeSelectedFileDT_RT, "Remove selected item")
+        menu.Append(ID_removeAllFilesDT_RT, "Remove all item")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -130,11 +121,11 @@ class topPanel(wx.Panel):
     def makeListCtrl(self):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0, 'min RT', width=70)
-        self.peaklist.InsertColumn(1, 'max RT', width=60)
-        self.peaklist.InsertColumn(2, '# scans', width=60)
-        self.peaklist.InsertColumn(3, 'dv (V)', width=60)
-        self.peaklist.InsertColumn(4, 'file', width=60)
+        self.peaklist.InsertColumn(0, "min RT", width=70)
+        self.peaklist.InsertColumn(1, "max RT", width=60)
+        self.peaklist.InsertColumn(2, "# scans", width=60)
+        self.peaklist.InsertColumn(3, "dv (V)", width=60)
+        self.peaklist.InsertColumn(4, "file", width=60)
 
         main_sizer.Add(self.toolbar, 0, wx.EXPAND, 0)
         main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
@@ -150,7 +141,7 @@ class topPanel(wx.Panel):
         # Capture which item was clicked
         self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
         self.menu = wx.Menu()
-        self.menu.Append(ID_removeSelectedPopupDT_RT, 'Remove item')
+        self.menu.Append(ID_removeSelectedPopupDT_RT, "Remove item")
         self.PopupMenu(self.menu)
         self.menu.Destroy()
         self.SetFocus()
@@ -160,11 +151,11 @@ class topPanel(wx.Panel):
         Check whether the value being added is already present in the table
         """
         currentItems = self.peaklist.GetItemCount() - 1
-        while (currentItems >= 0):
+        while currentItems >= 0:
             rtStartInTable = self.peaklist.GetItem(currentItems, 0).GetText()
             rtEndInTable = self.peaklist.GetItem(currentItems, 1).GetText()
             if rtStartInTable == rtStart and rtEndInTable == rtEnd:
-                print('Item already in the table.')
+                print("Item already in the table.")
                 currentItems = 0
                 return True
             else:
@@ -221,17 +212,17 @@ class topPanel(wx.Panel):
         """
         count = self.peaklist.GetItemCount()
         currentDoc = self.presenter.currentDoc
-        if currentDoc == 'Documents':
+        if currentDoc == "Documents":
             return
         document = self.presenter.documentsDict[currentDoc]
         # Replot RT for current document
-        rtX = document.RT['xvals']
-        rtY = document.RT['yvals']
-        xlabel = document.RT['xlabels']
+        rtX = document.RT["xvals"]
+        rtY = document.RT["yvals"]
+        xlabel = document.RT["xlabels"]
         color = document.lineColour
         style = document.style
         # Change panel and plot
-        self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['RT'])
+        self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames["RT"])
         self.presenter.onPlotRT2(rtX, rtY, xlabel, color, style)
         if count == 0:
             return
@@ -263,7 +254,7 @@ class topPanel(wx.Panel):
         """
         currentItems = self.peaklist.GetItemCount() - 1
         if evt.GetId() == ID_removeSelectedFileDT_RT:
-            while (currentItems >= 0):
+            while currentItems >= 0:
                 item = self.peaklist.IsChecked(index=currentItems)
                 if item:
                     self.peaklist.DeleteItem(currentItems)
@@ -275,15 +266,15 @@ class topPanel(wx.Panel):
         else:
             # Ask if you want to delete all items
             dlg = DialogBox(
-                exceptionTitle='Are you sure?',
-                exceptionMsg='Are you sure you would like to delete ALL RT peaks from the table?',
-                type='Question',
+                exceptionTitle="Are you sure?",
+                exceptionMsg="Are you sure you would like to delete ALL RT peaks from the table?",
+                type="Question",
             )
             if dlg == wx.ID_NO:
-                print('Cancelled operation')
+                print("Cancelled operation")
                 return
             # Iterate over all items
-            while (currentItems >= 0):
+            while currentItems >= 0:
                 self.peaklist.DeleteItem(currentItems)
                 currentItems -= 1
 
@@ -296,12 +287,12 @@ class topPanel(wx.Panel):
         """
         # Ask if you want to delete all items
         dlg = DialogBox(
-            exceptionTitle='Are you sure?',
-            exceptionMsg='Are you sure you would like to clear the table??',
-            type='Question',
+            exceptionTitle="Are you sure?",
+            exceptionMsg="Are you sure you would like to clear the table??",
+            type="Question",
         )
         if dlg == wx.ID_NO:
-            print('Cancelled operation')
+            print("Cancelled operation")
             return
         self.peaklist.DeleteAllItems()
 
@@ -332,7 +323,7 @@ class topPanel(wx.Panel):
         tempData = list(item for item, _ in itertools.groupby(tempData))
         rows = len(tempData)
         self.peaklist.DeleteAllItems()
-        print('Removing duplicates')
+        print("Removing duplicates")
         for row in range(rows):
             self.peaklist.Append(tempData[row])
 
@@ -344,19 +335,21 @@ class topPanel(wx.Panel):
     def OnGetItemInformation(self, itemID, return_list=False):
         # get item information
         information = {
-            'start': str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames['start']).GetText()),
-            'end': str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames['end']).GetText()),
-            'scans': str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames['end']).GetText()),
-            'drift_voltage': str2num(self.peaklist.GetItem(itemID, self.config.driftTopColNames['drift_voltage']).GetText()),
-            'document': self.peaklist.GetItem(itemID, self.config.driftTopColNames['filename']).GetText(),
+            "start": str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames["start"]).GetText()),
+            "end": str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames["end"]).GetText()),
+            "scans": str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames["end"]).GetText()),
+            "drift_voltage": str2num(
+                self.peaklist.GetItem(itemID, self.config.driftTopColNames["drift_voltage"]).GetText()
+            ),
+            "document": self.peaklist.GetItem(itemID, self.config.driftTopColNames["filename"]).GetText(),
         }
 
         if return_list:
-            start = information['start']
-            end = information['end']
-            scans = information['scans']
-            drift_voltage = information['drift_voltage']
-            document = information['document']
+            start = information["start"]
+            end = information["end"]
+            scans = information["scans"]
+            drift_voltage = information["drift_voltage"]
+            document = information["document"]
             return start, end, scans, drift_voltage, document
 
         return information
@@ -366,10 +359,10 @@ class topPanel(wx.Panel):
         @param document: title of the document to be removed from the list
         """
         row = self.peaklist.GetItemCount() - 1
-        while (row >= 0):
+        while row >= 0:
             info = self.OnGetItemInformation(itemID=row)
             print(info)
-            if info['document'] == document:
+            if info["document"] == document:
                 self.peaklist.DeleteItem(row)
                 row -= 1
             else:
@@ -402,18 +395,9 @@ class bottomPanel(wx.Panel):
 
         self.toolbar = wx.ToolBar(self, style=wx.TB_HORIZONTAL | wx.TB_DOCKABLE, id=wx.ID_ANY)
         self.toolbar.SetToolBitmapSize((16, 16))
-        self.toolbar.AddLabelTool(
-            ID_addFilesMenuDT, '', self.icons.iconsLib['add16'],
-            shortHelp='Add...',
-        )
-        self.toolbar.AddLabelTool(
-            ID_removeFilesMenuDT, '', self.icons.iconsLib['remove16'],
-            shortHelp='Remove...',
-        )
-        self.toolbar.AddLabelTool(
-            ID_saveFilesMenuDT, '', self.icons.iconsLib['save16'],
-            shortHelp='Save...',
-        )
+        self.toolbar.AddLabelTool(ID_addFilesMenuDT, "", self.icons.iconsLib["add16"], shortHelp="Add...")
+        self.toolbar.AddLabelTool(ID_removeFilesMenuDT, "", self.icons.iconsLib["remove16"], shortHelp="Remove...")
+        self.toolbar.AddLabelTool(ID_saveFilesMenuDT, "", self.icons.iconsLib["save16"], shortHelp="Save...")
         self.toolbar.Realize()
 
     def makeListCtrl(self):
@@ -422,11 +406,11 @@ class bottomPanel(wx.Panel):
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.peaklist = EditableListCtrl(self, style=wx.LC_REPORT)
-        self.peaklist.InsertColumn(0, 'min m/z', width=70)
-        self.peaklist.InsertColumn(1, 'max m/z', width=60)
-        self.peaklist.InsertColumn(2, '% int', width=40)
-        self.peaklist.InsertColumn(3, 'z', width=40)
-        self.peaklist.InsertColumn(4, 'file', width=40)
+        self.peaklist.InsertColumn(0, "min m/z", width=70)
+        self.peaklist.InsertColumn(1, "max m/z", width=60)
+        self.peaklist.InsertColumn(2, "% int", width=40)
+        self.peaklist.InsertColumn(3, "z", width=40)
+        self.peaklist.InsertColumn(4, "file", width=40)
 
         main_sizer.Add(self.toolbar, 0, wx.EXPAND, 0)
         main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
@@ -442,7 +426,7 @@ class bottomPanel(wx.Panel):
         # Capture which item was clicked
         self.currentItem, __ = self.peaklist.HitTest(evt.GetPosition())
         self.menu = wx.Menu()
-        self.menu.Append(ID_removeSelectedPopupDT, 'Remove item')
+        self.menu.Append(ID_removeSelectedPopupDT, "Remove item")
         self.PopupMenu(self.menu)
         self.menu.Destroy()
         self.SetFocus()
@@ -452,7 +436,7 @@ class bottomPanel(wx.Panel):
         #         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedFileDT)
 
         menu = wx.Menu()
-        menu.Append(ID_addIonListDT, 'Add list...')
+        menu.Append(ID_addIonListDT, "Add list...")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -464,9 +448,9 @@ class bottomPanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.OnClearTable, id=ID_clearTableDT)
 
         menu = wx.Menu()
-        menu.Append(ID_clearTableDT, 'Clear table')
-        menu.Append(ID_removeSelectedFileDT, 'Remove selected item')
-        menu.Append(ID_removeAllFilesDT, 'Remove all item')
+        menu.Append(ID_clearTableDT, "Clear table")
+        menu.Append(ID_removeSelectedFileDT, "Remove selected item")
+        menu.Append(ID_removeAllFilesDT, "Remove all item")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -476,10 +460,10 @@ class bottomPanel(wx.Panel):
         #         self.Bind(wx.EVT_MENU, self.OnDeleteAll, id=ID_removeSelectedFileDT)
 
         menu = wx.Menu()
-        menu.Append(ID_saveAllIon1D_DT, 'Export 1D IM-MS to .csv (all)')
-        menu.Append(ID_saveSelectedIon1D_DT, 'Export 1D IM-MS to .csv (selected)')
+        menu.Append(ID_saveAllIon1D_DT, "Export 1D IM-MS to .csv (all)")
+        menu.Append(ID_saveSelectedIon1D_DT, "Export 1D IM-MS to .csv (selected)")
         menu.AppendSeparator()
-        menu.Append(ID_saveIonListDT, 'Export peak list...')
+        menu.Append(ID_saveIonListDT, "Export peak list...")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -489,11 +473,11 @@ class bottomPanel(wx.Panel):
         Check whether the value being added is already present in the table
         """
         currentItems = self.peaklist.GetItemCount() - 1
-        while (currentItems >= 0):
+        while currentItems >= 0:
             mzStartInTable = self.peaklist.GetItem(currentItems, 0).GetText()
             mzEndInTable = self.peaklist.GetItem(currentItems, 1).GetText()
             if mzStartInTable == mzStart and mzEndInTable == mzEnd:
-                print('Ion already in the table')
+                print("Ion already in the table")
                 currentItems = 0
                 return True
             else:
@@ -527,7 +511,7 @@ class bottomPanel(wx.Panel):
         tempData = list(item for item, _ in itertools.groupby(tempData))
         rows = len(tempData)
         self.peaklist.DeleteAllItems()
-        print('Removing duplicates')
+        print("Removing duplicates")
 
         for row in range(rows):
             self.peaklist.Append(tempData[row])
@@ -592,12 +576,12 @@ class bottomPanel(wx.Panel):
         """
         # Ask if you want to delete all items
         dlg = DialogBox(
-            exceptionTitle='Are you sure?',
-            exceptionMsg='Are you sure you would like to clear the table??',
-            type='Question',
+            exceptionTitle="Are you sure?",
+            exceptionMsg="Are you sure you would like to clear the table??",
+            type="Question",
         )
         if dlg == wx.ID_NO:
-            print('Cancelled operation')
+            print("Cancelled operation")
             return
         self.peaklist.DeleteAllItems()
 
@@ -611,12 +595,12 @@ class bottomPanel(wx.Panel):
             currentDoc = self.presenter.view.panelDocuments.documents.enableCurrentDocument()
         except Exception:
             return None
-        if currentDoc == 'Documents':
-            print('There are no documents in the tree')
+        if currentDoc == "Documents":
+            print("There are no documents in the tree")
             return currentDoc
         document = self.presenter.documentsDict[currentDoc]
-        if document.dataType != 'Type: Multifield Linear DT':
-            print('Make sure you select the correct dataset - Multifield Linear DT')
+        if document.dataType != "Type: Multifield Linear DT":
+            print("Make sure you select the correct dataset - Multifield Linear DT")
             return None
         if docNameOnly:
             return currentDoc
@@ -630,14 +614,14 @@ class bottomPanel(wx.Panel):
         """
         currentItems = self.peaklist.GetItemCount() - 1
         if evt.GetId() == ID_removeSelectedFileDT:
-            while (currentItems >= 0):
+            while currentItems >= 0:
                 item = self.peaklist.IsChecked(index=currentItems)
                 if item:
                     selectedItem = self.peaklist.GetItem(currentItems, 4).GetText()
                     mzStart = self.peaklist.GetItem(currentItems, 0).GetText()
                     mzEnd = self.peaklist.GetItem(currentItems, 1).GetText()
-                    selectedIon = ''.join([str(mzStart), '-', str(mzEnd)])
-                    print(''.join(['Deleting ', selectedIon, ' from ', selectedItem]))
+                    selectedIon = "".join([str(mzStart), "-", str(mzEnd)])
+                    print("".join(["Deleting ", selectedIon, " from ", selectedItem]))
                     try:
                         del self.presenter.documentsDict[selectedItem].IMS1DdriftTimes[selectedIon]
                         if len(list(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys())) == 0:
@@ -650,7 +634,7 @@ class bottomPanel(wx.Panel):
                     currentItems -= 1
             try:
                 self.presenter.view.panelDocuments.documents.add_document(
-                    docData=self.presenter.documentsDict[selectedItem],
+                    docData=self.presenter.documentsDict[selectedItem]
                 )
             except KeyError:
                 pass
@@ -658,8 +642,8 @@ class bottomPanel(wx.Panel):
             selectedItem = self.peaklist.GetItem(self.currentItem, 4).GetText()
             mzStart = self.peaklist.GetItem(self.currentItem, 0).GetText()
             mzEnd = self.peaklist.GetItem(self.currentItem, 1).GetText()
-            selectedIon = ''.join([str(mzStart), '-', str(mzEnd)])
-            print(''.join(['Deleting ', selectedIon, ' from ', selectedItem]))
+            selectedIon = "".join([str(mzStart), "-", str(mzEnd)])
+            print("".join(["Deleting ", selectedIon, " from ", selectedItem]))
             try:
                 del self.presenter.documentsDict[selectedItem].IMS1DdriftTimes[selectedIon]
                 if len(list(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys())) == 0:
@@ -670,20 +654,20 @@ class bottomPanel(wx.Panel):
         else:
             # Ask if you want to delete all items
             dlg = DialogBox(
-                exceptionTitle='Are you sure?',
-                exceptionMsg='Are you sure you would like to delete ALL ions from the table?',
-                type='Question',
+                exceptionTitle="Are you sure?",
+                exceptionMsg="Are you sure you would like to delete ALL ions from the table?",
+                type="Question",
             )
             if dlg == wx.ID_NO:
-                print('Cancelled operation')
+                print("Cancelled operation")
                 return
             # Iterate over all items
-            while (currentItems >= 0):
+            while currentItems >= 0:
                 selectedItem = self.peaklist.GetItem(currentItems, 4).GetText()
                 mzStart = self.peaklist.GetItem(currentItems, 0).GetText()
                 mzEnd = self.peaklist.GetItem(currentItems, 1).GetText()
-                selectedIon = ''.join([str(mzStart), '-', str(mzEnd)])
-                print(''.join(['Deleting ', selectedIon, ' from ', selectedItem]))
+                selectedIon = "".join([str(mzStart), "-", str(mzEnd)])
+                print("".join(["Deleting ", selectedIon, " from ", selectedItem]))
                 try:
                     del self.presenter.documentsDict[selectedItem].IMS1DdriftTimes[selectedIon]
                     if len(list(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys())) == 0:
@@ -694,7 +678,7 @@ class bottomPanel(wx.Panel):
                 currentItems -= 1
                 try:
                     self.presenter.view.panelDocuments.documents.add_document(
-                        docData=self.presenter.documentsDict[selectedItem],
+                        docData=self.presenter.documentsDict[selectedItem]
                     )
                 except KeyError:
                     pass
@@ -707,20 +691,20 @@ class bottomPanel(wx.Panel):
         """
         count = self.peaklist.GetItemCount()
         currentDoc = self.presenter.currentDoc
-        if currentDoc == 'Documents':
+        if currentDoc == "Documents":
             return
         document = self.presenter.documentsDict[currentDoc]
         # Replot RT for current document
-        msX = document.massSpectrum['xvals']
-        msY = document.massSpectrum['yvals']
+        msX = document.massSpectrum["xvals"]
+        msY = document.massSpectrum["yvals"]
         try:
-            xlimits = document.massSpectrum['xlimits']
+            xlimits = document.massSpectrum["xlimits"]
         except KeyError:
-            xlimits = [document.parameters['startMS'], document.parameters['endMS']]
+            xlimits = [document.parameters["startMS"], document.parameters["endMS"]]
         # Change panel and plot
-        self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MS'])
+        self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames["MS"])
 
-        name_kwargs = {'document': document.title, 'dataset': 'Mass Spectrum'}
+        name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
         self.presenter.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
         if count == 0:
             return
@@ -748,19 +732,19 @@ class bottomPanel(wx.Panel):
     def OnGetItemInformation(self, itemID, return_list=False):
         # get item information
         information = {
-            'start': str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames['start']).GetText()),
-            'end': str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames['end']).GetText()),
-            'intensity': str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames['intensity']).GetText()),
-            'charge': str2int(self.peaklist.GetItem(itemID, self.config.driftBottomColNames['charge']).GetText()),
-            'document': self.peaklist.GetItem(itemID, self.config.driftBottomColNames['filename']).GetText(),
+            "start": str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames["start"]).GetText()),
+            "end": str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames["end"]).GetText()),
+            "intensity": str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames["intensity"]).GetText()),
+            "charge": str2int(self.peaklist.GetItem(itemID, self.config.driftBottomColNames["charge"]).GetText()),
+            "document": self.peaklist.GetItem(itemID, self.config.driftBottomColNames["filename"]).GetText(),
         }
 
         if return_list:
-            start = information['start']
-            end = information['end']
-            intensity = information['intensity']
-            charge = information['charge']
-            document = information['document']
+            start = information["start"]
+            end = information["end"]
+            intensity = information["intensity"]
+            charge = information["charge"]
+            document = information["document"]
             return start, end, intensity, charge, document
 
         return information
@@ -770,10 +754,10 @@ class bottomPanel(wx.Panel):
         @param document: title of the document to be removed from the list
         """
         row = self.peaklist.GetItemCount() - 1
-        while (row >= 0):
+        while row >= 0:
             info = self.OnGetItemInformation(itemID=row)
             print(info)
-            if info['document'] == document:
+            if info["document"] == document:
                 self.peaklist.DeleteItem(row)
                 row -= 1
             else:

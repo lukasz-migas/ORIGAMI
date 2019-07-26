@@ -6,14 +6,13 @@ from styles import Dialog
 
 
 class DialogNewVersion(Dialog):
-
     def __init__(self, parent, **kwargs):
-        Dialog.__init__(self, parent, title='New version of ORIGAMI is available!')
+        Dialog.__init__(self, parent, title="New version of ORIGAMI is available!")
 
         self.parent = parent
-        self.presenter = kwargs['presenter']
+        self.presenter = kwargs["presenter"]
         self.icons = self.presenter.icons
-        self.message = kwargs['webpage']
+        self.message = kwargs["webpage"]
 
         self.make_gui()
         self.CentreOnParent()
@@ -55,14 +54,12 @@ class DialogNewVersion(Dialog):
         image = wx.StaticBitmap(panel, -1, self.icons.getLogo)
 
         self.label_header = wx.html.HtmlWindow(
-            panel,
-            style=wx.TE_READONLY | wx.TE_MULTILINE | wx.html.HW_SCROLLBAR_AUTO,
-            size=(500, 400),
+            panel, style=wx.TE_READONLY | wx.TE_MULTILINE | wx.html.HW_SCROLLBAR_AUTO, size=(500, 400)
         )
         self.label_header.SetPage(self.message)
 
-        self.goToDownload = wx.Button(panel, ID_helpNewVersion, 'Download Now', size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, -1, 'Cancel', size=(-1, 22))
+        self.goToDownload = wx.Button(panel, ID_helpNewVersion, "Download Now", size=(-1, 22))
+        self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
 
         btn_grid = wx.GridBagSizer(1, 1)
         btn_grid.Add(self.goToDownload, (0, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT)
@@ -76,8 +73,10 @@ class DialogNewVersion(Dialog):
         grid.Add(image, (0, 0), wx.GBSpan(1, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         grid.Add(horizontal_line_1, (1, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         grid.Add(
-            self.label_header, (2, 0), wx.GBSpan(2, 3), flag=wx.EXPAND |
-            wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.label_header,
+            (2, 0),
+            wx.GBSpan(2, 3),
+            flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
         )
         grid.Add(horizontal_line_2, (4, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         grid.Add(btn_grid, (5, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT)

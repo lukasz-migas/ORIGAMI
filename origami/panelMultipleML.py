@@ -58,16 +58,15 @@ from utils.color import convertRGB255to1
 from utils.color import determineFontColor
 from utils.color import randomColorGenerator
 from utils.random import get_random_int
-logger = logging.getLogger('origami')
+
+logger = logging.getLogger("origami")
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 
 
 class panelMML(wx.Panel):
-
     def __init__(self, parent, config, icons, presenter):
         wx.Panel.__init__(
-            self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-            size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL,
+            self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL
         )
 
         self.view = parent
@@ -84,12 +83,12 @@ class panelMML(wx.Panel):
         self.lastColumn = None
 
         self._filePanel_peaklist = {
-            0: {'name': '', 'tag': 'check', 'type': 'bool'},
-            1: {'name': 'filename', 'tag': 'filename', 'type': 'str'},
-            2: {'name': 'variable', 'tag': 'energy', 'type': 'float'},
-            3: {'name': 'document', 'tag': 'document', 'type': 'str'},
-            4: {'name': 'label', 'tag': 'label', 'type': 'str'},
-            -1: {'name': 'color', 'tag': 'color', 'type': 'color'},
+            0: {"name": "", "tag": "check", "type": "bool"},
+            1: {"name": "filename", "tag": "filename", "type": "str"},
+            2: {"name": "variable", "tag": "energy", "type": "float"},
+            3: {"name": "document", "tag": "document", "type": "str"},
+            4: {"name": "label", "tag": "label", "type": "str"},
+            -1: {"name": "color", "tag": "color", "type": "color"},
         }
 
         self.make_gui()
@@ -99,12 +98,12 @@ class panelMML(wx.Panel):
 
         # add a couple of accelerators
         accelerators = [
-            (wx.ACCEL_NORMAL, ord('A'), ID_mmlPanel_addToDocument),
-            (wx.ACCEL_NORMAL, ord('C'), ID_mmlPanel_assignColor),
-            (wx.ACCEL_NORMAL, ord('D'), ID_mmlPanel_plot_DT),
-            (wx.ACCEL_NORMAL, ord('M'), ID_mmlPanel_plot_MS),
-            (wx.ACCEL_NORMAL, ord('X'), ID_mmlPanel_check_all),
-            (wx.ACCEL_NORMAL, ord('S'), ID_mmlPanel_check_selected),
+            (wx.ACCEL_NORMAL, ord("A"), ID_mmlPanel_addToDocument),
+            (wx.ACCEL_NORMAL, ord("C"), ID_mmlPanel_assignColor),
+            (wx.ACCEL_NORMAL, ord("D"), ID_mmlPanel_plot_DT),
+            (wx.ACCEL_NORMAL, ord("M"), ID_mmlPanel_plot_MS),
+            (wx.ACCEL_NORMAL, ord("X"), ID_mmlPanel_check_all),
+            (wx.ACCEL_NORMAL, ord("S"), ID_mmlPanel_check_selected),
             (wx.ACCEL_NORMAL, wx.WXK_DELETE, ID_mmlPanel_delete_rightClick),
         ]
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
@@ -137,7 +136,7 @@ class panelMML(wx.Panel):
 
     def on_check_selected(self, evt):
         check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
-        self.on_update_value_in_peaklist(self.peaklist.item_id, 'check', check)
+        self.on_update_value_in_peaklist(self.peaklist.item_id, "check", check)
 
     def on_open_info_panel(self, evt):
         pass
@@ -152,76 +151,82 @@ class panelMML(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, id=ID_mmlPanel_about_info)
 
         self.add_btn = wx.BitmapButton(
-            self, ID_mmlPanel_add_menu, self.icons.iconsLib['add16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self,
+            ID_mmlPanel_add_menu,
+            self.icons.iconsLib["add16"],
+            size=(18, 18),
+            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.add_btn.SetToolTip(makeTooltip('Add...'))
+        self.add_btn.SetToolTip(makeTooltip("Add..."))
 
         self.remove_btn = wx.BitmapButton(
-            self, ID_mmlPanel_remove_menu, self.icons.iconsLib['remove16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self,
+            ID_mmlPanel_remove_menu,
+            self.icons.iconsLib["remove16"],
+            size=(18, 18),
+            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.remove_btn.SetToolTip(makeTooltip('Remove...'))
+        self.remove_btn.SetToolTip(makeTooltip("Remove..."))
 
         self.annotate_btn = wx.BitmapButton(
-            self, ID_mmlPanel_annotateTool, self.icons.iconsLib['annotate16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self,
+            ID_mmlPanel_annotateTool,
+            self.icons.iconsLib["annotate16"],
+            size=(18, 18),
+            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.annotate_btn.SetToolTip(makeTooltip('Annotate...'))
+        self.annotate_btn.SetToolTip(makeTooltip("Annotate..."))
 
         self.process_btn = wx.BitmapButton(
-            self, ID_mmlPanel_processTool, self.icons.iconsLib['process16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self,
+            ID_mmlPanel_processTool,
+            self.icons.iconsLib["process16"],
+            size=(18, 18),
+            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.process_btn.SetToolTip(makeTooltip('Process...'))
+        self.process_btn.SetToolTip(makeTooltip("Process..."))
 
         self.overlay_btn = wx.BitmapButton(
-            self, ID_mmlPanel_overlay_menu, self.icons.iconsLib['overlay16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self,
+            ID_mmlPanel_overlay_menu,
+            self.icons.iconsLib["overlay16"],
+            size=(18, 18),
+            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.overlay_btn.SetToolTip(makeTooltip('Visualise mass spectra...'))
+        self.overlay_btn.SetToolTip(makeTooltip("Visualise mass spectra..."))
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
         self.info_btn = wx.BitmapButton(
-            self, ID_mmlPanel_about_info, self.icons.iconsLib['info16'],
-            size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self,
+            ID_mmlPanel_about_info,
+            self.icons.iconsLib["info16"],
+            size=(18, 18),
+            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.info_btn.SetToolTip(makeTooltip('Information...'))
+        self.info_btn.SetToolTip(makeTooltip("Information..."))
 
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
         btn_grid_vert.Add(
-            self.add_btn, (x, 0), wx.GBSpan(
-                1, 1,
-            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.add_btn, (x, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
         btn_grid_vert.Add(
-            self.remove_btn, (x, 1), wx.GBSpan(
-                1, 1,
-            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.remove_btn, (x, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
         btn_grid_vert.Add(
-            self.annotate_btn, (x, 2), wx.GBSpan(
-                1, 1,
-            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.annotate_btn, (x, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
         btn_grid_vert.Add(
-            self.process_btn, (x, 3), wx.GBSpan(
-                1, 1,
-            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.process_btn, (x, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
         btn_grid_vert.Add(
-            self.overlay_btn, (x, 4), wx.GBSpan(
-                1, 1,
-            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.overlay_btn, (x, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
         btn_grid_vert.Add(vertical_line_1, (x, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
         btn_grid_vert.Add(
-            self.info_btn, (x, 6), wx.GBSpan(
-                1, 1,
-            ), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.info_btn, (x, 6), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
 
         return btn_grid_vert
@@ -230,28 +235,23 @@ class panelMML(wx.Panel):
 
         # init table
         self.peaklist = ListCtrl(
-            self, style=wx.LC_REPORT | wx.LC_VRULES,
-            column_info=self._filePanel_peaklist,
+            self, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._filePanel_peaklist
         )  # EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
         for item in self.config._multipleFilesSettings:
-            order = item['order']
-            name = item['name']
-            if item['show']:
-                width = item['width']
+            order = item["order"]
+            name = item["name"]
+            if item["show"]:
+                width = item["width"]
             else:
                 width = 0
             self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
 
-        tooltip_text = \
-            """
+        tooltip_text = """
         List of files and their respective energy values. This panel is relatively universal and can be used for
         aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.
         """
 
-        filelistTooltip = makeTooltip(
-            delay=5000, reshow=3000,
-            text=tooltip_text,
-        )
+        filelistTooltip = makeTooltip(delay=5000, reshow=3000, text=tooltip_text)
         self.peaklist.SetToolTip(filelistTooltip)
 
         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
@@ -276,34 +276,38 @@ class panelMML(wx.Panel):
         menu = wx.Menu()
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_plot_MS,
-                text='Show mass spectrum\tM',
-                bitmap=self.icons.iconsLib['mass_spectrum_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_plot_MS,
+                text="Show mass spectrum\tM",
+                bitmap=self.icons.iconsLib["mass_spectrum_16"],
+            )
         )
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_plot_DT,
-                text='Show mobiligram\tD',
-                bitmap=self.icons.iconsLib['mobiligram_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_plot_DT,
+                text="Show mobiligram\tD",
+                bitmap=self.icons.iconsLib["mobiligram_16"],
+            )
         )
-        menu.Append(ID_mmlPanel_plot_combined_MS, 'Show mass spectrum (average)')
+        menu.Append(ID_mmlPanel_plot_combined_MS, "Show mass spectrum (average)")
         menu.AppendSeparator()
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_assignColor,
-                text='Assign new color\tC',
-                bitmap=self.icons.iconsLib['color_panel_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_assignColor,
+                text="Assign new color\tC",
+                bitmap=self.icons.iconsLib["color_panel_16"],
+            )
         )
         menu.AppendSeparator()
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_delete_rightClick,
-                text='Remove item\tDelete',
-                bitmap=self.icons.iconsLib['bin16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_delete_rightClick,
+                text="Remove item\tDelete",
+                bitmap=self.icons.iconsLib["bin16"],
+            )
         )
         self.PopupMenu(menu)
         menu.Destroy()
@@ -317,24 +321,27 @@ class panelMML(wx.Panel):
         menu = wx.Menu()
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_changeColorBatch_color,
-                text='Assign color for selected items',
-                bitmap=self.icons.iconsLib['color_panel_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_changeColorBatch_color,
+                text="Assign color for selected items",
+                bitmap=self.icons.iconsLib["color_panel_16"],
+            )
         )
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_changeColorBatch_palette,
-                text='Color selected items using color palette',
-                bitmap=self.icons.iconsLib['blank_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_changeColorBatch_palette,
+                text="Color selected items using color palette",
+                bitmap=self.icons.iconsLib["blank_16"],
+            )
         )
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_changeColorBatch_colormap,
-                text='Color selected items using colormap',
-                bitmap=self.icons.iconsLib['blank_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_changeColorBatch_colormap,
+                text="Color selected items using colormap",
+                bitmap=self.icons.iconsLib["blank_16"],
+            )
         )
         self.PopupMenu(menu)
         menu.Destroy()
@@ -347,21 +354,23 @@ class panelMML(wx.Panel):
         self.Bind(wx.EVT_TOOL, self.on_add_blank_document_manual, id=ID_mmlPanel_add_manualDoc)
 
         menu = wx.Menu()
-        menu.Append(ID_mmlPanel_add_files_toCurrentDoc, 'Add files to current MANUAL document')
+        menu.Append(ID_mmlPanel_add_files_toCurrentDoc, "Add files to current MANUAL document")
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_add_files_toNewDoc,
-                text='Add files to blank MANUAL document',
-                bitmap=self.icons.iconsLib['new_document_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_add_files_toNewDoc,
+                text="Add files to blank MANUAL document",
+                bitmap=self.icons.iconsLib["new_document_16"],
+            )
         )
         menu.AppendSeparator()
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_add_manualDoc,
-                text='Create blank MANUAL document',
-                bitmap=self.icons.iconsLib['guide_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_add_manualDoc,
+                text="Create blank MANUAL document",
+                bitmap=self.icons.iconsLib["guide_16"],
+            )
         )
         self.PopupMenu(menu)
         menu.Destroy()
@@ -376,17 +385,15 @@ class panelMML(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_delete_selected, id=ID_mmlPanel_delete_selected)
 
         menu = wx.Menu()
-        menu.Append(ID_mmlPanel_clear_selected, 'Clear selected items')
+        menu.Append(ID_mmlPanel_clear_selected, "Clear selected items")
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_clear_all,
-                text='Clear all items',
-                bitmap=self.icons.iconsLib['clear_16'],
-            ),
+                parent=menu, id=ID_mmlPanel_clear_all, text="Clear all items", bitmap=self.icons.iconsLib["clear_16"]
+            )
         )
         menu.AppendSeparator()
-        menu.Append(ID_mmlPanel_delete_selected, 'Delete selected items')
-        menu.Append(ID_mmlPanel_delete_all, 'Delete all items')
+        menu.Append(ID_mmlPanel_delete_selected, "Delete selected items")
+        menu.Append(ID_mmlPanel_delete_all, "Delete all items")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -405,61 +412,66 @@ class panelMML(wx.Panel):
 
         menu = wx.Menu()
         self.showLegend_check = menu.AppendCheckItem(
-            ID_mmlPanel_showLegend, 'Show legend',
-            help='Show legend on overlay plots',
+            ID_mmlPanel_showLegend, "Show legend", help="Show legend on overlay plots"
         )
         self.showLegend_check.Check(self.showLegend)
         self.addToDocument_check = menu.AppendCheckItem(
-            ID_mmlPanel_addToDocument, 'Add overlay plots to document\tA',
-            help='Add overlay results to comparison document',
+            ID_mmlPanel_addToDocument,
+            "Add overlay plots to document\tA",
+            help="Add overlay results to comparison document",
         )
         self.addToDocument_check.Check(self.addToDocument)
         menu.AppendSeparator()
         self.preProcess_check = menu.AppendCheckItem(
             ID_mmlPanel_preprocess,
-            'Pre-process mass spectra',
-            help='Pre-process MS before generating waterfall plot (i.e. linearization, normalisation, smoothing, etc',
+            "Pre-process mass spectra",
+            help="Pre-process MS before generating waterfall plot (i.e. linearization, normalisation, smoothing, etc",
         )
         self.preProcess_check.Check(self.preprocessMS)
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_overlayWaterfall,
-                text='Overlay raw mass spectra',
-                bitmap=self.icons.iconsLib['panel_waterfall_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_overlayWaterfall,
+                text="Overlay raw mass spectra",
+                bitmap=self.icons.iconsLib["panel_waterfall_16"],
+            )
         )
         menu.AppendSeparator()
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_overlayProcessedSpectra,
-                text='Overlay processed spectra (UniDec)',
-                bitmap=self.icons.iconsLib['blank_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_overlayProcessedSpectra,
+                text="Overlay processed spectra (UniDec)",
+                bitmap=self.icons.iconsLib["blank_16"],
+            )
         )
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_overlayFittedSpectra,
-                text='Overlay fitted spectra (UniDec)',
-                bitmap=self.icons.iconsLib['blank_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_overlayFittedSpectra,
+                text="Overlay fitted spectra (UniDec)",
+                bitmap=self.icons.iconsLib["blank_16"],
+            )
         )
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_overlayMW,
-                text='Overlay molecular weight distribution (UniDec)',
-                bitmap=self.icons.iconsLib['blank_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_overlayMW,
+                text="Overlay molecular weight distribution (UniDec)",
+                bitmap=self.icons.iconsLib["blank_16"],
+            )
         )
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_overlayChargeStates,
-                text='Overlay charge state distribution (UniDec)',
-                bitmap=self.icons.iconsLib['blank_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_overlayChargeStates,
+                text="Overlay charge state distribution (UniDec)",
+                bitmap=self.icons.iconsLib["blank_16"],
+            )
         )
-#         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_overlayFoundPeaks,
-#                                      text='Overlay isolated species',
-#                                      bitmap=self.icons.iconsLib['blank_16']))
+        #         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_overlayFoundPeaks,
+        #                                      text='Overlay isolated species',
+        #                                      bitmap=self.icons.iconsLib['blank_16']))
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -470,13 +482,14 @@ class panelMML(wx.Panel):
         self.Bind(wx.EVT_TOOL, self.onAutoUniDec, id=ID_mmlPanel_batchRunUniDec)
 
         menu = wx.Menu()
-        menu.Append(ID_mmlPanel_data_combineMS, 'Average mass spectra (current document)')
+        menu.Append(ID_mmlPanel_data_combineMS, "Average mass spectra (current document)")
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_batchRunUniDec,
-                text='Run UniDec for selected items',
-                bitmap=self.icons.iconsLib['process_unidec_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_batchRunUniDec,
+                text="Run UniDec for selected items",
+                bitmap=self.icons.iconsLib["process_unidec_16"],
+            )
         )
         self.PopupMenu(menu)
         menu.Destroy()
@@ -492,31 +505,33 @@ class panelMML(wx.Panel):
 
         menu = wx.Menu()
         n = 0
-        self.table_filename = menu.AppendCheckItem(ID_mmlPanel_table_filename, 'Table: Filename')
-        self.table_filename.Check(self.config._multipleFilesSettings[n]['show'])
+        self.table_filename = menu.AppendCheckItem(ID_mmlPanel_table_filename, "Table: Filename")
+        self.table_filename.Check(self.config._multipleFilesSettings[n]["show"])
         n = n + 1
-        self.table_variable = menu.AppendCheckItem(ID_mmlPanel_table_variable, 'Table: Variable')
-        self.table_variable.Check(self.config._multipleFilesSettings[n]['show'])
+        self.table_variable = menu.AppendCheckItem(ID_mmlPanel_table_variable, "Table: Variable")
+        self.table_variable.Check(self.config._multipleFilesSettings[n]["show"])
         n = n + 1
-        self.table_document = menu.AppendCheckItem(ID_mmlPanel_table_document, 'Table: Document')
-        self.table_document.Check(self.config._multipleFilesSettings[n]['show'])
+        self.table_document = menu.AppendCheckItem(ID_mmlPanel_table_document, "Table: Document")
+        self.table_document.Check(self.config._multipleFilesSettings[n]["show"])
         n = n + 1
-        self.table_label = menu.AppendCheckItem(ID_mmlPanel_table_label, 'Table: Label')
-        self.table_label.Check(self.config._multipleFilesSettings[n]['show'])
+        self.table_label = menu.AppendCheckItem(ID_mmlPanel_table_label, "Table: Label")
+        self.table_label.Check(self.config._multipleFilesSettings[n]["show"])
         menu.AppendSeparator()
         self.table_hide = menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_table_hideAll,
-                text='Table: Hide all',
-                bitmap=self.icons.iconsLib['hide_table_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_table_hideAll,
+                text="Table: Hide all",
+                bitmap=self.icons.iconsLib["hide_table_16"],
+            )
         )
         self.table_restore = menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_mmlPanel_table_restoreAll,
-                text='Table: Restore all',
-                bitmap=self.icons.iconsLib['show_table_16'],
-            ),
+                parent=menu,
+                id=ID_mmlPanel_table_restoreAll,
+                text="Table: Restore all",
+                bitmap=self.icons.iconsLib["show_table_16"],
+            )
         )
 
         self.PopupMenu(menu)
@@ -548,7 +563,7 @@ class panelMML(wx.Panel):
 
         if evt.GetId() == ID_mmlPanel_changeColorBatch_palette:
             colors = self.presenter.view.panelPlots.on_change_color_palette(
-                None, n_colors=check_count, return_colors=True,
+                None, n_colors=check_count, return_colors=True
             )
         elif evt.GetId() == ID_mmlPanel_changeColorBatch_color:
             color = self.OnGetColor(None)
@@ -560,12 +575,7 @@ class panelMML(wx.Panel):
             if self.peaklist.IsChecked(index=row):
                 color = colors[row]
                 self.peaklist.SetItemBackgroundColour(row, convertRGB1to255(color))
-                self.peaklist.SetItemTextColour(
-                    row, determineFontColor(
-                        convertRGB1to255(color),
-                        return_rgb=True,
-                    ),
-                )
+                self.peaklist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color), return_rgb=True))
 
     def onAutoUniDec(self, evt):
 
@@ -575,34 +585,28 @@ class panelMML(wx.Panel):
             itemInfo = self.OnGetItemInformation(itemID=row)
 
             # get mass spectrum information
-            document = self.presenter.documentsDict[itemInfo['document']]
-            dataset = itemInfo['filename']
-            self.data_processing.on_run_unidec(dataset, task='auto_unidec')
+            document = self.presenter.documentsDict[itemInfo["document"]]
+            dataset = itemInfo["filename"]
+            self.data_processing.on_run_unidec(dataset, task="auto_unidec")
 
             print(
-                'Pre-processing mass spectra using m/z range {} - {} with {} bin size'.format(
-                    self.config.unidec_mzStart,
-                    self.config.unidec_mzEnd,
-                    self.config.unidec_mzBinSize,
-                ),
+                "Pre-processing mass spectra using m/z range {} - {} with {} bin size".format(
+                    self.config.unidec_mzStart, self.config.unidec_mzEnd, self.config.unidec_mzBinSize
+                )
             )
 
-    def onRenameItem(self, old_name, new_name, item_type='Document'):
+    def onRenameItem(self, old_name, new_name, item_type="Document"):
         for row in range(self.peaklist.GetItemCount()):
             itemInfo = self.OnGetItemInformation(itemID=row)
-            if item_type == 'document':
-                if itemInfo['document'] == old_name:
+            if item_type == "document":
+                if itemInfo["document"] == old_name:
                     self.peaklist.SetStringItem(
-                        index=row,
-                        col=self.config.multipleMLColNames['document'],
-                        label=new_name,
+                        index=row, col=self.config.multipleMLColNames["document"], label=new_name
                     )
-            elif item_type == 'filename':
-                if itemInfo['filename'] == old_name:
+            elif item_type == "filename":
+                if itemInfo["filename"] == old_name:
                     self.peaklist.SetStringItem(
-                        index=row,
-                        col=self.config.multipleMLColNames['filename'],
-                        label=new_name,
+                        index=row, col=self.config.multipleMLColNames["filename"], label=new_name
                     )
 
     def on_update_peaklist_table(self, evt):
@@ -610,40 +614,38 @@ class panelMML(wx.Panel):
 
         # check which event was triggered
         if evtID == ID_mmlPanel_table_filename:
-            col_index = self.config.multipleMLColNames['filename']
+            col_index = self.config.multipleMLColNames["filename"]
         elif evtID == ID_mmlPanel_table_variable:
-            col_index = self.config.multipleMLColNames['energy']
+            col_index = self.config.multipleMLColNames["energy"]
         elif evtID == ID_mmlPanel_table_document:
-            col_index = self.config.multipleMLColNames['document']
+            col_index = self.config.multipleMLColNames["document"]
         elif evtID == ID_mmlPanel_table_label:
-            col_index = self.config.multipleMLColNames['label']
+            col_index = self.config.multipleMLColNames["label"]
         elif evtID == ID_mmlPanel_table_restoreAll:
             for i in range(len(self.config._multipleFilesSettings)):
-                self.config._multipleFilesSettings[i]['show'] = True
-                col_width = self.config._multipleFilesSettings[i]['width']
+                self.config._multipleFilesSettings[i]["show"] = True
+                col_width = self.config._multipleFilesSettings[i]["width"]
                 self.peaklist.SetColumnWidth(i, col_width)
             return
         elif evtID == ID_mmlPanel_table_hideAll:
             for i in range(len(self.config._multipleFilesSettings)):
-                self.config._multipleFilesSettings[i]['show'] = False
+                self.config._multipleFilesSettings[i]["show"] = False
                 col_width = 0
                 self.peaklist.SetColumnWidth(i, col_width)
             return
 
         # check values
-        col_check = not self.config._multipleFilesSettings[col_index]['show']
-        self.config._multipleFilesSettings[col_index]['show'] = col_check
+        col_check = not self.config._multipleFilesSettings[col_index]["show"]
+        self.config._multipleFilesSettings[col_index]["show"] = col_check
         if col_check:
-            col_width = self.config._multipleFilesSettings[col_index]['width']
+            col_width = self.config._multipleFilesSettings[col_index]["width"]
         else:
             col_width = 0
         # set new column width
         self.peaklist.SetColumnWidth(col_index, col_width)
 
     def onOpenFile_DnD(self, pathlist):
-        self.data_handling.on_open_multiple_ML_files_fcn(
-            open_type='multiple_files_add', pathlist=pathlist,
-        )
+        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_add", pathlist=pathlist)
 
     def on_plot_MS(self, evt):
         """
@@ -651,44 +653,38 @@ class panelMML(wx.Panel):
         """
 
         itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
-        document = self.presenter.documentsDict[itemInfo['document']]
+        document = self.presenter.documentsDict[itemInfo["document"]]
         if document is None:
             return
 
         if evt.GetId() == ID_mmlPanel_plot_MS:
-            itemName = itemInfo['filename']
+            itemName = itemInfo["filename"]
             try:
-                msX = document.multipleMassSpectrum[itemName]['xvals']
-                msY = document.multipleMassSpectrum[itemName]['yvals']
+                msX = document.multipleMassSpectrum[itemName]["xvals"]
+                msY = document.multipleMassSpectrum[itemName]["yvals"]
             except KeyError:
                 return
             parameters = document.multipleMassSpectrum[itemName].get(
-                'parameters', {
-                    'startMS': np.min(msX),
-                    'endMS': np.max(msX),
-                },
+                "parameters", {"startMS": np.min(msX), "endMS": np.max(msX)}
             )
-            xlimits = [parameters['startMS'], parameters['endMS']]
-            name_kwargs = {'document': itemInfo['document'], 'dataset': itemName}
+            xlimits = [parameters["startMS"], parameters["endMS"]]
+            name_kwargs = {"document": itemInfo["document"], "dataset": itemName}
 
         elif evt.GetId() == ID_mmlPanel_plot_combined_MS:
             try:
-                msX = document.massSpectrum['xvals']
-                msY = document.massSpectrum['yvals']
-                xlimits = document.massSpectrum['xlimits']
-                name_kwargs = {'document': itemInfo['document'], 'dataset': 'Mass Spectrum'}
+                msX = document.massSpectrum["xvals"]
+                msY = document.massSpectrum["yvals"]
+                xlimits = document.massSpectrum["xlimits"]
+                name_kwargs = {"document": itemInfo["document"], "dataset": "Mass Spectrum"}
             except KeyError:
                 DialogBox(
-                    exceptionTitle='Error',
-                    exceptionMsg='Document does not have averaged mass spectrum',
-                    type='Error',
+                    exceptionTitle="Error", exceptionMsg="Document does not have averaged mass spectrum", type="Error"
                 )
                 return
 
         # Plot data
         self.presenter.view.panelPlots.on_plot_MS(
-            msX, msY, xlimits=xlimits, full_repaint=True,
-            set_page=True, **name_kwargs
+            msX, msY, xlimits=xlimits, full_repaint=True, set_page=True, **name_kwargs
         )
 
     def on_plot_1D(self, evt):
@@ -696,23 +692,19 @@ class panelMML(wx.Panel):
         Function to plot selected 1DT in the mainWindow
         """
         itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
-        document = self.presenter.documentsDict[itemInfo['document']]
+        document = self.presenter.documentsDict[itemInfo["document"]]
 
         if document is None:
             return
         try:
-            itemName = itemInfo['filename']
-            dtX = document.multipleMassSpectrum[itemName]['ims1DX']
-            dtY = document.multipleMassSpectrum[itemName]['ims1D']
-            xlabel = document.multipleMassSpectrum[itemName]['xlabel']
+            itemName = itemInfo["filename"]
+            dtX = document.multipleMassSpectrum[itemName]["ims1DX"]
+            dtY = document.multipleMassSpectrum[itemName]["ims1D"]
+            xlabel = document.multipleMassSpectrum[itemName]["xlabel"]
 
             self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, full_repaint=True, set_page=True)
         except KeyError:
-            DialogBox(
-                exceptionTitle='Error',
-                exceptionMsg='No mobility data present for selected item',
-                type='Error',
-            )
+            DialogBox(exceptionTitle="Error", exceptionMsg="No mobility data present for selected item", type="Error")
             return
 
     def OnGetItemInformation(self, itemID, return_list=False):
@@ -758,14 +750,14 @@ class panelMML(wx.Panel):
                 itemInfo = self.OnGetItemInformation(itemID)
 
         # get item
-        document = self.data_handling._on_get_document(itemInfo['document'])
+        document = self.data_handling._on_get_document(itemInfo["document"])
 
-        keywords = ['color', 'energy', 'label']
+        keywords = ["color", "energy", "label"]
         for keyword in keywords:
             keyword_name = self.__check_keyword(keyword)
-            document.multipleMassSpectrum[itemInfo['filename']][keyword_name] = itemInfo[keyword]
+            document.multipleMassSpectrum[itemInfo["filename"]][keyword_name] = itemInfo[keyword]
 
-        self.data_handling.on_update_document(document, 'no_refresh')
+        self.data_handling.on_update_document(document, "no_refresh")
 
     def on_overlay_plots(self, evt):
         evtID = evt.GetId()
@@ -777,13 +769,13 @@ class panelMML(wx.Panel):
             if not self.peaklist.IsChecked(index=row):
                 continue
             itemInfo = self.OnGetItemInformation(itemID=row)
-            names.append(itemInfo['label'])
+            names.append(itemInfo["label"])
             # get mass spectrum information
-            document = self.presenter.documentsDict[itemInfo['document']]
-            data = document.multipleMassSpectrum[itemInfo['filename']]
+            document = self.presenter.documentsDict[itemInfo["document"]]
+            data = document.multipleMassSpectrum[itemInfo["filename"]]
 
             # check if unidec dataset is present
-            if 'unidec' not in data and evtID in [
+            if "unidec" not in data and evtID in [
                 ID_mmlPanel_overlayMW,
                 ID_mmlPanel_overlayProcessedSpectra,
                 ID_mmlPanel_overlayFittedSpectra,
@@ -791,43 +783,42 @@ class panelMML(wx.Panel):
                 ID_mmlPanel_overlayFoundPeaks,
             ]:
                 print(
-                    'Selected item {} ({}) does not have UniDec results'.format(
-                        itemInfo['document'],
-                        itemInfo['filename'],
-                    ),
+                    "Selected item {} ({}) does not have UniDec results".format(
+                        itemInfo["document"], itemInfo["filename"]
+                    )
                 )
                 continue
             if evtID == ID_mmlPanel_overlayWaterfall:
                 _interpolate = False
-                xvals = document.multipleMassSpectrum[itemInfo['filename']]['xvals'].copy()
-                yvals = document.multipleMassSpectrum[itemInfo['filename']]['yvals'].copy()
+                xvals = document.multipleMassSpectrum[itemInfo["filename"]]["xvals"].copy()
+                yvals = document.multipleMassSpectrum[itemInfo["filename"]]["yvals"].copy()
                 if self.preprocessMS:
                     xvals, yvals = self.data_processing.on_process_MS(msX=xvals, msY=yvals, return_data=True)
 
             elif evtID == ID_mmlPanel_overlayMW:
-                xvals = data['unidec']['MW distribution']['xvals']
-                yvals = data['unidec']['MW distribution']['yvals']
+                xvals = data["unidec"]["MW distribution"]["xvals"]
+                yvals = data["unidec"]["MW distribution"]["yvals"]
 
             elif evtID == ID_mmlPanel_overlayProcessedSpectra:
-                xvals = data['unidec']['Processed']['xvals']
-                yvals = data['unidec']['Processed']['yvals']
+                xvals = data["unidec"]["Processed"]["xvals"]
+                yvals = data["unidec"]["Processed"]["yvals"]
             elif evtID == ID_mmlPanel_overlayFittedSpectra:
-                xvals = data['unidec']['Fitted']['xvals'][0]
-                yvals = data['unidec']['Fitted']['yvals'][1]
+                xvals = data["unidec"]["Fitted"]["xvals"][0]
+                yvals = data["unidec"]["Fitted"]["yvals"][1]
             elif evtID == ID_mmlPanel_overlayChargeStates:
-                xvals = data['unidec']['Charge information'][:, 0]
-                yvals = data['unidec']['Charge information'][:, 1]
+                xvals = data["unidec"]["Charge information"][:, 0]
+                yvals = data["unidec"]["Charge information"][:, 1]
             elif evtID == ID_mmlPanel_overlayFoundPeaks:
-                data['unidec']['m/z with isolated species']
+                data["unidec"]["m/z with isolated species"]
                 xvals = []
                 yvals = []
 
             xvals_list.append(xvals)
             yvals_list.append(yvals)
-            colors.append(convertRGB255to1(itemInfo['color']))
+            colors.append(convertRGB255to1(itemInfo["color"]))
 
         if len(xvals_list) == 0:
-            print('No data in selected items')
+            print("No data in selected items")
             return
 
         # check that lengths are correct
@@ -835,11 +826,7 @@ class panelMML(wx.Panel):
             x_long = max(xvals_list, key=len)
             for i, xlist in enumerate(xvals_list):
                 if len(xlist) < len(x_long):
-                    xlist_new, ylist_new = interpolate(
-                        xvals_list[i],
-                        yvals_list[i],
-                        x_long,
-                    )
+                    xlist_new, ylist_new = interpolate(xvals_list[i], yvals_list[i], x_long)
                     xvals_list[i] = xlist_new
                     yvals_list[i] = ylist_new
 
@@ -848,81 +835,69 @@ class panelMML(wx.Panel):
             xvals_list.insert(0, np.average(xvals_list, axis=0))
             yvals_list.insert(0, np.average(yvals_list, axis=0))
             colors.insert(0, ((0, 0, 0)))
-            names.insert(0, ('Average'))
+            names.insert(0, ("Average"))
 
-        kwargs = {'show_y_labels': True, 'labels': names, 'add_legend': show_legend}
+        kwargs = {"show_y_labels": True, "labels": names, "add_legend": show_legend}
         if evtID == ID_mmlPanel_overlayWaterfall:
-            overlay_type = 'Waterfall (Raw)'
-            xlabel, ylabel = 'm/z', 'Offset Intensity'
+            overlay_type = "Waterfall (Raw)"
+            xlabel, ylabel = "m/z", "Offset Intensity"
             self.presenter.view.panelPlots.on_plot_waterfall(
-                xvals_list, yvals_list, None, colors=colors,
-                xlabel=xlabel, ylabel=ylabel, **kwargs
+                xvals_list, yvals_list, None, colors=colors, xlabel=xlabel, ylabel=ylabel, **kwargs
             )
         if evtID == ID_mmlPanel_overlayMW:
-            overlay_type = 'Waterfall (Deconvoluted MW)'
-            xlabel, ylabel = 'Mass (Da)', 'Offset Intensity'
+            overlay_type = "Waterfall (Deconvoluted MW)"
+            xlabel, ylabel = "Mass (Da)", "Offset Intensity"
             self.presenter.view.panelPlots.on_plot_waterfall(
-                xvals_list, yvals_list, None, colors=colors,
-                xlabel=xlabel, ylabel=ylabel, set_page=True,
-                **kwargs
+                xvals_list, yvals_list, None, colors=colors, xlabel=xlabel, ylabel=ylabel, set_page=True, **kwargs
             )
 
         elif evtID == ID_mmlPanel_overlayProcessedSpectra:
-            overlay_type = 'Waterfall (Processed)'
-            xlabel, ylabel = 'm/z', 'Offset Intensity'
+            overlay_type = "Waterfall (Processed)"
+            xlabel, ylabel = "m/z", "Offset Intensity"
             self.presenter.view.panelPlots.on_plot_waterfall(
-                xvals_list, yvals_list, None, colors=colors,
-                xlabel=xlabel, ylabel=ylabel, set_page=True,
-                **kwargs
+                xvals_list, yvals_list, None, colors=colors, xlabel=xlabel, ylabel=ylabel, set_page=True, **kwargs
             )
         elif evtID == ID_mmlPanel_overlayFittedSpectra:
-            overlay_type = 'Waterfall (Fitted)'
-            xlabel, ylabel = 'm/z', 'Offset Intensity'
+            overlay_type = "Waterfall (Fitted)"
+            xlabel, ylabel = "m/z", "Offset Intensity"
             self.presenter.view.panelPlots.on_plot_waterfall(
-                xvals_list, yvals_list, None, colors=colors,
-                xlabel=xlabel, ylabel=ylabel, set_page=True,
-                **kwargs
+                xvals_list, yvals_list, None, colors=colors, xlabel=xlabel, ylabel=ylabel, set_page=True, **kwargs
             )
         elif evtID == ID_mmlPanel_overlayChargeStates:
-            overlay_type = 'Waterfall (Charge states)'
-            xlabel, ylabel = 'Charge', 'Intensity'
-            kwargs = {'show_y_labels': True, 'labels': names, 'increment': 0.000001, 'add_legend': show_legend}
+            overlay_type = "Waterfall (Charge states)"
+            xlabel, ylabel = "Charge", "Intensity"
+            kwargs = {"show_y_labels": True, "labels": names, "increment": 0.000001, "add_legend": show_legend}
             self.presenter.view.panelPlots.on_plot_waterfall(
-                xvals_list, yvals_list, None, colors=colors,
-                xlabel=xlabel, ylabel=ylabel, set_page=True,
-                **kwargs
+                xvals_list, yvals_list, None, colors=colors, xlabel=xlabel, ylabel=ylabel, set_page=True, **kwargs
             )
 
         if self.addToDocument:
             self.on_add_overlay_data_to_document(xvals_list, yvals_list, colors, xlabel, ylabel, overlay_type, **kwargs)
 
-    def on_add_overlay_data_to_document(
-        self, xvals, yvals, colors, xlabel, ylabel,
-        overlay_type, **kwargs
-    ):
-        overlay_labels = ', '.join(kwargs['labels'])
-        overlay_title = '{}: {}'.format(overlay_type, overlay_labels)
+    def on_add_overlay_data_to_document(self, xvals, yvals, colors, xlabel, ylabel, overlay_type, **kwargs):
+        overlay_labels = ", ".join(kwargs["labels"])
+        overlay_title = "{}: {}".format(overlay_type, overlay_labels)
 
         document = self.presenter.get_overlay_document()
         if document is None:
-            self.presenter.onThreading(None, ('No document was selected', 4), action='updateStatusbar')
+            self.presenter.onThreading(None, ("No document was selected", 4), action="updateStatusbar")
             return
         document.gotOverlay = True
         document.IMS2DoverlayData[overlay_title] = {
-            'xvals': xvals, 'yvals': yvals,
-            'xlabel': xlabel, 'ylabel': ylabel,
-            'colors': colors, 'labels': kwargs['labels'],
-            'waterfall_kwargs': kwargs,
+            "xvals": xvals,
+            "yvals": yvals,
+            "xlabel": xlabel,
+            "ylabel": ylabel,
+            "colors": colors,
+            "labels": kwargs["labels"],
+            "waterfall_kwargs": kwargs,
         }
 
         # update document
-        self.data_handling.on_update_document(
-            document, expand_item='overlay',
-            expand_item_title=overlay_title,
-        )
+        self.data_handling.on_update_document(document, expand_item="overlay", expand_item_title=overlay_title)
 
     def on_add_blank_document_manual(self, evt):
-        self.presenter.onAddBlankDocument(evt=None, document_type='manual')
+        self.presenter.onAddBlankDocument(evt=None, document_type="manual")
 
     def on_check_duplicate_colors(self, new_color, document_name):
         """
@@ -933,7 +908,7 @@ class panelMML(wx.Panel):
         color_list = []
         for row in range(count):
             itemInfo = self.OnGetItemInformation(itemID=row)
-            if itemInfo['document'] == document_name:
+            if itemInfo["document"] == document_name:
                 color_list.append(self.peaklist.GetItemBackgroundColour(item=row))
 
         if new_color in color_list:
@@ -948,14 +923,10 @@ class panelMML(wx.Panel):
         return new_color
 
     def on_open_multiple_files_new(self, evt):
-        self.data_handling.on_open_multiple_ML_files_fcn(
-            open_type='multiple_files_new_document',
-        )
+        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_new_document")
 
     def on_open_multiple_files_add(self, evt):
-        self.data_handling.on_open_multiple_ML_files_fcn(
-            open_type='multiple_files_add',
-        )
+        self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_add")
 
     def on_combine_mass_spectra(self, evt, document_name=None):
         self.data_handling.on_combine_mass_spectra(document_name=document_name)
@@ -965,41 +936,37 @@ class panelMML(wx.Panel):
         # check if item already exists
         if self._check_item_in_table(add_dict):
             logger.info(
-                'Item {}:{} is already present in the document'.format(
-                    add_dict['document'], add_dict['filename'],
-                ),
+                "Item {}:{} is already present in the document".format(add_dict["document"], add_dict["filename"])
             )
             return
 
         # get color
-        color = add_dict.get('color', self.config.customColors[get_random_int(0, 15)])
+        color = add_dict.get("color", self.config.customColors[get_random_int(0, 15)])
         color = convertRGB1to255(color)
 
-        document_title = add_dict.get('document', None)
+        document_title = add_dict.get("document", None)
         # check for duplicate color
         if check_color:
             color = self.on_check_duplicate_colors(color, document_title)
 
         # add to peaklist
-        self.peaklist.Append([
-            '',
-            str(add_dict.get('filename', '')),
-            str(add_dict.get('variable', '')),
-            str(add_dict.get('document', '')),
-            str(add_dict.get('label', '')),
-        ])
-        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
-        self.peaklist.SetItemTextColour(
-            self.peaklist.GetItemCount() - 1,
-            determineFontColor(color, return_rgb=True),
+        self.peaklist.Append(
+            [
+                "",
+                str(add_dict.get("filename", "")),
+                str(add_dict.get("variable", "")),
+                str(add_dict.get("document", "")),
+                str(add_dict.get("label", "")),
+            ]
         )
+        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
+        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, determineFontColor(color, return_rgb=True))
 
     def _check_item_in_table(self, add_dict):
         count = self.peaklist.GetItemCount()
         for row in range(count):
             item_info = self.OnGetItemInformation(itemID=row)
-            if add_dict['filename'] == item_info['filename'] and \
-                    add_dict['document'] == item_info['document']:
+            if add_dict["filename"] == item_info["filename"] and add_dict["document"] == item_info["document"]:
                 return True
 
         return False
@@ -1010,11 +977,11 @@ class panelMML(wx.Panel):
         while rows >= 0:
             itemInfo = self.OnGetItemInformation(rows)
 
-            if itemInfo['filename'] == delete_item_name and itemInfo['document'] == delete_document_title:
+            if itemInfo["filename"] == delete_item_name and itemInfo["document"] == delete_document_title:
                 self.peaklist.DeleteItem(rows)
                 rows = 0
                 return
-            elif delete_item_name is None and itemInfo['document'] == delete_document_title:
+            elif delete_item_name is None and itemInfo["document"] == delete_document_title:
                 self.peaklist.DeleteItem(rows)
             rows -= 1
 
@@ -1022,67 +989,63 @@ class panelMML(wx.Panel):
 
         itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
         dlg = DialogBox(
-            type='Question',
-            exceptionMsg='Are you sure you would like to delete {} from {}?\nThis action cannot be undone.'.format(
-                itemInfo['filename'],
-                itemInfo['document'],
+            type="Question",
+            exceptionMsg="Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
+                itemInfo["filename"], itemInfo["document"]
             ),
         )
         if dlg == wx.ID_NO:
-            print('The operation was cancelled')
+            print("The operation was cancelled")
             return
 
-        document = self.data_handling._on_get_document(itemInfo['document'])
+        document = self.data_handling._on_get_document(itemInfo["document"])
 
         __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
-            document, itemInfo['document'], delete_type='spectrum.one',
-            spectrum_name=itemInfo['filename'],
+            document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
         )
 
     def on_delete_selected(self, evt):
 
         itemID = self.peaklist.GetItemCount() - 1
-        while (itemID >= 0):
+        while itemID >= 0:
             if self.peaklist.IsChecked(index=itemID):
                 itemInfo = self.OnGetItemInformation(itemID=itemID)
-                msg = 'Are you sure you would like to delete {} from {}?\nThis action cannot be undone.'.format(
-                    itemInfo['filename'], itemInfo['document'],
+                msg = "Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
+                    itemInfo["filename"], itemInfo["document"]
                 )
-                dlg = DialogBox(exceptionMsg=msg, type='Question')
+                dlg = DialogBox(exceptionMsg=msg, type="Question")
                 if dlg == wx.ID_NO:
-                    print('The operation was cancelled')
+                    print("The operation was cancelled")
                     continue
 
-                document = self.data_handling._on_get_document(itemInfo['document'])
+                document = self.data_handling._on_get_document(itemInfo["document"])
                 __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
-                    document, itemInfo['document'], delete_type='spectrum.one',
-                    spectrum_name=itemInfo['filename'],
+                    document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
                 )
             itemID -= 1
 
     def on_delete_all(self, evt):
 
-        msg = 'Are you sure you would like to delete all classifiers from all documents?\nThis action cannot be undone.'
-        dlg = DialogBox(exceptionMsg=msg, type='Question')
+        msg = "Are you sure you would like to delete all classifiers from all documents?\nThis action cannot be undone."
+        dlg = DialogBox(exceptionMsg=msg, type="Question")
         if dlg == wx.ID_NO:
-            print('The operation was cancelled')
+            print("The operation was cancelled")
             return
 
         item_count = self.peaklist.GetItemCount() - 1
-        while (item_count >= 0):
+        while item_count >= 0:
             itemInfo = self.OnGetItemInformation(itemID=item_count)
-            document = self.data_handling._on_get_document(itemInfo['document'])
+            document = self.data_handling._on_get_document(itemInfo["document"])
             __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
-                document, itemInfo['document'], delete_type='spectrum.one',
-                spectrum_name=itemInfo['filename'],
+                document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
             )
             item_count -= 1
 
     def on_remove_deleted_item(self, document):
         row = self.peaklist.GetItemCount() - 1
-        while (row >= 0):
+        while row >= 0:
             info = self.OnGetItemInformation(itemID=row)
-            if info['document'] == document:
+            if info["document"] == document:
                 self.peaklist.DeleteItem(row)
                 row -= 1
             else:
@@ -1091,33 +1054,28 @@ class panelMML(wx.Panel):
     def on_open_editor(self, evt):
         information = self.OnGetItemInformation(self.peaklist.item_id)
 
-        dlg = panelModifyManualFiles(
-            self,
-            self.presenter,
-            self.config,
-            **information
-        )
+        dlg = panelModifyManualFiles(self, self.presenter, self.config, **information)
         dlg.Show()
 
     def on_update_value_in_peaklist(self, item_id, value_type, value):
 
-        if value_type == 'check':
+        if value_type == "check":
             self.peaklist.CheckItem(item_id, value)
-        elif value_type == 'filename':
-            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames['filename'], str(value))
-        elif value_type == 'energy':
-            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames['energy'], str(value))
-        elif value_type == 'color':
+        elif value_type == "filename":
+            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["filename"], str(value))
+        elif value_type == "energy":
+            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["energy"], str(value))
+        elif value_type == "color":
             color_255, color_1, font_color = value
             self.peaklist.SetItemBackgroundColour(item_id, color_255)
             self.peaklist.SetItemTextColour(item_id, font_color)
-        elif value_type == 'color_text':
+        elif value_type == "color_text":
             self.peaklist.SetItemBackgroundColour(item_id, value)
             self.peaklist.SetItemTextColour(item_id, determineFontColor(value, return_rgb=True))
-        elif value_type == 'label':
-            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames['label'], str(value))
-        elif value_type == 'document':
-            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames['filename'], str(value))
+        elif value_type == "label":
+            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["label"], str(value))
+        elif value_type == "document":
+            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["filename"], str(value))
 
     def on_assign_color(self, evt, itemID=None, return_value=False):
         """
@@ -1131,18 +1089,18 @@ class panelMML(wx.Panel):
             itemID = self.peaklist.item_id
 
         dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == 'ok':
+        if dlg.ShowModal() == "ok":
             color_255, color_1, font_color = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
-            self.on_update_value_in_peaklist(itemID, 'color', [color_255, color_1, font_color])
+            self.on_update_value_in_peaklist(itemID, "color", [color_255, color_1, font_color])
 
             if return_value:
                 return color_255
 
     @staticmethod
     def __check_keyword(keyword_name):
-        if keyword_name == 'energy':
-            keyword_name = 'trap'
+        if keyword_name == "energy":
+            keyword_name = "trap"
         return keyword_name
 
 
@@ -1165,11 +1123,11 @@ class DragAndDrop(wx.FileDropTarget):
         for filename in filenames:
 
             __, file_extension = splitext(filename)
-            if file_extension in ['.raw']:
-                print('Added {} file to the list'.format(filename))
+            if file_extension in [".raw"]:
+                print("Added {} file to the list".format(filename))
                 pathlist.append(filename)
             else:
-                print('Dropped file {} is not supported'.format(filename))
+                print("Dropped file {} is not supported".format(filename))
 
         if len(pathlist) > 0:
             self.window.onOpenFile_DnD(pathlist)

@@ -6,13 +6,12 @@ from styles import Dialog
 
 
 class DialogNotifyOpenDocuments(Dialog):
-
     def __init__(self, parent, **kwargs):
-        Dialog.__init__(self, parent, title='Documents are still open...!')
+        Dialog.__init__(self, parent, title="Documents are still open...!")
 
         self.parent = parent
-        self.presenter = kwargs['presenter']
-        self.message = kwargs['message']
+        self.presenter = kwargs["presenter"]
+        self.message = kwargs["message"]
 
         self.make_gui()
         self.CentreOnParent()
@@ -42,12 +41,12 @@ class DialogNotifyOpenDocuments(Dialog):
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.input_label = wx.StaticText(panel, -1, '')
+        self.input_label = wx.StaticText(panel, -1, "")
         self.input_label.SetLabel(self.message)
 
-        self.save_all_btn = wx.Button(panel, ID_saveAllDocuments, 'Save all', size=(-1, 22))
-        self.continue_btn = wx.Button(panel, wx.ID_OK, 'Continue', size=(-1, 22))
-        self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, 'Cancel', size=(-1, 22))
+        self.save_all_btn = wx.Button(panel, ID_saveAllDocuments, "Save all", size=(-1, 22))
+        self.continue_btn = wx.Button(panel, wx.ID_OK, "Continue", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, 22))
 
         # bind
         self.save_all_btn.Bind(wx.EVT_BUTTON, self.onSaveDocument, id=ID_saveAllDocuments)

@@ -2,27 +2,23 @@ from comtypes import COMError
 from comtypes.client import CreateObject
 from utils.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
 
-__author__ = 'William Max Alexander'
+__author__ = "William Max Alexander"
 
 
 class mzFile(mzAPImzFile):
-
     def __init__(self, file_name, *args, **kwargs):
-        self.file_type = 'raw'
+        self.file_type = "raw"
         self.data_file = file_name
 
         try:
-            self.source = CreateObject('{10729396-43ee-49e5-aa07-85f02292ac70}')
+            self.source = CreateObject("{10729396-43ee-49e5-aa07-85f02292ac70}")
         except WindowsError as err:
-            print('RawReader.dll not found in registry.')
+            print("RawReader.dll not found in registry.")
             raise err
         except COMError:
             # As far as I know, this should only happen if you're trying to
             # run this in Python 3.
-            self.source = CreateObject(
-                '{10729396-43ee-49e5-aa07-85f02292ac70}',
-                dynamic=True,
-            )
+            self.source = CreateObject("{10729396-43ee-49e5-aa07-85f02292ac70}", dynamic=True)
         self.source.OpenRawFile(file_name)
 
         self._filters = None
@@ -48,7 +44,7 @@ class mzFile(mzAPImzFile):
     def lscan(self, scan_number):
         scan = self.source.centroid_scan(scan_number)
         if len(scan[0]) < 4:
-            raise IOError('Full lscan data not available for scan %s' % scan_number)
+            raise IOError("Full lscan data not available for scan %s" % scan_number)
         return [x[:4] for x in scan]
 
     def rscan(self, scan):
@@ -59,23 +55,15 @@ class mzFile(mzAPImzFile):
 
     def filters(self):
         if not self._filters:
-            filterlist = list(
-                zip(
-                    self.source.GetAllFilterInfoTimes(),
-                    self.source.GetAllFilterInfo(),
-                ),
-            )
-            self._filters = [
-                (time, string) for time, string in filterlist
-                if time and string
-            ]
+            filterlist = list(zip(self.source.GetAllFilterInfoTimes(), self.source.GetAllFilterInfo()))
+            self._filters = [(time, string) for time, string in filterlist if time and string]
 
         return self._filters
 
     def extra_info(self, scan):
         info = {}
         for key, val in self.source.get_extra_scan_info(scan):
-            key = key.strip(':')
+            key = key.strip(":")
             try:
                 info[key] = float(val)
             except ValueError:
@@ -85,16 +73,13 @@ class mzFile(mzAPImzFile):
     def scanInjectionTime(self, scan):
         keys, vals = list(zip(*self.source.get_extra_scan_info(scan)))
         try:
-            return float(vals[keys.index('Ion Injection Time (ms):')])
+            return float(vals[keys.index("Ion Injection Time (ms):")])
         except ValueError:
-            return float(vals[keys.index('Ion Injection Time (ms):')].replace(',', ''))
+            return float(vals[keys.index("Ion Injection Time (ms):")].replace(",", ""))
 
     def scanPrecursor(self, scan):
         keys, vals = list(zip(*self.source.get_extra_scan_info(scan)))
-        return (
-            float(vals[keys.index('Monoisotopic M/Z:')]),
-            float(vals[keys.index('Charge State:')]),
-        )
+        return (float(vals[keys.index("Monoisotopic M/Z:")]), float(vals[keys.index("Charge State:")]))
 
     def scan_info(self, start_time=0, stop_time=None, start_mz=0, stop_mz=100000):
         if not self._scaninfo:
@@ -103,11 +88,15 @@ class mzFile(mzAPImzFile):
             for scan in range(*self.scan_range()):
                 info = self.source.GetFilterInfoForScan(scan)
                 time = self.source.time_from_scan(scan)
-                self._scaninfo.append((
-                    time, float(info[1]), scan,
-                    info[0].upper() if info[0].upper() != 'MS' else 'MS1',
-                    'p' if info[2] == 'Profile' else 'c',
-                ))
+                self._scaninfo.append(
+                    (
+                        time,
+                        float(info[1]),
+                        scan,
+                        info[0].upper() if info[0].upper() != "MS" else "MS1",
+                        "p" if info[2] == "Profile" else "c",
+                    )
+                )
 
         if start_time:
             start_scan = self.scanForTime(start_time)
@@ -117,11 +106,7 @@ class mzFile(mzAPImzFile):
             stop_scan = self.scanForTime(stop_time)
         else:
             stop_scan = self.scan_range()[1]
-        return [
-            x for x in self._scaninfo if
-            start_scan <= x[2] <= stop_scan and
-            start_mz <= x[1] <= stop_mz
-        ]
+        return [x for x in self._scaninfo if start_scan <= x[2] <= stop_scan and start_mz <= x[1] <= stop_mz]
 
     def headers(self):
         return self.scan_info()
@@ -130,7 +115,7 @@ class mzFile(mzAPImzFile):
         if start_time == -1 and stop_time == -1 and start_mz == -1 and stop_mz == -1 and filter is None:
             return self.tic()
         if not filter:
-            filter = 'Full ms '
+            filter = "Full ms "
         if start_time != -1:
             start_time = self.scanForTime(start_time)
         if stop_time != -1:
@@ -144,5 +129,5 @@ class mzFile(mzAPImzFile):
         pass  # Check for memory leaks!
 
     def centroid(self, scan, *foo, **bar):
-        print('mzFile.centroid is deprecated, use mzFile.scan(..., centroid = True) instead.')
+        print("mzFile.centroid is deprecated, use mzFile.scan(..., centroid = True) instead.")
         return self.scan(scan, centroid=True)

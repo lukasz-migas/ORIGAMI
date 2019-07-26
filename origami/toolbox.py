@@ -16,7 +16,7 @@ from numpy import savetxt
 def mlen(listitem, get_longest=False):
 
     for i, item in enumerate(listitem):
-        print('Item {} has length {}'.format(i, len(item)))
+        print("Item {} has length {}".format(i, len(item)))
 
 
 def remove_nan_from_list(data_list):
@@ -25,7 +25,7 @@ def remove_nan_from_list(data_list):
     return data_list
 
 
-def dir_extra(dirlist, keywords='get'):
+def dir_extra(dirlist, keywords="get"):
     """
     Quickly filter through keywords in dir list
     -----
@@ -57,24 +57,24 @@ def get_latest_version(link=None, get_webpage=False):
         # Search website for all versions
         vers = []
         for line in urllib.request.urlopen(link):
-            if 'Update to ORIGAMI-ANALYSE (' in line.decode('utf-8'):
+            if "Update to ORIGAMI-ANALYSE (" in line.decode("utf-8"):
                 vers.append(line)
                 break
         if len(vers) == 0:
             return None
         # Split the latest one to get newest version
-        split = re.split(' |<', vers[0])
+        split = re.split(" |<", vers[0])
         webVersion = None
         for row in split:
-            if '(' in row:
-                webVersion = row.strip('()')
+            if "(" in row:
+                webVersion = row.strip("()")
                 break
         return webVersion
     else:
         webpage = urllib.request.urlopen(
-            'https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md',
+            "https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md"
         )
-        return webpage.read().decode('utf-8')
+        return webpage.read().decode("utf-8")
 
 
 def compare_versions(newVersion, oldVersion):
@@ -83,12 +83,12 @@ def compare_versions(newVersion, oldVersion):
 
 def cleanup_document(document):
 
-    if 'temporary_unidec' in document.massSpectrum:
-        del document.massSpectrum['temporary_unidec']
+    if "temporary_unidec" in document.massSpectrum:
+        del document.massSpectrum["temporary_unidec"]
 
     for spectrum in document.multipleMassSpectrum:
-        if 'temporary_unidec' in document.multipleMassSpectrum[spectrum]:
-            del document.multipleMassSpectrum[spectrum]['temporary_unidec']
+        if "temporary_unidec" in document.multipleMassSpectrum[spectrum]:
+            del document.multipleMassSpectrum[spectrum]["temporary_unidec"]
 
     return document
 
@@ -98,27 +98,27 @@ def saveObject(filename=None, saveFile=None):
     Simple tool to save objects/dictionaries
     """
     tstart = time.clock()
-    print(''.join(['Saving data...']))
-    with open(filename, 'wb') as handle:
+    print("".join(["Saving data..."]))
+    with open(filename, "wb") as handle:
         saveFile = cleanup_document(saveFile)
         pickle.dump(saveFile, handle, protocol=pickle.HIGHEST_PROTOCOL)
     tend = time.clock()
-    print('Saved document in: {}. It took {:.4f} seconds.'.format(filename, (tend - tstart)))
+    print("Saved document in: {}. It took {:.4f} seconds.".format(filename, (tend - tstart)))
 
 
 def openObject(filename=None):
     """
     Simple tool to open pickled objects/dictionaries
     """
-    if filename.rstrip('/')[-7:] == '.pickle':
-        with open(filename, 'rb') as f:
+    if filename.rstrip("/")[-7:] == ".pickle":
+        with open(filename, "rb") as f:
             try:
                 return pickle.load(f)
             except Exception as e:
                 print(e)
                 return None
     else:
-        with open(filename + '.pickle', 'rb') as f:
+        with open(filename + ".pickle", "rb") as f:
             return pickle.load(f)
 
 
@@ -127,17 +127,17 @@ def checkExtension(input):
     """
     This function checks what is the extension of the file to be either saved OR loaded
     """
-    fileNameExt = (str.split(input, '.'))
+    fileNameExt = str.split(input, ".")
     fileNameExt = fileNameExt[-1]
-    if fileNameExt.lower() == 'csv' or fileNameExt.lower() == 'CSV':
-        outDelimiter = ','
-        delimiterName = '.csv'
-    elif fileNameExt.lower() == 'txt' or fileNameExt.lower() == 'TXT':
-        outDelimiter = '\t'
-        delimiterName = '.txt'
+    if fileNameExt.lower() == "csv" or fileNameExt.lower() == "CSV":
+        outDelimiter = ","
+        delimiterName = ".csv"
+    elif fileNameExt.lower() == "txt" or fileNameExt.lower() == "TXT":
+        outDelimiter = "\t"
+        delimiterName = ".txt"
     else:
-        outDelimiter = ','
-        delimiterName = '.csv'
+        outDelimiter = ","
+        delimiterName = ".csv"
     return outDelimiter, delimiterName
 
 
@@ -146,7 +146,7 @@ def savaData(fileName, inputData, delimiter):
     This function saves data to an array. In case you want to save it in a
     zipped format, just append .gz to the end of the file
     """
-    savetxt(fileName, inputData, delimiter=delimiter, fmt='%f')
+    savetxt(fileName, inputData, delimiter=delimiter, fmt="%f")
     pass
 
 
@@ -163,15 +163,15 @@ def strictly_increasing(L):
 
 
 def binData(inputData, binSize):
-    print('Bin data ')
+    print("Bin data ")
 
 
 def getMassRangeFromRawFile(self, path):
-    print('End mass')
+    print("End mass")
 
 
 def getScantimeFromRawFile(self, path):
-    print('Scan time')
+    print("Scan time")
 
 
 def removeDuplicates(values):
@@ -195,26 +195,17 @@ def removeListDuplicates(input, columnsIn=None, limitedCols=None):
     return output
 
 
-def saveAsText(
-    filename, data, format='%.2f', delimiter=',',
-    header='',
-):
+def saveAsText(filename, data, format="%.2f", delimiter=",", header=""):
     """
     This function uses np.savetxt to save formatted data to file
     """
 
     try:
-        np.savetxt(
-            filename,
-            np.transpose(data),
-            fmt=format,
-            delimiter=delimiter,
-            header=header,
-        )
+        np.savetxt(filename, np.transpose(data), fmt=format, delimiter=delimiter, header=header)
     except IOError:
-        print(''.join(["Cannot save file: '", filename, "' as it is currently open."]))
+        print("".join(["Cannot save file: '", filename, "' as it is currently open."]))
         return
-    print(''.join(['Saved: ', filename]))
+    print("".join(["Saved: ", filename]))
 
 
 def find_nearest(array, value):
@@ -288,11 +279,11 @@ def find_limits_all(xvals, yvals):
     return xlimits, ylimits
 
 
-def sort_dictionary(dictionary, key='key'):
+def sort_dictionary(dictionary, key="key"):
     """
     Sort OrderedDict based on key value
     """
-    if key != 'key':
+    if key != "key":
         return OrderedDict(sorted(iter(dictionary.items()), key=lambda x: x[1][key]))
     else:
         return OrderedDict(sorted(list(dictionary.items()), key=lambda x: x[0]))

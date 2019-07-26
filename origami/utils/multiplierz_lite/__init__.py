@@ -19,12 +19,12 @@ import logging
 import os
 import sys
 
-__author__ = 'Jignesh Parikh, James Webber, William Max Alexander'
-__version__ = '2.0.0'
-__all__ = ['mzAPI', 'logger_message', 'PY3']
+__author__ = "Jignesh Parikh, James Webber, William Max Alexander"
+__version__ = "2.0.0"
+__all__ = ["mzAPI", "logger_message", "PY3"]
 
 PY3 = False
-if (sys.version_info > (3, 0)):
+if sys.version_info > (3, 0):
     PY3 = True
 
 
@@ -34,15 +34,15 @@ def _get_home():
     Find user's home directory if possible. Otherwise raise an error.
     """
 
-    path = ''
+    path = ""
 
     try:
-        path = os.path.expanduser('~')
+        path = os.path.expanduser("~")
     except Exception:
         pass
 
     if not os.path.isdir(path):
-        for evar in ('HOME', 'USERPROFILE', 'TMP'):
+        for evar in ("HOME", "USERPROFILE", "TMP"):
             try:
                 path = os.environ[evar]
                 if os.path.isdir(path):
@@ -53,7 +53,8 @@ def _get_home():
     if path:
         return path
     else:
-        raise RuntimeError('No home environment variable found')
+        raise RuntimeError("No home environment variable found")
+
 
 # these directories should be cross-platform:
 
@@ -62,9 +63,9 @@ def _get_home():
 myHome = _get_home()
 
 # multiplierz data folder
-myData = os.path.join(myHome, '.multiplierz')
-myTemp = os.path.join(myData, 'TEMP')
-modFile = os.path.join(myData, 'mods.txt')
+myData = os.path.join(myHome, ".multiplierz")
+myTemp = os.path.join(myData, "TEMP")
+modFile = os.path.join(myData, "mods.txt")
 
 verbose_mode = True
 
@@ -86,7 +87,7 @@ class legacy_logging(object):
     def __init__(self):
         pass
 
-    def __call__(self, level=30, message='Foo'):
+    def __call__(self, level=30, message="Foo"):
         vprint(message)
 
     def set_level(self, level):
@@ -109,12 +110,12 @@ def load_mods():
     List is (modification, specificity, mass) tuples.
     """
 
-    assert os.path.exists(modFile), 'mods.txt not found!'
+    assert os.path.exists(modFile), "mods.txt not found!"
 
     mods = []
-    with open(modFile, 'r') as file:
+    with open(modFile, "r") as file:
         for line in file:
-            if not line.strip() or line.strip()[0] == '#':
+            if not line.strip() or line.strip()[0] == "#":
                 continue
 
             mod, sites, mass = line.split()
@@ -123,15 +124,16 @@ def load_mods():
     return mods
 
 
-fastaFiles = os.path.join(myData, 'fastafiles.txt')
+fastaFiles = os.path.join(myData, "fastafiles.txt")
 
 
 def fastaList():
     fastas = []
-    with open(fastaFiles, 'r') as file:
+    with open(fastaFiles, "r") as file:
         for line in file:
             fastas.append(line.strip())
     return fastas
+
 
 # The first time multiplierz is loaded, it will set up the
 # userDirectory/.multiplierz directory, and populate it with
@@ -194,26 +196,27 @@ def initialSettings():
     mascot rank one only=True
     mascot pep quant=False
     """
-    ptr = open(os.path.join(myData, 'settings.txt'), 'w')
+    ptr = open(os.path.join(myData, "settings.txt"), "w")
     ptr.write(defaultSettingsFile)
     ptr.close()
 
 
 def deployUnimod():
     import shutil
-    unimodFile = os.path.join(os.path.dirname(__file__), 'unimod.sqlite')
+
+    unimodFile = os.path.join(os.path.dirname(__file__), "unimod.sqlite")
     if not os.path.exists(unimodFile):
         unimodFile = None
         basedir = os.path.dirname(sys.executable)
         for files, subdirs, path in os.walk(basedir):
-            if 'unimod.sqlite' in files:
-                unimodFile = os.path.join(path, 'unimod.sqlite')
+            if "unimod.sqlite" in files:
+                unimodFile = os.path.join(path, "unimod.sqlite")
                 break
 
     if not unimodFile:
-        print('WARNING: No unimod.sqlite found in {} ({})'.format(basedir, sys.executable))
+        print("WARNING: No unimod.sqlite found in {} ({})".format(basedir, sys.executable))
     else:
-        shutil.copy(unimodFile, os.path.join(myData, 'unimod.sqlite'))
+        shutil.copy(unimodFile, os.path.join(myData, "unimod.sqlite"))
 
 
 def initialMods():
@@ -223,38 +226,38 @@ def initialMods():
     Oxidation	M	15.9949
     Phosphorylation	STY	79.966331
     """
-    mods = open(os.path.join(myData, 'mods.txt'), 'w')
+    mods = open(os.path.join(myData, "mods.txt"), "w")
     mods.write(DefaultModificationFile)
     mods.close()
 
 
 def initializeFasta():
-    fastas = open(os.path.join(myData, 'fastafiles.txt'), 'w')
+    fastas = open(os.path.join(myData, "fastafiles.txt"), "w")
     fastas.close()
 
 
 if not os.path.exists(myData):
-    print('Multiplierz directory (%s) not found; creating it.' % myData)
+    print("Multiplierz directory (%s) not found; creating it." % myData)
     os.mkdir(myData)
 
 requiredFiles = [
-    ('settings.txt', initialSettings),
-    ('unimod.sqlite', deployUnimod),
-    ('mods.txt', initialMods),
-    ('fastafiles.txt', initializeFasta),
+    ("settings.txt", initialSettings),
+    ("unimod.sqlite", deployUnimod),
+    ("mods.txt", initialMods),
+    ("fastafiles.txt", initializeFasta),
 ]
 requiredSubdirs = [
-    'TEMP',  # Still used by old mzReport imaging functions.
-    'pyCometDatabases',
+    "TEMP",  # Still used by old mzReport imaging functions.
+    "pyCometDatabases",
 ]  # Probably obsolete from fastafiles.txt?
 
 for subdir in requiredSubdirs:
     if not os.path.exists(os.path.join(myData, subdir)):
-        print('Required multiplierz data directory %s not found!  Creating it.' % subdir)
+        print("Required multiplierz data directory %s not found!  Creating it." % subdir)
         os.mkdir(os.path.join(myData, subdir))
 for filename, initializer in requiredFiles:
     if not os.path.exists(os.path.join(myData, filename)):
-        print('Required multiplierz data file %s not found!  Creating it.' % filename)
+        print("Required multiplierz data file %s not found!  Creating it." % filename)
         initializer()
 
 protonMass = 1.0072764  # Used at various points.

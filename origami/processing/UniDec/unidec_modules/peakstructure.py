@@ -5,7 +5,7 @@ import matplotlib.cm as cm
 import numpy as np
 from processing.UniDec.unidec_modules import unidectools as ud
 
-__author__ = 'Michael.Marty'
+__author__ = "Michael.Marty"
 
 
 class Peak:
@@ -20,11 +20,11 @@ class Peak:
         self.mass = 0
         self.height = 0
         self.ccs = 0
-        self.area = ''
+        self.area = ""
         self.color = [1, 1, 1]
-        self.label = ''
-        self.marker = '.'
-        self.textmarker = '.'
+        self.label = ""
+        self.marker = "."
+        self.textmarker = "."
         self.ignore = 0
         self.match = 0
         self.matcherror = 0
@@ -99,7 +99,7 @@ class Peaks:
         self.composite = None
         self.massbins = massbins
 
-    def default_params(self, cmap='rainbow'):
+    def default_params(self, cmap="rainbow"):
         """
         Set default parameters for peaks, such as color, label, and marker
         :param cmap: Colormap from matplotlib.cm
@@ -107,10 +107,10 @@ class Peaks:
         """
         self.colormap = cm.get_cmap(cmap, len(self.peaks))
         if self.colormap is None:
-            self.colormap = cm.get_cmap('rainbow', len(self.peaks))
+            self.colormap = cm.get_cmap("rainbow", len(self.peaks))
         self.peakcolors = self.colormap(np.arange(len(self.peaks)))
-        self.markers = ['o', 'v', '^', '>', 's', 'd', '*']
-        self.textmarkers = ['\u25CB', '\u25BD', '\u25B3', '\u25B7', '\u25A2', '\u2662', '\u2606']
+        self.markers = ["o", "v", "^", ">", "s", "d", "*"]
+        self.textmarkers = ["\u25CB", "\u25BD", "\u25B3", "\u25B7", "\u25A2", "\u2662", "\u2606"]
         self.marklen = len(self.markers)
         for i in range(0, len(self.peaks)):
             self.peaks[i].marker = self.markers[i % self.marklen]
@@ -150,9 +150,8 @@ class Peaks:
             boo3 = np.all([boo1, boo2, booi], axis=0)
             try:
                 p.score = np.sum(
-                    np.ones_like(p.mztab[boo3, 1]) - np.clip(
-                        np.abs(p.mztab[boo3, 1] - p.mztab2[boo3, 1]) / p.mztab2[boo3, 1], 0, 1,
-                    ),
+                    np.ones_like(p.mztab[boo3, 1])
+                    - np.clip(np.abs(p.mztab[boo3, 1] - p.mztab2[boo3, 1]) / p.mztab2[boo3, 1], 0, 1)
                 )
             except ZeroDivisionError:
                 p.score = 0
@@ -192,7 +191,7 @@ class Peaks:
 
         for p in self.peaks:
             n = p.label
-            splits = n.split('[')
+            splits = n.split("[")
 
             try:
                 n1 = int(splits[0])
@@ -200,7 +199,7 @@ class Peaks:
                 n1 = 0
 
             try:
-                n2 = int(splits[1].split(']')[1])
+                n2 = int(splits[1].split("]")[1])
             except Exception:
                 n2 = 0
             try:

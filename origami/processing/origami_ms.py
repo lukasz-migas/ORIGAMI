@@ -5,7 +5,8 @@ from itertools import groupby
 from operator import itemgetter
 
 import numpy as np
-logger = logging.getLogger('origami')
+
+logger = logging.getLogger("origami")
 
 
 def origami_combine_infrared(inputData=None, threshold=2000, noiseLevel=500, sigma=0.5):  # combineIRdata
@@ -19,12 +20,12 @@ def origami_combine_infrared(inputData=None, threshold=2000, noiseLevel=500, sig
             indexList.append(x)
 
     # Split the indexList so we have a list of lists of indexes to split data into
-    splitlist = [list(map(itemgetter(1), g)) for _, g in groupby(enumerate(indexList), lambda i_x:i_x[0] - i_x[1])]
+    splitlist = [list(map(itemgetter(1), g)) for _, g in groupby(enumerate(indexList), lambda i_x: i_x[0] - i_x[1])]
 
     # Split data
     dataSplit = []
     for i in splitlist:
-        dataSlice = inputData[:, i[0]:i[-1]]
+        dataSlice = inputData[:, i[0] : i[-1]]
         dataSliceSum = np.sum(dataSlice, axis=1)
         dataSplit.append(dataSliceSum)
 
@@ -64,8 +65,14 @@ def calculate_scan_list_linear(start_scan, start_voltage, end_voltage, step_volt
 
 
 def calculate_scan_list_exponential(
-    start_scan, start_voltage, end_voltage, step_voltage, scans_per_voltage,
-    exponential_increment, exponential_percentage, expAccumulator=0,
+    start_scan,
+    start_voltage,
+    end_voltage,
+    step_voltage,
+    scans_per_voltage,
+    exponential_increment,
+    exponential_percentage,
+    expAccumulator=0,
 ):
     # Calculate how many voltages were used
     n_voltages = int((end_voltage - start_voltage) / step_voltage) + 1
@@ -75,7 +82,7 @@ def calculate_scan_list_exponential(
     # Generate list of SPVs first
     scans_per_voltage_list = []  # Pre-set empty array
     for i in range(int(n_voltages)):
-        if (cv_list[i] >= end_voltage * exponential_percentage / 100):
+        if cv_list[i] >= end_voltage * exponential_percentage / 100:
             expAccumulator = expAccumulator + exponential_increment
             scans_per_voltage_fit = np.round(start_scans_per_voltage * np.exp(expAccumulator), 0)
         else:
@@ -94,8 +101,7 @@ def calculate_scan_list_exponential(
 
 
 def calculate_scan_list_boltzmann(
-    start_scan, start_voltage, end_voltage, step_voltage, scans_per_voltage, dx,
-    A1=2, A2=0.07, x0=47,
+    start_scan, start_voltage, end_voltage, step_voltage, scans_per_voltage, dx, A1=2, A2=0.07, x0=47
 ):
 
     # Calculate how many voltages were used
@@ -122,12 +128,12 @@ def calculate_scan_list_boltzmann(
 def origami_combine_linear(data, start_scan, start_voltage, end_voltage, step_voltage, scans_per_voltage):
     # Build dictionary with parameters
     parameters = {
-        'start_scan': start_scan,
-        'startV': start_voltage,
-        'endV': end_voltage,
-        'stepV': step_voltage,
-        'spv': scans_per_voltage,
-        'method': 'Linear',
+        "start_scan": start_scan,
+        "startV": start_voltage,
+        "endV": end_voltage,
+        "stepV": step_voltage,
+        "spv": scans_per_voltage,
+        "method": "Linear",
     }
 
     # Calculate information about acquisition lengths
@@ -137,13 +143,13 @@ def origami_combine_linear(data, start_scan, start_voltage, end_voltage, step_vo
         return [None, end_scan, len(data[1, :])], None, None
 
     logger.info(
-        f'File has a total of {data.shape[1]} scans. Scans {start_scan}-{end_scan} will be used for CV accumulation',
+        f"File has a total of {data.shape[1]} scans. Scans {start_scan}-{end_scan} will be used for CV accumulation"
     )
 
     # Pre-calculate X-axis information
     cv_list = np.linspace(start_voltage, end_voltage, num=n_voltages)
     # Crop IMS data to appropriate size (remove start and end regions 'reporter')
-    data_cropped = data[:, int(start_scan)::]
+    data_cropped = data[:, int(start_scan) : :]
 
     x1 = 0
     # Create an empty array to put data into
@@ -157,26 +163,32 @@ def origami_combine_linear(data, start_scan, start_voltage, end_voltage, step_vo
         data_combined_CV = np.append(data_combined_CV, temp_data)  # Create a new array containing all IMS data
 
     # Output raw and normalized data
-    data_combined_CV = data_combined_CV.reshape((200, int(n_voltages)), order='F')  # Reshape list to array
+    data_combined_CV = data_combined_CV.reshape((200, int(n_voltages)), order="F")  # Reshape list to array
     return data_combined_CV, start_end_cv_list, parameters
 
 
 def origami_combine_exponential(
-    data, start_scan,  # combineCEscansExponential
-    start_voltage, end_voltage, step_voltage, scans_per_voltage,
-    exponential_increment, exponential_percentage, expAccumulator=0,
+    data,
+    start_scan,  # combineCEscansExponential
+    start_voltage,
+    end_voltage,
+    step_voltage,
+    scans_per_voltage,
+    exponential_increment,
+    exponential_percentage,
+    expAccumulator=0,
     verbose=False,
 ):
     # Build dictionary with parameters
     parameters = {
-        'start_scan': start_scan,
-        'startV': start_voltage,
-        'endV': end_voltage,
-        'stepV': step_voltage,
-        'spv': scans_per_voltage,
-        'exponential_increment': exponential_increment,
-        'expPercent': exponential_percentage,
-        'method': 'Exponential',
+        "start_scan": start_scan,
+        "startV": start_voltage,
+        "endV": end_voltage,
+        "stepV": step_voltage,
+        "spv": scans_per_voltage,
+        "exponential_increment": exponential_increment,
+        "expPercent": exponential_percentage,
+        "method": "Exponential",
     }
 
     # Calculate how many voltages were used
@@ -188,7 +200,7 @@ def origami_combine_exponential(
     scans_per_voltage_list = []  # Pre-set empty array
     for i in range(int(n_voltages)):
         # Prepare list
-        if (cv_list[i] >= end_voltage * exponential_percentage / 100):
+        if cv_list[i] >= end_voltage * exponential_percentage / 100:
             expAccumulator = expAccumulator + exponential_increment
             scans_per_voltage_fit = np.round(start_scans_per_voltage * np.exp(expAccumulator), 0)
         else:
@@ -200,11 +212,11 @@ def origami_combine_exponential(
         return [None, end_scan, len(data[1, :])], None, None
 
     logger.info(
-        f'File has a total of {data.shape[1]} scans. Scans {start_scan}-{end_scan} will be used for CV accumulation',
+        f"File has a total of {data.shape[1]} scans. Scans {start_scan}-{end_scan} will be used for CV accumulation"
     )
 
     # Crop IMS data to appropriate size (remove start and end regions 'reporter')
-    data_cropped = data[:, int(start_scan)::]  # int(end_scan)]
+    data_cropped = data[:, int(start_scan) : :]  # int(end_scan)]
     x1 = 0
     data_combined_CV, start_end_cv_list = [], []
     for i, cv in zip(scans_per_voltage_list, cv_list):
@@ -216,21 +228,37 @@ def origami_combine_exponential(
         data_combined_CV = np.append(data_combined_CV, temp_data)  # Create a new array containing all IMS data
         x1 = x2  # set new starting index
     # Output raw and normalized data
-    data_combined_CV = data_combined_CV.reshape((200, int(n_voltages)), order='F')  # Reshape list to array
+    data_combined_CV = data_combined_CV.reshape((200, int(n_voltages)), order="F")  # Reshape list to array
     return data_combined_CV, start_end_cv_list, parameters
 
 
 def origami_combine_boltzmann(
-    data, start_scan,  # combineCEscansFitted
-    start_voltage, end_voltage, step_voltage, scans_per_voltage,
-    expIncrement, verbose, A1=2, A2=0.07, x0=47, dx=None,
+    data,
+    start_scan,  # combineCEscansFitted
+    start_voltage,
+    end_voltage,
+    step_voltage,
+    scans_per_voltage,
+    expIncrement,
+    verbose,
+    A1=2,
+    A2=0.07,
+    x0=47,
+    dx=None,
 ):
 
     # Build dictionary with parameters
     parameters = {
-        'start_scan': start_scan, 'startV': start_voltage,
-        'endV': end_voltage, 'stepV': step_voltage, 'spv': scans_per_voltage,
-        'A1': A1, 'A2': A2, 'x0': x0, 'dx': dx, 'method': 'Fitted',
+        "start_scan": start_scan,
+        "startV": start_voltage,
+        "endV": end_voltage,
+        "stepV": step_voltage,
+        "spv": scans_per_voltage,
+        "A1": A1,
+        "A2": A2,
+        "x0": x0,
+        "dx": dx,
+        "method": "Fitted",
     }
 
     # Calculate how many voltages were used
@@ -250,10 +278,10 @@ def origami_combine_boltzmann(
         return [None, end_scan, len(data[1, :])], None, None
 
     logger.info(
-        f'File has a total of {data.shape[1]} scans. Scans {start_scan}-{end_scan} will be used for CV accumulation',
+        f"File has a total of {data.shape[1]} scans. Scans {start_scan}-{end_scan} will be used for CV accumulation"
     )
     # Crop IMS data to appropriate size (remove start and end regions 'reporter')
-    data_cropped = data[:, int(start_scan)::]  # int(end_scan)]
+    data_cropped = data[:, int(start_scan) : :]  # int(end_scan)]
     x1 = 0
     data_combined_CV, start_end_cv_list = [], []
     for i, cv in zip(scans_per_voltage_list, cv_list):
@@ -265,18 +293,14 @@ def origami_combine_boltzmann(
         data_combined_CV = np.append(data_combined_CV, temp_data)  # Create a new array containing all IMS data
         x1 = x2
     # Output raw and normalized data
-    data_combined_CV = data_combined_CV.reshape((200, int(n_voltages)), order='F')  # Reshape list to array
+    data_combined_CV = data_combined_CV.reshape((200, int(n_voltages)), order="F")  # Reshape list to array
     return data_combined_CV, start_end_cv_list, parameters
 
 
 def origami_combine_userDefined(data=None, start_scan=None, inputList=None):  # combineCEscansUserDefined
 
     # Build dictionary with parameters
-    parameters = {
-        'start_scan': start_scan,
-        'inputList': inputList,
-        'method': 'User-defined',
-    }
+    parameters = {"start_scan": start_scan, "inputList": inputList, "method": "User-defined"}
 
     # Pre-calculate lists
     scans_per_voltage_list = inputList[:, 0]
@@ -293,10 +317,10 @@ def origami_combine_userDefined(data=None, start_scan=None, inputList=None):  # 
         return [None, end_scan, len(data[1, :])], None, None, None
 
     logger.info(
-        f'File has a total of {data.shape[1]} scans. Scans {start_scan}-{end_scan} will be used for CV accumulation',
+        f"File has a total of {data.shape[1]} scans. Scans {start_scan}-{end_scan} will be used for CV accumulation"
     )
     # Crop IMS data to appropriate size (remove start and end regions 'reporter')
-    data_cropped = data[:, int(start_scan)::]
+    data_cropped = data[:, int(start_scan) : :]
     x1 = int(0)
     # Create an empty array to put data into
     data_combined_CV, start_end_cv_list = [], []
@@ -307,5 +331,5 @@ def origami_combine_userDefined(data=None, start_scan=None, inputList=None):  # 
         temp_data = np.sum(temp_data, axis=1)  # Combine all into one array
         data_combined_CV = np.append(data_combined_CV, temp_data)  # Create a new array containing all IMS data
         x1 = x2
-    data_combined_CV = data_combined_CV.reshape((200, len(scans_per_voltage_list)), order='F')  # Reshape list to array
+    data_combined_CV = data_combined_CV.reshape((200, len(scans_per_voltage_list)), order="F")  # Reshape list to array
     return data_combined_CV, cv_list, start_end_cv_list, parameters

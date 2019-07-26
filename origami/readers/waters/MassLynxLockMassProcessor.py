@@ -1,7 +1,7 @@
-'''
+"""
     Waters
     MassLynx Python SDK
-'''
+"""
 from ctypes import c_bool
 from ctypes import c_char_p
 from ctypes import c_float
@@ -23,10 +23,7 @@ class MasslynxLockMassProcessor(object):
         createRawProcessor = MassLynxRawReader.massLynxDll.createRawProcessor
         createRawProcessor.argtypes = [POINTER(c_void_p), c_int, c_void_p, POINTER(c_void_p)]
         self._codeHandler.CheckReturnCode(
-            createRawProcessor(
-                self.mlLockMassProcessor,
-                MassLynxBaseType.LOCKMASS, c_void_p(0), c_void_p(0),
-            ),
+            createRawProcessor(self.mlLockMassProcessor, MassLynxBaseType.LOCKMASS, c_void_p(0), c_void_p(0))
         )
 
     # destroy the processor
@@ -37,11 +34,11 @@ class MasslynxLockMassProcessor(object):
 
     def SetRawData(self, source):
         # set data from a path from a path
-        if (isinstance(source, str)):
+        if isinstance(source, str):
             self._setRawPath(source)
 
         # set data from a reader
-        elif (isinstance(source, MassLynxRawReader)):
+        elif isinstance(source, MassLynxRawReader):
             self._setRawReader(source)
 
         # did we fall through

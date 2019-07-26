@@ -6,7 +6,6 @@ from utils.color import determineFontColor
 
 
 class DialogColorPicker(wx.ColourDialog):
-
     def __init__(self, parent, colors):
         self.colors = self.GetColours(colors)
 
@@ -21,9 +20,9 @@ class DialogColorPicker(wx.ColourDialog):
         """ Simplified ShowModal(), returning strings 'ok' or 'cancel'. """
         result = wx.ColourDialog.ShowModal(self)
 
-        return_value = 'cancel'
+        return_value = "cancel"
         if result == wx.ID_OK:
-            return_value = 'ok'
+            return_value = "ok"
 
         return return_value
 

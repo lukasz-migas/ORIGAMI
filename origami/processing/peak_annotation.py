@@ -2,11 +2,10 @@
 # __author__ lukasz.g.migas
 
 
-class PeakAnnotation():
-
+class PeakAnnotation:
     def __init__(self, **kwargs):
-        self.document = kwargs.get('document', '')
-        self.dataset = kwargs.get('dataset', '')
+        self.document = kwargs.get("document", "")
+        self.dataset = kwargs.get("dataset", "")
 
     def get_document_annotations(self):
         pass

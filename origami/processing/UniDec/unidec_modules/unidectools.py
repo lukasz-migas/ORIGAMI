@@ -35,28 +35,28 @@ from scipy.interpolate import interp1d
 is_64bits = sys.maxsize > 2 ** 32
 
 # determine which OS version is used
-dllname = 'libmypfunc'
-if platform.system() == 'Windows':
+dllname = "libmypfunc"
+if platform.system() == "Windows":
     if not is_64bits:
-        dllname += '32'
-    dllname += '.dll'
-elif platform.system() == 'Darwin':
-    dllname += '.dylib'
+        dllname += "32"
+    dllname += ".dll"
+elif platform.system() == "Darwin":
+    dllname += ".dylib"
 else:
-    dllname += '.so'
+    dllname += ".so"
 
 testpath = dllname
 if os.path.isfile(testpath):
     dllpath = testpath
 else:
     pathtofile = os.getcwd()
-    dllpath = os.path.join(pathtofile, 'processing', 'UniDec', 'unidec_bin', testpath)
+    dllpath = os.path.join(pathtofile, "processing", "UniDec", "unidec_bin", testpath)
 
 try:
     libs = cdll.LoadLibrary(dllpath)
 except (OSError, NameError) as err:
     print(dllpath, err)
-    print('Failed to load libmypfunc, convolutions in nonlinear mode might be slow')
+    print("Failed to load libmypfunc, convolutions in nonlinear mode might be slow")
 
 # ..........................
 #
@@ -85,7 +85,7 @@ def isempty(thing):
         else:
             out = False
     except (TypeError, ValueError, AttributeError):
-        print('Error testing emptiness')
+        print("Error testing emptiness")
         out = False
     return out
 
@@ -100,7 +100,7 @@ def string_to_value(s):
         v = float(s)
         return v
     except (ValueError, TypeError):
-        return ''
+        return ""
 
 
 def simp_string_to_value(s):
@@ -246,7 +246,7 @@ def get_tvalue(dof, ci=0.99):
     :param ci: Confidence interval level (default is 0.99, 99% confidence)
     :return: T value
     """
-    return stats.t.isf((1 - ci) / 2., dof)
+    return stats.t.isf((1 - ci) / 2.0, dof)
 
 
 def get_zvalue(ci=0.99):
@@ -255,7 +255,7 @@ def get_zvalue(ci=0.99):
     :param ci: Confidence interval level (default is 0.99, 99% confidence)
     :return: Z-value
     """
-    return stats.norm.isf((1 - ci) / 2.)
+    return stats.norm.isf((1 - ci) / 2.0)
 
 
 def integrate(data, start, end):
@@ -379,7 +379,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
         else:
             index = nearest(data[:, 0], x)
             val = data[index, 1]
-            print('NEED TO SET INTEGRAL WINDOW!\nUsing Peak Height Instead')
+            print("NEED TO SET INTEGRAL WINDOW!\nUsing Peak Height Instead")
 
     elif extract_method == 3:
         if window is not None:
@@ -388,7 +388,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val, __ = center_of_mass(data, start, end)
         else:
             val, __ = center_of_mass(data, data[0, 0], data[len(data) - 1, 0])
-            print('No window set for center of mass!\nUsing entire data range....')
+            print("No window set for center of mass!\nUsing entire data range....")
 
     elif extract_method == 4:
         if window is not None:
@@ -397,7 +397,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val = localmaxpos(data, start, end)
         else:
             val = localmaxpos(data, data[0, 0], data[len(data) - 1, 0])
-            print('No window set for local max position!\nUsing entire data range....')
+            print("No window set for local max position!\nUsing entire data range....")
 
     elif extract_method == 5:
         # Remove data points that fall below 50% threshold
@@ -411,7 +411,7 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val, __ = center_of_mass(cutdat, start, end)
         else:
             val, __ = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
-            print('No window set for center of mass!\nUsing entire data range....')
+            print("No window set for center of mass!\nUsing entire data range....")
 
     elif extract_method == 6:
         # Remove data points that fall below 10% threshold
@@ -425,11 +425,11 @@ def data_extract(data, x, extract_method, window=None, **kwargs):
             val, __ = center_of_mass(cutdat, start, end)
         else:
             val, __ = center_of_mass(cutdat, data[0, 0], data[len(data) - 1, 0])
-            print('No window set for center of mass!\nUsing entire data range....')
+            print("No window set for center of mass!\nUsing entire data range....")
 
     else:
         val = 0
-        print('Undefined extraction choice')
+        print("Undefined extraction choice")
     return val
 
 
@@ -446,7 +446,7 @@ def data_extract_grid(data, xarray, extract_method=1, window=0):
 def kendrick_analysis(massdat, kendrickmass, centermode=1, nbins=50, transformmode=1, xaxistype=1):
     # Calculate Defects for Deconvolved Masses
     if kendrickmass == 0:
-        print('Error: Kendrick mass is 0.')
+        print("Error: Kendrick mass is 0.")
         return None, None, None, None, None
     xaxis = massdat[:, 0]
     kmass = np.array(xaxis) / float(kendrickmass)
@@ -458,7 +458,7 @@ def kendrick_analysis(massdat, kendrickmass, centermode=1, nbins=50, transformmo
     # Linearize
     defects = np.linspace(np.amin(kmdefectexact), np.amax(kmdefectexact), nbins, endpoint=True)
     nominal = np.unique(nominalkmass)
-    m1grid, m2grid = np.meshgrid(nominal, defects, indexing='ij')
+    m1grid, m2grid = np.meshgrid(nominal, defects, indexing="ij")
 
     # Get Intensities
     igrid = np.zeros((len(nominal), len(defects)))
@@ -511,6 +511,7 @@ def solve_for_mass(mz1, mz2, adductmass=1.007276467):
     mass = z2 * mz2
     return mass, z2 + 1, z2
 
+
 # ............................
 #
 # File manipulation
@@ -530,7 +531,7 @@ def header_test(path):
     """
     header = 0
     try:
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             for line in f:
                 for sin in line.split():
                     try:
@@ -539,24 +540,25 @@ def header_test(path):
                         header += 1
                         break
         if header > 0:
-            print('Header Length:', header)
+            print("Header Length:", header)
     except (ImportError, OSError, AttributeError, IOError):
-        print('Failed header test')
+        print("Failed header test")
         header = 0
     return header
 
 
 def waters_convert(path, config=None):
     import processing.UniDec.unidec_modules.unidecstructure
+
     if config is None:
         config = processing.UniDec.unidec_modules.unidecstructure.UniDecConfig()
         config.initialize_system_paths()
         print(config.rawreaderpath)
 
-    t = os.path.join(path, 'converted_rawdata.txt')
-    call = [config.rawreaderpath, '-i', path, '-o', t]
+    t = os.path.join(path, "converted_rawdata.txt")
+    call = [config.rawreaderpath, "-i", path, "-o", t]
     result = subprocess.call(call)
-    print('Conversion Stderr:', result)
+    print("Conversion Stderr:", result)
     data = np.loadtxt(t)
     return data
 
@@ -581,15 +583,15 @@ def zip_folder(save_path):
     :return: None
     """
     directory = os.getcwd()
-    print('Zipping directory:', directory)
-    zipf = zipfile.ZipFile(save_path, 'w')
+    print("Zipping directory:", directory)
+    zipf = zipfile.ZipFile(save_path, "w")
     zipdir(directory, zipf)
     zipf.close()
-    print('File saved to: ' + str(save_path))
+    print("File saved to: " + str(save_path))
 
 
 def dataexport(datatop, fname):
-    np.savetxt(fname, datatop, fmt='%f')
+    np.savetxt(fname, datatop, fmt="%f")
 
 
 def mergedata(data1, data2):
@@ -622,8 +624,9 @@ def mergedata2d(x1, y1, x2, y2, z2):
     oldy = np.ravel(y2)
     newx = np.ravel(x1)
     newy = np.ravel(y1)
-    zout = griddata(np.transpose([oldx, oldy]), np.ravel(z2), (newx, newy), method='linear', fill_value=0)
+    zout = griddata(np.transpose([oldx, oldy]), np.ravel(z2), (newx, newy), method="linear", fill_value=0)
     return zout
+
 
 # ........................................
 #
@@ -640,7 +643,7 @@ def auto_peak_width(datatop, psfun=None):
     __, cpeaks = autocorr(datatop)
 
     if not isempty(cpeaks):
-        sig = cpeaks[0, 0] / 2.
+        sig = cpeaks[0, 0] / 2.0
         boo1 = datatop[:, 0] < maxval + sig
         boo2 = datatop[:, 0] > maxval - sig
         boo3 = np.all([boo1, boo2], axis=0)
@@ -648,7 +651,7 @@ def auto_peak_width(datatop, psfun=None):
 
         fits = np.array([isolated_peak_fit(isodat[:, 0], isodat[:, 1], i) for i in range(0, 3)])
 
-        errors = [np.sum(np.array(isodat[:, 1] - f) ** 2.) for f in fits[:, 1]]
+        errors = [np.sum(np.array(isodat[:, 1] - f) ** 2.0) for f in fits[:, 1]]
         if psfun is None:
             psfun = np.argmin(errors)
         fit, __ = fits[psfun]
@@ -674,7 +677,7 @@ def average_bin_size(datatop):
 
 def cal_data(datatop, poly_coeff=None):
     if poly_coeff is None:
-        poly_coeff = [1.54101412e-08, 1.00077531e+00, 1.86397570e-02]
+        poly_coeff = [1.54101412e-08, 1.00077531e00, 1.86397570e-02]
         # This is a default value for when our neg mode went crazy
     datatop[:, 0] = np.polyval(poly_coeff, datatop[:, 0])
     return datatop
@@ -705,7 +708,7 @@ def datasimpsub(datatop, buff):
     length = len(datatop)
     buff = int(buff)
     frontpart = np.mean(datatop[:buff, 1])
-    backpart = np.mean(datatop[length - buff - 1:length - 1, 1])
+    backpart = np.mean(datatop[length - buff - 1 : length - 1, 1])
     background = frontpart + (backpart - frontpart) / length * np.arange(length)
     datatop[:, 1] = datatop[:, 1] - background
     return datatop
@@ -729,7 +732,7 @@ def datacompsub(datatop, buff):
     mins = list(range(0, length))
     indexes = list(range(0, length))
     for i in indexes:
-        mins[i] = np.amin(datatop[int(max([0, i - abs(buff)])):int(min([i + abs(buff), length])), 1])
+        mins[i] = np.amin(datatop[int(max([0, i - abs(buff)])) : int(min([i + abs(buff), length])), 1])
     background = filt.gaussian_filter(mins, abs(buff) * 2)
     datatop[:, 1] = datatop[:, 1] - background
     return datatop
@@ -784,7 +787,7 @@ def savgol(ydata, window=None, order=2):
     if window is None or window < order:
         window = int(order) * 2 + 1
     else:
-        window = round((window - 1) / 2.) * 2 + 1
+        window = round((window - 1) / 2.0) * 2 + 1
     # Execute the filter
     return signal.savgol_filter(ydata, window, order)
 
@@ -832,7 +835,7 @@ def savgol_background_subtract(datatop, width, cutoff_percent=0.25):
         gooddat = gooddat[good]
         # plt.plot(gooddat[:,0],gooddat[:,1],marker="o",linestyle="")
     sgsmooth = savgol(gooddat[:, 1], window=buff, order=sgorder)
-    f = interp1d(gooddat[:, 0], sgsmooth, kind='linear', fill_value=0, bounds_error=True)
+    f = interp1d(gooddat[:, 0], sgsmooth, kind="linear", fill_value=0, bounds_error=True)
     background = f(datatop[:, 0])
     background = savgol(background, window=buff, order=sgorder)
     background = np.clip(background, 0, starting_max)
@@ -1000,10 +1003,12 @@ def nonlinearize(datatop, num_compressed):
         return datatop
     else:
         num_compressed = int(num_compressed)
-        return np.array([
-            np.mean(datatop[index:index + num_compressed], axis=0) for index in
-            range(0, len(datatop), num_compressed)
-        ])
+        return np.array(
+            [
+                np.mean(datatop[index : index + num_compressed], axis=0)
+                for index in range(0, len(datatop), num_compressed)
+            ]
+        )
 
 
 def removeduplicates(datatop):
@@ -1015,14 +1020,14 @@ def removeduplicates(datatop):
     """
     testunique = np.unique(datatop[:, 0])
     if len(testunique) != len(datatop):
-        print('Removing Duplicates')
+        print("Removing Duplicates")
         num, start = np.histogram(datatop[:, 0], bins=testunique)
         means = []
         xvals = []
         index = 0
         for i in range(0, len(testunique) - 1):
-            xvals.append(np.mean(datatop[index:index + num[i], 0]))
-            means.append(np.sum(datatop[index:index + num[i], 1]))
+            xvals.append(np.mean(datatop[index : index + num[i], 0]))
+            means.append(np.sum(datatop[index : index + num[i], 1]))
             index = index + num[i]
         datatop = np.column_stack((xvals, means))
     return datatop
@@ -1050,7 +1055,7 @@ def detectoreff(datatop, va):
     :param va: TOF acceleration voltage in kV (I think...)
     :return: Detector corrected data (N x 2)
     """
-    eff = (1 - np.exp(-1620 * (va / datatop[:, 0]) ** 1.75))
+    eff = 1 - np.exp(-1620 * (va / datatop[:, 0]) ** 1.75)
     datatop[:, 1] = datatop[:, 1] / eff
     return datatop
 
@@ -1061,9 +1066,9 @@ def fake_log(data):
 
 
 def remove_middle_zeros(data):
-    boo1 = data[1:len(data) - 1, 1] != 0
-    boo2 = data[:len(data) - 2, 1] != 0
-    boo3 = data[2:len(data), 1] != 0
+    boo1 = data[1 : len(data) - 1, 1] != 0
+    boo2 = data[: len(data) - 2, 1] != 0
+    boo3 = data[2 : len(data), 1] != 0
     boo4 = np.logical_or(boo1, boo2)
     boo5 = np.logical_or(boo3, boo4)
     boo6 = np.concatenate(([True], boo5, [True]))
@@ -1136,16 +1141,16 @@ def dataprep(datatop, config):
     elif buff == 0:
         pass
     else:
-        print('Background subtraction code unsupported', subtype, buff)
+        print("Background subtraction code unsupported", subtype, buff)
 
     # Intensity Threshold
     data2 = intensitythresh(data2, 0)  # thresh
     # data2=data2[data2[:,1]>0]
 
     # Scale Adjustment
-    if config.intscale == 'Square Root':
+    if config.intscale == "Square Root":
         data2[:, 1] = np.sqrt(data2[:, 1])
-    elif config.intscale == 'Logarithmic':
+    elif config.intscale == "Logarithmic":
         data2[:, 1] = fake_log(data2[:, 1])
         data2[:, 1] -= np.amin(data2[:, 1])
 
@@ -1159,6 +1164,7 @@ def dataprep(datatop, config):
     data2 = normalize(data2)
 
     return data2
+
 
 # ......................................................
 #
@@ -1186,10 +1192,10 @@ def unidec_call(config, silent=False, **kwargs):
 
     call = [config.UniDecPath, str(config.confname)]
 
-    if 'kill' in kwargs:
-        killnum = kwargs['kill']
+    if "kill" in kwargs:
+        killnum = kwargs["kill"]
         # print "Killing Peak:",killnum
-        call.append('-kill')
+        call.append("-kill")
         call.append(str(killnum))
 
     if silent:
@@ -1226,7 +1232,7 @@ def peakdetect(data, config=None, window=10, threshold=0):
                 start = 0
             if end > length:
                 end = length
-            testmax = np.amax(data[int(start):int(end) + 1, 1])
+            testmax = np.amax(data[int(start) : int(end) + 1, 1])
             if data[i, 1] == testmax and data[i, 1] != data[i - 1, 1]:
                 peaks.append([data[i, 0], data[i, 1]])
     return np.array(peaks)
@@ -1277,8 +1283,10 @@ def make_peaks_mztab(mzgrid, pks, adductmass, index=None):
     newgrid = np.reshape(mzgrid[:, 2], (xlen, ylen))
     plen = pks.plen
     ftab = [interp1d(xvals, newgrid[:, k]) for k in range(0, ylen)]
-    mztab = [[makespecfun(i, k, pks.masses, adductmass, yvals, xvals, ftab, xmax, xmin) for k in range(0, ylen)] for i
-             in range(0, plen)]
+    mztab = [
+        [makespecfun(i, k, pks.masses, adductmass, yvals, xvals, ftab, xmax, xmin) for k in range(0, ylen)]
+        for i in range(0, plen)
+    ]
     if index is None:
         for i in range(0, plen):
             pks.peaks[i].mztab = np.array(mztab[i])
@@ -1334,8 +1342,9 @@ def make_peaks_mztab_spectrum(mzgrid, pks, data2, mztab, index=None):
         for i in range(0, plen):
             pks.peaks[i].mztab2 = np.array(mztab2[i])
     else:
-        mztab2[:, :, 1] = [[data2[int(pks.peaks[i].mztab[index][k, 2]), 1] for k in range(0, zlen)] for i in
-                           range(0, plen)]
+        mztab2[:, :, 1] = [
+            [data2[int(pks.peaks[i].mztab[index][k, 2]), 1] for k in range(0, zlen)] for i in range(0, plen)
+        ]
         for i in range(0, plen):
             pks.peaks[i].mztab2.append(np.array(mztab2[i]))
 
@@ -1416,20 +1425,10 @@ def make_alpha_cmap(rgb_tuple, alpha):
     :return: Color map dictionary with a constant color but varying transprency
     """
     cdict = {
-        'red': (
-            (0.0, rgb_tuple[0], rgb_tuple[0]),
-            (1.0, rgb_tuple[0], rgb_tuple[0]),
-        ), 'green': (
-            (0.0, rgb_tuple[1], rgb_tuple[1]),
-            (1.0, rgb_tuple[1], rgb_tuple[1]),
-        ),
-        'blue': (
-            (0.0, rgb_tuple[2], rgb_tuple[2]),
-            (1.0, rgb_tuple[2], rgb_tuple[2]),
-        ), 'alpha': (
-            (0.0, 0, 0),
-            (1.0, alpha, alpha),
-        ),
+        "red": ((0.0, rgb_tuple[0], rgb_tuple[0]), (1.0, rgb_tuple[0], rgb_tuple[0])),
+        "green": ((0.0, rgb_tuple[1], rgb_tuple[1]), (1.0, rgb_tuple[1], rgb_tuple[1])),
+        "blue": ((0.0, rgb_tuple[2], rgb_tuple[2]), (1.0, rgb_tuple[2], rgb_tuple[2])),
+        "alpha": ((0.0, 0, 0), (1.0, alpha, alpha)),
     }
     return cdict
 
@@ -1449,6 +1448,7 @@ def color_map_array(array, cmap, alpha):
     for i in range(0, len(rtab)):
         cmarr.append(make_alpha_cmap(topcm[i], alpha))
     return cmarr, topcm
+
 
 # ..............................................
 #
@@ -1498,11 +1498,11 @@ def combine_all(array2):
     finlist = []
     namelist = []
     for index in np.ndindex(tup):
-        name = ''
+        name = ""
         for i in range(0, len(index)):
             val = index[i] + startindex[i]
             if val > 0:
-                name = name + str(val) + '[' + names[i] + '] '
+                name = name + str(val) + "[" + names[i] + "] "
             else:
                 pass
         total = np.sum((index + startindex) * omass + basemass)
@@ -1523,10 +1523,10 @@ def make_isolated_match(oligos):
             newmass = float(oligos[i][0]) + j * float(oligos[i][1])
             if newmass > 0:
                 oligomasslist.append(newmass)
-                if j > 0 or oligos[i][4] == '':
-                    oligonames.append(str(j) + '[' + oligos[i][4]) + ']'
+                if j > 0 or oligos[i][4] == "":
+                    oligonames.append(str(j) + "[" + oligos[i][4]) + "]"
                 else:
-                    oligonames.append('')
+                    oligonames.append("")
                     # self.oligonames.append(str(j)+""+oligos[i][4])
     oligomasslist = np.array(oligomasslist)
     return oligomasslist, oligonames
@@ -1556,7 +1556,7 @@ def match(pks, oligomasslist, oligonames, tolerance=None):
         if tolerance is None or np.abs(error) < tolerance:
             name = oligonames[nearpt]
         else:
-            name = ''
+            name = ""
 
         p.label = name
         p.match = match
@@ -1567,6 +1567,7 @@ def match(pks, oligomasslist, oligonames, tolerance=None):
         names.append(name)
     matchlist = [peaks, matches, errors, names]
     return matchlist
+
 
 # ...........................................................
 #
@@ -1585,11 +1586,7 @@ def cconv(a, b):
     # return np.fft.ifft(np.fft.fft(a) * np.fft.fft(b)).real
     # return np.convolve(a, np.roll(b, (len(b)) / 2 - 1 + len(b) % 2), mode="same")
     roll_value = round((len(b)) / 2 - 1 + len(b) % 2)
-    return signal.fftconvolve(
-        a,
-        np.roll(b, roll_value),
-        mode='same',
-    )
+    return signal.fftconvolve(a, np.roll(b, roll_value), mode="same")
 
 
 def FD_gauss_wavelet(length, width):
@@ -1599,7 +1596,7 @@ def FD_gauss_wavelet(length, width):
     return [stats.norm.pdf(x, mu, sigma) * (mu - x) / sigma ** 2 for x in xvals]
 
 
-def single_cwt(a, width, wavelet_type='Ricker'):
+def single_cwt(a, width, wavelet_type="Ricker"):
     """
     Perform a continuous wavelet transform at a single defined width.
     :param a: 1D numpy array of data (length N)
@@ -1608,16 +1605,16 @@ def single_cwt(a, width, wavelet_type='Ricker'):
     :return: cwt, wavelet
     Continous wavelet transform and wavelet of choice, both as numpy arrays of length N.
     """
-    if wavelet_type == 'Morlet':
+    if wavelet_type == "Morlet":
         wdat = signal.morlet(len(a), width)
-    elif wavelet_type == '1DG':
+    elif wavelet_type == "1DG":
         wdat = FD_gauss_wavelet(len(a), width)
     else:
         wdat = signal.ricker(len(a), width)
     return continuous_wavelet_transform(a, [width], wavelet_type=wavelet_type)[0], wdat
 
 
-def continuous_wavelet_transform(a, widths, wavelet_type='Ricker'):
+def continuous_wavelet_transform(a, widths, wavelet_type="Ricker"):
     """
     Perform a continuous wavelet transform at multiple widths.
     :param a: 1D numpy array of data (length N)
@@ -1625,9 +1622,9 @@ def continuous_wavelet_transform(a, widths, wavelet_type='Ricker'):
     :param wavelet_type: Type of wavelet. Either "Ricker" (Mexican Hat) or "Morlet" (Gabor)
     :return: cwt_matrix (The continuous wavelet transform at the defined widths in a (W x N) array)
     """
-    if wavelet_type == 'Morlet':
+    if wavelet_type == "Morlet":
         wavelet = signal.morlet
-    elif wavelet_type == '1DG':
+    elif wavelet_type == "1DG":
         wavelet = FD_gauss_wavelet
     else:
         wavelet = signal.ricker
@@ -1643,7 +1640,7 @@ def autocorr(datatop, config=None):
     """
     data_size = len(datatop)
 
-    corry = signal.fftconvolve(datatop[:, 1], datatop[:, 1][::-1], mode='same')
+    corry = signal.fftconvolve(datatop[:, 1], datatop[:, 1][::-1], mode="same")
     corry /= np.amax(corry)
     maxpos1 = np.argmax(datatop[:, 1])
     start = np.amax([maxpos1 - data_size / 10, 0]).astype(np.int32)
@@ -1651,7 +1648,7 @@ def autocorr(datatop, config=None):
     cutdat = datatop[start:end]
     if len(cutdat) < 20:
         cutdat = datatop
-    xdiff = np.mean(cutdat[1:, 0] - cutdat[:len(cutdat) - 1, 0])  # Less dangerous but still dangerous when non-linear
+    xdiff = np.mean(cutdat[1:, 0] - cutdat[: len(cutdat) - 1, 0])  # Less dangerous but still dangerous when non-linear
     corrx = np.arange(0.0, len(corry)) * xdiff
     maxpos = np.argmax(corry)
     corrx = corrx - corrx[maxpos]
@@ -1753,9 +1750,9 @@ def fft(data):
     return aftdat
 
 
-def fft_diff(data, diffrange=[500., 1000.]):
+def fft_diff(data, diffrange=[500.0, 1000.0]):
     fftdat = fft(data)
-    ftrange = [1. / diffrange[1], 1. / diffrange[0]]
+    ftrange = [1.0 / diffrange[1], 1.0 / diffrange[0]]
     boo1 = fftdat[:, 0] < ftrange[1]
     boo2 = fftdat[:, 0] > ftrange[0]
     boo3 = np.all([boo1, boo2], axis=0)
@@ -1763,7 +1760,7 @@ def fft_diff(data, diffrange=[500., 1000.]):
     maxpos = localmaxpos(ftext, ftrange[0], ftrange[1])
 
     # fit, err, fitdat = voigt_fit(ftext[:, 0], ftext[:, 1], np.average(ftrange), np.average(ftrange) / 10., 0, 1, 0)
-    return 1. / maxpos, ftext
+    return 1.0 / maxpos, ftext
 
 
 def pad_data(linear_mzdata, pad_until=50000):
@@ -1867,7 +1864,7 @@ def win_fft_grid(rawdata, binsize, wbin, window_fwhm, diffrange):
 
     intdat = results[:, :, 1]
     yvals = np.unique(results[:, :, 0])
-    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing='ij')
+    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing="ij")
     out = np.transpose([np.ravel(xgrid), np.ravel(ygrid), np.ravel(intdat)])
     return out
 
@@ -1886,7 +1883,7 @@ def win_fft_grid_single(rawdata, binsize, wbin, window_fwhm, diffrange):
 
     intdat = results[:, :, 1]
     yvals = np.unique(results[:, :, 0])
-    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing='ij')
+    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing="ij")
     out = np.transpose([np.ravel(xgrid), np.ravel(ygrid), np.ravel(intdat)])
     return out
 
@@ -1898,7 +1895,7 @@ def win_fft_diff(rawdata, binsize=0.05, sigma=1000, diffrange=None):
     mzdata = pad_two_power(mzdata)
     maxpos = smoothdata[np.argmax(smoothdata[:, 1]), 0]
     maxdiff, fftdat = windowed_fft(mzdata, maxpos, sigma, diffrange=diffrange)
-    print('Difference:', maxdiff)
+    print("Difference:", maxdiff)
     return maxdiff, fftdat
 
 
@@ -1927,7 +1924,7 @@ def win_autocorr_grid(rawdata, binsize, wbin, window_fwhm, diffrange):
 
     intdat = results[:, :, 1]
     yvals = np.unique(results[:, :, 0])
-    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing='ij')
+    xgrid, ygrid = np.meshgrid(xvals, yvals, indexing="ij")
     out = np.transpose([np.ravel(xgrid), np.ravel(ygrid), np.ravel(intdat)])
     return out
 
@@ -1957,10 +1954,10 @@ def correlation_integration(dat1, dat2, alpha=0.01, plot_corr=False, **kwargs):
 
     outputs = stats.linregress(y1, y2)
     slope, intercept, rvalue, pvalue, slope_std_error = outputs
-    rsquared = rvalue ** 2.
+    rsquared = rvalue ** 2.0
     # print rsquared
     df = n - 2  # degrees of freedom
-    tval = stats.t.isf(alpha / 2., df)
+    tval = stats.t.isf(alpha / 2.0, df)
     # ci=slope + tval*slope_std_error*np.array([-1,1])
     cierr = tval * slope_std_error
     # print ci,cierr
@@ -1969,6 +1966,7 @@ def correlation_integration(dat1, dat2, alpha=0.01, plot_corr=False, **kwargs):
         print(slope, cierr, rsquared, slope_std_error * np.sqrt(n), pvalue)
         fitdat = y1 * slope + intercept
         import matplotlib.pyplot as plt
+
         plt.figure()
         plt.subplot(121)
         plt.scatter(y1, y2)
@@ -1978,7 +1976,7 @@ def correlation_integration(dat1, dat2, alpha=0.01, plot_corr=False, **kwargs):
         if pvalue < alpha:
             plt.plot(y2)
         else:
-            plt.plot(y2, color='r')
+            plt.plot(y2, color="r")
         plt.show()
 
     return slope, cierr, rsquared, slope_std_error * np.sqrt(n), pvalue
@@ -2108,7 +2106,7 @@ def peaks_error_mean(pks, data, ztab, massdat, config):
         for w, m in enumerate(masses):
             sum += ints[w] * pow(m - mean, 2)
             denom += ints[w]
-        denom *= (len(ztab) - 1)
+        denom *= len(ztab) - 1
         std = sum / denom
         std = std / len(ztab)
         std = std ** 0.5
@@ -2124,13 +2122,13 @@ def peaks_error_mean(pks, data, ztab, massdat, config):
         # pks.peaks[count].errormean = abs(sums[count] - pks.peaks[count].mass)
 
 
-if __name__ == '__main__':
-    testfile = 'C:\\Python\\UniDec\\TestSpectra\\test_imms.raw'
+if __name__ == "__main__":
+    testfile = "C:\\Python\\UniDec\\TestSpectra\\test_imms.raw"
     waters_convert(testfile)
 
     exit()
 
-    x = [0., 1., 2., 3., 4.]
+    x = [0.0, 1.0, 2.0, 3.0, 4.0]
     y = [1, 0.7, 0.5, 0.4, 0.3]
     import matplotlib.pyplot as plt
 

@@ -4,13 +4,12 @@
 import logging
 import sys
 
-__all__ = ['set_logger_level', 'set_logger']
+__all__ = ["set_logger_level", "set_logger"]
 
-logger = logging.getLogger('origami')
+logger = logging.getLogger("origami")
 
 LOGGING_TYPES = dict(
-    DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WARNING, ERROR=logging.ERROR,
-    CRITICAL=logging.CRITICAL,
+    DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WARNING, ERROR=logging.ERROR, CRITICAL=logging.CRITICAL
 )
 
 
@@ -27,16 +26,11 @@ def set_logger(file_path=None, debug_mode=False):
     file_handler = logging.FileHandler(filename=file_path)
     stdout_handler = logging.StreamHandler(sys.stdout)
     handlers = [file_handler, stdout_handler]
-    fmt = '[%(asctime)s.%(msecs)03d] - %(levelname)s - %(message)s'
+    fmt = "[%(asctime)s.%(msecs)03d] - %(levelname)s - %(message)s"
     if debug_mode:
-        fmt = '[%(asctime)s.%(msecs)03d] - %(filename)s:%(lineno)s:%(funcName)s - %(levelname)s - %(message)s'
+        fmt = "[%(asctime)s.%(msecs)03d] - %(filename)s:%(lineno)s:%(funcName)s - %(levelname)s - %(message)s"
 
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format=fmt,
-        handlers=handlers,
-        datefmt='%Y/%m/%d %H:%M:%S',
-    )
+    logging.basicConfig(level=logging.DEBUG, format=fmt, handlers=handlers, datefmt="%Y/%m/%d %H:%M:%S")
 
 
 def set_logger_level(verbose=None):
@@ -52,19 +46,16 @@ def set_logger_level(verbose=None):
         PROFILER, DEBUG, INFO, WARNING, ERROR, or CRITICAL.
     """
 
-    logger = logging.getLogger('py')
+    logger = logging.getLogger("py")
 
     if verbose is None:
-        verbose = 'INFO'
+        verbose = "INFO"
     if isinstance(verbose, bool):
-        verbose = 'INFO' if verbose else 'WARNING'
+        verbose = "INFO" if verbose else "WARNING"
     if isinstance(verbose, str):
-        if (verbose.upper() in LOGGING_TYPES):
+        if verbose.upper() in LOGGING_TYPES:
             verbose = verbose.upper()
             verbose = LOGGING_TYPES[verbose]
             logger.setLevel(verbose)
         else:
-            raise ValueError(
-                'verbose must be in '
-                '{}'.format(', '.join(LOGGING_TYPES)),
-            )
+            raise ValueError("verbose must be in " "{}".format(", ".join(LOGGING_TYPES)))

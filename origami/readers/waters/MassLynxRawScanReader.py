@@ -1,6 +1,6 @@
-''' Waters
+""" Waters
     MassLynx Python SDK
-'''
+"""
 from ctypes import c_byte
 from ctypes import c_float
 from ctypes import c_int
@@ -36,8 +36,8 @@ class MassLynxRawScanReader(MassLynxRawReader):
         pM = cast(pMasses, POINTER(c_float))
         pI = cast(pIntensities, POINTER(c_float))
 
-        masses = pM[0:size.value]
-        intensities = pI[0:size.value]
+        masses = pM[0 : size.value]
+        intensities = pI[0 : size.value]
 
         # dealocate memory
         # MassLynxRawReader.ReleaseMemory( pMasses)
@@ -57,28 +57,29 @@ class MassLynxRawScanReader(MassLynxRawReader):
         # read scan
         readScanFlags = MassLynxRawReader.massLynxDll.readScanFlags
         readScanFlags.argtypes = [
-            c_void_p, c_int, c_int, POINTER(
-                c_void_p,
-            ), POINTER(c_void_p), POINTER(c_void_p), POINTER(c_int),
+            c_void_p,
+            c_int,
+            c_int,
+            POINTER(c_void_p),
+            POINTER(c_void_p),
+            POINTER(c_void_p),
+            POINTER(c_int),
         ]
         super().CheckReturnCode(
-            readScanFlags(
-                self._getReader(), whichFunction,
-                whichScan, pMasses, pIntensities, pFlags, size,
-            ),
+            readScanFlags(self._getReader(), whichFunction, whichScan, pMasses, pIntensities, pFlags, size)
         )
 
         # fill the array
         pM = cast(pMasses, POINTER(c_float))
         pI = cast(pIntensities, POINTER(c_float))
 
-        masses = pM[0:size.value]
-        intensities = pI[0:size.value]
+        masses = pM[0 : size.value]
+        intensities = pI[0 : size.value]
 
         # check for flags
-        if None != pFlags.value:
+        if pFlags.value is not None:
             pF = cast(pFlags, POINTER(c_byte))
-            flags = pF[0:size.value]
+            flags = pF[0 : size.value]
 
         return masses, intensities, flags
 
@@ -93,18 +94,15 @@ class MassLynxRawScanReader(MassLynxRawReader):
         readDriftScan = MassLynxRawReader.massLynxDll.readDriftScan
         readDriftScan.argtypes = [c_void_p, c_int, c_int, c_int, POINTER(c_void_p), POINTER(c_void_p), POINTER(c_int)]
         super().CheckReturnCode(
-            readDriftScan(
-                self._getReader(), whichFunction,
-                whichScan, whichDrift, pMasses, pIntensities, size,
-            ),
+            readDriftScan(self._getReader(), whichFunction, whichScan, whichDrift, pMasses, pIntensities, size)
         )
 
         # fill the array
         pM = cast(pMasses, POINTER(c_float))
         pI = cast(pIntensities, POINTER(c_float))
 
-        masses = pM[0:size.value]
-        intensities = pI[0:size.value]
+        masses = pM[0 : size.value]
+        intensities = pI[0 : size.value]
 
         # dealocate memory
         # MassLynxRawReader.ReleaseMemory( pMasses)

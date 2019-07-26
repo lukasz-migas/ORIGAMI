@@ -5,7 +5,6 @@ from utils.check import isnumber
 
 
 class TestCheck(object):
-
     @staticmethod
     def test_check_value_order():
         # test bad order
@@ -21,8 +20,8 @@ class TestCheck(object):
         assert expected_value_min == return_value_min and expected_value_max == return_value_max
 
         # test incorrect dtype
-        expected_value_min, expected_value_max = '24', '42'
-        return_value_min, return_value_max = check_value_order('24', '42')
+        expected_value_min, expected_value_max = "24", "42"
+        return_value_min, return_value_max = check_value_order("24", "42")
 
         assert expected_value_min == return_value_min and expected_value_max == return_value_max
 
@@ -36,7 +35,7 @@ class TestCheck(object):
 
         # test bad bool
         expected = False
-        returned = isbool('True')
+        returned = isbool("True")
 
         assert expected == returned
 
@@ -50,6 +49,6 @@ class TestCheck(object):
 
         # test bad number
         expected = False
-        returned = isnumber('42')
+        returned = isnumber("42")
 
         assert expected == returned

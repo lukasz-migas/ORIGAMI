@@ -25,9 +25,9 @@ mzML, and mzURL (web-based data access)
 
 """
 
-__author__ = 'Jignesh Parikh, James Webber, William Max Alexander'
+__author__ = "Jignesh Parikh, James Webber, William Max Alexander"
 
-__all__ = ['mzFile']
+__all__ = ["mzFile"]
 
 import pickle
 import os
@@ -42,25 +42,25 @@ def make_info_file(data_file, **kwargs):
 
     """
 
-    if data_file.lower().startswith('http://'):
-        raise NotImplementedError('How do you make an info file for a URL?')
+    if data_file.lower().startswith("http://"):
+        raise NotImplementedError("How do you make an info file for a URL?")
 
-    if data_file.lower().endswith('wiff'):
-        file_type = 'wiff'
-    elif data_file.lower().endswith('raw'):
-        file_type = 'raw'
-    elif data_file.lower().endswith('mzml'):
-        file_type = 'mzml'
-    elif data_file.lower().endswith('mzml.gz'):
-        file_type = 'mzml'
+    if data_file.lower().endswith("wiff"):
+        file_type = "wiff"
+    elif data_file.lower().endswith("raw"):
+        file_type = "raw"
+    elif data_file.lower().endswith("mzml"):
+        file_type = "mzml"
+    elif data_file.lower().endswith("mzml.gz"):
+        file_type = "mzml"
 
-    if os.path.exists(data_file + '.mzi'):
-        os.remove(data_file + '.mzi')
+    if os.path.exists(data_file + ".mzi"):
+        os.remove(data_file + ".mzi")
 
-    if file_type == 'mzml':
+    if file_type == "mzml":
         pass
-#         from utils.multiplierz_lite.mzAPI import mzML
-#         mzML.make_info_file(data_file)
+    #         from utils.multiplierz_lite.mzAPI import mzML
+    #         mzML.make_info_file(data_file)
     else:
         my_file = mzFile(data_file, **kwargs)
         (start_time, stop_time) = my_file.time_range()
@@ -69,12 +69,12 @@ def make_info_file(data_file, **kwargs):
 
         info_list = []
         for (time, mz, scan_name, scan_type, scan_mode) in scan_list:
-            my_dict = {'time': time, 'mz': mz, 'scan_name': scan_name, 'scan_type': scan_type, 'scan_mode': scan_mode}
+            my_dict = {"time": time, "mz": mz, "scan_name": scan_name, "scan_type": scan_type, "scan_mode": scan_mode}
             info_list.append(my_dict)
         info_list = mzInfoFile(info_list)
 
         # pickle object
-        with open(data_file + '.mzi', 'w') as f:
+        with open(data_file + ".mzi", "w") as f:
             pickle.dump(info_list, f)
 
 
@@ -86,7 +86,7 @@ class mzInfoFile(tuple):
 
     def __init__(self, s):
         tuple.__init__(self, s)
-        self.index_dict = {d['time']: i for i, d in enumerate(self)}
+        self.index_dict = {d["time"]: i for i, d in enumerate(self)}
 
     def field_list(self):
         """Returns keys for dictionary stored in each list element.
@@ -132,7 +132,7 @@ class mzInfoFile(tuple):
 
     def closest(self, key, value):
         closest_item = self[0]
-        if key == 'time':
+        if key == "time":
             if value in self.index_dict:
                 closest_item = self[self.index_dict[value]]
                 return closest_item
@@ -144,15 +144,15 @@ class mzScan(list):
     """A subclass of the list object to represent a raw data scan.
     """
 
-    def __init__(self, s, time, mode='p', mz=0.0, z=0):
-        '''Create a scan object.
+    def __init__(self, s, time, mode="p", mz=0.0, z=0):
+        """Create a scan object.
 
         - s is an iterable of (m/z, intensity) pairs
         - time is the time of acquisition
         - mode is 'p' or 'c' for profile or centroid scans respectively
         - mz is the m/z of the targeted peak (0.0 if not known/applicable)
         - z is the charge of the targeted peak (0 if not known/applicable)
-        '''
+        """
         list.__init__(self, s)
         self.time = time
         self.mode = mode
@@ -160,7 +160,7 @@ class mzScan(list):
         self.z = z
 
     def peak(self, mz, tolerance):
-        '''Returns the max intensity within a tolerance of a target m/z'''
+        """Returns the max intensity within a tolerance of a target m/z"""
         return max([i for m, i in self if abs(m - mz) <= tolerance] or [0])
 
 
@@ -179,34 +179,35 @@ class mzFile(object):
         """
 
         import platform
+
         bitness = platform.architecture()[0]
-        if bitness != '64bit':
-            if '32bit' in bitness:
-                raise Exception('mzAPI does not support 32-bit Python!')
+        if bitness != "64bit":
+            if "32bit" in bitness:
+                raise Exception("mzAPI does not support 32-bit Python!")
             else:
                 print(
-                    (
-                        'WARNING- System architecture string %s not '
-                        'recognized.  Is this 64-bit Windows Python?'
-                    ) % bitness,
+                    ("WARNING- System architecture string %s not " "recognized.  Is this 64-bit Windows Python?")
+                    % bitness
                 )
 
-        if not (data_file.lower().startswith('http://') or os.path.exists(data_file)):
-            raise IOError('%s not found.' % data_file)
+        if not (data_file.lower().startswith("http://") or os.path.exists(data_file)):
+            raise IOError("%s not found." % data_file)
 
-        elif data_file.lower().endswith('.raw'):
+        elif data_file.lower().endswith(".raw"):
             from utils.multiplierz_lite.mzAPI import raw
+
             self.__class__ = raw.mzFile
-            self.format = 'raw'
+            self.format = "raw"
             raw.mzFile.__init__(self, data_file, **kwargs)
         elif (
-            data_file.lower().endswith('.mzml') or
-            data_file.lower().endswith('.mzml.gz') or
-            data_file.lower().endswith('.mzmlsql')
+            data_file.lower().endswith(".mzml")
+            or data_file.lower().endswith(".mzml.gz")
+            or data_file.lower().endswith(".mzmlsql")
         ):
             from utils.multiplierz_lite.mzAPI import mzML
+
             self.__class__ = mzML.mzFile
-            self.format = 'mzml'
+            self.format = "mzml"
             mzML.mzFile.__init__(self, data_file, **kwargs)
         else:
             raise NotImplementedError("Can't open %s; extension not recognized." % data_file)
@@ -227,7 +228,7 @@ class mzFile(object):
         >>> mz_file.close()
 
         """
-        raise NotImplementedError('Subclasses must implement this method')
+        raise NotImplementedError("Subclasses must implement this method")
 
     def scan_list(self, start_time=None, stop_time=None, start_mz=0, stop_mz=99999):
         """Gets a list of [(time,mz)] in the time and mz range provided
@@ -240,7 +241,7 @@ class mzFile(object):
 
         """
 
-        raise NotImplementedError('Subclasses must implement this method')
+        raise NotImplementedError("Subclasses must implement this method")
 
     def scan_info(self, start_time, stop_time=0, start_mz=0, stop_mz=99999):
         """Gets a list of [(time, mz, scan_name, scan_type, scan_mode)] in the time and mz range provided
@@ -256,7 +257,7 @@ class mzFile(object):
 
         """
 
-        raise NotImplementedError('Subclasses must implement this method')
+        raise NotImplementedError("Subclasses must implement this method")
 
     def scan_time_from_scan_name(self, scan_name):
         """Gets scan time for wiff (cycle, experiment) tuple or raw scan number
@@ -269,7 +270,7 @@ class mzFile(object):
 
         """
 
-        raise NotImplementedError('Subclasses must implement this method')
+        raise NotImplementedError("Subclasses must implement this method")
 
     def scan(self, time):
         """Gets scan based on the specified scan time
@@ -281,7 +282,7 @@ class mzFile(object):
 
         """
 
-        raise NotImplementedError('Subclasses must implement this method')
+        raise NotImplementedError("Subclasses must implement this method")
 
     def xic(self, start_time, stop_time, start_mz, stop_mz, filter=None):
         """Generates eXtracted Ion Chromatogram (XIC) for given time and mz range
@@ -294,7 +295,7 @@ class mzFile(object):
 
         """
 
-        raise NotImplementedError('Subclasses must implement this method')
+        raise NotImplementedError("Subclasses must implement this method")
 
     def time_range(self):
         """Returns a pair of times corresponding to the first and last scan time
@@ -304,12 +305,12 @@ class mzFile(object):
 
         """
 
-        raise NotImplementedError('Subclasses must implement this method')
+        raise NotImplementedError("Subclasses must implement this method")
 
     def ric(self, *args, **kwargs):
-        '''This method is deprecated, use xic() instead.
+        """This method is deprecated, use xic() instead.
 
-        Kept for backwards compatibility.'''
+        Kept for backwards compatibility."""
 
-        logger_message(40, 'ric() is deprecated: use xic() instead')
+        logger_message(40, "ric() is deprecated: use xic() instead")
         return self.xic(*args, **kwargs)

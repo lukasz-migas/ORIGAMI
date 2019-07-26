@@ -4,7 +4,7 @@
 import h5py
 
 
-def create_hdf5_file(filename, mode='w'):
+def create_hdf5_file(filename, mode="w"):
     return h5py.File(filename, mode=mode)
 
 
@@ -51,10 +51,7 @@ def add_data_to_group(group_obj, dataset_name, data, dtype, compression=None, ch
             del group_obj[dataset_name]
 
     if not replaced_dset:
-        group_obj.create_dataset(
-            dataset_name, data=data, dtype=dtype,
-            compression=compression, chunks=chunks,
-        )
+        group_obj.create_dataset(dataset_name, data=data, dtype=dtype, compression=compression, chunks=chunks)
 
 
 def add_attribute(dset_obj, attribute_name, attribute_value):
@@ -82,7 +79,4 @@ def replace_dataset(group_obj, name, data, dtype=None, compression=None, chunks=
 
     if name in list(group_obj.keys()):
         del group_obj[name]
-    group_obj.create_dataset(
-        name, data=data, dtype=dtype,
-        compression=compression, chunks=chunks,
-    )
+    group_obj.create_dataset(name, data=data, dtype=dtype, compression=compression, chunks=chunks)

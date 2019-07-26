@@ -10,28 +10,28 @@ class DialogAsk(Dialog):
     """
 
     def __init__(self, parent, **kwargs):
-        Dialog.__init__(self, parent, title='Edit parameters...', size=(400, 300))
-#
+        Dialog.__init__(self, parent, title="Edit parameters...", size=(400, 300))
+        #
         self.parent = parent
 
-        self.item_label = kwargs['static_text']
-        self.item_value = kwargs['value_text']
-        self.item_validator = kwargs['validator']
+        self.item_label = kwargs["static_text"]
+        self.item_value = kwargs["value_text"]
+        self.item_validator = kwargs["validator"]
 
         self.return_value = None
 
-        if kwargs['keyword'] == 'charge':
-            self.SetTitle('Assign charge...')
-        elif kwargs['keyword'] == 'alpha':
-            self.SetTitle('Assign transparency...')
-        elif kwargs['keyword'] == 'mask':
-            self.SetTitle('Assign mask...')
-        elif kwargs['keyword'] == 'min_threshold':
-            self.SetTitle('Assign minimum threshold...')
-        elif kwargs['keyword'] == 'max_threshold':
-            self.SetTitle('Assign maximum threshold...')
-        elif kwargs['keyword'] == 'label':
-            self.SetTitle('Assign label...')
+        if kwargs["keyword"] == "charge":
+            self.SetTitle("Assign charge...")
+        elif kwargs["keyword"] == "alpha":
+            self.SetTitle("Assign transparency...")
+        elif kwargs["keyword"] == "mask":
+            self.SetTitle("Assign mask...")
+        elif kwargs["keyword"] == "min_threshold":
+            self.SetTitle("Assign minimum threshold...")
+        elif kwargs["keyword"] == "max_threshold":
+            self.SetTitle("Assign maximum threshold...")
+        elif kwargs["keyword"] == "label":
+            self.SetTitle("Assign label...")
 
         # make gui items
         self.make_gui()
@@ -58,11 +58,11 @@ class DialogAsk(Dialog):
     def onOK(self, evt):
         self.on_apply(evt=None)
 
-        if self.item_validator == 'integer':
+        if self.item_validator == "integer":
             self.return_value = int(self.item_value)
-        elif self.item_validator == 'float':
+        elif self.item_validator == "float":
             self.return_value = float(self.item_value)
-        elif self.item_validator == 'str':
+        elif self.item_validator == "str":
             self.return_value = self.item_value
 
         self.parent.ask_value = self.return_value
@@ -91,29 +91,23 @@ class DialogAsk(Dialog):
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.input_label = wx.StaticText(panel, -1, 'Enter value:')
+        self.input_label = wx.StaticText(panel, -1, "Enter value:")
         self.input_label.SetLabel(self.item_label)
         self.input_label.SetFocus()
 
-        if self.item_validator == 'integer':
+        if self.item_validator == "integer":
             self.input_value = wx.SpinCtrlDouble(
-                panel, -1,
-                value=str(self.item_value),
-                min=1, max=200, initial=0, inc=1,
-                size=(90, -1),
+                panel, -1, value=str(self.item_value), min=1, max=200, initial=0, inc=1, size=(90, -1)
             )
-        elif self.item_validator == 'float':
+        elif self.item_validator == "float":
             self.input_value = wx.SpinCtrlDouble(
-                panel, -1,
-                value=str(self.item_value),
-                min=0, max=1, initial=0, inc=0.1,
-                size=(90, -1),
+                panel, -1, value=str(self.item_value), min=0, max=1, initial=0, inc=0.1, size=(90, -1)
             )
 
         self.input_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.okBtn = wx.Button(panel, wx.ID_OK, 'Select', size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, -1, 'Cancel', size=(-1, 22))
+        self.okBtn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
+        self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
 
         GRIDBAG_VSPACE = 7
         GRIDBAG_HSPACE = 5

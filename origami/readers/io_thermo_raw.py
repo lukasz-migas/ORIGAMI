@@ -5,8 +5,7 @@ from utils.multiplierz_lite.mzAPI import raw
 from utils.path import clean_filename
 
 
-class thermoRAWreader():
-
+class thermoRAWreader:
     def __init__(self, filename, **kwargs):
         self.filename = filename
         self.source = self.create_parser()
@@ -23,20 +22,20 @@ class thermoRAWreader():
         scan_info = {}
         for scan in range(*self.source.scan_range()):
             info = self.source.source.GetFilterInfoForScan(scan)
-            ms_level = info[0].upper() if info[0].upper() != 'MS' else 'MS1'
+            ms_level = info[0].upper() if info[0].upper() != "MS" else "MS1"
             time = self.source.source.time_from_scan(scan)
-            ms_format = 'p' if info[2] == 'Profile' else 'c'
+            ms_format = "p" if info[2] == "Profile" else "c"
             scan_info[scan] = {
-                'time': time,
-                'precursor_mz': info[1],
-                'ms_level': ms_level,
-                'format': ms_format,
-                'filter': self.filters[scan - 1],
+                "time": time,
+                "precursor_mz": info[1],
+                "ms_level": ms_level,
+                "format": ms_format,
+                "filter": self.filters[scan - 1],
             }
 
         return scan_info
 
-    def get_average_spectrum(self, title='Full ms ', return_xy=True):
+    def get_average_spectrum(self, title="Full ms ", return_xy=True):
         spectrum = np.array(self.source.average_scan(0, 99999, title))
 
         if return_xy:
@@ -49,15 +48,15 @@ class thermoRAWreader():
         unique_filters = set(self.filters)
         data = {}
         for title in unique_filters:
-            if title not in ['None', None]:
+            if title not in ["None", None]:
                 msX, msY = self.get_average_spectrum(title)
                 xlimits = [np.min(msX), np.max(msX)]
                 data[clean_filename(title)] = {
-                    'xvals': msX,
-                    'yvals': msY,
-                    'xlabels': 'm/z (Da)',
-                    'xlimits': xlimits,
-                    'filter': title,
+                    "xvals": msX,
+                    "yvals": msY,
+                    "xlabels": "m/z (Da)",
+                    "xlimits": xlimits,
+                    "filter": title,
                 }
         return data
 
@@ -66,15 +65,15 @@ class thermoRAWreader():
         unique_filters = set(self.filters)
         data = {}
         for title in unique_filters:
-            if title not in ['None', None]:
+            if title not in ["None", None]:
                 rtX, rtY = self.get_xic(title=title)
                 xlimits = [np.min(rtX), np.max(rtY)]
                 data[clean_filename(title)] = {
-                    'xvals': rtX,
-                    'yvals': rtY,
-                    'xlabels': 'Time (min)',
-                    'xlimits': xlimits,
-                    'filter': title,
+                    "xvals": rtX,
+                    "yvals": rtY,
+                    "xlabels": "Time (min)",
+                    "xlimits": xlimits,
+                    "filter": title,
                 }
         return data
 
@@ -102,14 +101,14 @@ class thermoRAWreader():
 
         chrom_mins = []
         for key in data:
-            chrom_mins.append([data[key]['xvals'][0], data[key]['xvals'][-1], key])
+            chrom_mins.append([data[key]["xvals"][0], data[key]["xvals"][-1], key])
 
         chrom_mins = natsorted(chrom_mins)
 
         xvals, yvals = [], []
         for item in chrom_mins:
             rt_start, rt_end, key = item
-            xvals.extend(data[key]['xvals'])
-            yvals.extend(data[key]['yvals'])
+            xvals.extend(data[key]["xvals"])
+            yvals.extend(data[key]["yvals"])
 
         return xvals, yvals

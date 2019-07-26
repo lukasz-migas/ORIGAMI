@@ -9,11 +9,11 @@ repos:
       - id: debug-statements
       # - id: name-tests-test
       - id: requirements-txt-fixer
-      - id: double-quote-string-fixer
-  - repo: https://github.com/asottile/add-trailing-comma
-    rev: v1.3.0
-    hooks:
-      - id: add-trailing-comma
+      # - id: double-quote-string-fixer
+  # - repo: https://github.com/asottile/add-trailing-comma
+  #   rev: v1.3.0
+  #   hooks:
+  #     - id: add-trailing-comma
   - repo: meta
     hooks:
       - id: check-hooks-apply
@@ -22,6 +22,11 @@ repos:
     rev: v1.4.4
     hooks:
       - id: autopep8
+  - repo: https://github.com/psf/black
+    rev: stable
+    hooks:
+      - id: black
+        language_version: python3.7
   # - repo: https://gitlab.com/pycqa/flake8
   #   rev: 3.7.7
   #   hooks:

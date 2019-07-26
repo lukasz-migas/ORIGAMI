@@ -4,7 +4,6 @@
 
 
 class Annotations:
-
     def __init__(self):
         self.annotations = dict()
         self.names = []

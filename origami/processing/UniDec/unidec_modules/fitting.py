@@ -93,9 +93,9 @@ def ldis(x, mid, fwhm, a=1, norm_area=False):
     :return: Lorentzian distribution at x values
     """
     if norm_area:
-        a *= ((1 / np.pi) * (fwhm / 2.))
+        a *= (1 / np.pi) * (fwhm / 2.0)
     else:
-        a *= ((fwhm / 2.0) * (fwhm / 2.0))
+        a *= (fwhm / 2.0) * (fwhm / 2.0)
     return a / ((x - mid) * (x - mid) + (fwhm / 2.0) * (fwhm / 2.0))
 
 
@@ -129,8 +129,8 @@ def splitdis(x, mid, fwhm, a=1, norm_area=False):
     """
     sig2 = fwhm / (2 * np.sqrt(2 * np.log(2)))
     if norm_area:
-        a1 = a * ((1 / np.pi) / (fwhm / 2.)) / 0.83723895067
-        a2 = a * 2. / (fwhm * np.pi) / 0.83723895067
+        a1 = a * ((1 / np.pi) / (fwhm / 2.0)) / 0.83723895067
+        a2 = a * 2.0 / (fwhm * np.pi) / 0.83723895067
     else:
         a1 = a
         a2 = a
@@ -171,14 +171,14 @@ def voigt(x, mu=0, sigma=1, gamma=1, amp=1, background=0):
     z = (x+i*gam)/(sig*sqrt(2))
     """
     if sigma == 0:
-        return ldis(x, mu, gamma * 2., amp) + background
+        return ldis(x, mu, gamma * 2.0, amp) + background
     elif gamma == 0:
         return ndis_std(x, mu, sigma, amp) + background
     else:
         z = (x - mu + 1j * gamma) / (sigma * np.sqrt(2))
         w = special.wofz(z)
         v = w.real / (sigma * np.sqrt(2 * np.pi))
-        v *= (amp / np.amax(v))
+        v *= amp / np.amax(v)
         v += background
     return v
 
@@ -193,7 +193,7 @@ def exp_fit(xvals, yvals, gguess=None, aguess=None, bguess=None):
     """
     xvals = np.array(xvals)
     if gguess is None:
-        gguess = 2. / np.mean(xvals)
+        gguess = 2.0 / np.mean(xvals)
     if aguess is None:
         aguess = np.amax(yvals)
     if bguess is None:
@@ -311,7 +311,7 @@ def fit_peak(xvals, yvals, psfun, midguess, fwhmguess, aguess, bguess):
     else:
         popt = guess
         pcov = np.ones((len(guess), len(guess)))
-        print('Failed')
+        print("Failed")
 
     fitdat = psfit(xvals, popt[0], popt[1], popt[2], popt[3], psfun)
     return popt, np.sqrt(np.diag(pcov)), fitdat
@@ -424,7 +424,7 @@ def mpinit(datatop, oarray, background=False):
 def mperror(array, datatop, oarray, background):
     bool1 = array < -1
     array[bool1] = 0
-    error = (datatop[:, 1] - multipoisson(array, datatop, oarray, background)[0]) ** 2.
+    error = (datatop[:, 1] - multipoisson(array, datatop, oarray, background)[0]) ** 2.0
     return error
 
 
@@ -436,9 +436,9 @@ def complex_poisson(datatop, oarray=[1, 2], background=False):
     return fit, fitdat, integrals, integrals2
 
 
-if __name__ == '__main__':
-    path = 'C:\\UniDecPastedSpectra\\PastedSpectrum_2017_Dec_11_09_02_49_unidecfiles\\Extract_total_2D_Extract.txt'
-    path = 'C:\\UniDecPastedSpectra\\PastedSpectrum_2017_Dec_11_11_30_45_unidecfiles\\Extract_total_2D_Extract.txt'
+if __name__ == "__main__":
+    path = "C:\\UniDecPastedSpectra\\PastedSpectrum_2017_Dec_11_09_02_49_unidecfiles\\Extract_total_2D_Extract.txt"
+    path = "C:\\UniDecPastedSpectra\\PastedSpectrum_2017_Dec_11_11_30_45_unidecfiles\\Extract_total_2D_Extract.txt"
     data = np.loadtxt(path)[1:18]
     data[:, 1] -= np.amin(data[:, 1])
 

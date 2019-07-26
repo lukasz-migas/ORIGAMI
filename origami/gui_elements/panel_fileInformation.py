@@ -9,8 +9,7 @@ class panelInformation(wx.MiniFrame):
 
     def __init__(self, parent, **kwargs):
         wx.MiniFrame.__init__(
-            self, parent, -1, 'Sample information', size=(300, 200),
-            style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER,
+            self, parent, -1, "Sample information", size=(300, 200), style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER
         )
 
         self.parent = parent
@@ -23,16 +22,17 @@ class panelInformation(wx.MiniFrame):
         self.Layout()
         self.SetFocus()
 
-        if 'title' in kwargs:
-            self.SetTitle(kwargs['title'])
+        if "title" in kwargs:
+            self.SetTitle(kwargs["title"])
 
-        if 'information' in kwargs:
-            self.information.SetLabel(kwargs['information'])
+        if "information" in kwargs:
+            self.information.SetLabel(kwargs["information"])
             self.information.Wrap(425)
 
         # bind
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+
     # ----
 
     def on_key_event(self, evt):
@@ -47,6 +47,7 @@ class panelInformation(wx.MiniFrame):
         """Destroy this frame."""
 
         self.Destroy()
+
     # ----
 
     def make_gui(self):
@@ -68,10 +69,10 @@ class panelInformation(wx.MiniFrame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # make editor
-        self.information = wx.StaticText(panel, -1, '', size=(-1, -1))
+        self.information = wx.StaticText(panel, -1, "", size=(-1, -1))
 
         # make buttons
-        self.okBtn = wx.Button(panel, wx.ID_OK, 'OK', size=(-1, 22))
+        self.okBtn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
         self.okBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(5, 5)

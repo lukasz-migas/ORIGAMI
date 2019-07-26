@@ -11,19 +11,20 @@ from sklearn.preprocessing import normalize
 from utils.check import check_value_order
 from utils.check import is_prime
 from utils.exceptions import MessageError
-logger = logging.getLogger('origami')
+
+logger = logging.getLogger("origami")
 
 
 def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.0):
 
     # Check min_threshold is larger than max_threshold
     if min_threshold > max_threshold:
-        print('Minimum threshold is larger than the maximum. Values were reversed.')
+        print("Minimum threshold is larger than the maximum. Values were reversed.")
         min_threshold, max_threshold = max_threshold, min_threshold
 
     # Check if they are the same
     if min_threshold == max_threshold:
-        print('Minimum and maximum thresholds are the same.')
+        print("Minimum and maximum thresholds are the same.")
         return inputData
 
     # Find maximum value in the array
@@ -43,7 +44,7 @@ def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.
 def remove_noise_2D(inputData, threshold=0):
     data_max = np.max(inputData)
     if threshold > data_max:
-        logger.warning(f'Threshold value {threshold} is larger than the maximum value in the data {data_max}')
+        logger.warning(f"Threshold value {threshold} is larger than the maximum value in the data {data_max}")
         return inputData
 
     inputData[inputData <= threshold] = 0
@@ -71,21 +72,21 @@ def crop_2D(xvals, yvals, data, xmin, xmax, ymin, ymax):
     ymax_idx = find_nearest_index(yvals, ymax)
 
     if crop_x:
-        xvals = xvals[xmin_idx:xmax_idx + 1]
-        data = data[:, xmin_idx:xmax_idx + 1]
+        xvals = xvals[xmin_idx : xmax_idx + 1]
+        data = data[:, xmin_idx : xmax_idx + 1]
 
     if crop_y:
-        yvals = yvals[ymin_idx:ymax_idx + 1]
-        data = data[ymin_idx:ymax_idx + 1]
+        yvals = yvals[ymin_idx : ymax_idx + 1]
+        data = data[ymin_idx : ymax_idx + 1]
 
     return xvals, yvals, data
 
 
-def smooth_2D(data, mode='Gaussian', **kwargs):
+def smooth_2D(data, mode="Gaussian", **kwargs):
 
-    if mode == 'Gaussian':
+    if mode == "Gaussian":
         data = smooth_gaussian_2D(data, **kwargs)
-    elif mode == 'Savitzky-Golay':
+    elif mode == "Savitzky-Golay":
         data = smooth_gaussian_2D(data, **kwargs)
 
     # remove values below 0
@@ -95,13 +96,10 @@ def smooth_2D(data, mode='Gaussian', **kwargs):
 
 
 def smooth_gaussian_2D(data, **kwargs):
-    sigma = kwargs.pop('sigma')
+    sigma = kwargs.pop("sigma")
 
     if sigma < 0:
-        raise MessageError(
-            'Incorrect value of `sigma`',
-            'Value of `sigma` must be larger than 0',
-        )
+        raise MessageError("Incorrect value of `sigma`", "Value of `sigma` must be larger than 0")
 
     dataOut = gaussian_filter(data, sigma=sigma, order=0)
 
@@ -110,15 +108,15 @@ def smooth_gaussian_2D(data, **kwargs):
 
 def smooth_savgol_2D(data, **kwargs):
     # get parameters
-    polyOrder = kwargs.pop('polyOrder')
-    windowSize = kwargs.pop('windowSize')
+    polyOrder = kwargs.pop("polyOrder")
+    windowSize = kwargs.pop("windowSize")
 
     dataOut = savgol_filter(data, polyorder=polyOrder, window_length=windowSize, axis=0)
 
     return dataOut
 
 
-def normalize_2D(data, mode='Maximum'):
+def normalize_2D(data, mode="Maximum"):
     """Normalize heatmap
 
     Parameters
@@ -139,18 +137,18 @@ def normalize_2D(data, mode='Maximum'):
     data = data.astype(np.float64)
 
     # normalize data
-    if mode == 'Maximum':
-        norm_data = normalize(data, axis=0, norm='max')
-    elif mode == 'Logarithmic':
+    if mode == "Maximum":
+        norm_data = normalize(data, axis=0, norm="max")
+    elif mode == "Logarithmic":
         norm_data = np.log10(data)
-    elif mode == 'Natural log':
+    elif mode == "Natural log":
         norm_data = np.log(data)
-    elif mode == 'Square root':
+    elif mode == "Square root":
         norm_data = np.sqrt(data)
-    elif mode == 'Least Abs Deviation':
-        norm_data = normalize(data, axis=0, norm='l1')
-    elif mode == 'Least Squares':
-        norm_data = normalize(data, axis=0, norm='l2')
+    elif mode == "Least Abs Deviation":
+        norm_data = normalize(data, axis=0, norm="l1")
+    elif mode == "Least Squares":
+        norm_data = normalize(data, axis=0, norm="l2")
 
     # replace NaNs with 0s
     norm_data = np.nan_to_num(norm_data)
@@ -179,7 +177,7 @@ def equalize_heatmap_spacing(xvals, yvals, zvals):
     return interpolate_2D(xvals, yvals, zvals, new_xvals=new_xvals, new_yvals=new_yvals)
 
 
-def interpolate_2D(xvals, yvals, zvals, fold=1, mode='linear', **kwargs):
+def interpolate_2D(xvals, yvals, zvals, fold=1, mode="linear", **kwargs):
     """Interpolate along given axis
 
     Parameters
@@ -197,17 +195,18 @@ def interpolate_2D(xvals, yvals, zvals, fold=1, mode='linear', **kwargs):
     new_zvals : np.array
     """
     from scipy.interpolate.interpolate import interp2d
+
     mode = mode.lower()
 
     if fold <= 0:
-        raise MessageError('Incorrect value of `fold`', 'The value of `fold` must be larger than 0')
+        raise MessageError("Incorrect value of `fold`", "The value of `fold` must be larger than 0")
 
-    new_xvals = kwargs.pop('new_xvals', xvals)
-    if kwargs.get('x_axis', False):
+    new_xvals = kwargs.pop("new_xvals", xvals)
+    if kwargs.get("x_axis", False):
         new_xvals = calculate_interpolation_axes(xvals, fold)
 
-    new_yvals = kwargs.pop('new_yvals', yvals)
-    if kwargs.get('y_axis', False):
+    new_yvals = kwargs.pop("new_yvals", yvals)
+    if kwargs.get("y_axis", False):
         new_yvals = calculate_interpolation_axes(yvals, fold)
 
     fcn = interp2d(xvals, yvals, zvals, kind=mode)
@@ -221,9 +220,9 @@ def calculate_division_factors(value, min_division=1, max_division=20, subsampli
     division_factors = []
     if is_prime(value):
         print(
-            'The x-dimension is a prime number so I cannot bin it. Will downsample with `{}` instead.'.format(
-                subsampling_default,
-            ),
+            "The x-dimension is a prime number so I cannot bin it. Will downsample with `{}` instead.".format(
+                subsampling_default
+            )
         )
         return [], subsampling_default
     else:
@@ -232,9 +231,9 @@ def calculate_division_factors(value, min_division=1, max_division=20, subsampli
                 division_factors.append(i)
         if not division_factors:
             print(
-                'Failed to find division factor in the range {}-{}. Will downsample with `{}` instead'.format(
-                    min_division, max_division, subsampling_default,
-                ),
+                "Failed to find division factor in the range {}-{}. Will downsample with `{}` instead".format(
+                    min_division, max_division, subsampling_default
+                )
             )
             return [], subsampling_default
         return division_factors, np.max(division_factors)
@@ -251,8 +250,8 @@ def bin_sum_array(data, xvals, division_factor):
     new_shape = (y_dim, int(x_dim / division_factor), division_factor)
     if np.prod(new_shape) != data.size:
         raise ValueError(
-            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) +
-            ' Number of items before reshape: {} and after {}'.format(data.size, np.prod(new_shape)),
+            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor)
+            + " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
         )
     return np.reshape(data, new_shape).sum(axis=2), bin_mean_1D_array(xvals, new_shape)
 
@@ -263,8 +262,8 @@ def bin_mean_array(data, xvals, division_factor):
     new_shape = (y_dim, int(x_dim / division_factor), division_factor)
     if np.prod(new_shape) != data.size:
         raise ValueError(
-            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor) +
-            ' Number of items before reshape: {} and after {}'.format(data.size, np.prod(new_shape)),
+            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor)
+            + " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
         )
     return np.reshape(data, new_shape).mean(axis=2), bin_mean_1D_array(xvals, new_shape)
 

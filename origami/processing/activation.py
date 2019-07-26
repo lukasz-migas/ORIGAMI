@@ -11,19 +11,16 @@ def compute_RMSD(inputData1=None, inputData2=None):  # computeRMSD
     Compute the RMSD for a part of arrays
     """
     if isempty(inputData1) or isempty(inputData2):
-        print('Make sure you pick more than one file')
+        print("Make sure you pick more than one file")
         return
     elif inputData1.shape != inputData2.shape:
-        print('The two arrays are of different size! Cannot compare.')
+        print("The two arrays are of different size! Cannot compare.")
         return
     else:
         # Before computing RMSD, we need to normalize to 1
-        tempArray = (
-            normalize_2D(inputData1) -
-            normalize_2D(inputData2)
-        )
+        tempArray = normalize_2D(inputData1) - normalize_2D(inputData2)
         tempArray2 = tempArray ** 2
-        RMSD = ((np.average(tempArray2)) ** 0.5)
+        RMSD = (np.average(tempArray2)) ** 0.5
         pRMSD = RMSD * 100
 
     return pRMSD, tempArray
@@ -35,10 +32,10 @@ def compute_RMSF(inputData1=None, inputData2=None):  # computeRMSF
     each individual voltage separately
     """
     if isempty(inputData1) or isempty(inputData2):
-        print('Make sure you pick more than file')
+        print("Make sure you pick more than file")
         return
     elif inputData1.shape != inputData2.shape:
-        print('The two arrays are of different size! Cannot compare.')
+        print("The two arrays are of different size! Cannot compare.")
         return
     else:
         pRMSFlist = []
@@ -51,10 +48,10 @@ def compute_RMSF(inputData1=None, inputData2=None):  # computeRMSF
             inputData2norm = normalize_1D(inputData2[:, row])
             np.nan_to_num(inputData2norm, copy=False)
             # Compute difference
-            tempArray = (inputData1norm - inputData2norm)
+            tempArray = inputData1norm - inputData2norm
             tempArray2 = tempArray ** 2
             # Calculate RMSF/D value
-            RMSF = ((np.average(tempArray2)) ** 0.5)
+            RMSF = (np.average(tempArray2)) ** 0.5
             pRMSF = RMSF * 100
             pRMSFlist.append(pRMSF)
     return pRMSFlist

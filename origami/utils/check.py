@@ -22,7 +22,7 @@ def check_axes_spacing(values):
 
 def check_value(value):
     if value is None:
-        return ''
+        return ""
     return str(value)
 
 
@@ -79,24 +79,24 @@ def get_latest_version(link=None, get_webpage=False):
         # Search website for all versions
         vers = []
         for line in urllib.request.urlopen(link):
-            if 'Update to ORIGAMI-ANALYSE (' in line.decode('utf-8'):
+            if "Update to ORIGAMI-ANALYSE (" in line.decode("utf-8"):
                 vers.append(line)
                 break
         if len(vers) == 0:
             return None
         # Split the latest one to get newest version
-        split = re.split(' |<', vers[0])
+        split = re.split(" |<", vers[0])
         webVersion = None
         for row in split:
-            if '(' in row:
-                webVersion = row.strip('()')
+            if "(" in row:
+                webVersion = row.strip("()")
                 break
         return webVersion
     else:
         webpage = urllib.request.urlopen(
-            'https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md',
+            "https://raw.githubusercontent.com/lukasz-migas/ORIGAMI/master/ORIGAMI_ANALYSE/update_info.md"
         )
-        return webpage.read().decode('utf-8')
+        return webpage.read().decode("utf-8")
 
 
 def compare_versions(newVersion, oldVersion):

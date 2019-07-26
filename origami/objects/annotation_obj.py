@@ -5,6 +5,7 @@
 
 class Annotation:
     """Class containing all metadata about a single annotation"""
+
     VERSION = 1
 
     def __init__(self):
@@ -16,7 +17,7 @@ class Annotation:
         self.position_label_y = 0
 
         # visual information
-        self.color = [1., 1., 1.]
+        self.color = [1.0, 1.0, 1.0]
         self.add_arrow = True
         self.show = True
 
@@ -24,7 +25,7 @@ class Annotation:
         self.span_min = 0
         self.span_max = 0
         self.charge = 0
-        self.label = ''
+        self.label = ""
 
         # peak information
         self.peak_x = 0

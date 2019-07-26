@@ -15,7 +15,7 @@ from utils.screen import calculate_window_size
 from utils.time import ttime
 from visuals import mpl_plots
 
-logger = logging.getLogger('origami')
+logger = logging.getLogger("origami")
 
 TEXTCTRL_SIZE = (60, -1)
 BTN_SIZE = (100, 22)
@@ -30,9 +30,12 @@ class PanelProcessUniDec(wx.MiniFrame):
     def __init__(self, parent, presenter, config, icons, **kwargs):
         """Initlize panel"""
         wx.MiniFrame.__init__(
-            self, parent, -1, 'UniDec...', size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE & ~
-            (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
+            self,
+            parent,
+            -1,
+            "UniDec...",
+            size=(-1, -1),
+            style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
         tstart = ttime()
         self.view = parent
@@ -61,49 +64,41 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.SetFocus()
 
         # setup kwargs
-        self.document = kwargs.pop('document', None)
-        self.document_title = kwargs.pop('document_title', None)
-        self.dataset_name = kwargs.pop('dataset_name', None)
+        self.document = kwargs.pop("document", None)
+        self.document_title = kwargs.pop("document_title", None)
+        self.dataset_name = kwargs.pop("dataset_name", None)
 
         print(self.document_title, self.dataset_name)
 
         # plot data at startup
-        self.data_processing.on_threading('custom.action', ('all',), fcn=self.on_plot)
+        self.data_processing.on_threading("custom.action", ("all",), fcn=self.on_plot)
         self.Layout()
 
         # bind events
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
-        logger.info(f'UniDec panel startup took {ttime()-tstart:.2f} seconds.')
+        logger.info(f"UniDec panel startup took {ttime()-tstart:.2f} seconds.")
 
     def on_right_click(self, evt):
 
         menu = wx.Menu()
 
         menu_customise_plot = makeMenuItem(
-            parent=menu, id=wx.ID_ANY,
-            text='Customise plot...',
-            bitmap=self.icons.iconsLib['change_xlabels_16'],
+            parent=menu, id=wx.ID_ANY, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
         )
         menu.AppendItem(menu_customise_plot)
 
         menu.AppendSeparator()
-        self.resize_plot_check = menu.AppendCheckItem(
-            ID_plotPanel_resize,
-            'Resize on saving',
-        )
+        self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving")
         self.resize_plot_check.Check(self.config.resize)
 
         save_figure_menu_item = makeMenuItem(
-            menu, id=wx.ID_ANY,
-            text='Save figure as...',
-            bitmap=self.icons.iconsLib['save16'],
+            menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
         )
         menu.AppendItem(save_figure_menu_item)
 
         clear_plot_menu_item = makeMenuItem(
-            menu, id=wx.ID_ANY, text='Clear plot',
-            bitmap=self.icons.iconsLib['clear_16'],
+            menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
         )
         menu.AppendSeparator()
         menu.AppendItem(clear_plot_menu_item)
@@ -123,7 +118,7 @@ class PanelProcessUniDec(wx.MiniFrame):
 
     def make_gui(self):
         """Make miniframe"""
-        panel = wx.Panel(self, -1, size=(-1, -1), name='main')
+        panel = wx.Panel(self, -1, size=(-1, -1), name="main")
 
         self.settings_buttons = self.make_buttons_settings_panel(panel)
         self.settings_preprocess = self.make_preprocess_settings_panel(panel)
@@ -158,14 +153,11 @@ class PanelProcessUniDec(wx.MiniFrame):
         """Make plot panel"""
 
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
-        figsize = [
-            pixel_size[0] / self._display_resolution[0],
-            pixel_size[1] / self._display_resolution[1],
-        ]
+        figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
         figsize_1D = [figsize[0] / 2.75, figsize[1] / 3]
         figsize_2D = [figsize[0] / 2.75, figsize[1] / 1.5]
 
-        if self.config.unidec_plot_panel_view == 'Single page view':
+        if self.config.unidec_plot_panel_view == "Single page view":
             self.plot_panel = wx.lib.scrolledpanel.ScrolledPanel(split_panel)
             self.plot_panel.SetupScrolling()
 
@@ -178,7 +170,7 @@ class PanelProcessUniDec(wx.MiniFrame):
             self.plotUnidec_individualPeaks = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_2D)
             self.plotUnidec_barChart = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_2D)
             self.plotUnidec_chargeDistribution = mpl_plots.plots(
-                self.plot_panel, config=self.config, figsize=figsize_1D,
+                self.plot_panel, config=self.config, figsize=figsize_1D
             )
 
             grid = wx.GridBagSizer(10, 10)
@@ -203,34 +195,35 @@ class PanelProcessUniDec(wx.MiniFrame):
             self.plot_panel = wx.Panel(split_panel)
             self.unidec_notebook = wx.Notebook(self.plot_panel)
 
-            self.unidec_MS, self.plotUnidec_MS, __ = \
-                self.panel_plot.make_plot(self.unidec_notebook, figsize_1D)
-            self.unidec_mwDistribution, self.plotUnidec_mwDistribution, __ = \
-                self.panel_plot.make_plot(self.unidec_notebook, figsize_1D)
+            self.unidec_MS, self.plotUnidec_MS, __ = self.panel_plot.make_plot(self.unidec_notebook, figsize_1D)
+            self.unidec_mwDistribution, self.plotUnidec_mwDistribution, __ = self.panel_plot.make_plot(
+                self.unidec_notebook, figsize_1D
+            )
 
-            self.unidec_mzGrid, self.plotUnidec_mzGrid, __ = \
-                self.panel_plot.make_plot(self.unidec_notebook, figsize_2D)
-            self.unidec_mwVsZ, self.plotUnidec_mwVsZ, __ = \
-                self.panel_plot.make_plot(self.unidec_notebook, figsize_2D)
+            self.unidec_mzGrid, self.plotUnidec_mzGrid, __ = self.panel_plot.make_plot(self.unidec_notebook, figsize_2D)
+            self.unidec_mwVsZ, self.plotUnidec_mwVsZ, __ = self.panel_plot.make_plot(self.unidec_notebook, figsize_2D)
 
-            self.unidec_individualPeaks, self.plotUnidec_individualPeaks, __ = \
-                self.panel_plot.make_plot(self.unidec_notebook, figsize_2D)
-            self.unidec_barChart, self.plotUnidec_barChart, __ = \
-                self.panel_plot.make_plot(self.unidec_notebook, figsize_2D)
+            self.unidec_individualPeaks, self.plotUnidec_individualPeaks, __ = self.panel_plot.make_plot(
+                self.unidec_notebook, figsize_2D
+            )
+            self.unidec_barChart, self.plotUnidec_barChart, __ = self.panel_plot.make_plot(
+                self.unidec_notebook, figsize_2D
+            )
 
-            self.unidec_chargeDistribution, self.plotUnidec_chargeDistribution, __ = \
-                self.panel_plot.make_plot(self.unidec_notebook, figsize_1D)
+            self.unidec_chargeDistribution, self.plotUnidec_chargeDistribution, __ = self.panel_plot.make_plot(
+                self.unidec_notebook, figsize_1D
+            )
 
-            self.unidec_notebook.AddPage(self.unidec_MS, 'MS', False)
-            self.unidec_notebook.AddPage(self.unidec_mwDistribution, 'MW', False)
+            self.unidec_notebook.AddPage(self.unidec_MS, "MS", False)
+            self.unidec_notebook.AddPage(self.unidec_mwDistribution, "MW", False)
 
-            self.unidec_notebook.AddPage(self.unidec_mzGrid, 'm/z vs Charge', False)
-            self.unidec_notebook.AddPage(self.unidec_mwVsZ, 'MW vs Charge', False)
+            self.unidec_notebook.AddPage(self.unidec_mzGrid, "m/z vs Charge", False)
+            self.unidec_notebook.AddPage(self.unidec_mwVsZ, "MW vs Charge", False)
 
-            self.unidec_notebook.AddPage(self.unidec_individualPeaks, 'Isolated MS', False)
-            self.unidec_notebook.AddPage(self.unidec_barChart, 'Barplot', False)
+            self.unidec_notebook.AddPage(self.unidec_individualPeaks, "Isolated MS", False)
+            self.unidec_notebook.AddPage(self.unidec_barChart, "Barplot", False)
 
-            self.unidec_notebook.AddPage(self.unidec_chargeDistribution, 'Charge distribution', False)
+            self.unidec_notebook.AddPage(self.unidec_chargeDistribution, "Charge distribution", False)
 
             main_sizer = wx.BoxSizer(wx.VERTICAL)
             main_sizer.Add(self.unidec_notebook, 1, wx.EXPAND, 2)
@@ -241,59 +234,45 @@ class PanelProcessUniDec(wx.MiniFrame):
         return self.plot_panel
 
     def make_preprocess_settings_panel(self, split_panel):
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name='preprocess')
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="preprocess")
 
-        unidec_ms_min_label = wx.StaticText(panel, wx.ID_ANY, 'm/z start:')
-        self.unidec_mzStart_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
-        )
+        unidec_ms_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
+        self.unidec_mzStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
         self.unidec_mzStart_value.SetValue(str(self.config.unidec_mzStart))
         self.unidec_mzStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_ms_max_label = wx.StaticText(panel, wx.ID_ANY, 'end:')
-        self.unidec_mzEnd_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
-        )
+        unidec_ms_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
+        self.unidec_mzEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
         self.unidec_mzEnd_value.SetValue(str(self.config.unidec_mzEnd))
         self.unidec_mzEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_ms_binsize_label = wx.StaticText(panel, wx.ID_ANY, 'm/z bin size:')
-        self.unidec_mzBinSize_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
-        )
+        unidec_ms_binsize_label = wx.StaticText(panel, wx.ID_ANY, "m/z bin size:")
+        self.unidec_mzBinSize_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
         self.unidec_mzBinSize_value.SetValue(str(self.config.unidec_mzBinSize))
         self.unidec_mzBinSize_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_ms_gaussianFilter_label = wx.StaticText(panel, wx.ID_ANY, 'Gaussian filter:')
+        unidec_ms_gaussianFilter_label = wx.StaticText(panel, wx.ID_ANY, "Gaussian filter:")
         self.unidec_gaussianFilter_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
         )
         self.unidec_gaussianFilter_value.SetValue(str(self.config.unidec_gaussianFilter))
         self.unidec_gaussianFilter_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_ms_accelerationV_label = wx.StaticText(panel, wx.ID_ANY, 'Acceleration voltage (kV):')
+        unidec_ms_accelerationV_label = wx.StaticText(panel, wx.ID_ANY, "Acceleration voltage (kV):")
         self.unidec_accelerationV_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
         )
         self.unidec_accelerationV_value.SetValue(str(self.config.unidec_accelerationV))
         self.unidec_accelerationV_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_linearization_label = wx.StaticText(panel, wx.ID_ANY, 'Linearization mode:')
+        unidec_linearization_label = wx.StaticText(panel, wx.ID_ANY, "Linearization mode:")
         self.unidec_linearization_choice = wx.Choice(
-            panel, -1, choices=list(self.config.unidec_linearization_choices.keys()), size=(-1, -1),
+            panel, -1, choices=list(self.config.unidec_linearization_choices.keys()), size=(-1, -1)
         )
         self.unidec_linearization_choice.SetStringSelection(self.config.unidec_linearization)
         self.unidec_linearization_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        self.unidec_preprocess = wx.Button(
-            panel, -1, 'Pre-process',
-            size=BTN_SIZE, name='preprocess_unidec',
-        )
+        self.unidec_preprocess = wx.Button(panel, -1, "Pre-process", size=BTN_SIZE, name="preprocess_unidec")
         self.unidec_preprocess.Bind(wx.EVT_BUTTON, self.on_initilize_unidec)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -314,15 +293,11 @@ class PanelProcessUniDec(wx.MiniFrame):
         grid.Add(self.unidec_mzBinSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
         grid.Add(
-            unidec_ms_gaussianFilter_label, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+            unidec_ms_gaussianFilter_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
         )
         grid.Add(self.unidec_gaussianFilter_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(
-            unidec_ms_accelerationV_label, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
-        )
+        grid.Add(unidec_ms_accelerationV_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_accelerationV_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
         grid.Add(unidec_linearization_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -340,80 +315,62 @@ class PanelProcessUniDec(wx.MiniFrame):
         return panel
 
     def make_unidec_settings_panel(self, split_panel):
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name='unidec')
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="unidec")
 
-        unidec_charge_min_label = wx.StaticText(panel, wx.ID_ANY, 'Charge start:')
-        self.unidec_zStart_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
-        )
+        unidec_charge_min_label = wx.StaticText(panel, wx.ID_ANY, "Charge start:")
+        self.unidec_zStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
         self.unidec_zStart_value.SetValue(str(self.config.unidec_zStart))
         self.unidec_zStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_charge_max_label = wx.StaticText(panel, wx.ID_ANY, 'end:')
-        self.unidec_zEnd_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
-        )
+        unidec_charge_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
+        self.unidec_zEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
         self.unidec_zEnd_value.SetValue(str(self.config.unidec_zEnd))
         self.unidec_zEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_mw_min_label = wx.StaticText(panel, wx.ID_ANY, 'MW start:')
-        self.unidec_mwStart_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
-        )
+        unidec_mw_min_label = wx.StaticText(panel, wx.ID_ANY, "MW start:")
+        self.unidec_mwStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
         self.unidec_mwStart_value.SetValue(str(self.config.unidec_mwStart))
         self.unidec_mwStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_mw_max_label = wx.StaticText(panel, wx.ID_ANY, 'end:')
-        self.unidec_mwEnd_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
-        )
+        unidec_mw_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
+        self.unidec_mwEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
         self.unidec_mwEnd_value.SetValue(str(self.config.unidec_mwEnd))
         self.unidec_mwEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_mw_sampleFrequency_label = wx.StaticText(panel, wx.ID_ANY, 'Sample frequency (Da):')
+        unidec_mw_sampleFrequency_label = wx.StaticText(panel, wx.ID_ANY, "Sample frequency (Da):")
         self.unidec_mw_sampleFrequency_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
         )
         self.unidec_mw_sampleFrequency_value.SetValue(str(self.config.unidec_mwFrequency))
         self.unidec_mw_sampleFrequency_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, 'Peak FWHM (Da):')
+        unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")
         self.unidec_fit_peakWidth_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
         )
         self.unidec_fit_peakWidth_value.SetValue(str(self.config.unidec_peakWidth))
         self.unidec_fit_peakWidth_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.unidec_fit_peakWidth_check = makeCheckbox(panel, 'Auto')
+        self.unidec_peak_width_btn = wx.BitmapButton(
+            panel, -1, self.icons.iconsLib["measure_16"], size=(-1, 22), style=wx.ALIGN_CENTER_VERTICAL
+        )
+        self.unidec_peak_width_btn.SetToolTip(makeTooltip("Open peak width tool..."))
+        self.unidec_peak_width_btn.Bind(wx.EVT_BUTTON, self.on_open_width_tool)
+
+        self.unidec_fit_peakWidth_check = makeCheckbox(panel, "Auto")
         self.unidec_fit_peakWidth_check.SetValue(self.config.unidec_peakWidth_auto)
         self.unidec_fit_peakWidth_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.unidec_fit_peakWidth_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.unidec_peak_width_btn = wx.BitmapButton(
-            panel, -1, self.icons.iconsLib['measure_16'], size=(-1, 22),
-            style=wx.ALIGN_CENTER_VERTICAL,
-        )
-        self.unidec_peak_width_btn.SetToolTip(makeTooltip('Open peak width tool...'))
-        self.unidec_peak_width_btn.Bind(wx.EVT_BUTTON, self.on_open_width_tool)
-
-        unidec_peakShape_label = wx.StaticText(panel, wx.ID_ANY, 'Peak Shape:')
+        unidec_peakShape_label = wx.StaticText(panel, wx.ID_ANY, "Peak Shape:")
         self.unidec_peakFcn_choice = wx.Choice(
-            panel, -1, choices=list(self.config.unidec_peakFunction_choices.keys()),
-            size=(-1, -1),
+            panel, -1, choices=list(self.config.unidec_peakFunction_choices.keys()), size=(-1, -1)
         )
 
         self.unidec_peakFcn_choice.SetStringSelection(self.config.unidec_peakFunction)
         self.unidec_peakFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        self.unidec_runUnidec = wx.Button(
-            panel, -1, 'Run UniDec', size=BTN_SIZE, name='run_unidec',
-        )
+        self.unidec_runUnidec = wx.Button(panel, -1, "Run UniDec", size=BTN_SIZE, name="run_unidec")
         self.unidec_runUnidec.Bind(wx.EVT_BUTTON, self.on_run_unidec)
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
@@ -435,12 +392,10 @@ class PanelProcessUniDec(wx.MiniFrame):
         grid.Add(self.unidec_mwEnd_value, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(
-            unidec_mw_sampleFrequency_label, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+            unidec_mw_sampleFrequency_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
         )
         grid.Add(
-            self.unidec_mw_sampleFrequency_value, (n, 1), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
+            self.unidec_mw_sampleFrequency_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND
         )
         n += 1
         grid.Add(unidec_peakWidth_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -463,61 +418,50 @@ class PanelProcessUniDec(wx.MiniFrame):
         return panel
 
     def make_peaks_settings_panel(self, split_panel):
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name='peaks')
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="peaks")
 
-        unidec_peak_width_label = wx.StaticText(panel, wx.ID_ANY, 'Peak detection window (Da):')
-        self.unidec_peakWidth_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
-        )
+        unidec_peak_width_label = wx.StaticText(panel, wx.ID_ANY, "Peak detection window (Da):")
+        self.unidec_peakWidth_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
         self.unidec_peakWidth_value.SetValue(str(self.config.unidec_peakDetectionWidth))
         self.unidec_peakWidth_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_peak_threshold_label = wx.StaticText(panel, wx.ID_ANY, 'Peak detection threshold:')
+        unidec_peak_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Peak detection threshold:")
         self.unidec_peakThreshold_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
         )
         self.unidec_peakThreshold_value.SetValue(str(self.config.unidec_peakDetectionThreshold))
         self.unidec_peakThreshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_peak_normalization_label = wx.StaticText(panel, wx.ID_ANY, 'Peak normalization:')
+        unidec_peak_normalization_label = wx.StaticText(panel, wx.ID_ANY, "Peak normalization:")
         self.unidec_peakNormalization_choice = wx.Choice(
-            panel, -1, choices=list(self.config.unidec_peakNormalization_choices.keys()), size=(-1, -1),
+            panel, -1, choices=list(self.config.unidec_peakNormalization_choices.keys()), size=(-1, -1)
         )
         self.unidec_peakNormalization_choice.SetStringSelection(self.config.unidec_peakNormalization)
         self.unidec_peakNormalization_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        unidec_peak_separation_label = wx.StaticText(panel, wx.ID_ANY, 'Line separation:')
+        unidec_peak_separation_label = wx.StaticText(panel, wx.ID_ANY, "Line separation:")
         self.unidec_lineSeparation_value = wx.TextCtrl(
-            panel, -1, '', size=TEXTCTRL_SIZE,
-            validator=validator('floatPos'),
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
         )
         self.unidec_lineSeparation_value.SetValue(str(self.config.unidec_lineSeparation))
         self.unidec_lineSeparation_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        markers_label = wx.StaticText(panel, wx.ID_ANY, 'Show markers:')
-        self.unidec_markers_check = makeCheckbox(panel, '')
+        markers_label = wx.StaticText(panel, wx.ID_ANY, "Show markers:")
+        self.unidec_markers_check = makeCheckbox(panel, "")
         self.unidec_markers_check.SetValue(self.config.unidec_show_markers)
         self.unidec_markers_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.unidec_markers_check.Bind(wx.EVT_CHECKBOX, self.on_show_peaks_unidec)
 
-        individualComponents_label = wx.StaticText(panel, wx.ID_ANY, 'Show individual components:')
-        self.unidec_individualComponents_check = makeCheckbox(panel, '')
+        individualComponents_label = wx.StaticText(panel, wx.ID_ANY, "Show individual components:")
+        self.unidec_individualComponents_check = makeCheckbox(panel, "")
         self.unidec_individualComponents_check.SetValue(self.config.unidec_show_individualComponents)
         self.unidec_individualComponents_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.unidec_individualComponents_check.Bind(wx.EVT_CHECKBOX, self.on_show_peaks_unidec)
 
-        self.unidec_detectPeaks = wx.Button(
-            panel, -1, 'Detect peaks',
-            size=BTN_SIZE, name='pick_peaks_unidec',
-        )
+        self.unidec_detectPeaks = wx.Button(panel, -1, "Detect peaks", size=BTN_SIZE, name="pick_peaks_unidec")
         self.unidec_detectPeaks.Bind(wx.EVT_BUTTON, self.on_detect_peaks_unidec)
 
-        self.unidec_showPeaks = wx.Button(
-            panel, -1, 'Show peaks',
-            size=BTN_SIZE, name='show_peaks_unidec',
-        )
+        self.unidec_showPeaks = wx.Button(panel, -1, "Show peaks", size=BTN_SIZE, name="show_peaks_unidec")
         self.unidec_showPeaks.Bind(wx.EVT_BUTTON, self.on_show_peaks_unidec)
 
         btn_grid = wx.GridBagSizer(2, 2)
@@ -537,19 +481,18 @@ class PanelProcessUniDec(wx.MiniFrame):
         grid.Add(self.unidec_peakThreshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
         grid.Add(
-            unidec_peak_normalization_label, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+            unidec_peak_normalization_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
         )
         grid.Add(self.unidec_peakNormalization_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
         grid.Add(unidec_peak_separation_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_lineSeparation_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(individualComponents_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_individualComponents_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n += 1
         grid.Add(markers_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_markers_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        n += 1
+        grid.Add(individualComponents_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_individualComponents_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.ALIGN_CENTER_HORIZONTAL, 2)
@@ -563,139 +506,111 @@ class PanelProcessUniDec(wx.MiniFrame):
         return panel
 
     def make_visualise_settings_panel(self, split_panel):
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name='peaks')
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="peaks")
 
-        unidec_plotting_weights_label = wx.StaticText(panel, wx.ID_ANY, 'Molecular weights:')
+        unidec_plotting_weights_label = wx.StaticText(panel, wx.ID_ANY, "Molecular weights:")
         self.unidec_weightList_choice = wx.ComboBox(
-            panel, -1,
-            choices=[],
-            size=(150, -1), style=wx.CB_READONLY,
-            name='ChargeStates',
+            panel, -1, choices=[], size=(150, -1), style=wx.CB_READONLY, name="ChargeStates"
         )
         self.unidec_weightList_choice.Bind(wx.EVT_COMBOBOX, self.on_isolate_peak_unidec)
 
         self.unidec_weightList_sort = wx.BitmapButton(
-            panel, wx.ID_ANY,
-            self.icons.iconsLib['sort_1to9_16'],
-            size=(-1, -1), name='unidec_sort',
+            panel,
+            wx.ID_ANY,
+            self.icons.iconsLib["sort_1to9_16"],
+            size=(-1, -1),
+            name="unidec_sort",
             style=wx.ALIGN_CENTER_VERTICAL,
         )
         self.unidec_weightList_sort.SetBackgroundColour((240, 240, 240))
         self.unidec_weightList_sort.Bind(wx.EVT_BUTTON, self.on_sort_unidec_MW)
 
-        charges_label = wx.StaticText(panel, wx.ID_ANY, 'Show charges:')
-        self.unidec_charges_check = makeCheckbox(panel, '')
+        charges_label = wx.StaticText(panel, wx.ID_ANY, "Show charges:")
+        self.unidec_charges_check = makeCheckbox(panel, "")
         self.unidec_charges_check.SetValue(self.config.unidec_show_chargeStates)
         self.unidec_charges_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.unidec_charges_check.Bind(wx.EVT_CHECKBOX, self.on_show_charge_states_unidec)
         self.unidec_charges_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        unidec_plotting_adduct_label = wx.StaticText(panel, wx.ID_ANY, 'Adduct:')
+        unidec_plotting_adduct_label = wx.StaticText(panel, wx.ID_ANY, "Adduct:")
         self.unidec_adductMW_choice = wx.Choice(
-            panel, -1,
-            choices=['H+', 'Na+', 'K+', 'NH4+', 'H-', 'Cl-'],
-            size=(-1, -1), name='ChargeStates',
+            panel,
+            -1,
+            choices=["H+", "H+ Na+", "Na+", "Na+ x2", "Na+ x3", "K+", "K+ x2", "K+ x3", "NH4+", "H-", "Cl-"],
+            size=(-1, -1),
+            name="ChargeStates",
         )
-        self.unidec_adductMW_choice.SetStringSelection('H+')
+        self.unidec_adductMW_choice.SetStringSelection("H+")
         self.unidec_adductMW_choice.Bind(wx.EVT_CHOICE, self.on_show_charge_states_unidec)
 
-        unidec_charges_threshold_label = wx.StaticText(panel, wx.ID_ANY, 'Intensity threshold:')
+        unidec_charges_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Intensity threshold:")
         self.unidec_charges_threshold_value = wx.SpinCtrlDouble(
-            panel, -1,
+            panel,
+            -1,
             value=str(self.config.unidec_charges_label_charges),
-            min=0, max=1,
+            min=0,
+            max=1,
             initial=self.config.unidec_charges_label_charges,
-            inc=0.01, size=(90, -1),
+            inc=0.01,
+            size=(90, -1),
         )
         self.unidec_charges_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.unidec_charges_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_show_charge_states_unidec)
 
-        unidec_charges_offset_label = wx.StaticText(panel, wx.ID_ANY, 'Vertical charge offset:')
+        unidec_charges_offset_label = wx.StaticText(panel, wx.ID_ANY, "Vertical charge offset:")
         self.unidec_charges_offset_value = wx.SpinCtrlDouble(
-            panel, -1,
+            panel,
+            -1,
             value=str(self.config.unidec_charges_offset),
-            min=0, max=1,
+            min=0,
+            max=1,
             initial=self.config.unidec_charges_offset,
-            inc=0.05, size=(90, -1),
+            inc=0.05,
+            size=(90, -1),
         )
         self.unidec_charges_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.unidec_charges_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_show_charge_states_unidec)
 
-        self.unidec_restoreAll_Btn = wx.Button(
-            panel, -1,
-            'Restore all', size=(-1, 22),
-        )
+        self.unidec_restoreAll_Btn = wx.Button(panel, -1, "Restore all", size=(-1, 22))
         self.unidec_restoreAll_Btn.Bind(wx.EVT_BUTTON, self.on_show_peaks_unidec)
 
-        self.unidec_chargeStates_Btn = wx.Button(
-            panel, -1,
-            'Label', size=(-1, 22),
-        )
-        self.unidec_chargeStates_Btn.Bind(wx.EVT_BUTTON, self.on_show_charge_states_unidec)
-
-        self.unidec_isolateCharges_Btn = wx.Button(
-            panel, -1, 'Isolate', size=(-1, 22),
-        )
+        self.unidec_isolateCharges_Btn = wx.Button(panel, -1, "Isolate", size=(-1, 22))
         self.unidec_isolateCharges_Btn.Bind(wx.EVT_BUTTON, self.on_isolate_peak_unidec)
+
+        self.unidec_chargeStates_Btn = wx.Button(panel, -1, "Label", size=(-1, 22))
+        self.unidec_chargeStates_Btn.Bind(wx.EVT_BUTTON, self.on_show_charge_states_unidec)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
         btn_grid.Add(self.unidec_restoreAll_Btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid.Add(self.unidec_chargeStates_Btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid.Add(self.unidec_isolateCharges_Btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.unidec_isolateCharges_Btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.unidec_chargeStates_Btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(
-            unidec_plotting_weights_label, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
-        )
-        grid.Add(
-            self.unidec_weightList_choice, (n, 1), wx.GBSpan(1, 2),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
-        )
-        grid.Add(
-            self.unidec_weightList_sort, (n, 3), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
-        )
+        grid.Add(unidec_plotting_weights_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_weightList_choice, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.unidec_weightList_sort, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(charges_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_charges_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(unidec_plotting_adduct_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_adductMW_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(
-            charges_label, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+            unidec_charges_threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
         )
         grid.Add(
-            self.unidec_charges_check, (n, 1), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
+            self.unidec_charges_threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
         )
         n += 1
+        grid.Add(unidec_charges_offset_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(
-            unidec_plotting_adduct_label, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
-        )
-        grid.Add(
-            self.unidec_adductMW_choice, (n, 1), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,
-        )
-        n += 1
-        grid.Add(
-            unidec_charges_threshold_label, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
-        )
-        grid.Add(
-            self.unidec_charges_threshold_value, (n, 1), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
-        )
-        n += 1
-        grid.Add(
-            unidec_charges_offset_label, (n, 0), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
-        )
-        grid.Add(
-            self.unidec_charges_offset_value, (n, 1), wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+            self.unidec_charges_offset_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
         )
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -710,43 +625,38 @@ class PanelProcessUniDec(wx.MiniFrame):
         return panel
 
     def make_buttons_settings_panel(self, split_panel):
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name='peaks')
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="peaks")
 
         self.unidec_auto_btn = wx.BitmapButton(
-            panel, -1, self.icons.iconsLib['rocket_16'], size=(40, 22),
-            style=wx.ALIGN_CENTER_VERTICAL,
+            panel, -1, self.icons.iconsLib["rocket_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_auto_btn.Bind(wx.EVT_BUTTON, self.on_auto_unidec)
 
         self.unidec_init_btn = wx.BitmapButton(
-            panel, -1, self.icons.iconsLib['run_run_16'], size=(40, 22),
-            style=wx.ALIGN_CENTER_VERTICAL,
+            panel, -1, self.icons.iconsLib["run_run_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_init_btn.Bind(wx.EVT_BUTTON, self.on_initilize_unidec)
 
         self.unidec_unidec_btn = wx.BitmapButton(
-            panel, -1, self.icons.iconsLib['process_unidec_16'], size=(40, 22),
-            style=wx.ALIGN_CENTER_VERTICAL,
+            panel, -1, self.icons.iconsLib["process_unidec_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_unidec_btn.Bind(wx.EVT_BUTTON, self.on_run_unidec)
 
         self.unidec_peak_btn = wx.BitmapButton(
-            panel, -1, self.icons.iconsLib['mark_peak_16'], size=(40, 22),
-            style=wx.ALIGN_CENTER_VERTICAL,
+            panel, -1, self.icons.iconsLib["mark_peak_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_peak_btn.Bind(wx.EVT_BUTTON, self.on_detect_peaks_unidec)
 
-        self.unidec_all_btn = wx.Button(panel, wx.ID_OK, 'All', size=(40, 22))
+        self.unidec_all_btn = wx.Button(panel, wx.ID_OK, "All", size=(40, 22))
         self.unidec_all_btn.Bind(wx.EVT_BUTTON, self.on_all_unidec)
 
-        self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, 'Cancel', size=(-1, 22))
+        self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
         self.unidec_cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         self.unidec_customise_btn = wx.BitmapButton(
-            panel, -1, self.icons.iconsLib['settings16_2'], size=(40, 22),
-            style=wx.ALIGN_CENTER_VERTICAL,
+            panel, -1, self.icons.iconsLib["settings16_2"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
-        self.unidec_customise_btn.SetToolTip(makeTooltip('Open customisation window...'))
+        self.unidec_customise_btn.SetToolTip(makeTooltip("Open customisation window..."))
         self.unidec_customise_btn.Bind(wx.EVT_BUTTON, self.on_open_customisation_settings)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -781,7 +691,9 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         self.config.unidec_show_chargeStates = self.unidec_charges_check.GetValue()
         obj_list = [
-            self.unidec_adductMW_choice, self.unidec_charges_threshold_value, self.unidec_charges_offset_value,
+            self.unidec_adductMW_choice,
+            self.unidec_charges_threshold_value,
+            self.unidec_charges_offset_value,
             self.unidec_chargeStates_Btn,
         ]
         for item in obj_list:
@@ -828,10 +740,7 @@ class PanelProcessUniDec(wx.MiniFrame):
 
     def on_customise_plot(self, evt):
         plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
-        self.panel_plot.on_customise_plot(
-            None, plot='UniDec plot...',
-            plot_obj=plot_obj,
-        )
+        self.panel_plot.on_customise_plot(None, plot="UniDec plot...", plot_obj=plot_obj)
 
     def on_clear_plot(self, evt):
         plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
@@ -839,39 +748,35 @@ class PanelProcessUniDec(wx.MiniFrame):
 
     def on_clear_plot_as_task(self, task):
 
-        if task in ['all', 'load_data_and_preprocess_unidec', 'preprocess_unidec']:
+        if task in ["all", "load_data_and_preprocess_unidec", "preprocess_unidec"]:
             self.plotUnidec_MS.clearPlot()
 
-        if task in ['all', 'load_data_and_preprocess_unidec', 'preprocess_unidec', 'run_unidec']:
+        if task in ["all", "load_data_and_preprocess_unidec", "preprocess_unidec", "run_unidec"]:
             self.plotUnidec_mzGrid.clearPlot()
             self.plotUnidec_mwDistribution.clearPlot()
             self.plotUnidec_mwVsZ.clearPlot()
 
-        if task in ['all', 'load_data_and_preprocess_unidec', 'preprocess_unidec', 'detect', 'run_unidec']:
+        if task in ["all", "load_data_and_preprocess_unidec", "preprocess_unidec", "detect", "run_unidec"]:
             self.plotUnidec_individualPeaks.clearPlot()
             self.plotUnidec_barChart.clearPlot()
             self.plotUnidec_chargeDistribution.clearPlot()
 
     def on_save_figure(self, evt):
         plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
-        plot_title = f'{self.document_title}_{self.dataset_name}_{self.view.plot_name}'.replace(
-            ' ', '-',
-        ).replace(':', '')
-        self.panel_plot.save_images(
-            None, None,
-            plot_obj=plot_obj,
-            image_name=plot_title,
+        plot_title = f"{self.document_title}_{self.dataset_name}_{self.view.plot_name}".replace(" ", "-").replace(
+            ":", ""
         )
+        self.panel_plot.save_images(None, None, plot_obj=plot_obj, image_name=plot_title)
 
     def on_get_plot_obj_from_name(self, plot_name):
         plot_dict = {
-            'MS': self.plotUnidec_MS,
-            'mwDistribution': self.plotUnidec_mwDistribution,
-            'mzGrid': self.plotUnidec_mzGrid,
-            'pickedPeaks': self.plotUnidec_individualPeaks,
-            'mwGrid': self.plotUnidec_mwVsZ,
-            'Barchart': self.plotUnidec_barChart,
-            'ChargeDistribution': self.plotUnidec_chargeDistribution,
+            "MS": self.plotUnidec_MS,
+            "mwDistribution": self.plotUnidec_mwDistribution,
+            "mzGrid": self.plotUnidec_mzGrid,
+            "pickedPeaks": self.plotUnidec_individualPeaks,
+            "mwGrid": self.plotUnidec_mwVsZ,
+            "Barchart": self.plotUnidec_barChart,
+            "ChargeDistribution": self.plotUnidec_chargeDistribution,
         }
 
         return plot_dict[plot_name]
@@ -882,13 +787,14 @@ class PanelProcessUniDec(wx.MiniFrame):
 
     def on_open_width_tool(self, evt):
         from gui_elements.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
+
         try:
             kwargs = {
-                'xvals': self.config.unidec_engine.data.data2[:, 0],
-                'yvals': self.config.unidec_engine.data.data2[:, 1],
+                "xvals": self.config.unidec_engine.data.data2[:, 0],
+                "yvals": self.config.unidec_engine.data.data2[:, 1],
             }
         except IndexError:
-            raise MessageError('Missing data', 'Please pre-process data first')
+            raise MessageError("Missing data", "Please pre-process data first")
 
         self.widthTool = PanelPeakWidthTool(self, self.presenter, self.config, **kwargs)
         self.widthTool.Show()
@@ -898,7 +804,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         # get data and document
         __, data = self.data_handling.get_spectrum_data([self.document_title, self.dataset_name])
 
-        return data.get('unidec', None)
+        return data.get("unidec", None)
 
     def on_sort_unidec_MW(self, evt):
 
@@ -914,7 +820,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_weightList_choice.SetStringSelection(mass_list[0])
 
     def on_show_peaks_unidec(self, evt):
-        self.data_processing.on_threading('custom.action', ('show_peak_lines_and_markers',), fcn=self.on_plot)
+        self.data_processing.on_threading("custom.action", ("show_peak_lines_and_markers",), fcn=self.on_plot)
 
     def on_plot(self, task):
         # update settings first
@@ -922,198 +828,165 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         # generate kwargs
         kwargs = {
-            'show_markers': self.config.unidec_show_markers,
-            'show_individual_lines': self.config.unidec_show_individualComponents,
-            'speedy': self.config.unidec_speedy,
+            "show_markers": self.config.unidec_show_markers,
+            "show_individual_lines": self.config.unidec_show_individualComponents,
+            "speedy": self.config.unidec_speedy,
         }
 
         # get data and plot in the panel
         data = self.on_get_unidec_data()
         if data:
             # called after `pre-processed` is executed
-            if task in ['all', 'preprocess_unidec', 'load_data_and_preprocess_unidec']:
-                replot_data = data.get('Processed', None)
+            if task in ["all", "preprocess_unidec", "load_data_and_preprocess_unidec"]:
+                replot_data = data.get("Processed", None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_MS(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_MS,
-                        **kwargs
+                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_MS, **kwargs
                     )
 
             # called after `run unidec` is executed
-            if task in ['all', 'run_unidec']:
-                replot_data = data.get('Fitted', None)
+            if task in ["all", "run_unidec"]:
+                replot_data = data.get("Fitted", None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_MS_v_Fit(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_MS,
-                        **kwargs
+                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_MS, **kwargs
                     )
-                replot_data = data.get('MW distribution', None)
+                replot_data = data.get("MW distribution", None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_mwDistribution(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwDistribution, **kwargs
                     )
-                replot_data = data.get('m/z vs Charge', None)
+                replot_data = data.get("m/z vs Charge", None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_mzGrid(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_mzGrid, **kwargs
                     )
-                replot_data = data.get('MW vs Charge', None)
+                replot_data = data.get("MW vs Charge", None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_MW_v_Charge(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwVsZ, **kwargs
                     )
 
             # called after `detect peaks` is executed
-            if task in ['all', 'pick_peaks_unidec']:
+            if task in ["all", "pick_peaks_unidec"]:
                 # update mass list
                 self.on_update_mass_list()
 
-                replot_data = data.get('m/z with isolated species', None)
+                replot_data = data.get("m/z with isolated species", None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_individualPeaks(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
                     )
                     self.on_plot_MW_normalization()
                     self.panel_plot.on_plot_unidec_MW_add_markers(
-                        data['m/z with isolated species'],
-                        data['MW distribution'],
+                        data["m/z with isolated species"],
+                        data["MW distribution"],
                         plot=None,
                         plot_obj=self.plotUnidec_mwDistribution,
-                        ** kwargs
+                        **kwargs,
                     )
-                replot_data = data.get('Barchart', None)
+                replot_data = data.get("Barchart", None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_barChart(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_barChart, **kwargs
                     )
-                replot_data = data.get('Charge information', None)
+                replot_data = data.get("Charge information", None)
                 if replot_data is not None:
                     self.panel_plot.on_plot_unidec_ChargeDistribution(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_chargeDistribution, **kwargs
                     )
 
             # called after `show peaks` is exectured
-            if task in ['show_peak_lines_and_markers']:
-                replot_data = data.get('m/z with isolated species', None)
+            if task in ["show_peak_lines_and_markers"]:
+                replot_data = data.get("m/z with isolated species", None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_add_individual_lines_and_markers(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
                     )
 
             # called after `isolate` is executed
-            if task in ['isolate_mw_unidec']:
-                mw_selection = 'MW: {}'.format(self.unidec_weightList_choice.GetStringSelection().split()[1])
-                kwargs['show_isolated_mw'] = True
-                kwargs['mw_selection'] = mw_selection
-                replot_data = data.get('m/z with isolated species', None)
+            if task in ["isolate_mw_unidec"]:
+                mw_selection = "MW: {}".format(self.unidec_weightList_choice.GetStringSelection().split()[1])
+                kwargs["show_isolated_mw"] = True
+                kwargs["mw_selection"] = mw_selection
+                replot_data = data.get("m/z with isolated species", None)
                 if replot_data:
                     self.panel_plot.on_plot_unidec_add_individual_lines_and_markers(
-                        replot=replot_data, plot=None,
-                        plot_obj=self.plotUnidec_individualPeaks, **kwargs
+                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
                     )
 
             # show individual charge states
-            if task in ['charge_states']:
-                charges = data['Charge information']
-                xvals = data['Processed']['xvals']
+            if task in ["charge_states"]:
+                charges = data["Charge information"]
+                xvals = data["Processed"]["xvals"]
 
                 mw_selection = self.unidec_weightList_choice.GetStringSelection().split()[1]
                 adduct_ion = self.unidec_adductMW_choice.GetStringSelection()
 
                 peakpos, charges, __ = self.data_processing._calculate_charge_positions(
-                    charges, mw_selection, xvals, adduct_ion,
-                    remove_below=self.config.unidec_charges_label_charges,
+                    charges, mw_selection, xvals, adduct_ion, remove_below=self.config.unidec_charges_label_charges
                 )
                 self.panel_plot.on_plot_charge_states(
-                    peakpos, charges, plot=None,
-                    plot_obj=self.plotUnidec_individualPeaks,
-                    **kwargs
+                    peakpos, charges, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
                 )
 
     def on_plot_MW_normalization(self):
         """Trigger replot of the MW plot since the scaling might change"""
         try:
             replot_data = dict(
-                xvals=self.config.unidec_engine.data.massdat[:, 0],
-                yvals=self.config.unidec_engine.data.massdat[:, 1],
+                xvals=self.config.unidec_engine.data.massdat[:, 0], yvals=self.config.unidec_engine.data.massdat[:, 1]
             )
         except IndexError:
             return
 
         if replot_data:
             self.panel_plot.on_plot_unidec_mwDistribution(
-                replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwDistribution,
+                replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwDistribution
             )
 
     def on_initilize_unidec(self, evt):
-        task = 'load_data_and_preprocess_unidec'
+        task = "load_data_and_preprocess_unidec"
         self.on_clear_plot_as_task(task)
 
-        self.data_processing.on_run_unidec_fcn(
-            self.dataset_name, task,
-            call_after=True,
-            fcn=self.on_plot,
-            args=task,
-        )
+        self.data_processing.on_run_unidec_fcn(self.dataset_name, task, call_after=True, fcn=self.on_plot, args=task)
 
     def on_process_unidec(self, evt):
-        task = 'preprocess_unidec'
+        task = "preprocess_unidec"
         self.on_clear_plot_as_task(task)
-        self.data_processing.on_run_unidec_fcn(
-            self.dataset_name, task,
-            call_after=True,
-            fcn=self.on_plot,
-            args=task,
-        )
+        self.data_processing.on_run_unidec_fcn(self.dataset_name, task, call_after=True, fcn=self.on_plot, args=task)
 
     def on_run_unidec(self, evt):
-        task = 'run_unidec'
+        task = "run_unidec"
         self.on_clear_plot_as_task(task)
-        self.data_processing.on_run_unidec_fcn(
-            self.dataset_name, task,
-            call_after=True,
-            fcn=self.on_plot,
-            args=task,
-        )
+        self.data_processing.on_run_unidec_fcn(self.dataset_name, task, call_after=True, fcn=self.on_plot, args=task)
 
     def on_detect_peaks_unidec(self, evt):
-        task = 'pick_peaks_unidec'
-        self.data_processing.on_run_unidec_fcn(
-            self.dataset_name, task,
-            call_after=True,
-            fcn=self.on_plot,
-            args=task,
-        )
+        task = "pick_peaks_unidec"
+        self.data_processing.on_run_unidec_fcn(self.dataset_name, task, call_after=True, fcn=self.on_plot, args=task)
 
     def on_all_unidec(self, evt):
         self.data_processing.on_run_unidec_fcn(
-            self.dataset_name, 'run_all_unidec',
-            call_after=True,
-            fcn=self.on_plot,
-            args='all',
+            self.dataset_name, "run_all_unidec", call_after=True, fcn=self.on_plot, args="all"
         )
 
     def on_auto_unidec(self, evt):
         self.data_processing.on_run_unidec_fcn(
-            self.dataset_name, 'auto_unidec',
-            call_after=True,
-            fcn=self.on_plot,
-            args='all',
+            self.dataset_name, "auto_unidec", call_after=True, fcn=self.on_plot, args="all"
         )
 
     def on_isolate_peak_unidec(self, evt):
-        self.on_plot('isolate_mw_unidec')
-        self.on_plot('charge_states')
+        self.on_plot("isolate_mw_unidec")
+        self.on_plot("charge_states")
 
     def on_show_charge_states_unidec(self, evt):
-        self.on_plot('charge_states')
+        self.on_plot("charge_states")
 
         if evt is not None:
             evt.Skip()
 
     def on_update_mass_list(self):
         data = self.on_get_unidec_data()
-        massList, massMax = data['m/z with isolated species']['_massList_']
-#         massList, massMax = self.data_processing.get_unidec_data(data_type='mass_list')
+        massList, massMax = data["m/z with isolated species"]["_massList_"]
+        #         massList, massMax = self.data_processing.get_unidec_data(data_type='mass_list')
         self.unidec_weightList_choice.SetItems(massList)
         self.unidec_weightList_choice.SetStringSelection(massMax)
