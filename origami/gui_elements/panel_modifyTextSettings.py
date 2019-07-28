@@ -22,7 +22,7 @@ class panelModifyTextSettings(wx.MiniFrame):
         self.parent = parent
         self.presenter = presenter
         self.config = config
-        self.icons = icons()
+        self.icons = IconContainer()
         self.importEvent = False
 
         self.SetTitle(kwargs.get("document", "filename"))

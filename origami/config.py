@@ -20,7 +20,6 @@ logger = logging.getLogger("origami")
 
 
 class OrigamiConfig:
-
     def __init__(self):
         """
         Initilize config
@@ -2000,7 +1999,7 @@ class OrigamiConfig:
             if not os.path.isdir(alternative_driftscope_path):
                 msg = (
                     "Could not localise Driftscope directory. Please setup path to Dritscope lib folder."
-                    +r" It usually exists under C:\DriftScope\lib"
+                    + r" It usually exists under C:\DriftScope\lib"
                 )
                 DialogBox(exceptionTitle="Could not find Driftscope", exceptionMsg=msg, type="Warning")
                 return False
@@ -2009,7 +2008,7 @@ class OrigamiConfig:
         if not os.path.isfile(self.driftscopePath + r"\imextract.exe"):
             msg = (
                 "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder."
-                +r" It usually exists under C:\DriftScope\lib"
+                + r" It usually exists under C:\DriftScope\lib"
             )
             DialogBox(exceptionTitle="Could not find Driftscope", exceptionMsg=msg, type="Warning")
             return False

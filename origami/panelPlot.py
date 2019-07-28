@@ -108,14 +108,14 @@ logger = logging.getLogger("origami")
 # TODO: Improve layout
 # TODO: Improve how plot panels are generated
 # TODO: Remove the following panels: Waterfall, UniDec, Overlay, RMSF, Calibration
-# TODO: Rename the following panels: MS -> Mass spectrum; RT -> Chromatogram; 1D -> Mobilogram; 2D -> Heatmap; Other -> Annotated (or else)
+# TODO: Rename the following panels: MS -> Mass spectrum; RT -> Chromatogram; 1D -> Mobilogram;
+# 2D -> Heatmap; Other -> Annotated (or else)
 # TODO: Make each function accept plot_obj and use the get_plot function
 # TODO: Standardize how plots are exported
 # TODO: Add option to copy plot clipboard
 
 
 class panelPlot(wx.Panel):
-
     def __init__(self, parent, config, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(800, 600), style=wx.TAB_TRAVERSAL
@@ -348,197 +348,6 @@ class panelPlot(wx.Panel):
         boxsizer_3D = wx.BoxSizer(wx.VERTICAL)
         boxsizer_3D.Add(self.plot3D, 1, wx.EXPAND)
         self.panel3D.SetSizer(boxsizer_3D)
-        #
-        #         # Setup PLOT RMSF
-        #         self.panelRMSF = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        #         self.mainBook.AddPage(self.panelRMSF, "RMSF", False)
-        #
-        #         self.plot_RMSF = mpl_plots.plots(
-        #             self.panelRMSF, figsize=self.config._plotSettings["RMSF"]["gui_size"], config=self.config
-        #         )
-        #         boxsizer_RMSF = wx.BoxSizer(wx.VERTICAL)
-        #         boxsizer_RMSF.Add(self.plot_RMSF, 1, wx.EXPAND)
-        #         self.panelRMSF.SetSizer(boxsizer_RMSF)
-
-        #         # Setup PLOT Comparison
-        #         self.panelCompare = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        #         self.mainBook.AddPage(self.panelCompare, "Comparison", False)
-        #
-        #         self.plotCompare = mpl_plots.plots(
-        #             self.panelCompare, figsize=self.config._plotSettings["Comparison"]["gui_size"], config=self.config
-        #         )
-        #         boxsizer_compare = wx.BoxSizer(wx.VERTICAL)
-        #         boxsizer_compare.Add(self.plotCompare, 1, wx.EXPAND)
-        #         self.panelCompare.SetSizer(boxsizer_compare)
-
-        #         # Setup PLOT Overlay
-        #         self.panelOverlay = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        #         self.mainBook.AddPage(self.panelOverlay, "Overlay", False)
-        #
-        #         self.plot_overlay = mpl_plots.plots(
-        #             self.panelOverlay, figsize=self.config._plotSettings["Overlay"]["gui_size"], config=self.config
-        #         )
-        #
-        #         boxsizer_overlay = wx.BoxSizer(wx.VERTICAL)
-        #         boxsizer_overlay.Add(self.plot_overlay, 1, wx.EXPAND)
-        #         self.panelOverlay.SetSizer(boxsizer_overlay)
-        #
-        #         self.panelCCSCalibration = wx.SplitterWindow(
-        #             self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL | wx.SP_3DSASH
-        #         )
-        #         # Create two panels for each dataset
-        #         self.topPanelMS = wx.Panel(self.panelCCSCalibration)
-        #         self.topPanelMS.SetBackgroundColour("white")
-        #
-        #         self.bottomPanel1DT = wx.Panel(self.panelCCSCalibration)
-        #         self.bottomPanel1DT.SetBackgroundColour("white")
-        #         # Add panels to splitter window
-        #         self.panelCCSCalibration.SplitHorizontally(self.topPanelMS, self.bottomPanel1DT)
-        #         self.panelCCSCalibration.SetMinimumPaneSize(250)
-        #         self.panelCCSCalibration.SetSashGravity(0.5)
-        #         self.panelCCSCalibration.SetSashSize(10)
-        #         # Add to notebook
-        #         self.mainBook.AddPage(self.panelCCSCalibration, "Calibration", False)
-        #
-        #         # Plot MS
-        #         self.topPlotMS = mpl_plots.plots(
-        #             self.topPanelMS, figsize=self.config._plotSettings["Calibration (MS)"]["gui_size"], config=self.config
-        #         )
-        #         boxTopPanelMS = wx.BoxSizer(wx.VERTICAL)
-        #         boxTopPanelMS.Add(self.topPlotMS, 1, wx.EXPAND)
-        #         self.topPanelMS.SetSizer(boxTopPanelMS)
-        #
-        #         # Plot 1DT
-        #         self.bottomPlot1DT = mpl_plots.plots(
-        #             self.bottomPanel1DT, figsize=self.config._plotSettings["Calibration (DT)"]["gui_size"], config=self.config
-        #         )
-        #         boxBottomPanel1DT = wx.BoxSizer(wx.VERTICAL)
-        #         boxBottomPanel1DT.Add(self.bottomPlot1DT, 1, wx.EXPAND)
-        #         self.bottomPanel1DT.SetSizer(boxBottomPanel1DT)
-
-        #         if self.config.unidec_plot_panel_view == "Single page view":
-        #             self.panelUniDec = wx.lib.scrolledpanel.ScrolledPanel(
-        #                 self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL
-        #             )
-        #             self.panelUniDec.SetupScrolling()
-        #             self.mainBook.AddPage(self.panelUniDec, "UniDec", False)
-        #             figsize = self.config._plotSettings["UniDec (MS)"]["gui_size"]
-        #             self.plotUnidec_MS = mpl_plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
-        #
-        #             figsize = self.config._plotSettings["UniDec (m/z vs Charge)"]["gui_size"]
-        #             self.plotUnidec_mzGrid = mpl_plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
-        #
-        #             figsize = self.config._plotSettings["UniDec (MW)"]["gui_size"]
-        #             self.plotUnidec_mwDistribution = mpl_plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
-        #
-        #             figsize = self.config._plotSettings["UniDec (Isolated MS)"]["gui_size"]
-        #             self.plotUnidec_individualPeaks = mpl_plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
-        #
-        #             figsize = self.config._plotSettings["UniDec (MW vs Charge)"]["gui_size"]
-        #             self.plotUnidec_mwVsZ = mpl_plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
-        #
-        #             figsize = self.config._plotSettings["UniDec (Barplot)"]["gui_size"]
-        #             self.plotUnidec_barChart = mpl_plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
-        #
-        #             figsize = self.config._plotSettings["UniDec (Charge Distribution)"]["gui_size"]
-        #             self.plotUnidec_chargeDistribution = mpl_plots.plots(self.panelUniDec, config=self.config, figsize=figsize)
-        #
-        #             plotUnidecSizer = wx.GridBagSizer(10, 10)
-        #             plotUnidecSizer.Add(self.plotUnidec_MS, (0, 0), span=(1, 1), flag=wx.EXPAND)
-        #             plotUnidecSizer.Add(self.plotUnidec_mwDistribution, (0, 1), span=(1, 1), flag=wx.EXPAND)
-        #             plotUnidecSizer.Add(self.plotUnidec_mzGrid, (1, 0), span=(1, 1), flag=wx.EXPAND)
-        #             plotUnidecSizer.Add(self.plotUnidec_individualPeaks, (1, 1), span=(1, 1), flag=wx.EXPAND)
-        #             plotUnidecSizer.Add(self.plotUnidec_mwVsZ, (2, 0), span=(1, 1), flag=wx.EXPAND)
-        #             plotUnidecSizer.Add(self.plotUnidec_barChart, (2, 1), span=(1, 1), flag=wx.EXPAND)
-        #             plotUnidecSizer.Add(self.plotUnidec_chargeDistribution, (3, 0), span=(1, 1), flag=wx.EXPAND)
-        #             self.panelUniDec.SetSizer(plotUnidecSizer)
-        #         else:
-        #             self.panelUniDec = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        #             self.mainBook.AddPage(self.panelUniDec, "UniDec", False)
-        #
-        #             # Setup notebook
-        #             self.unidec_notebook = wx.Notebook(self.panelUniDec, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
-        #             # Setup PLOT MS
-        #             self.unidec_MS = wx.Panel(
-        #                 self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL
-        #             )
-        #             self.unidec_notebook.AddPage(self.unidec_MS, "MS", False)
-        #             figsize = self.config._plotSettings["UniDec (MS)"]["gui_size"]
-        #             self.plotUnidec_MS = mpl_plots.plots(self.unidec_MS, config=self.config, figsize=figsize)
-        #             boxsizer_unidec_MS = wx.BoxSizer(wx.VERTICAL)
-        #             boxsizer_unidec_MS.Add(self.plotUnidec_MS, 1, wx.EXPAND)
-        #             self.unidec_MS.SetSizer(boxsizer_unidec_MS)
-        #
-        #             self.unidec_mzGrid = wx.Panel(
-        #                 self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL
-        #             )
-        #             self.unidec_notebook.AddPage(self.unidec_mzGrid, "m/z vs Charge", False)
-        #             figsize = self.config._plotSettings["UniDec (m/z vs Charge)"]["gui_size"]
-        #             self.plotUnidec_mzGrid = mpl_plots.plots(self.unidec_mzGrid, config=self.config, figsize=figsize)
-        #             boxsizer_unidec_mzGrid = wx.BoxSizer(wx.VERTICAL)
-        #             boxsizer_unidec_mzGrid.Add(self.plotUnidec_mzGrid, 1, wx.EXPAND)
-        #             self.unidec_mzGrid.SetSizer(boxsizer_unidec_mzGrid)
-        #
-        #             self.unidec_mwVsZ = wx.Panel(
-        #                 self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL
-        #             )
-        #             self.unidec_notebook.AddPage(self.unidec_mwVsZ, "MW vs Charge", False)
-        #             figsize = self.config._plotSettings["UniDec (MW vs Charge)"]["gui_size"]
-        #             self.plotUnidec_mwVsZ = mpl_plots.plots(self.unidec_mwVsZ, config=self.config, figsize=figsize)
-        #             boxsizer_unidec__mwVsZ = wx.BoxSizer(wx.VERTICAL)
-        #             boxsizer_unidec__mwVsZ.Add(self.plotUnidec_mwVsZ, 1, wx.EXPAND)
-        #             self.unidec_mwVsZ.SetSizer(boxsizer_unidec__mwVsZ)
-        #
-        #             self.unidec_mwDistribution = wx.Panel(
-        #                 self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL
-        #             )
-        #             self.unidec_notebook.AddPage(self.unidec_mwDistribution, "MW", False)
-        #             figsize = self.config._plotSettings["UniDec (MW)"]["gui_size"]
-        #             self.plotUnidec_mwDistribution = mpl_plots.plots(
-        #                 self.unidec_mwDistribution, config=self.config, figsize=figsize
-        #             )
-        #             boxsizer_unidec_mwDistribution = wx.BoxSizer(wx.VERTICAL)
-        #             boxsizer_unidec_mwDistribution.Add(self.plotUnidec_mwDistribution, 1, wx.EXPAND)
-        #             self.unidec_mwDistribution.SetSizer(boxsizer_unidec_mwDistribution)
-        #
-        #             self.unidec_individualPeaks = wx.Panel(
-        #                 self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL
-        #             )
-        #             self.unidec_notebook.AddPage(self.unidec_individualPeaks, "Isolated MS", False)
-        #             figsize = self.config._plotSettings["UniDec (Isolated MS)"]["gui_size"]
-        #             self.plotUnidec_individualPeaks = mpl_plots.plots(
-        #                 self.unidec_individualPeaks, config=self.config, figsize=figsize
-        #             )
-        #             boxsizer_unidec_individualPeaks = wx.BoxSizer(wx.VERTICAL)
-        #             boxsizer_unidec_individualPeaks.Add(self.plotUnidec_individualPeaks, 1, wx.EXPAND)
-        #             self.unidec_individualPeaks.SetSizer(boxsizer_unidec_individualPeaks)
-        #
-        #             self.unidec_barChart = wx.Panel(
-        #                 self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL
-        #             )
-        #             self.unidec_notebook.AddPage(self.unidec_barChart, "Barplot", False)
-        #             figsize = self.config._plotSettings["UniDec (Barplot)"]["gui_size"]
-        #             self.plotUnidec_barChart = mpl_plots.plots(self.unidec_barChart, config=self.config, figsize=figsize)
-        #             boxsizer_unidec_barChart = wx.BoxSizer(wx.VERTICAL)
-        #             boxsizer_unidec_barChart.Add(self.plotUnidec_barChart, 1, wx.EXPAND)
-        #             self.unidec_barChart.SetSizer(boxsizer_unidec_barChart)
-        #
-        #             self.unidec_chargeDistribution = wx.Panel(
-        #                 self.unidec_notebook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL
-        #             )
-        #             self.unidec_notebook.AddPage(self.unidec_chargeDistribution, "Charge distribution", False)
-        #             figsize = self.config._plotSettings["UniDec (Charge Distribution)"]["gui_size"]
-        #             self.plotUnidec_chargeDistribution = mpl_plots.plots(
-        #                 self.unidec_chargeDistribution, config=self.config, figsize=figsize
-        #             )
-        #             boxsizer_unidec_chargeDistribution = wx.BoxSizer(wx.VERTICAL)
-        #             boxsizer_unidec_chargeDistribution.Add(self.plotUnidec_chargeDistribution, 1, wx.EXPAND)
-        #             self.unidec_chargeDistribution.SetSizer(boxsizer_unidec_chargeDistribution)
-        #
-        #             tabSizer = wx.BoxSizer(wx.VERTICAL)
-        #             tabSizer.Add(self.unidec_notebook, 1, wx.EXPAND | wx.ALL, 1)
-        #             self.panelUniDec.SetSizerAndFit(tabSizer)
-
         # Other
         self.panelOther = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
         self.mainBook.AddPage(self.panelOther, "Annotated", False)
@@ -608,66 +417,16 @@ class panelPlot(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_pickedPeaks)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_barchart)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_chargeDistribution)
-
-        #         self.Bind(wx.EVT_MENU, self.on_clear_unidec, id=ID_clearPlot_UniDec_all)
         self.Bind(wx.EVT_MENU, self.onSetupMenus, id=ID_plotPanel_binMS)
         self.Bind(wx.EVT_MENU, self.on_lock_plot, id=ID_plotPanel_lockPlot)
         self.Bind(wx.EVT_MENU, self.on_rotate_plot, id=ID_plots_rotate90)
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
 
         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
-        #         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_ms)
-        #         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_mw)
-        #         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_mz_v_charge)
-        #         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_isolated_mz)
-        #         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_mw_v_charge)
-        #         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_ms_barchart)
-        #         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot_unidec_chargeDist)
-
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveOtherImage)
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveCompareMSImage)
-        #         self.Bind(wx.EVT_MENU, self.save_images, id=ID_plots_saveImage_unidec_ms)
-        #         self.Bind(wx.EVT_MENU, self.save_images, id=ID_plots_saveImage_unidec_mw)
-        #         self.Bind(wx.EVT_MENU, self.save_images, id=ID_plots_saveImage_unidec_mz_v_charge)
-        #         self.Bind(wx.EVT_MENU, self.save_images, id=ID_plots_saveImage_unidec_isolated_mz)
-        #         self.Bind(wx.EVT_MENU, self.save_images, id=ID_plots_saveImage_unidec_mw_v_charge)
-        #         self.Bind(wx.EVT_MENU, self.save_images, id=ID_plots_saveImage_unidec_ms_barchart)
-        #         self.Bind(wx.EVT_MENU, self.save_images, id=ID_plots_saveImage_unidec_chargeDist)
-        #         self.Bind(wx.EVT_MENU, self.save_unidec_images, id=ID_saveUniDecAll)
-
         self.Bind(wx.EVT_MENU, self.on_customise_smart_zoom, id=ID_plots_customise_smart_zoom)
         self.Bind(wx.EVT_MENU, self.on_open_peak_picker, id=ID_docTree_action_open_peak_picker)
-
-        #         customiseUniDecMenu = wx.Menu()
-        #         customiseUniDecMenu.Append(ID_plots_customise_plot_unidec_ms, "Customise mass spectrum...")
-        #         customiseUniDecMenu.Append(ID_plots_customise_plot_unidec_mw, "Customise Zero charge mass spectrum...")
-        #         customiseUniDecMenu.Append(ID_plots_customise_plot_unidec_mz_v_charge, "Customise m/z vs charge...")
-        #         customiseUniDecMenu.Append(
-        #             ID_plots_customise_plot_unidec_mw_v_charge, "Customise molecular weight vs charge..."
-        #         )
-        #         customiseUniDecMenu.Append(
-        #             ID_plots_customise_plot_unidec_isolated_mz, "Customise mass spectrum with isolated species..."
-        #         )
-        #         customiseUniDecMenu.Append(ID_plots_customise_plot_unidec_ms_barchart, "Customise barchart...")
-        #         customiseUniDecMenu.Append(ID_plots_customise_plot_unidec_chargeDist, "Customise charge state distribution...")
-
-        #         saveUniDecMenu = wx.Menu()
-        #         saveUniDecMenu.Append(ID_plots_saveImage_unidec_ms, "Save mass spectrum as...")
-        #         saveUniDecMenu.Append(ID_plots_saveImage_unidec_mw, "Save Zero charge mass spectrum as...")
-        #         saveUniDecMenu.Append(ID_plots_saveImage_unidec_mz_v_charge, "Save m/z vs charge as...")
-        #         saveUniDecMenu.Append(ID_plots_saveImage_unidec_mw_v_charge, "Save molecular weight vs charge as...")
-        #         saveUniDecMenu.Append(ID_plots_saveImage_unidec_isolated_mz, "Save mass spectrum with isolated species as...")
-        #         saveUniDecMenu.Append(ID_plots_saveImage_unidec_ms_barchart, "Save barchart as...")
-        #         saveUniDecMenu.Append(ID_plots_saveImage_unidec_chargeDist, "Save charge state distribution as...")
-        #         saveUniDecMenu.AppendSeparator()
-        #         saveUniDecMenu.AppendItem(
-        #             makeMenuItem(
-        #                 parent=saveUniDecMenu,
-        #                 id=ID_saveUniDecAll,
-        #                 text="Save all figures as...",
-        #                 bitmap=self.icons.iconsLib["save16"],
-        #             )
-        #         )
 
         # make main menu
         menu = wx.Menu()
@@ -936,27 +695,6 @@ class panelPlot(wx.Panel):
             menu.AppendItem(
                 makeMenuItem(parent=menu, id=ID_clearPlot_3D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"])
             )
-        #         elif self.currentPage == "Overlay":
-        #             menu.AppendItem(menu_edit_general)
-        #             menu.AppendItem(menu_edit_plot_2D)
-        #             menu.AppendSeparator()
-        #             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-        #             self.lock_plot_check.Check(self.plot_overlay.lock_plot_from_updating)
-        #             menu.AppendItem(menu_customise_plot)
-        #             menu.AppendSeparator()
-        #             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-        #             self.resize_plot_check.Check(self.config.resize)
-        #             menu.AppendItem(
-        #                 makeMenuItem(
-        #                     parent=menu, id=ID_saveOverlayImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
-        #                 )
-        #             )
-        #             menu.AppendSeparator()
-        #             menu.AppendItem(
-        #                 makeMenuItem(
-        #                     parent=menu, id=ID_clearPlot_Overlay, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-        #                 )
-        #             )
         elif self.currentPage == "Waterfall":
             menu.AppendItem(menu_edit_general)
             menu.AppendItem(menu_edit_plot_2D)
@@ -983,44 +721,6 @@ class panelPlot(wx.Panel):
                     parent=menu, id=ID_clearPlot_Waterfall, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
-        #         elif self.currentPage == "RMSF":
-        #             menu.AppendItem(menu_edit_general)
-        #             menu.AppendItem(menu_edit_rmsd)
-        #             menu.AppendItem(menu_customise_plot)
-        #             menu.AppendSeparator()
-        #             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-        #             self.resize_plot_check.Check(self.config.resize)
-        #             menu.AppendItem(
-        #                 makeMenuItem(
-        #                     parent=menu, id=ID_saveRMSFImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
-        #                 )
-        #             )
-        #             menu.AppendSeparator()
-        #             menu.AppendItem(
-        #                 makeMenuItem(
-        #                     parent=menu, id=ID_clearPlot_RMSF, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-        #                 )
-        #             )
-        #         elif self.currentPage == "Comparison":
-        #             menu.AppendItem(menu_edit_general)
-        #             menu.AppendItem(menu_customise_plot)
-        #             menu.AppendSeparator()
-        #             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-        #             self.resize_plot_check.Check(self.config.resize)
-        #             menu.AppendItem(
-        #                 makeMenuItem(
-        #                     parent=menu,
-        #                     id=ID_saveRMSDmatrixImage,
-        #                     text="Save figure as...",
-        #                     bitmap=self.icons.iconsLib["save16"],
-        #                 )
-        #             )
-        #             menu.AppendSeparator()
-        #             menu.AppendItem(
-        #                 makeMenuItem(
-        #                     parent=menu, id=ID_clearPlot_Matrix, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-        #                 )
-        #             )
         elif self.currentPage == "Annotated":
             menu.AppendItem(menu_edit_general)
             menu.AppendItem(menu_edit_plot_1D)
@@ -1207,14 +907,14 @@ class panelPlot(wx.Panel):
         # Setup filename
         wildcard = (
             "SVG Scalable Vector Graphic (*.svg)|*.svg|"
-            +"SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
-            +"PNG Portable Network Graphic (*.png)|*.png|"
-            +"Enhanced Windows Metafile (*.eps)|*.eps|"
-            +"JPEG File Interchange Format (*.jpeg)|*.jpeg|"
-            +"TIFF Tag Image File Format (*.tiff)|*.tiff|"
-            +"RAW Image File Format (*.raw)|*.raw|"
-            +"PS PostScript Image File Format (*.ps)|*.ps|"
-            +"PDF Portable Document Format (*.pdf)|*.pdf"
+            + "SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
+            + "PNG Portable Network Graphic (*.png)|*.png|"
+            + "Enhanced Windows Metafile (*.eps)|*.eps|"
+            + "JPEG File Interchange Format (*.jpeg)|*.jpeg|"
+            + "TIFF Tag Image File Format (*.tiff)|*.tiff|"
+            + "RAW Image File Format (*.raw)|*.raw|"
+            + "PS PostScript Image File Format (*.ps)|*.ps|"
+            + "PDF Portable Document Format (*.pdf)|*.pdf"
         )
 
         wildcard_dict = {"svg": 0, "svgz": 1, "png": 2, "eps": 3, "jpeg": 4, "tiff": 5, "raw": 6, "ps": 7, "pdf": 8}
@@ -1264,8 +964,8 @@ class panelPlot(wx.Panel):
             raise MessageError(
                 "No spectrum information",
                 "Document title and/or spectrum title were not recorded for this plot."
-                +"\n\nYou can try peak picking by right-clicking in the document tree on the desired mass spectrum"
-                +" and clicking on `Open peak picker`",
+                + "\n\nYou can try peak picking by right-clicking in the document tree on the desired mass spectrum"
+                + " and clicking on `Open peak picker`",
             )
 
         self.view.panelDocuments.documents.on_open_peak_picker(
@@ -1294,8 +994,6 @@ class panelPlot(wx.Panel):
             "2D": self.plot2D,
             "Heatmap": self.plot2D,
             "DT/MS": self.plot_DT_vs_MS,
-            #             "CalibrationMS": self.topPlotMS,
-            #             "CalibrationDT": self.bottomPlot1DT,
             "Overlay": self.plot2D,
             "RMSF": self.plot2D,
             "Compare": self.plot2D,
@@ -1304,15 +1002,7 @@ class panelPlot(wx.Panel):
             "3D": self.plot3D,
             "Heatmap (3D)": self.plot3D,
             "Matrix": self.plot2D,
-            "Other": self.plotOther,
-            "Annotated": self.plotOther
-            #             "UniDec_MS": self.plotUnidec_MS,
-            #             "UniDec_MW": self.plotUnidec_mwDistribution,
-            #             "UniDec_mz_v_charge": self.plotUnidec_mzGrid,
-            #             "UniDec_peaks": self.plotUnidec_individualPeaks,
-            #             "UniDec_mw_v_charge": self.plotUnidec_mwVsZ,
-            #             "UniDec_bar": self.plotUnidec_barChart,
-            #             "UniDec_charge": self.plotUnidec_chargeDistribution,
+            "Annotated": self.plotOther,
         }
 
         return plot_dict.get(plot_name, None)
@@ -1360,22 +1050,6 @@ class panelPlot(wx.Panel):
                 open_window = False
         elif self.currentPage == "Comparison":
             plot, title = self.plotCompare, "Comparison..."
-        #         elif self.currentPage == "UniDec":
-        #             evtID = evt.GetId()
-        #             if evtID == ID_plots_customise_plot_unidec_ms:
-        #                 plot, title = self.plotUnidec_MS, "UniDec - Mass spectrum..."
-        #             elif evtID == ID_plots_customise_plot_unidec_mw:
-        #                 plot, title = self.plotUnidec_mwDistribution, "UniDec - Molecular weight distribution..."
-        #             elif evtID == ID_plots_customise_plot_unidec_mz_v_charge:
-        #                 plot, title = self.plotUnidec_mzGrid, "UniDec - Mass spectrum vs charge..."
-        #             elif evtID == ID_plots_customise_plot_unidec_isolated_mz:
-        #                 plot, title = self.plotUnidec_individualPeaks, "UniDec - Mass spectrum with individual species..."
-        #             elif evtID == ID_plots_customise_plot_unidec_mw_v_charge:
-        #                 plot, title = self.plotUnidec_mwVsZ, "UniDec - molecular weight vs charge..."
-        #             elif evtID == ID_plots_customise_plot_unidec_ms_barchart:
-        #                 plot, title = self.plotUnidec_barChart, "UniDec - Barchart..."
-        #             elif evtID == ID_plots_customise_plot_unidec_chargeDist:
-        #                 plot, title = self.plotUnidec_chargeDistribution, "UniDec - Charge state distribution..."
         elif self.currentPage == "Other":
             plot, title = self.plotOther, "Custom data..."
 
@@ -1537,8 +1211,8 @@ class panelPlot(wx.Panel):
                 if plot.lock_plot_from_updating:
                     msg = (
                         "This plot is locked and you cannot use global setting updated. \n"
-                        +"Please right-click in the plot area and select Customise plot..."
-                        +" to adjust plot settings."
+                        + "Please right-click in the plot area and select Customise plot..."
+                        + " to adjust plot settings."
                     )
                     print(msg)
                     continue
@@ -1598,8 +1272,8 @@ class panelPlot(wx.Panel):
             if resize_plot.lock_plot_from_updating:
                 msg = (
                     "This plot is locked and you cannot use global setting updated. \n"
-                    +"Please right-click in the plot area and select Customise plot..."
-                    +" to adjust plot settings."
+                    + "Please right-click in the plot area and select Customise plot..."
+                    + " to adjust plot settings."
                 )
                 print(msg)
                 return
@@ -2295,7 +1969,7 @@ class panelPlot(wx.Panel):
         if len(legend_text) - 1 > plt_kwargs["maximum_shown_items"]:
             msg = (
                 "Only showing {} out of {} items.".format(plt_kwargs["maximum_shown_items"], len(legend_text) - 1)
-                +" If you would like to see more go to Processing -> UniDec -> Max shown"
+                + " If you would like to see more go to Processing -> UniDec -> Max shown"
             )
             logger.info(msg)
 
@@ -2385,7 +2059,7 @@ class panelPlot(wx.Panel):
             if len(xvals) > plt_kwargs["maximum_shown_items"]:
                 msg = (
                     "Only showing {} out of {} items.".format(plt_kwargs["maximum_shown_items"], len(xvals))
-                    +" If you would like to see more go to Processing -> UniDec -> Max shown"
+                    + " If you would like to see more go to Processing -> UniDec -> Max shown"
                 )
                 self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
 
@@ -2462,8 +2136,9 @@ class panelPlot(wx.Panel):
             except AttributeError:
                 pass
 
-    def on_plot_other_1D(self, msX=None, msY=None, xlabel="", ylabel="", xlimits=None, set_page=False,
-                         plot="Other", **kwargs):
+    def on_plot_other_1D(
+        self, msX=None, msY=None, xlabel="", ylabel="", xlimits=None, set_page=False, plot="Other", **kwargs
+    ):
 
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
@@ -2504,8 +2179,9 @@ class panelPlot(wx.Panel):
         plot_obj.repaint()
         plot_obj.plot_type = "line"
 
-    def on_plot_other_overlay(self, xvals, yvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False,
-                              plot="Other", **kwargs):
+    def on_plot_other_overlay(
+        self, xvals, yvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False, plot="Other", **kwargs
+    ):
 
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
@@ -2535,8 +2211,9 @@ class panelPlot(wx.Panel):
         plot_obj.repaint()
         plot_obj.plot_type = "multi-line"
 
-    def on_plot_other_waterfall(self, xvals, yvals, zvals, xlabel, ylabel, colors=[], set_page=False,
-                                plot="Other", **kwargs):
+    def on_plot_other_waterfall(
+        self, xvals, yvals, zvals, xlabel, ylabel, colors=[], set_page=False, plot="Other", **kwargs
+    ):
 
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
@@ -2578,8 +2255,9 @@ class panelPlot(wx.Panel):
         plot_obj.repaint()
         plot_obj.plot_type = "waterfall"
 
-    def on_plot_other_scatter(self, xvals, yvals, zvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False,
-                              plot="Other", **kwargs):
+    def on_plot_other_scatter(
+        self, xvals, yvals, zvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False, plot="Other", **kwargs
+    ):
 
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
@@ -2611,8 +2289,9 @@ class panelPlot(wx.Panel):
         plot_obj.repaint()
         plot_obj.plot_type = "scatter"
 
-    def on_plot_other_grid_1D(self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False,
-                              plot="Other", **kwargs):
+    def on_plot_other_grid_1D(
+        self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False, plot="Other", **kwargs
+    ):
 
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
@@ -2642,8 +2321,9 @@ class panelPlot(wx.Panel):
         plot_obj.repaint()
         plot_obj.plot_type = "grid-line"
 
-    def on_plot_other_grid_scatter(self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False,
-                                   plot="Other", **kwargs):
+    def on_plot_other_grid_scatter(
+        self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False, plot="Other", **kwargs
+    ):
 
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
@@ -2673,8 +2353,9 @@ class panelPlot(wx.Panel):
         plot_obj.repaint()
         plot_obj.plot_type = "grid-scatter"
 
-    def on_plot_other_bars(self, xvals, yvals_min, yvals_max, xlabel, ylabel, colors, set_page=False,
-                           plot="Other", **kwargs):
+    def on_plot_other_bars(
+        self, xvals, yvals_min, yvals_max, xlabel, ylabel, colors, set_page=False, plot="Other", **kwargs
+    ):
 
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
@@ -2725,8 +2406,19 @@ class panelPlot(wx.Panel):
 
         return True
 
-    def on_add_centroid_MS_and_labels(self, msX, msY, labels, full_labels, xlimits=None, title="",
-                                      butterfly_plot=False, set_page=False, plot="MS", **kwargs):
+    def on_add_centroid_MS_and_labels(
+        self,
+        msX,
+        msY,
+        labels,
+        full_labels,
+        xlimits=None,
+        title="",
+        butterfly_plot=False,
+        set_page=False,
+        plot="MS",
+        **kwargs,
+    ):
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
         else:
@@ -2791,8 +2483,9 @@ class panelPlot(wx.Panel):
 
         plot_obj.repaint()
 
-    def on_plot_centroid_MS(self, msX, msY, msXY=None, xlimits=None, title="", repaint=True, set_page=False,
-                            plot="MS", **kwargs):
+    def on_plot_centroid_MS(
+        self, msX, msY, msXY=None, xlimits=None, title="", repaint=True, set_page=False, plot="MS", **kwargs
+    ):
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
         else:
@@ -2974,7 +2667,7 @@ class panelPlot(wx.Panel):
         replot=False,
         set_page=False,
         plot="1D",
-        **kwargs
+        **kwargs,
     ):
 
         if plot is None and "plot_obj" in kwargs:
@@ -3028,7 +2721,7 @@ class panelPlot(wx.Panel):
         full_repaint=False,
         set_page=False,
         plot="RT",
-        **kwargs
+        **kwargs,
     ):
 
         if plot is None and "plot_obj" in kwargs:
@@ -3124,20 +2817,22 @@ class panelPlot(wx.Panel):
 
         # Plot data
         self.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmapNorm=cmapNorm)
-#
-#         if self.config.waterfall:
-#             if len(xvals) > 500:
-#                 msg = (
-#                     "There are {} scans in this dataset".format(len(xvals))
-#                     +" (it could be slow to plot Waterfall plot...). Would you like to continue?"
-#                 )
-#                 dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
-#                 if dlg == wx.ID_YES:
-#                     self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
-#         try:
-#             self.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals, xlabel=xlabel, ylabel=ylabel, zlabel="Intensity")
-#         except Exception:
-#             pass
+
+    #
+    #         if self.config.waterfall:
+    #             if len(xvals) > 500:
+    #                 msg = (
+    #                     "There are {} scans in this dataset".format(len(xvals))
+    #                     +" (it could be slow to plot Waterfall plot...). Would you like to continue?"
+    #                 )
+    #                 dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
+    #                 if dlg == wx.ID_YES:
+    #                     self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
+    #         try:
+    #             self.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals, xlabel=xlabel,
+    # ylabel=ylabel, zlabel="Intensity")
+    #         except Exception:
+    #             pass
 
     def on_plot_violin(self, data=None, set_page=False, plot="Waterfall", **kwargs):
 
@@ -3182,8 +2877,8 @@ class panelPlot(wx.Panel):
                 logger.warning("Seleted item is too large to plot as violin. Will try to plot as waterfall instead")
                 if n_scans > 500:
                     msg = (
-                        f"There are {n_scans} scans in this dataset" +
-                        "(this could be slow...). Would you like to continue?"
+                        f"There are {n_scans} scans in this dataset"
+                        + "(this could be slow...). Would you like to continue?"
                     )
                     dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
                     if dlg == wx.ID_NO:

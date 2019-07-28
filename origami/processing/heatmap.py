@@ -3,7 +3,6 @@
 import logging
 
 import numpy as np
-from gui_elements.misc_dialogs import DialogBox
 from processing.utils import find_nearest_index
 from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter

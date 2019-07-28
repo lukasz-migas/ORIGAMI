@@ -28,7 +28,6 @@ from ids import ID_extraSettings_shadeUnderColor_1D
 from ids import ID_extraSettings_underlineColor_rmsd
 from ids import ID_extraSettings_verticalColor
 from ids import ID_extraSettings_zoomCursorColor
-from ids import ID_saveConfig
 from styles import makeCheckbox
 from styles import makeStaticBox
 from styles import makeSuperTip

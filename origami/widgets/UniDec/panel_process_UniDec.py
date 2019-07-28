@@ -781,11 +781,9 @@ class PanelProcessUniDec(wx.MiniFrame):
 
     def on_save_all_figures(self, evt):
         """Save all figures"""
-        for plot_name in ['MS', 'mwDistribution', "mzGrid", "pickedPeaks", "mwGrid", "Barchart",
-                          "ChargeDistribution"]:
+        for plot_name in ["MS", "mwDistribution", "mzGrid", "pickedPeaks", "mwGrid", "Barchart", "ChargeDistribution"]:
             plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
-            plot_title = f"{self.document_title}_{self.dataset_name}_{plot_name}".replace(
-                " ", "-").replace(":", "")
+            plot_title = f"{self.document_title}_{self.dataset_name}_{plot_name}".replace(" ", "-").replace(":", "")
             self.panel_plot.save_images(None, None, plot_obj=plot_obj, image_name=plot_title)
 
     def on_get_plot_obj_from_name(self, plot_name):

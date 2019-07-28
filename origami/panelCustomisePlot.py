@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import os
-
 import matplotlib.ticker as ticker
 import numpy as np
 import wx

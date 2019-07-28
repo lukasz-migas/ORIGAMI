@@ -339,65 +339,64 @@ def readXML(xmlfile):
     return additionalData, spectrumData, chromatoData
 
 
-def mzmlToSqlite_writer(sqlitefile, inputs):
-    connection = sqlite3.connect(sqlitefile)
-    cursor = connection.cursor()
+# def mzmlToSqlite_writer(sqlitefile, inputs):
+#     connection = sqlite3.connect(sqlitefile)
+#     cursor = connection.cursor()
+#
+#     createSpectrumTable = "CREATE TABLE spectra(ind int, mz real, rt int, data blob)"
+#     cursor.execute(createSpectrumTable)
+#     createChromatoTable = (
+#         "CREATE TABLE chromato(ind int, startmz real, stopmz real, startrt real, stoprt real, data blob)"
+#     )
+#     cursor.execute(createChromatoTable)
+#     connection.commit()
+#
+#     i = 0
+#     while True:
+#         task, data = inputs.get()
+#         if task == "spectrum":
+#             pdata = marshal(data)
+#             index, prec, time = data["index"], data["precursor"], data["time"]
+#             cursor.execute('INSERT INTO spectra VALUES ({},{},{},"{}")'.format(index, prec, time, pdata))
+#         elif task == "chromatogram":
+#             pdata = marshal(data)
+#             if data[0] == "total":
+#                 cursor.execute('INSERT INTO chromato VALUES (0,0,0,0,0,"%s")' % pdata)
+#             else:
+#                 cursor.execute('INSERT INTO chromato VALUES (%s,%s,%s,%s,%s,"%s")' % span + (pdata,))
+#         elif task == "stop":
+#             break
+#         else:
+#             raise NotImplementedError(task)
+#
+#         if i > 100:
+#             connection.commit()
+#             i = 0
+#         else:
+#             i += 1
+#
+#     connection.commit()
+#     connection.close()
 
-    createSpectrumTable = "CREATE TABLE spectra(ind int, mz real, rt int, data blob)"
-    cursor.execute(createSpectrumTable)
-    createChromatoTable = (
-        "CREATE TABLE chromato(ind int, startmz real, stopmz real, startrt real, stoprt real, data blob)"
-    )
-    cursor.execute(createChromatoTable)
-    connection.commit()
-
-    i = 0
-    while True:
-        task, data = inputs.get()
-        if task == "spectrum":
-            pdata = marshal(data)
-            index, prec, time = data["index"], data["precursor"], data["time"]
-            cursor.execute('INSERT INTO spectra VALUES ({},{},{},"{}")'.format(index, prec, time, pdata))
-        elif task == "chromatogram":
-            pdata = marshal(data)
-            if data[0] == "total":
-                cursor.execute('INSERT INTO chromato VALUES (0,0,0,0,0,"%s")' % pdata)
-            else:
-                cursor.execute('INSERT INTO chromato VALUES (%s,%s,%s,%s,%s,"%s")' % span + (pdata,))
-        elif task == "stop":
-            break
-        else:
-            raise NotImplementedError(task)
-
-        if i > 100:
-            connection.commit()
-            i = 0
-        else:
-            i += 1
-
-    connection.commit()
-    connection.close()
-
-
-def mzmlToSqlite(xmlfile, sqlitefile):
-    parser = xml.iterparse(xmlfile)
-
-    writeQueue = multiprocessing.Queue()
-    writerProc = multiprocessing.Process(target=mzmlToSqlite_writer, args=(sqlitefile, writeQueue))
-    writerProc.start()
-
-    for evt, obj in parser:
-        if obj.tag == ns("spectrum"):
-            writeQueue.put(("spectrum", readSpectrumXML(obj)))
-            obj.clear()
-        elif obj.tag == ns("chromatogram"):
-            writeQueue.put(("chromatogram", readChromatoXML(obj)))
-            obj.clear()
-
-    writeQueue.put(("stop", None))
-
-    writerProc.join()
-    return sqlitefile
+# def mzmlToSqlite(xmlfile, sqlitefile):
+#     parser = xml.iterparse(xmlfile)
+#
+#     writeQueue = multiprocessing.Queue()
+#     writerProc = multiprocessing.Process(target=mzmlToSqlite_writer, args=(sqlitefile, writeQueue))
+#     writerProc.start()
+#
+#     for evt, obj in parser:
+#         if obj.tag == ns("spectrum"):
+#             writeQueue.put(("spectrum", readSpectrumXML(obj)))
+#             obj.clear()
+#         elif obj.tag == ns("chromatogram"):
+#             writeQueue.put(("chromatogram", readChromatoXML(obj)))
+#             obj.clear()
+#
+#     writeQueue.put(("stop", None))
+#
+#     writerProc.join()
+#     return sqlitefile
 
 
 class mzmlsql_reader(object):
