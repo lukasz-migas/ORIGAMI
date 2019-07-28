@@ -16,19 +16,19 @@ ORIGAMI-MS acquired files are simply CIU datasets that were acquired within a si
 
 There are four methods available which either increase or keep constant the number of scans-per-voltage as the energy increases.
 
-* Linear: the collision voltage (CV) is ramped from **Start Voltage (StartV)** to **End Voltage (EndV)** with **Step Voltage (StepV)** as the increment. The number of scans-per-voltage stays the same and is controlled by **Scans per Voltage (SPV)**.
-* Exponential: the CV is ramped from **StartV** to **EndV** with **StepV** as the increment. The SPVs increase as a function of an exponential function where the user specifies the **Exponential %** and **Exponential Increment**. These values determine the rate of the increase.
-* Boltzmann: the CV is ramped from **StartV** to **EndV** with **StepV** as the increment. The SPVs increase as a function of an Boltzmann function where the user specifies the **Boltzmann Offset**. These values determine the rate of the increase.
-* User-defined: values of **SPV** and **CV** are provided in a list by the user.
+- Linear: the collision voltage (CV) is ramped from **Start Voltage (StartV)** to **End Voltage (EndV)** with **Step Voltage (StepV)** as the increment. The number of scans-per-voltage stays the same and is controlled by **Scans per Voltage (SPV)**.
+- Exponential: the CV is ramped from **StartV** to **EndV** with **StepV** as the increment. The SPVs increase as a function of an exponential function where the user specifies the **Exponential %** and **Exponential Increment**. These values determine the rate of the increase.
+- Boltzmann: the CV is ramped from **StartV** to **EndV** with **StepV** as the increment. The SPVs increase as a function of an Boltzmann function where the user specifies the **Boltzmann Offset**. These values determine the rate of the increase.
+- User-defined: values of **SPV** and **CV** are provided in a list by the user.
 
 The user-defined list looks something like this and is usually provided as a .csv file.
 
-| SPV | CV |
-|:---:|:--:|
-|  3  |  5 |
-|  6  | 10 |
-|  9  | 12 |
-|  12 | 20 |
+| SPV | CV  |
+| :-: | :-: |
+|  3  |  5  |
+|  6  | 10  |
+|  9  | 12  |
+| 12  | 20  |
 
 ## Getting started
 
@@ -45,10 +45,10 @@ The first thing to consider when analysing ORIGAMI-MS based files is the fact th
 
 There are only two ways you can determine what parameters were used in the acquisition.
 
-* You saved them in your labbook or in the header of the MassLynx file (recommended)
-* You saved them to a .csv file using the **Save parameters** button in ORIGAMI-MS window during your acquisition
+- You saved them in your labbook or in the header of the MassLynx file (recommended)
+- You saved them to a .csv file using the **Save parameters** button in ORIGAMI-MS window during your acquisition
 
-If you have done neither of these things, you can try to figure out your parameters by going to the folder containing ORIGAMI-MS program and looking for the appropriate ORIGAMI_log_**DATE-TIME**.log file which contains **all** commands executed by the program.
+If you have done neither of these things, you can try to figure out your parameters by going to the folder containing ORIGAMI-MS program and looking for the appropriate ORIGAMI*log***DATE-TIME**.log file which contains **all** commands executed by the program.
 
 ## How to combine the same CVs into one
 
@@ -94,6 +94,6 @@ Panel processing: 2D
 2. In the toolbar, click on the Process(![Image](img/process-icon.png)) button and select -> Process selected/all ions. Ions will be process based on the parameters in the **Processing panel: 2D**.
 3. All process data will appear in the document with the **(processed)** tag attached to the name.
 
-Comparison of processing of *some* processing methods.
+Comparison of processing of _some_ processing methods.
 
 ![Image](img/heatmap-processing.png)

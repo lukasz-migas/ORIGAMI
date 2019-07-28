@@ -3403,11 +3403,10 @@ class OrigamiConfig:
             document = defusedxml.minidom.parse(path)
         except IOError:
             print("Missing configuration file")
-            self.saveConfigXML(path="configOut.xml", evt=None)
+            self.saveConfigXML(path="configOut.xml")
             return
         except xml.parsers.expat.ExpatError as e:
-            print(e)
-            print("Syntax error - please load XML config file")
+            print(f"Syntax error - please load XML config file. {e}")
             return
 
         presetsTags = document.getElementsByTagName("presets")

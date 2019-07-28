@@ -6,12 +6,12 @@ In this example we will use files provided with the ORIGAMI distribution. You ca
 
 To load text files, please use any of the following:
 
-* Use the file menu. File -> Open IM-MS Text file [CIU] or Open MS Text file
-* Use the toolbar. Click on the **T** or **T+** button
-* Use a keyboard shortcut:
-  * **CTRL+T** - open heatmap text (.csv/.txt/.tab) file
-* Drag-and-drop the file in the main window
-* Clipboard: - MS data only
+- Use the file menu. File -> Open IM-MS Text file [CIU] or Open MS Text file
+- Use the toolbar. Click on the **T** or **T+** button
+- Use a keyboard shortcut:
+  - **CTRL+T** - open heatmap text (.csv/.txt/.tab) file
+- Drag-and-drop the file in the main window
+- Clipboard: - MS data only
 
 ## Document tree
 
@@ -33,7 +33,7 @@ When you right-click on any item in the list, a menu will appear from which you 
 
 ![Image](img/panel-text-list-right-click-menu.png)
 
-When you double-click on an item (or right-click and select "Edit file information") a new window will appear where you can change certain parameters, such as *charge state, color, colormap, etc*.
+When you double-click on an item (or right-click and select "Edit file information") a new window will appear where you can change certain parameters, such as _charge state, color, colormap, etc_.
 
 ![Image](img/panel-text-list-customise-item.png)
 

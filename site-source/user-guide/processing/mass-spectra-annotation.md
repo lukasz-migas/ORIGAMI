@@ -1,6 +1,6 @@
 # Annotating mass spectra
 
-Since version 1.1.2 it is possible to annotate mass spectra with custom labels (e.g. *charge state*, *label*) and attached an arrow to highlight low-intensity species.
+Since version 1.1.2 it is possible to annotate mass spectra with custom labels (e.g. _charge state_, _label_) and attached an arrow to highlight low-intensity species.
 
 ## Video tutorial on how to annotate mass spectrum
 
@@ -17,7 +17,7 @@ In this example we will use a file provided with the ORIGAMI distribution. You c
 
 ## Annotating
 
-There is a number of ways you can annote mass spectrum. The *manual* way involves opening an annotation panel and manually selecting peaks. You can also load annotations from a .csv file.
+There is a number of ways you can annote mass spectrum. The _manual_ way involves opening an annotation panel and manually selecting peaks. You can also load annotations from a .csv file.
 
 ## Opening annotation panel
 
@@ -42,7 +42,7 @@ Find the mass spectrum you would like to annotate in the Document Tree and right
 
 1. Select a annotation in the list below.
 2. Uncheck the **add arrow** checkbox.
-3. Adjust values of *position (x, label)* and *position (y, label)*
+3. Adjust values of _position (x, label)_ and _position (y, label)_
 4. Click on the **Add annotation** button.
 
 ## Showing all annotations
@@ -54,7 +54,7 @@ Find the mass spectrum you would like to annotate in the Document Tree and right
 
 ## Customising annotations
 
-You can adjust several parameters (*annotation color, arrow line thickness, label size, etc*) in the **Customise annotations** panel. You can open it by clicking on the **Action** button and selecting **Customise other settings...**. A new panel should open.
+You can adjust several parameters (_annotation color, arrow line thickness, label size, etc_) in the **Customise annotations** panel. You can open it by clicking on the **Action** button and selecting **Customise other settings...**. A new panel should open.
 
 ![Image](img/panel-customise-annotation.png)
 

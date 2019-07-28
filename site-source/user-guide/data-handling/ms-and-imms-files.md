@@ -10,11 +10,11 @@ In this example, we will use a file provided in the example. You can download it
 
 To load Waters (.raw) files, please use any of the following:
 
-* Use the file menu. File -> Open ORIGAMI MassLynx (.raw) file [CIU]
-* Use the toolbar. Click on the ![Image](img/origami-data-icon.png) button
-* Use a keyboard shortcut:
-  * **CTRL+R** - open Waters (.raw) file - IM-MS
-* Drag-and-drop the file in the main window
+- Use the file menu. File -> Open ORIGAMI MassLynx (.raw) file [CIU]
+- Use the toolbar. Click on the ![Image](img/origami-data-icon.png) button
+- Use a keyboard shortcut:
+  - **CTRL+R** - open Waters (.raw) file - IM-MS
+- Drag-and-drop the file in the main window
 
 ## Document tree
 
@@ -32,7 +32,7 @@ You can extract various types of data from Waters (.raw) files. The type you ext
 
 ## Mass spectra (from RT, 1D, 2D windows)
 
-The extracted mass spectra can either represent the **raw** data or **linearized** data, depending on what settings you have enabled. To change this behaviour, open the **Processing window**, go to **Mass spectrum** and check (or uncheck) the "Enable MS linearization in chromatogram/mobiligram window". You can also change linearization settings in this panel. If you are extracting from the RT window, *chromatographic* information will be used, from the 1D window, *drift time* and from 2D window, both will be used. Extracted data will appear under **Mass Spectra**.
+The extracted mass spectra can either represent the **raw** data or **linearized** data, depending on what settings you have enabled. To change this behaviour, open the **Processing window**, go to **Mass spectrum** and check (or uncheck) the "Enable MS linearization in chromatogram/mobiligram window". You can also change linearization settings in this panel. If you are extracting from the RT window, _chromatographic_ information will be used, from the 1D window, _drift time_ and from 2D window, both will be used. Extracted data will appear under **Mass Spectra**.
 
 ## Video tutorial of how to extract mass spectra from Waters (.raw) files
 
@@ -46,7 +46,7 @@ When you extract data from the MS window, an ion will automatically be added to 
 
 ## Chromatograms (from DT/MS window)
 
-You can extract chromatograms in the DT/MS window where the *m/z* and *drift time* information will be taken into account during data extraction. Extracted data will appear under **Chromatograms (EIC)**.
+You can extract chromatograms in the DT/MS window where the _m/z_ and _drift time_ information will be taken into account during data extraction. Extracted data will appear under **Chromatograms (EIC)**.
 
 ![Image](img/extract-rt-from-dtms.png)
 
@@ -58,7 +58,7 @@ When you right-click on any item in the list, a menu will appear from which you 
 
 ![Image](img/panel-ion-list-right-click-menu.png)
 
-When you double-click on an item (or right-click and select "Edit file information") a new window will appear where you can change certain parameters, such as *ORIGAMI<sup>MS</sup> parameters, charge state, color, colormap, etc*.
+When you double-click on an item (or right-click and select "Edit file information") a new window will appear where you can change certain parameters, such as _ORIGAMI<sup>MS</sup> parameters, charge state, color, colormap, etc_.
 
 ![Image](img/panel-ion-list-customise-item.png)
 
@@ -96,6 +96,6 @@ Depending what are you planning on processing (e.g. extracted ion heatmap or who
 2. A new window will appear where you can adjust processing parameters
 3. Click on the **Replot** button if you first want to see how the data will look or **Process** if you would like to add that data to the document.
 
-### Comparison of processing of *some* of the processing methods
+### Comparison of processing of _some_ of the processing methods
 
 ![Image](img/heatmap-processing.png)

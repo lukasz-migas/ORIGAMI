@@ -1064,7 +1064,6 @@ class ORIGAMI(object):
                     exceptionTitle="Error",
                     exceptionMsg=f"Cannot plot grid larger than 6 x 6. You have selected {n_grid}",
                     type="Error",
-                    exceptionPrint=True,
                 )
                 return
 

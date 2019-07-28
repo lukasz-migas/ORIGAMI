@@ -2,7 +2,7 @@
 
 ORIGAMI enables creation of HTML/JavaScript webpages which embed interactive versions of figures visualised in ORIGAMI. Practically all figures that you can generate in the desktop application can be also exported to a HTML document that can be shared with your supervisor, journal reviewers or collaborators for their in-depth interrogation.
 
-While this might seem like a bit of a gimmick, it makes sense to share the results with the scientific community in a manner more explorative than a simple static image. See here for some helpful encouragement ([*Perkel*](https://www.nature.com/articles/d41586-018-01322-9) and [*Weissgerber*](https://journals.plos.org/plosbiology/article/file?id=10.1371/journal.pbio.1002484&type=printable)).
+While this might seem like a bit of a gimmick, it makes sense to share the results with the scientific community in a manner more explorative than a simple static image. See here for some helpful encouragement ([_Perkel_](https://www.nature.com/articles/d41586-018-01322-9) and [_Weissgerber_](https://journals.plos.org/plosbiology/article/file?id=10.1371/journal.pbio.1002484&type=printable)).
 
 ## Example
 
@@ -14,10 +14,10 @@ You can use any example file here as once you open the output window, all availa
 
 ![Image](img/panel-interactive-output.png)
 
-If you click on any item in the list, its previously provided settings such as *title, header, footnote information* or *plot parameters* will be automatically rendered. Focusing on a mass spectrum first, you can see some useful information about the size of *number of annotations, min/max ranges* and *its size*.
+If you click on any item in the list, its previously provided settings such as _title, header, footnote information_ or _plot parameters_ will be automatically rendered. Focusing on a mass spectrum first, you can see some useful information about the size of _number of annotations, min/max ranges_ and _its size_.
 
 ![Image](img/panel-interactive-output-item-info.png)
 
-Check that item and click on the **Export HTML** button. You will be asked to provide a *path* where you would like to save the document. Make sure to check the **Open in browser after saving** checkbox.
+Check that item and click on the **Export HTML** button. You will be asked to provide a _path_ where you would like to save the document. Make sure to check the **Open in browser after saving** checkbox.
 
 You can checkout a mass spectrum example [here](../../interactive-examples/mass-spectrum.md) and heatmap example [here](../../interactive-examples/heatmap.md).

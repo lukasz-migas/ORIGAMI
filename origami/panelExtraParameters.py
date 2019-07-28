@@ -2809,7 +2809,7 @@ class panelParametersEdit(wx.Panel):
                     source = evt.GetEventObject().GetName()
                 except Exception:
                     source = "axes"
-                self.panel_plot.plot_1D_waterfall_update(which=source)
+                self.panel_plot.plot_1D_waterfall_update(source)
 
         if self.panel_plot.currentPage == "Other":
             try:
@@ -2818,7 +2818,7 @@ class panelParametersEdit(wx.Panel):
                 source = "axes"
             try:
                 if self.panel_plot.plotOther.plot_type == "waterfall":
-                    self.panel_plot.plot_1D_waterfall_update(which=source)
+                    self.panel_plot.plot_1D_waterfall_update(source)
             except Exception:
                 pass
 
@@ -2886,7 +2886,7 @@ class panelParametersEdit(wx.Panel):
             except Exception:
                 source = "color"
             self.on_apply(None)
-            self.panel_plot.plot_1D_waterfall_update(which=source)
+            self.panel_plot.plot_1D_waterfall_update(source)
 
         if evt is not None:
             evt.Skip()

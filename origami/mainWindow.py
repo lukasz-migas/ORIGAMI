@@ -157,13 +157,6 @@ from toolbox import compare_versions
 from toolbox import get_latest_version
 from utils.path import clean_directory
 
-# from ids import ID_processSettings_2D
-# from ids import ID_processSettings_ExtractData
-# from ids import ID_processSettings_FindPeaks
-# from ids import ID_processSettings_MS
-# from ids import ID_processSettings_UniDec
-# from panelProcess import panelProcessData
-
 logger = logging.getLogger("origami")
 
 
@@ -1145,14 +1138,6 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.on_open_community_file, id=ID_fileMenu_mzML)
         self.Bind(wx.EVT_TOOL, self.on_open_thermo_file, id=ID_fileMenu_thermoRAW)
 
-        # PROCESS MENU
-        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ExtractData)
-        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ORIGAMI)
-        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_FindPeaks)
-        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_MS)
-        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_2D)
-        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_UniDec)
-
         # PLOT
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_general_plot)
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_plot1D)
@@ -1987,45 +1972,6 @@ class MyFrame(wx.Frame):
             self.presenter.onThreading(evt, args, action="updateStatusbar")
             self.panelParametersEdit.onSetPage(**kwargs)
             return
-
-    #     def onProcessParameters(self, evt, **pKwargs):
-    #
-    #         # get evt id
-    #         if isinstance(evt, int):
-    #             evtID = evt
-    #         else:
-    #             evtID = evt.GetId()
-    #
-    #         if evtID == ID_processSettings_ExtractData:
-    #             kwargs = {"window": "Extract"}
-    #         elif evtID == ID_processSettings_MS:
-    #             kwargs = {"window": "MS"}
-    #         elif evtID == ID_processSettings_2D:
-    #             kwargs = {"window": "2D"}
-    #         #         elif evtID == ID_processSettings_ORIGAMI:
-    #         #             kwargs = {'window': 'ORIGAMI'}
-    #         elif evtID == ID_processSettings_FindPeaks:
-    #             kwargs = {"window": "Peak fitting"}
-    #         elif evtID == ID_processSettings_UniDec:
-    #             kwargs = {"window": "UniDec"}
-    #
-    #         kwargs["processKwargs"] = pKwargs
-    #
-    #         if self.config.processParamsWindow_on_off:
-    #             args = ("An instance of this panel is already open - changing page to: %s" % kwargs["window"], 4)
-    #             self.presenter.onThreading(evt, args, action="updateStatusbar")
-    #             if hasattr(self, "panelProcessData"):
-    #                 self.panelProcessData.onSetPage(**kwargs)
-    #             return
-    #
-    #         try:
-    #             self.config.processParamsWindow_on_off = True
-    #             self.panelProcessData = panelProcessData(self, self.presenter, self.config, self.icons, **kwargs)
-    #             self.panelProcessData.Show()
-    #         except (ValueError, AttributeError, TypeError, KeyError, wx._core.PyAssertionError) as e:
-    #             self.config.processParamsWindow_on_off = False
-    #             DialogBox(exceptionTitle="Failed to open panel", exceptionMsg=str(e), type="Error")
-    #             return
 
     def onExportParameters(self, evt):
         if evt.GetId() == ID_importExportSettings_image:

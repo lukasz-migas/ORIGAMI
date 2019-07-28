@@ -31,7 +31,7 @@ Once you've loaded data, right-click on it in the Document Tree and select **Dec
 
 1. Specify Pre-processing parameters. You can start with **m/z start = 500** and **m/z end = 2500** with m/z **bin size = 0.1** using **Linear interpolation** method. Click on the **Pre-process** button. If you are using the **Tabbed view**, the results will be shown in the tab **UniDec -> MS**
 2. Specify deconvolution parameters. If you are unsure about the sample you are analysing, specify a broad range of charge states and the molecular weight with large-ish Sampling frequency. This will help you narrow down the appropriate range for your sample. Once you are happy, click on the Run UniDec button. If you are using the **Tabbed view**, the results will be shown in **UniDec -> m/z vs Charge / MW vs Charge / MW** tabs.
-3. Following successful deconvolution, you can find peaks and identify the *found* molecular weights. To do this, specify appropriate parameters in the **Peak detection parameters** section and then click on the **Detect peaks** button. If you are using the **Tabbed view**, the results will be shown in **UniDec -> Isolated MS / Barplot** tabs.
+3. Following successful deconvolution, you can find peaks and identify the _found_ molecular weights. To do this, specify appropriate parameters in the **Peak detection parameters** section and then click on the **Detect peaks** button. If you are using the **Tabbed view**, the results will be shown in **UniDec -> Isolated MS / Barplot** tabs.
 
 ## Visualisation of results
 

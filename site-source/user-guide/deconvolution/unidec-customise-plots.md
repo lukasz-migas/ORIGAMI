@@ -1,6 +1,6 @@
 # Customising UniDec plots
 
-In the case of UniDec plots, several parameters such as *color schemes*, *marker size*, *heatmap parameters* and others can be adjusted by opening the **Processing panel: UniDec** and then the **Customisation panel**.
+In the case of UniDec plots, several parameters such as _color schemes_, _marker size_, _heatmap parameters_ and others can be adjusted by opening the **Processing panel: UniDec** and then the **Customisation panel**.
 
 1. Open the Processing panel: UniDec (**SHIFT+6** on your keyboard or menu -> Process -> UniDec).
 2. Click on the Customise plots... button

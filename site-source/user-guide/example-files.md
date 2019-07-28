@@ -10,7 +10,7 @@ An example file that was used in the original publication and can be used as tra
 
 ## Manual DT-IMS - Waters (.raw)
 
-A set of files acquired over a number of drift voltages on our *ancient* DT-IMS instrument
+A set of files acquired over a number of drift voltages on our _ancient_ DT-IMS instrument
 
 [Download file](example-files/dt-ims.zip)
 

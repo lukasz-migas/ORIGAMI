@@ -25,7 +25,7 @@ If, when you double-click on ORIGAMI.exe and a command window pops-up for a frac
 3. In the command window type in **ORIGAMI.exe**
 4. If its working, a new window should appear and if its not, you will see some error messages
 
-1. PyInstallerImportError
+5. PyInstallerImportError
 
 A number of Windows 10 users have reported issues opening ORIGAMI.exe. It typically comes with this message:
 

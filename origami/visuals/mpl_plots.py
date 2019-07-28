@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import itertools
+import logging
 import warnings
 from copy import deepcopy
 
@@ -32,6 +33,8 @@ from utils.labels import _replace_labels
 from utils.ranges import get_min_max
 from visuals.mpl_plotter import mpl_plotter
 from visuals.normalize import MidpointNormalize
+
+logger = logging.getLogger("origami")
 
 # needed to avoid annoying warnings to be printed on console
 # import matplotlib.colors as mpl_colors
@@ -1562,8 +1565,8 @@ class plots(mpl_plotter):
         try:
             leg = self.plotMS.axes.get_legend()
             leg.remove()
-        except Exception:
-            pass
+        except (AttributeError, KeyError):
+            logger.error("No legend to remove")
 
     def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
 

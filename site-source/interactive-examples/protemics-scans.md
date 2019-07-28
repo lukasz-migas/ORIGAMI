@@ -12,9 +12,9 @@ I have randomly selected a couple of scans and annotated them using the built-in
 
 Actions:
 
-* Dropdown menu: Select dataset  you are interested in
-* Drag: Zoom-in on any plot area
-* Hover: Discover information about peak including m/z, intensity, charge, fragment label, error, peptide sequence, modification
+- Dropdown menu: Select dataset you are interested in
+- Drag: Zoom-in on any plot area
+- Hover: Discover information about peak including m/z, intensity, charge, fragment label, error, peptide sequence, modification
 
 [See figure in another tab](html-files/proteomics-scans.html)
 

@@ -28,11 +28,11 @@ The easiest way to process a mass spectrum is to find it in the Document Tree, r
 
 Spectral processing is taken in steps, and you can specify which action you would like to take.
 
-* **Crop spectrum:** specify the min m/z and max m/z range spectrum should restricted to
-* **Linearize spectrum:** linearize spectrum to have consistent spacing between points. There is a number of methods available that will change the way the spacing is calculated
-* **Smooth spectrum:** specify the smoothing method (Gaussian or Savitzky-Golay)
-* **Baseline subtract:** remove noise from the spectrum
-* **Normalize:** normalize the spectrum to maximum value of 1
+- **Crop spectrum:** specify the min m/z and max m/z range spectrum should restricted to
+- **Linearize spectrum:** linearize spectrum to have consistent spacing between points. There is a number of methods available that will change the way the spacing is calculated
+- **Smooth spectrum:** specify the smoothing method (Gaussian or Savitzky-Golay)
+- **Baseline subtract:** remove noise from the spectrum
+- **Normalize:** normalize the spectrum to maximum value of 1
 
 Once you are happy with your parameters, you can either **replot** the spectrum (data **will not** be added to the document) or **process** (data **will** be added to the document).
 

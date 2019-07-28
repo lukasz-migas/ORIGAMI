@@ -26,7 +26,6 @@ from ids import ID_clearPlot_RMSD
 from ids import ID_clearPlot_RMSF
 from ids import ID_clearPlot_RT
 from ids import ID_clearPlot_RT_MS
-from ids import ID_clearPlot_UniDec_all
 from ids import ID_clearPlot_UniDec_barchart
 from ids import ID_clearPlot_UniDec_chargeDistribution
 from ids import ID_clearPlot_UniDec_MS
@@ -43,7 +42,6 @@ from ids import ID_extraSettings_legend
 from ids import ID_extraSettings_plot1D
 from ids import ID_extraSettings_plot2D
 from ids import ID_extraSettings_plot3D
-from ids import ID_extraSettings_rmsd
 from ids import ID_extraSettings_violin
 from ids import ID_extraSettings_waterfall
 from ids import ID_highlightRectAllIons
@@ -52,13 +50,6 @@ from ids import ID_plotPanel_binMS
 from ids import ID_plotPanel_lockPlot
 from ids import ID_plotPanel_resize
 from ids import ID_plots_customise_plot
-from ids import ID_plots_customise_plot_unidec_chargeDist
-from ids import ID_plots_customise_plot_unidec_isolated_mz
-from ids import ID_plots_customise_plot_unidec_ms
-from ids import ID_plots_customise_plot_unidec_ms_barchart
-from ids import ID_plots_customise_plot_unidec_mw
-from ids import ID_plots_customise_plot_unidec_mw_v_charge
-from ids import ID_plots_customise_plot_unidec_mz_v_charge
 from ids import ID_plots_customise_smart_zoom
 from ids import ID_plots_rotate90
 from ids import ID_plots_saveImage_unidec_chargeDist
@@ -93,7 +84,6 @@ from ids import ID_saveRMSFImage
 from ids import ID_saveRMSFImageDoc
 from ids import ID_saveRTImage
 from ids import ID_saveRTImageDoc
-from ids import ID_saveUniDecAll
 from ids import ID_saveWaterfallImage
 from ids import ID_saveWaterfallImageDoc
 from ids import ID_smooth1Ddata1DT
@@ -718,12 +708,12 @@ class panelPlot(wx.Panel):
             text="Edit legend parameters...",
             bitmap=self.icons.iconsLib["panel_legend_16"],
         )
-        menu_edit_rmsd = makeMenuItem(
-            parent=menu,
-            id=ID_extraSettings_rmsd,
-            text="Edit plot parameters...",
-            bitmap=self.icons.iconsLib["panel_rmsd_16"],
-        )
+        #         menu_edit_rmsd = makeMenuItem(
+        #             parent=menu,
+        #             id=ID_extraSettings_rmsd,
+        #             text="Edit plot parameters...",
+        #             bitmap=self.icons.iconsLib["panel_rmsd_16"],
+        #         )
         menu_edit_waterfall = makeMenuItem(
             parent=menu,
             id=ID_extraSettings_waterfall,
@@ -945,27 +935,27 @@ class panelPlot(wx.Panel):
             menu.AppendItem(
                 makeMenuItem(parent=menu, id=ID_clearPlot_3D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"])
             )
-        elif self.currentPage == "Overlay":
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_edit_plot_2D)
-            menu.AppendSeparator()
-            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot_overlay.lock_plot_from_updating)
-            menu.AppendItem(menu_customise_plot)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(self.config.resize)
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_saveOverlayImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
-                )
-            )
-            menu.AppendSeparator()
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_clearPlot_Overlay, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-                )
-            )
+        #         elif self.currentPage == "Overlay":
+        #             menu.AppendItem(menu_edit_general)
+        #             menu.AppendItem(menu_edit_plot_2D)
+        #             menu.AppendSeparator()
+        #             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
+        #             self.lock_plot_check.Check(self.plot_overlay.lock_plot_from_updating)
+        #             menu.AppendItem(menu_customise_plot)
+        #             menu.AppendSeparator()
+        #             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
+        #             self.resize_plot_check.Check(self.config.resize)
+        #             menu.AppendItem(
+        #                 makeMenuItem(
+        #                     parent=menu, id=ID_saveOverlayImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+        #                 )
+        #             )
+        #             menu.AppendSeparator()
+        #             menu.AppendItem(
+        #                 makeMenuItem(
+        #                     parent=menu, id=ID_clearPlot_Overlay, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+        #                 )
+        #             )
         elif self.currentPage == "Waterfall":
             menu.AppendItem(menu_edit_general)
             menu.AppendItem(menu_edit_plot_2D)
@@ -992,114 +982,42 @@ class panelPlot(wx.Panel):
                     parent=menu, id=ID_clearPlot_Waterfall, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
-        elif self.currentPage == "RMSF":
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_edit_rmsd)
-            menu.AppendItem(menu_customise_plot)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(self.config.resize)
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_saveRMSFImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
-                )
-            )
-            menu.AppendSeparator()
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_clearPlot_RMSF, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-                )
-            )
-        elif self.currentPage == "Comparison":
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_customise_plot)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(self.config.resize)
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu,
-                    id=ID_saveRMSDmatrixImage,
-                    text="Save figure as...",
-                    bitmap=self.icons.iconsLib["save16"],
-                )
-            )
-            menu.AppendSeparator()
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_clearPlot_Matrix, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-                )
-            )
-        elif self.currentPage == "Calibration":
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu, id=ID_clearPlot_Calibration, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-                )
-            )
-        #         elif self.currentPage == "UniDec":
-        #
+        #         elif self.currentPage == "RMSF":
         #             menu.AppendItem(menu_edit_general)
-        #             menu.AppendItem(menu_edit_plot_1D)
-        #             menu.AppendItem(menu_edit_plot_2D)
-        #             menu.AppendItem(menu_edit_colorbar)
-        #             menu.AppendItem(menu_edit_legend)
-        #             menu.AppendSeparator()
-        #             evtID = {
-        #                 "MS": ID_plots_customise_plot_unidec_ms,
-        #                 "mwDistribution": ID_plots_customise_plot_unidec_mw,
-        #                 "mzGrid": ID_plots_customise_plot_unidec_mz_v_charge,
-        #                 "mwGrid": ID_plots_customise_plot_unidec_mw_v_charge,
-        #                 "pickedPeaks": ID_plots_customise_plot_unidec_isolated_mz,
-        #                 "Barchart": ID_plots_customise_plot_unidec_ms_barchart,
-        #                 "ChargeDistribution": ID_plots_customise_plot_unidec_chargeDist,
-        #             }.get(self.view.plot_name, None)
-        #
-        #             if evtID is not None:
-        #                 menu.AppendItem(
-        #                     makeMenuItem(
-        #                         parent=menu, id=evtID, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
-        #                     )
-        #                 )
-        #             menu.AppendMenu(wx.ID_ANY, "Customise plot...", customiseUniDecMenu)
+        #             menu.AppendItem(menu_edit_rmsd)
+        #             menu.AppendItem(menu_customise_plot)
         #             menu.AppendSeparator()
         #             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
         #             self.resize_plot_check.Check(self.config.resize)
-        #
-        #             evtID = {
-        #                 "MS": ID_plots_saveImage_unidec_ms,
-        #                 "mwDistribution": ID_plots_saveImage_unidec_mw,
-        #                 "mzGrid": ID_plots_saveImage_unidec_mz_v_charge,
-        #                 "mwGrid": ID_plots_saveImage_unidec_mw_v_charge,
-        #                 "pickedPeaks": ID_plots_saveImage_unidec_isolated_mz,
-        #                 "Barchart": ID_plots_saveImage_unidec_ms_barchart,
-        #                 "ChargeDistribution": ID_plots_saveImage_unidec_chargeDist,
-        #             }.get(self.view.plot_name, None)
-        #
-        #             if evtID is not None:
-        #                 menu.AppendItem(
-        #                     makeMenuItem(parent=menu, id=evtID, text="Save figure as...", bitmap=self.icons.iconsLib["save16"])
-        #                 )
-        #             menu.AppendMenu(wx.ID_ANY, "Save figure...", saveUniDecMenu)
-        #             menu.AppendSeparator()
-        #
-        #             evtID = {
-        #                 "MS": ID_clearPlot_UniDec_MS,
-        #                 "mwDistribution": ID_clearPlot_UniDec_mwDistribution,
-        #                 "mzGrid": ID_clearPlot_UniDec_mzGrid,
-        #                 "mwGrid": ID_clearPlot_UniDec_mwGrid,
-        #                 "pickedPeaks": ID_clearPlot_UniDec_pickedPeaks,
-        #                 "Barchart": ID_clearPlot_UniDec_barchart,
-        #                 "ChargeDistribution": ID_clearPlot_UniDec_chargeDistribution,
-        #             }.get(self.view.plot_name, None)
-        #
-        #             if evtID is not None:
-        #                 menu.AppendItem(
-        #                     makeMenuItem(parent=menu, id=evtID, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"])
-        #                 )
-        #
         #             menu.AppendItem(
         #                 makeMenuItem(
-        #                     parent=menu, id=ID_clearPlot_UniDec_all, text="Clear all", bitmap=self.icons.iconsLib["clear_16"]
+        #                     parent=menu, id=ID_saveRMSFImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+        #                 )
+        #             )
+        #             menu.AppendSeparator()
+        #             menu.AppendItem(
+        #                 makeMenuItem(
+        #                     parent=menu, id=ID_clearPlot_RMSF, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+        #                 )
+        #             )
+        #         elif self.currentPage == "Comparison":
+        #             menu.AppendItem(menu_edit_general)
+        #             menu.AppendItem(menu_customise_plot)
+        #             menu.AppendSeparator()
+        #             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
+        #             self.resize_plot_check.Check(self.config.resize)
+        #             menu.AppendItem(
+        #                 makeMenuItem(
+        #                     parent=menu,
+        #                     id=ID_saveRMSDmatrixImage,
+        #                     text="Save figure as...",
+        #                     bitmap=self.icons.iconsLib["save16"],
+        #                 )
+        #             )
+        #             menu.AppendSeparator()
+        #             menu.AppendItem(
+        #                 makeMenuItem(
+        #                     parent=menu, id=ID_clearPlot_Matrix, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
         #                 )
         #             )
         elif self.currentPage == "Annotated":
@@ -3543,11 +3461,16 @@ class panelPlot(wx.Panel):
         # Show the mass spectrum
         self.plot3D.repaint()
 
-    def on_plot_waterfall(self, xvals, yvals, zvals, xlabel, ylabel, colors=[], set_page=False, **kwargs):
+    def on_plot_waterfall(
+        self, xvals, yvals, zvals, xlabel, ylabel, colors=[], set_page=False, plot="Waterfall", **kwargs
+    ):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["Waterfall"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Waterfall"])
 
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         waterfall_kwargs = self._buildPlotParameters(plotType="waterfall")
@@ -3555,8 +3478,8 @@ class panelPlot(wx.Panel):
         if "increment" in kwargs:
             plt_kwargs["increment"] = kwargs["increment"]
 
-        self.plot_waterfall.clearPlot()
-        self.plot_waterfall.plot_1D_waterfall(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_waterfall(
             xvals=xvals,
             yvals=yvals,
             zvals=zvals,
@@ -3573,12 +3496,11 @@ class panelPlot(wx.Panel):
         if "add_legend" in kwargs and "labels" in kwargs and len(colors) == len(kwargs["labels"]):
             if kwargs["add_legend"]:
                 legend_text = list(zip(colors, kwargs["labels"]))
-                self.plot_waterfall.plot_1D_add_legend(legend_text, **plt_kwargs)
+                plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
+        plot_obj.repaint()
 
-        # Show the mass spectrum
-        self.plot_waterfall.repaint()
+    def plot_1D_waterfall_update(self, which="other", **kwargs):
 
-    def plot_1D_waterfall_update(self, which="other"):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
         if self.currentPage == "Other":
@@ -3598,12 +3520,15 @@ class panelPlot(wx.Panel):
         plot_name.repaint()
 
     def on_plot_waterfall_overlay(
-        self, xvals, yvals, zvals, colors, xlabel, ylabel, labels=None, set_page=False, **kwargs
+        self, xvals, yvals, zvals, colors, xlabel, ylabel, labels=None, set_page=False, plot="Waterfall", **kwargs
     ):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["Waterfall"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Waterfall"])
 
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         waterfall_kwargs = self._buildPlotParameters(plotType="waterfall")
@@ -3611,8 +3536,8 @@ class panelPlot(wx.Panel):
         if "increment" in kwargs:
             plt_kwargs["increment"] = kwargs["increment"]
 
-        self.plot_waterfall.clearPlot()
-        self.plot_waterfall.plot_1D_waterfall_overlay(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_waterfall_overlay(
             xvals=xvals,
             yvals=yvals,
             zvals=zvals,
@@ -3629,21 +3554,23 @@ class panelPlot(wx.Panel):
         if "add_legend" in kwargs and "labels" in kwargs and len(colors) == len(kwargs["labels"]):
             if kwargs["add_legend"]:
                 legend_text = list(zip(colors, kwargs["labels"]))
-                self.plot_waterfall.plot_1D_add_legend(legend_text, **plt_kwargs)
+                plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
 
-        self.plot_waterfall.repaint()
+        plot_obj.repaint()
 
-    def on_plot_overlay_RT(self, xvals, yvals, xlabel, colors, labels, xlimits, style=None, set_page=False):
+    def on_plot_overlay_RT(self, xvals, yvals, xlabel, colors, labels, xlimits, set_page=False, plot="RT", **kwargs):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["RT"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["RT"])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
-        print(colors)
-        self.plotRT.clearPlot()
-        self.plotRT.plot_1D_overlay(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_overlay(
             xvals=xvals,
             yvals=yvals,
             title="",
@@ -3657,19 +3584,22 @@ class panelPlot(wx.Panel):
             plotName="1D",
             **plt_kwargs,
         )
-        self.plotRT.repaint()
+        plot_obj.repaint()
 
-    def on_plot_overlay_DT(self, xvals, yvals, xlabel, colors, labels, xlimits, style=None, set_page=False):
+    def on_plot_overlay_DT(self, xvals, yvals, xlabel, colors, labels, xlimits, set_page=False, plot="1D", **kwargs):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["1D"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["1D"])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
-        self.plot1D.clearPlot()
-        self.plot1D.plot_1D_overlay(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_overlay(
             xvals=xvals,
             yvals=yvals,
             title="",
@@ -3683,7 +3613,7 @@ class panelPlot(wx.Panel):
             plotName="1D",
             **plt_kwargs,
         )
-        self.plot1D.repaint()
+        plot_obj.repaint()
 
     def on_plot_overlay_2D(
         self,
@@ -3697,21 +3627,25 @@ class panelPlot(wx.Panel):
         yvals,
         xlabel,
         ylabel,
-        flag=None,
         plotName="2D",
         set_page=False,
+        plot="Overlay",
+        **kwargs,
     ):
         """
         Plot an overlay of *2* ions
         """
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["Overlay"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Overlay"])
 
         plt_kwargs = self._buildPlotParameters(plotType="2D")
-        self.plot_overlay.clearPlot()
-        self.plot_overlay.plot_2D_overlay(
+        plot_obj.clearPlot()
+        plot_obj.plot_2D_overlay(
             zvalsIon1=zvalsIon1,
             zvalsIon2=zvalsIon2,
             cmapIon1=cmapIon1,
@@ -3726,21 +3660,32 @@ class panelPlot(wx.Panel):
             plotName=plotName,
             **plt_kwargs,
         )
-
-        self.plot_overlay.repaint()
+        plot_obj.repaint()
 
     def on_plot_rgb(
-        self, zvals=None, xvals=None, yvals=None, xlabel=None, ylabel=None, legend_text=None, set_page=False
+        self,
+        zvals=None,
+        xvals=None,
+        yvals=None,
+        xlabel=None,
+        ylabel=None,
+        legend_text=None,
+        set_page=False,
+        plot="2D",
+        **kwargs,
     ):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["2D"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["2D"])
 
         plt_kwargs = self._buildPlotParameters(plotType="2D")
 
-        self.plot2D.clearPlot()
-        self.plot2D.plot_2D_rgb(
+        plot_obj.clearPlot()
+        plot_obj.plot_2D_rgb(
             zvals,
             xvals,
             yvals,
@@ -3750,7 +3695,7 @@ class panelPlot(wx.Panel):
             legend_text=legend_text,
             **plt_kwargs,
         )
-        self.plot2D.repaint()
+        plot_obj.repaint()
 
     def on_plot_RMSDF(
         self,
@@ -3921,12 +3866,12 @@ class panelPlot(wx.Panel):
         xlimits=None,
         dtX=None,
         dtY=None,
-        color=None,
         xlabelDT="Drift time (bins)",
         plotType="both",
         set_page=False,
         view_range=[],
-    ):  # onPlotMSDTCalibration
+        **kwargs,
+    ):
 
         # change page
         if set_page:
@@ -3998,9 +3943,9 @@ class panelPlot(wx.Panel):
 
         try:
             if self.plot_RMSF.plot_name == "RMSD":
-                zvals, xvals, yvals, xlabel, ylabel = self.presenter._get_replot_data("2D")
+                __, xvals, yvals, __, __ = self.presenter._get_replot_data("2D")
             elif self.plot_RMSF.plot_name == "RMSF":
-                zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF = self.presenter._get_replot_data("RMSF")
+                __, xvals, yvals, __, __, __ = self.presenter._get_replot_data("RMSF")
             else:
                 return
 
@@ -4024,11 +3969,24 @@ class panelPlot(wx.Panel):
         except Exception:
             pass
 
-    def on_plot_matrix(self, zvals=None, xylabels=None, cmap=None, override=True, replot=False, set_page=False):
+    def on_plot_matrix(
+        self,
+        zvals=None,
+        xylabels=None,
+        cmap=None,
+        override=True,
+        replot=False,
+        set_page=False,
+        plot="Comparison",
+        **kwargs,
+    ):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["Comparison"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Comparison"])
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -4045,8 +4003,8 @@ class panelPlot(wx.Panel):
         plt_kwargs = merge_two_dicts(plt_kwargs, rmsd_kwargs)
         plt_kwargs["colormap"] = cmap
 
-        self.plotCompare.clearPlot()
-        self.plotCompare.plot_2D_matrix(
+        plot_obj.clearPlot()
+        plot_obj.plot_2D_matrix(
             zvals=zvals,
             xylabels=xylabels,
             xNames=None,
@@ -4054,36 +4012,33 @@ class panelPlot(wx.Panel):
             plotName="2D",
             **plt_kwargs,
         )
-        self.plotCompare.repaint()
-
-        plt_kwargs = self._buildPlotParameters(plotType="3D")
-        rmsd_kwargs = self._buildPlotParameters(plotType="RMSF")
-        plt_kwargs = merge_two_dicts(plt_kwargs, rmsd_kwargs)
-        plt_kwargs["colormap"] = cmap
-
-        self.plot3D.clearPlot()
-        self.plot3D.plot_3D_bar(
-            xvals=None,
-            yvals=None,
-            xylabels=xylabels,
-            zvals=zvals,
-            title="",
-            xlabel="",
-            ylabel="",
-            axesSize=self.config._plotSettings["3D"]["axes_size"],
-            **plt_kwargs,
-        )
-        self.plot3D.repaint()
+        plot_obj.repaint()
 
         if override:
             self.config.replotData["Matrix"] = {"zvals": zvals, "xylabels": xylabels, "cmap": cmap}
 
     def on_plot_grid(
-        self, zvals_1, zvals_2, zvals_cum, xvals, yvals, xlabel, ylabel, cmap_1, cmap_2, set_page=False, **kwargs
+        self,
+        zvals_1,
+        zvals_2,
+        zvals_cum,
+        xvals,
+        yvals,
+        xlabel,
+        ylabel,
+        cmap_1,
+        cmap_2,
+        set_page=False,
+        plot="Overlay",
+        **kwargs,
     ):
 
-        if set_page:
-            self._set_page(self.config.panelNames["Overlay"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Overlay"])
 
         plt_kwargs = self._buildPlotParameters(plotType="2D")
         rmsd_kwargs = self._buildPlotParameters(plotType="RMSD")
@@ -4098,8 +4053,8 @@ class panelPlot(wx.Panel):
             zvals_2, min=self.config.minCmap, mid=self.config.midCmap, max=self.config.maxCmap
         )
         plt_kwargs["cmap_norm_cum"] = self.normalize_colormap(zvals_cum, min=-100, mid=0, max=100)
-        self.plot_overlay.clearPlot()
-        self.plot_overlay.plot_grid_2D_overlay(
+        plot_obj.clearPlot()
+        plot_obj.plot_grid_2D_overlay(
             zvals_1,
             zvals_2,
             zvals_cum,
@@ -4110,16 +4065,22 @@ class panelPlot(wx.Panel):
             axesSize=self.config._plotSettings["Overlay (Grid)"]["axes_size"],
             **plt_kwargs,
         )
-        self.plot_overlay.repaint()
+        plot_obj.repaint()
 
-    def on_plot_n_grid(self, n_zvals, cmap_list, title_list, xvals, yvals, xlabel, ylabel, set_page=False):
+    def on_plot_n_grid(
+        self, n_zvals, cmap_list, title_list, xvals, yvals, xlabel, ylabel, set_page=False, plot="Overlay", **kwargs
+    ):
 
-        if set_page:
-            self._set_page(self.config.panelNames["Overlay"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Overlay"])
 
         plt_kwargs = self._buildPlotParameters(plotType="2D")
-        self.plot_overlay.clearPlot()
-        self.plot_overlay.plot_n_grid_2D_overlay(
+        plot_obj.clearPlot()
+        plot_obj.plot_n_grid_2D_overlay(
             n_zvals,
             cmap_list,
             title_list,
@@ -4130,7 +4091,7 @@ class panelPlot(wx.Panel):
             axesSize=self.config._plotSettings["Overlay (Grid)"]["axes_size"],
             **plt_kwargs,
         )
-        self.plot_overlay.repaint()
+        plot_obj.repaint()
 
     def plot_compare(
         self,
@@ -4292,52 +4253,48 @@ class panelPlot(wx.Panel):
         plot_obj.plot_1D_update_style_by_label(gid, **kwargs)
         plot_obj.repaint()
 
-    def plot_colorbar_update(self, plot_window=""):
-        plt_kwargs = self._buildPlotParameters(plotType="2D")
-        if plot_window == "2D" or self.currentPage == "2D":
-            self.plot2D.plot_2D_colorbar_update(**plt_kwargs)
-            self.plot2D.repaint()
-        elif plot_window == "RMSD" or self.currentPage == "RMSF":
-            self.plot_RMSF.plot_2D_colorbar_update(**plt_kwargs)
-            self.plot_RMSF.repaint()
-        elif plot_window == "Comparison" or self.currentPage == "Comparison":
-            self.plotCompare.plot_2D_colorbar_update(**plt_kwargs)
-            self.plotCompare.repaint()
-        elif plot_window == "UniDec" or self.currentPage == "UniDec":
-            self.plotUnidec_mzGrid.plot_2D_colorbar_update(**plt_kwargs)
-            self.plotUnidec_mzGrid.repaint()
+    def plot_colorbar_update(self, plot_window="", **kwargs):
+        if plot_window is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot_window)
 
-            self.plotUnidec_mwVsZ.plot_2D_colorbar_update(**plt_kwargs)
-            self.plotUnidec_mwVsZ.repaint()
-
-    def plot_normalization_update(self, plot_window=""):
         plt_kwargs = self._buildPlotParameters(plotType="2D")
 
-        if plot_window == "2D" or self.currentPage == "2D":
-            self.plot2D.plot_2D_update_normalization(**plt_kwargs)
-            self.plot2D.repaint()
-        elif plot_window == "Comparison" or self.currentPage == "Comparison":
-            self.plotCompare.plot_2D_colorbar_update(**plt_kwargs)
-            self.plotCompare.repaint()
-        elif plot_window == "UniDec" or self.currentPage == "UniDec":
-            self.plotUnidec_mzGrid.plot_2D_update_normalization(**plt_kwargs)
-            self.plotUnidec_mzGrid.repaint()
+        plot_obj.plot_2D_colorbar_update(**plt_kwargs)
+        plot_obj.repaint()
 
-            self.plotUnidec_mwVsZ.plot_2D_update_normalization(**plt_kwargs)
-            self.plotUnidec_mwVsZ.repaint()
+    def plot_normalization_update(self, plot_window="", **kwargs):
+        if plot_window is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot_window)
 
-    def on_add_legend(self, labels, colors, plot="RT"):
+        plt_kwargs = self._buildPlotParameters(plotType="2D")
+
+        plot_obj.plot_2D_update_normalization(**plt_kwargs)
+        plot_obj.repaint()
+
+    def on_add_legend(self, labels, colors, plot="RT", **kwargs):
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
         plt_kwargs = self._buildPlotParameters(plotType="legend")
 
         if len(colors) == len(labels):
             legend_text = list(zip(colors, labels))
 
-        if plot == "RT":
-            self.plotRT.plot_1D_add_legend(legend_text, **plt_kwargs)
+        plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
 
-    def on_clear_legend(self, plot, repaint=False):
-        if plot == "RT":
-            self.plotRT.plot_remove_legend()
+    def on_clear_legend(self, plot, **kwargs):
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
+        plot_obj.plot_remove_legend()
 
     def on_add_marker(
         self,
