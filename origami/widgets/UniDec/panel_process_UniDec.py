@@ -95,6 +95,10 @@ class PanelProcessUniDec(wx.MiniFrame):
             menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
         )
         menu.AppendItem(save_figure_menu_item)
+        save_all_figures_menu_item = makeMenuItem(
+            menu, id=wx.ID_ANY, text="Save all figures as...", bitmap=self.icons.iconsLib["save_multiple_16"]
+        )
+        menu.AppendItem(save_all_figures_menu_item)
 
         clear_plot_menu_item = makeMenuItem(
             menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
@@ -104,6 +108,7 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_customise_plot)
         self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_save_all_figures, save_all_figures_menu_item)
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
 
@@ -767,13 +772,24 @@ class PanelProcessUniDec(wx.MiniFrame):
             self.plotUnidec_chargeDistribution.clearPlot()
 
     def on_save_figure(self, evt):
+        """Save figure"""
         plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
         plot_title = f"{self.document_title}_{self.dataset_name}_{self.view.plot_name}".replace(" ", "-").replace(
             ":", ""
         )
         self.panel_plot.save_images(None, None, plot_obj=plot_obj, image_name=plot_title)
 
+    def on_save_all_figures(self, evt):
+        """Save all figures"""
+        for plot_name in ['MS', 'mwDistribution', "mzGrid", "pickedPeaks", "mwGrid", "Barchart",
+                          "ChargeDistribution"]:
+            plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
+            plot_title = f"{self.document_title}_{self.dataset_name}_{plot_name}".replace(
+                " ", "-").replace(":", "")
+            self.panel_plot.save_images(None, None, plot_obj=plot_obj, image_name=plot_title)
+
     def on_get_plot_obj_from_name(self, plot_name):
+        """Get plot object from name"""
         plot_dict = {
             "MS": self.plotUnidec_MS,
             "mwDistribution": self.plotUnidec_mwDistribution,

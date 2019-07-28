@@ -5,7 +5,7 @@
 ### MS/DT
 
 - Add support for multi-zoom of MS/DT dataset. It should be low-res when zoomed out and higher resolution as we zoom in
-- Add better normalization formats = quantile, rms,
+- Add better normalization formats = quantile, rms
 
 ### v2.0.0
 
@@ -145,9 +145,9 @@ via the Menu -> Process -> ... was removed as it was very confusing.
 
 \*_![Improved](img/improved.png)_- Significant improvements to the right-click menus (most notably for UniDec/Annotations)
 
-#### **Plots panel**
+#### Plots panel
 
-\*_![Added](img/added.png)_- Some images can now be rotated by 90 degrees (mainly 2D)
+![Added](img/added.png)- Some images can now be rotated by 90 degrees (mainly 2D)
 
 ![Improved](img/improved.png) Significant improvements to the right-click menus.
 
@@ -157,7 +157,7 @@ via the Menu -> Process -> ... was removed as it was very confusing.
 
 ![Added](img/added.png) You can now extract mass spectra from the '2D' panel. Hold CTRL on your keyboard and drag the mouse in the plot area. Only works when standard plot is shown (e.g. Drift time (bins) vs Scans/Time)
 
-![Improved](img/improved.png) All data extraction will be carried out in a temporary*data folder (found in the ORIGAMI directory). This \*\_should*- fix any issues where data was being extracted from network drives and should keep your HDDs a little bit tidier. All files will be deleted at the end of the session.
+![Improved](img/improved.png) All data extraction will be carried out in a temporary data folder (found in the ORIGAMI directory). This _should_ - fix any issues where data was being extracted from network drives and should keep your HDDs a little bit tidier. All files will be deleted at the end of the session.
 
 ![Improved](img/improved.png) Data extraction in the DT, RT, DT/MS panels now takes into account the plot labels/units.
 

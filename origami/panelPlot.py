@@ -115,6 +115,7 @@ logger = logging.getLogger("origami")
 
 
 class panelPlot(wx.Panel):
+
     def __init__(self, parent, config, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(800, 600), style=wx.TAB_TRAVERSAL
@@ -1206,14 +1207,14 @@ class panelPlot(wx.Panel):
         # Setup filename
         wildcard = (
             "SVG Scalable Vector Graphic (*.svg)|*.svg|"
-            + "SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
-            + "PNG Portable Network Graphic (*.png)|*.png|"
-            + "Enhanced Windows Metafile (*.eps)|*.eps|"
-            + "JPEG File Interchange Format (*.jpeg)|*.jpeg|"
-            + "TIFF Tag Image File Format (*.tiff)|*.tiff|"
-            + "RAW Image File Format (*.raw)|*.raw|"
-            + "PS PostScript Image File Format (*.ps)|*.ps|"
-            + "PDF Portable Document Format (*.pdf)|*.pdf"
+            +"SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
+            +"PNG Portable Network Graphic (*.png)|*.png|"
+            +"Enhanced Windows Metafile (*.eps)|*.eps|"
+            +"JPEG File Interchange Format (*.jpeg)|*.jpeg|"
+            +"TIFF Tag Image File Format (*.tiff)|*.tiff|"
+            +"RAW Image File Format (*.raw)|*.raw|"
+            +"PS PostScript Image File Format (*.ps)|*.ps|"
+            +"PDF Portable Document Format (*.pdf)|*.pdf"
         )
 
         wildcard_dict = {"svg": 0, "svgz": 1, "png": 2, "eps": 3, "jpeg": 4, "tiff": 5, "raw": 6, "ps": 7, "pdf": 8}
@@ -1263,8 +1264,8 @@ class panelPlot(wx.Panel):
             raise MessageError(
                 "No spectrum information",
                 "Document title and/or spectrum title were not recorded for this plot."
-                + "\n\nYou can try peak picking by right-clicking in the document tree on the desired mass spectrum"
-                + " and clicking on `Open peak picker`",
+                +"\n\nYou can try peak picking by right-clicking in the document tree on the desired mass spectrum"
+                +" and clicking on `Open peak picker`",
             )
 
         self.view.panelDocuments.documents.on_open_peak_picker(
@@ -1536,8 +1537,8 @@ class panelPlot(wx.Panel):
                 if plot.lock_plot_from_updating:
                     msg = (
                         "This plot is locked and you cannot use global setting updated. \n"
-                        + "Please right-click in the plot area and select Customise plot..."
-                        + " to adjust plot settings."
+                        +"Please right-click in the plot area and select Customise plot..."
+                        +" to adjust plot settings."
                     )
                     print(msg)
                     continue
@@ -1597,8 +1598,8 @@ class panelPlot(wx.Panel):
             if resize_plot.lock_plot_from_updating:
                 msg = (
                     "This plot is locked and you cannot use global setting updated. \n"
-                    + "Please right-click in the plot area and select Customise plot..."
-                    + " to adjust plot settings."
+                    +"Please right-click in the plot area and select Customise plot..."
+                    +" to adjust plot settings."
                 )
                 print(msg)
                 return
@@ -1722,23 +1723,11 @@ class panelPlot(wx.Panel):
         plotList = [
             self.plot1,
             self.plotRT,
-            #             self.plot_RMSF,
             self.plot1D,
-            #             self.plotCompare,
             self.plot2D,
             self.plot3D,
-            #             self.plot_overlay,
             self.plot_waterfall,
-            #             self.topPlotMS,
-            #             self.bottomPlot1DT,
             self.plot_DT_vs_MS,
-            #             self.plotUnidec_MS,
-            #             self.plotUnidec_mzGrid,
-            #             self.plotUnidec_mwDistribution,
-            #             self.plotUnidec_mwVsZ,
-            #             self.plotUnidec_individualPeaks,
-            #             self.plotUnidec_barChart,
-            #             self.plotUnidec_chargeDistribution,
             self.plotOther,
             self.plot_RT_MS,
             self.plot_DT_MS,
@@ -1748,23 +1737,7 @@ class panelPlot(wx.Panel):
             plot.clearPlot()
             plot.repaint()
         # Message
-        args = ("Cleared all plots", 4)
-        self.presenter.onThreading(None, args, action="updateStatusbar")
-
-    #     def on_clear_unidec(self, evt=None, which="all"):
-    #
-    #         if which in ["all", "initilise"]:
-    #             self.plotUnidec_MS.clearPlot()
-    #
-    #         if which in ["all", "run"]:
-    #             self.plotUnidec_mzGrid.clearPlot()
-    #             self.plotUnidec_mwDistribution.clearPlot()
-    #             self.plotUnidec_mwVsZ.clearPlot()
-    #
-    #         if which in ["all", "detect", "run"]:
-    #             self.plotUnidec_individualPeaks.clearPlot()
-    #             self.plotUnidec_barChart.clearPlot()
-    #             self.plotUnidec_chargeDistribution.clearPlot()
+        logger.info("Cleared all plots")
 
     def on_clear_patches(self, plot="MS", repaint=False, **kwargs):
 
@@ -2096,11 +2069,6 @@ class panelPlot(wx.Panel):
     def on_plot_unidec_mwDistribution(
         self, unidec_eng_data=None, replot=None, xlimits=None, plot="UniDec_MW", **kwargs
     ):
-        """
-        Plot simple Mass spectrum before it is pre-processed
-        @param unidec_eng_data (object):  reference to unidec engine data structure
-        @param xlimits: unused
-        """
 
         if plot is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
@@ -2327,7 +2295,7 @@ class panelPlot(wx.Panel):
         if len(legend_text) - 1 > plt_kwargs["maximum_shown_items"]:
             msg = (
                 "Only showing {} out of {} items.".format(plt_kwargs["maximum_shown_items"], len(legend_text) - 1)
-                + " If you would like to see more go to Processing -> UniDec -> Max shown"
+                +" If you would like to see more go to Processing -> UniDec -> Max shown"
             )
             logger.info(msg)
 
@@ -2417,7 +2385,7 @@ class panelPlot(wx.Panel):
             if len(xvals) > plt_kwargs["maximum_shown_items"]:
                 msg = (
                     "Only showing {} out of {} items.".format(plt_kwargs["maximum_shown_items"], len(xvals))
-                    + " If you would like to see more go to Processing -> UniDec -> Max shown"
+                    +" If you would like to see more go to Processing -> UniDec -> Max shown"
                 )
                 self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
 
@@ -2494,11 +2462,16 @@ class panelPlot(wx.Panel):
             except AttributeError:
                 pass
 
-    def on_plot_other_1D(self, msX=None, msY=None, xlabel="", ylabel="", xlimits=None, set_page=False, **kwargs):
+    def on_plot_other_1D(self, msX=None, msY=None, xlabel="", ylabel="", xlimits=None, set_page=False,
+                         plot="Other", **kwargs):
 
-        if set_page:
-            self._set_page(self.config.panelNames["Other"])
-        # Build kwargs
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Other"])
+
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
         # check limits
@@ -2517,8 +2490,8 @@ class panelPlot(wx.Panel):
         except TypeError:
             pass
 
-        self.plotOther.clearPlot()
-        self.plotOther.plot_1D(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D(
             xvals=msX,
             yvals=msY,
             xlimits=xlimits,
@@ -2528,21 +2501,24 @@ class panelPlot(wx.Panel):
             plotType="MS",
             **plt_kwargs,
         )
-        self.plotOther.repaint()
-        self.plotOther.plot_type = "line"
+        plot_obj.repaint()
+        plot_obj.plot_type = "line"
 
-    def on_plot_other_overlay(
-        self, xvals, yvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False, **kwargs
-    ):
+    def on_plot_other_overlay(self, xvals, yvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False,
+                              plot="Other", **kwargs):
 
-        if set_page:
-            self._set_page(self.config.panelNames["Other"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Other"])
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        self.plotOther.clearPlot()
-        self.plotOther.plot_1D_overlay(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_overlay(
             xvals=xvals,
             yvals=yvals,
             title="",
@@ -2556,13 +2532,18 @@ class panelPlot(wx.Panel):
             plotName="1D",
             **plt_kwargs,
         )
-        self.plotOther.repaint()
-        self.plotOther.plot_type = "multi-line"
+        plot_obj.repaint()
+        plot_obj.plot_type = "multi-line"
 
-    def on_plot_other_waterfall(self, xvals, yvals, zvals, xlabel, ylabel, colors=[], set_page=False, **kwargs):
+    def on_plot_other_waterfall(self, xvals, yvals, zvals, xlabel, ylabel, colors=[], set_page=False,
+                                plot="Other", **kwargs):
 
-        if set_page:
-            self._set_page(self.config.panelNames["Other"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Other"])
 
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         waterfall_kwargs = self._buildPlotParameters(plotType="waterfall")
@@ -2573,8 +2554,8 @@ class panelPlot(wx.Panel):
         # reverse labels
         xlabel, ylabel = ylabel, xlabel
 
-        self.plotOther.clearPlot()
-        self.plotOther.plot_1D_waterfall(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_waterfall(
             xvals=xvals,
             yvals=yvals,
             zvals=zvals,
@@ -2592,24 +2573,27 @@ class panelPlot(wx.Panel):
         #             len(colors) == len(kwargs['labels'])):
         #             if kwargs['add_legend']:
         #                 legend_text = zip(colors, kwargs['labels'])
-        #                 self.plotOther.plot_1D_add_legend(legend_text, **plt_kwargs)
+        #                 plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
 
-        self.plotOther.repaint()
-        self.plotOther.plot_type = "waterfall"
+        plot_obj.repaint()
+        plot_obj.plot_type = "waterfall"
 
-    def on_plot_other_scatter(
-        self, xvals, yvals, zvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False, **kwargs
-    ):
+    def on_plot_other_scatter(self, xvals, yvals, zvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False,
+                              plot="Other", **kwargs):
 
-        if set_page:
-            self._set_page(self.config.panelNames["Other"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Other"])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        self.plotOther.clearPlot()
-        self.plotOther.plot_1D_scatter(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_scatter(
             xvals=xvals,
             yvals=yvals,
             zvals=zvals,
@@ -2624,20 +2608,25 @@ class panelPlot(wx.Panel):
             plotName="1D",
             **plt_kwargs,
         )
-        self.plotOther.repaint()
-        self.plotOther.plot_type = "scatter"
+        plot_obj.repaint()
+        plot_obj.plot_type = "scatter"
 
-    def on_plot_other_grid_1D(self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False, **kwargs):
+    def on_plot_other_grid_1D(self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False,
+                              plot="Other", **kwargs):
 
-        if set_page:
-            self._set_page(self.config.panelNames["Other"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Other"])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        self.plotOther.clearPlot()
-        self.plotOther.plot_n_grid_1D_overlay(
+        plot_obj.clearPlot()
+        plot_obj.plot_n_grid_1D_overlay(
             xvals=xvals,
             yvals=yvals,
             title="",
@@ -2650,20 +2639,25 @@ class panelPlot(wx.Panel):
             plotName="1D",
             **plt_kwargs,
         )
-        self.plotOther.repaint()
-        self.plotOther.plot_type = "grid-line"
+        plot_obj.repaint()
+        plot_obj.plot_type = "grid-line"
 
-    def on_plot_other_grid_scatter(self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False, **kwargs):
+    def on_plot_other_grid_scatter(self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False,
+                                   plot="Other", **kwargs):
 
-        if set_page:
-            self._set_page(self.config.panelNames["Other"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Other"])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        self.plotOther.clearPlot()
-        self.plotOther.plot_n_grid_scatter(
+        plot_obj.clearPlot()
+        plot_obj.plot_n_grid_scatter(
             xvals=xvals,
             yvals=yvals,
             title="",
@@ -2676,20 +2670,25 @@ class panelPlot(wx.Panel):
             plotName="1D",
             **plt_kwargs,
         )
-        self.plotOther.repaint()
-        self.plotOther.plot_type = "grid-scatter"
+        plot_obj.repaint()
+        plot_obj.plot_type = "grid-scatter"
 
-    def on_plot_other_bars(self, xvals, yvals_min, yvals_max, xlabel, ylabel, colors, set_page=False, **kwargs):
+    def on_plot_other_bars(self, xvals, yvals_min, yvals_max, xlabel, ylabel, colors, set_page=False,
+                           plot="Other", **kwargs):
 
-        if set_page:
-            self._set_page(self.config.panelNames["Other"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Other"])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        self.plotOther.clearPlot()
-        self.plotOther.plot_floating_barplot(
+        plot_obj.clearPlot()
+        plot_obj.plot_floating_barplot(
             xvals=xvals,
             yvals_min=yvals_min,
             yvals_max=yvals_max,
@@ -2701,8 +2700,8 @@ class panelPlot(wx.Panel):
             axesSize=self.config._plotSettings["Other (Barplot)"]["axes_size"],
             **plt_kwargs,
         )
-        self.plotOther.repaint()
-        self.plotOther.plot_type = "bars"
+        plot_obj.repaint()
+        plot_obj.plot_type = "bars"
 
     def _on_check_plot_names(self, document_name, dataset_name, plot_window):
         """
@@ -2726,11 +2725,14 @@ class panelPlot(wx.Panel):
 
         return True
 
-    def on_add_centroid_MS_and_labels(
-        self, msX, msY, labels, full_labels, xlimits=None, title="", butterfly_plot=False, set_page=False, **kwargs
-    ):
-        if set_page:
-            self._set_page(self.config.panelNames["MS"])
+    def on_add_centroid_MS_and_labels(self, msX, msY, labels, full_labels, xlimits=None, title="",
+                                      butterfly_plot=False, set_page=False, plot="MS", **kwargs):
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["MS"])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -2744,7 +2746,7 @@ class panelPlot(wx.Panel):
             plot_size = self.config._plotSettings["MS (compare)"]["axes_size"]
 
         xylimits = self.plot1.get_xylimits()
-        self.plot1.plot_1D_centroid(
+        plot_obj.plot_1D_centroid(
             xvals=msX,
             yvals=msY,
             xlimits=xlimits,
@@ -2780,25 +2782,30 @@ class panelPlot(wx.Panel):
             if self.config.msms_show_full_label:
                 label = full_label
 
-            self.plot1.plot_add_text(
+            plot_obj.plot_add_text(
                 xpos=xval, yval=yval, label=label, yoffset=self.config.msms_label_y_offset, **plt_label_kwargs
             )
 
         if i == len(labels) - 1 and not butterfly_plot:
-            self.plot1.set_xylimits(xylimits)
+            plot_obj.set_xylimits(xylimits)
 
-        self.plot1.repaint()
+        plot_obj.repaint()
 
-    def on_plot_centroid_MS(self, msX, msY, msXY=None, xlimits=None, title="", repaint=True, set_page=False, **kwargs):
-        if set_page:
-            self._set_page(self.config.panelNames["MS"])
+    def on_plot_centroid_MS(self, msX, msY, msXY=None, xlimits=None, title="", repaint=True, set_page=False,
+                            plot="MS", **kwargs):
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["MS"])
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs["line_color"] = self.config.msms_line_color_unlabelled
 
-        self.plot1.clearPlot()
-        self.plot1.plot_1D_centroid(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_centroid(
             xvals=msX,
             yvals=msY,
             xyvals=msXY,
@@ -2810,9 +2817,8 @@ class panelPlot(wx.Panel):
             plotType="MS",
             **plt_kwargs,
         )
-        # Show the mass spectrum
         if repaint:
-            self.plot1.repaint()
+            plot_obj.repaint()
 
     def on_clear_MS_annotations(self):
 
@@ -2963,17 +2969,20 @@ class panelPlot(wx.Panel):
         dtX=None,
         dtY=None,
         xlabel=None,
-        color=None,
         override=True,
         full_repaint=False,
         replot=False,
-        e=None,
         set_page=False,
+        plot="1D",
+        **kwargs
     ):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["1D"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["1D"])
 
         if replot:
             dtX, dtY, xlabel = self.presenter._get_replot_data("1D")
@@ -2985,16 +2994,16 @@ class panelPlot(wx.Panel):
 
         if not full_repaint:
             try:
-                self.plot1D.plot_1D_update_data(dtX, dtY, xlabel, "Intensity", **plt_kwargs)
-                self.plot1D.repaint()
+                plot_obj.plot_1D_update_data(dtX, dtY, xlabel, "Intensity", **plt_kwargs)
+                plot_obj.repaint()
                 if override:
                     self.config.replotData["1D"] = {"xvals": dtX, "yvals": dtY, "xlabel": xlabel}
                     return
             except Exception:
                 pass
 
-        self.plot1D.clearPlot()
-        self.plot1D.plot_1D(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D(
             xvals=dtX,
             yvals=dtY,
             xlabel=xlabel,
@@ -3003,8 +3012,7 @@ class panelPlot(wx.Panel):
             plotType="1D",
             **plt_kwargs,
         )
-        # show the plot
-        self.plot1D.repaint()
+        plot_obj.repaint()
 
         if override:
             self.config.replotData["1D"] = {"xvals": dtX, "yvals": dtY, "xlabel": xlabel}
@@ -3015,17 +3023,20 @@ class panelPlot(wx.Panel):
         rtY=None,
         xlabel=None,
         ylabel="Intensity",
-        color=None,
         override=True,
         replot=False,
         full_repaint=False,
-        e=None,
         set_page=False,
+        plot="RT",
+        **kwargs
     ):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["RT"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["RT"])
 
         if replot:
             rtX, rtY, xlabel = self.presenter._get_replot_data("RT")
@@ -3037,16 +3048,16 @@ class panelPlot(wx.Panel):
 
         if not full_repaint:
             try:
-                self.plotRT.plot_1D_update_data(rtX, rtY, xlabel, ylabel, **plt_kwargs)
-                self.plotRT.repaint()
+                plot_obj.plot_1D_update_data(rtX, rtY, xlabel, ylabel, **plt_kwargs)
+                plot_obj.repaint()
                 if override:
                     self.config.replotData["RT"] = {"xvals": rtX, "yvals": rtY, "xlabel": xlabel}
                     return
             except Exception:
                 pass
 
-        self.plotRT.clearPlot()
-        self.plotRT.plot_1D(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D(
             xvals=rtX,
             yvals=rtY,
             xlabel=xlabel,
@@ -3056,7 +3067,7 @@ class panelPlot(wx.Panel):
             **plt_kwargs,
         )
         # Show the mass spectrum
-        self.plotRT.repaint()
+        plot_obj.repaint()
 
         if override:
             self.config.replotData["RT"] = {"xvals": rtX, "yvals": rtY, "xlabel": xlabel}
@@ -3113,25 +3124,29 @@ class panelPlot(wx.Panel):
 
         # Plot data
         self.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmapNorm=cmapNorm)
-        if self.config.waterfall:
-            if len(xvals) > 500:
-                msg = (
-                    "There are {} scans in this dataset".format(len(xvals))
-                    + " (it could be slow to plot Waterfall plot...). Would you like to continue?"
-                )
-                dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
-                if dlg == wx.ID_YES:
-                    self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
-        try:
-            self.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals, xlabel=xlabel, ylabel=ylabel, zlabel="Intensity")
-        except Exception:
-            pass
+#
+#         if self.config.waterfall:
+#             if len(xvals) > 500:
+#                 msg = (
+#                     "There are {} scans in this dataset".format(len(xvals))
+#                     +" (it could be slow to plot Waterfall plot...). Would you like to continue?"
+#                 )
+#                 dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
+#                 if dlg == wx.ID_YES:
+#                     self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
+#         try:
+#             self.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals, xlabel=xlabel, ylabel=ylabel, zlabel="Intensity")
+#         except Exception:
+#             pass
 
-    def on_plot_violin(self, data=None, set_page=False, **kwargs):
+    def on_plot_violin(self, data=None, set_page=False, plot="Waterfall", **kwargs):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["Waterfall"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["Waterfall"])
 
         # Unpack data
         if len(data) == 5:
@@ -3145,10 +3160,12 @@ class panelPlot(wx.Panel):
         if "increment" in kwargs:
             plt_kwargs["increment"] = kwargs["increment"]
 
-        self.plot_waterfall.clearPlot()
+        n_scans = zvals.shape[1]
+
+        plot_obj.clearPlot()
         try:
-            if zvals.shape[1] < plt_kwargs["violin_nlimit"]:
-                self.plot_waterfall.plot_1D_violin(
+            if n_scans < plt_kwargs["violin_nlimit"]:
+                plot_obj.plot_1D_violin(
                     xvals=yvals,
                     yvals=xvals,
                     zvals=zvals,
@@ -3162,16 +3179,11 @@ class panelPlot(wx.Panel):
                     **plt_kwargs,
                 )
             else:
-                self.presenter.onThreading(
-                    None,
-                    ("Selected item is too large to plot as violin. Plotting as waterfall instead.", 4, 10),
-                    action="updateStatusbar",
-                )
-                # check if there are more than 500 elements
-                if zvals.shape[1] > 500:
+                logger.warning("Seleted item is too large to plot as violin. Will try to plot as waterfall instead")
+                if n_scans > 500:
                     msg = (
-                        "There are {} scans in this dataset".format(len(xvals))
-                        + " (this could be slow...). Would you like to continue?"
+                        f"There are {n_scans} scans in this dataset" +
+                        "(this could be slow...). Would you like to continue?"
                     )
                     dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
                     if dlg == wx.ID_NO:
@@ -3179,11 +3191,11 @@ class panelPlot(wx.Panel):
                 # plot
                 self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
         except Exception:
-            self.plot_waterfall.clearPlot()
-            print("Failed to plot the violin plot...")
+            plot_obj.clearPlot()
+            logger.warning("Failed to plot violin plot...")
 
         # Show the mass spectrum
-        self.plot_waterfall.repaint()
+        plot_obj.repaint()
 
     def on_plot_2D(
         self,
@@ -3295,7 +3307,6 @@ class panelPlot(wx.Panel):
         ylabel=None,
         cmap=None,
         cmapNorm=None,
-        plotType=None,
         override=True,
         replot=False,
         set_page=False,

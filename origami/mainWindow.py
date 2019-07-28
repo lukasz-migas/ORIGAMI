@@ -161,6 +161,7 @@ logger = logging.getLogger("origami")
 
 
 class MyFrame(wx.Frame):
+
     def __init__(self, parent, config, helpInfo, icons, title="ORIGAMI"):
         wx.Frame.__init__(self, None, title=title)
 
@@ -779,7 +780,7 @@ class MyFrame(wx.Frame):
 
         # WIDGETS
         menuWidgets = wx.Menu()
-        menuView.AppendItem(
+        menuWidgets.AppendItem(
             makeMenuItem(
                 parent=menuView,
                 id=ID_saveAsInteractive,
@@ -1775,7 +1776,7 @@ class MyFrame(wx.Frame):
             verb_form = {"1": "is"}.get(str(n_documents), "are")
             message = (
                 "There {} {} document(s) open.\n".format(verb_form, len(self.presenter.documentsDict))
-                + "Are you sure you want to continue?"
+                +"Are you sure you want to continue?"
             )
             msgDialog = DialogNotifyOpenDocuments(self, presenter=self.presenter, message=message)
             dlg = msgDialog.ShowModal()
@@ -2182,7 +2183,7 @@ class MyFrame(wx.Frame):
         if self.config.threading:
             msg = (
                 "Multi-threading is only an experimental feature for now! It might occasionally crash ORIGAMI,"
-                + " in which case you will lose your processed data!"
+                +" in which case you will lose your processed data!"
             )
             DialogBox(exceptionTitle="Warning", exceptionMsg=msg, type="Warning")
         if evt is not None:
@@ -2220,7 +2221,7 @@ class MyFrame(wx.Frame):
                 print("Could not find Driftscope path")
                 msg = (
                     r"Could not localise Driftscope directory. Please setup path to Dritscope lib folder."
-                    + r" It usually exists under C:\DriftScope\lib"
+                    +r" It usually exists under C:\DriftScope\lib"
                 )
                 DialogBox(exceptionTitle="Could not find Driftscope", exceptionMsg=msg, type="Warning")
 
@@ -2228,7 +2229,7 @@ class MyFrame(wx.Frame):
                 print("Could not find imextract.exe")
                 msg = (
                     r"Could not localise Driftscope imextract.exe program. Please setup path to Dritscope"
-                    + r" lib folder. It usually exists under C:\DriftScope\lib"
+                    +r" lib folder. It usually exists under C:\DriftScope\lib"
                 )
                 DialogBox(exceptionTitle="Could not find Driftscope", exceptionMsg=msg, type="Warning")
         evt.Skip()
@@ -2246,6 +2247,7 @@ class MyFrame(wx.Frame):
 
 
 class DragAndDrop(wx.FileDropTarget):
+
     def __init__(self, window):
         """Constructor"""
         wx.FileDropTarget.__init__(self)

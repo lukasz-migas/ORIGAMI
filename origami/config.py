@@ -20,6 +20,7 @@ logger = logging.getLogger("origami")
 
 
 class OrigamiConfig:
+
     def __init__(self):
         """
         Initilize config
@@ -555,7 +556,7 @@ class OrigamiConfig:
             {"name": "min m/z", "order": 1, "width": 65, "show": True},
             {"name": "max m/z", "order": 2, "width": 65, "show": True},
             {"name": "z", "order": 3, "width": 25, "show": True},
-            {"name": "% int", "order": 4, "width": 60, "show": True},
+            {"name": "intensity", "order": 4, "width": 60, "show": True},
             {"name": "color", "order": 5, "width": 60, "show": True},
             {"name": "colormap", "order": 6, "width": 70, "show": True},
             {"name": "\N{GREEK SMALL LETTER ALPHA}", "order": 7, "width": 35, "show": True},
@@ -1999,7 +2000,7 @@ class OrigamiConfig:
             if not os.path.isdir(alternative_driftscope_path):
                 msg = (
                     "Could not localise Driftscope directory. Please setup path to Dritscope lib folder."
-                    + r" It usually exists under C:\DriftScope\lib"
+                    +r" It usually exists under C:\DriftScope\lib"
                 )
                 DialogBox(exceptionTitle="Could not find Driftscope", exceptionMsg=msg, type="Warning")
                 return False
@@ -2008,7 +2009,7 @@ class OrigamiConfig:
         if not os.path.isfile(self.driftscopePath + r"\imextract.exe"):
             msg = (
                 "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder."
-                + r" It usually exists under C:\DriftScope\lib"
+                +r" It usually exists under C:\DriftScope\lib"
             )
             DialogBox(exceptionTitle="Could not find Driftscope", exceptionMsg=msg, type="Warning")
             return False
