@@ -124,6 +124,10 @@ class data_handling:
             th = threading.Thread(target=self.on_open_document, args=args)
         elif action == "extract.data.user":
             th = threading.Thread(target=self.on_extract_data_from_user_input, args=args, **kwargs)
+        elif action == "export.config":
+            th = threading.Thread(target=self.on_export_config, args=args)
+        elif action == "import.config":
+            th = threading.Thread(target=self.on_import_config, args=args)
 
         # Start thread
         try:
@@ -429,6 +433,82 @@ class data_handling:
             dt_end = dt_range[1]
 
         return mz_start, mz_end, rt_start, rt_end, dt_start, dt_end
+
+    def on_export_config_fcn(self, evt, verbose=True):
+
+        cwd = self.config.cwd
+        if cwd is None:
+            return
+
+        save_dir = os.path.join(cwd, "configOut.xml")
+        if self.config.threading:
+            self.on_threading(action="export.config", args=(save_dir, verbose))
+        else:
+            try:
+                self.on_export_config(save_dir, verbose)
+            except TypeError:
+                pass
+
+    def on_export_config_as_fcn(self, evt, verbose=True):
+        dlg = wx.FileDialog(
+            self.view,
+            "Save configuration file as...",
+            wildcard="Extensible Markup Language (.xml) | *.xml",
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+        )
+
+        dlg.SetFilename("configOut.xml")
+        if dlg.ShowModal() == wx.ID_OK:
+            save_dir = dlg.GetPath()
+
+            if self.config.threading:
+                self.on_threading(action="export.config", args=(save_dir, verbose))
+            else:
+                try:
+                    self.on_export_config(save_dir, verbose)
+                except TypeError:
+                    pass
+
+    def on_export_config(self, save_dir, verbose=True):
+        try:
+            self.config.saveConfigXML(path=save_dir, verbose=verbose)
+        except TypeError as err:
+            logger.error(f"Failed to save configuration file: {save_dir}")
+            logger.error(err)
+
+    def on_import_config_fcn(self, evt):
+        config_path = os.path.join(self.config.cwd, "configOut.xml")
+
+        if self.config.threading:
+            self.on_threading(action="import.config", args=(config_path,))
+        else:
+            self.on_import_config(config_path)
+
+    def on_import_config_as_fcn(self, evt):
+        dlg = wx.FileDialog(
+            self.view,
+            "Import configuration file...",
+            wildcard="Extensible Markup Language (.xml) | *.xml",
+            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            config_path = dlg.GetPath()
+
+            if self.config.threading:
+                self.on_threading(action="import.config", args=(config_path,))
+            else:
+                self.on_import_config(config_path)
+
+    def on_import_config(self, config_path):
+        """Load configuration file"""
+
+        try:
+            self.config.loadConfigXML(path=config_path)
+            self.view.updateRecentFiles()
+            logger.info(f"Loaded configuration file: {config_path}")
+        except TypeError as err:
+            logger.error(f"Failed to load configuration file: {config_path}")
+            logger.error(err)
 
     def on_save_data_as_text(self, data, labels, data_format, **kwargs):
 
@@ -2301,6 +2381,8 @@ class data_handling:
                 for _, key in enumerate(dataset):
                     if key.endswith("(processed)"):
                         continue
+
+                    print(key)
                     mz_start, mz_end = ut_labels.get_ion_name_from_label(key)
                     charge = dataset[key].get("charge", "")
                     label = dataset[key].get("label", "")

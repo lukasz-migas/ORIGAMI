@@ -51,7 +51,7 @@ class panelAbout(wx.MiniFrame):
 
         about_msg = (
             "If you encounter any problems, have questions or would like to send some feedback,\n"
-            + "       please me at lukasz.migas@manchester.ac.uk or lukas.migas@yahoo.com"
+            + "               please me at l.g.migas@tudelft.nl or lukas.migas@yahoo.com"
         )
 
         message = wx.StaticText(panel, -1, about_msg)
@@ -60,7 +60,7 @@ class panelAbout(wx.MiniFrame):
         university = wx.StaticText(panel, -1, "University of Manchester")
         university.SetFont(wx.SMALL_FONT)
 
-        copyright_text = wx.StaticText(panel, -1, "(c) 2017-18 Lukasz G. Migas")
+        copyright_text = wx.StaticText(panel, -1, "(c) 2017-present Lukasz G. Migas")
         copyright_text.SetFont(NORMAL_FONT)
 
         homepageBtn = wx.Button(panel, ID_helpHomepage, "Homepage", size=(150, -1))

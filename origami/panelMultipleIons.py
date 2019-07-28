@@ -1048,7 +1048,7 @@ class panelMultipleIons(wx.Panel):
 
     #     def onSaveAsData(self, evt):
     #         count = self.peaklist.GetItemCount()
-    #         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
+    #         self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
     #         for ion in range(count):
     #             if evt.GetId() == ID_exportAllAsCSV_ion or evt.GetId() == ID_exportAllAsImage_ion:
     #                 pass
@@ -1094,9 +1094,9 @@ class panelMultipleIons(wx.Panel):
     #             # Save Image
     #             elif evt.GetId() == ID_exportAllAsImage_ion or evt.GetId() == ID_exportSeletedAsImage_ion:
     #                 saveFileName = 'DT_2D_'
-    #                 self.presenter.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True)
+    #                 self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True)
     #                 save_kwargs = {'image_name':"{}_{}".format(saveFileName, rangeName)}
-    #                 self.presenter.view.panelPlots.save_images(evt=ID_save2DImageDoc, **save_kwargs)
+    #                 self.view.panelPlots.save_images(evt=ID_save2DImageDoc, **save_kwargs)
     #         self.presenter.onThreading(evt, ('Finished saving data', 4), action='updateStatusbar')
 
     def onRecalculateCombinedORIGAMI(self, evt):
@@ -1199,7 +1199,6 @@ class panelMultipleIons(wx.Panel):
             document_in_table = self.peaklist.GetItem(row, self.config.peaklistColNames["filename"]).GetText()
             if mzStart_in_table == mz_min and mzEnd_in_table == mz_max and document_in_table == document:
                 return True
-
         return False
 
     def on_plot(self, evt):
@@ -1238,13 +1237,13 @@ class panelMultipleIons(wx.Panel):
             xvals = data[rangeName]["yvals"]  # normally this would be the y-axis
             yvals = data[rangeName]["yvals1D"]
             xlabels = data[rangeName]["ylabels"]  # normally this would be x-axis label
-            self.presenter.view.panelPlots.on_plot_1D(xvals, yvals, xlabels, set_page=True)
+            self.view.panelPlots.on_plot_1D(xvals, yvals, xlabels, set_page=True)
 
         elif evt.GetId() == ID_ionPanel_show_chromatogram:
             xvals = data[rangeName]["xvals"]
             yvals = data[rangeName]["yvalsRT"]
             xlabels = data[rangeName]["xlabels"]  # normally this would be x-axis label
-            self.presenter.view.panelPlots.on_plot_RT(xvals, yvals, xlabels, set_page=True)
+            self.view.panelPlots.on_plot_RT(xvals, yvals, xlabels, set_page=True)
 
         elif evt.GetId() == ID_ionPanel_show_zoom_in_MS:
             startX = str2num(mzStart) - self.config.zoomWindowX
@@ -1256,16 +1255,12 @@ class panelMultipleIons(wx.Panel):
 
             if endY == 0:
                 endY = 1.001
-            try:
-                self.presenter.view.panelPlots.on_zoom_1D_x_axis(startX=startX, endX=endX, set_page=True, plot="MS")
-            except AttributeError:
-                self.presenter.onThreading(
-                    evt,
-                    ("Failed to zoom-in on the ion. Please replot the mass spectrum and try again.", 4, 3),
-                    action="updateStatusbar",
-                )
-                return
 
+            try:
+                self.view.panelPlots.on_zoom_1D_x_axis(startX=startX, endX=endX, set_page=True, plot="MS")
+            except AttributeError:
+                logger.error("Failed to zoom-in on an ion - most likely because there is no mass spectrum present")
+                return
         else:
             # Unpack data
             zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(
@@ -1282,9 +1277,7 @@ class panelMultipleIons(wx.Panel):
             if evt.GetId() == ID_ionPanel_show_process_heatmap:
                 xvals, yvals, zvals = self.data_processing.on_process_2D(xvals, yvals, zvals, return_data=True)
             # Plot data
-            self.presenter.view.panelPlots.on_plot_2D(
-                zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True
-            )
+            self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
 
     def OnSavePeakList(self, evt):
         """
@@ -1620,16 +1613,14 @@ class panelMultipleIons(wx.Panel):
                 check_count += 1
 
         if evt.GetId() == ID_ionPanel_changeColorBatch_palette:
-            colors = self.presenter.view.panelPlots.on_change_color_palette(
-                None, n_colors=check_count, return_colors=True
-            )
+            colors = self.view.panelPlots.on_change_color_palette(None, n_colors=check_count, return_colors=True)
         elif evt.GetId() == ID_ionPanel_changeColorBatch_color:
             __, color_1, __ = self.OnGetColor(None)
             if color_1 is None:
                 return
             colors = [color_1] * check_count
         else:
-            colors = self.presenter.view.panelPlots.on_get_colors_from_colormap(n_colors=check_count)
+            colors = self.view.panelPlots.on_get_colors_from_colormap(n_colors=check_count)
 
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):
@@ -1707,7 +1698,7 @@ class panelMultipleIons(wx.Panel):
         This function opens a formatted CSV file with peaks
         """
         dlg = wx.FileDialog(
-            self.presenter.view,
+            self.view,
             "Choose a text file (m/z, window size, charge):",
             wildcard="*.csv;*.txt",
             style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
@@ -1728,7 +1719,7 @@ class panelMultipleIons(wx.Panel):
                 document_title = docList[0]
             else:
                 document_panel = DialogSelectDocument(
-                    self.presenter.view, presenter=self.presenter, document_list=docList, allow_new_document=False
+                    self.view, presenter=self.presenter, document_list=docList, allow_new_document=False
                 )
                 if document_panel.ShowModal() == wx.ID_OK:
                     pass
@@ -1787,9 +1778,7 @@ class panelMultipleIons(wx.Panel):
 
             # get colorlist beforehand
             count = self.peaklist.GetItemCount() + len(peaklist)
-            colors = self.presenter.view.panelPlots.on_change_color_palette(
-                None, n_colors=count + 1, return_colors=True
-            )
+            colors = self.view.panelPlots.on_change_color_palette(None, n_colors=count + 1, return_colors=True)
 
             # iterate
             for peak in range(len(peaklist)):
@@ -1839,7 +1828,7 @@ class panelMultipleIons(wx.Panel):
                     )
                 except Exception:
                     pass
-            self.presenter.view.on_toggle_panel(evt=ID_window_ionList, check=True)
+            self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
             dlg.Destroy()
 
     def on_check_selected(self, evt):
@@ -1939,21 +1928,19 @@ class panelMultipleIons(wx.Panel):
         except KeyError:
             xlimits = [document.parameters["startMS"], document.parameters["endMS"]]
         # Change panel and plot
-        self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames["MS"])
+        self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["MS"])
 
-        if not self.presenter.view.panelPlots._on_check_plot_names(document.title, "Mass Spectrum", "MS"):
+        if not self.view.panelPlots._on_check_plot_names(document.title, "Mass Spectrum", "MS"):
             name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-            self.presenter.view.panelPlots.on_plot_MS(
-                msX, msY, xlimits=xlimits, replot=True, set_page=True, **name_kwargs
-            )
+            self.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, replot=True, set_page=True, **name_kwargs)
 
         if count == 0:
-            self.presenter.view.panelPlots.on_clear_patches(plot="MS", repaint=True)
+            self.view.panelPlots.on_clear_patches(plot="MS", repaint=True)
             return
 
         ymin, height = 0, 100000000000
         last = self.peaklist.GetItemCount() - 1
-        self.presenter.view.panelPlots.on_clear_patches(plot="MS", repaint=False)
+        self.view.panelPlots.on_clear_patches(plot="MS", repaint=False)
         # Iterate over the list and plot rectangle one by one
         for row in range(count):
             itemInfo = self.OnGetItemInformation(itemID=row)
@@ -1962,7 +1949,7 @@ class panelMultipleIons(wx.Panel):
             color = itemInfo["color_255to1"]
             width = xmax - xmin
             if row == last:
-                self.presenter.view.panelPlots.on_plot_patches(
+                self.view.panelPlots.on_plot_patches(
                     xmin,
                     ymin,
                     width,
@@ -1973,7 +1960,7 @@ class panelMultipleIons(wx.Panel):
                     repaint=True,
                 )
             else:
-                self.presenter.view.panelPlots.on_plot_patches(
+                self.view.panelPlots.on_plot_patches(
                     xmin,
                     ymin,
                     width,

@@ -2294,7 +2294,7 @@ class OrigamiConfig:
 
         return parameters
 
-    def saveConfigXML(self, path, evt=None, verbose=True):
+    def saveConfigXML(self, path, verbose=False):
         """ Make and save config file in XML format """
 
         buff = '<?xml version="1.0" encoding="utf-8" ?>\n'
@@ -3389,14 +3389,15 @@ class OrigamiConfig:
             save = open(path, "w+")
             save.write(buff)
             save.close()
-            logger.info("Saved configuration parameters to {}".format(path))
+            if verbose:
+                logger.info("Saved configuration parameters to {}".format(path))
             return True
         except Exception as e:
             logger.error("Failed to save configuration parameters")
             logger.error(e)
             return False
 
-    def loadConfigXML(self, path, evt=None):
+    def loadConfigXML(self, path):
 
         try:
             document = defusedxml.minidom.parse(path)

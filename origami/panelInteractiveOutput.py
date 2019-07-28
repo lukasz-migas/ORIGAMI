@@ -187,6 +187,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.currentPath = self.presenter.currentPath
         self.currentDocumentName = "ORIGAMI"
 
+        self._setup_handling_and_processing()
+
         try:
             _main_position = self.view.GetPosition()
             position_diff = []
@@ -221,8 +223,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.populateTable()
         self.on_apply(evt=None)
         self.on_toggle_controls(evt=None)
-
-        self._setup_handling_and_processing()
 
         # fit layout
         self.main_sizer.Fit(self.split_panel)
@@ -2931,7 +2931,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.config.interactive_line_style = self.line_style.GetStringSelection()
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
     def onChangeComboBox(self, evt=None):
         self.itemOrder_combo.Clear()

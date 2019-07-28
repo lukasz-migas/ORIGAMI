@@ -38,12 +38,8 @@ from ids import ID_helpNewFeatures
 from ids import ID_helpNewVersion
 from ids import ID_helpReportBugs
 from ids import ID_helpYoutube
-from ids import ID_openAsConfig
-from ids import ID_openConfig
 from ids import ID_processAllIons
 from ids import ID_processSelectedIons
-from ids import ID_saveAsConfig
-from ids import ID_saveConfig
 from ids import ID_textPanel_process_all
 from ids import ID_window_ionList
 from ids import ID_window_textList
@@ -58,9 +54,6 @@ from utils.converters import str2num
 from utils.logging import set_logger
 from utils.logging import set_logger_level
 from utils.time import getTime
-
-# if platform == "win32":
-#     import readers.io_waters_raw as io_waters
 
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -90,7 +83,7 @@ class ORIGAMI(object):
         """
         self.view.Destroy()
         self.view = None
-        self.view = mainWindow.MyFrame(self, config=self.config, icons=self.icons, title="ORIGAMI")
+        self.view = mainWindow.MyFrame(self, config=self.config, icons=self.icons, title="ORIGAMI", helpInfo="")
         self.view.Show()
 
     def quit(self):
@@ -110,7 +103,7 @@ class ORIGAMI(object):
         self.help = OrigamiHelp()
 
         # Load configuration file
-        self.onImportConfig(evt=None, onStart=True)
+        self.on_import_configuration_on_startup()
 
         # Setup variables
         self.initilize_state()
@@ -173,6 +166,7 @@ class ORIGAMI(object):
         self.view.panelMultipleText._setup_handling_and_processing()
         self.view.panelMML._setup_handling_and_processing()
         self.view.panelPlots._setup_handling_and_processing()
+        self.view.panelParametersEdit._setup_handling_and_processing()
         self.data_processing._setup_handling_and_processing()
 
         if self.config.debug and not self.config.testing:
@@ -247,7 +241,6 @@ class ORIGAMI(object):
         """
         Create document
         """
-
         document = documents()
         document.title = name
         document.path = path
@@ -264,9 +257,6 @@ class ORIGAMI(object):
         wx.lib.inspection.InspectionTool().Show()
 
     def onThreading(self, evt, args, action="loadOrigami"):
-        # Setup thread
-        #         if action == 'loadOrigami':
-        #             th = threading.Thread(target=self.onLoadOrigamiDataThreaded, args=(args, evt))
 
         if action == "saveFigs":
             target, path, kwargs = args
@@ -1072,7 +1062,7 @@ class ORIGAMI(object):
             else:
                 DialogBox(
                     exceptionTitle="Error",
-                    exceptionMsg="Cannot plot grid larger than 6 x 6. You have selected".format(n_grid),
+                    exceptionMsg=f"Cannot plot grid larger than 6 x 6. You have selected {n_grid}",
                     type="Error",
                     exceptionPrint=True,
                 )
@@ -2368,8 +2358,6 @@ class ORIGAMI(object):
 
                     # Update file list
                     self.OnUpdateDocument(self.docs, "document")
-                else:
-                    pass
         except Exception:
             print("Cannot process selected items. These belong to Comparison document")
             return
@@ -2535,7 +2523,8 @@ class ORIGAMI(object):
             xlimits = dictionary.get("xlimits", None)
             return xvals, yvals, xlabels, colors, labels, xlimits
 
-    def getOverlayDataFromDictionary(self, dictionary=None, dataType="plot", compact=False):
+    @staticmethod
+    def getOverlayDataFromDictionary(dictionary=None, dataType="plot", compact=False):
         """
         This is a helper function to extract relevant data from dictionary
         Params:
@@ -2758,60 +2747,14 @@ class ORIGAMI(object):
 
         self.view.panelPlots.plot_RMSF.onZoomRMSF(xmin, xmax)
 
-    def onImportConfig(self, evt, onStart=False):
+    def on_import_configuration_on_startup(self):
         """
         This function imports configuration file
         """
-        if not onStart:
-            if evt.GetId() == ID_openConfig:
-                config_path = os.path.join(self.config.cwd, "configOut.xml")
-                self.onThreading(
-                    None, ("Imported configuration file: {}".format(config_path), 4), action="updateStatusbar"
-                )
-                self.config.loadConfigXML(path=config_path, evt=None)
-                self.view.updateRecentFiles()
-                return
-            elif evt.GetId() == ID_openAsConfig:
-                dlg = wx.FileDialog(
-                    self.view, "Open Configuration File", wildcard="*.xml", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
-                )
-                if dlg.ShowModal() == wx.ID_OK:
-                    fileName = dlg.GetPath()
-                    self.config.loadConfigXML(path=fileName, evt=None)
-                    self.view.updateRecentFiles()
-        else:
-            self.config.loadConfigXML(path="configOut.xml", evt=None)
-            #             self.view.updateRecentFiles()
-            return
 
-    def onExportConfig(self, evt, verbose=True):
-        if isinstance(evt, int):
-            evtID = evt
-        else:
-            evtID = evt.GetId()
+        self.config.loadConfigXML(path="configOut.xml")
 
-        if evtID == ID_saveConfig:
-            try:
-                save_dir = os.path.join(self.config.cwd, "configOut.xml")
-            except TypeError:
-                return
-            if self.config.threading:
-                args = (save_dir, None, verbose)
-                self.onThreading(None, args, action="export_settings")
-            else:
-                try:
-                    self.config.saveConfigXML(path=save_dir, evt=None, verbose=verbose)
-                except TypeError:
-                    pass
-        elif evtID == ID_saveAsConfig:
-            dlg = wx.FileDialog(
-                self.view, "Save As Configuration File", wildcard="*.xml", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-            )
-            dlg.SetFilename("configOut.xml")
-            if dlg.ShowModal() == wx.ID_OK:
-                fileName = dlg.GetPath()
-                self.config.saveConfigXML(path=fileName, evt=None, verbose=verbose)
-
+    #
     def on_open_directory(self, path=None, evt=None):
 
         if path is None:

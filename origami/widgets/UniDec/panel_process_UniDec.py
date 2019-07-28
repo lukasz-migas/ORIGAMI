@@ -2,7 +2,7 @@
 # __author__ lukasz.g.migas
 import logging
 
-import wx
+import wx.lib.scrolledpanel
 from ids import ID_plotPanel_resize
 from styles import makeCheckbox
 from styles import makeMenuItem
@@ -20,7 +20,6 @@ logger = logging.getLogger("origami")
 TEXTCTRL_SIZE = (60, -1)
 BTN_SIZE = (100, 22)
 
-# TODO: Remove UniDec plot panels from the main window and move them to here
 # TODO: Improve layout and add new functionality
 
 
@@ -631,27 +630,33 @@ class PanelProcessUniDec(wx.MiniFrame):
             panel, -1, self.icons.iconsLib["rocket_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_auto_btn.Bind(wx.EVT_BUTTON, self.on_auto_unidec)
+        self.unidec_auto_btn.SetToolTip(makeTooltip("Autorun..."))
 
         self.unidec_init_btn = wx.BitmapButton(
             panel, -1, self.icons.iconsLib["run_run_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_init_btn.Bind(wx.EVT_BUTTON, self.on_initilize_unidec)
+        self.unidec_init_btn.SetToolTip(makeTooltip("Initilize and pre-process..."))
 
         self.unidec_unidec_btn = wx.BitmapButton(
             panel, -1, self.icons.iconsLib["process_unidec_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_unidec_btn.Bind(wx.EVT_BUTTON, self.on_run_unidec)
+        self.unidec_unidec_btn.SetToolTip(makeTooltip("Run UniDec..."))
 
         self.unidec_peak_btn = wx.BitmapButton(
             panel, -1, self.icons.iconsLib["mark_peak_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_peak_btn.Bind(wx.EVT_BUTTON, self.on_detect_peaks_unidec)
+        self.unidec_peak_btn.SetToolTip(makeTooltip("Detect peaks..."))
 
         self.unidec_all_btn = wx.Button(panel, wx.ID_OK, "All", size=(40, 22))
         self.unidec_all_btn.Bind(wx.EVT_BUTTON, self.on_all_unidec)
+        self.unidec_all_btn.SetToolTip(makeTooltip("Run all..."))
 
         self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
         self.unidec_cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
+        self.unidec_cancel_btn.SetToolTip(makeTooltip("Close window..."))
 
         self.unidec_customise_btn = wx.BitmapButton(
             panel, -1, self.icons.iconsLib["settings16_2"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
@@ -786,7 +791,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.view.on_customise_unidec_plot_parameters(None)
 
     def on_open_width_tool(self, evt):
-        from gui_elements.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
+        from widgets.UniDec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
 
         try:
             kwargs = {
@@ -903,6 +908,8 @@ class PanelProcessUniDec(wx.MiniFrame):
                     self.panel_plot.on_plot_unidec_add_individual_lines_and_markers(
                         replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
                     )
+                else:
+                    raise MessageError("Missing data", "Please detect peaks first")
 
             # called after `isolate` is executed
             if task in ["isolate_mw_unidec"]:
@@ -929,6 +936,12 @@ class PanelProcessUniDec(wx.MiniFrame):
                 self.panel_plot.on_plot_charge_states(
                     peakpos, charges, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
                 )
+
+        # update peak width
+        self.on_update_peak_width()
+
+    def on_update_peak_width(self):
+        self.unidec_fit_peakWidth_value.SetValue(f"{self.config.unidec_engine.config.mzsig:.4f}")
 
     def on_plot_MW_normalization(self):
         """Trigger replot of the MW plot since the scaling might change"""
@@ -986,7 +999,8 @@ class PanelProcessUniDec(wx.MiniFrame):
 
     def on_update_mass_list(self):
         data = self.on_get_unidec_data()
-        massList, massMax = data["m/z with isolated species"]["_massList_"]
-        #         massList, massMax = self.data_processing.get_unidec_data(data_type='mass_list')
-        self.unidec_weightList_choice.SetItems(massList)
-        self.unidec_weightList_choice.SetStringSelection(massMax)
+        data = data.get("m/z with isolated species", None)
+        if data:
+            massList, massMax = data["_massList_"]
+            self.unidec_weightList_choice.SetItems(massList)
+            self.unidec_weightList_choice.SetStringSelection(massMax)

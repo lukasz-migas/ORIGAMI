@@ -19,9 +19,13 @@ def get_ion_name_from_label(ion_name):
     mz_max : str
         end m/z value
     """
-    ion_label = re.split(r"-|\(|:|,", ion_name)
-    mz_min = ion_label[0]
-    mz_max = ion_label[1]
+    if ion_name.startswith("ion="):
+        indexes = 1, 2
+    else:
+        indexes = 0, 1
+    ion_label = re.split(r"-|\(|:|,|=| ", ion_name)
+    mz_min = ion_label[indexes[0]]
+    mz_max = ion_label[indexes[1]]
 
     return mz_min, mz_max
 

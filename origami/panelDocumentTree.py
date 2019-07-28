@@ -184,7 +184,7 @@ class panelDocuments(wx.Panel):
         pass
 
     def makeTreeCtrl(self):
-        self.documents = documentsTree(self, self.parent, self.presenter, self.icons, self.config, id=-1, size=(-1, -1))
+        self.documents = documentsTree(self, self.parent, self.presenter, self.icons, self.config, size=(-1, -1))
 
 
 class documentsTree(wx.TreeCtrl):
@@ -199,11 +199,10 @@ class documentsTree(wx.TreeCtrl):
         presenter,
         icons,
         config,
-        id,
         size=(-1, -1),
         style=wx.TR_TWIST_BUTTONS | wx.TR_HAS_BUTTONS | wx.TR_FULL_ROW_HIGHLIGHT,
     ):
-        wx.TreeCtrl.__init__(self, parent, id, size=size, style=style)
+        wx.TreeCtrl.__init__(self, parent, size=size, style=style)
 
         self.parent = parent
         self.view = mainParent
@@ -6261,7 +6260,7 @@ class documentsTree(wx.TreeCtrl):
 
     def on_open_UniDec(self, evt, **kwargs):
         """Open UniDec panel which allows processing and visualisation"""
-        from widgets.panel_process_UniDec import PanelProcessUniDec
+        from widgets.UniDec.panel_process_UniDec import PanelProcessUniDec
 
         document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
 
@@ -6270,7 +6269,7 @@ class documentsTree(wx.TreeCtrl):
                 logger.warning("Panel is already open")
                 self.PanelProcessUniDec.SetFocus()
                 return
-        except RuntimeError:
+        except (AttributeError, RuntimeError):
             pass
 
         # initilize data extraction panel

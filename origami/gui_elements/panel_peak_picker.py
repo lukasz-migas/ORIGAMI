@@ -14,6 +14,11 @@ from visuals import mpl_plots
 
 logger = logging.getLogger("origami")
 
+# TODO: Add peakutils picker
+# TODO: Add statusbar/text window which will write output information
+# TODO: Increase MS plot size
+# TODO: Improve peak picker
+
 
 class panel_peak_picker(wx.MiniFrame):
     """Peak picking panel"""

@@ -63,17 +63,14 @@ Code:
 GUI:
 - [changed] renamed the Menu item "Plugins" to "Widgets"
 
-Document:
+Document object:
 - [new] added new keyword "metadata" which will store parameters for verious processes
 
-Plotting:
-- [new] DT/MS - added smart-zoom option which will speed-up data viewing for very large arrays
-    to activate, right-click and select "Customise smart-zoom" where you can adjust settings
-- [changed] comparing mass spectra is a little bit better now. I've modified the Comparison widget to have its own
-    plotting window so the behaviour is a lot more understandable! Now when you double-click on Mass Spectra in the Document
-    panel or select Menu -> Widgets -> Compare spectra... a new window will appear where you can easily compare
-    spectra from within the same or different document. Plotting is automatic so you simply select the spectrum you want
-    to view.
+Main panel:
+- [changed] Removed 'Process' from the Menu
+- [changed] Removed 'Processing' buttons from the toolbar - now, you have to right-click on an item to process it
+    (should remove a lot of confusion of what is being processed)
+- [new] added export configuration file to the toolbar
 
 Document tree:
 - [improved] when deleting items from the "Drift time (2D, EIC)" sub-tree, patches corresponding to the ion will be
@@ -86,6 +83,21 @@ Document tree:
     will process each item and add it to the document.
 TODO: Add option to change x/y-axis for ALL items in specified branch
 TODO: Add option to change charge for AL items in specified branch
+- [new] you can assign charge state for single or multiple items in a sub-tree element.
+
+Plotting:
+- [new] DT/MS - added smart-zoom option which will speed-up data viewing for very large arrays
+    to activate, right-click and select "Customise smart-zoom" where you can adjust settings
+- [changed] comparing mass spectra is a little bit better now. I've modified the Comparison widget to have its own
+    plotting window so the behaviour is a lot more understandable! Now when you double-click on Mass Spectra in the Document
+    panel or select Menu -> Widgets -> Compare spectra... a new window will appear where you can easily compare
+    spectra from within the same or different document. Plotting is automatic so you simply select the spectrum you want
+    to view.
+- [changed] I've cleaned-up the main plotting panel by renaming various compoents (e.g. MS -> Mass spectrum, RT ->
+    Chromatogram, etc)
+- [improved] I've removed various plot windows so its easier to understand where something has been plotted. Removed
+    windows include: UniDec (now has own widget), Overlay (now shown in Heatmap), RMSF (shown in Heatmap), Comparison
+    (shown in Heatmap)..
 
 Processing:
 - [changed] moved ORIGAMI-MS settings away from the processing window. Now, in order to setup FILE specific settings,
@@ -125,7 +137,12 @@ Processing:
     two separate windows.
     Visualizing UniDec data is also easy. When you double-click (or right-click) on an item in the Document Tree,
     the same panel will open, with UniDec results
-- [improved] Changed UniDec version to the latest (vX.X.X.X)
+- [improved] Changed UniDec version to the latest (v3.2.0)
+- [fixed] Visualising charge values on the `Isolated MS' will now show vertical lines at correct values, corresponding
+    to the adduct selection
+- [new] added a couple of more adduct types to the Adduct selection
+- [improved] various controls in the UniDec panel will not automatically plot/replot data when an event is triggered
+- [improved] error messages will be clearer from now on
 
 Ion panel:
 - [fix] when assigning single color to multiple items and the action was cancelled, an error would occur
@@ -149,9 +166,6 @@ Data extraction:
 - [improved] from now on, chromatographic and mobility (1D) data is extracted using Waters SDK
 - [fixed] fixed an issue which occured when trying to extract MS data from chromatographic window that only occured if
     the x-axis was Collision Voltage (V) - from now on you will not see an error and won' be able to extract data
-
-Document tree:
-- you can assign charge state for single or multiple items in a sub-tree element.
 
 
 

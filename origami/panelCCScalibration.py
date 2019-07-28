@@ -1008,7 +1008,7 @@ class bottomPanel(wx.Panel):
         xcentre = self.peaklist.GetItem(self.currentItem, self.config.ccsBottomColNames["ion"]).GetText()
         protein = self.peaklist.GetItem(self.currentItem, self.config.ccsBottomColNames["protein"]).GetText()
         charge = self.peaklist.GetItem(self.currentItem, self.config.ccsBottomColNames["charge"]).GetText()
-        format = self.peaklist.GetItem(self.currentItem, self.config.ccsBottomColNames["format"]).GetText()
+        fmt = self.peaklist.GetItem(self.currentItem, self.config.ccsBottomColNames["format"]).GetText()
 
         # Get data from dictionary
         rangeName = "".join([str(mzStart), "-", str(mzEnd)])
@@ -1023,13 +1023,13 @@ class bottomPanel(wx.Panel):
         self.topPanel.annotationBox.SetLabel(boxLabel)
 
         # Get appropriate data for format
-        if format == "2D, extracted":
+        if fmt == "2D, extracted":
             data = self.docs.IMS2Dions[rangeName]
-        elif format == "2D, combined":
+        elif fmt == "2D, combined":
             data = self.docs.IMS2DCombIons[rangeName]
-        elif format == "2D, processed":
+        elif fmt == "2D, processed":
             data = self.docs.IMS2DionsProcess[rangeName]
-        elif format == "Input data":
+        elif fmt == "Input data":
             data = self.docs.IMS2DcompData[rangeName]
         else:
             print("Data was empty")

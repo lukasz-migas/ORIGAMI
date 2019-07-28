@@ -15,9 +15,6 @@ from gui_elements.dialog_notify_new_version import DialogNewVersion
 from gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_exportSettings import panelExportSettings
-from gui_elements.panel_htmlViewer import panelHTMLViewer
-from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
-from gui_elements.panelAbout import panelAbout
 from ids import ID_addCCScalibrantFile
 from ids import ID_addNewInteractiveDoc
 from ids import ID_addNewManualDoc
@@ -104,11 +101,6 @@ from ids import ID_overlayMZfromList
 from ids import ID_overlayTextFromList
 from ids import ID_plots_showCursorGrid
 from ids import ID_process2DDocument
-from ids import ID_processSettings_2D
-from ids import ID_processSettings_ExtractData
-from ids import ID_processSettings_FindPeaks
-from ids import ID_processSettings_MS
-from ids import ID_processSettings_UniDec
 from ids import ID_quit
 from ids import ID_renameItem
 from ids import ID_RESET_ORIGAMI
@@ -156,7 +148,6 @@ from panelMultipleIons import panelMultipleIons
 from panelMultipleML import panelMML
 from panelMultipleTextFiles import panelMultipleTextFiles
 from panelPlot import panelPlot
-from panelProcess import panelProcessData
 from processing.data_handling import data_handling
 from processing.data_processing import data_processing
 from pubsub import pub
@@ -165,6 +156,13 @@ from styles import makeMenuItem
 from toolbox import compare_versions
 from toolbox import get_latest_version
 from utils.path import clean_directory
+
+# from ids import ID_processSettings_2D
+# from ids import ID_processSettings_ExtractData
+# from ids import ID_processSettings_FindPeaks
+# from ids import ID_processSettings_MS
+# from ids import ID_processSettings_UniDec
+# from panelProcess import panelProcessData
 
 logger = logging.getLogger("origami")
 
@@ -368,7 +366,6 @@ class MyFrame(wx.Frame):
         # self.makeBindings()
         self.make_statusbar()
         self.make_menubar()
-        self.SetMenuBar(self.mainMenubar)
         self.make_shortcuts()
         self.Maximize(True)
 
@@ -637,58 +634,6 @@ class MyFrame(wx.Frame):
         )
         self.mainMenubar.Append(menuFile, "&File")
 
-        # PROCESS
-        menuProcess = wx.Menu()
-        menuProcess.AppendItem(
-            makeMenuItem(
-                parent=menuProcess,
-                id=ID_processSettings_ExtractData,
-                text="Settings: &Extract data\tShift+1",
-                bitmap=self.icons.iconsLib["process_extract_16"],
-            )
-        )
-
-        #         menuProcess.AppendItem(makeMenuItem(parent=menuProcess, id=ID_processSettings_ORIGAMI,
-        #                                             text='Settings: &ORIGAMI\tShift+2',
-        #                                             bitmap=self.icons.iconsLib['process_origami_16']))
-
-        menuProcess.AppendItem(
-            makeMenuItem(
-                parent=menuProcess,
-                id=ID_processSettings_MS,
-                text="Settings: &Process mass spectra\tShift+3",
-                bitmap=self.icons.iconsLib["process_ms_16"],
-            )
-        )
-
-        menuProcess.AppendItem(
-            makeMenuItem(
-                parent=menuProcess,
-                id=ID_processSettings_2D,
-                text="Settings: Process &2D heatmaps\tShift+4",
-                bitmap=self.icons.iconsLib["process_2d_16"],
-            )
-        )
-
-        menuProcess.AppendItem(
-            makeMenuItem(
-                parent=menuProcess,
-                id=ID_processSettings_FindPeaks,
-                text="Settings: Peak &fitting\tShift+5",
-                bitmap=self.icons.iconsLib["process_fit_16"],
-            )
-        )
-
-        menuProcess.AppendItem(
-            makeMenuItem(
-                parent=menuProcess,
-                id=ID_processSettings_UniDec,
-                text="Settings: &UniDec\tShift+6",
-                bitmap=self.icons.iconsLib["process_unidec_16"],
-            )
-        )
-        self.mainMenubar.Append(menuProcess, "&Process")
-
         # PLOT
         menuPlot = wx.Menu()
         menuPlot.AppendItem(
@@ -805,22 +750,6 @@ class MyFrame(wx.Frame):
                 parent=menuView, id=ID_clearAllPlots, text="&Clear all plots", bitmap=self.icons.iconsLib["clear_16"]
             )
         )
-        menuView.AppendItem(
-            makeMenuItem(
-                parent=menuView,
-                id=ID_docTree_compareMS,
-                text="Open MS comparison panel...",
-                bitmap=self.icons.iconsLib["compare_mass_spectra_16"],
-            )
-        )
-        menuView.AppendItem(
-            makeMenuItem(
-                parent=menuView,
-                id=ID_saveAsInteractive,
-                text="Open &interactive output panel...\tShift+Z",
-                bitmap=self.icons.iconsLib["bokehLogo_16"],
-            )
-        )
         menuView.AppendSeparator()
         self.documentsPage = menuView.Append(ID_window_documentList, "Panel: Documents\tCtrl+1", kind=wx.ITEM_CHECK)
         self.mzTable = menuView.Append(ID_window_ionList, "Panel: Peak list\tCtrl+3", kind=wx.ITEM_CHECK)
@@ -855,8 +784,24 @@ class MyFrame(wx.Frame):
         )
         self.mainMenubar.Append(menuView, "&View")
 
-        # UTILITIES
+        # WIDGETS
         menuWidgets = wx.Menu()
+        menuView.AppendItem(
+            makeMenuItem(
+                parent=menuView,
+                id=ID_saveAsInteractive,
+                text="Open &interactive output panel...\tShift+Z",
+                bitmap=self.icons.iconsLib["bokehLogo_16"],
+            )
+        )
+        menuWidgets.AppendItem(
+            makeMenuItem(
+                parent=menuWidgets,
+                id=ID_docTree_compareMS,
+                text="Open spectrum comparison window...",
+                bitmap=self.icons.iconsLib["compare_mass_spectra_16"],
+            )
+        )
         menuWidgets.AppendItem(
             makeMenuItem(
                 parent=menuWidgets, id=ID_docTree_plugin_UVPD, text="Open UVPD processing window...", bitmap=None
@@ -865,14 +810,7 @@ class MyFrame(wx.Frame):
         menuWidgets.AppendItem(
             makeMenuItem(parent=menuWidgets, id=ID_docTree_plugin_MSMS, text="Open MS/MS window...", bitmap=None)
         )
-        menuWidgets.AppendItem(
-            makeMenuItem(
-                parent=menuWidgets, id=ID_docTree_compareMS, text="Open spectrum comparison window...", bitmap=None
-            )
-        )
-        #         menuWidgets.AppendItem(makeMenuItem(parent=menuWidgets, id=ID_sequence_openGUI,
-        #                                               text='Sequence analysis...',
-        #                                               bitmap=None))
+
         self.mainMenubar.Append(menuWidgets, "&Widgets")
 
         # CONFIG
@@ -1076,18 +1014,7 @@ class MyFrame(wx.Frame):
         menuHelp.AppendSeparator()
         menuHelp.AppendItem(
             makeMenuItem(
-                parent=menuHelp,
-                id=ID_helpGuide,
-                text="Open User Guide... (online)",
-                bitmap=self.icons.iconsLib["web_access_16"],
-            )
-        )
-        menuHelp.AppendItem(
-            makeMenuItem(
-                parent=menuHelp,
-                id=ID_helpGuideLocal,
-                text="Open User Guide... (local)",
-                bitmap=self.icons.iconsLib["web_access_16"],
+                parent=menuHelp, id=ID_helpGuide, text="Open User Guide...", bitmap=self.icons.iconsLib["web_access_16"]
             )
         )
         menuHelp.AppendItem(
@@ -1145,6 +1072,7 @@ class MyFrame(wx.Frame):
                 bitmap=self.icons.iconsLib["blank_16"],
             )
         )
+        menuHelp.AppendSeparator()
         menuHelp.AppendItem(
             makeMenuItem(
                 parent=menuHelp,
@@ -1218,12 +1146,12 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.on_open_thermo_file, id=ID_fileMenu_thermoRAW)
 
         # PROCESS MENU
-        self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ExtractData)
+        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ExtractData)
         #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_ORIGAMI)
-        self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_FindPeaks)
-        self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_MS)
-        self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_2D)
-        self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_UniDec)
+        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_FindPeaks)
+        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_MS)
+        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_2D)
+        #         self.Bind(wx.EVT_MENU, self.onProcessParameters, id=ID_processSettings_UniDec)
 
         # PLOT
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_general_plot)
@@ -1261,10 +1189,10 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_MSMS_viewer, id=ID_docTree_plugin_MSMS)
 
         # CONFIG MENU
-        self.Bind(wx.EVT_MENU, self.on_export_configuration_file, id=ID_saveConfig)
-        self.Bind(wx.EVT_MENU, self.on_export_configuration_file, id=ID_saveAsConfig)
-        self.Bind(wx.EVT_MENU, self.on_import_configuration_file, id=ID_openConfig)
-        self.Bind(wx.EVT_MENU, self.on_import_configuration_file, id=ID_openAsConfig)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_fcn, id=ID_saveConfig)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_as_fcn, id=ID_saveAsConfig)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_import_config_fcn, id=ID_openConfig)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_import_config_as_fcn, id=ID_openAsConfig)
         self.Bind(wx.EVT_MENU, self.on_setup_driftscope, id=ID_setDriftScopeDir)
         self.Bind(wx.EVT_MENU, self.on_check_driftscope_path, id=ID_check_Driftscope)
         #         self.Bind(wx.EVT_MENU, self.presenter.onSelectProtein, id=ID_selectCalibrant)
@@ -1287,11 +1215,8 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onWindowIconize, id=ID_windowMinimize)
         self.Bind(wx.EVT_MENU, self.onWindowFullscreen, id=ID_windowFullscreen)
         self.Bind(wx.EVT_MENU, self.panelPlots.on_clear_all_plots, id=ID_clearAllPlots)
-        #         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_top)
-        #         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_bottom)
-        #         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_left)
-        #         self.Bind(wx.EVT_MENU, self.onToolbarPosition, id=ID_toolbar_right)
         self.Bind(wx.EVT_MENU, self.on_open_compare_MS_window, id=ID_docTree_compareMS)
+        self.SetMenuBar(self.mainMenubar)
 
     def on_customise_annotation_plot_parameters(self, evt):
         from gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
@@ -1300,7 +1225,7 @@ class MyFrame(wx.Frame):
         dlg.ShowModal()
 
     def on_customise_unidec_plot_parameters(self, evt):
-        from gui_elements.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
+        from widgets.UniDec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
 
         dlg = DialogCustomiseUniDecVisuals(self, self.config, self.icons)
         dlg.ShowModal()
@@ -1330,59 +1255,6 @@ class MyFrame(wx.Frame):
 
     def on_open_compare_MS_window(self, evt):
         self.panelDocuments.documents.onCompareMS(None)
-
-    def on_import_configuration_file(self, evt, onStart=False):
-        """
-        This function imports configuration file
-        """
-        if not onStart:
-            if evt.GetId() == ID_openConfig:
-                config_path = os.path.join(self.config.cwd, "configOut.xml")
-                self.presenter.onThreading(
-                    None, ("Imported configuration file: {}".format(config_path), 4), action="updateStatusbar"
-                )
-                self.config.loadConfigXML(path=config_path, evt=None)
-                self.updateRecentFiles()
-                return
-            elif evt.GetId() == ID_openAsConfig:
-                dlg = wx.FileDialog(
-                    self, "Open Configuration File", wildcard="*.xml", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
-                )
-                if dlg.ShowModal() == wx.ID_OK:
-                    fileName = dlg.GetPath()
-                    self.config.loadConfigXML(path=fileName, evt=None)
-                    self.updateRecentFiles()
-        else:
-            self.config.loadConfigXML(path="configOut.xml", evt=None)
-            return
-
-    def on_export_configuration_file(self, evt, verbose=True):
-        if isinstance(evt, int):
-            evtID = evt
-        else:
-            evtID = evt.GetId()
-
-        if evtID == ID_saveConfig:
-            try:
-                save_dir = os.path.join(self.config.cwd, "configOut.xml")
-            except TypeError:
-                return
-            if self.config.threading:
-                args = (save_dir, None, verbose)
-                self.presenter.onThreading(None, args, action="export_settings")
-            else:
-                try:
-                    self.config.saveConfigXML(path=save_dir, evt=None, verbose=verbose)
-                except TypeError:
-                    pass
-        elif evtID == ID_saveAsConfig:
-            dlg = wx.FileDialog(
-                self, "Save As Configuration File", wildcard="*.xml", style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-            )
-            dlg.SetFilename("configOut.xml")
-            if dlg.ShowModal() == wx.ID_OK:
-                fileName = dlg.GetPath()
-                self.config.saveConfigXML(path=fileName, evt=None, verbose=verbose)
 
     def on_open_link(self, evt):
         """Open selected webpage."""
@@ -1456,23 +1328,15 @@ class MyFrame(wx.Frame):
             pass
 
     def onOpenUserGuide(self, evt):
-        """
-        Opens PDF viewer
-        """
-        #         try:
-        #             os.startfile('UserGuide_ANALYSE.pdf')
-        #         except Exception:
-        #             return
-        link = os.path.join(os.getcwd(), r"docs\index.html")
+        """Opens link in browser"""
         try:
-            self.presenter.onThreading(
-                None, ("Opening local documentation in your browser...", 4), action="updateStatusbar"
-            )
-            webbrowser.open(link, autoraise=1)
+            logger.info("Opening documentation in your browser")
+            webbrowser.open(self.config.links["guide"], autoraise=1)
         except Exception:
             pass
 
     def on_open_HTML_guide(self, evt):
+        from gui_elements.panel_htmlViewer import panelHTMLViewer
         from help_documentation import HTMLHelp as htmlPages
 
         htmlPages = htmlPages()
@@ -1649,10 +1513,14 @@ class MyFrame(wx.Frame):
         self.mainToolbar_horizontal.SetToolBitmapSize((12, 12))
 
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_openDocument, "", self.icons.iconsLib["open_project_16"], shortHelp="Open project file"
+            ID_openDocument, "", self.icons.iconsLib["open_project_16"], shortHelp="Open project document..."
         )
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_saveDocument, "", self.icons.iconsLib["save16"], shortHelp="Save project file"
+            ID_saveDocument, "", self.icons.iconsLib["save16"], shortHelp="Save project document..."
+        )
+        self.mainToolbar_horizontal.AddSeparator()
+        self.mainToolbar_horizontal.AddLabelTool(
+            ID_saveConfig, "", self.icons.iconsLib["export_config_16"], shortHelp="Export configuration file"
         )
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
@@ -1748,40 +1616,6 @@ class MyFrame(wx.Frame):
         )
         self.mainToolbar_horizontal.AddLabelTool(
             ID_extraSettings_general, "", self.icons.iconsLib["panel_general2_16"], shortHelp="Settings: Extra panel"
-        )
-        self.mainToolbar_horizontal.AddSeparator()
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_ExtractData,
-            "",
-            self.icons.iconsLib["process_extract_16"],
-            shortHelp="Settings: &Extract data\tShift+1",
-        )
-        #         self.mainToolbar_horizontal.AddLabelTool(
-        #             ID_processSettings_ORIGAMI, "", self.icons.iconsLib['process_origami_16'],
-        #             shortHelp="Settings: &ORIGAMI\tShift+2")
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_MS,
-            "",
-            self.icons.iconsLib["process_ms_16"],
-            shortHelp="Settings: &Process mass spectra\tShift+3",
-        )
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_2D,
-            "",
-            self.icons.iconsLib["process_2d_16"],
-            shortHelp="Settings: Process &2D heatmaps\tShift+4",
-        )
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_FindPeaks,
-            "",
-            self.icons.iconsLib["process_fit_16"],
-            shortHelp="Settings: Peak &fitting\tShift+5",
-        )
-        self.mainToolbar_horizontal.AddLabelTool(
-            ID_processSettings_UniDec,
-            "",
-            self.icons.iconsLib["process_unidec_16"],
-            shortHelp="Settings: &UniDec\tShift+6",
         )
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
@@ -2108,6 +1942,7 @@ class MyFrame(wx.Frame):
 
     def onHelpAbout(self, evt):
         """Show About mMass panel."""
+        from gui_elements.panelAbout import panelAbout
 
         about = panelAbout(self, self.presenter, "About ORIGAMI", self.config, self.icons)
         about.Centre()
@@ -2153,44 +1988,44 @@ class MyFrame(wx.Frame):
             self.panelParametersEdit.onSetPage(**kwargs)
             return
 
-    def onProcessParameters(self, evt, **pKwargs):
-
-        # get evt id
-        if isinstance(evt, int):
-            evtID = evt
-        else:
-            evtID = evt.GetId()
-
-        if evtID == ID_processSettings_ExtractData:
-            kwargs = {"window": "Extract"}
-        elif evtID == ID_processSettings_MS:
-            kwargs = {"window": "MS"}
-        elif evtID == ID_processSettings_2D:
-            kwargs = {"window": "2D"}
-        #         elif evtID == ID_processSettings_ORIGAMI:
-        #             kwargs = {'window': 'ORIGAMI'}
-        elif evtID == ID_processSettings_FindPeaks:
-            kwargs = {"window": "Peak fitting"}
-        elif evtID == ID_processSettings_UniDec:
-            kwargs = {"window": "UniDec"}
-
-        kwargs["processKwargs"] = pKwargs
-
-        if self.config.processParamsWindow_on_off:
-            args = ("An instance of this panel is already open - changing page to: %s" % kwargs["window"], 4)
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
-            if hasattr(self, "panelProcessData"):
-                self.panelProcessData.onSetPage(**kwargs)
-            return
-
-        try:
-            self.config.processParamsWindow_on_off = True
-            self.panelProcessData = panelProcessData(self, self.presenter, self.config, self.icons, **kwargs)
-            self.panelProcessData.Show()
-        except (ValueError, AttributeError, TypeError, KeyError, wx._core.PyAssertionError) as e:
-            self.config.processParamsWindow_on_off = False
-            DialogBox(exceptionTitle="Failed to open panel", exceptionMsg=str(e), type="Error")
-            return
+    #     def onProcessParameters(self, evt, **pKwargs):
+    #
+    #         # get evt id
+    #         if isinstance(evt, int):
+    #             evtID = evt
+    #         else:
+    #             evtID = evt.GetId()
+    #
+    #         if evtID == ID_processSettings_ExtractData:
+    #             kwargs = {"window": "Extract"}
+    #         elif evtID == ID_processSettings_MS:
+    #             kwargs = {"window": "MS"}
+    #         elif evtID == ID_processSettings_2D:
+    #             kwargs = {"window": "2D"}
+    #         #         elif evtID == ID_processSettings_ORIGAMI:
+    #         #             kwargs = {'window': 'ORIGAMI'}
+    #         elif evtID == ID_processSettings_FindPeaks:
+    #             kwargs = {"window": "Peak fitting"}
+    #         elif evtID == ID_processSettings_UniDec:
+    #             kwargs = {"window": "UniDec"}
+    #
+    #         kwargs["processKwargs"] = pKwargs
+    #
+    #         if self.config.processParamsWindow_on_off:
+    #             args = ("An instance of this panel is already open - changing page to: %s" % kwargs["window"], 4)
+    #             self.presenter.onThreading(evt, args, action="updateStatusbar")
+    #             if hasattr(self, "panelProcessData"):
+    #                 self.panelProcessData.onSetPage(**kwargs)
+    #             return
+    #
+    #         try:
+    #             self.config.processParamsWindow_on_off = True
+    #             self.panelProcessData = panelProcessData(self, self.presenter, self.config, self.icons, **kwargs)
+    #             self.panelProcessData.Show()
+    #         except (ValueError, AttributeError, TypeError, KeyError, wx._core.PyAssertionError) as e:
+    #             self.config.processParamsWindow_on_off = False
+    #             DialogBox(exceptionTitle="Failed to open panel", exceptionMsg=str(e), type="Error")
+    #             return
 
     def onExportParameters(self, evt):
         if evt.GetId() == ID_importExportSettings_image:
@@ -2220,6 +2055,8 @@ class MyFrame(wx.Frame):
             return
 
     def onSequenceEditor(self, evt):
+        from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
+
         self.panelSequenceAnalysis = panelSequenceAnalysis(self, self.presenter, self.config, self.icons)
         self.panelSequenceAnalysis.Show()
 
@@ -2279,7 +2116,7 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onDocumentClearRecent, id=ID_fileMenu_clearRecent)
 
         if self.config.autoSaveSettings:
-            self.on_export_configuration_file(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
     def onDocumentClearRecent(self, evt):
         """Clear recent items."""

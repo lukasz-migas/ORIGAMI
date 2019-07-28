@@ -45,14 +45,14 @@ class panelParametersEdit(wx.Panel):
     def __init__(self, parent, presenter, config, icons, **kwargs):
         wx.Panel.__init__(self, parent, -1, size=(-1, -1), style=wx.TAB_TRAVERSAL)
         tstart = time.time()
-        self.parent = parent
+        self.view = parent
         self.presenter = presenter
         self.config = config
         self.icons = icons
-        self.panel_plot = self.parent.panelPlots
+        self.panel_plot = self.view.panelPlots
         self.help = OrigamiHelp()
 
-        self.importEvent = False
+        self.importEvent = True
         self.currentPage = None
         self.windowSizes = {
             "General": (540, 400),
@@ -102,6 +102,12 @@ class panelParametersEdit(wx.Panel):
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
+        self.importEvent = False
+
+    def _setup_handling_and_processing(self):
+        self.data_processing = self.view.data_processing
+        self.data_handling = self.view.data_handling
+
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
         if key_code == wx.WXK_ESCAPE:  # key = esc
@@ -132,12 +138,12 @@ class panelParametersEdit(wx.Panel):
 
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
 
-        if self.parent._mgr.GetPane(self).IsFloating():
+        if self.view._mgr.GetPane(self).IsFloating():
             self.SetSize(self.windowSizes[self.currentPage])
             self.Layout()
 
-            self.parent._mgr.GetPane(self).FloatingSize(self.windowSizes[self.currentPage])
-            self.parent._mgr.Update()
+            self.view._mgr.GetPane(self).FloatingSize(self.windowSizes[self.currentPage])
+            self.view._mgr.Update()
 
     def onSetPage(self, **kwargs):
         self.mainBook.SetSelection(self.config.extraParamsWindow[kwargs["window"]])
@@ -147,8 +153,8 @@ class panelParametersEdit(wx.Panel):
         """Destroy this frame."""
         self.config._windowSettings["Plot parameters"]["show"] = False
         self.config.extraParamsWindow_on_off = False
-        self.parent._mgr.GetPane(self).Hide()
-        self.parent._mgr.Update()
+        self.view._mgr.GetPane(self).Hide()
+        self.view._mgr.Update()
 
     def make_gui(self):
 
@@ -2441,12 +2447,15 @@ class panelParametersEdit(wx.Panel):
         self.config.bar_lineWidth = self.bar_lineWidth_value.GetValue()
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()
 
     def on_apply_2D(self, evt):
+        if self.importEvent:
+            return
+
         self.config.currentCmap = self.plot2D_colormap_value.GetStringSelection()
         self.config.useCurrentCmap = self.plot2D_overrideColormap_check.GetValue()
         self.config.plotType = self.plot2D_plotType_value.GetStringSelection()
@@ -2459,12 +2468,15 @@ class panelParametersEdit(wx.Panel):
         self.on_apply(evt=None)
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()
 
     def on_apply_3D(self, evt):
+        if self.importEvent:
+            return
+
         self.config.plotType_3D = self.plot3D_plotType_value.GetStringSelection()
         self.config.showGrids_3D = self.plot3D_gridsOnOff_check.GetValue()
         self.config.shade_3D = self.plot3D_shadeOnOff_check.GetValue()
@@ -2480,12 +2492,15 @@ class panelParametersEdit(wx.Panel):
             self.config.markerEdgeColor_3D = self.config.markerColor_3D
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()
 
     def on_apply_general(self, evt):
+        if self.importEvent:
+            return
+
         # general
         plotName = self.general_plotName_value.GetStringSelection()
         plotValues = [
@@ -2508,12 +2523,15 @@ class panelParametersEdit(wx.Panel):
         self.panel_plot.plot_update_size(plotName=plotName)
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()
 
     def on_apply_zoom(self, evt):
+        if self.importEvent:
+            return
+
         # plots
         self.config._plots_grid_show = self.zoom_grid_check.GetValue()
         self.config._plots_grid_line_width = self.zoom_cursor_lineWidth_value.GetValue()
@@ -2527,13 +2545,12 @@ class panelParametersEdit(wx.Panel):
         self.presenter.view.updatePlots(None)
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()
 
     def on_apply(self, evt):
-
         if self.importEvent:
             return
 
@@ -2615,12 +2632,14 @@ class panelParametersEdit(wx.Panel):
         self.config.colorbarLabelSize = str2num(self.colorbarFontsize_value.GetValue())
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()
 
     def onChangeColour(self, evt):
+        if self.importEvent:
+            return
 
         evtID = evt.GetId()
 
@@ -2713,7 +2732,7 @@ class panelParametersEdit(wx.Panel):
             self.bar_edgeColorBtn.SetBackgroundColour(color_255)
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         try:
             self.presenter.view.updatePlots(None)
@@ -2721,6 +2740,9 @@ class panelParametersEdit(wx.Panel):
             pass
 
     def onSetupRMSDPosition(self, evt):
+        if self.importEvent:
+            return
+
         self.config.rmsd_position = self.rmsd_position_value.GetStringSelection()
         if self.config.rmsd_position == "bottom left":
             self.config.rmsd_location = (5, 5)
@@ -2740,7 +2762,7 @@ class panelParametersEdit(wx.Panel):
         self.rmsd_positionY_value.SetValue(self.config.rmsd_location[1])
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()
@@ -3165,26 +3187,35 @@ class panelParametersEdit(wx.Panel):
             evt.Skip()
 
     def on_change_plot_style(self, evt):
+        if self.importEvent:
+            return
+
         self.config.currentStyle = self.general_style_value.GetStringSelection()
         self.panel_plot.on_change_plot_style(evt=None)
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()
 
     def on_change_color_palette(self, evt):
+        if self.importEvent:
+            return
+
         self.config.currentPalette = self.general_palette_value.GetStringSelection()
         self.panel_plot.on_change_color_palette(evt=None)
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()
 
     def onUpdateGUI(self, evt):
+        if self.importEvent:
+            return
+
         evtID = evt.GetId()
 
         self.config.quickDisplay = self.general_instantPlot_check.GetValue()
@@ -3217,7 +3248,7 @@ class panelParametersEdit(wx.Panel):
         self.presenter.onThreading(None, (msg, 4), action="updateStatusbar")
 
         if self.config.autoSaveSettings:
-            self.presenter.onExportConfig(evt=ID_saveConfig, verbose=False)
+            self.data_handling.on_export_config_fcn(None, False)
 
         if evt is not None:
             evt.Skip()

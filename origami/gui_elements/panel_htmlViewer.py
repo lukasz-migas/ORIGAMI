@@ -3,7 +3,7 @@
 import os
 import webbrowser
 
-import wx
+import wx.html
 
 
 class panelHTMLViewer(wx.MiniFrame):
