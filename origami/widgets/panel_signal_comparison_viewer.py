@@ -138,6 +138,9 @@ class PanelSignalComparisonViewer(wx.MiniFrame):
     def on_resize_check(self, evt):
         self.panel_plot.on_resize_check(None)
 
+    def on_copy_to_clipboard(self, evt):
+        self.plot_window.copy_to_clipboard()
+
     def on_customise_plot(self, evt):
         self.panel_plot.on_customise_plot(None, plot="MS...", plot_obj=self.plot_window)
 
@@ -673,7 +676,7 @@ class PanelSignalComparisonViewer(wx.MiniFrame):
         self.compare_massSpectrum = [spectrum_1_choice, spectrum_2_choice]
 
     def on_clear_plot(self, evt):
-        self.panel_plot.on_clear_plot(None, None, plot_obj=self.plot_window)
+        self.plot_window.clearPlot()
 
     def on_save_figure(self, evt):
         document_title_1, spectrum_1 = self.config.compare_massSpectrum[0][:2]

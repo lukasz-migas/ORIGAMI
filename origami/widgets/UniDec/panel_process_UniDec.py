@@ -100,6 +100,11 @@ class PanelProcessUniDec(wx.MiniFrame):
         )
         menu.AppendItem(save_all_figures_menu_item)
 
+        menu_action_copy_to_clipboard = makeMenuItem(
+            parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
+        )
+        menu.AppendItem(menu_action_copy_to_clipboard)
+
         clear_plot_menu_item = makeMenuItem(
             menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
         )
@@ -111,6 +116,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.on_save_all_figures, save_all_figures_menu_item)
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -751,6 +757,10 @@ class PanelProcessUniDec(wx.MiniFrame):
     def on_customise_plot(self, evt):
         plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
         self.panel_plot.on_customise_plot(None, plot="UniDec plot...", plot_obj=plot_obj)
+
+    def on_copy_to_clipboard(self, evt):
+        plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
+        plot_obj.copy_to_clipboard()
 
     def on_clear_plot(self, evt):
         plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)

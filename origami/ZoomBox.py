@@ -12,6 +12,8 @@ logger = logging.getLogger("origami")
 
 # TODO: add dragging in the labels area - should be able to grab and drag so its easier
 #       to manipulate plot area
+# TODO: replace this whole module with something along the lines of whats in mpl.backend_bases as it relies on pixels
+# rather than plot dimenions
 
 
 def GetMaxes(axes, xmin=None, xmax=None):
@@ -991,7 +993,7 @@ class ZoomBox:
             self.onselect(xmin, xmax, value, ymin, ymax)  # zeros are for consistency with box zoom
 
         self.eventpress = None  # reset the variables to their
-        self.eventrelease = None  # inital values
+        self.eventrelease = None  # inital values4re5555
 
         # Reset zoom
         if self.addToTable:

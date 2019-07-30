@@ -87,7 +87,21 @@ class panel_peak_picker(wx.MiniFrame):
             menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
         )
         menu.AppendItem(save_figure_menu_item)
+
+        menu_action_copy_to_clipboard = makeMenuItem(
+            parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
+        )
+        menu.AppendItem(menu_action_copy_to_clipboard)
+
+        #         clear_plot_menu_item = makeMenuItem(
+        #             menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+        #         )
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(clear_plot_menu_item)
+
         self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+        #         self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -799,9 +813,12 @@ class panel_peak_picker(wx.MiniFrame):
                 self.ionPanel.on_add_to_table(add_dict)
 
     def on_clear_plot(self, evt):
-        self.panel_plot.on_clear_plot(None, None, plot_obj=self.plot_window)
+        self.plot_window.clearPlot()
 
     def on_save_figure(self, evt):
 
         plot_title = f"{self.document_title}_{self.dataset_name}".replace(" ", "-").replace(":", "")
         self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
+
+    def on_copy_to_clipboard(self, evt):
+        self.plot_window.copy_to_clipboard()

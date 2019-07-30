@@ -182,6 +182,9 @@ class plots(mpl_plotter):
         delta = f[1] - f[0]
         return [f[0] - delta / 2, f[-1] + delta / 2]
 
+    def copy_to_clipboard(self):
+        self.canvas.Copy_to_Clipboard()
+
     def set_legend_parameters(self, handles=None, **kwargs):
         """Add legend to the plot
 
@@ -474,8 +477,6 @@ class plots(mpl_plotter):
 
         self.plotMS.set_ylim([startY, endY])
         self.update_y_extents(startY, endY)
-
-    ### PURE UPDATING FUNCTIONS ###
 
     def on_zoom_xy(self, startX, endX, startY, endY):
         try:
@@ -1334,6 +1335,7 @@ class plots(mpl_plotter):
 
     def plot_update_axes(self, axes_sizes):
         self.plotMS.set_position(axes_sizes)
+        self._axes = axes_sizes
 
     def get_optimal_margins(self, axes_sizes):
         trans = self.figure.transFigure.inverted().transform
@@ -1342,7 +1344,7 @@ class plots(mpl_plotter):
 
         # Extent
         dl, dt, dr, db = 0, 0, 0, 0
-        for i, ax in enumerate(self.figure.get_axes()):
+        for _, ax in enumerate(self.figure.get_axes()):
             (x0, y0), (x1, y1) = ax.get_position().get_points()
             try:
                 (ox0, oy0), (ox1, oy1) = ax.get_tightbbox(self.canvas.get_renderer()).get_points()
@@ -1355,7 +1357,7 @@ class plots(mpl_plotter):
                 pass
         l, t, r, b = l + dl, t + dt, r + dr, b + db
 
-        return l, 1 - t, 1 - r, b
+        return l, b, 1 - r, 1 - t
 
     def plot_2D_matrix_update_label(self, **kwargs):
 
@@ -1423,10 +1425,6 @@ class plots(mpl_plotter):
         matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
 
         self.plotMS.grid(kwargs["grid"])
-
-    # ----
-
-    ### PURE PLOTTING FUNCTIONS ###
 
     def plot_2D_colorbar_update(self, **kwargs):
 
@@ -1609,42 +1607,7 @@ class plots(mpl_plotter):
         if kwargs["colorbar"]:
             self.set_colorbar_parameters(zvals, **kwargs)
 
-    #         try:
-    #             self.cbar.remove()
-    #             if kwargs["colorbar"]:
-    #                 cbarDivider = make_axes_locatable(self.plotMS)
-    #                 # pad controls how close colorbar is to the axes
-    #                 self.cbar = cbarDivider.append_axes(
-    #                     kwargs["colorbar_position"],
-    #                     size="".join([str(kwargs["colorbar_width"]), "%"]),
-    #                     pad=kwargs["colorbar_pad"],
-    #                 )
-    #
-    #                 ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
-    #                 if ticks[1] in [ticks[0], ticks[2]]:
-    #                     ticks[1] = 0
-    #
-    #                 if self.plot_name in ["RMSD", "RMSF"]:
-    #                     tick_labels = ["-100", "%", "100"]
-    #                 else:
-    #                     tick_labels = ["0", "%", "100"]
-    #
-    #                 self.cbar.ticks = ticks
-    #                 self.cbar.tick_labels = tick_labels
-    #
-    #                 if kwargs["colorbar_position"] in ["left", "right"]:
-    #                     self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
-    #                     self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
-    #                     self.cbar.set_yticklabels(tick_labels)
-    #                 else:
-    #                     self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
-    #                     self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
-    #                     self.cbar.set_xticklabels(tick_labels)
-    #
-    #                 # setup other parameters
-    #                 self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
-    #         except Exception:
-    #             pass
+        self.plot_update_axes(self.get_optimal_margins(self._axes))
 
     def plot_1D(
         self,
@@ -4552,8 +4515,6 @@ class plots(mpl_plotter):
         self.plotMS.set_xlim([np.min(xvals), np.max(xvals)])
         self.plotMS.set_ylim([np.min(yvals), np.max(yvals)])
         self.plotMS.set_zlim([np.min(zvals), np.max(zvals)])
-
-    # ----
 
 
 # class MayaviPanel(HasTraits):

@@ -231,139 +231,65 @@ class panelPlot(wx.Panel):
     def make_notebook(self):
         # Setup notebook
         self.mainBook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
+
         # Setup PLOT MS
-        self.panelMS = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.panelMS, "Mass spectrum", False)  # MS
-
-        self.plot1 = mpl_plots.plots(
-            self.panelMS, figsize=self.config._plotSettings["MS"]["gui_size"], config=self.config
-        )
-
-        boxsizer_MS = wx.BoxSizer(wx.VERTICAL)
-        boxsizer_MS.Add(self.plot1, 1, wx.EXPAND)
-        self.panelMS.SetSizer(boxsizer_MS)
+        self.panelMS, self.plot1, __ = self.make_plot(self.mainBook, self.config._plotSettings["MS"]["gui_size"])
+        self.mainBook.AddPage(self.panelMS, "Mass spectrum", False)
 
         # Setup PLOT RT
-        self.panelRT = wx.SplitterWindow(
-            self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL | wx.SP_3DSASH
-        )
+        self.panelRT = wx.SplitterWindow(self.mainBook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
         self.mainBook.AddPage(self.panelRT, "Chromatogram", False)  # RT
 
-        # Create two panels for each dataset
-        self.topPanelRT_RT = wx.Panel(self.panelRT)
-        self.plotRT = mpl_plots.plots(
-            self.topPanelRT_RT, figsize=self.config._plotSettings["RT"]["gui_size"], config=self.config
+        self.topPanelRT_RT, self.plotRT, __ = self.make_plot(self.panelRT, self.config._plotSettings["RT"]["gui_size"])
+        self.bottomPanelRT_MS, self.plot_RT_MS, __ = self.make_plot(
+            self.panelRT, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
         )
-        boxTopPanelRT = wx.BoxSizer(wx.VERTICAL)
-        boxTopPanelRT.Add(self.plotRT, 1, wx.EXPAND)
-        self.topPanelRT_RT.SetSizer(boxTopPanelRT)
-
-        self.bottomPanelRT_MS = wx.Panel(self.panelRT)
-        self.plot_RT_MS = mpl_plots.plots(
-            self.bottomPanelRT_MS, figsize=self.config._plotSettings["MS (DT/RT)"]["gui_size"], config=self.config
-        )
-        boxBottomPanelMS = wx.BoxSizer(wx.VERTICAL)
-        boxBottomPanelMS.Add(self.plot_RT_MS, 1, wx.EXPAND)
-        self.bottomPanelRT_MS.SetSizer(boxBottomPanelMS)
-
-        # Add panels to splitter window
+        #
         self.panelRT.SplitHorizontally(self.topPanelRT_RT, self.bottomPanelRT_MS)
         self.panelRT.SetMinimumPaneSize(300)
         self.panelRT.SetSashGravity(0.5)
         self.panelRT.SetSashSize(5)
 
         # Setup PLOT 1D
-        self.panel1D = wx.SplitterWindow(
-            self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL | wx.SP_3DSASH
-        )
+        self.panel1D = wx.SplitterWindow(self.mainBook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
         self.mainBook.AddPage(self.panel1D, "Mobilogram", False)  # 1D
 
-        # Create two panels for each dataset
-        self.topPanel1D_1D = wx.Panel(self.panel1D)
-        self.plot1D = mpl_plots.plots(
-            self.topPanel1D_1D, figsize=self.config._plotSettings["DT"]["gui_size"], config=self.config
+        self.topPanel1D_1D, self.plot1D, __ = self.make_plot(self.panel1D, self.config._plotSettings["DT"]["gui_size"])
+        self.bottomPanel1D_MS, self.plot_DT_MS, __ = self.make_plot(
+            self.panel1D, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
         )
-        boxTopPanelMS = wx.BoxSizer(wx.VERTICAL)
-        boxTopPanelMS.Add(self.plot1D, 1, wx.EXPAND)
-        self.topPanel1D_1D.SetSizer(boxTopPanelMS)
 
-        self.bottomPanel1D_MS = wx.Panel(self.panel1D)
-        self.plot_DT_MS = mpl_plots.plots(
-            self.bottomPanel1D_MS, figsize=self.config._plotSettings["MS (DT/RT)"]["gui_size"], config=self.config
-        )
-        boxBottomPanel1DT = wx.BoxSizer(wx.VERTICAL)
-        boxBottomPanel1DT.Add(self.plot_DT_MS, 1, wx.EXPAND)
-        self.bottomPanel1D_MS.SetSizer(boxBottomPanel1DT)
-
-        # Add panels to splitter window
         self.panel1D.SplitHorizontally(self.topPanel1D_1D, self.bottomPanel1D_MS)
         self.panel1D.SetMinimumPaneSize(300)
         self.panel1D.SetSashGravity(0.5)
         self.panel1D.SetSashSize(5)
 
         # Setup PLOT 2D
-        self.panel2D = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-        self.mainBook.AddPage(self.panel2D, "Heatmap", False)  # 2D
-
-        self.plot2D = mpl_plots.plots(
-            self.panel2D, figsize=self.config._plotSettings["2D"]["gui_size"], config=self.config
-        )
-
-        boxsizer_2D = wx.BoxSizer(wx.HORIZONTAL)
-        boxsizer_2D.Add(self.plot2D, 1, wx.EXPAND | wx.ALL)
-        self.panel2D.SetSizerAndFit(boxsizer_2D)
+        self.panel2D, self.plot2D, __ = self.make_plot(self.mainBook, self.config._plotSettings["2D"]["gui_size"])
+        self.mainBook.AddPage(self.panel2D, "Heatmap", False)
 
         # Setup PLOT DT/MS
-        self.panelMZDT = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.panelMZDT, self.plot_DT_vs_MS, __ = self.make_plot(
+            self.mainBook, self.config._plotSettings["DT/MS"]["gui_size"]
+        )
         self.mainBook.AddPage(self.panelMZDT, "DT/MS", False)
 
-        self.plot_DT_vs_MS = mpl_plots.plots(
-            self.panelMZDT, figsize=self.config._plotSettings["DT/MS"]["gui_size"], config=self.config
-        )
-
-        boxsizer_MZDT = wx.BoxSizer(wx.HORIZONTAL)
-        boxsizer_MZDT.Add(self.plot_DT_vs_MS, 1, wx.EXPAND | wx.ALL)
-        self.panelMZDT.SetSizerAndFit(boxsizer_MZDT)
-
         # Setup PLOT WATERFALL
-        self.waterfallIMS = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.waterfallIMS, self.plot_waterfall, __ = self.make_plot(
+            self.mainBook, self.config._plotSettings["Waterfall"]["gui_size"]
+        )
         self.mainBook.AddPage(self.waterfallIMS, "Waterfall", False)
 
-        self.plot_waterfall = mpl_plots.plots(
-            self.waterfallIMS, figsize=self.config._plotSettings["Waterfall"]["gui_size"], config=self.config
-        )
-
-        boxsizer_waterfall = wx.BoxSizer(wx.HORIZONTAL)
-        boxsizer_waterfall.Add(self.plot_waterfall, 1, wx.EXPAND | wx.ALL)
-        self.waterfallIMS.SetSizerAndFit(boxsizer_waterfall)
-
         # Setup PLOT 3D
-        self.panel3D = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.panel3D, self.plot3D, __ = self.make_plot(self.mainBook, self.config._plotSettings["3D"]["gui_size"])
         self.mainBook.AddPage(self.panel3D, "Heatmap (3D)", False)
 
-        self.plot3D = mpl_plots.plots(
-            self.panel3D, figsize=self.config._plotSettings["3D"]["gui_size"], config=self.config
-        )
-
-        boxsizer_3D = wx.BoxSizer(wx.VERTICAL)
-        boxsizer_3D.Add(self.plot3D, 1, wx.EXPAND)
-        self.panel3D.SetSizer(boxsizer_3D)
         # Other
-        self.panelOther = wx.Panel(self.mainBook, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        self.panelOther, self.plotOther, __ = self.make_plot(self.mainBook, self.config._plotSettings["2D"]["gui_size"])
         self.mainBook.AddPage(self.panelOther, "Annotated", False)
-
-        self.plotOther = mpl_plots.plots(
-            self.panelOther, figsize=self.config._plotSettings["2D"]["gui_size"], config=self.config
-        )
-
-        boxsizer_other = wx.BoxSizer(wx.VERTICAL)
-        boxsizer_other.Add(self.plotOther, 1, wx.EXPAND)
-        self.panelOther.SetSizer(boxsizer_other)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 1)
-
-        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
         self.SetSizer(main_sizer)
         self.Layout()
         self.Show(True)
@@ -375,6 +301,8 @@ class panelPlot(wx.Panel):
         self.panel1D.SetMinimumPaneSize(half_size)
         self.panelRT.SetMinimumPaneSize(half_size)
 
+        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+
     def make_plot(self, parent, figsize):
         plot_panel = wx.Panel(parent)
         plot_window = mpl_plots.plots(plot_panel, config=self.config, figsize=figsize)
@@ -384,6 +312,10 @@ class panelPlot(wx.Panel):
         sizer.Fit(plot_panel)
 
         return plot_panel, plot_window, sizer
+
+    def on_copy_to_clipboard(self, evt):
+        plot_obj = self.get_plot_from_name(self.currentPage)
+        plot_obj.copy_to_clipboard()
 
     def on_right_click(self, evt):
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
@@ -509,6 +441,10 @@ class panelPlot(wx.Panel):
             bitmap=self.icons.iconsLib["process_ms_16"],
         )
 
+        menu_action_copy_to_clipboard = makeMenuItem(
+            parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
+        )
+
         if self.currentPage == "Mass spectrum":
             menu.AppendItem(menu_action_process_MS)
             menu.AppendItem(
@@ -551,6 +487,8 @@ class panelPlot(wx.Panel):
                         parent=menu, id=ID_saveMSImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                     )
                 )
+
+            menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
                 makeMenuItem(parent=menu, id=ID_clearPlot_MS, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"])
@@ -584,6 +522,7 @@ class panelPlot(wx.Panel):
                         parent=menu, id=ID_saveRTImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                     )
                 )
+                menu.AppendItem(menu_action_copy_to_clipboard)
                 menu.AppendSeparator()
                 menu.AppendItem(
                     makeMenuItem(
@@ -619,6 +558,7 @@ class panelPlot(wx.Panel):
                         parent=menu, id=ID_save1DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                     )
                 )
+                menu.AppendItem(menu_action_copy_to_clipboard)
                 menu.AppendSeparator()
                 menu.AppendItem(
                     makeMenuItem(
@@ -644,6 +584,7 @@ class panelPlot(wx.Panel):
                     parent=menu, id=ID_save2DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
+            menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
                 makeMenuItem(parent=menu, id=ID_clearPlot_2D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"])
@@ -675,6 +616,7 @@ class panelPlot(wx.Panel):
                     parent=menu, id=ID_saveMZDTImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
+            menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
                 makeMenuItem(
@@ -715,6 +657,7 @@ class panelPlot(wx.Panel):
                     bitmap=self.icons.iconsLib["save16"],
                 )
             )
+            menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
                 makeMenuItem(
@@ -746,12 +689,15 @@ class panelPlot(wx.Panel):
                     parent=menu, id=ID_saveOtherImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
+            menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
                 makeMenuItem(
                     parent=menu, id=ID_clearPlot_other, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
+
+        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -850,41 +796,6 @@ class panelPlot(wx.Panel):
             image_name = self.config._plotSettings["DT/MS"]["default_name"]
             resizeName = "DT/MS"
             plotWindow = self.plot_DT_vs_MS
-
-        elif evtID in [ID_plots_saveImage_unidec_ms]:
-            image_name = self.config._plotSettings["UniDec (MS)"]["default_name"]
-            resizeName = "UniDec (MS)"
-            plotWindow = self.plotUnidec_MS
-
-        elif evtID in [ID_plots_saveImage_unidec_mw]:
-            image_name = self.config._plotSettings["UniDec (MW)"]["default_name"]
-            resizeName = "UniDec (MW)"
-            plotWindow = self.plotUnidec_mwDistribution
-
-        elif evtID in [ID_plots_saveImage_unidec_mz_v_charge]:
-            image_name = self.config._plotSettings["UniDec (m/z vs Charge)"]["default_name"]
-            resizeName = "UniDec (m/z vs Charge)"
-            plotWindow = self.plotUnidec_mzGrid
-
-        elif evtID in [ID_plots_saveImage_unidec_isolated_mz]:
-            image_name = self.config._plotSettings["UniDec (Isolated MS)"]["default_name"]
-            resizeName = "UniDec (Isolated MS)"
-            plotWindow = self.plotUnidec_individualPeaks
-
-        elif evtID in [ID_plots_saveImage_unidec_mw_v_charge]:
-            image_name = self.config._plotSettings["UniDec (MW vs Charge)"]["default_name"]
-            resizeName = "UniDec (MW vs Charge)"
-            plotWindow = self.plotUnidec_mwVsZ
-
-        elif evtID in [ID_plots_saveImage_unidec_ms_barchart]:
-            image_name = self.config._plotSettings["UniDec (Barplot)"]["default_name"]
-            resizeName = "UniDec (Barplot)"
-            plotWindow = self.plotUnidec_barChart
-
-        elif evtID in [ID_plots_saveImage_unidec_chargeDist]:
-            image_name = self.config._plotSettings["UniDec (Charge Distribution)"]["default_name"]
-            resizeName = "UniDec (Charge Distribution)"
-            plotWindow = self.plotUnidec_chargeDistribution
 
         elif evtID in [ID_saveOtherImageDoc, ID_saveOtherImage]:
             image_name = "custom_plot"
@@ -1003,9 +914,32 @@ class panelPlot(wx.Panel):
             "Heatmap (3D)": self.plot3D,
             "Matrix": self.plot2D,
             "Annotated": self.plotOther,
+            "MS_RT": self.plot_RT_MS,
+            "MS_DT": self.plot_DT_MS,
         }
 
         return plot_dict.get(plot_name, None)
+
+    def get_plot_from_id(self, id_value):
+        """Retireve plot object from id"""
+
+        id_plot_dict = {
+            ID_clearPlot_MS: "Mass spectrum",
+            ID_clearPlot_RT: "Chromatogram",
+            ID_clearPlot_1D: "Mobilogram",
+            ID_clearPlot_2D: "Heatmap",
+            ID_clearPlot_MZDT: "DT/MS",
+            ID_clearPlot_Overlay: "RMSF",
+            ID_clearPlot_Overlay: "Overlay",
+            ID_clearPlot_Waterfall: "Waterfall",
+            ID_clearPlot_3D: "Heatmap (3D)",
+            ID_clearPlot_Matrix: "Matrix",
+            ID_clearPlot_other: "Annotated",
+            ID_clearPlot_RT_MS: "MS_RT",
+            ID_clearPlot_1D_MS: "MS_DT",
+        }
+        plot_name = id_plot_dict[id_value]
+        return self.get_plot_from_name(plot_name)
 
     def on_lock_plot(self, evt):
         """Lock/unlock plot"""
@@ -1028,30 +962,21 @@ class panelPlot(wx.Panel):
         if "plot" in kwargs and "plot_obj" in kwargs:
             plot = kwargs.pop("plot_obj")
             title = kwargs.pop("plot")
-        elif self.currentPage == "Waterfall":
-            plot, title = self.plot_waterfall, "Waterfall..."
-        elif self.currentPage == "MS":
-            plot, title = self.plot1, "Mass spectrum..."
-        elif self.currentPage == "1D":
-            plot, title = self.plot1D, "Mobiligram..."
-        elif self.currentPage == "RT":
-            plot, title = self.plotRT, "Chromatogram ..."
-        elif self.currentPage == "2D":
-            plot, title = self.plot2D, "Heatmap..."
-        elif self.currentPage == "DT/MS":
-            plot, title = self.plot_DT_vs_MS, "DT/MS..."
-        elif self.currentPage == "Overlay":
-            plot, title = self.plot_overlay, "Overlay"
-            if plot.plot_name not in ["Mask", "Transparent"]:
-                open_window = False
-        elif self.currentPage == "RMSF":
-            plot, title = self.plot_RMSF, "RMSF"
-            if plot.plot_name not in ["RMSD"]:
-                open_window = False
-        elif self.currentPage == "Comparison":
-            plot, title = self.plotCompare, "Comparison..."
-        elif self.currentPage == "Other":
-            plot, title = self.plotOther, "Custom data..."
+        else:
+            plot = self.get_plot_from_name(self.currentPage)
+            title = f"{self.currentPage}..."
+        #         elif self.currentPage == "Overlay":
+        #             plot, title = self.plot_overlay, "Overlay"
+        #             if plot.plot_name not in ["Mask", "Transparent"]:
+        #                 open_window = False
+        #         elif self.currentPage == "RMSF":
+        #             plot, title = self.plot_RMSF, "RMSF"
+        #             if plot.plot_name not in ["RMSD"]:
+        #                 open_window = False
+        #         elif self.currentPage == "Comparison":
+        #             plot, title = self.plotCompare, "Comparison..."
+        #         elif self.currentPage == "Other":
+        #             plot, title = self.plotOther, "Custom data..."
 
         if not open_window:
             args = ("Cannot customise parameters for this plot. Try replotting instead", 4)
@@ -1161,52 +1086,28 @@ class panelPlot(wx.Panel):
         # get current sizes
         axes_sizes = self.config._plotSettings[plotName]["axes_size"]
 
-        # get link to the plot
-        if plotName == "MS":
-            resize_plot = [self.plot1, self.plot_RT_MS, self.plot_DT_MS]
-        elif plotName == "MS (compare)":
-            resize_plot = self.plot1
-        elif plotName == "RT":
-            resize_plot = self.plotRT
-        elif plotName == "DT":
-            resize_plot = self.plot1D
-        elif plotName == "2D":
-            resize_plot = self.plot2D
-        elif plotName == "Waterfall":
-            resize_plot = self.plot_waterfall
-        elif plotName == "RMSD":
-            resize_plot = self.plot_RMSF
-        elif plotName in ["Comparison", "Matrix"]:
-            resize_plot = self.plotCompare
-        elif plotName == "DT/MS":
-            resize_plot = self.plot_DT_vs_MS
-        elif plotName in ["Overlay", "Overlay (Grid)"]:
-            resize_plot = self.plot_overlay
-        elif plotName == "Calibration (MS)":
-            resize_plot = self.topPlotMS
-        elif plotName == "Calibration (DT)":
-            resize_plot = self.bottomPlot1DT
-        elif plotName == "3D":
-            resize_plot = self.plot3D
-        elif plotName == "UniDec (MS)":
-            resize_plot = self.plotUnidec_MS
-        elif plotName == "UniDec (MW)":
-            resize_plot = self.plotUnidec_mwDistribution
-        elif plotName == "UniDec (m/z vs Charge)":
-            resize_plot = self.plotUnidec_mzGrid
-        elif plotName == "UniDec (Isolated MS)":
-            resize_plot = self.plotUnidec_individualPeaks
-        elif plotName == "UniDec (MW vs Charge)":
-            resize_plot = self.plotUnidec_mwVsZ
-        elif plotName == "UniDec (Barplot)":
-            resize_plot = self.plotUnidec_barChart
-        elif plotName == "UniDec (Charge Distribution)":
-            resize_plot = self.plotUnidec_chargeDistribution
+        plot_obj = self.get_plot_from_name(plotName)
+        if plot_obj is None:
+            return
+
+        #         # get link to the plot
+        #         if plotName == "MS":
+        #             resize_plot = [self.plot1, self.plot_RT_MS, self.plot_DT_MS]
+        #         elif plotName == "RMSD":
+        #             resize_plot = self.plot_RMSF
+        #         elif plotName in ["Comparison", "Matrix"]:
+        #             resize_plot = self.plotCompare
+        #         elif plotName in ["Overlay", "Overlay (Grid)"]:
+        #             resize_plot = self.plot_overlay
+        #         elif plotName == "Calibration (MS)":
+        #             resize_plot = self.topPlotMS
+        #         elif plotName == "Calibration (DT)":
+        #             resize_plot = self.bottomPlot1DT
 
         # apply new size
         try:
-            if not isinstance(resize_plot, list):
-                resize_plot = [resize_plot]
+            if not isinstance(plot_obj, list):
+                resize_plot = [plot_obj]
             for plot in resize_plot:
                 if plot.lock_plot_from_updating:
                     msg = (
@@ -1220,56 +1121,19 @@ class panelPlot(wx.Panel):
                 plot.repaint()
                 plot._axes = axes_sizes
         except (AttributeError, UnboundLocalError):
-            pass
+            logger.warning("Failed to resize plot")
 
-    def plot_update_size(self, plotName=None):
+    def plot_update_size(self, plotName):
         dpi = wx.ScreenDC().GetPPI()
         resizeSize = self.config._plotSettings[plotName]["gui_size"]
         figsizeNarrowPix = (int(resizeSize[0] * dpi[0]), int(resizeSize[1] * dpi[1]))
 
-        if plotName == "MS":
-            resize_plot = self.plot1
-        elif plotName == "MS (compare)":
-            resize_plot = self.plot1
-        elif plotName == "RT":
-            resize_plot = self.plotRT
-        elif plotName == "DT":
-            resize_plot = self.plot1D
-        elif plotName == "2D":
-            resize_plot = self.plot2D
-        elif plotName == "Waterfall":
-            resize_plot = self.plot_waterfall
-        elif plotName == "RMSD":
-            resize_plot = self.plot_RMSF
-        elif plotName in ["Comparison", "Matrix"]:
-            resize_plot = self.plotCompare
-        elif plotName == "DT/MS":
-            resize_plot = self.plot_DT_vs_MS
-        elif plotName in ["Overlay", "Overlay (Grid)"]:
-            resize_plot = self.plot_overlay
-        elif plotName == "Calibration (MS)":
-            resize_plot = self.topPlotMS
-        elif plotName == "Calibration (DT)":
-            resize_plot = self.bottomPlot1DT
-        elif plotName == "3D":
-            resize_plot = self.plot3D
-        elif plotName == "UniDec (MS)":
-            resize_plot = self.plotUnidec_MS
-        elif plotName == "UniDec (MW)":
-            resize_plot = self.plotUnidec_mwDistribution
-        elif plotName == "UniDec (m/z vs Charge)":
-            resize_plot = self.plotUnidec_mzGrid
-        elif plotName == "UniDec (Isolated MS)":
-            resize_plot = self.plotUnidec_individualPeaks
-        elif plotName == "UniDec (MW vs Charge)":
-            resize_plot = self.plotUnidec_mwVsZ
-        elif plotName == "UniDec (Barplot)":
-            resize_plot = self.plotUnidec_barChart
-        elif plotName == "UniDec (Charge Distribution)":
-            resize_plot = self.plotUnidec_chargeDistribution
+        plot_obj = self.get_plot_from_name(plotName)
+        if plot_obj is None:
+            return
 
         try:
-            if resize_plot.lock_plot_from_updating:
+            if plot_obj.lock_plot_from_updating:
                 msg = (
                     "This plot is locked and you cannot use global setting updated. \n"
                     + "Please right-click in the plot area and select Customise plot..."
@@ -1277,9 +1141,9 @@ class panelPlot(wx.Panel):
                 )
                 print(msg)
                 return
-            resize_plot.SetSize(figsizeNarrowPix)
+            plot_obj.SetSize(figsizeNarrowPix)
         except (AttributeError, UnboundLocalError):
-            pass
+            logger.warning("Failed to update plot size")
 
     def on_change_plot_style(self, evt, plot_style=None):
 
@@ -1330,66 +1194,38 @@ class panelPlot(wx.Panel):
         return colorList_return
 
     def on_clear_plot(self, evt, plot=None, **kwargs):
-        """
-        Clear selected plot
+        """Clear selected plot
+
+        Action can be invoked directly by wxEvent or by simply calling this fcn with appropriate keyword
+
+        Parameters
+        ----------
+        evt : wxEvent
+            event ID
+        plot : str
+            name of plot to be cleared
+        kwargs : optional, dict
+            dictionary with plot to be cleared
         """
 
         eventID = None
         if evt is not None:
             eventID = evt.GetId()
 
-        if plot == "MS" or eventID == ID_clearPlot_MS:
-            plot = self.plot1
-        elif plot == "RT" or eventID == ID_clearPlot_RT:
-            plot = self.plotRT
-        elif plot == "RT_MS" or eventID == ID_clearPlot_RT_MS:
-            plot = self.plot_RT_MS
-        elif plot == "1D" or eventID == ID_clearPlot_1D:
-            plot = self.plot1D
-        elif plot == "1D_MS" or eventID == ID_clearPlot_1D_MS:
-            plot = self.plot_DT_MS
-        elif plot == "2D" or eventID == ID_clearPlot_2D:
-            plot = self.plot2D
-        elif plot == "DT/MS" or eventID == ID_clearPlot_MZDT:
-            plot = self.plot_DT_vs_MS
-        elif plot == "3D" or eventID == ID_clearPlot_3D:
-            plot = self.plot3D
-        elif plot == "RMSF" or eventID == ID_clearPlot_RMSF:
-            plot = self.plot_RMSF
-        elif plot == "Overlay" or eventID == ID_clearPlot_Overlay:
-            plot = self.plot_overlay
-        elif plot == "Matrix" or eventID == ID_clearPlot_Matrix:
-            plot = self.plotCompare
-        elif plot == "Waterall" or eventID == ID_clearPlot_Waterfall:
-            plot = self.plot_waterfall
-        elif plot == "Calibration" or eventID == ID_clearPlot_Calibration:
-            plot = [self.topPlotMS, self.bottomPlot1DT]
-        elif plot == "Other" or eventID == ID_clearPlot_other:
-            plot = self.plotOther
-        elif plot == "UniDec" or eventID == ID_clearPlot_UniDec_MS:
-            plot = self.plotUnidec_MS
-        elif plot == "UniDec" or eventID == ID_clearPlot_UniDec_mwDistribution:
-            plot = self.plotUnidec_mwDistribution
-        elif plot == "UniDec" or eventID == ID_clearPlot_UniDec_mzGrid:
-            plot = self.plotUnidec_mzGrid
-        elif plot == "UniDec" or eventID == ID_clearPlot_UniDec_mwGrid:
-            plot = self.plotUnidec_mwVsZ
-        elif plot == "UniDec" or eventID == ID_clearPlot_UniDec_pickedPeaks:
-            plot = self.plotUnidec_individualPeaks
-        elif plot == "UniDec" or eventID == ID_clearPlot_UniDec_barchart:
-            plot = self.plotUnidec_barChart
-        elif plot == "UniDec" or eventID == ID_clearPlot_UniDec_chargeDistribution:
-            plot = self.plotUnidec_chargeDistribution
+        if eventID is None:
+            plot_obj = self.get_plot_from_name(plot)
+        elif eventID is not None:
+            plot_obj = self.get_plot_from_id(eventID)
         elif plot is None and "plot_obj" in kwargs:
-            plot = kwargs.pop("plot_obj")
+            plot_obj = kwargs.pop("plot_obj")
 
-        try:
-            plot.clearPlot()
-        except Exception:
-            for p in plot:
-                p.clearPlot()
+        if not isinstance(plot_obj, list):
+            plot_obj = [plot_obj]
 
-        self.presenter.onThreading(evt, ("Cleared plot area", 4), action="updateStatusbar")
+        for p in plot_obj:
+            p.clearPlot()
+
+        logger.info("Cleared plot area...")
 
     def on_clear_all_plots(self, evt=None):
 

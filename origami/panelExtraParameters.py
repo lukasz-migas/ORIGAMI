@@ -538,23 +538,22 @@ class panelParametersEdit(wx.Panel):
         )
         self.general_height_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightAxes)
+        #
+        #         plotSize_window_inch_label = wx.StaticText(panel, -1, "Plot size (inch)")
+        #         width_window_inch_label = wx.StaticText(panel, -1, "Width")
+        #         self.general_width_window_inch_value = wx.SpinCtrlDouble(
+        #             panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=0.5, size=(60, -1)
+        #         )
+        #         self.general_width_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
+        #         #         __general_width_tip = makeSuperTip(width_label, **self.help.general_widthPlot_inch)
+        #
+        #         height_window_inch_label = wx.StaticText(panel, -1, "Height")
+        #         self.general_height_window_inch_value = wx.SpinCtrlDouble(
+        #             panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=0.5, size=(60, -1)
+        #         )
+        #         self.general_height_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
+        #         #         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightPlot_inch)
 
-        plotSize_window_inch_label = wx.StaticText(panel, -1, "Plot size (inch)")
-        width_window_inch_label = wx.StaticText(panel, -1, "Width")
-        self.general_width_window_inch_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=0.5, size=(60, -1)
-        )
-        self.general_width_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
-        #         __general_width_tip = makeSuperTip(width_label, **self.help.general_widthPlot_inch)
-
-        height_window_inch_label = wx.StaticText(panel, -1, "Height")
-        self.general_height_window_inch_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=0.5, size=(60, -1)
-        )
-        self.general_height_window_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
-        #         __general_height_tip = makeSuperTip(height_label, **self.help.general_heightPlot_inch)
-
-        ########
         export_staticBox = makeStaticBox(panel, "Export parameters", size=(-1, -1), color=wx.BLACK)
         export_staticBox.SetSize((-1, -1))
         export_box_sizer = wx.StaticBoxSizer(export_staticBox, wx.HORIZONTAL)
@@ -815,13 +814,13 @@ class panelParametersEdit(wx.Panel):
         axes_grid.Add(self.general_bottom_value, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
         axes_grid.Add(self.general_width_value, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
         axes_grid.Add(self.general_height_value, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        y = y + 1
-        axes_grid.Add(width_window_inch_label, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        axes_grid.Add(height_window_inch_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        y = y + 1
-        axes_grid.Add(plotSize_window_inch_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axes_grid.Add(self.general_width_window_inch_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        axes_grid.Add(self.general_height_window_inch_value, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
+        #         y = y + 1
+        #         axes_grid.Add(width_window_inch_label, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
+        #         axes_grid.Add(height_window_inch_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
+        #         y = y + 1
+        #         axes_grid.Add(plotSize_window_inch_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        #         axes_grid.Add(self.general_width_window_inch_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
+        #         axes_grid.Add(self.general_height_window_inch_value, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
         axes_box_sizer.Add(axes_grid, 0, wx.EXPAND, 10)
 
         export_grid = wx.GridBagSizer(2, 2)
@@ -2512,14 +2511,14 @@ class panelParametersEdit(wx.Panel):
 
         plotSizes = [self.general_width_inch_value.GetValue(), self.general_height_inch_value.GetValue()]
         self.config._plotSettings[plotName]["resize_size"] = plotSizes
-
-        plotSizes = [self.general_width_window_inch_value.GetValue(), self.general_height_window_inch_value.GetValue()]
-        self.config._plotSettings[plotName]["gui_size"] = plotSizes
+        #
+        #         plotSizes = [self.general_width_window_inch_value.GetValue(), self.general_height_window_inch_value.GetValue()]
+        #         self.config._plotSettings[plotName]["gui_size"] = plotSizes
 
         # fire events
         self.panel_plot.plot_update_axes(plotName=plotName)
 
-        self.panel_plot.plot_update_size(plotName=plotName)
+        #         self.panel_plot.plot_update_size(plotName=plotName)
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
@@ -3178,9 +3177,9 @@ class panelParametersEdit(wx.Panel):
         for i, item in enumerate([self.general_width_inch_value, self.general_height_inch_value]):
             item.SetValue(plotSizes[i])
 
-        plotSizes = plotValues["gui_size"]
-        for i, item in enumerate([self.general_width_window_inch_value, self.general_height_window_inch_value]):
-            item.SetValue(plotSizes[i])
+        #         plotSizes = plotValues["gui_size"]
+        #         for i, item in enumerate([self.general_width_window_inch_value, self.general_height_window_inch_value]):
+        #             item.SetValue(plotSizes[i])
 
         if evt is not None:
             evt.Skip()

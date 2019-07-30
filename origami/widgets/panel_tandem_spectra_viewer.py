@@ -307,9 +307,15 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
             check = self.peaklist_selected.IsChecked(index=i)
             if check:
                 # get fragments
-                itemInfo, document, fragments, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.on_get_fragments(
-                    itemID=i, document=document
-                )
+                (
+                    itemInfo,
+                    document,
+                    fragments,
+                    frag_mass_list,
+                    frag_int_list,
+                    frag_label_list,
+                    frag_full_label_list,
+                ) = self.on_get_fragments(itemID=i, document=document)
 
                 # add fragmentation to document
                 if "fragment_annotations" not in document.tandem_spectra[itemInfo["scanID"]]:
@@ -446,14 +452,6 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
             size=(90, -1),
         )
         self.max_labels_value.Bind(wx.EVT_TEXT, self.on_apply)
-
-        #         fragment_presets_label = wx.StaticText(panel, wx.ID_ANY, u"Presets:")
-        #         self.fragment_presets_choice = wx.Choice(panel, -1, choices=natsorted(self.config.fragments_common.keys()),
-        #                                           size=(-1, -1))
-        #         self.fragment_presets_choice.SetStringSelection("b/y")
-        #         self.fragment_presets_choice.Bind(wx.EVT_CHOICE, self.on_apply)
-        #         self.fragment_presets_choice.Bind(wx.EVT_CHOICE, self.on_update_presets)
-
         # pack elements
         tolerance_grid = wx.GridBagSizer(5, 5)
         n = 0
@@ -465,8 +463,6 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         tolerance_grid.Add(self.tolerance_choice, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
         tolerance_grid.Add(max_labels_label, (n, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         tolerance_grid.Add(self.max_labels_value, (n, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        #         tolerance_grid.Add(fragment_presets_label, (n,6), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        #         tolerance_grid.Add(self.fragment_presets_choice, (n,7), wx.GBSpan(1,1), flag=wx.EXPAND)
 
         # M-ions
         self.peptide_M_all = makeCheckbox(panel, "P-all")
@@ -1076,17 +1072,6 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         """
         # get item information
         information = self.peaklist.on_get_item_information(itemID)
-        #         information = {'scanID': self.peaklist.GetItem(itemID, self._peaklist_columns['scan ID']).GetText(),
-        #                        'MSlevel': str2int(self.peaklist.GetItem(itemID, self._peaklist_columns['MSn']).GetText()),
-        #                        'precursor_mz': self.peaklist.GetItem(itemID, self._peaklist_columns['parent m/z']).GetText(),
-        #                        'precursor_charge': self.peaklist.GetItem(itemID, self._peaklist_columns['charge']).GetText(),
-        #                        'n_peaks': self.peaklist.GetItem(itemID, self._peaklist_columns['# peaks']).GetText(),
-        #                        'peptide': self.peaklist.GetItem(itemID, self._peaklist_columns['peptide']).GetText(),
-        #                        'PTM': str2bool(self.peaklist.GetItem(itemID, self._peaklist_columns['PTM']).GetText()),
-        #                        'title': self.peaklist.GetItem(itemID, self._peaklist_columns['title']).GetText(),
-        #                        # adjust for previously added 1
-        #                        'id_num': int(self.peaklist.GetItem(itemID, self._peaklist_columns['ID #']).GetText()) - 1,
-        #                        }
 
         if return_list:
             scanID = information["scanID"]
@@ -1119,18 +1104,6 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
     def get_item_info_peaklist_selected(self, itemID, return_list=False):
         # get item information
         information = self.peaklist_selected.on_get_item_information(itemID)
-        #         information = {'scanID': self.peaklist_selected.GetItem(itemID, self._selected_peaklist_columns['scan ID']).GetText(),
-        #                        'MSlevel': str2int(self.peaklist_selected.GetItem(itemID, self._selected_peaklist_columns['MSn']).GetText()),
-        #                        'precursor_mz': self.peaklist_selected.GetItem(itemID, self._selected_peaklist_columns['parent m/z']).GetText(),
-        #                        'precursor_charge': self.peaklist_selected.GetItem(itemID, self._selected_peaklist_columns['charge']).GetText(),
-        #                        'n_peaks': self.peaklist_selected.GetItem(itemID, self._selected_peaklist_columns['# peaks']).GetText(),
-        #                        'n_matched': self.peaklist_selected.GetItem(itemID, self._selected_peaklist_columns['# matched']).GetText(),
-        #                        'peptide': self.peaklist_selected.GetItem(itemID, self._selected_peaklist_columns['peptide']).GetText(),
-        #                        'PTM': str2bool(self.peaklist_selected.GetItem(itemID, self._selected_peaklist_columns['PTM']).GetText()),
-        #                        'title': self.peaklist_selected.GetItem(itemID, self._selected_peaklist_columns['title']).GetText(),
-        #                        # adjust for previously added 1
-        #                        'id_num': int(self.peaklist_selected.GetItem(itemID, self._peaklist_columns['ID #']).GetText()) - 1,
-        #                        }
 
         if return_list:
             scanID = information["scanID"]
@@ -1523,7 +1496,13 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
             "id_num": itemInfo["id_num"],
         }
 
-        fragments, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.data_processing.on_get_peptide_fragments(
+        (
+            fragments,
+            frag_mass_list,
+            frag_int_list,
+            frag_label_list,
+            frag_full_label_list,
+        ) = self.data_processing.on_get_peptide_fragments(
             tandem_spectra, get_lists=True, label_format=self.config._tandem_label_format, **kwargs
         )
 
@@ -1581,7 +1560,13 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
             "get_calculated_mz": self.butterfly_plot,
             "id_num": itemInfo["id_num"],
         }
-        fragments, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.data_processing.on_get_peptide_fragments(
+        (
+            fragments,
+            frag_mass_list,
+            frag_int_list,
+            frag_label_list,
+            frag_full_label_list,
+        ) = self.data_processing.on_get_peptide_fragments(
             tandem_spectra, get_lists=True, label_format=self.config._tandem_label_format, **kwargs
         )
 

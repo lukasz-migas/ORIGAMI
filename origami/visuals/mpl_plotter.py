@@ -9,7 +9,7 @@ from gui_elements.misc_dialogs import DialogBox
 from matplotlib import interactive
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D  # NOQA
 from numpy import amax
 from numpy import divide
 from PIL import Image
@@ -22,7 +22,7 @@ matplotlib.use("WXAgg")
 interactive(True)
 
 
-class mpl_plotter(wx.Window):
+class mpl_plotter(wx.Panel):
     def __init__(self, *args, **kwargs):
 
         if "figsize" in kwargs:
@@ -42,8 +42,15 @@ class mpl_plotter(wx.Window):
 
         self.window_name = kwargs.pop("window_name", None)
 
-        wx.Window.__init__(self, *args, **kwargs)
+        wx.Panel.__init__(self, *args, **kwargs)
         self.canvas = FigureCanvasWxAgg(self, -1, self.figure)
+
+        # RESIZE
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
+        self.SetSizer(sizer)
+        self.Fit()
+        self.Show()
 
         # Create a resizer
         self.Bind(wx.EVT_SIZE, self.on_resize)

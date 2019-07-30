@@ -1090,14 +1090,18 @@ class data_handling:
         document = self._on_get_document()
         document_title = document.title
 
+        print(self.plot_page)
         # Extraction of data when the Interactive document is enabled is not possible
-        if self.plot_page in ["RT", "MS", "1D", "2D"] and document.dataType == "Type: Interactive":
+        if (
+            self.plot_page in ["Chromatogram", "Mass spectrum", "Mobilogram", "Heatmap"]
+            and document.dataType == "Type: Interactive"
+        ):
             args = ("Cannot extract data from Interactive document", 4)
             self.on_threading(args=args, action="statusbar.update")
             return
 
         # Extract mass spectrum from mobiligram window
-        elif self.plot_page == "1D":
+        elif self.plot_page == "Mobilogram":
             dt_label = self.plotsPanel.plot1D.plot_labels.get("xlabel", "Drift time (bins)")
 
             if xvalsMin is None or xvalsMax is None:
@@ -1119,7 +1123,7 @@ class data_handling:
             self.on_extract_MS_from_mobiligram(dtStart=dtStart, dtEnd=dtEnd, units=dt_label)
 
         # Extract heatmap from mass spectrum window
-        elif self.plot_page == "MS" or currentView == "MS":
+        elif self.plot_page == "Mass spectrum" or currentView == "MS":
             if xvalsMin is None or xvalsMax is None:
                 self.update_statusbar("Your extraction range was outside the window. Please try again", 4)
                 return
@@ -1246,7 +1250,7 @@ class data_handling:
         #                                      repaint=True, plot='CalibrationMS')
 
         # Extract mass spectrum from chromatogram window - Linear DT files
-        elif self.plot_page == "RT" and document.dataType == "Type: Multifield Linear DT":
+        elif self.plot_page == "Chromatogram" and document.dataType == "Type: Multifield Linear DT":
             self.view._mgr.GetPane(self.view.panelLinearDT).Show()
             self.view._mgr.Update()
             xvalsMin = np.ceil(xvalsMin).astype(int)
@@ -1274,7 +1278,7 @@ class data_handling:
             )
 
         # Extract mass spectrum from chromatogram window
-        elif self.plot_page == "RT" and document.dataType != "Type: Multifield Linear DT":
+        elif self.plot_page == "Chromatogram" and document.dataType != "Type: Multifield Linear DT":
             rt_label = self.plotsPanel.plotRT.plot_labels.get("xlabel", "Scans")
 
             # Get values

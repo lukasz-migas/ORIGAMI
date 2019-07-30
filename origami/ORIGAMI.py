@@ -278,282 +278,282 @@ class ORIGAMI(object):
         except Exception:
             print("Failed to execute the operation in threaded mode. Consider switching it off?")
 
-    #     def onLinearDTirectory(self, e=None):
-    #         # self.config.ciuMode = 'LinearDT'
-    #         # self.config.extractMode = 'singleIon'
+    # def onLinearDTirectory(self, e=None):
+    # # self.config.ciuMode = 'LinearDT'
+    # # self.config.extractMode = 'singleIon'
     #
-    #         # Reset arrays
-    #         imsData2D = np.array([])
-    #         dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-    #                            style=wx.DD_DEFAULT_STYLE)
-    #         if self.config.dirname == '':
-    #             pass
-    #         else:
-    #             dlg.SetPath(self.config.dirname)
-    #         if dlg.ShowModal() == wx.ID_OK:
-    #             tstart = time.clock()
-    #             print("You chose %s" % dlg.GetPath())
-    #             # Update statusbar
-    #             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-    #             # Get experimental parameters
-    #             parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
-    #             xlimits = [parameters['startMS'], parameters['endMS']]
-    #             # Mass spectra
-    #             extract_kwargs = {'return_data': True}
-    #             msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
-    #                                                                 driftscope_path=self.config.driftscopePath,
-    #                                                                 **extract_kwargs)
+    # # Reset arrays
+    # imsData2D = np.array([])
+    # dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
+    #                    style=wx.DD_DEFAULT_STYLE)
+    # if self.config.dirname == '':
+    #     pass
+    # else:
+    #     dlg.SetPath(self.config.dirname)
+    # if dlg.ShowModal() == wx.ID_OK:
+    #     tstart = time.clock()
+    #     print("You chose %s" % dlg.GetPath())
+    #     # Update statusbar
+    #     self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
+    #     # Get experimental parameters
+    #     parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
+    #     xlimits = [parameters['startMS'], parameters['endMS']]
+    #     # Mass spectra
+    #     extract_kwargs = {'return_data': True}
+    #     msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
+    #                                                         driftscope_path=self.config.driftscopePath,
+    #                                                         **extract_kwargs)
     #
-    #             # RT
-    #             extract_kwargs = {'return_data': True, 'normalize': True}
-    #             xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
-    #                                                                              driftscope_path=self.config.driftscopePath,
-    #                                                                              **extract_kwargs)
+    #     # RT
+    #     extract_kwargs = {'return_data': True, 'normalize': True}
+    #     xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
+    #                                                                      driftscope_path=self.config.driftscopePath,
+    #                                                                      **extract_kwargs)
     #
-    #             # 2D
-    #             extract_kwargs = {'return_data': True}
-    #             imsData2D = io_waters.driftscope_extract_2D(path=dlg.GetPath(),
+    #     # 2D
+    #     extract_kwargs = {'return_data': True}
+    #     imsData2D = io_waters.driftscope_extract_2D(path=dlg.GetPath(),
+    #                                                   driftscope_path=self.config.driftscopePath,
+    #                                                   **extract_kwargs)
+    #     xlabels = 1 + np.arange(len(imsData2D[1, :]))
+    #     ylabels = 1 + np.arange(len(imsData2D[:, 1]))
+    #
+    #     # Update status bar with MS range
+    #     self.view.SetStatusText("{}-{}".format(parameters.get('startMS', ""), parameters.get('endMS', "")), 1)
+    #     self.view.SetStatusText("MSMS: {}".format(parameters.get('setMS', "")), 2)
+    #
+    #     tend = time.clock()
+    #     self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4), action='updateStatusbar')
+    #
+    #     # Add info to document
+    #     __, idName = os.path.split(dlg.GetPath())
+    #     idName = (''.join([idName])).encode('ascii', 'replace')
+    #     self.docs = documents()
+    #     self.docs.title = idName
+    #     self.currentDoc = idName  # Currently plotted document
+    #     self.docs.userParameters = self.config.userParameters
+    #     self.docs.userParameters['date'] = getTime()
+    #     self.docs.path = dlg.GetPath()
+    #     self.docs.parameters = parameters
+    #     self.docs.dataType = 'Type: Multifield Linear DT'
+    #     self.docs.fileFormat = 'Format: MassLynx (.raw)'
+    #     # Add data
+    #     self.docs.gotMS = True
+    #     self.docs.massSpectrum = {'xvals': msDataX,
+    #                               'yvals': msDataY,
+    #                               'xlabels': 'm/z (Da)',
+    #                               'xlimits': xlimits}
+    #     self.docs.got1RT = True
+    #     self.docs.RT = {'xvals': xvalsRT,
+    #                     'yvals': rtDataYnorm,
+    #                     'xlabels': 'Scans'}
+    #     self.docs.got2DIMS = True
+    #     # Format: zvals, xvals, xlabel, yvals, ylabel
+    #     self.docs.IMS2D = {'zvals': imsData2D,
+    #                        'xvals': xlabels,
+    #                         'xlabels': 'Scans',
+    #                         'yvals': ylabels,
+    #                         'ylabels': 'Drift time (bins)',
+    #                         'cmap': self.docs.colormap}
+    #
+    #     # Plots
+    #     self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
+    #     name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
+    #     self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+    #
+    #     # Update document
+    #     self.OnUpdateDocument(self.docs, 'document')
+    #
+    # dlg.Destroy()
+    # return None
+    #
+    # def onCalibrantRawDirectory(self, e=None):
+    # """
+    # This function opens calibrant file
+    # """
+    #
+    # # Reset arrays
+    # dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
+    #                    style=wx.DD_DEFAULT_STYLE)
+    #
+    # if dlg.ShowModal() == wx.ID_OK:
+    #     tstart = time.clock()
+    #     # Check whether appropriate calibration file was selected
+    #     path = self.checkIfRawFile(dlg.GetPath())
+    #     if path is None:
+    #         msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format."
+    #         DialogBox(exceptionTitle='Please load MassLynx (.raw) file',
+    #                exceptionMsg=msg,
+    #                type="Error")
+    #         return
+    #     print("You chose %s" % dlg.GetPath())
+    #     # Update statusbar
+    #     self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
+    #     # Get experimental parameters
+    #     parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
+    #     xlimits = [parameters['startMS'], parameters['endMS']]
+    #     # Mass spectra
+    #     extract_kwargs = {'return_data': True}
+    #     msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
+    #                                                         driftscope_path=self.config.driftscopePath,
+    #                                                         **extract_kwargs)
+    #     # RT
+    #     extract_kwargs = {'return_data': True, 'normalize': True}
+    #     xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
+    #                                                                      driftscope_path=self.config.driftscopePath,
+    #                                                                      **extract_kwargs)
+    #
+    #     # DT
+    #     extract_kwargs = {'return_data': True}
+    #     xvalsDT, imsData1D = io_waters.driftscope_extract_DT(path=dlg.GetPath(),
     #                                                           driftscope_path=self.config.driftscopePath,
     #                                                           **extract_kwargs)
-    #             xlabels = 1 + np.arange(len(imsData2D[1, :]))
-    #             ylabels = 1 + np.arange(len(imsData2D[:, 1]))
     #
-    #             # Update status bar with MS range
-    #             self.view.SetStatusText("{}-{}".format(parameters.get('startMS', ""), parameters.get('endMS', "")), 1)
-    #             self.view.SetStatusText("MSMS: {}".format(parameters.get('setMS', "")), 2)
+    #     # Update status bar with MS range
+    #     self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
+    #     self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
+    #     tend = time.clock()
+    #     self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4),
+    #                      action='updateStatusbar')
     #
-    #             tend = time.clock()
-    #             self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4), action='updateStatusbar')
+    #     # Add info to document
+    #     __, idName = os.path.split(dlg.GetPath())
+    #     idName = (''.join([idName])).encode('ascii', 'replace')
+    #     self.docs = documents()
+    #     self.docs.title = idName
+    #     self.currentDoc = idName  # Currently plotted document
+    #     self.docs.path = dlg.GetPath()
+    #     self.docs.userParameters = self.config.userParameters
+    #     self.docs.userParameters['date'] = getTime()
+    #     self.docs.parameters = parameters
+    #     self.docs.dataType = 'Type: CALIBRANT'
+    #     self.docs.fileFormat = 'Format: MassLynx (.raw)'
+    #     self.docs.corrC = parameters['corrC']
+    #     # Add data
+    #     self.docs.gotMS = True
+    #     self.docs.massSpectrum = {'xvals': msDataX,
+    #                               'yvals': msDataY,
+    #                               'xlabels': 'm/z (Da)',
+    #                               'xlimits': xlimits}
+    #     self.docs.got1RT = True
+    #     self.docs.RT = {'xvals': xvalsRT,
+    #                     'yvals': rtDataYnorm,
+    #                     'xlabels': 'Scans'}
+    #     self.docs.got1DT = True
+    #     self.docs.DT = {'xvals': xvalsDT,
+    #                     'yvals': imsData1D,
+    #                     'xlabels': 'Drift time (bins)',
+    #                     'ylabels': 'Intensity'}
     #
-    #             # Add info to document
-    #             __, idName = os.path.split(dlg.GetPath())
-    #             idName = (''.join([idName])).encode('ascii', 'replace')
-    #             self.docs = documents()
-    #             self.docs.title = idName
-    #             self.currentDoc = idName  # Currently plotted document
-    #             self.docs.userParameters = self.config.userParameters
-    #             self.docs.userParameters['date'] = getTime()
-    #             self.docs.path = dlg.GetPath()
-    #             self.docs.parameters = parameters
-    #             self.docs.dataType = 'Type: Multifield Linear DT'
-    #             self.docs.fileFormat = 'Format: MassLynx (.raw)'
-    #             # Add data
-    #             self.docs.gotMS = True
-    #             self.docs.massSpectrum = {'xvals': msDataX,
-    #                                       'yvals': msDataY,
-    #                                       'xlabels': 'm/z (Da)',
-    #                                       'xlimits': xlimits}
-    #             self.docs.got1RT = True
-    #             self.docs.RT = {'xvals': xvalsRT,
-    #                             'yvals': rtDataYnorm,
-    #                             'xlabels': 'Scans'}
-    #             self.docs.got2DIMS = True
-    #             # Format: zvals, xvals, xlabel, yvals, ylabel
-    #             self.docs.IMS2D = {'zvals': imsData2D,
-    #                                'xvals': xlabels,
-    #                                 'xlabels': 'Scans',
-    #                                 'yvals': ylabels,
-    #                                 'ylabels': 'Drift time (bins)',
-    #                                 'cmap': self.docs.colormap}
+    #     # Add plots
+    #     self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
+    #     self.onPlotMSDTCalibration(msX=msDataX,
+    #                                msY=msDataY,
+    #                                xlimits=xlimits,
+    #                                dtX=xvalsDT,
+    #                                dtY=imsData1D,
+    #                                xlabelDT='Drift time (bins)',
+    #                                color=self.docs.lineColour)
     #
-    #             # Plots
-    #             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
-    #             name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
-    #             self.view.panelPlots.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+    #     self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Calibration'])
     #
-    #             # Update document
-    #             self.OnUpdateDocument(self.docs, 'document')
+    #     # Update document
+    #     self.OnUpdateDocument(self.docs, 'document')
     #
-    #         dlg.Destroy()
-    #         return None
+    # dlg.Destroy()
+    # return None
     #
-    #     def onCalibrantRawDirectory(self, e=None):
-    #         """
-    #         This function opens calibrant file
-    #         """
+    # def onAddCalibrantMultiple(self, evt):
     #
-    #         # Reset arrays
-    #         dlg = wx.DirDialog(self.view, "Choose a MassLynx file:",
-    #                            style=wx.DD_DEFAULT_STYLE)
+    # tempList = self.view.panelCCS.topP.peaklist
+    # for row in range(tempList.GetItemCount()):
+    #     if evt.GetId() == ID_extractCCScalibrantAll:
+    #         pass
+    #     elif evt.GetId() == ID_extractCCScalibrantSelected:
+    #         if not tempList.IsChecked(index=row):
+    #             continue
     #
-    #         if dlg.ShowModal() == wx.ID_OK:
-    #             tstart = time.clock()
-    #             # Check whether appropriate calibration file was selected
-    #             path = self.checkIfRawFile(dlg.GetPath())
-    #             if path is None:
-    #                 msg = "Are you sure this was a MassLynx (.raw) file? Please load file in correct file format."
-    #                 DialogBox(exceptionTitle='Please load MassLynx (.raw) file',
-    #                        exceptionMsg=msg,
-    #                        type="Error")
-    #                 return
-    #             print("You chose %s" % dlg.GetPath())
-    #             # Update statusbar
-    #             self.onThreading(None, ("Opened: {}".format(dlg.GetPath()), 4), action='updateStatusbar')
-    #             # Get experimental parameters
-    #             parameters = self.config.get_waters_inf_data(path=dlg.GetPath())
-    #             xlimits = [parameters['startMS'], parameters['endMS']]
-    #             # Mass spectra
-    #             extract_kwargs = {'return_data': True}
-    #             msDataX, msDataY = io_waters.driftscope_extract_MS(path=dlg.GetPath(),
-    #                                                                 driftscope_path=self.config.driftscopePath,
-    #                                                                 **extract_kwargs)
-    #             # RT
-    #             extract_kwargs = {'return_data': True, 'normalize': True}
-    #             xvalsRT, rtDataY, rtDataYnorm = io_waters.driftscope_extract_RT(path=dlg.GetPath(),
-    #                                                                              driftscope_path=self.config.driftscopePath,
-    #                                                                              **extract_kwargs)
+    #     # Get values
+    #     filename = tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['filename']).GetText()
+    #     mzStart = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['start']).GetText())
+    #     mzEnd = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['end']).GetText())
+    #     rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
     #
-    #             # DT
-    #             extract_kwargs = {'return_data': True}
-    #             xvalsDT, imsData1D = io_waters.driftscope_extract_DT(path=dlg.GetPath(),
-    #                                                                   driftscope_path=self.config.driftscopePath,
-    #                                                                   **extract_kwargs)
+    #     # Get the document
+    #     document = self.documentsDict[filename]
+    #     if document.fileFormat == 'Format: DataFrame':
+    #         print(('Skipping %s as this is a DataFrame document.' % rangeName))
+    #         continue
     #
-    #             # Update status bar with MS range
-    #             self.view.SetStatusText("{}-{}".format(parameters['startMS'], parameters['endMS']), 1)
-    #             self.view.SetStatusText("MSMS: {}".format(parameters['setMS']), 2)
-    #             tend = time.clock()
-    #             self.onThreading(None, ('Total time to open file: %.2gs' % (tend - tstart), 4),
-    #                              action='updateStatusbar')
+    #     extract_kwargs = {'return_data': True}
+    #     __, yvalsDT = io_waters.driftscope_extract_DT(path=document.path,
+    #                                                    driftscope_path=self.config.driftscopePath,
+    #                                                    **extract_kwargs)
+    #     mphValue = (max(yvalsDT)) * 0.2  # 20 % cutoff
+    #     # Get pusher
+    #     pusherFreq = document.parameters.get('pusherFreq', 1)
     #
-    #             # Add info to document
-    #             __, idName = os.path.split(dlg.GetPath())
-    #             idName = (''.join([idName])).encode('ascii', 'replace')
-    #             self.docs = documents()
-    #             self.docs.title = idName
-    #             self.currentDoc = idName  # Currently plotted document
-    #             self.docs.path = dlg.GetPath()
-    #             self.docs.userParameters = self.config.userParameters
-    #             self.docs.userParameters['date'] = getTime()
-    #             self.docs.parameters = parameters
-    #             self.docs.dataType = 'Type: CALIBRANT'
-    #             self.docs.fileFormat = 'Format: MassLynx (.raw)'
-    #             self.docs.corrC = parameters['corrC']
-    #             # Add data
-    #             self.docs.gotMS = True
-    #             self.docs.massSpectrum = {'xvals': msDataX,
-    #                                       'yvals': msDataY,
-    #                                       'xlabels': 'm/z (Da)',
-    #                                       'xlimits': xlimits}
-    #             self.docs.got1RT = True
-    #             self.docs.RT = {'xvals': xvalsRT,
-    #                             'yvals': rtDataYnorm,
-    #                             'xlabels': 'Scans'}
-    #             self.docs.got1DT = True
-    #             self.docs.DT = {'xvals': xvalsDT,
-    #                             'yvals': imsData1D,
-    #                             'xlabels': 'Drift time (bins)',
-    #                             'ylabels': 'Intensity'}
+    #     if pusherFreq != 1:
+    #         xlabel = 'Drift time (ms)'
+    #     else:
+    #         xlabel = 'Drift time (bins)'
+    #     # Create x-labels in ms
+    #     xvalsDT = (np.arange(1, len(yvalsDT) + 1) * pusherFreq) / 1000
     #
-    #             # Add plots
-    #             self.view.panelPlots.on_plot_RT(xvalsRT, rtDataYnorm, 'Scans')
-    #             self.onPlotMSDTCalibration(msX=msDataX,
-    #                                        msY=msDataY,
-    #                                        xlimits=xlimits,
-    #                                        dtX=xvalsDT,
-    #                                        dtY=imsData1D,
-    #                                        xlabelDT='Drift time (bins)',
-    #                                        color=self.docs.lineColour)
-    #
-    #             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['Calibration'])
-    #
-    #             # Update document
-    #             self.OnUpdateDocument(self.docs, 'document')
-    #
-    #         dlg.Destroy()
-    #         return None
-    #
-    #     def onAddCalibrantMultiple(self, evt):
-    #
-    #         tempList = self.view.panelCCS.topP.peaklist
-    #         for row in range(tempList.GetItemCount()):
-    #             if evt.GetId() == ID_extractCCScalibrantAll:
-    #                 pass
-    #             elif evt.GetId() == ID_extractCCScalibrantSelected:
-    #                 if not tempList.IsChecked(index=row):
-    #                     continue
-    #
-    #             # Get values
-    #             filename = tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['filename']).GetText()
-    #             mzStart = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['start']).GetText())
-    #             mzEnd = str2num(tempList.GetItem(itemId=row, col=self.config.ccsTopColNames['end']).GetText())
-    #             rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
-    #
-    #             # Get the document
-    #             document = self.documentsDict[filename]
-    #             if document.fileFormat == 'Format: DataFrame':
-    #                 print(('Skipping %s as this is a DataFrame document.' % rangeName))
-    #                 continue
-    #
-    #             extract_kwargs = {'return_data': True}
-    #             __, yvalsDT = io_waters.driftscope_extract_DT(path=document.path,
-    #                                                            driftscope_path=self.config.driftscopePath,
-    #                                                            **extract_kwargs)
-    #             mphValue = (max(yvalsDT)) * 0.2  # 20 % cutoff
-    #             # Get pusher
-    #             pusherFreq = document.parameters.get('pusherFreq', 1)
-    #
-    #             if pusherFreq != 1:
-    #                 xlabel = 'Drift time (ms)'
-    #             else:
-    #                 xlabel = 'Drift time (bins)'
-    #             # Create x-labels in ms
-    #             xvalsDT = (np.arange(1, len(yvalsDT) + 1) * pusherFreq) / 1000
-    #
-    #             # Detect peak
-    #             ind = detectPeaks(x=yvalsDT, mph=mphValue)
-    #             if len(ind) > 1:
-    #                 self.view.SetStatusText('Found more than one peak. Selected the first one', 3)
-    #                 tD = np.round(xvalsDT[ind[0]], 2)
-    #                 print((ind[0], tD))
-    #                 yval = np.round(yvalsDT[ind[0]], 2)
-    #                 yval = pr_spectra.normalize_1D(yval)
-    #             elif len(ind) == 0:
-    #                 self.view.SetStatusText('Found no peaks', 3)
-    #                 tD = ""
-    #             else:
-    #                 self.view.SetStatusText('Found one peak', 3)
-    #                 tD = np.round(xvalsDT[ind[0]], 2)
+    #     # Detect peak
+    #     ind = detectPeaks(x=yvalsDT, mph=mphValue)
+    #     if len(ind) > 1:
+    #         self.view.SetStatusText('Found more than one peak. Selected the first one', 3)
+    #         tD = np.round(xvalsDT[ind[0]], 2)
+    #         print((ind[0], tD))
+    #         yval = np.round(yvalsDT[ind[0]], 2)
+    #         yval = pr_spectra.normalize_1D(yval)
+    #     elif len(ind) == 0:
+    #         self.view.SetStatusText('Found no peaks', 3)
+    #         tD = ""
+    #     else:
+    #         self.view.SetStatusText('Found one peak', 3)
+    #         tD = np.round(xvalsDT[ind[0]], 2)
     # #                 print(ind[0], tD)
-    #                 yval = np.round(yvalsDT[ind[0]], 2)
-    #                 yval = pr_spectra.normalize_1D(yval)
+    #         yval = np.round(yvalsDT[ind[0]], 2)
+    #         yval = pr_spectra.normalize_1D(yval)
     #
-    #             # Add data to document
-    #             protein, charge, CCS, gas, mw = None, None, None, None, None
+    #     # Add data to document
+    #     protein, charge, CCS, gas, mw = None, None, None, None, None
     #
-    #             # Check whether the document has molecular weight
-    #             mw = document.moleculeDetails.get('molWeight', None)
-    #             protein = document.moleculeDetails.get('protein', None)
+    #     # Check whether the document has molecular weight
+    #     mw = document.moleculeDetails.get('molWeight', None)
+    #     protein = document.moleculeDetails.get('protein', None)
     #
-    #             document.gotCalibration = True
-    #             document.calibration[rangeName] = {'xrange': [mzStart, mzEnd],
-    #                                                'xvals': xvalsDT,
-    #                                                'yvals': yvalsDT,
-    #                                                'xcentre': ((mzEnd + mzStart) / 2),
-    #                                                'protein': protein,
-    #                                                'charge': charge,
-    #                                                'ccs': CCS, 'tD': tD,
-    #                                                'gas': gas,
-    #                                                'xlabels': xlabel,
-    #                                                'peak': [tD, yval],
-    #                                                'mw': mw
-    #                                                }
-    #             # Plot
-    #             self.onPlot1DTCalibration(dtX=xvalsDT,
-    #                                       dtY=yvalsDT,
-    #                                       xlabel=xlabel,
-    #                                       color=document.lineColour)
+    #     document.gotCalibration = True
+    #     document.calibration[rangeName] = {'xrange': [mzStart, mzEnd],
+    #                                        'xvals': xvalsDT,
+    #                                        'yvals': yvalsDT,
+    #                                        'xcentre': ((mzEnd + mzStart) / 2),
+    #                                        'protein': protein,
+    #                                        'charge': charge,
+    #                                        'ccs': CCS, 'tD': tD,
+    #                                        'gas': gas,
+    #                                        'xlabels': xlabel,
+    #                                        'peak': [tD, yval],
+    #                                        'mw': mw
+    #                                        }
+    #     # Plot
+    #     self.onPlot1DTCalibration(dtX=xvalsDT,
+    #                               dtY=yvalsDT,
+    #                               xlabel=xlabel,
+    #                               color=document.lineColour)
     #
-    #             if tD != "":
-    #                 self.addMarkerMS(xvals=tD,
-    #                                  yvals=yval,
-    #                                  color=self.config.annotColor,
-    #                                  marker=self.config.markerShape,
-    #                                  size=self.config.markerSize,
-    #                                  plot='CalibrationDT')
+    #     if tD != "":
+    #         self.addMarkerMS(xvals=tD,
+    #                          yvals=yval,
+    #                          color=self.config.annotColor,
+    #                          marker=self.config.markerShape,
+    #                          size=self.config.markerSize,
+    #                          plot='CalibrationDT')
     #
-    #             # Update document
-    #             self.OnUpdateDocument(document, 'document')
+    #     # Update document
+    #     self.OnUpdateDocument(document, 'document')
 
     def get_overlay_document(self):
         try:
@@ -712,9 +712,20 @@ class ORIGAMI(object):
             if tempList.IsChecked(index=row):
                 if source == "ion":
                     # Get data for each ion
-                    __, __, charge, color, colormap, alpha, mask, label, self.currentDoc, ionName, min_threshold, max_threshold = self.view.panelMultipleIons.OnGetItemInformation(
-                        itemID=row, return_list=True
-                    )
+                    (
+                        __,
+                        __,
+                        charge,
+                        color,
+                        colormap,
+                        alpha,
+                        mask,
+                        label,
+                        self.currentDoc,
+                        ionName,
+                        min_threshold,
+                        max_threshold,
+                    ) = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
 
                     # processed name
                     ionNameProcessed = "%s (processed)" % ionName
@@ -1961,7 +1972,8 @@ class ORIGAMI(object):
     #             return
     #
     #         if selectedIon is None:
-    #             self.view.SetStatusText('Please select items in the table - otherwise CCS calibration cannot be created', 3)
+    #             self.view.SetStatusText('Please select items in the table -
+    # otherwise CCS calibration cannot be created', 3)
     #             return
     #
     #         # Determine what gas is used - selects it based on the last value in the list
@@ -2063,251 +2075,251 @@ class ORIGAMI(object):
     #         self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear, 4)),
     #                                          ' | R² (power): ', str(np.round(r2Power, 4)), ]), 3)
     #
-    # #     def on_applyCCSCalibrationToSelectedIons(self, evt):
-    # #
-    # #         # Shortcut to the table
-    # #         tempList = self.view.panelCCS.bottomP.peaklist
-    # #         calibrationMode = self.view.panelCCS.bottomP.calibrationMode.GetStringSelection()
-    # #         for caliID in range(tempList.GetItemCount()):
-    # #             # Only add info if dataset was checked
-    # #             if tempList.IsChecked(index=caliID):
-    # #                 # Get document info
-    # #                 filename = tempList.GetItem(caliID, self.config.ccsBottomColNames['filename']).GetText()
-    # #                 mzStart = tempList.GetItem(caliID, self.config.ccsBottomColNames['start']).GetText()
-    # #                 mzEnd = tempList.GetItem(caliID, self.config.ccsBottomColNames['end']).GetText()
-    # #                 charge = str2int(tempList.GetItem(caliID, self.config.ccsBottomColNames['charge']).GetText())
-    # #                 mzCentre = str2num(tempList.GetItem(caliID, self.config.ccsBottomColNames['ion']).GetText())
-    # #                 selectedType = tempList.GetItem(caliID, self.config.ccsBottomColNames['format']).GetText()
-    # #                 rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
-    # #
-    # #                 # Check these fields were filled in
-    # #                 if isempty(charge) or isempty(mzCentre):
-    # #                     msg = 'Please fill in the fields'
-    # #                     self.view.SetStatusText(msg, 3)
-    # #                     return
-    # #                 elif charge == 0:
-    # #                     msg = "
+    #     def on_applyCCSCalibrationToSelectedIons(self, evt):
+    #
+    #         # Shortcut to the table
+    #         tempList = self.view.panelCCS.bottomP.peaklist
+    #         calibrationMode = self.view.panelCCS.bottomP.calibrationMode.GetStringSelection()
+    #         for caliID in range(tempList.GetItemCount()):
+    #             # Only add info if dataset was checked
+    #             if tempList.IsChecked(index=caliID):
+    #                 # Get document info
+    #                 filename = tempList.GetItem(caliID, self.config.ccsBottomColNames['filename']).GetText()
+    #                 mzStart = tempList.GetItem(caliID, self.config.ccsBottomColNames['start']).GetText()
+    #                 mzEnd = tempList.GetItem(caliID, self.config.ccsBottomColNames['end']).GetText()
+    #                 charge = str2int(tempList.GetItem(caliID, self.config.ccsBottomColNames['charge']).GetText())
+    #                 mzCentre = str2num(tempList.GetItem(caliID, self.config.ccsBottomColNames['ion']).GetText())
+    #                 selectedType = tempList.GetItem(caliID, self.config.ccsBottomColNames['format']).GetText()
+    #                 rangeName = ''.join([str(mzStart), '-', str(mzEnd)])
+    #
+    #                 # Check these fields were filled in
+    #                 if isempty(charge) or isempty(mzCentre):
+    #                     msg = 'Please fill in the fields'
+    #                     self.view.SetStatusText(msg, 3)
+    #                     return
+    #                 elif charge == 0:
+    #                     msg = "
     # %s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (
-    # #                         rangeName, filename)
-    # #                     DialogBox(exceptionTitle='Missing charge information',
-    # #                            exceptionMsg=msg,
-    # #                            type="Warning")
-    # #                     continue
-    # #                 # Get document object based on the filename
-    # #                 document = self.documentsDict[filename]
-    # #
-    # #                 # Select data based on the format of the object
-    # #                 if selectedType == '2D, extracted':
-    # #                     data = document.IMS2Dions[rangeName]
-    # #                 elif selectedType == '2D, combined':
-    # #                     data = document.IMS2DCombIons[rangeName]
-    # #                 elif selectedType == '2D, processed':
-    # #                     data = document.IMS2DionsProcess[rangeName]
-    # #
-    # #                 # Unpack data
-    # #                 zvals, xvals, xlabel, yvals, ylabel, charge, mw, mzCentre = self.get2DdataFromDictionary(
-    # #                     dictionary=data, dataType='calibration', compact=False)
-    # #                 # Check that the object has pusher frequency
-    # #                 pusherFreq = document.parameters.get('pusherFreq', 1)
-    # #
-    # #                 if (pusherFreq == 1 or not isnumber(pusherFreq)) and ylabel != 'Drift time (ms)':
-    # #                     msg = \
+    #                         rangeName, filename)
+    #                     DialogBox(exceptionTitle='Missing charge information',
+    #                            exceptionMsg=msg,
+    #                            type="Warning")
+    #                     continue
+    #                 # Get document object based on the filename
+    #                 document = self.documentsDict[filename]
+    #
+    #                 # Select data based on the format of the object
+    #                 if selectedType == '2D, extracted':
+    #                     data = document.IMS2Dions[rangeName]
+    #                 elif selectedType == '2D, combined':
+    #                     data = document.IMS2DCombIons[rangeName]
+    #                 elif selectedType == '2D, processed':
+    #                     data = document.IMS2DionsProcess[rangeName]
+    #
+    #                 # Unpack data
+    #                 zvals, xvals, xlabel, yvals, ylabel, charge, mw, mzCentre = self.get2DdataFromDictionary(
+    #                     dictionary=data, dataType='calibration', compact=False)
+    #                 # Check that the object has pusher frequency
+    #                 pusherFreq = document.parameters.get('pusherFreq', 1)
+    #
+    #                 if (pusherFreq == 1 or not isnumber(pusherFreq)) and ylabel != 'Drift time (ms)':
+    #                     msg = \
     #     "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (
-    # #                         filename, rangeName)
-    # #                     DialogBox(exceptionTitle='Missing data',
-    # #                            exceptionMsg=msg,
-    # #                            type="Error")
-    # #                     continue
-    # #                 # Check if ylabel is in ms
-    # #                 if ylabel != 'Drift time (ms)':
-    # #                     if ylabel == 'Drift time (bins)':
-    # #                         yvals = yvals * (pusherFreq / 1000)
-    # #                     else:
-    # #                         # Need to restore scans and convert them to ms
-    # #                         yvals = 1 + np.arange(len(zvals[:, 1]))
-    # #                         yvals = yvals * (pusherFreq / 1000)
-    # #
-    # #                 # Check for TOF correction factor
-    # #                 if isempty(document.corrC) and document.parameters.get('corrC', None) is None:
-    # #                     msg = 'Missing TOF correction factor'
-    # #                     self.view.SetStatusText(msg, 3)
-    # #                     return
-    # #
-    # #                 # Check for charge and m/z information
-    # #                 if not isnumber(charge) or not isnumber(mzCentre):
-    # #                     if not isnumber(charge):
-    # #                         msg = 'Missing charge information'
-    # #                     elif not isnumber(mzCentre):
-    # #                         msg = 'Missing m/z information'
-    # #                     self.view.SetStatusText(msg, 3)
-    # #                     return
-    # #
-    # #                 # Create empty DataFrame to calculate CCS
-    # #                 df = pd.DataFrame(columns=['m/z', 'z', 'tD', 'MW', 'RedMass', 'tDd', 'tDdd'],
-    # #                                   index=np.arange(0, len(yvals)))
-    # #                 df['m/z'] = float(mzCentre)
-    # #                 df['z'] = int(charge)
-    # #                 df['tD'] = yvals
-    # #
-    # #                 # Unpack calibration parameters
-    # #                 if len(self.currentCalibrationParams) == 0:
-    # #                     if document.gotCalibrationParameters:
-    # #                         self.currentCalibrationParams = document.calibrationParameters
-    # #
-    # #                 # Now assign the calibration parameters
-    # #                 try:
-    # #                     calibrationParameters = self.currentCalibrationParams.get('parameters', None)
-    # #                 except (IndexError, KeyError):
-    # #                     calibrationParameters = None
-    # #
-    # #                 if calibrationParameters is None:
-    # #                     # TODO: add function to search for calibration document
-    # #                     docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
-    # #                                                                 format='Format: DataFrame')
-    # #                     if len(docList) == 0:
-    # #                         msg = \
+    #                         filename, rangeName)
+    #                     DialogBox(exceptionTitle='Missing data',
+    #                            exceptionMsg=msg,
+    #                            type="Error")
+    #                     continue
+    #                 # Check if ylabel is in ms
+    #                 if ylabel != 'Drift time (ms)':
+    #                     if ylabel == 'Drift time (bins)':
+    #                         yvals = yvals * (pusherFreq / 1000)
+    #                     else:
+    #                         # Need to restore scans and convert them to ms
+    #                         yvals = 1 + np.arange(len(zvals[:, 1]))
+    #                         yvals = yvals * (pusherFreq / 1000)
+    #
+    #                 # Check for TOF correction factor
+    #                 if isempty(document.corrC) and document.parameters.get('corrC', None) is None:
+    #                     msg = 'Missing TOF correction factor'
+    #                     self.view.SetStatusText(msg, 3)
+    #                     return
+    #
+    #                 # Check for charge and m/z information
+    #                 if not isnumber(charge) or not isnumber(mzCentre):
+    #                     if not isnumber(charge):
+    #                         msg = 'Missing charge information'
+    #                     elif not isnumber(mzCentre):
+    #                         msg = 'Missing m/z information'
+    #                     self.view.SetStatusText(msg, 3)
+    #                     return
+    #
+    #                 # Create empty DataFrame to calculate CCS
+    #                 df = pd.DataFrame(columns=['m/z', 'z', 'tD', 'MW', 'RedMass', 'tDd', 'tDdd'],
+    #                                   index=np.arange(0, len(yvals)))
+    #                 df['m/z'] = float(mzCentre)
+    #                 df['z'] = int(charge)
+    #                 df['tD'] = yvals
+    #
+    #                 # Unpack calibration parameters
+    #                 if len(self.currentCalibrationParams) == 0:
+    #                     if document.gotCalibrationParameters:
+    #                         self.currentCalibrationParams = document.calibrationParameters
+    #
+    #                 # Now assign the calibration parameters
+    #                 try:
+    #                     calibrationParameters = self.currentCalibrationParams.get('parameters', None)
+    #                 except (IndexError, KeyError):
+    #                     calibrationParameters = None
+    #
+    #                 if calibrationParameters is None:
+    #                     # TODO: add function to search for calibration document
+    #                     docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
+    #                                                                 format='Format: DataFrame')
+    #                     if len(docList) == 0:
+    #                         msg = \
     #     "Cound not find calibration document or calibration file. Please create or load one in first"
-    # #                         DialogBox(exceptionTitle='Missing data',
-    # #                                exceptionMsg=msg,
-    # #                                type="Error")
-    # #                         return
-    # #                     else:
-    # #                         self.selectDocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
-    # #                         if self.selectDocDlg.ShowModal() == wx.ID_OK:
-    # #                             calibrationParameters = self.currentCalibrationParams.get('parameters', None)
-    # #                             if calibrationParameters is None:
-    # #                                 return
-    # #                         return
-    # #
-    # #                 # Get parameters
-    # #                 slopeLinear, interceptLinear, r2Linear = calibrationParameters['linear']
-    # #                 slopePower, interceptPower, r2Power = calibrationParameters['power']
-    # #                 slope, intercept = calibrationParameters['powerParms']
-    # #                 gas = calibrationParameters['gas']
-    # #
-    # #                 # Fill in remaining details
-    # #                 df['MW'] = (df['m/z'] - (self.config.elementalMass['Hydrogen'] * df['z'])) * df['z']
-    # #                 df['RedMass'] = ((df['MW'] * gas) / (df['MW'] + gas))
-    # #                 df['tDd'] = (df['tD'] - ((document.corrC * df['m/z'].apply(sqrt)) / 1000))
-    # #
-    # #                 # Linear law
-    # #                 df['CCSd'] = slopeLinear * df['tDd'] + interceptLinear
-    # #                 df['CCSlinear'] = df['CCSd'] * (df['z'] * (1 / df['RedMass']).apply(sqrt))
-    # #                 # Power law
-    # #                 df['tDdd'] = df['tDd'].pow(slope) * df['z'] * df['RedMass'].apply(sqrt)
-    # #                 df['CCSpower'] = (df['tDdd'] * slopePower) + interceptPower
-    # #
-    # #                 # Update dictionary
-    # #                 document.gotCalibrationParameters = True
-    # #                 document.calibrationParameters = self.currentCalibrationParams
-    # #                 document.calibrationParameters['mode'] = calibrationMode
-    # #
-    # #                 document.gas = gas
-    # #
-    # #                 if calibrationMode == 'Linear':
-    # #                     ccsVals = pd.to_numeric(df['CCSlinear']).values
-    # #                 elif calibrationMode == 'Power':
-    # #                     ccsVals = pd.to_numeric(df['CCSpower']).values
-    # #
-    # #                 # Assign data
-    # #                 if selectedType == '2D, extracted':
-    # #                     document.IMS2Dions[rangeName]['yvals'] = ccsVals
-    # #                     document.IMS2Dions[rangeName]['yvalsCCSBackup'] = ccsVals
-    # #                     document.IMS2Dions[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
-    # #                 elif selectedType == '2D, combined':
-    # #                     document.IMS2DCombIons[rangeName]['yvals'] = ccsVals
-    # #                     document.IMS2DCombIons[rangeName]['yvalsCCSBackup'] = ccsVals
-    # #                     document.IMS2DCombIons[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
-    # #                 elif selectedType == '2D, processed':
-    # #                     document.IMS2DionsProcess[rangeName]['yvals'] = ccsVals
-    # #                     document.IMS2DionsProcess[rangeName]['yvalsCCSBackup'] = ccsVals
-    # #                     document.IMS2DionsProcess[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
-    # #
-    # #                 # Assign updated to dictionary
-    # #                 self.documentsDict[document.title] = document
-    # #
-    # #                 # Update documents tree
-    # #                 self.view.panelDocuments.documents.add_document(docData=document)
-    # #
-    # #         # Update status bar
-    # #         try:
-    # #             self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear, 4)),
-    # #                                              ' | R² (power): ', str(np.round(r2Power, 4)),
-    # #                                              ' | Used: ', calibrationMode, ' mode']), 3)
-    # #         except Exception:            pass
-    # #
-    # #     def OnAddDataToCCSTable(self, filename=None, mzStart=None, mzEnd=None,
-    # #                             mzCentre=None, charge=None, protein=None,
-    # #                             format=None, evt=None):
-    # #         """
-    # #         Add data to table and prepare DataFrame for CCS calibration
-    # #         """
-    # #         # Shortcut to the table
-    # #         tempList = self.view.panelCCS.bottomP.peaklist
-    # #
-    # #         # Add data to table
-    # #         tempList.Append([filename, mzStart, mzEnd,
-    # #                          mzCentre, protein, charge, format])
-    # #
-    # #         # Remove duplicates
-    # #         self.view.panelCCS.bottomP.onRemoveDuplicates(evt=None)
-    # #         # Enable and show CCS table
-    # #         self.view.on_toggle_panel(evt=ID_window_ccsList, check=True)
-    # #
-    # #     def saveCCScalibrationToPickle(self, evt):
-    # #         """
-    # #         Save CCS calibration parameters to file
-    # #         """
-    # #         try:
-    # #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-    # #         except Exception:            return
-    # #         if self.currentDoc == "Documents":
-    # #             return
-    # #
-    # #         # Check if the currently selected document is Calibration dataframe file
-    # #         if (self.documentsDict[self.currentDoc].dataType == 'Type: CALIBRANT' and
-    # #                 self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
-    # #             self.docs = self.documentsDict[self.currentDoc]
-    # #             self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
-    # #         else:
-    # #             docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
-    # #                                                         format='Format: DataFrame')
-    # #             if len(docList) == 0:
-    # #                 print('Did not find appropriate document.')
-    # #                 return
-    # #             else:
-    # #                 self.DocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
-    # #                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
-    # #                     pass
-    # #
-    # #                 # Check that document exists
-    # #                 if self.currentDoc is None:
-    # #                     self.view.SetStatusText('Please select CCS calibration document', 3)
-    # #                     return
-    # #
-    # #                 self.docs = self.documentsDict[self.currentDoc]
-    # #                 self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
-    # #
-    # #         # Get calibration parameters
-    # #         # Unpack calibration parameters
-    # #         if len(self.currentCalibrationParams) == 0:
-    # #             if self.docs.gotCalibrationParameters:
-    # #                 self.currentCalibrationParams = self.docs.calibrationParameters
-    # #
-    # #         # Save parameters
-    # #         fileType = "ORIGAMI Document File|*.pickle"
-    # #         dlg = wx.FileDialog(self.view, "Save CCS calibration to file...", "", "", fileType,
-    # #                             wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-    # #         defaultFilename = self.docs.title.split(".")
-    # #         defaultFilename = "".join([defaultFilename[0], '_CCScaliParams'])
-    # #         dlg.SetFilename(defaultFilename)
-    # #
-    # #         if dlg.ShowModal() == wx.ID_OK:
-    # #             saveFileName = dlg.GetPath()
-    # #             # Save
-    # #             saveObject(filename=saveFileName, saveFile=self.currentCalibrationParams)
-    # #         else:
-    # #             return
+    #                         DialogBox(exceptionTitle='Missing data',
+    #                                exceptionMsg=msg,
+    #                                type="Error")
+    #                         return
+    #                     else:
+    #                         self.selectDocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
+    #                         if self.selectDocDlg.ShowModal() == wx.ID_OK:
+    #                             calibrationParameters = self.currentCalibrationParams.get('parameters', None)
+    #                             if calibrationParameters is None:
+    #                                 return
+    #                         return
+    #
+    #                 # Get parameters
+    #                 slopeLinear, interceptLinear, r2Linear = calibrationParameters['linear']
+    #                 slopePower, interceptPower, r2Power = calibrationParameters['power']
+    #                 slope, intercept = calibrationParameters['powerParms']
+    #                 gas = calibrationParameters['gas']
+    #
+    #                 # Fill in remaining details
+    #                 df['MW'] = (df['m/z'] - (self.config.elementalMass['Hydrogen'] * df['z'])) * df['z']
+    #                 df['RedMass'] = ((df['MW'] * gas) / (df['MW'] + gas))
+    #                 df['tDd'] = (df['tD'] - ((document.corrC * df['m/z'].apply(sqrt)) / 1000))
+    #
+    #                 # Linear law
+    #                 df['CCSd'] = slopeLinear * df['tDd'] + interceptLinear
+    #                 df['CCSlinear'] = df['CCSd'] * (df['z'] * (1 / df['RedMass']).apply(sqrt))
+    #                 # Power law
+    #                 df['tDdd'] = df['tDd'].pow(slope) * df['z'] * df['RedMass'].apply(sqrt)
+    #                 df['CCSpower'] = (df['tDdd'] * slopePower) + interceptPower
+    #
+    #                 # Update dictionary
+    #                 document.gotCalibrationParameters = True
+    #                 document.calibrationParameters = self.currentCalibrationParams
+    #                 document.calibrationParameters['mode'] = calibrationMode
+    #
+    #                 document.gas = gas
+    #
+    #                 if calibrationMode == 'Linear':
+    #                     ccsVals = pd.to_numeric(df['CCSlinear']).values
+    #                 elif calibrationMode == 'Power':
+    #                     ccsVals = pd.to_numeric(df['CCSpower']).values
+    #
+    #                 # Assign data
+    #                 if selectedType == '2D, extracted':
+    #                     document.IMS2Dions[rangeName]['yvals'] = ccsVals
+    #                     document.IMS2Dions[rangeName]['yvalsCCSBackup'] = ccsVals
+    #                     document.IMS2Dions[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
+    #                 elif selectedType == '2D, combined':
+    #                     document.IMS2DCombIons[rangeName]['yvals'] = ccsVals
+    #                     document.IMS2DCombIons[rangeName]['yvalsCCSBackup'] = ccsVals
+    #                     document.IMS2DCombIons[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
+    #                 elif selectedType == '2D, processed':
+    #                     document.IMS2DionsProcess[rangeName]['yvals'] = ccsVals
+    #                     document.IMS2DionsProcess[rangeName]['yvalsCCSBackup'] = ccsVals
+    #                     document.IMS2DionsProcess[rangeName]['ylabels'] = 'Collision Cross Section (Å²)'
+    #
+    #                 # Assign updated to dictionary
+    #                 self.documentsDict[document.title] = document
+    #
+    #                 # Update documents tree
+    #                 self.view.panelDocuments.documents.add_document(docData=document)
+    #
+    #         # Update status bar
+    #         try:
+    #             self.view.SetStatusText(''.join(['R² (linear): ', str(np.round(r2Linear, 4)),
+    #                                              ' | R² (power): ', str(np.round(r2Power, 4)),
+    #                                              ' | Used: ', calibrationMode, ' mode']), 3)
+    #         except Exception:            pass
+    #
+    #     def OnAddDataToCCSTable(self, filename=None, mzStart=None, mzEnd=None,
+    #                             mzCentre=None, charge=None, protein=None,
+    #                             format=None, evt=None):
+    #         """
+    #         Add data to table and prepare DataFrame for CCS calibration
+    #         """
+    #         # Shortcut to the table
+    #         tempList = self.view.panelCCS.bottomP.peaklist
+    #
+    #         # Add data to table
+    #         tempList.Append([filename, mzStart, mzEnd,
+    #                          mzCentre, protein, charge, format])
+    #
+    #         # Remove duplicates
+    #         self.view.panelCCS.bottomP.onRemoveDuplicates(evt=None)
+    #         # Enable and show CCS table
+    #         self.view.on_toggle_panel(evt=ID_window_ccsList, check=True)
+    #
+    #     def saveCCScalibrationToPickle(self, evt):
+    #         """
+    #         Save CCS calibration parameters to file
+    #         """
+    #         try:
+    #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+    #         except Exception:            return
+    #         if self.currentDoc == "Documents":
+    #             return
+    #
+    #         # Check if the currently selected document is Calibration dataframe file
+    #         if (self.documentsDict[self.currentDoc].dataType == 'Type: CALIBRANT' and
+    #                 self.documentsDict[self.currentDoc].fileFormat == 'Format: DataFrame'):
+    #             self.docs = self.documentsDict[self.currentDoc]
+    #             self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
+    #         else:
+    #             docList = self.checkIfAnyDocumentsAreOfType(type='Type: CALIBRANT',
+    #                                                         format='Format: DataFrame')
+    #             if len(docList) == 0:
+    #                 print('Did not find appropriate document.')
+    #                 return
+    #             else:
+    #                 self.DocDlg = DialogSelectDocument(self.view, self, docList, allowNewDoc=False)
+    #                 if self.selectDocDlg.ShowModal() == wx.ID_OK:
+    #                     pass
+    #
+    #                 # Check that document exists
+    #                 if self.currentDoc is None:
+    #                     self.view.SetStatusText('Please select CCS calibration document', 3)
+    #                     return
+    #
+    #                 self.docs = self.documentsDict[self.currentDoc]
+    #                 self.view.SetStatusText('Using document: ' + self.docs.title.encode('ascii', 'replace'), 3)
+    #
+    #         # Get calibration parameters
+    #         # Unpack calibration parameters
+    #         if len(self.currentCalibrationParams) == 0:
+    #             if self.docs.gotCalibrationParameters:
+    #                 self.currentCalibrationParams = self.docs.calibrationParameters
+    #
+    #         # Save parameters
+    #         fileType = "ORIGAMI Document File|*.pickle"
+    #         dlg = wx.FileDialog(self.view, "Save CCS calibration to file...", "", "", fileType,
+    #                             wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+    #         defaultFilename = self.docs.title.split(".")
+    #         defaultFilename = "".join([defaultFilename[0], '_CCScaliParams'])
+    #         dlg.SetFilename(defaultFilename)
+    #
+    #         if dlg.ShowModal() == wx.ID_OK:
+    #             saveFileName = dlg.GetPath()
+    #             # Save
+    #             saveObject(filename=saveFileName, saveFile=self.currentCalibrationParams)
+    #         else:
+    #             return
 
     #     def onImportCCSDatabase(self, evt, onStart=False):
     #

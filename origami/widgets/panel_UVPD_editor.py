@@ -162,16 +162,24 @@ class PanelUVPDEditor(wx.MiniFrame):
     def about(self, evt):
         msg = """
         <h3>About UVPD processing</h3>
-        <p>This panel permits quick extraction of data from a very specific UVPD experiment where during the experiment a UV laser is switched on and off.</p>
+        <p>This panel permits quick extraction of data from a
+        very specific UVPD experiment where during the experiment a UV laser is switched on and off.</p>
         <h3>How to use</h3>
         <ol>
-        <li>In the main window identify ions of interest - extract them to have heatmap information (found under Drift time (2D, EIC) in the document).</li>
+        <li>In the main window identify ions of interest -
+        extract them to have heatmap information (found under Drift time (2D, EIC) in the document).</li>
         <li>Open the UVPD processing panel (Plugins -&gt; UVPD processing&hellip;).</li>
-        <li>Fill-in peak detection parameters and click on <strong>Find peaks</strong>. Make sure you have previously plotted the correct chromatogram in the RT window. (Document Tree -&amp;gt; double-click on Chromatogram).</li>
-        <li>Once you are happy with the peak detection, click on <strong>Extract mobiligrams</strong> button. This will only work if there are any items in the peaklist above the button.</li>
+        <li>Fill-in peak detection parameters and click on <strong>Find peaks</strong>.
+        Make sure you have previously plotted the correct chromatogram in the RT window. (Document Tree -&amp;gt;
+        double-click on Chromatogram).</li>
+        <li>Once you are happy with the peak detection, click on <strong>Extract mobiligrams</strong> button.
+        This will only work if there are any items in the peaklist above the button.</li>
         <li>Now, if you right-click on any item in the peaklist you can plot the results.</li>
-        <li>If you would like to monitor specific drift-time, you can add the mobility peaks to the monitorlist (right-hand side).</li>
-        <li>First, select an item in the peaklist (you can see the currently selected ion in the title of the window). Fill-in the <strong>min dt</strong> and <strong>max dt</strong> fields and click on the <strong>+</strong> button.</li>
+        <li>If you would like to monitor specific drift-time, you can add the mobility peaks to the monitorlist
+        (right-hand side).</li>
+        <li>First, select an item in the peaklist (you can see the currently selected ion in the title of the window).
+        Fill-in the <strong>min dt</strong> and <strong>max dt</strong> fields and
+        click on the <strong>+</strong> button.</li>
         <li>Click on <strong>Monitor features</strong>.</li>
         </ol>
         """.strip()

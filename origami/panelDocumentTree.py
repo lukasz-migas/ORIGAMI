@@ -4563,9 +4563,20 @@ class documentsTree(wx.TreeCtrl):
                     save_kwargs = {"image_name": defaultValue}
                     self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
             elif out[0] == "Mask" or out[0] == "Transparent":
-                zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, __, __, xvals, yvals, xlabels, ylabels = self.presenter.getOverlayDataFromDictionary(
-                    dictionary=data, dataType="plot", compact=False
-                )
+                (
+                    zvals1,
+                    zvals2,
+                    cmap1,
+                    cmap2,
+                    alpha1,
+                    alpha2,
+                    __,
+                    __,
+                    xvals,
+                    yvals,
+                    xlabels,
+                    ylabels,
+                ) = self.presenter.getOverlayDataFromDictionary(dictionary=data, dataType="plot", compact=False)
                 if out[0] == "Mask":
                     defaultValue = "Overlay_mask_{}".format(basename)
                     self.panel_plot.on_plot_overlay_2D(
@@ -4604,9 +4615,18 @@ class documentsTree(wx.TreeCtrl):
                     self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
 
             elif out[0] == "RMSF":
-                zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType="RMSF", compact=True
-                )
+                (
+                    zvals,
+                    yvalsRMSF,
+                    xvals,
+                    yvals,
+                    xlabelRMSD,
+                    ylabelRMSD,
+                    ylabelRMSF,
+                    color,
+                    cmap,
+                    rmsdLabel,
+                ) = self.presenter.get2DdataFromDictionary(dictionary=data, plotType="RMSF", compact=True)
                 defaultValue = "Overlay_RMSF_{}".format(basename)
                 self.panel_plot.on_plot_RMSDF(
                     yvalsRMSF=yvalsRMSF,
@@ -4646,9 +4666,15 @@ class documentsTree(wx.TreeCtrl):
 
             elif out[0] == "RMSD":
                 defaultValue = "Overlay_RMSD_{}".format(basename)
-                zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, rmsdLabel, cmap = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType="RMSD", compact=True
-                )
+                (
+                    zvals,
+                    xaxisLabels,
+                    xlabel,
+                    yaxisLabels,
+                    ylabel,
+                    rmsdLabel,
+                    cmap,
+                ) = self.presenter.get2DdataFromDictionary(dictionary=data, plotType="RMSD", compact=True)
                 self.panel_plot.on_plot_RMSD(
                     zvals, xaxisLabels, yaxisLabels, xlabel, ylabel, cmap, plotType="RMSD", set_page=True
                 )

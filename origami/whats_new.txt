@@ -98,6 +98,7 @@ Plotting:
 - [improved] I've removed various plot windows so its easier to understand where something has been plotted. Removed
     windows include: UniDec (now has own widget), Overlay (now shown in Heatmap), RMSF (shown in Heatmap), Comparison
     (shown in Heatmap)..
+- [new] Added option to copy plot to clipboard. Simply right-click in any of the plots and select 'Copy plot to clipboard'
 
 Processing:
 - [changed] moved ORIGAMI-MS settings away from the processing window. Now, in order to setup FILE specific settings,
