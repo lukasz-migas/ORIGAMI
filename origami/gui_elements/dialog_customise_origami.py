@@ -8,6 +8,8 @@ from styles import Dialog
 from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
+from utils.screen import calculate_window_size
+from visuals import mpl_plots
 
 
 class DialogCustomiseORIGAMI(Dialog):
@@ -20,15 +22,19 @@ class DialogCustomiseORIGAMI(Dialog):
         self.presenter = presenter
         self.config = config
 
+        self.panel_plot = self.presenter.view.panelPlots
         self.data_handling = self.parent.data_handling
         self.data_processing = self.parent.data_processing
 
         self.user_settings = self.on_setup_gui()
         self.user_settings_changed = False
 
+        self._display_size = wx.GetDisplaySize()
+        self._display_resolution = wx.ScreenDC().GetPPI()
+        self._window_size = calculate_window_size(self._display_size, [0.5, 0.4])
+
         self.make_gui()
         self.on_toggle_controls(None)
-        self.SetSize((300, 314))
         self.Layout()
         self.CentreOnScreen()
         self.SetFocus()
@@ -80,20 +86,28 @@ class DialogCustomiseORIGAMI(Dialog):
 
     def make_gui(self):
 
+        panel = wx.Panel(self, -1, size=(-1, -1), name="main")
+
         # make panel
-        panel = self.make_panel()
+        settings_panel = self.make_panel(panel)
+        self._settings_panel_size = settings_panel.GetSize()
+
+        plot_panel = self.make_plot_panel(panel)
+
+        extraction_panel = self.make_spectrum_panel(panel)
 
         # pack element
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 10)
+        self.main_sizer.Add(plot_panel, 0, wx.EXPAND, 10)
+        self.main_sizer.Add(settings_panel, 1, wx.EXPAND, 10)
+        self.main_sizer.Add(extraction_panel, 0, wx.EXPAND, 10)
 
         # fit layout
         self.main_sizer.Fit(self)
         self.SetSizer(self.main_sizer)
 
-    def make_panel(self):
-        panel = wx.Panel(self, -1)
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+    def make_panel(self, split_panel):
+        panel = wx.Panel(split_panel, -1, name="settings")
 
         acquisition_label = wx.StaticText(panel, wx.ID_ANY, "Acquisition method:")
         self.origami_method_choice = wx.Choice(
@@ -165,36 +179,36 @@ class DialogCustomiseORIGAMI(Dialog):
         grid.Add(acquisition_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         #         grid.Add(self.origami_loadParams, (n,2), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         grid.Add(spv_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_scansPerVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(scan_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_startScan_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(startVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_startVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(endVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_endVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(stepVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_stepVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(boltzmann_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_boltzmannOffset_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(exponentialPercentage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_exponentialPercentage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(exponentialIncrement_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_exponentialIncrement_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(import_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_loadListBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(
             self.origami_applyBtn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL
         )
@@ -202,6 +216,7 @@ class DialogCustomiseORIGAMI(Dialog):
             self.origami_cancelBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL
         )
 
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # fit layout
@@ -210,24 +225,80 @@ class DialogCustomiseORIGAMI(Dialog):
 
         return panel
 
-    def on_apply(self, evt):
+    def make_spectrum_panel(self, split_panel):
+        panel = wx.Panel(split_panel, -1, name="settings")
 
-        self.user_settings["origami_acquisition"] = self.origami_method_choice.GetStringSelection()
-        self.user_settings["origami_startScan"] = str2int(self.origami_startScan_value.GetValue())
-        self.user_settings["origami_spv"] = str2int(self.origami_scansPerVoltage_value.GetValue())
-        self.user_settings["origami_startVoltage"] = str2num(self.origami_startVoltage_value.GetValue())
-        self.user_settings["origami_endVoltage"] = str2num(self.origami_endVoltage_value.GetValue())
-        self.user_settings["origami_stepVoltage"] = str2num(self.origami_stepVoltage_value.GetValue())
-        self.user_settings["origami_boltzmannOffset"] = str2num(self.origami_boltzmannOffset_value.GetValue())
-        self.user_settings["origami_exponentialPercentage"] = str2num(
-            self.origami_exponentialPercentage_value.GetValue()
+        info_label = wx.StaticText(panel, wx.ID_ANY, "Information:")
+
+        horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        self.origami_extractBtn = wx.Button(panel, wx.ID_OK, "Extract individual spectra", size=(-1, 22))
+        self.origami_extractBtn.Bind(wx.EVT_BUTTON, self.on_apply_to_document)
+
+        # pack elements
+        grid = wx.GridBagSizer(2, 2)
+        n = 0
+        grid.Add(info_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(
+            self.origami_extractBtn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL
         )
-        self.user_settings["origami_exponentialIncrement"] = str2num(self.origami_exponentialIncrement_value.GetValue())
 
-        self.user_settings_changed = True
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
-    def on_apply_to_document(self, evt):
+        # fit layout
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
+
+        return panel
+
+    def make_plot_panel(self, split_panel):
+
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot")
+        self.plot_panel = wx.Panel(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+
+        pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
+        figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
+
+        self.plot_window = mpl_plots.plots(self.plot_panel, figsize=figsize, config=self.config)
+
+        box = wx.BoxSizer(wx.VERTICAL)
+        box.Add(self.plot_window, 1, wx.EXPAND)
+
+        box.Fit(self.plot_panel)
+        self.plot_window.SetSize(pixel_size)
+        self.plot_panel.SetSizer(box)
+        self.plot_panel.Layout()
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 2)
+        # fit layout
+        panel.SetSizer(main_sizer)
+        main_sizer.Fit(panel)
+
+        return panel
+
+    def on_plot(self):
+        start_end_cv_list = self.calculate_origami_parameters()
+        scans, voltages = pr_origami.generate_extraction_windows(start_end_cv_list)
+
+        self.panel_plot.on_plot_scan_vs_voltage(
+            scans,
+            voltages,
+            xlabel="Scans",
+            ylabel="Collision Voltage (V)",
+            testMax=False,
+            plot=None,
+            plot_obj=self.plot_window,
+        )
+
+    def calculate_origami_parameters(self):
         method = self.user_settings["origami_acquisition"]
+
         if method == "Linear":
             start_end_cv_list = pr_origami.calculate_scan_list_linear(
                 self.user_settings["origami_startScan"],
@@ -258,11 +329,35 @@ class DialogCustomiseORIGAMI(Dialog):
         elif method == "User-defined":
             start_end_cv_list = []
 
+        return start_end_cv_list
+
+    def on_apply(self, evt):
+
+        self.user_settings["origami_acquisition"] = self.origami_method_choice.GetStringSelection()
+        self.user_settings["origami_startScan"] = str2int(self.origami_startScan_value.GetValue())
+        self.user_settings["origami_spv"] = str2int(self.origami_scansPerVoltage_value.GetValue())
+        self.user_settings["origami_startVoltage"] = str2num(self.origami_startVoltage_value.GetValue())
+        self.user_settings["origami_endVoltage"] = str2num(self.origami_endVoltage_value.GetValue())
+        self.user_settings["origami_stepVoltage"] = str2num(self.origami_stepVoltage_value.GetValue())
+        self.user_settings["origami_boltzmannOffset"] = str2num(self.origami_boltzmannOffset_value.GetValue())
+        self.user_settings["origami_exponentialPercentage"] = str2num(
+            self.origami_exponentialPercentage_value.GetValue()
+        )
+        self.user_settings["origami_exponentialIncrement"] = str2num(self.origami_exponentialIncrement_value.GetValue())
+
+        self.user_settings_changed = True
+
+    def on_apply_to_document(self, evt):
+
+        start_end_cv_list = self.calculate_origami_parameters()
+
         document = self.data_handling._on_get_document()
         document.metadata["origami_ms"] = self.user_settings
         document.combineIonsList = start_end_cv_list
         self.data_handling.on_update_document(document, "no_refresh")
         self.user_settings_changed = False
+
+        self.on_plot()
 
     @staticmethod
     def _load_origami_list(path):

@@ -108,10 +108,13 @@ def calculate_scan_list_boltzmann(
     n_voltages = ((end_voltage - start_voltage) / step_voltage) + 1
     cv_list = np.linspace(start_voltage, end_voltage, num=n_voltages)
     start_scans_per_voltage = scans_per_voltage  # Used as backup
+
     # Generate list of SPVs first
     scans_per_voltage_list = []  # Pre-set empty array
     for i in range(int(n_voltages)):
         scans_per_voltage_fit = np.round(1 / (A2 + (A1 - A2) / (1 + np.exp((cv_list[i] - x0) / dx))), 0)
+        if scans_per_voltage_fit == 0:
+            scans_per_voltage_fit = 1
         # Append to file
         scans_per_voltage_list.append(scans_per_voltage_fit * start_scans_per_voltage)
 
@@ -269,6 +272,8 @@ def origami_combine_boltzmann(
     scans_per_voltage_list = []  # Pre-set empty array
     for i in range(int(n_voltages)):
         scans_per_voltage_fit = np.round(1 / (A2 + (A1 - A2) / (1 + np.exp((cv_list[i] - x0) / dx))), 0)
+        if scans_per_voltage_fit == 0:
+            scans_per_voltage_fit = 1
         # Append to file
         scans_per_voltage_list.append(scans_per_voltage_fit * start_scans_per_voltage)
 
@@ -333,3 +338,23 @@ def origami_combine_userDefined(data=None, start_scan=None, inputList=None):  # 
         x1 = x2
     data_combined_CV = data_combined_CV.reshape((200, len(scans_per_voltage_list)), order="F")  # Reshape list to array
     return data_combined_CV, cv_list, start_end_cv_list, parameters
+
+
+def generate_extraction_windows(start_end_cv_list):
+    start_end_cv_list = np.asarray(start_end_cv_list)
+
+    start_scan = start_end_cv_list[:, 0]
+    end_scan = start_end_cv_list[:, 1]
+    cv_list = start_end_cv_list[:, 2]
+
+    scans, voltages = [], []
+    for i, cv in enumerate(cv_list):
+        scans.append(start_scan[i])
+        scans.append(end_scan[i])
+
+        voltages.append(cv)
+        voltages.append(cv)
+
+    #     print(scans, voltages)
+
+    return scans, voltages

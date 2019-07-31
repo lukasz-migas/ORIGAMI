@@ -1618,8 +1618,6 @@ class plots(mpl_plotter):
         ylabel="",
         label="",
         xlimits=None,
-        color="black",
-        zoom="box",
         plotType=None,
         testMax="yvals",
         testX=False,

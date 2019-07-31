@@ -86,9 +86,6 @@ class PanelSignalComparisonViewer(wx.MiniFrame):
 
     def on_right_click(self, evt):
 
-        self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
-        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
-
         menu = wx.Menu()
         menu.AppendItem(
             makeMenuItem(
@@ -105,13 +102,21 @@ class PanelSignalComparisonViewer(wx.MiniFrame):
             menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
         )
         menu.AppendItem(save_figure_menu_item)
-        self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+        menu_action_copy_to_clipboard = makeMenuItem(
+            parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
+        )
+        menu.AppendItem(menu_action_copy_to_clipboard)
 
         menu.AppendSeparator()
         clear_plot_menu_item = makeMenuItem(
             menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
         )
         menu.AppendItem(clear_plot_menu_item)
+
+        self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
+        self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
 
         self.PopupMenu(menu)

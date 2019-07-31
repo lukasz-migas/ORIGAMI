@@ -2392,10 +2392,32 @@ class panelPlot(wx.Panel):
                 yvals=yvals,
                 xlabel=kwargs.pop("xlabel", ""),
                 ylabel=kwargs.pop("ylabel", ""),
-                #                 axesSize=self.config._plotSettings['DT']['axes_size'],
                 plotType="1D",
                 **plt_kwargs,
             )
+        # show the plot
+        plot_obj.repaint()
+
+    def on_plot_scan_vs_voltage(self, xvals, yvals, plot=None, **kwargs):
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
+        # get kwargs
+        plt_kwargs = self._buildPlotParameters(plotType="1D")
+
+        plot_obj.clearPlot()
+        plot_obj.plot_1D(
+            xvals=xvals,
+            yvals=yvals,
+            xlabel=kwargs.pop("xlabel", ""),
+            ylabel=kwargs.pop("ylabel", ""),
+            plotType="1D",
+            testMax=None,
+            axesSize=[0.17, 0.17, 0.75, 0.75],
+            **plt_kwargs,
+        )
         # show the plot
         plot_obj.repaint()
 

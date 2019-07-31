@@ -117,10 +117,6 @@ class panelAbout(wx.MiniFrame):
         sizer.Fit(panel)
         return sizer
 
-    # ----
-
     def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
-
-    # ----
