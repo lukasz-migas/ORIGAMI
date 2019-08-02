@@ -11,7 +11,7 @@ from utils.converters import str2num
 # TODO: Add possibility to visualise heatmap as false-color image
 
 
-class panelModifyIonSettings(wx.MiniFrame):
+class PanelModifyIonSettings(wx.MiniFrame):
     """
     Small panel to modify settings in the Ion peaklist panel
     """
@@ -296,30 +296,6 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.origami_min_threshold_value.SetValue(self.itemInfo["min_threshold"])
         self.origami_max_threshold_value.SetValue(self.itemInfo["max_threshold"])
 
-        #         if self.itemInfo['parameters'] is not None:
-        #             self.origami_method_value.SetStringSelection(self.itemInfo['parameters']['method'])
-        #             self.origami_startScan_value.SetValue(str(self.itemInfo['parameters'].get('firstVoltage', '')))
-        #             self.origami_scansPerVoltage_value.SetValue(str(self.itemInfo['parameters'].get('spv', '')))
-        #             self.origami_startVoltage_value.SetValue(str(self.itemInfo['parameters'].get('startV', '')))
-        #             self.origami_endVoltage_value.SetValue(str(self.itemInfo['parameters'].get('endV', '')))
-        #             self.origami_stepVoltage_value.SetValue(str(self.itemInfo['parameters'].get('stepV', '')))
-        #             self.origami_exponentialIncrement_value.SetValue(str(self.itemInfo['parameters'].get('expIncrement', '')))
-        #             self.origami_exponentialPercentage_value.SetValue(str(self.itemInfo['parameters'].get('expPercent', '')))
-        #             self.origami_boltzmannOffset_value.SetValue(str(self.itemInfo['parameters'].get('dx', '')))
-        #         else:
-        #             self.origami_startScan_value.SetValue(str(self.config.origami_startScan))
-        #             self.origami_scansPerVoltage_value.SetValue(str(self.config.origami_spv))
-        #             self.origami_startVoltage_value.SetValue(str(self.config.origami_startVoltage))
-        #             self.origami_endVoltage_value.SetValue(str(self.config.origami_endVoltage))
-        #             self.origami_stepVoltage_value.SetValue(str(self.config.origami_stepVoltage))
-        #             self.origami_exponentialIncrement_value.SetValue(str(self.config.origami_exponentialIncrement))
-        #             self.origami_exponentialPercentage_value.SetValue(str(self.config.origami_exponentialPercentage))
-        #             self.origami_boltzmannOffset_value.SetValue(str(self.config.origami_boltzmannOffset))
-        #             self.origami_method_value.SetStringSelection(self.config.origami_acquisition)
-        #             try: self.origami_method_value.SetStringSelection(self.itemInfo['method'])
-        #             except Exception:
-        #                 pass
-
         self.on_toggle_controls(evt=None)
         self.importEvent = False
 
@@ -352,52 +328,6 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.SetFocus()
 
     def on_toggle_controls(self, evt):
-
-        #         method = self.origami_method_value.GetStringSelection()
-        #         enableList, disableList = [], []
-        #         if method == 'Linear':
-        #             disableList = [self.origami_boltzmannOffset_value, self.origami_exponentialIncrement_value,
-        #                            self.origami_exponentialPercentage_value]
-        #             enableList = [self.origami_scansPerVoltage_value,
-        #                           self.origami_startScan_value, self.origami_startVoltage_value,
-        #                           self.origami_endVoltage_value, self.origami_stepVoltage_value]
-        #         elif method == 'Exponential':
-        #             disableList = [self.origami_boltzmannOffset_value]
-        #             enableList = [self.origami_scansPerVoltage_value,
-        #                           self.origami_startScan_value, self.origami_startVoltage_value,
-        #                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-        #                           self.origami_exponentialIncrement_value,
-        #                           self.origami_exponentialPercentage_value]
-        #         elif method == 'Boltzmann':
-        #             disableList = []
-        #             enableList = [self.origami_scansPerVoltage_value,
-        #                           self.origami_startScan_value, self.origami_startVoltage_value,
-        #                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-        #                           self.origami_exponentialIncrement_value,
-        #                           self.origami_exponentialPercentage_value,
-        #                           self.origami_boltzmannOffset_value]
-        #         elif method == 'User-defined':
-        #             disableList = [self.origami_scansPerVoltage_value,
-        #                           self.origami_startVoltage_value,
-        #                           self.origami_endVoltage_value, self.origami_stepVoltage_value,
-        #                           self.origami_exponentialIncrement_value,
-        #                           self.origami_exponentialPercentage_value,
-        #                           self.origami_boltzmannOffset_value]
-        #             enableList = [self.origami_startScan_value
-        #                           ]
-        #         elif method == 'Manual':
-        #             disableList = [self.origami_scansPerVoltage_value,
-        #                            self.origami_startScan_value, self.origami_startVoltage_value,
-        #                            self.origami_endVoltage_value, self.origami_stepVoltage_value,
-        #                            self.origami_exponentialIncrement_value,
-        #                            self.origami_exponentialPercentage_value,
-        #                            self.origami_boltzmannOffset_value, ]
-        #             enableList = []
-        #
-        #         for item in enableList:
-        #             item.Enable()
-        #         for item in disableList:
-        #             item.Disable()
 
         if evt is not None:
             evt.Skip()
@@ -464,16 +394,17 @@ class panelModifyIonSettings(wx.MiniFrame):
         self.SetTitle(self.itemInfo["document"])
 
     def on_check_id(self):
+
         # check whether ID is still correct
         information = self.parent.OnGetItemInformation(self.itemInfo["id"])
 
-        if information["document"] == self.itemInfo["document"]:
+        if information["ion_name"] == self.itemInfo["ion_name"]:
             return
         else:
             count = self.parent.peaklist.GetItemCount()
             for row in range(count):
                 information = self.parent.OnGetItemInformation(row)
-                if information["document"] == self.itemInfo["document"]:
+                if information["ion_name"] == self.itemInfo["ion_name"]:
                     if information["id"] == self.itemInfo["id"]:
                         return
                     else:

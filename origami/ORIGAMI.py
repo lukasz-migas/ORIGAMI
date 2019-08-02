@@ -198,10 +198,12 @@ class ORIGAMI(object):
             path = os.path.join(self.config.cwd, "example_files", "origami_ms", "ORIGAMI_ConA_z20.raw")
             self.data_handling.on_open_single_MassLynx_raw(path, "Type: ORIGAMI")
 
-            # extract MS data
+            # extract MS data - RT
             self.data_handling.on_extract_MS_from_chromatogram(5, 10)
             self.data_handling.on_extract_MS_from_chromatogram(1.5, 1.7, "Time (min)")
             self.data_handling.on_extract_MS_from_chromatogram(1.7, 1.9, "Retention time (min)")
+
+            # extract MS data - DT
             self.data_handling.on_extract_MS_from_mobiligram(65, 75)
             self.data_handling.on_extract_MS_from_mobiligram(11, 15, "Arrival time (ms)")
 

@@ -167,6 +167,9 @@ Data extraction:
 - [improved] from now on, chromatographic and mobility (1D) data is extracted using Waters SDK
 - [fixed] fixed an issue which occured when trying to extract MS data from chromatographic window that only occured if
     the x-axis was Collision Voltage (V) - from now on you will not see an error and won' be able to extract data
+- [changed] in the past you could extract data for individual collision voltages (when analysing ORIGAMI-MS files). From
+    now, you can perform this analysis by right-clicking on the document in the Document Tree and selecting Action ->
+    Setup ORIGAMI-MS parameters...
 
 
 

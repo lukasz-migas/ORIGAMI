@@ -8,6 +8,7 @@ from styles import Dialog
 from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
+from utils.exceptions import MessageError
 from utils.screen import calculate_window_size
 from visuals import mpl_plots
 
@@ -18,13 +19,28 @@ class DialogCustomiseORIGAMI(Dialog):
     def __init__(self, parent, presenter, config, **kwargs):
         Dialog.__init__(self, parent, title="ORIGAMI-MS settings...")
 
-        self.parent = parent
+        self.document_tree = parent
         self.presenter = presenter
         self.config = config
 
         self.panel_plot = self.presenter.view.panelPlots
-        self.data_handling = self.parent.data_handling
-        self.data_processing = self.parent.data_processing
+        self.data_handling = self.document_tree.data_handling
+        self.data_processing = self.document_tree.data_processing
+
+        self.document_title = kwargs.get("document_title", None)
+        if self.document_title is None:
+            document = self.data_handling._on_get_document()
+            if document is None:
+                raise MessageError(
+                    "Please load a document",
+                    "Could not find a document. Please load a document before trying this action again",
+                )
+                self.Destroy()
+                return
+
+            self.document_title = document.title
+
+        self.SetTitle(f"ORIGAMI-MS settings: {self.document_title}")
 
         self.user_settings = self.on_setup_gui()
         self.user_settings_changed = False
@@ -43,7 +59,7 @@ class DialogCustomiseORIGAMI(Dialog):
         wx.EVT_CLOSE(self, self.on_close)
 
     def on_setup_gui(self):
-        document = self.data_handling._on_get_document()
+        document = self.data_handling._on_get_document(self.document_title)
         origami_settings = document.metadata.get("origami_ms", None)
 
         # there are no user specified settings yet, so we preset them with the global settings
@@ -89,24 +105,29 @@ class DialogCustomiseORIGAMI(Dialog):
         panel = wx.Panel(self, -1, size=(-1, -1), name="main")
 
         # make panel
-        settings_panel = self.make_panel(panel)
+        settings_panel = self.make_panel_settings(panel)
         self._settings_panel_size = settings_panel.GetSize()
+        buttons_panel = self.make_buttons_panel(panel)
 
         plot_panel = self.make_plot_panel(panel)
 
         extraction_panel = self.make_spectrum_panel(panel)
 
         # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(plot_panel, 0, wx.EXPAND, 10)
-        self.main_sizer.Add(settings_panel, 1, wx.EXPAND, 10)
-        self.main_sizer.Add(extraction_panel, 0, wx.EXPAND, 10)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(settings_panel, 1, wx.EXPAND, 10)
+        sizer.Add(extraction_panel, 1, wx.EXPAND, 10)
+        sizer.Add(buttons_panel, 0, wx.EXPAND, 10)
+
+        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.main_sizer.Add(sizer, 0, wx.EXPAND, 10)
+        self.main_sizer.Add(plot_panel, 1, wx.EXPAND, 10)
 
         # fit layout
         self.main_sizer.Fit(self)
         self.SetSizer(self.main_sizer)
 
-    def make_panel(self, split_panel):
+    def make_panel_settings(self, split_panel):
         panel = wx.Panel(split_panel, -1, name="settings")
 
         acquisition_label = wx.StaticText(panel, wx.ID_ANY, "Acquisition method:")
@@ -167,18 +188,11 @@ class DialogCustomiseORIGAMI(Dialog):
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        self.origami_applyBtn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
-        self.origami_applyBtn.Bind(wx.EVT_BUTTON, self.on_apply_to_document)
-
-        self.origami_cancelBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
-        self.origami_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
-
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(acquisition_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        #         grid.Add(self.origami_loadParams, (n,2), wx.GBSpan(1,1), flag=wx.ALIGN_LEFT)
         n += 1
         grid.Add(spv_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_scansPerVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
@@ -208,6 +222,28 @@ class DialogCustomiseORIGAMI(Dialog):
         grid.Add(self.origami_loadListBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+
+        # fit layout
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
+
+        return panel
+
+    def make_buttons_panel(self, split_panel):
+        panel = wx.Panel(split_panel, -1, name="settings")
+
+        # pack elements
+        grid = wx.GridBagSizer(2, 2)
+        n = 0
+        self.origami_applyBtn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
+        self.origami_applyBtn.Bind(wx.EVT_BUTTON, self.on_apply_to_document)
+
+        self.origami_cancelBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
+        self.origami_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
+
         n += 1
         grid.Add(
             self.origami_applyBtn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL
@@ -226,26 +262,42 @@ class DialogCustomiseORIGAMI(Dialog):
         return panel
 
     def make_spectrum_panel(self, split_panel):
-        panel = wx.Panel(split_panel, -1, name="settings")
+        panel = wx.Panel(split_panel, -1, name="information")
 
-        info_label = wx.StaticText(panel, wx.ID_ANY, "Information:")
+        info_label = wx.StaticText(panel, wx.ID_ANY, "Information")
+        self.info_value = wx.StaticText(panel, -1, "")
+        self.info_value.SetLabel("")
+
+        self.preprocess_check = wx.CheckBox(panel, -1, "Pre-process", (3, 3))
+        self.preprocess_check.SetValue(self.config.origami_preprocess)
+        self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
+
+        self.process_btn = wx.Button(panel, wx.ID_ANY, "Edit MS processing settings...", size=(-1, 22))
+        self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_MS_settings)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        self.origami_extractBtn = wx.Button(panel, wx.ID_OK, "Extract individual spectra", size=(-1, 22))
-        self.origami_extractBtn.Bind(wx.EVT_BUTTON, self.on_apply_to_document)
+        self.origami_extractBtn = wx.Button(
+            panel, wx.ID_ANY, "Extract mass spectrum for each collision voltage", size=(-1, 22)
+        )
+        self.origami_extractBtn.Bind(
+            wx.EVT_BUTTON, self.data_handling.on_extract_mass_spectrum_for_each_collision_voltage_fcn
+        )
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(info_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(info_label, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        n += 1
+        grid.Add(self.info_value, (n, 0), wx.GBSpan(6, 2), flag=wx.EXPAND)
+        n += 6
+        grid.Add(self.preprocess_check, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(self.process_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        n += 1
+        grid.Add(self.origami_extractBtn, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         n += 1
         grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        grid.Add(
-            self.origami_extractBtn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL
-        )
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
@@ -282,55 +334,6 @@ class DialogCustomiseORIGAMI(Dialog):
 
         return panel
 
-    def on_plot(self):
-        start_end_cv_list = self.calculate_origami_parameters()
-        scans, voltages = pr_origami.generate_extraction_windows(start_end_cv_list)
-
-        self.panel_plot.on_plot_scan_vs_voltage(
-            scans,
-            voltages,
-            xlabel="Scans",
-            ylabel="Collision Voltage (V)",
-            testMax=False,
-            plot=None,
-            plot_obj=self.plot_window,
-        )
-
-    def calculate_origami_parameters(self):
-        method = self.user_settings["origami_acquisition"]
-
-        if method == "Linear":
-            start_end_cv_list = pr_origami.calculate_scan_list_linear(
-                self.user_settings["origami_startScan"],
-                self.user_settings["origami_startVoltage"],
-                self.user_settings["origami_endVoltage"],
-                self.user_settings["origami_stepVoltage"],
-                self.user_settings["origami_spv"],
-            )
-        elif method == "Exponential":
-            start_end_cv_list = pr_origami.calculate_scan_list_exponential(
-                self.user_settings["origami_startScan"],
-                self.user_settings["origami_startVoltage"],
-                self.user_settings["origami_endVoltage"],
-                self.user_settings["origami_stepVoltage"],
-                self.user_settings["origami_spv"],
-                self.user_settings["origami_exponentialIncrement"],
-                self.user_settings["origami_exponentialPercentage"],
-            )
-        elif method == "Boltzmann":
-            start_end_cv_list = pr_origami.calculate_scan_list_boltzmann(
-                self.user_settings["origami_startScan"],
-                self.user_settings["origami_startVoltage"],
-                self.user_settings["origami_endVoltage"],
-                self.user_settings["origami_stepVoltage"],
-                self.user_settings["origami_spv"],
-                self.user_settings["origami_boltzmannOffset"],
-            )
-        elif method == "User-defined":
-            start_end_cv_list = []
-
-        return start_end_cv_list
-
     def on_apply(self, evt):
 
         self.user_settings["origami_acquisition"] = self.origami_method_choice.GetStringSelection()
@@ -347,11 +350,30 @@ class DialogCustomiseORIGAMI(Dialog):
 
         self.user_settings_changed = True
 
+        self.on_update_info()
+
     def on_apply_to_document(self, evt):
+        # update settings
+        self.on_update_info()
 
         start_end_cv_list = self.calculate_origami_parameters()
 
-        document = self.data_handling._on_get_document()
+        document = self.data_handling._on_get_document(self.document_title)
+
+        try:
+            reader = self.data_handling._get_waters_api_reader(document)
+            n_scans = reader.stats_in_functions[0]["n_scans"]
+        except:
+            n_scans = 999999
+
+        calculated_n_scans = start_end_cv_list[-1][1]
+        if calculated_n_scans > n_scans:
+            raise MessageError(
+                "Incorrect input settings",
+                f"Your current settings indicate there is {calculated_n_scans} scans in the dataset, whereas"
+                + f" there is only {n_scans}.",
+            )
+
         document.metadata["origami_ms"] = self.user_settings
         document.combineIonsList = start_end_cv_list
         self.data_handling.on_update_document(document, "no_refresh")
@@ -359,22 +381,35 @@ class DialogCustomiseORIGAMI(Dialog):
 
         self.on_plot()
 
-    @staticmethod
-    def _load_origami_list(path):
-        """Load ORIGAMI-MS CV/SPV list"""
-        origami_list = np.genfromtxt(path, delimiter=",", skip_header=True)
-        return origami_list
+    def on_update_info(self):
 
-    def on_load_origami_list(self, evt):
-        """Load a csv file with CV/SPV values for the List/User-defined method"""
-        dlg = wx.FileDialog(self, "Choose a text file:", wildcard="*.csv", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-            origami_list = self._load_origami_list(path)
+        try:
+            start_end_cv_list = self.calculate_origami_parameters()
+        except (TypeError, IndexError, ValueError):
+            self.info_value.SetLabel("")
+            return
 
-            self.user_settings["origami_cv_spv_list"] = origami_list
+        if len(start_end_cv_list) == 0:
+            self.info_value.SetLabel("")
+            return
 
-        dlg.Destroy()
+        document = self.data_handling._on_get_document(self.document_title)
+        reader = self.data_handling._get_waters_api_reader(document)
+
+        mz_x, mz_spacing = self.data_handling._get_waters_api_spacing(reader)
+        n_spectra = len(start_end_cv_list)
+        n_bins = len(mz_x)
+
+        first_scan = start_end_cv_list[0][0]
+        last_scan = start_end_cv_list[-1][1]
+        approx_ram = (n_spectra * n_bins * 8) / (1024 ** 2)
+        info = (
+            f"\n" + f"Number of iterations: {n_spectra}\n" + f"First scan {first_scan} | Last scan: {last_scan}\n"
+            f"Number of points in each spectrum: {n_bins}\n"
+            + f"m/z spacing: {mz_spacing}\n"
+            + f"Approx. amount of RAM: {approx_ram:.0f} MB"
+        )
+        self.info_value.SetLabel(info)
 
     def on_toggle_controls(self, evt):
         self.config.origami_acquisition = self.origami_method_choice.GetStringSelection()
@@ -448,5 +483,79 @@ class DialogCustomiseORIGAMI(Dialog):
         for item in disableList:
             item.Disable()
 
+        self.config.origami_preprocess = self.preprocess_check.GetValue()
+        self.process_btn.Enable(enable=self.config.origami_preprocess)
+
         if evt is not None:
             evt.Skip()
+
+    def on_open_process_MS_settings(self, evt):
+        self.document_tree.on_open_process_MS_settings(disable_plot=True, disable_process=True)
+
+    @staticmethod
+    def _load_origami_list(path):
+        """Load ORIGAMI-MS CV/SPV list"""
+        origami_list = np.genfromtxt(path, delimiter=",", skip_header=True)
+        return origami_list
+
+    def on_load_origami_list(self, evt):
+        """Load a csv file with CV/SPV values for the List/User-defined method"""
+        dlg = wx.FileDialog(self, "Choose a text file:", wildcard="*.csv", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            origami_list = self._load_origami_list(path)
+
+            self.user_settings["origami_cv_spv_list"] = origami_list
+
+        dlg.Destroy()
+
+    def on_plot(self):
+        start_end_cv_list = self.calculate_origami_parameters()
+        scans, voltages = pr_origami.generate_extraction_windows(start_end_cv_list)
+
+        self.panel_plot.on_plot_scan_vs_voltage(
+            scans,
+            voltages,
+            xlabel="Scans",
+            ylabel="Collision Voltage (V)",
+            testMax=False,
+            plot=None,
+            plot_obj=self.plot_window,
+        )
+
+    def calculate_origami_parameters(self):
+        method = self.user_settings["origami_acquisition"]
+
+        if method == "Linear":
+            start_end_cv_list = pr_origami.calculate_scan_list_linear(
+                self.user_settings["origami_startScan"],
+                self.user_settings["origami_startVoltage"],
+                self.user_settings["origami_endVoltage"],
+                self.user_settings["origami_stepVoltage"],
+                self.user_settings["origami_spv"],
+            )
+        elif method == "Exponential":
+            start_end_cv_list = pr_origami.calculate_scan_list_exponential(
+                self.user_settings["origami_startScan"],
+                self.user_settings["origami_startVoltage"],
+                self.user_settings["origami_endVoltage"],
+                self.user_settings["origami_stepVoltage"],
+                self.user_settings["origami_spv"],
+                self.user_settings["origami_exponentialIncrement"],
+                self.user_settings["origami_exponentialPercentage"],
+            )
+        elif method == "Boltzmann":
+            start_end_cv_list = pr_origami.calculate_scan_list_boltzmann(
+                self.user_settings["origami_startScan"],
+                self.user_settings["origami_startVoltage"],
+                self.user_settings["origami_endVoltage"],
+                self.user_settings["origami_stepVoltage"],
+                self.user_settings["origami_spv"],
+                self.user_settings["origami_boltzmannOffset"],
+            )
+        elif method == "User-defined":
+            start_end_cv_list = []
+        elif method == "Manual":
+            start_end_cv_list = []
+
+        return start_end_cv_list

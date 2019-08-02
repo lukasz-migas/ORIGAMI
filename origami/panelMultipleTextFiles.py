@@ -115,7 +115,7 @@ class panelMultipleTextFiles(wx.Panel):
             10: {"name": "file", "tag": "document", "type": "str"},
         }
 
-        self.editItemDlg = None
+        self.item_editor = None
 
         self.make_panel_gui()
 
@@ -138,7 +138,7 @@ class panelMultipleTextFiles(wx.Panel):
         ]
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
-        wx.EVT_MENU(self, ID_textPanel_editItem, self.OnOpenEditor)
+        wx.EVT_MENU(self, ID_textPanel_editItem, self.on_open_editor)
         wx.EVT_MENU(self, ID_textPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.on_enable_disable_tools)
         wx.EVT_MENU(self, ID_textPanel_automaticOverlay, self.on_enable_disable_tools)
@@ -191,10 +191,10 @@ class panelMultipleTextFiles(wx.Panel):
 
     def on_double_click_on_item(self, evt):
         if self.peaklist.item_id != -1:
-            if not self.editItemDlg:
-                self.OnOpenEditor(evt=None)
+            if not self.item_editor:
+                self.on_open_editor(evt=None)
             else:
-                self.editItemDlg.onUpdateGUI(self.OnGetItemInformation(self.peaklist.item_id))
+                self.item_editor.onUpdateGUI(self.OnGetItemInformation(self.peaklist.item_id))
 
     def on_add_blank_document_overlay(self, evt):
         self.presenter.onAddBlankDocument(evt=None, document_type="overlay")
@@ -304,7 +304,7 @@ class panelMultipleTextFiles(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_textPanel_show_heatmap)
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_textPanel_show_process_heatmap)
         self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_textPanel_delete_rightClick)
-        self.Bind(wx.EVT_MENU, self.OnOpenEditor, id=ID_textPanel_editItem)
+        self.Bind(wx.EVT_MENU, self.on_open_editor, id=ID_textPanel_editItem)
         self.Bind(wx.EVT_MENU, self.on_assign_color, id=ID_textPanel_assignColor)
 
         self.peaklist.item_id = evt.GetIndex()
@@ -669,7 +669,7 @@ class panelMultipleTextFiles(wx.Panel):
                 None, n_colors=check_count, return_colors=True
             )
         elif evt.GetId() == ID_textPanel_changeColorBatch_color:
-            color = self.OnGetColor(None)
+            color = self.on_get_color(None)
             colors = [color] * check_count
         else:
             colors = self.presenter.view.panelPlots.on_get_colors_from_colormap(n_colors=check_count)
@@ -1144,7 +1144,7 @@ class panelMultipleTextFiles(wx.Panel):
 
         return information
 
-    def OnGetValue(self, value_type="color"):
+    def on_get_value(self, value_type="color"):
         information = self.OnGetItemInformation(self.peaklist.item_id)
 
         if value_type == "minCE":
@@ -1168,7 +1168,7 @@ class panelMultipleTextFiles(wx.Panel):
         elif value_type == "document":
             return information["document"]
 
-    def OnGetColor(self, evt):
+    def on_get_color(self, evt):
 
         dlg = DialogColorPicker(self, self.config.customColors)
         if dlg.ShowModal() == "ok":
@@ -1216,7 +1216,7 @@ class panelMultipleTextFiles(wx.Panel):
                 return newColour
         else:
             try:
-                newColour = convertRGB1to255(literal_eval(self.OnGetValue(value_type="color")), 3)
+                newColour = convertRGB1to255(literal_eval(self.on_get_value(value_type="color")), 3)
             except Exception:
                 newColour = self.config.customColors[get_random_int(0, 15)]
             # Assign color
@@ -1264,7 +1264,7 @@ class panelMultipleTextFiles(wx.Panel):
         # Update file list
         self.data_handling.on_update_document(document, "no_refresh")
 
-    def OnOpenEditor(self, evt):
+    def on_open_editor(self, evt):
 
         if evt is None:
             evtID = ID_textPanel_editItem
@@ -1279,9 +1279,9 @@ class panelMultipleTextFiles(wx.Panel):
 
             dlg_kwargs = self.OnGetItemInformation(self.peaklist.item_id)
 
-            self.editItemDlg = panelModifyTextSettings(self, self.presenter, self.config, **dlg_kwargs)
-            self.editItemDlg.Centre()
-            self.editItemDlg.Show()
+            self.item_editor = panelModifyTextSettings(self, self.presenter, self.config, **dlg_kwargs)
+            self.item_editor.Centre()
+            self.item_editor.Show()
         elif evtID == ID_textPanel_edit_selected:
             while rows >= 0:
                 if self.peaklist.IsChecked(rows):
@@ -1297,8 +1297,8 @@ class panelMultipleTextFiles(wx.Panel):
                         "id": rows,
                     }
 
-                    self.editItemDlg = panelModifyTextSettings(self, self.presenter, self.config, **dlg_kwargs)
-                    self.editItemDlg.Show()
+                    self.item_editor = panelModifyTextSettings(self, self.presenter, self.config, **dlg_kwargs)
+                    self.item_editor.Show()
                 rows -= 1
         elif evtID == ID_ionPanel_edit_all:
             for row in range(rows):
@@ -1314,8 +1314,8 @@ class panelMultipleTextFiles(wx.Panel):
                     "id": row,
                 }
 
-                self.editItemDlg = panelModifyTextSettings(self, self.presenter, self.config, **dlg_kwargs)
-                self.editItemDlg.Show()
+                self.item_editor = panelModifyTextSettings(self, self.presenter, self.config, **dlg_kwargs)
+                self.item_editor.Show()
 
     def on_remove_deleted_item(self, document):
         """

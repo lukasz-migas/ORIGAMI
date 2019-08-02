@@ -50,7 +50,6 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 class plots(mpl_plotter):
     def __init__(self, *args, **kwargs):
         self._axes = kwargs.get("axes_size", [0.12, 0.12, 0.8, 0.8])  # keep track of axes size
-
         mpl_plotter.__init__(self, *args, **kwargs)
 
         self.plotflag = False
@@ -78,6 +77,16 @@ class plots(mpl_plotter):
         self.document_name = None
         self.dataset_name = None
 
+    def _check_axes_size(self, axes_size, min_left=0.12, min_bottom=0.12, max_width=0.8, max_height=0.8):
+        try:
+            l, b, w, h = axes_size
+        except TypeError:
+            return axes_size
+
+        axes_size = [max([l, min_left]), max([b, min_bottom]), min([w, max_width]), min([h, max_height])]
+
+        return axes_size
+
     def _update_plot_settings_(self, **kwargs):
         for parameter in kwargs:
             self.plot_parameters[parameter] = kwargs[parameter]
@@ -95,6 +104,9 @@ class plots(mpl_plotter):
             axes_size = kwargs["axes_size"]
         else:
             axes_size = self._axes
+
+        #         if self.config._plots_check_axes_size:
+        axes_size = self._check_axes_size(axes_size)
 
         # override parameters
         if not self.lock_plot_from_updating:
@@ -184,6 +196,7 @@ class plots(mpl_plotter):
 
     def copy_to_clipboard(self):
         self.canvas.Copy_to_Clipboard()
+        logger.info("Figure was copied to the clipboard")
 
     def set_legend_parameters(self, handles=None, **kwargs):
         """Add legend to the plot
@@ -501,6 +514,14 @@ class plots(mpl_plotter):
         except Exception:
             pass
 
+    def on_rotate_heatmap_data(self, yvals, zvals):
+
+        # rotate zvals
+        zvals = np.rot90(zvals)
+        yvals = yvals[::-1]
+
+        return yvals, zvals
+
     def on_rotate_90(self):
         # only works for 2D plots!
 
@@ -514,12 +535,10 @@ class plots(mpl_plotter):
             xvals = deepcopy(self.plot_data["yvals"])
             ylabel = deepcopy(self.plot_data["xlabel"])
             xlabel = deepcopy(self.plot_data["ylabel"])
+            zvals = deepcopy(self.plot_data["zvals"])
 
-            # rotate zvals
-            zvals = np.rot90(deepcopy(self.plot_data["zvals"]))
-            yvals = yvals[::-1]
-
-            self.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, **self.plot_parameters)
+            yvals, zvals = self.on_rotate_heatmap_data(yvals, zvals)
+            self.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, already_rotated=True, **self.plot_parameters)
 
             if self.rotate == 360:
                 self.rotate = 0
@@ -827,9 +846,23 @@ class plots(mpl_plotter):
     #         lines[0].set_color(kwargs['line_color'])
     #         lines[0].set_linestyle(kwargs['line_style'])
 
+    def plot_1D_get_data(self):
+        xdata, ydata, labels = [], [], []
+
+        lines = self.plotMS.get_lines()
+        for line in lines:
+            xdata.append(line.get_xdata())
+            ydata.append(line.get_ydata())
+            labels.append(line.get_label())
+
+        xlabel = self.plotMS.get_xlabel()
+        ylabel = self.plotMS.get_ylabel()
+        return xdata, ydata, labels, xlabel, ylabel
+
     def plot_1D_update_data(self, xvals, yvals, xlabel, ylabel, testMax="yvals", **kwargs):
         if self.plot_name in ["compare", "Compare"]:
             raise Exception("Wrong plot name - resetting")
+
         # override parameters
         if not self.lock_plot_from_updating:
             self.plot_parameters = kwargs
@@ -843,21 +876,15 @@ class plots(mpl_plotter):
         except Exception:
             pass
 
+        # remove old lines
         lines = self.plotMS.get_lines()
-        #         for line in lines:
-        #             if testMax == 'yvals':
-        #                 ydivider, expo = self.testXYmaxValsUpdated(values=yvals)
-        #                 if expo > 1:
-        #                     offset_text = r'x$\mathregular{10^{%d}}$' % expo
-        #                     ylabel = ''.join([ylabel, " [", offset_text,"]"])
-        #                     yvals = divide(yvals, float(ydivider))
-        #                 else: ydivider = 1
-        #                 self.y_divider = ydivider
-        #             line.set_xdata(xvals)
-        #             line.set_ydata(yvals)
-        #             line.set_linewidth(kwargs['line_width'])
-        #             line.set_color(kwargs['line_color'])
-        #             line.set_linestyle(kwargs['line_style'])
+        for line in lines[1:]:
+            line.remove()
+
+        # remove old shades
+        while len(self.plotMS.collections) > 0:
+            for shade in self.plotMS.collections:
+                shade.remove()
 
         if testMax == "yvals":
             yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
@@ -870,6 +897,7 @@ class plots(mpl_plotter):
         lines[0].set_linewidth(kwargs["line_width"])
         lines[0].set_color(kwargs["line_color"])
         lines[0].set_linestyle(kwargs["line_style"])
+        lines[0].set_label(kwargs.get("label", ""))
 
         # update limits and extents
         xlimits = (np.min(xvals), np.max(xvals))
@@ -877,11 +905,6 @@ class plots(mpl_plotter):
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
 
         if kwargs["shade_under"]:
-            for shade in range(len(self.plotMS.collections)):
-                try:
-                    self.plotMS.collections[shade].remove()
-                except IndexError:
-                    continue
             shade_kws = dict(
                 facecolor=kwargs["shade_under_color"],
                 alpha=kwargs.get("shade_under_transparency", 0.25),
@@ -889,9 +912,6 @@ class plots(mpl_plotter):
                 zorder=kwargs.get("zorder", 1),
             )
             self.plotMS.fill_between(xvals, 0, yvals, **shade_kws)
-        elif len(self.plotMS.collections) > 0:
-            for shade in range(len(self.plotMS.collections)):
-                self.plotMS.collections[shade].remove()
 
         # convert weights
         if kwargs["label_weight"]:
@@ -912,6 +932,10 @@ class plots(mpl_plotter):
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
+
+        # update legend
+        handles, __ = self.plotMS.get_legend_handles_labels()
+        self.set_legend_parameters(handles, **self.plot_parameters)
 
     def plot_1D_update_data_by_label(self, xvals, yvals, gid, label):
         """Update plot data without replotting the entire plot
@@ -1564,26 +1588,30 @@ class plots(mpl_plotter):
             leg = self.plotMS.axes.get_legend()
             leg.remove()
         except (AttributeError, KeyError):
-            logger.error("No legend to remove")
+            pass
 
     def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
+
+        # rotate data
+        if self.rotate != 0 and not kwargs.pop("already_rotated", False):
+            yvals, zvals = self.on_rotate_heatmap_data(yvals, zvals)
 
         # update settings
         self._check_and_update_plot_settings(**kwargs)
 
         # update limits and extents
         extent = self.extents(xvals) + self.extents(yvals)
-        vmax = np.quantile(zvals, 0.95)
         self.cax.set_data(zvals)
-        self.cax.set_clim(vmax=vmax)
+        #         vmax = np.quantile(zvals, 0.95)
+        #         self.cax.set_clim(vmax=vmax)
         self.cax.set_norm(kwargs.get("colormap_norm", None))
         self.cax.set_extent(extent)
         self.cax.set_cmap(kwargs["colormap"])
         self.cax.set_interpolation(kwargs["interpolation"])
 
         xmin, xmax, ymin, ymax = extent
-        self.plotMS.set_xlim(xmin, xmax)  # -0.5)
-        self.plotMS.set_ylim(ymin, ymax)  # -0.5)
+        self.plotMS.set_xlim(xmin, xmax)
+        self.plotMS.set_ylim(ymin, ymax)
 
         extent = [xmin, ymin, xmax, ymax]
         if kwargs.get("update_extents", True):
@@ -1606,8 +1634,6 @@ class plots(mpl_plotter):
         # add colorbar
         if kwargs["colorbar"]:
             self.set_colorbar_parameters(zvals, **kwargs)
-
-        self.plot_update_axes(self.get_optimal_margins(self._axes))
 
     def plot_1D(
         self,

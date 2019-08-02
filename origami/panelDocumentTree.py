@@ -1999,10 +1999,10 @@ class documentsTree(wx.TreeCtrl):
 
         plot_obj.repaint()
 
-    def on_action_ORIGAMI_MS(self, evt):
+    def on_action_ORIGAMI_MS(self, evt, document_title=None):
         from gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
 
-        dlg = DialogCustomiseORIGAMI(self, self.presenter, self.config)
+        dlg = DialogCustomiseORIGAMI(self, self.presenter, self.config, document_title=document_title)
         dlg.ShowModal()
 
     def _bind_change_label_events(self):
@@ -6669,7 +6669,13 @@ class documentsTree(wx.TreeCtrl):
 
         docItem = False
         if delete_type == "heatmap.all.one":
-            delete_types = ["heatmap.raw.one", "heatmap.processed.one", "heatmap.combined.one", "heatmap.rt.one"]
+            delete_types = [
+                "heatmap.raw.one",
+                "heatmap.raw.one.processed",
+                "heatmap.processed.one",
+                "heatmap.combined.one",
+                "heatmap.rt.one",
+            ]
         elif delete_type == "heatmap.all.all":
             delete_types = ["heatmap.raw.all", "heatmap.processed.all", "heatmap.combined.all", "heatmap.rt.all"]
         else:
@@ -6682,15 +6688,15 @@ class documentsTree(wx.TreeCtrl):
                     docItem = self.getItemByData(document.IMS2Dions)
                     document.IMS2Dions = {}
                     document.gotExtractedIons = False
-                elif delete_type == "heatmap.processed.all":
+                if delete_type == "heatmap.processed.all":
                     docItem = self.getItemByData(document.IMS2DionsProcess)
                     document.IMS2DionsProcess = {}
                     document.got2DprocessIons = False
-                elif delete_type == "heatmap.rt.all":
+                if delete_type == "heatmap.rt.all":
                     docItem = self.getItemByData(document.IMSRTCombIons)
                     document.IMSRTCombIons = {}
                     document.gotCombinedExtractedIonsRT = False
-                elif delete_type == "heatmap.combined.all":
+                if delete_type == "heatmap.combined.all":
                     docItem = self.getItemByData(document.IMS2DCombIons)
                     document.IMS2DCombIons = {}
                     document.gotCombinedExtractedIons = False
@@ -6700,9 +6706,9 @@ class documentsTree(wx.TreeCtrl):
                 except Exception:
                     logger.warning("Failed to delete: {}".format(delete_type))
 
-            if delete_type.startswith("heatmap.raw"):
-                self.ionPanel.delete_row_from_table(delete_item_name=None, delete_document_title=document_title)
-                self.on_update_extracted_patches(document.title, "__all__", None)
+                if delete_type.startswith("heatmap.raw"):
+                    self.ionPanel.delete_row_from_table(delete_item_name=None, delete_document_title=document_title)
+                    self.on_update_extracted_patches(document.title, "__all__", None)
 
         elif delete_type.endswith(".one"):
             for delete_type in delete_types:
@@ -6722,7 +6728,26 @@ class documentsTree(wx.TreeCtrl):
                                 self.Delete(main_docItem)
                             except Exception:
                                 pass
-                elif delete_type == "heatmap.processed.one":
+                if delete_type == "heatmap.raw.one.processed":
+                    ion_name_processed = f"{ion_name} (processed)"
+                    main_docItem = self.getItemByData(document.IMS2Dions)
+                    docItem = self.getItemByData(document.IMS2Dions.get(ion_name_processed, "N/A"))
+                    if docItem not in ["N/A", None, False]:
+                        try:
+                            del document.IMS2Dions[ion_name_processed]
+                        except KeyError:
+                            logger.warning(
+                                "Failed to delete {}: {} from {}.".format(
+                                    delete_type, ion_name_processed, document_title
+                                )
+                            )
+                        if len(document.IMS2Dions) == 0:
+                            document.gotExtractedIons = False
+                            try:
+                                self.Delete(main_docItem)
+                            except Exception:
+                                pass
+                if delete_type == "heatmap.processed.one":
                     main_docItem = self.getItemByData(document.IMS2DionsProcess)
                     docItem = self.getItemByData(document.IMS2DionsProcess.get(ion_name, "N/A"))
                     if docItem not in ["N/A", None, False]:
@@ -6738,7 +6763,7 @@ class documentsTree(wx.TreeCtrl):
                                 self.Delete(main_docItem)
                             except Exception:
                                 pass
-                elif delete_type == "heatmap.rt.one":
+                if delete_type == "heatmap.rt.one":
                     main_docItem = self.getItemByData(document.IMSRTCombIons)
                     docItem = self.getItemByData(document.IMSRTCombIons.get(ion_name, "N/A"))
                     if docItem not in ["N/A", None, False]:
@@ -6754,7 +6779,7 @@ class documentsTree(wx.TreeCtrl):
                                 self.Delete(main_docItem)
                             except Exception:
                                 pass
-                elif delete_type == "heatmap.combined.one":
+                if delete_type == "heatmap.combined.one":
                     main_docItem = self.getItemByData(document.IMS2DCombIons)
                     docItem = self.getItemByData(document.IMS2DCombIons.get(ion_name, "N/A"))
                     if docItem not in ["N/A", None, False]:
@@ -6777,9 +6802,9 @@ class documentsTree(wx.TreeCtrl):
                 except Exception:
                     pass
 
-            if delete_type.startswith("heatmap.raw"):
-                self.ionPanel.delete_row_from_table(delete_item_name=ion_name, delete_document_title=document_title)
-                self.on_update_extracted_patches(document.title, None, ion_name)
+                if delete_type.startswith("heatmap.raw"):
+                    self.ionPanel.delete_row_from_table(delete_item_name=ion_name, delete_document_title=document_title)
+                    self.on_update_extracted_patches(document.title, None, ion_name)
 
         return document, True
 

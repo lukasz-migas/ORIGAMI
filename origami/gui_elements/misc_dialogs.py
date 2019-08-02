@@ -29,8 +29,13 @@ def DialogBox(exceptionTitle="", exceptionMsg="", type="Error", exceptionPrint=T
         return result
 
 
-def DialogSimpleAsk(message="", title="", defaultValue=""):
-    dlg = wx.TextEntryDialog(None, message, title, defaultValue)  # parent
+def DialogSimpleAsk(message="", title="", defaultValue="", value_type=None):
+
+    if value_type is not None and value_type in ["float", "floatPos", "int", "intPos"]:
+        dlg = wx.NumberEntryDialog(None, message, "", title, 0, -100000, 1000000)
+    else:
+        dlg = wx.TextEntryDialog(None, message, title, defaultValue)
+
     dlg.CentreOnScreen()
 
     if dlg.ShowModal() == wx.ID_CANCEL:

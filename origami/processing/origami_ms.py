@@ -272,8 +272,8 @@ def origami_combine_boltzmann(
     scans_per_voltage_list = []  # Pre-set empty array
     for i in range(int(n_voltages)):
         scans_per_voltage_fit = np.round(1 / (A2 + (A1 - A2) / (1 + np.exp((cv_list[i] - x0) / dx))), 0)
-        if scans_per_voltage_fit == 0:
-            scans_per_voltage_fit = 1
+        #         if scans_per_voltage_fit == 0:
+        #             scans_per_voltage_fit = 1
         # Append to file
         scans_per_voltage_list.append(scans_per_voltage_fit * start_scans_per_voltage)
 

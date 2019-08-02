@@ -798,7 +798,7 @@ class panel_peak_picker(wx.MiniFrame):
         for __, (mz_x_minus, mz_x_plus, mz_height) in enumerate(
             zip(peaks_x_minus_width, peaks_x_plus_width, peaks_y_values)
         ):
-            if not self.ionPanel.on_check_duplicate(mz_x_minus, mz_x_plus, self.document_title):
+            if not self.ionPanel.on_check_duplicate(f"{mz_x_minus}-{mz_x_plus}", self.document_title):
                 add_dict = {
                     "mz_start": mz_x_minus,
                     "mz_end": mz_x_plus,

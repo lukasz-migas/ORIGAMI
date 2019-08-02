@@ -46,19 +46,11 @@ from ids import ID_extraSettings_violin
 from ids import ID_extraSettings_waterfall
 from ids import ID_highlightRectAllIons
 from ids import ID_pickMSpeaksDocument
-from ids import ID_plotPanel_binMS
 from ids import ID_plotPanel_lockPlot
 from ids import ID_plotPanel_resize
 from ids import ID_plots_customise_plot
 from ids import ID_plots_customise_smart_zoom
 from ids import ID_plots_rotate90
-from ids import ID_plots_saveImage_unidec_chargeDist
-from ids import ID_plots_saveImage_unidec_isolated_mz
-from ids import ID_plots_saveImage_unidec_ms
-from ids import ID_plots_saveImage_unidec_ms_barchart
-from ids import ID_plots_saveImage_unidec_mw
-from ids import ID_plots_saveImage_unidec_mw_v_charge
-from ids import ID_plots_saveImage_unidec_mz_v_charge
 from ids import ID_processSettings_2D
 from ids import ID_processSettings_MS
 from ids import ID_save1DImage
@@ -87,7 +79,6 @@ from ids import ID_saveRTImageDoc
 from ids import ID_saveWaterfallImage
 from ids import ID_saveWaterfallImageDoc
 from ids import ID_smooth1Ddata1DT
-from ids import ID_smooth1DdataMS
 from ids import ID_smooth1DdataRT
 from natsort import natsorted
 from panelCustomisePlot import panel_customise_plot
@@ -317,13 +308,30 @@ class panelPlot(wx.Panel):
         plot_obj = self.get_plot_from_name(self.currentPage)
         plot_obj.copy_to_clipboard()
 
+    def on_smooth_spectrum(self, evt):
+        """Smooth plot signal"""
+        plot_obj = self.get_plot_from_name(self.currentPage)
+        try:
+            xs, ys, labels, xlabel, ylabel = plot_obj.plot_1D_get_data()
+        except AttributeError:
+            raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
+        #         n_signals = len(xs)
+        #         if n_signals > 1:
+        #             raise MessageError("Not supported yet",
+        #                                "At the moment signal smoothing is only supported for plots with one signal." +
+        #                                f" This one appears to have {n_signals}")
+        ys = self.data_processing.on_smooth_1D_signal(ys)
+
+        plt_kwargs = self._buildPlotParameters(plotType="1D")
+        plot_obj.plot_1D_update_data(xs[0], ys[0], xlabel, ylabel, label=labels[0], **plt_kwargs)
+        plot_obj.repaint()
+
     def on_right_click(self, evt):
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
 
         # Make bindings
-        self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1DdataMS)
-        self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1DdataRT)
-        self.Bind(wx.EVT_MENU, self.data_processing.on_smooth_1D_and_add_data, id=ID_smooth1Ddata1DT)
+        self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1DdataRT)
+        self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1Ddata1DT)
         self.Bind(wx.EVT_MENU, self.data_handling.on_highlight_selected_ions, id=ID_highlightRectAllIons)
         self.Bind(wx.EVT_MENU, self.data_processing.on_pick_peaks, id=ID_pickMSpeaksDocument)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_MS)
@@ -349,7 +357,6 @@ class panelPlot(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_pickedPeaks)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_barchart)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_chargeDistribution)
-        self.Bind(wx.EVT_MENU, self.onSetupMenus, id=ID_plotPanel_binMS)
         self.Bind(wx.EVT_MENU, self.on_lock_plot, id=ID_plotPanel_lockPlot)
         self.Bind(wx.EVT_MENU, self.on_rotate_plot, id=ID_plots_rotate90)
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
@@ -424,9 +431,9 @@ class panelPlot(wx.Panel):
             text="Customise plot...",
             bitmap=self.icons.iconsLib["change_xlabels_16"],
         )
-        menu_action_rotate90 = makeMenuItem(
-            parent=menu, id=ID_plots_rotate90, text="Rotate 90°", bitmap=self.icons.iconsLib["blank_16"]
-        )
+        #         menu_action_rotate90 = makeMenuItem(
+        #             parent=menu, id=ID_plots_rotate90, text="Rotate 90°", bitmap=self.icons.iconsLib["blank_16"]
+        #         )
         menu_action_process_2D = makeMenuItem(
             parent=menu,
             id=ID_processSettings_2D,
@@ -502,11 +509,6 @@ class panelPlot(wx.Panel):
                 )
             else:
                 menu.Append(ID_smooth1DdataRT, "Smooth chromatogram")
-                self.binMS_check = menu.AppendCheckItem(
-                    ID_plotPanel_binMS, "Bin mass spectra during extraction", help=""
-                )
-                self.binMS_check.Check(self.config.ms_enable_in_RT)
-                menu.AppendItem(menu_action_process_MS)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_edit_general)
                 menu.AppendItem(menu_edit_plot_1D)
@@ -538,11 +540,6 @@ class panelPlot(wx.Panel):
                 )
             else:
                 menu.Append(ID_smooth1Ddata1DT, "Smooth mobiligram")
-                self.binMS_check = menu.AppendCheckItem(
-                    ID_plotPanel_binMS, "Bin mass spectra during extraction", help=""
-                )
-                self.binMS_check.Check(self.config.ms_enable_in_RT)
-                menu.AppendItem(menu_action_process_MS)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_edit_general)
                 menu.AppendItem(menu_edit_plot_1D)
@@ -567,7 +564,7 @@ class panelPlot(wx.Panel):
                 )
         elif self.currentPage == "Heatmap":
             menu.AppendItem(menu_action_process_2D)
-            menu.AppendItem(menu_action_rotate90)
+            #             menu.AppendItem(menu_action_rotate90)
             menu.AppendSeparator()
             menu.AppendItem(menu_edit_general)
             menu.AppendItem(menu_edit_plot_2D)
@@ -591,7 +588,7 @@ class panelPlot(wx.Panel):
             )
         elif self.currentPage == "DT/MS":
             menu.AppendItem(menu_action_process_2D)
-            menu.AppendItem(menu_action_rotate90)
+            #             menu.AppendItem(menu_action_rotate90)
             menu.AppendSeparator()
             menu.AppendItem(
                 makeMenuItem(
@@ -702,19 +699,6 @@ class panelPlot(wx.Panel):
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
-
-    def onSetupMenus(self, evt):
-
-        evtID = evt.GetId()
-
-        if evtID == ID_plotPanel_binMS:
-            check_value = not self.config.ms_enable_in_RT
-            self.config.ms_enable_in_RT = check_value
-            if self.config.ms_enable_in_RT:
-                args = ("Mass spectra will be binned when extracted from chromatogram and mobiligram windows", 4)
-            else:
-                args = ("Mass spectra will be not binned when extracted from chromatogram and mobiligram windows", 4)
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
 
     def save_images(self, evt, path=None, **save_kwargs):
         """ Save figure depending on the event ID """
@@ -1776,6 +1760,7 @@ class panelPlot(wx.Panel):
             else:
                 color = colors[num]
                 legend_text[num + 1][0] = color
+
             # plot markers
             if kwargs["show_markers"]:
                 plot_obj.plot_add_markers(
@@ -2437,25 +2422,25 @@ class panelPlot(wx.Panel):
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
-
-        panel = self.plot1
         window = self.config.panelNames["MS"]
+
+        if "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(show_in_window)
+
         if show_in_window == "MS":
-            panel = self.plot1
             window = self.config.panelNames["MS"]
             plot_size_key = "MS"
         elif show_in_window == "RT":
-            panel = self.plot_RT_MS
             window = self.config.panelNames["RT"]
             plt_kwargs["prevent_extraction"] = True
             plot_size_key = "MS (DT/RT)"
         elif show_in_window == "1D":
-            panel = self.plot_DT_MS
             window = self.config.panelNames["1D"]
             plt_kwargs["prevent_extraction"] = True
             plot_size_key = "MS (DT/RT)"
         else:
-            panel = kwargs.pop("plot_obj")
             window = None
             plt_kwargs["prevent_extraction"] = True
             plot_size_key = "MS"
@@ -2471,18 +2456,15 @@ class panelPlot(wx.Panel):
 
         # setup names
         if "document" in kwargs:
-            panel.document_name = kwargs["document"]
-            panel.dataset_name = kwargs["dataset"]
-        else:
-            panel.document_name = None
-            panel.dataset_name = None
+            plot_obj.document_name = kwargs["document"]
+            plot_obj.dataset_name = kwargs["dataset"]
 
         if not full_repaint:
             try:
-                panel.plot_1D_update_data(msX, msY, "m/z", "Intensity", **plt_kwargs)
+                plot_obj.plot_1D_update_data(msX, msY, "m/z", "Intensity", **plt_kwargs)
                 if len(view_range):
                     self.on_zoom_1D_x_axis(startX=view_range[0], endX=view_range[1], repaint=False, plot="MS")
-                panel.repaint()
+                plot_obj.repaint()
                 if override:
                     self.config.replotData["MS"] = {"xvals": msX, "yvals": msY, "xlimits": xlimits}
                 return
@@ -2498,8 +2480,8 @@ class panelPlot(wx.Panel):
         except Exception:
             xlimits = [np.min(msX), np.max(msX)]
 
-        panel.clearPlot()
-        panel.plot_1D(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D(
             xvals=msX,
             yvals=msY,
             xlimits=xlimits,
@@ -2510,7 +2492,7 @@ class panelPlot(wx.Panel):
             **plt_kwargs,
         )
         # Show the mass spectrum
-        panel.repaint()
+        plot_obj.repaint()
 
         if override:
             self.config.replotData["MS"] = {"xvals": msX, "yvals": msY, "xlimits": xlimits}
@@ -3914,8 +3896,6 @@ class panelPlot(wx.Panel):
 
         if set_page:
             self._set_page(self.config.panelNames["MS"])
-
-        print(plot_obj)
 
         if endY is None:
             plot_obj.on_zoom_x_axis(startX, endX)

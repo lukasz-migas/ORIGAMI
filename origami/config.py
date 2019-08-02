@@ -537,32 +537,30 @@ class OrigamiConfig:
 
         self.peaklistColNames = {
             "check": 0,
-            "start": 1,
-            "end": 2,
-            "charge": 3,
-            "intensity": 4,
-            "color": 5,
-            "colormap": 6,
-            "alpha": 7,
-            "mask": 8,
-            "label": 9,
-            "method": 10,
-            "filename": 11,
+            "ion_name": 1,
+            "charge": 2,
+            "intensity": 3,
+            "color": 4,
+            "colormap": 5,
+            "alpha": 6,
+            "mask": 7,
+            "label": 8,
+            "method": 9,
+            "filename": 10,
         }
 
         self._peakListSettings = [
             {"name": "", "order": 0, "width": 25, "show": True},
-            {"name": "min m/z", "order": 1, "width": 65, "show": True},
-            {"name": "max m/z", "order": 2, "width": 65, "show": True},
-            {"name": "z", "order": 3, "width": 25, "show": True},
-            {"name": "intensity", "order": 4, "width": 60, "show": True},
-            {"name": "color", "order": 5, "width": 60, "show": True},
-            {"name": "colormap", "order": 6, "width": 70, "show": True},
-            {"name": "\N{GREEK SMALL LETTER ALPHA}", "order": 7, "width": 35, "show": True},
-            {"name": "mask", "order": 8, "width": 40, "show": True},
-            {"name": "label", "order": 9, "width": 50, "show": True},
-            {"name": "method", "order": 10, "width": 80, "show": True},
-            {"name": "file", "order": 11, "width": 100, "show": True},
+            {"name": "ion name", "order": 1, "width": 130, "show": True},
+            {"name": "z", "order": 2, "width": 25, "show": True},
+            {"name": "intensity", "order": 3, "width": 60, "show": True},
+            {"name": "color", "order": 4, "width": 60, "show": True},
+            {"name": "colormap", "order": 5, "width": 70, "show": True},
+            {"name": "\N{GREEK SMALL LETTER ALPHA}", "order": 6, "width": 35, "show": True},
+            {"name": "mask", "order": 7, "width": 40, "show": True},
+            {"name": "label", "order": 8, "width": 50, "show": True},
+            {"name": "method", "order": 9, "width": 80, "show": True},
+            {"name": "document", "order": 10, "width": 100, "show": True},
         ]
 
         self.driftTopColNames = {"start": 0, "end": 1, "scans": 2, "drift_voltage": 4, "filename": 5}
@@ -780,6 +778,8 @@ class OrigamiConfig:
         self._plots_zoom_box_color = [0.5, 0.0, 0]
         self._plots_zoom_line_width = 2
         self._plots_zoom_crossover = 0.05
+
+        self._plots_check_axes_size = True  # new in 1.3.0.0
 
         # window parameters
         self.extraParamsWindow_on_off = False
@@ -1198,6 +1198,7 @@ class OrigamiConfig:
         self.origami_acquisition_choices = ["Linear", "Exponential", "Boltzmann", "User-defined", "Manual"]
         self.origami_acquisition = "Linear"
         self.origami_userDefined_list = []
+        self.origami_preprocess = True  # new in v1.3.0.0
 
         # Extracting
         self.extract_massSpectra = False

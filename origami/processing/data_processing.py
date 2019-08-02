@@ -170,51 +170,20 @@ class data_processing:
                 cmap = get_data.get("cmap", None)
             return zvals, xylabels, cmap
 
-    def on_smooth_1D_and_add_data(self, evt):
-        self.docs = self.data_handling._on_get_document()
-        if self.docs is None:
-            return
+    def on_smooth_1D_signal(self, ys):
+        sigma = DialogSimpleAsk(
+            "Smoothing spectrum using Gaussian Filter. Sigma value:", defaultValue="", value_type="floatPos"
+        )
+        sigma = str2num(sigma)
 
-        sigma = DialogSimpleAsk("Spectrum smoothing using Gaussian filter. Sigma value:", defaultValue="")
-        if sigma == "":
-            msg = "No value was provided. Action was cancelled."
-            self.presenter.onThreading(None, (msg, 3), action="updateStatusbar")
-            return
+        if sigma in [None, ""]:
+            raise MessageError("Incorrect value", f"Incorrect value of {sigma} was provided")
 
-        if evt.GetId() == ID_smooth1DdataMS:
-            if self.docs.gotMS:
-                msX = self.docs.massSpectrum["xvals"]
-                msY = self.docs.massSpectrum["yvals"]
-                # Smooth data
-                msY = pr_spectra.smooth_gaussian_1D(data=msY, sigma=str2num(sigma))
-                msY = pr_spectra.normalize_1D(msY)
-                self.docs.gotSmoothMS = True
-                self.docs.smoothMS = {"xvals": msX, "yvals": msY, "smoothSigma": sigma}
-                # Plot smoothed MS
-                name_kwargs = {"document": self.docs.title, "dataset": "Mass Spectrum"}
-                self.view.panelPlots.on_plot_MS(msX, msY, xlimits=self.docs.massSpectrum["xlimits"], **name_kwargs)
-                self.data_handling.on_update_document(self.docs, "document")
+        ys_smooth = []
+        for y_signal in ys:
+            ys_smooth.append(pr_spectra.smooth_gaussian_1D(y_signal, sigma=sigma))
 
-        elif evt.GetId() == ID_smooth1Ddata1DT:
-            if self.docs.got1DT:
-                dtX = self.docs.DT["xvals"]
-                dtY = self.docs.DT["yvals"]
-                xlabel = self.docs.DT["xlabels"]
-                # Smooth data
-                dtY = pr_spectra.smooth_gaussian_1D(data=dtY, sigma=str2num(sigma))
-                dtY = pr_spectra.normalize_1D(dtY)
-                # Plot smoothed MS
-                self.view.panelPlots.on_plot_1D(dtX, dtY, xlabel)
-
-        elif evt.GetId() == ID_smooth1DdataRT:
-            if self.docs.got1RT:
-                rtX = self.docs.RT["xvals"]
-                rtY = self.docs.RT["yvals"]
-                xlabel = self.docs.RT["xlabels"]
-                # Smooth data
-                rtY = pr_spectra.smooth_gaussian_1D(data=rtY, sigma=str2num(sigma))
-                rtY = pr_spectra.normalize_1D(rtY)
-                self.view.panelPlots.on_plot_RT(rtX, rtY, xlabel)
+        return ys_smooth
 
     def predict_charge_state(self, msX, msY, mz_range, std_dev=0.05):
 
@@ -224,7 +193,7 @@ class data_processing:
         )
         peak_diff = np.diff(isotope_peaks[:, 0])
         peak_std = np.std(peak_diff)
-        if len(peak_diff) > 0 and peak_std <= 0.05:
+        if len(peak_diff) > 0 and peak_std <= std_dev:
             charge = int(np.round(1 / np.round(np.average(peak_diff), 4), 0))
             msg = "Predicted charge state: {} | Standard deviation: {}".format(charge, peak_std)
         else:
@@ -644,7 +613,7 @@ class data_processing:
                                 except Exception:
                                     charge = ""
                                 intensity = np.round(mz[1] * 100, 1)
-                                if not panel.on_check_duplicate(xmin, xmax, self.presenter.currentDoc):
+                                if not panel.on_check_duplicate(f"{xmin}-{xmax}", self.presenter.currentDoc):
                                     add_dict = {
                                         "mz_start": xmin,
                                         "mz_end": xmax,
@@ -1798,6 +1767,10 @@ class data_processing:
             # Extract ion name
             ion_name = itemInfo["ionName"]
             method = itemInfo["method"]
+            if ion_name not in data:
+                logger.warn(f"Could not find {ion_name} in the document")
+                continue
+
             zvals = data[ion_name]["zvals"]
 
             if method == "":
@@ -1808,18 +1781,11 @@ class data_processing:
             # get origami-ms settings from the metadata
             origami_settings = document.metadata.get("origami_ms", None)
             if origami_settings is None:
-                origami_settings = {
-                    "origami_acquisition": self.config.origami_acquisition,
-                    "origami_startScan": self.config.origami_startScan,
-                    "origami_spv": self.config.origami_spv,
-                    "origami_startVoltage": self.config.origami_startVoltage,
-                    "origami_endVoltage": self.config.origami_endVoltage,
-                    "origami_stepVoltage": self.config.origami_stepVoltage,
-                    "origami_boltzmannOffset": self.config.origami_boltzmannOffset,
-                    "origami_exponentialPercentage": self.config.origami_exponentialPercentage,
-                    "origami_exponentialIncrement": self.config.origami_exponentialIncrement,
-                    "origami_cv_spv_list": [],
-                }
+                raise MessageError(
+                    "Missing ORIGAMI-MS configuration",
+                    "Please setup ORIGAMI-MS settings by right-clicking on the document in the"
+                    + "Document Tree and selecting `Action -> Setup ORIGAMI-MS parameters",
+                )
 
             # unpack settings
             method = origami_settings["origami_acquisition"]

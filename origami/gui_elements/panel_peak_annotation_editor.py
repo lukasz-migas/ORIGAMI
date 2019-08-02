@@ -409,7 +409,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.onFixIntensity, id=ID_annotPanel_fixIntensity_selected)
         self.Bind(wx.EVT_MENU, self.onUpdateLabel, id=ID_annotPanel_assignLabel_selected)
         self.Bind(wx.EVT_MENU, self.onOpenPeakList, id=ID_annotPanel_addAnnotations)
-        self.Bind(wx.EVT_MENU, self.onSavePeaklist, id=ID_annotPanel_savePeakList_selected)
+        self.Bind(wx.EVT_MENU, self.on_save_peaklist, id=ID_annotPanel_savePeakList_selected)
         self.Bind(wx.EVT_MENU, self.onCustomiseParameters, id=ID_annotPanel_otherSettings)
         self.Bind(wx.EVT_MENU, self.on_multiple_annotations, id=ID_annotPanel_multipleAnnotation)
 
@@ -1219,7 +1219,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             label_value = self._convert_str_to_unicode(str(charge_value), return_type=label_format)
             self.label_value.SetValue(label_value)
 
-    def onSavePeaklist(self, evt):
+    def on_save_peaklist(self, evt):
         from pandas import DataFrame
 
         peaklist = []

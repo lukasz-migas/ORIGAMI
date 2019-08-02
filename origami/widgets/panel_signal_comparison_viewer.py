@@ -272,7 +272,7 @@ class PanelSignalComparisonViewer(wx.MiniFrame):
         processing_staticBox.SetSize((-1, -1))
         processing_box_sizer = wx.StaticBoxSizer(processing_staticBox, wx.HORIZONTAL)
 
-        self.preprocess_check = makeCheckbox(panel, "Preprocess")
+        self.preprocess_check = makeCheckbox(panel, "Pre-process")
         self.preprocess_check.SetValue(self.config.compare_massSpectrumParams["preprocess"])
 
         self.normalize_check = makeCheckbox(panel, "Normalize")

@@ -31,7 +31,8 @@ class mpl_plotter(wx.Panel):
             self.figsize = [8, 2.5]
 
         if "axes_size" in kwargs:
-            self._axes = kwargs.pop("axes_size")
+            axes_size = kwargs.pop("axes_size")
+            self._axes = axes_size
         else:
             self._axes = [0.15, 0.12, 0.8, 0.8]
 

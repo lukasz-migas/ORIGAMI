@@ -3,8 +3,10 @@
 """Utility tools for label replacements"""
 import re
 
+from utils.converters import str2num
 
-def get_ion_name_from_label(ion_name):
+
+def get_ion_name_from_label(ion_name, as_num=False):
     """Extract mz values from label
 
     Parameters
@@ -26,6 +28,9 @@ def get_ion_name_from_label(ion_name):
     ion_label = re.split(r"-|\(|:|,|=| ", ion_name)
     mz_min = ion_label[indexes[0]]
     mz_max = ion_label[indexes[1]]
+    if as_num:
+        mz_min = str2num(mz_min)
+        mz_max = str2num(mz_max)
 
     return mz_min, mz_max
 

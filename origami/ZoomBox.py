@@ -827,6 +827,7 @@ class ZoomBox:
                     xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
                 if axes.get_xlim() != (xmin, xmax) and axes.get_ylim() != (ymin, ymax):
                     zoomout = True
+
             # Register a click if zoomout was not necessary
             if not zoomout:
                 if evt.button == 1:
@@ -844,6 +845,7 @@ class ZoomBox:
                 else:
                     axes.set_xlim(xmin, xmax)
                     axes.set_ylim(ymin, ymax)
+
                 ResetVisible(axes)
 
             if self.plotName == "RMSF":

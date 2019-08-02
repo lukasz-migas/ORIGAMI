@@ -29,6 +29,8 @@ class panelDocumentInfo(wx.MiniFrame):
         self.presenter = presenter
         self.config = config
         self.icons = icons
+        self.data_handling = self.parent.data_handling
+
         self.document = document
 
         # Check if there are any kwargs
@@ -169,7 +171,7 @@ class panelDocumentInfo(wx.MiniFrame):
             panel, ID_saveAsConfig, self.icons.iconsLib["save16"], size=(toolbar_toolsize), style=wx.BORDER_NONE
         )
         self.presets_butt.SetToolTip(wx.ToolTip("Operator presets"))
-        self.presets_butt.Bind(wx.EVT_BUTTON, self.presenter.onExportConfig, id=ID_saveAsConfig)
+        self.presets_butt.Bind(wx.EVT_BUTTON, self.data_handling.on_export_config_fcn)
 
         # pack elements
         self.toolbar = wx.BoxSizer(wx.HORIZONTAL)
@@ -193,8 +195,6 @@ class panelDocumentInfo(wx.MiniFrame):
         main_sizer.Fit(panel)
 
         return panel
-
-    # ----
 
     def makeBtnPanel(self):
         """ Document button panel"""
@@ -247,8 +247,6 @@ class panelDocumentInfo(wx.MiniFrame):
         panel.SetSizer(main_sizer)
 
         return panel
-
-    # ----
 
     def makeSummaryPanel(self):
         """Document summary panel."""
@@ -334,8 +332,6 @@ class panelDocumentInfo(wx.MiniFrame):
         panel.SetSizer(main_sizer)
 
         return panel
-
-    # ----
 
     def makeSpectrumPanel(self):
         """Document summary panel."""
@@ -441,9 +437,14 @@ class panelDocumentInfo(wx.MiniFrame):
         self.tofCorrFactor_check.SetValue(False)
         self.tofCorrFactor_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
 
+        try:
+            header_info = self.document.fileInformation.get("SampleDescription", "None")
+        except AttributeError:
+            header_info = ""
+
         headerInfo_label = wx.StaticText(panel, -1, "Header information:")
         self.headerInfo_value = wx.TextCtrl(panel, -1, "", size=(180, 100), style=wx.TE_WORDWRAP | wx.TE_MULTILINE)
-        self.headerInfo_value.SetValue(self.document.fileInformation.get("SampleDescription", "None"))
+        self.headerInfo_value.SetValue(header_info)
         self.headerInfo_value.Disable()
 
         polarity_label = wx.StaticText(panel, -1, "Polarity:")
@@ -624,8 +625,6 @@ class panelDocumentInfo(wx.MiniFrame):
         panel.SetSizer(main_sizer)
 
         return panel
-
-    # ----
 
     def makeCCSCalibrationPanel(self):
 
@@ -821,7 +820,6 @@ class panelDocumentInfo(wx.MiniFrame):
         # Update notes
         self.document.notes = self.notes_value.GetValue()
 
-        # ---
         if (
             hasattr(self, "restoreDefaultX_check")
             and hasattr(self, "restoreDefaultY_check")
@@ -952,14 +950,11 @@ class panelDocumentInfo(wx.MiniFrame):
                 self.document.dataType == "Type: ORIGAMI" or self.document.dataType == "Type: MANUAL"
             ) and self.extractData is not None:
 
-                splitText = self.extractData.split("-")
-                row = self.presenter.view.panelMultipleIons.findItem(splitText[0], splitText[1], self.document.title)
+                row = self.presenter.view.panelMultipleIons.on_find_item(splitText, self.document.title)
                 if row is not None:
                     self.presenter.view.panelMultipleIons.peaklist.SetStringItem(
                         index=row, col=self.config.peaklistColNames["charge"], label=self.charge_value.GetValue()
                     )
-
-        # ---
 
         # Update list
         self.presenter.documentsDict[self.document.title] = self.document
@@ -990,7 +985,6 @@ class panelDocumentInfo(wx.MiniFrame):
             self.calibrationType_value.Disable()
         else:
             self.calibrationType_value.Enable()
-        # ---
         if not self.path_check.GetValue():
             self.path_value.Disable()
             self.chgDirBtn.Disable()
@@ -998,7 +992,6 @@ class panelDocumentInfo(wx.MiniFrame):
             self.path_value.Enable()
             self.chgDirBtn.Enable()
 
-        # ---
         if hasattr(self, "restoreDefaultX_check") and hasattr(self, "restoreDefaultY_check"):
             if self.restoreDefaultX_check.GetValue():
                 self.labelsX_check.Disable()
@@ -1006,20 +999,17 @@ class panelDocumentInfo(wx.MiniFrame):
             else:
                 self.labelsX_check.Enable()
                 self.labelsX_value.Enable()
-            # ---
             if self.restoreDefaultY_check.GetValue():
                 self.labelsY_check.Disable()
                 self.labelsY_value.Disable()
             else:
                 self.labelsY_check.Enable()
                 self.labelsY_value.Enable()
-        # ---
         if hasattr(self, "labelsX_check") and hasattr(self, "labelsY_check"):
             if self.labelsX_check.GetValue():
                 self.restoreDefaultX_check.Disable()
             else:
                 self.restoreDefaultX_check.Enable()
-            # ---
             if self.labelsY_check.GetValue():
                 self.restoreDefaultY_check.Disable()
             else:

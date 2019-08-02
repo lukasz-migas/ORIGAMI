@@ -19,9 +19,7 @@ class dialog_customise_smart_zoom(Dialog):
         self.CentreOnScreen()
         self.SetFocus()
 
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
+        self.on_toggle_controls(None)
 
     def on_ok(self, evt):
         self.EndModal(wx.OK)
@@ -55,6 +53,7 @@ class dialog_customise_smart_zoom(Dialog):
         self.smart_zoom_check = makeCheckbox(panel, "")
         self.smart_zoom_check.SetValue(self.config.smart_zoom_enable)
         self.smart_zoom_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.smart_zoom_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         smart_zoom_downsampling_method = wx.StaticText(panel, -1, "Downsampling method:")
         self.smart_zoom_downsampling_method = wx.Choice(
@@ -183,3 +182,22 @@ class dialog_customise_smart_zoom(Dialog):
         self.config.smart_zoom_min_search = int(self.smart_zoom_min_search.GetValue())
         self.config.smart_zoom_max_search = int(self.smart_zoom_max_search.GetValue())
         self.config.smart_zoom_subsample_default = int(self.smart_zoom_subsample_default.GetValue())
+
+        if evt is not None:
+            evt.Skip()
+
+    def on_toggle_controls(self, evt):
+        self.config.smart_zoom_enable = self.smart_zoom_check.GetValue()
+
+        for obj in [
+            self.smart_zoom_downsampling_method,
+            self.smart_zoom_soft_max,
+            self.smart_zoom_hard_max,
+            self.smart_zoom_min_search,
+            self.smart_zoom_max_search,
+            self.smart_zoom_subsample_default,
+        ]:
+            obj.Enable(self.config.smart_zoom_enable)
+
+        if evt is not None:
+            evt.Skip()

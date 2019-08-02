@@ -46,7 +46,7 @@ def set_logger_level(verbose=None):
         PROFILER, DEBUG, INFO, WARNING, ERROR, or CRITICAL.
     """
 
-    logger = logging.getLogger("py")
+    logger = logging.getLogger("origami")
 
     if verbose is None:
         verbose = "INFO"

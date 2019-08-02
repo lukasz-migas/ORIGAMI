@@ -566,7 +566,7 @@ class panelMML(wx.Panel):
                 None, n_colors=check_count, return_colors=True
             )
         elif evt.GetId() == ID_mmlPanel_changeColorBatch_color:
-            color = self.OnGetColor(None)
+            color = self.on_get_color(None)
             colors = [color] * check_count
         else:
             colors = self.presenter.view.panelPlots.on_get_colors_from_colormap(n_colors=check_count)
@@ -711,7 +711,7 @@ class panelMML(wx.Panel):
         information = self.peaklist.on_get_item_information(itemID)
         return information
 
-    def OnGetColor(self, evt):
+    def on_get_color(self, evt):
         # Restore custom colors
         custom = wx.ColourData()
         for key in self.config.customColors:

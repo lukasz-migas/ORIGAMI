@@ -176,7 +176,7 @@ class PanelProcessExtractDTMS(MiniFrame):
                     )
                 )
                 if n_points > 0:
-                    info = "Number of points: {}".format(n_points)
+                    info = "Number of m/z bins: {}".format(n_points)
                 else:
                     info = ""
             except (ZeroDivisionError, TypeError):

@@ -128,6 +128,8 @@ class data_handling:
             th = threading.Thread(target=self.on_export_config, args=args)
         elif action == "import.config":
             th = threading.Thread(target=self.on_import_config, args=args)
+        elif action == "extract.spectrum.collision.voltage":
+            th = threading.Thread(target=self.on_extract_mass_spectrum_for_each_collision_voltage, args=args)
 
         # Start thread
         try:
@@ -146,7 +148,8 @@ class data_handling:
         else:
             document_title = byte2str(document_title)
 
-        if document_title is None or document_title == "Documents":
+        if document_title in [None, "Documents", ""]:
+            logger.error(f"No such document {document_title} exist")
             return None
 
         document_title = byte2str(document_title)
@@ -179,11 +182,21 @@ class data_handling:
         else:
             return None, None
 
-    @staticmethod
-    def _get_waters_api_reader(document):
+    def _get_waters_api_reader(self, document):
+
         reader = document.file_reader.get("data_reader", None)
         if reader is None:
-            reader = io_waters_raw_api.WatersRawReader(check_waters_path(document.path))
+            file_path = check_waters_path(document.path)
+            if not check_path_exists(file_path) and document.dataType != "Type: MANUAL":
+                raise MessageError(
+                    "Missing file",
+                    f"File with {file_path} path no longer exists. If you think this is a mistake"
+                    + f", please update the path by right-clicking on the document in the Document Tree"
+                    + f" and selecting `Notes, information, labels...` and update file path",
+                )
+            reader = io_waters_raw_api.WatersRawReader(file_path)
+            document.file_reader = {"data_reader": reader}
+            self.on_update_document(document, "no_refresh")
 
         return reader
 
@@ -191,6 +204,7 @@ class data_handling:
     def _get_waters_api_spectrum_data(reader, **kwargs):
         fcn = 0
         if not hasattr(reader, "mz_spacing"):
+            logger.info("Missing `mz_spacing` information - computing it now.")
             __, __ = reader.generate_mz_interpolation_range(fcn)
 
         mz_x = reader.mz_x
@@ -203,6 +217,17 @@ class data_handling:
         mz_y = mz_y.astype(np.int32)
 
         return mz_x, mz_y
+
+    def _get_waters_api_spacing(self, reader):
+        fcn = 0
+        if not hasattr(reader, "mz_spacing"):
+            logger.info("Missing `mz_spacing` information - computing it now.")
+            __, __ = reader.generate_mz_interpolation_range(fcn)
+
+        mz_x = reader.mz_x
+        mz_spacing = reader.mz_spacing
+
+        return mz_x, mz_spacing
 
     @staticmethod
     def _check_driftscope_input(**kwargs):
@@ -1149,11 +1174,12 @@ class data_handling:
             color = self.ionPanel.on_check_duplicate_colors(self.config.customColors[get_random_int(0, 15)])
             color = convertRGB255to1(color)
             colormap = self.config.overlay_cmaps[get_random_int(0, len(self.config.overlay_cmaps) - 1)]
+            ion_name = f"{mz_start}-{mz_end}"
 
             if document.dataType in ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared"]:
                 self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
                 # Check if value already present
-                outcome = self.ionPanel.onCheckForDuplicates(mzStart=str(mz_start), mzEnd=str(mz_end))
+                outcome = self.ionPanel.on_check_duplicate(ion_name, document_title)
                 if outcome:
                     self.update_statusbar("Selected range already in the table", 4)
                     if currentView == "MS":
@@ -1161,8 +1187,7 @@ class data_handling:
                     return
 
                 _add_to_table = {
-                    "mz_start": mz_start,
-                    "mz_end": mz_end,
+                    "ion_name": ion_name,
                     "charge": charge,
                     "mz_ymax": mz_y_max,
                     "color": convertRGB1to255(color),
@@ -1742,14 +1767,19 @@ class data_handling:
             path = check_waters_path(path)
 
             if not check_path_exists(path) and document.dataType != "Type: MANUAL":
-                raise MessageError("Missing file", f"File with {path} path no longer exists")
+                raise MessageError(
+                    "Missing file",
+                    f"File with {path} path no longer exists. If you think this is a mistake"
+                    + f", please update the path by right-clicking on the document in the Document Tree"
+                    + f" and selecting `Notes, information, labels...` and update file path",
+                )
 
             # Extract information from the table
-            mz_start = item_information["start"]
-            mz_end = item_information["end"]
             mz_y_max = item_information["intensity"]
             label = item_information["label"]
             charge = item_information["charge"]
+            ion_name = item_information["ion_name"]
+            mz_start, mz_end = ut_labels.get_ion_name_from_label(ion_name, as_num=True)
 
             if charge is None:
                 charge = "1"
@@ -2386,7 +2416,6 @@ class data_handling:
                     if key.endswith("(processed)"):
                         continue
 
-                    print(key)
                     mz_start, mz_end = ut_labels.get_ion_name_from_label(key)
                     charge = dataset[key].get("charge", "")
                     label = dataset[key].get("label", "")
@@ -2411,6 +2440,7 @@ class data_handling:
                         method = ""
 
                     _add_to_table = {
+                        "ion_name": key,
                         "mz_start": mz_start,
                         "mz_end": mz_end,
                         "charge": charge,
@@ -2559,7 +2589,6 @@ class data_handling:
                 if source == "ion":
                     # Get current document
                     itemInfo = self.ionPanel.OnGetItemInformation(itemID=row)
-                    print(itemInfo)
                     document_title = itemInfo["document"]
                     # Check that data was extracted first
                     if document_title == "":
@@ -2914,9 +2943,14 @@ class data_handling:
             filename = itemInfo["document"]
             if filename != document_title:
                 continue
-            label = "{};{}-{}".format(filename, itemInfo["start"], itemInfo["end"])
-            xmin = itemInfo["start"]
-            width = itemInfo["end"] - xmin
+            ion_name = itemInfo["ion_name"]
+            label = "{};{}".format(filename, ion_name)
+
+            # assumes label is made of start-end
+            xmin, xmax = ut_labels.get_ion_name_from_label(ion_name)
+            xmin, xmax = str2num(xmin), str2num(xmax)
+
+            width = xmax - xmin
             color = convertRGB255to1(itemInfo["color"])
             if np.sum(color) <= 0:
                 color = self.config.markerColor_1D
@@ -2933,34 +2967,48 @@ class data_handling:
                 repaint=repaint,
             )
 
-    def on_extract_mass_spectrum_for_each_collision_voltage(self, evt):
-        """
-        """
-        document = self._on_get_document()
+    def on_extract_mass_spectrum_for_each_collision_voltage_fcn(self, evt, document_title=None):
+
+        if self.config.threading:
+            self.on_threading(action="extract.spectrum.collision.voltage", args=(document_title,))
+        else:
+            self.on_extract_mass_spectrum_for_each_collision_voltage(document_title)
+
+    def on_extract_mass_spectrum_for_each_collision_voltage(self, document_title):
+        """Extract mass spectrum for each collision voltage"""
+        document = self._on_get_document(document_title)
 
         # Make sure the document is of correct type.
         if not document.dataType == "Type: ORIGAMI":
             self.update_statusbar("Please select correct document type - ORIGAMI", 4)
             return
 
-        # Check that the user combined scans already
-        if not document.gotCombinedExtractedIons:
-            self.update_statusbar("Please combine collision voltages first", 4)
-            return
+        # get origami-ms settings from the metadata
+        origami_settings = document.metadata.get("origami_ms", None)
+        scan_list = document.combineIonsList
+        if origami_settings is None or len(scan_list) == 0:
+            raise MessageError(
+                "Missing ORIGAMI-MS configuration",
+                "Please setup ORIGAMI-MS settings by right-clicking on the document in the"
+                + "Document Tree and selecting `Action -> Setup ORIGAMI-MS parameters",
+            )
 
         reader = self._get_waters_api_reader(document)
 
-        # Do actual work
-        scan_list = document.combineIonsList
         document.gotMultipleMS = True
-
         xlimits = [document.parameters["startMS"], document.parameters["endMS"]]
         for start_end_cv in scan_list:
+            tstart = ttime()
             start_scan, end_scan, cv = start_end_cv
             spectrum_name = f"Scans: {start_scan}-{end_scan} | CV: {cv} V"
-            kwargs = {"start_scan": start_scan, "end_scan": end_scan}
-            mz_x, mz_y = self._get_waters_api_spectrum_data(reader, **kwargs)
 
+            # extract spectrum
+            mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
+            # process each
+            if self.config.origami_preprocess:
+                mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
+
+            # add to document
             spectrum_data = {
                 "xvals": mz_x,
                 "yvals": mz_y,
@@ -2969,8 +3017,8 @@ class data_handling:
                 "xlimits": xlimits,
                 "trap": cv,
             }
-
             self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
+            logger.info(f"Extracted {spectrum_name} in {ttime()-tstart:.2f} seconds.")
 
     def get_spectrum_data(self, query_info, **kwargs):
         """Retrieve data for specified query items.
