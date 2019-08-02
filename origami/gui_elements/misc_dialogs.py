@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+import logging
+
 import wx
+
+logger = logging.getLogger("origami")
 
 
 def DialogBox(exceptionTitle="", exceptionMsg="", type="Error", exceptionPrint=True):
@@ -8,19 +12,22 @@ def DialogBox(exceptionTitle="", exceptionMsg="", type="Error", exceptionPrint=T
     Generic message box
     """
 
+    logger_printer = logger.info
     if type == "Error":
         dlgStyle = wx.OK | wx.ICON_ERROR
+        logger_printer = logger.error
     elif type == "Info":
         dlgStyle = wx.OK | wx.ICON_INFORMATION
     elif type == "Stop":
         dlgStyle = wx.OK | wx.ICON_STOP
     elif type == "Warning":
         dlgStyle = wx.OK | wx.ICON_EXCLAMATION
+        logger_printer = logger.warning
     elif type == "Question":
         dlgStyle = wx.YES_NO | wx.ICON_QUESTION
 
     if exceptionPrint:
-        print(exceptionMsg)
+        logger_printer(exceptionMsg)
 
     dlg = wx.MessageDialog(None, exceptionMsg, exceptionTitle, dlgStyle)
     result = dlg.ShowModal()

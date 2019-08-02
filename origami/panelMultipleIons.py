@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import csv
 import logging
 from ast import literal_eval
 
@@ -13,8 +12,6 @@ from ids import ID_addManyIonsCSV
 from ids import ID_addNewOverlayDoc
 from ids import ID_combineCEscans
 from ids import ID_combineCEscansSelectedIons
-from ids import ID_exportAllAsCSV_ion
-from ids import ID_exportAllAsImage_ion
 from ids import ID_exportSelectedAsCSV_ion
 from ids import ID_exportSeletedAsImage_ion
 from ids import ID_extractAllIons
@@ -43,8 +40,6 @@ from ids import ID_ionPanel_clear_selected
 from ids import ID_ionPanel_delete_all
 from ids import ID_ionPanel_delete_rightClick
 from ids import ID_ionPanel_delete_selected
-from ids import ID_ionPanel_edit_all
-from ids import ID_ionPanel_edit_selected
 from ids import ID_ionPanel_editItem
 from ids import ID_ionPanel_normalize1D
 from ids import ID_ionPanel_show_chromatogram
@@ -68,11 +63,7 @@ from ids import ID_overlayIonsMenu
 from ids import ID_overlayMZfromList
 from ids import ID_overlayMZfromList1D
 from ids import ID_overlayMZfromListRT
-from ids import ID_overrideCombinedMenu
-from ids import ID_processAllIons
 from ids import ID_processIonsMenu
-from ids import ID_processSaveMenu
-from ids import ID_processSelectedIons
 from ids import ID_removeIonsMenu
 from ids import ID_saveIonListCSV
 from ids import ID_saveIonsMenu
@@ -80,18 +71,15 @@ from ids import ID_selectOverlayMethod
 from ids import ID_showIonsMenu
 from ids import ID_useProcessedCombinedMenu
 from ids import ID_window_ionList
-from pandas import read_csv
 from styles import ListCtrl
 from styles import makeMenuItem
 from styles import makeTooltip
-from toolbox import checkExtension
 from utils.check import isempty
 from utils.color import convertRGB1to255
 from utils.color import convertRGB255to1
 from utils.color import determineFontColor
 from utils.color import randomColorGenerator
 from utils.color import roundRGB
-from utils.converters import str2num
 from utils.exceptions import MessageError
 from utils.labels import get_ion_name_from_label
 from utils.random import get_random_int
@@ -151,7 +139,6 @@ class panelMultipleIons(wx.Panel):
             (wx.ACCEL_NORMAL, ord("H"), ID_highlightRectAllIons),
             (wx.ACCEL_NORMAL, ord("M"), ID_ionPanel_show_mobiligram),
             (wx.ACCEL_NORMAL, ord("N"), ID_ionPanel_normalize1D),
-            (wx.ACCEL_NORMAL, ord("O"), ID_overrideCombinedMenu),
             (wx.ACCEL_NORMAL, ord("P"), ID_useProcessedCombinedMenu),
             (wx.ACCEL_NORMAL, ord("S"), ID_ionPanel_check_selected),
             (wx.ACCEL_NORMAL, ord("X"), ID_ionPanel_check_all),
@@ -161,10 +148,9 @@ class panelMultipleIons(wx.Panel):
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
         wx.EVT_MENU(self, ID_ionPanel_editItem, self.on_open_editor)
-        wx.EVT_MENU(self, ID_ionPanel_addToDocument, self.onCheckTool)
-        wx.EVT_MENU(self, ID_overrideCombinedMenu, self.onCheckTool)
-        wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.onCheckTool)
-        wx.EVT_MENU(self, ID_ionPanel_normalize1D, self.onCheckTool)
+        wx.EVT_MENU(self, ID_ionPanel_addToDocument, self.on_check_tool)
+        wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.on_check_tool)
+        wx.EVT_MENU(self, ID_ionPanel_normalize1D, self.on_check_tool)
         wx.EVT_MENU(self, ID_ionPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_ionPanel_show_zoom_in_MS, self.on_plot)
         wx.EVT_MENU(self, ID_ionPanel_show_mobiligram, self.on_plot)
@@ -177,7 +163,7 @@ class panelMultipleIons(wx.Panel):
         self.document_tree = self.presenter.view.panelDocuments.documents
 
     def on_open_info_panel(self, evt):
-        pass
+        logger.error("This function is not implemented yet")
 
     def make_gui(self):
         """ Make panel GUI """
@@ -419,18 +405,7 @@ class panelMultipleIons(wx.Panel):
 
     def on_right_click(self, evt):
 
-        # Menu events
-        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_zoom_in_MS)
-        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_mobiligram)
-        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_chromatogram)
-        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_heatmap)
-        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_process_heatmap)
-        self.Bind(wx.EVT_MENU, self.on_open_editor, id=ID_ionPanel_editItem)
-        self.Bind(wx.EVT_MENU, self.on_assign_color, id=ID_ionPanel_assignColor)
-        self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_ionPanel_delete_rightClick)
-
         self.peaklist.item_id = evt.GetIndex()
-
         menu = wx.Menu()
         menu.AppendItem(
             makeMenuItem(
@@ -456,12 +431,13 @@ class panelMultipleIons(wx.Panel):
                 bitmap=self.icons.iconsLib["mobiligram_16"],
             )
         )
-        menu.AppendItem(
-            makeMenuItem(
-                parent=menu, id=ID_ionPanel_show_heatmap, text="Show heatmap", bitmap=self.icons.iconsLib["heatmap_16"]
-            )
+        menu_action_show_heatmap = makeMenuItem(
+            parent=menu, id=ID_ionPanel_show_heatmap, text="Show heatmap", bitmap=self.icons.iconsLib["heatmap_16"]
         )
-        menu.Append(ID_ionPanel_show_process_heatmap, "Process and show heatmap")
+        menu.AppendItem(menu_action_show_heatmap)
+
+        menu_action_process_heatmap = makeMenuItem(parent=menu, id=ID_ionPanel_show_heatmap, text="Process heatmap...")
+        menu.AppendItem(menu_action_process_heatmap)
         menu.AppendSeparator()
         menu.AppendItem(
             makeMenuItem(
@@ -488,6 +464,17 @@ class panelMultipleIons(wx.Panel):
                 bitmap=self.icons.iconsLib["bin16"],
             )
         )
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_zoom_in_MS)
+        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_mobiligram)
+        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_chromatogram)
+        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_heatmap)
+        self.Bind(wx.EVT_MENU, self.on_plot, menu_action_process_heatmap, id=ID_ionPanel_show_process_heatmap)
+        self.Bind(wx.EVT_MENU, self.on_open_editor, id=ID_ionPanel_editItem)
+        self.Bind(wx.EVT_MENU, self.on_assign_color, id=ID_ionPanel_assignColor)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_ionPanel_delete_rightClick)
+
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -509,7 +496,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_highlightRectAllIons,
-                text="Highlight extracted items on MS plot\tH",
+                text="Highlight extracted items on MS plot (all)\tH",
                 bitmap=self.icons.iconsLib["highlight_16"],
             )
         )
@@ -517,7 +504,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_ionPanel_annotate_charge_state,
-                text="Assign charge state to selected ions",
+                text="Assign charge state (selected)",
                 bitmap=self.icons.iconsLib["assign_charge_16"],
             )
         )
@@ -525,7 +512,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_ionPanel_annotate_alpha,
-                text="Assign transparency value to selected ions",
+                text="Assign transparency value (selected)",
                 bitmap=self.icons.iconsLib["transparency_16"],
             )
         )
@@ -533,7 +520,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_ionPanel_annotate_mask,
-                text="Assign mask value to selected ions",
+                text="Assign mask value (selected)",
                 bitmap=self.icons.iconsLib["mask_16"],
             )
         )
@@ -541,7 +528,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_ionPanel_annotate_min_threshold,
-                text="Assign minimum threshold to selected ions",
+                text="Assign minimum threshold (selected)",
                 bitmap=self.icons.iconsLib["min_threshold_16"],
             )
         )
@@ -549,7 +536,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_ionPanel_annotate_max_threshold,
-                text="Assign maximum threshold to selected ions",
+                text="Assign maximum threshold (selected)",
                 bitmap=self.icons.iconsLib["max_threshold_16"],
             )
         )
@@ -558,7 +545,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_ionPanel_changeColorBatch_color,
-                text="Assign color for selected items",
+                text="Assign new color using color picker (selected)",
                 bitmap=self.icons.iconsLib["color_panel_16"],
             )
         )
@@ -566,7 +553,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_ionPanel_changeColorBatch_palette,
-                text="Color selected items using color palette",
+                text="Assign new color using color palette (selected)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
         )
@@ -574,7 +561,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_ionPanel_changeColorBatch_colormap,
-                text="Color selected items using colormap",
+                text="Assign new color using colormap (selected)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
         )
@@ -582,7 +569,7 @@ class panelMultipleIons(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_ionPanel_changeColormapBatch,
-                text="Assign new colormap for selected items",
+                text="Assign new colormap (selected)",
                 bitmap=self.icons.iconsLib["randomize_16"],
             )
         )
@@ -617,20 +604,22 @@ class panelMultipleIons(wx.Panel):
         # TODO: add Extract chromatographic data only
         # TODO: add extract mobilogram data only
 
-        self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_ionPanel_automaticExtract)
+        self.Bind(wx.EVT_MENU, self.on_check_tool, id=ID_ionPanel_automaticExtract)
         self.Bind(wx.EVT_MENU, self.on_extract_all, id=ID_extractAllIons)
         self.Bind(wx.EVT_MENU, self.on_extract_selected, id=ID_extractSelectedIon)
         self.Bind(wx.EVT_MENU, self.on_extract_new, id=ID_extractNewIon)
 
         menu = wx.Menu()
         self.automaticExtract_check = menu.AppendCheckItem(
-            ID_ionPanel_automaticExtract, "Extract data automatically", help="Ions will be extracted automatically"
+            ID_ionPanel_automaticExtract,
+            "Automatically extract data",
+            help="Data will be automatically extracted as its added to the peaklist",
         )
         self.automaticExtract_check.Check(self.extractAutomatically)
         menu.AppendSeparator()
-        menu.Append(ID_extractNewIon, "Extract data for new ions")
-        menu.Append(ID_extractSelectedIon, "Extract data for selected ions")
-        menu.Append(ID_extractAllIons, "Extract for all ions\tAlt+E")
+        menu.Append(ID_extractNewIon, "Extract heatmap data (new)")
+        menu.Append(ID_extractSelectedIon, "Extract heatmap data (selected)")
+        menu.Append(ID_extractAllIons, "Extract heatmap data (all)\tAlt+E")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -640,10 +629,10 @@ class panelMultipleIons(wx.Panel):
         self.Bind(wx.EVT_TOOL, self.on_overlay_heatmap, id=ID_overlayMZfromList)
         self.Bind(wx.EVT_TOOL, self.on_overlay_mobiligram, id=ID_overlayMZfromList1D)
         self.Bind(wx.EVT_TOOL, self.on_overlay_chromatogram, id=ID_overlayMZfromListRT)
-        self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_useProcessedCombinedMenu)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_ionPanel_addToDocument)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_ionPanel_normalize1D)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_ionPanel_automaticOverlay)
+        self.Bind(wx.EVT_MENU, self.on_check_tool, id=ID_useProcessedCombinedMenu)
+        self.Bind(wx.EVT_TOOL, self.on_check_tool, id=ID_ionPanel_addToDocument)
+        self.Bind(wx.EVT_TOOL, self.on_check_tool, id=ID_ionPanel_normalize1D)
+        self.Bind(wx.EVT_TOOL, self.on_check_tool, id=ID_ionPanel_automaticOverlay)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
 
         menu = wx.Menu()
@@ -742,37 +731,23 @@ class panelMultipleIons(wx.Panel):
         self.SetFocus()
 
     def menu_process_tools(self, evt):
+        menu = wx.Menu()
+        menu_action_process_heatmap = makeMenuItem(parent=menu, text="Process heatmap data (selected)")
+        menu.AppendItem(menu_action_process_heatmap)
+        menu.AppendSeparator()
+        menu.Append(ID_combineCEscansSelectedIons, "ORIGAMI-MS: Combine collision voltages (selected)")
+        menu.Append(ID_combineCEscans, "ORIGAMI-MS: Combine collision voltages (all)\tAlt+C")
+        menu_action_extract_spectrum = makeMenuItem(
+            parent=menu, text="ORIGAMI-MS: Extract mass spectra for each collision voltage..."
+        )
+        menu.AppendItem(menu_action_extract_spectrum)
 
+        # bind events
         self.Bind(
             wx.EVT_MENU, self.data_processing.on_combine_origami_collision_voltages, id=ID_combineCEscansSelectedIons
         )
         self.Bind(wx.EVT_MENU, self.data_processing.on_combine_origami_collision_voltages, id=ID_combineCEscans)
-        self.Bind(wx.EVT_MENU, self.presenter.onProcessMultipleIonsIons, id=ID_processSelectedIons)
-        self.Bind(wx.EVT_MENU, self.presenter.onProcessMultipleIonsIons, id=ID_processAllIons)
-        self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_overrideCombinedMenu)
-
-        menu = wx.Menu()
-        menu.Append(ID_processSelectedIons, "Process selected ions")
-        menu.Append(ID_processAllIons, "Process all ions")
-        menu.AppendSeparator()
-        help_msg = (
-            "When checked, any previous results for the selected item(s) will be overwritten"
-            + " based on the current parameters."
-        )
-        self.override_check = menu.AppendCheckItem(ID_overrideCombinedMenu, "Overwrite results\tO", help=help_msg)
-        self.override_check.Check(self.config.overrideCombine)
-        help_msg = (
-            "When checked, collision voltage scans will be combined based on parameters present"
-            + " in the ORIGAMI document."
-        )
-        menu.Append(ID_combineCEscansSelectedIons, "Combine collision voltages for selected items (ORIGAMI-MS)")
-        menu.Append(ID_combineCEscans, "Combine collision voltages for all items (ORIGAMI-MS)\tAlt+C")
-        menu.AppendSeparator()
-
-        menu_action_extract_spectrum = makeMenuItem(
-            parent=menu, text="Extract mass spectra for each collision voltage (ORIGAMI-MS)"
-        )
-        menu.AppendItem(menu_action_extract_spectrum)
+        self.Bind(wx.EVT_MENU, self.on_process_heatmap_selected, menu_action_process_heatmap)
         self.Bind(wx.EVT_MENU, self.document_tree.on_action_ORIGAMI_MS, menu_action_extract_spectrum)
 
         self.PopupMenu(menu)
@@ -780,52 +755,30 @@ class panelMultipleIons(wx.Panel):
         self.SetFocus()
 
     def menu_save_tools(self, evt):
+        # TODO: Add all new methods for saving figurers and data
         self.Bind(wx.EVT_MENU, self.on_save_peaklist, id=ID_saveIonListCSV)
-        #         self.Bind(wx.EVT_MENU, self.onSaveAsData, id=ID_exportAllAsCSV_ion)
-
-        self.Bind(wx.EVT_MENU, self.onCheckTool, id=ID_processSaveMenu)
-
-        saveImageLabel = "".join(["Save all figures (.", self.config.imageFormat, ")"])
-        saveSelectedImageLabel = "".join(["Save selected figure (.", self.config.imageFormat, ")"])
-
-        saveTextLabel = "".join(["Save all 2D (", self.config.saveDelimiterTXT, " delimited)"])
-        saveSelectedTextLabel = "".join(["Save selected 2D (", self.config.saveDelimiterTXT, " delimited)"])
+        self.Bind(wx.EVT_MENU, self.on_save_peaklist, id=ID_exportSeletedAsImage_ion)
+        self.Bind(wx.EVT_MENU, self.on_save_peaklist, id=ID_exportSelectedAsCSV_ion)
 
         menu = wx.Menu()
-        menu.Append(ID_saveIonListCSV, "Export peak list as .csv")
-
-        self.processSave_check = menu.AppendCheckItem(
-            ID_processSaveMenu, "Process before saving", help="Process each item before saving"
-        )
-        self.processSave_check.Check(self.process)
+        menu.Append(ID_saveIonListCSV, "Export peak list to file...")
         menu.AppendSeparator()
-        menu.Append(ID_exportSeletedAsImage_ion, saveSelectedImageLabel)
-        menu.Append(ID_exportAllAsImage_ion, saveImageLabel)
+        menu.Append(ID_exportSeletedAsImage_ion, "Save figure(s) as chromatogram (selected)")
+        menu.Append(ID_exportSeletedAsImage_ion, "Save figure(s) as mobilogram (selected)")
+        menu.Append(ID_exportSeletedAsImage_ion, "Save figure(s) as heatmap (selected)")
+        menu.Append(ID_exportSeletedAsImage_ion, "Save figure(s) as waterfall (selected)")
         menu.AppendSeparator()
-        menu.Append(ID_exportSelectedAsCSV_ion, saveSelectedTextLabel)
-        menu.Append(ID_exportAllAsCSV_ion, saveTextLabel)
+        menu.Append(ID_exportSelectedAsCSV_ion, "Save chromatographic data (selected)")
+        menu.Append(ID_exportSelectedAsCSV_ion, "Save mobilogram data (selected)")
+        menu.Append(ID_exportSelectedAsCSV_ion, "Save heatmap data (selected)")
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
 
-    def onCheckTool(self, evt):
+    def on_check_tool(self, evt):
         """ Check/uncheck menu item """
 
         evtID = evt.GetId()
-
-        # check which event was triggered
-        if evtID == ID_overrideCombinedMenu:
-            self.config.overrideCombine = not self.config.overrideCombine
-            args = (
-                "Peak list panel: 'Override' combined IM-MS data was switched to %s" % self.config.overrideCombine,
-                4,
-            )
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
-
-        if evtID == ID_processSaveMenu:
-            self.process = not self.process
-            args = ("Override was switched to %s" % self.override, 4)
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
 
         if evtID == ID_useProcessedCombinedMenu:
             self.config.overlay_usedProcessed = not self.config.overlay_usedProcessed
@@ -903,12 +856,6 @@ class panelMultipleIons(wx.Panel):
             col_width = 0
         # set new column width
         self.peaklist.SetColumnWidth(col_index, col_width)
-
-    def onUpdateOverlayMethod(self, evt):
-        self.config.overlayMethod = self.combo.GetStringSelection()
-
-        if evt is not None:
-            evt.Skip()
 
     def on_change_item_parameter(self, evt):
         """ Iterate over list to assign charge state """
@@ -992,6 +939,28 @@ class panelMultipleIons(wx.Panel):
                 return True
         return False
 
+    def on_process_heatmap_selected(self, evt):
+        """Collect list of titles and dataset names and open processing panel"""
+        item_count = self.peaklist.GetItemCount()
+
+        # generate list of document_title and dataset_name
+        process_list = []
+        for item_id in range(item_count):
+            information = self.OnGetItemInformation(item_id)
+            if information["select"]:
+                document_title = information["document"]
+                ion_name = information["ion_name"]
+                if document_title not in ["", None]:
+                    process_item = [document_title, "all", ion_name]
+                    process_list.append(process_item)
+
+        n_items = len(process_list)
+        if n_items > 0:
+            # open-up panel
+            self.document_tree.on_open_process_2D_settings(
+                process_all=True, process_list=True, data=process_list, disable_plot=True, disable_process=False
+            )
+
     def on_plot(self, evt):
         """
         This function extracts 2D array and plots it in 2D/3D
@@ -1061,54 +1030,52 @@ class panelMultipleIons(wx.Panel):
             # Plot data
             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
 
+    def on_save_figures(self, evt):
+        pass
+
     def on_save_peaklist(self, evt):
         """Save data in CSV format"""
         from utils.color import convertRGB255toHEX
 
-        columns = self.peaklist.GetColumnCount()
         rows = self.peaklist.GetItemCount()
-        #         tempData = ['start m/z, end m/z, z, color, alpha, filename, method, intensity, label']
-
         if rows == 0:
             return
-        # Ask for a name and path
-        saveDlg = wx.FileDialog(
-            self,
-            "Save peak list to file...",
-            "",
-            "",
-            "Comma delimited file (*.csv)|*.csv",
-            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-        )
-        if saveDlg.ShowModal() == wx.ID_OK:
-            filepath = saveDlg.GetPath()
 
-            data = []
-            # Iterate over row and columns to get data
-            for row in range(rows):
-                information = self.OnGetItemInformation(row)
-                mz_start, mz_end = get_ion_name_from_label(information["ion_name"], as_num=True)
-                charge = information["charge"]
-                intensity = information["intensity"]
-                color = convertRGB255toHEX(information["color"])
-                colormap = information["colormap"]
-                alpha = information["alpha"]
-                mask = information["mask"]
-                label = information["label"]
-                method = information["method"]
-                document = information["document"]
-                data.append(
-                    f"{mz_start}, {mz_end}, {charge}, {intensity}, {color}, {colormap}, {alpha}, {mask}, {label}, {method}, {document}"
-                )
+        data = []
+        # Iterate over row and columns to get data
+        for row in range(rows):
+            information = self.OnGetItemInformation(row)
+            ion_name = information["ion_name"]
+            mz_start, mz_end = get_ion_name_from_label(ion_name, as_num=True)
+            charge = information["charge"]
+            intensity = information["intensity"]
+            color = convertRGB255toHEX(information["color"])
+            colormap = information["colormap"]
+            alpha = information["alpha"]
+            mask = information["mask"]
+            label = information["label"]
+            method = information["method"]
+            document = information["document"]
+            data.append(
+                [ion_name, mz_start, mz_end, charge, intensity, color, colormap, alpha, mask, label, method, document]
+            )
+        fmt = ["%s", "%.4f", "%.4f", "%i", "%.4f", "%s", "%s", "%.2f", "%.2f", "%s", "%s", "%s"]
+        header = [
+            "ion_name",
+            "mz_start",
+            "mz_end",
+            "charge",
+            "intensity",
+            "color",
+            "colormap",
+            "alpha",
+            "mask",
+            "label",
+            "method",
+            "document",
+        ]
 
-            print(data)
-
-            # Save to file
-            with open(filepath, "wb") as f:
-                writer = csv.writer(f)
-                for row in data:
-                    print(row)
-                    writer.writerows(row)
+        self.data_handling.on_save_data_as_text(data, header, fmt, as_object=True)
 
     def on_find_item(self, ion_name, filename):
         """Find index of item with the provided parameters"""
@@ -1154,10 +1121,8 @@ class panelMultipleIons(wx.Panel):
     def on_get_value(self, value_type="color"):
         information = self.OnGetItemInformation(self.peaklist.item_id)
 
-        if value_type == "start":
-            return information["start"]
-        elif value_type == "end":
-            return information["end"]
+        if value_type == "ion_name":
+            return information["ion_name"]
         elif value_type == "color":
             return information["color"]
         elif value_type == "charge":
@@ -1188,10 +1153,8 @@ class panelMultipleIons(wx.Panel):
 
     def on_update_value_in_peaklist(self, item_id, value_type, value):
 
-        if value_type == "start":
-            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["start"], str(value))
-        elif value_type == "end":
-            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["end"], str(value))
+        if value_type == "ion_name":
+            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["ion_name"], str(value))
         elif value_type == "charge":
             self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["charge"], str(value))
         elif value_type == "intensity":
@@ -1221,59 +1184,19 @@ class panelMultipleIons(wx.Panel):
     def on_open_editor(self, evt):
         from gui_elements.panel_modify_ion_settings import PanelModifyIonSettings
 
-        if evt is None:
-            evtID = ID_ionPanel_editItem
-        else:
-            evtID = evt.GetId()
-
         if self.peaklist.item_id is None:
             logger.warning("Please select an item")
             return
 
-        rows = self.peaklist.GetItemCount() - 1
-        if evtID == ID_ionPanel_editItem:
-            if self.peaklist.item_id < 0:
-                print("Please select item in the table first.")
-                return
-            dlg_kwargs = self.OnGetItemInformation(self.peaklist.item_id)
+        if self.peaklist.item_id < 0:
+            print("Please select item in the table first.")
+            return
 
-            self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **dlg_kwargs)
-            self.item_editor.Centre()
-            self.item_editor.Show()
-        elif evtID == ID_ionPanel_edit_selected:
-            while rows >= 0:
-                if self.peaklist.IsChecked(rows):
-                    information = self.OnGetItemInformation(rows)
+        information = self.OnGetItemInformation(self.peaklist.item_id)
 
-                    dlg_kwargs = {
-                        "select": self.peaklist.IsChecked(rows),
-                        "color": information["color"],
-                        "title": information["ionName"],
-                        "min_threshold": information["min_threshold"],
-                        "max_threshold": information["max_threshold"],
-                        "label": information["label"],
-                        "id": rows,
-                    }
-
-                    self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **dlg_kwargs)
-                    self.item_editor.Show()
-                rows -= 1
-        elif evtID == ID_ionPanel_edit_all:
-            for row in range(rows):
-                information = self.OnGetItemInformation(row)
-
-                dlg_kwargs = {
-                    "select": self.peaklist.IsChecked(row),
-                    "color": information["color"],
-                    "title": information["ionName"],
-                    "min_threshold": information["min_threshold"],
-                    "max_threshold": information["max_threshold"],
-                    "label": information["label"],
-                    "id": row,
-                }
-
-                self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **dlg_kwargs)
-                self.item_editor.Show()
+        self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **information)
+        self.item_editor.Centre()
+        self.item_editor.Show()
 
     def on_assign_color(self, evt, itemID=None, give_value=False):
         """
@@ -1396,6 +1319,13 @@ class panelMultipleIons(wx.Panel):
                 if processed_name in document.IMS2Dions:
                     document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
 
+        if f"{itemInfo['ionName']} (processed)" in document.IMS2Dions:
+            for keyword in keywords:
+                keyword_name = self.__check_keyword(keyword)
+                document.IMS2Dions[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
+                if processed_name in document.IMS2Dions:
+                    document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
+
         if itemInfo["ionName"] in document.IMS2DCombIons:
             for keyword in keywords:
                 keyword_name = self.__check_keyword(keyword)
@@ -1435,140 +1365,21 @@ class panelMultipleIons(wx.Panel):
 
     def on_open_peak_list(self, evt):
         """This function opens a formatted CSV file with peaks"""
-        from gui_elements.dialog_select_document import DialogSelectDocument
 
-        dlg = wx.FileDialog(
-            self.view,
-            "Choose a text file (m/z, window size, charge):",
-            wildcard="*.csv;*.txt",
-            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
+        document = self.data_handling._get_document_of_type(
+            ["Type: MANUAL", "Type: ORIGAMI", "Type: Infrared"], allow_creation=False
         )
-        if dlg.ShowModal() == wx.ID_CANCEL:
-            return
-        else:
+        if document is None:
+            raise MessageError("Error", "Please load/create a document before loading peaklist")
 
-            manual = self.presenter.checkIfAnyDocumentsAreOfType(type="Type: MANUAL")
-            origami = self.presenter.checkIfAnyDocumentsAreOfType(type="Type: ORIGAMI")
-            infrared = self.presenter.checkIfAnyDocumentsAreOfType(type="Type: Infrared")
-            docList = manual + origami + infrared
-            if len(docList) == 0:
-                args = ("Please create open or create a new document which can extract MS/IM-MS data", 4, 5)
-                self.presenter.onThreading(evt, args, action="updateStatusbar")
-                return
-            elif len(docList) == 1:
-                document_title = docList[0]
-            else:
-                document_panel = DialogSelectDocument(
-                    self.view, presenter=self.presenter, document_list=docList, allow_new_document=False
-                )
-                if document_panel.ShowModal() == wx.ID_OK:
-                    pass
+        document_title = document.title
+        peaklist = self.data_handling.on_load_user_list_fcn(data_type="peaklist")
 
-                document_title = document_panel.current_document
-                if document_title is None:
-                    return
-
-            # Create shortcut
-            delimiter, __ = checkExtension(input=dlg.GetPath().encode("ascii", "replace"))
-            peaklist = read_csv(dlg.GetPath(), delimiter=delimiter)
-            peaklist = peaklist.fillna("")
-            columns = peaklist.columns.values.tolist()
-            for min_name in ["min", "min m/z"]:
-                if min_name in columns:
-                    break
-                else:
-                    continue
-            if min_name not in columns:
-                min_name = None
-
-            for max_name in ["max", "max m/z"]:
-                if max_name in columns:
-                    break
-                else:
-                    continue
-            if max_name not in columns:
-                max_name = None
-
-            for charge_name in ["z", "charge"]:
-                if charge_name in columns:
-                    break
-                else:
-                    continue
-            if charge_name not in columns:
-                charge_name = None
-
-            for label_name in ["label", "information"]:
-                if label_name in columns:
-                    break
-                else:
-                    continue
-            if label_name not in columns:
-                label_name = None
-
-            for color_name in ["color", "colour"]:
-                if color_name in columns:
-                    break
-                else:
-                    continue
-            if color_name not in columns:
-                color_name = None
-
-            if min_name is None or max_name is None:
-                return
-
-            # get colorlist beforehand
-            count = self.peaklist.GetItemCount() + len(peaklist)
-            colors = self.view.panelPlots.on_change_color_palette(None, n_colors=count + 1, return_colors=True)
-
-            # iterate
-            for peak in range(len(peaklist)):
-                min_value = peaklist[min_name][peak]
-                max_value = peaklist[max_name][peak]
-
-                if charge_name is not None:
-                    charge_value = peaklist[charge_name][peak]
-                else:
-                    charge_value = ""
-
-                if label_name is not None:
-                    label_value = peaklist[label_name][peak]
-                else:
-                    label_value = ""
-
-                if color_name is not None:
-                    color_value = peaklist[color_name][peak]
-                    try:
-                        color_value = literal_eval(color_value)
-                    except Exception:
-                        pass
-                else:
-                    color_value = colors[peak]
-
-                self.peaklist.Append(
-                    [
-                        str(min_value),
-                        str(max_value),
-                        str(charge_value),
-                        "",
-                        str(roundRGB(color_value)),
-                        self.config.overlay_cmaps[get_random_int(0, len(self.config.overlay_cmaps))],
-                        str(self.config.overlay_defaultAlpha),
-                        str(self.config.overlay_defaultMask),
-                        str(label_value),
-                        "",
-                        document_title,
-                    ]
-                )
-                try:
-                    color_value = convertRGB1to255(color_value)
-                    self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color_value)
-                    self.peaklist.SetItemTextColour(
-                        self.peaklist.GetItemCount() - 1, determineFontColor(color_value, return_rgb=True)
-                    )
-                except Exception:
-                    pass
-            self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
-            dlg.Destroy()
+        for add_dict in peaklist:
+            add_dict["document"] = document_title
+            self.on_add_to_table(add_dict, check_color=False)
+        self.peaklist.on_remove_duplicates()
+        self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
 
     def on_check_selected(self, evt):
         """Check current item when letter S is pressed on the keyboard"""
@@ -1609,8 +1420,6 @@ class panelMultipleIons(wx.Panel):
             [
                 "",
                 str(add_dict.get("ion_name", "")),
-                #                 str(add_dict.get("mz_start", "")),
-                #                 str(add_dict.get("mz_end", "")),
                 str(add_dict.get("charge", "")),
                 str(add_dict.get("mz_ymax", "")),
                 str(roundRGB(convertRGB255to1(color))),

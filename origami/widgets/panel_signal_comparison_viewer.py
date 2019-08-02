@@ -26,6 +26,8 @@ from visuals import mpl_plots
 
 logger = logging.getLogger("origami")
 
+# TODO: FIXME: Changing label does not update the legend as you write
+
 
 class PanelSignalComparisonViewer(wx.MiniFrame):
     """

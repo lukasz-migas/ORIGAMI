@@ -15,9 +15,6 @@ import utils.labels as ut_labels
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
 from ids import ID_combineCEscansSelectedIons
-from ids import ID_smooth1Ddata1DT
-from ids import ID_smooth1DdataMS
-from ids import ID_smooth1DdataRT
 from ids import ID_window_ccsList
 from ids import ID_window_ionList
 from ids import ID_window_multiFieldList
@@ -170,7 +167,8 @@ class data_processing:
                 cmap = get_data.get("cmap", None)
             return zvals, xylabels, cmap
 
-    def on_smooth_1D_signal(self, ys):
+    @staticmethod
+    def on_smooth_1D_signal(ys):
         sigma = DialogSimpleAsk(
             "Smoothing spectrum using Gaussian Filter. Sigma value:", defaultValue="", value_type="floatPos"
         )
@@ -992,7 +990,13 @@ class data_processing:
                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["MZDT"])
 
     def on_process_2D_and_add_data(self, document_title, dataset_type, dataset_name):
-        __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
+        try:
+            __, data = self.data_handling.get_mobility_chromatographic_data(
+                [document_title, dataset_type, dataset_name]
+            )
+        except KeyError:
+            logger.error(f"Dataset {dataset_name} not present in {dataset_type}")
+            return
 
         # unpact data
         xvals = data["xvals"]
@@ -1019,72 +1023,6 @@ class data_processing:
         # plot data
         self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, data["xlabels"], data["ylabels"], override=False)
 
-    #
-    #         # strip any processed string from the title
-    #         if ionName is not None:
-    #             if '(processed)' in ionName:
-    #                 dataset = ionName.split(' (')[0]
-    #             new_dataset = '%s (processed)' % ionName
-    #
-    #         if dataset == 'Drift time (2D)':
-    #             self.docs.got2Dprocess = True
-    #             self.docs.IMS2Dprocess = self.docs.IMS2D.copy()
-    #             self.docs.IMS2Dprocess['zvals'] = zvals
-    #             self.docs.IMS2Dprocess['process_parameters'] = params
-    #             self.docs.IMS2D['process_parameters'] = params
-    #         if dataset == 'Drift time (2D, EIC)':
-    #             self.docs.IMS2Dions[new_dataset] = self.docs.IMS2Dions[ionName].copy()
-    #             self.docs.IMS2Dions[new_dataset]['zvals'] = zvals
-    #             self.docs.IMS2Dions[new_dataset]['process_parameters'] = params
-    #         elif dataset == 'Drift time (2D, processed, EIC)':
-    #             self.docs.IMS2DionsProcess[new_dataset] = self.docs.IMS2DionsProcess[ionName].copy()
-    #             self.docs.IMS2DionsProcess[new_dataset]['zvals'] = zvals
-    #             self.docs.IMS2DionsProcess[new_dataset]['process_parameters'] = params
-    #         elif dataset == 'Drift time (2D, combined voltages, EIC)':
-    #             self.docs.IMS2DCombIons[new_dataset] = self.docs.IMS2DCombIons[ionName].copy()
-    #             self.docs.IMS2DCombIons[new_dataset]['zvals'] = zvals
-    #             self.docs.IMS2DCombIons[new_dataset]['process_parameters'] = params
-    #         elif dataset == 'Input data':
-    #             self.docs.IMS2DcompData[new_dataset] = self.docs.IMS2DcompData[ionName].copy()
-    #             self.docs.IMS2DcompData[new_dataset]['zvals'] = zvals
-    #             self.docs.IMS2DcompData[new_dataset]['process_parameters'] = params
-    #         elif dataset == 'Statistical':
-    #             self.docs.IMS2DstatsData[new_dataset] = self.docs.IMS2DstatsData[ionName].copy()
-    #             self.docs.IMS2DstatsData[new_dataset]['zvals'] = zvals
-    #             self.docs.IMS2DstatsData[new_dataset]['process_parameters'] = params
-    #         elif dataset == 'DT/MS':
-    #             self.docs.DTMZ['zvals'] = zvals
-    #             self.docs.DTMZ['process_parameters'] = params
-    #
-    #         # replot
-    #         if dataset in [
-    #             'Drift time (2D)', 'Drift time (2D, processed)',
-    #             'Drift time (2D, EIC)', 'Drift time (2D, combined voltages, EIC)',
-    #             'Drift time (2D, processed, EIC)', 'Input data', 'Statistical',
-    #         ]:
-    #             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
-    #             if self.config.waterfall:
-    #                 self.view.panelPlots.on_plot_waterfall(
-    #                     yvals=xvals, xvals=yvals, zvals=zvals,
-    #                     xlabel=xlabel, ylabel=ylabel,
-    #                 )
-    #             try:
-    #                 self.view.panelPlots.on_plot_3D(
-    #                     zvals=zvals, labelsX=xvals, labelsY=yvals,
-    #                     xlabel=xlabel, ylabel=ylabel, zlabel='Intensity',
-    #                 )
-    #             except Exception:
-    #                 pass
-    #             # change to correct plot window
-    #             if not self.config.waterfall:
-    #                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['2D'])
-    #         elif dataset == 'DT/MS':
-    #             self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel)
-    #             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames['MZDT'])
-    #
-    #         # Update file list
-    #         self.data_handling.on_update_document(self.docs, 'document')
-
     def on_get_peptide_fragments(self, spectrum_dict, label_format={}, get_lists=False, **kwargs):
         tstart = ttime()
         id_num = kwargs.get("id_num", 0)
@@ -1095,10 +1033,9 @@ class data_processing:
         #         self.frag_generator = pr_frag.PeptideAnnotation(**{"label_format":label_format}) # refresh, temprorary!
 
         # get parameters
+        peptide = None
         if "identification" in spectrum_dict:
             peptide = spectrum_dict["identification"][id_num].get("peptide_seq", None)
-        else:
-            peptide = None
 
         if peptide is None:
             return {}, {}, {}, {}, {}
@@ -1107,8 +1044,8 @@ class data_processing:
         modifications = {}
         try:
             modifications = spectrum_dict["identification"][id_num]["modification_info"]
-        except Exception:
-            pass
+        except (KeyError, IndexError):
+            logger.warning("There were no `modifications` in the dataset")
 
         # generate fragments
         fragments = self.frag_generator.generate_fragments_from_peptide(
@@ -1230,35 +1167,29 @@ class data_processing:
         if len(self.config.unidec_engine.data.massdat) == 0:
             raise MessageError("Incorrect input", "Please `Run UniDec` first as there is missing data")
 
+        # pick peaks
         try:
             self.config.unidec_engine.pick_peaks()
-        except (ValueError, ZeroDivisionError) as e:
-            print(e)
+        except (ValueError, ZeroDivisionError) as err:
+            print(err)
             msg = (
                 "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'. "
                 + "This value should be >= 'Sample frequency (Da)'"
             )
-            self.presenter.onThreading(None, (msg, 4), action="updateStatusbar")
-            DialogBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
-            return
-        except IndexError as e:
-            print(e)
-            DialogBox(
-                exceptionTitle="Error",
-                exceptionMsg="Index error. Try reducing value of 'Sample frequency (Da)'",
-                type="Error",
-            )
-            return
+            raise MessageError("Error", msg)
+        except IndexError as err:
+            print(err)
+            raise MessageError("Error", "Index error. Try reducing value of 'Sample frequency (Da)'")
 
+        # convolve peaks
         logger.info(f"UniDec: Finished picking peaks in {ttime()-tstart:.2f} seconds")
         logger.info("UniDec: Convolving peaks...")
         try:
             self.config.unidec_engine.convolve_peaks()
-        except OverflowError:
+        except OverflowError as err:
+            print(err)
             msg = "Too many peaks! Try again with larger 'Peak detection threshold' or 'Peak detection window (Da).'"
-            self.presenter.onThreading(None, (msg, 4), action="updateStatusbar")
-            DialogBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
-            return
+            raise MessageError("Error", msg)
         logger.info(f"UniDec: Finished convolving peaks in {ttime()-tstart:.2f} seconds")
 
     def _unidec_isolate(self):
@@ -1322,56 +1253,6 @@ class data_processing:
         self.config.unidec_engine.config.peakwindow = self.config.unidec_peakDetectionWidth
         self.config.unidec_engine.config.peakthresh = self.config.unidec_peakDetectionThreshold
         self.config.unidec_engine.separation = self.config.unidec_lineSeparation
-
-    def _unidec_sort_MW_list(self, mass_list, column_id):
-        """Sort mass list based on MW or %"""
-        from natsort.natsort import natsorted
-        from operator import itemgetter
-        import re
-
-        _mass_list_sort = []
-        for item in mass_list:
-            item_split = re.split(r"MW: | \(| %\)", item)
-            _mass_list_sort.append([item_split[1], item_split[2]])
-
-        _mass_list_sort = natsorted(_mass_list_sort, key=itemgetter(column_id), reverse=True)
-
-        mass_list = []
-        for item in _mass_list_sort:
-            mass_list.append("MW: {} ({} %)".format(item[0], item[1]))
-
-        return mass_list
-
-    def _calculate_charge_positions(self, chargeList, selectedMW, msX, adductIon="H+", remove_below=0.01):
-
-        _adducts = {
-            "H+": 1.007276467,
-            "H+ Na+": 22.996493,
-            "Na+": 22.989218,
-            "Na+ x2": 45.978436,
-            "Na+ x3": 68.967654,
-            "K+": 38.963158,
-            "K+ x2": 77.926316,
-            "K+ x3": 116.889474,
-            "NH4+": 18.033823,
-            "H-": -1.007276,
-            "Cl-": 34.969402,
-        }
-
-        # np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(self.config.unidec_engine.data.data2[:, 0])
-        min_mz, max_mz = np.min(msX), np.max(msX)
-        charges = np.array(list(map(int, np.arange(chargeList[0, 0], chargeList[-1, 0] + 1))))
-        peakpos = (float(selectedMW) + (_adducts[adductIon])) / charges
-
-        ignore = (peakpos > min_mz) & (peakpos < max_mz)
-        peakpos, charges, intensity = peakpos[ignore], charges[ignore], chargeList[:, 1][ignore]
-
-        # remove peaks that are of poor intensity
-        max_intensity = np.amax(intensity) * remove_below
-        ignore = intensity > max_intensity
-        peakpos, charges, intensity = peakpos[ignore], charges[ignore], intensity[ignore]
-
-        return peakpos, charges, intensity
 
     def _calculate_peak_widths(self, chargeList, selectedMW, peakWidth, adductIon="H+"):
         _adducts = {
@@ -1725,21 +1606,6 @@ class data_processing:
             data, __, __ = self.get_unidec_data(data_type="document_all")
             return data["unidec"]["m/z with isolated species"]["_massList_"]
 
-    def get_peak_maximum(self, data, xmin=None, xmax=None, xval=None):
-
-        if xmin is None and xmax is None and xval is not None:
-            min_difference = np.diff(data[:, 0]).mean()  # data[:, 1] - data[:, 0]
-            xmin = xval - min_difference
-            xmax = xval + min_difference
-
-        narrow_data = pr_utils.get_narrow_data_range(data=data, mzRange=(xmin, xmax))
-        if len(narrow_data) > 0:
-            peak_max = np.round(pr_utils.find_peak_maximum(narrow_data), 4)
-        else:
-            peak_max = 1
-
-        return peak_max
-
     def on_combine_origami_collision_voltages(self, evt):
 
         extract_mode = "all"
@@ -2079,7 +1945,8 @@ class data_processing:
 
         return mz_y
 
-    def subtract_spectra(self, xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
+    @staticmethod
+    def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
         """Subtract two spectra from one another"""
         xvals_1, yvals_1, xvals_2, yvals_2 = pr_spectra.subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2)
 

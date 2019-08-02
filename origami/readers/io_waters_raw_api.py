@@ -134,3 +134,33 @@ class WatersRawReader:
         dt_x, dt_ys = self.chrom_reader.ReadMassChromatograms(1, mz_values, tolerance, 0)
 
         return dt_x, dt_ys
+
+    def _check_waters_input(self, reader, mz_start, mz_end, rt_start, rt_end, dt_start, dt_end):
+        """Check input for waters files"""
+        # check mass range
+        mass_range = reader.stats_in_functions.get(0, 1)["mass_range"]
+        if mz_start < mass_range[0]:
+            mz_start = mass_range[0]
+        if mz_end > mass_range[1]:
+            mz_end = mass_range[1]
+
+        # check chromatographic range
+        xvals, __ = reader.get_TIC(0)
+        rt_range = get_min_max(xvals)
+        if rt_start < rt_range[0]:
+            rt_start = rt_range[0]
+        if rt_start > rt_range[1]:
+            rt_start = rt_range[1]
+        if rt_end > rt_range[1]:
+            rt_end = rt_range[1]
+
+        # check mobility range
+        dt_range = [0, 199]
+        if dt_start < dt_range[0]:
+            dt_start = dt_range[0]
+        if dt_start > dt_range[1]:
+            dt_start = dt_range[1]
+        if dt_end > dt_range[1]:
+            dt_end = dt_range[1]
+
+        return mz_start, mz_end, rt_start, rt_end, dt_start, dt_end

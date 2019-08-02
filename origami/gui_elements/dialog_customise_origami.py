@@ -31,12 +31,11 @@ class DialogCustomiseORIGAMI(Dialog):
         if self.document_title is None:
             document = self.data_handling._on_get_document()
             if document is None:
+                self.Destroy()
                 raise MessageError(
                     "Please load a document",
                     "Could not find a document. Please load a document before trying this action again",
                 )
-                self.Destroy()
-                return
 
             self.document_title = document.title
 
@@ -363,7 +362,7 @@ class DialogCustomiseORIGAMI(Dialog):
         try:
             reader = self.data_handling._get_waters_api_reader(document)
             n_scans = reader.stats_in_functions[0]["n_scans"]
-        except:
+        except (KeyError, IndexError):
             n_scans = 999999
 
         calculated_n_scans = start_end_cv_list[-1][1]

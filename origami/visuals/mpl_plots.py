@@ -842,17 +842,13 @@ class plots(mpl_plotter):
 
         self.set_plot_ylabel(ylabel, **kwargs)
 
-    #         lines[0].set_linewidth(kwargs['line_width'])
-    #         lines[0].set_color(kwargs['line_color'])
-    #         lines[0].set_linestyle(kwargs['line_style'])
-
     def plot_1D_get_data(self):
         xdata, ydata, labels = [], [], []
 
         lines = self.plotMS.get_lines()
         for line in lines:
             xdata.append(line.get_xdata())
-            ydata.append(line.get_ydata())
+            ydata.append(line.get_ydata() * self.y_divider)
             labels.append(line.get_label())
 
         xlabel = self.plotMS.get_xlabel()

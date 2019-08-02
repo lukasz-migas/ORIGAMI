@@ -12,7 +12,6 @@ import numpy as np
 import processing.heatmap as pr_heatmap
 import processing.origami_ms as pr_origami
 import processing.spectra as pr_spectra
-import readers.io_text_files as io_text
 import utils.labels as ut_labels
 import wx
 from document import document as documents
@@ -130,6 +129,8 @@ class data_handling:
             th = threading.Thread(target=self.on_import_config, args=args)
         elif action == "extract.spectrum.collision.voltage":
             th = threading.Thread(target=self.on_extract_mass_spectrum_for_each_collision_voltage, args=args)
+        elif action == "load.text.peaklist":
+            th = threading.Thread(target=self.on_load_user_list, args=args, **kwargs)
 
         # Start thread
         try:
@@ -218,7 +219,8 @@ class data_handling:
 
         return mz_x, mz_y
 
-    def _get_waters_api_spacing(self, reader):
+    @staticmethod
+    def _get_waters_api_spacing(reader):
         fcn = 0
         if not hasattr(reader, "mz_spacing"):
             logger.info("Missing `mz_spacing` information - computing it now.")
@@ -332,9 +334,10 @@ class data_handling:
 
         return xvals_MSDT, yvals_MSDT, zvals_MSDT
 
-    def _get_text_spectrum_data(self, path):
+    @staticmethod
+    def _get_text_spectrum_data(path):
         # Extract MS file
-        xvals, yvals, dirname, extension = io_text.text_spectrum_open(path=path)
+        xvals, yvals, dirname, extension = io_text_files.text_spectrum_open(path=path)
         xlimits = get_min_max(xvals)
 
         return xvals, yvals, dirname, xlimits, extension
@@ -344,24 +347,32 @@ class data_handling:
         This helper function checkes whether any of the documents in the
         document tree/ dictionary are of specified type
         """
+
+        document_types = document_type
+        if not isinstance(document_types, list):
+            document_types = [document_type]
+
         document_list = []
-        for document_title in self.presenter.documentsDict:
-            if self.presenter.documentsDict[document_title].dataType == document_type and document_format is None:
-                document_list.append(document_title)
-            elif (
-                self.presenter.documentsDict[document_title].dataType == document_type
-                and self.presenter.documentsDict[document_title].fileFormat == document_format
-            ):
-                document_list.append(document_title)
+        for document_type in document_types:
+            for document_title in self.presenter.documentsDict:
+                if self.presenter.documentsDict[document_title].dataType == document_type and document_format is None:
+                    document_list.append(document_title)
+                elif (
+                    self.presenter.documentsDict[document_title].dataType == document_type
+                    and self.presenter.documentsDict[document_title].fileFormat == document_format
+                ):
+                    document_list.append(document_title)
 
         return document_list
 
-    def _get_document_of_type(self, document_type):
+    def _get_document_of_type(self, document_type, allow_creation=True):
         document_list = self.__get_document_list_of_type(document_type=document_type)
 
+        document = None
         if len(document_list) == 0:
             self.update_statusbar("Did not find appropriate document. Creating a new one...", 4)
-            document = self.__create_new_document()
+            if allow_creation:
+                document = self.__create_new_document()
         elif len(document_list) == 1:
             document = self._on_get_document(document_list[0])
         else:
@@ -429,7 +440,8 @@ class data_handling:
 
         return extraction_ranges
 
-    def _check_waters_input(self, reader, mz_start, mz_end, rt_start, rt_end, dt_start, dt_end):
+    @staticmethod
+    def _check_waters_input(reader, mz_start, mz_end, rt_start, rt_end, dt_start, dt_end):
         """Check input for waters files"""
         # check mass range
         mass_range = reader.stats_in_functions.get(0, 1)["mass_range"]
@@ -560,12 +572,11 @@ class data_handling:
 
         try:
             dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
-        except Exception:
+        except (KeyError):
             pass
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             __, extension = os.path.splitext(filename)
-            print(extension)
             self.config.saveExtension = extension
             self.config.saveDelimiter = list(wildcard_dict.keys())[
                 list(wildcard_dict.values()).index(dlg.GetFilterIndex())
@@ -573,10 +584,12 @@ class data_handling:
             io_text_files.save_data(
                 filename=filename,
                 data=data,
-                format=data_format,
+                fmt=data_format,
                 delimiter=self.config.saveDelimiter,
                 header=self.config.saveDelimiter.join(labels),
+                **kwargs,
             )
+            logger.info(f"Saved {filename}")
         dlg.Destroy()
 
     def on_extract_data_from_user_input_fcn(self, document_title=None, **kwargs):
@@ -960,7 +973,7 @@ class data_handling:
             return
 
         # load heatmap information and split into individual components
-        array_2D, xvals, yvals = io_text.text_heatmap_open(path=filepath)
+        array_2D, xvals, yvals = io_text_files.text_heatmap_open(path=filepath)
         array_1D_mob = np.sum(array_2D, axis=1).T
         array_1D_RT = np.sum(array_2D, axis=0)
 
@@ -2455,7 +2468,7 @@ class data_handling:
 
                     # Update aui manager
                     self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
-                self.ionList.on_remove_duplicates()  # (evt=None, limitCols=False)
+                self.ionList.on_remove_duplicates()
 
             # Restore file list
             if document.dataType == "Type: MANUAL":
@@ -2543,7 +2556,7 @@ class data_handling:
                     mzEnd = mzVals[1]
                     mzYmax = mzVals[2]
                     charge = str2int(document.IMS1DdriftTimes[key]["charge"])
-                    for row in range(len(retTimes)):
+                    for row, __ in enumerate(retTimes):
                         rtStart = str2int(retTimes[row][0])
                         rtEnd = str2int(retTimes[row][1])
                         rtDiff = str2int(rtEnd - rtStart)
@@ -3201,3 +3214,25 @@ class data_handling:
                 document.IMS1DdriftTimes[dataset_name][keyword] = kwargs[keyword]
 
         return document
+
+    def on_load_user_list_fcn(self, **kwargs):
+        wildcard = (
+            "CSV (Comma delimited) (*.csv)|*.csv|"
+            + "Text (Tab delimited) (*.txt)|*.txt|"
+            + "Text (Space delimited (*.txt)|*.txt"
+        )
+        dlg = wx.FileDialog(
+            self.view, "Load text file...", wildcard=wildcard, style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            file_path = dlg.GetPath()
+
+            peaklist = self.on_load_user_list(file_path, **kwargs)
+
+            return peaklist
+
+    def on_load_user_list(self, file_path, data_type="peaklist"):
+        if data_type == "peaklist":
+            peaklist = io_text_files.text_peaklist_open(file_path)
+
+        return peaklist

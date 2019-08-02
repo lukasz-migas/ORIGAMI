@@ -2,6 +2,7 @@
 # __author__ lukasz.g.migas
 import logging
 
+import processing.UniDec.utilities as unidec_utils
 import wx.lib.scrolledpanel
 from ids import ID_plotPanel_resize
 from styles import makeCheckbox
@@ -21,6 +22,9 @@ TEXTCTRL_SIZE = (60, -1)
 BTN_SIZE = (100, 22)
 
 # TODO: Improve layout and add new functionality
+# TODO: Add table
+# TODO: Add display difference and FWHM
+# TODO: FIXME: There is an issue with adding markers to MW plot
 
 
 class PanelProcessUniDec(wx.MiniFrame):
@@ -843,7 +847,7 @@ class PanelProcessUniDec(wx.MiniFrame):
             self._unidec_sort_column = 0
 
         mass_list = self.unidec_weightList_choice.GetItems()
-        mass_list = self.data_processing._unidec_sort_MW_list(mass_list, self._unidec_sort_column)
+        mass_list = unidec_utils.unidec_sort_MW_list(mass_list, self._unidec_sort_column)
 
         self.unidec_weightList_choice.SetItems(mass_list)
         self.unidec_weightList_choice.SetStringSelection(mass_list[0])
@@ -954,7 +958,7 @@ class PanelProcessUniDec(wx.MiniFrame):
                 mw_selection = self.unidec_weightList_choice.GetStringSelection().split()[1]
                 adduct_ion = self.unidec_adductMW_choice.GetStringSelection()
 
-                peakpos, charges, __ = self.data_processing._calculate_charge_positions(
+                peakpos, charges, __ = unidec_utils.calculate_charge_positions(
                     charges, mw_selection, xvals, adduct_ion, remove_below=self.config.unidec_charges_label_charges
                 )
                 self.panel_plot.on_plot_charge_states(

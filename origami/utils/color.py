@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+import re
 from ast import literal_eval
 
 import numpy as np
@@ -8,14 +9,24 @@ from utils.random import random_int_0_to_255
 __all__ = ["randomColorGenerator", "convertRGB255to1", "convertRGB1to255", "determineFontColor"]
 
 
+def check_color_type(color):
+    if isinstance(color, list):
+        return color
+
+    if color in [None, ""]:
+        return randomColorGenerator(return_as_255=True)
+
+    if re.search(r"^#(?:[0-9a-fA-F]{3}){1,2}$", color):
+        return convertHEXtoRGB255(color)
+
+
 def randomColorGenerator(return_as_255=False):
 
     color = (random_int_0_to_255(), random_int_0_to_255(), random_int_0_to_255())
 
-    if return_as_255:
-        return color
-    else:
+    if not return_as_255:
         color = convertRGB255to1(color)
+
     return color
 
 
@@ -82,10 +93,11 @@ def convertHEXtoRGB1(hex, decimals=3):
     return [np.round(rgb[0] / 255.0, decimals), np.round(rgb[1] / 255.0, decimals), np.round(rgb[2] / 255.0, decimals)]
 
 
-def convertHEXtoRGB255(hex, decimals=3):
+def convertHEXtoRGB255(hex):
     hex_color = hex.lstrip("#")
-    hlen = len(hex)
-    return tuple(int(hex_color[i : i + int(hlen / 3)], 16) for i in range(0, hlen, int(hlen / 3)))
+    hlen = len(hex_color)
+    rgb = tuple(int(hex_color[i : i + int(hlen / 3)], 16) for i in range(0, int(hlen), int(hlen / 3)))
+    return rgb
 
 
 def determineFontColor(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):

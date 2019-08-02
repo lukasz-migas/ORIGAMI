@@ -8,6 +8,7 @@ import time
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import processing.UniDec.utilities as unidec_utils
 import seaborn as sns
 import wx
 from gui_elements.misc_dialogs import DialogBox
@@ -1639,7 +1640,7 @@ class panelPlot(wx.Panel):
                 continue
 
             xval = float(key.split(" ")[1])
-            yval = self.data_processing.get_peak_maximum(mw, xval=xval)
+            yval = unidec_utils.get_peak_maximum(mw, xval=xval)
             marker = data[key]["marker"]
             color = colors[num]
 
@@ -1723,15 +1724,17 @@ class panelPlot(wx.Panel):
 
         # get number of lines in the dataset
         num = 0
+        color_num = 0
         for key in natsorted(list(replot.keys())):
             if key.split(" ")[0] != "MW:":
                 continue
+            color_num += 1
             if num >= plt_kwargs["maximum_shown_items"]:
                 continue
             num += 1
 
         # get colorlist
-        colors = self._get_color_list(None, count=num, **unidec_kwargs)
+        colors = self._get_color_list(None, count=color_num, **unidec_kwargs)
 
         # iteratively add lines
         num, mw_num = 0, 0
@@ -1746,12 +1749,12 @@ class panelPlot(wx.Panel):
 
             scatter_yvals = replot[key]["scatter_yvals"]
             line_yvals = replot[key]["line_yvals"]
-
             if kwargs.get("show_isolated_mw", False):
                 if key != kwargs["mw_selection"]:
                     mw_num += 1
                     continue
                 else:
+                    print(len(colors), mw_num)
                     color = colors[mw_num]
                     legend_text.append([color, replot[key]["label"]])
                     # adjust offset so its closer to the MS plot

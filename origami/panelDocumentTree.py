@@ -6681,6 +6681,9 @@ class documentsTree(wx.TreeCtrl):
         else:
             delete_types = [delete_type]
 
+        if document is None:
+            return None, False
+
         # delete all classes
         if delete_type.endswith(".all"):
             for delete_type in delete_types:

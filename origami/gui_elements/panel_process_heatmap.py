@@ -13,10 +13,19 @@ from utils.converters import str2num
 logger = logging.getLogger("origami")
 
 # TODO: speed up plotting
+# TODO: remove self.data and self.document and rather always get new instance of the document which accounts for
+# changes
 
 
 class PanelProcessHeatmap(MiniFrame):
     """Heatmap processing panel"""
+
+    all_eic_datasets = [
+        "Drift time (2D, EIC)",
+        "Drift time (2D, processed, EIC)",
+        "Drift time (2D, combined voltages, EIC)",
+        "Input data",
+    ]
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
         MiniFrame.__init__(self, parent, title="Process heatmap...", style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER)
@@ -40,6 +49,7 @@ class PanelProcessHeatmap(MiniFrame):
         self.disable_plot = kwargs.get("disable_plot", False)
         self.disable_process = kwargs.get("disable_process", False)
         self.process_all = kwargs.get("process_all", False)
+        self.process_list = kwargs.get("process_list", False)
 
         self.make_gui()
         self.on_toggle_controls(None)
@@ -335,6 +345,9 @@ class PanelProcessHeatmap(MiniFrame):
         if dataset_name is None:
             dataset_name = "N/A"
 
+        if self.process_list:
+            document_title = dataset_type = dataset_name = "Various"
+
         self.document_info_text.SetLabel(document_title)
         self.dataset_type_info_text.SetLabel(dataset_type)
         self.dataset_info_text.SetLabel(dataset_name)
@@ -354,9 +367,17 @@ class PanelProcessHeatmap(MiniFrame):
             self.panel_plot.on_plot_2D(zvals, xvals, yvals, self.data["xlabels"], self.data["ylabels"], override=False)
 
     def on_add_to_document(self, evt):
-        if self.process_all:
+        # process anything that is in dataset
+        if self.process_all and not self.process_list:
             for dataset_name in self.data:
                 self.data_processing.on_process_2D_and_add_data(self.document_title, self.dataset_type, dataset_name)
+            return
+
+        # process anything that is in a list
+        if self.process_list:
+            for document_title, __, dataset_name in self.data:
+                for dataset_type in self.all_eic_datasets:
+                    self.data_processing.on_process_2D_and_add_data(document_title, dataset_type, dataset_name)
             return
 
         self.data_processing.on_process_2D_and_add_data(self.document_title, self.dataset_type, self.dataset_name)

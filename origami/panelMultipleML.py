@@ -113,7 +113,7 @@ class panelMML(wx.Panel):
         wx.EVT_MENU(self, ID_mmlPanel_plot_DT, self.on_plot_1D)
         wx.EVT_MENU(self, ID_mmlPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.on_delete_item)
-        wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.onCheckTool)
+        wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.on_check_tool)
 
     def __del__(self):
         pass
@@ -400,9 +400,9 @@ class panelMML(wx.Panel):
 
     def menu_overlay_tools(self, evt):
 
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_mmlPanel_preprocess)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_mmlPanel_addToDocument)
-        self.Bind(wx.EVT_TOOL, self.onCheckTool, id=ID_mmlPanel_showLegend)
+        self.Bind(wx.EVT_TOOL, self.on_check_tool, id=ID_mmlPanel_preprocess)
+        self.Bind(wx.EVT_TOOL, self.on_check_tool, id=ID_mmlPanel_addToDocument)
+        self.Bind(wx.EVT_TOOL, self.on_check_tool, id=ID_mmlPanel_showLegend)
         self.Bind(wx.EVT_TOOL, self.on_overlay_plots, id=ID_mmlPanel_overlayWaterfall)
         self.Bind(wx.EVT_TOOL, self.on_overlay_plots, id=ID_mmlPanel_overlayChargeStates)
         self.Bind(wx.EVT_TOOL, self.on_overlay_plots, id=ID_mmlPanel_overlayMW)
@@ -538,7 +538,7 @@ class panelMML(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def onCheckTool(self, evt):
+    def on_check_tool(self, evt):
         evtID = evt.GetId()
 
         if evtID == ID_mmlPanel_preprocess:
