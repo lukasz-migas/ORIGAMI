@@ -20,13 +20,6 @@ logger = logging.getLogger("origami")
 class PanelProcessHeatmap(MiniFrame):
     """Heatmap processing panel"""
 
-    all_eic_datasets = [
-        "Drift time (2D, EIC)",
-        "Drift time (2D, processed, EIC)",
-        "Drift time (2D, combined voltages, EIC)",
-        "Input data",
-    ]
-
     def __init__(self, parent, presenter, config, icons, **kwargs):
         MiniFrame.__init__(self, parent, title="Process heatmap...", style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER)
         self.view = parent
@@ -375,9 +368,8 @@ class PanelProcessHeatmap(MiniFrame):
 
         # process anything that is in a list
         if self.process_list:
-            for document_title, __, dataset_name in self.data:
-                for dataset_type in self.all_eic_datasets:
-                    self.data_processing.on_process_2D_and_add_data(document_title, dataset_type, dataset_name)
+            for document_title, dataset_type, dataset_name in self.data:
+                self.data_processing.on_process_2D_and_add_data(document_title, dataset_type, dataset_name)
             return
 
         self.data_processing.on_process_2D_and_add_data(self.document_title, self.dataset_type, self.dataset_name)

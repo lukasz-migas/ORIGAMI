@@ -12,8 +12,6 @@ from ids import ID_addManyIonsCSV
 from ids import ID_addNewOverlayDoc
 from ids import ID_combineCEscans
 from ids import ID_combineCEscansSelectedIons
-from ids import ID_exportSelectedAsCSV_ion
-from ids import ID_exportSeletedAsImage_ion
 from ids import ID_extractAllIons
 from ids import ID_extractIonsMenu
 from ids import ID_extractNewIon
@@ -757,20 +755,42 @@ class panelMultipleIons(wx.Panel):
     def menu_save_tools(self, evt):
         # TODO: Add all new methods for saving figurers and data
         self.Bind(wx.EVT_MENU, self.on_save_peaklist, id=ID_saveIonListCSV)
-        self.Bind(wx.EVT_MENU, self.on_save_peaklist, id=ID_exportSeletedAsImage_ion)
-        self.Bind(wx.EVT_MENU, self.on_save_peaklist, id=ID_exportSelectedAsCSV_ion)
 
         menu = wx.Menu()
         menu.Append(ID_saveIonListCSV, "Export peak list to file...")
         menu.AppendSeparator()
-        menu.Append(ID_exportSeletedAsImage_ion, "Save figure(s) as chromatogram (selected)")
-        menu.Append(ID_exportSeletedAsImage_ion, "Save figure(s) as mobilogram (selected)")
-        menu.Append(ID_exportSeletedAsImage_ion, "Save figure(s) as heatmap (selected)")
-        menu.Append(ID_exportSeletedAsImage_ion, "Save figure(s) as waterfall (selected)")
+        menu_action_save_chromatogram = makeMenuItem(parent=menu, text="Save figure(s) as chromatogram (selected)")
+        menu.AppendItem(menu_action_save_chromatogram)
+
+        menu_action_save_mobilogram = makeMenuItem(parent=menu, text="Save figure(s) as mobilogram (selected)")
+        menu.AppendItem(menu_action_save_mobilogram)
+
+        menu_action_save_heatmap = makeMenuItem(parent=menu, text="Save figure(s) as heatmap (selected)")
+        menu.AppendItem(menu_action_save_heatmap)
+
+        menu_action_save_waterfall = makeMenuItem(parent=menu, text="Save figure(s) as waterfall (selected)")
+        menu.AppendItem(menu_action_save_waterfall)
+
         menu.AppendSeparator()
-        menu.Append(ID_exportSelectedAsCSV_ion, "Save chromatographic data (selected)")
-        menu.Append(ID_exportSelectedAsCSV_ion, "Save mobilogram data (selected)")
-        menu.Append(ID_exportSelectedAsCSV_ion, "Save heatmap data (selected)")
+        menu_action_save_data_chromatogram = makeMenuItem(parent=menu, text="Save chromatographic data (selected)")
+        menu.AppendItem(menu_action_save_data_chromatogram)
+
+        menu_action_save_data_mobilogram = makeMenuItem(parent=menu, text="Save mobilogram data (selected)")
+        menu.AppendItem(menu_action_save_data_mobilogram)
+
+        menu_action_save_data_heatmap = makeMenuItem(parent=menu, text="Save heatmap data (selected)")
+        menu.AppendItem(menu_action_save_data_heatmap)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_save_figures_chromatogram, menu_action_save_chromatogram)
+        self.Bind(wx.EVT_MENU, self.on_save_figures_mobilogram, menu_action_save_mobilogram)
+        self.Bind(wx.EVT_MENU, self.on_save_figures_heatmap, menu_action_save_heatmap)
+        self.Bind(wx.EVT_MENU, self.on_save_figures_waterfall, menu_action_save_waterfall)
+
+        self.Bind(wx.EVT_MENU, self.on_save_data_chromatogram, menu_action_save_data_chromatogram)
+        self.Bind(wx.EVT_MENU, self.on_save_data_mobilogram, menu_action_save_data_mobilogram)
+        self.Bind(wx.EVT_MENU, self.on_save_data_heatmap, menu_action_save_data_heatmap)
+
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -939,8 +959,14 @@ class panelMultipleIons(wx.Panel):
                 return True
         return False
 
-    def on_process_heatmap_selected(self, evt):
-        """Collect list of titles and dataset names and open processing panel"""
+    def get_selected_items(self):
+        all_eic_datasets = [
+            "Drift time (2D, EIC)",
+            "Drift time (2D, processed, EIC)",
+            "Drift time (2D, combined voltages, EIC)",
+            "Input data",
+        ]
+
         item_count = self.peaklist.GetItemCount()
 
         # generate list of document_title and dataset_name
@@ -948,11 +974,23 @@ class panelMultipleIons(wx.Panel):
         for item_id in range(item_count):
             information = self.OnGetItemInformation(item_id)
             if information["select"]:
-                document_title = information["document"]
-                ion_name = information["ion_name"]
-                if document_title not in ["", None]:
-                    process_item = [document_title, "all", ion_name]
-                    process_list.append(process_item)
+                for dataset_type in all_eic_datasets:
+                    document_title = information["document"]
+                    ion_name = information["ion_name"]
+                    if document_title not in ["", None]:
+                        # append raw
+                        process_item = [document_title, dataset_type, ion_name]
+                        process_list.append(process_item)
+
+                        # append processed
+                        process_item = [document_title, dataset_type, f"{ion_name} (processed)"]
+                        process_list.append(process_item)
+
+        return process_list
+
+    def on_process_heatmap_selected(self, evt):
+        """Collect list of titles and dataset names and open processing panel"""
+        process_list = self.get_selected_items()
 
         n_items = len(process_list)
         if n_items > 0:
@@ -1030,8 +1068,48 @@ class panelMultipleIons(wx.Panel):
             # Plot data
             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
 
-    def on_save_figures(self, evt):
-        pass
+    def on_save_figures(self, plot_type):
+        """Save figure(s) for selected item(s)
+
+        Parameters
+        ----------
+        plot_type : str
+            type of plot to be plotted
+        """
+        process_list = self.get_selected_items()
+        self.data_handling.on_save_heatmap_figures(plot_type, process_list)
+
+    def on_save_figures_chromatogram(self, evt):
+        self.on_save_figures("chromatogram")
+
+    def on_save_figures_mobilogram(self, evt):
+        self.on_save_figures("mobilogram")
+
+    def on_save_figures_heatmap(self, evt):
+        self.on_save_figures("heatmap")
+
+    def on_save_figures_waterfall(self, evt):
+        self.on_save_figures("waterfall")
+
+    def on_save_data(self, data_type):
+        """Save figure(s) for selected item(s)
+
+        Parameters
+        ----------
+        data_type : str
+            type of data to be saved
+        """
+        process_list = self.get_selected_items()
+        self.data_handling.on_save_heatmap_data(data_type, process_list)
+
+    def on_save_data_chromatogram(self, evt):
+        self.on_save_data("chromatogram")
+
+    def on_save_data_mobilogram(self, evt):
+        self.on_save_data("mobilogram")
+
+    def on_save_data_heatmap(self, evt):
+        self.on_save_data("heatmap")
 
     def on_save_peaklist(self, evt):
         """Save data in CSV format"""

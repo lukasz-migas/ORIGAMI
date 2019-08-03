@@ -96,6 +96,7 @@ def clean_filename(filename):
         .replace("@", "at")
         .replace("[", "_")
         .replace("]", "_")
+        .replace(" ", "_")
     )
 
     return filename

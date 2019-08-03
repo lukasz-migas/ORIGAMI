@@ -3710,7 +3710,6 @@ class documentsTree(wx.TreeCtrl):
         """Process all clicked heatmap items"""
 
         document, data, query = self._on_event_get_mobility_chromatogram_data()
-
         self.on_open_process_2D_settings(
             data=data,
             document=document,

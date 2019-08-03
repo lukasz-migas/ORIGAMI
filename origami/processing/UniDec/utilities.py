@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import numpy as np
-from natsort.natsort import natsorted
-from operator import itemgetter
 import re
+from operator import itemgetter
+
+import numpy as np
 import processing.utils as pr_utils
+from natsort.natsort import natsorted
 
 
 def unidec_sort_MW_list(mass_list, column_id):
@@ -36,7 +37,7 @@ def calculate_charge_positions(chargeList, selectedMW, msX, adductIon="H+", remo
         "K+ x2": 77.926316,
         "K+ x3": 116.889474,
         "NH4+": 18.033823,
-        "H-":-1.007276,
+        "H-": -1.007276,
         "Cl-": 34.969402,
     }
 

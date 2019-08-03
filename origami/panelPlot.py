@@ -92,6 +92,7 @@ from utils.color import convertRGB1toHEX
 from utils.color import randomColorGenerator
 from utils.exceptions import MessageError
 from utils.path import clean_filename
+from utils.time import ttime
 from visuals import mpl_plots
 from visuals.normalize import MidpointNormalize
 
@@ -701,10 +702,38 @@ class panelPlot(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
+    def on_save_image(self, plot, filename, **kwargs):
+        tstart = ttime()
+
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
+        extension = self.config.imageFormat
+        resize_name = kwargs.pop("resize_name", None)
+
+        if not filename.endswith(f".{extension}"):
+            filename += f".{extension}"
+
+        # build kwargs
+        kwargs = {
+            "transparent": self.config.transparent,
+            "dpi": self.config.dpi,
+            "format": extension,
+            "compression": "zlib",
+            "resize": None,
+        }
+
+        if self.config.resize and resize_name is not None:
+            kwargs["resize"] = resize_name
+
+        plot_obj.save_figure(filename, **kwargs)
+
+        logger.info(f"Saved figure {filename} in {ttime()-tstart:.2f} seconds")
+
     def save_images(self, evt, path=None, **save_kwargs):
         """ Save figure depending on the event ID """
-        args = ("Saving image. Please wait...", 4, 10)
-
         self.data_handling.update_statusbar("Saving image...", 4)
 
         # retrieve event ID
@@ -1036,35 +1065,6 @@ class panelPlot(wx.Panel):
 
         plot.on_rotate_90()
         plot.repaint()
-
-    def save_unidec_images(self, evt, path=None):
-        """ Save figure depending on the event ID """
-
-        path, document_name = self.presenter.getCurrentDocumentPath()
-        document_name = document_name.replace(".raw", "").replace(" ", "")
-        if path is None:
-            args = ("Could not find path", 4)
-            self.presenter.onThreading(None, args, action="updateStatusbar")
-            return
-
-        plots = {
-            "UniDec (MS)": self.plotUnidec_MS,
-            "UniDec (MW)": self.plotUnidec_mwDistribution,
-            "UniDec (m/z vs Charge)": self.plotUnidec_mzGrid,
-            "UniDec (Isolated MS)": self.plotUnidec_individualPeaks,
-            "UniDec (MW vs Charge)": self.plotUnidec_mwVsZ,
-            "UniDec (Barplot)": self.plotUnidec_barChart,
-            "UniDec (Charge Distribution)": self.plotUnidec_chargeDistribution,
-        }
-
-        for plot in plots:
-            image_name = self.config._plotSettings[plot]["default_name"]
-
-            # generate a better default name and remove any silly characters
-            image_name = "{}_{}".format(document_name, image_name)
-            image_name = clean_filename(image_name)
-
-            self.save_images(None, plot_obj=plots[plot], image_name=image_name)
 
     def plot_update_axes(self, plotName):
 

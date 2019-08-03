@@ -65,6 +65,25 @@ def check_file_type(path=None, fileName=None):
     return "2D"
 
 
+def prepare_heatmap_data_for_saving(zvals, xvals, yvals, guess_dtype=False):
+    if yvals.shape[0] == zvals.shape[0]:
+        data = np.vstack([yvals, zvals.T]).T
+    elif yvals.shape[0] == zvals.shape[1]:
+        data = np.vstack([yvals, zvals]).T
+
+    # labels
+    header = convert_values_to_header(xvals)
+
+    return data, header
+
+
+def convert_values_to_header(vals):
+    header = list(map(str, vals))
+    header.insert(0, "")
+
+    return header
+
+
 def text_infrared_open(path=None, normalize=None):
     tstart = time.clock()
 

@@ -3033,6 +3033,114 @@ class data_handling:
             self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
             logger.info(f"Extracted {spectrum_name} in {ttime()-tstart:.2f} seconds.")
 
+    def on_save_heatmap_figures(self, plot_type, item_list):
+        """Save heatmap-based figures to file
+
+        Parameters
+        ----------
+        plot_type : str
+            type of figure to be plotted
+        item_list : list
+            list of items to be plotted. Must be constructed to have [document_title, dataset_type, dataset_name]
+        """
+        if plot_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
+            raise MessageError("Incorrect plot type", "This function cannot plot this plot type")
+
+        fname_alias = {
+            "Drift time (2D, EIC)": "raw",
+            "Drift time (2D, processed, EIC)": "processed",
+            "Drift time (2D, combined voltages, EIC)": "combined_cv",
+            "Input data": "input_data",
+        }
+
+        resize_alias = {"heatmap": "2D", "chromatogram": "RT", "mobilogram": "DT", "waterfall": "Waterfall"}
+        #
+        #         dlg = wx.DirDialog(self.view, "Choose a folder where to save images",
+        #                            style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+        #         if dlg.ShowModal() == wx.ID_OK:
+        #             path = dlg.GetPath()
+
+        path = r"D:\Data\ORIGAMI\origami_ms\images"
+        for document_title, dataset_type, dataset_name in item_list:
+            # generate filename
+            filename = f"{plot_type}_{dataset_name}_{fname_alias[dataset_type]}_{document_title}"
+            filename = clean_filename(filename)
+            filename = os.path.join(path, filename)
+            # get data
+            try:
+                query_info = [document_title, dataset_type, dataset_name]
+                __, data = self.get_mobility_chromatographic_data(query_info)
+            except KeyError:
+                continue
+
+            # unpack data
+            zvals = data["zvals"]
+            xvals = data["xvals"]
+            yvals = data["yvals"]
+            xlabel = data["xlabels"]
+            ylabel = data["ylabels"]
+
+            # plot data
+            if plot_type == "heatmap":
+                self.plotsPanel.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel)
+                self.plotsPanel.on_save_image("2D", filename, resize_name=resize_alias[plot_type])
+            elif plot_type == "chromatogram":
+                yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
+                self.plotsPanel.on_plot_RT(xvals, yvals_RT, xlabel)
+                self.plotsPanel.on_save_image("RT", filename, resize_name=resize_alias[plot_type])
+            elif plot_type == "mobilogram":
+                yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
+                self.plotsPanel.on_plot_1D(yvals, yvals_DT, ylabel)
+                self.plotsPanel.on_save_image("1D", filename, resize_name=resize_alias[plot_type])
+            elif plot_type == "waterfall":
+                self.plotsPanel.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
+                self.plotsPanel.on_save_image("Waterfall", filename, resize_name=resize_alias[plot_type])
+
+    def on_save_heatmap_data(self, data_type, item_list):
+        """Save heatmap-based figures to file
+
+        Parameters
+        ----------
+        data_type : str
+            type of data to be saved
+        item_list : list
+            list of items to be saved. Must be constructed to have [document_title, dataset_type, dataset_name]
+        """
+        if data_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
+            raise MessageError("Incorrect data type", "This function cannot save this data type")
+
+        fname_alias = {
+            "Drift time (2D, EIC)": "raw",
+            "Drift time (2D, processed, EIC)": "processed",
+            "Drift time (2D, combined voltages, EIC)": "combined_cv",
+            "Input data": "input_data",
+        }
+        #
+        #         dlg = wx.DirDialog(self.view, "Choose a folder where to save images",
+        #                            style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+        #         if dlg.ShowModal() == wx.ID_OK:
+        #             path = dlg.GetPath()
+
+        path = r"D:\Data\ORIGAMI\origami_ms\images"
+        for document_title, dataset_type, dataset_name in item_list:
+            # generate filename
+            filename = f"{data_type}_{dataset_name}_{fname_alias[dataset_type]}_{document_title}"
+            filename = clean_filename(filename)
+            filename = os.path.join(path, filename)
+            # get data
+            try:
+                query_info = [document_title, dataset_type, dataset_name]
+                __, data = self.get_mobility_chromatographic_data(query_info)
+            except KeyError:
+                continue
+
+            # unpack data
+            zvals = data["zvals"]
+            xvals = data["xvals"]
+            yvals = data["yvals"]
+
+            print(zvals.shape, xvals.shape, yvals.shape)
+
     def get_spectrum_data(self, query_info, **kwargs):
         """Retrieve data for specified query items.
 
