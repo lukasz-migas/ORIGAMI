@@ -14,7 +14,6 @@ import processing.utils as pr_utils
 import utils.labels as ut_labels
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
-from ids import ID_combineCEscansSelectedIons
 from ids import ID_window_ccsList
 from ids import ID_window_ionList
 from ids import ID_window_multiFieldList
@@ -1608,17 +1607,12 @@ class data_processing:
 
     def on_combine_origami_collision_voltages(self, evt):
 
-        extract_mode = "all"
-        # Check which mode was selected
-        if evt.GetId() == ID_combineCEscansSelectedIons:
-            extract_mode = "selected"
-
         # Make a list of Documents
         for ion_id in range(self.ionList.GetItemCount()):
-            if extract_mode == "selected" and not self.ionList.IsChecked(ion_id):
+            itemInfo = self.ionPanel.OnGetItemInformation(itemID=ion_id)
+            if not itemInfo["select"]:
                 continue
 
-            itemInfo = self.ionPanel.OnGetItemInformation(itemID=ion_id)
             document_title = itemInfo["document"]
             document = self.data_handling._on_get_document(document_title)
 

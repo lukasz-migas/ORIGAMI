@@ -559,7 +559,6 @@ class panelParametersEdit(wx.Panel):
         export_box_sizer = wx.StaticBoxSizer(export_staticBox, wx.HORIZONTAL)
 
         plotSize_export_label = wx.StaticText(panel, -1, "Export plot size (proportion)")
-
         left_export_label = wx.StaticText(panel, -1, "Left")
         self.general_left_export_value = wx.SpinCtrlDouble(
             panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(60, -1)

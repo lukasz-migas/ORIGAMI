@@ -27,7 +27,7 @@ class OrigamiConfig:
 
         self._processID = None
         self.loggingFile_path = None
-        self.version = "1.3.0.0"
+        self.version = "2.0.0.0"
         self.debug = True
         self.testing = False
 
@@ -1566,6 +1566,11 @@ class OrigamiConfig:
 
         # Settings Panel
         self.lastDir = None
+        self.image_folder_path = None  # NEW v1.3.0.0
+        self.image_size_inch = [8, 8]
+        self.image_size_cm = []
+        self.image_size_px = []
+        self.image_axes_size = [0.12, 0.12, 0.8, 0.8]
 
         # Events
         self.extraParamsWindow_on_off = False
@@ -1704,6 +1709,7 @@ class OrigamiConfig:
 
         self.dpi = 200
         self.transparent = True
+        self.image_tight = True
 
         self.imageWidthInch = 8
         self.imageHeightInch = 8

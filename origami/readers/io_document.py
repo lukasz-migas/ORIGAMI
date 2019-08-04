@@ -71,3 +71,14 @@ def restore_document(document, **kwargs):
         document.multipleMassSpectrum[spectrum]["temporary_unidec"] = kwargs.pop(spectrum)
 
     return document
+
+
+def duplicate_document(document):
+    document, restore_kwargs = cleanup_document(document)
+    document_copy = copy.deepcopy(document)
+
+    # restore
+    document = restore_document(document, **restore_kwargs)
+    document_copy = restore_document(document_copy, **restore_kwargs)
+
+    return document_copy

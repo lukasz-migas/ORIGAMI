@@ -6,9 +6,7 @@ from styles import Dialog
 
 
 class DialogSelectDocument(Dialog):
-    """
-    Duplicate ions
-    """
+    """Select document from dropdown list"""
 
     def __init__(self, parent, **kwargs):
         wx.Dialog.__init__(self, parent, title="Select document...", size=(400, 300))
@@ -35,7 +33,7 @@ class DialogSelectDocument(Dialog):
         self.Destroy()
 
     def make_gui(self):
-
+        """Create GUI"""
         # make panel
         panel = self.make_panel()
 
@@ -53,7 +51,7 @@ class DialogSelectDocument(Dialog):
         self.SetSizer(self.main_sizer)
 
     def make_panel(self):
-
+        """Make main panel"""
         panel = wx.Panel(self, -1)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -66,10 +64,7 @@ class DialogSelectDocument(Dialog):
         self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
 
         # In some cases, we don't want to be able to create new document!
-        if not self.allow_new_document:
-            self.add_btn.Disable()
-        else:
-            self.add_btn.Enable()
+        self.add_btn.Enable(enable=self.allow_new_document)
 
         GRIDBAG_VSPACE = 7
         GRIDBAG_HSPACE = 5
@@ -81,9 +76,9 @@ class DialogSelectDocument(Dialog):
         grid.Add(documentList_label, (0, 0))
         grid.Add(self.document_list_choice, (0, 1), wx.GBSpan(1, 3))
 
-        grid.Add(self.ok_btn, (1, 0), wx.GBSpan(1, 1))
-        grid.Add(self.add_btn, (1, 1), wx.GBSpan(1, 1))
-        grid.Add(self.cancel_btn, (1, 2), wx.GBSpan(1, 1))
+        grid.Add(self.ok_btn, (1, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.add_btn, (1, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.cancel_btn, (1, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
 
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 
@@ -94,11 +89,12 @@ class DialogSelectDocument(Dialog):
         return panel
 
     def on_select_document(self, evt):
-
+        """Select document"""
         docName = self.document_list_choice.GetStringSelection()
         self.current_document = docName
         self.EndModal(wx.OK)
 
     def on_new_document(self, evt):
+        """Create new document"""
         self.presenter.onAddBlankDocument(evt=evt)
         self.EndModal(wx.OK)

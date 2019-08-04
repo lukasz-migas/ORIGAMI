@@ -61,6 +61,7 @@ class mpl_plotter(wx.Panel):
         self.zoomtype = "box"
         self.plotName = None
         self.resize = 1
+        self.screen_dpi = wx.ScreenDC().GetPPI()
 
         # plot data
         self.data_limits = []
@@ -335,42 +336,54 @@ class mpl_plotter(wx.Panel):
             print("Cannot save a plot that does not exist")
             return
 
-        # Get resize parameter
-        resizeName = kwargs.get("resize", None)
-        resizeSize = None
+        if kwargs.pop("tight", True):
+            kwargs["bbox_inches"] = "tight"
 
-        if resizeName is not None:
-            resizeSize = self.config._plotSettings[resizeName]["resize_size"]
+        # Get resize parameter
+        resize_name = kwargs.get("resize", None)
+        resize_size_inch = None
+        override_image_size_px = kwargs.pop("image_size_px", None)
+        override_axes_size = kwargs.pop("image_axes_size", None)
+
+        if resize_name is not None:
+            resize_size_inch = self.config._plotSettings[resize_name]["resize_size"]
 
         if not hasattr(self.plotMS, "get_position"):
-            resizeSize = None
+            resize_size_inch = None
 
-        if resizeSize is not None and not self.lock_plot_from_updating_size:
-            dpi = wx.ScreenDC().GetPPI()
+        if resize_size_inch is not None and not self.lock_plot_from_updating_size:
+
             # Calculate new size
-            figsizeNarrowPix = (int(resizeSize[0] * dpi[0]), int(resizeSize[1] * dpi[1]))
+            resize_size_px = override_image_size_px
+            if override_image_size_px is None:
+                resize_size_px = (
+                    int(resize_size_inch[0] * self.screen_dpi[0]),
+                    int(resize_size_inch[1] * self.screen_dpi[1]),
+                )
+
             # Set new canvas size and reset the view
-            self.canvas.SetSize(figsizeNarrowPix)
+            self.canvas.SetSize(resize_size_px)
             self.canvas.draw()
             # Get old and new plot sizes
-            oldAxesSize = self.plotMS.get_position()
-            newAxesSize = self.config._plotSettings[resizeName]["save_size"]
+            old_axes_size = self.plotMS.get_position()
+            new_axes_size = override_axes_size
+            if override_axes_size is None:
+                new_axes_size = self.config._plotSettings[resize_name]["save_size"]
+
             try:
-                self.plotMS.set_position(newAxesSize)
+                self.plotMS.set_position(new_axes_size)
             except RuntimeError:
-                self.plotMS.set_position(oldAxesSize)
+                self.plotMS.set_position(old_axes_size)
 
             self.repaint()
 
         # Save figure
         try:
-            kwargs["bbox_inches"] = "tight"
             self.figure.savefig(path, **kwargs)
-
         except IOError:
             # reset axes size
-            if resizeSize is not None and not self.lock_plot_from_updating_size:
-                self.plotMS.set_position(oldAxesSize)
+            if resize_size_inch is not None and not self.lock_plot_from_updating_size:
+                self.plotMS.set_position(old_axes_size)
                 self.on_resize()
             # warn user
             DialogBox(
@@ -395,13 +408,13 @@ class mpl_plotter(wx.Panel):
                 path = os.path.join(fname + delimiter_txt)
 
                 # reset axes, again
-                if resizeSize is not None and not self.lock_plot_from_updating_size:
-                    self.canvas.SetSize(figsizeNarrowPix)
+                if resize_size_inch is not None and not self.lock_plot_from_updating_size:
+                    self.canvas.SetSize(resize_size_px)
                     self.canvas.draw()
                     try:
-                        self.plotMS.set_position(newAxesSize)
+                        self.plotMS.set_position(new_axes_size)
                     except RuntimeError:
-                        self.plotMS.set_position(oldAxesSize)
+                        self.plotMS.set_position(old_axes_size)
                     self.repaint()
 
                 try:
@@ -415,8 +428,8 @@ class mpl_plotter(wx.Panel):
                         pass
 
         # Reset previous view
-        if resizeSize is not None and not self.lock_plot_from_updating_size:
-            self.plotMS.set_position(oldAxesSize)
+        if resize_size_inch is not None and not self.lock_plot_from_updating_size:
+            self.plotMS.set_position(old_axes_size)
             self.on_resize()
 
     def onAddMarker(self, xval=None, yval=None, marker="s", color="r", size=5, testMax="none", label="", as_line=True):

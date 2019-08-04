@@ -723,10 +723,17 @@ class panelPlot(wx.Panel):
             "format": extension,
             "compression": "zlib",
             "resize": None,
+            "tight": self.config.image_tight,
+            "image_size_inch": None,
+            "image_size_px": None,
+            "image_axes_size": None,
         }
 
         if self.config.resize and resize_name is not None:
             kwargs["resize"] = resize_name
+            kwargs["image_size_inch"] = self.config.image_size_inch
+            kwargs["image_size_px"] = self.config.image_size_px
+            kwargs["image_axes_size"] = self.config.image_axes_size
 
         plot_obj.save_figure(filename, **kwargs)
 
@@ -865,6 +872,7 @@ class panelPlot(wx.Panel):
                 "format": extension[1::],
                 "compression": "zlib",
                 "resize": None,
+                "tight": self.config.image_tight,
             }
 
             if self.config.resize:

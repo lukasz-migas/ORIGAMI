@@ -84,6 +84,9 @@ Document tree:
 TODO: Add option to change x/y-axis for ALL items in specified branch
 TODO: Add option to change charge for AL items in specified branch
 - [new] you can assign charge state for single or multiple items in a sub-tree element.
+- [fixed] fixed problem that prevented duplicating document
+- [improved] when duplicating document in the Document Tree, all the data auxillary data will be restored in various
+    side panels as well
 
 Plotting:
 - [new] DT/MS - added smart-zoom option which will speed-up data viewing for very large arrays
@@ -151,6 +154,14 @@ Ion panel:
 - [improved] when double-clicking on an item, a smaller editor will be opened which will exclude all ORIGAMI-MS settings
 - [improved] item editor now has correct order of items which can be explored with Tab and Shift+Tab keys
 - [changed] moved the option "Create blank COMPARISON ..." from the Add... menu to "Overlay..." menu
+- [new] you can now export all data (heatmap, chromatographic, mobilogram) as .csv/.txt/.tab files in batch mode
+- [new] you can now export multiple plot types (heatmap, chromatogram, mobilogram, waterfall) as one of many image
+    formats in batch mode
+- [improved] cleaned-up menus so they are a lot easier to follow
+- [fixed] exporting mass spectrum for each CV is now much better
+- [new] you can setup ORIGAMI-MS parameters from the Process -> ORIGAMI-MS: Setup parameters
+- [fixed] exporting peaklist works now - simply select items in the peaklist and select output path
+- [fixed] loading peaklist works now
 
 Text panel:
 - [improved] item editor now has correct order of items which can be explored with Tab and Shift+Tab keys

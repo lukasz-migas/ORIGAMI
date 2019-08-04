@@ -7,17 +7,11 @@ import wx
 from gui_elements.dialog_ask import DialogAsk
 from gui_elements.dialog_color_picker import DialogColorPicker
 from gui_elements.misc_dialogs import DialogBox
-from ids import ID_addIonsMenu
-from ids import ID_addManyIonsCSV
 from ids import ID_addNewOverlayDoc
-from ids import ID_combineCEscans
-from ids import ID_combineCEscansSelectedIons
 from ids import ID_extractAllIons
-from ids import ID_extractIonsMenu
 from ids import ID_extractNewIon
 from ids import ID_extractSelectedIon
 from ids import ID_highlightRectAllIons
-from ids import ID_ionPanel_about_info
 from ids import ID_ionPanel_addToDocument
 from ids import ID_ionPanel_annotate_alpha
 from ids import ID_ionPanel_annotate_charge_state
@@ -57,16 +51,10 @@ from ids import ID_ionPanel_table_mask
 from ids import ID_ionPanel_table_method
 from ids import ID_ionPanel_table_restoreAll
 from ids import ID_ionPanel_table_startMS
-from ids import ID_overlayIonsMenu
 from ids import ID_overlayMZfromList
 from ids import ID_overlayMZfromList1D
 from ids import ID_overlayMZfromListRT
-from ids import ID_processIonsMenu
-from ids import ID_removeIonsMenu
-from ids import ID_saveIonListCSV
-from ids import ID_saveIonsMenu
 from ids import ID_selectOverlayMethod
-from ids import ID_showIonsMenu
 from ids import ID_useProcessedCombinedMenu
 from ids import ID_window_ionList
 from styles import ListCtrl
@@ -86,6 +74,8 @@ logger = logging.getLogger("origami")
 
 
 class panelMultipleIons(wx.Panel):
+    keyword_alias = {"colormap": "cmap"}
+
     def __init__(self, parent, config, icons, helpInfo, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL
@@ -180,67 +170,33 @@ class panelMultipleIons(wx.Panel):
 
     def make_toolbar(self):
 
-        # Make bindings
-        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_addIonsMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_removeIonsMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_extract_tools, id=ID_extractIonsMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_processIonsMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_save_tools, id=ID_saveIonsMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_showIonsMenu)
-        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_overlayIonsMenu)
-        self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, id=ID_ionPanel_about_info)
-
         self.add_btn = wx.BitmapButton(
-            self,
-            ID_addIonsMenu,
-            self.icons.iconsLib["add16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["add16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.add_btn.SetToolTip(makeTooltip("Add..."))
 
         self.remove_btn = wx.BitmapButton(
-            self,
-            ID_removeIonsMenu,
-            self.icons.iconsLib["remove16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["remove16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.remove_btn.SetToolTip(makeTooltip("Remove..."))
 
         self.annotate_btn = wx.BitmapButton(
-            self,
-            ID_showIonsMenu,
-            self.icons.iconsLib["annotate16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["annotate16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.annotate_btn.SetToolTip(makeTooltip("Annotate..."))
 
         self.extract_btn = wx.BitmapButton(
-            self,
-            ID_extractIonsMenu,
-            self.icons.iconsLib["extract16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["extract16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.extract_btn.SetToolTip(makeTooltip("Extract..."))
 
         self.process_btn = wx.BitmapButton(
-            self,
-            ID_processIonsMenu,
-            self.icons.iconsLib["process16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["process16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.process_btn.SetToolTip(makeTooltip("Process..."))
 
         self.overlay_btn = wx.BitmapButton(
-            self,
-            ID_overlayIonsMenu,
-            self.icons.iconsLib["overlay16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["overlay16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.overlay_btn.SetToolTip(makeTooltip("Overlay selected ions..."))
 
@@ -250,55 +206,67 @@ class panelMultipleIons(wx.Panel):
         self.combo.SetStringSelection(self.config.overlayMethod)
 
         self.save_btn = wx.BitmapButton(
-            self,
-            ID_saveIonsMenu,
-            self.icons.iconsLib["save16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["save16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.save_btn.SetToolTip(makeTooltip("Save..."))
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
         self.info_btn = wx.BitmapButton(
-            self,
-            ID_ionPanel_about_info,
-            self.icons.iconsLib["info16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["info16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.info_btn.SetToolTip(makeTooltip("Information..."))
+
+        # bind events
+        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, self.add_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, self.remove_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_extract_tools, self.extract_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, self.process_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_save_tools, self.save_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, self.annotate_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, self.overlay_btn)
+        self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, self.info_btn)
 
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
+        n = 0
         btn_grid_vert.Add(
-            self.add_btn, (x, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.add_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.remove_btn, (x, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.remove_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.annotate_btn, (x, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.annotate_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.extract_btn, (x, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.extract_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.process_btn, (x, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.process_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.overlay_btn, (x, 6), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.overlay_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.combo, (x, 7), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.combo, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.save_btn, (x, 8), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.save_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
-        btn_grid_vert.Add(vertical_line_1, (x, 9), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
+        btn_grid_vert.Add(vertical_line_1, (x, n), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
         btn_grid_vert.Add(
-            self.info_btn, (x, 10), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.info_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
 
         return btn_grid_vert
@@ -577,23 +545,26 @@ class panelMultipleIons(wx.Panel):
         self.SetFocus()
 
     def menu_add_tools(self, evt):
-        # TODO: add "Restore items from document"
-        self.Bind(wx.EVT_MENU, self.on_open_peak_list, id=ID_addManyIonsCSV)
-
         menu = wx.Menu()
-        menu.AppendItem(
-            makeMenuItem(
-                parent=menu,
-                id=ID_addManyIonsCSV,
-                text="Add list of ions (.csv/.txt)\tCtrl+L",
-                bitmap=self.icons.iconsLib["filelist_16"],
-                help_text="Format: min, max, charge (optional), label (optional), color (optional)",
-            )
+        menu_action_load_peaklist = makeMenuItem(
+            parent=menu,
+            text="Add list of ions (.csv/.txt)",
+            bitmap=self.icons.iconsLib["filelist_16"],
+            help_text="Format: mz_start, mz_end, charge (optional), label (optional), color (optional)...",
         )
-        #         menu.AppendSeparator()
-        #         menu.AppendItem(makeMenuItem(parent=menu, id=ID_addNewOverlayDoc,
-        #                                      text='Create blank COMPARISON document\tAlt+D',
-        #                                      bitmap=self.icons.iconsLib['new_document_16']))
+        menu.AppendItem(menu_action_load_peaklist)
+        menu.AppendSeparator()
+        menu_action_restore_peaklist = makeMenuItem(
+            parent=menu,
+            text="Restore items to peaklist",
+            help_text="Restore items for selected document to the peaklist",
+        )
+        menu.AppendItem(menu_action_restore_peaklist)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_load_peaklist, menu_action_load_peaklist)
+        self.Bind(wx.EVT_MENU, self.on_restore_to_peaklist, menu_action_restore_peaklist)
+
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -733,31 +704,35 @@ class panelMultipleIons(wx.Panel):
         menu_action_process_heatmap = makeMenuItem(parent=menu, text="Process heatmap data (selected)")
         menu.AppendItem(menu_action_process_heatmap)
         menu.AppendSeparator()
-        menu.Append(ID_combineCEscansSelectedIons, "ORIGAMI-MS: Combine collision voltages (selected)")
-        menu.Append(ID_combineCEscans, "ORIGAMI-MS: Combine collision voltages (all)\tAlt+C")
+        menu_action_setup_origami_parameters = makeMenuItem(parent=menu, text="ORIGAMI-MS: Setup parameters..")
+        menu.AppendItem(menu_action_setup_origami_parameters)
+
+        menu_action_combine_voltages = makeMenuItem(
+            parent=menu, text="ORIGAMI-MS: Combine collision voltages (selected)"
+        )
+        menu.AppendItem(menu_action_combine_voltages)
+
         menu_action_extract_spectrum = makeMenuItem(
             parent=menu, text="ORIGAMI-MS: Extract mass spectra for each collision voltage..."
         )
         menu.AppendItem(menu_action_extract_spectrum)
 
         # bind events
-        self.Bind(
-            wx.EVT_MENU, self.data_processing.on_combine_origami_collision_voltages, id=ID_combineCEscansSelectedIons
-        )
-        self.Bind(wx.EVT_MENU, self.data_processing.on_combine_origami_collision_voltages, id=ID_combineCEscans)
         self.Bind(wx.EVT_MENU, self.on_process_heatmap_selected, menu_action_process_heatmap)
-        self.Bind(wx.EVT_MENU, self.document_tree.on_action_ORIGAMI_MS, menu_action_extract_spectrum)
+        self.Bind(wx.EVT_MENU, self.data_processing.on_combine_origami_collision_voltages, menu_action_combine_voltages)
+        self.Bind(wx.EVT_MENU, self.on_open_ORIGAMI_MS_panel, menu_action_setup_origami_parameters)
+        self.Bind(wx.EVT_MENU, self.on_open_ORIGAMI_MS_panel, menu_action_extract_spectrum)
 
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
 
     def menu_save_tools(self, evt):
-        # TODO: Add all new methods for saving figurers and data
-        self.Bind(wx.EVT_MENU, self.on_save_peaklist, id=ID_saveIonListCSV)
 
         menu = wx.Menu()
-        menu.Append(ID_saveIonListCSV, "Export peak list to file...")
+        menu_action_save_peaklist = makeMenuItem(parent=menu, text="Export peak list to file...")
+        menu.AppendItem(menu_action_save_peaklist)
+
         menu.AppendSeparator()
         menu_action_save_chromatogram = makeMenuItem(parent=menu, text="Save figure(s) as chromatogram (selected)")
         menu.AppendItem(menu_action_save_chromatogram)
@@ -782,6 +757,8 @@ class panelMultipleIons(wx.Panel):
         menu.AppendItem(menu_action_save_data_heatmap)
 
         # bind events
+        self.Bind(wx.EVT_MENU, self.on_save_peaklist, menu_action_save_peaklist)
+
         self.Bind(wx.EVT_MENU, self.on_save_figures_chromatogram, menu_action_save_chromatogram)
         self.Bind(wx.EVT_MENU, self.on_save_figures_mobilogram, menu_action_save_mobilogram)
         self.Bind(wx.EVT_MENU, self.on_save_figures_heatmap, menu_action_save_heatmap)
@@ -1392,35 +1369,35 @@ class panelMultipleIons(wx.Panel):
 
         if itemInfo["ionName"] in document.IMS2Dions:
             for keyword in keywords:
-                keyword_name = self.__check_keyword(keyword)
+                keyword_name = self.keyword_alias.get(keyword, keyword)
                 document.IMS2Dions[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
                 if processed_name in document.IMS2Dions:
                     document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
 
         if f"{itemInfo['ionName']} (processed)" in document.IMS2Dions:
             for keyword in keywords:
-                keyword_name = self.__check_keyword(keyword)
+                keyword_name = self.keyword_alias.get(keyword, keyword)
                 document.IMS2Dions[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
                 if processed_name in document.IMS2Dions:
                     document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
 
         if itemInfo["ionName"] in document.IMS2DCombIons:
             for keyword in keywords:
-                keyword_name = self.__check_keyword(keyword)
+                keyword_name = self.keyword_alias.get(keyword, keyword)
                 document.IMS2DCombIons[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
                 if processed_name in document.IMS2DCombIons:
                     document.IMS2DCombIons[processed_name][keyword_name] = itemInfo[keyword]
 
         if itemInfo["ionName"] in document.IMS2DionsProcess:
             for keyword in keywords:
-                keyword_name = self.__check_keyword(keyword)
+                keyword_name = self.keyword_alias.get(keyword, keyword)
                 document.IMS2DionsProcess[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
                 if processed_name in document.IMS2DionsProcess:
                     document.IMS2DionsProcess[processed_name][keyword_name] = itemInfo[keyword]
 
         if itemInfo["ionName"] in document.IMSRTCombIons:
             for keyword in keywords:
-                keyword_name = self.__check_keyword(keyword)
+                keyword_name = self.keyword_alias.get(keyword, keyword)
                 document.IMSRTCombIons[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
                 if processed_name in document.IMSRTCombIons:
                     document.IMSRTCombIons[processed_name][keyword_name] = itemInfo[keyword]
@@ -1430,18 +1407,24 @@ class panelMultipleIons(wx.Panel):
 
     def on_remove_deleted_item(self, document):
         """
-        @param document: title of the document to be removed from the list
+        document : document object
+            title of the document to be removed from the list
         """
         row = self.peaklist.GetItemCount() - 1
         while row >= 0:
             info = self.OnGetItemInformation(itemID=row)
             if info["document"] == document:
                 self.peaklist.DeleteItem(row)
-                row -= 1
-            else:
-                row -= 1
+            row -= 1
 
-    def on_open_peak_list(self, evt):
+    def on_open_ORIGAMI_MS_panel(self, evt):
+        document = self.data_handling._get_document_of_type(["Type: ORIGAMI"], allow_creation=False)
+        if document is None:
+            raise MessageError("Error", "Please create/load ORIGAMI document first")
+
+        self.document_tree.on_action_ORIGAMI_MS(None, document.title)
+
+    def on_load_peaklist(self, evt):
         """This function opens a formatted CSV file with peaks"""
 
         document = self.data_handling._get_document_of_type(
@@ -1458,6 +1441,13 @@ class panelMultipleIons(wx.Panel):
             self.on_add_to_table(add_dict, check_color=False)
         self.peaklist.on_remove_duplicates()
         self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
+
+    def on_restore_to_peaklist(self, evt):
+        document = self.data_handling._get_document_of_type(
+            ["Type: MANUAL", "Type: ORIGAMI", "Type: Infrared"], allow_creation=False
+        )
+        if document is not None:
+            self.data_handling._load_document_data_peaklist(document)
 
     def on_check_selected(self, evt):
         """Check current item when letter S is pressed on the keyboard"""
@@ -1603,9 +1593,3 @@ class panelMultipleIons(wx.Panel):
             elif delete_item_name is None and itemInfo["document"] == delete_document_title:
                 self.peaklist.DeleteItem(rows)
             rows -= 1
-
-    @staticmethod
-    def __check_keyword(keyword_name):
-        if keyword_name == "colormap":
-            keyword_name = "cmap"
-        return keyword_name

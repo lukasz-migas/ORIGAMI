@@ -1740,61 +1740,6 @@ class ORIGAMI(object):
 
         return saveFileName
 
-    def onOpenPeakListCSV(self, evt):
-        """
-        This function opens a formatted CSV file with peaks
-        """
-        dlg = wx.FileDialog(
-            self.view,
-            "Choose a text file (m/z, window size, charge):",
-            wildcard="*.csv;*.txt",
-            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
-        )
-        if dlg.ShowModal() == wx.ID_CANCEL:
-            return
-        else:
-            # Create shortcut
-            tempList = self.view.panelMultipleIons.peaklist
-            delimiter, __ = checkExtension(input=dlg.GetPath().encode("ascii", "replace"))
-            peaklist = pd.read_csv(dlg.GetPath(), delimiter=delimiter)
-            try:
-                peaklist["m/z"]
-            except KeyError:
-                msg = "Please make sure your file contains headers. i.e. m/z | window | z (optional)"
-                DialogBox(exceptionTitle="Incorrect input", exceptionMsg=msg, type="Error")
-                return
-            for peak in range(len(peaklist)):
-
-                # Determine window size
-                if self.config.useInternalMZwindow:
-                    mzAdd = self.config.mzWindowSize
-                else:
-                    try:
-                        mzAdd = peaklist["window"][peak]
-                    except KeyError:
-                        msg = "Please make sure your file contains headers. i.e. m/z | window | z (optional)"
-                        DialogBox(exceptionTitle="Incorrect input", exceptionMsg=msg, type="Error")
-                        return
-                # Generate mz start/end
-                mzMin = np.round((peaklist["m/z"][peak] - mzAdd), 2)
-                mzMax = np.round((peaklist["m/z"][peak] + mzAdd), 2)
-                # Get charge of ion
-                try:
-                    charge = peaklist["z"][peak]
-                except KeyError:
-                    charge = ""
-                # Get label of the ion
-                try:
-                    label = peaklist["label"][peak]
-                except KeyError:
-                    label = ""
-                tempList.Append([str(mzMin), str(mzMax), str(charge), "", "", "", "", "", str(label)])
-        self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
-        dlg.Destroy()
-
-        if evt is not None:
-            evt.Skip()
-
     # TODOO: move to another panel
     #     def onSelectProtein(self, evt):
     #         if evt.GetId() == ID_selectCalibrant:

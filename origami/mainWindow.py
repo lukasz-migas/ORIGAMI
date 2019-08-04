@@ -1434,7 +1434,6 @@ class MyFrame(wx.Frame):
         ctrlkeys = [
             ["I", self.panelDocuments.documents.onOpenDocInfo, wx.ACCEL_CTRL],
             ["W", self.data_handling.on_open_multiple_text_2D, wx.ACCEL_CTRL],
-            ["L", self.presenter.onOpenPeakListCSV, wx.ACCEL_CTRL],
             ["Z", self.openSaveAsDlg, wx.ACCEL_SHIFT],
             ["G", self.presenter.on_open_directory, wx.ACCEL_CTRL],
         ]

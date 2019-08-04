@@ -3798,12 +3798,15 @@ class documentsTree(wx.TreeCtrl):
                 document = self.presenter.documentsDict[title]
                 self.data_handling.on_update_document(document, "document")
                 self.Expand(docItem)
+        # duplicate document
         elif evtID == ID_docTree_duplicate_document:
-            title = self._document_data.title
-            document = deepcopy(self.presenter.documentsDict[title])
-            document.title = "{} - copy".format(title)
+            document = self.data_handling.on_duplicate_document()
+            document.title = "{} - copy".format(document.title)
+            self.data_handling._load_document_data(document)
 
-            self.data_handling.on_update_document(document, "document")
+    #             self.data_handling.on_update_document(document, "document")
+
+    # TODO: should restore items to various side panels
 
     def onRenameItem(self, evt):
 

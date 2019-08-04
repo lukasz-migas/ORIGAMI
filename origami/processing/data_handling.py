@@ -28,9 +28,8 @@ from ids import ID_window_multipleMLList
 from processing.utils import find_nearest_index
 from processing.utils import get_maximum_value_in_range
 from pubsub import pub
+from readers import io_document
 from readers import io_text_files
-from readers.io_document import open_py_object
-from readers.io_document import save_py_object
 from utils.check import check_axes_spacing
 from utils.check import check_value_order
 from utils.check import isempty
@@ -157,6 +156,11 @@ class data_handling:
         document = self.presenter.documentsDict[document_title]
 
         return document
+
+    def on_duplicate_document(self, document_title=None):
+        document = self._on_get_document(document_title)
+        document_copy = io_document.duplicate_document(document)
+        return document_copy
 
     def _on_get_document_path_and_title(self, document_title=None):
         document = self._on_get_document(document_title)
@@ -376,7 +380,9 @@ class data_handling:
         elif len(document_list) == 1:
             document = self._on_get_document(document_list[0])
         else:
-            dlg = DialogSelectDocument(self.view, presenter=self.presenter, document_list=document_list)
+            dlg = DialogSelectDocument(
+                self.view, presenter=self.presenter, document_list=document_list, allow_new_document=allow_creation
+            )
             if dlg.ShowModal() == wx.ID_OK:
                 return
 
@@ -386,7 +392,7 @@ class data_handling:
                 return
 
             document = self._on_get_document(document_title)
-            self.update_statusbar("Will be using {} document".format(document_title), 4)
+            logger.info(f"Will be using {document.title} document")
 
         return document
 
@@ -2286,7 +2292,7 @@ class data_handling:
         document.path = path
 
         # save document
-        save_py_object(save_path, document)
+        io_document.save_py_object(save_path, document)
         # update recent files
         self.view.updateRecentFiles(path={"file_type": "pickle", "file_path": save_path})
 
@@ -2321,11 +2327,113 @@ class data_handling:
 
         for file_path in file_paths:
             try:
-                self._load_document_data(document=open_py_object(filename=file_path))
+                self._load_document_data(document=io_document.open_py_object(filename=file_path))
             except (ValueError, AttributeError, TypeError, IOError) as e:
                 raise MessageError("Failed to load document on load.", str(e))
 
         self.view.updateRecentFiles(path={"file_type": "pickle", "file_path": file_path})
+
+    def _load_document_data_peaklist(self, document):
+        document_title = document.title
+        if (
+            any(
+                [
+                    document.gotExtractedIons,
+                    document.got2DprocessIons,
+                    document.gotCombinedExtractedIonsRT,
+                    document.gotCombinedExtractedIons,
+                ]
+            )
+            and document.dataType != "Type: Interactive"
+        ):
+
+            if len(document.IMS2DCombIons) > 0:
+                dataset = document.IMS2DCombIons
+            elif len(document.IMS2DCombIons) == 0:
+                dataset = document.IMS2Dions
+            elif len(document.IMS2Dions) == 0:
+                dataset = {}
+
+            for _, key in enumerate(dataset):
+                if key.endswith("(processed)"):
+                    continue
+
+                mz_start, mz_end = ut_labels.get_ion_name_from_label(key)
+                charge = dataset[key].get("charge", "")
+                label = dataset[key].get("label", "")
+                alpha = dataset[key].get("alpha", 0.5)
+                mask = dataset[key].get("mask", 0.25)
+                colormap = dataset[key].get("cmap", self.config.currentCmap)
+                color = dataset[key].get("color", randomColorGenerator())
+                if isinstance(color, wx.Colour):
+                    color = convertRGB255to1(color)
+                elif np.sum(color) > 4:
+                    color = convertRGB255to1(color)
+                mz_y_max = dataset[key].get("xylimits", "")
+                if mz_y_max is not None:
+                    mz_y_max = mz_y_max[2]
+
+                method = dataset[key].get("parameters", None)
+                if method is not None:
+                    method = method.get("method", "")
+                elif method is None and document.dataType == "Type: MANUAL":
+                    method = "Manual"
+                else:
+                    method = ""
+
+                _add_to_table = {
+                    "ion_name": key,
+                    "mz_start": mz_start,
+                    "mz_end": mz_end,
+                    "charge": charge,
+                    "mz_ymax": mz_y_max,
+                    "color": convertRGB1to255(color),
+                    "colormap": colormap,
+                    "alpha": alpha,
+                    "mask": mask,
+                    "label": label,
+                    "document": document_title,
+                }
+                self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
+
+                # Update aui manager
+                self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
+            self.ionList.on_remove_duplicates()
+
+    def _load_document_data_filelist(self, document):
+        if document.dataType == "Type: MANUAL":
+            count = self.filesList.GetItemCount() + len(document.multipleMassSpectrum)
+            colors = self.plotsPanel.on_change_color_palette(None, n_colors=count + 1, return_colors=True)
+            for __, key in enumerate(document.multipleMassSpectrum):
+                energy = document.multipleMassSpectrum[key]["trap"]
+                if "color" in document.multipleMassSpectrum[key]:
+                    color = document.multipleMassSpectrum[key]["color"]
+                else:
+                    try:
+                        color = colors[count + 1]
+                    except Exception:
+                        color = randomColorGenerator()
+                    document.multipleMassSpectrum[key]["color"] = color
+
+                if "label" in document.multipleMassSpectrum[key]:
+                    label = document.multipleMassSpectrum[key]["label"]
+                else:
+                    label = os.path.splitext(key)[0]
+                    document.multipleMassSpectrum[key]["label"] = label
+
+                add_dict = {
+                    "filename": key,
+                    "document": document.title,
+                    "variable": energy,
+                    "label": label,
+                    "color": color,
+                }
+
+                self.filesPanel.on_add_to_table(add_dict, check_color=False)
+
+            self.view.panelMML.onRemoveDuplicates(evt=None, limitCols=False)
+            # Update aui manager
+            self.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
 
     def _load_document_data(self, document=None):
         """Load data that is stored in the pickle file
@@ -2406,104 +2514,10 @@ class data_handling:
                 self.plotsPanel.on_plot_2D_data(data=[zvals, xvals, data["xlabels"], data["yvals"], data["ylabels"]])
 
             # Restore ion list
-            if (
-                any(
-                    [
-                        document.gotExtractedIons,
-                        document.got2DprocessIons,
-                        document.gotCombinedExtractedIonsRT,
-                        document.gotCombinedExtractedIons,
-                    ]
-                )
-                and document.dataType != "Type: Interactive"
-            ):
-
-                if len(document.IMS2DCombIons) > 0:
-                    dataset = document.IMS2DCombIons
-                elif len(document.IMS2DCombIons) == 0:
-                    dataset = document.IMS2Dions
-                elif len(document.IMS2Dions) == 0:
-                    dataset = {}
-
-                for _, key in enumerate(dataset):
-                    if key.endswith("(processed)"):
-                        continue
-
-                    mz_start, mz_end = ut_labels.get_ion_name_from_label(key)
-                    charge = dataset[key].get("charge", "")
-                    label = dataset[key].get("label", "")
-                    alpha = dataset[key].get("alpha", 0.5)
-                    mask = dataset[key].get("mask", 0.25)
-                    colormap = dataset[key].get("cmap", self.config.currentCmap)
-                    color = dataset[key].get("color", randomColorGenerator())
-                    if isinstance(color, wx.Colour):
-                        color = convertRGB255to1(color)
-                    elif np.sum(color) > 4:
-                        color = convertRGB255to1(color)
-                    mz_y_max = dataset[key].get("xylimits", "")
-                    if mz_y_max is not None:
-                        mz_y_max = mz_y_max[2]
-
-                    method = dataset[key].get("parameters", None)
-                    if method is not None:
-                        method = method.get("method", "")
-                    elif method is None and document.dataType == "Type: MANUAL":
-                        method = "Manual"
-                    else:
-                        method = ""
-
-                    _add_to_table = {
-                        "ion_name": key,
-                        "mz_start": mz_start,
-                        "mz_end": mz_end,
-                        "charge": charge,
-                        "mz_ymax": mz_y_max,
-                        "color": convertRGB1to255(color),
-                        "colormap": colormap,
-                        "alpha": alpha,
-                        "mask": mask,
-                        "document": document_title,
-                    }
-                    self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
-
-                    # Update aui manager
-                    self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
-                self.ionList.on_remove_duplicates()
+            self._load_document_data_peaklist(document)
 
             # Restore file list
-            if document.dataType == "Type: MANUAL":
-                count = self.filesList.GetItemCount() + len(document.multipleMassSpectrum)
-                colors = self.plotsPanel.on_change_color_palette(None, n_colors=count + 1, return_colors=True)
-                for __, key in enumerate(document.multipleMassSpectrum):
-                    energy = document.multipleMassSpectrum[key]["trap"]
-                    if "color" in document.multipleMassSpectrum[key]:
-                        color = document.multipleMassSpectrum[key]["color"]
-                    else:
-                        try:
-                            color = colors[count + 1]
-                        except Exception:
-                            color = randomColorGenerator()
-                        document.multipleMassSpectrum[key]["color"] = color
-
-                    if "label" in document.multipleMassSpectrum[key]:
-                        label = document.multipleMassSpectrum[key]["label"]
-                    else:
-                        label = os.path.splitext(key)[0]
-                        document.multipleMassSpectrum[key]["label"] = label
-
-                    add_dict = {
-                        "filename": key,
-                        "document": document.title,
-                        "variable": energy,
-                        "label": label,
-                        "color": color,
-                    }
-
-                    self.filesPanel.on_add_to_table(add_dict, check_color=False)
-
-                self.view.panelMML.onRemoveDuplicates(evt=None, limitCols=False)
-                # Update aui manager
-                self.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
+            self._load_document_data_filelist(document)
 
             # Restore calibration list
             if document.dataType == "Type: CALIBRANT":
@@ -3034,7 +3048,10 @@ class data_handling:
             logger.info(f"Extracted {spectrum_name} in {ttime()-tstart:.2f} seconds.")
 
     def on_save_heatmap_figures(self, plot_type, item_list):
-        """Save heatmap-based figures to file
+        """Export heatmap-based data as figures in batch mode
+
+        Executing this action will open dialog where user can specify various settings and subsequently decide whether
+        to continue or cancel the action
 
         Parameters
         ----------
@@ -3043,8 +3060,7 @@ class data_handling:
         item_list : list
             list of items to be plotted. Must be constructed to have [document_title, dataset_type, dataset_name]
         """
-        if plot_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
-            raise MessageError("Incorrect plot type", "This function cannot plot this plot type")
+        from gui_elements.dialog_batch_figure_exporter import DialogExportFigures
 
         fname_alias = {
             "Drift time (2D, EIC)": "raw",
@@ -3052,15 +3068,29 @@ class data_handling:
             "Drift time (2D, combined voltages, EIC)": "combined_cv",
             "Input data": "input_data",
         }
-
         resize_alias = {"heatmap": "2D", "chromatogram": "RT", "mobilogram": "DT", "waterfall": "Waterfall"}
-        #
-        #         dlg = wx.DirDialog(self.view, "Choose a folder where to save images",
-        #                            style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-        #         if dlg.ShowModal() == wx.ID_OK:
-        #             path = dlg.GetPath()
 
-        path = r"D:\Data\ORIGAMI\origami_ms\images"
+        # check input is correct
+        if plot_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
+            raise MessageError("Incorrect plot type", "This function cannot plot this plot type")
+
+        if len(item_list) == 0:
+            raise MessageError("No items in the list", "Please select at least one item in the panel to export")
+
+        # setup output parameters
+        dlg_kwargs = {"image_size_inch": self.config._plotSettings[resize_alias[plot_type]]["resize_size"]}
+        dlg = DialogExportFigures(self.presenter.view, self.presenter, self.config, self.presenter.icons, **dlg_kwargs)
+
+        if dlg.ShowModal() == wx.ID_NO:
+            logger.error("Action was cancelled")
+            return
+
+        path = self.config.image_folder_path
+        if not check_path_exists(path):
+            logger.error("Action was cancelled because the path does not exist")
+            return
+
+        # save individual images
         for document_title, dataset_type, dataset_name in item_list:
             # generate filename
             filename = f"{plot_type}_{dataset_name}_{fname_alias[dataset_type]}_{document_title}"
