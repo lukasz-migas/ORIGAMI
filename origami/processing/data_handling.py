@@ -3121,12 +3121,19 @@ class data_handling:
         #         if dlg.ShowModal() == wx.ID_OK:
         #             path = dlg.GetPath()
 
+        delimiter = ","
+        extension = "csv"
         path = r"D:\Data\ORIGAMI\origami_ms\images"
         for document_title, dataset_type, dataset_name in item_list:
+            tstart = ttime()
             # generate filename
             filename = f"{data_type}_{dataset_name}_{fname_alias[dataset_type]}_{document_title}"
             filename = clean_filename(filename)
             filename = os.path.join(path, filename)
+
+            if not filename.endswith(f".{extension}"):
+                filename += f".{extension}"
+
             # get data
             try:
                 query_info = [document_title, dataset_type, dataset_name]
@@ -3138,8 +3145,26 @@ class data_handling:
             zvals = data["zvals"]
             xvals = data["xvals"]
             yvals = data["yvals"]
+            xlabel = data["xlabels"]
+            ylabel = data["ylabels"]
 
-            print(zvals.shape, xvals.shape, yvals.shape)
+            data_format = "%.4f"
+            # plot data
+            if data_type == "heatmap":
+                save_data, header = io_text_files.prepare_heatmap_data_for_saving(zvals, xvals, yvals, guess_dtype=True)
+            elif data_type == "chromatogram":
+                yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
+                save_data, header = io_text_files.prepare_signal_data_for_saving(xvals, yvals_RT, xlabel, "Intensity")
+            elif data_type == "mobilogram":
+                yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
+                save_data, header = io_text_files.prepare_signal_data_for_saving(yvals, yvals_DT, ylabel, "Intensity")
+
+            header = delimiter.join(header)
+
+            io_text_files.save_data(
+                filename=filename, data=save_data, fmt=data_format, delimiter=delimiter, header=header
+            )
+            logger.info(f"Saved {filename} in {ttime()-tstart:.4f} seconds.")
 
     def get_spectrum_data(self, query_info, **kwargs):
         """Retrieve data for specified query items.

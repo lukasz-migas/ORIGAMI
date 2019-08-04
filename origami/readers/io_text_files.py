@@ -84,6 +84,23 @@ def convert_values_to_header(vals):
     return header
 
 
+def prepare_signal_data_for_saving(xvals, yvals, xlabel, ylabel, guess_dtype=False):
+    # check whether shape of the input data matches
+    if xvals.shape != yvals.shape:
+        raise ValueError("Incorrect shape of input data")
+
+    data = np.vstack([xvals, yvals])
+
+    # ensure that data is structured to have more rows than columns
+    if data.shape[0] < data.shape[1]:
+        data = data.T
+
+    # generate header
+    header = [xlabel, ylabel]
+
+    return data, header
+
+
 def text_infrared_open(path=None, normalize=None):
     tstart = time.clock()
 
@@ -203,11 +220,6 @@ def save_data(filename, data, header=None, fmt="%.4f", delimiter=",", **kwargs):
 
     if kwargs.pop("as_object", False):
         data = np.array(data, dtype=object)
-    #         try:
-    #             np.savetxt(filename, data, delimiter=delimiter, header=header, fmt=fmt)
-    #         except IOError:
-    #             logger.error(f"Failed to save file {filename} as it is currently in use.")
-    #         return
 
     try:
         np.savetxt(filename, data, fmt=fmt, delimiter=delimiter, header=header, comments="")
