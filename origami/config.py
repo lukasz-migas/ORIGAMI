@@ -62,9 +62,18 @@ class OrigamiConfig:
         self.import_duplicate_action = "merge"
         self.import_duplicate_ask = False
 
-        self.watermark = '<p><span style="color: #808080;">This document was generated using ORIGAMI (v. {}) which is an Open-Source software for the analysis of MS and IM-MS datasets. If you would like more information, have a look <a href="https://doi.org/10.1016/j.ijms.2017.08.014">here</a> and to download it for free, have a look <a href="https://github.com/lukasz-migas/ORIGAMI/releases">here</a>.</span></p>'.format(
-            self.version
-        )
+        self.watermark = f"""
+        <p>
+          <span style="color: #808080;"
+            >This document was generated using ORIGAMI (v. {self.version}) which is an Open-Source
+            software for the analysis of MS and IM-MS datasets. If you would like more
+            information, have a look
+            <a href="https://doi.org/10.1016/j.ijms.2017.08.014">here</a> and to
+            download it for free, have a look
+            <a href="https://github.com/lukasz-migas/ORIGAMI/releases">here</a>.</span
+          >
+        </p>
+        """
         # Populate GUI
         self.overlayChoices = sorted(
             [
@@ -2351,21 +2360,16 @@ class OrigamiConfig:
         buff += "  <presets_gui_plotSizes>\n"
         for key, __ in sorted(self._plotSettings.items()):
             ps = self._plotSettings[key]
-            buff += '    <param name="{}" left_axes="{:.2f}" bottom_axes="{:.2f}" width_axes="{:.2f}" height_axes="{:.2f}" left_save="{:.2f}" bottom_save="{:.2f}" width_save="{:.2f}" height_save="{:.2f}" width_resize="{:.2f}" height_resize="{:.2f}" width_gui="{:.2f}" height_gui="{:.2f}" default_name="{}" type="float" />\n'.format(
-                key,
-                ps["axes_size"][0],
-                ps["axes_size"][1],
-                ps["axes_size"][2],
-                ps["axes_size"][3],
-                ps["save_size"][0],
-                ps["save_size"][1],
-                ps["save_size"][2],
-                ps["save_size"][3],
-                ps["resize_size"][0],
-                ps["resize_size"][1],
-                ps["gui_size"][0],
-                ps["gui_size"][1],
-                ps["default_name"],
+            buff += (
+                f'    <param name="{key}"'
+                + f' left_axes="{ps["axes_size"][0]:.2f}"'
+                + f' bottom_axes="{ps["axes_size"][1]:.2f}"'
+                + f' width_axes="{ps["axes_size"][2]:.2f}" height_axes="{ps["axes_size"][3]:.2f}"'
+                + f' left_save="{ps["save_size"][0]:.2f}" bottom_save="{ps["save_size"][1]:.2f}"'
+                + f' width_save="{ps["save_size"][2]:.2f}" height_save="{ps["save_size"][3]:.2f}"'
+                + f' width_resize="{ps["resize_size"][0]:.2f}" height_resize="{ps["resize_size"][1]:.2f}"'
+                + f' width_gui="{ps["gui_size"][0]:.2f}" height_gui="{ps["gui_size"][1]:.2f}"'
+                + f' default_name="{ps["default_name"]}" type="float" />\n'
             )
         buff += "  </presets_gui_plotSizes>\n\n"
 
@@ -2374,28 +2378,26 @@ class OrigamiConfig:
         for key in sorted(self._windowSettings.keys()):
             item = self._windowSettings[key]
             if key != "Toolbar":
-                buff += '    <param title="{}" gripper="{}" caption="{}" close_button="{}" floating="{}" show="{}" type="mixed" />\n'.format(
-                    item["title"],
-                    bool(item["gripper"]),
-                    str(item["caption"]),
-                    bool(item["close_button"]),
-                    bool(item["floating"]),
-                    bool(item["show"]),
+                buff += (
+                    f'    <param title="{item["title"]}" gripper="{bool(item["gripper"])}"'
+                    + f' caption="{str(item["caption"])}" close_button="{bool(item["close_button"])}"'
+                    + f' floating="{bool(item["floating"])}" show="{bool(item["show"])}" type="mixed" />\n'
                 )
             else:
-                buff += '    <param title="{}" gripper="{}" orientation="{}" close_button="{}" left_position="{}" top_position="{}" left_dockable="{}" right_dockable="{}" top_dockable="{}" bottom_dockable="{}" show="{}" type="mixed" />\n'.format(
-                    item["title"],
-                    bool(item["gripper"]),
-                    item["orientation"],
-                    bool(item["close_button"]),
-                    bool(item["left_position"]),
-                    bool(item["top_position"]),
-                    bool(item["left_dockable"]),
-                    bool(item["right_dockable"]),
-                    bool(item["top_dockable"]),
-                    bool(item["bottom_dockable"]),
-                    bool(item["show"]),
+                buff += (
+                    f'    <param title="{item["title"]}"'
+                    + f' gripper="{bool(item["gripper"])}"'
+                    + f' orientation="{item["orientation"]}"'
+                    + f' close_button="{bool(item["close_button"])}"'
+                    + f' left_position="{bool(item["left_position"])}"'
+                    + f' top_position="{bool(item["top_position"])}"'
+                    + f' left_dockable="{bool(item["left_dockable"])}"'
+                    + f' right_dockable="{bool(item["right_dockable"])}"'
+                    + f' top_dockable="{bool(item["top_dockable"])}"'
+                    + f' bottom_dockable="{bool(item["bottom_dockable"])}"'
+                    + f' show="{bool(item["show"])}" type="mixed" />\n'
                 )
+
         buff += "  </presets_gui_aui_settings>\n\n"
 
         # Plot presets - zoom
@@ -3050,21 +3052,15 @@ class OrigamiConfig:
         buff += '    <!-- activeInspect_choices="%s" -->\n' % self.interactive_activeHoverTools_choices
         for key, __ in sorted(self.interactiveToolsOnOff.items()):
             ts = self.interactiveToolsOnOff[key]
-            buff += '    <param name="{}" hover="{}" save="{}" pan="{}" boxzoom="{}" boxzoom_horizontal="{}" boxzoom_vertical="{}" crosshair="{}" reset="{}" wheel="{}" wheelType="{}" activeDrag="{}" activeWheel="{}" activeInspect="{}" type="mixed" />\n'.format(
-                key,
-                bool(ts["hover"]),
-                bool(ts["save"]),
-                bool(ts["pan"]),
-                bool(ts["boxzoom"]),
-                bool(ts.get("boxzoom_horizontal", True)),
-                bool(ts.get("boxzoom_vertical", False)),
-                bool(ts["crosshair"]),
-                bool(ts["reset"]),
-                bool(ts["wheel"]),
-                ts["wheelType"],
-                ts["activeDrag"],
-                ts["activeWheel"],
-                ts["activeInspect"],
+            buff += (
+                f'    <param name="{key}" hover="{bool(ts["hover"])}"'
+                + f' save="{bool(ts["save"])}" pan="{bool(ts["pan"])}"'
+                + f' boxzoom="{bool(ts["boxzoom"])}" boxzoom_horizontal="{bool(ts["boxzoom_horizontal"])}"'
+                + f' boxzoom_vertical="{bool(ts["boxzoom_vertical"])}" crosshair="{bool(ts["crosshair"])}"'
+                + f' reset="{bool(ts["reset"])}" wheel="{bool(ts["wheel"])}"'
+                + f' wheelType="{ts["wheelType"]}" activeDrag="{ts["activeDrag"]}"'
+                + f' activeWheel="{ts["activeWheel"]}" activeInspect="{ts["activeInspect"]}"'
+                + f' type="mixed" />\n'
             )
         buff += "  </presets_interactive_toolsets>\n\n"
 
@@ -3072,9 +3068,12 @@ class OrigamiConfig:
         buff += '    <!-- layout_choices="%s" -->\n' % self.interactive_pageLayout_choices
         for key, __ in sorted(self.pageDict.items()):
             pl = self.pageDict[key]
-            buff += '    <param page_name="{}" name="{}" layout="{}" rows="{}" columns="{}" grid_share_tools="{}" type="mixed" />\n'.format(
-                key, pl["name"], pl["layout"], pl.get("rows", None), pl["columns"], pl.get("grid_share_tools", True)
+            buff += (
+                f'    <param page_name="{key}" name="{pl["name"]}"'
+                + f' layout="{pl["layout"]}" rows="{pl["rows"]}" columns="{pl["columns"]}"'
+                + f' grid_share_tools="{pl.get("grid_share_tools", True)}" type="mixed" />\n'
             )
+
         buff += "  </presets_interactive_pageLayouts>\n\n"
 
         buff += "  <presets_interactive_gui>\n"
@@ -3655,23 +3654,6 @@ class OrigamiConfig:
                             "top_dockable": top_dockable,
                             "show": show,
                         }
-
-    def saveProteinXML(self, path, evt=None):
-        pass
-
-    def saveCCSCalibrantsXML(self, path, evt=None):
-        """ Make and save config file in XML format """
-
-        buff = '<?xml version="1.0" encoding="utf-8" ?>\n'
-        buff += "<!-- Please refrain from changing the parameter names - this will break things! -->\n"
-        buff += '<origamiConfig version="1.0">\n\n'
-
-        # calibrants
-        buff += "  <calibrants>\n"
-        buff += '    <param protein="operator" mw="%.3f" subunits="%d" charge="%d" m/z="%.3f" ccsHePos="%.3f" ccsN2Pos="%.3f" ccsHeNeg="%.3f" ccsN2Neg="%.3f" state="%s" source="%s" type="calibrant" />\n'
-        buff += "  </calibrants>\n\n"
-
-        buff += "</origamiConfig>"
 
     def setProperType(self, value, item_type):
         """ change type for config objects """

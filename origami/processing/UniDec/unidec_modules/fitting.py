@@ -384,11 +384,11 @@ def poisson_mono_di(datatop):
 
 
 def multipoisson(array, datatop, oarray, background=False):
-    l = len(oarray)
+    n_pts = len(oarray)
     fitdat = np.zeros_like(datatop[:, 1])
     integrals = np.empty_like(oarray).astype(np.float)
     integrals2 = np.empty_like(oarray).astype(np.float)
-    for i in range(0, l):
+    for i in range(0, n_pts):
         oligomer = oarray[i]
         mu = array[i * 2]
         A = array[i * 2 + 1]
