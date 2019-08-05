@@ -222,13 +222,9 @@ def interpolate(x_short, y_short, x_long):
 
 def linearize_data(msX, msY, **kwargs):
 
-    if "auto_range" in kwargs:
-        if kwargs["auto_range"]:
-            mzStart = msX[0]
-            mzEnd = msY[-1]
-        else:
-            mzStart = kwargs["mz_min"]
-            mzEnd = kwargs["mz_max"]
+    if kwargs.get("auto_range", True):
+        mzStart = msX[0]
+        mzEnd = msX[-1]
     else:
         mzStart = kwargs["mz_min"]
         mzEnd = kwargs["mz_max"]
@@ -246,14 +242,16 @@ def linearize_data(msX, msY, **kwargs):
 
 def crop_1D_data(msX, msY, **kwargs):
     """
-    @param msX (list): x-axis list
-    @param msY (list): y-axis list
+    msX : list
+        x-axis list
+    msY : list
+        y-axis list
     """
 
     crop_min, crop_max = kwargs["min"], kwargs["max"]
 
     # get data min, max
-    data_min, data_max = np.min(msX), np.max(msX)
+    data_min, data_max = get_min_max(msX)
 
     # check if data is in appropriate range
     if crop_min < data_min:

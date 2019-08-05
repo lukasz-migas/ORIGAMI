@@ -1011,6 +1011,12 @@ class data_processing:
         if dataset_type == "Drift time (2D)" and dataset_name is None:
             dataset_type = "Drift time (2D, processed)"
             new_dataset = None
+        elif dataset_type == "DT/MS" and dataset_name is None:
+            raise MessageError(
+                "Not implemented yet",
+                "You can process and visualise DT/MS data, however, the"
+                + " processed data will not be stored in document, yet",
+            )
         else:
             # strip any processed string from the title
             dataset_name = ut_labels.get_clean_label_without_tag(dataset_name, "processed")

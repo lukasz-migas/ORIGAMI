@@ -52,8 +52,6 @@ from ids import ID_plotPanel_resize
 from ids import ID_plots_customise_plot
 from ids import ID_plots_customise_smart_zoom
 from ids import ID_plots_rotate90
-from ids import ID_processSettings_2D
-from ids import ID_processSettings_MS
 from ids import ID_save1DImage
 from ids import ID_save1DImageDoc
 from ids import ID_save2DImage
@@ -98,14 +96,7 @@ from visuals.normalize import MidpointNormalize
 
 logger = logging.getLogger("origami")
 
-# TODO: Improve layout
-# TODO: Improve how plot panels are generated
-# TODO: Remove the following panels: Waterfall, UniDec, Overlay, RMSF, Calibration
-# TODO: Rename the following panels: MS -> Mass spectrum; RT -> Chromatogram; 1D -> Mobilogram;
 # 2D -> Heatmap; Other -> Annotated (or else)
-# TODO: Make each function accept plot_obj and use the get_plot function
-# TODO: Standardize how plots are exported
-# TODO: Add option to copy plot clipboard
 
 
 class panelPlot(wx.Panel):
@@ -148,6 +139,7 @@ class panelPlot(wx.Panel):
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
+        self.document_tree = self.view.panelDocuments.documents
 
     def on_get_current_page(self):
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
@@ -328,6 +320,35 @@ class panelPlot(wx.Panel):
         plot_obj.plot_1D_update_data(xs[0], ys[0], xlabel, ylabel, label=labels[0], **plt_kwargs)
         plot_obj.repaint()
 
+    def on_process_spectrum(self, evt):
+        plot_obj = self.get_plot_from_name(self.currentPage)
+        try:
+            xs, ys, __, xlabel, ylabel = plot_obj.plot_1D_get_data()
+        except AttributeError:
+            raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
+
+        data = {"xvals": xs[0], "yvals": ys[0], "xlabels": xlabel, "ylabels": ylabel}
+        self.document_tree.on_process_MS_plot_only(data)
+
+    def on_process_heatmap(self, evt):
+        plot_obj = self.get_plot_from_name(self.currentPage)
+        data = plot_obj.plot_2D_get_data()
+
+        # ensure correct keys are present
+        if "xlabels" not in data:
+            data["xlabels"] = data["xlabel"]
+        if "ylabels" not in data:
+            data["ylabels"] = data["ylabel"]
+        try:
+            self.document_tree.on_process_2D_plot_only(self.currentPage, data)
+        except ValueError:
+            raise MessageError(
+                "Failed processing",
+                "This error can occur when visually processing DT/MS dataset. It is best to simply"
+                + " right-click on DT/MS item in the Document Tree and select 'Process...'"
+                + " where it should not occur.",
+            )
+
     def on_right_click(self, evt):
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
 
@@ -437,22 +458,20 @@ class panelPlot(wx.Panel):
         #             parent=menu, id=ID_plots_rotate90, text="Rotate 90°", bitmap=self.icons.iconsLib["blank_16"]
         #         )
         menu_action_process_2D = makeMenuItem(
-            parent=menu,
-            id=ID_processSettings_2D,
-            text="Process heatmap...",
-            bitmap=self.icons.iconsLib["process_2d_16"],
+            parent=menu, text="Process heatmap...", bitmap=self.icons.iconsLib["process_2d_16"]
         )
 
         menu_action_process_MS = makeMenuItem(
-            parent=menu,
-            id=ID_processSettings_MS,
-            text="Process mass spectrum...",
-            bitmap=self.icons.iconsLib["process_ms_16"],
+            parent=menu, text="Process mass spectrum...", bitmap=self.icons.iconsLib["process_ms_16"]
         )
 
         menu_action_copy_to_clipboard = makeMenuItem(
             parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
         )
+
+        # bind events by item
+        self.Bind(wx.EVT_MENU, self.on_process_spectrum, menu_action_process_MS)
+        self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2D)
 
         if self.currentPage == "Mass spectrum":
             menu.AppendItem(menu_action_process_MS)

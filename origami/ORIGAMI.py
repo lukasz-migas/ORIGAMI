@@ -216,6 +216,7 @@ class ORIGAMI(object):
 
         # Generate filename
         if self.config.loggingFile_path is None:
+
             file_path = "origami_{}.log".format(self.config.startTime)
             self.config.loggingFile_path = os.path.join(log_directory, file_path)
 

@@ -49,7 +49,7 @@ class DialogExportFigures(Dialog):
 
     def on_key_event(self, evt):
         """Trigger event based on keyboard input"""
-        key_code = evt.GetKeyCode()
+        #         key_code = evt.GetKeyCode()
 
         if evt is not None:
             evt.Skip()
@@ -57,21 +57,6 @@ class DialogExportFigures(Dialog):
     def on_close(self, evt):
         """Destroy this frame"""
         self.EndModal(wx.ID_NO)
-
-    def make_gui(self):
-        """Make and arrange main panel"""
-
-        # make panel
-        panel = self.make_panel()
-
-        # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
-
-        # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
-        self.Layout()
 
     def make_panel(self):
         panel = wx.Panel(self, -1, size=(-1, -1))

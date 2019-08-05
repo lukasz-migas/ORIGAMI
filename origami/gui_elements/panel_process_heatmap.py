@@ -71,21 +71,6 @@ class PanelProcessHeatmap(MiniFrame):
         if evt is not None:
             evt.Skip()
 
-    def make_gui(self):
-        """Make and arrange main panel"""
-
-        # make panel
-        panel = self.make_panel()
-
-        # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
-
-        # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
-        self.Layout()
-
     def make_panel(self):
         """Make settings panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))

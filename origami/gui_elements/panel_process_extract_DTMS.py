@@ -41,19 +41,6 @@ class PanelProcessExtractDTMS(MiniFrame):
         self.CentreOnScreen()
         self.SetFocus()
 
-    def make_gui(self):
-
-        # make panel
-        panel = self.make_panel()
-
-        # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 0)
-
-        # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
-
     def make_panel(self):
         panel = wx.Panel(self, -1, size=(-1, -1))
         main_sizer = wx.BoxSizer(wx.VERTICAL)

@@ -472,7 +472,7 @@ class documentsTree(wx.TreeCtrl):
             "overlay_on": 17,
         }
 
-    def on_save_as_document(self, evt):
+    def on_save_document_as(self, evt):
         """
         Save current document. With asking for path.
         """
@@ -2504,6 +2504,17 @@ class documentsTree(wx.TreeCtrl):
             parent=menu, id=ID_saveRTImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
         )
 
+        menu_action_save_document = makeMenuItem(
+            parent=menu, id=ID_saveDocument, text="Save document\tCtrl+S", bitmap=self.icons.iconsLib["pickle_16"]
+        )
+
+        menu_action_save_document_as = makeMenuItem(
+            parent=menu, text="Save document as...", bitmap=self.icons.iconsLib["save16"]
+        )
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_save_document_as, menu_action_save_document_as)
+
         # INTERACTIVE DATASET ONLY
         if self._document_data.dataType == "Type: Interactive":
             if self._document_type == "Annotated data" and self._item_leaf != self._document_type:
@@ -3040,18 +3051,14 @@ class documentsTree(wx.TreeCtrl):
                 bitmap=self.icons.iconsLib["bokehLogo_16"],
             )
         )
-        menu.AppendItem(
-            makeMenuItem(
-                parent=menu,
-                id=ID_saveDocument,
-                text="Save document to file\tCtrl+P",
-                bitmap=self.icons.iconsLib["pickle_16"],
-            )
-        )
+        menu.AppendItem(menu_action_save_document)
+        menu.AppendItem(menu_action_save_document_as)
+
         menu.AppendSeparator()
         menu.AppendItem(
             makeMenuItem(parent=menu, id=ID_removeDocument, text="Delete document", bitmap=self.icons.iconsLib["bin16"])
         )
+
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -3706,6 +3713,17 @@ class documentsTree(wx.TreeCtrl):
             data=data, document=document, document_title=document.title, dataset_type=query[1], dataset_name=query[2]
         )
 
+    def on_process_2D_plot_only(self, dataset_type, data):
+        self.on_open_process_2D_settings(
+            data=data,
+            document=None,
+            document_title=None,
+            dataset_type=dataset_type,
+            dataset_name=None,
+            disable_plot=False,
+            disable_process=True,
+        )
+
     def on_process_all_2D(self, evt):
         """Process all clicked heatmap items"""
 
@@ -3733,6 +3751,18 @@ class documentsTree(wx.TreeCtrl):
         document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
         self.on_open_process_MS_settings(
             mz_data=data, document=document, document_title=document.title, dataset_name=dataset
+        )
+
+    def on_process_MS_plot_only(self, data):
+        """Process mass spectrum data
+
+        Parameters
+        ----------
+        data : dict
+            dictionary containing `xvals`, `yvals`, `xlabels` and `ylabels` keys with data
+        """
+        self.on_open_process_MS_settings(
+            mz_data=data, document=None, document_title=None, dataset_name=None, disable_process=True
         )
 
     def on_process_MS_all(self, evt, **kwargs):
@@ -3963,11 +3993,9 @@ class documentsTree(wx.TreeCtrl):
 
             self.SetFocus()
 
-    def onGoToDirectory(self, evt=None):
-        """
-        Go to selected directory
-        """
-        self.presenter.on_open_directory()
+    def onGoToDirectory(self, evt):
+        """Go to selected directory"""
+        self.data_handling.on_open_directory(None)
 
     def on_save_unidec_results(self, evt, data_type="all"):
         basename = os.path.splitext(self._document_data.title)[0]

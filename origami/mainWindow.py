@@ -194,7 +194,7 @@ class MyFrame(wx.Frame):
 
         self.resized = False
 
-        self.config.startTime = strftime("%H-%M-%S_%d-%m-%Y", gmtime())
+        self.config.startTime = strftime("%Y_%m_%d-%H-%M-%S", gmtime())
 
         # Bind commands to events
         self.Bind(wx.EVT_CLOSE, self.on_close)

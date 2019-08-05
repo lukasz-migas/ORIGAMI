@@ -855,6 +855,15 @@ class plots(mpl_plotter):
         ylabel = self.plotMS.get_ylabel()
         return xdata, ydata, labels, xlabel, ylabel
 
+    def plot_2D_get_data(self):
+
+        #         xvals, yvals, zvals = [], [], []
+        #         zvals = self.cax.get_array()
+        #         xlabel = self.plotMS.get_xlabel()
+        #         ylabel = self.plotMS.get_ylabel()
+
+        return self.plot_data
+
     def plot_1D_update_data(self, xvals, yvals, xlabel, ylabel, testMax="yvals", **kwargs):
         if self.plot_name in ["compare", "Compare"]:
             raise Exception("Wrong plot name - resetting")

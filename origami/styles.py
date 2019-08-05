@@ -188,6 +188,21 @@ class Dialog(wx.Dialog):
         """Destroy this frame."""
         self.Destroy()
 
+    def make_gui(self):
+        """Make and arrange main panel"""
+
+        # make panel
+        panel = self.make_panel()
+
+        # pack element
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
+
+        # fit layout
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
+        self.Layout()
+
 
 class MiniFrame(wx.MiniFrame):
     """Proxy of MiniFrame"""
@@ -212,6 +227,20 @@ class MiniFrame(wx.MiniFrame):
     def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
+
+    def make_gui(self):
+        """Make and arrange main panel"""
+        # make panel
+        panel = self.make_panel()
+
+        # pack element
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
+
+        # fit layout
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
+        self.Layout()
 
 
 class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):

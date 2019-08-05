@@ -141,6 +141,24 @@ class data_handling:
     def update_statusbar(self, msg, field):
         self.on_threading(args=(msg, field), action="statusbar.update")
 
+    def on_open_directory(self, path):
+        """Open document path"""
+
+        # if path is not provided, get one from current document
+        if path is None:
+            document = self._on_get_document()
+            path = document.path
+
+        # check whether the path exist
+        if not check_path_exists(path):
+            raise MessageError("Path does not exist", f"Path {path} does not exist")
+
+        # open path
+        try:
+            os.startfile(path)
+        except WindowsError:
+            raise MessageError("Path does not exist", f"Failed to open {path}")
+
     def _on_get_document(self, document_title=None):
 
         if document_title is None:
@@ -2246,9 +2264,13 @@ class data_handling:
         if document_title not in document_path:
             document_path = document_path + "\\" + document_title
 
+        if not document_path.endswith(".pickle"):
+            document_path += ".pickle"
+
         try:
-            full_path, __, fname, is_path = self.get_path_and_fname(document_path)
-        except Exception:
+            full_path, __, fname, is_path = get_path_and_fname(document_path)
+        except Exception as err:
+            logger.error(err)
             full_path = None
             fname = byte2str(document.title.split("."))
             is_path = False
@@ -2259,7 +2281,7 @@ class data_handling:
         if not save_as and is_path:
             save_path = full_path
             if not save_path.endswith(".pickle"):
-                save_path = save_path + ".pickle"
+                save_path += ".pickle"
         else:
             dlg = wx.FileDialog(
                 self.view,
