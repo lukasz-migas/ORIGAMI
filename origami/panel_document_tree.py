@@ -158,7 +158,7 @@ if platform == "win32":
 logger = logging.getLogger("origami")
 
 
-class panelDocuments(wx.Panel):
+class PanelDocumentTree(wx.Panel):
     """
     Make documents panel to store all information about open files
     """
@@ -184,10 +184,10 @@ class panelDocuments(wx.Panel):
         pass
 
     def makeTreeCtrl(self):
-        self.documents = documentsTree(self, self.parent, self.presenter, self.icons, self.config, size=(-1, -1))
+        self.documents = DocumentTree(self, self.parent, self.presenter, self.icons, self.config, size=(-1, -1))
 
 
-class documentsTree(wx.TreeCtrl):
+class DocumentTree(wx.TreeCtrl):
     """
     Documents tree
     """

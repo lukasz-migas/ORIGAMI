@@ -44,7 +44,7 @@ from utils.converters import str2int
 from utils.converters import str2num
 
 
-class panelCCScalibration(wx.Panel):
+class PanelCCSCalibration(wx.Panel):
     def __init__(self, parent, config, icons, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, 400), style=wx.TAB_TRAVERSAL

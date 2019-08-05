@@ -86,7 +86,7 @@ from utils.time import getTime
 logger = logging.getLogger("origami")
 
 
-class panelMultipleTextFiles(wx.Panel):
+class PanelTextlist(wx.Panel):
     def __init__(self, parent, config, icons, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL

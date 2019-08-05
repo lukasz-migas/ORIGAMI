@@ -99,7 +99,7 @@ logger = logging.getLogger("origami")
 # 2D -> Heatmap; Other -> Annotated (or else)
 
 
-class panelPlot(wx.Panel):
+class PanelPlots(wx.Panel):
     def __init__(self, parent, config, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(800, 600), style=wx.TAB_TRAVERSAL

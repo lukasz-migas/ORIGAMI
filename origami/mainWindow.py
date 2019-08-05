@@ -129,25 +129,21 @@ from ids import ID_showPlotMSDocument
 from ids import ID_unidecPanel_otherSettings
 from ids import ID_WHATS_NEW
 from ids import ID_window_all
-from ids import ID_window_ccsList
 from ids import ID_window_controls
 from ids import ID_window_documentList
 from ids import ID_window_ionList
-from ids import ID_window_multiFieldList
 from ids import ID_window_multipleMLList
 from ids import ID_window_textList
 from ids import ID_windowFullscreen
 from ids import ID_windowMaximize
 from ids import ID_windowMinimize
-from panelCCScalibration import panelCCScalibration
-from panelDocumentTree import panelDocuments
+from panel_document_tree import PanelDocumentTree
+from panel_multi_file import PanelMultiFile
+from panel_peaklist import PanelPeaklist
+from panel_plots import PanelPlots
+from panel_textlist import PanelTextlist
 from panelExtraParameters import panelParametersEdit
 from panelInteractiveOutput import panelInteractiveOutput as panelInteractive
-from panelLinearDriftCell import panelLinearDriftCell
-from panelMultipleIons import panelMultipleIons
-from panelMultipleML import panelMML
-from panelMultipleTextFiles import panelMultipleTextFiles
-from panelPlot import panelPlot
 from processing.data_handling import data_handling
 from processing.data_processing import data_processing
 from pubsub import pub
@@ -206,14 +202,12 @@ class MyFrame(wx.Frame):
         self._mgr.SetDockSizeConstraint(1, 1)
 
         # Load panels
-        self.panelDocuments = panelDocuments(self, self.config, self.icons, self.presenter)
+        self.panelDocuments = PanelDocumentTree(self, self.config, self.icons, self.presenter)
 
-        self.panelPlots = panelPlot(self, self.config, self.presenter)
-        self.panelMultipleIons = panelMultipleIons(self, self.config, self.icons, self.help, self.presenter)
-        self.panelMultipleText = panelMultipleTextFiles(self, self.config, self.icons, self.presenter)
-        self.panelMML = panelMML(self, self.config, self.icons, self.presenter)
-        self.panelLinearDT = panelLinearDriftCell(self, self.config, self.icons, self.presenter)
-        self.panelCCS = panelCCScalibration(self, self.config, self.icons, self.presenter)
+        self.panelPlots = PanelPlots(self, self.config, self.presenter)
+        self.panelMultipleIons = PanelPeaklist(self, self.config, self.icons, self.help, self.presenter)
+        self.panelMultipleText = PanelTextlist(self, self.config, self.icons, self.presenter)
+        self.panelMML = PanelMultiFile(self, self.config, self.icons, self.presenter)
 
         kwargs = {"window": None}
         self.panelParametersEdit = panelParametersEdit(self, self.presenter, self.config, self.icons, **kwargs)
@@ -299,38 +293,6 @@ class MyFrame(wx.Frame):
             .Gripper(self.config._windowSettings["Multiple files"]["gripper"]),
         )
 
-        # Panel to analyse linear DT data (Synapt)
-        self._mgr.AddPane(
-            self.panelLinearDT,
-            wx.aui.AuiPaneInfo()
-            .Right()
-            .Caption("Linear Drift Cell")
-            .MinSize((300, -1))
-            .GripperTop()
-            .BottomDockable(True)
-            .TopDockable(False)
-            .Show(self.config._windowSettings["Linear Drift Cell"]["show"])
-            .CloseButton(self.config._windowSettings["Linear Drift Cell"]["close_button"])
-            .CaptionVisible(self.config._windowSettings["Linear Drift Cell"]["caption"])
-            .Gripper(self.config._windowSettings["Linear Drift Cell"]["gripper"]),
-        )
-
-        # Panel to perform CCS calibration
-        self._mgr.AddPane(
-            self.panelCCS,
-            wx.aui.AuiPaneInfo()
-            .Right()
-            .Caption("CCS calibration")
-            .MinSize((320, -1))
-            .GripperTop()
-            .BottomDockable(True)
-            .TopDockable(False)
-            .Show(self.config._windowSettings["CCS calibration"]["show"])
-            .CloseButton(self.config._windowSettings["CCS calibration"]["close_button"])
-            .CaptionVisible(self.config._windowSettings["CCS calibration"]["caption"])
-            .Gripper(self.config._windowSettings["CCS calibration"]["gripper"]),
-        )
-
         self._mgr.AddPane(
             self.panelParametersEdit,
             wx.aui.AuiPaneInfo()
@@ -374,8 +336,6 @@ class MyFrame(wx.Frame):
     def on_update_panel_config(self):
         self.config._windowSettings["Documents"]["id"] = ID_window_documentList
         self.config._windowSettings["Peak list"]["id"] = ID_window_ionList
-        self.config._windowSettings["CCS calibration"]["id"] = ID_window_ccsList
-        self.config._windowSettings["Linear Drift Cell"]["id"] = ID_window_multiFieldList
         self.config._windowSettings["Text files"]["id"] = ID_window_textList
         self.config._windowSettings["Multiple files"]["id"] = ID_window_multipleMLList
 
@@ -385,18 +345,9 @@ class MyFrame(wx.Frame):
             "Multiple files": ID_window_multipleMLList,
             "Peak list": ID_window_ionList,
             "Text files": ID_window_textList,
-            "CCS calibration": ID_window_ccsList,
-            "Linear Drift Cell": ID_window_multiFieldList,
         }
 
-        for panel in [
-            self.panelDocuments,
-            self.panelMML,
-            self.panelMultipleIons,
-            self.panelMultipleText,
-            self.panelCCS,
-            self.panelLinearDT,
-        ]:
+        for panel in [self.panelDocuments, self.panelMML, self.panelMultipleIons, self.panelMultipleText]:
             if self._mgr.GetPane(panel).IsShown():
                 self.on_find_toggle_by_id(find_id=panelDict[self._mgr.GetPane(panel).caption], check=True)
 
@@ -745,15 +696,11 @@ class MyFrame(wx.Frame):
         )
         menuView.AppendSeparator()
         self.documentsPage = menuView.Append(ID_window_documentList, "Panel: Documents\tCtrl+1", kind=wx.ITEM_CHECK)
-        self.mzTable = menuView.Append(ID_window_ionList, "Panel: Peak list\tCtrl+3", kind=wx.ITEM_CHECK)
-        self.textTable = menuView.Append(ID_window_textList, "Panel: Text list\tCtrl+4", kind=wx.ITEM_CHECK)
+        self.mzTable = menuView.Append(ID_window_ionList, "Panel: Peak list\tCtrl+2", kind=wx.ITEM_CHECK)
+        self.textTable = menuView.Append(ID_window_textList, "Panel: Text list\tCtrl+3", kind=wx.ITEM_CHECK)
         self.multipleMLTable = menuView.Append(
-            ID_window_multipleMLList, "Panel: Multiple files\tCtrl+5", kind=wx.ITEM_CHECK
+            ID_window_multipleMLList, "Panel: Multiple files\tCtrl+4", kind=wx.ITEM_CHECK
         )
-        self.multifieldTable = menuView.Append(
-            ID_window_multiFieldList, "Panel: Linear DT-IMS\tCtrl+6", kind=wx.ITEM_CHECK
-        )
-        self.ccsTable = menuView.Append(ID_window_ccsList, "Panel: CCS calibration\tCtrl+7", kind=wx.ITEM_CHECK)
         menuView.AppendSeparator()
         menuView.Append(ID_window_all, "Panel: Restore &all")
         menuView.AppendSeparator()
@@ -1192,10 +1139,8 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, id=ID_window_all)
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.documentsPage)
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.mzTable)
-        self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.multifieldTable)
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.textTable)
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.multipleMLTable)
-        self.Bind(wx.EVT_MENU, self.on_toggle_panel, self.ccsTable)
         self.Bind(wx.EVT_MENU, self.onWindowMaximize, id=ID_windowMaximize)
         self.Bind(wx.EVT_MENU, self.onWindowIconize, id=ID_windowMinimize)
         self.Bind(wx.EVT_MENU, self.onWindowFullscreen, id=ID_windowFullscreen)
@@ -1537,22 +1482,13 @@ class MyFrame(wx.Frame):
             ID_window_documentList, "", self.icons.iconsLib["panel_doc_16"], shortHelp="Enable/Disable documents panel"
         )
         self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_ionList, "", self.icons.iconsLib["panel_ion_16"], shortHelp="Enable/Disable multi ion panel"
+            ID_window_ionList, "", self.icons.iconsLib["panel_ion_16"], shortHelp="Enable/Disable peak list panel"
         )
         self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_textList, "", self.icons.iconsLib["panel_text_16"], shortHelp="Enable/Disable multi text panel"
+            ID_window_textList, "", self.icons.iconsLib["panel_text_16"], shortHelp="Enable/Disable text list panel"
         )
         self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_multipleMLList,
-            "",
-            self.icons.iconsLib["panel_mll__16"],
-            shortHelp="Enable/Disable multi MassLynx panel",
-        )
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_multiFieldList, "", self.icons.iconsLib["panel_dt_16"], shortHelp="Enable/Disable linear DT panel"
-        )
-        self.mainToolbar_horizontal.AddCheckTool(
-            ID_window_ccsList, "", self.icons.iconsLib["panel_ccs_16"], shortHelp="Enable/Disable CCS calibration panel"
+            ID_window_multipleMLList, "", self.icons.iconsLib["panel_mll__16"], shortHelp="Enable/Disable files panel"
         )
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
@@ -1613,12 +1549,8 @@ class MyFrame(wx.Frame):
                 evtID = ID_window_ionList
             elif evt == "text":
                 evtID = ID_window_textList
-            elif evt == "ccs":
-                evtID = ID_window_ccsList
             elif evt == "mass_spectra":
                 evtID = ID_window_multipleMLList
-            elif evt == "dt":
-                evtID = ID_window_multiFieldList
 
         elif evt is not None:
             evtID = evt.GetId()
@@ -1635,15 +1567,6 @@ class MyFrame(wx.Frame):
                     self.config._windowSettings["Documents"]["show"] = False
                 self.documentsPage.Check(self.config._windowSettings["Documents"]["show"])
                 self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings["Documents"]["show"])
-            elif evtID == ID_window_ccsList:
-                if not self.panelCCS.IsShown() or check or not self.ccsTable.IsChecked():
-                    self._mgr.GetPane(self.panelCCS).Show()
-                    self.config._windowSettings["CCS calibration"]["show"] = True
-                else:
-                    self._mgr.GetPane(self.panelCCS).Hide()
-                    self.config._windowSettings["CCS calibration"]["show"] = False
-                self.ccsTable.Check(self.config._windowSettings["CCS calibration"]["show"])
-                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings["CCS calibration"]["show"])
             elif evtID == ID_window_ionList:
                 if not self.panelMultipleIons.IsShown() or check or not self.mzTable.IsChecked():
                     self._mgr.GetPane(self.panelMultipleIons).Show()
@@ -1671,35 +1594,17 @@ class MyFrame(wx.Frame):
                     self.config._windowSettings["Text files"]["show"] = False
                 self.textTable.Check(self.config._windowSettings["Text files"]["show"])
                 self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings["Text files"]["show"])
-            elif evtID == ID_window_multiFieldList:
-                if not self.panelLinearDT.IsShown() or check or not self.multifieldTable.IsChecked():
-                    self._mgr.GetPane(self.panelLinearDT).Show()
-                    self.config._windowSettings["Linear Drift Cell"]["show"] = True
-                else:
-                    self._mgr.GetPane(self.panelLinearDT).Hide()
-                    self.config._windowSettings["Linear Drift Cell"]["show"] = False
-                self.multifieldTable.Check(self.config._windowSettings["Linear Drift Cell"]["show"])
-                self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings["Linear Drift Cell"]["show"])
             elif evtID == ID_window_all:
                 for key in self.config._windowSettings:
                     self.config._windowSettings[key]["show"] = True
 
                 self.on_find_toggle_by_id(check_all=True)
 
-                for panel in [
-                    self.panelDocuments,
-                    self.panelMML,
-                    self.panelMultipleIons,
-                    self.panelMultipleText,
-                    self.panelCCS,
-                    self.panelLinearDT,
-                ]:
+                for panel in [self.panelDocuments, self.panelMML, self.panelMultipleIons, self.panelMultipleText]:
                     self._mgr.GetPane(panel).Show()
 
                 self.documentsPage.Check(self.config._windowSettings["Documents"]["show"])
                 self.mzTable.Check(self.config._windowSettings["Peak list"]["show"])
-                self.ccsTable.Check(self.config._windowSettings["CCS calibration"]["show"])
-                self.multifieldTable.Check(self.config._windowSettings["Linear Drift Cell"]["show"])
                 self.textTable.Check(self.config._windowSettings["Text files"]["show"])
                 self.multipleMLTable.Check(self.config._windowSettings["Multiple files"]["show"])
 
@@ -1711,17 +1616,11 @@ class MyFrame(wx.Frame):
                 self.config._windowSettings["Multiple files"]["show"] = False
             if not self.panelMultipleIons.IsShown():
                 self.config._windowSettings["Peak list"]["show"] = False
-            if not self.panelCCS.IsShown():
-                self.config._windowSettings["CCS calibration"]["show"] = False
-            if not self.panelLinearDT.IsShown():
-                self.config._windowSettings["Linear Drift Cell"]["show"] = False
             if not self.panelMultipleText.IsShown():
                 self.config._windowSettings["Text files"]["show"] = False
 
             self.documentsPage.Check(self.config._windowSettings["Documents"]["show"])
             self.mzTable.Check(self.config._windowSettings["Peak list"]["show"])
-            self.ccsTable.Check(self.config._windowSettings["CCS calibration"]["show"])
-            self.multifieldTable.Check(self.config._windowSettings["Linear Drift Cell"]["show"])
             self.textTable.Check(self.config._windowSettings["Text files"]["show"])
             self.multipleMLTable.Check(self.config._windowSettings["Multiple files"]["show"])
 
@@ -1734,11 +1633,9 @@ class MyFrame(wx.Frame):
         idList = [
             ID_window_documentList,
             ID_window_controls,
-            ID_window_ccsList,
             ID_window_ionList,
             ID_window_multipleMLList,
             ID_window_textList,
-            ID_window_multiFieldList,
         ]
         for itemID in idList:
             if check_all:
@@ -1755,8 +1652,6 @@ class MyFrame(wx.Frame):
             "Multiple files": ID_window_multipleMLList,
             "Peak list": ID_window_ionList,
             "Text files": ID_window_textList,
-            "CCS calibration": ID_window_ccsList,
-            "Linear Drift Cell": ID_window_multiFieldList,
         }
         return panelDict[panel]
 

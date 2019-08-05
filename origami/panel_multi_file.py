@@ -63,7 +63,7 @@ logger = logging.getLogger("origami")
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 
 
-class panelMML(wx.Panel):
+class PanelMultiFile(wx.Panel):
     def __init__(self, parent, config, icons, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL

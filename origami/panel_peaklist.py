@@ -73,7 +73,7 @@ from utils.random import get_random_int
 logger = logging.getLogger("origami")
 
 
-class panelMultipleIons(wx.Panel):
+class PanelPeaklist(wx.Panel):
     keyword_alias = {"colormap": "cmap"}
 
     def __init__(self, parent, config, icons, helpInfo, presenter):
